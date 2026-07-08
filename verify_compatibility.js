@@ -37,6 +37,24 @@ function runJavaConverter(filePath) {
   }
 }
 
+function normalizeAnnotations(annotations) {
+  if (!annotations) return "";
+  const normalized = {};
+  Object.keys(annotations).sort().forEach(key => {
+    normalized[key] = annotations[key].map(ann => {
+      return {
+        value: ann.value,
+        type: ann.type,
+        language: ann.language || "undefined",
+        identifier: ann.identifier
+      };
+    }).sort((a, b) => {
+      return `${a.language}-${a.value}`.localeCompare(`${b.language}-${b.value}`);
+    });
+  });
+  return JSON.stringify(normalized);
+}
+
 function parseVowlJson(json) {
   if (!json) return null;
   
@@ -50,14 +68,21 @@ function parseVowlJson(json) {
 
   // 2. Extract Classes
   const classes = new Set();
+  const classAnnotations = {};
+  const classInstances = {};
   if (json.classAttribute) {
     json.classAttribute.forEach(c => {
-      if (c.iri) classes.add(c.iri);
+      if (c.iri) {
+        classes.add(c.iri);
+        classAnnotations[c.iri] = normalizeAnnotations(c.annotations);
+        classInstances[c.iri] = c.instances || 0;
+      }
     });
   }
 
   // 3. Extract Properties
   const properties = {};
+  const propertyAnnotations = {};
   if (json.propertyAttribute) {
     json.propertyAttribute.forEach(p => {
       if (p.iri && p.iri !== "http://www.w3.org/2000/01/rdf-schema#subClassOf") {
@@ -65,6 +90,7 @@ function parseVowlJson(json) {
           domain: classIdToIri[p.domain] || p.domain || null,
           range: classIdToIri[p.range] || p.range || null,
         };
+        propertyAnnotations[p.iri] = normalizeAnnotations(p.annotations);
       }
     });
   }
@@ -95,15 +121,36 @@ function parseVowlJson(json) {
     });
   }
 
+  // 6. Extract Disjoints
+  const disjoints = [];
+  if (json.propertyAttribute) {
+    json.propertyAttribute.forEach(p => {
+      const isDisjointProp = json.property && json.property.find(item => item.id === p.id && item.type === "owl:disjointWith");
+      if (isDisjointProp || p.type === "owl:disjointWith") {
+        const sub = classIdToIri[p.domain] || p.domain;
+        const sup = classIdToIri[p.range] || p.range;
+        if (sub && sup) {
+          const sorted = [sub, sup].sort();
+          disjoints.push(`${sorted[0]} <-> ${sorted[1]}`);
+        }
+      }
+    });
+  }
+  const uniqueDisjoints = Array.from(new Set(disjoints)).sort();
+
   const title = json.header ? (json.header.title ? (json.header.title.en || json.header.title.undefined || "") : "") : "";
 
   return {
     ontologyIri: json.header ? json.header.iri : null,
     title,
     classes,
+    classAnnotations,
+    classInstances,
     properties,
+    propertyAnnotations,
     subclasses,
-    unions
+    unions,
+    disjoints: uniqueDisjoints
   };
 }
 
@@ -183,7 +230,37 @@ function compare(file) {
   const extraSubclasses = jsParsed.subclasses.filter(s => !javaParsed.subclasses.includes(s));
   const subclassesMatch = missingSubclasses.length === 0 && extraSubclasses.length === 0;
 
-  const isExactMatch = iriMatch && classesMatch && propsMatch && subclassesMatch;
+  let annotationsMatch = true;
+  let instancesMatch = true;
+  let disjointsMatch = true;
+
+  // Compare disjoints
+  const missingDisjoints = javaParsed.disjoints.filter(d => !jsParsed.disjoints.includes(d));
+  const extraDisjoints = jsParsed.disjoints.filter(d => !javaParsed.disjoints.includes(d));
+  if (missingDisjoints.length > 0 || extraDisjoints.length > 0) {
+    disjointsMatch = false;
+  }
+
+  // Compare class annotations & instances for common classes
+  const commonClasses = Array.from(javaParsed.classes).filter(c => jsParsed.classes.has(c));
+  commonClasses.forEach(c => {
+    if (javaParsed.classAnnotations[c] !== jsParsed.classAnnotations[c]) {
+      annotationsMatch = false;
+    }
+    if (javaParsed.classInstances[c] !== jsParsed.classInstances[c]) {
+      instancesMatch = false;
+    }
+  });
+
+  // Compare property annotations for common properties
+  const commonPropAnnotations = javaPropKeys.filter(p => jsParsed.properties[p]);
+  commonPropAnnotations.forEach(p => {
+    if (javaParsed.propertyAnnotations[p] !== jsParsed.propertyAnnotations[p]) {
+      annotationsMatch = false;
+    }
+  });
+
+  const isExactMatch = iriMatch && classesMatch && propsMatch && subclassesMatch && annotationsMatch && instancesMatch && disjointsMatch;
 
   let fileStatus = "FAILED";
   let reason = "";
@@ -204,7 +281,14 @@ function compare(file) {
       if (extraProps.length > 0) console.log(`   Extra Properties in JS:`, extraProps);
       if (!propStructureMatches) console.log(`   Property Domain/Range structure mismatch detected.`);
       if (!subclassesMatch) console.log(`   Subclasses match mismatch: Java=${javaParsed.subclasses.length}, JS=${jsParsed.subclasses.length}`);
-      reason = "Structural differences detected";
+      if (!annotationsMatch) console.log(`   Annotations mismatch detected (definition, label, scopeNote, etc.).`);
+      if (!instancesMatch) console.log(`   Instances count mismatch detected.`);
+      if (!disjointsMatch) {
+        console.log(`   Disjoints mismatch detected.`);
+        if (missingDisjoints.length > 0) console.log(`     Missing Disjoints in JS:`, missingDisjoints);
+        if (extraDisjoints.length > 0) console.log(`     Extra Disjoints in JS:`, extraDisjoints);
+      }
+      reason = "Structural or metadata differences detected";
     }
   }
 

@@ -767,6 +767,11 @@ module.exports = function owl2vowl(xmlString) {
     propertyAttributesArray.push(subProp.attribute);
   });
 
+  disjointProperties.forEach(dp => {
+    propertiesArray.push(dp.property);
+    propertyAttributesArray.push(dp.propertyAttribute);
+  });
+
   const metrics = {
     classCount: 0,
     datatypeCount: 0,
