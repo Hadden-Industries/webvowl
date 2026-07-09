@@ -208,6 +208,27 @@ module.exports = (function () {
     this.labelForCurrentLanguage = function () {
       const preferredLanguage =
         graph && graph.language ? graph.language() : null;
+      
+      var ann = annotations;
+      if ( ann && ann.prefLabel ) {
+        var prefLabels = ann.prefLabel;
+        if ( preferredLanguage ) {
+          for ( var i = 0; i < prefLabels.length; i++ ) {
+            if ( prefLabels[i].language === preferredLanguage ) {
+              return prefLabels[i].value;
+            }
+          }
+        }
+        for ( var i = 0; i < prefLabels.length; i++ ) {
+          if ( prefLabels[i].language === "undefined" || !prefLabels[i].language ) {
+            return prefLabels[i].value;
+          }
+        }
+        if ( prefLabels.length > 0 ) {
+          return prefLabels[0].value;
+        }
+      }
+      
       return languageTools.textInLanguage(this.label(), preferredLanguage);
     };
   };
