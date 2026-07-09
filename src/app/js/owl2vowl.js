@@ -133,6 +133,7 @@ module.exports = function owl2vowl(xmlString) {
   const subclassRelations = []; // Array of { subclassIri, superclassIri }
   const subpropertyRelations = []; // Array of { subpropIri, superpropIri }
   const parsedRestrictions = []; // Array of { domainIri, propertyIri, rangeIri, type }
+  const parsedCardinalities = []; // Array of { propertyIri, minCardinality, maxCardinality, cardinality }
 
   function ensureClassExists(iri, type = "owl:Class") {
     if (classMap.has(iri)) {
@@ -296,26 +297,45 @@ module.exports = function owl2vowl(xmlString) {
               const onPropertyEl = getElementsByLocalName(nestedEl, "onProperty")[0];
               const propertyIri = onPropertyEl ? (getResource(onPropertyEl) || getAbout(onPropertyEl)) : null;
 
-              const someValuesFromEl = getElementsByLocalName(nestedEl, "someValuesFrom")[0];
-              const allValuesFromEl = getElementsByLocalName(nestedEl, "allValuesFrom")[0];
-              let rangeIri = null;
-              let type = null;
+              if (propertyIri) {
+                const resolvedPropIri = resolveIri(propertyIri);
 
-              if (someValuesFromEl) {
-                rangeIri = getResource(someValuesFromEl) || getAbout(someValuesFromEl);
-                type = "owl:someValuesFrom";
-              } else if (allValuesFromEl) {
-                rangeIri = getResource(allValuesFromEl) || getAbout(allValuesFromEl);
-                type = "owl:allValuesFrom";
-              }
+                // Parse cardinality restrictions
+                const minCardEl = getElementsByLocalName(nestedEl, "minQualifiedCardinality")[0] || getElementsByLocalName(nestedEl, "minCardinality")[0];
+                const maxCardEl = getElementsByLocalName(nestedEl, "maxQualifiedCardinality")[0] || getElementsByLocalName(nestedEl, "maxCardinality")[0];
+                const cardEl = getElementsByLocalName(nestedEl, "qualifiedCardinality")[0] || getElementsByLocalName(nestedEl, "cardinality")[0];
 
-              if (propertyIri && rangeIri) {
-                parsedRestrictions.push({
-                  domainIri: subject.iri,
-                  propertyIri: resolveIri(propertyIri),
-                  rangeIri: resolveIri(rangeIri),
-                  type: type
-                });
+                if (minCardEl || maxCardEl || cardEl) {
+                  parsedCardinalities.push({
+                    propertyIri: resolvedPropIri,
+                    minCardinality: minCardEl ? minCardEl.textContent.trim() : null,
+                    maxCardinality: maxCardEl ? maxCardEl.textContent.trim() : null,
+                    cardinality: cardEl ? cardEl.textContent.trim() : null
+                  });
+                }
+
+                // Parse someValuesFrom / allValuesFrom
+                const someValuesFromEl = getElementsByLocalName(nestedEl, "someValuesFrom")[0];
+                const allValuesFromEl = getElementsByLocalName(nestedEl, "allValuesFrom")[0];
+                let rangeIri = null;
+                let type = null;
+
+                if (someValuesFromEl) {
+                  rangeIri = getResource(someValuesFromEl) || getAbout(someValuesFromEl);
+                  type = "owl:someValuesFrom";
+                } else if (allValuesFromEl) {
+                  rangeIri = getResource(allValuesFromEl) || getAbout(allValuesFromEl);
+                  type = "owl:allValuesFrom";
+                }
+
+                if (rangeIri) {
+                  parsedRestrictions.push({
+                    domainIri: subject.iri,
+                    propertyIri: resolvedPropIri,
+                    rangeIri: resolveIri(rangeIri),
+                    type: type
+                  });
+                }
               }
               targetResource = null; // Do not treat as normal subclass/equivalentClass relation
             } else {
@@ -799,6 +819,22 @@ module.exports = function owl2vowl(xmlString) {
     }
   });
 
+  // Resolve cardinalities onto property definitions
+  parsedCardinalities.forEach(card => {
+    const prop = propertyMap.get(card.propertyIri);
+    if (prop) {
+      if (card.minCardinality !== null) {
+        prop.minCardinality = card.minCardinality;
+      }
+      if (card.maxCardinality !== null) {
+        prop.maxCardinality = card.maxCardinality;
+      }
+      if (card.cardinality !== null) {
+        prop.cardinality = card.cardinality;
+      }
+    }
+  });
+
   // Build JSON outputs
   const classesArray = [];
   const classAttributesArray = [];
@@ -883,6 +919,9 @@ module.exports = function owl2vowl(xmlString) {
     if (prop.superproperty.length > 0) attr.superproperty = prop.superproperty;
     if (prop.subproperty.length > 0) attr.subproperty = prop.subproperty;
     if (prop.inverse) attr.inverse = prop.inverse;
+    if (prop.minCardinality !== undefined) attr.minCardinality = prop.minCardinality;
+    if (prop.maxCardinality !== undefined) attr.maxCardinality = prop.maxCardinality;
+    if (prop.cardinality !== undefined) attr.cardinality = prop.cardinality;
     propertyAttributesArray.push(attr);
   });
 
