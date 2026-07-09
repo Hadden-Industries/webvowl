@@ -132,6 +132,7 @@ module.exports = function owl2vowl(xmlString) {
   const propertyMap = new Map(); // IRI -> VOWL Property object
   const subclassRelations = []; // Array of { subclassIri, superclassIri }
   const subpropertyRelations = []; // Array of { subpropIri, superpropIri }
+  const parsedRestrictions = []; // Array of { domainIri, propertyIri, rangeIri, type }
 
   function ensureClassExists(iri, type = "owl:Class") {
     if (classMap.has(iri)) {
@@ -290,28 +291,57 @@ module.exports = function owl2vowl(xmlString) {
             }
           }
           if (nestedEl) {
-            const about = getAbout(nestedEl);
-            if (about) {
-              targetResource = resolveIri(about);
+            const isRestriction = nestedEl.localName === "Restriction" && (nestedEl.namespaceURI === OWL_NS || nestedEl.prefix === "owl");
+            if (isRestriction && (predLocal === "subClassOf" || predLocal === "equivalentClass")) {
+              const onPropertyEl = getElementsByLocalName(nestedEl, "onProperty")[0];
+              const propertyIri = onPropertyEl ? (getResource(onPropertyEl) || getAbout(onPropertyEl)) : null;
+
+              const someValuesFromEl = getElementsByLocalName(nestedEl, "someValuesFrom")[0];
+              const allValuesFromEl = getElementsByLocalName(nestedEl, "allValuesFrom")[0];
+              let rangeIri = null;
+              let type = null;
+
+              if (someValuesFromEl) {
+                rangeIri = getResource(someValuesFromEl) || getAbout(someValuesFromEl);
+                type = "owl:someValuesFrom";
+              } else if (allValuesFromEl) {
+                rangeIri = getResource(allValuesFromEl) || getAbout(allValuesFromEl);
+                type = "owl:allValuesFrom";
+              }
+
+              if (propertyIri && rangeIri) {
+                parsedRestrictions.push({
+                  domainIri: subject.iri,
+                  propertyIri: resolveIri(propertyIri),
+                  rangeIri: resolveIri(rangeIri),
+                  type: type
+                });
+              }
+              targetResource = null; // Do not treat as normal subclass/equivalentClass relation
             } else {
-              // Check if it has owl:unionOf
-              const unionOfEl = getElementsByLocalName(nestedEl, "unionOf")[0];
-              if (unionOfEl) {
-                const memberIris = [];
-                const allChildren = unionOfEl.getElementsByTagName ? unionOfEl.getElementsByTagName("*") : [];
-                for (let j = 0; j < allChildren.length; j++) {
-                  const descAbout = getAbout(allChildren[j]) || getResource(allChildren[j]);
-                  if (descAbout) {
-                    memberIris.push(resolveIri(descAbout));
+              const about = getAbout(nestedEl);
+              if (about) {
+                targetResource = resolveIri(about);
+              } else {
+                // Check if it has owl:unionOf
+                const unionOfEl = getElementsByLocalName(nestedEl, "unionOf")[0];
+                if (unionOfEl) {
+                  const memberIris = [];
+                  const allChildren = unionOfEl.getElementsByTagName ? unionOfEl.getElementsByTagName("*") : [];
+                  for (let j = 0; j < allChildren.length; j++) {
+                    const descAbout = getAbout(allChildren[j]) || getResource(allChildren[j]);
+                    if (descAbout) {
+                      memberIris.push(resolveIri(descAbout));
+                    }
                   }
-                }
-                
-                if (memberIris.length > 0) {
-                   const unionClassIri = "http://anonymous-union/" + nextId();
-                   const unionCls = ensureClassExists(unionClassIri, "owl:unionOf");
-                  unionCls.attributes.push("union");
-                  unionCls.unionMembers = memberIris;
-                  targetResource = unionClassIri;
+                  
+                  if (memberIris.length > 0) {
+                     const unionClassIri = "http://anonymous-union/" + nextId();
+                     const unionCls = ensureClassExists(unionClassIri, "owl:unionOf");
+                    unionCls.attributes.push("union");
+                    unionCls.unionMembers = memberIris;
+                    targetResource = unionClassIri;
+                  }
                 }
               }
             }
@@ -549,6 +579,11 @@ module.exports = function owl2vowl(xmlString) {
     ensureClassExists(rel.superclassIri);
   });
 
+  parsedRestrictions.forEach(rest => {
+    ensureClassExists(rest.domainIri);
+    ensureClassExists(rest.rangeIri);
+  });
+
   for (const iri in subjects) {
     const subject = subjects[iri];
     subject.equivalentClasses.forEach(equivIri => {
@@ -718,6 +753,52 @@ module.exports = function owl2vowl(xmlString) {
     }
   });
 
+  // Resolve restrictions to VOWL property objects
+  const restrictionProperties = [];
+  parsedRestrictions.forEach(rest => {
+    const subCls = classMap.get(rest.domainIri);
+    const superCls = classMap.get(rest.rangeIri);
+    
+    if (subCls && superCls) {
+      let refProp = propertyMap.get(rest.propertyIri);
+      if (!refProp) {
+        refProp = ensurePropertyExists(rest.propertyIri);
+      }
+      
+      const propId = nextId();
+      const attributes = ["object"];
+      if (rest.type === "owl:someValuesFrom") {
+        attributes.push("someValuesFrom");
+      } else if (rest.type === "owl:allValuesFrom") {
+        attributes.push("allValuesFrom");
+      }
+      
+      if (refProp.attributes) {
+        refProp.attributes.forEach(attr => {
+          if (!attributes.includes(attr)) attributes.push(attr);
+        });
+      }
+      
+      const restProp = {
+        property: { id: propId, type: rest.type },
+        attribute: {
+          id: propId,
+          iri: refProp.iri,
+          baseIri: refProp.baseIri,
+          label: Object.assign({}, refProp.label),
+          domain: subCls.id,
+          range: superCls.id,
+          attributes: attributes
+        }
+      };
+      
+      if (refProp.comment && Object.keys(refProp.comment).length > 0) restProp.attribute.comment = refProp.comment;
+      if (refProp.annotations && Object.keys(refProp.annotations).length > 0) restProp.attribute.annotations = refProp.annotations;
+      
+      restrictionProperties.push(restProp);
+    }
+  });
+
   // Build JSON outputs
   const classesArray = [];
   const classAttributesArray = [];
@@ -815,6 +896,11 @@ module.exports = function owl2vowl(xmlString) {
     propertyAttributesArray.push(dp.propertyAttribute);
   });
 
+  restrictionProperties.forEach(rp => {
+    propertiesArray.push(rp.property);
+    propertyAttributesArray.push(rp.attribute);
+  });
+
   const metrics = {
     classCount: 0,
     datatypeCount: 0,
@@ -831,7 +917,7 @@ module.exports = function owl2vowl(xmlString) {
   });
 
   propertiesArray.forEach(p => {
-    if (p.type === "owl:objectProperty") metrics.objectPropertyCount++;
+    if (p.type === "owl:objectProperty" || p.type === "owl:someValuesFrom" || p.type === "owl:allValuesFrom") metrics.objectPropertyCount++;
     if (p.type === "owl:datatypeProperty") metrics.datatypePropertyCount++;
   });
 
