@@ -219,14 +219,148 @@ module.exports = function ( graph ){
     }
   }
   
-  function listAnnotations( container, annotationObject ){
-    annotationObject = annotationObject || {};  //todo
+  var RANK_MAP = {
+    "name": 1,
+    "skos:definition": 2,
+    "definition": 2,
+    "type": 3,
+    "inverse": 4,
+    "domain": 5,
+    "range": 6,
+    "subprop": 7,
+    "superprop": 8,
+    "equiv": 9,
+    "disjoint": 10,
+    "cardinality": 11,
+    "charac": 12,
+    "individuals": 13,
+    "description": 14,
+    "comment": 15,
+    "dcterms:identifier": 16,
+    "identifier": 16,
+    "dcterms:creator": 17,
+    "creator": 17,
+    "dcterms:created": 18,
+    "created": 18,
+    "dcterms:modified": 19,
+    "modified": 19,
+    "rdfs:label": 20,
+    "label": 20,
+    "skos:altLabel": 21,
+    "altLabel": 21,
+    "skos:hiddenLabel": 22,
+    "hiddenLabel": 22,
+    "skos:scopeNote": 23,
+    "scopeNote": 23,
+    "skos:example": 24,
+    "example": 24,
+    "dcterms:source": 25,
+    "source": 25,
+    "skos:changeNote": 26,
+    "changeNote": 26,
+    "skos:editorialNote": 27,
+    "editorialNote": 27,
+    "skos:historyNote": 28,
+    "historyNote": 28,
+    "skos:note": 29,
+    "note": 29,
+    "dcterms:references": 30,
+    "references": 30,
+    "rdfs:seeAlso": 31,
+    "seeAlso": 31,
+    "rdfs:comment": 32
+  };
+
+  function getParagraphIdentifier( pNode ){
+    var dataId = pNode.getAttribute("data-identifier");
+    if ( dataId ) return dataId;
     
-    // Collect the annotations in an array for simpler processing
+    var span = pNode.querySelector("span");
+    if ( span && span.id ) {
+      var id = span.id;
+      if ( id === "propname" ) return "name";
+      if ( id === "typeProp" || id === "typeNode" ) return "type";
+      if ( id === "classEquivUri" || id === "propEquivUri" ) return "equiv";
+      if ( id === "disjointNodes" ) return "disjoint";
+      if ( id === "classAttributes" || id === "propAttributes" ) return "charac";
+      if ( id === "individuals" ) return "individuals";
+      if ( id === "nodeDescription" || id === "propDescription" ) return "description";
+      if ( id === "nodeComment" || id === "propComment" ) return "comment";
+      if ( id === "subproperties" ) return "subprop";
+      if ( id === "superproperties" ) return "superprop";
+      if ( id === "infoCardinality" || id === "minCardinality" || id === "maxCardinality" ) return "cardinality";
+      if ( id === "inverse" ) return "inverse";
+      if ( id === "domain" ) return "domain";
+      if ( id === "range" ) return "range";
+      return id;
+    }
+    
+    var text = pNode.textContent || pNode.innerText || "";
+    var parts = text.split(":");
+    if ( parts.length > 0 ) {
+      return parts[0].trim();
+    }
+    return "";
+  }
+
+  function compareParagraphs( a, b ) {
+    var idA = getParagraphIdentifier(a);
+    var idB = getParagraphIdentifier(b);
+    
+    var rankA = RANK_MAP[idA] !== undefined ? RANK_MAP[idA] : 100;
+    var rankB = RANK_MAP[idB] !== undefined ? RANK_MAP[idB] : 100;
+    
+    if ( rankA !== rankB ) {
+      return rankA - rankB;
+    }
+    
+    var labelA = String(idA).toLowerCase();
+    var labelB = String(idB).toLowerCase();
+    if ( labelA < labelB ) return -1;
+    if ( labelA > labelB ) return 1;
+    
+    var textA = String(a.textContent || a.innerText || "").toLowerCase();
+    var textB = String(b.textContent || b.innerText || "").toLowerCase();
+    if ( textA < textB ) return -1;
+    if ( textA > textB ) return 1;
+    
+    return 0;
+  }
+
+  function sortDetailsPane( containerSelector ) {
+    var parent = document.querySelector(containerSelector);
+    if ( !parent ) return;
+    
+    var paragraphs = Array.prototype.slice.call(parent.children).filter(function ( el ) {
+      return el.tagName.toLowerCase() === "p";
+    });
+    
+    paragraphs.sort(compareParagraphs);
+    
+    paragraphs.forEach(function ( pNode ) {
+      parent.appendChild(pNode);
+    });
+  }
+
+  function listAnnotations( container, annotationObject ){
+    annotationObject = annotationObject || {};
+    
     var annotations = [];
     for ( var annotation in annotationObject ) {
       if ( annotationObject.hasOwnProperty(annotation) ) {
-        annotations.push(annotationObject[annotation][0]);
+        var items = annotationObject[annotation];
+        if ( items && items.length > 0 ) {
+          var sortedItems = items.slice(0).sort(function ( a, b ) {
+            var valA = String(a.value);
+            var valB = String(b.value);
+            if ( valA < valB ) return -1;
+            if ( valA > valB ) return 1;
+            return 0;
+          });
+          sortedItems.forEach(function ( item ) {
+            annotations.push(item);
+          });
+        }
       }
     }
     
@@ -234,6 +368,9 @@ module.exports = function ( graph ){
     container.selectAll(".annotation").data(annotations).enter().append("p")
       .classed("annotation", true)
       .classed("statisticDetails", true)
+      .attr("data-identifier", function ( d ){
+        return d.identifier;
+      })
       .text(function ( d ){
         return d.identifier + ":";
       })
@@ -331,17 +468,38 @@ module.exports = function ( graph ){
     setTextAndVisibility(d3.select("#propComment"), property.commentForCurrentLanguage());
     
     var annotations = property.annotations();
-    if ( annotations && annotations.prefLabel ) {
-      var filteredAnnotations = {};
+    var filteredAnnotations = {};
+    if ( annotations ) {
       for ( var key in annotations ) {
         if ( annotations.hasOwnProperty(key) && key !== "prefLabel" ) {
           filteredAnnotations[key] = annotations[key];
         }
       }
-      listAnnotations(d3.select("#propertySelectionInformation"), filteredAnnotations);
-    } else {
-      listAnnotations(d3.select("#propertySelectionInformation"), annotations);
     }
+    
+    var elementLabel = property.label();
+    if ( elementLabel ) {
+      var prefName = property.labelForCurrentLanguage();
+      var rdfsLabels = [];
+      for ( var lang in elementLabel ) {
+        if ( elementLabel.hasOwnProperty(lang) && lang !== "IRI-based" ) {
+          var val = elementLabel[lang];
+          if ( val !== prefName ) {
+            rdfsLabels.push({
+              identifier: "rdfs:label",
+              value: val,
+              type: "label"
+            });
+          }
+        }
+      }
+      if ( rdfsLabels.length > 0 ) {
+        filteredAnnotations["rdfs:label"] = rdfsLabels;
+      }
+    }
+    
+    listAnnotations(d3.select("#propertySelectionInformation"), filteredAnnotations);
+    sortDetailsPane("#propertySelectionInformation");
   }
   
   function showPropertyInformations(){
@@ -437,17 +595,38 @@ module.exports = function ( graph ){
     setTextAndVisibility(d3.select("#nodeComment"), node.commentForCurrentLanguage());
     
     var annotations = node.annotations();
-    if ( annotations && annotations.prefLabel ) {
-      var filteredAnnotations = {};
+    var filteredAnnotations = {};
+    if ( annotations ) {
       for ( var key in annotations ) {
         if ( annotations.hasOwnProperty(key) && key !== "prefLabel" ) {
           filteredAnnotations[key] = annotations[key];
         }
       }
-      listAnnotations(d3.select("#classSelectionInformation"), filteredAnnotations);
-    } else {
-      listAnnotations(d3.select("#classSelectionInformation"), annotations);
     }
+    
+    var elementLabel = node.label();
+    if ( elementLabel ) {
+      var prefName = node.labelForCurrentLanguage();
+      var rdfsLabels = [];
+      for ( var lang in elementLabel ) {
+        if ( elementLabel.hasOwnProperty(lang) && lang !== "IRI-based" ) {
+          var val = elementLabel[lang];
+          if ( val !== prefName ) {
+            rdfsLabels.push({
+              identifier: "rdfs:label",
+              value: val,
+              type: "label"
+            });
+          }
+        }
+      }
+      if ( rdfsLabels.length > 0 ) {
+        filteredAnnotations["rdfs:label"] = rdfsLabels;
+      }
+    }
+    
+    listAnnotations(d3.select("#classSelectionInformation"), filteredAnnotations);
+    sortDetailsPane("#classSelectionInformation");
   }
   
   function showClassInformations(){
