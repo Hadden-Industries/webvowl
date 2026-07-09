@@ -330,7 +330,18 @@ module.exports = function ( graph ){
     setTextAndVisibility(d3.select("#propDescription"), property.descriptionForCurrentLanguage());
     setTextAndVisibility(d3.select("#propComment"), property.commentForCurrentLanguage());
     
-    listAnnotations(d3.select("#propertySelectionInformation"), property.annotations());
+    var annotations = property.annotations();
+    if ( annotations && annotations.prefLabel ) {
+      var filteredAnnotations = {};
+      for ( var key in annotations ) {
+        if ( annotations.hasOwnProperty(key) && key !== "prefLabel" ) {
+          filteredAnnotations[key] = annotations[key];
+        }
+      }
+      listAnnotations(d3.select("#propertySelectionInformation"), filteredAnnotations);
+    } else {
+      listAnnotations(d3.select("#propertySelectionInformation"), annotations);
+    }
   }
   
   function showPropertyInformations(){
@@ -425,7 +436,18 @@ module.exports = function ( graph ){
     setTextAndVisibility(d3.select("#nodeDescription"), node.descriptionForCurrentLanguage());
     setTextAndVisibility(d3.select("#nodeComment"), node.commentForCurrentLanguage());
     
-    listAnnotations(d3.select("#classSelectionInformation"), node.annotations());
+    var annotations = node.annotations();
+    if ( annotations && annotations.prefLabel ) {
+      var filteredAnnotations = {};
+      for ( var key in annotations ) {
+        if ( annotations.hasOwnProperty(key) && key !== "prefLabel" ) {
+          filteredAnnotations[key] = annotations[key];
+        }
+      }
+      listAnnotations(d3.select("#classSelectionInformation"), filteredAnnotations);
+    } else {
+      listAnnotations(d3.select("#classSelectionInformation"), annotations);
+    }
   }
   
   function showClassInformations(){
