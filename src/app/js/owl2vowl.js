@@ -151,8 +151,6 @@ module.exports = function owl2vowl(xmlString) {
     const attributes = [];
     if (isAnonymous) {
       attributes.push("anonymous");
-    } else if (ontologyBaseIri && !iri.startsWith(ontologyBaseIri)) {
-      attributes.push("external");
     }
 
     const cls = {
@@ -178,9 +176,6 @@ module.exports = function owl2vowl(xmlString) {
     const localName = getIriLocalName(iri);
     const baseIri = getIriBase(iri);
     const attributes = [type === "owl:datatypeProperty" ? "datatype" : "object"];
-    if (ontologyBaseIri && !iri.startsWith(ontologyBaseIri)) {
-      attributes.push("external");
-    }
     const prop = {
       id: id,
       type: type,
@@ -487,6 +482,59 @@ module.exports = function owl2vowl(xmlString) {
     header.title = { "en": "Ontology" };
   }
 
+  // Helper to determine if an IRI is external to the loaded ontology
+  function isIriExternal(iri) {
+    if (!iri) return false;
+    
+    // Ignore anonymous union classes
+    if (iri.startsWith("http://anonymous-union/") || iri.startsWith("http://owl2vowl.de#") || iri.startsWith("http://anonymous-")) {
+      return false;
+    }
+    
+    // Ontologies have standard owl/rdf/rdfs namespaces as external
+    if (iri.startsWith("http://www.w3.org/2002/07/owl#") || 
+        iri.startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#") || 
+        iri.startsWith("http://www.w3.org/2000/01/rdf-schema#")) {
+      return true;
+    }
+    
+    let ontologyIriVal = ontologyIri || ontologyBaseIri;
+    if (!ontologyIriVal) {
+      return false;
+    }
+    
+    function removeTrailingHash(str) {
+      return str.replace(/[#/]$/, "");
+    }
+    
+    const trimmedElementIri = removeTrailingHash(iri);
+    const trimmedOntologyIri = removeTrailingHash(ontologyIriVal);
+    
+    if (trimmedElementIri === trimmedOntologyIri) {
+      return false;
+    }
+    
+    if (trimmedElementIri.includes("#")) {
+      const parts = trimmedElementIri.split("#");
+      if (parts[0] === trimmedOntologyIri) {
+        return false;
+      }
+    }
+    
+    if (trimmedElementIri.includes("/") && !trimmedElementIri.endsWith("/")) {
+      const lastSlashIndex = trimmedElementIri.lastIndexOf("/");
+      const indexAfterSlash = lastSlashIndex + 1;
+      const elementNamespaceWithoutLastPart = trimmedElementIri.substring(0, indexAfterSlash);
+      
+      if (elementNamespaceWithoutLastPart === trimmedOntologyIri) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+
   const ignoredProperties = new Set([
     "http://www.w3.org/2000/01/rdf-schema#label",
     "http://www.w3.org/2000/01/rdf-schema#comment",
@@ -563,9 +611,6 @@ module.exports = function owl2vowl(xmlString) {
 
       const localName = getIriLocalName(iri);
       const baseIri = getIriBase(iri);
-      if (ontologyBaseIri && !iri.startsWith(ontologyBaseIri)) {
-        attributes.push("external");
-      }
 
       const prop = {
         id: nextId(),
@@ -835,6 +880,24 @@ module.exports = function owl2vowl(xmlString) {
     }
   });
 
+  // Update external attributes for all classes and properties based on fully resolved ontologyIri
+  classMap.forEach(cls => {
+    const isAnon = cls.iri.startsWith("http://anonymous-union/") || cls.type === "owl:unionOf";
+    if (!isAnon && isIriExternal(cls.iri)) {
+      if (!cls.attributes.includes("external")) {
+        cls.attributes.push("external");
+      }
+    }
+  });
+
+  propertyMap.forEach(prop => {
+    if (isIriExternal(prop.iri)) {
+      if (!prop.attributes.includes("external")) {
+        prop.attributes.push("external");
+      }
+    }
+  });
+
   // Build JSON outputs
   const classesArray = [];
   const classAttributesArray = [];
@@ -884,6 +947,9 @@ module.exports = function owl2vowl(xmlString) {
 
   // Append virtual datatypes
   virtualDatatypes.forEach(cls => {
+    if (isIriExternal(cls.iri) && !cls.attributes.includes("external")) {
+      cls.attributes.push("external");
+    }
     classesArray.push({ id: cls.id, type: cls.type });
     const attr = {
       id: cls.id,
