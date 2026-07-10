@@ -1013,12 +1013,10 @@ module.exports = function owl2vowl(xmlString) {
       
       const propId = nextId();
       const attributes = ["object"];
-      if (rest.type === "owl:someValuesFrom") {
+      if (rest.type === "owl:someValuesFrom" || rest.type === "owl:hasValue") {
         attributes.push("someValuesFrom");
       } else if (rest.type === "owl:allValuesFrom") {
         attributes.push("allValuesFrom");
-      } else if (rest.type === "owl:hasValue") {
-        attributes.push("hasValue");
       }
       
       if (refProp && refProp.attributes) {
@@ -1033,7 +1031,7 @@ module.exports = function owl2vowl(xmlString) {
       const refPropLabel = refProp && refProp.label ? refProp.label : { "undefined": getIriLocalName(rest.propertyIri) };
       
       const restProp = {
-        property: { id: propId, type: rest.type },
+        property: { id: propId, type: rest.type === "owl:hasValue" ? "owl:someValuesFrom" : rest.type },
         attribute: {
           id: propId,
           iri: refPropIri,
