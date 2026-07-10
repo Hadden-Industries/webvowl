@@ -195,7 +195,8 @@ module.exports = function owl2vowl(xmlString) {
       comment: {},
       attributes: attributes,
       subClasses: [],
-      superClasses: []
+      superClasses: [],
+      individuals: []
     };
     classMap.set(iri, cls);
     return cls;
@@ -679,7 +680,33 @@ module.exports = function owl2vowl(xmlString) {
     }
   }
 
-  // 2. Map Subjects to Classes & Properties
+  // 6. Types used in custom class assertion/typing statements 
+  // Any custom URI used to instantiate an entity is categorised as a Class (signature/role inference)
+  for (const iri in subjects) {
+    const subject = subjects[iri];
+    subject.types.forEach(t => {
+      if (
+        t !== OWL_NS + "NamedIndividual" &&
+        t !== OWL_NS + "Ontology" &&
+        t !== OWL_NS + "Class" &&
+        t !== RDFS_NS + "Class" &&
+        t !== OWL_NS + "DeprecatedClass" &&
+        t !== OWL_NS + "ObjectProperty" &&
+        t !== OWL_NS + "DatatypeProperty" &&
+        t !== OWL_NS + "AnnotationProperty" &&
+        t !== RDF_NS + "Property" &&
+        t !== RDFS_NS + "Datatype" &&
+        !isDatatypeIri(t)
+      ) {
+        inferredClasses.add(t);
+      }
+    });
+  }
+
+  // List of parsed individuals and their matching class container IRIs
+  const parsedIndividuals = [];
+
+  // 2. Map Subjects to Classes, Properties & Named Individuals
   for (const iri in subjects) {
     if (ignoredProperties.has(iri)) continue;
 
@@ -701,6 +728,12 @@ module.exports = function owl2vowl(xmlString) {
       t === OWL_NS + "TransitiveProperty" ||
       t === OWL_NS + "SymmetricProperty" ||
       t === RDF_NS + "Property"
+    );
+
+    const isExplicitNamedIndividual = types.some(t => t === OWL_NS + "NamedIndividual");
+    const isIndividual = !isClass && !isDatatype && !isProperty && (
+      isExplicitNamedIndividual ||
+      types.some(t => inferredClasses.has(t) || t === OWL_NS + "Thing")
     );
 
     if (isClass && !isDatatype) {
@@ -787,6 +820,44 @@ module.exports = function owl2vowl(xmlString) {
       });
 
       propertyMap.set(iri, prop);
+    } else if (isIndividual) {
+      const individualIri = iri;
+      const localName = getIriLocalName(individualIri);
+
+      let finalLabels = {};
+      if (Object.keys(subject.labels).length > 0) {
+        finalLabels = Object.assign({}, subject.labels);
+      } else {
+        finalLabels = { "undefined": localName };
+      }
+
+      // Mirror the Java implementation's schema structures: named individuals
+      // inside arrays in VOWL-JSON are mapped to the plural "labels" and "comments" fields.
+      const indObj = {
+        iri: individualIri,
+        baseIri: getIriBase(individualIri),
+        labels: finalLabels,
+        comments: subject.comments || {}
+      };
+      if (subject.annotations && Object.keys(subject.annotations).length > 0) {
+        indObj.annotations = subject.annotations;
+      }
+
+      // Collect all matched class types this individual instantiates
+      let classIris = types.filter(t => 
+        t !== OWL_NS + "NamedIndividual" && 
+        (inferredClasses.has(t) || t === OWL_NS + "Thing")
+      );
+
+      // Default to owl:Thing if no specific custom classes are defined on the individual
+      if (classIris.length === 0) {
+        classIris.push("http://www.w3.org/2002/07/owl#Thing");
+      }
+
+      parsedIndividuals.push({
+        individual: indObj,
+        classIris: classIris
+      });
     }
   }
 
@@ -833,6 +904,13 @@ module.exports = function owl2vowl(xmlString) {
     });
   }
 
+  // Ensure target classes specified on parsed individuals exist in the graph
+  parsedIndividuals.forEach(item => {
+    item.classIris.forEach(clsIri => {
+      ensureClassExists(clsIri);
+    });
+  });
+
   propertyMap.forEach(prop => {
     if (prop.domain && typeof prop.domain === "string" && !isVowlId(prop.domain)) {
       ensureClassExists(prop.domain);
@@ -854,6 +932,21 @@ module.exports = function owl2vowl(xmlString) {
         ensureClassExists(memberIri);
       });
     }
+  });
+
+  // Map parsed individuals to their corresponding class instances arrays
+  parsedIndividuals.forEach(item => {
+    item.classIris.forEach(clsIri => {
+      const cls = classMap.get(clsIri);
+      if (cls) {
+        if (!cls.individuals) {
+          cls.individuals = [];
+        }
+        if (!cls.individuals.some(ind => ind.iri === item.individual.iri)) {
+          cls.individuals.push(item.individual);
+        }
+      }
+    });
   });
 
   // 2. Ensure all referenced properties exist in propertyMap
@@ -1097,12 +1190,16 @@ module.exports = function owl2vowl(xmlString) {
     if (!isAnonymous) {
       attr.iri = cls.iri;
       attr.baseIri = cls.baseIri;
-      attr.instances = 0;
+      attr.instances = cls.individuals ? cls.individuals.length : 0;
       attr.label = cls.label;
       if (cls.annotations && Object.keys(cls.annotations).length > 0) {
         attr.annotations = cls.annotations;
       }
       if (Object.keys(cls.comment).length > 0) attr.comment = cls.comment;
+      
+      if (cls.individuals && cls.individuals.length > 0) {
+        attr.individuals = cls.individuals;
+      }
     }
     // Anonymous classes (like owl:unionOf) do not get a label attribute in the VOWL-JSON, aligning perfectly with the original Java converter.
     
@@ -1213,6 +1310,15 @@ module.exports = function owl2vowl(xmlString) {
     if (p.type === "owl:objectProperty" || p.type === "owl:someValuesFrom" || p.type === "owl:allValuesFrom" || p.type === "owl:hasValue") metrics.objectPropertyCount++;
     if (p.type === "owl:datatypeProperty") metrics.datatypePropertyCount++;
   });
+
+  // Compute exact individuals metric count across all registered classes
+  let totalIndividualCount = 0;
+  classMap.forEach(cls => {
+    if (cls.individuals) {
+      totalIndividualCount += cls.individuals.length;
+    }
+  });
+  metrics.individualCount = totalIndividualCount;
 
   return {
     _comment: "Created with client-side JS-OWL2VOWL parser",
