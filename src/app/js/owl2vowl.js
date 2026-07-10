@@ -44,6 +44,7 @@ module.exports = function owl2vowl(xmlString) {
   }
 
   function getIriLocalName(iri) {
+    if (!iri) return "";
     const hashIdx = iri.lastIndexOf("#");
     if (hashIdx !== -1) return iri.substring(hashIdx + 1);
     const slashIdx = iri.lastIndexOf("/");
@@ -52,6 +53,7 @@ module.exports = function owl2vowl(xmlString) {
   }
 
   function getIriBase(iri) {
+    if (!iri) return "";
     const hashIdx = iri.lastIndexOf("#");
     if (hashIdx !== -1) return iri.substring(0, hashIdx);
     const slashIdx = iri.lastIndexOf("/");
@@ -189,7 +191,7 @@ module.exports = function owl2vowl(xmlString) {
       type: type === "owl:unionOf" ? "owl:unionOf" : type,
       iri: iri,
       baseIri: baseIri,
-      label: { "IRI-based": localName },
+      label: { "undefined": localName },
       comment: {},
       attributes: attributes,
       subClasses: [],
@@ -212,7 +214,7 @@ module.exports = function owl2vowl(xmlString) {
       type: type,
       iri: iri,
       baseIri: baseIri,
-      label: { "IRI-based": localName },
+      label: { "undefined": localName },
       comment: {},
       attributes: attributes,
       domain: null,
@@ -703,7 +705,16 @@ module.exports = function owl2vowl(xmlString) {
 
     if (isClass && !isDatatype) {
       const cls = ensureClassExists(iri, "owl:Class");
-      cls.label = Object.assign(cls.label, subject.labels);
+      
+      // Mirror the Java exporter's precise label priority logic:
+      // If annotation properties (rdfs:label) are available, output only those.
+      // Else, fall back safely to undefined: localName.
+      if (Object.keys(subject.labels).length > 0) {
+        cls.label = Object.assign({}, subject.labels);
+      } else {
+        cls.label = { "undefined": getIriLocalName(iri) };
+      }
+
       cls.comment = subject.comments;
       cls.annotations = subject.annotations;
       cls.disjointWith = subject.disjointWith;
@@ -720,7 +731,13 @@ module.exports = function owl2vowl(xmlString) {
       if (!cls.attributes.includes("datatype")) {
         cls.attributes.push("datatype");
       }
-      cls.label = Object.assign(cls.label, subject.labels);
+      
+      if (Object.keys(subject.labels).length > 0) {
+        cls.label = Object.assign({}, subject.labels);
+      } else {
+        cls.label = { "undefined": getIriLocalName(iri) };
+      }
+
       cls.comment = subject.comments;
       cls.annotations = subject.annotations;
     } else if (isProperty) {
@@ -742,12 +759,19 @@ module.exports = function owl2vowl(xmlString) {
       const localName = getIriLocalName(iri);
       const baseIri = getIriBase(iri);
 
+      let finalLabels = {};
+      if (Object.keys(subject.labels).length > 0) {
+        finalLabels = Object.assign({}, subject.labels);
+      } else {
+        finalLabels = { "undefined": localName };
+      }
+
       const prop = {
         id: nextId(),
         type: type,
         iri: iri,
         baseIri: baseIri,
-        label: Object.assign({ "IRI-based": localName }, subject.labels),
+        label: finalLabels,
         comment: subject.comments,
         attributes: attributes,
         domain: subject.domains[0] || null,
@@ -768,6 +792,29 @@ module.exports = function owl2vowl(xmlString) {
 
   // --- Resolution phase ---
 
+  // Is it a numeric ID (VOWL ID)?
+  function isVowlId(str) {
+    if (typeof str !== "string") return false;
+    return /^\d+$/.test(str);
+  }
+
+  // Helper to defensively resolve entity class references
+  function getClassId(iri, fallbackIri = "http://www.w3.org/2002/07/owl#Thing") {
+    let cls = classMap.get(iri);
+    if (!cls) {
+      cls = classMap.get(fallbackIri);
+    }
+    return cls ? cls.id : "0";
+  }
+
+  // 0. Pre-register all properties referenced in restrictions to guarantee they exist in propertyMap 
+  // and go through resolution logic (preventing properties remaining null and causing WebVOWL crashes)
+  parsedRestrictions.forEach(rest => {
+    if (rest.propertyIri) {
+      ensurePropertyExists(rest.propertyIri);
+    }
+  });
+
   // 1. Ensure all referenced classes and datatypes exist in classMap
   subclassRelations.forEach(rel => {
     ensureClassExists(rel.subclassIri);
@@ -787,10 +834,10 @@ module.exports = function owl2vowl(xmlString) {
   }
 
   propertyMap.forEach(prop => {
-    if (prop.domain && typeof prop.domain === "string" && prop.domain.includes(":")) {
+    if (prop.domain && typeof prop.domain === "string" && !isVowlId(prop.domain)) {
       ensureClassExists(prop.domain);
     }
-    if (prop.range && typeof prop.range === "string" && prop.range.includes(":")) {
+    if (prop.range && typeof prop.range === "string" && !isVowlId(prop.range)) {
       // Force datatypes of owl:datatypeProperty into RDFS Datatypes
       if (prop.type === "owl:datatypeProperty") {
         ensureClassExists(prop.range, "rdfs:Datatype");
@@ -819,7 +866,7 @@ module.exports = function owl2vowl(xmlString) {
   // Gather and create inverse properties in a safe separate list first
   const inversesToCreate = [];
   propertyMap.forEach(prop => {
-    if (prop.inverse && typeof prop.inverse === "string" && prop.inverse.includes(":")) {
+    if (prop.inverse && typeof prop.inverse === "string" && !isVowlId(prop.inverse)) {
       inversesToCreate.push(prop.inverse);
     }
   });
@@ -831,14 +878,13 @@ module.exports = function owl2vowl(xmlString) {
 
   // 3. Resolve domains, ranges & inverses to IDs (modifying properties in propertyMap)
   propertyMap.forEach(prop => {
-    if (prop.domain && typeof prop.domain === "string" && prop.domain.includes(":")) {
-      const cls = classMap.get(prop.domain);
-      prop.domain = cls ? cls.id : classMap.get("http://www.w3.org/2002/07/owl#Thing").id;
+    if (prop.domain && typeof prop.domain === "string" && !isVowlId(prop.domain)) {
+      prop.domain = getClassId(prop.domain, "http://www.w3.org/2002/07/owl#Thing");
     } else if (!prop.domain) {
-      prop.domain = classMap.get("http://www.w3.org/2002/07/owl#Thing").id;
+      prop.domain = getClassId("http://www.w3.org/2002/07/owl#Thing");
     }
 
-    if (prop.range && typeof prop.range === "string" && prop.range.includes(":")) {
+    if (prop.range && typeof prop.range === "string" && !isVowlId(prop.range)) {
       const cls = classMap.get(prop.range);
       if (cls && cls.type === "rdfs:Datatype" && prop.range !== "http://www.w3.org/2000/01/rdf-schema#Literal") {
         // Create virtual datatype node representation for visual individualization in VOWL diagrams
@@ -848,27 +894,27 @@ module.exports = function owl2vowl(xmlString) {
           type: "rdfs:Datatype",
           iri: prop.range,
           baseIri: cls.baseIri,
-          label: JSON.parse(JSON.stringify(cls.label)),
-          comment: JSON.parse(JSON.stringify(cls.comment)),
+          label: cls.label ? JSON.parse(JSON.stringify(cls.label)) : { "undefined": getIriLocalName(prop.range) },
+          comment: cls.comment ? JSON.parse(JSON.stringify(cls.comment)) : {},
           attributes: ["datatype"],
           subClasses: [],
           superClasses: [],
-          annotations: cls.annotations
+          annotations: cls.annotations || {}
         };
         virtualDatatypes.push(virtualCls);
         prop.range = virtualId;
       } else {
-        prop.range = cls ? cls.id : classMap.get("http://www.w3.org/2002/07/owl#Thing").id;
+        prop.range = getClassId(prop.range, "http://www.w3.org/2002/07/owl#Thing");
       }
     } else if (!prop.range) {
       if (prop.type === "owl:datatypeProperty") {
-        prop.range = classMap.get("http://www.w3.org/2000/01/rdf-schema#Literal").id;
+        prop.range = getClassId("http://www.w3.org/2000/01/rdf-schema#Literal");
       } else {
-        prop.range = classMap.get("http://www.w3.org/2002/07/owl#Thing").id;
+        prop.range = getClassId("http://www.w3.org/2002/07/owl#Thing");
       }
     }
 
-    if (prop.inverse && typeof prop.inverse === "string" && prop.inverse.includes(":")) {
+    if (prop.inverse && typeof prop.inverse === "string" && !isVowlId(prop.inverse)) {
       const invProp = propertyMap.get(prop.inverse);
       if (invProp) {
         prop.inverse = invProp.id;
@@ -975,27 +1021,32 @@ module.exports = function owl2vowl(xmlString) {
         attributes.push("hasValue");
       }
       
-      if (refProp.attributes) {
+      if (refProp && refProp.attributes) {
         refProp.attributes.forEach(attr => {
           if (!attributes.includes(attr)) attributes.push(attr);
         });
       }
+
+      // Safe parameter defaults to avoid 'undefined' lookup exceptions on incomplete properties
+      const refPropIri = refProp ? refProp.iri : rest.propertyIri;
+      const refPropBaseIri = refProp ? refProp.baseIri : getIriBase(rest.propertyIri);
+      const refPropLabel = refProp && refProp.label ? refProp.label : { "undefined": getIriLocalName(rest.propertyIri) };
       
       const restProp = {
         property: { id: propId, type: rest.type },
         attribute: {
           id: propId,
-          iri: refProp.iri,
-          baseIri: refProp.baseIri,
-          label: Object.assign({}, refProp.label),
+          iri: refPropIri,
+          baseIri: refPropBaseIri,
+          label: Object.assign({}, refPropLabel),
           domain: subCls.id,
           range: superCls.id,
           attributes: attributes
         }
       };
       
-      if (refProp.comment && Object.keys(refProp.comment).length > 0) restProp.attribute.comment = refProp.comment;
-      if (refProp.annotations && Object.keys(refProp.annotations).length > 0) restProp.attribute.annotations = refProp.annotations;
+      if (refProp && refProp.comment && Object.keys(refProp.comment).length > 0) restProp.attribute.comment = refProp.comment;
+      if (refProp && refProp.annotations && Object.keys(refProp.annotations).length > 0) restProp.attribute.annotations = refProp.annotations;
       
       restrictionProperties.push(restProp);
     }
@@ -1041,7 +1092,7 @@ module.exports = function owl2vowl(xmlString) {
   const disjointProperties = [];
   classMap.forEach(cls => {
     classesArray.push({ id: cls.id, type: cls.type });
-    const isAnonymous = cls.iri.startsWith("http://anonymous-union/");
+    const isAnonymous = cls.iri.startsWith("http://anonymous-union/") || cls.type === "owl:unionOf";
     const attr = {
       id: cls.id
     };
@@ -1055,6 +1106,8 @@ module.exports = function owl2vowl(xmlString) {
       }
       if (Object.keys(cls.comment).length > 0) attr.comment = cls.comment;
     }
+    // Anonymous classes (like owl:unionOf) do not get a label attribute in the VOWL-JSON, aligning perfectly with the original Java converter.
+    
     if (cls.attributes.length > 0) attr.attributes = cls.attributes;
     if (cls.subClasses.length > 0) attr.subClasses = cls.subClasses;
     if (cls.superClasses.length > 0) attr.superClasses = cls.superClasses;
@@ -1092,7 +1145,7 @@ module.exports = function owl2vowl(xmlString) {
       id: cls.id,
       iri: cls.iri,
       baseIri: cls.baseIri,
-      label: cls.label,
+      label: cls.label || { "undefined": "Datatype" },
       attributes: cls.attributes
     };
     if (cls.annotations && Object.keys(cls.annotations).length > 0) {
@@ -1112,7 +1165,7 @@ module.exports = function owl2vowl(xmlString) {
       id: prop.id,
       iri: prop.iri,
       baseIri: prop.baseIri,
-      label: prop.label,
+      label: prop.label || { "undefined": "Property" },
       domain: prop.domain,
       range: prop.range,
       attributes: prop.attributes
