@@ -1086,3 +1086,120 @@ module.exports = function owl2vowl(xmlString) {
     propertyAttribute: propertyAttributesArray
   };
 };
+
+module.exports.loadWithImports = function (initialXmlText) {
+  const parser = new DOMParser();
+  let mainDoc;
+  try {
+    mainDoc = parser.parseFromString(initialXmlText, "application/xml");
+  } catch (e) {
+    return Promise.reject(e);
+  }
+
+  const rootEl = mainDoc.documentElement;
+  if (!rootEl) {
+    return Promise.reject(new Error("Invalid XML document"));
+  }
+
+  const loadedUrls = new Set();
+  
+  function getAttr(el, name, ns) {
+    if (ns) {
+      const val = el.getAttributeNS(ns, name);
+      if (val !== null && val !== "") return val;
+    }
+    return el.getAttribute(name) || el.getAttribute("rdf:" + name) || el.getAttribute("owl:" + name);
+  }
+
+  function getImports(doc) {
+    const imports = [];
+    const elements = doc.getElementsByTagNameNS ? doc.getElementsByTagNameNS("*", "imports") : doc.getElementsByTagName("owl:imports");
+    for (let i = 0; i < elements.length; i++) {
+      const res = getAttr(elements[i], "resource", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+      if (res) {
+        imports.push(res);
+      }
+    }
+    return imports;
+  }
+
+  // Identify main ontology IRI to avoid self-imports
+  let mainOntologyIri = "";
+  const ontologyEl = (mainDoc.getElementsByTagNameNS ? mainDoc.getElementsByTagNameNS("*", "Ontology") : mainDoc.getElementsByTagName("owl:Ontology"))[0];
+  if (ontologyEl) {
+    mainOntologyIri = getAttr(ontologyEl, "about", "http://www.w3.org/1999/02/22-rdf-syntax-ns#") || "";
+    if (mainOntologyIri) loadedUrls.add(mainOntologyIri);
+  }
+  const baseAttr = rootEl.getAttribute("xml:base") || rootEl.getAttribute("base") || "";
+  if (baseAttr) loadedUrls.add(baseAttr);
+
+  function fetchAndMerge(doc) {
+    const imports = getImports(doc);
+    const promises = [];
+    
+    for (const url of imports) {
+      if (loadedUrls.has(url)) continue;
+      loadedUrls.add(url);
+      
+      const menu = (typeof window !== "undefined" && window.WebVOWL && window.WebVOWL.ontologyMenu) ? window.WebVOWL.ontologyMenu : null;
+      if (menu && menu.append_bulletPoint) {
+        menu.append_bulletPoint("Importing external ontology: " + url + " ...");
+      }
+      
+      promises.push(
+        fetch(url)
+          .then(response => {
+            if (!response.ok) throw new Error("HTTP error " + response.status);
+            return response.text();
+          })
+          .then(xmlText => {
+            const importedDoc = parser.parseFromString(xmlText, "application/xml");
+            const importedRoot = importedDoc.documentElement;
+            if (!importedRoot) return;
+            
+            // Merge namespace attributes
+            if (importedRoot.attributes) {
+              for (let i = 0; i < importedRoot.attributes.length; i++) {
+                const attr = importedRoot.attributes[i];
+                if (attr.name.startsWith("xmlns:") && !rootEl.hasAttribute(attr.name)) {
+                  rootEl.setAttribute(attr.name, attr.value);
+                }
+              }
+            }
+            
+            // Merge children
+            const children = importedRoot.childNodes;
+            for (let i = 0; i < children.length; i++) {
+              const child = children[i];
+              if (child.nodeType === 1) {
+                if (child.localName === "Ontology") {
+                  continue;
+                }
+                const importedNode = mainDoc.importNode(child, true);
+                rootEl.appendChild(importedNode);
+              }
+            }
+            
+            if (menu && menu.append_message_toLastBulletPoint) {
+              menu.append_message_toLastBulletPoint("done");
+            }
+            
+            return fetchAndMerge(importedDoc);
+          })
+          .catch(err => {
+            console.warn("Failed to load imported ontology " + url + ": ", err);
+            if (menu && menu.append_message_toLastBulletPoint) {
+              menu.append_message_toLastBulletPoint("<span style='color:orange;'>failed (skipped)</span>");
+            }
+          })
+      );
+    }
+    
+    return Promise.all(promises).then(() => doc);
+  }
+
+  return fetchAndMerge(mainDoc).then(finalDoc => {
+    const mergedXml = new XMLSerializer().serializeToString(finalDoc);
+    return module.exports(mergedXml);
+  });
+};
