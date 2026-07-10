@@ -350,9 +350,10 @@ module.exports = function owl2vowl(xmlString) {
                   });
                 }
 
-                // Parse someValuesFrom / allValuesFrom
+                // Parse someValuesFrom / allValuesFrom / hasValue
                 const someValuesFromEl = getElementsByLocalName(nestedEl, "someValuesFrom")[0];
                 const allValuesFromEl = getElementsByLocalName(nestedEl, "allValuesFrom")[0];
+                const hasValueEl = getElementsByLocalName(nestedEl, "hasValue")[0];
                 let rangeIri = null;
                 let type = null;
 
@@ -362,6 +363,9 @@ module.exports = function owl2vowl(xmlString) {
                 } else if (allValuesFromEl) {
                   rangeIri = getResource(allValuesFromEl) || getAbout(allValuesFromEl);
                   type = "owl:allValuesFrom";
+                } else if (hasValueEl) {
+                  rangeIri = getResource(hasValueEl) || getAbout(hasValueEl);
+                  type = "owl:hasValue";
                 }
 
                 if (rangeIri) {
@@ -588,6 +592,91 @@ module.exports = function owl2vowl(xmlString) {
     "http://www.w3.org/2002/07/owl#incompatibleWith"
   ]);
 
+  // Build a Set of inferred classes to capture implicit classes (e.g. customized/punned meta-classes)
+  const inferredClasses = new Set();
+
+  // 1. Explicitly declared classes
+  for (const iri in subjects) {
+    const subject = subjects[iri];
+    for (const type of subject.types) {
+      if (
+        type === OWL_NS + "Class" ||
+        type === RDFS_NS + "Class" ||
+        type === OWL_NS + "DeprecatedClass"
+      ) {
+        inferredClasses.add(iri);
+      }
+    }
+  }
+
+  // 2. Class relations (subclass, equivalence, disjointness)
+  for (const iri in subjects) {
+    const subject = subjects[iri];
+    
+    if (subject.superClasses.length > 0) {
+      inferredClasses.add(iri);
+      subject.superClasses.forEach(sup => {
+        if (sup) inferredClasses.add(sup);
+      });
+    }
+
+    if (subject.equivalentClasses.length > 0) {
+      inferredClasses.add(iri);
+      subject.equivalentClasses.forEach(eq => {
+        if (eq) inferredClasses.add(eq);
+      });
+    }
+
+    if (subject.disjointWith.length > 0) {
+      inferredClasses.add(iri);
+      subject.disjointWith.forEach(dj => {
+        if (dj) inferredClasses.add(dj);
+      });
+    }
+  }
+
+  // 3. Subclass relations parsed
+  subclassRelations.forEach(rel => {
+    if (rel.subclassIri) inferredClasses.add(rel.subclassIri);
+    if (rel.superclassIri) inferredClasses.add(rel.superclassIri);
+  });
+
+  // 4. Parsed restrictions
+  parsedRestrictions.forEach(rest => {
+    if (rest.domainIri) inferredClasses.add(rest.domainIri);
+    if (rest.rangeIri && !isDatatypeIri(rest.rangeIri)) {
+      inferredClasses.add(rest.rangeIri);
+    }
+  });
+
+  // 5. Domains and ranges of properties
+  for (const iri in subjects) {
+    const subject = subjects[iri];
+    const types = Array.from(subject.types);
+    const isProperty = types.some(t =>
+      t === OWL_NS + "ObjectProperty" ||
+      t === OWL_NS + "DatatypeProperty" ||
+      t === OWL_NS + "FunctionalProperty" ||
+      t === OWL_NS + "TransitiveProperty" ||
+      t === OWL_NS + "SymmetricProperty" ||
+      t === RDF_NS + "Property"
+    );
+
+    if (isProperty) {
+      subject.domains.forEach(dom => {
+        if (dom) inferredClasses.add(dom);
+      });
+
+      const isDatatypeProp = types.some(t => t === OWL_NS + "DatatypeProperty") ||
+                             subject.ranges.some(isDatatypeIri);
+      if (!isDatatypeProp) {
+        subject.ranges.forEach(ran => {
+          if (ran && !isDatatypeIri(ran)) inferredClasses.add(ran);
+        });
+      }
+    }
+  }
+
   // 2. Map Subjects to Classes & Properties
   for (const iri in subjects) {
     if (ignoredProperties.has(iri)) continue;
@@ -597,11 +686,8 @@ module.exports = function owl2vowl(xmlString) {
 
     const types = Array.from(subject.types);
 
-    const isClass = types.some(t =>
-      t === OWL_NS + "Class" ||
-      t === RDFS_NS + "Class" ||
-      t === OWL_NS + "DeprecatedClass"
-    );
+    // Apply the signature inference check
+    const isClass = inferredClasses.has(iri);
 
     const isDatatype = types.some(t => t === RDFS_NS + "Datatype") || isDatatypeIri(iri);
 
@@ -885,6 +971,8 @@ module.exports = function owl2vowl(xmlString) {
         attributes.push("someValuesFrom");
       } else if (rest.type === "owl:allValuesFrom") {
         attributes.push("allValuesFrom");
+      } else if (rest.type === "owl:hasValue") {
+        attributes.push("hasValue");
       }
       
       if (refProp.attributes) {
@@ -1071,7 +1159,7 @@ module.exports = function owl2vowl(xmlString) {
   });
 
   propertiesArray.forEach(p => {
-    if (p.type === "owl:objectProperty" || p.type === "owl:someValuesFrom" || p.type === "owl:allValuesFrom") metrics.objectPropertyCount++;
+    if (p.type === "owl:objectProperty" || p.type === "owl:someValuesFrom" || p.type === "owl:allValuesFrom" || p.type === "owl:hasValue") metrics.objectPropertyCount++;
     if (p.type === "owl:datatypeProperty") metrics.datatypePropertyCount++;
   });
 
