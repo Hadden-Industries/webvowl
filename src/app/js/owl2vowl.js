@@ -35,8 +35,17 @@ module.exports = function owl2vowl(xmlString) {
     return null;
   }
 
+  // Resolves subject identifiers; rdf:ID is specifically flagged as a fragment NCName
   function getAbout(el) {
-    return getAttr(el, "about", RDF_NS) || getAttr(el, "ID", RDF_NS);
+    const about = getAttr(el, "about", RDF_NS);
+    if (about !== null && about !== "") {
+      return about;
+    }
+    const id = getAttr(el, "ID", RDF_NS);
+    if (id !== null && id !== "") {
+      return id.startsWith("#") ? id : "#" + id;
+    }
+    return null;
   }
 
   function getResource(el) {
@@ -82,7 +91,7 @@ module.exports = function owl2vowl(xmlString) {
   function resolveIri(iri) {
     if (!iri) return ontologyBaseIri;
     
-    // If it's already an absolute IRI (contains scheme like http:, https:, urn:, mailto:, etc.)
+    // If it's already an absolute IRI (contains scheme like http:, https:, urn:, etc.)
     const colonIdx = iri.indexOf(":");
     const slashIdx = iri.indexOf("/");
     if (colonIdx !== -1 && (slashIdx === -1 || colonIdx < slashIdx)) {
@@ -120,6 +129,20 @@ module.exports = function owl2vowl(xmlString) {
     }
     traverse(parent);
     return elements;
+  }
+
+  // Resolves property IRIs within onProperty nodes by looking inline at child elements if needed
+  function getPropertyIriFromOnProperty(onPropertyEl) {
+    if (!onPropertyEl) return null;
+    let iri = getResource(onPropertyEl) || getAbout(onPropertyEl);
+    if (iri) return iri;
+    for (let child = onPropertyEl.firstChild; child; child = child.nextSibling) {
+      if (child.nodeType === 1) {
+        const childIri = getAbout(child) || getResource(child);
+        if (childIri) return childIri;
+      }
+    }
+    return null;
   }
 
   const rootEl = xmlDoc.documentElement;
@@ -259,19 +282,15 @@ module.exports = function owl2vowl(xmlString) {
     return subjects[iri];
   }
 
-  // Find all elements under the root (usually child elements of <rdf:RDF>)
-  const rootChildren = rootEl ? rootEl.childNodes : [];
-  for (let i = 0; i < rootChildren.length; i++) {
-    const child = rootChildren[i];
-    if (child.nodeType !== 1) continue; // Only process Element nodes
-
-    const subjectIri = getAbout(child) ? resolveIri(getAbout(child)) : null;
-    if (!subjectIri) continue; // Skip anonymous subjects for root level elements
+  // Recursive subject graph parser (traverses the XML document in subject-predicate alternation)
+  function parseSubject(element) {
+    const subjectIri = getAbout(element) ? resolveIri(getAbout(element)) : null;
+    if (!subjectIri) return;
 
     const subject = getOrCreateSubject(subjectIri);
 
-    // If the element tag name is not Description, it implies a type
-    const localName = child.localName;
+    // Parse specific types from tags
+    const localName = element.localName;
     if (localName !== "Description") {
       if (localName === "Class") {
         subject.types.add(OWL_NS + "Class");
@@ -285,13 +304,13 @@ module.exports = function owl2vowl(xmlString) {
         subject.types.add(OWL_NS + "Ontology");
       } else if (localName === "NamedIndividual") {
         subject.types.add(OWL_NS + "NamedIndividual");
-      } else if (child.namespaceURI) {
-        subject.types.add(child.namespaceURI + localName);
+      } else if (element.namespaceURI) {
+        subject.types.add(element.namespaceURI + localName);
       }
     }
 
-    // Process nested predicate-object assertions
-    for (let pred = child.firstChild; pred; pred = pred.nextSibling) {
+    // Process nested predicates
+    for (let pred = element.firstChild; pred; pred = pred.nextSibling) {
       if (pred.nodeType !== 1) continue;
 
       const predLocal = pred.localName;
@@ -334,12 +353,12 @@ module.exports = function owl2vowl(xmlString) {
             const isRestriction = nestedEl.localName === "Restriction" && (nestedEl.namespaceURI === OWL_NS || nestedEl.prefix === "owl");
             if (isRestriction && (predLocal === "subClassOf" || predLocal === "equivalentClass")) {
               const onPropertyEl = getElementsByLocalName(nestedEl, "onProperty")[0];
-              const propertyIri = onPropertyEl ? (getResource(onPropertyEl) || getAbout(onPropertyEl)) : null;
+              const propertyIri = onPropertyEl ? getPropertyIriFromOnProperty(onPropertyEl) : null;
 
               if (propertyIri) {
                 const resolvedPropIri = resolveIri(propertyIri);
 
-                // Parse cardinality restrictions
+                // Parse cardinalities
                 const minCardEl = getElementsByLocalName(nestedEl, "minQualifiedCardinality")[0] || getElementsByLocalName(nestedEl, "minCardinality")[0];
                 const maxCardEl = getElementsByLocalName(nestedEl, "maxQualifiedCardinality")[0] || getElementsByLocalName(nestedEl, "maxCardinality")[0];
                 const cardEl = getElementsByLocalName(nestedEl, "qualifiedCardinality")[0] || getElementsByLocalName(nestedEl, "cardinality")[0];
@@ -373,7 +392,7 @@ module.exports = function owl2vowl(xmlString) {
 
                 if (rangeIri) {
                   parsedRestrictions.push({
-                    domainIri: subject.iri,
+                    domainIri: subjectIri,
                     propertyIri: resolvedPropIri,
                     rangeIri: resolveIri(rangeIri),
                     type: type
@@ -440,6 +459,21 @@ module.exports = function owl2vowl(xmlString) {
           predicateNs: predNs || ""
         });
       }
+
+      // Recurse into predicate object elements (Level 3 / Level 5) to locate inline declarations
+      for (let objectEl = pred.firstChild; objectEl; objectEl = objectEl.nextSibling) {
+        if (objectEl.nodeType === 1) {
+          parseSubject(objectEl);
+        }
+      }
+    }
+  }
+
+  // Parse RDF/XML tree recursively
+  const rootChildren = rootEl ? rootEl.childNodes : [];
+  for (let i = 0; i < rootChildren.length; i++) {
+    if (rootChildren[i].nodeType === 1) {
+      parseSubject(rootChildren[i]);
     }
   }
 
@@ -878,8 +912,29 @@ module.exports = function owl2vowl(xmlString) {
     return cls ? cls.id : "0";
   }
 
-  // 0. Pre-register all properties referenced in restrictions to guarantee they exist in propertyMap 
-  // and go through resolution logic (preventing properties remaining null and causing WebVOWL crashes)
+  const virtualDatatypes = [];
+
+  // Helper to create individualized visual Datatype nodes per reference to match Java converter behaviour
+  function createVirtualDatatype(datatypeIri) {
+    const cls = classMap.get(datatypeIri);
+    const virtualId = nextId();
+    const virtualCls = {
+      id: virtualId,
+      type: "rdfs:Datatype",
+      iri: datatypeIri,
+      baseIri: cls ? cls.baseIri : getIriBase(datatypeIri),
+      label: cls && cls.label ? JSON.parse(JSON.stringify(cls.label)) : { "undefined": getIriLocalName(datatypeIri) },
+      comment: cls && cls.comment ? JSON.parse(JSON.stringify(cls.comment)) : {},
+      attributes: ["datatype"],
+      subClasses: [],
+      superClasses: [],
+      annotations: cls && cls.annotations ? cls.annotations : {}
+    };
+    virtualDatatypes.push(virtualCls);
+    return virtualId;
+  }
+
+  // 0. Pre-register all properties referenced in restrictions to guarantee they exist in propertyMap
   parsedRestrictions.forEach(rest => {
     if (rest.propertyIri) {
       ensurePropertyExists(rest.propertyIri);
@@ -967,8 +1022,6 @@ module.exports = function owl2vowl(xmlString) {
     ensurePropertyExists(invIri);
   });
 
-  const virtualDatatypes = [];
-
   // 3. Resolve domains, ranges & inverses to IDs (modifying properties in propertyMap)
   propertyMap.forEach(prop => {
     if (prop.domain && typeof prop.domain === "string" && !isVowlId(prop.domain)) {
@@ -980,22 +1033,7 @@ module.exports = function owl2vowl(xmlString) {
     if (prop.range && typeof prop.range === "string" && !isVowlId(prop.range)) {
       const cls = classMap.get(prop.range);
       if (cls && cls.type === "rdfs:Datatype" && prop.range !== "http://www.w3.org/2000/01/rdf-schema#Literal") {
-        // Create virtual datatype node representation for visual individualization in VOWL diagrams
-        const virtualId = nextId();
-        const virtualCls = {
-          id: virtualId,
-          type: "rdfs:Datatype",
-          iri: prop.range,
-          baseIri: cls.baseIri,
-          label: cls.label ? JSON.parse(JSON.stringify(cls.label)) : { "undefined": getIriLocalName(prop.range) },
-          comment: cls.comment ? JSON.parse(JSON.stringify(cls.comment)) : {},
-          attributes: ["datatype"],
-          subClasses: [],
-          superClasses: [],
-          annotations: cls.annotations || {}
-        };
-        virtualDatatypes.push(virtualCls);
-        prop.range = virtualId;
+        prop.range = createVirtualDatatype(prop.range);
       } else {
         prop.range = getClassId(prop.range, "http://www.w3.org/2002/07/owl#Thing");
       }
@@ -1123,6 +1161,12 @@ module.exports = function owl2vowl(xmlString) {
       const refPropBaseIri = refProp ? refProp.baseIri : getIriBase(rest.propertyIri);
       const refPropLabel = refProp && refProp.label ? refProp.label : { "undefined": getIriLocalName(rest.propertyIri) };
       
+      // Virtualise restriction range if it is a datatype (individual nodes per reference, matching Java behaviour)
+      let resolvedRangeId = superCls.id;
+      if (superCls.type === "rdfs:Datatype" && rest.rangeIri !== "http://www.w3.org/2000/01/rdf-schema#Literal") {
+        resolvedRangeId = createVirtualDatatype(rest.rangeIri);
+      }
+
       const restProp = {
         property: { id: propId, type: rest.type === "owl:hasValue" ? "owl:someValuesFrom" : rest.type },
         attribute: {
@@ -1131,7 +1175,7 @@ module.exports = function owl2vowl(xmlString) {
           baseIri: refPropBaseIri,
           label: Object.assign({}, refPropLabel),
           domain: subCls.id,
-          range: superCls.id,
+          range: resolvedRangeId,
           attributes: attributes
         }
       };
