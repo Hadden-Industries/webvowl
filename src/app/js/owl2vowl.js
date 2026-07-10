@@ -59,6 +59,23 @@ module.exports = function owl2vowl(xmlString) {
     return iri;
   }
 
+  // Identifies standard XML Schema datatypes or built-in RDF/RDFS/OWL datatypes
+  function isDatatypeIri(iri) {
+    if (!iri) return false;
+    // Keep rdfs:Literal categorised specifically as its own VOWL node type
+    if (iri === "http://www.w3.org/2000/01/rdf-schema#Literal") return false;
+    if (iri.startsWith("http://www.w3.org/2001/XMLSchema#")) return true;
+    if (iri.startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#")) {
+      const local = getIriLocalName(iri);
+      return ["PlainLiteral", "XMLLiteral", "HTML", "langString"].includes(local);
+    }
+    if (iri.startsWith("http://www.w3.org/2002/07/owl#")) {
+      const local = getIriLocalName(iri);
+      return ["real", "rational"].includes(local);
+    }
+    return false;
+  }
+
   // Resolve relative IRIs against the base IRI
   function resolveIri(iri) {
     if (!iri) return ontologyBaseIri;
@@ -136,10 +153,21 @@ module.exports = function owl2vowl(xmlString) {
   const parsedCardinalities = []; // Array of { propertyIri, minCardinality, maxCardinality, cardinality }
 
   function ensureClassExists(iri, type = "owl:Class") {
+    // Dynamically coerce standard datatypes to rdfs:Datatype
+    if (isDatatypeIri(iri)) {
+      type = "rdfs:Datatype";
+    }
     if (classMap.has(iri)) {
       const cls = classMap.get(iri);
       if (type === "owl:unionOf" && cls.type === "owl:Class") {
         cls.type = "owl:unionOf";
+      }
+      // If a placeholder class is resolved later to a Datatype, update the configuration
+      if (type === "rdfs:Datatype" && cls.type === "owl:Class") {
+        cls.type = "rdfs:Datatype";
+        if (!cls.attributes.includes("datatype")) {
+          cls.attributes.push("datatype");
+        }
       }
       return cls;
     }
@@ -151,6 +179,9 @@ module.exports = function owl2vowl(xmlString) {
     const attributes = [];
     if (isAnonymous) {
       attributes.push("anonymous");
+    }
+    if (type === "rdfs:Datatype") {
+      attributes.push("datatype");
     }
 
     const cls = {
@@ -572,7 +603,7 @@ module.exports = function owl2vowl(xmlString) {
       t === OWL_NS + "DeprecatedClass"
     );
 
-    const isDatatype = types.some(t => t === RDFS_NS + "Datatype");
+    const isDatatype = types.some(t => t === RDFS_NS + "Datatype") || isDatatypeIri(iri);
 
     const isAnnotationProperty = types.some(t => t === OWL_NS + "AnnotationProperty");
     const isProperty = !isAnnotationProperty && types.some(t =>
@@ -584,7 +615,7 @@ module.exports = function owl2vowl(xmlString) {
       t === RDF_NS + "Property"
     );
 
-    if (isClass) {
+    if (isClass && !isDatatype) {
       const cls = ensureClassExists(iri, "owl:Class");
       cls.label = Object.assign(cls.label, subject.labels);
       cls.comment = subject.comments;
@@ -610,7 +641,9 @@ module.exports = function owl2vowl(xmlString) {
       let type = "owl:objectProperty";
       const attributes = ["object"];
 
-      const isDTP = types.some(t => t === OWL_NS + "DatatypeProperty");
+      // If typed explicitly as DatatypeProperty or its range matches a built-in datatype, make it a datatypeProperty
+      const isDTP = types.some(t => t === OWL_NS + "DatatypeProperty") || 
+                    (subject.ranges && subject.ranges.some(isDatatypeIri));
       if (isDTP) {
         type = "owl:datatypeProperty";
         attributes[0] = "datatype";
@@ -649,7 +682,7 @@ module.exports = function owl2vowl(xmlString) {
 
   // --- Resolution phase ---
 
-  // 1. Ensure all referenced classes exist in classMap
+  // 1. Ensure all referenced classes and datatypes exist in classMap
   subclassRelations.forEach(rel => {
     ensureClassExists(rel.subclassIri);
     ensureClassExists(rel.superclassIri);
@@ -672,7 +705,12 @@ module.exports = function owl2vowl(xmlString) {
       ensureClassExists(prop.domain);
     }
     if (prop.range && typeof prop.range === "string" && prop.range.includes(":")) {
-      ensureClassExists(prop.range);
+      // Force datatypes of owl:datatypeProperty into RDFS Datatypes
+      if (prop.type === "owl:datatypeProperty") {
+        ensureClassExists(prop.range, "rdfs:Datatype");
+      } else {
+        ensureClassExists(prop.range);
+      }
     }
   });
 
@@ -717,7 +755,7 @@ module.exports = function owl2vowl(xmlString) {
     if (prop.range && typeof prop.range === "string" && prop.range.includes(":")) {
       const cls = classMap.get(prop.range);
       if (cls && cls.type === "rdfs:Datatype" && prop.range !== "http://www.w3.org/2000/01/rdf-schema#Literal") {
-        // Create virtual datatype node
+        // Create virtual datatype node representation for visual individualization in VOWL diagrams
         const virtualId = nextId();
         const virtualCls = {
           id: virtualId,
