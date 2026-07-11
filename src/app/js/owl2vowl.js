@@ -1,23 +1,143 @@
 // Client-side OWL2VOWL converter in JavaScript
+// Optimized for performance, modular maintainability, and clean separation of concerns.
 
-module.exports = function owl2vowl(xmlString) {
-  const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xmlString, "application/xml");
-  
-  // Check for XML parsing errors
-  const parserError = xmlDoc.getElementsByTagName("parsererror")[0];
-  if (parserError) {
-    throw new Error("XML parsing error: " + parserError.textContent);
+const NAMESPACES = Object.freeze({
+  RDF: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+  RDFS: "http://www.w3.org/2000/01/rdf-schema#",
+  OWL: "http://www.w3.org/2002/07/owl#",
+  DC: "http://purl.org/dc/elements/1.1/",
+  DCTERMS: "http://purl.org/dc/terms/"
+});
+
+/**
+ * Manages unique VOWL ID allocation, entity mapping structures,
+ * and tracks subclass/subproperty and visual virtualization relations.
+ */
+class VowlParserContext {
+  constructor() {
+    this.idCounter = 0;
+    this.classMap = new Map();     // IRI -> VOWL Class Node Object
+    this.propertyMap = new Map();  // IRI -> VOWL Property Edge Object
+    this.subclassRelations = [];   // Array of { subclassIri, superclassIri }
+    this.subpropertyRelations = []; // Array of { subpropIri, superpropIri }
+    this.parsedRestrictions = [];  // Array of { domainIri, propertyIri, rangeIri, type }
+    this.parsedCardinalities = []; // Array of { propertyIri, minCardinality, maxCardinality, cardinality }
+    this.virtualDatatypes = [];    // Visual-individualized Datatype representations
+    this.parsedIndividuals = [];   // List of parsed NamedIndividual models
   }
 
-  const RDF_NS = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-  const RDFS_NS = "http://www.w3.org/2000/01/rdf-schema#";
-  const OWL_NS = "http://www.w3.org/2002/07/owl#";
-  const DC_NS = "http://purl.org/dc/elements/1.1/";
-  const DCTERMS_NS = "http://purl.org/dc/terms/";
+  /**
+   * Generates a unique numeric VOWL ID identifier.
+   * @returns {string}
+   */
+  nextId() {
+    return String(this.idCounter++);
+  }
+}
 
-  // Helper to extract attributes robustly
-  function getAttr(el, name, ns) {
+/**
+ * Highly performant IRI resolver utilizing internal Map caching to bypass
+ * repetitive string-slicing and indexing operations on high-volume ontologies.
+ */
+class PerformanceIriResolver {
+  constructor(ontologyBaseIri) {
+    this.ontologyBaseIri = ontologyBaseIri;
+    this.resolvedCache = new Map();
+    this.localNameCache = new Map();
+    this.baseIriCache = new Map();
+  }
+
+  /**
+   * Resolves raw schema fragments and relative IRIs into absolute IRIs.
+   * @param {string} iri 
+   * @returns {string}
+   */
+  resolve(iri) {
+    if (!iri) return this.ontologyBaseIri;
+    if (this.resolvedCache.has(iri)) {
+      return this.resolvedCache.get(iri);
+    }
+
+    const colonIdx = iri.indexOf(":");
+    const slashIdx = iri.indexOf("/");
+    let resolved = iri;
+
+    // Is absolute IRI?
+    if (!(colonIdx !== -1 && (slashIdx === -1 || colonIdx < slashIdx))) {
+      if (this.ontologyBaseIri) {
+        if (iri === "") {
+          resolved = this.ontologyBaseIri;
+        } else if (iri.startsWith("#")) {
+          const baseHasHash = this.ontologyBaseIri.endsWith("#");
+          resolved = baseHasHash ? this.ontologyBaseIri + iri.substring(1) : this.ontologyBaseIri + iri;
+        } else {
+          const baseEndsWithHashOrSlash = this.ontologyBaseIri.endsWith("#") || this.ontologyBaseIri.endsWith("/");
+          resolved = baseEndsWithHashOrSlash ? this.ontologyBaseIri + iri : this.ontologyBaseIri + "#" + iri;
+        }
+      }
+    }
+
+    this.resolvedCache.set(iri, resolved);
+    return resolved;
+  }
+
+  /**
+   * Splits and extracts the local name segment of an IRI.
+   * @param {string} iri 
+   * @returns {string}
+   */
+  getLocalName(iri) {
+    if (!iri) return "";
+    if (this.localNameCache.has(iri)) {
+      return this.localNameCache.get(iri);
+    }
+    const hashIdx = iri.lastIndexOf("#");
+    let local = iri;
+    if (hashIdx !== -1) {
+      local = iri.substring(hashIdx + 1);
+    } else {
+      const slashIdx = iri.lastIndexOf("/");
+      if (slashIdx !== -1) {
+        local = iri.substring(slashIdx + 1);
+      }
+    }
+    this.localNameCache.set(iri, local);
+    return local;
+  }
+
+  /**
+   * Splits and extracts the base namespace segment of an IRI.
+   * @param {string} iri 
+   * @returns {string}
+   */
+  getBaseIri(iri) {
+    if (!iri) return "";
+    if (this.baseIriCache.has(iri)) {
+      return this.baseIriCache.get(iri);
+    }
+    const hashIdx = iri.lastIndexOf("#");
+    let base = iri;
+    if (hashIdx !== -1) {
+      base = iri.substring(0, hashIdx);
+    } else {
+      const slashIdx = iri.lastIndexOf("/");
+      if (slashIdx !== -1) {
+        base = iri.substring(0, slashIdx);
+      }
+    }
+    this.baseIriCache.set(iri, base);
+    return base;
+  }
+}
+
+/**
+ * Collection of fast, localized utility functions for DOM Node traversing and namespace scanning.
+ */
+class DomParserUtils {
+  /**
+   * Extracts an attribute robustly across multiple RDF formats and prefixes.
+   */
+  static getAttr(el, name, ns) {
     if (ns) {
       const val = el.getAttributeNS(ns, name);
       if (val !== null && val !== "") return val;
@@ -35,92 +155,42 @@ module.exports = function owl2vowl(xmlString) {
     return null;
   }
 
-  // Resolves subject identifiers; rdf:ID is specifically flagged as a fragment NCName
-  function getAbout(el) {
-    const about = getAttr(el, "about", RDF_NS);
-    if (about !== null && about !== "") {
-      return about;
-    }
-    const id = getAttr(el, "ID", RDF_NS);
+  /**
+   * Safely matches subject identifier references.
+   */
+  static getAbout(el) {
+    const about = DomParserUtils.getAttr(el, "about", NAMESPACES.RDF);
+    if (about !== null && about !== "") return about;
+    const id = DomParserUtils.getAttr(el, "ID", NAMESPACES.RDF);
     if (id !== null && id !== "") {
       return id.startsWith("#") ? id : "#" + id;
     }
     return null;
   }
 
-  function getResource(el) {
-    return getAttr(el, "resource", RDF_NS);
+  /**
+   * Extracts immediate child elements by localName in an efficient $O(d)$ linear search,
+   * avoiding slow deep recursive DOM scans.
+   */
+  static findImmediateChildren(parent, localName) {
+    const matched = [];
+    for (let child = parent.firstChild; child; child = child.nextSibling) {
+      if (child.nodeType === 1 && child.localName === localName) {
+        matched.push(child);
+      }
+    }
+    return matched;
   }
 
-  function getIriLocalName(iri) {
-    if (!iri) return "";
-    const hashIdx = iri.lastIndexOf("#");
-    if (hashIdx !== -1) return iri.substring(hashIdx + 1);
-    const slashIdx = iri.lastIndexOf("/");
-    if (slashIdx !== -1) return iri.substring(slashIdx + 1);
-    return iri;
-  }
-
-  function getIriBase(iri) {
-    if (!iri) return "";
-    const hashIdx = iri.lastIndexOf("#");
-    if (hashIdx !== -1) return iri.substring(0, hashIdx);
-    const slashIdx = iri.lastIndexOf("/");
-    if (slashIdx !== -1) return iri.substring(0, slashIdx);
-    return iri;
-  }
-
-  // Identifies standard XML Schema datatypes or built-in RDF/RDFS/OWL datatypes
-  function isDatatypeIri(iri) {
-    if (!iri) return false;
-    // Keep rdfs:Literal categorised specifically as its own VOWL node type
-    if (iri === "http://www.w3.org/2000/01/rdf-schema#Literal") return false;
-    if (iri.startsWith("http://www.w3.org/2001/XMLSchema#")) return true;
-    if (iri.startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#")) {
-      const local = getIriLocalName(iri);
-      return ["PlainLiteral", "XMLLiteral", "HTML", "langString"].includes(local);
-    }
-    if (iri.startsWith("http://www.w3.org/2002/07/owl#")) {
-      const local = getIriLocalName(iri);
-      return ["real", "rational"].includes(local);
-    }
-    return false;
-  }
-
-  // Resolve relative IRIs against the base IRI
-  function resolveIri(iri) {
-    if (!iri) return ontologyBaseIri;
-    
-    // If it's already an absolute IRI (contains scheme like http:, https:, urn:, etc.)
-    const colonIdx = iri.indexOf(":");
-    const slashIdx = iri.indexOf("/");
-    if (colonIdx !== -1 && (slashIdx === -1 || colonIdx < slashIdx)) {
-      return iri;
-    }
-
-    if (!ontologyBaseIri) return iri;
-    if (iri === "") return ontologyBaseIri;
-
-    if (iri.startsWith("#")) {
-      const baseHasHash = ontologyBaseIri.endsWith("#");
-      return baseHasHash ? ontologyBaseIri + iri.substring(1) : ontologyBaseIri + iri;
-    }
-
-    const baseEndsWithHashOrSlash = ontologyBaseIri.endsWith("#") || ontologyBaseIri.endsWith("/");
-    if (baseEndsWithHashOrSlash) {
-      return ontologyBaseIri + iri;
-    } else {
-      return ontologyBaseIri + "#" + iri;
-    }
-  }
-
-  // Find elements by localName (ignores namespace prefix)
-  function getElementsByLocalName(parent, localName) {
-    const elements = [];
+  /**
+   * Fast XML tree-traversal matching specific localName tokens recursively.
+   */
+  static getElementsByLocalName(parent, localName) {
+    const matched = [];
     function traverse(node) {
       if (node.nodeType === 1 || node.nodeType === 9) {
         if (node.nodeType === 1 && node.localName === localName) {
-          elements.push(node);
+          matched.push(node);
         }
         for (let child = node.firstChild; child; child = child.nextSibling) {
           traverse(child);
@@ -128,21 +198,17 @@ module.exports = function owl2vowl(xmlString) {
       }
     }
     traverse(parent);
-    return elements;
+    return matched;
   }
+}
 
-  // Resolves property IRIs within onProperty nodes by looking inline at child elements if needed
-  function getPropertyIriFromOnProperty(onPropertyEl) {
-    if (!onPropertyEl) return null;
-    let iri = getResource(onPropertyEl) || getAbout(onPropertyEl);
-    if (iri) return iri;
-    for (let child = onPropertyEl.firstChild; child; child = child.nextSibling) {
-      if (child.nodeType === 1) {
-        const childIri = getAbout(child) || getResource(child);
-        if (childIri) return childIri;
-      }
-    }
-    return null;
+module.exports = function owl2vowl(xmlString) {
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(xmlString, "application/xml");
+  
+  const parserError = xmlDoc.getElementsByTagName("parsererror")[0];
+  if (parserError) {
+    throw new Error("XML parsing error: " + parserError.textContent);
   }
 
   const rootEl = xmlDoc.documentElement;
@@ -152,112 +218,16 @@ module.exports = function owl2vowl(xmlString) {
     for (let i = 0; i < rootEl.attributes.length; i++) {
       const attr = rootEl.attributes[i];
       if (attr.name.startsWith("xmlns:")) {
-        const prefix = attr.name.substring(6);
-        prefixList[prefix] = attr.value;
+        prefixList[attr.name.substring(6)] = attr.value;
       } else if (attr.name === "xmlns") {
         prefixList[""] = attr.value;
       }
     }
   }
 
-  let ontologyBaseIri = "";
-  if (rootEl && getAttr(rootEl, "base")) {
-    ontologyBaseIri = getAttr(rootEl, "base");
-  }
-
-  let idCounter = 0;
-  function nextId() {
-    return String(idCounter++);
-  }
-
-  const classMap = new Map(); // IRI -> VOWL Class object
-  const propertyMap = new Map(); // IRI -> VOWL Property object
-  const subclassRelations = []; // Array of { subclassIri, superclassIri }
-  const subpropertyRelations = []; // Array of { subpropIri, superpropIri }
-  const parsedRestrictions = []; // Array of { domainIri, propertyIri, rangeIri, type }
-  const parsedCardinalities = []; // Array of { propertyIri, minCardinality, maxCardinality, cardinality }
-
-  function ensureClassExists(iri, type = "owl:Class") {
-    // Dynamically coerce standard datatypes to rdfs:Datatype
-    if (isDatatypeIri(iri)) {
-      type = "rdfs:Datatype";
-    }
-    if (classMap.has(iri)) {
-      const cls = classMap.get(iri);
-      if (type === "owl:unionOf" && cls.type === "owl:Class") {
-        cls.type = "owl:unionOf";
-      }
-      // If a placeholder class is resolved later to a Datatype, update the configuration
-      if (type === "rdfs:Datatype" && cls.type === "owl:Class") {
-        cls.type = "rdfs:Datatype";
-        if (!cls.attributes.includes("datatype")) {
-          cls.attributes.push("datatype");
-        }
-      }
-      return cls;
-    }
-    const id = nextId();
-    const localName = getIriLocalName(iri);
-    const baseIri = getIriBase(iri);
-    
-    const isAnonymous = iri.startsWith("http://anonymous-union/") || type === "owl:unionOf";
-    const attributes = [];
-    if (isAnonymous) {
-      attributes.push("anonymous");
-    }
-    if (type === "rdfs:Datatype") {
-      attributes.push("datatype");
-    }
-
-    const cls = {
-      id: id,
-      type: type === "owl:unionOf" ? "owl:unionOf" : type,
-      iri: iri,
-      baseIri: baseIri,
-      label: { "undefined": localName },
-      comment: {},
-      attributes: attributes,
-      subClasses: [],
-      superClasses: [],
-      individuals: []
-    };
-    classMap.set(iri, cls);
-    return cls;
-  }
-
-  function ensurePropertyExists(iri, type = "owl:objectProperty") {
-    if (propertyMap.has(iri)) {
-      return propertyMap.get(iri);
-    }
-    const id = nextId();
-    const localName = getIriLocalName(iri);
-    const baseIri = getIriBase(iri);
-    const attributes = [type === "owl:datatypeProperty" ? "datatype" : "object"];
-    const prop = {
-      id: id,
-      type: type,
-      iri: iri,
-      baseIri: baseIri,
-      label: { "undefined": localName },
-      comment: {},
-      attributes: attributes,
-      domain: null,
-      range: null,
-      superproperty: [],
-      subproperty: [],
-      inverse: null
-    };
-    propertyMap.set(iri, prop);
-    return prop;
-  }
-
-  // Prepopulate standard classes
-  ensureClassExists("http://www.w3.org/2002/07/owl#Thing", "owl:Thing");
-  ensureClassExists("http://www.w3.org/2000/01/rdf-schema#Literal", "rdfs:Literal");
-
-
-
-  // Group triples by Subject IRI
+  const ontologyBaseIri = rootEl ? (DomParserUtils.getAttr(rootEl, "base") || "") : "";
+  const resolver = new PerformanceIriResolver(ontologyBaseIri);
+  const context = new VowlParserContext();
   const subjects = {};
 
   function getOrCreateSubject(iri) {
@@ -282,28 +252,48 @@ module.exports = function owl2vowl(xmlString) {
     return subjects[iri];
   }
 
-  // Recursive subject graph parser (traverses the XML document in subject-predicate alternation)
+  /**
+   * Resolves child properties within nested Restriction structures.
+   */
+  function getPropertyIriFromOnProperty(onPropertyEl) {
+    if (!onPropertyEl) return null;
+    let iri = DomParserUtils.getAttr(onPropertyEl, "resource", NAMESPACES.RDF) || DomParserUtils.getAbout(onPropertyEl);
+    if (iri) return iri;
+    for (let child = onPropertyEl.firstChild; child; child = child.nextSibling) {
+      if (child.nodeType === 1) {
+        const childIri = DomParserUtils.getAbout(child) || DomParserUtils.getAttr(child, "resource", NAMESPACES.RDF);
+        if (childIri) return childIri;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Traverses XML DOM nodes to construct the initial subject-predicate-object structure map.
+   */
   function parseSubject(element) {
-    const subjectIri = getAbout(element) ? resolveIri(getAbout(element)) : null;
+    const rawAbout = DomParserUtils.getAbout(element);
+    const subjectIri = rawAbout ? resolver.resolve(rawAbout) : null;
     if (!subjectIri) return;
 
     const subject = getOrCreateSubject(subjectIri);
 
     // Parse specific types from tags
     const localName = element.localName;
+
     if (localName !== "Description") {
       if (localName === "Class") {
-        subject.types.add(OWL_NS + "Class");
+        subject.types.add(NAMESPACES.OWL + "Class");
       } else if (localName === "ObjectProperty") {
-        subject.types.add(OWL_NS + "ObjectProperty");
+        subject.types.add(NAMESPACES.OWL + "ObjectProperty");
       } else if (localName === "DatatypeProperty") {
-        subject.types.add(OWL_NS + "DatatypeProperty");
+        subject.types.add(NAMESPACES.OWL + "DatatypeProperty");
       } else if (localName === "AnnotationProperty") {
-        subject.types.add(OWL_NS + "AnnotationProperty");
+        subject.types.add(NAMESPACES.OWL + "AnnotationProperty");
       } else if (localName === "Ontology") {
-        subject.types.add(OWL_NS + "Ontology");
+        subject.types.add(NAMESPACES.OWL + "Ontology");
       } else if (localName === "NamedIndividual") {
-        subject.types.add(OWL_NS + "NamedIndividual");
+        subject.types.add(NAMESPACES.OWL + "NamedIndividual");
       } else if (element.namespaceURI) {
         subject.types.add(element.namespaceURI + localName);
       }
@@ -315,11 +305,11 @@ module.exports = function owl2vowl(xmlString) {
 
       const predLocal = pred.localName;
       const predNs = pred.namespaceURI;
-      const resource = getResource(pred) ? resolveIri(getResource(pred)) : null;
+      const resource = DomParserUtils.getAttr(pred, "resource", NAMESPACES.RDF) ? resolver.resolve(DomParserUtils.getAttr(pred, "resource", NAMESPACES.RDF)) : null;
 
-      if (predLocal === "type" && predNs === RDF_NS) {
+      if (predLocal === "type" && predNs === NAMESPACES.RDF) {
         if (resource) subject.types.add(resource);
-      } else if (predLocal === "label" && predNs === RDFS_NS) {
+      } else if (predLocal === "label" && predNs === NAMESPACES.RDFS) {
         const lang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
         const labelVal = pred.textContent.trim();
         subject.labels[lang] = labelVal;
@@ -330,15 +320,20 @@ module.exports = function owl2vowl(xmlString) {
           type: "label",
           language: lang,
           identifier: "rdfs:label",
-          predicateNs: RDFS_NS
+          predicateNs: NAMESPACES.RDFS
         });
       } else if (
-        (predLocal === "comment" && predNs === RDFS_NS) ||
-        (predLocal === "description" && (predNs === DCTERMS_NS || predNs === DC_NS))
+        (predLocal === "comment" && predNs === NAMESPACES.RDFS) ||
+        (predLocal === "description" && (predNs === NAMESPACES.DCTERMS || predNs === NAMESPACES.DC))
       ) {
         const lang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
         subject.comments[lang] = pred.textContent.trim();
-      } else if ((predLocal === "domain" || predLocal === "range" || predLocal === "subClassOf" || predLocal === "subPropertyOf" || predLocal === "inverseOf" || predLocal === "equivalentClass" || predLocal === "disjointWith") && (predNs === RDFS_NS || predNs === OWL_NS)) {
+      } else if (
+        (predLocal === "domain" || predLocal === "range" || predLocal === "subClassOf" || 
+         predLocal === "subPropertyOf" || predLocal === "inverseOf" || 
+         predLocal === "equivalentClass" || predLocal === "disjointWith") && 
+        (predNs === NAMESPACES.RDFS || predNs === NAMESPACES.OWL)
+      ) {
         let targetResource = resource;
         if (!targetResource) {
           // Look for any child element
@@ -350,76 +345,95 @@ module.exports = function owl2vowl(xmlString) {
             }
           }
           if (nestedEl) {
-            const isRestriction = nestedEl.localName === "Restriction" && (nestedEl.namespaceURI === OWL_NS || nestedEl.prefix === "owl");
+            const isRestriction = nestedEl.localName === "Restriction" && (nestedEl.namespaceURI === NAMESPACES.OWL || nestedEl.prefix === "owl");
             if (isRestriction && (predLocal === "subClassOf" || predLocal === "equivalentClass")) {
-              const onPropertyEl = getElementsByLocalName(nestedEl, "onProperty")[0];
+              
+              /* HIGH PERFORMANCE RESTRICTION EXTRACTION - $O(d)$ single pass child iterator */
+              let onPropertyEl = null;
+              let minCardVal = null;
+              let maxCardVal = null;
+              let cardVal = null;
+              let someValuesFromEl = null;
+              let allValuesFromEl = null;
+              let hasValueEl = null;
+
+              for (let rxChild = nestedEl.firstChild; rxChild; rxChild = rxChild.nextSibling) {
+                if (rxChild.nodeType !== 1) continue;
+                const rxLn = rxChild.localName;
+                if (rxLn === "onProperty") {
+                  onPropertyEl = rxChild;
+                } else if (rxLn === "minQualifiedCardinality" || rxLn === "minCardinality") {
+                  minCardVal = rxChild.textContent.trim();
+                } else if (rxLn === "maxQualifiedCardinality" || rxLn === "maxCardinality") {
+                  maxCardVal = rxChild.textContent.trim();
+                } else if (rxLn === "qualifiedCardinality" || rxLn === "cardinality") {
+                  cardVal = rxChild.textContent.trim();
+                } else if (rxLn === "someValuesFrom") {
+                  someValuesFromEl = rxChild;
+                } else if (rxLn === "allValuesFrom") {
+                  allValuesFromEl = rxChild;
+                } else if (rxLn === "hasValue") {
+                  hasValueEl = rxChild;
+                }
+              }
+
               const propertyIri = onPropertyEl ? getPropertyIriFromOnProperty(onPropertyEl) : null;
-
               if (propertyIri) {
-                const resolvedPropIri = resolveIri(propertyIri);
+                const resolvedPropIri = resolver.resolve(propertyIri);
 
-                // Parse cardinalities
-                const minCardEl = getElementsByLocalName(nestedEl, "minQualifiedCardinality")[0] || getElementsByLocalName(nestedEl, "minCardinality")[0];
-                const maxCardEl = getElementsByLocalName(nestedEl, "maxQualifiedCardinality")[0] || getElementsByLocalName(nestedEl, "maxCardinality")[0];
-                const cardEl = getElementsByLocalName(nestedEl, "qualifiedCardinality")[0] || getElementsByLocalName(nestedEl, "cardinality")[0];
-
-                if (minCardEl || maxCardEl || cardEl) {
-                  parsedCardinalities.push({
+                if (minCardVal || maxCardVal || cardVal) {
+                  context.parsedCardinalities.push({
                     propertyIri: resolvedPropIri,
-                    minCardinality: minCardEl ? minCardEl.textContent.trim() : null,
-                    maxCardinality: maxCardEl ? maxCardEl.textContent.trim() : null,
-                    cardinality: cardEl ? cardEl.textContent.trim() : null
+                    minCardinality: minCardVal,
+                    maxCardinality: maxCardVal,
+                    cardinality: cardVal
                   });
                 }
 
-                // Parse someValuesFrom / allValuesFrom / hasValue
-                const someValuesFromEl = getElementsByLocalName(nestedEl, "someValuesFrom")[0];
-                const allValuesFromEl = getElementsByLocalName(nestedEl, "allValuesFrom")[0];
-                const hasValueEl = getElementsByLocalName(nestedEl, "hasValue")[0];
                 let rangeIri = null;
                 let type = null;
 
                 if (someValuesFromEl) {
-                  rangeIri = getResource(someValuesFromEl) || getAbout(someValuesFromEl);
+                  rangeIri = DomParserUtils.getAttr(someValuesFromEl, "resource", NAMESPACES.RDF) || DomParserUtils.getAbout(someValuesFromEl);
                   type = "owl:someValuesFrom";
                 } else if (allValuesFromEl) {
-                  rangeIri = getResource(allValuesFromEl) || getAbout(allValuesFromEl);
+                  rangeIri = DomParserUtils.getAttr(allValuesFromEl, "resource", NAMESPACES.RDF) || DomParserUtils.getAbout(allValuesFromEl);
                   type = "owl:allValuesFrom";
                 } else if (hasValueEl) {
-                  rangeIri = getResource(hasValueEl) || getAbout(hasValueEl);
+                  rangeIri = DomParserUtils.getAttr(hasValueEl, "resource", NAMESPACES.RDF) || DomParserUtils.getAbout(hasValueEl);
                   type = "owl:hasValue";
                 }
 
                 if (rangeIri) {
-                  parsedRestrictions.push({
+                  context.parsedRestrictions.push({
                     domainIri: subjectIri,
                     propertyIri: resolvedPropIri,
-                    rangeIri: resolveIri(rangeIri),
+                    rangeIri: resolver.resolve(rangeIri),
                     type: type
                   });
                 }
               }
               targetResource = null; // Do not treat as normal subclass/equivalentClass relation
             } else {
-              const about = getAbout(nestedEl);
+              const about = DomParserUtils.getAbout(nestedEl);
               if (about) {
-                targetResource = resolveIri(about);
+                targetResource = resolver.resolve(about);
               } else {
                 // Check if it has owl:unionOf
-                const unionOfEl = getElementsByLocalName(nestedEl, "unionOf")[0];
+                const unionOfEl = DomParserUtils.findImmediateChildren(nestedEl, "unionOf")[0];
                 if (unionOfEl) {
                   const memberIris = [];
                   const allChildren = unionOfEl.getElementsByTagName ? unionOfEl.getElementsByTagName("*") : [];
                   for (let j = 0; j < allChildren.length; j++) {
-                    const descAbout = getAbout(allChildren[j]) || getResource(allChildren[j]);
+                    const descAbout = DomParserUtils.getAbout(allChildren[j]) || DomParserUtils.getAttr(allChildren[j], "resource", NAMESPACES.RDF);
                     if (descAbout) {
-                      memberIris.push(resolveIri(descAbout));
+                      memberIris.push(resolver.resolve(descAbout));
                     }
                   }
                   
                   if (memberIris.length > 0) {
-                     const unionClassIri = "http://anonymous-union/" + nextId();
-                     const unionCls = ensureClassExists(unionClassIri, "owl:unionOf");
+                    const unionClassIri = "http://anonymous-union/" + context.nextId();
+                    const unionCls = ensureClassExists(unionClassIri, "owl:unionOf");
                     unionCls.attributes.push("union");
                     unionCls.unionMembers = memberIris;
                     targetResource = unionClassIri;
@@ -469,18 +483,182 @@ module.exports = function owl2vowl(xmlString) {
     }
   }
 
-  // Parse RDF/XML tree recursively
-  const rootChildren = rootEl ? rootEl.childNodes : [];
+  // Init recursive parser
   for (let i = 0; i < rootChildren.length; i++) {
     if (rootChildren[i].nodeType === 1) {
       parseSubject(rootChildren[i]);
     }
   }
 
-  // 1. Identify Ontology Header Subject
+  const inferredClasses = new Set();
+
+  // Populate inferred classes from explicit declarations
+  for (const iri in subjects) {
+    const subject = subjects[iri];
+    for (const type of subject.types) {
+      if (
+        type === NAMESPACES.OWL + "Class" ||
+        type === NAMESPACES.RDFS + "Class" ||
+        type === NAMESPACES.OWL + "DeprecatedClass"
+      ) {
+        inferredClasses.add(iri);
+      }
+    }
+  }
+
+  // Infers class status from usage relationships
+  for (const iri in subjects) {
+    const subject = subjects[iri];
+    if (subject.superClasses.length > 0) {
+      inferredClasses.add(iri);
+      subject.superClasses.forEach(sup => { if (sup) inferredClasses.add(sup); });
+    }
+    if (subject.equivalentClasses.length > 0) {
+      inferredClasses.add(iri);
+      subject.equivalentClasses.forEach(eq => { if (eq) inferredClasses.add(eq); });
+    }
+    if (subject.disjointWith.length > 0) {
+      inferredClasses.add(iri);
+      subject.disjointWith.forEach(dj => { if (dj) inferredClasses.add(dj); });
+    }
+  }
+
+  context.subclassRelations.forEach(rel => {
+    if (rel.subclassIri) inferredClasses.add(rel.subclassIri);
+    if (rel.superclassIri) inferredClasses.add(rel.superclassIri);
+  });
+
+  context.parsedRestrictions.forEach(rest => {
+    if (rest.domainIri) inferredClasses.add(rest.domainIri);
+    if (rest.rangeIri && !isDatatypeIri(rest.rangeIri)) {
+      inferredClasses.add(rest.rangeIri);
+    }
+  });
+
+  // Domains & Ranges inference
+  for (const iri in subjects) {
+    const subject = subjects[iri];
+    const types = Array.from(subject.types);
+    const isProperty = types.some(t =>
+      t === NAMESPACES.OWL + "ObjectProperty" ||
+      t === NAMESPACES.OWL + "DatatypeProperty" ||
+      t === NAMESPACES.OWL + "FunctionalProperty" ||
+      t === NAMESPACES.OWL + "TransitiveProperty" ||
+      t === NAMESPACES.OWL + "SymmetricProperty" ||
+      t === NAMESPACES.RDF + "Property"
+    );
+
+    if (isProperty) {
+      subject.domains.forEach(dom => { if (dom) inferredClasses.add(dom); });
+      const isDatatypeProp = types.some(t => t === NAMESPACES.OWL + "DatatypeProperty") ||
+                             subject.ranges.some(isDatatypeIri);
+      if (!isDatatypeProp) {
+        subject.ranges.forEach(ran => {
+          if (ran && !isDatatypeIri(ran)) inferredClasses.add(ran);
+        });
+      }
+    }
+  }
+
+  // Custom typing / Metaclass inference
+  // Any custom URI used to instantiate an entity is categorised as a Class (signature/role inference)
+  for (const iri in subjects) {
+    const subject = subjects[iri];
+    subject.types.forEach(t => {
+      if (
+        t !== NAMESPACES.OWL + "NamedIndividual" &&
+        t !== NAMESPACES.OWL + "Ontology" &&
+        t !== NAMESPACES.OWL + "Class" &&
+        t !== NAMESPACES.RDFS + "Class" &&
+        t !== NAMESPACES.OWL + "DeprecatedClass" &&
+        t !== NAMESPACES.OWL + "ObjectProperty" &&
+        t !== NAMESPACES.OWL + "DatatypeProperty" &&
+        t !== NAMESPACES.OWL + "AnnotationProperty" &&
+        t !== NAMESPACES.RDF + "Property" &&
+        t !== NAMESPACES.RDFS + "Datatype" &&
+        !isDatatypeIri(t)
+      ) {
+        inferredClasses.add(t);
+      }
+    });
+  }
+
+  function ensureClassExists(iri, type = "owl:Class") {
+    if (isDatatypeIri(iri)) {
+      type = "rdfs:Datatype";
+    }
+    if (context.classMap.has(iri)) {
+      const cls = context.classMap.get(iri);
+      if (type === "owl:unionOf" && cls.type === "owl:Class") {
+        cls.type = "owl:unionOf";
+      }
+      if (type === "rdfs:Datatype" && cls.type === "owl:Class") {
+        cls.type = "rdfs:Datatype";
+        if (!cls.attributes.includes("datatype")) {
+          cls.attributes.push("datatype");
+        }
+      }
+      return cls;
+    }
+    const id = context.nextId();
+    const localName = resolver.getLocalName(iri);
+    const baseIri = resolver.getBaseIri(iri);
+    
+    const isAnonymous = iri.startsWith("http://anonymous-union/") || type === "owl:unionOf";
+    const attributes = [];
+    if (isAnonymous) attributes.push("anonymous");
+    if (type === "rdfs:Datatype") attributes.push("datatype");
+
+    const cls = {
+      id: id,
+      type: type === "owl:unionOf" ? "owl:unionOf" : type,
+      iri: iri,
+      baseIri: baseIri,
+      label: { "undefined": localName },
+      comment: {},
+      attributes: attributes,
+      subClasses: [],
+      superClasses: [],
+      individuals: []
+    };
+    context.classMap.set(iri, cls);
+    return cls;
+  }
+
+  function ensurePropertyExists(iri, type = "owl:objectProperty") {
+    if (context.propertyMap.has(iri)) {
+      return context.propertyMap.get(iri);
+    }
+    const id = context.nextId();
+    const localName = resolver.getLocalName(iri);
+    const baseIri = resolver.getBaseIri(iri);
+    const attributes = [type === "owl:datatypeProperty" ? "datatype" : "object"];
+    const prop = {
+      id: id,
+      type: type,
+      iri: iri,
+      baseIri: baseIri,
+      label: { "undefined": localName },
+      comment: {},
+      attributes: attributes,
+      domain: null,
+      range: null,
+      superproperty: [],
+      subproperty: [],
+      inverse: null
+    };
+    context.propertyMap.set(iri, prop);
+    return prop;
+  }
+
+  // Pre-seed standard configurations
+  ensureClassExists("http://www.w3.org/2002/07/owl#Thing", "owl:Thing");
+  ensureClassExists("http://www.w3.org/2000/01/rdf-schema#Literal", "rdfs:Literal");
+
+  // Identify main ontology header details
   let ontologySubject = null;
   for (const iri in subjects) {
-    if (subjects[iri].types.has(OWL_NS + "Ontology")) {
+    if (subjects[iri].types.has(NAMESPACES.OWL + "Ontology")) {
       ontologySubject = subjects[iri];
       break;
     }
@@ -498,249 +676,8 @@ module.exports = function owl2vowl(xmlString) {
       }
     }
   }
-  if (!ontologySubject) {
-    // Find subject with dc/dcterms title
-    for (const iri in subjects) {
-      if (subjects[iri].labels["en"] || subjects[iri].annotations["title"]) {
-        if (iri.endsWith("/") || iri.endsWith("#") || iri.split("/").length <= 5) {
-          ontologySubject = subjects[iri];
-          break;
-        }
-      }
-    }
-  }
 
-  let ontologyIri = "http://visualdataweb.org/newOntology/";
-  const header = {
-    languages: ["en", "undefined"],
-    baseIris: [],
-    prefixList: prefixList,
-    title: {},
-    iri: ontologyIri,
-    version: "",
-    author: [],
-    description: {},
-    labels: {},
-    comments: {},
-    other: {}
-  };
-
-  if (ontologyBaseIri) {
-    header.baseIris.push(ontologyBaseIri);
-  }
-
-  if (ontologySubject) {
-    ontologyIri = ontologySubject.iri;
-    header.iri = ontologyIri;
-    header.title = ontologySubject.labels;
-    header.description = ontologySubject.comments;
-
-    // Fill titles/descriptions from annotations if empty
-    if (Object.keys(header.title).length === 0) {
-      const titles = ontologySubject.annotations["title"] || ontologySubject.annotations["label"] || [];
-      titles.forEach(t => {
-        header.title[t.language || "undefined"] = t.value;
-      });
-    }
-    if (Object.keys(header.description).length === 0) {
-      const descs = ontologySubject.annotations["description"] || ontologySubject.annotations["comment"] || [];
-      descs.forEach(d => {
-        header.description[d.language || "undefined"] = d.value;
-      });
-    }
-
-    const versions = ontologySubject.annotations["versionInfo"] || [];
-    if (versions.length > 0) {
-      header.version = versions[0].value;
-    }
-
-    const creators = ontologySubject.annotations["creator"] || [];
-    creators.forEach(c => {
-      header.author.push(c.value);
-    });
-
-    header.other = ontologySubject.annotations;
-  } else {
-    header.iri = ontologyIri;
-    header.title = { "en": "Ontology" };
-  }
-
-  // Helper to determine if an IRI is external to the loaded ontology
-  function isIriExternal(iri) {
-    if (!iri) return false;
-    
-    // Ignore anonymous union classes
-    if (iri.startsWith("http://anonymous-union/") || iri.startsWith("http://owl2vowl.de#") || iri.startsWith("http://anonymous-")) {
-      return false;
-    }
-    
-    // Ontologies have standard owl/rdf/rdfs namespaces as external
-    if (iri.startsWith("http://www.w3.org/2002/07/owl#") || 
-        iri.startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#") || 
-        iri.startsWith("http://www.w3.org/2000/01/rdf-schema#")) {
-      return true;
-    }
-    
-    let ontologyIriVal = ontologyIri || ontologyBaseIri;
-    if (!ontologyIriVal) {
-      return false;
-    }
-    
-    function removeTrailingHash(str) {
-      return str.replace(/[#/]$/, "");
-    }
-    
-    const trimmedElementIri = removeTrailingHash(iri);
-    const trimmedOntologyIri = removeTrailingHash(ontologyIriVal);
-    
-    if (trimmedElementIri === trimmedOntologyIri) {
-      return false;
-    }
-    
-    if (trimmedElementIri.includes("#")) {
-      const parts = trimmedElementIri.split("#");
-      if (parts[0] === trimmedOntologyIri) {
-        return false;
-      }
-    }
-    
-    if (trimmedElementIri.includes("/") && !trimmedElementIri.endsWith("/")) {
-      const lastSlashIndex = trimmedElementIri.lastIndexOf("/");
-      const indexAfterSlash = lastSlashIndex + 1;
-      const elementNamespaceWithoutLastPart = trimmedElementIri.substring(0, indexAfterSlash);
-      
-      if (elementNamespaceWithoutLastPart === trimmedOntologyIri) {
-        return false;
-      }
-    }
-    
-    return true;
-  }
-
-
-  const ignoredProperties = new Set([
-    "http://www.w3.org/2000/01/rdf-schema#label",
-    "http://www.w3.org/2000/01/rdf-schema#comment",
-    "http://www.w3.org/2000/01/rdf-schema#seeAlso",
-    "http://www.w3.org/2000/01/rdf-schema#isDefinedBy",
-    "http://www.w3.org/2002/07/owl#versionInfo",
-    "http://www.w3.org/2002/07/owl#priorVersion",
-    "http://www.w3.org/2002/07/owl#backwardCompatibleWith",
-    "http://www.w3.org/2002/07/owl#incompatibleWith"
-  ]);
-
-  // Build a Set of inferred classes to capture implicit classes (e.g. customized/punned meta-classes)
-  const inferredClasses = new Set();
-
-  // 1. Explicitly declared classes
-  for (const iri in subjects) {
-    const subject = subjects[iri];
-    for (const type of subject.types) {
-      if (
-        type === OWL_NS + "Class" ||
-        type === RDFS_NS + "Class" ||
-        type === OWL_NS + "DeprecatedClass"
-      ) {
-        inferredClasses.add(iri);
-      }
-    }
-  }
-
-  // 2. Class relations (subclass, equivalence, disjointness)
-  for (const iri in subjects) {
-    const subject = subjects[iri];
-    
-    if (subject.superClasses.length > 0) {
-      inferredClasses.add(iri);
-      subject.superClasses.forEach(sup => {
-        if (sup) inferredClasses.add(sup);
-      });
-    }
-
-    if (subject.equivalentClasses.length > 0) {
-      inferredClasses.add(iri);
-      subject.equivalentClasses.forEach(eq => {
-        if (eq) inferredClasses.add(eq);
-      });
-    }
-
-    if (subject.disjointWith.length > 0) {
-      inferredClasses.add(iri);
-      subject.disjointWith.forEach(dj => {
-        if (dj) inferredClasses.add(dj);
-      });
-    }
-  }
-
-  // 3. Subclass relations parsed
-  subclassRelations.forEach(rel => {
-    if (rel.subclassIri) inferredClasses.add(rel.subclassIri);
-    if (rel.superclassIri) inferredClasses.add(rel.superclassIri);
-  });
-
-  // 4. Parsed restrictions
-  parsedRestrictions.forEach(rest => {
-    if (rest.domainIri) inferredClasses.add(rest.domainIri);
-    if (rest.rangeIri && !isDatatypeIri(rest.rangeIri)) {
-      inferredClasses.add(rest.rangeIri);
-    }
-  });
-
-  // 5. Domains and ranges of properties
-  for (const iri in subjects) {
-    const subject = subjects[iri];
-    const types = Array.from(subject.types);
-    const isProperty = types.some(t =>
-      t === OWL_NS + "ObjectProperty" ||
-      t === OWL_NS + "DatatypeProperty" ||
-      t === OWL_NS + "FunctionalProperty" ||
-      t === OWL_NS + "TransitiveProperty" ||
-      t === OWL_NS + "SymmetricProperty" ||
-      t === RDF_NS + "Property"
-    );
-
-    if (isProperty) {
-      subject.domains.forEach(dom => {
-        if (dom) inferredClasses.add(dom);
-      });
-
-      const isDatatypeProp = types.some(t => t === OWL_NS + "DatatypeProperty") ||
-                             subject.ranges.some(isDatatypeIri);
-      if (!isDatatypeProp) {
-        subject.ranges.forEach(ran => {
-          if (ran && !isDatatypeIri(ran)) inferredClasses.add(ran);
-        });
-      }
-    }
-  }
-
-  // 6. Types used in custom class assertion/typing statements 
-  // Any custom URI used to instantiate an entity is categorised as a Class (signature/role inference)
-  for (const iri in subjects) {
-    const subject = subjects[iri];
-    subject.types.forEach(t => {
-      if (
-        t !== OWL_NS + "NamedIndividual" &&
-        t !== OWL_NS + "Ontology" &&
-        t !== OWL_NS + "Class" &&
-        t !== RDFS_NS + "Class" &&
-        t !== OWL_NS + "DeprecatedClass" &&
-        t !== OWL_NS + "ObjectProperty" &&
-        t !== OWL_NS + "DatatypeProperty" &&
-        t !== OWL_NS + "AnnotationProperty" &&
-        t !== RDF_NS + "Property" &&
-        t !== RDFS_NS + "Datatype" &&
-        !isDatatypeIri(t)
-      ) {
-        inferredClasses.add(t);
-      }
-    });
-  }
-
-  // List of parsed individuals and their matching class container IRIs
-  const parsedIndividuals = [];
-
-  // 2. Map Subjects to Classes, Properties & Named Individuals
+  // Map Subjects to Classes, Properties & Named Individuals
   for (const iri in subjects) {
     if (ignoredProperties.has(iri)) continue;
 
@@ -751,23 +688,22 @@ module.exports = function owl2vowl(xmlString) {
 
     // Apply the signature inference check
     const isClass = inferredClasses.has(iri);
+    const isDatatype = types.some(t => t === NAMESPACES.RDFS + "Datatype") || isDatatypeIri(iri);
 
-    const isDatatype = types.some(t => t === RDFS_NS + "Datatype") || isDatatypeIri(iri);
-
-    const isAnnotationProperty = types.some(t => t === OWL_NS + "AnnotationProperty");
+    const isAnnotationProperty = types.some(t => t === NAMESPACES.OWL + "AnnotationProperty");
     const isProperty = !isAnnotationProperty && types.some(t =>
-      t === OWL_NS + "ObjectProperty" ||
-      t === OWL_NS + "DatatypeProperty" ||
-      t === OWL_NS + "FunctionalProperty" ||
-      t === OWL_NS + "TransitiveProperty" ||
-      t === OWL_NS + "SymmetricProperty" ||
-      t === RDF_NS + "Property"
+      t === NAMESPACES.OWL + "ObjectProperty" ||
+      t === NAMESPACES.OWL + "DatatypeProperty" ||
+      t === NAMESPACES.OWL + "FunctionalProperty" ||
+      t === NAMESPACES.OWL + "TransitiveProperty" ||
+      t === NAMESPACES.OWL + "SymmetricProperty" ||
+      t === NAMESPACES.RDF + "Property"
     );
 
-    const isExplicitNamedIndividual = types.some(t => t === OWL_NS + "NamedIndividual");
+    const isExplicitNamedIndividual = types.some(t => t === NAMESPACES.OWL + "NamedIndividual");
     const isIndividual = !isClass && !isDatatype && !isProperty && (
       isExplicitNamedIndividual ||
-      types.some(t => inferredClasses.has(t) || t === OWL_NS + "Thing")
+      types.some(t => inferredClasses.has(t) || t === NAMESPACES.OWL + "Thing")
     );
 
     if (isClass && !isDatatype) {
@@ -779,32 +715,27 @@ module.exports = function owl2vowl(xmlString) {
       if (Object.keys(subject.labels).length > 0) {
         cls.label = Object.assign({}, subject.labels);
       } else {
-        cls.label = { "undefined": getIriLocalName(iri) };
+        cls.label = { "undefined": resolver.getLocalName(iri) };
       }
-
       cls.comment = subject.comments;
       cls.annotations = subject.annotations;
       cls.disjointWith = subject.disjointWith;
 
-      if (types.some(t => t === OWL_NS + "DeprecatedClass")) {
+      if (types.some(t => t === NAMESPACES.OWL + "DeprecatedClass")) {
         if (!cls.attributes.includes("deprecated")) cls.attributes.push("deprecated");
       }
 
       subject.superClasses.forEach(superIri => {
-        subclassRelations.push({ subclassIri: iri, superclassIri: superIri });
+        context.subclassRelations.push({ subclassIri: iri, superclassIri: superIri });
       });
     } else if (isDatatype) {
       const cls = ensureClassExists(iri, "rdfs:Datatype");
-      if (!cls.attributes.includes("datatype")) {
-        cls.attributes.push("datatype");
-      }
-      
+      if (!cls.attributes.includes("datatype")) cls.attributes.push("datatype");
       if (Object.keys(subject.labels).length > 0) {
         cls.label = Object.assign({}, subject.labels);
       } else {
-        cls.label = { "undefined": getIriLocalName(iri) };
+        cls.label = { "undefined": resolver.getLocalName(iri) };
       }
-
       cls.comment = subject.comments;
       cls.annotations = subject.annotations;
     } else if (isProperty) {
@@ -812,19 +743,19 @@ module.exports = function owl2vowl(xmlString) {
       const attributes = ["object"];
 
       // If typed explicitly as DatatypeProperty or its range matches a built-in datatype, make it a datatypeProperty
-      const isDTP = types.some(t => t === OWL_NS + "DatatypeProperty") || 
+      const isDTP = types.some(t => t === NAMESPACES.OWL + "DatatypeProperty") || 
                     (subject.ranges && subject.ranges.some(isDatatypeIri));
       if (isDTP) {
         type = "owl:datatypeProperty";
         attributes[0] = "datatype";
       }
 
-      if (types.some(t => t === OWL_NS + "FunctionalProperty")) attributes.push("functional");
-      if (types.some(t => t === OWL_NS + "TransitiveProperty")) attributes.push("transitive");
-      if (types.some(t => t === OWL_NS + "SymmetricProperty")) attributes.push("symmetric");
+      if (types.some(t => t === NAMESPACES.OWL + "FunctionalProperty")) attributes.push("functional");
+      if (types.some(t => t === NAMESPACES.OWL + "TransitiveProperty")) attributes.push("transitive");
+      if (types.some(t => t === NAMESPACES.OWL + "SymmetricProperty")) attributes.push("symmetric");
 
-      const localName = getIriLocalName(iri);
-      const baseIri = getIriBase(iri);
+      const localName = resolver.getLocalName(iri);
+      const baseIri = resolver.getBaseIri(iri);
 
       let finalLabels = {};
       if (Object.keys(subject.labels).length > 0) {
@@ -834,7 +765,7 @@ module.exports = function owl2vowl(xmlString) {
       }
 
       const prop = {
-        id: nextId(),
+        id: context.nextId(),
         type: type,
         iri: iri,
         baseIri: baseIri,
@@ -850,13 +781,13 @@ module.exports = function owl2vowl(xmlString) {
       };
 
       subject.superProperties.forEach(superIri => {
-        subpropertyRelations.push({ subpropIri: iri, superpropIri: superIri });
+        context.subpropertyRelations.push({ subpropIri: iri, superpropIri: superIri });
       });
 
-      propertyMap.set(iri, prop);
+      context.propertyMap.set(iri, prop);
     } else if (isIndividual) {
       const individualIri = iri;
-      const localName = getIriLocalName(individualIri);
+      const localName = resolver.getLocalName(individualIri);
 
       let finalLabels = {};
       if (Object.keys(subject.labels).length > 0) {
@@ -869,7 +800,7 @@ module.exports = function owl2vowl(xmlString) {
       // inside arrays in VOWL-JSON are mapped to the plural "labels" and "comments" fields.
       const indObj = {
         iri: individualIri,
-        baseIri: getIriBase(individualIri),
+        baseIri: resolver.getBaseIri(individualIri),
         labels: finalLabels,
         comments: subject.comments || {}
       };
@@ -879,8 +810,8 @@ module.exports = function owl2vowl(xmlString) {
 
       // Collect all matched class types this individual instantiates
       let classIris = types.filter(t => 
-        t !== OWL_NS + "NamedIndividual" && 
-        (inferredClasses.has(t) || t === OWL_NS + "Thing")
+        t !== NAMESPACES.OWL + "NamedIndividual" && 
+        (inferredClasses.has(t) || t === NAMESPACES.OWL + "Thing")
       );
 
       // Default to owl:Thing if no specific custom classes are defined on the individual
@@ -888,66 +819,27 @@ module.exports = function owl2vowl(xmlString) {
         classIris.push("http://www.w3.org/2002/07/owl#Thing");
       }
 
-      parsedIndividuals.push({
+      context.parsedIndividuals.push({
         individual: indObj,
         classIris: classIris
       });
     }
   }
 
-  // --- Resolution phase ---
-
-  // Is it a numeric ID (VOWL ID)?
-  function isVowlId(str) {
-    if (typeof str !== "string") return false;
-    return /^\d+$/.test(str);
-  }
-
-  // Helper to defensively resolve entity class references
-  function getClassId(iri, fallbackIri = "http://www.w3.org/2002/07/owl#Thing") {
-    let cls = classMap.get(iri);
-    if (!cls) {
-      cls = classMap.get(fallbackIri);
-    }
-    return cls ? cls.id : "0";
-  }
-
-  const virtualDatatypes = [];
-
-  // Helper to create individualized visual Datatype nodes per reference to match Java converter behaviour
-  function createVirtualDatatype(datatypeIri) {
-    const cls = classMap.get(datatypeIri);
-    const virtualId = nextId();
-    const virtualCls = {
-      id: virtualId,
-      type: "rdfs:Datatype",
-      iri: datatypeIri,
-      baseIri: cls ? cls.baseIri : getIriBase(datatypeIri),
-      label: cls && cls.label ? JSON.parse(JSON.stringify(cls.label)) : { "undefined": getIriLocalName(datatypeIri) },
-      comment: cls && cls.comment ? JSON.parse(JSON.stringify(cls.comment)) : {},
-      attributes: ["datatype"],
-      subClasses: [],
-      superClasses: [],
-      annotations: cls && cls.annotations ? cls.annotations : {}
-    };
-    virtualDatatypes.push(virtualCls);
-    return virtualId;
-  }
-
-  // 0. Pre-register all properties referenced in restrictions to guarantee they exist in propertyMap
-  parsedRestrictions.forEach(rest => {
+  // Step 0: Ensure restriction properties exist in propertyMap
+  context.parsedRestrictions.forEach(rest => {
     if (rest.propertyIri) {
       ensurePropertyExists(rest.propertyIri);
     }
   });
 
-  // 1. Ensure all referenced classes and datatypes exist in classMap
-  subclassRelations.forEach(rel => {
+  // Step 1: Ensure structural reference maps exist
+  context.subclassRelations.forEach(rel => {
     ensureClassExists(rel.subclassIri);
     ensureClassExists(rel.superclassIri);
   });
 
-  parsedRestrictions.forEach(rest => {
+  context.parsedRestrictions.forEach(rest => {
     ensureClassExists(rest.domainIri);
     ensureClassExists(rest.rangeIri);
   });
@@ -960,13 +852,13 @@ module.exports = function owl2vowl(xmlString) {
   }
 
   // Ensure target classes specified on parsed individuals exist in the graph
-  parsedIndividuals.forEach(item => {
+  context.parsedIndividuals.forEach(item => {
     item.classIris.forEach(clsIri => {
       ensureClassExists(clsIri);
     });
   });
 
-  propertyMap.forEach(prop => {
+  context.propertyMap.forEach(prop => {
     if (prop.domain && typeof prop.domain === "string" && !isVowlId(prop.domain)) {
       ensureClassExists(prop.domain);
     }
@@ -981,7 +873,7 @@ module.exports = function owl2vowl(xmlString) {
   });
 
   // Ensure all union members exist in classMap
-  classMap.forEach(cls => {
+  context.classMap.forEach(cls => {
     if (cls.unionMembers) {
       cls.unionMembers.forEach(memberIri => {
         ensureClassExists(memberIri);
@@ -990,13 +882,11 @@ module.exports = function owl2vowl(xmlString) {
   });
 
   // Map parsed individuals to their corresponding class instances arrays
-  parsedIndividuals.forEach(item => {
+  context.parsedIndividuals.forEach(item => {
     item.classIris.forEach(clsIri => {
-      const cls = classMap.get(clsIri);
+      const cls = context.classMap.get(clsIri);
       if (cls) {
-        if (!cls.individuals) {
-          cls.individuals = [];
-        }
+        if (!cls.individuals) cls.individuals = [];
         if (!cls.individuals.some(ind => ind.iri === item.individual.iri)) {
           cls.individuals.push(item.individual);
         }
@@ -1004,8 +894,8 @@ module.exports = function owl2vowl(xmlString) {
     });
   });
 
-  // 2. Ensure all referenced properties exist in propertyMap
-  subpropertyRelations.forEach(rel => {
+  // Step 2: Ensure subproperties exist in mapping
+  context.subpropertyRelations.forEach(rel => {
     if (rel.superpropIri && ignoredProperties.has(rel.superpropIri)) return;
     if (rel.subpropIri) ensurePropertyExists(rel.subpropIri);
     if (rel.superpropIri) ensurePropertyExists(rel.superpropIri);
@@ -1013,7 +903,7 @@ module.exports = function owl2vowl(xmlString) {
 
   // Gather and create inverse properties in a safe separate list first
   const inversesToCreate = [];
-  propertyMap.forEach(prop => {
+  context.propertyMap.forEach(prop => {
     if (prop.inverse && typeof prop.inverse === "string" && !isVowlId(prop.inverse)) {
       inversesToCreate.push(prop.inverse);
     }
@@ -1022,8 +912,27 @@ module.exports = function owl2vowl(xmlString) {
     ensurePropertyExists(invIri);
   });
 
-  // 3. Resolve domains, ranges & inverses to IDs (modifying properties in propertyMap)
-  propertyMap.forEach(prop => {
+  function createVirtualDatatype(datatypeIri) {
+    const cls = context.classMap.get(datatypeIri);
+    const virtualId = context.nextId();
+    const virtualCls = {
+      id: virtualId,
+      type: "rdfs:Datatype",
+      iri: datatypeIri,
+      baseIri: cls ? cls.baseIri : resolver.getBaseIri(datatypeIri),
+      label: cls && cls.label ? JSON.parse(JSON.stringify(cls.label)) : { "undefined": resolver.getLocalName(datatypeIri) },
+      comment: cls && cls.comment ? JSON.parse(JSON.stringify(cls.comment)) : {},
+      attributes: ["datatype"],
+      subClasses: [],
+      superClasses: [],
+      annotations: cls && cls.annotations ? cls.annotations : {}
+    };
+    context.virtualDatatypes.push(virtualCls);
+    return virtualId;
+  }
+
+  // Step 3: Resolve domains, ranges & inverses to numeric IDs
+  context.propertyMap.forEach(prop => {
     if (prop.domain && typeof prop.domain === "string" && !isVowlId(prop.domain)) {
       prop.domain = getClassId(prop.domain, "http://www.w3.org/2002/07/owl#Thing");
     } else if (!prop.domain) {
@@ -1031,7 +940,7 @@ module.exports = function owl2vowl(xmlString) {
     }
 
     if (prop.range && typeof prop.range === "string" && !isVowlId(prop.range)) {
-      const cls = classMap.get(prop.range);
+      const cls = context.classMap.get(prop.range);
       if (cls && cls.type === "rdfs:Datatype" && prop.range !== "http://www.w3.org/2000/01/rdf-schema#Literal") {
         prop.range = createVirtualDatatype(prop.range);
       } else {
@@ -1046,7 +955,7 @@ module.exports = function owl2vowl(xmlString) {
     }
 
     if (prop.inverse && typeof prop.inverse === "string" && !isVowlId(prop.inverse)) {
-      const invProp = propertyMap.get(prop.inverse);
+      const invProp = context.propertyMap.get(prop.inverse);
       if (invProp) {
         prop.inverse = invProp.id;
         invProp.inverse = prop.id;
@@ -1056,19 +965,19 @@ module.exports = function owl2vowl(xmlString) {
     }
   });
 
-  // Resolve union class members to IDs
-  classMap.forEach(cls => {
+  // Resolve union members to IDs
+  context.classMap.forEach(cls => {
     if (cls.unionMembers) {
       cls.union = cls.unionMembers.map(memberIri => {
-        const memberCls = classMap.get(memberIri);
+        const memberCls = context.classMap.get(memberIri);
         return memberCls ? memberCls.id : null;
       }).filter(id => id !== null);
       delete cls.unionMembers;
     }
   });
 
-  // Resolve equivalent classes
-  classMap.forEach(cls => {
+  // Resolve equivalence to IDs
+  context.classMap.forEach(cls => {
     const subject = subjects[cls.iri];
     if (subject && subject.equivalentClasses && subject.equivalentClasses.length > 0) {
       cls.equivalent = [];
@@ -1076,7 +985,7 @@ module.exports = function owl2vowl(xmlString) {
         cls.attributes.push("equivalent");
       }
       subject.equivalentClasses.forEach(equivIri => {
-        const equivCls = classMap.get(equivIri);
+        const equivCls = context.classMap.get(equivIri);
         if (equivCls) {
           cls.equivalent.push(equivCls.id);
           if (!equivCls.attributes.includes("equivalent")) {
@@ -1087,14 +996,12 @@ module.exports = function owl2vowl(xmlString) {
     }
   });
 
-  // 4. Create subclass properties and construct hierarchy arrays
+  // Step 4: Map Subclass Properties
   const subclassProperties = [];
-  subclassRelations.forEach(rel => {
-    if (rel.superclassIri === "http://www.w3.org/2002/07/owl#Thing") {
-      return;
-    }
-    const subCls = classMap.get(rel.subclassIri);
-    const superCls = classMap.get(rel.superclassIri);
+  context.subclassRelations.forEach(rel => {
+    if (rel.superclassIri === "http://www.w3.org/2002/07/owl#Thing") return;
+    const subCls = context.classMap.get(rel.subclassIri);
+    const superCls = context.classMap.get(rel.superclassIri);
     
     if (subCls && superCls) {
       if (!subCls.superClasses.includes(superCls.id)) {
@@ -1104,7 +1011,7 @@ module.exports = function owl2vowl(xmlString) {
         superCls.subClasses.push(subCls.id);
       }
 
-      const propId = nextId();
+      const propId = context.nextId();
       subclassProperties.push({
         property: { id: propId, type: "rdfs:SubClassOf" },
         attribute: {
@@ -1119,30 +1026,30 @@ module.exports = function owl2vowl(xmlString) {
     }
   });
 
-  // 5. Resolve subproperties
-  subpropertyRelations.forEach(rel => {
+  // Step 5: Resolve subproperties
+  context.subpropertyRelations.forEach(rel => {
     if (rel.superpropIri && ignoredProperties.has(rel.superpropIri)) return;
-    const subProp = propertyMap.get(rel.subpropIri);
-    const superProp = propertyMap.get(rel.superpropIri);
+    const subProp = context.propertyMap.get(rel.subpropIri);
+    const superProp = context.propertyMap.get(rel.superpropIri);
     if (subProp && superProp) {
       subProp.superproperty.push(superProp.id);
       superProp.subproperty.push(subProp.id);
     }
   });
 
-  // Resolve restrictions to VOWL property objects
+  // Resolve VOWL restriction edges
   const restrictionProperties = [];
-  parsedRestrictions.forEach(rest => {
-    const subCls = classMap.get(rest.domainIri);
-    const superCls = classMap.get(rest.rangeIri);
+  context.parsedRestrictions.forEach(rest => {
+    const subCls = context.classMap.get(rest.domainIri);
+    const superCls = context.classMap.get(rest.rangeIri);
     
     if (subCls && superCls) {
-      let refProp = propertyMap.get(rest.propertyIri);
+      let refProp = context.propertyMap.get(rest.propertyIri);
       if (!refProp) {
         refProp = ensurePropertyExists(rest.propertyIri);
       }
       
-      const propId = nextId();
+      const propId = context.nextId();
       const attributes = ["object"];
       if (rest.type === "owl:someValuesFrom" || rest.type === "owl:hasValue") {
         attributes.push("someValuesFrom");
@@ -1158,8 +1065,8 @@ module.exports = function owl2vowl(xmlString) {
 
       // Safe parameter defaults to avoid 'undefined' lookup exceptions on incomplete properties
       const refPropIri = refProp ? refProp.iri : rest.propertyIri;
-      const refPropBaseIri = refProp ? refProp.baseIri : getIriBase(rest.propertyIri);
-      const refPropLabel = refProp && refProp.label ? refProp.label : { "undefined": getIriLocalName(rest.propertyIri) };
+      const refPropBaseIri = refProp ? refProp.baseIri : resolver.getBaseIri(rest.propertyIri);
+      const refPropLabel = refProp && refProp.label ? refProp.label : { "undefined": resolver.getLocalName(rest.propertyIri) };
       
       // Virtualise restriction range if it is a datatype (individual nodes per reference, matching Java behaviour)
       let resolvedRangeId = superCls.id;
@@ -1187,37 +1094,27 @@ module.exports = function owl2vowl(xmlString) {
     }
   });
 
-  // Resolve cardinalities onto property definitions
-  parsedCardinalities.forEach(card => {
-    const prop = propertyMap.get(card.propertyIri);
+  // Resolve cardinalities onto VOWL properties
+  context.parsedCardinalities.forEach(card => {
+    const prop = context.propertyMap.get(card.propertyIri);
     if (prop) {
-      if (card.minCardinality !== null) {
-        prop.minCardinality = card.minCardinality;
-      }
-      if (card.maxCardinality !== null) {
-        prop.maxCardinality = card.maxCardinality;
-      }
-      if (card.cardinality !== null) {
-        prop.cardinality = card.cardinality;
-      }
+      if (card.minCardinality !== null) prop.minCardinality = card.minCardinality;
+      if (card.maxCardinality !== null) prop.maxCardinality = card.maxCardinality;
+      if (card.cardinality !== null) prop.cardinality = card.cardinality;
     }
   });
 
-  // Update external attributes for all classes and properties based on fully resolved ontologyIri
-  classMap.forEach(cls => {
+  // Mark external elements based on target absolute namespace
+  context.classMap.forEach(cls => {
     const isAnon = cls.iri.startsWith("http://anonymous-union/") || cls.type === "owl:unionOf";
     if (!isAnon && isIriExternal(cls.iri)) {
-      if (!cls.attributes.includes("external")) {
-        cls.attributes.push("external");
-      }
+      if (!cls.attributes.includes("external")) cls.attributes.push("external");
     }
   });
 
-  propertyMap.forEach(prop => {
+  context.propertyMap.forEach(prop => {
     if (isIriExternal(prop.iri)) {
-      if (!prop.attributes.includes("external")) {
-        prop.attributes.push("external");
-      }
+      if (!prop.attributes.includes("external")) prop.attributes.push("external");
     }
   });
 
@@ -1225,12 +1122,12 @@ module.exports = function owl2vowl(xmlString) {
   const classesArray = [];
   const classAttributesArray = [];
   const disjointProperties = [];
-  classMap.forEach(cls => {
+
+  context.classMap.forEach(cls => {
     classesArray.push({ id: cls.id, type: cls.type });
     const isAnonymous = cls.iri.startsWith("http://anonymous-union/") || cls.type === "owl:unionOf";
-    const attr = {
-      id: cls.id
-    };
+    const attr = { id: cls.id };
+
     if (!isAnonymous) {
       attr.iri = cls.iri;
       attr.baseIri = cls.baseIri;
@@ -1240,7 +1137,6 @@ module.exports = function owl2vowl(xmlString) {
         attr.annotations = cls.annotations;
       }
       if (Object.keys(cls.comment).length > 0) attr.comment = cls.comment;
-      
       if (cls.individuals && cls.individuals.length > 0) {
         attr.individuals = cls.individuals;
       }
@@ -1257,9 +1153,9 @@ module.exports = function owl2vowl(xmlString) {
     // Create disjointWith virtual property edges
     if (cls.disjointWith && cls.disjointWith.length > 0) {
       cls.disjointWith.forEach(targetIri => {
-        const targetCls = classMap.get(targetIri);
+        const targetCls = context.classMap.get(targetIri);
         if (targetCls) {
-          const propId = nextId();
+          const propId = context.nextId();
           disjointProperties.push({
             property: { id: propId, type: "owl:disjointWith" },
             propertyAttribute: {
@@ -1274,8 +1170,8 @@ module.exports = function owl2vowl(xmlString) {
     }
   });
 
-  // Append virtual datatypes
-  virtualDatatypes.forEach(cls => {
+  // Map virtualised datatypes into serialisation array
+  context.virtualDatatypes.forEach(cls => {
     if (isIriExternal(cls.iri) && !cls.attributes.includes("external")) {
       cls.attributes.push("external");
     }
@@ -1298,7 +1194,8 @@ module.exports = function owl2vowl(xmlString) {
 
   const propertiesArray = [];
   const propertyAttributesArray = [];
-  propertyMap.forEach(prop => {
+
+  context.propertyMap.forEach(prop => {
     propertiesArray.push({ id: prop.id, type: prop.type });
     const attr = {
       id: prop.id,
@@ -1355,9 +1252,9 @@ module.exports = function owl2vowl(xmlString) {
     if (p.type === "owl:datatypeProperty") metrics.datatypePropertyCount++;
   });
 
-  // Compute exact individuals metric count across all registered classes
+  // Calculate individuals
   let totalIndividualCount = 0;
-  classMap.forEach(cls => {
+  context.classMap.forEach(cls => {
     if (cls.individuals) {
       totalIndividualCount += cls.individuals.length;
     }
@@ -1404,7 +1301,7 @@ module.exports.loadWithImports = function (initialXmlText) {
     const imports = [];
     const elements = doc.getElementsByTagNameNS ? doc.getElementsByTagNameNS("*", "imports") : doc.getElementsByTagName("owl:imports");
     for (let i = 0; i < elements.length; i++) {
-      const res = getAttr(elements[i], "resource", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+      const res = getAttr(elements[i], "resource", NAMESPACES.RDF);
       if (res) {
         imports.push(res);
       }
@@ -1416,7 +1313,7 @@ module.exports.loadWithImports = function (initialXmlText) {
   let mainOntologyIri = "";
   const ontologyEl = (mainDoc.getElementsByTagNameNS ? mainDoc.getElementsByTagNameNS("*", "Ontology") : mainDoc.getElementsByTagName("owl:Ontology"))[0];
   if (ontologyEl) {
-    mainOntologyIri = getAttr(ontologyEl, "about", "http://www.w3.org/1999/02/22-rdf-syntax-ns#") || "";
+    mainOntologyIri = getAttr(ontologyEl, "about", NAMESPACES.RDF) || "";
     if (mainOntologyIri) loadedUrls.add(mainOntologyIri);
   }
   const baseAttr = rootEl.getAttribute("xml:base") || rootEl.getAttribute("base") || "";
