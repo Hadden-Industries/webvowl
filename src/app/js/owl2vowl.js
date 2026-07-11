@@ -324,6 +324,7 @@ module.exports = function owl2vowl(xmlString) {
         });
       } else if (
         (predLocal === "comment" && predNs === NAMESPACES.RDFS) ||
+        (predLocal === "comment" && predNs === NAMESPACES.OWL) ||
         (predLocal === "description" && (predNs === NAMESPACES.DCTERMS || predNs === NAMESPACES.DC))
       ) {
         const lang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
@@ -483,12 +484,42 @@ module.exports = function owl2vowl(xmlString) {
     }
   }
 
+  const rootChildren = rootEl ? rootEl.childNodes : [];
+
   // Init recursive parser
   for (let i = 0; i < rootChildren.length; i++) {
     if (rootChildren[i].nodeType === 1) {
       parseSubject(rootChildren[i]);
     }
   }
+
+  // Identifies standard XML Schema datatypes or built-in RDF/RDFS/OWL datatypes
+  function isDatatypeIri(iri) {
+    if (!iri) return false;
+    // Keep rdfs:Literal categorised specifically as its own VOWL node type
+    if (iri === "http://www.w3.org/2000/01/rdf-schema#Literal") return false;
+    if (iri.startsWith("http://www.w3.org/2001/XMLSchema#")) return true;
+    if (iri.startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#")) {
+      const local = resolver.getLocalName(iri);
+      return ["PlainLiteral", "XMLLiteral", "HTML", "langString"].includes(local);
+    }
+    if (iri.startsWith("http://www.w3.org/2002/07/owl#")) {
+      const local = resolver.getLocalName(iri);
+      return ["real", "rational"].includes(local);
+    }
+    return false;
+  }
+
+  const ignoredProperties = new Set([
+    "http://www.w3.org/2000/01/rdf-schema#label",
+    "http://www.w3.org/2000/01/rdf-schema#comment",
+    "http://www.w3.org/2000/01/rdf-schema#seeAlso",
+    "http://www.w3.org/2000/01/rdf-schema#isDefinedBy",
+    "http://www.w3.org/2002/07/owl#versionInfo",
+    "http://www.w3.org/2002/07/owl#priorVersion",
+    "http://www.w3.org/2002/07/owl#backwardCompatibleWith",
+    "http://www.w3.org/2002/07/owl#incompatibleWith"
+  ]);
 
   const inferredClasses = new Set();
 
@@ -677,6 +708,113 @@ module.exports = function owl2vowl(xmlString) {
     }
   }
 
+  let ontologyIri = "http://visualdataweb.org/newOntology/";
+  const header = {
+    languages: ["en", "undefined"],
+    baseIris: [],
+    prefixList: prefixList,
+    title: {},
+    iri: ontologyIri,
+    version: "",
+    author: [],
+    description: {},
+    labels: {},
+    comments: {},
+    other: {}
+  };
+
+  if (ontologyBaseIri) {
+    header.baseIris.push(ontologyBaseIri);
+  }
+
+  if (ontologySubject) {
+    ontologyIri = ontologySubject.iri;
+    header.iri = ontologyIri;
+    header.title = ontologySubject.labels;
+    header.description = ontologySubject.comments;
+
+    // Fill titles/descriptions from annotations if empty
+    if (Object.keys(header.title).length === 0) {
+      const titles = ontologySubject.annotations["title"] || ontologySubject.annotations["label"] || [];
+      titles.forEach(t => {
+        header.title[t.language || "undefined"] = t.value;
+      });
+    }
+    if (Object.keys(header.description).length === 0) {
+      const descs = ontologySubject.annotations["description"] || ontologySubject.annotations["comment"] || [];
+      descs.forEach(d => {
+        header.description[d.language || "undefined"] = d.value;
+      });
+    }
+
+    const versions = ontologySubject.annotations["versionInfo"] || [];
+    if (versions.length > 0) {
+      header.version = versions[0].value;
+    }
+
+    const creators = ontologySubject.annotations["creator"] || [];
+    creators.forEach(c => {
+      header.author.push(c.value);
+    });
+
+    header.other = ontologySubject.annotations;
+  } else {
+    header.iri = ontologyIri;
+    header.title = { "en": "Ontology" };
+  }
+
+  // Helper to determine if an IRI is external to the loaded ontology
+  function isIriExternal(iri) {
+    if (!iri) return false;
+    
+    // Ignore anonymous union classes
+    if (iri.startsWith("http://anonymous-union/") || iri.startsWith("http://owl2vowl.de#") || iri.startsWith("http://anonymous-")) {
+      return false;
+    }
+    
+    // Ontologies have standard owl/rdf/rdfs namespaces as external
+    if (iri.startsWith("http://www.w3.org/2002/07/owl#") || 
+        iri.startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#") || 
+        iri.startsWith("http://www.w3.org/2000/01/rdf-schema#")) {
+      return true;
+    }
+    
+    let ontologyIriVal = ontologyIri || ontologyBaseIri;
+    if (!ontologyIriVal) {
+      return false;
+    }
+    
+    function removeTrailingHash(str) {
+      return str.replace(/[#/]$/, "");
+    }
+    
+    const trimmedElementIri = removeTrailingHash(iri);
+    const trimmedOntologyIri = removeTrailingHash(ontologyIriVal);
+    
+    if (trimmedElementIri === trimmedOntologyIri) {
+      return false;
+    }
+    
+    if (trimmedElementIri.includes("#")) {
+      const parts = trimmedElementIri.split("#");
+      if (parts[0] === trimmedOntologyIri) {
+        return false;
+      }
+    }
+    
+    if (trimmedElementIri.includes("/") && !trimmedElementIri.endsWith("/")) {
+      const lastSlashIndex = trimmedElementIri.lastIndexOf("/");
+      const indexAfterSlash = lastSlashIndex + 1;
+      const elementNamespaceWithoutLastPart = trimmedElementIri.substring(0, indexAfterSlash);
+      
+      if (elementNamespaceWithoutLastPart === trimmedOntologyIri) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
   // Map Subjects to Classes, Properties & Named Individuals
   for (const iri in subjects) {
     if (ignoredProperties.has(iri)) continue;
@@ -826,6 +964,38 @@ module.exports = function owl2vowl(xmlString) {
     }
   }
 
+  function isVowlId(str) {
+    if (typeof str !== "string") return false;
+    return /^\d+$/.test(str);
+  }
+
+  function getClassId(iri, fallbackIri = "http://www.w3.org/2002/07/owl#Thing") {
+    let cls = context.classMap.get(iri);
+    if (!cls) {
+      cls = context.classMap.get(fallbackIri);
+    }
+    return cls ? cls.id : "0";
+  }
+
+  function createVirtualDatatype(datatypeIri) {
+    const cls = context.classMap.get(datatypeIri);
+    const virtualId = context.nextId();
+    const virtualCls = {
+      id: virtualId,
+      type: "rdfs:Datatype",
+      iri: datatypeIri,
+      baseIri: cls ? cls.baseIri : resolver.getBaseIri(datatypeIri),
+      label: cls && cls.label ? JSON.parse(JSON.stringify(cls.label)) : { "undefined": resolver.getLocalName(datatypeIri) },
+      comment: cls && cls.comment ? JSON.parse(JSON.stringify(cls.comment)) : {},
+      attributes: ["datatype"],
+      subClasses: [],
+      superClasses: [],
+      annotations: cls && cls.annotations ? cls.annotations : {}
+    };
+    context.virtualDatatypes.push(virtualCls);
+    return virtualId;
+  }
+
   // Step 0: Ensure restriction properties exist in propertyMap
   context.parsedRestrictions.forEach(rest => {
     if (rest.propertyIri) {
@@ -911,25 +1081,6 @@ module.exports = function owl2vowl(xmlString) {
   inversesToCreate.forEach(invIri => {
     ensurePropertyExists(invIri);
   });
-
-  function createVirtualDatatype(datatypeIri) {
-    const cls = context.classMap.get(datatypeIri);
-    const virtualId = context.nextId();
-    const virtualCls = {
-      id: virtualId,
-      type: "rdfs:Datatype",
-      iri: datatypeIri,
-      baseIri: cls ? cls.baseIri : resolver.getBaseIri(datatypeIri),
-      label: cls && cls.label ? JSON.parse(JSON.stringify(cls.label)) : { "undefined": resolver.getLocalName(datatypeIri) },
-      comment: cls && cls.comment ? JSON.parse(JSON.stringify(cls.comment)) : {},
-      attributes: ["datatype"],
-      subClasses: [],
-      superClasses: [],
-      annotations: cls && cls.annotations ? cls.annotations : {}
-    };
-    context.virtualDatatypes.push(virtualCls);
-    return virtualId;
-  }
 
   // Step 3: Resolve domains, ranges & inverses to numeric IDs
   context.propertyMap.forEach(prop => {
