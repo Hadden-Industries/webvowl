@@ -324,9 +324,19 @@ module.exports = function ( graph ){
           try {
             ontologyMenu.append_bulletPoint("Converting remote ontology client-side...");
             var xmlText = request.responseText;
-            var vowlJson = owl2vowl(xmlText);
-            parseOntologyContent(JSON.stringify(vowlJson));
-            ontologyMenu.append_message_toLastBulletPoint("done");
+            owl2vowl.loadWithImports(xmlText)
+              .then(function (vowlJson) {
+                parseOntologyContent(JSON.stringify(vowlJson));
+                ontologyMenu.append_message_toLastBulletPoint("done");
+              })
+              .catch(function (e) {
+                console.error(e);
+                ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+                ontologyMenu.append_bulletPoint("Failed to convert remote ontology: " + filename);
+                ontologyMenu.append_message_toLastBulletPoint("<br><span style='color:red'>Error: " + e.message + "</span>");
+                loadingModule.setErrorMode();
+                graph.handleOnLoadingError();
+              });
           } catch ( e ) {
             console.error(e);
             ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
@@ -363,10 +373,20 @@ module.exports = function ( graph ){
         try {
           var xmlText = reader.result;
           ontologyMenu.append_bulletPoint("Converting ontology client-side...");
-          var vowlJson = owl2vowl(xmlText);
-          ontologyIdentifierFromURL = fileName;
-          parseOntologyContent(JSON.stringify(vowlJson));
-          ontologyMenu.append_message_toLastBulletPoint("done");
+          owl2vowl.loadWithImports(xmlText)
+            .then(function (vowlJson) {
+              ontologyIdentifierFromURL = fileName;
+              parseOntologyContent(JSON.stringify(vowlJson));
+              ontologyMenu.append_message_toLastBulletPoint("done");
+            })
+            .catch(function (e) {
+              console.error(e);
+              ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+              ontologyMenu.append_bulletPoint("Failed to convert: " + fileName);
+              ontologyMenu.append_message_toLastBulletPoint("<br><span style='color:red'>Error: " + e.message + "</span>");
+              loadingModule.setErrorMode();
+              graph.handleOnLoadingError();
+            });
         } catch ( e ) {
           console.error(e);
           ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
@@ -420,10 +440,20 @@ module.exports = function ( graph ){
           try {
             var xmlText = reader.result;
             ontologyMenu.append_bulletPoint("Converting ontology client-side...");
-            var vowlJson = owl2vowl(xmlText);
-            ontologyIdentifierFromURL = filename;
-            parseOntologyContent(JSON.stringify(vowlJson));
-            ontologyMenu.append_message_toLastBulletPoint("done");
+            owl2vowl.loadWithImports(xmlText)
+              .then(function (vowlJson) {
+                ontologyIdentifierFromURL = filename;
+                parseOntologyContent(JSON.stringify(vowlJson));
+                ontologyMenu.append_message_toLastBulletPoint("done");
+              })
+              .catch(function (e) {
+                console.error(e);
+                ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+                ontologyMenu.append_bulletPoint("Failed to convert: " + filename);
+                ontologyMenu.append_message_toLastBulletPoint("<br><span style='color:red'>Error: " + e.message + "</span>");
+                loadingModule.setErrorMode();
+                graph.handleOnLoadingError();
+              });
           } catch ( e ) {
             console.error(e);
             ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");

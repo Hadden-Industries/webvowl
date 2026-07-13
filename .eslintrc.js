@@ -53,9 +53,9 @@ module.exports = {
 
   overrides: [
     {
-      // Targeted parsing and environment relaxation for owl2vowl.js, which acts as an isolated script 
+      // Targeted parsing and environment relaxation for owl2vowl.js and turtleParser.js, which act as isolated scripts 
       // utilizing modern 'const' declarations, Maps, Sets, and Promises inside an otherwise static ES5 domain tree.
-      files: ["src/app/js/owl2vowl.js"],
+      files: ["src/app/js/owl2vowl.js", "src/app/js/turtleParser.js"],
       env: {
         es6: true
       },

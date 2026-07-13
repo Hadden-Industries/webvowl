@@ -31,9 +31,16 @@ module.exports = function ( graph ){
       try {
         // Initialize;
         graph.options().loadingModule().initializeLoader();
-        var vowlJson = owl2vowl(text);
-        graph.options().loadingModule().directInput(JSON.stringify(vowlJson));
-        directInputModule.setDirectInputMode(false);
+        owl2vowl.loadWithImports(text)
+          .then(function (vowlJson) {
+            graph.options().loadingModule().directInput(JSON.stringify(vowlJson));
+            directInputModule.setDirectInputMode(false);
+          })
+          .catch(function (error2) {
+            console.log("Error " + error2);
+            d3.select("#Error_onLoad").classed("hidden", false);
+            d3.select("#Error_onLoad").node().innerHTML = "Failed to convert the input! " + error2.message;
+          });
       } catch ( error2 ) {
         console.log("Error " + error2);
         d3.select("#Error_onLoad").classed("hidden", false);

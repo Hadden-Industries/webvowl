@@ -9,6 +9,8 @@ const NAMESPACES = Object.freeze({
   DCTERMS: "http://purl.org/dc/terms/"
 });
 
+const turtleParser = require("./turtleParser");
+
 /**
  * Manages unique VOWL ID allocation, entity mapping structures,
  * and tracks subclass/subproperty and visual virtualization relations.
@@ -203,6 +205,12 @@ class DomParserUtils {
 }
 
 module.exports = function owl2vowl(xmlString) {
+  if (turtleParser.isTurtleFormat(xmlString)) {
+    const tokens = turtleParser.tokenizeTurtle(xmlString);
+    const parsed = turtleParser.parseTurtleTokens(tokens);
+    xmlString = turtleParser.serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
+  }
+
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xmlString, "application/xml");
   
@@ -1474,10 +1482,10 @@ module.exports = function owl2vowl(xmlString) {
 const ONTOLOGY_CATALOG = {
   "http://purl.org/dc/elements/1.1/": "https://dublincore.org/2020/01/20/dublin_core_elements.rdf",
   "http://purl.org/dc/terms/": "https://dublincore.org/2020/01/20/dublin_core_terms.rdf",
-  "http://www.w3.org/2004/02/skos/core": "https://www.w3.org/2004/02/skos/core.rdf",
+  "http://www.w3.org/2004/02/skos/core": "../external/skos.rdf",
   "http://www.w3.org/ns/dcat": "https://www.w3.org/ns/dcat.rdf",
   "http://www.w3.org/2006/time": "https://raw.githubusercontent.com/w3c/sdw/gh-pages/time/rdf/time.rdf",
-  "http://www.w3.org/ns/time/gregorian": "https://github.com/w3c/sdw/raw/refs/heads/gh-pages/time/rdf/time-gregorian.ttl",
+  "http://www.w3.org/ns/time/gregorian": "../external/time-gregorian.rdf",
   "http://xmlns.com/foaf/0.1/": "https://xmlns.com/foaf/spec/index.rdf"
 };
 
@@ -1507,12 +1515,28 @@ function resolveImportUrl(importUri) {
 }
 
 module.exports.loadWithImports = function (initialXmlText) {
+  let parsedInitialText = initialXmlText;
+  if (turtleParser.isTurtleFormat(initialXmlText)) {
+    try {
+      const tokens = turtleParser.tokenizeTurtle(initialXmlText);
+      const parsed = turtleParser.parseTurtleTokens(tokens);
+      parsedInitialText = turtleParser.serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
+    } catch (parseErr) {
+      return Promise.reject(new Error("Turtle parsing error: " + parseErr.message));
+    }
+  }
+
   const parser = new DOMParser();
   let mainDoc;
   try {
-    mainDoc = parser.parseFromString(initialXmlText, "application/xml");
+    mainDoc = parser.parseFromString(parsedInitialText, "application/xml");
   } catch (e) {
     return Promise.reject(e);
+  }
+
+  const parserError = mainDoc.getElementsByTagName("parsererror")[0];
+  if (parserError) {
+    return Promise.reject(new Error("XML parsing error: " + parserError.textContent));
   }
 
   const rootEl = mainDoc.documentElement;
@@ -1560,10 +1584,21 @@ module.exports.loadWithImports = function (initialXmlText) {
       if (loadedUrls.has(url)) continue;
       loadedUrls.add(url);
       
-      const resolvedUrl = resolveImportUrl(url);
+      let resolvedUrl = resolveImportUrl(url);
+      const isHttpsPage = typeof window !== "undefined" && window.location && window.location.protocol === "https:";
+      let wasUpgraded = false;
+      if (isHttpsPage && resolvedUrl.indexOf("http://") === 0) {
+        resolvedUrl = "https://" + resolvedUrl.substring(7);
+        wasUpgraded = true;
+      }
+
       const menu = (typeof window !== "undefined" && window.WebVOWL && window.WebVOWL.ontologyMenu) ? window.WebVOWL.ontologyMenu : null;
       if (menu && menu.append_bulletPoint) {
-        menu.append_bulletPoint(`Importing external ontology: ${url} (fetching: ${resolvedUrl}) ...`);
+        if (wasUpgraded) {
+          menu.append_bulletPoint(`Importing external ontology: ${url} (auto-upgraded HTTPS fetching: ${resolvedUrl}) ...`);
+        } else {
+          menu.append_bulletPoint(`Importing external ontology: ${url} (fetching: ${resolvedUrl}) ...`);
+        }
       }
       
       promises.push(
@@ -1579,10 +1614,20 @@ module.exports.loadWithImports = function (initialXmlText) {
             return response.text();
           })
           .then(xmlText => {
-            const importedDoc = parser.parseFromString(xmlText, "application/xml");
+            let parsedXmlText = xmlText;
+            if (turtleParser.isTurtleFormat(xmlText)) {
+              try {
+                const tokens = turtleParser.tokenizeTurtle(xmlText);
+                const parsed = turtleParser.parseTurtleTokens(tokens);
+                parsedXmlText = turtleParser.serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
+              } catch (parseErr) {
+                throw new Error(`Turtle parsing error inside imported ontology "${resolvedUrl}": ${parseErr.message}`);
+              }
+            }
+            const importedDoc = parser.parseFromString(parsedXmlText, "application/xml");
             const parserError = importedDoc.getElementsByTagName("parsererror")[0];
             if (parserError) {
-              throw new Error(`XML parsing error inside imported ontology "${resolvedUrl}": ${parserError.textContent}`);
+              throw new Error(`XML/Turtle parsing error inside imported ontology "${resolvedUrl}": ${parserError.textContent}`);
             }
             const importedRoot = importedDoc.documentElement;
             if (!importedRoot) {
@@ -1620,23 +1665,50 @@ module.exports.loadWithImports = function (initialXmlText) {
             return fetchAndMerge(importedDoc);
           })
           .catch(err => {
-            let diagnosticMsg = `Failed to load transitive import: "${url}" (fetching: "${resolvedUrl}").\n`;
-            if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
-              diagnosticMsg += `Possible CORS Block, Network Connection Failure, or Content Negotiation rejection.\n` +
-                               `1. CORS Restriction: Verify that the server hosting "${resolvedUrl}" returns standard 'Access-Control-Allow-Origin' headers allowing access from your web client origin.\n` +
-                               `2. Local/Catalog Mapping: If this resource is offline or blocks queries, map it to a local cache or proxy URL in your catalog config: owl2vowl.catalog["${url}"] = "local_cache_path";\n` +
-                               `3. Insecure Mixed Content: If this WebVOWL tool is running on HTTPS, modern browsers strictly block loading insecure (HTTP) imports.\n` +
-                               `4. Offline / Host Unreachable: Verify your internet connection or remote server availability.`;
+            if (err.message.indexOf("HTTP Error") === 0 || 
+                err.message.indexOf("XML parsing error") === 0 || 
+                err.message.indexOf("The imported ontology") === 0) {
+              if (menu && menu.append_message_toLastBulletPoint) {
+                menu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+              }
+              throw err;
+            }
+
+            const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+
+            let checkPromise;
+            if (isOffline) {
+              checkPromise = Promise.resolve("Network Connection Failure: Your browser reports that it is offline.");
+            } else if (typeof fetch !== 'undefined') {
+              checkPromise = fetch(resolvedUrl, { mode: 'no-cors' })
+                .then(function () {
+                  let corsMsg = "CORS Restriction: The remote server is online but blocks access from this origin.\n" +
+                         "The server hosting '" + resolvedUrl + "' does not return the required 'Access-Control-Allow-Origin' header.\n" +
+                         "To fix: Configure CORS headers on the host server, or register a local mapping: owl2vowl.catalog[\"" + url + "\"] = \"local_path\";";
+                  if (wasUpgraded) {
+                    corsMsg += "\nNote: The request was automatically upgraded to HTTPS ('" + resolvedUrl + "') to prevent secure context (Mixed Content) blocking, but the secure request failed with CORS.";
+                  }
+                  return corsMsg;
+                })
+                .catch(function () {
+                  let unreachableMsg = "Host Unreachable / Network Error: Could not connect to the remote host at '" + resolvedUrl + "'.\n" +
+                         "Please verify that the host domain is correct, the remote server is online, and there are no active firewall blocks.";
+                  if (wasUpgraded) {
+                    unreachableMsg += "\nNote: The request was automatically upgraded to HTTPS ('" + resolvedUrl + "') to prevent secure context (Mixed Content) blocking, but the secure host was unreachable.";
+                  }
+                  return unreachableMsg;
+                });
             } else {
-              diagnosticMsg += `Reason: ${err.message}`;
+              checkPromise = Promise.resolve("Network Connection Failure / Fetch Error: " + err.message);
             }
-            
-            if (menu && menu.append_message_toLastBulletPoint) {
-              menu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
-            }
-            
-            // Bubble the descriptive error to prevent silent data drop and assist in debugging
-            throw new Error(diagnosticMsg);
+
+            return checkPromise.then(function (diagnosticMsg) {
+              const fullMsg = `Failed to load transitive import: "${url}" (fetching: "${resolvedUrl}").\n` + diagnosticMsg;
+              if (menu && menu.append_message_toLastBulletPoint) {
+                menu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+              }
+              throw new Error(fullMsg);
+            });
           })
       );
     }
