@@ -54,32 +54,35 @@ class PerformanceIriResolver {
    * @param {string} iri 
    * @returns {string}
    */
-  resolve(iri) {
-    if (!iri) return this.ontologyBaseIri;
-    if (this.resolvedCache.has(iri)) {
-      return this.resolvedCache.get(iri);
+  resolve(iri, baseIri) {
+    const activeBase = baseIri || this.ontologyBaseIri;
+    if (!iri) return activeBase;
+    
+    const cacheKey = baseIri ? baseIri + "|" + iri : iri;
+    if (this.resolvedCache.has(cacheKey)) {
+      return this.resolvedCache.get(cacheKey);
     }
-
+ 
     const colonIdx = iri.indexOf(":");
     const slashIdx = iri.indexOf("/");
     let resolved = iri;
-
+ 
     // Is absolute IRI?
     if (!(colonIdx !== -1 && (slashIdx === -1 || colonIdx < slashIdx))) {
-      if (this.ontologyBaseIri) {
+      if (activeBase) {
         if (iri === "") {
-          resolved = this.ontologyBaseIri;
+          resolved = activeBase;
         } else if (iri.startsWith("#")) {
-          const baseHasHash = this.ontologyBaseIri.endsWith("#");
-          resolved = baseHasHash ? this.ontologyBaseIri + iri.substring(1) : this.ontologyBaseIri + iri;
+          const baseHasHash = activeBase.endsWith("#");
+          resolved = baseHasHash ? activeBase + iri.substring(1) : activeBase + iri;
         } else {
-          const baseEndsWithHashOrSlash = this.ontologyBaseIri.endsWith("#") || this.ontologyBaseIri.endsWith("/");
-          resolved = baseEndsWithHashOrSlash ? this.ontologyBaseIri + iri : this.ontologyBaseIri + "#" + iri;
+          const baseEndsWithHashOrSlash = activeBase.endsWith("#") || activeBase.endsWith("/");
+          resolved = baseEndsWithHashOrSlash ? activeBase + iri : activeBase + "#" + iri;
         }
       }
     }
-
-    this.resolvedCache.set(iri, resolved);
+ 
+    this.resolvedCache.set(cacheKey, resolved);
     return resolved;
   }
 
@@ -238,6 +241,18 @@ module.exports = function owl2vowl(xmlString) {
   const context = new VowlParserContext();
   const subjects = {};
 
+  function getActiveBaseUri(element) {
+    let current = element;
+    while (current) {
+      if (current.getAttribute) {
+        const base = current.getAttribute("xml:base") || current.getAttribute("base");
+        if (base) return base;
+      }
+      current = current.parentNode;
+    }
+    return ontologyBaseIri;
+  }
+
   // Setup dynamic language selection sets
   const languagesSet = new Set();
 
@@ -303,7 +318,8 @@ module.exports = function owl2vowl(xmlString) {
    */
   function parseSubject(element) {
     const rawAbout = DomParserUtils.getAbout(element);
-    const subjectIri = rawAbout ? resolver.resolve(rawAbout) : null;
+    const activeBase = getActiveBaseUri(element);
+    const subjectIri = rawAbout ? resolver.resolve(rawAbout, activeBase) : null;
     if (!subjectIri) return;
 
     const subject = getOrCreateSubject(subjectIri);
@@ -335,7 +351,8 @@ module.exports = function owl2vowl(xmlString) {
 
       const predLocal = pred.localName;
       const predNs = pred.namespaceURI;
-      const resource = DomParserUtils.getAttr(pred, "resource", NAMESPACES.RDF) ? resolver.resolve(DomParserUtils.getAttr(pred, "resource", NAMESPACES.RDF)) : null;
+      const activeBasePred = getActiveBaseUri(pred);
+      const resource = DomParserUtils.getAttr(pred, "resource", NAMESPACES.RDF) ? resolver.resolve(DomParserUtils.getAttr(pred, "resource", NAMESPACES.RDF), activeBasePred) : null;
 
       if (predLocal === "type" && predNs === NAMESPACES.RDF) {
         if (resource) subject.types.add(resource);
@@ -429,7 +446,8 @@ module.exports = function owl2vowl(xmlString) {
 
               const propertyIri = onPropertyEl ? getPropertyIriFromOnProperty(onPropertyEl) : null;
               if (propertyIri) {
-                const resolvedPropIri = resolver.resolve(propertyIri);
+                const activeBaseNested = getActiveBaseUri(nestedEl);
+                const resolvedPropIri = resolver.resolve(propertyIri, activeBaseNested);
 
                 if (minCardVal || maxCardVal || cardVal) {
                   context.parsedCardinalities.push({
@@ -458,16 +476,17 @@ module.exports = function owl2vowl(xmlString) {
                   context.parsedRestrictions.push({
                     domainIri: subjectIri,
                     propertyIri: resolvedPropIri,
-                    rangeIri: resolver.resolve(rangeIri),
+                    rangeIri: resolver.resolve(rangeIri, activeBaseNested),
                     type: type
                   });
                 }
               }
               targetResource = null; // Do not treat as normal subclass/equivalentClass relation
             } else {
+              const activeBaseNested = getActiveBaseUri(nestedEl);
               const about = DomParserUtils.getAbout(nestedEl);
               if (about) {
-                targetResource = resolver.resolve(about);
+                targetResource = resolver.resolve(about, activeBaseNested);
               } else {
                 // Check if it has owl:unionOf
                 const unionOfEl = DomParserUtils.findImmediateChildren(nestedEl, "unionOf")[0];
@@ -477,7 +496,8 @@ module.exports = function owl2vowl(xmlString) {
                   for (let j = 0; j < allChildren.length; j++) {
                     const descAbout = DomParserUtils.getAbout(allChildren[j]) || DomParserUtils.getAttr(allChildren[j], "resource", NAMESPACES.RDF);
                     if (descAbout) {
-                      memberIris.push(resolver.resolve(descAbout));
+                      const activeBaseChild = getActiveBaseUri(allChildren[j]);
+                      memberIris.push(resolver.resolve(descAbout, activeBaseChild));
                     }
                   }
                   
@@ -1644,7 +1664,8 @@ module.exports.loadWithImports = function (initialXmlText) {
               }
             }
             
-            // Merge children
+            // Merge children, preserving original local base URI context (e.g. rdf:ID relative resolving)
+            const importedBase = importedRoot.getAttribute("xml:base") || importedRoot.getAttribute("base") || resolvedUrl;
             const children = importedRoot.childNodes;
             for (let i = 0; i < children.length; i++) {
               const child = children[i];
@@ -1653,6 +1674,9 @@ module.exports.loadWithImports = function (initialXmlText) {
                   continue;
                 }
                 const importedNode = mainDoc.importNode(child, true);
+                if (importedBase && !importedNode.hasAttribute("xml:base")) {
+                  importedNode.setAttribute("xml:base", importedBase);
+                }
                 rootEl.appendChild(importedNode);
               }
             }
