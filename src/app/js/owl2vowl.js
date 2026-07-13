@@ -1518,13 +1518,13 @@ module.exports = function owl2vowl(xmlString) {
 };
 
 const ONTOLOGY_CATALOG = {
-  "http://purl.org/dc/elements/1.1/": "https://dublincore.org/2020/01/20/dublin_core_elements.rdf",
-  "http://purl.org/dc/terms/": "https://dublincore.org/2020/01/20/dublin_core_terms.rdf",
+  "http://purl.org/dc/elements/1.1/": "../external/dc.rdf",
+  "http://purl.org/dc/terms/": "../external/dcterms.rdf",
   "http://www.w3.org/2004/02/skos/core": "../external/skos.rdf",
-  "http://www.w3.org/ns/dcat": "https://www.w3.org/ns/dcat.rdf",
+  "http://www.w3.org/ns/dcat": "../external/dcat3.rdf",
   "http://www.w3.org/2006/time": "https://raw.githubusercontent.com/w3c/sdw/gh-pages/time/rdf/time.rdf",
   "http://www.w3.org/ns/time/gregorian": "../external/time-gregorian.rdf",
-  "http://xmlns.com/foaf/0.1/": "https://xmlns.com/foaf/spec/index.rdf"
+  "http://xmlns.com/foaf/0.1/": "../external/foaf.rdf"
 };
 
 /**
