@@ -491,6 +491,9 @@ module.exports = function owl2vowl(xmlString) {
       });
     } else if (isDatatype) {
       const cls = ensureClassExists(iri, "rdfs:Datatype");
+      if (!cls.attributes.includes("datatype")) {
+        cls.attributes.push("datatype");
+      }
       cls.label = Object.assign(cls.label, subject.labels);
       cls.comment = subject.comments;
       cls.annotations = subject.annotations;
@@ -589,6 +592,8 @@ module.exports = function owl2vowl(xmlString) {
     ensurePropertyExists(invIri);
   });
 
+  const virtualDatatypes = [];
+
   // 3. Resolve domains, ranges & inverses to IDs (modifying properties in propertyMap)
   propertyMap.forEach(prop => {
     if (prop.domain && typeof prop.domain === "string" && prop.domain.includes(":")) {
@@ -600,7 +605,26 @@ module.exports = function owl2vowl(xmlString) {
 
     if (prop.range && typeof prop.range === "string" && prop.range.includes(":")) {
       const cls = classMap.get(prop.range);
-      prop.range = cls ? cls.id : classMap.get("http://www.w3.org/2002/07/owl#Thing").id;
+      if (cls && cls.type === "rdfs:Datatype" && prop.range !== "http://www.w3.org/2000/01/rdf-schema#Literal") {
+        // Create virtual datatype node
+        const virtualId = nextId();
+        const virtualCls = {
+          id: virtualId,
+          type: "rdfs:Datatype",
+          iri: prop.range,
+          baseIri: cls.baseIri,
+          label: JSON.parse(JSON.stringify(cls.label)),
+          comment: JSON.parse(JSON.stringify(cls.comment)),
+          attributes: ["datatype"],
+          subClasses: [],
+          superClasses: [],
+          annotations: cls.annotations
+        };
+        virtualDatatypes.push(virtualCls);
+        prop.range = virtualId;
+      } else {
+        prop.range = cls ? cls.id : classMap.get("http://www.w3.org/2002/07/owl#Thing").id;
+      }
     } else if (!prop.range) {
       if (prop.type === "owl:datatypeProperty") {
         prop.range = classMap.get("http://www.w3.org/2000/01/rdf-schema#Literal").id;
@@ -739,6 +763,25 @@ module.exports = function owl2vowl(xmlString) {
         }
       });
     }
+  });
+
+  // Append virtual datatypes
+  virtualDatatypes.forEach(cls => {
+    classesArray.push({ id: cls.id, type: cls.type });
+    const attr = {
+      id: cls.id,
+      iri: cls.iri,
+      baseIri: cls.baseIri,
+      label: cls.label,
+      attributes: cls.attributes
+    };
+    if (cls.annotations && Object.keys(cls.annotations).length > 0) {
+      attr.annotations = cls.annotations;
+    }
+    if (cls.comment && Object.keys(cls.comment).length > 0) {
+      attr.comment = cls.comment;
+    }
+    classAttributesArray.push(attr);
   });
 
   const propertiesArray = [];
