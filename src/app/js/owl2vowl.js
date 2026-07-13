@@ -268,7 +268,17 @@ module.exports = function owl2vowl(xmlString) {
         if (resource) subject.types.add(resource);
       } else if (predLocal === "label" && predNs === RDFS_NS) {
         const lang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
-        subject.labels[lang] = pred.textContent.trim();
+        const labelVal = pred.textContent.trim();
+        subject.labels[lang] = labelVal;
+        // Also collect in annotations so all values are preserved (labels[] only keeps one per lang)
+        if (!subject.annotations["label"]) subject.annotations["label"] = [];
+        subject.annotations["label"].push({
+          value: labelVal,
+          type: "label",
+          language: lang,
+          identifier: "rdfs:label",
+          predicateNs: RDFS_NS
+        });
       } else if (
         (predLocal === "comment" && predNs === RDFS_NS) ||
         (predLocal === "description" && (predNs === DCTERMS_NS || predNs === DC_NS))
@@ -388,7 +398,8 @@ module.exports = function owl2vowl(xmlString) {
           value: resource || pred.textContent.trim(),
           type: resource ? "iri" : "label",
           language: lang,
-          identifier: key
+          identifier: key,
+          predicateNs: predNs || ""
         });
       }
     }
