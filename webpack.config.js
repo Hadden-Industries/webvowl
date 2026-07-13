@@ -2,6 +2,7 @@ var path = require("path");
 var webpack = require("webpack");
 var CopyWebpackPlugin = require("copy-webpack-plugin");
 var MiniCssExtractPlugin = require("mini-css-extract-plugin");
+var ESLintPlugin = require("eslint-webpack-plugin"); // Import the modern linter plugin
 
 module.exports = {
 	cache: true,
@@ -31,6 +32,10 @@ module.exports = {
 		]
 	},
 	plugins: [
+		new ESLintPlugin({
+			context: path.resolve(__dirname, "src"), // Restrict scanning exclusively to your source files
+			extensions: ["js"]
+		}),
 		new CopyWebpackPlugin({
 			patterns: [
 				{ context: "src/app", from: "data/**/*" }
