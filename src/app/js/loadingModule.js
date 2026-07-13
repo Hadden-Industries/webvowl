@@ -1,3 +1,5 @@
+var owl2vowl = require("./owl2vowl.js");
+
 module.exports = function ( graph ){
   /** some constants **/
   var PREDEFINED = 0,
@@ -261,9 +263,19 @@ module.exports = function ( graph ){
       parseOntologyContent(ontologyContent);
       
     } else {
-      // involve the o2v conveter;
       ontologyMenu.append_message("Retrieving ontology from JSON URL " + filename);
-      requestServerTimeStampForJSON_URL(ontologyMenu.callbackLoad_JSON_FromURL, ["read?json=" + filename, filename]);
+      d3.xhr(filename, "application/json", function ( error, request ){
+        if ( error ) {
+          console.error(error);
+          ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+          ontologyMenu.append_bulletPoint("Could not fetch remote JSON: " + filename);
+          ontologyMenu.append_message_toLastBulletPoint("<br>CORS restrictions might prevent loading remote files directly in the browser.");
+          loadingModule.setErrorMode();
+          graph.handleOnLoadingError();
+        } else {
+          parseOntologyContent(request.responseText);
+        }
+      });
     }
   };
   
@@ -284,27 +296,11 @@ module.exports = function ( graph ){
   }
   
   loadingModule.requestServerTimeStampForDirectInput = function ( callback, text ){
-    d3.xhr("serverTimeStamp", "application/text", function ( error, request ){
-      if ( error ) {
-        // could not get server timestamp -> no connection to owl2vowl
-        ontologyMenu.append_bulletPoint("Could not establish connection to OWL2VOWL service");
-        loadingModule.setErrorMode();
-        ontologyMenu.append_message_toLastBulletPoint("<br><span style='color:red'>Could not connect to OWL2VOWL service </span>");
-        loadingModule.showErrorDetailsMessage();
-        d3.select("#progressBarValue").style("width", "0%");
-        d3.select("#progressBarValue").classed("busyProgressBar", false);
-        d3.select("#progressBarValue").text("0%");
-        
-      } else {
-        conversion_sessionId = request.responseText;
-        ontologyMenu.setConversionID(conversion_sessionId);
-        callback(text, ["conversionID" + conversion_sessionId, conversion_sessionId]);
-      }
-    });
+    // Bypassed timestamp for client side parsing
+    callback(text, ["conversionIDClient", "clientSession"]);
   };
   
   loadingModule.from_IRI_URL = function ( fileName ){
-    // owl2vowl converters the given ontology url and returns json file;
     var filename = decodeURIComponent(fileName.slice("iri=".length));
     ontologyIdentifierFromURL = filename;
     
@@ -315,10 +311,32 @@ module.exports = function ( graph ){
       loadingWasSuccessFul = true; // cached Ontology should be true;
       parseOntologyContent(ontologyContent);
     } else {
-      // involve the o2v conveter;
-      var encoded = encodeURIComponent(filename);
       ontologyMenu.append_bulletPoint("Retrieving ontology from IRI: " + filename);
-      requestServerTimeStampForIRI_Converte(ontologyMenu.callbackLoad_Ontology_FromIRI, ["convert?iri=" + encoded, filename]);
+      d3.xhr(filename, function ( error, request ){
+        if ( error ) {
+          console.error(error);
+          ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+          ontologyMenu.append_bulletPoint("Could not fetch remote IRI: " + filename);
+          ontologyMenu.append_message_toLastBulletPoint("<br>CORS restrictions might prevent loading remote files directly in the browser.");
+          loadingModule.setErrorMode();
+          graph.handleOnLoadingError();
+        } else {
+          try {
+            ontologyMenu.append_bulletPoint("Converting remote ontology client-side...");
+            var xmlText = request.responseText;
+            var vowlJson = owl2vowl(xmlText);
+            parseOntologyContent(JSON.stringify(vowlJson));
+            ontologyMenu.append_message_toLastBulletPoint("done");
+          } catch ( e ) {
+            console.error(e);
+            ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+            ontologyMenu.append_bulletPoint("Failed to convert remote ontology: " + filename);
+            ontologyMenu.append_message_toLastBulletPoint("<br><span style='color:red'>Error: " + e.message + "</span>");
+            loadingModule.setErrorMode();
+            graph.handleOnLoadingError();
+          }
+        }
+      });
     }
   };
   
@@ -329,8 +347,6 @@ module.exports = function ( graph ){
     ontologyMenu.append_bulletPoint("Retrieving ontology from dropped file: " + fileName);
     var ontologyContent = "";
     
-    // two options here
-    //1] Direct Json Upload
     if ( fileName.match(/\.json$/) ) {
       ontologyMenu.setConversionID(-10000);
       var reader = new FileReader();
@@ -341,10 +357,25 @@ module.exports = function ( graph ){
         parseOntologyContent(ontologyContent);
       };
     } else {
-      //2] File Upload to OWL2VOWL Converter
-      // 1) check if we can get a timeStamp;
-      var parameterArray = [file, fileName];
-      requestServerTimeStamp(ontologyMenu.callbackLoadFromOntology, parameterArray);
+      var reader = new FileReader();
+      reader.readAsText(file);
+      reader.onload = function (){
+        try {
+          var xmlText = reader.result;
+          ontologyMenu.append_bulletPoint("Converting ontology client-side...");
+          var vowlJson = owl2vowl(xmlText);
+          ontologyIdentifierFromURL = fileName;
+          parseOntologyContent(JSON.stringify(vowlJson));
+          ontologyMenu.append_message_toLastBulletPoint("done");
+        } catch ( e ) {
+          console.error(e);
+          ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+          ontologyMenu.append_bulletPoint("Failed to convert: " + fileName);
+          ontologyMenu.append_message_toLastBulletPoint("<br><span style='color:red'>Error: " + e.message + "</span>");
+          loadingModule.setErrorMode();
+          graph.handleOnLoadingError();
+        }
+      };
     }
   };
   
@@ -361,11 +392,8 @@ module.exports = function ( graph ){
       parseOntologyContent(ontologyContent);
       
     } else {
-      // d3.select("#currentLoadingStep").node().innerHTML="Loading ontology from file "+ filename;
       ontologyMenu.append_bulletPoint("Retrieving ontology from file: " + filename);
-      // get the file
       var selectedFile = d3.select("#file-converter-input").property("files")[0];
-      // No selection -> this was triggered by the iri. Unequal names -> reuploading another file
       if ( !selectedFile || (filename && (filename !== selectedFile.name)) ) {
         ontologyMenu.append_message_toLastBulletPoint("<br><span style=\"color:red;\">No cached version of \"" + filename + "\" was found.</span><br>Please reupload the file.");
         loadingModule.setErrorMode();
@@ -375,10 +403,7 @@ module.exports = function ( graph ){
       } else {
         filename = selectedFile.name;
       }
-
-
-// two options here
-//1] Direct Json Upload
+      
       if ( filename.match(/\.json$/) ) {
         ontologyMenu.setConversionID(-10000);
         var reader = new FileReader();
@@ -389,10 +414,25 @@ module.exports = function ( graph ){
           parseOntologyContent(ontologyContent);
         };
       } else {
-//2] File Upload to OWL2VOWL Converter
-        // 1) check if we can get a timeStamp;
-        var parameterArray = [selectedFile, filename];
-        requestServerTimeStamp(ontologyMenu.callbackLoadFromOntology, parameterArray);
+        var reader = new FileReader();
+        reader.readAsText(selectedFile);
+        reader.onload = function (){
+          try {
+            var xmlText = reader.result;
+            ontologyMenu.append_bulletPoint("Converting ontology client-side...");
+            var vowlJson = owl2vowl(xmlText);
+            ontologyIdentifierFromURL = filename;
+            parseOntologyContent(JSON.stringify(vowlJson));
+            ontologyMenu.append_message_toLastBulletPoint("done");
+          } catch ( e ) {
+            console.error(e);
+            ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+            ontologyMenu.append_bulletPoint("Failed to convert: " + filename);
+            ontologyMenu.append_message_toLastBulletPoint("<br><span style='color:red'>Error: " + e.message + "</span>");
+            loadingModule.setErrorMode();
+            graph.handleOnLoadingError();
+          }
+        };
       }
     }
   };

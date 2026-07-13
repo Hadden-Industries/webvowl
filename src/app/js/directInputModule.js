@@ -1,3 +1,5 @@
+var owl2vowl = require("./owl2vowl.js");
+
 module.exports = function ( graph ){
   /** variable defs **/
   var directInputModule = {};
@@ -29,13 +31,13 @@ module.exports = function ( graph ){
       try {
         // Initialize;
         graph.options().loadingModule().initializeLoader();
-        graph.options().loadingModule().requestServerTimeStampForDirectInput(
-          graph.options().ontologyMenu().callbackLoad_Ontology_From_DirectInput, text
-        );
+        var vowlJson = owl2vowl(text);
+        graph.options().loadingModule().directInput(JSON.stringify(vowlJson));
+        directInputModule.setDirectInputMode(false);
       } catch ( error2 ) {
         console.log("Error " + error2);
         d3.select("#Error_onLoad").classed("hidden", false);
-        d3.select("#Error_onLoad").node().innerHTML = "Failed to convert the input!";
+        d3.select("#Error_onLoad").node().innerHTML = "Failed to convert the input! " + error2.message;
       }
     }
   };
