@@ -921,6 +921,9 @@ module.exports = function owl2vowl(xmlString) {
       // Else, fall back safely to undefined: localName.
       if (Object.keys(subject.labels).length > 0) {
         cls.label = Object.assign({}, subject.labels);
+        if (!cls.label["undefined"]) {
+          cls.label["undefined"] = resolver.getLocalName(iri);
+        }
       } else {
         cls.label = { "undefined": resolver.getLocalName(iri) };
       }
@@ -940,6 +943,9 @@ module.exports = function owl2vowl(xmlString) {
       if (!cls.attributes.includes("datatype")) cls.attributes.push("datatype");
       if (Object.keys(subject.labels).length > 0) {
         cls.label = Object.assign({}, subject.labels);
+        if (!cls.label["undefined"]) {
+          cls.label["undefined"] = resolver.getLocalName(iri);
+        }
       } else {
         cls.label = { "undefined": resolver.getLocalName(iri) };
       }
@@ -961,12 +967,17 @@ module.exports = function owl2vowl(xmlString) {
       if (types.some(t => t === NAMESPACES.OWL + "TransitiveProperty")) attributes.push("transitive");
       if (types.some(t => t === NAMESPACES.OWL + "SymmetricProperty")) attributes.push("symmetric");
       
+      const propLabel = Object.keys(subject.labels).length > 0 ? Object.assign({}, subject.labels) : { "undefined": resolver.getLocalName(iri) };
+      if (!propLabel["undefined"]) {
+        propLabel["undefined"] = resolver.getLocalName(iri);
+      }
+
       const prop = {
         id: context.nextId(),
         type: type,
         iri: iri,
         baseIri: resolver.getBaseIri(iri),
-        label: Object.keys(subject.labels).length > 0 ? Object.assign({}, subject.labels) : { "undefined": resolver.getLocalName(iri) },
+        label: propLabel,
         comment: subject.comments,
         attributes: attributes,
         domain: subject.domains[0] || null,
@@ -989,6 +1000,9 @@ module.exports = function owl2vowl(xmlString) {
       let finalLabels = {};
       if (Object.keys(subject.labels).length > 0) {
         finalLabels = Object.assign({}, subject.labels);
+        if (!finalLabels["undefined"]) {
+          finalLabels["undefined"] = localName;
+        }
       } else {
         finalLabels = { "undefined": localName };
       }
@@ -1038,12 +1052,16 @@ module.exports = function owl2vowl(xmlString) {
   function createVirtualDatatype(datatypeIri) {
     const cls = context.classMap.get(datatypeIri);
     const virtualId = context.nextId();
+    const label = cls && cls.label ? JSON.parse(JSON.stringify(cls.label)) : { "undefined": resolver.getLocalName(datatypeIri) };
+    if (!label["undefined"]) {
+      label["undefined"] = resolver.getLocalName(datatypeIri);
+    }
     const virtualCls = {
       id: virtualId,
       type: "rdfs:Datatype",
       iri: datatypeIri,
       baseIri: cls ? cls.baseIri : resolver.getBaseIri(datatypeIri),
-      label: cls && cls.label ? JSON.parse(JSON.stringify(cls.label)) : { "undefined": resolver.getLocalName(datatypeIri) },
+      label: label,
       comment: cls && cls.comment ? JSON.parse(JSON.stringify(cls.comment)) : {},
       attributes: ["datatype"],
       subClasses: [],
@@ -1150,7 +1168,7 @@ module.exports = function owl2vowl(xmlString) {
 
     if (prop.range && typeof prop.range === "string" && !isVowlId(prop.range)) {
       const cls = context.classMap.get(prop.range);
-      if (cls && cls.type === "rdfs:Datatype" && prop.range !== "http://www.w3.org/2000/01/rdf-schema#Literal") {
+      if ((isDatatypeIri(prop.range) || (cls && cls.type === "rdfs:Datatype")) && prop.range !== "http://www.w3.org/2000/01/rdf-schema#Literal") {
         prop.range = createVirtualDatatype(prop.range);
       } else {
         prop.range = getClassId(prop.range, "http://www.w3.org/2002/07/owl#Thing");
