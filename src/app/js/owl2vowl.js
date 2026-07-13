@@ -1471,6 +1471,41 @@ module.exports = function owl2vowl(xmlString) {
   };
 };
 
+const ONTOLOGY_CATALOG = {
+  "http://purl.org/dc/elements/1.1/": "https://dublincore.org/2020/01/20/dublin_core_elements.rdf",
+  "http://purl.org/dc/terms/": "https://dublincore.org/2020/01/20/dublin_core_terms.rdf",
+  "http://www.w3.org/2004/02/skos/core": "https://www.w3.org/2004/02/skos/core.rdf",
+  "http://www.w3.org/ns/dcat": "https://www.w3.org/ns/dcat.rdf",
+  "http://www.w3.org/2006/time": "https://raw.githubusercontent.com/w3c/sdw/gh-pages/time/rdf/time.rdf",
+  "http://www.w3.org/ns/time/gregorian": "https://github.com/w3c/sdw/raw/refs/heads/gh-pages/time/rdf/time-gregorian.ttl",
+  "http://xmlns.com/foaf/0.1/": "https://xmlns.com/foaf/spec/index.rdf"
+};
+
+/**
+ * Resolves logical ontology import IRIs to dereferenceable physical URLs
+ * using the OASIS catalog registries.
+ */
+function resolveImportUrl(importUri) {
+  if (!importUri) return importUri;
+  
+  // Normalize lookup keys by trimming trailing separators
+  const normalizedUri = importUri.replace(/[#/]$/, "");
+  
+  // 1. Precise match
+  if (ONTOLOGY_CATALOG[importUri]) {
+    return ONTOLOGY_CATALOG[importUri];
+  }
+  
+  // 2. Normalized prefix/key match
+  for (const [key, val] of Object.entries(ONTOLOGY_CATALOG)) {
+    if (key.replace(/[#/]$/, "") === normalizedUri) {
+      return val;
+    }
+  }
+  
+  return importUri;
+}
+
 module.exports.loadWithImports = function (initialXmlText) {
   const parser = new DOMParser();
   let mainDoc;
@@ -1525,21 +1560,34 @@ module.exports.loadWithImports = function (initialXmlText) {
       if (loadedUrls.has(url)) continue;
       loadedUrls.add(url);
       
+      const resolvedUrl = resolveImportUrl(url);
       const menu = (typeof window !== "undefined" && window.WebVOWL && window.WebVOWL.ontologyMenu) ? window.WebVOWL.ontologyMenu : null;
       if (menu && menu.append_bulletPoint) {
-        menu.append_bulletPoint("Importing external ontology: " + url + " ...");
+        menu.append_bulletPoint(`Importing external ontology: ${url} (fetching: ${resolvedUrl}) ...`);
       }
       
       promises.push(
-        fetch(url)
+        fetch(resolvedUrl, {
+          headers: {
+            'Accept': 'application/rdf+xml, application/xml, text/xml, application/owl+xml, */*'
+          }
+        })
           .then(response => {
-            if (!response.ok) throw new Error("HTTP error " + response.status);
+            if (!response.ok) {
+              throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+            }
             return response.text();
           })
           .then(xmlText => {
             const importedDoc = parser.parseFromString(xmlText, "application/xml");
+            const parserError = importedDoc.getElementsByTagName("parsererror")[0];
+            if (parserError) {
+              throw new Error(`XML parsing error inside imported ontology "${resolvedUrl}": ${parserError.textContent}`);
+            }
             const importedRoot = importedDoc.documentElement;
-            if (!importedRoot) return;
+            if (!importedRoot) {
+              throw new Error(`The imported ontology "${resolvedUrl}" does not possess a valid root XML element.`);
+            }
             
             // Merge namespace attributes
             if (importedRoot.attributes) {
@@ -1568,13 +1616,27 @@ module.exports.loadWithImports = function (initialXmlText) {
               menu.append_message_toLastBulletPoint("done");
             }
             
+            // Transitively resolve any nested imports declared in the merged file
             return fetchAndMerge(importedDoc);
           })
           .catch(err => {
-            console.warn("Failed to load imported ontology " + url + ": ", err);
-            if (menu && menu.append_message_toLastBulletPoint) {
-              menu.append_message_toLastBulletPoint("<span style='color:orange;'>failed (skipped)</span>");
+            let diagnosticMsg = `Failed to load transitive import: "${url}" (fetching: "${resolvedUrl}").\n`;
+            if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+              diagnosticMsg += `Possible CORS Block, Network Connection Failure, or Content Negotiation rejection.\n` +
+                               `1. CORS Restriction: Verify that the server hosting "${resolvedUrl}" returns standard 'Access-Control-Allow-Origin' headers allowing access from your web client origin.\n` +
+                               `2. Local/Catalog Mapping: If this resource is offline or blocks queries, map it to a local cache or proxy URL in your catalog config: owl2vowl.catalog["${url}"] = "local_cache_path";\n` +
+                               `3. Insecure Mixed Content: If this WebVOWL tool is running on HTTPS, modern browsers strictly block loading insecure (HTTP) imports.\n` +
+                               `4. Offline / Host Unreachable: Verify your internet connection or remote server availability.`;
+            } else {
+              diagnosticMsg += `Reason: ${err.message}`;
             }
+            
+            if (menu && menu.append_message_toLastBulletPoint) {
+              menu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+            }
+            
+            // Bubble the descriptive error to prevent silent data drop and assist in debugging
+            throw new Error(diagnosticMsg);
           })
       );
     }
@@ -1587,3 +1649,6 @@ module.exports.loadWithImports = function (initialXmlText) {
     return module.exports(mergedXml);
   });
 };
+
+// Export the catalog globally so client apps can register mappings dynamically
+module.exports.catalog = ONTOLOGY_CATALOG;
