@@ -119,16 +119,11 @@ module.exports = function (grunt) {
 		webpack: {
 			options: webpackConfig,
 			build: {
-				plugins: webpackConfig.plugins.concat(
-          // minimize the deployed code
-          //new webpack.optimize.UglifyJsPlugin(),
-					new webpack.optimize.DedupePlugin()
-
-				)
+				mode: "production"
 			},
 			"build-dev": {
-				devtool: "sourcemap",
-				debug: true
+				mode: "development",
+				devtool: "source-map"
 			}
 		},
 		watch: {
