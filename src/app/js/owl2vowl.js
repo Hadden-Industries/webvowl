@@ -474,11 +474,10 @@ module.exports = function owl2vowl(xmlString) {
                   }
                   
                   if (memberIris.length > 0) {
-                    const unionClassIri = "http://anonymous-union/" + context.nextId();
-                    const unionCls = ensureClassExists(unionClassIri, "owl:unionOf");
+                    const unionCls = ensureClassExists(null, "owl:unionOf");
                     unionCls.attributes.push("union");
                     unionCls.unionMembers = memberIris;
-                    targetResource = unionClassIri;
+                    targetResource = unionCls.id; // Store ID reference directly
                   }
                 }
               }
@@ -601,15 +600,15 @@ module.exports = function owl2vowl(xmlString) {
     const subject = subjects[iri];
     if (subject.superClasses.length > 0) {
       inferredClasses.add(iri);
-      subject.superClasses.forEach(sup => { if (sup) inferredClasses.add(sup); });
+      subject.superClasses.forEach(sup => { if (sup && !isVowlId(sup)) inferredClasses.add(sup); });
     }
     if (subject.equivalentClasses.length > 0) {
       inferredClasses.add(iri);
-      subject.equivalentClasses.forEach(eq => { if (eq) inferredClasses.add(eq); });
+      subject.equivalentClasses.forEach(eq => { if (eq && !isVowlId(eq)) inferredClasses.add(eq); });
     }
     if (subject.disjointWith.length > 0) {
       inferredClasses.add(iri);
-      subject.disjointWith.forEach(dj => { if (dj) inferredClasses.add(dj); });
+      subject.disjointWith.forEach(dj => { if (dj && !isVowlId(dj)) inferredClasses.add(dj); });
     }
   }
 
@@ -639,12 +638,12 @@ module.exports = function owl2vowl(xmlString) {
     );
 
     if (isProperty) {
-      subject.domains.forEach(dom => { if (dom) inferredClasses.add(dom); });
+      subject.domains.forEach(dom => { if (dom && !isVowlId(dom)) inferredClasses.add(dom); });
       const isDatatypeProp = types.some(t => t === NAMESPACES.OWL + "DatatypeProperty") ||
                              subject.ranges.some(isDatatypeIri);
       if (!isDatatypeProp) {
         subject.ranges.forEach(ran => {
-          if (ran && !isDatatypeIri(ran)) inferredClasses.add(ran);
+          if (ran && !isDatatypeIri(ran) && !isVowlId(ran)) inferredClasses.add(ran);
         });
       }
     }
@@ -677,7 +676,7 @@ module.exports = function owl2vowl(xmlString) {
     if (isDatatypeIri(iri)) {
       type = "rdfs:Datatype";
     }
-    if (context.classMap.has(iri)) {
+    if (iri && context.classMap.has(iri)) {
       const cls = context.classMap.get(iri);
       if (type === "owl:unionOf" && cls.type === "owl:Class") {
         cls.type = "owl:unionOf";
@@ -691,10 +690,8 @@ module.exports = function owl2vowl(xmlString) {
       return cls;
     }
     const id = context.nextId();
-    const localName = resolver.getLocalName(iri);
-    const baseIri = resolver.getBaseIri(iri);
     
-    const isAnonymous = iri.startsWith("http://anonymous-union/") || type === "owl:unionOf";
+    const isAnonymous = type === "owl:unionOf";
     const attributes = [];
     if (isAnonymous) attributes.push("anonymous");
     if (type === "rdfs:Datatype") attributes.push("datatype");
@@ -703,15 +700,19 @@ module.exports = function owl2vowl(xmlString) {
       id: id,
       type: type === "owl:unionOf" ? "owl:unionOf" : type,
       iri: iri,
-      baseIri: baseIri,
-      label: { "undefined": localName },
+      baseIri: iri ? resolver.getBaseIri(iri) : null,
+      label: iri ? { "undefined": resolver.getLocalName(iri) } : {},
       comment: {},
       attributes: attributes,
       subClasses: [],
       superClasses: [],
       individuals: []
     };
-    context.classMap.set(iri, cls);
+    if (iri) {
+        context.classMap.set(iri, cls);
+    } else {
+        context.classMap.set(id, cls);
+    }
     return cls;
   }
 
@@ -753,19 +754,6 @@ module.exports = function owl2vowl(xmlString) {
       break;
     }
   }
-  if (!ontologySubject && ontologyBaseIri) {
-    if (subjects[ontologyBaseIri]) {
-      ontologySubject = subjects[ontologyBaseIri];
-    } else {
-      const normalizedBase = ontologyBaseIri.endsWith("/") || ontologyBaseIri.endsWith("#") ? ontologyBaseIri : ontologyBaseIri + "/";
-      for (const iri in subjects) {
-        if (iri === ontologyBaseIri || iri === normalizedBase) {
-          ontologySubject = subjects[iri];
-          break;
-        }
-      }
-    }
-  }
 
   // Sort dyn-constructed regional languages alphabetically, keeping 'undefined' at index 0 to match Java output
   const rawLanguages = Array.from(languagesSet).filter(l => l !== "undefined");
@@ -781,7 +769,7 @@ module.exports = function owl2vowl(xmlString) {
     baseIris: [],
     prefixList: prefixList,
     title: {},
-    iri: "http://visualdataweb.org/newOntology/",
+    iri: ontologySubject ? ontologySubject.iri : "https://haddenindustries.com/ontology/newOntology/",
     version: "",
     author: [],
     description: {},
@@ -790,12 +778,7 @@ module.exports = function owl2vowl(xmlString) {
     other: {}
   };
 
-  if (ontologyBaseIri) {
-    header.baseIris.push(ontologyBaseIri);
-  }
-
   if (ontologySubject) {
-    header.iri = ontologySubject.iri;
     header.title = ontologySubject.labels;
     header.description = ontologySubject.comments;
 
@@ -828,16 +811,9 @@ module.exports = function owl2vowl(xmlString) {
     header.title = { "en": "Ontology" };
   }
 
-  let ontologyIri = header.iri; // Define locally so isIriExternal closure reads it dynamically
-
-  // Helper to determine if an IRI is external to the loaded ontology
+  // Helper to determine if an IRI is external
   function isIriExternal(iri) {
     if (!iri) return false;
-    
-    // Ignore anonymous union classes
-    if (iri.startsWith("http://anonymous-union/") || iri.startsWith("http://owl2vowl.de#") || iri.startsWith("http://anonymous-")) {
-      return false;
-    }
     
     // Ontologies have standard owl/rdf/rdfs namespaces as external
     if (iri.startsWith("http://www.w3.org/2002/07/owl#") || 
@@ -845,14 +821,12 @@ module.exports = function owl2vowl(xmlString) {
         iri.startsWith("http://www.w3.org/2000/01/rdf-schema#")) {
       return true;
     }
+    let ontologyIriVal = header.iri;
     
-    let ontologyIriVal = ontologyIri || ontologyBaseIri;
-    if (!ontologyIriVal) {
-      return false;
-    }
+    if (!ontologyIriVal) return false;
     
     function removeTrailingHash(str) {
-      return str.replace(/[#/]$/, "");
+      return str.replace(/[#]$/, "");
     }
     
     const trimmedElementIri = removeTrailingHash(iri);
@@ -958,23 +932,13 @@ module.exports = function owl2vowl(xmlString) {
       if (types.some(t => t === NAMESPACES.OWL + "FunctionalProperty")) attributes.push("functional");
       if (types.some(t => t === NAMESPACES.OWL + "TransitiveProperty")) attributes.push("transitive");
       if (types.some(t => t === NAMESPACES.OWL + "SymmetricProperty")) attributes.push("symmetric");
-
-      const localName = resolver.getLocalName(iri);
-      const baseIri = resolver.getBaseIri(iri);
-
-      let finalLabels = {};
-      if (Object.keys(subject.labels).length > 0) {
-        finalLabels = Object.assign({}, subject.labels);
-      } else {
-        finalLabels = { "undefined": localName };
-      }
-
+      
       const prop = {
         id: context.nextId(),
         type: type,
         iri: iri,
-        baseIri: baseIri,
-        label: finalLabels,
+        baseIri: resolver.getBaseIri(iri),
+        label: Object.keys(subject.labels).length > 0 ? Object.assign({}, subject.labels) : { "undefined": resolver.getLocalName(iri) },
         comment: subject.comments,
         attributes: attributes,
         domain: subject.domains[0] || null,
@@ -1036,11 +1000,10 @@ module.exports = function owl2vowl(xmlString) {
     return /^\d+$/.test(str);
   }
 
-  function getClassId(iri, fallbackIri = "http://www.w3.org/2002/07/owl#Thing") {
-    let cls = context.classMap.get(iri);
-    if (!cls) {
-      cls = context.classMap.get(fallbackIri);
-    }
+  function getClassId(ref) {
+    if (isVowlId(ref)) return ref;
+    let cls = context.classMap.get(ref);
+    if (!cls) cls = context.classMap.get("http://www.w3.org/2002/07/owl#Thing");
     return cls ? cls.id : "0";
   }
 
@@ -1324,7 +1287,7 @@ module.exports = function owl2vowl(xmlString) {
 
   // Mark external elements based on target absolute namespace
   context.classMap.forEach(cls => {
-    const isAnon = cls.iri.startsWith("http://anonymous-union/") || cls.type === "owl:unionOf";
+    const isAnon = cls.type === "owl:unionOf";
     if (!isAnon && isIriExternal(cls.iri)) {
       if (!cls.attributes.includes("external")) cls.attributes.push("external");
     }
@@ -1345,7 +1308,7 @@ module.exports = function owl2vowl(xmlString) {
 
   context.classMap.forEach(cls => {
     classesArray.push({ id: cls.id, type: cls.type });
-    const isAnonymous = cls.iri.startsWith("http://anonymous-union/") || cls.type === "owl:unionOf";
+    const isAnonymous = cls.type === "owl:unionOf";
     const attr = { id: cls.id };
 
     if (!isAnonymous) {
@@ -1480,6 +1443,21 @@ module.exports = function owl2vowl(xmlString) {
     }
   });
   metrics.individualCount = totalIndividualCount;
+  
+  // Implementation of baseIris dynamic extraction
+  const usedNamespaces = new Set();
+  
+  // 1. Add all defined class/property/datatype IRIs
+  context.classMap.forEach(c => { if (c.iri) usedNamespaces.add(resolver.getBaseIri(c.iri)); });
+  context.propertyMap.forEach(p => { if (p.iri) usedNamespaces.add(resolver.getBaseIri(p.iri)); });
+  
+  // 2. Filter, clean, and sort
+  const reserved = ["http://www.w3.org/2002/07/owl", "http://www.w3.org/1999/02/22-rdf-syntax-ns", "http://www.w3.org/2000/01/rdf-schema", "http://www.w3.org/2001/XMLSchema"];
+  usedNamespaces.forEach(ns => {
+      if (ns && !reserved.includes(ns)) header.baseIris.push(ns);
+  });
+  
+  header.baseIris.sort();
 
   return {
     _comment: "Created with client-side JS-OWL2VOWL parser",
