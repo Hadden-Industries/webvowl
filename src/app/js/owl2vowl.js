@@ -582,7 +582,7 @@ module.exports = function owl2vowl(xmlString) {
   const inferredClasses = new Set();
 
   // Populate inferred classes from explicit declarations
-  for (const iri in subjects) {
+  for (const iri of Object.keys(subjects)) {
     const subject = subjects[iri];
     for (const type of subject.types) {
       if (
@@ -596,7 +596,7 @@ module.exports = function owl2vowl(xmlString) {
   }
 
   // Infers class status from usage relationships
-  for (const iri in subjects) {
+  for (const iri of Object.keys(subjects)) {
     const subject = subjects[iri];
     if (subject.superClasses.length > 0) {
       inferredClasses.add(iri);
@@ -625,7 +625,7 @@ module.exports = function owl2vowl(xmlString) {
   });
 
   // Domains & Ranges inference
-  for (const iri in subjects) {
+  for (const iri of Object.keys(subjects)) {
     const subject = subjects[iri];
     const types = Array.from(subject.types);
     const isProperty = types.some(t =>
@@ -651,7 +651,7 @@ module.exports = function owl2vowl(xmlString) {
 
   // Custom typing / Metaclass inference
   // Any custom URI used to instantiate an entity is categorised as a Class (signature/role inference)
-  for (const iri in subjects) {
+  for (const iri of Object.keys(subjects)) {
     const subject = subjects[iri];
     subject.types.forEach(t => {
       if (
@@ -1044,7 +1044,7 @@ module.exports = function owl2vowl(xmlString) {
     ensureClassExists(rest.rangeIri);
   });
 
-  for (const iri in subjects) {
+  for (const iri of Object.keys(subjects)) {
     const subject = subjects[iri];
     subject.equivalentClasses.forEach(equivIri => {
       ensureClassExists(equivIri);
