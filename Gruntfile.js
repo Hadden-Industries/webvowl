@@ -71,7 +71,7 @@ module.exports = function (grunt) {
 			static: {
 				files: [
 					{expand: true, cwd: "src/", src: ["favicon.ico"], dest: deployPath},
-					{expand: true, src: ["license.txt"], dest: deployPath}
+					{src: ["LICENSE"], dest: deployPath + "license.txt"}
 				]
 			}
 		},

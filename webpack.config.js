@@ -2,7 +2,8 @@ var path = require("path");
 var webpack = require("webpack");
 var CopyWebpackPlugin = require("copy-webpack-plugin");
 var MiniCssExtractPlugin = require("mini-css-extract-plugin");
-var ESLintPlugin = require("eslint-webpack-plugin"); // Import the modern linter plugin
+var ESLintPlugin = require("eslint-webpack-plugin");
+var TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = {
 	cache: true,
@@ -50,5 +51,13 @@ module.exports = {
 	],
 	externals: {
 		"d3": "d3"
+	},
+	optimization: {
+		minimize: true,
+		minimizer: [
+			new TerserPlugin({
+				extractComments: false
+			})
+		]
 	}
 };
