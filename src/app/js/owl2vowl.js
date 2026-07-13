@@ -230,6 +230,28 @@ module.exports = function owl2vowl(xmlString) {
   const context = new VowlParserContext();
   const subjects = {};
 
+  // Setup dynamic language selection sets
+  const languagesSet = new Set();
+
+  /**
+   * Dynamically tracks, cleans, and registers parsed language codes.
+   * Matches ISO 639-1 base tags and regional subtags for precise visual presentation.
+   */
+  function registerLanguage(rawLang) {
+    const clean = (rawLang || "").trim().toLowerCase();
+    if (!clean || clean === "undefined") {
+      languagesSet.add("undefined");
+      return "undefined";
+    }
+    languagesSet.add(clean);
+    // If it's a regional subtag (e.g. en-gb or pt-br), also register the base fallback tag
+    if (clean.includes("-")) {
+      const base = clean.split("-")[0];
+      languagesSet.add(base);
+    }
+    return clean;
+  }
+
   function getOrCreateSubject(iri) {
     if (!subjects[iri]) {
       subjects[iri] = {
@@ -310,9 +332,19 @@ module.exports = function owl2vowl(xmlString) {
       if (predLocal === "type" && predNs === NAMESPACES.RDF) {
         if (resource) subject.types.add(resource);
       } else if (predLocal === "label" && predNs === NAMESPACES.RDFS) {
-        const lang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
+        const rawLang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
+        const lang = registerLanguage(rawLang);
         const labelVal = pred.textContent.trim();
+        
         subject.labels[lang] = labelVal;
+        // Language subtag propagation (e.g. en-us -> en fallback)
+        if (lang.includes("-")) {
+          const baseLang = lang.split("-")[0];
+          if (!subject.labels[baseLang]) {
+            subject.labels[baseLang] = labelVal;
+          }
+        }
+
         // Also collect in annotations so all values are preserved (labels[] only keeps one per lang)
         if (!subject.annotations["label"]) subject.annotations["label"] = [];
         subject.annotations["label"].push({
@@ -327,8 +359,17 @@ module.exports = function owl2vowl(xmlString) {
         (predLocal === "comment" && predNs === NAMESPACES.OWL) ||
         (predLocal === "description" && (predNs === NAMESPACES.DCTERMS || predNs === NAMESPACES.DC))
       ) {
-        const lang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
-        subject.comments[lang] = pred.textContent.trim();
+        const rawLang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
+        const lang = registerLanguage(rawLang);
+        const commentVal = pred.textContent.trim();
+        
+        subject.comments[lang] = commentVal;
+        if (lang.includes("-")) {
+          const baseLang = lang.split("-")[0];
+          if (!subject.comments[baseLang]) {
+            subject.comments[baseLang] = commentVal;
+          }
+        }
       } else if (
         (predLocal === "domain" || predLocal === "range" || predLocal === "subClassOf" || 
          predLocal === "subPropertyOf" || predLocal === "inverseOf" || 
@@ -463,16 +504,34 @@ module.exports = function owl2vowl(xmlString) {
         }
       } else {
         // Collect other attributes/metadata
-        const lang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
+        const rawLang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
+        const lang = registerLanguage(rawLang);
         const key = predLocal;
+        const val = resource || pred.textContent.trim();
+        
         if (!subject.annotations[key]) subject.annotations[key] = [];
         subject.annotations[key].push({
-          value: resource || pred.textContent.trim(),
+          value: val,
           type: resource ? "iri" : "label",
           language: lang,
           identifier: key,
           predicateNs: predNs || ""
         });
+
+        // Multilingual fallback propagation inside raw metadata annotations
+        if (lang.includes("-")) {
+          const baseLang = lang.split("-")[0];
+          const hasBase = subject.annotations[key].some(ann => ann.language === baseLang);
+          if (!hasBase) {
+            subject.annotations[key].push({
+              value: val,
+              type: resource ? "iri" : "label",
+              language: baseLang,
+              identifier: key,
+              predicateNs: predNs || ""
+            });
+          }
+        }
       }
 
       // Recurse into predicate object elements (Level 3 / Level 5) to locate inline declarations
@@ -708,13 +767,21 @@ module.exports = function owl2vowl(xmlString) {
     }
   }
 
-  let ontologyIri = "http://visualdataweb.org/newOntology/";
+  // Sort dyn-constructed regional languages alphabetically, keeping 'undefined' at index 0 to match Java output
+  const rawLanguages = Array.from(languagesSet).filter(l => l !== "undefined");
+  rawLanguages.sort();
+  const finalLanguages = [];
+  if (languagesSet.has("undefined") || languagesSet.size === 0) {
+    finalLanguages.push("undefined");
+  }
+  finalLanguages.push(...rawLanguages);
+
   const header = {
-    languages: ["en", "undefined"],
+    languages: finalLanguages,
     baseIris: [],
     prefixList: prefixList,
     title: {},
-    iri: ontologyIri,
+    iri: "http://visualdataweb.org/newOntology/",
     version: "",
     author: [],
     description: {},
@@ -728,8 +795,7 @@ module.exports = function owl2vowl(xmlString) {
   }
 
   if (ontologySubject) {
-    ontologyIri = ontologySubject.iri;
-    header.iri = ontologyIri;
+    header.iri = ontologySubject.iri;
     header.title = ontologySubject.labels;
     header.description = ontologySubject.comments;
 
@@ -759,9 +825,10 @@ module.exports = function owl2vowl(xmlString) {
 
     header.other = ontologySubject.annotations;
   } else {
-    header.iri = ontologyIri;
     header.title = { "en": "Ontology" };
   }
+
+  let ontologyIri = header.iri; // Define locally so isIriExternal closure reads it dynamically
 
   // Helper to determine if an IRI is external to the loaded ontology
   function isIriExternal(iri) {
@@ -1265,7 +1332,9 @@ module.exports = function owl2vowl(xmlString) {
 
   context.propertyMap.forEach(prop => {
     if (isIriExternal(prop.iri)) {
-      if (!prop.attributes.includes("external")) prop.attributes.push("external");
+      if (!prop.attributes.includes("external")) {
+        prop.attributes.push("external");
+      }
     }
   });
 
