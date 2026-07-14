@@ -1,4 +1,5 @@
-var owl2vowl = require("./owl2vowl.js");
+var owl2vowl = require("../../owl2vowl/js/index.js").default;
+owl2vowl.loadWithImports = require("../../owl2vowl/js/index.js").loadWithImports;
 
 module.exports = function ( graph ){
   /** some constants **/

@@ -24,6 +24,7 @@
     "grunt-html-build": "^0.7.0",
     "grunt-replace": "^1.0.1",
     "grunt-webpack": "^6.0.0",
+    "jest": "^30.4.2",
     "load-grunt-tasks": "^5.1.0",
     "mini-css-extract-plugin": "^2.8.1",
     "serve-favicon": "^2.5.0",

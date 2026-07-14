@@ -1,0 +1,116 @@
+import { describe, test, expect, jest, beforeEach, afterEach } from "@jest/globals";
+import { resolveImportUrl, loadWithImports } from "./importLoader.js";
+
+describe("importLoader.js unit tests", () => {
+  let originalFetch;
+
+  beforeEach(() => {
+    originalFetch = global.fetch;
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  test("resolveImportUrl resolves logical catalog IRIs", () => {
+    // Exact match in catalog
+    const resolvedDc = resolveImportUrl("http://purl.org/dc/elements/1.1");
+    expect(resolvedDc).toBe("../external/dc.rdf");
+
+    // Normalized match (trailing slash)
+    const resolvedFoaf = resolveImportUrl("http://xmlns.com/foaf/0.1/");
+    expect(resolvedFoaf).toBe("../external/foaf.rdf");
+
+    // Unknown IRI returns as-is
+    const unknown = resolveImportUrl("http://example.org/unknown-ontology");
+    expect(unknown).toBe("http://example.org/unknown-ontology");
+  });
+
+  test("loadWithImports parses imports, fetches external ontologies, and merges transitively", async () => {
+    const mainXml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#">
+        <owl:Ontology rdf:about="http://example.org/main">
+          <owl:imports rdf:resource="http://purl.org/dc/elements/1.1"/>
+        </owl:Ontology>
+      </rdf:RDF>
+    `;
+
+    const dcXml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#"
+               xmlns:dc="http://purl.org/dc/elements/1.1/"
+               xml:base="http://purl.org/dc/elements/1.1/">
+        <owl:Ontology rdf:about="http://purl.org/dc/elements/1.1/">
+          <owl:imports rdf:resource="http://example.org/transitive"/>
+        </owl:Ontology>
+        <owl:Class rdf:about="http://purl.org/dc/elements/1.1/Creator"/>
+      </rdf:RDF>
+    `;
+
+    const transitiveXml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#">
+        <owl:Class rdf:about="http://example.org/transitive#Class"/>
+      </rdf:RDF>
+    `;
+
+    // Setup mock fetch
+    global.fetch = jest.fn((url) => {
+      if (url === "../external/dc.rdf" || url === "http://purl.org/dc/elements/1.1") {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          text: () => Promise.resolve(dcXml)
+        });
+      }
+      if (url === "http://example.org/transitive") {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          text: () => Promise.resolve(transitiveXml)
+        });
+      }
+      return Promise.reject(new Error("Unexpected fetch url: " + url));
+    });
+
+    const rootParserFn = jest.fn((mergedXml) => {
+      expect(mergedXml).toContain('xmlns:dc="http://purl.org/dc/elements/1.1/"');
+      expect(mergedXml).toContain('rdf:about="http://purl.org/dc/elements/1.1/Creator"');
+      expect(mergedXml).toContain('rdf:about="http://example.org/transitive#Class"');
+      expect(mergedXml).toContain('xml:base="http://purl.org/dc/elements/1.1/"');
+      expect(mergedXml).toContain('xml:base="http://example.org/transitive"');
+      return "SUCCESS";
+    });
+
+    const result = await loadWithImports(mainXml, rootParserFn);
+    expect(result).toBe("SUCCESS");
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  test("loadWithImports handles fetch failures gracefully", async () => {
+    const mainXml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#">
+        <owl:Ontology rdf:about="http://example.org/main">
+          <owl:imports rdf:resource="http://example.org/failed-import"/>
+        </owl:Ontology>
+      </rdf:RDF>
+    `;
+
+    global.fetch = jest.fn((url) => {
+      return Promise.resolve({
+        ok: false,
+        status: 404,
+        statusText: "Not Found",
+        text: () => Promise.resolve("404 Error details")
+      });
+    });
+
+    const rootParserFn = jest.fn();
+
+    await expect(loadWithImports(mainXml, rootParserFn)).rejects.toThrow("HTTP Error 404: Not Found");
+  });
+});

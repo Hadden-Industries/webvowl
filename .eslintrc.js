@@ -53,14 +53,14 @@ module.exports = {
 
   overrides: [
     {
-      // Targeted parsing and environment relaxation for owl2vowl.js and turtleParser.js, which act as isolated scripts 
-      // utilizing modern 'const' declarations, Maps, Sets, and Promises inside an otherwise static ES5 domain tree.
-      files: ["src/app/js/owl2vowl.js", "src/app/js/turtleParser.js"],
+      // Support for modern ES6 modules under src/owl2vowl/
+      files: ["src/owl2vowl/**/*.js"],
       env: {
         es6: true
       },
       parserOptions: {
-        ecmaVersion: 6
+        ecmaVersion: 2022,
+        sourceType: "module"
       }
     }
   ]

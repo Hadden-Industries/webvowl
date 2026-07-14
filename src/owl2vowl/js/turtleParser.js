@@ -1,14 +1,11 @@
-"use strict";
+import { NAMESPACES } from "./constants.js";
 
-const NAMESPACES = Object.freeze({
-  RDF: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-  RDFS: "http://www.w3.org/2000/01/rdf-schema#",
-  OWL: "http://www.w3.org/2002/07/owl#",
-  DC: "http://purl.org/dc/elements/1.1/",
-  DCTERMS: "http://purl.org/dc/terms/"
-});
-
-function tokenizeTurtle(ttl) {
+/**
+ * Tokenizes Turtle syntax.
+ * @param {string} ttl
+ * @returns {object[]}
+ */
+export function tokenizeTurtle(ttl) {
   const tokens = [];
   let i = 0;
   const len = ttl.length;
@@ -21,75 +18,75 @@ function tokenizeTurtle(ttl) {
       continue;
     }
     
-    if (c === '#') {
-      while (i < len && ttl[i] !== '\n' && ttl[i] !== '\r') {
+    if (c === "#") {
+      while (i < len && ttl[i] !== "\n" && ttl[i] !== "\r") {
         i++;
       }
       continue;
     }
     
-    if (c === '<') {
+    if (c === "<") {
       let start = i + 1;
       i++;
-      while (i < len && ttl[i] !== '>') {
+      while (i < len && ttl[i] !== ">") {
         i++;
       }
-      tokens.push({ type: 'URI', value: ttl.substring(start, i) });
+      tokens.push({ type: "URI", value: ttl.substring(start, i) });
       i++;
       continue;
     }
     
-    if (c === '"' || c === "'") {
+    if (c === "\"" || c === "'") {
       const quote = c;
       let start = i;
       if (ttl.substring(i, i + 3) === quote + quote + quote) {
         i += 3;
         while (i < len && ttl.substring(i, i + 3) !== quote + quote + quote) {
-          if (ttl[i] === '\\') i++;
+          if (ttl[i] === "\\") i++;
           i++;
         }
-        tokens.push({ type: 'LITERAL', value: ttl.substring(start + 3, i) });
+        tokens.push({ type: "LITERAL", value: ttl.substring(start + 3, i) });
         i += 3;
       } else {
         i++;
         while (i < len && ttl[i] !== quote) {
-          if (ttl[i] === '\\') i++;
+          if (ttl[i] === "\\") i++;
           i++;
         }
-        tokens.push({ type: 'LITERAL', value: ttl.substring(start + 1, i) });
+        tokens.push({ type: "LITERAL", value: ttl.substring(start + 1, i) });
         i++;
       }
       
-      if (i < len && ttl[i] === '@') {
+      if (i < len && ttl[i] === "@") {
         let langStart = i + 1;
         i++;
         while (i < len && /[a-zA-Z0-9-]/.test(ttl[i])) {
           i++;
         }
         tokens[tokens.length - 1].lang = ttl.substring(langStart, i);
-      } else if (i < len && ttl.substring(i, i + 2) === '^^') {
+      } else if (i < len && ttl.substring(i, i + 2) === "^^") {
         i += 2;
-        if (ttl[i] === '<') {
+        if (ttl[i] === "<") {
           let dtStart = i + 1;
           i++;
-          while (i < len && ttl[i] !== '>') {
+          while (i < len && ttl[i] !== ">") {
             i++;
           }
-          tokens[tokens.length - 1].datatype = { type: 'URI', value: ttl.substring(dtStart, i) };
+          tokens[tokens.length - 1].datatype = { type: "URI", value: ttl.substring(dtStart, i) };
           i++;
         } else {
           let dtStart = i;
           while (i < len && !/[\s;.,\]]/.test(ttl[i])) {
             i++;
           }
-          tokens[tokens.length - 1].datatype = { type: 'QNAME', value: ttl.substring(dtStart, i) };
+          tokens[tokens.length - 1].datatype = { type: "QNAME", value: ttl.substring(dtStart, i) };
         }
       }
       continue;
     }
     
-    if (c === '.' || c === ';' || c === ',' || c === '[' || c === ']' || c === '(' || c === ')') {
-      tokens.push({ type: 'PUNCT', value: c });
+    if (c === "." || c === ";" || c === "," || c === "[" || c === "]" || c === "(" || c === ")") {
+      tokens.push({ type: "PUNCT", value: c });
       i++;
       continue;
     }
@@ -103,29 +100,34 @@ function tokenizeTurtle(ttl) {
       continue;
     }
     const val = ttl.substring(start, i);
-    if (val === 'a') {
-      tokens.push({ type: 'KEYWORD', value: 'a' });
-    } else if (val.toLowerCase() === '@prefix' || val.toUpperCase() === 'PREFIX') {
-      tokens.push({ type: 'DIRECTIVE', value: 'PREFIX' });
-    } else if (val.toLowerCase() === '@base' || val.toUpperCase() === 'BASE') {
-      tokens.push({ type: 'DIRECTIVE', value: 'BASE' });
-    } else if (val.indexOf(':') !== -1) {
-      tokens.push({ type: 'QNAME', value: val });
+    if (val === "a") {
+      tokens.push({ type: "KEYWORD", value: "a" });
+    } else if (val.toLowerCase() === "@prefix" || val.toUpperCase() === "PREFIX") {
+      tokens.push({ type: "DIRECTIVE", value: "PREFIX" });
+    } else if (val.toLowerCase() === "@base" || val.toUpperCase() === "BASE") {
+      tokens.push({ type: "DIRECTIVE", value: "BASE" });
+    } else if (val.indexOf(":") !== -1) {
+      tokens.push({ type: "QNAME", value: val });
     } else {
-      tokens.push({ type: 'NAME', value: val });
+      tokens.push({ type: "NAME", value: val });
     }
   }
   return tokens;
 }
 
-function parseTurtleTokens(tokens) {
+/**
+ * Parses Turtle tokens into triples, prefixes, and baseIri.
+ * @param {object[]} tokens
+ * @returns {object}
+ */
+export function parseTurtleTokens(tokens) {
   const prefixes = {};
-  let baseIri = '';
+  let baseIri = "";
   const triples = [];
   let bnodeCounter = 0;
   
   function nextBnode() {
-    return '_:b' + (bnodeCounter++);
+    return "_:b" + (bnodeCounter++);
   }
   
   let i = 0;
@@ -143,21 +145,21 @@ function parseTurtleTokens(tokens) {
     const tok = peek();
     if (!tok) break;
     
-    if (tok.type === 'DIRECTIVE') {
+    if (tok.type === "DIRECTIVE") {
       consume();
-      if (tok.value === 'PREFIX') {
+      if (tok.value === "PREFIX") {
         const nameTok = consume();
         const uriTok = consume();
         if (nameTok && uriTok) {
           let name = nameTok.value;
-          if (name.endsWith(':')) name = name.slice(0, -1);
+          if (name.endsWith(":")) name = name.slice(0, -1);
           prefixes[name] = uriTok.value;
         }
-      } else if (tok.value === 'BASE') {
+      } else if (tok.value === "BASE") {
         const uriTok = consume();
         if (uriTok) baseIri = uriTok.value;
       }
-      if (peek() && peek().type === 'PUNCT' && peek().value === '.') {
+      if (peek() && peek().type === "PUNCT" && peek().value === ".") {
         consume();
       }
       continue;
@@ -175,7 +177,7 @@ function parseTurtleTokens(tokens) {
     
     parsePredicateObjectList(subj);
     
-    if (peek() && peek().type === 'PUNCT' && peek().value === '.') {
+    if (peek() && peek().type === "PUNCT" && peek().value === ".") {
       consume();
     }
   }
@@ -184,31 +186,31 @@ function parseTurtleTokens(tokens) {
     const tok = peek();
     if (!tok) return null;
     
-    if (tok.type === 'URI' || tok.type === 'QNAME' || tok.type === 'LITERAL' || tok.type === 'KEYWORD' || tok.type === 'NAME') {
+    if (tok.type === "URI" || tok.type === "QNAME" || tok.type === "LITERAL" || tok.type === "KEYWORD" || tok.type === "NAME") {
       return consume();
     }
     
-    if (tok.type === 'PUNCT' && tok.value === '[') {
+    if (tok.type === "PUNCT" && tok.value === "[") {
       consume();
-      const bnode = { type: 'BNODE', value: nextBnode() };
+      const bnode = { type: "BNODE", value: nextBnode() };
       
-      if (peek() && peek().type === 'PUNCT' && peek().value === ']') {
+      if (peek() && peek().type === "PUNCT" && peek().value === "]") {
         consume();
         return bnode;
       }
       
       parsePredicateObjectList(bnode);
       
-      if (peek() && peek().type === 'PUNCT' && peek().value === ']') {
+      if (peek() && peek().type === "PUNCT" && peek().value === "]") {
         consume();
       }
       return bnode;
     }
     
-    if (tok.type === 'PUNCT' && tok.value === '(') {
+    if (tok.type === "PUNCT" && tok.value === "(") {
       consume();
       const listNodes = [];
-      while (peek() && !(peek().type === 'PUNCT' && peek().value === ')')) {
+      while (peek() && !(peek().type === "PUNCT" && peek().value === ")")) {
         const term = parseTerm();
         if (term) {
           listNodes.push(term);
@@ -216,32 +218,32 @@ function parseTurtleTokens(tokens) {
           consume();
         }
       }
-      if (peek() && peek().type === 'PUNCT' && peek().value === ')') {
+      if (peek() && peek().type === "PUNCT" && peek().value === ")") {
         consume();
       }
       
       if (listNodes.length === 0) {
-        return { type: 'URI', value: NAMESPACES.RDF + 'nil' };
+        return { type: "URI", value: NAMESPACES.RDF + "nil" };
       }
       
-      let current = { type: 'BNODE', value: nextBnode() };
+      let current = { type: "BNODE", value: nextBnode() };
       const head = current;
       for (let j = 0; j < listNodes.length; j++) {
         triples.push({
           subject: current,
-          predicate: { type: 'URI', value: NAMESPACES.RDF + 'first' },
+          predicate: { type: "URI", value: NAMESPACES.RDF + "first" },
           object: listNodes[j]
         });
         
         let next;
         if (j === listNodes.length - 1) {
-          next = { type: 'URI', value: NAMESPACES.RDF + 'nil' };
+          next = { type: "URI", value: NAMESPACES.RDF + "nil" };
         } else {
-          next = { type: 'BNODE', value: nextBnode() };
+          next = { type: "BNODE", value: nextBnode() };
         }
         triples.push({
           subject: current,
-          predicate: { type: 'URI', value: NAMESPACES.RDF + 'rest' },
+          predicate: { type: "URI", value: NAMESPACES.RDF + "rest" },
           object: next
         });
         current = next;
@@ -259,9 +261,9 @@ function parseTurtleTokens(tokens) {
       
       parseObjectList(subj, pred);
       
-      if (peek() && peek().type === 'PUNCT' && peek().value === ';') {
+      if (peek() && peek().type === "PUNCT" && peek().value === ";") {
         consume();
-        if (peek() && (peek().type === 'PUNCT' && (peek().value === '.' || peek().value === ']'))) {
+        if (peek() && (peek().type === "PUNCT" && (peek().value === "." || peek().value === "]"))) {
           break;
         }
       } else {
@@ -277,7 +279,7 @@ function parseTurtleTokens(tokens) {
       
       triples.push({ subject: subj, predicate: pred, object: obj });
       
-      if (peek() && peek().type === 'PUNCT' && peek().value === ',') {
+      if (peek() && peek().type === "PUNCT" && peek().value === ",") {
         consume();
       } else {
         break;
@@ -288,7 +290,14 @@ function parseTurtleTokens(tokens) {
   return { triples, prefixes, baseIri };
 }
 
-function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
+/**
+ * Serializes Turtle triples into valid RDF/XML string structure.
+ * @param {object[]} triples
+ * @param {object} prefixes
+ * @param {string} baseIri
+ * @returns {string}
+ */
+export function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
   const subjectGroups = new Map();
   
   function getTermKey(term) {
@@ -314,33 +323,37 @@ function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
   const cleanPrefixes = {};
   for (const [p, ns] of Object.entries(allPrefixes)) {
     const cleanP = p.replace(/[^a-zA-Z0-9-]/g, "");
-    if (cleanP) cleanPrefixes[cleanP] = ns;
+    cleanPrefixes[cleanP] = ns;
   }
   
-  let xml = '<?xml version="1.0" encoding="utf-8"?>\n';
-  xml += '<rdf:RDF';
+  let xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+  xml += "<rdf:RDF";
   if (baseIri) {
     xml += ` xml:base="${baseIri}"`;
   }
   for (const [p, ns] of Object.entries(cleanPrefixes)) {
-    xml += ` xmlns:${p}="${ns}"`;
+    if (p === "") {
+      xml += ` xmlns="${ns}"`;
+    } else {
+      xml += ` xmlns:${p}="${ns}"`;
+    }
   }
-  xml += '>\n';
+  xml += ">\n";
   
   function getIri(term) {
-    if (term.type === 'URI') {
+    if (term.type === "URI") {
       return term.value;
     }
-    if (term.type === 'QNAME') {
-      const idx = term.value.indexOf(':');
+    if (term.type === "QNAME") {
+      const idx = term.value.indexOf(":");
       const prefix = term.value.substring(0, idx);
       const local = term.value.substring(idx + 1);
       const ns = cleanPrefixes[prefix];
       if (ns) return ns + local;
       return term.value;
     }
-    if (term.type === 'KEYWORD' && term.value === 'a') {
-      return NAMESPACES.RDF + 'type';
+    if (term.type === "KEYWORD" && term.value === "a") {
+      return NAMESPACES.RDF + "type";
     }
     return term.value;
   }
@@ -348,11 +361,11 @@ function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
   function escapeXml(unsafe) {
     return unsafe.replace(/[<>&'"]/g, function (c) {
       switch (c) {
-        case '<': return '&lt;';
-        case '>': return '&gt;';
-        case '&': return '&amp;';
-        case '\'': return '&apos;';
-        case '"': return '&quot;';
+        case "<": return "&lt;";
+        case ">": return "&gt;";
+        case "&": return "&amp;";
+        case "'": return "&apos;";
+        case "\"": return "&quot;";
       }
       return c;
     });
@@ -362,7 +375,7 @@ function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
     const subj = group.subject;
     const sVal = getIri(subj);
     
-    if (subj.type === 'BNODE') {
+    if (subj.type === "BNODE") {
       xml += `  <rdf:Description rdf:nodeID="${escapeXml(sVal)}">\n`;
     } else {
       xml += `  <rdf:Description rdf:about="${escapeXml(sVal)}">\n`;
@@ -379,11 +392,11 @@ function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
         }
       }
       if (!qname) {
-        qname = `rdf:Description`;
+        qname = "rdf:Description";
       }
       
       const obj = t.object;
-      if (obj.type === 'LITERAL') {
+      if (obj.type === "LITERAL") {
         xml += `    <${qname}`;
         if (obj.lang) {
           xml += ` xml:lang="${escapeXml(obj.lang)}"`;
@@ -395,7 +408,7 @@ function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
         xml += `>${escapeXml(obj.value)}</${qname}>\n`;
       } else {
         const oVal = getIri(obj);
-        if (obj.type === 'BNODE') {
+        if (obj.type === "BNODE") {
           xml += `    <${qname} rdf:nodeID="${escapeXml(oVal)}" />\n`;
         } else {
           xml += `    <${qname} rdf:resource="${escapeXml(oVal)}" />\n`;
@@ -403,14 +416,19 @@ function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
       }
     });
     
-    xml += '  </rdf:Description>\n';
+    xml += "  </rdf:Description>\n";
   }
   
-  xml += '</rdf:RDF>\n';
+  xml += "</rdf:RDF>\n";
   return xml;
 }
 
-function isTurtleFormat(text) {
+/**
+ * Checks if a string represents Turtle format.
+ * @param {string} text
+ * @returns {boolean}
+ */
+export function isTurtleFormat(text) {
   const trimmed = text.trim();
   if (trimmed.startsWith("<") || trimmed.startsWith("{") || trimmed.startsWith("[")) {
     return false;
@@ -419,10 +437,3 @@ function isTurtleFormat(text) {
          /;\s*$/m.test(trimmed) || 
          /\.\s*$/m.test(trimmed);
 }
-
-module.exports = {
-  isTurtleFormat,
-  tokenizeTurtle,
-  parseTurtleTokens,
-  serializeTriplesToRdfXml
-};
