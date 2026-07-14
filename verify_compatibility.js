@@ -22,6 +22,55 @@ const expectedDifferences = {
 };
 
 let alignmentCheckOk = true;
+let datatypeCleanOk = true;
+
+function verifyDatatypeCleaning(jsRaw, file) {
+  const baseName = path.basename(file);
+  let localDatatypeCleanOk = true;
+
+  if (jsRaw) {
+    // Identify datatype nodes and their connections
+    const connectedNodeIds = new Set();
+    if (jsRaw.propertyAttribute) {
+      jsRaw.propertyAttribute.forEach(p => {
+        if (p.domain) connectedNodeIds.add(String(p.domain));
+        if (p.range) connectedNodeIds.add(String(p.range));
+      });
+    }
+
+    const datatypeAttrs = [];
+    if (jsRaw.class) {
+      jsRaw.class.forEach(c => {
+        if (c.type === 'rdfs:Datatype') {
+          const attr = jsRaw.classAttribute.find(a => a.id === c.id);
+          if (attr) datatypeAttrs.push(attr);
+        }
+      });
+    }
+
+    const connectedDatatypeIris = new Set();
+    datatypeAttrs.forEach(attr => {
+      if (connectedNodeIds.has(String(attr.id)) && attr.iri) {
+        connectedDatatypeIris.add(attr.iri);
+      }
+    });
+
+    // Check if there is any unconnected datatype with an IRI that has connected instances
+    datatypeAttrs.forEach(attr => {
+      const isConnected = connectedNodeIds.has(String(attr.id));
+      if (!isConnected && attr.iri && connectedDatatypeIris.has(attr.iri)) {
+        console.log(`❌ DATATYPE CLEANING FAILED in ${baseName}: Floating duplicate datatype found: ID=${attr.id}, IRI=${attr.iri}`);
+        localDatatypeCleanOk = false;
+      }
+    });
+  }
+
+  if (localDatatypeCleanOk) {
+    console.log(`✅ Datatype cleaning validation PASSED for ${baseName}`);
+  } else {
+    datatypeCleanOk = false;
+  }
+}
 
 function verifyAlignment(javaRaw, jsRaw, file) {
   const baseName = path.basename(file);
@@ -248,6 +297,7 @@ function compare(file) {
   const jsParsed = parseVowlJson(jsRaw);
 
   verifyAlignment(javaRaw, jsRaw, file);
+  verifyDatatypeCleaning(jsRaw, file);
 
   const iriMatch = javaParsed.ontologyIri === jsParsed.ontologyIri;
   const classesMatch = javaParsed.classes.size === jsParsed.classes.size;
@@ -466,58 +516,6 @@ if (fs.existsSync(benchmarkRdf)) {
       stats: { iri: "N/A", classes: "Error", properties: "Error", subclasses: "Error" }
     });
   }
-}
-// Standalone Datatype Cleaning Validation
-console.log(`\n======================================================================`);
-console.log(`Validating Datatype Cleaning (No floating duplicate datatypes)`);
-console.log(`======================================================================`);
-let datatypeCleanOk = true;
-targetFiles.forEach(file => {
-  if (!fs.existsSync(file)) return;
-  try {
-    const xml = fs.readFileSync(file, 'utf8');
-    const jsResult = owl2vowl(xml);
-    
-    // Identify datatype nodes and their connections
-    const connectedNodeIds = new Set();
-    if (jsResult.propertyAttribute) {
-      jsResult.propertyAttribute.forEach(p => {
-        if (p.domain) connectedNodeIds.add(String(p.domain));
-        if (p.range) connectedNodeIds.add(String(p.range));
-      });
-    }
-
-    const datatypeAttrs = [];
-    if (jsResult.class) {
-      jsResult.class.forEach(c => {
-        if (c.type === 'rdfs:Datatype') {
-          const attr = jsResult.classAttribute.find(a => a.id === c.id);
-          if (attr) datatypeAttrs.push(attr);
-        }
-      });
-    }
-
-    const connectedDatatypeIris = new Set();
-    datatypeAttrs.forEach(attr => {
-      if (connectedNodeIds.has(String(attr.id)) && attr.iri) {
-        connectedDatatypeIris.add(attr.iri);
-      }
-    });
-
-    // Check if there is any unconnected datatype with an IRI that has connected instances
-    datatypeAttrs.forEach(attr => {
-      const isConnected = connectedNodeIds.has(String(attr.id));
-      if (!isConnected && attr.iri && connectedDatatypeIris.has(attr.iri)) {
-        console.log(`❌ FAILED: Floating duplicate datatype found in ${path.basename(file)}: ID=${attr.id}, IRI=${attr.iri}`);
-        datatypeCleanOk = false;
-      }
-    });
-  } catch (err) {
-    console.warn(`Could not validate datatypes for ${path.basename(file)}: ${err.message}`);
-  }
-});
-if (datatypeCleanOk) {
-  console.log(`✅ Datatype cleaning validation PASSED (No floating duplicates found)`);
 }
 
 console.log("==========================================================================================");
