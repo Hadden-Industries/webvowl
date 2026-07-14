@@ -1347,12 +1347,60 @@ module.exports = function owl2vowl(xmlString) {
     }
   });
 
+  // Identify connected datatype nodes to skip duplicate floating datatypes
+  const connectedNodeIds = new Set();
+  context.propertyMap.forEach(prop => {
+    if (prop.domain) connectedNodeIds.add(String(prop.domain));
+    if (prop.range) connectedNodeIds.add(String(prop.range));
+  });
+  subclassProperties.forEach(subProp => {
+    if (subProp.attribute.domain) connectedNodeIds.add(String(subProp.attribute.domain));
+    if (subProp.attribute.range) connectedNodeIds.add(String(subProp.attribute.range));
+  });
+  restrictionProperties.forEach(rp => {
+    if (rp.attribute.domain) connectedNodeIds.add(String(rp.attribute.domain));
+    if (rp.attribute.range) connectedNodeIds.add(String(rp.attribute.range));
+  });
+  context.classMap.forEach(cls => {
+    if (cls.disjointWith && cls.disjointWith.length > 0) {
+      cls.disjointWith.forEach(targetIri => {
+        const targetCls = context.classMap.get(targetIri);
+        if (targetCls) {
+          connectedNodeIds.add(String(cls.id));
+          connectedNodeIds.add(String(targetCls.id));
+        }
+      });
+    }
+  });
+
+  const connectedDatatypeIris = new Set();
+  context.classMap.forEach(cls => {
+    if (cls.type === "rdfs:Datatype" && connectedNodeIds.has(String(cls.id))) {
+      if (cls.iri) connectedDatatypeIris.add(cls.iri);
+    }
+  });
+  context.virtualDatatypes.forEach(cls => {
+    if (connectedNodeIds.has(String(cls.id))) {
+      if (cls.iri) connectedDatatypeIris.add(cls.iri);
+    }
+  });
+
+  function shouldSkipDatatype(cls) {
+    if (cls.type !== "rdfs:Datatype") return false;
+    if (connectedNodeIds.has(String(cls.id))) return false;
+    if (cls.iri && connectedDatatypeIris.has(cls.iri)) {
+      return true;
+    }
+    return false;
+  }
+
   // Build JSON outputs
   const classesArray = [];
   const classAttributesArray = [];
   const disjointProperties = [];
 
   context.classMap.forEach(cls => {
+    if (shouldSkipDatatype(cls)) return;
     classesArray.push({ id: cls.id, type: cls.type });
     const isAnonymous = cls.type === "owl:unionOf";
     const attr = { id: cls.id };
@@ -1401,6 +1449,7 @@ module.exports = function owl2vowl(xmlString) {
 
   // Map virtualised datatypes into serialisation array
   context.virtualDatatypes.forEach(cls => {
+    if (shouldSkipDatatype(cls)) return;
     if (isIriExternal(cls.iri) && !cls.attributes.includes("external")) {
       cls.attributes.push("external");
     }

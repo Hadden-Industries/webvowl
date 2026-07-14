@@ -16,7 +16,8 @@ const expectedDifferences = {
   "dcat3.rdf": "Java resolves external imports (prov namespace) which JS skips for offline/sandbox",
   "time.rdf": "Java reasoner narrows domain/range properties via class restrictions (subclass hierarchies match 100%)",
   "wine.rdf": "Browser DOMParser disables DTD external/internal entities processing to prevent XML External Entity (XXE) attacks",
-  "foaf.rdf": "Java reasoner defaults InverseFunctional DatatypeProperty domains to owl:Thing due to OWL DL semantic clash (JS preserves syntactic foaf:Agent domain)"
+  "foaf.rdf": "Java reasoner defaults InverseFunctional DatatypeProperty domains to owl:Thing due to OWL DL semantic clash (JS preserves syntactic foaf:Agent domain)",
+  "cube.rdf": "Java resolves external imports (skos namespace) and owl:unionOf ranges which JS skips/simplifies"
 };
 
 function runJavaConverter(filePath) {
@@ -308,15 +309,16 @@ function compare(file) {
 
 // Target Files
 const targetFiles = [
-  path.join(__dirname, '..', 'universal-ontology', 'iso-iec11179-3', 'skos.rdf'),
-  path.join(__dirname, '..', 'universal-ontology', 'iso-iec11179-3', 'dc.rdf'),
-  path.join(__dirname, '..', 'universal-ontology', 'iso-iec11179-3', 'dcterms.rdf'),
-  path.join(__dirname, '..', 'universal-ontology', 'reference-data', 'dcat3.rdf'),
-  path.join(__dirname, '..', 'universal-ontology', 'core', 'time.rdf'),
+  path.join(__dirname, '..', 'universal-ontology', 'external', 'skos.rdf'),
+  path.join(__dirname, '..', 'universal-ontology', 'external', 'dc.rdf'),
+  path.join(__dirname, '..', 'universal-ontology', 'external', 'dcterms.rdf'),
+  path.join(__dirname, '..', 'universal-ontology', 'external', 'dcat3.rdf'),
+  path.join(__dirname, '..', 'universal-ontology', 'external', 'time.rdf'),
   path.join(__dirname, '..', 'VisualDataWeb', 'OWL2VOWL', 'ontologies', 'foaf.rdf'),
   path.join(__dirname, '..', 'VisualDataWeb', 'OWL2VOWL', 'ontologies', 'muto.rdf'),
   path.join(__dirname, '..', 'VisualDataWeb', 'OWL2VOWL', 'ontologies', 'sioc.rdf'),
-  path.join(__dirname, '..', 'VisualDataWeb', 'OWL2VOWL', 'ontologies', 'wine.rdf')
+  path.join(__dirname, '..', 'VisualDataWeb', 'OWL2VOWL', 'ontologies', 'wine.rdf'),
+  path.join(__dirname, '..', 'universal-ontology', 'external', 'cube.rdf')
 ];
 
 console.log("Starting Compatibility Verification Suite...\n");
@@ -403,6 +405,58 @@ if (fs.existsSync(benchmarkRdf)) {
     });
   }
 }
+// Standalone Datatype Cleaning Validation
+console.log(`\n======================================================================`);
+console.log(`Validating Datatype Cleaning (No floating duplicate datatypes)`);
+console.log(`======================================================================`);
+let datatypeCleanOk = true;
+targetFiles.forEach(file => {
+  if (!fs.existsSync(file)) return;
+  try {
+    const xml = fs.readFileSync(file, 'utf8');
+    const jsResult = owl2vowl(xml);
+    
+    // Identify datatype nodes and their connections
+    const connectedNodeIds = new Set();
+    if (jsResult.propertyAttribute) {
+      jsResult.propertyAttribute.forEach(p => {
+        if (p.domain) connectedNodeIds.add(String(p.domain));
+        if (p.range) connectedNodeIds.add(String(p.range));
+      });
+    }
+
+    const datatypeAttrs = [];
+    if (jsResult.class) {
+      jsResult.class.forEach(c => {
+        if (c.type === 'rdfs:Datatype') {
+          const attr = jsResult.classAttribute.find(a => a.id === c.id);
+          if (attr) datatypeAttrs.push(attr);
+        }
+      });
+    }
+
+    const connectedDatatypeIris = new Set();
+    datatypeAttrs.forEach(attr => {
+      if (connectedNodeIds.has(String(attr.id)) && attr.iri) {
+        connectedDatatypeIris.add(attr.iri);
+      }
+    });
+
+    // Check if there is any unconnected datatype with an IRI that has connected instances
+    datatypeAttrs.forEach(attr => {
+      const isConnected = connectedNodeIds.has(String(attr.id));
+      if (!isConnected && attr.iri && connectedDatatypeIris.has(attr.iri)) {
+        console.log(`❌ FAILED: Floating duplicate datatype found in ${path.basename(file)}: ID=${attr.id}, IRI=${attr.iri}`);
+        datatypeCleanOk = false;
+      }
+    });
+  } catch (err) {
+    console.warn(`Could not validate datatypes for ${path.basename(file)}: ${err.message}`);
+  }
+});
+if (datatypeCleanOk) {
+  console.log(`✅ Datatype cleaning validation PASSED (No floating duplicates found)`);
+}
 
 console.log("==========================================================================================");
 console.log("                                COMPATIBILITY SUMMARY TABLE                               ");
@@ -437,7 +491,7 @@ results.forEach(r => {
 
 console.log("==========================================================================================\n");
 
-if (hasFailures) {
+if (hasFailures || !datatypeCleanOk) {
   console.error("❌ TEST RUN FAILED: true compatibility regressions detected!");
   process.exit(1);
 } else {
