@@ -1,294 +1,57 @@
+import { Parser } from "n3";
 import { NAMESPACES } from "./constants.js";
 
-/**
- * Tokenizes Turtle syntax.
- * @param {string} ttl
- * @returns {object[]}
- */
-export function tokenizeTurtle(ttl) {
-  const tokens = [];
-  let i = 0;
-  const len = ttl.length;
-  
-  while (i < len) {
-    const c = ttl[i];
-    
-    if (/\s/.test(c)) {
-      i++;
-      continue;
-    }
-    
-    if (c === "#") {
-      while (i < len && ttl[i] !== "\n" && ttl[i] !== "\r") {
-        i++;
-      }
-      continue;
-    }
-    
-    if (c === "<") {
-      let start = i + 1;
-      i++;
-      while (i < len && ttl[i] !== ">") {
-        i++;
-      }
-      tokens.push({ type: "URI", value: ttl.substring(start, i) });
-      i++;
-      continue;
-    }
-    
-    if (c === "\"" || c === "'") {
-      const quote = c;
-      let start = i;
-      if (ttl.substring(i, i + 3) === quote + quote + quote) {
-        i += 3;
-        while (i < len && ttl.substring(i, i + 3) !== quote + quote + quote) {
-          if (ttl[i] === "\\") i++;
-          i++;
-        }
-        tokens.push({ type: "LITERAL", value: ttl.substring(start + 3, i) });
-        i += 3;
-      } else {
-        i++;
-        while (i < len && ttl[i] !== quote) {
-          if (ttl[i] === "\\") i++;
-          i++;
-        }
-        tokens.push({ type: "LITERAL", value: ttl.substring(start + 1, i) });
-        i++;
-      }
-      
-      if (i < len && ttl[i] === "@") {
-        let langStart = i + 1;
-        i++;
-        while (i < len && /[a-zA-Z0-9-]/.test(ttl[i])) {
-          i++;
-        }
-        tokens[tokens.length - 1].lang = ttl.substring(langStart, i);
-      } else if (i < len && ttl.substring(i, i + 2) === "^^") {
-        i += 2;
-        if (ttl[i] === "<") {
-          let dtStart = i + 1;
-          i++;
-          while (i < len && ttl[i] !== ">") {
-            i++;
-          }
-          tokens[tokens.length - 1].datatype = { type: "URI", value: ttl.substring(dtStart, i) };
-          i++;
-        } else {
-          let dtStart = i;
-          while (i < len && !/[\s;.,\]]/.test(ttl[i])) {
-            i++;
-          }
-          tokens[tokens.length - 1].datatype = { type: "QNAME", value: ttl.substring(dtStart, i) };
-        }
-      }
-      continue;
-    }
-    
-    if (c === "." || c === ";" || c === "," || c === "[" || c === "]" || c === "(" || c === ")") {
-      tokens.push({ type: "PUNCT", value: c });
-      i++;
-      continue;
-    }
-    
-    let start = i;
-    while (i < len && !/[\s;.,[\]()<>"'#]/.test(ttl[i])) {
-      i++;
-    }
-    if (start === i) {
-      i++;
-      continue;
-    }
-    const val = ttl.substring(start, i);
-    if (val === "a") {
-      tokens.push({ type: "KEYWORD", value: "a" });
-    } else if (val.toLowerCase() === "@prefix" || val.toUpperCase() === "PREFIX") {
-      tokens.push({ type: "DIRECTIVE", value: "PREFIX" });
-    } else if (val.toLowerCase() === "@base" || val.toUpperCase() === "BASE") {
-      tokens.push({ type: "DIRECTIVE", value: "BASE" });
-    } else if (val.indexOf(":") !== -1) {
-      tokens.push({ type: "QNAME", value: val });
-    } else {
-      tokens.push({ type: "NAME", value: val });
-    }
+function mapTerm(term) {
+  if (term.termType === "NamedNode") {
+    return { type: "URI", value: term.value };
   }
-  return tokens;
+  if (term.termType === "BlankNode") {
+    return { type: "BNODE", value: "_:" + term.value };
+  }
+  if (term.termType === "Literal") {
+    const mapped = { type: "LITERAL", value: term.value };
+    if (term.language) {
+      mapped.lang = term.language;
+    } else if (term.datatype && 
+               term.datatype.value !== "http://www.w3.org/2001/XMLSchema#string" && 
+               term.datatype.value !== "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString") {
+      mapped.datatype = { type: "URI", value: term.datatype.value };
+    }
+    return mapped;
+  }
+  return { type: "URI", value: term.value };
 }
 
 /**
- * Parses Turtle tokens into triples, prefixes, and baseIri.
- * @param {object[]} tokens
+ * Parses Turtle string into triples, prefixes, and baseIri using N3.js.
+ * @param {string} ttlString
  * @returns {object}
  */
-export function parseTurtleTokens(tokens) {
-  const prefixes = {};
-  let baseIri = "";
+export function parseTurtle(ttlString) {
+  const parser = new Parser();
   const triples = [];
-  let bnodeCounter = 0;
-  
-  function nextBnode() {
-    return "_:b" + (bnodeCounter++);
-  }
-  
-  let i = 0;
-  const len = tokens.length;
-  
-  function peek() {
-    return tokens[i];
-  }
-  
-  function consume() {
-    return tokens[i++];
-  }
-  
-  while (i < len) {
-    const tok = peek();
-    if (!tok) break;
-    
-    if (tok.type === "DIRECTIVE") {
-      consume();
-      if (tok.value === "PREFIX") {
-        const nameTok = consume();
-        const uriTok = consume();
-        if (nameTok && uriTok) {
-          let name = nameTok.value;
-          if (name.endsWith(":")) name = name.slice(0, -1);
-          prefixes[name] = uriTok.value;
-        }
-      } else if (tok.value === "BASE") {
-        const uriTok = consume();
-        if (uriTok) baseIri = uriTok.value;
-      }
-      if (peek() && peek().type === "PUNCT" && peek().value === ".") {
-        consume();
-      }
-      continue;
-    }
-    
-    parseStatement();
-  }
-  
-  function parseStatement() {
-    const subj = parseTerm();
-    if (!subj) {
-      consume();
-      return;
-    }
-    
-    parsePredicateObjectList(subj);
-    
-    if (peek() && peek().type === "PUNCT" && peek().value === ".") {
-      consume();
+
+  const quads = parser.parse(ttlString);
+  quads.forEach(quad => {
+    const subj = mapTerm(quad.subject);
+    const pred = mapTerm(quad.predicate);
+    const obj = mapTerm(quad.object);
+    triples.push({ subject: subj, predicate: pred, object: obj });
+  });
+
+  const prefixes = {};
+  if (parser._prefixes) {
+    for (const [prefix, val] of Object.entries(parser._prefixes)) {
+      prefixes[prefix] = typeof val === "string" ? val : (val.value || "");
     }
   }
-  
-  function parseTerm() {
-    const tok = peek();
-    if (!tok) return null;
-    
-    if (tok.type === "URI" || tok.type === "QNAME" || tok.type === "LITERAL" || tok.type === "KEYWORD" || tok.type === "NAME") {
-      return consume();
-    }
-    
-    if (tok.type === "PUNCT" && tok.value === "[") {
-      consume();
-      const bnode = { type: "BNODE", value: nextBnode() };
-      
-      if (peek() && peek().type === "PUNCT" && peek().value === "]") {
-        consume();
-        return bnode;
-      }
-      
-      parsePredicateObjectList(bnode);
-      
-      if (peek() && peek().type === "PUNCT" && peek().value === "]") {
-        consume();
-      }
-      return bnode;
-    }
-    
-    if (tok.type === "PUNCT" && tok.value === "(") {
-      consume();
-      const listNodes = [];
-      while (peek() && !(peek().type === "PUNCT" && peek().value === ")")) {
-        const term = parseTerm();
-        if (term) {
-          listNodes.push(term);
-        } else {
-          consume();
-        }
-      }
-      if (peek() && peek().type === "PUNCT" && peek().value === ")") {
-        consume();
-      }
-      
-      if (listNodes.length === 0) {
-        return { type: "URI", value: NAMESPACES.RDF + "nil" };
-      }
-      
-      let current = { type: "BNODE", value: nextBnode() };
-      const head = current;
-      for (let j = 0; j < listNodes.length; j++) {
-        triples.push({
-          subject: current,
-          predicate: { type: "URI", value: NAMESPACES.RDF + "first" },
-          object: listNodes[j]
-        });
-        
-        let next;
-        if (j === listNodes.length - 1) {
-          next = { type: "URI", value: NAMESPACES.RDF + "nil" };
-        } else {
-          next = { type: "BNODE", value: nextBnode() };
-        }
-        triples.push({
-          subject: current,
-          predicate: { type: "URI", value: NAMESPACES.RDF + "rest" },
-          object: next
-        });
-        current = next;
-      }
-      return head;
-    }
-    
-    return null;
-  }
-  
-  function parsePredicateObjectList(subj) {
-    while (true) {
-      const pred = parseTerm();
-      if (!pred) break;
-      
-      parseObjectList(subj, pred);
-      
-      if (peek() && peek().type === "PUNCT" && peek().value === ";") {
-        consume();
-        if (peek() && (peek().type === "PUNCT" && (peek().value === "." || peek().value === "]"))) {
-          break;
-        }
-      } else {
-        break;
-      }
-    }
-  }
-  
-  function parseObjectList(subj, pred) {
-    while (true) {
-      const obj = parseTerm();
-      if (!obj) break;
-      
-      triples.push({ subject: subj, predicate: pred, object: obj });
-      
-      if (peek() && peek().type === "PUNCT" && peek().value === ",") {
-        consume();
-      } else {
-        break;
-      }
-    }
-  }
-  
+
+  const baseIri = parser._base || "";
+
   return { triples, prefixes, baseIri };
 }
+
+
 
 /**
  * Serializes Turtle triples into valid RDF/XML string structure.

@@ -6,7 +6,7 @@ import { parseRdfXml } from "./rdfParser.js";
 import { convertOntology } from "./ontologyConverter.js";
 import { exportToJson } from "./jsonExporter.js";
 import { loadWithImports as internalLoadWithImports } from "./importLoader.js";
-import { isTurtleFormat, tokenizeTurtle, parseTurtleTokens, serializeTriplesToRdfXml } from "./turtleParser.js";
+import { isTurtleFormat, parseTurtle, serializeTriplesToRdfXml } from "./turtleParser.js";
 
 /**
  * Parses an RDF/XML or Turtle ontology into VOWL-JSON.
@@ -17,8 +17,7 @@ export default function owl2vowl(xmlString) {
   let xmlText = xmlString;
   if (isTurtleFormat(xmlString)) {
     try {
-      const tokens = tokenizeTurtle(xmlString);
-      const parsed = parseTurtleTokens(tokens);
+      const parsed = parseTurtle(xmlString);
       xmlText = serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
     } catch (parseErr) {
       throw new Error("Turtle parsing error: " + parseErr.message);

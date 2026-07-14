@@ -4,7 +4,8 @@
   "dependencies": {
     "d3": "^3.5.6",
     "grunt-cli": "^1.4.3",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "n3": "^2.1.1"
   },
   "devDependencies": {
     "@xmldom/xmldom": "^0.9.10",

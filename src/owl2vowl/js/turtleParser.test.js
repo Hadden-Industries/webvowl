@@ -1,5 +1,5 @@
 import { describe, test, expect } from "@jest/globals";
-import { isTurtleFormat, tokenizeTurtle, parseTurtleTokens, serializeTriplesToRdfXml } from "./turtleParser.js";
+import { isTurtleFormat, parseTurtle, serializeTriplesToRdfXml } from "./turtleParser.js";
 
 describe("turtleParser.js - isTurtleFormat", () => {
   test("identifies turtle format correctly", () => {
@@ -17,103 +17,65 @@ describe("turtleParser.js - isTurtleFormat", () => {
   });
 });
 
-describe("turtleParser.js - tokenizeTurtle", () => {
-  test("tokenizes URIs, literals, and keywords", () => {
-    const ttl = "<http://example.org/s> a <http://example.org/o> .";
-    const tokens = tokenizeTurtle(ttl);
-    expect(tokens).toEqual([
-      { type: "URI", value: "http://example.org/s" },
-      { type: "KEYWORD", value: "a" },
-      { type: "URI", value: "http://example.org/o" },
-      { type: "PUNCT", value: "." }
-    ]);
-  });
-
-  test("tokenizes literals with lang tags and datatypes", () => {
-    const ttl = `"hello"@en "world"^^<http://example.org/dt> "test"^^ex:string`;
-    const tokens = tokenizeTurtle(ttl);
-    expect(tokens[0]).toEqual({ type: "LITERAL", value: "hello", lang: "en" });
-    expect(tokens[1]).toEqual({
-      type: "LITERAL",
-      value: "world",
-      datatype: { type: "URI", value: "http://example.org/dt" }
-    });
-    expect(tokens[2]).toEqual({
-      type: "LITERAL",
-      value: "test",
-      datatype: { type: "QNAME", value: "ex:string" }
-    });
-  });
-
-  test("tokenizes syntax markers and comments", () => {
+describe("turtleParser.js - parseTurtle", () => {
+  test("parses prefix and base directives using N3.js", () => {
     const ttl = `
-      # Comment here
-      [ ; , ] ( )
+      @base <http://base.org/> .
+      @prefix ex: <http://example.org/> .
+      ex:s a ex:o .
     `;
-    const tokens = tokenizeTurtle(ttl);
-    expect(tokens).toEqual([
-      { type: "PUNCT", value: "[" },
-      { type: "PUNCT", value: ";" },
-      { type: "PUNCT", value: "," },
-      { type: "PUNCT", value: "]" },
-      { type: "PUNCT", value: "(" },
-      { type: "PUNCT", value: ")" }
-    ]);
-  });
-});
-
-describe("turtleParser.js - parseTurtleTokens", () => {
-  test("parses prefix and base directives", () => {
-    const tokens = [
-      { type: "DIRECTIVE", value: "PREFIX" },
-      { type: "QNAME", value: "ex:" },
-      { type: "URI", value: "http://example.org/" },
-      { type: "DIRECTIVE", value: "BASE" },
-      { type: "URI", value: "http://base.org/" }
-    ];
-    const result = parseTurtleTokens(tokens);
+    const result = parseTurtle(ttl);
     expect(result.prefixes.ex).toBe("http://example.org/");
     expect(result.baseIri).toBe("http://base.org/");
+    expect(result.triples.length).toBe(1);
+    expect(result.triples[0]).toEqual({
+      subject: { type: "URI", value: "http://example.org/s" },
+      predicate: { type: "URI", value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" },
+      object: { type: "URI", value: "http://example.org/o" }
+    });
   });
 
-  test("parses blank node descriptions", () => {
-    const tokens = [
-      { type: "URI", value: "http://example.org/s" },
-      { type: "QNAME", value: "ex:hasProp" },
-      { type: "PUNCT", value: "[" },
-      { type: "QNAME", value: "ex:nestedProp" },
-      { type: "URI", value: "http://example.org/nestedObj" },
-      { type: "PUNCT", value: "]" },
-      { type: "PUNCT", value: "." }
-    ];
-    const result = parseTurtleTokens(tokens);
-    expect(result.triples.length).toBe(2);
+  test("parses blank nodes and literals correctly", () => {
+    const ttl = `
+      @prefix ex: <http://example.org/> .
+      ex:s ex:hasProp _:b1 .
+      _:b1 ex:nestedProp "hello"@en .
+      _:b1 ex:number 42 .
+    `;
+    const result = parseTurtle(ttl);
+    expect(result.triples.length).toBe(3);
 
-    // Triple 1: Bnode -> ex:nestedProp -> nestedObj
-    expect(result.triples[0].subject.type).toBe("BNODE");
-    expect(result.triples[0].predicate.value).toBe("ex:nestedProp");
-    expect(result.triples[0].object.value).toBe("http://example.org/nestedObj");
+    // Subject of second and third triples should match object of first triple
+    const bnodeId = result.triples[0].object.value;
+    expect(result.triples[0].object.type).toBe("BNODE");
+    expect(bnodeId).toMatch(/^_:b/);
 
-    // Triple 2: s -> ex:hasProp -> Bnode
-    expect(result.triples[1].subject.value).toBe("http://example.org/s");
-    expect(result.triples[1].predicate.value).toBe("ex:hasProp");
-    expect(result.triples[1].object.type).toBe("BNODE");
-    expect(result.triples[1].object.value).toBe(result.triples[0].subject.value);
+    expect(result.triples[1].subject.value).toBe(bnodeId);
+    expect(result.triples[1].object).toEqual({
+      type: "LITERAL",
+      value: "hello",
+      lang: "en"
+    });
+
+    expect(result.triples[2].subject.value).toBe(bnodeId);
+    expect(result.triples[2].object).toEqual({
+      type: "LITERAL",
+      value: "42",
+      datatype: { type: "URI", value: "http://www.w3.org/2001/XMLSchema#integer" }
+    });
   });
 
-  test("parses collection lists", () => {
-    const tokens = [
-      { type: "URI", value: "http://example.org/s" },
-      { type: "QNAME", value: "ex:list" },
-      { type: "PUNCT", value: "(" },
-      { type: "URI", value: "http://example.org/item1" },
-      { type: "URI", value: "http://example.org/item2" },
-      { type: "PUNCT", value: ")" },
-      { type: "PUNCT", value: "." }
-    ];
-    const result = parseTurtleTokens(tokens);
-    // Should produce list triples (first/rest) + statement triple
-    expect(result.triples.length).toBe(5); 
+  test("parses lists and collections using N3.js syntax", () => {
+    const ttl = `
+      @prefix ex: <http://example.org/> .
+      ex:s ex:list ( ex:item1 ex:item2 ) .
+    `;
+    const result = parseTurtle(ttl);
+    // N3.js parses RDF collections recursively into blank nodes with first/rest predicates
+    expect(result.triples.length).toBe(5);
+    const hasListTriple = result.triples.find(t => t.predicate.value === "http://example.org/list");
+    expect(hasListTriple).toBeDefined();
+    expect(hasListTriple.object.type).toBe("BNODE");
   });
 });
 
@@ -122,7 +84,7 @@ describe("turtleParser.js - serializeTriplesToRdfXml", () => {
     const triples = [
       {
         subject: { type: "URI", value: "http://example.org/s" },
-        predicate: { type: "KEYWORD", value: "a" },
+        predicate: { type: "URI", value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" },
         object: { type: "URI", value: "http://example.org/Class" }
       },
       {

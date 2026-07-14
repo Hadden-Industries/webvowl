@@ -1,6 +1,6 @@
 import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
 import { NAMESPACES, ONTOLOGY_CATALOG } from "./constants.js";
-import { isTurtleFormat, tokenizeTurtle, parseTurtleTokens, serializeTriplesToRdfXml } from "./turtleParser.js";
+import { isTurtleFormat, parseTurtle, serializeTriplesToRdfXml } from "./turtleParser.js";
 
 /**
  * Resolves logical ontology import IRIs to dereferenceable physical URLs
@@ -40,8 +40,7 @@ export function loadWithImports(initialXmlText, rootParserFn) {
   let parsedInitialText = initialXmlText;
   if (isTurtleFormat(initialXmlText)) {
     try {
-      const tokens = tokenizeTurtle(initialXmlText);
-      const parsed = parseTurtleTokens(tokens);
+      const parsed = parseTurtle(initialXmlText);
       parsedInitialText = serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
     } catch (parseErr) {
       return Promise.reject(new Error("Turtle parsing error: " + parseErr.message));
@@ -139,8 +138,7 @@ export function loadWithImports(initialXmlText, rootParserFn) {
             let parsedXmlText = xmlText;
             if (isTurtleFormat(xmlText)) {
               try {
-                const tokens = tokenizeTurtle(xmlText);
-                const parsed = parseTurtleTokens(tokens);
+                const parsed = parseTurtle(xmlText);
                 parsedXmlText = serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
               } catch (parseErr) {
                 throw new Error(`Turtle parsing error inside imported ontology "${resolvedUrl}": ${parseErr.message}`);
