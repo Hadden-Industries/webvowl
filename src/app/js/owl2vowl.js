@@ -842,6 +842,9 @@ module.exports = function owl2vowl(xmlString) {
   // Helper to determine if an IRI is external
   function isIriExternal(iri) {
     if (!iri) return false;
+    if (iri === "http://www.w3.org/2000/01/rdf-schema#Literal" || iri === "http://www.w3.org/2002/07/owl#Thing") {
+      return false;
+    }
     
     // Ontologies have standard owl/rdf/rdfs namespaces as external
     if (iri.startsWith("http://www.w3.org/2002/07/owl#") || 
@@ -1058,12 +1061,12 @@ module.exports = function owl2vowl(xmlString) {
     }
     const virtualCls = {
       id: virtualId,
-      type: "rdfs:Datatype",
+      type: datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal" ? "rdfs:Literal" : "rdfs:Datatype",
       iri: datatypeIri,
-      baseIri: cls ? cls.baseIri : resolver.getBaseIri(datatypeIri),
+      baseIri: datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal" ? undefined : (cls ? cls.baseIri : resolver.getBaseIri(datatypeIri)),
       label: label,
       comment: cls && cls.comment ? JSON.parse(JSON.stringify(cls.comment)) : {},
-      attributes: ["datatype"],
+      attributes: datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal" ? [] : ["datatype"],
       subClasses: [],
       superClasses: [],
       annotations: cls && cls.annotations ? cls.annotations : {}
@@ -1168,14 +1171,14 @@ module.exports = function owl2vowl(xmlString) {
 
     if (prop.range && typeof prop.range === "string" && !isVowlId(prop.range)) {
       const cls = context.classMap.get(prop.range);
-      if ((isDatatypeIri(prop.range) || (cls && cls.type === "rdfs:Datatype")) && prop.range !== "http://www.w3.org/2000/01/rdf-schema#Literal") {
+      if (isDatatypeIri(prop.range) || (cls && cls.type === "rdfs:Datatype") || prop.range === "http://www.w3.org/2000/01/rdf-schema#Literal") {
         prop.range = createVirtualDatatype(prop.range);
       } else {
         prop.range = getClassId(prop.range, "http://www.w3.org/2002/07/owl#Thing");
       }
     } else if (!prop.range) {
       if (prop.type === "owl:datatypeProperty") {
-        prop.range = getClassId("http://www.w3.org/2000/01/rdf-schema#Literal");
+        prop.range = createVirtualDatatype("http://www.w3.org/2000/01/rdf-schema#Literal");
       } else {
         prop.range = getClassId("http://www.w3.org/2002/07/owl#Thing");
       }
@@ -1297,7 +1300,7 @@ module.exports = function owl2vowl(xmlString) {
       
       // Virtualise restriction range if it is a datatype (individual nodes per reference, matching Java behaviour)
       let resolvedRangeId = superCls.id;
-      if (superCls.type === "rdfs:Datatype" && rest.rangeIri !== "http://www.w3.org/2000/01/rdf-schema#Literal") {
+      if (superCls.type === "rdfs:Datatype" || superCls.type === "rdfs:Literal" || rest.rangeIri === "http://www.w3.org/2000/01/rdf-schema#Literal") {
         resolvedRangeId = createVirtualDatatype(rest.rangeIri);
       }
 
@@ -1386,7 +1389,10 @@ module.exports = function owl2vowl(xmlString) {
   });
 
   function shouldSkipDatatype(cls) {
-    if (cls.type !== "rdfs:Datatype") return false;
+    if (cls.iri === "http://www.w3.org/2000/01/rdf-schema#Literal" && !connectedNodeIds.has(String(cls.id))) {
+      return true;
+    }
+    if (cls.type !== "rdfs:Datatype" && cls.type !== "rdfs:Literal") return false;
     if (connectedNodeIds.has(String(cls.id))) return false;
     if (cls.iri && connectedDatatypeIris.has(cls.iri)) {
       return true;

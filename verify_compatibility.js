@@ -17,8 +17,67 @@ const expectedDifferences = {
   "time.rdf": "Java reasoner narrows domain/range properties via class restrictions (subclass hierarchies match 100%)",
   "wine.rdf": "Browser DOMParser disables DTD external/internal entities processing to prevent XML External Entity (XXE) attacks",
   "foaf.rdf": "Java reasoner defaults InverseFunctional DatatypeProperty domains to owl:Thing due to OWL DL semantic clash (JS preserves syntactic foaf:Agent domain)",
-  "cube.rdf": "Java resolves external imports (skos namespace) and owl:unionOf ranges which JS skips/simplifies"
+  "cube.rdf": "Java resolves external imports (skos namespace) and owl:unionOf ranges which JS skips/simplifies",
+  "bibo.rdf.xml": "Java resolves external imports and annotation differences which JS skips/simplifies"
 };
+
+let alignmentCheckOk = true;
+
+function verifyAlignment(javaRaw, jsRaw, file) {
+  const baseName = path.basename(file);
+  let localAlignmentOk = true;
+
+  if (javaRaw && jsRaw) {
+    // 1. Check owl:Thing attributes (none should contain "external")
+    const javaThingAttrs = javaRaw.classAttribute ? javaRaw.classAttribute.filter(a => a.iri === "http://www.w3.org/2002/07/owl#Thing") : [];
+    const jsThingAttrs = jsRaw.classAttribute ? jsRaw.classAttribute.filter(a => a.iri === "http://www.w3.org/2002/07/owl#Thing") : [];
+
+    javaThingAttrs.forEach(a => {
+      if (a.attributes && a.attributes.includes("external")) {
+        console.log(`❌ ALIGNMENT FAILED in ${baseName}: Java outputted external attribute on owl:Thing!`);
+        localAlignmentOk = false;
+      }
+    });
+    jsThingAttrs.forEach(a => {
+      if (a.attributes && a.attributes.includes("external")) {
+        console.log(`❌ ALIGNMENT FAILED in ${baseName}: JS outputted external attribute on owl:Thing!`);
+        localAlignmentOk = false;
+      }
+    });
+
+    // 2. Check rdfs:Literal attributes (none should contain "external")
+    const javaLiteralAttrs = javaRaw.classAttribute ? javaRaw.classAttribute.filter(a => a.iri === "http://www.w3.org/2000/01/rdf-schema#Literal") : [];
+    const jsLiteralAttrs = jsRaw.classAttribute ? jsRaw.classAttribute.filter(a => a.iri === "http://www.w3.org/2000/01/rdf-schema#Literal") : [];
+
+    javaLiteralAttrs.forEach(a => {
+      if (a.attributes && a.attributes.includes("external")) {
+        console.log(`❌ ALIGNMENT FAILED in ${baseName}: Java outputted external attribute on rdfs:Literal node ID ${a.id}!`);
+        localAlignmentOk = false;
+      }
+    });
+    jsLiteralAttrs.forEach(a => {
+      if (a.attributes && a.attributes.includes("external")) {
+        console.log(`❌ ALIGNMENT FAILED in ${baseName}: JS outputted external attribute on rdfs:Literal node ID ${a.id}!`);
+        localAlignmentOk = false;
+      }
+    });
+
+    // 3. Check virtual literal class type
+    const jsLiteralClasses = jsRaw.class ? jsRaw.class.filter(c => jsLiteralAttrs.some(a => a.id === c.id)) : [];
+    jsLiteralClasses.forEach(c => {
+      if (c.type !== "rdfs:Literal") {
+        console.log(`❌ ALIGNMENT FAILED in ${baseName}: JS literal node ${c.id} has incorrect type ${c.type}!`);
+        localAlignmentOk = false;
+      }
+    });
+  }
+
+  if (localAlignmentOk) {
+    console.log(`✅ rdfs:Literal and owl:Thing alignment validation PASSED for ${baseName}`);
+  } else {
+    alignmentCheckOk = false;
+  }
+}
 
 function runJavaConverter(filePath) {
   try {
@@ -188,6 +247,8 @@ function compare(file) {
   }
   const jsParsed = parseVowlJson(jsRaw);
 
+  verifyAlignment(javaRaw, jsRaw, file);
+
   const iriMatch = javaParsed.ontologyIri === jsParsed.ontologyIri;
   const classesMatch = javaParsed.classes.size === jsParsed.classes.size;
 
@@ -318,7 +379,8 @@ const targetFiles = [
   path.join(__dirname, '..', 'VisualDataWeb', 'OWL2VOWL', 'ontologies', 'muto.rdf'),
   path.join(__dirname, '..', 'VisualDataWeb', 'OWL2VOWL', 'ontologies', 'sioc.rdf'),
   path.join(__dirname, '..', 'VisualDataWeb', 'OWL2VOWL', 'ontologies', 'wine.rdf'),
-  path.join(__dirname, '..', 'universal-ontology', 'external', 'cube.rdf')
+  path.join(__dirname, '..', 'universal-ontology', 'external', 'cube.rdf'),
+  path.join(__dirname, '..', 'universal-ontology', 'external', 'bibo.rdf.xml')
 ];
 
 console.log("Starting Compatibility Verification Suite...\n");
@@ -491,7 +553,7 @@ results.forEach(r => {
 
 console.log("==========================================================================================\n");
 
-if (hasFailures || !datatypeCleanOk) {
+if (hasFailures || !datatypeCleanOk || !alignmentCheckOk) {
   console.error("❌ TEST RUN FAILED: true compatibility regressions detected!");
   process.exit(1);
 } else {
