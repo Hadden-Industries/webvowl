@@ -23,6 +23,55 @@ const expectedDifferences = {
 
 let alignmentCheckOk = true;
 let datatypeCleanOk = true;
+let equivalentsCheckOk = true;
+
+function verifyEquivalentProperties(jsRaw, file) {
+  const baseName = path.basename(file);
+  let localEquivalentsOk = true;
+
+  if (jsRaw && jsRaw.propertyAttribute) {
+    const propertyMap = new Map();
+    if (jsRaw.property) {
+      jsRaw.property.forEach(p => {
+        const attr = jsRaw.propertyAttribute.find(a => a.id === p.id);
+        if (attr) {
+          propertyMap.set(String(p.id), { prop: p, attr: attr });
+        }
+      });
+    }
+
+    jsRaw.propertyAttribute.forEach(attr => {
+      if (attr.equivalent && attr.equivalent.length > 0) {
+        // 1. Check that the attributes list contains "equivalent"
+        if (!attr.attributes || !attr.attributes.includes("equivalent")) {
+          console.log(`❌ EQUIVALENTS FAILED in ${baseName}: Property ${attr.id} (${attr.iri}) has equivalents but lacks "equivalent" attribute!`);
+          localEquivalentsOk = false;
+        }
+
+        attr.equivalent.forEach(equivId => {
+          const target = propertyMap.get(String(equivId));
+          // 2. Check that the target property exists in the JSON output
+          if (!target) {
+            console.log(`❌ EQUIVALENTS FAILED in ${baseName}: Property ${attr.id} equivalent target ID ${equivId} not found!`);
+            localEquivalentsOk = false;
+          } else {
+            // 3. Check that the target property also has the "equivalent" attribute
+            if (!target.attr.attributes || !target.attr.attributes.includes("equivalent")) {
+              console.log(`❌ EQUIVALENTS FAILED in ${baseName}: Property ${attr.id} equivalent target ID ${equivId} (${target.attr.iri}) lacks "equivalent" attribute!`);
+              localEquivalentsOk = false;
+            }
+          }
+        });
+      }
+    });
+  }
+
+  if (localEquivalentsOk) {
+    console.log(`✅ Equivalent properties validation PASSED for ${baseName}`);
+  } else {
+    equivalentsCheckOk = false;
+  }
+}
 
 function verifyDatatypeCleaning(jsRaw, file) {
   const baseName = path.basename(file);
@@ -298,6 +347,7 @@ function compare(file) {
 
   verifyAlignment(javaRaw, jsRaw, file);
   verifyDatatypeCleaning(jsRaw, file);
+  verifyEquivalentProperties(jsRaw, file);
 
   const iriMatch = javaParsed.ontologyIri === jsParsed.ontologyIri;
   const classesMatch = javaParsed.classes.size === jsParsed.classes.size;
@@ -551,7 +601,7 @@ results.forEach(r => {
 
 console.log("==========================================================================================\n");
 
-if (hasFailures || !datatypeCleanOk || !alignmentCheckOk) {
+if (hasFailures || !datatypeCleanOk || !alignmentCheckOk || !equivalentsCheckOk) {
   console.error("❌ TEST RUN FAILED: true compatibility regressions detected!");
   process.exit(1);
 } else {

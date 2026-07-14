@@ -290,6 +290,7 @@ module.exports = function owl2vowl(xmlString) {
         subProperties: [],
         inverses: [],
         equivalentClasses: [],
+        equivalentProperties: [],
         disjointWith: [],
         annotations: {}
       };
@@ -398,7 +399,7 @@ module.exports = function owl2vowl(xmlString) {
       } else if (
         (predLocal === "domain" || predLocal === "range" || predLocal === "subClassOf" || 
          predLocal === "subPropertyOf" || predLocal === "inverseOf" || 
-         predLocal === "equivalentClass" || predLocal === "disjointWith") && 
+         predLocal === "equivalentClass" || predLocal === "equivalentProperty" || predLocal === "disjointWith") && 
         (predNs === NAMESPACES.RDFS || predNs === NAMESPACES.OWL)
       ) {
         let targetResource = resource;
@@ -525,6 +526,8 @@ module.exports = function owl2vowl(xmlString) {
             subject.inverses.push(targetResource);
           } else if (predLocal === "equivalentClass") {
             subject.equivalentClasses.push(targetResource);
+          } else if (predLocal === "equivalentProperty") {
+            subject.equivalentProperties.push(targetResource);
           } else if (predLocal === "disjointWith") {
             subject.disjointWith.push(targetResource);
           }
@@ -988,6 +991,7 @@ module.exports = function owl2vowl(xmlString) {
         superproperty: [],
         subproperty: [],
         inverse: subject.inverses[0] || null,
+        equivalentProperties: subject.equivalentProperties || [],
         annotations: subject.annotations
       };
 
@@ -1152,13 +1156,24 @@ module.exports = function owl2vowl(xmlString) {
 
   // Gather and create inverse properties in a safe separate list first
   const inversesToCreate = [];
+  const equivalentsToCreate = [];
   context.propertyMap.forEach(prop => {
     if (prop.inverse && typeof prop.inverse === "string" && !isVowlId(prop.inverse)) {
       inversesToCreate.push(prop.inverse);
     }
+    if (prop.equivalentProperties) {
+      prop.equivalentProperties.forEach(equivIri => {
+        if (typeof equivIri === "string" && !isVowlId(equivIri)) {
+          equivalentsToCreate.push(equivIri);
+        }
+      });
+    }
   });
   inversesToCreate.forEach(invIri => {
     ensurePropertyExists(invIri);
+  });
+  equivalentsToCreate.forEach(equivIri => {
+    ensurePropertyExists(equivIri);
   });
 
   // Step 3: Resolve domains, ranges & inverses to numeric IDs
@@ -1498,6 +1513,21 @@ module.exports = function owl2vowl(xmlString) {
     if (prop.minCardinality !== undefined) attr.minCardinality = prop.minCardinality;
     if (prop.maxCardinality !== undefined) attr.maxCardinality = prop.maxCardinality;
     if (prop.cardinality !== undefined) attr.cardinality = prop.cardinality;
+    if (prop.equivalentProperties && prop.equivalentProperties.length > 0) {
+      attr.equivalent = [];
+      if (!attr.attributes.includes("equivalent")) {
+        attr.attributes.push("equivalent");
+      }
+      prop.equivalentProperties.forEach(equivIri => {
+        const equivProp = context.propertyMap.get(equivIri);
+        if (equivProp) {
+          attr.equivalent.push(equivProp.id);
+          if (!equivProp.attributes.includes("equivalent")) {
+            equivProp.attributes.push("equivalent");
+          }
+        }
+      });
+    }
     propertyAttributesArray.push(attr);
   });
 
