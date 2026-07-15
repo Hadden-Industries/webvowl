@@ -514,4 +514,114 @@ describe("ontologyConverter.js unit tests", () => {
     // ClassB is external, so its equivalent list should be empty/filtered out to prevent duplicates
     expect(classB.equivalent).toBeUndefined();
   });
+
+  test("correctly parses and resolves owl:intersectionOf, owl:complementOf, disjointUnionOf, and hasKey", () => {
+    const subjects = {
+      "http://example.org/ClassA": {
+        iri: "http://example.org/ClassA",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [],
+        intersectionOf: ["http://example.org/ClassB", "http://example.org/ClassC"],
+        complementOf: "http://example.org/ClassD",
+        disjointUnionOf: ["http://example.org/ClassB", "http://example.org/ClassC"],
+        hasKeys: ["http://example.org/propKey"]
+      },
+      "http://example.org/ClassB": {
+        iri: "http://example.org/ClassB",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/ClassC": {
+        iri: "http://example.org/ClassC",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/ClassD": {
+        iri: "http://example.org/ClassD",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/propKey": {
+        iri: "http://example.org/propKey",
+        types: new Set(["http://www.w3.org/2002/07/owl#ObjectProperty"]),
+        labels: {},
+        comments: {},
+        domains: ["http://example.org/ClassA"],
+        ranges: ["http://example.org/ClassB"],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      }
+    };
+
+    convertOntology(subjects, new Set(), resolver, context, header);
+
+    const classA = context.classMap.get("http://example.org/ClassA");
+    const classB = context.classMap.get("http://example.org/ClassB");
+    const classC = context.classMap.get("http://example.org/ClassC");
+    const classD = context.classMap.get("http://example.org/ClassD");
+    const propKey = context.propertyMap.get("http://example.org/propKey");
+
+    expect(classA).toBeDefined();
+    expect(classA.attributes).toContain("intersection");
+    expect(classA.attributes).toContain("complement");
+    expect(classA.attributes).toContain("disjointUnion");
+
+    expect(classA.intersection).toContain(classB.id);
+    expect(classA.intersection).toContain(classC.id);
+    expect(classA.complement).toBe(classD.id);
+    expect(classA.disjointUnion).toContain(classB.id);
+    expect(classA.disjointUnion).toContain(classC.id);
+
+    expect(propKey.attributes).toContain("key");
+  });
 });

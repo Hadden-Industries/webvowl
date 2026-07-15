@@ -364,6 +364,48 @@ export function parseRdfXml(xmlString, resolver, context) {
             subject.disjointWith.push(targetResource);
           }
         }
+      } else if (
+        (predLocal === "unionOf" || predLocal === "intersectionOf" || predLocal === "complementOf" || predLocal === "disjointUnionOf" || predLocal === "hasKey") &&
+        (predNs === NAMESPACES.OWL || predNs === "http://www.w3.org/2002/07/owl#")
+      ) {
+        if (predLocal === "complementOf") {
+          let nestedEl = null;
+          for (let childNode = pred.firstChild; childNode; childNode = childNode.nextSibling) {
+            if (childNode.nodeType === 1) { nestedEl = childNode; break; }
+          }
+          const target = resource || (nestedEl ? (getAbout(nestedEl) || getAttr(nestedEl, "resource", NAMESPACES.RDF)) : null);
+          if (target) {
+            subject.complementOf = resolver.resolve(target, activeBasePred);
+          }
+        } else if (predLocal === "hasKey") {
+          const keys = [];
+          const allChildren = pred.getElementsByTagName ? pred.getElementsByTagName("*") : [];
+          for (let j = 0; j < allChildren.length; j++) {
+            const about = getAbout(allChildren[j]) || getAttr(allChildren[j], "resource", NAMESPACES.RDF);
+            if (about) {
+              const activeBaseChild = getActiveBaseUri(allChildren[j]);
+              keys.push(resolver.resolve(about, activeBaseChild));
+            }
+          }
+          if (keys.length > 0) {
+            subject.hasKeys = keys;
+          }
+        } else {
+          const members = [];
+          const allChildren = pred.getElementsByTagName ? pred.getElementsByTagName("*") : [];
+          for (let j = 0; j < allChildren.length; j++) {
+            const about = getAbout(allChildren[j]) || getAttr(allChildren[j], "resource", NAMESPACES.RDF);
+            if (about) {
+              const activeBaseChild = getActiveBaseUri(allChildren[j]);
+              members.push(resolver.resolve(about, activeBaseChild));
+            }
+          }
+          if (members.length > 0) {
+            if (predLocal === "unionOf") subject.unionOf = members;
+            else if (predLocal === "intersectionOf") subject.intersectionOf = members;
+            else if (predLocal === "disjointUnionOf") subject.disjointUnionOf = members;
+          }
+        }
       } else {
         const rawLang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
         const lang = registerLanguage(rawLang);

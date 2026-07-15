@@ -370,6 +370,27 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
         if (!cls.attributes.includes("deprecated")) cls.attributes.push("deprecated");
       }
 
+      if (subject.unionOf) {
+        cls.type = "owl:unionOf";
+        if (!cls.attributes.includes("union")) cls.attributes.push("union");
+        cls.unionMembers = subject.unionOf;
+      }
+      if (subject.intersectionOf) {
+        cls.type = "owl:intersectionOf";
+        if (!cls.attributes.includes("intersection")) cls.attributes.push("intersection");
+        cls.intersectionMembers = subject.intersectionOf;
+      }
+      if (subject.complementOf) {
+        cls.type = "owl:complementOf";
+        if (!cls.attributes.includes("complement")) cls.attributes.push("complement");
+        cls.complementMember = subject.complementOf;
+      }
+      if (subject.disjointUnionOf) {
+        cls.type = "owl:disjointUnionOf";
+        if (!cls.attributes.includes("disjointUnion")) cls.attributes.push("disjointUnion");
+        cls.disjointUnionMembers = subject.disjointUnionOf;
+      }
+
       subject.superClasses.forEach(superIri => {
         context.subclassRelations.push({ subclassIri: iri, superclassIri: superIri });
       });
@@ -644,7 +665,7 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     }
   });
 
-  // Resolve union members to IDs
+  // Resolve union, intersection, complement & disjointUnion members to IDs
   context.classMap.forEach(cls => {
     if (cls.unionMembers) {
       cls.union = cls.unionMembers.map(memberIri => {
@@ -653,7 +674,45 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
       }).filter(id => id !== null);
       delete cls.unionMembers;
     }
+    if (cls.intersectionMembers) {
+      cls.intersection = cls.intersectionMembers.map(memberIri => {
+        const memberCls = context.classMap.get(memberIri);
+        return memberCls ? memberCls.id : null;
+      }).filter(id => id !== null);
+      delete cls.intersectionMembers;
+    }
+    if (cls.disjointUnionMembers) {
+      cls.disjointUnion = cls.disjointUnionMembers.map(memberIri => {
+        const memberCls = context.classMap.get(memberIri);
+        return memberCls ? memberCls.id : null;
+      }).filter(id => id !== null);
+      delete cls.disjointUnionMembers;
+    }
+    if (cls.complementMember) {
+      const compCls = context.classMap.get(cls.complementMember);
+      if (compCls) {
+        cls.complement = compCls.id;
+      }
+      delete cls.complementMember;
+    }
   });
+
+  // Process hasKey axioms
+  for (const iri in subjects) {
+    if (Object.prototype.hasOwnProperty.call(subjects, iri)) {
+      const subject = subjects[iri];
+      if (subject.hasKeys) {
+        subject.hasKeys.forEach(propIri => {
+          const prop = context.propertyMap.get(propIri);
+          if (prop) {
+            if (!prop.attributes.includes("key")) {
+              prop.attributes.push("key");
+            }
+          }
+        });
+      }
+    }
+  }
 
   // Resolve equivalence to IDs
   context.classMap.forEach(cls => {

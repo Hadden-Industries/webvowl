@@ -224,6 +224,9 @@ export function exportToJson(resolver, context, header) {
     if (cls.subClasses && cls.subClasses.length > 0) attr.subClasses = cls.subClasses;
     if (cls.superClasses && cls.superClasses.length > 0) attr.superClasses = cls.superClasses;
     if (cls.union) attr.union = cls.union;
+    if (cls.intersection && cls.intersection.length > 0) attr.intersection = cls.intersection;
+    if (cls.complement) attr.complement = Array.isArray(cls.complement) ? cls.complement : [cls.complement];
+    if (cls.disjointUnion && cls.disjointUnion.length > 0) attr.disjointUnion = cls.disjointUnion;
     if (cls.equivalent && cls.equivalent.length > 0) attr.equivalent = cls.equivalent;
     classAttributesArray.push(attr);
 
