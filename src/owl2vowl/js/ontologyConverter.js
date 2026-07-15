@@ -659,19 +659,33 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   context.classMap.forEach(cls => {
     const subject = subjects[cls.iri];
     if (subject && subject.equivalentClasses && subject.equivalentClasses.length > 0) {
-      cls.equivalent = [];
-      if (!cls.attributes.includes("equivalent")) {
-        cls.attributes.push("equivalent");
-      }
-      subject.equivalentClasses.forEach(equivIri => {
-        const equivCls = context.classMap.get(equivIri);
-        if (equivCls) {
-          cls.equivalent.push(equivCls.id);
-          if (!equivCls.attributes.includes("equivalent")) {
-            equivCls.attributes.push("equivalent");
-          }
+      const sorted = getSortedEquivalents(cls.iri, subject.equivalentClasses, header.iri, subjects, false);
+      if (sorted.length > 0) {
+        cls.equivalent = [];
+        if (!cls.attributes.includes("equivalent")) {
+          cls.attributes.push("equivalent");
         }
-      });
+        sorted.forEach(equivIri => {
+          const equivCls = context.classMap.get(equivIri);
+          if (equivCls) {
+            cls.equivalent.push(equivCls.id);
+            if (!equivCls.attributes.includes("equivalent")) {
+              equivCls.attributes.push("equivalent");
+            }
+          }
+        });
+      }
+    }
+  });
+
+  // Resolve equivalent properties
+  context.propertyMap.forEach(prop => {
+    const subject = subjects[prop.iri];
+    if (subject && subject.equivalentProperties && subject.equivalentProperties.length > 0) {
+      const sorted = getSortedEquivalents(prop.iri, subject.equivalentProperties, header.iri, subjects, true);
+      prop.equivalentProperties = sorted;
+    } else {
+      prop.equivalentProperties = [];
     }
   });
 
@@ -861,4 +875,34 @@ function getConnectedThingOrGenerate(nodeId, resolver, context) {
   if (!context.virtualThings) context.virtualThings = [];
   context.virtualThings.push(virtualCls);
   return virtualId;
+}
+
+function getSortedEquivalents(entityIri, equivalentIris, headerIri, subjects, isProperty = false) {
+  const iriToSort = [...equivalentIris];
+
+  if (isIriExternal(entityIri, headerIri)) {
+    for (const iri of iriToSort) {
+      if (!isIriExternal(iri, headerIri)) {
+        return [];
+      }
+    }
+  }
+
+  for (const iri of iriToSort) {
+    const equivSubject = subjects[iri];
+    if (equivSubject) {
+      const equivList = isProperty ? equivSubject.equivalentProperties : equivSubject.equivalentClasses;
+      if (equivList && equivList.length > equivalentIris.length) {
+        return [];
+      }
+    }
+  }
+
+  iriToSort.sort((o1, o2) => {
+    if (o1 === headerIri) return 1;
+    if (o2 === headerIri) return -1;
+    return 0;
+  });
+
+  return iriToSort;
 }

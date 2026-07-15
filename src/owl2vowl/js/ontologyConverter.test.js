@@ -445,4 +445,73 @@ describe("ontologyConverter.js unit tests", () => {
     expect(rangeNode.union).toContain(classA.id);
     expect(rangeNode.union).toContain(classB.id);
   });
+
+  test("filters and sorts equivalent elements following EquivalentSorter rules", () => {
+    const subjects = {
+      "http://example.org/": {
+        iri: "http://example.org/",
+        types: new Set(["http://www.w3.org/2002/07/owl#Ontology"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [],
+        annotations: {}
+      },
+      "http://example.org/ClassA": {
+        iri: "http://example.org/ClassA",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: ["http://other.org/ClassB"],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://other.org/ClassB": {
+        iri: "http://other.org/ClassB",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: ["http://example.org/ClassA"],
+        equivalentProperties: [],
+        disjointWith: []
+      }
+    };
+
+    convertOntology(subjects, new Set(), resolver, context, header);
+
+    const classA = context.classMap.get("http://example.org/ClassA");
+    const classB = context.classMap.get("http://other.org/ClassB");
+
+    expect(classA).toBeDefined();
+    expect(classB).toBeDefined();
+
+    // ClassA is internal, so it should retain its equivalent link to ClassB
+    expect(classA.equivalent).toBeDefined();
+    expect(classA.equivalent).toContain(classB.id);
+
+    // ClassB is external, so its equivalent list should be empty/filtered out to prevent duplicates
+    expect(classB.equivalent).toBeUndefined();
+  });
 });
