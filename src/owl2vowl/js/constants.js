@@ -20,6 +20,8 @@ export const ONTOLOGY_CATALOG = Object.freeze({
   "http://www.w3.org/2003/01/geo/wgs84_pos": "../external/wgs84_pos.rdf",
   "http://www.w3.org/2004/02/skos/core": "../external/skos.rdf",
   "http://www.w3.org/2006/time": "../external/time.rdf",
+  "http://www.w3.org/TR/2003/PR-owl-guide-20031209/food": "../external/food.rdf",
+  "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine": "../external/wine.rdf",
   "http://www.w3.org/ns/dcat": "../external/dcat3.rdf",
   "http://www.w3.org/ns/org": "../external/org.rdf",
   "http://www.w3.org/ns/prov": "../external/prov.owl",
