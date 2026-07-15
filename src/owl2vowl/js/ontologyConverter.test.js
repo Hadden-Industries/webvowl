@@ -624,4 +624,91 @@ describe("ontologyConverter.js unit tests", () => {
 
     expect(propKey.attributes).toContain("key");
   });
+
+  test("correctly infers domain and range for anonymous inverse properties", () => {
+    const subjects = {
+      "http://example.org/classA": {
+        iri: "http://example.org/classA",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/classB": {
+        iri: "http://example.org/classB",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/propertyA": {
+        iri: "http://example.org/propertyA",
+        types: new Set(["http://www.w3.org/2002/07/owl#ObjectProperty"]),
+        labels: {},
+        comments: {},
+        domains: ["http://example.org/classA"],
+        ranges: ["http://example.org/classB"],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/propertyB": {
+        iri: "http://example.org/propertyB",
+        types: new Set(["http://www.w3.org/2002/07/owl#ObjectProperty"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: ["http://example.org/propertyA"],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      }
+    };
+
+    convertOntology(subjects, new Set(), resolver, context, header);
+
+    const classA = context.classMap.get("http://example.org/classA");
+    const classB = context.classMap.get("http://example.org/classB");
+    const propA = context.propertyMap.get("http://example.org/propertyA");
+    const propB = context.propertyMap.get("http://example.org/propertyB");
+
+    expect(classA).toBeDefined();
+    expect(classB).toBeDefined();
+    expect(propA).toBeDefined();
+    expect(propB).toBeDefined();
+
+    expect(propA.domain).toBe(classA.id);
+    expect(propA.range).toBe(classB.id);
+
+    expect(propB.domain).toBe(classB.id);
+    expect(propB.range).toBe(classA.id);
+  });
 });

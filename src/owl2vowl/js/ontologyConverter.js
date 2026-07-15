@@ -601,7 +601,55 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   });
 
   // Step 3: Resolve domains, ranges & inverses to numeric IDs
+  // 3a. Resolve explicit domains and ranges
   context.propertyMap.forEach(prop => {
+    if (prop.domain && typeof prop.domain === "string" && !isVowlId(prop.domain)) {
+      prop.domain = getClassId(prop.domain, context);
+    }
+    if (prop.range && typeof prop.range === "string" && !isVowlId(prop.range)) {
+      const cls = context.classMap.get(prop.range);
+      if (isDatatypeIri(prop.range, resolver) || (cls && cls.type === "rdfs:Datatype") || prop.range === "http://www.w3.org/2000/01/rdf-schema#Literal") {
+        prop.range = createVirtualDatatype(prop.range, resolver, context);
+      } else {
+        prop.range = getClassId(prop.range, context);
+      }
+    }
+  });
+
+  // 3b. Fill domain/range from inverse properties
+  context.propertyMap.forEach(prop => {
+    if (prop.inverse) {
+      const invProp = context.propertyMap.get(prop.inverse);
+      if (invProp) {
+        if (!prop.domain && invProp.range) {
+          prop.domain = invProp.range;
+        }
+        if (!prop.range && invProp.domain) {
+          prop.range = invProp.domain;
+        }
+      }
+    }
+  });
+
+  // 3c. Resolve inverse IRI to ID
+  context.propertyMap.forEach(prop => {
+    if (prop.inverse && typeof prop.inverse === "string" && !isVowlId(prop.inverse)) {
+      const invProp = context.propertyMap.get(prop.inverse);
+      if (invProp) {
+        prop.inverse = invProp.id;
+        invProp.inverse = prop.id;
+      } else {
+        prop.inverse = null;
+      }
+    }
+  });
+
+  // 3d. Default empty domain/range filling (ONLY for properties without inverses)
+  context.propertyMap.forEach(prop => {
+    if (prop.inverse) {
+      return;
+    }
+
     const hasDomain = !!prop.domain;
     const hasRange = !!prop.range;
 
@@ -615,52 +663,12 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
         prop.range = freeThingId;
       }
     } else if (!hasDomain) {
-      // Only domain is empty
-      let resolvedRange = prop.range;
-      if (typeof resolvedRange === "string" && !isVowlId(resolvedRange)) {
-        const cls = context.classMap.get(resolvedRange);
-        if (isDatatypeIri(resolvedRange, resolver) || (cls && cls.type === "rdfs:Datatype") || resolvedRange === "http://www.w3.org/2000/01/rdf-schema#Literal") {
-          resolvedRange = createVirtualDatatype(resolvedRange, resolver, context);
-        } else {
-          resolvedRange = getClassId(resolvedRange, context);
-        }
-      }
-      prop.range = resolvedRange;
-      prop.domain = getConnectedThingOrGenerate(resolvedRange, resolver, context);
+      prop.domain = getConnectedThingOrGenerate(prop.range, resolver, context);
     } else if (!hasRange) {
-      // Only range is empty
-      let resolvedDomain = prop.domain;
-      if (typeof resolvedDomain === "string" && !isVowlId(resolvedDomain)) {
-        resolvedDomain = getClassId(resolvedDomain, context);
-      }
-      prop.domain = resolvedDomain;
       if (prop.type === "owl:datatypeProperty") {
         prop.range = createVirtualDatatype("http://www.w3.org/2000/01/rdf-schema#Literal", resolver, context);
       } else {
-        prop.range = getConnectedThingOrGenerate(resolvedDomain, resolver, context);
-      }
-    } else {
-      // Both are present
-      prop.domain = getClassId(prop.domain, context);
-      let resolvedRange = prop.range;
-      if (typeof resolvedRange === "string" && !isVowlId(resolvedRange)) {
-        const cls = context.classMap.get(resolvedRange);
-        if (isDatatypeIri(resolvedRange, resolver) || (cls && cls.type === "rdfs:Datatype") || resolvedRange === "http://www.w3.org/2000/01/rdf-schema#Literal") {
-          resolvedRange = createVirtualDatatype(resolvedRange, resolver, context);
-        } else {
-          resolvedRange = getClassId(resolvedRange, context);
-        }
-      }
-      prop.range = resolvedRange;
-    }
-
-    if (prop.inverse && typeof prop.inverse === "string" && !isVowlId(prop.inverse)) {
-      const invProp = context.propertyMap.get(prop.inverse);
-      if (invProp) {
-        prop.inverse = invProp.id;
-        invProp.inverse = prop.id;
-      } else {
-        prop.inverse = null;
+        prop.range = getConnectedThingOrGenerate(prop.domain, resolver, context);
       }
     }
   });
