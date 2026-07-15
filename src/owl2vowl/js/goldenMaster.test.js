@@ -12,16 +12,17 @@ const JAVA_JAR = path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "
 
 const expectedDifferences = {
   "bibo.rdf.xml": "Java resolves external imports and annotation differences which JS skips/simplifies",
-  "cube.rdf": "Java resolves external imports (skos namespace) and owl:unionOf ranges which JS skips/simplifies",
+  "cube.rdf": "Java resolves external imports (skos namespace) which JS skips for offline/sandbox",
   "dc.rdf": "Permissive parsing of rdf:Property in JS (ignored by Java due to strict OWL)",
   "dcat3.rdf": "Java resolves external imports (prov namespace) which JS skips for offline/sandbox",
   "dcterms.rdf": "Permissive parsing of rdf:Property in JS (ignored by Java due to strict OWL)",
   "foaf.rdf": "Java reasoner defaults InverseFunctional DatatypeProperty domains to owl:Thing due to OWL DL semantic clash (JS preserves syntactic foaf:Agent domain)",
+  "full_ontobench_test.ttl": "Java reasoning additions and OWL DL semantic clashes",
   "muto.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
   "sioc.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
   "skos.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
   "time.rdf": "Java reasoner narrows domain/range properties via class restrictions (subclass hierarchies match 100%)",
-  "wine.rdf": "Browser DOMParser disables DTD external/internal entities processing to prevent XML External Entity (XXE) attacks"
+  "wine.rdf": "Java reasoner narrows domain/range properties via class restrictions and adds equivalent class links"
 };
 
 function runJavaConverter(filePath) {
@@ -151,17 +152,18 @@ function parseVowlJson(json) {
 
 describe("Golden Master Compatibility Tests", () => {
   const targetFiles = [
-    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "skos.rdf"),
-    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "dc.rdf"),
-    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "dcterms.rdf"),
-    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "dcat3.rdf"),
-    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "time.rdf"),
     path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "ontologies", "foaf.rdf"),
     path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "ontologies", "muto.rdf"),
     path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "ontologies", "sioc.rdf"),
     path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "ontologies", "wine.rdf"),
+    path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "src", "test", "resources", "full_ontobench_test.ttl"),
+    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "bibo.rdf.xml"),
     path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "cube.rdf"),
-    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "bibo.rdf.xml")
+    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "dc.rdf"),
+    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "dcat3.rdf"),
+    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "dcterms.rdf"),
+    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "skos.rdf"),
+    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "time.rdf")
   ];
 
   targetFiles.forEach(file => {

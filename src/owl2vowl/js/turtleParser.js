@@ -84,9 +84,17 @@ export function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
   }, prefixes);
   
   const cleanPrefixes = {};
+  let defaultNs = null;
   for (const [p, ns] of Object.entries(allPrefixes)) {
     const cleanP = p.replace(/[^a-zA-Z0-9-]/g, "");
-    cleanPrefixes[cleanP] = ns;
+    if (cleanP === "") {
+      defaultNs = ns;
+    } else {
+      cleanPrefixes[cleanP] = ns;
+    }
+  }
+  if (defaultNs) {
+    cleanPrefixes["defaultns"] = defaultNs;
   }
   
   let xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
@@ -94,12 +102,11 @@ export function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
   if (baseIri) {
     xml += ` xml:base="${baseIri}"`;
   }
+  if (defaultNs) {
+    xml += ` xmlns="${defaultNs}"`;
+  }
   for (const [p, ns] of Object.entries(cleanPrefixes)) {
-    if (p === "") {
-      xml += ` xmlns="${ns}"`;
-    } else {
-      xml += ` xmlns:${p}="${ns}"`;
-    }
+    xml += ` xmlns:${p}="${ns}"`;
   }
   xml += ">\n";
   
