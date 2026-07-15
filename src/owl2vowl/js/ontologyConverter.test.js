@@ -366,4 +366,83 @@ describe("ontologyConverter.js unit tests", () => {
     expect(prop1.range).not.toBe("0");
     expect(prop2.range).not.toBe("0");
   });
+
+  test("merges multiple domains and ranges into virtual owl:unionOf classes", () => {
+    const subjects = {
+      "http://example.org/ClassA": {
+        iri: "http://example.org/ClassA",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/ClassB": {
+        iri: "http://example.org/ClassB",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/propMulti": {
+        iri: "http://example.org/propMulti",
+        types: new Set(["http://www.w3.org/2002/07/owl#ObjectProperty"]),
+        labels: {},
+        comments: {},
+        domains: ["http://example.org/ClassA", "http://example.org/ClassB"],
+        ranges: ["http://example.org/ClassA", "http://example.org/ClassB"],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      }
+    };
+
+    convertOntology(subjects, new Set(), resolver, context, header);
+
+    const propMulti = context.propertyMap.get("http://example.org/propMulti");
+    expect(propMulti).toBeDefined();
+
+    // Check virtual union classes are assigned as domain and range
+    expect(propMulti.domain).toBeDefined();
+    expect(propMulti.range).toBeDefined();
+
+    const domainNode = context.classMap.get(propMulti.domain);
+    const rangeNode = context.classMap.get(propMulti.range);
+
+    expect(domainNode).toBeDefined();
+    expect(rangeNode).toBeDefined();
+    expect(domainNode.type).toBe("owl:unionOf");
+    expect(rangeNode.type).toBe("owl:unionOf");
+
+    // The union members should resolve to class IDs of ClassA and ClassB
+    const classA = context.classMap.get("http://example.org/ClassA");
+    const classB = context.classMap.get("http://example.org/ClassB");
+
+    expect(domainNode.union).toContain(classA.id);
+    expect(domainNode.union).toContain(classB.id);
+    expect(rangeNode.union).toContain(classA.id);
+    expect(rangeNode.union).toContain(classB.id);
+  });
 });

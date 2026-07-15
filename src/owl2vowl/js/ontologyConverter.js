@@ -406,6 +406,24 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
         propLabel["undefined"] = resolver.getLocalName(iri);
       }
 
+      let domain = null;
+      if (subject.domains && subject.domains.length > 0) {
+        if (subject.domains.length > 1) {
+          domain = createImplicitUnionClass(subject.domains, resolver, context);
+        } else {
+          domain = subject.domains[0];
+        }
+      }
+
+      let range = null;
+      if (subject.ranges && subject.ranges.length > 0) {
+        if (subject.ranges.length > 1) {
+          range = createImplicitUnionClass(subject.ranges, resolver, context);
+        } else {
+          range = subject.ranges[0];
+        }
+      }
+
       const prop = {
         id: context.nextId(),
         type: type,
@@ -414,8 +432,8 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
         label: propLabel,
         comment: subject.comments,
         attributes: attributes,
-        domain: subject.domains[0] || null,
-        range: subject.ranges[0] || null,
+        domain: domain,
+        range: range,
         superproperty: [],
         subproperty: [],
         inverse: subject.inverses[0] || null,
@@ -786,6 +804,25 @@ function getClsOrVirtualNode(id, context) {
 
 function isAllowedFreeConnection(type) {
   return type === "rdfs:Datatype" || type === "rdfs:Literal" || type === "owl:Thing";
+}
+
+function createImplicitUnionClass(memberIris, resolver, context) {
+  const virtualId = context.nextId();
+  const virtualCls = {
+    id: virtualId,
+    type: "owl:unionOf",
+    iri: null,
+    baseIri: undefined,
+    label: {},
+    comment: {},
+    attributes: ["union"],
+    subClasses: [],
+    superClasses: [],
+    unionMembers: memberIris,
+    annotations: {}
+  };
+  context.classMap.set(virtualId, virtualCls);
+  return virtualId;
 }
 
 function getConnectedThingOrGenerate(nodeId, resolver, context) {
