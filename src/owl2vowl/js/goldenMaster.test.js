@@ -1,9 +1,10 @@
-import { describe, test, expect } from "@jest/globals";
+import { describe, test, expect, beforeAll, afterAll } from "@jest/globals";
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 import { fileURLToPath } from "url";
-import owl2vowl from "./index.js";
+import owl2vowl, { loadWithImports } from "./index.js";
+import { resolveImportUrl } from "./importLoader.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,10 +12,10 @@ const __dirname = path.dirname(__filename);
 const JAVA_JAR = path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "target", "OWL2VOWL-0.3.7-shaded.jar");
 
 const expectedDifferences = {
-  "bibo.rdf.xml": "Java resolves external imports and annotation differences which JS skips/simplifies",
-  "cube.rdf": "Java resolves external imports (skos namespace) which JS skips for offline/sandbox",
+  "bibo.rdf.xml": "Java reasoner additions and minor annotation differences",
+  "cube.rdf": "Java reasoner additions and minor annotation differences",
   "dc.rdf": "Permissive parsing of rdf:Property in JS (ignored by Java due to strict OWL)",
-  "dcat3.rdf": "Java resolves external imports (prov namespace) which JS skips for offline/sandbox",
+  "dcat3.rdf": "Java reasoner additions and minor annotation differences",
   "dcterms.rdf": "Permissive parsing of rdf:Property in JS (ignored by Java due to strict OWL)",
   "foaf.rdf": "Java reasoner defaults InverseFunctional DatatypeProperty domains to owl:Thing due to OWL DL semantic clash (JS preserves syntactic foaf:Agent domain)",
   "full_ontobench_test.ttl": "Java reasoning additions and OWL DL semantic clashes",
@@ -151,6 +152,46 @@ function parseVowlJson(json) {
 }
 
 describe("Golden Master Compatibility Tests", () => {
+  let originalFetch;
+
+  beforeAll(() => {
+    originalFetch = global.fetch;
+    global.fetch = function (url) {
+      let resolved = resolveImportUrl(url);
+      let filename = path.basename(resolved);
+
+      let filePath = path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", filename);
+      if (!fs.existsSync(filePath)) {
+        filePath = path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "ontologies", filename);
+      }
+      if (!fs.existsSync(filePath)) {
+        filePath = path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "src", "test", "resources", filename);
+      }
+
+      if (fs.existsSync(filePath)) {
+        const textContent = fs.readFileSync(filePath, 'utf8');
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          text: () => Promise.resolve(textContent)
+        });
+      }
+
+      // Return a dummy empty XML document if not found locally to remain offline and fast
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        text: () => Promise.resolve('<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:owl="http://www.w3.org/2002/07/owl#"><owl:Ontology/></rdf:RDF>')
+      });
+    };
+  });
+
+  afterAll(() => {
+    global.fetch = originalFetch;
+  });
+
   const targetFiles = [
     path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "ontologies", "foaf.rdf"),
     path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "ontologies", "muto.rdf"),
@@ -169,7 +210,7 @@ describe("Golden Master Compatibility Tests", () => {
   targetFiles.forEach(file => {
     const baseName = path.basename(file);
 
-    test(`Golden master compatibility for ${baseName}`, () => {
+    test(`Golden master compatibility for ${baseName}`, async () => {
       expect(fs.existsSync(file)).toBe(true);
 
       const javaRaw = runJavaConverter(file);
@@ -177,7 +218,7 @@ describe("Golden Master Compatibility Tests", () => {
       const javaParsed = parseVowlJson(javaRaw);
 
       const xml = fs.readFileSync(file, 'utf8');
-      const jsRaw = owl2vowl(xml);
+      const jsRaw = await loadWithImports(xml);
       expect(jsRaw).toBeDefined();
       const jsParsed = parseVowlJson(jsRaw);
 
@@ -342,7 +383,7 @@ describe("Golden Master Compatibility Tests", () => {
       } else {
         expect(isExactMatch).toBe(true);
       }
-    });
+    }, 30000);
   });
 
   test("BenchmarkOntology.rdf structural counts validation", () => {
