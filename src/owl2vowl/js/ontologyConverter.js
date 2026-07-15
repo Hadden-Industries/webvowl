@@ -563,25 +563,56 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
   // Step 3: Resolve domains, ranges & inverses to numeric IDs
   context.propertyMap.forEach(prop => {
-    if (prop.domain && typeof prop.domain === "string" && !isVowlId(prop.domain)) {
-      prop.domain = getClassId(prop.domain, context);
-    } else if (!prop.domain) {
-      prop.domain = getClassId("http://www.w3.org/2002/07/owl#Thing", context);
-    }
+    const hasDomain = !!prop.domain;
+    const hasRange = !!prop.range;
 
-    if (prop.range && typeof prop.range === "string" && !isVowlId(prop.range)) {
-      const cls = context.classMap.get(prop.range);
-      if (isDatatypeIri(prop.range, resolver) || (cls && cls.type === "rdfs:Datatype") || prop.range === "http://www.w3.org/2000/01/rdf-schema#Literal") {
-        prop.range = createVirtualDatatype(prop.range, resolver, context);
+    if (!hasDomain && !hasRange) {
+      if (prop.type === "owl:datatypeProperty") {
+        prop.domain = getOrCreateFreeThing(resolver, context);
+        prop.range = createVirtualDatatype("http://www.w3.org/2000/01/rdf-schema#Literal", resolver, context);
       } else {
-        prop.range = getClassId(prop.range, context);
+        const freeThingId = getOrCreateFreeThing(resolver, context);
+        prop.domain = freeThingId;
+        prop.range = freeThingId;
       }
-    } else if (!prop.range) {
+    } else if (!hasDomain) {
+      // Only domain is empty
+      let resolvedRange = prop.range;
+      if (typeof resolvedRange === "string" && !isVowlId(resolvedRange)) {
+        const cls = context.classMap.get(resolvedRange);
+        if (isDatatypeIri(resolvedRange, resolver) || (cls && cls.type === "rdfs:Datatype") || resolvedRange === "http://www.w3.org/2000/01/rdf-schema#Literal") {
+          resolvedRange = createVirtualDatatype(resolvedRange, resolver, context);
+        } else {
+          resolvedRange = getClassId(resolvedRange, context);
+        }
+      }
+      prop.range = resolvedRange;
+      prop.domain = getConnectedThingOrGenerate(resolvedRange, resolver, context);
+    } else if (!hasRange) {
+      // Only range is empty
+      let resolvedDomain = prop.domain;
+      if (typeof resolvedDomain === "string" && !isVowlId(resolvedDomain)) {
+        resolvedDomain = getClassId(resolvedDomain, context);
+      }
+      prop.domain = resolvedDomain;
       if (prop.type === "owl:datatypeProperty") {
         prop.range = createVirtualDatatype("http://www.w3.org/2000/01/rdf-schema#Literal", resolver, context);
       } else {
-        prop.range = getClassId("http://www.w3.org/2002/07/owl#Thing", context);
+        prop.range = getConnectedThingOrGenerate(resolvedDomain, resolver, context);
       }
+    } else {
+      // Both are present
+      prop.domain = getClassId(prop.domain, context);
+      let resolvedRange = prop.range;
+      if (typeof resolvedRange === "string" && !isVowlId(resolvedRange)) {
+        const cls = context.classMap.get(resolvedRange);
+        if (isDatatypeIri(resolvedRange, resolver) || (cls && cls.type === "rdfs:Datatype") || resolvedRange === "http://www.w3.org/2000/01/rdf-schema#Literal") {
+          resolvedRange = createVirtualDatatype(resolvedRange, resolver, context);
+        } else {
+          resolvedRange = getClassId(resolvedRange, context);
+        }
+      }
+      prop.range = resolvedRange;
     }
 
     if (prop.inverse && typeof prop.inverse === "string" && !isVowlId(prop.inverse)) {
@@ -678,4 +709,119 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
       }
     }
   });
+}
+
+function getOrCreateFreeThing(resolver, context) {
+  const allThings = [];
+  context.classMap.forEach(cls => {
+    if (cls.type === "owl:Thing") allThings.push(cls);
+  });
+  if (context.virtualThings) {
+    context.virtualThings.forEach(cls => {
+      if (cls.type === "owl:Thing") allThings.push(cls);
+    });
+  }
+
+  for (const thing of allThings) {
+    if (isThingFree(thing, context)) {
+      return thing.id;
+    }
+  }
+
+  const virtualId = context.nextId();
+  const virtualCls = {
+    id: virtualId,
+    type: "owl:Thing",
+    iri: "http://www.w3.org/2002/07/owl#Thing",
+    baseIri: "http://www.w3.org/2002/07/owl#",
+    label: { "undefined": "Thing" },
+    comment: {},
+    attributes: [],
+    subClasses: [],
+    superClasses: [],
+    annotations: {}
+  };
+  if (!context.virtualThings) context.virtualThings = [];
+  context.virtualThings.push(virtualCls);
+  return virtualId;
+}
+
+function isThingFree(thing, context) {
+  for (const prop of context.propertyMap.values()) {
+    const isDomain = prop.domain === thing.id;
+    const isRange = prop.range === thing.id;
+    if (isDomain || isRange) {
+      if (isDomain) {
+        const rangeNode = getClsOrVirtualNode(prop.range, context);
+        if (rangeNode && !isAllowedFreeConnection(rangeNode.type)) {
+          return false;
+        }
+      }
+      if (isRange) {
+        const domainNode = getClsOrVirtualNode(prop.domain, context);
+        if (domainNode && !isAllowedFreeConnection(domainNode.type)) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+function getClsOrVirtualNode(id, context) {
+  let node = context.classMap.get(id);
+  if (node) return node;
+  const byId = Array.from(context.classMap.values()).find(n => n.id === id);
+  if (byId) return byId;
+  if (context.virtualThings) {
+    node = context.virtualThings.find(n => n.id === id);
+    if (node) return node;
+  }
+  if (context.virtualDatatypes) {
+    node = context.virtualDatatypes.find(n => n.id === id);
+    if (node) return node;
+  }
+  return null;
+}
+
+function isAllowedFreeConnection(type) {
+  return type === "rdfs:Datatype" || type === "rdfs:Literal" || type === "owl:Thing";
+}
+
+function getConnectedThingOrGenerate(nodeId, resolver, context) {
+  for (const prop of context.propertyMap.values()) {
+    const isDomain = prop.domain === nodeId;
+    const isRange = prop.range === nodeId;
+    if (isDomain || isRange) {
+      if (isDomain) {
+        const rangeNode = getClsOrVirtualNode(prop.range, context);
+        if (rangeNode && rangeNode.type === "owl:Thing") {
+          return rangeNode.id;
+        }
+      }
+      if (isRange) {
+        const domainNode = getClsOrVirtualNode(prop.domain, context);
+        if (domainNode && domainNode.type === "owl:Thing") {
+          return domainNode.id;
+        }
+      }
+    }
+  }
+
+  const virtualId = context.nextId();
+  const virtualCls = {
+    id: virtualId,
+    type: "owl:Thing",
+    iri: "http://www.w3.org/2002/07/owl#Thing",
+    baseIri: "http://www.w3.org/2002/07/owl#",
+    label: { "undefined": "Thing" },
+    comment: {},
+    attributes: [],
+    subClasses: [],
+    superClasses: [],
+    annotations: {}
+  };
+  if (!context.virtualThings) context.virtualThings = [];
+  context.virtualThings.push(virtualCls);
+  return virtualId;
 }

@@ -1,16 +1,3 @@
-import { NAMESPACES } from "./constants.js";
-
-function isVowlId(str) {
-  if (typeof str !== "string") return false;
-  return /^\d+$/.test(str);
-}
-
-function isDatatypeIri(iri) {
-  if (!iri) return false;
-  if (iri === "http://www.w3.org/2000/01/rdf-schema#Literal") return false;
-  if (iri.startsWith("http://www.w3.org/2001/XMLSchema#")) return true;
-  return false;
-}
 
 function isIriExternal(iri, headerIri) {
   if (!iri) return false;
@@ -213,7 +200,7 @@ export function exportToJson(resolver, context, header) {
   const classAttributesArray = [];
   const disjointProperties = [];
 
-  context.classMap.forEach(cls => {
+  function exportClassNode(cls) {
     if (shouldSkipDatatype(cls, connectedNodeIds, connectedDatatypeIris)) return;
     classesArray.push({ id: cls.id, type: cls.type });
     const isAnonymous = cls.type === "owl:unionOf";
@@ -227,15 +214,15 @@ export function exportToJson(resolver, context, header) {
       if (cls.annotations && Object.keys(cls.annotations).length > 0) {
         attr.annotations = cls.annotations;
       }
-      if (Object.keys(cls.comment).length > 0) attr.comment = cls.comment;
+      if (cls.comment && Object.keys(cls.comment).length > 0) attr.comment = cls.comment;
       if (cls.individuals && cls.individuals.length > 0) {
         attr.individuals = cls.individuals;
       }
     }
     
-    if (cls.attributes.length > 0) attr.attributes = cls.attributes;
-    if (cls.subClasses.length > 0) attr.subClasses = cls.subClasses;
-    if (cls.superClasses.length > 0) attr.superClasses = cls.superClasses;
+    if (cls.attributes && cls.attributes.length > 0) attr.attributes = cls.attributes;
+    if (cls.subClasses && cls.subClasses.length > 0) attr.subClasses = cls.subClasses;
+    if (cls.superClasses && cls.superClasses.length > 0) attr.superClasses = cls.superClasses;
     if (cls.union) attr.union = cls.union;
     if (cls.equivalent && cls.equivalent.length > 0) attr.equivalent = cls.equivalent;
     classAttributesArray.push(attr);
@@ -257,7 +244,12 @@ export function exportToJson(resolver, context, header) {
         }
       });
     }
-  });
+  }
+
+  context.classMap.forEach(exportClassNode);
+  if (context.virtualThings) {
+    context.virtualThings.forEach(exportClassNode);
+  }
 
   context.virtualDatatypes.forEach(cls => {
     if (shouldSkipDatatype(cls, connectedNodeIds, connectedDatatypeIris)) return;

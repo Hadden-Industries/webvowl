@@ -277,4 +277,93 @@ describe("ontologyConverter.js unit tests", () => {
     expect(enrolledIn.minCardinality).toBe("1");
     expect(enrolledIn.maxCardinality).toBe("5");
   });
+
+  test("generates multiple separate virtual owl:Thing nodes for properties connected to different classes", () => {
+    const subjects = {
+      "http://example.org/Student": {
+        iri: "http://example.org/Student",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/Course": {
+        iri: "http://example.org/Course",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/prop1": {
+        iri: "http://example.org/prop1",
+        types: new Set(["http://www.w3.org/2002/07/owl#ObjectProperty"]),
+        labels: {},
+        comments: {},
+        domains: ["http://example.org/Student"],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/prop2": {
+        iri: "http://example.org/prop2",
+        types: new Set(["http://www.w3.org/2002/07/owl#ObjectProperty"]),
+        labels: {},
+        comments: {},
+        domains: ["http://example.org/Course"],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      }
+    };
+
+    convertOntology(subjects, new Set(), resolver, context, header);
+
+    const prop1 = context.propertyMap.get("http://example.org/prop1");
+    const prop2 = context.propertyMap.get("http://example.org/prop2");
+
+    expect(prop1).toBeDefined();
+    expect(prop2).toBeDefined();
+
+    // The ranges should be virtual Thing nodes
+    expect(prop1.range).toBeDefined();
+    expect(prop2.range).toBeDefined();
+
+    // Since they are connected to different regular classes, they cannot share a free Thing node
+    expect(prop1.range).not.toBe(prop2.range);
+
+    // Two virtual things should have been created (since Java's generateThing is called for each when only one domain/range is empty)
+    expect(context.virtualThings.length).toBe(2);
+    expect(prop1.range).not.toBe("0");
+    expect(prop2.range).not.toBe("0");
+  });
 });

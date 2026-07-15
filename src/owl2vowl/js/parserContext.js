@@ -14,6 +14,7 @@ export class VowlParserContext {
     this.parsedCardinalities = []; // Array of { propertyIri, minCardinality, maxCardinality, cardinality }
     this.virtualDatatypes = [];    // Visual-individualized Datatype representations
     this.parsedIndividuals = [];   // List of parsed NamedIndividual models
+    this.virtualThings = [];       // Visual-individualized Thing representations
   }
 
   /**

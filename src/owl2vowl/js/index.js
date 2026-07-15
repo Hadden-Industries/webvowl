@@ -7,6 +7,7 @@ import { convertOntology } from "./ontologyConverter.js";
 import { exportToJson } from "./jsonExporter.js";
 import { loadWithImports as internalLoadWithImports } from "./importLoader.js";
 import { isTurtleFormat, parseTurtle, serializeTriplesToRdfXml } from "./turtleParser.js";
+import { resolveXmlEntities } from "./xmlUtils.js";
 
 /**
  * Parses an RDF/XML or Turtle ontology into VOWL-JSON.
@@ -14,10 +15,10 @@ import { isTurtleFormat, parseTurtle, serializeTriplesToRdfXml } from "./turtleP
  * @returns {object}
  */
 export default function owl2vowl(xmlString) {
-  let xmlText = xmlString;
-  if (isTurtleFormat(xmlString)) {
+  let xmlText = resolveXmlEntities(xmlString);
+  if (isTurtleFormat(xmlText)) {
     try {
-      const parsed = parseTurtle(xmlString);
+      const parsed = parseTurtle(xmlText);
       xmlText = serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
     } catch (parseErr) {
       throw new Error("Turtle parsing error: " + parseErr.message);

@@ -1,6 +1,7 @@
 import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
 import { NAMESPACES, ONTOLOGY_CATALOG } from "./constants.js";
 import { isTurtleFormat, parseTurtle, serializeTriplesToRdfXml } from "./turtleParser.js";
+import { resolveXmlEntities } from "./xmlUtils.js";
 
 /**
  * Resolves logical ontology import IRIs to dereferenceable physical URLs
@@ -37,10 +38,11 @@ export function resolveImportUrl(importUri) {
  * @returns {Promise<any>}
  */
 export function loadWithImports(initialXmlText, rootParserFn) {
-  let parsedInitialText = initialXmlText;
-  if (isTurtleFormat(initialXmlText)) {
+  const resolvedText = resolveXmlEntities(initialXmlText);
+  let parsedInitialText = resolvedText;
+  if (isTurtleFormat(resolvedText)) {
     try {
-      const parsed = parseTurtle(initialXmlText);
+      const parsed = parseTurtle(resolvedText);
       parsedInitialText = serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
     } catch (parseErr) {
       return Promise.reject(new Error("Turtle parsing error: " + parseErr.message));
@@ -135,10 +137,11 @@ export function loadWithImports(initialXmlText, rootParserFn) {
             return response.text();
           })
           .then(xmlText => {
-            let parsedXmlText = xmlText;
-            if (isTurtleFormat(xmlText)) {
+            const resolvedText = resolveXmlEntities(xmlText);
+            let parsedXmlText = resolvedText;
+            if (isTurtleFormat(resolvedText)) {
               try {
-                const parsed = parseTurtle(xmlText);
+                const parsed = parseTurtle(resolvedText);
                 parsedXmlText = serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
               } catch (parseErr) {
                 throw new Error(`Turtle parsing error inside imported ontology "${resolvedUrl}": ${parseErr.message}`);
