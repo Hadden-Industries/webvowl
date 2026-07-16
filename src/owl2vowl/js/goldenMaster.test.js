@@ -37,7 +37,13 @@ const expectedDifferences = {
   "vann-vocab-20100607.rdf": "Java reasoner additions and minor annotation differences",
   "void.ttl": "Java reasoner additions and minor annotation differences",
   "wgs84_pos.rdf": "Java reasoner additions and minor annotation differences",
-  "wine.rdf": "Minor differences in equivalent class links and implicit inverse property generation; class restrictions domain/range properties match 100%"
+  "wine.rdf": "Minor differences in equivalent class links and implicit inverse property generation; class restrictions domain/range properties match 100%",
+  // Versioned ontologies
+  "iso-31073/20260626": "Java reasoner additions, minor duplicate union differences",
+  "iso-iec11179-3/20260714": "Java reasoner additions and minor annotation differences",
+  "reference-data/20260714": "Java reasoner additions and minor annotation differences",
+  "core/20260714": "Java reasoner additions and minor annotation differences",
+  "extended/20260714": "Java reasoner additions and minor annotation differences"
 };
 
 function runJavaConverter(filePath) {
@@ -171,6 +177,34 @@ describe("Golden Master Compatibility Tests", () => {
   beforeAll(() => {
     originalFetch = global.fetch;
     global.fetch = function (url) {
+      if (url.startsWith("https://haddenindustries.com/ontology/")) {
+        let relPath = null;
+        if (url.includes("iso/31073/ed-1")) {
+          relPath = "universal-ontology/iso-31073/versions/20260626";
+        } else if (url.includes("iso-iec/11179/-3/ed-4")) {
+          relPath = "universal-ontology/iso-iec11179-3/versions/20260714";
+        } else if (url.includes("universal/reference-data")) {
+          relPath = "universal-ontology/reference-data/versions/20260714";
+        } else if (url.includes("universal/core")) {
+          relPath = "universal-ontology/core/versions/20260714";
+        } else if (url.includes("universal/extended")) {
+          relPath = "universal-ontology/extended/versions/20260714";
+        }
+        
+        if (relPath) {
+          const filePath = path.join(WORKSPACE_PARENT, relPath);
+          if (fs.existsSync(filePath)) {
+            const textContent = fs.readFileSync(filePath, 'utf8');
+            return Promise.resolve({
+              ok: true,
+              status: 200,
+              statusText: "OK",
+              text: () => Promise.resolve(textContent)
+            });
+          }
+        }
+      }
+
       let resolved = resolveImportUrl(url);
       let filePath = path.join(WORKSPACE_PARENT, resolved.replace("../ontology/", "universal-ontology/"));
 
@@ -198,16 +232,30 @@ describe("Golden Master Compatibility Tests", () => {
     global.fetch = originalFetch;
   });
 
-  const targetFiles = Array.from(new Set(
-    Object.values(ONTOLOGY_CATALOG).map(val => {
-      return path.join(WORKSPACE_PARENT, val.replace("../ontology/", "universal-ontology/"));
-    })
-  )).filter(file => fs.existsSync(file)).sort();
+  const baseTargetFiles = Object.values(ONTOLOGY_CATALOG).map(val => {
+    return path.join(WORKSPACE_PARENT, val.replace("../ontology/", "universal-ontology/"));
+  });
+
+  const extraTargetFiles = [
+    path.join(WORKSPACE_PARENT, "universal-ontology", "iso-31073", "versions", "20260626"),
+    path.join(WORKSPACE_PARENT, "universal-ontology", "iso-iec11179-3", "versions", "20260714"),
+    path.join(WORKSPACE_PARENT, "universal-ontology", "reference-data", "versions", "20260714"),
+    path.join(WORKSPACE_PARENT, "universal-ontology", "core", "versions", "20260714"),
+    path.join(WORKSPACE_PARENT, "universal-ontology", "extended", "versions", "20260714")
+  ];
+
+  const targetFiles = Array.from(new Set([...baseTargetFiles, ...extraTargetFiles]))
+    .filter(file => fs.existsSync(file))
+    .sort();
 
   targetFiles.forEach(file => {
+    const isVersioned = file.includes("versions");
     const baseName = path.basename(file);
+    const parentDir = path.basename(path.dirname(path.dirname(file)));
+    const keyName = isVersioned ? `${parentDir}/${baseName}` : baseName;
+    const testTitle = isVersioned ? `Golden master compatibility for ${parentDir} version ${baseName}` : `Golden master compatibility for ${baseName}`;
 
-    test(`Golden master compatibility for ${baseName}`, async () => {
+    test(testTitle, async () => {
       expect(fs.existsSync(file)).toBe(true);
 
       const javaRaw = runJavaConverter(file);
@@ -374,13 +422,13 @@ describe("Golden Master Compatibility Tests", () => {
       });
 
       const isExactMatch = iriMatch && classesMatch && propsMatch && subclassesMatch && annotationsMatch && instancesMatch && disjointsMatch;
-      console.log(`[DIAGNOSTIC] File ${baseName}: exact match? ${isExactMatch}`);
+      console.log(`[DIAGNOSTIC] File ${keyName}: exact match? ${isExactMatch}`);
       if (!isExactMatch) {
         console.log(`  Failed: iri=${iriMatch}, classes=${classesMatch}, props=${propsMatch}, subclasses=${subclassesMatch}, annotations=${annotationsMatch}, instances=${instancesMatch}, disjoints=${disjointsMatch}`);
       }
 
       if (!isExactMatch) {
-        expect(expectedDifferences[baseName]).toBeDefined();
+        expect(expectedDifferences[keyName]).toBeDefined();
       } else {
         expect(isExactMatch).toBe(true);
       }

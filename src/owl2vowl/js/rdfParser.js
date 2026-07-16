@@ -146,6 +146,38 @@ export function parseRdfXml(xmlString, resolver, context) {
     return cls;
   }
 
+  function findEquivalentClassExpression(type, data) {
+    if (type === "owl:complementOf") {
+      for (const [, cls] of context.classMap.entries()) {
+        if (cls.type === "owl:complementOf" && cls.complementMember === data) {
+          return cls;
+        }
+      }
+      return null;
+    }
+
+    const sortedMembers = [...data].sort();
+    const sortedMembersStr = JSON.stringify(sortedMembers);
+
+    for (const [, cls] of context.classMap.entries()) {
+      if (cls.type === type) {
+        let clsMembers = null;
+        if (type === "owl:unionOf") clsMembers = cls.unionMembers;
+        else if (type === "owl:intersectionOf") clsMembers = cls.intersectionMembers;
+        else if (type === "owl:disjointUnionOf") clsMembers = cls.disjointUnionMembers;
+        else if (type === "owl:oneOf") clsMembers = cls.oneOfMembers;
+
+        if (clsMembers) {
+          const clsSorted = [...clsMembers].sort();
+          if (JSON.stringify(clsSorted) === sortedMembersStr) {
+            return cls;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
 
 
   function parseSubject(element) {
@@ -248,31 +280,89 @@ export function parseRdfXml(xmlString, resolver, context) {
         }
 
         if (nestedEl) {
-          parseSubject(nestedEl);
           const nestedAbout = getAbout(nestedEl);
           const nestedNodeId = nestedEl.getAttribute("rdf:nodeID") || nestedEl.getAttribute("nodeID");
+          let tempTargetResource = null;
           if (nestedAbout) {
-            targetResource = resolver.resolve(nestedAbout, getActiveBaseUri(nestedEl));
+            tempTargetResource = resolver.resolve(nestedAbout, getActiveBaseUri(nestedEl));
           } else if (nestedNodeId) {
-            targetResource = nestedNodeId.startsWith("_:") ? nestedNodeId : "_:" + nestedNodeId;
+            tempTargetResource = nestedNodeId.startsWith("_:") ? nestedNodeId : "_:" + nestedNodeId;
           } else {
-            targetResource = "_:anon_" + anonCount;
+            tempTargetResource = "_:anon_" + (anonCount + 1);
           }
 
-          const unionOfEl = nestedEl.getElementsByTagName ? (nestedEl.getElementsByTagName("unionOf")[0] || nestedEl.getElementsByTagName("owl:unionOf")[0]) : null;
-          if (unionOfEl && !nestedAbout) {
-            const unionCls = ensureClassExists(targetResource, "owl:unionOf");
-            unionCls.attributes.push("union");
-            
-            const memberIris = [];
-            const allChildren = unionOfEl.getElementsByTagName ? unionOfEl.getElementsByTagName("*") : [];
-            for (let j = 0; j < allChildren.length; j++) {
-              const descAbout = getAbout(allChildren[j]) || getAttr(allChildren[j], "resource", NAMESPACES.RDF);
-              if (descAbout) {
-                memberIris.push(resolver.resolve(descAbout, getActiveBaseUri(allChildren[j])));
-              }
+          let logicalEl = null;
+          let exprType = null;
+          let attrName = null;
+          let propName = null;
+
+          const tags = [
+            { tag: "unionOf", type: "owl:unionOf", attr: "union", prop: "unionMembers" },
+            { tag: "intersectionOf", type: "owl:intersectionOf", attr: "intersection", prop: "intersectionMembers" },
+            { tag: "disjointUnionOf", type: "owl:disjointUnionOf", attr: "disjointUnion", prop: "disjointUnionMembers" },
+            { tag: "oneOf", type: "owl:oneOf", attr: "oneOf", prop: "oneOfMembers" },
+            { tag: "complementOf", type: "owl:complementOf", attr: "complement", prop: "complementMember" }
+          ];
+
+          for (const item of tags) {
+            const el = nestedEl.getElementsByTagName ? (nestedEl.getElementsByTagName(item.tag)[0] || nestedEl.getElementsByTagName("owl:" + item.tag)[0]) : null;
+            if (el) {
+              logicalEl = el;
+              exprType = item.type;
+              attrName = item.attr;
+              propName = item.prop;
+              break;
             }
-            unionCls.unionMembers = memberIris;
+          }
+
+          if (logicalEl && !nestedAbout) {
+            let dataValue = null;
+            if (exprType === "owl:complementOf") {
+              const rawRes = getAttr(logicalEl, "resource", NAMESPACES.RDF) || getAbout(logicalEl);
+              if (rawRes) {
+                dataValue = resolver.resolve(rawRes, getActiveBaseUri(logicalEl));
+              } else {
+                let firstChild = null;
+                for (let childNode = logicalEl.firstChild; childNode; childNode = childNode.nextSibling) {
+                  if (childNode.nodeType === 1) { firstChild = childNode; break; }
+                }
+                if (firstChild) {
+                  const rawResChild = getAttr(firstChild, "resource", NAMESPACES.RDF) || getAbout(firstChild);
+                  if (rawResChild) {
+                    dataValue = resolver.resolve(rawResChild, getActiveBaseUri(firstChild));
+                  }
+                }
+              }
+            } else {
+              const memberIris = [];
+              const allChildren = logicalEl.getElementsByTagName ? logicalEl.getElementsByTagName("*") : [];
+              for (let j = 0; j < allChildren.length; j++) {
+                const descAbout = getAbout(allChildren[j]) || getAttr(allChildren[j], "resource", NAMESPACES.RDF);
+                if (descAbout) {
+                  memberIris.push(resolver.resolve(descAbout, getActiveBaseUri(allChildren[j])));
+                }
+              }
+              dataValue = memberIris;
+            }
+
+            if (dataValue !== null && (exprType !== "owl:complementOf" || typeof dataValue === "string")) {
+              const existingExpr = findEquivalentClassExpression(exprType, dataValue);
+              if (existingExpr) {
+                targetResource = existingExpr.iri || existingExpr.id;
+              } else {
+                parseSubject(nestedEl);
+                targetResource = tempTargetResource.startsWith("_:anon_") ? "_:anon_" + anonCount : tempTargetResource;
+                const cls = ensureClassExists(targetResource, exprType);
+                cls.attributes.push(attrName);
+                cls[propName] = dataValue;
+              }
+            } else {
+              parseSubject(nestedEl);
+              targetResource = tempTargetResource.startsWith("_:anon_") ? "_:anon_" + anonCount : tempTargetResource;
+            }
+          } else {
+            parseSubject(nestedEl);
+            targetResource = tempTargetResource.startsWith("_:anon_") ? "_:anon_" + anonCount : tempTargetResource;
           }
         }
 
@@ -367,9 +457,17 @@ export function parseRdfXml(xmlString, resolver, context) {
         }
       }
 
-      for (let objectEl = pred.firstChild; objectEl; objectEl = objectEl.nextSibling) {
-        if (objectEl.nodeType === 1) {
-          parseSubject(objectEl);
+      const isManuallyParsed = 
+        (predLocal === "domain" || predLocal === "range" || predLocal === "subClassOf" || 
+         predLocal === "subPropertyOf" || predLocal === "inverseOf" || 
+         predLocal === "equivalentClass" || predLocal === "equivalentProperty" || predLocal === "disjointWith") && 
+        (predNs === NAMESPACES.RDFS || predNs === NAMESPACES.OWL);
+
+      if (!isManuallyParsed) {
+        for (let objectEl = pred.firstChild; objectEl; objectEl = objectEl.nextSibling) {
+          if (objectEl.nodeType === 1) {
+            parseSubject(objectEl);
+          }
         }
       }
     }

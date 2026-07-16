@@ -172,4 +172,93 @@ describe("rdfParser.js unit tests", () => {
       type: "owl:someValuesFrom"
     });
   });
+
+  test("De-duplicates identical anonymous unionOf, intersectionOf, and complementOf expressions", () => {
+    const xml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#"
+               xml:base="http://example.org/">
+        <owl:ObjectProperty rdf:about="#prop1">
+          <rdfs:range>
+            <owl:Class>
+              <owl:unionOf rdf:parseType="Collection">
+                <owl:Class rdf:about="#A"/>
+                <owl:Class rdf:about="#B"/>
+              </owl:unionOf>
+            </owl:Class>
+          </rdfs:range>
+        </owl:ObjectProperty>
+        <owl:ObjectProperty rdf:about="#prop2">
+          <rdfs:range>
+            <owl:Class>
+              <owl:unionOf rdf:parseType="Collection">
+                <owl:Class rdf:about="#A"/>
+                <owl:Class rdf:about="#B"/>
+              </owl:unionOf>
+            </owl:Class>
+          </rdfs:range>
+        </owl:ObjectProperty>
+
+        <owl:ObjectProperty rdf:about="#prop3">
+          <rdfs:range>
+            <owl:Class>
+              <owl:intersectionOf rdf:parseType="Collection">
+                <owl:Class rdf:about="#C"/>
+                <owl:Class rdf:about="#D"/>
+              </owl:intersectionOf>
+            </owl:Class>
+          </rdfs:range>
+        </owl:ObjectProperty>
+        <owl:ObjectProperty rdf:about="#prop4">
+          <rdfs:range>
+            <owl:Class>
+              <owl:intersectionOf rdf:parseType="Collection">
+                <owl:Class rdf:about="#C"/>
+                <owl:Class rdf:about="#D"/>
+              </owl:intersectionOf>
+            </owl:Class>
+          </rdfs:range>
+        </owl:ObjectProperty>
+
+        <owl:ObjectProperty rdf:about="#prop5">
+          <rdfs:range>
+            <owl:Class>
+              <owl:complementOf rdf:resource="#E"/>
+            </owl:Class>
+          </rdfs:range>
+        </owl:ObjectProperty>
+        <owl:ObjectProperty rdf:about="#prop6">
+          <rdfs:range>
+            <owl:Class>
+              <owl:complementOf rdf:resource="#E"/>
+            </owl:Class>
+          </rdfs:range>
+        </owl:ObjectProperty>
+      </rdf:RDF>
+    `;
+
+    const result = parseRdfXml(xml, resolver, context);
+
+    // Verify union de-duplication
+    const range1 = result.subjects["http://example.org/#prop1"].ranges[0];
+    const range2 = result.subjects["http://example.org/#prop2"].ranges[0];
+    expect(range1).toBeDefined();
+    expect(range2).toBeDefined();
+    expect(range1).toBe(range2);
+
+    // Verify intersection de-duplication
+    const range3 = result.subjects["http://example.org/#prop3"].ranges[0];
+    const range4 = result.subjects["http://example.org/#prop4"].ranges[0];
+    expect(range3).toBeDefined();
+    expect(range4).toBeDefined();
+    expect(range3).toBe(range4);
+
+    // Verify complement de-duplication
+    const range5 = result.subjects["http://example.org/#prop5"].ranges[0];
+    const range6 = result.subjects["http://example.org/#prop6"].ranges[0];
+    expect(range5).toBeDefined();
+    expect(range6).toBeDefined();
+    expect(range5).toBe(range6);
+  });
 });
