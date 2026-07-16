@@ -711,4 +711,215 @@ describe("ontologyConverter.js unit tests", () => {
     expect(propB.domain).toBe(classB.id);
     expect(propB.range).toBe(classA.id);
   });
+
+  test("de-duplicates implicit union classes across multiple properties", () => {
+    const subjects = {
+      "http://example.org/ClassA": {
+        iri: "http://example.org/ClassA",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/ClassB": {
+        iri: "http://example.org/ClassB",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/propA": {
+        iri: "http://example.org/propA",
+        types: new Set(["http://www.w3.org/2002/07/owl#ObjectProperty"]),
+        labels: {},
+        comments: {},
+        domains: ["http://example.org/ClassA", "http://example.org/ClassB"],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/propB": {
+        iri: "http://example.org/propB",
+        types: new Set(["http://www.w3.org/2002/07/owl#ObjectProperty"]),
+        labels: {},
+        comments: {},
+        domains: ["http://example.org/ClassA", "http://example.org/ClassB"],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      }
+    };
+
+    convertOntology(subjects, new Set(), resolver, context, header);
+
+    const propA = context.propertyMap.get("http://example.org/propA");
+    const propB = context.propertyMap.get("http://example.org/propB");
+
+    expect(propA.domain).toBeDefined();
+    expect(propB.domain).toBeDefined();
+    // They must share the exact same de-duplicated implicit union class ID!
+    expect(propA.domain).toBe(propB.domain);
+  });
+
+  test("merges anonymous equivalent class expressions directly into the named class", () => {
+    const subjects = {
+      "http://example.org/ProductOrService": {
+        iri: "http://example.org/ProductOrService",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: ["_:anon_1"],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "_:anon_1": {
+        iri: "_:anon_1",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: ["http://example.org/ProductOrService"],
+        equivalentProperties: [],
+        disjointWith: [],
+        unionOf: ["http://example.org/Product", "http://example.org/Service"],
+        annotations: {}
+      },
+      "http://example.org/Product": {
+        iri: "http://example.org/Product",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/Service": {
+        iri: "http://example.org/Service",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: []
+      }
+    };
+
+    convertOntology(subjects, new Set(), resolver, context, header);
+
+    // The anonymous subject node should be deleted and merged
+    expect(context.classMap.has("_:anon_1")).toBe(false);
+
+    const mainCls = context.classMap.get("http://example.org/ProductOrService");
+    expect(mainCls).toBeDefined();
+    // The named class type should be owl:unionOf and attribute "union" should be set
+    expect(mainCls.type).toBe("owl:unionOf");
+    expect(mainCls.attributes).toContain("union");
+    // Equivalent class link to the anonymous node should be removed/filtered out
+    expect(mainCls.equivalent).toBeUndefined();
+  });
+
+  test("assigns owl:equivalentClass type to named classes with equivalent attribute", () => {
+    const subjects = {
+      "http://example.org/ClassX": {
+        iri: "http://example.org/ClassX",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: ["http://example.org/ClassY"],
+        equivalentProperties: [],
+        disjointWith: []
+      },
+      "http://example.org/ClassY": {
+        iri: "http://example.org/ClassY",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: ["http://example.org/ClassX"],
+        equivalentProperties: [],
+        disjointWith: []
+      }
+    };
+
+    convertOntology(subjects, new Set(), resolver, context, header);
+
+    const classX = context.classMap.get("http://example.org/ClassX");
+    const classY = context.classMap.get("http://example.org/ClassY");
+
+    expect(classX).toBeDefined();
+    expect(classY).toBeDefined();
+    // Both classes should be typed as owl:equivalentClass due to the equivalent attribute
+    expect(classX.type).toBe("owl:equivalentClass");
+    expect(classY.type).toBe("owl:equivalentClass");
+  });
 });

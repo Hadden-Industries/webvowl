@@ -206,7 +206,7 @@ export function exportToJson(resolver, context, header) {
   function exportClassNode(cls) {
     if (shouldSkipDatatype(cls, connectedNodeIds, connectedDatatypeIris)) return;
     classesArray.push({ id: cls.id, type: cls.type });
-    const isAnonymous = cls.type === "owl:unionOf";
+    const isAnonymous = !cls.iri || cls.iri.startsWith("_:");
     const attr = { id: cls.id };
 
     if (!isAnonymous) {

@@ -360,6 +360,45 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     header.title = { "en": "Ontology" };
   }
 
+  // Merge anonymous equivalent class expressions into their named subjects
+  for (const iri in subjects) {
+    if (isNonVisualSubject(iri)) continue;
+    const subject = subjects[iri];
+    
+    if (subject.equivalentClasses && subject.equivalentClasses.length > 0) {
+      const anonEquivIris = subject.equivalentClasses.filter(eqIri => {
+        const eqSub = subjects[eqIri];
+        return eqSub && eqIri.startsWith("_:");
+      });
+
+      anonEquivIris.forEach(eqIri => {
+        const eqSub = subjects[eqIri];
+        
+        if (eqSub.unionOf && !subject.unionOf) {
+          subject.unionOf = eqSub.unionOf;
+        }
+        if (eqSub.intersectionOf && !subject.intersectionOf) {
+          subject.intersectionOf = eqSub.intersectionOf;
+        }
+        if (eqSub.complementOf && !subject.complementOf) {
+          subject.complementOf = eqSub.complementOf;
+        }
+        if (eqSub.disjointUnionOf && !subject.disjointUnionOf) {
+          subject.disjointUnionOf = eqSub.disjointUnionOf;
+        }
+        
+        for (const [key, value] of Object.entries(eqSub.annotations)) {
+          if (subject.annotations[key] === undefined) {
+            subject.annotations[key] = value;
+          }
+        }
+
+        subject.equivalentClasses = subject.equivalentClasses.filter(x => x !== eqIri);
+        delete subjects[eqIri];
+      });
+    }
+  }
+
   // Map Subjects to Classes, Properties & Named Individuals
   for (const iri in subjects) {
     if (IGNORED_PROPERTIES.has(iri)) continue;
@@ -870,6 +909,24 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     }
   });
 
+  // Finalize class types according to VOWL attribute priority (mirrors Java's TypeSetter)
+  context.classMap.forEach(cls => {
+    const attrs = cls.attributes;
+    if (attrs.includes("intersection")) {
+      cls.type = "owl:intersectionOf";
+    } else if (attrs.includes("union")) {
+      cls.type = "owl:unionOf";
+    } else if (attrs.includes("complement")) {
+      cls.type = "owl:complementOf";
+    } else if (attrs.includes("disjointUnion")) {
+      cls.type = "owl:disjointUnionOf";
+    } else if (attrs.includes("equivalent")) {
+      cls.type = "owl:equivalentClass";
+    } else if (attrs.includes("datatype")) {
+      cls.type = "rdfs:Datatype";
+    }
+  });
+
   context.propertyMap.forEach(prop => {
     if (isIriExternal(prop.iri, header.iri)) {
       if (!prop.attributes.includes("external")) {
@@ -956,7 +1013,27 @@ function isAllowedFreeConnection(type) {
   return type === "rdfs:Datatype" || type === "rdfs:Literal" || type === "owl:Thing";
 }
 
+function findEquivalentUnionClass(memberIris, context) {
+  const sortedMembers = [...memberIris].sort();
+  const sortedMembersStr = JSON.stringify(sortedMembers);
+
+  for (const [, cls] of context.classMap.entries()) {
+    if (cls.type === "owl:unionOf" && cls.unionMembers) {
+      const clsSorted = [...cls.unionMembers].sort();
+      if (JSON.stringify(clsSorted) === sortedMembersStr) {
+        return cls;
+      }
+    }
+  }
+  return null;
+}
+
 function createImplicitUnionClass(memberIris, resolver, context) {
+  const existing = findEquivalentUnionClass(memberIris, context);
+  if (existing) {
+    return existing.id;
+  }
+
   const virtualId = context.nextId();
   const virtualCls = {
     id: virtualId,

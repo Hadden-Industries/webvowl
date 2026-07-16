@@ -447,4 +447,51 @@ describe("Golden Master Compatibility Tests", () => {
     expect(Object.keys(jsParsed.properties).length).toBeGreaterThanOrEqual(25);
     expect(jsParsed.subclasses.length).toBe(3);
   });
+
+  test("ProductOrService named union class preserves all metadata attributes", () => {
+    const coreFilePath = path.join(WORKSPACE_PARENT, "universal-ontology", "core", "versions", "20260714");
+    if (!fs.existsSync(coreFilePath)) {
+      console.warn("Skipping ProductOrService regression test: core versioned file not found.");
+      return;
+    }
+
+    const xml = fs.readFileSync(coreFilePath, 'utf8');
+    const json = owl2vowl(xml);
+
+    expect(json.class).toBeDefined();
+    expect(json.classAttribute).toBeDefined();
+
+    const attr = json.classAttribute.find(a => a.iri === "https://haddenindustries.com/ontology/universal/core/ProductOrService");
+    expect(attr).toBeDefined();
+
+    const node = json.class.find(c => c.id === attr.id);
+    expect(node).toBeDefined();
+    expect(node.type).toBe("owl:unionOf");
+    expect(attr.attributes).toContain("union");
+
+    expect(attr.label).toBeDefined();
+    expect(attr.label.en).toBe("Product Or Service");
+
+    expect(attr.annotations).toBeDefined();
+    expect(attr.annotations.prefLabel).toBeDefined();
+    expect(attr.annotations.prefLabel[0].value).toBe("Product Or Service");
+
+    expect(attr.annotations.creator).toBeDefined();
+    expect(attr.annotations.creator[0].value).toBe("https://orcid.org/0000-0001-8017-8797");
+
+    expect(attr.annotations.created).toBeDefined();
+    expect(attr.annotations.created[0].value).toBe("2016-10-14T12:00:00Z");
+
+    expect(attr.annotations.modified).toBeDefined();
+    expect(attr.annotations.modified[0].value).toBe("2026-06-25T13:41:59Z");
+
+    expect(attr.annotations.definition).toBeDefined();
+    expect(attr.annotations.definition.some(d => d.value.includes("Output or outcome provided by an organisation"))).toBe(true);
+
+    expect(attr.annotations.source).toBeDefined();
+    expect(attr.annotations.source[0].value).toBe("urn:iso:std:iso:22300:ed-3:v1:term:3.1.191");
+
+    expect(attr.annotations.example).toBeDefined();
+    expect(attr.annotations.example[0].value).toBe("Manufactured items, car insurance, community nursing");
+  });
 });
