@@ -392,7 +392,14 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
       }
 
       subject.superClasses.forEach(superIri => {
-        context.subclassRelations.push({ subclassIri: iri, superclassIri: superIri });
+        const superSubject = subjects[superIri];
+        const isRestriction = superSubject && (
+          superSubject.types.has(NAMESPACES.OWL + "Restriction") ||
+          superSubject.annotations["onProperty"] !== undefined
+        );
+        if (!isRestriction) {
+          context.subclassRelations.push({ subclassIri: iri, superclassIri: superIri });
+        }
       });
     } else if (isDatatype) {
       const cls = ensureClassExists(iri, "rdfs:Datatype", resolver, context);
@@ -594,10 +601,16 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     }
   });
   inversesToCreate.forEach(invIri => {
-    ensurePropertyExists(invIri, "owl:objectProperty", resolver, context);
+    const prop = ensurePropertyExists(invIri, "owl:objectProperty", resolver, context);
+    if (!prop.attributes.includes("inferred")) {
+      prop.attributes.push("inferred");
+    }
   });
   equivalentsToCreate.forEach(equivIri => {
-    ensurePropertyExists(equivIri, "owl:objectProperty", resolver, context);
+    const prop = ensurePropertyExists(equivIri, "owl:objectProperty", resolver, context);
+    if (!prop.attributes.includes("inferred")) {
+      prop.attributes.push("inferred");
+    }
   });
 
   // Step 3: Resolve domains, ranges & inverses to numeric IDs
@@ -621,11 +634,19 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     if (prop.inverse) {
       const invProp = context.propertyMap.get(prop.inverse);
       if (invProp) {
+        let filled = false;
         if (!prop.domain && invProp.range) {
           prop.domain = invProp.range;
+          filled = true;
         }
         if (!prop.range && invProp.domain) {
           prop.range = invProp.domain;
+          filled = true;
+        }
+        if (filled) {
+          if (!prop.attributes.includes("inferred")) {
+            prop.attributes.push("inferred");
+          }
         }
       }
     }
@@ -644,6 +665,12 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     }
   });
 
+  // Collect all property IRIs referenced by restrictions
+  const referencedProps = new Set();
+  context.parsedRestrictions.forEach(rest => {
+    referencedProps.add(rest.propertyIri);
+  });
+
   // 3d. Default empty domain/range filling (ONLY for properties without inverses)
   context.propertyMap.forEach(prop => {
     if (prop.inverse) {
@@ -654,6 +681,11 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     const hasRange = !!prop.range;
 
     if (!hasDomain && !hasRange) {
+      if (referencedProps.has(prop.iri)) {
+        prop.skipExport = true;
+        return;
+      }
+
       if (prop.type === "owl:datatypeProperty") {
         prop.domain = getOrCreateFreeThing(resolver, context);
         prop.range = createVirtualDatatype("http://www.w3.org/2000/01/rdf-schema#Literal", resolver, context);

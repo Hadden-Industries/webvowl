@@ -1,6 +1,6 @@
 import { DOMParser } from "@xmldom/xmldom";
 import { NAMESPACES } from "./constants.js";
-import { getAttr, getAbout, findImmediateChildren } from "./domUtils.js";
+import { getAttr, getAbout } from "./domUtils.js";
 
 /**
  * Parses an RDF/XML string into standard subject/annotations structure,
@@ -36,6 +36,7 @@ export function parseRdfXml(xmlString, resolver, context) {
   const ontologyBaseIri = rootEl ? (getAttr(rootEl, "base") || "") : "";
   const subjects = {};
   const languagesSet = new Set();
+  let anonCount = 0;
 
   function getActiveBaseUri(element) {
     let current = element;
@@ -145,24 +146,20 @@ export function parseRdfXml(xmlString, resolver, context) {
     return cls;
   }
 
-  function getPropertyIriFromOnProperty(onPropertyEl) {
-    if (!onPropertyEl) return null;
-    let iri = getAttr(onPropertyEl, "resource", NAMESPACES.RDF) || getAbout(onPropertyEl);
-    if (iri) return iri;
-    for (let child = onPropertyEl.firstChild; child; child = child.nextSibling) {
-      if (child.nodeType === 1) {
-        const childIri = getAbout(child) || getAttr(child, "resource", NAMESPACES.RDF);
-        if (childIri) return childIri;
-      }
-    }
-    return null;
-  }
+
 
   function parseSubject(element) {
     const rawAbout = getAbout(element);
-    const activeBase = getActiveBaseUri(element);
-    const subjectIri = rawAbout ? resolver.resolve(rawAbout, activeBase) : null;
-    if (!subjectIri) return;
+    const nodeId = element.getAttribute("rdf:nodeID") || element.getAttribute("nodeID");
+    
+    let subjectIri = null;
+    if (rawAbout) {
+      subjectIri = resolver.resolve(rawAbout, getActiveBaseUri(element));
+    } else if (nodeId) {
+      subjectIri = nodeId.startsWith("_:") ? nodeId : "_:" + nodeId;
+    } else {
+      subjectIri = "_:anon_" + (++anonCount);
+    }
 
     const subject = getOrCreateSubject(subjectIri);
     const localName = element.localName;
@@ -180,6 +177,8 @@ export function parseRdfXml(xmlString, resolver, context) {
         subject.types.add(NAMESPACES.OWL + "Ontology");
       } else if (localName === "NamedIndividual") {
         subject.types.add(NAMESPACES.OWL + "NamedIndividual");
+      } else if (localName === "Restriction") {
+        subject.types.add(NAMESPACES.OWL + "Restriction");
       } else if (element.namespaceURI) {
         subject.types.add(element.namespaceURI + localName);
       }
@@ -191,7 +190,8 @@ export function parseRdfXml(xmlString, resolver, context) {
       const predLocal = pred.localName;
       const predNs = pred.namespaceURI;
       const activeBasePred = getActiveBaseUri(pred);
-      const resource = getAttr(pred, "resource", NAMESPACES.RDF) ? resolver.resolve(getAttr(pred, "resource", NAMESPACES.RDF), activeBasePred) : null;
+      const rawResource = getAttr(pred, "resource", NAMESPACES.RDF) || getAttr(pred, "nodeID", NAMESPACES.RDF);
+      const resource = rawResource ? (rawResource.startsWith("_:") || (!rawResource.includes(":") && !rawResource.startsWith("#")) ? (rawResource.startsWith("_:") ? rawResource : "_:" + rawResource) : resolver.resolve(rawResource, activeBasePred)) : null;
 
       if (predLocal === "type" && predNs === NAMESPACES.RDF) {
         if (resource) subject.types.add(resource);
@@ -239,112 +239,43 @@ export function parseRdfXml(xmlString, resolver, context) {
         (predNs === NAMESPACES.RDFS || predNs === NAMESPACES.OWL)
       ) {
         let targetResource = resource;
-        if (!targetResource) {
-          let nestedEl = null;
-          for (let childNode = pred.firstChild; childNode; childNode = childNode.nextSibling) {
-            if (childNode.nodeType === 1) {
-              nestedEl = childNode;
-              break;
-            }
-          }
-          if (nestedEl) {
-            const isRestriction = nestedEl.localName === "Restriction" && (nestedEl.namespaceURI === NAMESPACES.OWL || nestedEl.prefix === "owl");
-            if (isRestriction && (predLocal === "subClassOf" || predLocal === "equivalentClass")) {
-              let onPropertyEl = null;
-              let minCardVal = null;
-              let maxCardVal = null;
-              let cardVal = null;
-              let someValuesFromEl = null;
-              let allValuesFromEl = null;
-              let hasValueEl = null;
-
-              for (let rxChild = nestedEl.firstChild; rxChild; rxChild = rxChild.nextSibling) {
-                if (rxChild.nodeType !== 1) continue;
-                const rxLn = rxChild.localName;
-                if (rxLn === "onProperty") {
-                  onPropertyEl = rxChild;
-                } else if (rxLn === "minQualifiedCardinality" || rxLn === "minCardinality") {
-                  minCardVal = rxChild.textContent.trim();
-                } else if (rxLn === "maxQualifiedCardinality" || rxLn === "maxCardinality") {
-                  maxCardVal = rxChild.textContent.trim();
-                } else if (rxLn === "qualifiedCardinality" || rxLn === "cardinality") {
-                  cardVal = rxChild.textContent.trim();
-                } else if (rxLn === "someValuesFrom") {
-                  someValuesFromEl = rxChild;
-                } else if (rxLn === "allValuesFrom") {
-                  allValuesFromEl = rxChild;
-                } else if (rxLn === "hasValue") {
-                  hasValueEl = rxChild;
-                }
-              }
-
-              const propertyIri = onPropertyEl ? getPropertyIriFromOnProperty(onPropertyEl) : null;
-              if (propertyIri) {
-                const activeBaseNested = getActiveBaseUri(nestedEl);
-                const resolvedPropIri = resolver.resolve(propertyIri, activeBaseNested);
-
-                if (minCardVal || maxCardVal || cardVal) {
-                  context.parsedCardinalities.push({
-                    propertyIri: resolvedPropIri,
-                    minCardinality: minCardVal,
-                    maxCardinality: maxCardVal,
-                    cardinality: cardVal
-                  });
-                }
-
-                let rangeIri = null;
-                let type = null;
-
-                if (someValuesFromEl) {
-                  rangeIri = getAttr(someValuesFromEl, "resource", NAMESPACES.RDF) || getAbout(someValuesFromEl);
-                  type = "owl:someValuesFrom";
-                } else if (allValuesFromEl) {
-                  rangeIri = getAttr(allValuesFromEl, "resource", NAMESPACES.RDF) || getAbout(allValuesFromEl);
-                  type = "owl:allValuesFrom";
-                } else if (hasValueEl) {
-                  rangeIri = getAttr(hasValueEl, "resource", NAMESPACES.RDF) || getAbout(hasValueEl);
-                  type = "owl:hasValue";
-                }
-
-                if (rangeIri) {
-                  context.parsedRestrictions.push({
-                    domainIri: subjectIri,
-                    propertyIri: resolvedPropIri,
-                    rangeIri: resolver.resolve(rangeIri, activeBaseNested),
-                    type: type
-                  });
-                }
-              }
-              targetResource = null;
-            } else {
-              const activeBaseNested = getActiveBaseUri(nestedEl);
-              const about = getAbout(nestedEl);
-              if (about) {
-                targetResource = resolver.resolve(about, activeBaseNested);
-              } else {
-                const unionOfEl = findImmediateChildren(nestedEl, "unionOf")[0];
-                if (unionOfEl) {
-                  const memberIris = [];
-                  const allChildren = unionOfEl.getElementsByTagName ? unionOfEl.getElementsByTagName("*") : [];
-                  for (let j = 0; j < allChildren.length; j++) {
-                    const descAbout = getAbout(allChildren[j]) || getAttr(allChildren[j], "resource", NAMESPACES.RDF);
-                    if (descAbout) {
-                      const activeBaseChild = getActiveBaseUri(allChildren[j]);
-                      memberIris.push(resolver.resolve(descAbout, activeBaseChild));
-                    }
-                  }
-                  
-                  if (memberIris.length > 0) {
-                    const unionCls = ensureClassExists(null, "owl:unionOf");
-                    unionCls.attributes.push("union");
-                    unionCls.unionMembers = memberIris;
-                    targetResource = unionCls.id;
-                  }
-                }
-              }
-            }
+        let nestedEl = null;
+        for (let childNode = pred.firstChild; childNode; childNode = childNode.nextSibling) {
+          if (childNode.nodeType === 1) {
+            nestedEl = childNode;
+            break;
           }
         }
+
+        if (nestedEl) {
+          parseSubject(nestedEl);
+          const nestedAbout = getAbout(nestedEl);
+          const nestedNodeId = nestedEl.getAttribute("rdf:nodeID") || nestedEl.getAttribute("nodeID");
+          if (nestedAbout) {
+            targetResource = resolver.resolve(nestedAbout, getActiveBaseUri(nestedEl));
+          } else if (nestedNodeId) {
+            targetResource = nestedNodeId.startsWith("_:") ? nestedNodeId : "_:" + nestedNodeId;
+          } else {
+            targetResource = "_:anon_" + anonCount;
+          }
+
+          const unionOfEl = nestedEl.getElementsByTagName ? (nestedEl.getElementsByTagName("unionOf")[0] || nestedEl.getElementsByTagName("owl:unionOf")[0]) : null;
+          if (unionOfEl && !nestedAbout) {
+            const unionCls = ensureClassExists(targetResource, "owl:unionOf");
+            unionCls.attributes.push("union");
+            
+            const memberIris = [];
+            const allChildren = unionOfEl.getElementsByTagName ? unionOfEl.getElementsByTagName("*") : [];
+            for (let j = 0; j < allChildren.length; j++) {
+              const descAbout = getAbout(allChildren[j]) || getAttr(allChildren[j], "resource", NAMESPACES.RDF);
+              if (descAbout) {
+                memberIris.push(resolver.resolve(descAbout, getActiveBaseUri(allChildren[j])));
+              }
+            }
+            unionCls.unionMembers = memberIris;
+          }
+        }
+
         if (targetResource) {
           if (predLocal === "domain") {
             subject.domains.push(targetResource);
@@ -448,6 +379,97 @@ export function parseRdfXml(xmlString, resolver, context) {
   for (let i = 0; i < rootChildren.length; i++) {
     if (rootChildren[i].nodeType === 1) {
       parseSubject(rootChildren[i]);
+    }
+  }
+
+  // Centralized post-processing of parsed subjects to extract restrictions & cardinalities
+  for (const subjectIri of Object.keys(subjects)) {
+    const subject = subjects[subjectIri];
+    const isRestriction = subject.types.has(NAMESPACES.OWL + "Restriction") ||
+      subject.annotations["onProperty"] !== undefined;
+
+    if (isRestriction) {
+      const onPropAnn = subject.annotations["onProperty"];
+      const onProperty = onPropAnn && onPropAnn[0] ? onPropAnn[0].value : null;
+
+      if (onProperty) {
+        let domainIri = null;
+
+        // Direction 1: restriction rdfs:subClassOf Class
+        if (subject.superClasses && subject.superClasses.length > 0) {
+          domainIri = subject.superClasses.find(c => !c.startsWith("_:"));
+        }
+
+        // Direction 2: Class rdfs:subClassOf restriction
+        if (!domainIri) {
+          for (const otherIri of Object.keys(subjects)) {
+            const other = subjects[otherIri];
+            if (other.superClasses && other.superClasses.includes(subjectIri)) {
+              domainIri = otherIri;
+              break;
+            }
+          }
+        }
+
+        // Direction 3: Class owl:equivalentClass restriction
+        if (!domainIri) {
+          for (const otherIri of Object.keys(subjects)) {
+            const other = subjects[otherIri];
+            if (other.equivalentClasses && other.equivalentClasses.includes(subjectIri)) {
+              domainIri = otherIri;
+              break;
+            }
+          }
+        }
+
+        if (domainIri) {
+          // Range-based restriction extraction
+          let rangeIri = null;
+          let type = null;
+
+          if (subject.annotations["someValuesFrom"]) {
+            rangeIri = subject.annotations["someValuesFrom"][0].value;
+            type = "owl:someValuesFrom";
+          } else if (subject.annotations["allValuesFrom"]) {
+            rangeIri = subject.annotations["allValuesFrom"][0].value;
+            type = "owl:allValuesFrom";
+          } else if (subject.annotations["hasValue"]) {
+            rangeIri = subject.annotations["hasValue"][0].value;
+            type = "owl:hasValue";
+          }
+
+          if (rangeIri && type) {
+            context.parsedRestrictions.push({
+              domainIri: domainIri,
+              propertyIri: onProperty,
+              rangeIri: rangeIri,
+              type: type
+            });
+          }
+
+          // Cardinality extraction
+          let minCardVal = null;
+          let maxCardVal = null;
+          let cardVal = null;
+
+          const minAnn = subject.annotations["minQualifiedCardinality"] || subject.annotations["minCardinality"];
+          const maxAnn = subject.annotations["maxQualifiedCardinality"] || subject.annotations["maxCardinality"];
+          const cardAnn = subject.annotations["qualifiedCardinality"] || subject.annotations["cardinality"];
+
+          if (minAnn && minAnn[0]) minCardVal = minAnn[0].value;
+          if (maxAnn && maxAnn[0]) maxCardVal = maxAnn[0].value;
+          if (cardAnn && cardAnn[0]) cardVal = cardAnn[0].value;
+
+          if (minCardVal || maxCardVal || cardVal) {
+            context.parsedCardinalities.push({
+              propertyIri: onProperty,
+              minCardinality: minCardVal,
+              maxCardinality: maxCardVal,
+              cardinality: cardVal
+            });
+          }
+        }
+      }
     }
   }
 

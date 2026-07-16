@@ -145,4 +145,31 @@ describe("rdfParser.js unit tests", () => {
     expect(unionCls.unionMembers).toContain("http://example.org/#Student");
     expect(unionCls.unionMembers).toContain("http://example.org/#Teacher");
   });
+
+  test("Parses flat blank node restrictions (via nodeID)", () => {
+    const xml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#"
+               xml:base="http://example.org/">
+        <owl:Class rdf:about="#Student">
+          <rdfs:subClassOf rdf:nodeID="genid1"/>
+        </owl:Class>
+        <owl:Restriction rdf:nodeID="genid1">
+          <owl:onProperty rdf:resource="#enrolledIn"/>
+          <owl:someValuesFrom rdf:resource="#Course"/>
+        </owl:Restriction>
+      </rdf:RDF>
+    `;
+
+    parseRdfXml(xml, resolver, context);
+
+    expect(context.parsedRestrictions.length).toBe(1);
+    expect(context.parsedRestrictions[0]).toEqual({
+      domainIri: "http://example.org/#Student",
+      propertyIri: "http://example.org/#enrolledIn",
+      rangeIri: "http://example.org/#Course",
+      type: "owl:someValuesFrom"
+    });
+  });
 });

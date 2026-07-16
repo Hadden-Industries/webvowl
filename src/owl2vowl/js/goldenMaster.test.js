@@ -18,12 +18,12 @@ const expectedDifferences = {
   "dcat3.rdf": "Java reasoner additions and minor annotation differences",
   "dcterms.rdf": "Permissive parsing of rdf:Property in JS (ignored by Java due to strict OWL)",
   "foaf.rdf": "Java reasoner defaults InverseFunctional DatatypeProperty domains to owl:Thing due to OWL DL semantic clash (JS preserves syntactic foaf:Agent domain)",
-  "full_ontobench_test.ttl": "Java reasoning additions and OWL DL semantic clashes",
+  "full_ontobench_test.ttl": "Java does not support owl:hasValue restrictions on data properties; JS preserves nested datatype expression ranges whereas Java falls back to rdfs:Literal",
   "muto.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
   "sioc.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
   "skos.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
-  "time.rdf": "Java reasoner narrows domain/range properties via class restrictions (subclass hierarchies match 100%)",
-  "wine.rdf": "Java reasoner narrows domain/range properties via class restrictions and adds equivalent class links"
+  "time.rdf": "Minor differences in implicit inverse property generation; class restrictions domain/range properties match 100%",
+  "wine.rdf": "Minor differences in equivalent class links and implicit inverse property generation; class restrictions domain/range properties match 100%"
 };
 
 function runJavaConverter(filePath) {
@@ -377,6 +377,10 @@ describe("Golden Master Compatibility Tests", () => {
       });
 
       const isExactMatch = iriMatch && classesMatch && propsMatch && subclassesMatch && annotationsMatch && instancesMatch && disjointsMatch;
+      console.log(`[DIAGNOSTIC] File ${baseName}: exact match? ${isExactMatch}`);
+      if (!isExactMatch) {
+        console.log(`  Failed: iri=${iriMatch}, classes=${classesMatch}, props=${propsMatch}, subclasses=${subclassesMatch}, annotations=${annotationsMatch}, instances=${instancesMatch}, disjoints=${disjointsMatch}`);
+      }
 
       if (!isExactMatch) {
         expect(expectedDifferences[baseName]).toBeDefined();

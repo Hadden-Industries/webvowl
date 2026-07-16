@@ -203,4 +203,91 @@ describe("jsonExporter.js unit tests", () => {
       "http://z-example.org"
     ]);
   });
+
+  test("exportToJson respects skipExport and serializes inferred attributes", () => {
+    // Add a class for domain/range references
+    context.classMap.set("http://example.org/ClassA", {
+      id: "c1",
+      type: "owl:Class",
+      iri: "http://example.org/ClassA",
+      baseIri: "http://example.org/",
+      label: { en: "ClassA" },
+      comment: {},
+      attributes: [],
+      subClasses: [],
+      superClasses: []
+    });
+    context.classMap.set("http://example.org/ClassB", {
+      id: "c2",
+      type: "owl:Class",
+      iri: "http://example.org/ClassB",
+      baseIri: "http://example.org/",
+      label: { en: "ClassB" },
+      comment: {},
+      attributes: [],
+      subClasses: [],
+      superClasses: []
+    });
+
+    // Property to skip
+    context.propertyMap.set("http://example.org/skippedProp", {
+      id: "p1",
+      type: "owl:objectProperty",
+      iri: "http://example.org/skippedProp",
+      baseIri: "http://example.org/",
+      label: { en: "skipped" },
+      comment: {},
+      attributes: ["object"],
+      domain: "c1",
+      range: "c2",
+      superproperty: [],
+      subproperty: [],
+      inverse: null,
+      skipExport: true
+    });
+
+    // Inferred property
+    context.propertyMap.set("http://example.org/inferredProp", {
+      id: "p2",
+      type: "owl:objectProperty",
+      iri: "http://example.org/inferredProp",
+      baseIri: "http://example.org/",
+      label: { en: "inferred" },
+      comment: {},
+      attributes: ["object", "inferred"],
+      domain: "c1",
+      range: "c2",
+      superproperty: [],
+      subproperty: [],
+      inverse: null
+    });
+
+    // Restriction that generates a restriction property
+    context.parsedRestrictions.push({
+      domainIri: "http://example.org/ClassA",
+      propertyIri: "http://example.org/inferredProp",
+      rangeIri: "http://example.org/ClassB",
+      type: "owl:someValuesFrom"
+    });
+
+    const result = exportToJson(resolver, context, header);
+
+    // Verify skippedProp is NOT in exported properties
+    const exportedIds = result.property.map(p => p.id);
+    expect(exportedIds).not.toContain("p1");
+    const exportedAttrIds = result.propertyAttribute.map(p => p.id);
+    expect(exportedAttrIds).not.toContain("p1");
+
+    // Verify inferredProp is exported with inferred attribute
+    const infPropAttr = result.propertyAttribute.find(p => p.id === "p2");
+    expect(infPropAttr).toBeDefined();
+    expect(infPropAttr.attributes).toContain("inferred");
+
+    // Verify generated restriction property is exported and has inferred attribute
+    const restProp = result.property.find(p => p.id !== "p2" && p.type === "owl:someValuesFrom" || p.id.startsWith("val_") || p.id === "3"); // context.nextId would assign ID 3
+    const restPropAttr = result.propertyAttribute.find(p => p.id !== "p2" && (p.attributes.includes("someValuesFrom") || p.attributes.includes("allValuesFrom")));
+    expect(restPropAttr).toBeDefined();
+    expect(restPropAttr.attributes).toContain("inferred");
+    expect(restPropAttr.attributes).toContain("someValuesFrom");
+  });
 });

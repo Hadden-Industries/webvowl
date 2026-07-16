@@ -123,6 +123,9 @@ export function exportToJson(resolver, context, header) {
       } else if (rest.type === "owl:allValuesFrom") {
         attributes.push("allValuesFrom");
       }
+      if (!attributes.includes("inferred")) {
+        attributes.push("inferred");
+      }
       
       if (refProp && refProp.attributes) {
         refProp.attributes.forEach(attr => {
@@ -280,6 +283,8 @@ export function exportToJson(resolver, context, header) {
   const propertyAttributesArray = [];
 
   context.propertyMap.forEach(prop => {
+    if (prop.skipExport) return;
+
     propertiesArray.push({ id: prop.id, type: prop.type });
     const attr = {
       id: prop.id,
