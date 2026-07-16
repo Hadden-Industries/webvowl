@@ -218,18 +218,38 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   for (const iri of Object.keys(subjects)) {
     if (isNonVisualSubject(iri)) continue;
     const subject = subjects[iri];
+
     if (subject.superClasses.length > 0) {
+      // Avoid inferring anonymous union/intersection classes whose members are all anonymous restrictions
+      const isStructuralAnonUnion = (supIri) => {
+        const supSubject = subjects[supIri];
+        return supIri.startsWith("_:") && supSubject && (
+          supSubject.unionOf || supSubject.intersectionOf
+        ) && (() => {
+          const members = supSubject.unionOf || supSubject.intersectionOf;
+          return Array.isArray(members) && members.length > 0 &&
+            members.every(m => m.startsWith("_:") && subjects[m] && (
+              subjects[m].types.has(NAMESPACES.OWL + "Restriction") ||
+              (subjects[m].annotations && subjects[m].annotations["onProperty"] !== undefined)
+            ));
+        })();
+      };
+
       inferredClasses.add(iri);
       subject.superClasses.forEach(sup => {
-        if (sup && !isNonVisualSubject(sup) && !isVowlId(sup)) inferredClasses.add(sup);
+        if (sup && !isNonVisualSubject(sup) && !isVowlId(sup) && !isStructuralAnonUnion(sup)) {
+          inferredClasses.add(sup);
+        }
       });
     }
+
     if (subject.equivalentClasses.length > 0) {
       inferredClasses.add(iri);
       subject.equivalentClasses.forEach(eq => {
         if (eq && !isNonVisualSubject(eq) && !isVowlId(eq)) inferredClasses.add(eq);
       });
     }
+
     if (subject.disjointWith.length > 0) {
       inferredClasses.add(iri);
       subject.disjointWith.forEach(dj => {
@@ -427,9 +447,10 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
       types.some(t => inferredClasses.has(t) || t === NAMESPACES.OWL + "Thing")
     );
 
+
     if (isClass && !isDatatype) {
       const cls = ensureClassExists(iri, "owl:Class", resolver, context);
-      
+
       if (Object.keys(subject.labels).length > 0) {
         cls.label = Object.assign({}, subject.labels);
         if (!cls.label["undefined"]) {
@@ -471,9 +492,21 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
         const superSubject = subjects[superIri];
         const isRestriction = superSubject && (
           superSubject.types.has(NAMESPACES.OWL + "Restriction") ||
-          superSubject.annotations["onProperty"] !== undefined
+          (superSubject.annotations && superSubject.annotations["onProperty"] !== undefined)
         );
-        if (!isRestriction) {
+        // Suppress anonymous union/intersection superclasses where ALL members are anonymous
+        // restrictions — Java treats these as structural axioms, not visual union nodes
+        const isStructuralAnonymousUnion = superIri.startsWith("_:") && superSubject && (
+          superSubject.unionOf || superSubject.intersectionOf
+        ) && (() => {
+          const members = superSubject.unionOf || superSubject.intersectionOf;
+          return Array.isArray(members) && members.length > 0 &&
+            members.every(m => m.startsWith("_:") && subjects[m] && (
+              subjects[m].types.has(NAMESPACES.OWL + "Restriction") ||
+              (subjects[m].annotations && subjects[m].annotations["onProperty"] !== undefined)
+            ));
+        })();
+        if (!isRestriction && !isStructuralAnonymousUnion) {
           context.subclassRelations.push({ subclassIri: iri, superclassIri: superIri });
         }
       });
@@ -597,7 +630,24 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     }
   });
 
-  // Step 1: Ensure structural reference maps exist
+  const isStructuralAnonUnion = (supIri) => {
+    const supSubject = subjects[supIri];
+    return supIri.startsWith("_:") && supSubject && (
+      supSubject.unionOf || supSubject.intersectionOf
+    ) && (() => {
+      const members = supSubject.unionOf || supSubject.intersectionOf;
+      return Array.isArray(members) && members.length > 0 &&
+        members.every(m => m.startsWith("_:") && subjects[m] && (
+          subjects[m].types.has(NAMESPACES.OWL + "Restriction") ||
+          (subjects[m].annotations && subjects[m].annotations["onProperty"] !== undefined)
+        ));
+    })();
+  };
+
+  context.subclassRelations = context.subclassRelations.filter(rel => {
+    return !isStructuralAnonUnion(rel.subclassIri) && !isStructuralAnonUnion(rel.superclassIri);
+  });
+
   context.subclassRelations.forEach(rel => {
     ensureClassExists(rel.subclassIri, "owl:Class", resolver, context);
     ensureClassExists(rel.superclassIri, "owl:Class", resolver, context);

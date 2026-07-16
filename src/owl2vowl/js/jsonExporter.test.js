@@ -285,9 +285,65 @@ describe("jsonExporter.js unit tests", () => {
 
     // Verify generated restriction property is exported and has inferred attribute
     const restProp = result.property.find(p => p.id !== "p2" && p.type === "owl:someValuesFrom" || p.id.startsWith("val_") || p.id === "3"); // context.nextId would assign ID 3
+    expect(restProp).toBeDefined();
     const restPropAttr = result.propertyAttribute.find(p => p.id !== "p2" && (p.attributes.includes("someValuesFrom") || p.attributes.includes("allValuesFrom")));
     expect(restPropAttr).toBeDefined();
     expect(restPropAttr.attributes).toContain("inferred");
     expect(restPropAttr.attributes).toContain("someValuesFrom");
   });
+
+  test("exportToJson skips disconnected anonymous classes", () => {
+    // Add a connected anonymous class (union node) and a disconnected anonymous class
+    context.classMap.set("_:anonUnion", {
+      id: "anonUnionId",
+      type: "owl:unionOf",
+      iri: "_:anonUnion",
+      baseIri: null,
+      label: {},
+      comment: {},
+      attributes: ["anonymous", "union"],
+      unionMembers: ["c1", "c2"]
+    });
+
+    context.classMap.set("_:disconnectedAnon", {
+      id: "disconnectedAnonId",
+      type: "owl:Class",
+      iri: "_:disconnectedAnon",
+      baseIri: null,
+      label: {},
+      comment: {},
+      attributes: ["anonymous"],
+      subClasses: [],
+      superClasses: []
+    });
+
+    // To make sure _:anonUnion is connected, add a subclassRelation or restriction pointing to it
+    context.classMap.set("http://example.org/ClassParent", {
+      id: "parentClassId",
+      type: "owl:Class",
+      iri: "http://example.org/ClassParent",
+      baseIri: "http://example.org/",
+      label: { en: "ParentClass" },
+      comment: {},
+      attributes: [],
+      subClasses: [],
+      superClasses: []
+    });
+
+    context.subclassRelations.push({
+      subclassIri: "http://example.org/ClassParent",
+      superclassIri: "_:anonUnion"
+    });
+
+    const result = exportToJson(resolver, context, header);
+
+    const exportedIds = result.class.map(c => c.id);
+    // parentClassId and anonUnionId should be exported since they are connected
+    expect(exportedIds).toContain("parentClassId");
+    expect(exportedIds).toContain("anonUnionId");
+
+    // disconnectedAnonId should be skipped because it is anonymous and not referenced anywhere (disconnected)
+    expect(exportedIds).not.toContain("disconnectedAnonId");
+  });
 });
+

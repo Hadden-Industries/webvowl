@@ -955,4 +955,54 @@ describe("ontologyConverter.js unit tests", () => {
     const unitMonthClass = context.classMap.get("http://example.org/unitMonth");
     expect(unitMonthClass).toBeUndefined();
   });
+
+  test("Suppresses subclass relation to anonymous restriction-only union (TimePosition structural axiom pattern)", () => {
+    // Set up: TimePosition has superClass = anonymous union {_:r1, _:r2} where both are restrictions
+    const anonUnionIri = "_:anonUnion_1";
+    const anonRestr1 = "_:anonRestr_1";
+    const anonRestr2 = "_:anonRestr_2";
+
+    const subjects = {
+      "http://example.org/TimePosition": {
+        iri: "http://example.org/TimePosition",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {}, comments: {}, domains: [], ranges: [],
+        superClasses: [anonUnionIri],
+        subClasses: [], superProperties: [], subProperties: [], inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
+        unionOf: null, intersectionOf: null
+      },
+      [anonUnionIri]: {
+        iri: anonUnionIri,
+        types: new Set([]),
+        labels: {}, comments: {}, domains: [], ranges: [],
+        superClasses: [], subClasses: [], superProperties: [], subProperties: [], inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
+        unionOf: [anonRestr1, anonRestr2]
+      },
+      [anonRestr1]: {
+        iri: anonRestr1,
+        types: new Set(["http://www.w3.org/2002/07/owl#Restriction"]),
+        labels: {}, comments: {}, domains: [], ranges: [],
+        superClasses: [], subClasses: [], superProperties: [], subProperties: [], inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
+        annotations: { onProperty: [{ value: "http://example.org/#numericPosition", type: "iri" }] }
+      },
+      [anonRestr2]: {
+        iri: anonRestr2,
+        types: new Set(["http://www.w3.org/2002/07/owl#Restriction"]),
+        labels: {}, comments: {}, domains: [], ranges: [],
+        superClasses: [], subClasses: [], superProperties: [], subProperties: [], inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
+        annotations: { onProperty: [{ value: "http://example.org/#nominalPosition", type: "iri" }] }
+      }
+    };
+
+    convertOntology(subjects, new Set(), resolver, context, header);
+
+    const timePosClass = context.classMap.get("http://example.org/TimePosition");
+    expect(timePosClass).toBeDefined();
+
+    // No subclass relation should be created from TimePosition to the anonymous restriction-only union
+    const subclassRelations = context.subclassRelations.filter(
+      r => r.subclassIri === "http://example.org/TimePosition"
+    );
+    expect(subclassRelations.length).toBe(0);
+  });
 });

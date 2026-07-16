@@ -295,4 +295,92 @@ describe("rdfParser.js unit tests", () => {
     expect(subject.unionOf).not.toContain("http://example.org/#numericPosition");
     expect(subject.unionOf).not.toContain("http://example.org/#nominalPosition");
   });
+
+  test("Resolves owl:onProperty declared with a nested typed element (not rdf:resource)", () => {
+    const xml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#"
+               xml:base="http://example.org/">
+        <owl:Class rdf:about="#Person">
+          <rdfs:subClassOf>
+            <owl:Restriction>
+              <owl:onProperty>
+                <owl:DatatypeProperty rdf:about="#age"/>
+              </owl:onProperty>
+              <owl:allValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+            </owl:Restriction>
+          </rdfs:subClassOf>
+        </owl:Class>
+      </rdf:RDF>
+    `;
+
+    const result = parseRdfXml(xml, resolver, context);
+
+    // The restriction blank node should have onProperty resolved to the age property IRI
+    const personSuperClasses = result.subjects["http://example.org/#Person"]?.superClasses || [];
+    expect(personSuperClasses.length).toBeGreaterThan(0);
+    const restrictionIri = personSuperClasses[0];
+    const restriction = result.subjects[restrictionIri];
+    expect(restriction).toBeDefined();
+    const onProp = restriction?.annotations?.["onProperty"]?.[0];
+    expect(onProp).toBeDefined();
+    expect(onProp.value).toBe("http://example.org/#age");
+
+    // parsedRestrictions should contain the allValuesFrom entry with correct propertyIri
+    expect(context.parsedRestrictions.length).toBeGreaterThan(0);
+    const restEntry = context.parsedRestrictions.find(r => r.propertyIri === "http://example.org/#age");
+    expect(restEntry).toBeDefined();
+    expect(restEntry.type).toBe("owl:allValuesFrom");
+    expect(restEntry.rangeIri).toBe("http://www.w3.org/2001/XMLSchema#integer");
+  });
+
+  test("Suppresses anonymous union in subClassOf where all members are anonymous restrictions (TimePosition pattern)", () => {
+    const xml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#"
+               xml:base="http://example.org/">
+        <owl:Class rdf:about="#TimePosition">
+          <rdfs:subClassOf>
+            <owl:Class>
+              <owl:unionOf rdf:parseType="Collection">
+                <owl:Restriction>
+                  <owl:onProperty>
+                    <owl:DatatypeProperty rdf:about="#numericPosition"/>
+                  </owl:onProperty>
+                  <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:cardinality>
+                </owl:Restriction>
+                <owl:Restriction>
+                  <owl:onProperty>
+                    <owl:DatatypeProperty rdf:about="#nominalPosition"/>
+                  </owl:onProperty>
+                  <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:cardinality>
+                </owl:Restriction>
+              </owl:unionOf>
+            </owl:Class>
+          </rdfs:subClassOf>
+        </owl:Class>
+      </rdf:RDF>
+    `;
+
+    const result = parseRdfXml(xml, resolver, context);
+    const subject = result.subjects["http://example.org/#TimePosition"];
+    expect(subject).toBeDefined();
+
+    // TimePosition must have a superClass that is an anonymous union
+    expect(subject.superClasses.length).toBe(1);
+    const unionIri = subject.superClasses[0];
+    expect(unionIri.startsWith("_:")).toBe(true);
+
+    const unionSubject = result.subjects[unionIri];
+    expect(unionSubject).toBeDefined();
+    // Its unionOf members should each be anonymous restriction IDs, NOT the property IRIs
+    expect(unionSubject.unionOf).toBeDefined();
+    expect(unionSubject.unionOf.length).toBe(2);
+    expect(unionSubject.unionOf[0].startsWith("_:")).toBe(true);
+    expect(unionSubject.unionOf[1].startsWith("_:")).toBe(true);
+    expect(unionSubject.unionOf).not.toContain("http://example.org/#numericPosition");
+    expect(unionSubject.unionOf).not.toContain("http://example.org/#nominalPosition");
+  });
 });

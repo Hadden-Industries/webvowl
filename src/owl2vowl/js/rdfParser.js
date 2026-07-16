@@ -281,15 +281,6 @@ export function parseRdfXml(xmlString, resolver, context) {
 
         if (nestedEl) {
           const nestedAbout = getAbout(nestedEl);
-          const nestedNodeId = nestedEl.getAttribute("rdf:nodeID") || nestedEl.getAttribute("nodeID");
-          let tempTargetResource = null;
-          if (nestedAbout) {
-            tempTargetResource = resolver.resolve(nestedAbout, getActiveBaseUri(nestedEl));
-          } else if (nestedNodeId) {
-            tempTargetResource = nestedNodeId.startsWith("_:") ? nestedNodeId : "_:" + nestedNodeId;
-          } else {
-            tempTargetResource = "_:anon_" + (anonCount + 1);
-          }
 
           let logicalEl = null;
           let exprType = null;
@@ -335,11 +326,30 @@ export function parseRdfXml(xmlString, resolver, context) {
               }
             } else {
               const memberIris = [];
-              const allChildren = logicalEl.getElementsByTagName ? logicalEl.getElementsByTagName("*") : [];
-              for (let j = 0; j < allChildren.length; j++) {
-                const descAbout = getAbout(allChildren[j]) || getAttr(allChildren[j], "resource", NAMESPACES.RDF);
-                if (descAbout) {
-                  memberIris.push(resolver.resolve(descAbout, getActiveBaseUri(allChildren[j])));
+              const isCollection =
+                logicalEl.getAttributeNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "parseType") === "Collection" ||
+                logicalEl.getAttribute("rdf:parseType") === "Collection";
+              if (isCollection) {
+                for (let child = logicalEl.firstChild; child; child = child.nextSibling) {
+                  if (child.nodeType !== 1) continue;
+                  const childAbout = getAbout(child) || getAttr(child, "resource", NAMESPACES.RDF);
+                  const childNodeId = child.getAttribute("rdf:nodeID") || child.getAttribute("nodeID");
+                  if (childAbout) {
+                    memberIris.push(resolver.resolve(childAbout, getActiveBaseUri(child)));
+                  } else if (childNodeId) {
+                    memberIris.push(childNodeId.startsWith("_:") ? childNodeId : "_:" + childNodeId);
+                  } else {
+                    memberIris.push("_:anon_" + (anonCount + 1));
+                  }
+                  parseSubject(child);
+                }
+              } else {
+                const allChildren = logicalEl.getElementsByTagName ? logicalEl.getElementsByTagName("*") : [];
+                for (let j = 0; j < allChildren.length; j++) {
+                  const descAbout = getAbout(allChildren[j]) || getAttr(allChildren[j], "resource", NAMESPACES.RDF);
+                  if (descAbout) {
+                    memberIris.push(resolver.resolve(descAbout, getActiveBaseUri(allChildren[j])));
+                  }
                 }
               }
               dataValue = memberIris;
@@ -380,6 +390,17 @@ export function parseRdfXml(xmlString, resolver, context) {
             subject.equivalentProperties.push(targetResource);
           } else if (predLocal === "disjointWith") {
             subject.disjointWith.push(targetResource);
+          } else {
+            if (!subject.annotations[predLocal]) {
+              subject.annotations[predLocal] = [];
+            }
+            subject.annotations[predLocal].push({
+              value: targetResource,
+              type: "iri",
+              language: "undefined",
+              identifier: predLocal,
+              predicateNs: predNs || ""
+            });
           }
         }
       } else if (
@@ -455,12 +476,26 @@ export function parseRdfXml(xmlString, resolver, context) {
         const rawLang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
         const lang = registerLanguage(rawLang);
         const key = predLocal;
-        const val = resource || pred.textContent.trim();
+        let val = resource || pred.textContent.trim();
+
+        // If no value resolved but a nested element is present (e.g. <owl:onProperty><owl:DatatypeProperty rdf:about="..."/></owl:onProperty>)
+        // resolve the nested element's IRI as the predicate value
+        if (!val) {
+          for (let childNode = pred.firstChild; childNode; childNode = childNode.nextSibling) {
+            if (childNode.nodeType === 1) {
+              const childAbout = getAbout(childNode);
+              if (childAbout) {
+                val = resolver.resolve(childAbout, getActiveBaseUri(childNode));
+              }
+              break;
+            }
+          }
+        }
         
         if (!subject.annotations[key]) subject.annotations[key] = [];
         subject.annotations[key].push({
           value: val,
-          type: resource ? "iri" : "label",
+          type: resource || (val && val.startsWith("http")) ? "iri" : "label",
           language: lang,
           identifier: key,
           predicateNs: predNs || ""
