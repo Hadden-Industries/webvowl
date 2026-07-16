@@ -14,9 +14,9 @@ describe("constants.js structure and values", () => {
   test("ONTOLOGY_CATALOG is an object with correct entries", () => {
     expect(typeof ONTOLOGY_CATALOG).toBe("object");
     expect(ONTOLOGY_CATALOG).not.toBeNull();
-    expect(ONTOLOGY_CATALOG["http://purl.org/dc/elements/1.1"]).toBe("../external/dc.rdf");
-    expect(ONTOLOGY_CATALOG["https://schema.org"]).toBe("../external/schemaorg.owl");
-    expect(Object.keys(ONTOLOGY_CATALOG).length).toBe(23);
+    expect(ONTOLOGY_CATALOG["http://purl.org/dc/elements/1.1"]).toBe("../ontology/external/dc.rdf");
+    expect(ONTOLOGY_CATALOG["https://schema.org"]).toBe("../ontology/external/schemaorg.owl");
+    expect(Object.keys(ONTOLOGY_CATALOG).length).toBe(25);
   });
 
   test("IGNORED_PROPERTIES is a Set with correct entries", () => {

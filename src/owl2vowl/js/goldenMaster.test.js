@@ -32,6 +32,7 @@ const expectedDifferences = {
   "skos.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
   "sosa.ttl": "Java reasoner additions and minor annotation differences",
   "ssn.ttl": "Java reasoner additions and minor annotation differences",
+  "time-gregorian.ttl": "Java reasoner additions and minor annotation differences",
   "time.rdf": "Minor differences in implicit inverse property generation; class restrictions domain/range properties match 100%",
   "vann-vocab-20100607.rdf": "Java reasoner additions and minor annotation differences",
   "void.ttl": "Java reasoner additions and minor annotation differences",

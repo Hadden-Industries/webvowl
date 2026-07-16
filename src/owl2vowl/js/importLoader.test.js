@@ -15,11 +15,11 @@ describe("importLoader.js unit tests", () => {
   test("resolveImportUrl resolves logical catalog IRIs", () => {
     // Exact match in catalog
     const resolvedDc = resolveImportUrl("http://purl.org/dc/elements/1.1");
-    expect(resolvedDc).toBe("../external/dc.rdf");
+    expect(resolvedDc).toBe("../ontology/external/dc.rdf");
 
     // Normalized match (trailing slash)
     const resolvedFoaf = resolveImportUrl("http://xmlns.com/foaf/0.1/");
-    expect(resolvedFoaf).toBe("../external/foaf.rdf");
+    expect(resolvedFoaf).toBe("../ontology/external/foaf.rdf");
 
     // Unknown IRI returns as-is
     const unknown = resolveImportUrl("http://example.org/unknown-ontology");
@@ -57,7 +57,7 @@ describe("importLoader.js unit tests", () => {
 
     // Setup mock fetch
     global.fetch = jest.fn((url) => {
-      if (url === "../external/dc.rdf" || url === "http://purl.org/dc/elements/1.1") {
+      if (url === "../ontology/external/dc.rdf" || url === "http://purl.org/dc/elements/1.1") {
         return Promise.resolve({
           ok: true,
           status: 200,
