@@ -261,4 +261,38 @@ describe("rdfParser.js unit tests", () => {
     expect(range6).toBeDefined();
     expect(range5).toBe(range6);
   });
+
+  test("Parses owl:unionOf collection members only from immediate child nodes, ignoring deep nested elements", () => {
+    const xml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#"
+               xml:base="http://example.org/">
+        <owl:Class rdf:about="#UnionClass">
+          <owl:unionOf rdf:parseType="Collection">
+            <owl:Restriction>
+              <owl:onProperty rdf:resource="#numericPosition"/>
+              <owl:cardinality>1</owl:cardinality>
+            </owl:Restriction>
+            <owl:Restriction>
+              <owl:onProperty rdf:resource="#nominalPosition"/>
+              <owl:cardinality>1</owl:cardinality>
+            </owl:Restriction>
+          </owl:unionOf>
+        </owl:Class>
+      </rdf:RDF>
+    `;
+
+    const result = parseRdfXml(xml, resolver, context);
+    const subject = result.subjects["http://example.org/#UnionClass"];
+    expect(subject).toBeDefined();
+    
+    // The union members must be the two anonymous restrictions, NOT the properties 'numericPosition' or 'nominalPosition'
+    expect(subject.unionOf.length).toBe(2);
+    expect(subject.unionOf[0]).toMatch(/^_:anon_/);
+    expect(subject.unionOf[1]).toMatch(/^_:anon_/);
+
+    expect(subject.unionOf).not.toContain("http://example.org/#numericPosition");
+    expect(subject.unionOf).not.toContain("http://example.org/#nominalPosition");
+  });
 });

@@ -922,4 +922,37 @@ describe("ontologyConverter.js unit tests", () => {
     expect(classX.type).toBe("owl:equivalentClass");
     expect(classY.type).toBe("owl:equivalentClass");
   });
+
+  test("Does not infer classes from the range/target of owl:hasValue restrictions", () => {
+    // Add an owl:hasValue restriction in parser context
+    context.parsedRestrictions.push({
+      domainIri: "http://example.org/GregorianMonth",
+      propertyIri: "http://example.org/unitType",
+      rangeIri: "http://example.org/unitMonth",
+      type: "owl:hasValue"
+    });
+
+    const subjects = {
+      "http://example.org/GregorianMonth": {
+        iri: "http://example.org/GregorianMonth",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {}, comments: {}, domains: [], ranges: [], superClasses: [], subClasses: [], superProperties: [], subProperties: [], inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: []
+      },
+      "http://example.org/unitMonth": {
+        iri: "http://example.org/unitMonth",
+        types: new Set(["http://example.org/TemporalUnit"]),
+        labels: {}, comments: {}, domains: [], ranges: [], superClasses: [], subClasses: [], superProperties: [], subProperties: [], inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: []
+      }
+    };
+
+    convertOntology(subjects, new Set(), resolver, context, header);
+
+    // GregorianMonth should exist as class
+    const monthClass = context.classMap.get("http://example.org/GregorianMonth");
+    expect(monthClass).toBeDefined();
+
+    // unitMonth should NOT exist in the classMap
+    const unitMonthClass = context.classMap.get("http://example.org/unitMonth");
+    expect(unitMonthClass).toBeUndefined();
+  });
 });

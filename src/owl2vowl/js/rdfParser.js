@@ -350,19 +350,16 @@ export function parseRdfXml(xmlString, resolver, context) {
               if (existingExpr) {
                 targetResource = existingExpr.iri || existingExpr.id;
               } else {
-                parseSubject(nestedEl);
-                targetResource = tempTargetResource.startsWith("_:anon_") ? "_:anon_" + anonCount : tempTargetResource;
+                targetResource = parseSubject(nestedEl);
                 const cls = ensureClassExists(targetResource, exprType);
                 cls.attributes.push(attrName);
                 cls[propName] = dataValue;
               }
             } else {
-              parseSubject(nestedEl);
-              targetResource = tempTargetResource.startsWith("_:anon_") ? "_:anon_" + anonCount : tempTargetResource;
+              targetResource = parseSubject(nestedEl);
             }
           } else {
-            parseSubject(nestedEl);
-            targetResource = tempTargetResource.startsWith("_:anon_") ? "_:anon_" + anonCount : tempTargetResource;
+            targetResource = parseSubject(nestedEl);
           }
         }
 
@@ -413,12 +410,39 @@ export function parseRdfXml(xmlString, resolver, context) {
           }
         } else {
           const members = [];
-          const allChildren = pred.getElementsByTagName ? pred.getElementsByTagName("*") : [];
-          for (let j = 0; j < allChildren.length; j++) {
-            const about = getAbout(allChildren[j]) || getAttr(allChildren[j], "resource", NAMESPACES.RDF);
-            if (about) {
-              const activeBaseChild = getActiveBaseUri(allChildren[j]);
-              members.push(resolver.resolve(about, activeBaseChild));
+          const isCollection = pred.getAttributeNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "parseType") === "Collection" || 
+                               pred.getAttribute("rdf:parseType") === "Collection";
+          if (isCollection) {
+            for (let child = pred.firstChild; child; child = child.nextSibling) {
+              if (child.nodeType === 1) {
+                const childAbout = getAbout(child) || getAttr(child, "resource", NAMESPACES.RDF);
+                const childNodeId = child.getAttribute("rdf:nodeID") || child.getAttribute("nodeID");
+                let memberIri = null;
+                if (childAbout) {
+                  memberIri = resolver.resolve(childAbout, getActiveBaseUri(child));
+                } else if (childNodeId) {
+                  memberIri = childNodeId.startsWith("_:") ? childNodeId : "_:" + childNodeId;
+                } else {
+                  memberIri = "_:anon_" + (anonCount + 1);
+                }
+                
+                parseSubject(child);
+                members.push(memberIri);
+              }
+            }
+          } else {
+            for (let child = pred.firstChild; child; child = child.nextSibling) {
+              if (child.nodeType === 1) {
+                parseSubject(child);
+              }
+            }
+            const allChildren = pred.getElementsByTagName ? pred.getElementsByTagName("*") : [];
+            for (let j = 0; j < allChildren.length; j++) {
+              const about = getAbout(allChildren[j]) || getAttr(allChildren[j], "resource", NAMESPACES.RDF);
+              if (about) {
+                const activeBaseChild = getActiveBaseUri(allChildren[j]);
+                members.push(resolver.resolve(about, activeBaseChild));
+              }
             }
           }
           if (members.length > 0) {
@@ -460,7 +484,8 @@ export function parseRdfXml(xmlString, resolver, context) {
       const isManuallyParsed = 
         (predLocal === "domain" || predLocal === "range" || predLocal === "subClassOf" || 
          predLocal === "subPropertyOf" || predLocal === "inverseOf" || 
-         predLocal === "equivalentClass" || predLocal === "equivalentProperty" || predLocal === "disjointWith") && 
+         predLocal === "equivalentClass" || predLocal === "equivalentProperty" || predLocal === "disjointWith" ||
+         predLocal === "unionOf" || predLocal === "intersectionOf" || predLocal === "disjointUnionOf") && 
         (predNs === NAMESPACES.RDFS || predNs === NAMESPACES.OWL);
 
       if (!isManuallyParsed) {
@@ -471,6 +496,7 @@ export function parseRdfXml(xmlString, resolver, context) {
         }
       }
     }
+    return subjectIri;
   }
 
   const rootChildren = rootEl ? rootEl.childNodes : [];

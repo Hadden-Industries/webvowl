@@ -245,7 +245,7 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
   context.parsedRestrictions.forEach(rest => {
     if (rest.domainIri && !isNonVisualSubject(rest.domainIri)) inferredClasses.add(rest.domainIri);
-    if (rest.rangeIri && !isDatatypeIri(rest.rangeIri, resolver) && !isNonVisualSubject(rest.rangeIri)) {
+    if (rest.type !== "owl:hasValue" && rest.rangeIri && !isDatatypeIri(rest.rangeIri, resolver) && !isNonVisualSubject(rest.rangeIri)) {
       inferredClasses.add(rest.rangeIri);
     }
   });
@@ -605,7 +605,9 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
   context.parsedRestrictions.forEach(rest => {
     ensureClassExists(rest.domainIri, "owl:Class", resolver, context);
-    ensureClassExists(rest.rangeIri, "owl:Class", resolver, context);
+    if (rest.type !== "owl:hasValue") {
+      ensureClassExists(rest.rangeIri, "owl:Class", resolver, context);
+    }
   });
 
   for (const iri of Object.keys(subjects)) {
