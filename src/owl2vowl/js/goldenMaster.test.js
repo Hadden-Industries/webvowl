@@ -5,11 +5,13 @@ import { execSync } from "child_process";
 import { fileURLToPath } from "url";
 import owl2vowl, { loadWithImports } from "./index.js";
 import { resolveImportUrl } from "./importLoader.js";
+import { ONTOLOGY_CATALOG } from "./constants.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const JAVA_JAR = path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "target", "OWL2VOWL-0.3.7-shaded.jar");
+const WORKSPACE_PARENT = path.join(__dirname, "..", "..", "..", "..");
 
 const expectedDifferences = {
   "bibo.rdf.xml": "Java reasoner additions and minor annotation differences",
@@ -17,12 +19,23 @@ const expectedDifferences = {
   "dc.rdf": "Permissive parsing of rdf:Property in JS (ignored by Java due to strict OWL)",
   "dcat3.rdf": "Java reasoner additions and minor annotation differences",
   "dcterms.rdf": "Permissive parsing of rdf:Property in JS (ignored by Java due to strict OWL)",
+  "doap.rdf": "Java reasoner additions and minor annotation differences",
   "foaf.rdf": "Java reasoner defaults InverseFunctional DatatypeProperty domains to owl:Thing due to OWL DL semantic clash (JS preserves syntactic foaf:Agent domain)",
+  "food.rdf": "Java reasoner narrows domain/range properties via class restrictions and adds equivalent class links",
   "full_ontobench_test.ttl": "Java does not support owl:hasValue restrictions on data properties; JS preserves nested datatype expression ranges whereas Java falls back to rdfs:Literal",
+  "goodrelations.owl": "Java reasoner additions and OWL DL semantic clashes",
   "muto.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
+  "org.rdf": "Java reasoner additions and minor annotation differences",
+  "prov.owl": "Java reasoner additions and OWL DL semantic clashes",
+  "schemaorg.owl": "Java reasoner additions and OWL DL semantic clashes",
   "sioc.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
   "skos.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
+  "sosa.ttl": "Java reasoner additions and minor annotation differences",
+  "ssn.ttl": "Java reasoner additions and minor annotation differences",
   "time.rdf": "Minor differences in implicit inverse property generation; class restrictions domain/range properties match 100%",
+  "vann-vocab-20100607.rdf": "Java reasoner additions and minor annotation differences",
+  "void.ttl": "Java reasoner additions and minor annotation differences",
+  "wgs84_pos.rdf": "Java reasoner additions and minor annotation differences",
   "wine.rdf": "Minor differences in equivalent class links and implicit inverse property generation; class restrictions domain/range properties match 100%"
 };
 
@@ -158,15 +171,7 @@ describe("Golden Master Compatibility Tests", () => {
     originalFetch = global.fetch;
     global.fetch = function (url) {
       let resolved = resolveImportUrl(url);
-      let filename = path.basename(resolved);
-
-      let filePath = path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", filename);
-      if (!fs.existsSync(filePath)) {
-        filePath = path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "ontologies", filename);
-      }
-      if (!fs.existsSync(filePath)) {
-        filePath = path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "src", "test", "resources", filename);
-      }
+      let filePath = path.join(WORKSPACE_PARENT, resolved.replace("../ontology/", "universal-ontology/"));
 
       if (fs.existsSync(filePath)) {
         const textContent = fs.readFileSync(filePath, 'utf8');
@@ -192,20 +197,11 @@ describe("Golden Master Compatibility Tests", () => {
     global.fetch = originalFetch;
   });
 
-  const targetFiles = [
-    path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "ontologies", "foaf.rdf"),
-    path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "ontologies", "muto.rdf"),
-    path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "ontologies", "sioc.rdf"),
-    path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "ontologies", "wine.rdf"),
-    path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "src", "test", "resources", "full_ontobench_test.ttl"),
-    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "bibo.rdf.xml"),
-    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "cube.rdf"),
-    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "dc.rdf"),
-    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "dcat3.rdf"),
-    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "dcterms.rdf"),
-    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "skos.rdf"),
-    path.join(__dirname, "..", "..", "..", "..", "universal-ontology", "external", "time.rdf")
-  ];
+  const targetFiles = Array.from(new Set(
+    Object.values(ONTOLOGY_CATALOG).map(val => {
+      return path.join(WORKSPACE_PARENT, val.replace("../ontology/", "universal-ontology/"));
+    })
+  )).filter(file => fs.existsSync(file)).sort();
 
   targetFiles.forEach(file => {
     const baseName = path.basename(file);
