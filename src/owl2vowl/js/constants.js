@@ -29,7 +29,7 @@ export const ONTOLOGY_CATALOG = Object.freeze({
   "http://www.w3.org/ns/prov": "../ontology/external/prov.owl",
   "http://www.w3.org/ns/sosa": "../ontology/external/sosa.ttl",
   "http://www.w3.org/ns/ssn": "../ontology/external/ssn.ttl",
-  "http://www.w3.org/ns/time/gregorian": "../ontology/external/time-gregorian.rdf",
+  "http://www.w3.org/ns/time/gregorian": "../ontology/external/time-gregorian.ttl",
   "http://xmlns.com/foaf/0.1": "../ontology/external/foaf.rdf",
   "https://schema.org": "../ontology/external/schemaorg.owl"
 });
