@@ -176,8 +176,32 @@ function ensurePropertyExists(iri, type = "owl:objectProperty", resolver, contex
 export function convertOntology(subjects, languagesSet, resolver, context, header) {
   const inferredClasses = new Set();
 
+  const isNonVisualSubject = (iri) => {
+    const subject = subjects[iri];
+    if (!subject) return false;
+    const types = subject.types;
+    if (!types) return false;
+    if (
+      types.has(NAMESPACES.OWL + "Restriction") ||
+      types.has(NAMESPACES.OWL + "Axiom") ||
+      types.has(NAMESPACES.OWL + "Annotation") ||
+      types.has(NAMESPACES.OWL + "AllDisjointClasses") ||
+      types.has(NAMESPACES.OWL + "AllDifferent") ||
+      types.has(NAMESPACES.OWL + "NegativePropertyAssertion") ||
+      types.has(NAMESPACES.RDF + "List") ||
+      types.has(NAMESPACES.RDF + "Description")
+    ) {
+      return true;
+    }
+    if (subject.annotations && subject.annotations["onProperty"] !== undefined) {
+      return true;
+    }
+    return false;
+  };
+
   // Populate inferred classes from explicit declarations
   for (const iri of Object.keys(subjects)) {
+    if (isNonVisualSubject(iri)) continue;
     const subject = subjects[iri];
     for (const type of subject.types) {
       if (
@@ -192,29 +216,36 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
   // Infers class status from usage relationships
   for (const iri of Object.keys(subjects)) {
+    if (isNonVisualSubject(iri)) continue;
     const subject = subjects[iri];
     if (subject.superClasses.length > 0) {
       inferredClasses.add(iri);
-      subject.superClasses.forEach(sup => { if (sup && !isVowlId(sup)) inferredClasses.add(sup); });
+      subject.superClasses.forEach(sup => {
+        if (sup && !isNonVisualSubject(sup) && !isVowlId(sup)) inferredClasses.add(sup);
+      });
     }
     if (subject.equivalentClasses.length > 0) {
       inferredClasses.add(iri);
-      subject.equivalentClasses.forEach(eq => { if (eq && !isVowlId(eq)) inferredClasses.add(eq); });
+      subject.equivalentClasses.forEach(eq => {
+        if (eq && !isNonVisualSubject(eq) && !isVowlId(eq)) inferredClasses.add(eq);
+      });
     }
     if (subject.disjointWith.length > 0) {
       inferredClasses.add(iri);
-      subject.disjointWith.forEach(dj => { if (dj && !isVowlId(dj)) inferredClasses.add(dj); });
+      subject.disjointWith.forEach(dj => {
+        if (dj && !isNonVisualSubject(dj) && !isVowlId(dj)) inferredClasses.add(dj);
+      });
     }
   }
 
   context.subclassRelations.forEach(rel => {
-    if (rel.subclassIri) inferredClasses.add(rel.subclassIri);
-    if (rel.superclassIri) inferredClasses.add(rel.superclassIri);
+    if (rel.subclassIri && !isNonVisualSubject(rel.subclassIri)) inferredClasses.add(rel.subclassIri);
+    if (rel.superclassIri && !isNonVisualSubject(rel.superclassIri)) inferredClasses.add(rel.superclassIri);
   });
 
   context.parsedRestrictions.forEach(rest => {
-    if (rest.domainIri) inferredClasses.add(rest.domainIri);
-    if (rest.rangeIri && !isDatatypeIri(rest.rangeIri, resolver)) {
+    if (rest.domainIri && !isNonVisualSubject(rest.domainIri)) inferredClasses.add(rest.domainIri);
+    if (rest.rangeIri && !isDatatypeIri(rest.rangeIri, resolver) && !isNonVisualSubject(rest.rangeIri)) {
       inferredClasses.add(rest.rangeIri);
     }
   });
@@ -233,12 +264,14 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     );
 
     if (isProperty) {
-      subject.domains.forEach(dom => { if (dom && !isVowlId(dom)) inferredClasses.add(dom); });
+      subject.domains.forEach(dom => {
+        if (dom && !isNonVisualSubject(dom) && !isVowlId(dom)) inferredClasses.add(dom);
+      });
       const isDatatypeProp = types.some(t => t === NAMESPACES.OWL + "DatatypeProperty") ||
                              subject.ranges.some(r => isDatatypeIri(r, resolver));
       if (!isDatatypeProp) {
         subject.ranges.forEach(ran => {
-          if (ran && !isDatatypeIri(ran, resolver) && !isVowlId(ran)) inferredClasses.add(ran);
+          if (ran && !isDatatypeIri(ran, resolver) && !isNonVisualSubject(ran) && !isVowlId(ran)) inferredClasses.add(ran);
         });
       }
     }
@@ -246,9 +279,12 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
   // Custom typing / Metaclass inference
   for (const iri of Object.keys(subjects)) {
+    if (isNonVisualSubject(iri)) continue;
     const subject = subjects[iri];
     subject.types.forEach(t => {
       if (
+        t &&
+        !isNonVisualSubject(t) &&
         t !== NAMESPACES.OWL + "NamedIndividual" &&
         t !== NAMESPACES.OWL + "Ontology" &&
         t !== NAMESPACES.OWL + "Class" &&
@@ -327,6 +363,7 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   // Map Subjects to Classes, Properties & Named Individuals
   for (const iri in subjects) {
     if (IGNORED_PROPERTIES.has(iri)) continue;
+    if (isNonVisualSubject(iri)) continue;
 
     const subject = subjects[iri];
     if (ontologySubject && iri === ontologySubject.iri) continue;
