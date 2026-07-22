@@ -405,14 +405,14 @@ module.exports = function (graph) {
 
     let gotItButton;
     if (type === 1) {
-      gotItButton = warningContainer.append("label");
+      gotItButton = warningContainer.append("button").attr("type", "button");
       gotItButton.node().id = "killWarningErrorMessages_" + id;
       gotItButton.node().innerHTML = "Got It";
       gotItButton.on("click", warningModule.closeMessage);
     }
 
     if (type === 2) {
-      gotItButton = warningContainer.append("label");
+      gotItButton = warningContainer.append("button").attr("type", "button");
       gotItButton.node().id = "killWarningErrorMessages_" + id;
       gotItButton.node().innerHTML = "Got It";
       gotItButton.on("click", warningModule.closeMessage);

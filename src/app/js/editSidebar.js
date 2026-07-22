@@ -1576,8 +1576,14 @@ module.exports = function (graph) {
 
     const triggers = d3.selectAll(".accordion-trigger");
 
-    // Collapse all inactive triggers on startup
-    // collapseContainers(d3.selectAll(".accordion-trigger:not(.accordion-trigger-active) + div"));
+    triggers.attr("tabindex", "0").attr("role", "button");
+    triggers.on("keydown", function (){
+      var evt = d3.event || window.event;
+      if ( evt && (evt.key === "Enter" || evt.key === " ") ) {
+        evt.preventDefault();
+        d3.select(this).node().click();
+      }
+    });
 
     triggers.on("click", function () {
       const selectedTrigger = d3.select(this);
