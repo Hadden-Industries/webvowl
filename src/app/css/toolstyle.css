@@ -1139,6 +1139,20 @@ main {
   display: inline;
 }
 
+/* Annotation property name hyperlinks */
+.statisticDetails > a {
+    color: #69c;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    font-weight: normal;
+    font-style: normal;
+}
+
+.statisticDetails > a:hover {
+    color: #9bf;
+    text-decoration-style: solid;
+}
+
 #selection-details .propDetails a {
   color: #69c;
 }
