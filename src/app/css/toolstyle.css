@@ -948,9 +948,10 @@ main {
     overflow-x: hidden;
     position: fixed;
     border-left: 1px solid #34495E;
+    background-color: #18202A;
 }
 
-#detailsArea h1 {
+#detailsArea h1, #detailsArea h2 {
     border-bottom: solid 1px #34495e;
     color: #ecf0f1;
     display: block;
@@ -959,6 +960,102 @@ main {
     margin: 0;
     padding: 10px 0;
     text-align: center;
+}
+
+#editHeader {
+    font-size: 1.1em;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+#killWarning,
+#show-loadingInfo-button,
+#loadingIndicator_closeButton,
+#leftSideBarCollapseButton,
+#sidebarExpandButton,
+#centerGraphButton,
+#zoomInButton,
+#zoomOutButton {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    line-height: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+}
+
+#containerForAddPrefixButton {
+    text-align: center;
+}
+
+#svgStringText {
+    font-size: 9px;
+}
+
+#reloadCachedOntologyString {
+    font-style: italic;
+    font-size: 10px;
+}
+
+#drag_svg {
+    position: absolute;
+    left: 25%;
+    top: 25%;
+    width: 50%;
+    height: 50%;
+}
+
+#drag_msg_text {
+    font-size: 14px;
+}
+
+#empty {
+    pointer-events: none;
+    padding-left: 0;
+}
+
+#exportTex label, #exportTurtle label {
+    font-size: 10px;
+}
+
+#layoutLoadingProgressBarContainer {
+    padding-bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#currentLoadingStep {
+    margin: 0;
+    font-style: italic;
+    padding-bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#loadingInfo_msgBox {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+#property_characteristics_Selection {
+    padding-top: 2px;
 }
 
 #generalDetails {
@@ -1162,6 +1259,8 @@ main {
     text-align: center;
     font-size: 1.5em;
     cursor: pointer;
+    line-height: 20px;
+    display: block;
 }
 
 .dropdownMenuClass {
@@ -1202,6 +1301,8 @@ main {
     height: 24px;
     font-size: 1.5em;
     text-align: center;
+    line-height: 20px;
+    display: block;
 }
 
 #leftSideBarCollapseButton:hover {
@@ -1485,6 +1586,9 @@ main {
     color: #fff;
     cursor: pointer;
     text-align: center;
+    width: 100%;
+    display: block;
+    box-sizing: border-box;
 }
 
 #loadingIndicator_closeButton:hover {
@@ -1498,6 +1602,7 @@ main {
     cursor: pointer;
     padding-bottom: 5px;
     float: right;
+    display: inline-block;
 }
 
 .busyProgressBar {
@@ -1985,6 +2090,9 @@ main {
     font-size: 1.5em;
     padding: 0;
     height: 28px;
+    width: 100%;
+    display: block;
+    box-sizing: border-box;
 }
 
 .noselect {
@@ -2010,7 +2118,7 @@ main {
     line-height: 25px;
 }
 
-#zoomSlider > p:hover {
+#zoomSlider > p:hover, #zoomSlider > button:hover {
     background-color: #d90;
 }
 
@@ -2336,14 +2444,18 @@ a#locateSearchResult {
     pointer-events: none;
 }
 
-#editorHint label {
+#editorHint label, #editorHint button {
     pointer-events: auto;
     float: right;
     padding: 5px 5px;
     color: #ffdd00;
+    background: transparent;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
 }
 
-#editorHint label:hover {
+#editorHint label:hover, #editorHint button:hover {
     text-decoration: underline;
     cursor: pointer;
 }
@@ -2356,14 +2468,17 @@ a#locateSearchResult {
     font-size: 0.8em;
     background-color: #18202A;
     padding: 5px 5px;
-    border-radius: 5px;
+    border-radius: 10px;
+    border: solid 1px #ecf0f1;
+    width: 70%;
 
 }
 
 #WarningErrorMessagesContainer {
+    top: 50px;
     position: absolute;
     text-align: center;
-    top: 0;
+    width: 100%;
     pointer-events: none;
 }
 
@@ -2379,11 +2494,15 @@ a#locateSearchResult {
     overflow-x: hidden;
 }
 
-#WarningErrorMessages label {
+#WarningErrorMessages label, #WarningErrorMessages button {
     pointer-events: auto;
     float: right;
     padding: 5px 5px;
     color: #ffdd00;
+    background: transparent;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
 }
 
 #WarningErrorMessages span {
@@ -2392,7 +2511,7 @@ a#locateSearchResult {
     padding: 5px 5px;
 }
 
-#WarningErrorMessages label:hover {
+#WarningErrorMessages label:hover, #WarningErrorMessages button:hover {
     text-decoration: underline;
     cursor: pointer;
 }

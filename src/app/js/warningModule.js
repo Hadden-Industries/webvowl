@@ -97,7 +97,7 @@ module.exports = function ( graph ){
     ul.append('li').node().innerHTML = "Additional editing functionality is provided in the right sidebar.";
     
     
-    var gotItButton = warningContainer.append("label");
+    var gotItButton = warningContainer.append("button").attr("type", "button");
     gotItButton.node().id = "killWarningErrorMessages_" + id;
     gotItButton.node().innerHTML = "Got It";
     gotItButton.on("click", warningModule.closeMessage);
@@ -249,7 +249,7 @@ module.exports = function ( graph ){
       msgAction.node().innerHTML = action;
     }
     
-    var gotItButton = warningContainer.append("label");
+    var gotItButton = warningContainer.append("button").attr("type", "button");
     gotItButton.node().id = "killWarningErrorMessages_" + id;
     gotItButton.node().innerHTML = "Continue";
     gotItButton.on("click", function (){
@@ -258,7 +258,7 @@ module.exports = function ( graph ){
       callback(parameterArray[0], parameterArray[1], parameterArray[2], parameterArray[3]);
     });
     warningContainer.append("span").node().innerHTML = "|";
-    var cancelButton = warningContainer.append("label");
+    var cancelButton = warningContainer.append("button").attr("type", "button");
     cancelButton.node().id = "cancelButton_" + id;
     cancelButton.node().innerHTML = "Cancel";
     cancelButton.on("click", function (){
@@ -289,7 +289,7 @@ module.exports = function ( graph ){
     generalHint.style("line-height", "1.2em");
     generalHint.style("font-size", "1.2em");
     
-    var gotItButton = warningContainer.append("label");
+    var gotItButton = warningContainer.append("button").attr("type", "button");
     gotItButton.node().id = "killFilterMessages_" + id;
     gotItButton.node().innerHTML = "Got It";
     gotItButton.on("click", warningModule.closeMessage);
@@ -314,7 +314,7 @@ module.exports = function ( graph ){
     generalHint.style("line-height", "1.2em");
     generalHint.style("font-size", "1.2em");
     
-    var gotItButton = warningContainer.append("label");
+    var gotItButton = warningContainer.append("button").attr("type", "button");
     gotItButton.node().id = "killFilterMessages_" + id;
     gotItButton.node().innerHTML = "Got It";
     gotItButton.on("click", warningModule.closeMessage);
@@ -380,19 +380,19 @@ module.exports = function ( graph ){
     
     var gotItButton;
     if ( type === 1 ) {
-      gotItButton = warningContainer.append("label");
+      gotItButton = warningContainer.append("button").attr("type", "button");
       gotItButton.node().id = "killWarningErrorMessages_" + id;
       gotItButton.node().innerHTML = "Got It";
       gotItButton.on("click", warningModule.closeMessage);
     }
     
     if ( type === 2 ) {
-      gotItButton = warningContainer.append("label");
+      gotItButton = warningContainer.append("button").attr("type", "button");
       gotItButton.node().id = "killWarningErrorMessages_" + id;
       gotItButton.node().innerHTML = "Got It";
       gotItButton.on("click", warningModule.closeMessage);
       warningContainer.append("span").node().innerHTML = "|";
-      var zoomToElementButton = warningContainer.append("label");
+      var zoomToElementButton = warningContainer.append("button").attr("type", "button");
       zoomToElementButton.node().id = "zoomElementThing_" + id;
       zoomToElementButton.node().innerHTML = "Zoom to element ";
       zoomToElementButton.on("click", function (){
@@ -400,7 +400,7 @@ module.exports = function ( graph ){
         graph.zoomToElementInGraph(additionalOpts);
       });
       warningContainer.append("span").node().innerHTML = "|";
-      var ShowElementButton = warningContainer.append("label");
+      var ShowElementButton = warningContainer.append("button").attr("type", "button");
       ShowElementButton.node().id = "showElementThing_" + id;
       ShowElementButton.node().innerHTML = "Indicate element";
       ShowElementButton.on("click", function (){

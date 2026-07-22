@@ -78,7 +78,7 @@ module.exports = function ( graph ){
       .attr("for", identifier + "ModuleCheckbox")
       .text(modeName);
     if ( identifier === "editorMode" ) {
-      moduleOptionContainer.append("label")
+      moduleOptionContainer.append("span")
         .attr("style", "font-size:10px;padding-top:3px")
         .text("(experimental)");
     }
@@ -107,7 +107,7 @@ module.exports = function ( graph ){
       .attr("for", identifier + "ModuleCheckbox")
       .text(modeName);
     if ( identifier === "editorMode" ) {
-      moduleOptionContainer.append("label")
+      moduleOptionContainer.append("span")
         .attr("style", "font-size:10px;padding-top:3px")
         .text(" (experimental)");
     }
