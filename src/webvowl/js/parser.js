@@ -492,7 +492,6 @@ module.exports = function ( graph ){
       var propertyWasRerouted = false;
       
       if ( property.domain() === undefined ) {
-        console.warn("No Domain was found for id:" + property.id());
         return;
       }
       
@@ -501,7 +500,6 @@ module.exports = function ( graph ){
         propertyWasRerouted = true;
       }
       if ( property.range() === undefined ) {
-        console.warn("No range was found for id:" + property.id());
         return;
       }
       if ( wasNodeMerged(property.range()) ) {
