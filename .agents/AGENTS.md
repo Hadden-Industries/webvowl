@@ -1,4 +1,4 @@
-﻿# GitHub Guidance
+# GitHub Guidance
 
 - Prefer the GitHub MCP Server for all GitHub and repository interactions (such as managing issues, pull requests, branches, commits, and repository searches); it provides sandboxed execution, structured payloads, and robust observability.
 - Only use the Git CLI (`git`) or GitHub CLI (`gh`) directly if the GitHub MCP server is unavailable (attempt to resolve the cause of the unavailability first, and notify me if you cannot resolve it without my input).
@@ -23,3 +23,12 @@
 ## Secret Safety
 
 - MUST load the `aws-secrets-manager` skill first for any AWS secret, credential, API key, token, or password task. MUST NOT call `secretsmanager get-secret-value` or `batch-get-secret-value`, and MUST NOT hit the Secrets Manager Agent daemon directly. MUST use `{{resolve:secretsmanager:secret-id:SecretString:json-key}}` with `asm-exec` so the secret resolves at runtime without entering context.
+
+# Walkthrough Synchronization
+
+- **Always Synchronize Walkthrough**: Always keep the conversation's `walkthrough.md` artifact completely up to date and synchronized with all code, configuration, or architectural changes made in that conversation.
+- **Net State & Reverted Experiments Separation**:
+  - The main sections of `walkthrough.md` must only describe the net observable code and configuration changes relative to the last commit for each referenced file.
+  - Intermediate attempts, tested approaches, or reverted experiments must NOT be listed as active changes in the main sections. Instead, document them in a separate section titled `## Tested & Reverted Experiments` detailing what was tested, the outcome, and why it was reverted.
+
+
