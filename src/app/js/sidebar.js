@@ -107,16 +107,92 @@ module.exports = function ( graph ){
     data = data || {};
     ontologyInfo = data.header || {};
     
+    setLanguages(ontologyInfo.languages);
     updateGraphInformation();
     displayGraphStatistics(undefined, statistics);
     displayMetadata(ontologyInfo.other);
     
     // Reset the sidebar selection
     sidebar.updateSelectionInformation(undefined);
-    
-    setLanguages(ontologyInfo.languages);
   };
   
+  function getBrowserLanguages(){
+    var nav = typeof navigator !== "undefined" ? navigator : {};
+    var browserLangs = [];
+    if ( Array.isArray(nav.languages) ) {
+      for ( var i = 0; i < nav.languages.length; i++ ) {
+        var l = nav.languages[i];
+        if ( l && typeof l === "string" && browserLangs.indexOf(l) === -1 ) {
+          browserLangs.push(l);
+        }
+      }
+    }
+    if ( nav.language && typeof nav.language === "string" && browserLangs.indexOf(nav.language) === -1 ) {
+      browserLangs.push(nav.language);
+    }
+    if ( nav.userLanguage && typeof nav.userLanguage === "string" && browserLangs.indexOf(nav.userLanguage) === -1 ) {
+      browserLangs.push(nav.userLanguage);
+    }
+    return browserLangs;
+  }
+
+  function findBestMatchingLanguage( languages ){
+    if ( !languages || languages.length === 0 ) {
+      return null;
+    }
+
+    var browserLangs = getBrowserLanguages();
+
+    // 1. Try exact matches with browser languages (case-insensitive)
+    for ( var i = 0; i < browserLangs.length; i++ ) {
+      var bLang = browserLangs[i].toLowerCase();
+      for ( var j = 0; j < languages.length; j++ ) {
+        if ( typeof languages[j] === "string" && languages[j].toLowerCase() === bLang ) {
+          return languages[j];
+        }
+      }
+    }
+
+    // 2. Try primary language tag matches (e.g., "de-DE" matches "de", or "de" matches "de-DE")
+    for ( var k = 0; k < browserLangs.length; k++ ) {
+      if ( typeof browserLangs[k] !== "string" ) continue;
+      var primaryBLang = browserLangs[k].split("-")[0].toLowerCase();
+      for ( var m = 0; m < languages.length; m++ ) {
+        if ( typeof languages[m] !== "string" ) continue;
+        var langLower = languages[m].toLowerCase();
+        var primaryLang = langLower.split("-")[0];
+        if ( langLower === primaryBLang || primaryLang === primaryBLang ) {
+          return languages[m];
+        }
+      }
+    }
+
+    // 3. Fallback: English ("en" or "en-*")
+    for ( var n = 0; n < languages.length; n++ ) {
+      if ( typeof languages[n] === "string" ) {
+        var lLower = languages[n].toLowerCase();
+        if ( lLower === "en" || lLower.split("-")[0] === "en" ) {
+          return languages[n];
+        }
+      }
+    }
+
+    // 4. Fallback: LANG_UNDEFINED ("undefined")
+    var langUndefined = webvowl.util.constants().LANG_UNDEFINED;
+    if ( languages.indexOf(langUndefined) >= 0 ) {
+      return langUndefined;
+    }
+
+    // 5. Fallback: LANG_IRIBASED ("id")
+    var langIri = webvowl.util.constants().LANG_IRIBASED;
+    if ( languages.indexOf(langIri) >= 0 ) {
+      return langIri;
+    }
+
+    // 6. Fallback: First language in list
+    return languages[0];
+  }
+
   function setLanguages( languages ){
     languages = languages || [];
     
@@ -153,22 +229,17 @@ module.exports = function ( graph ){
         return d;
       });
     
-    if ( !trySelectDefaultLanguage(languageSelection, languages, "en") ) {
-      if ( !trySelectDefaultLanguage(languageSelection, languages, webvowl.util.constants().LANG_UNDEFINED) ) {
-        trySelectDefaultLanguage(languageSelection, languages, webvowl.util.constants().LANG_IRIBASED);
+    var selectedLanguage = findBestMatchingLanguage(languages);
+    if ( selectedLanguage ) {
+      var langIndex = languages.indexOf(selectedLanguage);
+      if ( langIndex >= 0 ) {
+        languageSelection.property("selectedIndex", langIndex);
       }
+      if ( languageSelection.node() ) {
+        languageSelection.node().value = selectedLanguage;
+      }
+      graph.language(selectedLanguage);
     }
-  }
-  
-  function trySelectDefaultLanguage( selection, languages, language ){
-    var langIndex = languages.indexOf(language);
-    if ( langIndex >= 0 ) {
-      selection.property("selectedIndex", langIndex);
-      graph.language(language);
-      return true;
-    }
-    
-    return false;
   }
   
   function updateGraphInformation(){
