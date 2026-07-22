@@ -1106,8 +1106,6 @@ main {
 .statisticDetails span {
     font-weight: 100;
     font-style: italic;
-    margin: 10px 0;
-    padding: 10px;
 }
 
 .statisticDetails div {
@@ -1118,6 +1116,20 @@ main {
     display: inline;
 }
 
+/* Annotation property name hyperlinks */
+.statisticDetails > a {
+    color: #69c;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    font-weight: normal;
+    font-style: normal;
+}
+
+.statisticDetails > a:hover {
+    color: #9bf;
+    text-decoration-style: solid;
+}
+
 #selection-details .propDetails a {
     color: #69c;
 }
@@ -1125,7 +1137,6 @@ main {
 #selection-details .propDetails > span {
     font-weight: 100;
     font-style: italic;
-    padding: 0 10px;
 }
 
 #selection-details #classEquivUri span, #selection-details #disjointNodes span {

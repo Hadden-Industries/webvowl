@@ -365,19 +365,66 @@ module.exports = function ( graph ){
     }
     
     container.selectAll(".annotation").remove();
-    container.selectAll(".annotation").data(annotations).enter().append("p")
+    var paragraphs = container.selectAll(".annotation").data(annotations).enter().append("p")
       .classed("annotation", true)
       .classed("statisticDetails", true)
       .attr("data-identifier", function ( d ){
         return d.identifier;
-      })
-      .text(function ( d ){
-        return d.identifier + ":";
-      })
-      .append("span")
-      .each(function ( d ){
-        appendIriLabel(d3.select(this), d.value, d.type === "iri" ? d.value : undefined);
       });
+    
+    // Build the annotation property name as a hyperlink if a predicate IRI is available
+    paragraphs.each(function ( d ) {
+      var p = d3.select(this);
+      // Determine the full IRI for the annotation property
+      var predicateIri = null;
+      var localName = null;
+      if ( d.predicateNs ) {
+        // local name is everything after the last # or /
+        var rawLocal = d.identifier.replace(/^[^:]+:/, ""); // strip any CURIE prefix (e.g. "rdfs:" from "rdfs:label")
+        predicateIri = d.predicateNs + rawLocal;
+        localName = rawLocal;
+      } else if ( d.identifier && d.identifier.indexOf(":") !== -1 ) {
+        // identifier is already a CURIE — resolve using well-known prefixes
+        var WELL_KNOWN = {
+          "rdf":     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+          "rdfs":    "http://www.w3.org/2000/01/rdf-schema#",
+          "owl":     "http://www.w3.org/2002/07/owl#",
+          "xsd":     "http://www.w3.org/2001/XMLSchema#",
+          "skos":    "http://www.w3.org/2004/02/skos/core#",
+          "dcterms": "http://purl.org/dc/terms/",
+          "dc":      "http://purl.org/dc/elements/1.1/"
+        };
+        var parts = d.identifier.split(":");
+        var prefix = parts[0];
+        localName = parts.slice(1).join(":");
+        if ( WELL_KNOWN[prefix] ) {
+          predicateIri = WELL_KNOWN[prefix] + localName;
+        }
+      }
+      
+      if ( predicateIri && localName ) {
+        p.append("a")
+          .attr("href", predicateIri)
+          .attr("target", "_blank")
+          .attr("title", predicateIri)
+          .text(localName);
+        p.node().appendChild(document.createTextNode(": "));
+      } else {
+        p.node().appendChild(document.createTextNode(d.identifier + ": "));
+      }
+      
+
+      var valueSpan = p.append("span");
+      if ( d.type === "iri" ) {
+        valueSpan.append("a")
+          .attr("href", d.value)
+          .attr("title", d.value)
+          .attr("target", "_blank")
+          .text(d.value);
+      } else {
+        valueSpan.text(d.value);
+      }
+    });
   }
   
   /**
@@ -471,31 +518,23 @@ module.exports = function ( graph ){
     var filteredAnnotations = {};
     if ( annotations ) {
       for ( var key in annotations ) {
-        if ( annotations.hasOwnProperty(key) && key !== "prefLabel" ) {
+        // Skip prefLabel (shown as Name) and raw "label" key (handled below as rdfs:label)
+        if ( annotations.hasOwnProperty(key) && key !== "prefLabel" && key !== "label" ) {
           filteredAnnotations[key] = annotations[key];
         }
       }
     }
     
-    var elementLabel = property.label();
-    if ( elementLabel ) {
-      var prefName = property.labelForCurrentLanguage();
-      var rdfsLabels = [];
-      for ( var lang in elementLabel ) {
-        if ( elementLabel.hasOwnProperty(lang) && lang !== "IRI-based" ) {
-          var val = elementLabel[lang];
-          if ( val !== prefName ) {
-            rdfsLabels.push({
-              identifier: "rdfs:label",
-              value: val,
-              type: "label"
-            });
-          }
-        }
-      }
-      if ( rdfsLabels.length > 0 ) {
-        filteredAnnotations["rdfs:label"] = rdfsLabels;
-      }
+    // Surface rdfs:label values that differ from the preferred display name
+    var prefName = property.labelForCurrentLanguage();
+    var allRdfsLabels = (annotations && annotations["label"]) ? annotations["label"] : [];
+    var rdfsLabels = allRdfsLabels.filter(function(entry) {
+      return entry.value !== prefName;
+    }).map(function(entry) {
+      return { identifier: "rdfs:label", value: entry.value, type: "label", predicateNs: "http://www.w3.org/2000/01/rdf-schema#" };
+    });
+    if ( rdfsLabels.length > 0 ) {
+      filteredAnnotations["rdfs:label"] = rdfsLabels;
     }
     
     listAnnotations(d3.select("#propertySelectionInformation"), filteredAnnotations);
@@ -598,31 +637,23 @@ module.exports = function ( graph ){
     var filteredAnnotations = {};
     if ( annotations ) {
       for ( var key in annotations ) {
-        if ( annotations.hasOwnProperty(key) && key !== "prefLabel" ) {
+        // Skip prefLabel (shown as Name) and raw "label" key (handled below as rdfs:label)
+        if ( annotations.hasOwnProperty(key) && key !== "prefLabel" && key !== "label" ) {
           filteredAnnotations[key] = annotations[key];
         }
       }
     }
     
-    var elementLabel = node.label();
-    if ( elementLabel ) {
-      var prefName = node.labelForCurrentLanguage();
-      var rdfsLabels = [];
-      for ( var lang in elementLabel ) {
-        if ( elementLabel.hasOwnProperty(lang) && lang !== "IRI-based" ) {
-          var val = elementLabel[lang];
-          if ( val !== prefName ) {
-            rdfsLabels.push({
-              identifier: "rdfs:label",
-              value: val,
-              type: "label"
-            });
-          }
-        }
-      }
-      if ( rdfsLabels.length > 0 ) {
-        filteredAnnotations["rdfs:label"] = rdfsLabels;
-      }
+    // Surface rdfs:label values that differ from the preferred display name
+    var prefName = node.labelForCurrentLanguage();
+    var allRdfsLabels = (annotations && annotations["label"]) ? annotations["label"] : [];
+    var rdfsLabels = allRdfsLabels.filter(function(entry) {
+      return entry.value !== prefName;
+    }).map(function(entry) {
+      return { identifier: "rdfs:label", value: entry.value, type: "label", predicateNs: "http://www.w3.org/2000/01/rdf-schema#" };
+    });
+    if ( rdfsLabels.length > 0 ) {
+      filteredAnnotations["rdfs:label"] = rdfsLabels;
     }
     
     listAnnotations(d3.select("#classSelectionInformation"), filteredAnnotations);
