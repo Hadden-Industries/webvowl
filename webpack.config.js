@@ -34,6 +34,7 @@ module.exports = {
   },
   plugins: [
     new ESLintPlugin({
+      configType: "flat",
       context: path.resolve(__dirname, "src"), // Restrict scanning exclusively to your source files
       extensions: ["js"]
     }),
