@@ -7,11 +7,11 @@ module.exports = {
     browser: true,
     node: true,
     // Replicates "jasmine": true from legacy JSHint settings
-    jasmine: true 
+    jasmine: true
   },
 
   parserOptions: {
-    // Restricts syntax strictly to ES5 to prevent modern tokens from passing 
+    // Restricts syntax strictly to ES5 to prevent modern tokens from passing
     // code compilation unnoticed and crashing your legacy target asset engines.
     ecmaVersion: 5
   },

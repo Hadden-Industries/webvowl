@@ -23,29 +23,29 @@ tools.truncate = function ( text, maxWidth, textStyle, additionalTextSpace ){
   if ( isNaN(maxWidth) || maxWidth <= 0 ) {
     return text;
   }
-  
+
   var truncatedText = text,
     newTruncatedTextLength,
     textWidth,
     ratio;
-  
+
   while ( true ) {
     textWidth = measureTextWidth(truncatedText, textStyle);
     if ( textWidth <= maxWidth ) {
       break;
     }
-    
+
     ratio = textWidth / maxWidth;
     newTruncatedTextLength = Math.floor(truncatedText.length / ratio);
-    
+
     // detect if nothing changes
     if ( truncatedText.length === newTruncatedTextLength ) {
       break;
     }
-    
+
     truncatedText = truncatedText.substring(0, newTruncatedTextLength);
   }
-  
+
   if ( text.length > truncatedText.length ) {
     return text.substring(0, truncatedText.length - 3) + "...";
   }
