@@ -103,6 +103,7 @@ module.exports = function ( graph ){
     d3.select(window).on("mouseup.navScroll", clearAllTimers).on("touchend.navScroll", clearAllTimers);
     d3.select(window).on("resize.navMenu", function (){
       navigationMenu.updateScrollButtonVisibility();
+      updateMenuPosition();
     });
 
     // connect scrollIndicator Buttons;
@@ -221,30 +222,32 @@ module.exports = function ( graph ){
   }
   
   function updateMenuPosition(){
-    if ( currentlyHoveredEntry ) {
+    if ( currentlyHoveredEntry && currentlyVisibleMenu && currentlyVisibleMenu.node() ) {
       var leftOffset = currentlyHoveredEntry.offsetLeft;
       var scrollOffset = scrollContainer.scrollLeft;
       var totalOffset = leftOffset - scrollOffset;
       var finalOffset = Math.max(0, totalOffset);
-      var fullContainer_width = scrollContainer.getBoundingClientRect().width;
-      var elementWidth = currentlyVisibleMenu.node().getBoundingClientRect().width;
-      // make priority > first check if we are right
-      if ( finalOffset + elementWidth > fullContainer_width ) {
-        finalOffset = fullContainer_width - elementWidth;
+
+      var maxRightBoundary = scrollContainer.getBoundingClientRect().width;
+      var detailArea = d3.select("#detailsArea");
+      if ( detailArea.node() && !detailArea.classed("hidden") ) {
+        var sidebarLeft = detailArea.node().getBoundingClientRect().left;
+        if ( sidebarLeft > 0 ) {
+          maxRightBoundary = Math.min(maxRightBoundary, sidebarLeft);
+        }
       }
-      // fix priority;
+
+      var elementWidth = currentlyVisibleMenu.node().getBoundingClientRect().width;
+      if ( finalOffset + elementWidth > maxRightBoundary ) {
+        finalOffset = maxRightBoundary - elementWidth;
+      }
+
       finalOffset = Math.max(0, finalOffset);
       currentlyVisibleMenu.style("left", finalOffset + "px");
-      
-      // // check if outside the viewport
-      // var menuWidth=currentlyHoveredEntry.getBoundingClientRect().width;
-      // var bt_width=36;
-      // if (totalOffset+menuWidth<bt_width || totalOffset+bt_width>fullContainer_width){
-      //     navigationMenu.hideAllMenus();
-      //     currentlyHoveredEntry=undefined;
-      // }
     }
   }
+
+  navigationMenu.updateMenuPosition = updateMenuPosition;
   
   navigationMenu.hideAllMenus = function (){
     d3.selectAll(".toolTipMenu").style("display", "none"); // hiding all menus

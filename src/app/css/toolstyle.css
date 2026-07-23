@@ -751,27 +751,7 @@ main {
     font-size: 16px;
 }
 
-@media screen and (device-height <= 800px) {
-    #logo h2 {
-        font-size: calc(8px + 1.0vmin);
-    }
-
-    #logo h2 span {
-        font-size: calc(3px + 1.0vmin);
-    }
-}
-
 @media screen and (height <= 800px) {
-    #logo h2 {
-        font-size: calc(8px + 1.0vmin);
-    }
-
-    #logo h2 span {
-        font-size: calc(3px + 1.0vmin);
-    }
-}
-
-@media screen and (device-width <= 1200px) {
     #logo h2 {
         font-size: calc(8px + 1.0vmin);
     }
@@ -822,9 +802,9 @@ main {
 #detailsArea {
     top: 0;
     right: 0;
-    bottom: 0;
+    bottom: 44px;
     color: #bdc3c7;
-    height: 100%;
+    height: calc(100% - 44px);
     width: 22%;
     overflow: hidden auto;
     position: fixed;
@@ -1953,16 +1933,22 @@ main {
 
 /* ScrollButton behavior */
 #scrollLeftButton {
-    height: 30px;
-    width: 30px;
-    padding: 5px 0 5px 10px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 44px;
+    width: 44px;
     color: #fff;
     cursor: pointer;
-    position: absolute;
-    margin-top: -2px;
-    font-size: 2em;
-    background-color: #24323e;
-    left: 0;
+    font-size: 1.5em;
+    background-color: #18202A;
+    border-top: 1px solid #34495E;
+    border-right: 1px solid #34495E;
+    z-index: 1200;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
 }
 
 #scrollLeftButton:focus {
@@ -1970,37 +1956,41 @@ main {
 }
 
 #scrollLeftButton::before {
-    content: "<";
+    content: "‹";
 }
 
 /* Right Scroll Button */
 #scrollRightButton {
-    height: 30px;
-    width: 30px;
-    padding: 5px 0 5px 10px;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    height: 44px;
+    width: 44px;
     color: #fff;
     cursor: pointer;
-    position: absolute;
-    margin-top: -2px;
-    font-size: 2em;
-    background-color: #24323e;
-    right: 0;
+    font-size: 1.5em;
+    background-color: #18202A;
+    border-top: 1px solid #34495E;
+    border-left: 1px solid #34495E;
+    z-index: 1200;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
 }
 
 #scrollRightButton:focus {
     outline: none;
 }
 
-#scrollRightButton:hover {
-    color: #bdc3c7;
-}
-
+#scrollRightButton:hover,
 #scrollLeftButton:hover {
-    color: #bdc3c7;
+    color: #3b99fc;
+    background-color: #24323e;
 }
 
 #scrollRightButton::before {
-    content: ">";
+    content: "›";
 }
 
 /* Ground-up CSS Flexbox Vertical Zoom Slider Panel */
@@ -2473,17 +2463,10 @@ a#locateSearchResult.highlighted:hover {
 ---------------------------------------------- */
 @media screen and (width <= 1024px) {
     #detailsArea {
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 44px;
         width: 320px;
         max-width: 85vw;
-        height: calc(100% - 44px);
         z-index: 1000;
         box-shadow: -4px 0 20px rgb(0 0 0 / 50%);
-        background-color: #18202A;
-        border-left: 1px solid #34495E;
     }
 
     #sidebarExpandButton {
@@ -2559,11 +2542,6 @@ a#locateSearchResult.highlighted:hover {
 }
 
 @media screen and (width <= 768px) {
-    #detailsArea {
-        width: 90vw;
-        max-width: 100vw;
-    }
-
     #swipeBarContainer {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;

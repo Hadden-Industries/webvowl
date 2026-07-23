@@ -15,7 +15,6 @@ module.exports = function ( graph ){
     
     detailArea = d3.select("#detailsArea"),
     graphArea = d3.select("#canvasArea"),
-    menuArea = d3.select("#swipeBarContainer"),
     collapseButton = d3.select("#sidebarExpandButton");
   
   /**
@@ -763,32 +762,30 @@ module.exports = function ( graph ){
   }
   
   /** Collapsible Sidebar functions; **/
-  
-  function updateZoomSliderPosition(){
-    var isHidden = detailArea.classed("hidden");
-    if ( isHidden ) {
-      d3.select("#zoomSlider").style("left", "auto").style("right", "20px");
-    } else {
-      var sidebarRect = detailArea.node().getBoundingClientRect();
-      var sidebarLeft = sidebarRect.left;
-      var sliderWidth = d3.select("#zoomSlider").node().getBoundingClientRect().width || 32;
-      var targetLeft = sidebarLeft - sliderWidth - 20;
-      d3.select("#zoomSlider").style("right", "auto").style("left", targetLeft + "px");
-    }
-  }
 
-  function updateSidebarButtonPosition(){
+  var DOCKED_CONTROL_OFFSET = 12;
+
+  sidebar.updateDockedControlsPosition = function (){
     var isHidden = detailArea.classed("hidden");
+    var zoomSlider = d3.select("#zoomSlider");
+
     if ( isHidden ) {
-      collapseButton.style("left", "auto").style("right", "12px");
+      zoomSlider.style("left", "auto").style("right", DOCKED_CONTROL_OFFSET + "px");
+      collapseButton.style("left", "auto").style("right", DOCKED_CONTROL_OFFSET + "px");
     } else {
       var sidebarRect = detailArea.node().getBoundingClientRect();
       var sidebarLeft = sidebarRect.left;
-      var btnWidth = collapseButton.node().getBoundingClientRect().width || 36;
-      var targetLeft = sidebarLeft - btnWidth - 12;
-      collapseButton.style("right", "auto").style("left", targetLeft + "px");
+
+      var sliderWidth = zoomSlider.node() ? (zoomSlider.node().getBoundingClientRect().width || 32) : 32;
+      var btnWidth = collapseButton.node() ? (collapseButton.node().getBoundingClientRect().width || 36) : 36;
+
+      var sliderTargetLeft = sidebarLeft - sliderWidth - DOCKED_CONTROL_OFFSET;
+      var btnTargetLeft = sidebarLeft - btnWidth - DOCKED_CONTROL_OFFSET;
+
+      zoomSlider.style("right", "auto").style("left", sliderTargetLeft + "px");
+      collapseButton.style("right", "auto").style("left", btnTargetLeft + "px");
     }
-  }
+  };
 
   function updateNavMenuScrollButtons(){
     if ( graph.options().navigationMenu && graph.options().navigationMenu() ) {
@@ -804,6 +801,7 @@ module.exports = function ( graph ){
 
   sidebar.showSidebar = function ( val, init ){
     var isMobileOrTablet = window.innerWidth <= 1024;
+
     // make val to bool
     if ( val === 1 ) {
       visibleSidebar = true;
@@ -812,8 +810,6 @@ module.exports = function ( graph ){
       if ( isMobileOrTablet ) {
         graphArea.style("width", "100%");
         graphArea.style("-webkit-animation-name", "none");
-        menuArea.style("width", "100%");
-        menuArea.style("-webkit-animation-name", "none");
         d3.select("#WarningErrorMessagesContainer").style("width", "100%");
         d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-name", "none");
         graph.options().width(window.innerWidth);
@@ -822,29 +818,19 @@ module.exports = function ( graph ){
           detailArea.classed("hidden", !visibleSidebar);
           graphArea.style("width", "78%");
           graphArea.style("-webkit-animation-name", "none");
-          
-          menuArea.style("width", "78%");
-          menuArea.style("-webkit-animation-name", "none");
-          
           d3.select("#WarningErrorMessagesContainer").style("width", "78%");
           d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-name", "none");
         } else {
           graphArea.style("width", "78%");
           graphArea.style("-webkit-animation-name", "sbCollapseAnimation");
           graphArea.style("-webkit-animation-duration", "0.5s");
-          
-          menuArea.style("width", "78%");
-          menuArea.style("-webkit-animation-name", "sbCollapseAnimation");
-          menuArea.style("-webkit-animation-duration", "0.5s");
-          
           d3.select("#WarningErrorMessagesContainer").style("width", "78%");
           d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-name", "warn_ExpandRightBarAnimation");
           d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-duration", "0.5s");
         }
         graph.options().width(window.innerWidth - (window.innerWidth * 0.22));
       }
-      updateZoomSliderPosition();
-      updateSidebarButtonPosition();
+      sidebar.updateDockedControlsPosition();
       graph.updateCanvasContainerSize();
       updateNavMenuScrollButtons();
     }
@@ -857,28 +843,17 @@ module.exports = function ( graph ){
       if ( init === true || isMobileOrTablet ) {
         graphArea.style("width", "100%");
         graphArea.style("-webkit-animation-name", "none");
-        
-        menuArea.style("width", "100%");
-        menuArea.style("-webkit-animation-name", "none");
-        
         d3.select("#WarningErrorMessagesContainer").style("width", "100%");
         d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-name", "none");
       } else {
         graphArea.style("width", "100%");
         graphArea.style("-webkit-animation-name", "sbExpandAnimation");
         graphArea.style("-webkit-animation-duration", "0.5s");
-        
-        menuArea.style("width", "100%");
-        menuArea.style("-webkit-animation-name", "sbExpandAnimation");
-        menuArea.style("-webkit-animation-duration", "0.5s");
-        
         d3.select("#WarningErrorMessagesContainer").style("width", "100%");
         d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-name", "warn_CollapseRightBarAnimation");
         d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-duration", "0.5s");
-        
       }
-      updateZoomSliderPosition();
-      updateSidebarButtonPosition();
+      sidebar.updateDockedControlsPosition();
       graph.options().width(window.innerWidth);
       graph.updateCanvasContainerSize();
       updateNavMenuScrollButtons();
