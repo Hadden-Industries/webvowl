@@ -104,6 +104,7 @@ module.exports = function (graph) {
     d3.select(window).on("mouseup.navScroll", clearAllTimers).on("touchend.navScroll", clearAllTimers);
     d3.select(window).on("resize.navMenu", function (){
       navigationMenu.updateScrollButtonVisibility();
+      updateMenuPosition();
     });
 
     // connect scrollIndicator Buttons;
@@ -225,7 +226,7 @@ module.exports = function (graph) {
       if (finalOffset + elementWidth > fullContainer_width) {
         finalOffset = fullContainer_width - elementWidth;
       }
-      // fix priority;
+
       finalOffset = Math.max(0, finalOffset);
       currentlyVisibleMenu.style("left", finalOffset + "px");
 
@@ -238,6 +239,8 @@ module.exports = function (graph) {
       // }
     }
   }
+
+  navigationMenu.updateMenuPosition = updateMenuPosition;
 
   navigationMenu.hideAllMenus = function () {
     d3.selectAll(".toolTipMenu").style("display", "none"); // hiding all menus

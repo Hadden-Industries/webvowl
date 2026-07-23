@@ -515,6 +515,9 @@ module.exports = function () {
     options.width(width).height(height);
 
     graph.updateStyle();
+    if ( sidebar && sidebar.updateDockedControlsPosition ) {
+      sidebar.updateDockedControlsPosition();
+    }
 
     if (isTouchDevice() === true) {
       if (graph.isEditorMode() === true) {

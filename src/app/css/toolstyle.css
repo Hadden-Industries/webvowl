@@ -2708,17 +2708,10 @@ a#locateSearchResult.highlighted:hover {
 ----------------------------------------------*/
 @media screen and (max-width: 1024px) {
     #detailsArea {
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 44px;
         width: 320px;
         max-width: 85vw;
-        height: calc(100% - 44px);
         z-index: 1000;
         box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
-        background-color: #18202A;
-        border-left: 1px solid #34495E;
     }
 
     #sidebarExpandButton {
@@ -2794,11 +2787,6 @@ a#locateSearchResult.highlighted:hover {
 }
 
 @media screen and (max-width: 768px) {
-    #detailsArea {
-        width: 90vw;
-        max-width: 100vw;
-    }
-
     #swipeBarContainer {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
