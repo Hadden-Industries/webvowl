@@ -88,3 +88,7 @@ export function loadWithImports(initialXmlText) {
 }
 
 export const catalog = ONTOLOGY_CATALOG;
+
+owl2vowl.loadWithImports = loadWithImports;
+owl2vowl.catalog = catalog;
+

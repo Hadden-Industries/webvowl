@@ -2,15 +2,17 @@
 # See docker/README.md
 
 ARG TOMCAT_IMAGE=9.0.118
-ARG NODE_IMAGE=12-alpine
+ARG NODE_IMAGE=22-alpine
 
 FROM node:${NODE_IMAGE} AS builder
 
 WORKDIR /build
-COPY package.json Gruntfile.js webpack.config.js ./
+COPY package.json vite.config.js ./
+COPY index.html ./
+COPY eslint.config.js ./
+COPY LICENSE ./
 COPY src ./src
 COPY util ./util
-COPY .jshintrc .jshintignore ./
 
 RUN npm install --ignore-scripts && npm run release
 

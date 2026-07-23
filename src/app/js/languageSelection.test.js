@@ -1,5 +1,3 @@
-import { describe, test, expect } from "@jest/globals";
-
 function getBrowserLanguages(nav) {
   var browserLangs = [];
   if (Array.isArray(nav.languages)) {
