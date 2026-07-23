@@ -4,3 +4,4 @@ node_js:
 script:
   - "npm test"
   - "npx eslint src/"
+  - "npx html-validate src/index.html"

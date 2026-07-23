@@ -57,5 +57,14 @@ module.exports = [
       ecmaVersion: 2022,
       sourceType: "module"
     }
+  },
+
+  // Overrides for unit test files (supports ES6+ arrow functions and Jest globals)
+  {
+    files: ["**/*.test.js"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module"
+    }
   }
 ];

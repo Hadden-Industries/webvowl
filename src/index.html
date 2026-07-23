@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en-us">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="author" content="Vincent Link, Steffen Lohmann, Eduard Marbach, Stefan Negru, Vitalis Wiens"/>
+    <meta charset="utf-8">
+    <meta name="author" content="Vincent Link, Steffen Lohmann, Eduard Marbach, Stefan Negru, Vitalis Wiens">
     <meta name="keywords"
-          content="webvowl, vowl, visual notation, web ontology language, owl, rdf, ontology visualization, ontologies, semantic web"/>
-    <meta name="description" content="WebVOWL - Web-based Visualization of Ontologies"/>
-    <meta name="robots" content="noindex,nofollow"/>
+          content="webvowl, vowl, visual notation, web ontology language, owl, rdf, ontology visualization, ontologies, semantic web">
+    <meta name="description" content="WebVOWL - Web-based Visualization of Ontologies">
+    <meta name="robots" content="noindex,nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <title>WebVOWL</title>
 </head>
 <body>
@@ -145,7 +145,7 @@
                         <button type="submit" id="iri-converter-button" disabled>Visualize</button>
                     </form>
                     <div class="converter-form">
-                        <input class="hidden" type="file" id="file-converter-input" autocomplete="off">
+                        <input class="hidden" type="file" id="file-converter-input">
                         <label class="truncate" id="file-converter-label" for="file-converter-input">Select ontology
                             file</label>
                         <button type="submit" id="file-converter-button" disabled>
@@ -169,9 +169,9 @@
             <ul id="m_export" class="toolTipMenu noselect">
                 <li><a href="#" download id="exportJson">Export as JSON</a></li>
                 <li><a href="#" download id="exportSvg">Export as SVG</a></li>
-                <li><a href="#" download id="exportTex">Export as TeX <label style="font-size: 10px">(alpha)</label></a>
+                <li><a href="#" download id="exportTex">Export as TeX <span style="font-size: 10px">(alpha)</span></a>
                 </li>
-                <li><a href="#" download id="exportTurtle">Export as TTL <label style="font-size: 10px">(alpha)</label></a>
+                <li><a href="#" download id="exportTurtle">Export as TTL <span style="font-size: 10px">(alpha)</span></a>
                 </li>
 
                 <li class="option" id="emptyLiHover">
@@ -179,7 +179,7 @@
                         <form class="converter-form" id="url-copy-form">
                             <label for="exportedUrl">Export as URL:</label>
                             <input type="text" id="exportedUrl" placeholder="#">
-                            <button id="copyBt" title="Copy to clipboard">Copy</button>
+                            <button type="submit" id="copyBt" title="Copy to clipboard">Copy</button>
                         </form>
                     </div>
                 </li>
@@ -223,12 +223,12 @@
             <!--About Menu-->
             <ul id="m_about" class="toolTipMenu">
                 <li><a href="license.txt" target="_blank">MIT License &copy; 2014-2019</a></li>
-                <li id="credits" class="option">WebVOWL Developers:<br/>
+                <li id="credits" class="option">WebVOWL Developers:<br>
                     Vincent Link, Steffen Lohmann, Eduard Marbach, Stefan Negru, Vitalis Wiens
                 </li>
                 <!-- build:process -->
-                <li><a href="http://vowl.visualdataweb.org/webvowl.html#releases" target="_blank">
-                    Version: __WEBVOWL_VERSION__<br/>(release history)</a></li>
+                <li><a href="https://github.com/VisualDataWeb/WebVOWL/releases" target="_blank">
+                    Version: __WEBVOWL_VERSION__<br>(release history)</a></li>
                 <!-- /build -->
                 <li><a href="http://purl.org/vowl/" target="_blank">VOWL Specification &raquo;</a></li>
             </ul>
@@ -239,9 +239,9 @@
                 <li id="c_search" class="inner-addon left-addon">
                     <i class="searchIcon">
                         <svg viewBox="0 0 24 24" height="100%" width="100%"
-                             style="pointer-events: none; display: block;">
+                             pointer-events="none" display="block">
                             <g>
-                                <path id="magnifyingGlass" style="fill : #666; stroke-width:0;"
+                                <path id="magnifyingGlass" fill="#666" stroke-width="0"
                                       d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z">
                                 </path>
                             </g>
@@ -370,12 +370,14 @@
                         <label class="EditLabelForInput" id="titleEditor-label" for="titleEditor"
                                title="Ontology title as dc:title">Title:</label>
                         <input class="modifiedInputStyle" type="text" id="titleEditor" autocomplete="off" value="">
+                        <button type="submit" class="hidden">Submit</button>
                     </form>
                 </div>
                 <div class="textLineEditWithLabel">
                     <form class="converter-form-Editor " id="iriEditForm">
                         <label class="EditLabelForInput" id="iriEditor-label" for="iriEditor">IRI:</label>
                         <input type="text" id="iriEditor" autocomplete="off" value="">
+                        <button type="submit" class="hidden">Submit</button>
                     </form>
                 </div>
                 <div class="textLineEditWithLabel">
@@ -383,6 +385,7 @@
                         <label class="EditLabelForInput" id="versionEditor-label" for="versionEditor"
                                title="Ontology version number as owl:versionInfo">Version:</label>
                         <input type="text" id="versionEditor" value="" autocomplete="off">
+                        <button type="submit" class="hidden">Submit</button>
                     </form>
                 </div>
                 <div class="textLineEditWithLabel">
@@ -390,6 +393,7 @@
                         <label class="EditLabelForInput" id="authorsEditor-label" for="authorsEditor"
                                title="Ontology authors as dc:creator">Authors:</label>
                         <input type="text" id="authorsEditor" value="" autocomplete="off">
+                        <button type="submit" class="hidden">Submit</button>
                     </form>
                 </div>
                 <h4 class="subAccordion accordion-trigger noselect">Prefix</h4>
@@ -418,22 +422,26 @@
                             <label class="EditLabelForInput" id="element_iriEditor-label"
                                    for="element_iriEditor">IRI:</label>
                             <input type="text" id="element_iriEditor" autocomplete="off" value="">
+                            <button type="submit" class="hidden">Submit</button>
                         </form>
                     </div>
                     <div class="textLineEditWithLabel">
                         <form class="converter-form-Editor " id="element_labelEditForm">
                             <label class="EditLabelForInput" id="element_labelEditor-label" for="element_labelEditor">Label:</label>
                             <input type="text" id="element_labelEditor" autocomplete="off" value="">
+                            <button type="submit" class="hidden">Submit</button>
                         </form>
                     </div>
                     <div class="textLineEditWithLabel">
                         <form class="converter-form-Editor" id="typeEditForm">
                             <label class="EditLabelForInput" id="typeEditor-label" for="typeEditor">Type:</label>
                             <select id="typeEditor" class="dropdownMenuClass"></select>
+                            <button type="submit" class="hidden">Submit</button>
                         </form>
                         <form class="converter-form-Editor" id="typeEditForm_datatype">
                             <label class="EditLabelForInput" id="typeEditor_datatype-label" for="typeEditor_datatype">Datatype:</label>
                             <select id="typeEditor_datatype" class="dropdownMenuClass"></select>
+                            <button type="submit" class="hidden">Submit</button>
                         </form>
                     </div>
                     <div class="textLineEditWithLabel" id="property_characteristics_Container"> Characteristics:
@@ -448,8 +456,8 @@
 
         </section>
         <section id="generalDetails" class="hidden">
-            <h1 id="title"></h1>
-            <span><a id="about" href=""></a></span>
+            <h1 id="title">Ontology Details</h1>
+            <span><a id="about" href="#" aria-label="Ontology Link">Ontology Link</a></span>
             <h5>Version: <span id="version"></span></h5>
             <h5>Author(s): <span id="authors"></span></h5>
             <h5>
@@ -519,10 +527,10 @@
             <div id="di_controls">
                 <ul>
                     <li>
-                        <button id="directUploadBtn">Upload</button>
+                        <button id="directUploadBtn" type="button">Upload</button>
                     </li>
                     <li>
-                        <button id="close_directUploadBtn">Close</button>
+                        <button id="close_directUploadBtn" type="button">Close</button>
                     </li>
                     <li id="Error_onLoad" class="hidden">Some text if ERROR</li>
                 </ul>
@@ -533,7 +541,7 @@
     </div>
 
 </main>
-<script src="/js/d3.min.js"></script>
-<script type="module" src="/main.js"></script>
+<script src="js/d3.min.js"></script>
+<script type="module" src="main.js"></script>
 </body>
 </html>

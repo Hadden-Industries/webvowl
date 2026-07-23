@@ -6,6 +6,7 @@ import inject from "@rollup/plugin-inject";
 import replace from "@rollup/plugin-replace";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import eslintPlugin from "vite-plugin-eslint2";
+import { HtmlValidate, FileSystemConfigLoader, formatterFactory } from "html-validate";
 
 var pkg = JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf-8"));
 
@@ -59,6 +60,8 @@ export default defineConfig(function (env) {
   var isProd = mode === "production";
 
   return {
+    // Relative base path allows deployment under subdirectories (e.g. https://domain.com/webvowl/)
+    base: "./",
     // index.html remains at src/index.html (project convention preserved)
     root: "src",
     publicDir: false,
@@ -181,6 +184,25 @@ export default defineConfig(function (env) {
         lintOnStart: true,
         include: [resolve(__dirname, "src/**/*.js")]
       }),
+
+      // HTML-Validate linter integration for src/index.html
+      {
+        name: "vite-plugin-html-validate",
+        async transformIndexHtml(html, ctx) {
+          const loader = new FileSystemConfigLoader();
+          const htmlvalidate = new HtmlValidate(loader);
+          const report = await htmlvalidate.validateString(html, ctx.filename || resolve(__dirname, "src/index.html"));
+          if (!report.valid) {
+            const formatter = formatterFactory("stylish");
+            const formatted = formatter(report.results);
+            console.error("\n[html-validate] HTML validation errors found:\n" + formatted);
+            if (mode === "production") {
+              throw new Error("HTML validation failed during production build.");
+            }
+          }
+          return html;
+        }
+      },
 
       // HTML template processing and post-build cleanup
       webvowlBuildPlugin(mode)
