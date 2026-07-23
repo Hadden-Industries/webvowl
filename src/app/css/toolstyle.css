@@ -1001,7 +1001,10 @@ main {
 #zoomOutButton {
     background: transparent;
     border: none;
-    padding: 0;
+    padding: 0 44px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
     margin: 0;
     font-family: inherit;
     font-size: inherit;
@@ -1038,7 +1041,29 @@ main {
 }
 
 #empty {
-    pointer-events: none;
+li#c_search .searchIcon {
+    position: absolute !important;
+    left: 14px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 16px !important;
+    height: 16px !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+    display: block !important;
+}
+
+li#c_search input.searchInputText {
+    height: 28px !important;
+    padding-left: 30px !important;
+    padding-right: 10px !important;
+    font-size: 13px !important;
+    border-radius: 14px !important;
+    border: 1px solid #34495E !important;
+    background-color: #24323E !important;
+    color: #ffffff !important;
+    outline: none !important;
+    box-sizing: border-box !important;
     padding-left: 0;
 }
 
@@ -1896,12 +1921,17 @@ main {
 
 /* Scroll-able container for the menu entries */
 #menuElementContainer {
+    width: 100%;
+    height: 44px;
   margin: 0;
   padding: 0;
   overflow: auto hidden;
   white-space: nowrap;
   text-align: right;
   list-style-type: none;
+    box-sizing: border-box;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 /* Style for the individual menu entries */
@@ -1923,7 +1953,23 @@ main {
   padding: 9px 12px 12px 30px;
 }
 
-.menuElementSvgElement {
+/* Link elements inside menu list items */
+#menuElementContainer > li > a {
+    height: 44px;
+    margin: 0;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    text-decoration: none;
+    box-sizing: border-box;
+    border-radius: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#menuElementContainer .menuElementSvgElement {
+    margin-right: 6px;
   height: 20px;
   width: 20px;
   display: block;
@@ -2655,4 +2701,123 @@ a#locateSearchResult.highlighted:hover {
 
 .disabledLabelForSlider {
   color: #808080;
+}
+
+/*----------------------------------------------
+  Responsive & iPad / Mobile Drawer Layout
+----------------------------------------------*/
+@media screen and (max-width: 1024px) {
+    #detailsArea {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 44px;
+        width: 320px;
+        max-width: 85vw;
+        height: calc(100% - 44px);
+        z-index: 1000;
+        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+        background-color: #18202A;
+        border-left: 1px solid #34495E;
+    }
+
+    #sidebarExpandButton {
+        position: fixed;
+        z-index: 1001;
+        width: 44px;
+        height: 44px;
+        font-size: 1.5em;
+        top: 8px;
+        right: 8px;
+        border-radius: 6px;
+        background-color: rgba(24, 32, 42, 0.95);
+        color: #ecf0f1;
+        border: 1px solid #34495E;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: right 0.3s ease;
+    }
+
+    #sidebarExpandButton.aligned-to-sidebar {
+        right: 328px !important;
+    }
+
+    #leftSideBarCollapseButton {
+        width: 44px;
+        height: 44px;
+        line-height: 40px;
+        font-size: 1.5em;
+        border-radius: 6px;
+    }
+
+    #canvasArea {
+        width: 100% !important;
+    }
+
+    #WarningErrorMessagesContainer {
+        width: 100% !important;
+    }
+
+    #zoomSlider {
+        width: 44px;
+        position: fixed;
+        bottom: 60px;
+        right: 20px;
+        z-index: 999;
+        transition: right 0.3s ease;
+    }
+
+    #zoomSlider.slider-left-offset {
+        right: 335px !important;
+    }
+
+    #zoomSliderParagraph {
+        width: 44px;
+    }
+
+    #zoomSlider button {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #zoomSlider button svg {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    #detailsArea {
+        width: 90vw;
+        max-width: 100vw;
+    }
+
+    #swipeBarContainer {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .searchInputText {
+        max-width: 110px;
+    }
+
+    #menuElementContainer li a {
+        font-size: 13px;
+    }
+}
+
+@supports (padding: env(safe-area-inset-top)) {
+    body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
 }

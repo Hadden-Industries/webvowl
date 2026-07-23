@@ -837,6 +837,45 @@ module.exports = function (graph) {
   /** Collapsible Sidebar functions; **/
 
   sidebar.showSidebar = function (val, init) {
+  function updateZoomSliderPosition(){
+    var isHidden = detailArea.classed("hidden");
+    if ( isHidden ) {
+      d3.select("#zoomSlider").style("left", "auto").style("right", "20px");
+    } else {
+      var sidebarRect = detailArea.node().getBoundingClientRect();
+      var sidebarLeft = sidebarRect.left;
+      var sliderWidth = d3.select("#zoomSlider").node().getBoundingClientRect().width || 32;
+      var targetLeft = sidebarLeft - sliderWidth - 20;
+      d3.select("#zoomSlider").style("right", "auto").style("left", targetLeft + "px");
+    }
+  }
+
+  function updateSidebarButtonPosition(){
+    var isHidden = detailArea.classed("hidden");
+    if ( isHidden ) {
+      collapseButton.style("left", "auto").style("right", "12px");
+    } else {
+      var sidebarRect = detailArea.node().getBoundingClientRect();
+      var sidebarLeft = sidebarRect.left;
+      var btnWidth = collapseButton.node().getBoundingClientRect().width || 36;
+      var targetLeft = sidebarLeft - btnWidth - 12;
+      collapseButton.style("right", "auto").style("left", targetLeft + "px");
+    }
+  }
+
+  function updateNavMenuScrollButtons(){
+    if ( graph.options().navigationMenu && graph.options().navigationMenu() ) {
+      graph.options().navigationMenu().updateScrollButtonVisibility();
+    }
+  }
+
+  function hideNavMenus(){
+    if ( graph.options().navigationMenu && graph.options().navigationMenu() ) {
+      graph.options().navigationMenu().hideAllMenus();
+    }
+  }
+
+    var isMobileOrTablet = window.innerWidth <= 1024;
     // make val to bool
     if (val === 1) {
       visibleSidebar = true;
@@ -855,6 +894,7 @@ module.exports = function (graph) {
           "-webkit-animation-name",
           "none",
         );
+        graph.options().width(window.innerWidth);
       } else {
         graphArea.style("width", "78%");
         graphArea.style("-webkit-animation-name", "sbCollapseAnimation");
@@ -914,9 +954,11 @@ module.exports = function (graph) {
           "0.5s",
         );
       }
+      updateZoomSliderPosition();
+      updateSidebarButtonPosition();
       graph.options().width(window.innerWidth);
       graph.updateCanvasContainerSize();
-      graph.options().navigationMenu().updateScrollButtonVisibility();
+      updateNavMenuScrollButtons();
     }
   };
 
@@ -943,7 +985,7 @@ module.exports = function (graph) {
     graphArea.node().addEventListener("animationend", function () {
       detailArea.classed("hidden", !visibleSidebar);
       graph.updateCanvasContainerSize();
-      graph.options().navigationMenu().updateScrollButtonVisibility();
+      updateNavMenuScrollButtons();
     });
   };
 
@@ -952,7 +994,7 @@ module.exports = function (graph) {
     sidebar.initSideBarAnimation();
 
     collapseButton.on("click", function () {
-      graph.options().navigationMenu().hideAllMenus();
+      hideNavMenus();
       const settingValue = parseInt(sidebar.getSidebarVisibility());
       if (settingValue === 1) {
         sidebar.showSidebar(0);
@@ -960,6 +1002,10 @@ module.exports = function (graph) {
         sidebar.showSidebar(1);
       }
     });
+
+    if ( window.innerWidth <= 1024 ) {
+      sidebar.showSidebar(0, true);
+    }
   };
 
   sidebar.updateShowedInformation = function () {

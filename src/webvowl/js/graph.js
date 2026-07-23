@@ -2386,6 +2386,9 @@ module.exports = function (graphContainerSelector) {
     // get all nodes (handle also already filtered nodes )
     pulseNodeIds = [];
     nodeArrayForPulse = [];
+    if ( !unfilteredData || !unfilteredData.nodes || !unfilteredData.properties ) {
+      return;
+    }
     // clear from stored nodes
     const nodes = unfilteredData.nodes;
     const props = unfilteredData.properties;

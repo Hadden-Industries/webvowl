@@ -20,6 +20,8 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#18202A">
     <!-- Modern scalable favicon -->
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <!-- Legacy browser fallback -->
@@ -173,6 +175,11 @@
               >Drag ontology file here.</span
             >
           </div>
+                    <defs>
+                        <g id="crosshair-symbol">
+                            <path fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" d="M5 70h130M70 5v130M102 70a32 32 0 1 1-64 0 32 32 0 0 1 64 0z"/>
+                        </g>
+                    </defs>
         </div>
         <div class="noselect">
           <span id="leftSideBarCollapseButton" class="btn_shadowed hidden">

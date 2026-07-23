@@ -62,6 +62,7 @@ module.exports = function () {
     const node = d3.select(selector);
 
     node.node().ondragover = function (e) {
+  var initialTouchZoomHandled = false;
       e.preventDefault();
 
       d3.select("#dragDropContainer").classed("hidden", false);
@@ -488,6 +489,7 @@ module.exports = function () {
     let width = window.innerWidth - window.innerWidth * 0.22;
 
     if (sidebar.getSidebarVisibility() === "0") {
+    var isMobileOrTablet = window.innerWidth <= 1024;
       height = window.innerHeight - 40;
       width = window.innerWidth;
     }
@@ -520,6 +522,10 @@ module.exports = function () {
           "touch able device detected";
       }
       graph.setTouchDevice(true);
+      if ( !initialTouchZoomHandled && isMultiTouchZoomDevice() ) {
+        initialTouchZoomHandled = true;
+        configMenu.setCheckBoxValue("showZoomSliderConfigCheckbox", false);
+      }
     } else {
       if (graph.isEditorMode() === true) {
         d3.select("#modeOfOperationString").node().innerHTML =
@@ -582,12 +588,9 @@ module.exports = function () {
     // assuming DOM elements are generated in the index.html
     // todo: refactor for independent usage of graph and app
     if (fullHeight < 150) {
-      // hide the slider button;
-      d3.select("#zoomSliderParagraph").classed("hidden", true);
-      d3.select("#zoomOutButton").classed("hidden", true);
-      d3.select("#zoomInButton").classed("hidden", true);
-      d3.select("#centerGraphButton").classed("hidden", true);
-      return;
+      d3.select("#zoomSlider").classed("hidden", true);
+    } else {
+      d3.select("#zoomSlider").classed("hidden", false);
     }
     d3.select("#zoomSliderParagraph").classed("hidden", false);
     d3.select("#zoomOutButton").classed("hidden", false);
@@ -617,6 +620,10 @@ module.exports = function () {
 
   function isTouchDevice() {
     try {
+      var hasTouch = ('ontouchstart' in window) || 
+                     (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || 
+                     (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints > 0);
+      if ( hasTouch ) return true;
       document.createEvent("TouchEvent");
       return true;
     } catch (_e) {

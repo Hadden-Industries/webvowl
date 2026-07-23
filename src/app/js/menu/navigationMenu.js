@@ -100,6 +100,12 @@ module.exports = function (graph) {
       navigationMenu.updateScrollButtonVisibility();
     });
 
+    // bind global release listeners
+    d3.select(window).on("mouseup.navScroll", clearAllTimers).on("touchend.navScroll", clearAllTimers);
+    d3.select(window).on("resize.navMenu", function (){
+      navigationMenu.updateScrollButtonVisibility();
+    });
+
     // connect scrollIndicator Buttons;
     d3.select("#scrollRightButton")
       .on("mousedown", function () {
@@ -241,8 +247,8 @@ module.exports = function (graph) {
     scrollMax = scrollContainer.scrollWidth - scrollContainer.clientWidth - 2;
     if (scrollContainer.scrollLeft === 0) {
       leftButton.classed("hidden", true);
-    } else {
-      leftButton.classed("hidden", false);
+      rightButton.classed("hidden", true);
+      return;
     }
 
     if (scrollContainer.scrollLeft > scrollMax) {
