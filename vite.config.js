@@ -6,6 +6,7 @@ import inject from "@rollup/plugin-inject";
 import replace from "@rollup/plugin-replace";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import eslintPlugin from "vite-plugin-eslint2";
+import stylelint from "vite-plugin-stylelint";
 import { HtmlValidate, FileSystemConfigLoader, formatterFactory } from "html-validate";
 
 var pkg = JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf-8"));
@@ -183,6 +184,12 @@ export default defineConfig(function (env) {
       eslintPlugin({
         lintOnStart: true,
         include: [resolve(__dirname, "src/**/*.js")]
+      }),
+
+      // Stylelint integration during dev and build for CSS files
+      stylelint({
+        lintOnStart: true,
+        include: [resolve(__dirname, "src/**/*.css")]
       }),
 
       // HTML-Validate linter integration for src/index.html

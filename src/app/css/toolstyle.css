@@ -1,8 +1,8 @@
-@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+@import url("https://fonts.googleapis.com/css?family=Open+Sans");
 
-/*----------------------------------------------
+/* ----------------------------------------------
         WebVOWL page
-----------------------------------------------*/
+---------------------------------------------- */
 html {
     -ms-content-zooming: none;
 }
@@ -12,6 +12,9 @@ html {
 #loading-progress {
     width: 50%;
     margin: 10px 0;
+    pointer-events: auto;
+    min-width: 220px;
+    border-radius: 10px;
 }
 
 #drag_dropOverlay{
@@ -32,10 +35,8 @@ html {
     top:0;
     pointer-events: none;
 }
-#drag_icon_group{
 
 
-}
 
 #drag_msg{
     width: 50%;
@@ -62,20 +63,28 @@ html {
     height: 50px;
     text-align: left;
     line-height: 1.5;
+    padding-bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #FPS_Statistics {
-    /*position : absolute;*/
-    /*top : 10px;*/
-    /*right: 50px;*/
+    /* position : absolute; */
+
+    /* top : 10px; */
+
+    /* right: 50px; */
     padding-left: 60px;
     padding-top: 60px;
 }
 
 #reloadCachedOntology {
-    /*position : absolute;*/
-    /*top : 10px;*/
-    /*right: 50px;*/
+    /* position : absolute; */
+
+    /* top : 10px; */
+
+    /* right: 50px; */
 }
 
 #additionalInformationContainer {
@@ -85,9 +94,11 @@ html {
 }
 
 #modeOfOperationString {
-    /*position: absolute;*/
-    /*right: 50px;*/
-    /*top : 60px;*/
+    /* position: absolute; */
+
+    /* right: 50px; */
+
+    /* top : 60px; */
     padding-left: 34px;
 }
 
@@ -105,9 +116,7 @@ html {
     cursor: pointer
 }
 
-#di_controls {
 
-}
 
 #di_controls > ul {
     list-style: none;
@@ -121,7 +130,6 @@ html {
     background-color: #bdc3c7;
     height: 25px;
     border: solid 1px black;
-
     margin: auto;
 
 }
@@ -137,7 +145,7 @@ html {
 
 /** adding searching Styles **/
 .dbEntry {
-    background-color: #ffffff;
+    background-color: #fff;
     color: #2980b9;
     padding: 10px;
     font-size: 14px;
@@ -145,9 +153,7 @@ html {
     cursor: pointer;
 }
 
-.debugOption {
 
-}
 
 .dbEntrySelected {
     background-color: #bdc3c7;
@@ -163,7 +169,7 @@ html {
 }
 
 .searchMenuEntry {
-    background-color: #ffffff;
+    background-color: #fff;
     bottom: 0;
     font-size: 14px;
     min-width: 50px;
@@ -171,9 +177,8 @@ html {
     padding: 0;
     z-index: 99;
     border-radius: 4px 4px 0 0;
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+    border: 1px solid rgb(0 0 0 / 15%);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 17.5%);
     box-sizing: border-box;
     border-bottom: none;
     display: none;
@@ -182,14 +187,15 @@ html {
 }
 
 .searchInputText {
-    background-color: #ffffff;
+    background-color: #fff;
     color: black;
     border: black;
     text-decoration: none;
     max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
-    /*height: 20px;*/
+
+    /* height: 20px; */
     margin: 0;
 }
 
@@ -243,31 +249,14 @@ a:hover {
     text-decoration: underline;
 }
 
-/*----------------------------------------------
+/* ----------------------------------------------
   SideBar Animation Class;
 ----------------------------------------------- */
-@-webkit-keyframes sbExpandAnimation {
+@keyframes sbExpandAnimation {
     0% {
         width: 78%;
     }
-    100% {
-        width: 100%;
-    }
-}
 
-@-moz-keyframes sbExpandAnimation {
-    0% {
-        width: 78%;
-    }
-    100% {
-        width: 100%;
-    }
-}
-
-@-o-keyframes sbExpandAnimation {
-    0% {
-        width: 78%;
-    }
     100% {
         width: 100%;
     }
@@ -277,34 +266,38 @@ a:hover {
     0% {
         width: 78%;
     }
+
     100% {
         width: 100%;
     }
 }
 
-/*Collapse Animation*/
-@-webkit-keyframes sbCollapseAnimation {
+@keyframes sbExpandAnimation {
     0% {
-        width: 100%;
-    }
-    100% {
         width: 78%;
     }
-}
 
-@-moz-keyframes sbCollapseAnimation {
-    0% {
+    100% {
         width: 100%;
     }
-    100% {
+}
+
+@keyframes sbExpandAnimation {
+    0% {
         width: 78%;
     }
+
+    100% {
+        width: 100%;
+    }
 }
 
-@-o-keyframes sbCollapseAnimation {
+/* Collapse Animation */
+@keyframes sbCollapseAnimation {
     0% {
         width: 100%;
     }
+
     100% {
         width: 78%;
     }
@@ -314,36 +307,40 @@ a:hover {
     0% {
         width: 100%;
     }
+
     100% {
         width: 78%;
     }
 }
 
-/*----------------------------------------------
+@keyframes sbCollapseAnimation {
+    0% {
+        width: 100%;
+    }
+
+    100% {
+        width: 78%;
+    }
+}
+
+@keyframes sbCollapseAnimation {
+    0% {
+        width: 100%;
+    }
+
+    100% {
+        width: 78%;
+    }
+}
+
+/* ----------------------------------------------
   SideBar Animation Class;
 ----------------------------------------------- */
-@-webkit-keyframes l_sbExpandAnimation {
+@keyframes l_sbExpandAnimation {
     0% {
-        width: 0px;
+        width: 0;
     }
-    100% {
-        width: 200px;
-    }
-}
 
-@-moz-keyframes l_sbExpandAnimation {
-    0% {
-        width: 0px;
-    }
-    100% {
-        width: 200px;
-    }
-}
-
-@-o-keyframes l_sbExpandAnimation {
-    0% {
-        width: 0px;
-    }
     100% {
         width: 200px;
     }
@@ -351,38 +348,42 @@ a:hover {
 
 @keyframes l_sbExpandAnimation {
     0% {
-        width: 0px;
+        width: 0;
     }
+
     100% {
         width: 200px;
     }
 }
 
-/*Collapse Animation*/
-@-webkit-keyframes l_sbCollapseAnimation {
+@keyframes l_sbExpandAnimation {
     0% {
-        width: 200px;
+        width: 0;
     }
+
     100% {
-        width: 0px;
+        width: 200px;
     }
 }
 
-@-moz-keyframes l_sbCollapseAnimation {
+@keyframes l_sbExpandAnimation {
     0% {
-        width: 200px;
+        width: 0;
     }
+
     100% {
-        width: 0px;
+        width: 200px;
     }
 }
 
-@-o-keyframes l_sbCollapseAnimation {
+/* Collapse Animation */
+@keyframes l_sbCollapseAnimation {
     0% {
         width: 200px;
     }
+
     100% {
-        width: 0px;
+        width: 0;
     }
 }
 
@@ -390,38 +391,42 @@ a:hover {
     0% {
         width: 200px;
     }
+
     100% {
-        width: 0px;
+        width: 0;
     }
 }
 
-/*----------------- WARNING ANIMATIONS-------------*/
+@keyframes l_sbCollapseAnimation {
+    0% {
+        width: 200px;
+    }
 
-/*----------------------------------------------
+    100% {
+        width: 0;
+    }
+}
+
+@keyframes l_sbCollapseAnimation {
+    0% {
+        width: 200px;
+    }
+
+    100% {
+        width: 0;
+    }
+}
+
+/* ----------------- WARNING ANIMATIONS------------- */
+
+/* ----------------------------------------------
   SideBar Animation Class;
 ----------------------------------------------- */
-@-webkit-keyframes warn_ExpandAnimation {
+@keyframes warn_ExpandAnimation {
     0% {
         top: -500px;
     }
-    100% {
-        top: 0;
-    }
-}
 
-@-moz-keyframes warn_ExpandAnimation {
-    0% {
-        top: -500px;
-    }
-    100% {
-        top: 0;
-    }
-}
-
-@-o-keyframes warn_ExpandAnimation {
-    0% {
-        top: -500px;
-    }
     100% {
         top: 0;
     }
@@ -431,34 +436,38 @@ a:hover {
     0% {
         top: -500px;
     }
+
     100% {
         top: 0;
     }
 }
 
-/*Collapse Animation*/
-@-webkit-keyframes warn_CollapseAnimation {
+@keyframes warn_ExpandAnimation {
     0% {
-        top: 0;
+        top: -500px;
     }
+
     100% {
-        top: -400px;
+        top: 0;
     }
 }
 
-@-moz-keyframes warn_CollapseAnimation {
+@keyframes warn_ExpandAnimation {
     0% {
-        top: 0;
+        top: -500px;
     }
+
     100% {
-        top: -400px;
+        top: 0;
     }
 }
 
-@-o-keyframes warn_CollapseAnimation {
+/* Collapse Animation */
+@keyframes warn_CollapseAnimation {
     0% {
         top: 0;
     }
+
     100% {
         top: -400px;
     }
@@ -468,6 +477,27 @@ a:hover {
     0% {
         top: 0;
     }
+
+    100% {
+        top: -400px;
+    }
+}
+
+@keyframes warn_CollapseAnimation {
+    0% {
+        top: 0;
+    }
+
+    100% {
+        top: -400px;
+    }
+}
+
+@keyframes warn_CollapseAnimation {
+    0% {
+        top: 0;
+    }
+
     100% {
         top: -400px;
     }
@@ -477,34 +507,18 @@ a:hover {
     0% {
         top: 0;
     }
+
     100% {
         top: -400px;
     }
 }
 
-/*// add expand and collaps width for the warn module*/
-@-webkit-keyframes warn_ExpandLeftBarAnimation {
+/* // add expand and collaps width for the warn module */
+@keyframes warn_ExpandLeftBarAnimation {
     0% {
         left: 0;
     }
-    100% {
-        left: 100px;
-    }
-}
 
-@-moz-keyframes warn_ExpandLeftBarAnimation {
-    0% {
-        left: 0;
-    }
-    100% {
-        left: 100px;
-    }
-}
-
-@-o-keyframes warn_ExpandLeftBarAnimation {
-    0% {
-        left: 0;
-    }
     100% {
         left: 100px;
     }
@@ -514,34 +528,38 @@ a:hover {
     0% {
         left: 0;
     }
+
     100% {
         left: 100px;
     }
 }
 
-/*Collapse Animation*/
-@-webkit-keyframes warn_CollapseLeftBarAnimation {
+@keyframes warn_ExpandLeftBarAnimation {
     0% {
-        left: 100px;
-    }
-    100% {
         left: 0;
     }
-}
 
-@-moz-keyframes warn_CollapseLeftBarAnimation {
-    0% {
+    100% {
         left: 100px;
     }
-    100% {
+}
+
+@keyframes warn_ExpandLeftBarAnimation {
+    0% {
         left: 0;
     }
+
+    100% {
+        left: 100px;
+    }
 }
 
-@-o-keyframes warn_CollapseLeftBarAnimation {
+/* Collapse Animation */
+@keyframes warn_CollapseLeftBarAnimation {
     0% {
         left: 100px;
     }
+
     100% {
         left: 0;
     }
@@ -551,36 +569,40 @@ a:hover {
     0% {
         left: 100px;
     }
+
     100% {
         left: 0;
     }
 }
 
-/*// same for the right side expansion*/
-
-/*// add expand and collaps width for the warn module*/
-@-webkit-keyframes warn_ExpandRightBarAnimation {
+@keyframes warn_CollapseLeftBarAnimation {
     0% {
-        width: 100%;
+        left: 100px;
     }
+
     100% {
-        width: 78%;
+        left: 0;
     }
 }
 
-@-moz-keyframes warn_ExpandRightBarAnimation {
+@keyframes warn_CollapseLeftBarAnimation {
     0% {
-        width: 100%;
+        left: 100px;
     }
+
     100% {
-        width: 78%;
+        left: 0;
     }
 }
 
-@-o-keyframes warn_ExpandRightBarAnimation {
+/* // same for the right side expansion */
+
+/* // add expand and collaps width for the warn module */
+@keyframes warn_ExpandRightBarAnimation {
     0% {
         width: 100%;
     }
+
     100% {
         width: 78%;
     }
@@ -590,35 +612,39 @@ a:hover {
     0% {
         width: 100%;
     }
+
     100% {
         width: 78%;
     }
-
 }
 
-/*Collapse Animation*/
-@-webkit-keyframes warn_CollapseRightBarAnimation {
+@keyframes warn_ExpandRightBarAnimation {
     0% {
-        width: 78%;
-    }
-    100% {
         width: 100%;
     }
-}
 
-@-moz-keyframes warn_CollapseRightBarAnimation {
-    0% {
+    100% {
         width: 78%;
     }
-    100% {
+}
+
+@keyframes warn_ExpandRightBarAnimation {
+    0% {
         width: 100%;
     }
+
+    100% {
+        width: 78%;
+    }
+
 }
 
-@-o-keyframes warn_CollapseRightBarAnimation {
+/* Collapse Animation */
+@keyframes warn_CollapseRightBarAnimation {
     0% {
         width: 78%;
     }
+
     100% {
         width: 100%;
     }
@@ -628,16 +654,37 @@ a:hover {
     0% {
         width: 78%;
     }
+
     100% {
         width: 100%;
     }
 }
 
-/*----------------------------------------------
+@keyframes warn_CollapseRightBarAnimation {
+    0% {
+        width: 78%;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes warn_CollapseRightBarAnimation {
+    0% {
+        width: 78%;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+/* ----------------------------------------------
         LAYOUT
-----------------------------------------------*/
+---------------------------------------------- */
 body {
-    background: rgb(24, 32, 42);
+    background: rgb(24 32 42);
     height: 100%;
     font-size: 14px;
     font-family: 'Open Sans', Helvetica, Arial, sans-serif;
@@ -666,7 +713,7 @@ main {
 
 #canvasArea #graph {
     box-sizing: border-box;
-    margin: 0 0 2px 0;
+    margin: 0 0 2px;
     background-color: #ecf0f1;
     overflow: hidden;
     padding: 0;
@@ -682,9 +729,11 @@ main {
 
 #logo {
     position: fixed;
-    /*padding: 10px;*/
+
+    /* padding: 10px; */
     pointer-events: none;
-    /*border: solid 1px red;*/
+
+    /* border: solid 1px red; */
 }
 
 #logo h2 {
@@ -697,11 +746,12 @@ main {
 
 #logo h2 span {
     color: #34495E;
-    /*font-size: min(2vmin, 24px);*/
+
+    /* font-size: min(2vmin, 24px); */
     font-size: 16px;
 }
 
-@media screen and (max-device-height: 800px) {
+@media screen and (device-height <= 800px) {
     #logo h2 {
         font-size: calc(8px + 1.0vmin);
     }
@@ -711,7 +761,7 @@ main {
     }
 }
 
-@media screen and (max-height: 800px) {
+@media screen and (height <= 800px) {
     #logo h2 {
         font-size: calc(8px + 1.0vmin);
     }
@@ -721,7 +771,7 @@ main {
     }
 }
 
-@media screen and (max-device-width: 1200px) {
+@media screen and (device-width <= 1200px) {
     #logo h2 {
         font-size: calc(8px + 1.0vmin);
     }
@@ -731,7 +781,7 @@ main {
     }
 }
 
-@media screen and (max-width: 1200px) {
+@media screen and (width <= 1200px) {
     #logo h2 {
         font-size: calc(8px + 1.0vmin);
     }
@@ -776,8 +826,7 @@ main {
     color: #bdc3c7;
     height: 100%;
     width: 22%;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden auto;
     position: fixed;
     border-left: 1px solid #34495E;
     background-color: #18202A;
@@ -805,7 +854,7 @@ main {
     padding: 0;
     margin: -1px;
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
     white-space: nowrap;
     border: 0;
 }
@@ -827,12 +876,13 @@ main {
     color: inherit;
     line-height: inherit;
     appearance: none;
-    -webkit-appearance: none;
     cursor: pointer;
 }
 
 #containerForAddPrefixButton {
     text-align: center;
+    width: 100%;
+    margin-top: 5px;
 }
 
 #svgStringText {
@@ -865,12 +915,7 @@ main {
     font-size: 10px;
 }
 
-#layoutLoadingProgressBarContainer {
-    padding-bottom: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+
 
 #currentLoadingStep {
     margin: 0;
@@ -901,12 +946,12 @@ main {
     display: block;
     padding: 10px;
     text-align: center;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
     color: #69c;
 }
 
 #generalDetails h4 {
-    background: rgb(27, 37, 46);
+    background: rgb(27 37 46);
     color: #ecf0f1;
     display: block;
     font-size: 1.1em;
@@ -998,12 +1043,12 @@ main {
     padding: .5em;
 }
 
-.accordion-trigger.accordion-trigger-active:before {
+.accordion-trigger.accordion-trigger-active::before {
     padding-right: 4px;
     content: "\25BC"
 }
 
-.accordion-trigger:not(.accordion-trigger-active):before {
+.accordion-trigger:not(.accordion-trigger-active)::before {
     padding-right: 4px;
     content: "\25BA"
 }
@@ -1063,21 +1108,31 @@ main {
 
 #killWarning {
     cursor: pointer;
-    color: #ffffff;
+    color: #fff;
     font-weight: bold;
 }
 
-/*#copyBt{*/
-/*box-sizing: border-box;*/
-/*color: #000000;*/
-/*float:right;*/
-/*position:absolute;*/
-/*right:2px;*/
-/*padding: 2px 7px 3px 7px;*/
-/*border: 1px solid #000000;*/
-/*background-color: #ecf0f1;*/
-/*cursor: pointer;*/
-/*}*/
+/* #copyBt{ */
+
+/* box-sizing: border-box; */
+
+/* color: #000000; */
+
+/* float:right; */
+
+/* position:absolute; */
+
+/* right:2px; */
+
+/* padding: 2px 7px 3px 7px; */
+
+/* border: 1px solid #000000; */
+
+/* background-color: #ecf0f1; */
+
+/* cursor: pointer; */
+
+/* } */
 
 #copyBt {
     box-sizing: border-box;
@@ -1095,7 +1150,7 @@ main {
     color: #ecf0f1;
     position: absolute;
     border: 1px solid #34495E;
-    background-color: rgba(24, 32, 42, 0.95);
+    background-color: rgb(24 32 42 / 95%);
     border-radius: 6px;
     cursor: pointer;
     display: inline-flex;
@@ -1113,12 +1168,14 @@ main {
 
 .dropdownMenuClass {
     height: 20px;
-    /*width: 69%;*/
+
+    /* width: 69%; */
     float: right;
     border: 1px solid #34495E;
     background-color: #34495E;
     color: white;
-    /*border-bottom: 1px solid #d90;*/
+
+    /* border-bottom: 1px solid #d90; */
     text-align: left;
     width: auto;
 }
@@ -1138,12 +1195,14 @@ main {
 #leftSideBarCollapseButton {
     box-sizing: border-box;
     top: 50px;
-    /*padding:5px;*/
-    color: #000000;
+
+    /* padding:5px; */
+    color: #000;
     position: absolute;
     left: 200px;
-    border: 1px solid #000000;
-    /*background-color: #ecf0f1;*/
+    border: 1px solid #000;
+
+    /* background-color: #ecf0f1; */
     cursor: pointer;
     width: 24px;
     height: 24px;
@@ -1169,7 +1228,8 @@ main {
     color: #000;
     background-color: #fff;
     text-align: center;
-    /*overflow: auto;*/
+
+    /* overflow: auto; */
     border: none;
     padding-top: 6px;
 }
@@ -1180,8 +1240,9 @@ main {
 }
 
 .foreignelements {
-    /*width: 80px;*/
-    /*height: 3px;*/
+    /* width: 80px; */
+
+    /* height: 3px; */
     border: none;
 }
 
@@ -1191,12 +1252,13 @@ main {
 }
 
 #leftSideBarContent {
-    color: #000000;
+    color: #000;
     float: left;
     position: absolute;
     left: 0;
-    /*border: 1px solid #000000;*/
-    background-color: rgb(24, 32, 42);
+
+    /* border: 1px solid #000000; */
+    background-color: rgb(24 32 42);
     width: 100%;
     height: 100%;
 }
@@ -1206,13 +1268,13 @@ main {
     display: block;
     font-size: 1.1em;
     font-weight: 100;
-    margin: 0 0 5px 0;
+    margin: 0 0 5px;
     padding: 10px 0;
     text-align: left;
 }
 
 #generalDetailsEdit {
-    /*color: #ecf0f1;*/
+    /* color: #ecf0f1; */
     color: #ecf0f1;
 }
 
@@ -1225,7 +1287,7 @@ main {
     display: block;
     font-size: 1.1em;
     font-weight: 100;
-    margin: 0 0 5px 0;
+    margin: 0 0 5px;
     padding: 10px 0;
     text-align: left;
 }
@@ -1264,7 +1326,7 @@ main {
 }
 
 .editPrefixIcon {
-    stroke: #fffff;
+    stroke: #fff;
     stroke-width: 1px;
     cursor: pointer;
 }
@@ -1275,22 +1337,19 @@ main {
 }
 
 .deletePrefixButton {
-    color: #ff0000;
+    color: #f00;
     cursor: pointer;
 }
 
 .invisiblePrefixButton {
     cursor: default;
-    color: rgb(24, 32, 42);
+    color: rgb(24 32 42);
 }
 
-#containerForAddPrefixButton {
-    width: 100%;
-    margin-top: 5px;
-}
+
 
 .roundedButton {
-    border: 1px solid #000000;
+    border: 1px solid #000;
     border-radius: 20px;
     padding: 0 5px;
     background: #fff;
@@ -1307,7 +1366,7 @@ main {
 }
 
 #prefixURL_Description {
-    padding: 5px 0 0 0;
+    padding: 5px 0 0;
 }
 
 .prefixIRIElements {
@@ -1326,7 +1385,7 @@ main {
 .prefixURL {
     width: 100px;
     display: inline-block;
-    paddig-left: 5px;
+    padding-left: 5px;
 }
 
 .selectedDefaultElement {
@@ -1338,14 +1397,7 @@ main {
     max-width: 200px;
 }
 
-#editHeader {
-    color: #ecf0f1;
-    background-color: #394f5a;
-    display: block;
-    font-size: 1.1em;
-    font-weight: 100;
-    text-align: center;
-}
+
 
 #leftHeader {
     color: #ecf0f1;
@@ -1388,28 +1440,27 @@ main {
     left: 0;
     width: 200px;
     height: 200px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden auto;
 }
 
 #leftSideBar {
     width: 100%;
-    background-color: rgb(24, 32, 42);
+    background-color: rgb(24 32 42);
 }
 
 #loading-info {
     box-sizing: border-box;
     position: absolute;
     text-align: center;
-
     width: 100%;
     height: 80%;
     top: 0;
+    pointer-events: none;
 }
 
 #loading-info > div {
     display: inline-block;
-    color: #ffffff;
+    color: #fff;
     background-color: #18202A;
     border-bottom-left-radius: 2px;
     border-bottom-right-radius: 2px;
@@ -1419,15 +1470,7 @@ main {
     padding: 5px;
 }
 
-#loading-info {
-    pointer-events: none;
-}
 
-#loading-progress {
-    pointer-events: auto;
-    min-width: 220px;
-    border-radius: 10px;
-}
 
 #show-loadingInfo-button {
     font-size: 12px;
@@ -1460,13 +1503,15 @@ main {
     animation: busy 2s linear infinite;
 }
 
-@-webkit-keyframes busy {
+@keyframes busy {
     0% {
         left: 0%;
     }
+
     50% {
         left: 80%;
     }
+
     100% {
         left: 0%;
     }
@@ -1474,8 +1519,8 @@ main {
 
 #bulletPoint_container {
     padding-left: 15px;
-    margin-top: 0px;
-    margin-bottom: 0px;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
 #bulletPoint_container > div {
@@ -1488,8 +1533,10 @@ main {
     line-height: 1.2;
     padding-top: 5px;
     overflow: auto;
-    /*white-space: nowrap;*/
-    /*min-width: 250px;*/
+
+    /* white-space: nowrap; */
+
+    /* min-width: 250px; */
     height: 120px;
     min-height: 40px;
     background-color: #3c3c3c;
@@ -1497,7 +1544,7 @@ main {
 }
 
 #error-description-button {
-    margin: 5px 0 0 0;
+    margin: 5px 0 0;
     font-size: 12px;
     color: #69c;
     cursor: pointer;
@@ -1521,28 +1568,25 @@ main {
 
 .spin {
     display: inline-block;
-    -webkit-animation: spin 2s infinite linear;
     animation: spin 2s infinite linear;
 }
 
-@-webkit-keyframes spin {
+@keyframes spin {
     0% {
-        -webkit-transform: rotate(0deg);
         transform: rotate(0deg);
     }
+
     100% {
-        -webkit-transform: rotate(359deg);
         transform: rotate(359deg);
     }
 }
 
 @keyframes spin {
     0% {
-        -webkit-transform: rotate(0deg);
         transform: rotate(0deg);
     }
+
     100% {
-        -webkit-transform: rotate(359deg);
         transform: rotate(359deg);
     }
 }
@@ -1563,7 +1607,7 @@ main {
     border: 0;
     color: #555;
     background-color: #ECEEEF;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2), inset 0 0 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 20%), inset 0 0 3px rgb(0 0 0 / 10%);
 }
 
 .color-mode-switch:focus {
@@ -1573,36 +1617,19 @@ main {
 .color-mode-switch.active {
     color: #FFF;
     background-color: #32CD32;
-    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.2), inset 0 0 3px rgba(0, 0, 0, 0.1);
+    box-shadow: inset 0 1px 4px rgb(0 0 0 / 20%), inset 0 0 3px rgb(0 0 0 / 10%);
 }
 
-/* adding button pulse animation*/
+/* adding button pulse animation */
 .filterMenuButtonHighlight {
     background-color: #d90;
 }
 
-@-webkit-keyframes buttonAnimation {
+@keyframes buttonAnimation {
     0% {
         background-color: unset;
     }
-    100% {
-        background-color: #d90;
-    }
-}
 
-@-moz-keyframes buttonAnimation {
-    0% {
-        background-color: unset;
-    }
-    100% {
-        background-color: #d90;
-    }
-}
-
-@-o-keyframes buttonAnimation {
-    0% {
-        background-color: unset;
-    }
     100% {
         background-color: #d90;
     }
@@ -1612,38 +1639,44 @@ main {
     0% {
         background-color: unset;
     }
+
+    100% {
+        background-color: #d90;
+    }
+}
+
+@keyframes buttonAnimation {
+    0% {
+        background-color: unset;
+    }
+
+    100% {
+        background-color: #d90;
+    }
+}
+
+@keyframes buttonAnimation {
+    0% {
+        background-color: unset;
+    }
+
     100% {
         background-color: #d90;
     }
 }
 
 .buttonPulse {
-    -webkit-animation-name: buttonAnimation;
-    -moz-animation-name: buttonAnimation;
-    -o-animation-name: buttonAnimation;
     animation-name: buttonAnimation;
-
-    -webkit-animation-duration: 0.5s;
-    -moz-animation-duration: 0.5s;
-    -o-animation-duration: 0.5s;
     animation-duration: 0.5s;
-
-    -webkit-animation-iteration-count: 3;
-    -moz-animation-iteration-count: 3;
-    -o-animation-iteration-count: 3;
     animation-iteration-count: 3;
-
-    -webkit-animation-timing-function: linear;
-    -moz-animation-timing-function: linear;
-    -o-animation-timing-function: linear;
     animation-timing-function: linear;
 
 
 }
 
-/*swipe bar definition*/
+/* swipe bar definition */
 
-/*Overwriting individual menu widths*/
+/* Overwriting individual menu widths */
 #m_about {
     max-width: 200px;
     width: 200px;
@@ -1700,6 +1733,7 @@ main {
 }
 
 /***************** REWRITING MENU ELEMENT CONTAINERS ***********************/
+
 /* Fixed 44px bottom navigation bar */
 #swipeBarContainer {
     position: fixed;
@@ -1727,8 +1761,7 @@ main {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: auto hidden;
     white-space: nowrap;
     list-style-type: none;
     box-sizing: border-box;
@@ -1754,7 +1787,7 @@ main {
     justify-content: center;
     position: relative;
     box-sizing: border-box;
-    color: #ffffff;
+    color: #fff;
     font-size: 14px;
 }
 
@@ -1766,7 +1799,7 @@ main {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #ffffff;
+    color: #fff;
     text-decoration: none;
     box-sizing: border-box;
     border-radius: 4px;
@@ -1780,7 +1813,7 @@ main {
     display: block;
     position: static !important;
     pointer-events: none;
-    fill: currentColor;
+    fill: currentcolor;
 }
 
 .btn_shadowed {
@@ -1795,7 +1828,8 @@ main {
     position: absolute;
     top: 20px;
     left: 3px;
-    /*background: #ecf0f1;;*/
+
+    /* background: #ecf0f1;; */
     border: solid 1px black;
     border-radius: 10px;
     cursor: pointer;
@@ -1818,18 +1852,19 @@ main {
     background: #F4F4F4;
     pointer-events: auto;
     border: solid 1px darkgray;
-    color: #bbbbbb;
+    color: #bbb;
 }
 
 .disabledReloadElement:hover {
     cursor: auto;
-    background: #EEEEEE;
+    background: #EEE;
     pointer-events: auto;
 }
 
 #menuElementContainer > li > input {
     color: #000;
-    /*padding : 0 0.3em 0 1.5em;*/
+
+    /* padding : 0 0.3em 0 1.5em; */
     padding: 0.1em .3em 0.1em 1.5em;
     white-space: nowrap;
     overflow: hidden;
@@ -1837,11 +1872,12 @@ main {
     width: 120px;
 }
 
-/*Hovered behavior for the menu entries*/
+/* Hovered behavior for the menu entries */
 #menuElementContainer > li > a:hover {
     box-sizing: border-box;
     background: #1B252E;
-    /*background : #d90;*/
+
+    /* background : #d90; */
     color: #bdc3c7;
 
 }
@@ -1849,7 +1885,8 @@ main {
 #empty:hover {
     box-sizing: border-box;
     background: #e1e1e1;
-    /*background : #d90;*/
+
+    /* background : #d90; */
     color: #2980b9;
 }
 
@@ -1865,20 +1902,20 @@ main {
     color: #979797;
 }
 
-/*ToolTip Menu Definition*/
+/* ToolTip Menu Definition */
 .toolTipMenu {
-    -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+    box-shadow: 0 6px 12px rgb(0 0 0 / 17.5%);
     box-sizing: border-box;
-    background-color: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    background-color: #fff;
+    border: 1px solid rgb(0 0 0 / 15%);
     border-bottom: none;
     border-radius: 4px 4px 0 0;
     bottom: 0;
     display: none;
     font-size: 14px;
     list-style: none;
-    /*max-width: 300px;*/
+
+    /* max-width: 300px; */
     margin: 0;
     padding: 0;
     white-space: normal;
@@ -1903,7 +1940,7 @@ main {
     display: block;
 }
 
-/*MenuElement hovering enables the toolTip of the corresponding menu*/
+/* MenuElement hovering enables the toolTip of the corresponding menu */
 #menuElementContainer > li:hover .toolTipMenu {
     display: block;
 }
@@ -1912,8 +1949,9 @@ main {
     background: #e1e1e1;
 }
 
-/****************************************************************************/
-/*ScrollButton behavior*/
+/***************************************************************************  */
+
+/* ScrollButton behavior */
 #scrollLeftButton {
     height: 30px;
     width: 30px;
@@ -1931,11 +1969,11 @@ main {
     outline: none;
 }
 
-#scrollLeftButton:before {
+#scrollLeftButton::before {
     content: "<";
 }
 
-/*Right Scroll Button*/
+/* Right Scroll Button */
 #scrollRightButton {
     height: 30px;
     width: 30px;
@@ -1961,7 +1999,7 @@ main {
     color: #bdc3c7;
 }
 
-#scrollRightButton:before {
+#scrollRightButton::before {
     content: ">";
 }
 
@@ -1975,9 +2013,9 @@ main {
     flex-direction: column;
     align-items: center;
     background-color: #fefefe;
-    border: 1px solid #000000;
+    border: 1px solid #000;
     border-radius: 4px;
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: 1px 1px 3px rgb(0 0 0 / 30%);
     z-index: 999;
     box-sizing: border-box;
     padding: 0;
@@ -2000,7 +2038,7 @@ main {
     box-sizing: border-box;
     position: static !important;
     top: auto !important;
-    color: #000000;
+    color: #000;
 }
 
 #zoomSlider button:last-child {
@@ -2009,13 +2047,13 @@ main {
 
 #zoomSlider button:hover {
     background-color: #d90;
-    color: #ffffff;
+    color: #fff;
 }
 
 #zoomSlider button svg {
     width: 18px;
     height: 18px;
-    fill: currentColor;
+    fill: currentcolor;
     pointer-events: none;
 }
 
@@ -2044,8 +2082,9 @@ main {
     cursor: pointer;
 }
 
-/****************************************************************************/
-/*Definition for the Icons before*/
+/***************************************************************************  */
+
+/* Definition for the Icons before */
 #menuElementContainer > li > a::before {
     font-size: 1em;
     margin: 0;
@@ -2056,10 +2095,13 @@ main {
     background-color: #d90;
 }
 
-/*#search-input-text.searchInputText {*/
-/*!*padding: 0 0.2em;*!*/
-/*color: black;*/
-/*}*/
+/* #search-input-text.searchInputText { */
+
+/* !*padding: 0 0.2em;*! */
+
+/* color: black; */
+
+/* } */
 
 .inner-addon {
     position: relative;
@@ -2094,7 +2136,7 @@ li#c_search input.searchInputText {
     border-radius: 14px !important;
     border: 1px solid #34495E !important;
     background-color: #24323E !important;
-    color: #ffffff !important;
+    color: #fff !important;
     outline: none !important;
     box-sizing: border-box !important;
 }
@@ -2107,14 +2149,21 @@ li#c_search input.searchInputText {
     left: -5px;
 }
 
-/*Menu icons before the links selection */
-/*#c_select  > a::before { content: "\2263"; }*/
-/*#c_export  > a::before { content: "\21E4"; }*/
-/*#c_gravity > a::before { content: "\2299"; }*/
-/*#c_filter  > a::before { content: "\25BD"; }*/
-/*#c_modes   > a::before { content: "\2606"; }*/
-/*#c_reset   > a::before { content: "\21BB"; }*/
-/*#c_about   > a::before { content: "\00A9"; }*/
+/* Menu icons before the links selection */
+
+/* #c_select  > a::before { content: "\2263"; } */
+
+/* #c_export  > a::before { content: "\21E4"; } */
+
+/* #c_gravity > a::before { content: "\2299"; } */
+
+/* #c_filter  > a::before { content: "\25BD"; } */
+
+/* #c_modes   > a::before { content: "\2606"; } */
+
+/* #c_reset   > a::before { content: "\21BB"; } */
+
+/* #c_about   > a::before { content: "\00A9"; } */
 
 li#c_locate {
     padding: 0;
@@ -2126,10 +2175,10 @@ li#c_locate {
 }
 
 a#pause-button {
-    padding: 12px 12px;
+    padding: 12px;
 }
 
-/*Pause Button has a different behavior*/
+/* Pause Button has a different behavior */
 a#pause-button.paused::before {
     content: "►";
 }
@@ -2148,11 +2197,11 @@ a#pause-button:not(.paused)::before {
 }
 
 #emptyLiHover {
-    background-color: #FFFFFF;
+    background-color: #FFF;
 }
 
 #emptyLiHover:hover {
-    background-color: #FFFFFF;
+    background-color: #FFF;
 }
 
 .toggleOption li:hover {
@@ -2164,7 +2213,7 @@ a#pause-button:not(.paused)::before {
 }
 
 #converter-option:hover {
-    background-color: #ffffff;
+    background-color: #fff;
 }
 
 .toolTipMenu li a:only-child, .option {
@@ -2188,7 +2237,8 @@ a#locateSearchResult {
     position: relative !important;
     top: 0 !important;
     left: 0 !important;
-    color: #ffffff;
+    color: #fff;
+    outline: none;
     text-decoration: none !important;
 }
 
@@ -2217,7 +2267,7 @@ a#locateSearchResult {
 
 #locateSearchResult .crosshairIcon use,
 #locateSearchResult .crosshairIcon path {
-    stroke: #ffffff !important;
+    stroke: #fff !important;
 }
 
 #locateSearchResult:hover .crosshairIcon use,
@@ -2225,14 +2275,21 @@ a#locateSearchResult {
     stroke: #bdc3c7 !important;
 }
 
-/*#sliderRange{*/
-/*padding: 0;*/
-/*margin: 7px 0 0 0;*/
-/*width:100%;*/
-/*height:5px;*/
-/*-webkit-appearance: none;*/
-/*outline: none;*/
-/*}*/
+/* #sliderRange{ */
+
+/* padding: 0; */
+
+/* margin: 7px 0 0 0; */
+
+/* width:100%; */
+
+/* height:5px; */
+
+/* -webkit-appearance: none; */
+
+/* outline: none; */
+
+/* } */
 
 #locateSearchResult:focus {
     outline: none;
@@ -2244,20 +2301,9 @@ a#locateSearchResult.highlighted:hover {
     color: red;
 }
 
-a#locateSearchResult {
-    outline: none;
-    padding: 0 8px;
-    position: static;
-    top: auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-}
-
-/*Editor hints*/
+/* Editor hints */
 #editorHint {
-    padding: 5px 5px;
+    padding: 5px;
     position: absolute;
     text-align: center;
     width: 100%;
@@ -2267,8 +2313,8 @@ a#locateSearchResult {
 #editorHint label, #editorHint button {
     pointer-events: auto;
     float: right;
-    padding: 5px 5px;
-    color: #ffdd00;
+    padding: 5px;
+    color: #fd0;
     background: transparent;
     border: none;
     font-family: inherit;
@@ -2284,10 +2330,10 @@ a#locateSearchResult {
     pointer-events: auto;
     text-align: left;
     display: inline-block;
-    color: #ffffff;
+    color: #fff;
     font-size: 0.8em;
     background-color: #18202A;
-    padding: 5px 5px;
+    padding: 5px;
     border-radius: 10px;
     border: solid 1px #ecf0f1;
     width: 70%;
@@ -2302,23 +2348,23 @@ a#locateSearchResult {
     pointer-events: none;
 }
 
-/*Editor hints*/
+/* Editor hints */
 #WarningErrorMessages {
     position: relative;
-    /*text-align: center;*/
+
+    /* text-align: center; */
     width: 50%;
     pointer-events: auto;
     margin: 10px 0;
     padding-right: 12px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden auto;
 }
 
 #WarningErrorMessages label, #WarningErrorMessages button {
     pointer-events: auto;
     float: right;
-    padding: 5px 5px;
-    color: #ffdd00;
+    padding: 5px;
+    color: #fd0;
     background: transparent;
     border: none;
     font-family: inherit;
@@ -2328,7 +2374,7 @@ a#locateSearchResult {
 #WarningErrorMessages span {
     pointer-events: auto;
     float: right;
-    padding: 5px 5px;
+    padding: 5px;
 }
 
 #WarningErrorMessages label:hover, #WarningErrorMessages button:hover {
@@ -2340,10 +2386,10 @@ a#locateSearchResult {
     pointer-events: auto;
     text-align: left;
     display: inline-block;
-    color: #ffffff;
+    color: #fff;
     font-size: 0.8em;
     background-color: #18202A;
-    padding: 5px 5px;
+    padding: 5px;
     border-radius: 10px;
     border: solid 1px #ecf0f1;
     width: 70%;
@@ -2361,7 +2407,7 @@ a#locateSearchResult {
 }
 
 .converter-form-Editor {
-    /*display: inline-block;*/
+    /* display: inline-block; */
 }
 
 .textLineEditWithLabel {
@@ -2373,7 +2419,7 @@ a#locateSearchResult {
 }
 
 .converter-form-Editor label {
-    /*//display: inline-block;*/
+    /* //display: inline-block; */
     line-height: normal;
 }
 
@@ -2389,22 +2435,27 @@ a#locateSearchResult {
 }
 
 .prefixIRIElements input:disabled {
-    background-color: rgb(24, 32, 42);
-    border: 1px solid rgb(24, 32, 42);
+    background-color: rgb(24 32 42);
+    border: 1px solid rgb(24 32 42);
     color: white;
 }
 
 .converter-form-Editor input {
-    /*box-sizing: border-box;*/
-    /*height: 18px;*/
-    /*width: 69%;*/
+    /* box-sizing: border-box; */
+
+    /* height: 18px; */
+
+    /* width: 69%; */
     float: right;
     border: 1px solid #34495E;
     background-color: #34495E;
     color: white;
-    /*border-bottom: 1px solid #d90;*/
-    /*text-align: center;*/
-    /*display: inline-block;*/
+
+    /* border-bottom: 1px solid #d90; */
+
+    /* text-align: center; */
+
+    /* display: inline-block; */
 }
 
 .converter-form-Editor input:disabled {
@@ -2417,10 +2468,10 @@ a#locateSearchResult {
     color: #808080;
 }
 
-/*----------------------------------------------
+/* ----------------------------------------------
   Responsive & iPad / Mobile Drawer Layout
-----------------------------------------------*/
-@media screen and (max-width: 1024px) {
+---------------------------------------------- */
+@media screen and (width <= 1024px) {
     #detailsArea {
         position: fixed;
         top: 0;
@@ -2430,7 +2481,7 @@ a#locateSearchResult {
         max-width: 85vw;
         height: calc(100% - 44px);
         z-index: 1000;
-        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+        box-shadow: -4px 0 20px rgb(0 0 0 / 50%);
         background-color: #18202A;
         border-left: 1px solid #34495E;
     }
@@ -2444,7 +2495,7 @@ a#locateSearchResult {
         top: 8px;
         right: 8px;
         border-radius: 6px;
-        background-color: rgba(24, 32, 42, 0.95);
+        background-color: rgb(24 32 42 / 95%);
         color: #ecf0f1;
         border: 1px solid #34495E;
         display: inline-flex;
@@ -2507,7 +2558,7 @@ a#locateSearchResult {
     }
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (width <= 768px) {
     #detailsArea {
         width: 90vw;
         max-width: 100vw;
@@ -2529,9 +2580,6 @@ a#locateSearchResult {
 
 @supports (padding: env(safe-area-inset-top)) {
     body {
-        padding-top: env(safe-area-inset-top);
-        padding-bottom: env(safe-area-inset-bottom);
-        padding-left: env(safe-area-inset-left);
-        padding-right: env(safe-area-inset-right);
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
 }
