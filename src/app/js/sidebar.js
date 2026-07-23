@@ -764,37 +764,89 @@ module.exports = function ( graph ){
   
   /** Collapsible Sidebar functions; **/
   
+  function updateZoomSliderPosition(){
+    var isHidden = detailArea.classed("hidden");
+    if ( isHidden ) {
+      d3.select("#zoomSlider").style("left", "auto").style("right", "20px");
+    } else {
+      var sidebarRect = detailArea.node().getBoundingClientRect();
+      var sidebarLeft = sidebarRect.left;
+      var sliderWidth = d3.select("#zoomSlider").node().getBoundingClientRect().width || 32;
+      var targetLeft = sidebarLeft - sliderWidth - 20;
+      d3.select("#zoomSlider").style("right", "auto").style("left", targetLeft + "px");
+    }
+  }
+
+  function updateSidebarButtonPosition(){
+    var isHidden = detailArea.classed("hidden");
+    if ( isHidden ) {
+      collapseButton.style("left", "auto").style("right", "12px");
+    } else {
+      var sidebarRect = detailArea.node().getBoundingClientRect();
+      var sidebarLeft = sidebarRect.left;
+      var btnWidth = collapseButton.node().getBoundingClientRect().width || 36;
+      var targetLeft = sidebarLeft - btnWidth - 12;
+      collapseButton.style("right", "auto").style("left", targetLeft + "px");
+    }
+  }
+
+  function updateNavMenuScrollButtons(){
+    if ( graph.options().navigationMenu && graph.options().navigationMenu() ) {
+      graph.options().navigationMenu().updateScrollButtonVisibility();
+    }
+  }
+
+  function hideNavMenus(){
+    if ( graph.options().navigationMenu && graph.options().navigationMenu() ) {
+      graph.options().navigationMenu().hideAllMenus();
+    }
+  }
+
   sidebar.showSidebar = function ( val, init ){
+    var isMobileOrTablet = window.innerWidth <= 1024;
     // make val to bool
     if ( val === 1 ) {
       visibleSidebar = true;
       collapseButton.node().innerHTML = ">";
-      detailArea.classed("hidden", true);
-      if ( init === true ) {
-        detailArea.classed("hidden", !visibleSidebar);
-        graphArea.style("width", "78%");
+      detailArea.classed("hidden", false);
+      if ( isMobileOrTablet ) {
+        graphArea.style("width", "100%");
         graphArea.style("-webkit-animation-name", "none");
-        
-        menuArea.style("width", "78%");
+        menuArea.style("width", "100%");
         menuArea.style("-webkit-animation-name", "none");
-        
-        d3.select("#WarningErrorMessagesContainer").style("width", "78%");
+        d3.select("#WarningErrorMessagesContainer").style("width", "100%");
         d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-name", "none");
+        graph.options().width(window.innerWidth);
       } else {
-        graphArea.style("width", "78%");
-        graphArea.style("-webkit-animation-name", "sbCollapseAnimation");
-        graphArea.style("-webkit-animation-duration", "0.5s");
-        
-        menuArea.style("width", "78%");
-        menuArea.style("-webkit-animation-name", "sbCollapseAnimation");
-        menuArea.style("-webkit-animation-duration", "0.5s");
-        
-        d3.select("#WarningErrorMessagesContainer").style("width", "78%");
-        d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-name", "warn_ExpandRightBarAnimation");
-        d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-duration", "0.5s");
+        if ( init === true ) {
+          detailArea.classed("hidden", !visibleSidebar);
+          graphArea.style("width", "78%");
+          graphArea.style("-webkit-animation-name", "none");
+          
+          menuArea.style("width", "78%");
+          menuArea.style("-webkit-animation-name", "none");
+          
+          d3.select("#WarningErrorMessagesContainer").style("width", "78%");
+          d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-name", "none");
+        } else {
+          graphArea.style("width", "78%");
+          graphArea.style("-webkit-animation-name", "sbCollapseAnimation");
+          graphArea.style("-webkit-animation-duration", "0.5s");
+          
+          menuArea.style("width", "78%");
+          menuArea.style("-webkit-animation-name", "sbCollapseAnimation");
+          menuArea.style("-webkit-animation-duration", "0.5s");
+          
+          d3.select("#WarningErrorMessagesContainer").style("width", "78%");
+          d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-name", "warn_ExpandRightBarAnimation");
+          d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-duration", "0.5s");
+        }
+        graph.options().width(window.innerWidth - (window.innerWidth * 0.22));
       }
-      graph.options().width(window.innerWidth - (window.innerWidth * 0.22));
-      graph.options().navigationMenu().updateScrollButtonVisibility();
+      updateZoomSliderPosition();
+      updateSidebarButtonPosition();
+      graph.updateCanvasContainerSize();
+      updateNavMenuScrollButtons();
     }
     if ( val === 0 ) {
       visibleSidebar = false;
@@ -802,7 +854,7 @@ module.exports = function ( graph ){
       
       collapseButton.node().innerHTML = "<";
       // adjust the layout
-      if ( init === true ) {
+      if ( init === true || isMobileOrTablet ) {
         graphArea.style("width", "100%");
         graphArea.style("-webkit-animation-name", "none");
         
@@ -825,9 +877,11 @@ module.exports = function ( graph ){
         d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-duration", "0.5s");
         
       }
+      updateZoomSliderPosition();
+      updateSidebarButtonPosition();
       graph.options().width(window.innerWidth);
       graph.updateCanvasContainerSize();
-      graph.options().navigationMenu().updateScrollButtonVisibility();
+      updateNavMenuScrollButtons();
     }
   };
   
@@ -850,7 +904,7 @@ module.exports = function ( graph ){
     graphArea.node().addEventListener("animationend", function (){
       detailArea.classed("hidden", !visibleSidebar);
       graph.updateCanvasContainerSize();
-      graph.options().navigationMenu().updateScrollButtonVisibility();
+      updateNavMenuScrollButtons();
     });
   };
   
@@ -859,11 +913,15 @@ module.exports = function ( graph ){
     sidebar.initSideBarAnimation();
     
     collapseButton.on("click", function (){
-      graph.options().navigationMenu().hideAllMenus();
+      hideNavMenus();
       var settingValue = parseInt(sidebar.getSidebarVisibility());
       if ( settingValue === 1 ) sidebar.showSidebar(0);
       else                  sidebar.showSidebar(1);
     });
+
+    if ( window.innerWidth <= 1024 ) {
+      sidebar.showSidebar(0, true);
+    }
   };
   
   

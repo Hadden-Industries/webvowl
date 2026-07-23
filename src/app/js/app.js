@@ -59,6 +59,7 @@ module.exports = function (){
   var executeFileDrop = false;
   var wasMessageToShow = false;
   var firstTime = false;
+  var initialTouchZoomHandled = false;
   
   function addFileDropEvents( selector ){
     var node = d3.select(selector);
@@ -439,15 +440,13 @@ module.exports = function (){
   }
   
   function adjustSize(){
+    var isMobileOrTablet = window.innerWidth <= 1024;
     var graphContainer = d3.select(GRAPH_SELECTOR),
       svg = graphContainer.select("svg"),
-      height = window.innerHeight - 40,
-      width = window.innerWidth - (window.innerWidth * 0.22);
-    
-    if ( sidebar.getSidebarVisibility() === "0" ) {
-      height = window.innerHeight - 40;
-      width = window.innerWidth;
-    }
+      height = window.innerHeight - 44,
+      width = (sidebar.getSidebarVisibility() === "0" || isMobileOrTablet)
+        ? window.innerWidth
+        : window.innerWidth - (window.innerWidth * 0.22);
     
     directInputMod.updateLayout();
     d3.select("#blockGraphInteractions").style("width", window.innerWidth + "px");
@@ -472,6 +471,10 @@ module.exports = function (){
         d3.select("#modeOfOperationString").node().innerHTML = "touch able device detected";
       graph.setTouchDevice(true);
       
+      if ( !initialTouchZoomHandled && isMultiTouchZoomDevice() ) {
+        initialTouchZoomHandled = true;
+        configMenu.setCheckBoxValue("showZoomSliderConfigCheckbox", false);
+      }
     } else {
       if ( graph.isEditorMode() === true )
         d3.select("#modeOfOperationString").node().innerHTML = "point & click device detected";
@@ -519,53 +522,33 @@ module.exports = function (){
   }
   
   function adjustSliderSize(){
-    // TODO: refactor and put this into the slider it self
-    var height = window.innerHeight - 40;
-    var fullHeight = height;
-    var zoomOutPos = height - 30;
-    var sliderHeight = 150;
-    
-    // assuming DOM elements are generated in the index.html
-    // todo: refactor for independent usage of graph and app
+    var fullHeight = window.innerHeight - 40;
     if ( fullHeight < 150 ) {
-      // hide the slider button;
-      d3.select("#zoomSliderParagraph").classed("hidden", true);
-      d3.select("#zoomOutButton").classed("hidden", true);
-      d3.select("#zoomInButton").classed("hidden", true);
-      d3.select("#centerGraphButton").classed("hidden", true);
-      return;
+      d3.select("#zoomSlider").classed("hidden", true);
+    } else {
+      d3.select("#zoomSlider").classed("hidden", false);
     }
-    d3.select("#zoomSliderParagraph").classed("hidden", false);
-    d3.select("#zoomOutButton").classed("hidden", false);
-    d3.select("#zoomInButton").classed("hidden", false);
-    d3.select("#centerGraphButton").classed("hidden", false);
-    
-    var zoomInPos = zoomOutPos - 20;
-    var centerPos = zoomInPos - 20;
-    if ( fullHeight < 280 ) {
-      // hide the slider button;
-      d3.select("#zoomSliderParagraph").classed("hidden", true);//var sliderPos=zoomOutPos-sliderHeight;
-      d3.select("#zoomOutButton").style("top", zoomOutPos + "px");
-      d3.select("#zoomInButton").style("top", zoomInPos + "px");
-      d3.select("#centerGraphButton").style("top", centerPos + "px");
-      return;
-    }
-    
-    var sliderPos = zoomOutPos - sliderHeight;
-    zoomInPos = sliderPos - 20;
-    centerPos = zoomInPos - 20;
-    d3.select("#zoomSliderParagraph").classed("hidden", false);
-    d3.select("#zoomOutButton").style("top", zoomOutPos + "px");
-    d3.select("#zoomInButton").style("top", zoomInPos + "px");
-    d3.select("#centerGraphButton").style("top", centerPos + "px");
-    d3.select("#zoomSliderParagraph").style("top", sliderPos + "px");
   }
   
   function isTouchDevice(){
     try {
+      var hasTouch = ('ontouchstart' in window) || 
+                     (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || 
+                     (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints > 0);
+      if ( hasTouch ) return true;
       document.createEvent("TouchEvent");
       return true;
-    } catch ( e ) {
+    } catch ( err ) {
+      return false;
+    }
+  }
+
+  function isMultiTouchZoomDevice(){
+    try {
+      return ('ontouchstart' in window) || 
+             (navigator.maxTouchPoints && navigator.maxTouchPoints >= 2) || 
+             (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints >= 2);
+    } catch ( err ) {
       return false;
     }
   }

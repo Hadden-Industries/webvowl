@@ -99,29 +99,48 @@ module.exports = function ( graph ){
       navigationMenu.updateScrollButtonVisibility();
     });
     
+    // bind global release listeners
+    d3.select(window).on("mouseup.navScroll", clearAllTimers).on("touchend.navScroll", clearAllTimers);
+    d3.select(window).on("resize.navMenu", function (){
+      navigationMenu.updateScrollButtonVisibility();
+    });
+
     // connect scrollIndicator Buttons;
-    d3.select("#scrollRightButton").on("mousedown", function (){
-      scrolLeftValue = scrollContainer.scrollLeft;
-      navigationMenu.hideAllMenus();
-      t_scrollRight = requestAnimationFrame(timed_scrollRight);
-      
-    }).on("touchstart", function (){
-      scrolLeftValue = scrollContainer.scrollLeft;
-      navigationMenu.hideAllMenus();
-      t_scrollRight = requestAnimationFrame(timed_scrollRight);
-    }).on("mouseup", clearAllTimers)
+    d3.select("#scrollRightButton")
+      .on("mousedown", function (){
+        scrolLeftValue = scrollContainer.scrollLeft;
+        navigationMenu.hideAllMenus();
+        t_scrollRight = requestAnimationFrame(timed_scrollRight);
+      })
+      .on("touchstart", function (){
+        scrolLeftValue = scrollContainer.scrollLeft;
+        navigationMenu.hideAllMenus();
+        t_scrollRight = requestAnimationFrame(timed_scrollRight);
+      })
+      .on("click", function (){
+        scrollContainer.scrollLeft += 100;
+        navigationMenu.updateScrollButtonVisibility();
+      })
+      .on("mouseup", clearAllTimers)
       .on("touchend", clearAllTimers)
       .on("touchcancel", clearAllTimers);
     
-    d3.select("#scrollLeftButton").on("mousedown", function (){
-      scrolLeftValue = scrollContainer.scrollLeft;
-      navigationMenu.hideAllMenus();
-      t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
-    }).on("touchstart", function (){
-      scrolLeftValue = scrollContainer.scrollLeft;
-      navigationMenu.hideAllMenus();
-      t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
-    }).on("mouseup", clearAllTimers)
+    d3.select("#scrollLeftButton")
+      .on("mousedown", function (){
+        scrolLeftValue = scrollContainer.scrollLeft;
+        navigationMenu.hideAllMenus();
+        t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
+      })
+      .on("touchstart", function (){
+        scrolLeftValue = scrollContainer.scrollLeft;
+        navigationMenu.hideAllMenus();
+        t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
+      })
+      .on("click", function (){
+        scrollContainer.scrollLeft -= 100;
+        navigationMenu.updateScrollButtonVisibility();
+      })
+      .on("mouseup", clearAllTimers)
       .on("touchend", clearAllTimers)
       .on("touchcancel", clearAllTimers);
     
@@ -168,10 +187,14 @@ module.exports = function ( graph ){
   function hoveroutedControMenu( controllerID ){
     currentlyHoveredEntry = d3.select("#" + controllerID);
     if ( controllerID !== "c_search" ) {
-      d3.select("#" + controllerID).select("path").style("stroke-width", "0");
-      d3.select("#" + controllerID).select("path").style("fill", "#fff");
+      var isCrosshair = currentlyHoveredEntry.select(".crosshairIcon").node();
+      if ( !isCrosshair ) {
+        d3.select("#" + controllerID).select("path").style("stroke-width", "0");
+        d3.select("#" + controllerID).select("path").style("fill", "#fff");
+      } else {
+        currentlyHoveredEntry.select("use, path").style("stroke", "#ffffff");
+      }
     }
-    
   }
   
   function showSingleMenu( controllerID ){
@@ -180,9 +203,13 @@ module.exports = function ( graph ){
     var m_element = m_select[c_select.indexOf(controllerID)];
     if ( m_element ) {
       if ( controllerID !== "c_search" ) {
-        
-        d3.select("#" + controllerID).select("path").style("stroke-width", "0");
-        d3.select("#" + controllerID).select("path").style("fill", "#bdc3c7");
+        var isCrosshair = d3.select("#" + controllerID).select(".crosshairIcon").node();
+        if ( !isCrosshair ) {
+          d3.select("#" + controllerID).select("path").style("stroke-width", "0");
+          d3.select("#" + controllerID).select("path").style("fill", "#bdc3c7");
+        } else {
+          d3.select("#" + controllerID).select("use, path").style("stroke", "#bdc3c7");
+        }
       }
       // show it if we have a menu
       currentlyVisibleMenu = d3.select("#" + m_element);
@@ -224,19 +251,18 @@ module.exports = function ( graph ){
   };
   
   navigationMenu.updateScrollButtonVisibility = function (){
-    scrollMax = scrollContainer.scrollWidth - scrollContainer.clientWidth - 2;
-    if ( scrollContainer.scrollLeft === 0 ) {
+    if ( !scrollContainer ) return;
+    var scrollLeft = scrollContainer.scrollLeft;
+    var maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+
+    if ( maxScroll <= 2 ) {
       leftButton.classed("hidden", true);
-    } else {
-      leftButton.classed("hidden", false);
-    }
-    
-    if ( scrollContainer.scrollLeft > scrollMax ) {
       rightButton.classed("hidden", true);
-    } else {
-      rightButton.classed("hidden", false);
+      return;
     }
-    
+
+    leftButton.classed("hidden", scrollLeft <= 2);
+    rightButton.classed("hidden", scrollLeft >= maxScroll - 2);
   };
   
   navigationMenu.setup = function (){

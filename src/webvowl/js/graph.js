@@ -2174,18 +2174,21 @@ module.exports = function ( graphContainerSelector ){
     // get all nodes (handle also already filtered nodes )
     pulseNodeIds = [];
     nodeArrayForPulse = [];
+    if ( !unfilteredData || !unfilteredData.nodes || !unfilteredData.properties ) {
+      return;
+    }
     // clear from stored nodes
     var nodes = unfilteredData.nodes;
     var props = unfilteredData.properties;
     var j;
     for ( j = 0; j < nodes.length; j++ ) {
       var node = nodes[j];
-      if ( node.removeHalo )
+      if ( node && node.removeHalo )
         node.removeHalo();
     }
     for ( j = 0; j < props.length; j++ ) {
       var prop = props[j];
-      if ( prop.removeHalo )
+      if ( prop && prop.removeHalo )
         prop.removeHalo();
     }
   };
@@ -2222,7 +2225,7 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.highLightNodes = function ( nodeIdArray ){
-    if ( nodeIdArray.length === 0 ) {
+    if ( !nodeIdArray || nodeIdArray.length === 0 || !unfilteredData || !unfilteredData.nodes || !unfilteredData.properties ) {
       return; // nothing to highlight
     }
     pulseNodeIds = [];
