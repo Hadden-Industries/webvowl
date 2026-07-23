@@ -10,6 +10,7 @@ WORKDIR /build
 COPY package.json vite.config.js ./
 COPY index.html ./
 COPY eslint.config.js ./
+COPY .htmlvalidate.json ./
 COPY LICENSE ./
 COPY src ./src
 COPY util ./util
