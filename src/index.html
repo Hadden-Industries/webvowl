@@ -9,8 +9,6 @@
     <meta name="robots" content="noindex,nofollow"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="stylesheet" type="text/css" href="css/webvowl.css"/>
-    <link rel="stylesheet" type="text/css" href="css/webvowl.app.css"/>
     <link rel="icon" href="favicon.ico" type="image/x-icon"/>
     <title>WebVOWL</title>
 </head>
@@ -29,7 +27,7 @@
         <!-- build:process -->
         <div id="logo" class="noselect">
             <h2>WebVOWL
-                <br> <span><%= version %></span>
+                <br> <span>__WEBVOWL_VERSION__</span>
             </h2>
         </div>
         <!-- /build -->
@@ -230,7 +228,7 @@
                 </li>
                 <!-- build:process -->
                 <li><a href="http://vowl.visualdataweb.org/webvowl.html#releases" target="_blank">
-                    Version: <%= version %><br/>(release history)</a></li>
+                    Version: __WEBVOWL_VERSION__<br/>(release history)</a></li>
                 <!-- /build -->
                 <li><a href="http://purl.org/vowl/" target="_blank">VOWL Specification &raquo;</a></li>
             </ul>
@@ -534,11 +532,8 @@
 
     </div>
 
-
 </main>
-<script src="js/d3.min.js"></script>
-<script src="js/webvowl.js"></script>
-<script src="js/webvowl.app.js"></script>
-<script>window.onload = webvowl.app().initialize;</script>
+<script src="/js/d3.min.js"></script>
+<script type="module" src="/main.js"></script>
 </body>
 </html>
