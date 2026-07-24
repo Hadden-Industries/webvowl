@@ -80,7 +80,7 @@ module.exports = function (graph) {
         onChangeFunction(newSliderValue);
         slider.on("input")(); // << set text and update the graphStyles
       }
-      d3.event.preventDefault();
+      event.preventDefault();
     });
   }
 
@@ -105,6 +105,7 @@ module.exports = function (graph) {
     configCheckbox.on("click", function (silent) {
       const isEnabled = configCheckbox.property("checked");
       onChangeFunc(isEnabled);
+      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
       if (silent !== true) {
         // updating graph when silent is false or the parameter is not given.
         if (updateLvl === 1) {

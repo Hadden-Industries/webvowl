@@ -114,6 +114,7 @@ module.exports = function (graph) {
     configCheckbox.on("click", function (silent) {
       const isEnabled = configCheckbox.property("checked");
       onChangeFunc(isEnabled);
+      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
       _callbackFunction(isEnabled, silent);
     });
     checkboxes.push(configCheckbox);

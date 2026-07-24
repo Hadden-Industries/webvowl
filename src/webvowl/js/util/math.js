@@ -12,8 +12,7 @@ module.exports = (function () {
       .y(function (d) {
         return d.y;
       })
-      .interpolate("cardinal")
-      .tension(-1);
+      .curve(d3.curveCardinal.tension(-1));
 
   /**
    * Calculates the normal vector of the path between the two nodes.

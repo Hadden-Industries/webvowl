@@ -334,12 +334,12 @@ module.exports = function () {
       d3.select(document).on("keydown", function (e) {
         if (d3.event.keyCode === 8 && d3.event.target === htmlBody.node()) {
           // we could add here an alert
-          d3.event.preventDefault();
+          event.preventDefault();
         }
         // using ctrl+Shift+d as debug option
         if (d3.event.ctrlKey && d3.event.shiftKey && d3.event.keyCode === 68) {
           graph.options().executeHiddenDebugFeatuers();
-          d3.event.preventDefault();
+          event.preventDefault();
         }
       });
       if (d3.select("#maxLabelWidthSliderOption")) {
@@ -623,12 +623,9 @@ module.exports = function () {
 
   function isTouchDevice() {
     try {
-      var hasTouch = ('ontouchstart' in window) || 
-                     (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || 
-                     (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints > 0);
-      if ( hasTouch ) return true;
-      document.createEvent("TouchEvent");
-      return true;
+      return ('ontouchstart' in window) || 
+             (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || 
+             (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints > 0);
     } catch (_e) {
       return false;
     }

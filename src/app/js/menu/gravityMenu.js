@@ -44,6 +44,7 @@ module.exports = function (graph) {
 
     const slider = sliderContainer
       .append("input")
+      .datum({ distanceFunction: distanceFunction })
       .attr("id", identifier + "DistanceSlider")
       .attr("type", "range")
       .attr("min", 10)
@@ -95,7 +96,7 @@ module.exports = function (graph) {
         distanceFunction(newSliderValue);
         slider.on("input")(); // << set text and update the graphStyles
       }
-      d3.event.preventDefault();
+      event.preventDefault();
     });
   }
 

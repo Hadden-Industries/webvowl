@@ -121,6 +121,7 @@ module.exports = function (graph) {
       // invocation when resetting the filters
       const isEnabled = filterCheckbox.property("checked");
       filter.enabled(isEnabled);
+      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
       if (silent !== true) {
         // updating graph when silent is false or the parameter is not given.
         graph.update();
@@ -218,7 +219,7 @@ module.exports = function (graph) {
       degreeSlider.on("input")(); // <<-- sets the text value
       graph.update();
     }
-    d3.event.preventDefault();
+    event.preventDefault();
   }
 
   function setSliderValue(slider, value) {

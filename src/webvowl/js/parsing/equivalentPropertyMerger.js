@@ -67,8 +67,8 @@ function findMergeNode(propertyWithEquivalents, nodeMap) {
   const typeSet = d3.set(typeMap.keys());
 
   // default types are the fallback values and should be ignored for the type determination
-  typeSet.remove(OBJECT_PROPERTY_DEFAULT_RANGE_TYPE);
-  typeSet.remove(DATA_PROPERTY_DEFAULT_RANGE_TYPE);
+  typeSet.delete(OBJECT_PROPERTY_DEFAULT_RANGE_TYPE);
+  typeSet.delete(DATA_PROPERTY_DEFAULT_RANGE_TYPE);
 
   // exactly one type to chose from -> take the node of this type as range
   if (typeSet.size() === 1) {

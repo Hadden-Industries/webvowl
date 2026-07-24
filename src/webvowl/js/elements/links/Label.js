@@ -30,6 +30,26 @@ function Label(property, link) {
       }
     },
   });
+  Object.defineProperty(this, "fx", {
+    get: function (){
+      var inverseFx = property.inverse() ? property.inverse().fx : null;
+      return property.fx !== null && property.fx !== undefined ? property.fx : inverseFx;
+    },
+    set: function ( v ){
+      property.fx = v;
+      if ( property.inverse() ) property.inverse().fx = v;
+    }
+  });
+  Object.defineProperty(this, "fy", {
+    get: function (){
+      var inverseFy = property.inverse() ? property.inverse().fy : null;
+      return property.fy !== null && property.fy !== undefined ? property.fy : inverseFy;
+    },
+    set: function ( v ){
+      property.fy = v;
+      if ( property.inverse() ) property.inverse().fy = v;
+    }
+  });
   this.frozen = property.frozen;
   this.locked = property.locked;
   this.pinned = property.pinned;

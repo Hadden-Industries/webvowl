@@ -198,7 +198,7 @@ module.exports = function (graph) {
       .y(function (d) {
         return d.y;
       })
-      .interpolate("basis-closed");
+      .curve(d3.curveBasisClosed);
     const pathData = "M 61,40 C 41,15 41,-15 61,-40 L 1,0 Z";
 
     Range_dragger.nodeElement = Range_dragger.rootNodeLayer

@@ -164,17 +164,26 @@ module.exports = function (graph) {
       if (menuElement) {
         if (menuElement.style("display") === "block") {
           menuElement.style("display", "none"); // hide it
+  var touchResetTimer;
         } else {
           showSingleMenu(this.id);
         }
       }
     }
+    clearTimeout(touchResetTimer);
+    touchResetTimer = setTimeout(function (){
+      touchedElement = false;
+    }, 400);
   }
 
   function menuElementTouched() {
     // it sets a flag that we have touched it,
-    // since d3. propagates the event for touch as hover and then click, we block the hover event
+    // since d3 propagates the event for touch as hover and then click, we block the hover event
     touchedElement = true;
+    clearTimeout(touchResetTimer);
+    touchResetTimer = setTimeout(function (){
+      touchedElement = false;
+    }, 500);
   }
 
   function hoveroutedControMenu(controllerID) {
@@ -267,8 +276,12 @@ module.exports = function (graph) {
     // some hovering behavior -- lets the menu disappear when hovered in graph or sidebar;
     d3.select("#graph").on("mouseover", function () {
       navigationMenu.hideAllMenus();
+    }).on("touchstart", function (){
+      navigationMenu.hideAllMenus();
     });
     d3.select("#generalDetails").on("mouseover", function () {
+      navigationMenu.hideAllMenus();
+    }).on("touchstart", function (){
       navigationMenu.hideAllMenus();
     });
   };

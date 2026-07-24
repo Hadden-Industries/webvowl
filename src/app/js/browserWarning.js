@@ -36,7 +36,6 @@ function getInternetExplorerVersion() {
 
 function showBrowserWarningIfRequired() {
   var version = getInternetExplorerVersion();
-  console.log("Browser Version =" + version);
   if (version > 0 && version <= 11) {
     d3.select("#browserCheck").classed("hidden", false);
     d3.select("#killWarning").classed("hidden", true);

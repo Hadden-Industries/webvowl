@@ -47,6 +47,7 @@ module.exports = function (graphContainerSelector) {
     unfilteredData,
     // Graph behaviour
     force,
+    forceLink,
     dragBehaviour,
     zoomFactor = 1.0,
     centerGraphViewOnLoad = false,
@@ -60,7 +61,8 @@ module.exports = function (graphContainerSelector) {
     defaultTargetZoom = 0.8,
     global_dof = -1,
     touchDevice = false,
-    last_touch_time,
+    last_canvas_touch_time = 0,
+    last_element_tap_time = 0,
     originalD3_dblClickFunction = null,
     originalD3_touchZoomFunction = null,
     // editing elements
@@ -92,6 +94,12 @@ module.exports = function (graphContainerSelector) {
     showReloadButtonAfterLayoutOptimization = false,
     zoom;
   //var prefixModule=require("./prefixRepresentationModule")(graph);
+  function syncZoomState() {
+    var svgNode = graphContainer && graphContainer.node() ? graphContainer.node().parentNode : null;
+    if (svgNode) {
+      svgNode.__zoom = d3.zoomIdentity.translate(graphTranslation[0], graphTranslation[1]).scale(zoomFactor);
+    }
+  }
   const NodePrototypeMap = createLowerCasePrototypeMap(nodePrototypeMap);
   const PropertyPrototypeMap =
     createLowerCasePrototypeMap(propertyPrototypeMap);
@@ -174,18 +182,19 @@ module.exports = function (graphContainerSelector) {
           "transform",
           "translate(" + graphTranslation + ")scale(" + zoomFactor + ")",
         );
-        zoom.translate(graphTranslation);
-        zoom.scale(zoomFactor);
+        syncZoomState();
         graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
       });
   };
 
   graph.setZoom = function (value) {
-    zoom.scale(value);
+    zoomFactor = value;
+    syncZoomState();
   };
 
   graph.setTranslation = function (translation) {
-    zoom.translate([translation[0], translation[1]]);
+    graphTranslation = [translation[0], translation[1]];
+    syncZoomState();
   };
 
   graph.options = function () {
@@ -216,6 +225,21 @@ module.exports = function (graphContainerSelector) {
   /** graph / rendering  related functions                      **/
   /** --------------------------------------------------------- **/
 
+  var lastExecutedElement = null;
+  var lastExecutedTime = 0;
+  function executeModules( selectedElement, event ){
+    var now = performance.now();
+    if ( lastExecutedElement === selectedElement && (now - lastExecutedTime) < 300 ) {
+      return;
+    }
+    lastExecutedElement = selectedElement;
+    lastExecutedTime = now;
+    
+    options.selectionModules().forEach(function ( module ){
+      module.handle(event, selectedElement);
+    });
+  }
+  
   // Initializes the graph.
   function initializeGraph() {
     options.graphContainerSelector(graphContainerSelector);
@@ -225,6 +249,7 @@ module.exports = function (graphContainerSelector) {
     dragBehaviour = d3.behavior
       .drag()
       .origin(function (d) {
+    forceLink = d3.forceLink();
         return d;
       })
       .on("dragstart", function (d) {
@@ -284,21 +309,25 @@ module.exports = function (graphContainerSelector) {
       .on("drag", function (d) {
         if (d.type && d.type() === "Class_dragger") {
           clearTimeout(delayedHider);
-          classDragger.setPosition(d3.event.x, d3.event.y);
+          classDragger.setPosition(event.x, event.y);
         } else if (d.type && d.type() === "Range_dragger") {
           clearTimeout(delayedHider);
-          rangeDragger.setPosition(d3.event.x, d3.event.y);
-          shadowClone.setPosition(d3.event.x, d3.event.y);
-          domainDragger.updateElementViaRangeDragger(d3.event.x, d3.event.y);
+          rangeDragger.setPosition(event.x, event.y);
+          shadowClone.setPosition(event.x, event.y);
+          domainDragger.updateElementViaRangeDragger(event.x, event.y);
         } else if (d.type && d.type() === "Domain_dragger") {
           clearTimeout(delayedHider);
-          domainDragger.setPosition(d3.event.x, d3.event.y);
-          shadowClone.setPositionDomain(d3.event.x, d3.event.y);
-          rangeDragger.updateElementViaDomainDragger(d3.event.x, d3.event.y);
+          domainDragger.setPosition(event.x, event.y);
+          shadowClone.setPositionDomain(event.x, event.y);
+          rangeDragger.updateElementViaDomainDragger(event.x, event.y);
         } else {
-          d.px = d3.event.x;
-          d.py = d3.event.y;
-          force.resume();
+          d.px = event.x;
+          d.py = event.y;
+          d.x = event.x;
+          d.y = event.y;
+          d.fx = event.x;
+          d.fy = event.y;
+          force.alpha(0.3).restart();
           updateHaloRadius();
           moved = true;
           if (d.renderType && d.renderType() === "round") {
@@ -392,10 +421,15 @@ module.exports = function (graphContainerSelector) {
           if (pnp.enabled() === true && moved === true) {
             if (d.id) {
               // node
-              pnp.handle(d, true);
+              pnp.handle(event, d, true);
             }
             if (d.property) {
-              pnp.handle(d.property(), true);
+              pnp.handle(event, d.property(), true);
+            }
+          }
+          else if ( moved === false ) {
+            if ( d.id ) {
+              executeModules(d, event);
             }
           }
         }
@@ -798,7 +832,7 @@ module.exports = function (graphContainerSelector) {
     });
 
     nodeElements.on("dblclick", function (clickedNode) {
-      d3.event.stopPropagation();
+      event.stopPropagation();
       if (editMode === true) {
         clickedNode.raiseDoubleClickEdit(defaultIriValue(clickedNode));
       }
@@ -862,7 +896,7 @@ module.exports = function (graphContainerSelector) {
     labelGroupElements
       .selectAll(".label")
       .on("dblclick", function (clickedProperty) {
-        d3.event.stopPropagation();
+        event.stopPropagation();
         if (editMode === true) {
           clickedProperty.raiseDoubleClickEdit(
             defaultIriValue(clickedProperty),
@@ -884,8 +918,7 @@ module.exports = function (graphContainerSelector) {
   /** Adjusts the containers current scale and position. */
   function zoomed() {
     if (forceNotZooming === true) {
-      zoom.translate(graphTranslation);
-      zoom.scale(zoomFactor);
+      syncZoomState();
       return;
     }
 
@@ -899,8 +932,8 @@ module.exports = function (graphContainerSelector) {
       if (transformAnimation === true) {
         return;
       }
-      zoomFactor = d3.event.scale;
-      graphTranslation = d3.event.translate;
+      zoomFactor = event.transform.k;
+      graphTranslation = [event.transform.x, event.transform.y];
       graphContainer.attr(
         "transform",
         "translate(" + graphTranslation + ")scale(" + zoomFactor + ")",
@@ -910,8 +943,8 @@ module.exports = function (graphContainerSelector) {
       return;
     }
     /** animate the transition **/
-    zoomFactor = d3.event.scale;
-    graphTranslation = d3.event.translate;
+    zoomFactor = event.transform.k;
+    graphTranslation = [event.transform.x, event.transform.y];
     graphContainer
       .transition()
       .tween("attr.translate", function () {
@@ -951,8 +984,10 @@ module.exports = function (graphContainerSelector) {
 
     const svgGraph = d3.selectAll(".vowlGraph");
     originalD3_dblClickFunction = svgGraph.on("dblclick.zoom");
-    originalD3_touchZoomFunction = svgGraph.on("touchstart");
-    svgGraph.on("touchstart", touchzoomed);
+    originalD3_touchZoomFunction = svgGraph.on("touchstart.zoom");
+    if ( originalD3_touchZoomFunction ) {
+      svgGraph.on("touchstart.zoom", touchzoomed);
+    }
     if (editMode === true) {
       svgGraph.on("dblclick.zoom", graph.modified_dblClickFunction);
     } else {
@@ -1315,7 +1350,7 @@ module.exports = function (graphContainerSelector) {
     ) {
       force.stop();
     } else {
-      force.start();
+      force.alpha(1).restart();
     }
   };
 
@@ -1346,7 +1381,7 @@ module.exports = function (graphContainerSelector) {
     // -- experimental ;
     quick_refreshGraphData();
     updateNodeMap();
-    force.start();
+    force.alpha(1).restart();
     redrawContent();
     graph.updatePulseIds(nodeArrayForPulse);
     refreshGraphStyle();
@@ -1427,7 +1462,7 @@ module.exports = function (graphContainerSelector) {
     // update node map
     updateNodeMap();
 
-    force.start();
+    force.alpha(1).restart();
     redrawContent();
     graph.updatePulseIds(nodeArrayForPulse);
     refreshGraphStyle();
@@ -1442,7 +1477,6 @@ module.exports = function (graphContainerSelector) {
     graph.updateStyle();
     return graph;
   };
-  // resetting the graph
   graph.reset = function () {
     // window size
     const w = 0.5 * graph.options().width();
@@ -1483,8 +1517,7 @@ module.exports = function (graphContainerSelector) {
           "transform",
           "translate(" + graphTranslation + ")scale(" + zoomFactor + ")",
         );
-        zoom.translate(graphTranslation);
-        zoom.scale(zoomFactor);
+        syncZoomState();
         updateHaloRadius();
         options.zoomSlider().updateZoomSliderValue(zoomFactor);
       });
@@ -1519,8 +1552,7 @@ module.exports = function (graphContainerSelector) {
           "transform",
           "translate(" + graphTranslation + ")scale(" + zoomFactor + ")",
         );
-        zoom.translate(graphTranslation);
-        zoom.scale(zoomFactor);
+        syncZoomState();
         updateHaloRadius();
         options.zoomSlider().updateZoomSliderValue(zoomFactor);
       });
@@ -1637,7 +1669,8 @@ module.exports = function (graphContainerSelector) {
     force.stop();
 
     force.nodes([]);
-    force.links([]);
+    forceLink.links([]);
+    force.force("link", forceLink);
     nodeArrayForPulse = [];
     pulseNodeIds = [];
     locationId = 0;
@@ -1718,7 +1751,7 @@ module.exports = function (graphContainerSelector) {
         }
       }
 
-      force.start();
+      force.alpha(1).restart();
     } else {
       force.stop();
       graph
@@ -1842,7 +1875,7 @@ module.exports = function (graphContainerSelector) {
     options.filterModules().forEach(function (module) {
       preprocessedData = filterFunction(module, preprocessedData);
     });
-    options.focuserModule().handle(undefined, true);
+    options.focuserModule().handle(null, undefined, true);
     classNodes = preprocessedData.nodes;
     properties = preprocessedData.properties;
     links = linkCreator.createLinks(properties);
@@ -1929,7 +1962,10 @@ module.exports = function (graphContainerSelector) {
       options.maxMagnification(),
     ]);
     if (graphContainer) {
-      zoom.event(graphContainer);
+      var svgNode = graphContainer.node() ? graphContainer.node().parentNode : null;
+      if (svgNode) {
+          d3.select(svgNode).call(zoom.transform, d3.zoomIdentity.translate(graphTranslation[0], graphTranslation[1]).scale(zoomFactor));
+      }
     }
 
     force
@@ -2288,8 +2324,7 @@ module.exports = function (graphContainerSelector) {
     graphTranslation = [cx - p[0] * zoomFactor, cy - p[1] * zoomFactor];
     updateHaloRadius();
     // update the values in case the user wants to break the animation
-    zoom.translate(graphTranslation);
-    zoom.scale(zoomFactor);
+    syncZoomState();
     graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
     return (
       "translate(" +
@@ -2342,8 +2377,7 @@ module.exports = function (graphContainerSelector) {
           "transform",
           "translate(" + graphTranslation + ")scale(" + zoomFactor + ")",
         );
-        zoom.translate(graphTranslation);
-        zoom.scale(zoomFactor);
+        syncZoomState();
         updateHaloRadius();
       });
   }
@@ -2775,8 +2809,7 @@ module.exports = function (graphContainerSelector) {
           "transform",
           "translate(" + graphTranslation + ")scale(" + zoomFactor + ")",
         );
-        zoom.translate(graphTranslation);
-        zoom.scale(zoomFactor);
+        syncZoomState();
         graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
       });
   };
@@ -2871,7 +2904,7 @@ module.exports = function (graphContainerSelector) {
     // very important thing for selection!;
     addNewNodeElement(aNode);
     // handle focuser!
-    options.focuserModule().handle(aNode);
+    options.focuserModule().handle(null, aNode);
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
     null;
@@ -2958,7 +2991,7 @@ module.exports = function (graphContainerSelector) {
       aProp.labelObject().py = element.labelObject().py;
     }
 
-    options.focuserModule().handle(aProp);
+    options.focuserModule().handle(null, aProp);
     null;
   };
 
@@ -3137,7 +3170,7 @@ module.exports = function (graphContainerSelector) {
     aNode.baseIri(d3.select("#iriEditor").node().value);
     aNode.iri(aNode.baseIri() + aNode.id());
     addNewNodeElement(aNode, forceUpdate);
-    options.focuserModule().handle(aNode, true);
+    options.focuserModule().handle(null, aNode, true);
     aNode.frozen(graph.paused());
     aNode.locked(graph.paused());
     aNode.enableEditing(autoEditElement);
@@ -3637,7 +3670,7 @@ module.exports = function (graphContainerSelector) {
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
 
-    options.focuserModule().handle(aProp);
+    options.focuserModule().handle(null, aProp);
     graph.activateHoverElementsForProperties(true, aProp, false, touchDevice);
     aProp.labelObject().increasedLoopAngle = true;
     aProp.enableEditing(autoEditElement);
@@ -3740,7 +3773,7 @@ module.exports = function (graphContainerSelector) {
         node.locked(graph.paused());
       }
     }, 1000);
-    options.focuserModule().handle(undefined);
+    options.focuserModule().handle(null, undefined);
     if (node) {
       node.frozen(true);
       node.locked(true);
@@ -3775,7 +3808,7 @@ module.exports = function (graphContainerSelector) {
     graph.fastUpdate();
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
-    options.focuserModule().handle(undefined);
+    options.focuserModule().handle(null, undefined);
     null;
     null;
   };
@@ -3865,7 +3898,7 @@ module.exports = function (graphContainerSelector) {
       graph.fastUpdate();
       generateDictionary(unfilteredData);
       graph.getUpdateDictionary();
-      options.focuserModule().handle(undefined);
+      options.focuserModule().handle(null, undefined);
       null;
       null;
     }
@@ -3903,7 +3936,7 @@ module.exports = function (graphContainerSelector) {
     graph.fastUpdate();
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
-    options.focuserModule().handle(undefined);
+    options.focuserModule().handle(null, undefined);
     null;
   };
 
@@ -3961,8 +3994,8 @@ module.exports = function (graphContainerSelector) {
   };
 
   graph.modified_dblClickFunction = function () {
-    d3.event.stopPropagation();
-    d3.event.preventDefault();
+    event.stopPropagation();
+    event.preventDefault();
     // get position where we want to add the node;
     const grPos = getClickedScreenCoords(
       d3.event.clientX,
@@ -3983,14 +4016,12 @@ module.exports = function (graphContainerSelector) {
     if (touch_time - last_touch_time < 300 && numTouchers === 1) {
       d3.event.stopPropagation();
       if (editMode === true) {
-        //graph.modified_dblClickFunction();
-        d3.event.preventDefault();
-        d3.event.stopPropagation();
-        last_touch_time = touch_time;
+        if ( event.preventDefault ) event.preventDefault();
+        last_element_tap_time = 0;
         return true;
       }
     }
-    last_touch_time = touch_time;
+    last_element_tap_time = touch_time;
     return false;
   }
 
@@ -4002,25 +4033,22 @@ module.exports = function (graphContainerSelector) {
       d3.event.stopPropagation();
 
       if (editMode === true) {
-        //graph.modified_dblClickFunction();
-        d3.event.preventDefault();
-        d3.event.stopPropagation();
-        zoom.translate(graphTranslation);
-        zoom.scale(zoomFactor);
-        graph.modified_dblTouchFunction();
+        if ( event.preventDefault ) event.preventDefault();
+        syncZoomState();
+        graph.modified_dblTouchFunction(event);
       } else {
         forceNotZooming = false;
         if (originalD3_touchZoomFunction) {
-          originalD3_touchZoomFunction();
+          originalD3_touchZoomFunction.call(this, event, d);
         }
       }
+      last_canvas_touch_time = 0;
       return;
     }
     forceNotZooming = false;
-    last_touch_time = touch_time;
-    // TODO: WORK AROUND TO CHECK FOR ORIGINAL FUNCTION
+    last_canvas_touch_time = touch_time;
     if (originalD3_touchZoomFunction) {
-      originalD3_touchZoomFunction();
+      originalD3_touchZoomFunction.call(this, event, d);
     }
   }
 
@@ -4029,7 +4057,7 @@ module.exports = function (graphContainerSelector) {
     d3.event.preventDefault();
     let xy;
     if (editMode === true) {
-      xy = d3.touches(d3.selectAll(".vowlGraph").node());
+      xy = d3.pointers(event, d3.selectAll(".vowlGraph").node());
     }
     const grPos = getClickedScreenCoords(
       xy[0][0],
@@ -4271,11 +4299,11 @@ module.exports = function (graphContainerSelector) {
       setDeleteHoverElementPositionProperty(property, inversed);
       deleteGroupElement.selectAll("*").on("click", function () {
         if (touchBehaviour && property.focused() === false) {
-          graph.options().focuserModule().handle(property);
+          graph.options().focuserModule().handle(null, property);
           return;
         }
         graph.removePropertyViaEditor(property);
-        d3.event.stopPropagation();
+        event.stopPropagation();
       });
       classDragger.hideDragger(true);
       addDataPropertyGroupElement.classed("hidden", true);
@@ -4419,11 +4447,11 @@ module.exports = function (graphContainerSelector) {
         .selectAll("*")
         .on("click", function () {
           if (touchBehaviour && node.focused() === false) {
-            graph.options().focuserModule().handle(node);
+            graph.options().focuserModule().handle(null, node);
             return;
           }
           graph.removeNodeViaEditor(node);
-          d3.event.stopPropagation();
+          event.stopPropagation();
         })
         .on("mouseover", function () {
           editElementHoverOn(node, touchBehaviour);

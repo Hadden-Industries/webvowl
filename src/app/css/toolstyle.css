@@ -2211,6 +2211,7 @@ li#c_search input.searchInputText {
 
   /* width: 28px; */
   height: 150px;
+    touch-action: none;
 }
 
 p#zoomSliderParagraph:hover {
@@ -2231,6 +2232,46 @@ p#zoomSliderParagraph:hover {
 
   /* background-color: #ecf0f1; */
   box-sizing: border-box;
+    height: 100%;
+    padding: 0;
+    touch-action: none;
+    appearance: none;
+    background: transparent;
+}
+
+#zoomSliderElement::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px;
+    background: #ddd;
+    border-radius: 3px;
+}
+
+#zoomSliderElement::-moz-range-track {
+    width: 100%;
+    height: 6px;
+    background: #ddd;
+    border-radius: 3px;
+}
+
+#zoomSliderElement::-webkit-slider-thumb {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #2b5797;
+    margin-top: -9px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
+}
+
+#zoomSliderElement::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #2b5797;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
 }
 
 /***************************************************************************  */
@@ -2767,6 +2808,10 @@ a#locateSearchResult.highlighted:hover {
 
     #zoomSliderParagraph {
         width: 44px;
+    }
+
+    #zoomSliderElement {
+        height: 44px;
     }
 
     #zoomSlider button {

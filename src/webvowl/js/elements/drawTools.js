@@ -106,7 +106,7 @@ module.exports = (function () {
         if (onClick) {
           onClick();
         }
-        d3.event.stopPropagation();
+        event.stopPropagation();
       });
 
     pinGroupElement
@@ -128,7 +128,7 @@ module.exports = (function () {
           if (onClick) {
             onClick();
           }
-          d3.event.stopPropagation();
+          event.stopPropagation();
         })
         .on("mouseover", function () {
           base.classed("feature_hover", true);

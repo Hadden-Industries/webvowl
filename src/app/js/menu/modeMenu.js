@@ -184,6 +184,7 @@ module.exports = function (graph) {
 
     const moduleCheckbox = moduleOptionContainer
       .append("input")
+      .datum({ module: module, defaultState: module.enabled() })
       .classed("moduleCheckbox", true)
       .attr("id", identifier + "ModuleCheckbox")
       .attr("type", "checkbox")
@@ -194,7 +195,8 @@ module.exports = function (graph) {
 
     moduleCheckbox.on("click", function (d, silent) {
       const isEnabled = moduleCheckbox.property("checked");
-      d.module.enabled(isEnabled);
+      module.enabled(isEnabled);
+      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
       if (updateGraphOnClick && silent !== true) {
         graph.executeColorExternalsModule();
         graph.executeCompactNotationModule();
@@ -221,6 +223,7 @@ module.exports = function (graph) {
       const data = button.datum();
       data.active = !data.active;
       applyColorModeSwitchState(button, colorExternalsMode);
+      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
       if (colorExternalsMode.enabled() && silent !== true) {
         graph.executeColorExternalsModule();
         graph.lazyRefresh();

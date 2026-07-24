@@ -173,7 +173,7 @@ module.exports = (function () {
       that.frozen(true); // << releases the not after selection
       that.locked(true);
 
-      d3.event.stopPropagation();
+      event && event.stopPropagation();
       // ignoreNodeHoverEvent=true;
       // // add some events that relate to this object
       editText.on("click", function () {

@@ -93,7 +93,7 @@ module.exports = function () {
     // classCount += hasThing ? 1 : 0;
     // classCount += hasNothing ? 1 : 0;
 
-    datatypeCount = datatypeSet.size();
+    datatypeCount = datatypeSet.size;
   }
 
   function storePropertyCount(properties) {

@@ -291,10 +291,7 @@ module.exports = function (graph) {
           );
           loadingModule.setErrorMode();
           graph.handleOnLoadingError();
-        } else {
-          parseOntologyContent(request.responseText);
-        }
-      });
+        });
     }
   };
 
@@ -379,8 +376,15 @@ module.exports = function (graph) {
             loadingModule.setErrorMode();
             graph.handleOnLoadingError();
           }
-        }
-      });
+        })
+        .catch(function(error) {
+          console.error(error);
+          ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+          ontologyMenu.append_bulletPoint("Could not fetch remote IRI: " + filename);
+          ontologyMenu.append_message_toLastBulletPoint("<br>CORS restrictions might prevent loading remote files directly in the browser.");
+          loadingModule.setErrorMode();
+          graph.handleOnLoadingError();
+        });
     }
   };
 
@@ -669,8 +673,7 @@ module.exports = function (graph) {
             graph.handleOnLoadingError();
             loadingModule.setErrorMode();
           }
-        }
-      });
+        });
     }
   }
 

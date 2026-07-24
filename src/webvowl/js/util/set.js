@@ -4,7 +4,7 @@
  */
 module.exports = function (array) {
   const set = {},
-    d3Set = d3.set(array);
+    d3Set = new Set(array);
 
   set.has = function (webvowlElement) {
     return d3Set.has(webvowlElement.id());
@@ -15,15 +15,15 @@ module.exports = function (array) {
   };
 
   set.remove = function (webvowlElement) {
-    return d3Set.remove(webvowlElement.id());
+    return d3Set.delete(webvowlElement.id());
   };
 
   set.empty = function () {
-    return d3Set.empty();
+    return d3Set.size === 0;
   };
 
   set.size = function () {
-    return d3Set.size();
+    return d3Set.size;
   };
 
   return set;

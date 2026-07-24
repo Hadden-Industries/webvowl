@@ -71,7 +71,7 @@ module.exports = function (graph) {
       graph.options().warningModule().showExporterWarning();
       console.warn("Stay on the page! " + window.location.href);
       exportTurtleButton.attr("href", window.location.href);
-      d3.event.preventDefault(); // prevent the href to be called ( reloads the page otherwise )
+      event.preventDefault(); // prevent the href to be called ( reloads the page otherwise )
     }
   }
 
@@ -88,7 +88,7 @@ module.exports = function (graph) {
     d3.select("#exportedUrl").node().select();
     document.execCommand("copy");
     graph.options().navigationMenu().hideAllMenus();
-    d3.event.preventDefault(); // prevent the href to be called ( reloads the page otherwise )
+    event.preventDefault(); // prevent the href to be called ( reloads the page otherwise )
   }
 
   function prepareOptionString(defOpts, currOpts) {
@@ -931,7 +931,7 @@ module.exports = function (graph) {
     if (!exportableJsonText) {
       alert("No graph data available.");
       // Stop the redirection to the path of the href attribute
-      d3.event.preventDefault();
+      event.preventDefault();
       return;
     }
 
@@ -967,8 +967,7 @@ module.exports = function (graph) {
     .y(function (d) {
       return d.y;
     })
-    .interpolate("cardinal")
-    .tension(-1);
+    .curve(d3.curveCardinal.tension(-1));
 
   function exportTex() {
     let ahAngle,
@@ -1151,7 +1150,7 @@ module.exports = function (graph) {
     if (!exportableJsonText) {
       alert("No graph data available.");
       // Stop the redirection to the path of the href attribute
-      d3.event.preventDefault();
+      event.preventDefault();
       return;
     }
 

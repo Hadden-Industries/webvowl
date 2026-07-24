@@ -227,7 +227,7 @@ module.exports = function (graph) {
         iriConverterInput.property("value", "");
         iriConverterInput.on("input")();
       }
-      d3.event.preventDefault();
+      event.preventDefault();
       return false;
     });
   }
@@ -361,8 +361,7 @@ module.exports = function (graph) {
         setLoadingStatusInfo(request.responseText + "<br>" + msg);
       } else {
         append_message(msg);
-      }
-    });
+      });
   }
 
   ontologyMenu.setConversionID = function (id) {

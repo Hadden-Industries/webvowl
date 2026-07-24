@@ -123,7 +123,7 @@ module.exports = function (graph) {
       const givenId = this.id;
       nId = givenId.split("_")[1];
     } else {
-      nId = id;
+      nId = targetId;
     }
     if (id && id.indexOf("_") !== -1) {
       nId = id.split("_")[1];
