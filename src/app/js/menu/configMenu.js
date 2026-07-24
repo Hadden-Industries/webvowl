@@ -133,7 +133,7 @@ module.exports = function (graph) {
       if (cbdId === identifier) {
         checkboxes[i].property("checked", value);
         if ( checkboxes[i].on("click") ) {
-          checkboxes[i].on("click")(true);
+          checkboxes[i].on("click")();
         }
         break;
       }
