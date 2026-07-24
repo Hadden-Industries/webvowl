@@ -98,14 +98,14 @@ module.exports = function ( graph ){
     ];
     
     
-    var lineFunction = d3.svg.line()
+    var lineFunction = d3.line()
       .x(function ( d ){
         return d.x;
       })
       .y(function ( d ){
         return d.y;
       })
-      .interpolate("basis-closed");
+      .curve(d3.curveBasisClosed);
     var pathData = "M 20,40 C 0,15 0,-15 20,-40 L -40,0 Z";
     // var pathData="M 20,40 C 0,15 0,-15 20,-40 20,-40 -35.22907,-23.905556 -45.113897,0.06313453 -35.22907,20.095453 20,40 20,40 Z";
     // var pathData="M 39.107144,51.25 C 0,17.362169 0,-13.75 39.285715,-49.821429 c 0,0 -69.58321,34.511175 -100.714286,50.35714329 C -22.96643,20.324376 39.107144,51.25 39.107144,51.25 Z";

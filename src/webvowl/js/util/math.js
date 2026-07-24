@@ -5,15 +5,14 @@
 module.exports = (function (){
   
   var math = {},
-    loopFunction = d3.svg.line()
+    loopFunction = d3.line()
       .x(function ( d ){
         return d.x;
       })
       .y(function ( d ){
         return d.y;
       })
-      .interpolate("cardinal")
-      .tension(-1);
+      .curve(d3.curveCardinal.tension(-1));
   
   
   /**

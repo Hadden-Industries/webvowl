@@ -89,8 +89,8 @@ module.exports = function ( graph ){
     }
     
     // connect to mouseWheel
-    d3.select("#menuElementContainer").on("wheel", function (){
-      var wheelEvent = d3.event;
+    d3.select("#menuElementContainer").on("wheel", function (event){
+      var wheelEvent = event;
       var offset;
       if ( wheelEvent.deltaY < 0 ) offset = 20;
       if ( wheelEvent.deltaY > 0 ) offset = -20;
@@ -164,6 +164,7 @@ module.exports = function ( graph ){
     hoveroutedControMenu(this.id);
   }
   
+  var touchResetTimer;
   function menuElementClicked(){
     var m_element = m_select[c_select.indexOf(this.id)];
     if ( m_element ) {
@@ -176,12 +177,20 @@ module.exports = function ( graph ){
         }
       }
     }
+    clearTimeout(touchResetTimer);
+    touchResetTimer = setTimeout(function (){
+      touchedElement = false;
+    }, 400);
   }
   
   function menuElementTouched(){
     // it sets a flag that we have touched it,
-    // since d3. propagates the event for touch as hover and then click, we block the hover event
+    // since d3 propagates the event for touch as hover and then click, we block the hover event
     touchedElement = true;
+    clearTimeout(touchResetTimer);
+    touchResetTimer = setTimeout(function (){
+      touchedElement = false;
+    }, 500);
   }
   
   
@@ -274,8 +283,12 @@ module.exports = function ( graph ){
     // some hovering behavior -- lets the menu disappear when hovered in graph or sidebar;
     d3.select("#graph").on("mouseover", function (){
       navigationMenu.hideAllMenus();
+    }).on("touchstart", function (){
+      navigationMenu.hideAllMenus();
     });
     d3.select("#generalDetails").on("mouseover", function (){
+      navigationMenu.hideAllMenus();
+    }).on("touchstart", function (){
       navigationMenu.hideAllMenus();
     });
   };

@@ -50,9 +50,9 @@ module.exports = function ( graph ){
     });
     
     // add wheel event to the slider
-    slider.on("wheel", function (){
+    slider.on("wheel", function (event){
       if ( slider.node().disabled === true ) return;
-      var wheelEvent = d3.event;
+      var wheelEvent = event;
       var offset;
       if ( wheelEvent.deltaY < 0 ) offset = 10;
       if ( wheelEvent.deltaY > 0 ) offset = -10;
@@ -63,7 +63,7 @@ module.exports = function ( graph ){
         onChangeFunction(newSliderValue);
         slider.on("input")(); // << set text and update the graphStyles
       }
-      d3.event.preventDefault();
+      event.preventDefault();
     });
   }
   
@@ -78,9 +78,10 @@ module.exports = function ( graph ){
       .property("checked", onChangeFunc());
     
     
-    configCheckbox.on("click", function ( silent ){
+    configCheckbox.on("click", function ( arg1, arg2 ){
       var isEnabled = configCheckbox.property("checked");
       onChangeFunc(isEnabled);
+      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
       if ( silent !== true ) {
         // updating graph when silent is false or the parameter is not given.
         if ( updateLvl === 1 ) {

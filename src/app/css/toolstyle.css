@@ -2048,7 +2048,7 @@ main {
 }
 
 #zoomSliderParagraph {
-    width: 32px;
+    width: 36px;
     height: 140px;
     position: relative !important;
     top: auto !important;
@@ -2061,15 +2061,56 @@ main {
     box-sizing: border-box;
     overflow: hidden;
     background-color: #fefefe;
+    touch-action: none;
 }
 
 #zoomSliderElement {
     position: absolute;
     top: 50%;
     left: 50%;
+    height: 100%;
     transform: translate(-50%, -50%) rotate(-90deg);
     margin: 0;
+    padding: 0;
     cursor: pointer;
+    touch-action: none;
+    appearance: none;
+    background: transparent;
+}
+
+#zoomSliderElement::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px;
+    background: #ddd;
+    border-radius: 3px;
+}
+
+#zoomSliderElement::-moz-range-track {
+    width: 100%;
+    height: 6px;
+    background: #ddd;
+    border-radius: 3px;
+}
+
+#zoomSliderElement::-webkit-slider-thumb {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #2b5797;
+    margin-top: -9px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
+}
+
+#zoomSliderElement::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #2b5797;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
 }
 
 /***************************************************************************  */
@@ -2522,6 +2563,10 @@ a#locateSearchResult.highlighted:hover {
 
     #zoomSliderParagraph {
         width: 44px;
+    }
+
+    #zoomSliderElement {
+        height: 44px;
     }
 
     #zoomSlider button {

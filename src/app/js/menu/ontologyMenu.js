@@ -107,8 +107,8 @@ module.exports = function ( graph ){
   
   function setupUriListener(){
     // reload ontology when hash parameter gets changed manually
-    d3.select(window).on("hashchange", function (){
-      var oldURL = d3.event.oldURL, newURL = d3.event.newURL;
+    d3.select(window).on("hashchange", function (event){
+      var oldURL = event.oldURL, newURL = event.newURL;
       if ( oldURL !== newURL ) {
         // don't reload when just the hash parameter gets appended
         if ( newURL === oldURL + "#" ) {
@@ -202,7 +202,7 @@ module.exports = function ( graph ){
       keepOntologySelectionOpenShortly();
     });
     
-    d3.select("#iri-converter-form").on("submit", function (){
+    d3.select("#iri-converter-form").on("submit", function (event){
       var inputName = iriConverterInput.property("value");
       
       // remove first spaces
@@ -227,7 +227,7 @@ module.exports = function ( graph ){
         iriConverterInput.property("value", "");
         iriConverterInput.on("input")();
       }
-      d3.event.preventDefault();
+      event.preventDefault();
       return false;
     });
   }
@@ -307,33 +307,43 @@ module.exports = function ( graph ){
   };
   
   function getLoadingStatusOnceCallBacked( callback, parameter ){
-    d3.xhr("loadingStatus?sessionId=" + conversion_sessionId, "application/text", function ( error, request ){
-      if ( error ) {
+    fetch("loadingStatus?sessionId=" + conversion_sessionId, { headers: { "Accept": "application/text" } })
+      .then(function(response) {
+        if (!response.ok) throw response;
+        return response.text();
+      })
+      .then(function(responseText) {
+        setLoadingStatusInfo(responseText);
+        callback(parameter);
+      })
+      .catch(function(error) {
         console.log("ontologyMenu getLoadingStatusOnceCallBacked throws error");
         console.log("---------Error -----------");
         console.log(error);
-        console.log("---------Request -----------");
-        console.log(request);
-      }
-      setLoadingStatusInfo(request.responseText);
-      callback(parameter);
-    });
+        callback(parameter);
+      });
   }
   
   function getLoadingStatusTimeLooped(){
-    d3.xhr("loadingStatus?sessionId=" + conversion_sessionId, "application/text", function ( error, request ){
-      if ( error ) {
+    fetch("loadingStatus?sessionId=" + conversion_sessionId, { headers: { "Accept": "application/text" } })
+      .then(function(response) {
+        if (!response.ok) throw response;
+        return response.text();
+      })
+      .then(function(responseText) {
+        if ( stopTimer === false ) {
+          setLoadingStatusInfo(responseText);
+          timedLoadingStatusLogger();
+        }
+      })
+      .catch(function(error) {
         console.log("ontologyMenu getLoadingStatusTimeLooped throws error");
         console.log("---------Error -----------");
         console.log(error);
-        console.log("---------Request -----------");
-        console.log(request);
-      }
-      if ( stopTimer === false ) {
-        setLoadingStatusInfo(request.responseText);
-        timedLoadingStatusLogger();
-      }
-    });
+        if ( stopTimer === false ) {
+          timedLoadingStatusLogger();
+        }
+      });
   }
   
   function timedLoadingStatusLogger(){
@@ -346,13 +356,17 @@ module.exports = function ( graph ){
   }
   
   function callbackUpdateLoadingMessage( msg ){
-    d3.xhr("loadingStatus", "application/text", function ( error, request ){
-      if ( request !== undefined ) {
-        setLoadingStatusInfo(request.responseText + "<br>" + msg);
-      } else {
+    fetch("loadingStatus", { headers: { "Accept": "application/text" } })
+      .then(function(response) {
+        if (!response.ok) throw response;
+        return response.text();
+      })
+      .then(function(responseText) {
+        setLoadingStatusInfo(responseText + "<br>" + msg);
+      })
+      .catch(function(error) {
         append_message(msg);
-      }
-    });
+      });
   }
   
   ontologyMenu.setConversionID = function ( id ){
@@ -365,22 +379,28 @@ module.exports = function ( graph ){
     var localThreadId = parameter[2];
     stopTimer = false;
     timedLoadingStatusLogger();
-    d3.xhr(relativePath, "application/json", function ( error, request ){
-      var loadingSuccessful = !error;
-      // check if error occurred or responseText is empty
-      if ( (error !== null && error.status === 500) || (request && request.responseText.length === 0) ) {
+    fetch(relativePath, { headers: { "Accept": "application/json" } })
+      .then(function(response) {
+        if (!response.ok) throw response;
+        return response.text();
+      })
+      .then(function(responseText) {
+        if ( responseText.length === 0 ) {
+          clearTimeout(loadingStatusTimer);
+          stopTimer = true;
+          getLoadingStatusOnceCallBacked(callbackFromIRI_URL_ERROR, [null, {responseText: responseText}, localThreadId]);
+        } else {
+          clearTimeout(loadingStatusTimer);
+          stopTimer = true;
+          var jsonText = responseText;
+          getLoadingStatusOnceCallBacked(callbackFromIRI_Success, [jsonText, ontoName, localThreadId]);
+        }
+      })
+      .catch(function(error) {
         clearTimeout(loadingStatusTimer);
         stopTimer = true;
-        getLoadingStatusOnceCallBacked(callbackFromIRI_URL_ERROR, [error, request, localThreadId]);
-      }
-      var jsonText;
-      if ( loadingSuccessful ) {
-        clearTimeout(loadingStatusTimer);
-        stopTimer = true;
-        jsonText = request.responseText;
-        getLoadingStatusOnceCallBacked(callbackFromIRI_Success, [jsonText, ontoName, localThreadId]);
-      }
-    });
+        getLoadingStatusOnceCallBacked(callbackFromIRI_URL_ERROR, [error, null, localThreadId]);
+      });
   };
   
   
@@ -439,24 +459,28 @@ module.exports = function ( graph ){
     var local_conversionId = parameter[2];
     stopTimer = false;
     timedLoadingStatusLogger();
-    d3.xhr(relativePath, "application/json", function ( error, request ){
-      var loadingSuccessful = !error;
-      // check if error occurred or responseText is empty
-      if ( (error !== null && error.status === 500) || (request && request.responseText.length === 0) ) {
+    fetch(relativePath, { headers: { "Accept": "application/json" } })
+      .then(function(response) {
+        if (!response.ok) throw response;
+        return response.text();
+      })
+      .then(function(responseText) {
+        if ( responseText.length === 0 ) {
+          clearTimeout(loadingStatusTimer);
+          stopTimer = true;
+          getLoadingStatusOnceCallBacked(callbackFromJSON_URL_ERROR, [null, {responseText: responseText}, local_conversionId]);
+        } else {
+          clearTimeout(loadingStatusTimer);
+          stopTimer = true;
+          var jsonText = responseText;
+          getLoadingStatusOnceCallBacked(callbackFromJSON_Success, [jsonText, ontoName, local_conversionId]);
+        }
+      })
+      .catch(function(error) {
         clearTimeout(loadingStatusTimer);
         stopTimer = true;
-        loadingSuccessful = false;
-        console.log(request);
-        console.log(request.responseText.length);
-        getLoadingStatusOnceCallBacked(callbackFromJSON_URL_ERROR, [error, request, local_conversionId]);
-      }
-      if ( loadingSuccessful ) {
-        clearTimeout(loadingStatusTimer);
-        stopTimer = true;
-        var jsonText = request.responseText;
-        getLoadingStatusOnceCallBacked(callbackFromJSON_Success, [jsonText, ontoName, local_conversionId]);
-      }
-    });
+        getLoadingStatusOnceCallBacked(callbackFromJSON_URL_ERROR, [error, null, local_conversionId]);
+      });
   };
   
   function callbackFromJSON_Success( parameter ){
@@ -595,24 +619,25 @@ module.exports = function ( graph ){
     if ( id ) {
       local_id = id;
     }
-    d3.xhr("conversionDone?sessionId=" + local_id, "application/text", function ( error, request ){
-      if ( error ) {
+    fetch("conversionDone?sessionId=" + local_id, { headers: { "Accept": "application/text" } })
+      .then(function(response) {
+        if (!response.ok) throw response;
+        return response.text();
+      })
+      .catch(function(error) {
         console.log("ontologyMenu conversionFinished throws error");
         console.log("---------Error -----------");
         console.log(error);
-        console.log("---------Request -----------");
-        console.log(request);
-      }
-    });
+      });
   };
   
   function keepOntologySelectionOpenShortly(){
     // Events in the menu should not be considered
     var ontologySelection = d3.select("#select .toolTipMenu");
-    ontologySelection.on("click", function (){
-      d3.event.stopPropagation();
-    }).on("keydown", function (){
-      d3.event.stopPropagation();
+    ontologySelection.on("click", function (event){
+      event.stopPropagation();
+    }).on("keydown", function (event){
+      event.stopPropagation();
     });
     
     ontologySelection.style("display", "block");

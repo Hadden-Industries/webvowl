@@ -89,9 +89,10 @@ module.exports = function ( graph ){
       .property("checked", onChangeFunc());
     
     
-    configCheckbox.on("click", function ( silent ){
+    configCheckbox.on("click", function ( arg1, arg2 ){
       var isEnabled = configCheckbox.property("checked");
       onChangeFunc(isEnabled);
+      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
       _callbackFunction(isEnabled, silent);
       
     });

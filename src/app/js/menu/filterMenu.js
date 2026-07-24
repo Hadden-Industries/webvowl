@@ -80,11 +80,12 @@ module.exports = function ( graph ){
     // Store for easier resetting
     checkboxData.push({ checkbox: filterCheckbox, defaultState: filter.enabled() });
     
-    filterCheckbox.on("click", function ( silent ){
+    filterCheckbox.on("click", function ( arg1, arg2 ){
       // There might be no parameters passed because of a manual
       // invocation when resetting the filters
       var isEnabled = filterCheckbox.property("checked");
       filter.enabled(isEnabled);
+      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
       if ( silent !== true ) {
         // updating graph when silent is false or the parameter is not given.
         graph.update();
@@ -133,7 +134,8 @@ module.exports = function ( graph ){
       .text(0);
     
     
-    degreeSlider.on("change", function ( silent ){
+    degreeSlider.on("change", function ( arg1, arg2 ){
+      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
       if ( silent !== true ) {
         graph.update();
         graphDegreeLevel = degreeSlider.property("value");
@@ -156,8 +158,8 @@ module.exports = function ( graph ){
     });
   }
   
-  function handleWheelEvent(){
-    var wheelEvent = d3.event;
+  function handleWheelEvent(event){
+    var wheelEvent = event;
     
     var offset;
     if ( wheelEvent.deltaY < 0 ) offset = 1;
@@ -172,7 +174,7 @@ module.exports = function ( graph ){
       degreeSlider.on("input")();// <<-- sets the text value
       graph.update();
     }
-    d3.event.preventDefault();
+    event.preventDefault();
   }
   
   function setSliderValue( slider, value ){

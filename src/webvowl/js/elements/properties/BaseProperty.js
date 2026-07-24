@@ -650,10 +650,10 @@ module.exports = (function (){
         myWidth = Math.min(that.getMyWidth(), graph.options().maxLabelWidth());
         shapeElement.transition().tween("attr", function (){
         })
-          .ease('linear')
+          .ease(d3.easeLinear)
           .duration(100)
           .attr({ x: -myWidth / 2, y: -h / 2, width: myWidth, height: h })
-          .each("end", function (){
+          .on("end", function (){
             that.updateTextElement();
           });
       } else {
@@ -662,7 +662,7 @@ module.exports = (function (){
         that.updateTextElement();
         shapeElement.transition().tween("attr", function (){
         })
-          .ease('linear')
+          .ease(d3.easeLinear)
           .duration(100)
           .attr({ x: -myWidth / 2, y: -h / 2, width: myWidth, height: h });
       }
@@ -673,7 +673,7 @@ module.exports = (function (){
           .tween("attr.translate", function (){
           })
           .attr("transform", "translate(" + dx + "," + dy + ")")
-          .ease('linear')
+          .ease(d3.easeLinear)
           .duration(100);
       }
     };
@@ -706,7 +706,7 @@ module.exports = (function (){
       that.raiseDoubleClickEdit(true);
     };
     
-    this.raiseDoubleClickEdit = function ( forceIRISync ){
+    this.raiseDoubleClickEdit = function ( forceIRISync, event ){
       d3.selectAll(".foreignelements").remove();
       if ( that.labelElement() === undefined || this.type() === "owl:disjointWith" || this.type() === "rdfs:subClassOf" ) {
         console.log("No Container found");
@@ -729,7 +729,7 @@ module.exports = (function (){
         .attr("y", -13)
         .attr("height", 25)
         .attr("class", "foreignelements")
-        .on("dragstart", function (){
+        .on("dragstart", function (event){
           return false;
         }) // remove drag operations of text element)
         .attr("width", that.textWidth() - 2);
@@ -742,7 +742,7 @@ module.exports = (function (){
         .attr("id", that.id())
         .attr("align", "center")
         .attr("contentEditable", "true")
-        .on("dragstart", function (){
+        .on("dragstart", function (event){
           return false;
         }); // remove drag operations of text element)
       
@@ -760,33 +760,33 @@ module.exports = (function (){
       txtNode.value = that.labelForCurrentLanguage();
       txtNode.focus();
       txtNode.select();
-      if ( d3.event.stopPropagation ) d3.event.stopPropagation();
-      if ( d3.event.sourceEvent && d3.event.sourceEvent.stopPropagation ) d3.event.sourceEvent.stopPropagation();
+      if ( event && event.stopPropagation ) event.stopPropagation();
+      if ( event && event.sourceEvent && event.sourceEvent.stopPropagation ) event.sourceEvent.stopPropagation();
       
       // add some events that relate to this object
-      editText.on("click", function (){
-        if ( d3.event.stopPropagation ) d3.event.stopPropagation();
-        if ( d3.event.sourceEvent && d3.event.sourceEvent.stopPropagation ) d3.event.sourceEvent.stopPropagation();
+      editText.on("click", function (event){
+        if ( event && event.stopPropagation ) event.stopPropagation();
+        if ( event && event.sourceEvent && event.sourceEvent.stopPropagation ) event.sourceEvent.stopPropagation();
         
       });
       // // remove hover Events for now;
-      editText.on("mouseout", function (){
-        if ( d3.event.stopPropagation ) d3.event.stopPropagation();
-        if ( d3.event.sourceEvent && d3.event.sourceEvent.stopPropagation ) d3.event.sourceEvent.stopPropagation();
+      editText.on("mouseout", function (event){
+        if ( event && event.stopPropagation ) event.stopPropagation();
+        if ( event && event.sourceEvent && event.sourceEvent.stopPropagation ) event.sourceEvent.stopPropagation();
       });
-      editText.on("mousedown", function (){
-        if ( d3.event.stopPropagation ) d3.event.stopPropagation();
-        if ( d3.event.sourceEvent && d3.event.sourceEvent.stopPropagation ) d3.event.sourceEvent.stopPropagation();
+      editText.on("mousedown", function (event){
+        if ( event && event.stopPropagation ) event.stopPropagation();
+        if ( event && event.sourceEvent && event.sourceEvent.stopPropagation ) event.sourceEvent.stopPropagation();
       })
-        .on("keydown", function (){
+        .on("keydown", function (event){
           
-          if ( d3.event.keyCode === 13 ) {
+          if ( event.keyCode === 13 ) {
             this.blur();
             that.frozen(false); // << releases the not after selection
             that.locked(false);
           }
         })
-        .on("keyup", function (){
+        .on("keyup", function (event){
           if ( forceIRISync ) {
             var labelName = editText.node().value;
             var resourceName = labelName.replaceAll(" ", "_");
@@ -799,7 +799,7 @@ module.exports = (function (){
           d3.select("#element_labelEditor").node().value = editText.node().value;
           
         })
-        .on("blur", function (){
+        .on("blur", function (event){
           
           
           that.editingTextElement = false;

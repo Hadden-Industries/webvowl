@@ -166,7 +166,7 @@ module.exports = function ( graph ){
     handleAutoCompletion();
   }
   
-  function userNavigation(){
+  function userNavigation(event){
     if ( dictionaryUpdateRequired ) {
       updateSearchDictionary();
     }
@@ -184,7 +184,7 @@ module.exports = function ( graph ){
         selectedEntry = i;
       }
     }
-    if ( d3.event.keyCode === 13 ) {
+    if ( event.keyCode === 13 ) {
       if ( selectedEntry >= 0 && selectedEntry < numEntries ) {
         // simulate onClick event
         htmlCollection[selectedEntry].onclick();
@@ -216,11 +216,11 @@ module.exports = function ( graph ){
         }
       }
     }
-    if ( d3.event.keyCode === 38 ) {
+    if ( event.keyCode === 38 ) {
       move = -1;
       searchMenu.showSearchEntries();
     }
-    if ( d3.event.keyCode === 40 ) {
+    if ( event.keyCode === 40 ) {
       move = +1;
       searchMenu.showSearchEntries();
     }

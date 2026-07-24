@@ -37,6 +37,7 @@ module.exports = function ( graph ){
       .classed("distanceSliderContainer", true);
     
     var slider = sliderContainer.append("input")
+      .datum({ distanceFunction: distanceFunction })
       .attr("id", identifier + "DistanceSlider")
       .attr("type", "range")
       .attr("min", 10)
@@ -70,8 +71,8 @@ module.exports = function ( graph ){
     });
     
     // add wheel event to the slider
-    slider.on("wheel", function (){
-      var wheelEvent = d3.event;
+    slider.on("wheel", function (event){
+      var wheelEvent = event;
       var offset;
       if ( wheelEvent.deltaY < 0 ) offset = 10;
       if ( wheelEvent.deltaY > 0 ) offset = -10;
@@ -82,7 +83,7 @@ module.exports = function ( graph ){
         distanceFunction(newSliderValue);
         slider.on("input")(); // << set text and update the graphStyles
       }
-      d3.event.preventDefault();
+      event.preventDefault();
     });
   }
   

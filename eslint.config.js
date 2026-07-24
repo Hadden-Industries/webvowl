@@ -26,7 +26,10 @@ module.exports = [
         ...globals.jasmine,
         ...globals.jest,
         d3: "readonly",
-        webvowl: "writable"
+        webvowl: "writable",
+        Map: "readonly",
+        Set: "readonly",
+        fetch: "readonly"
       }
     },
     rules: {

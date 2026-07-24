@@ -3,7 +3,7 @@ module.exports = function (config) {
     basePath: "../",
     frameworks: ["jasmine"],
     files: [
-      "node_modules/d3/d3.js",
+      "node_modules/d3/dist/d3.js",
       "test/unit/index.js"
     ],
     preprocessors: {

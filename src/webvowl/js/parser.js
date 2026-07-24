@@ -240,8 +240,8 @@ module.exports = function ( graph ){
           }
           
           if ( element.attributes ) {
-            var deduplicatedAttributes = d3.set(element.attributes.concat(node.attributes()));
-            node.attributes(deduplicatedAttributes.values());
+            var deduplicatedAttributes = new Set(element.attributes.concat(node.attributes()));
+            node.attributes(Array.from(deduplicatedAttributes));
           }
           combinations.push(node);
         } else {
@@ -312,8 +312,8 @@ module.exports = function ( graph ){
           
           
           if ( element.attributes ) {
-            var deduplicatedAttributes = d3.set(element.attributes.concat(property.attributes()));
-            property.attributes(deduplicatedAttributes.values());
+            var deduplicatedAttributes = new Set(element.attributes.concat(property.attributes()));
+            property.attributes(Array.from(deduplicatedAttributes));
           }
           combinations.push(property);
         } else {
@@ -327,9 +327,9 @@ module.exports = function ( graph ){
   }
   
   function createLowerCasePrototypeMap( prototypeMap ){
-    return d3.map(prototypeMap.values(), function ( Prototype ){
-      return new Prototype().type().toLowerCase();
-    });
+    return new Map(Array.from(prototypeMap.values()).map(function ( Prototype ){
+      return [new Prototype().type().toLowerCase(), Prototype];
+    }));
   }
   
   function mergeRangesOfEquivalentProperties( properties, nodes ){

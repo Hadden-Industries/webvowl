@@ -53,6 +53,25 @@ module.exports = function ( graph ){
         zoomSlider.zooming();
       });
     
+    function handleContainerTouch(event){
+      if ( !event || !event.touches || event.touches.length === 0 ) return;
+      var touch = event.touches[0];
+      var container = d3.select("#zoomSliderParagraph").node();
+      if ( !container ) return;
+      var rect = container.getBoundingClientRect();
+      var touchY = touch.clientY;
+      var fraction = (rect.bottom - touchY) / rect.height;
+      fraction = Math.max(0, Math.min(1, fraction));
+      var newZoom = minMag + fraction * (maxMag - minMag);
+      slider.node().value = newZoom;
+      zoomSlider.zooming();
+      if ( event.cancelable ) event.preventDefault();
+    }
+
+    d3.select("#zoomSliderParagraph")
+      .on("touchstart", handleContainerTouch)
+      .on("touchmove", handleContainerTouch);
+    
     d3.select("#zoomOutButton").on("mousedown", function (){
       graph.options().navigationMenu().hideAllMenus();
       zoomValue = graph.scaleFactor();

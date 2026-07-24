@@ -149,8 +149,8 @@ module.exports = function ( graph ){
     var triggers = d3.selectAll(".accordion-trigger");
     
     triggers.attr("tabindex", "0").attr("role", "button");
-    triggers.on("keydown", function (){
-      var evt = d3.event || window.event;
+    triggers.on("keydown", function (event){
+      var evt = event || window.event;
       if ( evt && (evt.key === "Enter" || evt.key === " ") ) {
         evt.preventDefault();
         d3.select(this).node().click();

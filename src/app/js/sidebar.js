@@ -38,8 +38,8 @@ module.exports = function ( graph ){
     collapseContainers(d3.selectAll(".accordion-trigger:not(.accordion-trigger-active) + div"));
 
     triggers.attr("tabindex", "0").attr("role", "button");
-    triggers.on("keydown", function (){
-      var evt = d3.event || window.event;
+    triggers.on("keydown", function (event){
+      var evt = event || window.event;
       if ( evt && (evt.key === "Enter" || evt.key === " ") ) {
         evt.preventDefault();
         d3.select(this).node().click();
@@ -211,8 +211,8 @@ module.exports = function ( graph ){
     });
     
     var languageSelection = d3.select("#language")
-      .on("change", function (){
-        graph.language(d3.event.target.value);
+      .on("change", function (event){
+        graph.language(event.target.value);
         updateGraphInformation();
         sidebar.updateSelectionInformation(lastSelectedElement);
       });
@@ -501,11 +501,11 @@ module.exports = function ( graph ){
    * Update the information of the selected node.
    * @param selectedElement the selection or null if nothing is selected
    */
-  sidebar.updateSelectionInformation = function ( selectedElement ){
+  sidebar.updateSelectionInformation = function ( selectedElement, event ){
     lastSelectedElement = selectedElement;
     
     // Click event was prevented when dragging
-    if ( d3.event && d3.event.defaultPrevented ) {
+    if ( event && event.defaultPrevented ) {
       return;
     }
     

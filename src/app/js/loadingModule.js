@@ -268,34 +268,42 @@ module.exports = function ( graph ){
       
     } else {
       ontologyMenu.append_message("Retrieving ontology from JSON URL " + filename);
-      d3.xhr(filename, "application/json", function ( error, request ){
-        if ( error ) {
+      fetch(filename, { headers: { "Accept": "application/json" } })
+        .then(function(response) {
+          if (!response.ok) throw response;
+          return response.text();
+        })
+        .then(function(responseText) {
+          parseOntologyContent(responseText);
+        })
+        .catch(function(error) {
           console.error(error);
           ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
           ontologyMenu.append_bulletPoint("Could not fetch remote JSON: " + filename);
           ontologyMenu.append_message_toLastBulletPoint("<br>CORS restrictions might prevent loading remote files directly in the browser.");
           loadingModule.setErrorMode();
           graph.handleOnLoadingError();
-        } else {
-          parseOntologyContent(request.responseText);
-        }
-      });
+        });
     }
   };
   
   function requestServerTimeStampForJSON_URL( callback, parameter ){
-    d3.xhr("serverTimeStamp", "application/text", function ( error, request ){
-      if ( error ) {
-        // could not get server timestamp -> no connection to owl2vowl
-        ontologyMenu.append_bulletPoint("Could not establish connection to OWL2VOWL service");
-        fallbackForJSON_URL(callback, parameter);
-      } else {
-        conversion_sessionId = request.responseText;
+    fetch("serverTimeStamp", { headers: { "Accept": "application/text" } })
+      .then(function(response) {
+        if (!response.ok) throw response;
+        return response.text();
+      })
+      .then(function(responseText) {
+        conversion_sessionId = responseText;
         ontologyMenu.setConversionID(conversion_sessionId);
         parameter.push(conversion_sessionId);
         callback(parameter);
-      }
-    });
+      })
+      .catch(function(error) {
+        // could not get server timestamp -> no connection to owl2vowl
+        ontologyMenu.append_bulletPoint("Could not establish connection to OWL2VOWL service");
+        fallbackForJSON_URL(callback, parameter);
+      });
     
   }
   
@@ -316,18 +324,15 @@ module.exports = function ( graph ){
       parseOntologyContent(ontologyContent);
     } else {
       ontologyMenu.append_bulletPoint("Retrieving ontology from IRI: " + filename);
-      d3.xhr(filename, function ( error, request ){
-        if ( error ) {
-          console.error(error);
-          ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
-          ontologyMenu.append_bulletPoint("Could not fetch remote IRI: " + filename);
-          ontologyMenu.append_message_toLastBulletPoint("<br>CORS restrictions might prevent loading remote files directly in the browser.");
-          loadingModule.setErrorMode();
-          graph.handleOnLoadingError();
-        } else {
+      fetch(filename)
+        .then(function(response) {
+          if (!response.ok) throw response;
+          return response.text();
+        })
+        .then(function(responseText) {
           try {
             ontologyMenu.append_bulletPoint("Converting remote ontology client-side...");
-            var xmlText = request.responseText;
+            var xmlText = responseText;
             owl2vowl.loadWithImports(xmlText)
               .then(function (vowlJson) {
                 parseOntologyContent(JSON.stringify(vowlJson));
@@ -349,8 +354,15 @@ module.exports = function ( graph ){
             loadingModule.setErrorMode();
             graph.handleOnLoadingError();
           }
-        }
-      });
+        })
+        .catch(function(error) {
+          console.error(error);
+          ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+          ontologyMenu.append_bulletPoint("Could not fetch remote IRI: " + filename);
+          ontologyMenu.append_message_toLastBulletPoint("<br>CORS restrictions might prevent loading remote files directly in the browser.");
+          loadingModule.setErrorMode();
+          graph.handleOnLoadingError();
+        });
     }
   };
   
@@ -512,39 +524,48 @@ module.exports = function ( graph ){
   }
   
   function requestServerTimeStampForIRI_Converte( callback, parameterArray ){
-    d3.xhr("serverTimeStamp", "application/text", function ( error, request ){
-      loadingModule.setBusyMode();
-      if ( error ) {
+    fetch("serverTimeStamp", { headers: { "Accept": "application/text" } })
+      .then(function(response) {
+        if (!response.ok) throw response;
+        return response.text();
+      })
+      .then(function(responseText) {
+        loadingModule.setBusyMode();
+        conversion_sessionId = responseText;
+        ontologyMenu.setConversionID(conversion_sessionId);
+        // update paramater for new communication paradigm
+        parameterArray[0] = parameterArray[0] + "&sessionId=" + conversion_sessionId;
+        parameterArray.push(conversion_sessionId);
+        callback(parameterArray);
+      })
+      .catch(function(error) {
+        loadingModule.setBusyMode();
         // could not get server timestamp -> no connection to owl2vowl
         ontologyMenu.append_bulletPoint("Could not establish connection to OWL2VOWL service");
         loadingModule.setErrorMode();
         ontologyMenu.append_bulletPoint("Failed to load ontology");
         ontologyMenu.append_message_toLastBulletPoint("<br><span style='color:red'>Could not connect to OWL2VOWL service </span>");
         loadingModule.showErrorDetailsMessage();
-      } else {
-        conversion_sessionId = request.responseText;
-        ontologyMenu.setConversionID(conversion_sessionId);
-        // update paramater for new communication paradigm
-        parameterArray[0] = parameterArray[0] + "&sessionId=" + conversion_sessionId;
-        parameterArray.push(conversion_sessionId);
-        callback(parameterArray);
-      }
-    });
+      });
   }
   
   function requestServerTimeStamp( callback, parameterArray ){
-    d3.xhr("serverTimeStamp", "application/text", function ( error, request ){
-      if ( error ) {
-        // could not get server timestamp -> no connection to owl2vowl
-        ontologyMenu.append_bulletPoint("Could not establish connection to OWL2VOWL service");
-        fallbackConversion(parameterArray); // tries o2v version0.3.4 communication
-      } else {
-        conversion_sessionId = request.responseText;
+    fetch("serverTimeStamp", { headers: { "Accept": "application/text" } })
+      .then(function(response) {
+        if (!response.ok) throw response;
+        return response.text();
+      })
+      .then(function(responseText) {
+        conversion_sessionId = responseText;
         ontologyMenu.setConversionID(conversion_sessionId);
         console.log("Request Session ID:" + conversion_sessionId);
         callback(parameterArray[0], parameterArray[1], conversion_sessionId);
-      }
-    });
+      })
+      .catch(function(error) {
+        // could not get server timestamp -> no connection to owl2vowl
+        ontologyMenu.append_bulletPoint("Could not establish connection to OWL2VOWL service");
+        fallbackConversion(parameterArray); // tries o2v version0.3.4 communication
+      });
   }
   
   loadingModule.directInput = function ( text ){
@@ -601,13 +622,16 @@ module.exports = function ( graph ){
         fileToRead = f2r;
       } // overwrite the newOntology Index
       // read file
-      d3.xhr(fileToRead, "application/json", function ( error, request ){
-        var loadingSuccessful = !error;
-        if ( loadingSuccessful ) {
-          ontologyContent = request.responseText;
+      fetch(fileToRead, { headers: { "Accept": "application/json" } })
+        .then(function(response) {
+          if (!response.ok) throw response;
+          return response.text();
+        })
+        .then(function(responseText) {
+          ontologyContent = responseText;
           parseOntologyContent(ontologyContent);
-        } else {
-
+        })
+        .catch(function(error) {
           if (loadingNewOntologyForEditor){
             ontologyContent = '{\n' +
               '  "_comment": "Empty ontology for WebVOWL Editor",\n' +
@@ -659,8 +683,7 @@ module.exports = function ( graph ){
           graph.handleOnLoadingError();
           loadingModule.setErrorMode();
           }
-        }
-      });
+        });
     }
   }
   

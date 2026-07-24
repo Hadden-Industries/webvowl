@@ -45,10 +45,10 @@ module.exports = function ( graph ){
       .on("change", function (){
         graph.options().addOrUpdateGeneralObjectEntry("title", d3.select("#titleEditor").node().value);
       })
-      .on("keydown", function (){
-        d3.event.stopPropagation();
-        if ( d3.event.keyCode === 13 ) {
-          d3.event.preventDefault();
+      .on("keydown", function (event){
+        event.stopPropagation();
+        if ( event.keyCode === 13 ) {
+          event.preventDefault();
           graph.options().addOrUpdateGeneralObjectEntry("title", d3.select("#titleEditor").node().value);
         }
       });
@@ -59,10 +59,10 @@ module.exports = function ( graph ){
           d3.select("#iriEditor").node().value = graph.options().getGeneralMetaObjectProperty('iri');
         }
       })
-      .on("keydown", function (){
-        d3.event.stopPropagation();
-        if ( d3.event.keyCode === 13 ) {
-          d3.event.preventDefault();
+      .on("keydown", function (event){
+        event.stopPropagation();
+        if ( event.keyCode === 13 ) {
+          event.preventDefault();
           if ( graph.options().addOrUpdateGeneralObjectEntry("iri", d3.select("#iriEditor").node().value) === false ) {
             // restore value
             d3.select("#iriEditor").node().value = graph.options().getGeneralMetaObjectProperty('iri');
@@ -73,10 +73,10 @@ module.exports = function ( graph ){
       .on("change", function (){
         graph.options().addOrUpdateGeneralObjectEntry("version", d3.select("#versionEditor").node().value);
       })
-      .on("keydown", function (){
-        d3.event.stopPropagation();
-        if ( d3.event.keyCode === 13 ) {
-          d3.event.preventDefault();
+      .on("keydown", function (event){
+        event.stopPropagation();
+        if ( event.keyCode === 13 ) {
+          event.preventDefault();
           graph.options().addOrUpdateGeneralObjectEntry("version", d3.select("#versionEditor").node().value);
         }
       });
@@ -84,10 +84,10 @@ module.exports = function ( graph ){
       .on("change", function (){
         graph.options().addOrUpdateGeneralObjectEntry("author", d3.select("#authorsEditor").node().value);
       })
-      .on("keydown", function (){
-        d3.event.stopPropagation();
-        if ( d3.event.keyCode === 13 ) {
-          d3.event.preventDefault();
+      .on("keydown", function (event){
+        event.stopPropagation();
+        if ( event.keyCode === 13 ) {
+          event.preventDefault();
           graph.options().addOrUpdateGeneralObjectEntry("author", d3.select("#authorsEditor").node().value);
         }
       });
@@ -482,12 +482,11 @@ module.exports = function ( graph ){
   }
   
   function enablePrefixEdit( item ){
-    
     var agent = this;
-    if ( item )
+    if ( item && !(item instanceof Event) && item.id ) {
       agent = item;
-    
-    if ( agent.disabled === true ) return;
+    }
+    if ( !agent || agent.disabled === true || !agent.id ) return;
     var selector = agent.id.split("_")[1];
     var stl = agent.elementStyle;
     if ( stl === "edit" ) {
@@ -796,10 +795,10 @@ module.exports = function ( graph ){
           
           changeIriForElement(element);
         })
-        .on("keydown", function (){
-          d3.event.stopPropagation();
-          if ( d3.event.keyCode === 13 ) {
-            d3.event.preventDefault();
+        .on("keydown", function (event){
+          event.stopPropagation();
+          if ( event.keyCode === 13 ) {
+            event.preventDefault();
             console.log("IRI CHANGED Via ENTER pressed");
             changeIriForElement(element);
             d3.select("#element_iriEditor").node().title = element.iri();
@@ -840,10 +839,10 @@ module.exports = function ( graph ){
           changeLabelForElement(element);
           editSidebar.updateSelectionInformation(element); // prevents that it will be changed if node is still active
         })
-        .on("keydown", function (){
-          d3.event.stopPropagation();
-          if ( d3.event.keyCode === 13 ) {
-            d3.event.preventDefault();
+        .on("keydown", function (event){
+          event.stopPropagation();
+          if ( event.keyCode === 13 ) {
+            event.preventDefault();
             var sanityCheckResult;
             console.log("Element changed Label");
             var url = getURLFROMPrefixedVersion(element);
@@ -1309,8 +1308,8 @@ module.exports = function ( graph ){
     var triggers = d3.selectAll(".accordion-trigger");
     
     triggers.attr("tabindex", "0").attr("role", "button");
-    triggers.on("keydown", function (){
-      var evt = d3.event || window.event;
+    triggers.on("keydown", function (event){
+      var evt = event || window.event;
       if ( evt && (evt.key === "Enter" || evt.key === " ") ) {
         evt.preventDefault();
         d3.select(this).node().click();

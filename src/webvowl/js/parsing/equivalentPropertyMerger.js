@@ -13,8 +13,8 @@ var DATA_PROPERTY_DEFAULT_RANGE_TYPE = "rdfs:Literal";
 
 
 equivalentPropertyMerger.merge = function ( properties, nodes, propertyMap, nodeMap, graph ){
-  var totalNodeIdsToHide = d3.set();
-  var processedPropertyIds = d3.set();
+  var totalNodeIdsToHide = new Set();
+  var processedPropertyIds = new Set();
   var mergeNodes = [];
   
   for ( var i = 0; i < properties.length; i++ ) {
@@ -54,15 +54,15 @@ function createIdToPropertyMapper( propertyMap ){
 
 function findMergeNode( propertyWithEquivalents, nodeMap ){
   var typeMap = mapPropertiesRangesToType(propertyWithEquivalents, nodeMap);
-  var typeSet = d3.set(typeMap.keys());
+  var typeSet = new Set(typeMap.keys());
   
   // default types are the fallback values and should be ignored for the type determination
-  typeSet.remove(OBJECT_PROPERTY_DEFAULT_RANGE_TYPE);
-  typeSet.remove(DATA_PROPERTY_DEFAULT_RANGE_TYPE);
+  typeSet.delete(OBJECT_PROPERTY_DEFAULT_RANGE_TYPE);
+  typeSet.delete(DATA_PROPERTY_DEFAULT_RANGE_TYPE);
   
   // exactly one type to chose from -> take the node of this type as range
-  if ( typeSet.size() === 1 ) {
-    var type = typeSet.values()[0];
+  if ( typeSet.size === 1 ) {
+    var type = Array.from(typeSet)[0];
     var ranges = typeMap.get(type);
     
     if ( ranges.length === 1 ) {
@@ -72,7 +72,7 @@ function findMergeNode( propertyWithEquivalents, nodeMap ){
 }
 
 function mapPropertiesRangesToType( properties, nodeMap ){
-  var typeMap = d3.map();
+  var typeMap = new Map();
   
   properties.forEach(function ( property ){
     if ( property === undefined ) //@ WORKAROUND

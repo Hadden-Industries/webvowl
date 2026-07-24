@@ -21,7 +21,8 @@ module.exports = function ( graph ){
     });
     pauseButton = d3.select("#pause-button")
       .datum({ paused: false })
-      .on("click", function ( d ){
+      .on("click", function (){
+        var d = pauseButton.datum();
         graph.paused(!d.paused);
         d.paused = !d.paused;
         updatePauseButton();

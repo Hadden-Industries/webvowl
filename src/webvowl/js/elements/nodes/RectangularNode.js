@@ -220,10 +220,10 @@ module.exports = (function (){
         labelWidth = Math.min(that.getMyWidth(), graph.options().maxLabelWidth());
         shapeElement.transition().tween("attr", function (){
         })
-          .ease('linear')
+          .ease(d3.easeLinear)
           .duration(100)
           .attr({ x: -labelWidth / 2, y: -height / 2, width: labelWidth, height: height })
-          .each("end", function (){
+          .on("end", function (){
             that.updateTextElement();
           });
         
@@ -232,7 +232,7 @@ module.exports = (function (){
         that.updateTextElement();
         shapeElement.transition().tween("attr", function (){
         })
-          .ease('linear')
+          .ease(d3.easeLinear)
           .duration(100)
           .attr({ x: -labelWidth / 2, y: -height / 2, width: labelWidth, height: height });
         
@@ -248,7 +248,7 @@ module.exports = (function (){
           .tween("attr.translate", function (){
           })
           .attr("transform", "translate(" + dx + "," + dy + ")")
-          .ease('linear')
+          .ease(d3.easeLinear)
           .duration(100);
       }
     };

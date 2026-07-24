@@ -101,7 +101,7 @@ module.exports = (function (){
       that.raiseDoubleClickEdit(true);
     };
     
-    this.raiseDoubleClickEdit = function ( forceIRISync ){
+    this.raiseDoubleClickEdit = function ( forceIRISync, event ){
       d3.selectAll(".foreignelements").remove();
       if ( nodeElement === undefined || this.type() === "owl:Thing" || this.type() === "rdfs:Literal" ) {
         console.log("No Container found");
@@ -128,7 +128,7 @@ module.exports = (function (){
         .attr("y", -12)
         .attr("height", 30)
         .attr("class", "foreignelements")
-        .on("dragstart", function (){
+        .on("dragstart", function (event){
           return false;
         }) // remove drag operations of text element)
         .attr("width", that.textWidth() - 2);
@@ -138,7 +138,7 @@ module.exports = (function (){
         .attr("id", that.id())
         .attr("align", "center")
         .attr("contentEditable", "true")
-        .on("dragstart", function (){
+        .on("dragstart", function (event){
           return false;
         }); // remove drag operations of text element)
       
@@ -161,30 +161,30 @@ module.exports = (function (){
       that.locked(true);
       
       
-      d3.event.stopPropagation();
+      event && event.stopPropagation();
       // ignoreNodeHoverEvent=true;
       // // add some events that relate to this object
-      editText.on("click", function (){
-        d3.event.stopPropagation();
+      editText.on("click", function (event){
+        event.stopPropagation();
       });
       // // remove hover Events for now;
-      editText.on("mouseout", function (){
-        d3.event.stopPropagation();
+      editText.on("mouseout", function (event){
+        event.stopPropagation();
         
         
       });
-      editText.on("mousedown", function (){
-        d3.event.stopPropagation();
+      editText.on("mousedown", function (event){
+        event.stopPropagation();
       })
-        .on("keydown", function (){
-          d3.event.stopPropagation();
-          if ( d3.event.keyCode === 13 ) {
+        .on("keydown", function (event){
+          event.stopPropagation();
+          if ( event.keyCode === 13 ) {
             this.blur();
             that.frozen(false); // << releases the not after selection
             that.locked(false);
           }
         })
-        .on("keyup", function (){
+        .on("keyup", function (event){
           if ( forceIRISync ) {
             var labelName = editText.node().value;
             var resourceName = labelName.replaceAll(" ", "_");
@@ -197,7 +197,7 @@ module.exports = (function (){
           d3.select("#element_labelEditor").node().value = editText.node().value;
           
         })
-        .on("blur", function (){
+        .on("blur", function (event){
           that.editingTextElement = false;
           ignoreLocalHoverEvents = false;
           that.nodeElement().selectAll("circle").classed("hoveredForEditing", false);

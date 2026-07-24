@@ -299,15 +299,15 @@ module.exports = function (){
       
       // prevent backspace reloading event
       var htmlBody = d3.select("body");
-      d3.select(document).on("keydown", function ( e ){
-        if ( d3.event.keyCode === 8 && d3.event.target === htmlBody.node() ) {
+      d3.select(document).on("keydown", function ( event ){
+        if ( event.keyCode === 8 && event.target === htmlBody.node() ) {
           // we could add here an alert
-          d3.event.preventDefault();
+          event.preventDefault();
         }
         // using ctrl+Shift+d as debug option
-        if ( d3.event.ctrlKey && d3.event.shiftKey && d3.event.keyCode === 68 ) {
+        if ( event.ctrlKey && event.shiftKey && event.keyCode === 68 ) {
           graph.options().executeHiddenDebugFeatuers();
-          d3.event.preventDefault();
+          event.preventDefault();
         }
       });
       if ( d3.select("#maxLabelWidthSliderOption") ) {
@@ -324,13 +324,13 @@ module.exports = function (){
         .style("pointer-events", "auto")
         .style("width", graph.options().width() + "px")
         .style("height", graph.options().height() + "px")
-        .on("click", function (){
-          d3.event.preventDefault();
-          d3.event.stopPropagation();
+        .on("click", function (event){
+          event.preventDefault();
+          event.stopPropagation();
         })
-        .on("dblclick", function (){
-          d3.event.preventDefault();
-          d3.event.stopPropagation();
+        .on("dblclick", function (event){
+          event.preventDefault();
+          event.stopPropagation();
         });
       
       d3.select("#direct-text-input").on("click", function (){
@@ -536,12 +536,9 @@ module.exports = function (){
   
   function isTouchDevice(){
     try {
-      var hasTouch = ('ontouchstart' in window) || 
-                     (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || 
-                     (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints > 0);
-      if ( hasTouch ) return true;
-      document.createEvent("TouchEvent");
-      return true;
+      return ('ontouchstart' in window) || 
+             (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || 
+             (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints > 0);
     } catch ( err ) {
       return false;
     }

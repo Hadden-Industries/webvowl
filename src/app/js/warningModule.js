@@ -28,7 +28,6 @@ module.exports = function ( graph ){
   
   function findCSS_Index(){
     createCSSSelector("@keyframes msg_CollapseAnimation", " 0% { top: 0; } 100% { top: -400px;}");
-    console.log(document.styleSheets );
   }
   
   findCSS_Index();
@@ -116,14 +115,17 @@ module.exports = function ( graph ){
   
   warningModule.closeMessage = function ( id ){
     var nId;
-    if ( id === undefined ) {
-      var givenId = this.id;
-      nId = givenId.split("_")[1];
-    } else {
-      nId = id;
+    var targetId = (typeof id === "string") ? id : (this && this.id ? this.id : "");
+    if ( typeof id === "number" ) {
+      targetId = String(id);
     }
-    if ( id && id.indexOf("_") !== -1 ) {
-      nId = id.split("_")[1];
+    if ( targetId && targetId.indexOf("_") !== -1 ) {
+      nId = targetId.split("_")[1];
+    } else {
+      nId = targetId;
+    }
+    if ( !nId || !_messageContainers[nId] ) {
+      return;
     }
     _visibleStatus[nId] = false;
     // get module;

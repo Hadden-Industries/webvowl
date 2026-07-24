@@ -2,7 +2,7 @@
   "name": "webvowl",
   "version": "2.0.0",
   "dependencies": {
-    "d3": "^3.5.6",
+    "d3": "^7.9.0",
     "lodash": "^4.17.21",
     "n3": "^2.1.1"
   },

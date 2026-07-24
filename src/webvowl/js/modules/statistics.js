@@ -66,7 +66,7 @@ module.exports = function (){
   
   function storeClassAndDatatypeCount( classesAndDatatypes ){
     // Each datatype should be counted just a single time
-    var datatypeSet = d3.set(),
+    var datatypeSet = new Set(),
       hasThing = false,
       hasNothing = false;
     classCount = 0;
@@ -96,7 +96,7 @@ module.exports = function (){
     // classCount += hasThing ? 1 : 0;
     // classCount += hasNothing ? 1 : 0;
     
-    datatypeCount = datatypeSet.size();
+    datatypeCount = datatypeSet.size;
   }
   
   function storePropertyCount( properties ){

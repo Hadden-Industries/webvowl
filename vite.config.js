@@ -171,7 +171,7 @@ export default defineConfig(function (env) {
       // Replicates grunt-contrib-copy + CopyWebpackPlugin
       viteStaticCopy({
         targets: [
-          { src: "../node_modules/d3/d3.min.js", dest: "js" },
+          { src: "../node_modules/d3/dist/d3.min.js", dest: "js" },
           { src: "app/data/*", dest: "data" },
           { src: "favicon.ico", dest: "." },
           { src: "favicon.svg", dest: "." },
