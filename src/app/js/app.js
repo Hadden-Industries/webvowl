@@ -525,8 +525,9 @@ module.exports = function (){
   }
   
   function adjustSliderSize(){
-    var fullHeight = window.innerHeight - 40;
-    if ( fullHeight < 150 ) {
+    var fullHeight = window.innerHeight - 44;
+    var isSliderAllowed = options.zoomSlider().showSlider();
+    if ( fullHeight < 150 || !isSliderAllowed ) {
       d3.select("#zoomSlider").classed("hidden", true);
     } else {
       d3.select("#zoomSlider").classed("hidden", false);
