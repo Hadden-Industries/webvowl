@@ -3953,6 +3953,12 @@ module.exports = function (graphContainerSelector) {
         .filter(unfilteredData.nodes, unfilteredData.properties);
     }
   };
+  
+  graph.executeNodeScalingModule = function (){
+    if ( unfilteredData ) {
+      options.nodeScalingModule().filter(unfilteredData.nodes, unfilteredData.properties);
+    }
+  };
   graph.executeEmptyLiteralFilter = function () {
     if (unfilteredData && unfilteredData.nodes.length > 1) {
       options

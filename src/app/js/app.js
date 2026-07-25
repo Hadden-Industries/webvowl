@@ -302,6 +302,7 @@ module.exports = function () {
       options.focuserModule(focuser);
       options.colorExternalsModule(colorExternalsSwitch);
       options.compactNotationModule(compactNotationSwitch);
+      options.nodeScalingModule(nodeScalingSwitch);
 
       ontologyMenu.setup(loadOntologyFromText);
       configMenu.setup();
