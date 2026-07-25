@@ -3140,6 +3140,7 @@ module.exports = function (graphContainerSelector) {
         .leftSidebar()
         .showSidebar(options.leftSidebar().getSidebarVisibility(), true);
       options.leftSidebar().hideCollapseButton(false);
+      options.leftSidebar().showSidebar(1);
       graph.options().editSidebar().updatePrefixUi();
       graph.options().editSidebar().updateElementWidth();
       svgGraph.on("dblclick.zoom", graph.modified_dblClickFunction);

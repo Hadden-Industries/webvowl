@@ -1624,8 +1624,25 @@ li#c_search input.searchInputText {
 }
 
 #leftSideBarCollapseButton {
+    height: 32px;
+    width: 32px;
   box-sizing: border-box;
   top: 50px;
+    left: 0;
+    color: #ecf0f1;
+    position: absolute;
+    border: 1px solid #34495E;
+    background-color: rgb(24 32 42 / 95%);
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    z-index: 1001;
+    transition: left 0.5s ease;
+}
 
   /* padding:5px; */
   color: #000;
@@ -1880,6 +1897,15 @@ li#c_search input.searchInputText {
   width: 200px;
   height: 200px;
   overflow: hidden auto;
+    width: 0;
+    height: 300px;
+    z-index: 1000;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: width 0.5s ease;
+}
+
+#containerForLeftSideBar.sidebar-visible {
 }
 
 #leftSideBar {
