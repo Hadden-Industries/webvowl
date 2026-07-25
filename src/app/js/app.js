@@ -102,8 +102,7 @@ module.exports = function () {
 
       if (cx > 0.25 * w && cx < 0.75 * w && cy > 0.25 * h && cy < 0.75 * h) {
         d3.select("#drag_msg_text").node().innerHTML = "Drop it here.";
-        d3.select("#drag_msg").style("background-color", "#67bc0f");
-        d3.select("#drag_msg").style("color", "#000000");
+        d3.select("#drag_msg").classed("drag-over", true);
         executeFileDrop = true;
         // d3.select("#drag_svg").transition()
         //   .duration(100)
@@ -117,8 +116,7 @@ module.exports = function () {
       } else {
         d3.select("#drag_msg_text").node().innerHTML =
           "Drag ontology file here.";
-        d3.select("#drag_msg").style("background-color", "#fefefe");
-        d3.select("#drag_msg").style("color", "#000000");
+        d3.select("#drag_msg").classed("drag-over", false);
         executeFileDrop = false;
 
         d3.select("#drag_icon").classed("hidden", false);

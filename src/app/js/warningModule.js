@@ -42,9 +42,8 @@ module.exports = function (graph) {
 
     const messageContext = messageContainer.append("div");
     messageContext.node().id = "messageContextId_" + _messageId;
-    messageContext.style("top", "0");
-    messageContainer.style("position", "relative");
-    messageContainer.style("width", "100%");
+    messageContext.classed("warning-msg-context", true);
+    messageContainer.classed("warning-msg-container", true);
     //save in array
     _messageContainers.push(messageContainer);
     _messageContext.push(messageContext);
@@ -106,15 +105,13 @@ module.exports = function (graph) {
     gotItButton.on("click", warningModule.closeMessage);
 
     moduleContainer.classed("hidden", false);
-    moduleContainer.style("-webkit-animation-name", "warn_ExpandAnimation");
-    moduleContainer.style("-webkit-animation-duration", "0.5s");
+    moduleContainer.classed("warn-expanded", true);
   };
 
   warningModule.showMessage = function (id) {
     const moduleContainer = _messageContainers[id];
     moduleContainer.classed("hidden", false);
-    moduleContainer.style("-webkit-animation-name", "warn_ExpandAnimation");
-    moduleContainer.style("-webkit-animation-duration", "0.5s");
+    moduleContainer.classed("warn-expanded", true);
   };
 
   warningModule.closeMessage = function (id) {
@@ -132,8 +129,7 @@ module.exports = function (graph) {
     // get module;
     const moduleContainer = _messageContainers[nId];
     const m_height = moduleContainer.node().getBoundingClientRect().height;
-    moduleContainer.style("-webkit-animation-name", "warn_CollapseAnimation");
-    moduleContainer.style("-webkit-animation-duration", "0.5s");
+    moduleContainer.classed("warn-collapsed", true);
 
     // find my id in the children
     const pNode = moduleContainer.node().parentNode;
@@ -173,8 +169,7 @@ module.exports = function (graph) {
 
   function _child_animationEnd() {
     const c = d3.select(this);
-    c.style("-webkit-animation-name", "");
-    c.style("-webkit-animation-duration", "");
+    c.classed("msg-collapsed", false);
     c.node().removeEventListener("animationend", _child_animationEnd);
   }
 
@@ -220,12 +215,10 @@ module.exports = function (graph) {
 
     if (header.length > 0) {
       const head = warningContainer.append("div");
-      head.style("padding", "5px");
+      head.classed("warning-row", true);
       const titleHeader = head.append("div");
-      // some classes
-      titleHeader.style("display", "inline-flex");
+      titleHeader.classed("warning-inline-flex warning-pr-3", true);
       titleHeader.node().innerHTML = "<b>Warning:</b>";
-      titleHeader.style("padding-right", "3px");
       const msgHeader = head.append("div");
       // some classes
       msgHeader.style("display", "inline-flex");
@@ -235,7 +228,7 @@ module.exports = function (graph) {
     }
     if (reason.length > 0) {
       const reasonContainer = warningContainer.append("div");
-      reasonContainer.style("padding", "5px");
+      reasonContainer.classed("warning-row", true);
       const reasonHeader = reasonContainer.append("div");
       // some classes
       reasonHeader.style("display", "inline-flex");
@@ -243,23 +236,17 @@ module.exports = function (graph) {
 
       reasonHeader.node().innerHTML = "<b>Reason:</b>";
       const msgReason = reasonContainer.append("div");
-      // some classes
-      msgReason.style("display", "inline-flex");
-      msgReason.style("max-width", graphWidth + "px");
+      msgReason.classed("warning-msg-content", true);
       msgReason.node().innerHTML = reason;
     }
     if (action.length > 0) {
       const actionContainer = warningContainer.append("div");
-      actionContainer.style("padding", "5px");
+      actionContainer.classed("warning-row", true);
       const actionHeader = actionContainer.append("div");
-      // some classes
-      actionHeader.style("display", "inline-flex");
-      actionHeader.style("padding-right", "8px");
+      actionHeader.classed("warning-inline-flex warning-pr-8", true);
       actionHeader.node().innerHTML = "<b>Action:</b>";
       const msgAction = actionContainer.append("div");
-      // some classes
-      msgAction.style("display", "inline-flex");
-      msgAction.style("max-width", graphWidth + "px");
+      msgAction.classed("warning-msg-content", true);
       msgAction.node().innerHTML = action;
     }
 
@@ -285,8 +272,7 @@ module.exports = function (graph) {
       d3.select("#blockGraphInteractions").classed("hidden", true);
     });
     moduleContainer.classed("hidden", false);
-    moduleContainer.style("-webkit-animation-name", "warn_ExpandAnimation");
-    moduleContainer.style("-webkit-animation-duration", "0.5s");
+    moduleContainer.classed("warn-expanded", true);
   };
 
   warningModule.showFilterHint = function () {
@@ -304,9 +290,7 @@ module.exports = function (graph) {
       "Use the degree of collapsing slider in the <em>filter</em> menu to adjust the visualization.<br><br>" +
       "<em>Note:</em> A performance decrease could be experienced with a growing amount of visual elements in the graph.";
 
-    generalHint.style("padding", "5px");
-    generalHint.style("line-height", "1.2em");
-    generalHint.style("font-size", "1.2em");
+    generalHint.classed("warning-hint", true);
 
     const gotItButton = warningContainer.append("label");
     gotItButton.node().id = "killFilterMessages_" + id;
@@ -314,8 +298,7 @@ module.exports = function (graph) {
     gotItButton.on("click", warningModule.closeMessage);
 
     moduleContainer.classed("hidden", false);
-    moduleContainer.style("-webkit-animation-name", "warn_ExpandAnimation");
-    moduleContainer.style("-webkit-animation-duration", "0.5s");
+    moduleContainer.classed("warn-expanded", true);
   };
 
   warningModule.showMultiFileUploadWarning = function () {
@@ -324,15 +307,12 @@ module.exports = function (graph) {
     const moduleContainer = _messageContainers[id];
     _visibleStatus[id] = true;
 
-    _filterHintId = id;
     const generalHint = warningContainer.append("div");
 
     generalHint.node().innerHTML =
       "Uploading multiple files is not supported.<br>";
 
-    generalHint.style("padding", "5px");
-    generalHint.style("line-height", "1.2em");
-    generalHint.style("font-size", "1.2em");
+    generalHint.classed("warning-hint", true);
 
     const gotItButton = warningContainer.append("label");
     gotItButton.node().id = "killFilterMessages_" + id;
@@ -340,8 +320,7 @@ module.exports = function (graph) {
     gotItButton.on("click", warningModule.closeMessage);
 
     moduleContainer.classed("hidden", false);
-    moduleContainer.style("-webkit-animation-name", "warn_ExpandAnimation");
-    moduleContainer.style("-webkit-animation-duration", "0.5s");
+    moduleContainer.classed("warn-expanded", true);
   };
 
   warningModule.showWarning = function (
@@ -360,12 +339,10 @@ module.exports = function (graph) {
 
     if (header.length > 0) {
       const head = warningContainer.append("div");
-      head.style("padding", "5px");
+      head.classed("warning-row", true);
       const titleHeader = head.append("div");
-      // some classes
-      titleHeader.style("display", "inline-flex");
+      titleHeader.classed("warning-inline-flex warning-pr-3", true);
       titleHeader.node().innerHTML = "<b>Warning:</b>";
-      titleHeader.style("padding-right", "3px");
       const msgHeader = head.append("div");
       // some classes
       msgHeader.style("display", "inline-flex");
@@ -375,7 +352,7 @@ module.exports = function (graph) {
     }
     if (reason.length > 0) {
       const reasonContainer = warningContainer.append("div");
-      reasonContainer.style("padding", "5px");
+      reasonContainer.classed("warning-row", true);
       const reasonHeader = reasonContainer.append("div");
       // some classes
       reasonHeader.style("display", "inline-flex");
@@ -383,23 +360,17 @@ module.exports = function (graph) {
 
       reasonHeader.node().innerHTML = "<b>Reason:</b>";
       const msgReason = reasonContainer.append("div");
-      // some classes
-      msgReason.style("display", "inline-flex");
-      msgReason.style("max-width", graphWidth + "px");
+      msgReason.classed("warning-msg-content", true);
       msgReason.node().innerHTML = reason;
     }
     if (action.length > 0) {
       const actionContainer = warningContainer.append("div");
-      actionContainer.style("padding", "5px");
+      actionContainer.classed("warning-row", true);
       const actionHeader = actionContainer.append("div");
-      // some classes
-      actionHeader.style("display", "inline-flex");
-      actionHeader.style("padding-right", "8px");
+      actionHeader.classed("warning-inline-flex warning-pr-8", true);
       actionHeader.node().innerHTML = "<b>Action:</b>";
       const msgAction = actionContainer.append("div");
-      // some classes
-      msgAction.style("display", "inline-flex");
-      msgAction.style("max-width", graphWidth + "px");
+      msgAction.classed("warning-msg-content", true);
       msgAction.node().innerHTML = action;
     }
 
@@ -421,7 +392,6 @@ module.exports = function (graph) {
       zoomToElementButton.node().id = "zoomElementThing_" + id;
       zoomToElementButton.node().innerHTML = "Zoom to element ";
       zoomToElementButton.on("click", function () {
-        // assume the additional Element is for halo;
         graph.zoomToElementInGraph(additionalOpts);
       });
       warningContainer.append("span").node().innerHTML = "|";
@@ -429,7 +399,6 @@ module.exports = function (graph) {
       ShowElementButton.node().id = "showElementThing_" + id;
       ShowElementButton.node().innerHTML = "Indicate element";
       ShowElementButton.on("click", function () {
-        // assume the additional Element is for halo;
         if (additionalOpts.halo() === false) {
           additionalOpts.drawHalo();
           graph.updatePulseIds([additionalOpts.id()]);
@@ -441,8 +410,7 @@ module.exports = function (graph) {
       });
     }
     moduleContainer.classed("hidden", false);
-    moduleContainer.style("-webkit-animation-name", "warn_ExpandAnimation");
-    moduleContainer.style("-webkit-animation-duration", "0.5s");
+    moduleContainer.classed("warn-expanded", true);
     moduleContainer.classed("hidden", false);
   };
 

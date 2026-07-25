@@ -132,13 +132,14 @@ module.exports = function (graph) {
   }
 
   searchMenu.hideSearchEntries = function () {
-    m_search.style("display", "none");
+    m_search.classed("is-open", false).classed("hidden", true);
     viewStatusOfSearchEntries = false;
   };
 
   searchMenu.showSearchEntries = function () {
-    m_search.style("display", "block");
+    m_search.classed("is-open", true).classed("hidden", false);
     viewStatusOfSearchEntries = true;
+    graph.options().navigationMenu().updateMenuPosition();
   };
 
   function ValidURL(str) {
@@ -408,19 +409,17 @@ module.exports = function (graph) {
       const searchEntryNode = d3.select(testEntry);
       if (eLen === 1 || allSame === true) {
         if (nodeMap[entries[0]] === undefined) {
-          searchEntryNode.style("color", "#979797");
+          searchEntryNode.classed("search-entry-disabled", true);
           testEntry.title = newResults[i] + "\nElement is filtered out.";
           testEntry.onclick = function () {};
-          d3.select(testEntry).style("cursor", "default");
         }
       } else {
         if (visible < 1) {
-          searchEntryNode.style("color", "#979797");
+          searchEntryNode.classed("search-entry-disabled", true);
           testEntry.onclick = function () {};
           testEntry.title = newResults[i] + "\nAll elements are filtered out.";
-          d3.select(testEntry).style("cursor", "default");
         } else {
-          searchEntryNode.style("color", "");
+          searchEntryNode.classed("search-entry-disabled", false);
         }
         if (visible < eLen && visible > 1) {
           testEntry.title =

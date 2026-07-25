@@ -269,7 +269,6 @@ module.exports = function (graph) {
       .attr("download", exportFilename + ".svg");
 
     // remove graphic styles for interaction to go back to normal
-    removeVowlInlineStyles();
     showNonExportableElements();
     graph.lazyRefresh();
   }
@@ -416,7 +415,7 @@ module.exports = function (graph) {
    * For example the pin of the pick&pin module should be invisible in the exported graphic.
    */
   function hideNonExportableElements() {
-    d3.selectAll(".hidden-in-export").style("display", "none");
+    d3.selectAll(".hidden-in-export").classed("hidden", true);
   }
 
   function removeVowlInlineStyles() {
@@ -466,7 +465,7 @@ module.exports = function (graph) {
   }
 
   function showNonExportableElements() {
-    d3.selectAll(".hidden-in-export").style("display", null);
+    d3.selectAll(".hidden-in-export").classed("hidden", false);
   }
 
   exportMenu.createJSON_exportObject = function () {
@@ -1452,7 +1451,7 @@ module.exports = function (graph) {
       }
       let textColorStr = "";
       if (node.textBlock) {
-        const txtColor = node.textBlock()._textBlock().style("fill");
+        const txtColor = window.getComputedStyle(node.textBlock()._textBlock().node()).fill;
         if (txtColor === "rgb(0, 0, 0)") {
           textColorStr = ", text=black";
         }

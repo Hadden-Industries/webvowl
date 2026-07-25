@@ -840,6 +840,7 @@ module.exports = function (graph) {
   function updateZoomSliderPosition(){
     var isHidden = detailArea.classed("hidden");
     var zoomSlider = d3.select("#zoomSlider");
+    const isMobileOrTablet = window.innerWidth <= 1024;
 
     if ( isHidden ) {
       zoomSlider.style("left", "auto").style("right", DOCKED_CONTROL_OFFSET + "px");
@@ -873,7 +874,10 @@ module.exports = function (graph) {
 
     var isMobileOrTablet = window.innerWidth <= 1024;
 
-    // make val to bool
+    if ( init === true ) {
+      d3.select("body").classed("no-transition", true);
+    }
+
     if (val === 1) {
       visibleSidebar = true;
       collapseButton.node().innerHTML = ">";

@@ -200,7 +200,6 @@ module.exports = function (graph) {
 
   function showSingleMenu(controllerID) {
     currentlyHoveredEntry = d3.select("#" + controllerID).node();
-    // get the corresponding menu element for this controller
     const m_element = m_select[c_select.indexOf(controllerID)];
     if (m_element) {
       if (controllerID !== "c_search") {
@@ -211,9 +210,8 @@ module.exports = function (graph) {
           .select("path")
           .style("fill", "#bdc3c7");
       }
-      // show it if we have a menu
       currentlyVisibleMenu = d3.select("#" + m_element);
-      currentlyVisibleMenu.style("display", "block");
+      currentlyVisibleMenu.classed("is-open", true).classed("hidden", false);
       if (m_element === "m_export") {
         graph.options().exportMenu().exportAsUrl();
       }
@@ -252,7 +250,7 @@ module.exports = function (graph) {
   navigationMenu.updateMenuPosition = updateMenuPosition;
 
   navigationMenu.hideAllMenus = function () {
-    d3.selectAll(".toolTipMenu").style("display", "none"); // hiding all menus
+    d3.selectAll(".toolTipMenu").classed("is-open", false).classed("hidden", true);
   };
 
   navigationMenu.updateScrollButtonVisibility = function () {

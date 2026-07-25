@@ -16,7 +16,6 @@ module.exports = function (graph) {
 
   leftSidebar.setup = function () {
     setupCollapsing();
-    leftSidebar.initSideBarAnimation();
 
     collapseButton.on("click", function () {
       graph.options().navigationMenu().hideAllMenus();
@@ -42,6 +41,7 @@ module.exports = function (graph) {
 
   leftSidebar.hideCollapseButton = function (val) {
     sideBarContainer.classed("hidden", val);
+    collapseButton.classed("hidden", val);
   };
 
   function unselectAllElements(container) {
@@ -219,8 +219,8 @@ module.exports = function (graph) {
   };
 
   leftSidebar.showSidebar = function (val, init) {
-    // make val to bool
     const collapseButton = d3.select("#leftSideBarCollapseButton");
+    
     if (init === true) {
       visibleSidebar = backupVisibility === 0;
       sideBarContent.classed("hidden", !visibleSidebar);
@@ -249,7 +249,9 @@ module.exports = function (graph) {
       return;
     }
 
-    d3.select("#leftSideBarCollapseButton").classed("hidden", true);
+    const isVisible = (val === 1);
+    visibleSidebar = isVisible;
+    collapseButton.node().innerHTML = isVisible ? "<" : ">";
 
     if (val === 1) {
       visibleSidebar = true;

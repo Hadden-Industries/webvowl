@@ -170,11 +170,11 @@ module.exports = function (graph) {
     const deleteRect = d3.select("#del_rectFor_" + name);
 
     if (enable === false) {
-      deletePath.node().style = "stroke: #f00;";
-      deleteRect.style("cursor", "auto");
+      deletePath.classed("delete-path-style", true);
+      deleteRect.classed("non-clickable", true).classed("clickable", false);
     } else {
-      deletePath.node().style = "stroke: #ff972d;";
-      deleteRect.style("cursor", "pointer");
+      deletePath.classed("delete-path-style", true);
+      deleteRect.classed("clickable", true).classed("non-clickable", false);
     }
   }
 
@@ -214,14 +214,10 @@ module.exports = function (graph) {
         prefixEditContainer.node().id = "prefixContainerFor_" + name;
 
         const IconContainer = prefixEditContainer.append("div");
-        IconContainer.style("position", "absolute");
+        IconContainer.classed("icon-container-abs", true);
         IconContainer.node().id = "containerFor_" + name;
         const editButton = IconContainer.append("svg");
-        editButton.style("width", "14px");
-        editButton.style("height", "20px");
-        //   editButton.classed("editPrefixButton", true);
-        editButton.classed("noselect", true);
-        //editButton.node().innerHTML = "\u2714";
+        editButton.classed("edit-btn-svg noselect", true);
         editButton.node().id = "editButtonFor_" + name;
 
         editButton.node().elementStyle = "save";
@@ -238,13 +234,10 @@ module.exports = function (graph) {
         editRect.node().selectorName = name;
         IconContainer.node().title = "Save new prefix and IRI";
 
-        editPath.classed("editPrefixIcon");
-        editPath.style("stroke", "#fff");
-        editPath.style("stroke-width", "1px");
-        editPath.style("fill", "#fff");
+        editPath.classed("editPrefixIcon edit-path-style", true);
         editRect.attr("width", "14px");
         editRect.attr("height", "14px");
-        editRect.style("fill", "#18202A");
+        editRect.classed("edit-rect-style", true);
         editRect.attr("transform", "matrix(1,0,0,1,-3,4)");
 
         editButton.selectAll("g").on("mouseover", function () {
@@ -264,12 +257,11 @@ module.exports = function (graph) {
         editPath.attr("transform", "matrix(0.45,0,0,0.45,0,5)");
 
         const prefInput = prefixEditContainer.append("input");
-        prefInput.classed("prefixInput", true);
+        prefInput.classed("prefixInput pref-input-style", true);
         prefInput.node().type = "text";
         prefInput.node().id = "prefixInputFor_" + name;
         prefInput.node().autocomplete = "off";
         prefInput.node().value = "";
-        prefInput.style("margin-left", "14px");
 
         const prefURL = prefixEditContainer.append("input");
         prefURL.classed("prefixURL", true);
@@ -282,12 +274,11 @@ module.exports = function (graph) {
         prefURL.node().disabled = false;
         prefix_editMode = true;
         const deleteContainer = prefixEditContainer.append("div");
-        deleteContainer.style("float", "right");
+        deleteContainer.classed("delete-container-style", true);
         const deleteButton = deleteContainer.append("svg");
         deleteButton.node().id = "deleteButtonFor_" + name;
         deleteContainer.node().title = "Delete prefix and IRI";
-        deleteButton.style("width", "10px");
-        deleteButton.style("height", "20px");
+        deleteButton.classed("delete-btn-svg", true);
         const deleteIcon = deleteButton.append("g");
         const deleteRect = deleteIcon.append("rect");
         const deletePath = deleteIcon.append("path");
@@ -302,7 +293,7 @@ module.exports = function (graph) {
         deletePath.style("stroke", "#f00");
         deleteRect.attr("width", "10px");
         deleteRect.attr("height", "14px");
-        deleteRect.style("fill", "#18202A");
+        deleteRect.classed("delete-rect-style", true);
         deleteRect.attr("transform", "matrix(1,0,0,1,-3,4)");
 
         deletePath.attr(
@@ -350,12 +341,10 @@ module.exports = function (graph) {
 
         // create edit button which enables the input fields
         const IconContainer = prefixEditContainer.append("div");
-        IconContainer.style("position", "absolute");
+        IconContainer.classed("icon-container-abs", true);
         IconContainer.node().id = "containerFor_" + name;
         const editButton = IconContainer.append("svg");
-        editButton.style("width", "14px");
-        editButton.style("height", "20px");
-        editButton.classed("noselect", true);
+        editButton.classed("edit-btn-svg noselect", true);
         editButton.node().id = "editButtonFor_" + name;
         IconContainer.node().title = "Edit prefix and IRI";
         editButton.node().elementStyle = "save";
@@ -379,12 +368,11 @@ module.exports = function (graph) {
         editPath.style("stroke-width", "1px");
         editRect.attr("width", "14px");
         editRect.attr("height", "14px");
-        editRect.style("fill", "#18202A");
+        editRect.classed("edit-rect-style", true);
         editRect.attr("transform", "matrix(1,0,0,1,-3,4)");
 
         editButton.selectAll("g").on("mouseover", function () {
           const sender = this;
-          const fill = false;
           const enable = true;
           const f_editPath = d3.select("#pathFor_" + sender.selectorName);
           const f_editRect = d3.select("#rectFor_" + sender.selectorName);
@@ -410,7 +398,6 @@ module.exports = function (graph) {
         });
         editButton.selectAll("g").on("mouseout", function () {
           const sender = this;
-          const fill = false;
           const enable = false;
           const f_editPath = d3.select("#pathFor_" + sender.selectorName);
           const f_editRect = d3.select("#rectFor_" + sender.selectorName);
@@ -443,12 +430,11 @@ module.exports = function (graph) {
 
         // create input field for prefix
         const prefInput = prefixEditContainer.append("input");
-        prefInput.classed("prefixInput", true);
+        prefInput.classed("prefixInput pref-input-style", true);
         prefInput.node().type = "text";
         prefInput.node().id = "prefixInputFor_" + name;
         prefInput.node().autocomplete = "off";
         prefInput.node().value = name;
-        prefInput.style("margin-left", "14px");
 
         // create input field for prefix url
         const prefURL = prefixEditContainer.append("input");
@@ -458,18 +444,16 @@ module.exports = function (graph) {
         prefURL.node().autocomplete = "off";
         prefURL.node().value = prefixElements[name];
         prefURL.node().title = prefixElements[name];
-        // disable the input fields (already defined elements can be edited later)
         prefInput.node().disabled = true;
         prefURL.node().disabled = true;
 
         // create the delete button
         const deleteContainer = prefixEditContainer.append("div");
-        deleteContainer.style("float", "right");
+        deleteContainer.classed("delete-container-style", true);
         const deleteButton = deleteContainer.append("svg");
         deleteButton.node().id = "deleteButtonFor_" + name;
         deleteContainer.node().title = "Delete prefix and IRI";
-        deleteButton.style("width", "10px");
-        deleteButton.style("height", "20px");
+        deleteButton.classed("delete-btn-svg", true);
         const deleteIcon = deleteButton.append("g");
         const deleteRect = deleteIcon.append("rect");
         const deletePath = deleteIcon.append("path");
@@ -484,7 +468,7 @@ module.exports = function (graph) {
         deletePath.style("stroke", "#f00");
         deleteRect.attr("width", "10px");
         deleteRect.attr("height", "14px");
-        deleteRect.style("fill", "#18202A");
+        deleteRect.classed("delete-rect-style", true);
         deleteRect.attr("transform", "matrix(1,0,0,1,-3,4)");
 
         deletePath.attr(
@@ -504,11 +488,11 @@ module.exports = function (graph) {
           );
 
           if (enable === false) {
-            f_deletePath.node().style = "stroke: #f00;";
-            f_deleteRect.style("cursor", "auto");
+            f_deletePath.classed("delete-path-style", true);
+            f_deleteRect.classed("non-clickable", true).classed("clickable", false);
           } else {
-            f_deletePath.node().style = "stroke: #ff972d;";
-            f_deleteRect.style("cursor", "pointer");
+            f_deletePath.classed("delete-path-style", true);
+            f_deleteRect.classed("clickable", true).classed("non-clickable", false);
           }
         });
         deleteButton.selectAll("g").on("mouseout", function () {
@@ -522,11 +506,11 @@ module.exports = function (graph) {
           );
 
           if (enable === false) {
-            f_deletePath.node().style = "stroke: #f00;";
-            f_deleteRect.style("cursor", "auto");
+            f_deletePath.classed("delete-path-style", true);
+            f_deleteRect.classed("non-clickable", true).classed("clickable", false);
           } else {
-            f_deletePath.node().style = "stroke: #ff972d;";
-            f_deleteRect.style("cursor", "pointer");
+            f_deletePath.classed("delete-path-style", true);
+            f_deleteRect.classed("clickable", true).classed("non-clickable", false);
           }
         });
 
@@ -1348,8 +1332,7 @@ module.exports = function (graph) {
       for (i = 0; i < arrayOfNodeChars.length; i++) {
         filterContainer = charSelectionNode
           .append("div")
-          .classed("checkboxContainer", true)
-          .style("padding-top", "2px");
+          .classed("checkboxContainer warning-row", true);
 
         filterCheckbox = filterContainer
           .append("input")
@@ -1383,8 +1366,7 @@ module.exports = function (graph) {
       for (i = 0; i < arrayOfPropertyChars.length; i++) {
         filterContainer = charSelectionNode
           .append("div")
-          .classed("checkboxContainer", true)
-          .style("padding-top", "2px");
+          .classed("checkboxContainer warning-row", true);
 
         filterCheckbox = filterContainer
           .append("input")
@@ -1396,7 +1378,7 @@ module.exports = function (graph) {
             "checked",
             getPresentAttribute(element, arrayOfPropertyChars[i]),
           );
-        //
+        
         filterContainer
           .append("label")
           .attr("for", "CharacteristicsCheckbox" + i)

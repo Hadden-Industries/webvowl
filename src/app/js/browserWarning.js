@@ -50,7 +50,7 @@ function showBrowserWarningIfRequired() {
     pb_kill.on("click", function () {
       console.log("hide the warning please");
       d3.select("#browserCheck").classed("hidden", true);
-      d3.select("#logo").style("padding", "10px");
+      d3.select("#logo").classed("has-warning", false);
     });
   } else {
     d3.select("#logo").classed("hidden", false);

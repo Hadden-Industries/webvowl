@@ -20,8 +20,7 @@ module.exports = function (graph) {
           d3.select("#showDraggerObject").style("color", "#979797");
           d3.select("#showDraggerObject").style("pointer-events", "none");
         } else {
-          d3.select("#useAccuracyHelper").style("color", "#2980b9");
-          d3.select("#useAccuracyHelper").style("pointer-events", "auto");
+          d3.select("#useAccuracyHelper").classed("disabled", false);
         }
         hoverFlag = true;
       }
@@ -37,12 +36,10 @@ module.exports = function (graph) {
       graph.options().useAccuracyHelper,
       function (enabled, silent) {
         if (!enabled) {
-          d3.select("#showDraggerObject").style("color", "#979797");
-          d3.select("#showDraggerObject").style("pointer-events", "none");
+          d3.select("#showDraggerObject").classed("disabled", true);
           d3.select("#showDraggerObjectConfigCheckbox").node().checked = false;
         } else {
-          d3.select("#showDraggerObject").style("color", "#2980b9");
-          d3.select("#showDraggerObject").style("pointer-events", "auto");
+          d3.select("#showDraggerObject").classed("disabled", false);
         }
 
         if (silent === true) {
