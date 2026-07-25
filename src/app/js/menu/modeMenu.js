@@ -136,6 +136,7 @@ module.exports = function ( graph ){
       if ( updateGraphOnClick && silent !== true ) {
         graph.executeColorExternalsModule();
         graph.executeCompactNotationModule();
+        graph.executeNodeScalingModule();
         graph.lazyRefresh();
       }
     });

@@ -39,6 +39,7 @@ module.exports = function (){
     focuserModule;
   let colorExternalsModule;
   let compactNotationModule;
+  let nodeScalingModule;
   let objectPropertyFilter;
   let subclassFilter;
   let setOperatorFilter;
@@ -283,6 +284,10 @@ module.exports = function (){
   options.compactNotationModule = function ( val ){
     if ( !arguments.length ) {return compactNotationModule;}
     compactNotationModule = val;
+  };
+  options.nodeScalingModule = function ( val ){
+    if ( !arguments.length ) {return nodeScalingModule;}
+    nodeScalingModule = val;
   };
   
   options.maxLabelWidth = function ( val ){
