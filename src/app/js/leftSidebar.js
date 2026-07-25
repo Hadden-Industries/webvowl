@@ -192,7 +192,7 @@ module.exports = function ( graph ){
     sideBarContent.classed("hidden", !isVisible);
     sideBarContainer.classed("sidebar-visible", isVisible);
     collapseButton.classed("aligned-to-left-sidebar", isVisible);
-    collapseButton.classed("hidden", !isVisible || sideBarContainer.classed("hidden"));
+    collapseButton.classed("hidden", sideBarContainer.classed("hidden"));
     d3.select("#WarningErrorMessages").classed("aligned-to-left-sidebar", isVisible);
 
     graph.updateCanvasContainerSize();

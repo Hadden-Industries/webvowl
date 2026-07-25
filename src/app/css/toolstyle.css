@@ -1433,23 +1433,28 @@ main {
 }
 
 #leftSideBarCollapseButton {
+    height: 32px;
+    width: 32px;
     box-sizing: border-box;
     top: 50px;
-
-    /* padding:5px; */
-    color: #000;
+    left: 0;
+    color: #ecf0f1;
     position: absolute;
-    left: 200px;
-    border: 1px solid #000;
-
-    /* background-color: #ecf0f1; */
+    border: 1px solid #34495E;
+    background-color: rgb(24 32 42 / 95%);
+    border-radius: 6px;
     cursor: pointer;
-    width: 24px;
-    height: 24px;
-    font-size: 1.5em;
-    text-align: center;
-    line-height: 20px;
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    z-index: 1001;
+    transition: left 0.5s ease;
+}
+
+#leftSideBarCollapseButton.aligned-to-left-sidebar {
+    left: 200px;
 }
 
 #leftSideBarCollapseButton:hover {
@@ -1674,13 +1679,19 @@ main {
 
 #containerForLeftSideBar {
     top: 50px;
-    float: left;
     position: absolute;
     background-color: #1b252e;
     left: 0;
+    width: 0;
+    height: 300px;
+    z-index: 1000;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: width 0.5s ease;
+}
+
+#containerForLeftSideBar.sidebar-visible {
     width: 200px;
-    height: 200px;
-    overflow: hidden auto;
 }
 
 #leftSideBar {
