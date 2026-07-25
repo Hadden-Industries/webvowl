@@ -185,7 +185,7 @@ module.exports = (function (){
             }
           }
         }
-        for ( var i = 0; i < prefLabels.length; i++ ) {
+        for ( i = 0; i < prefLabels.length; i++ ) {
           if ( prefLabels[i].language === "undefined" || !prefLabels[i].language ) {
             return prefLabels[i].value;
           }

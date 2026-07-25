@@ -379,7 +379,7 @@ module.exports = function (){
       try {
         data = JSON.parse(jsonText);
         validJSON = true;
-      } catch ( e ) {
+      } catch ( _e ) {
         validJSON = false;
       }
       if ( validJSON === false ) {
@@ -539,7 +539,7 @@ module.exports = function (){
       return ('ontouchstart' in window) || 
              (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || 
              (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints > 0);
-    } catch ( err ) {
+    } catch ( _err ) {
       return false;
     }
   }
@@ -549,7 +549,7 @@ module.exports = function (){
       return ('ontouchstart' in window) || 
              (navigator.maxTouchPoints && navigator.maxTouchPoints >= 2) || 
              (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints >= 2);
-    } catch ( err ) {
+    } catch ( _err ) {
       return false;
     }
   }

@@ -1242,10 +1242,6 @@ module.exports = function ( graph ){
     if ( elementTools.isNode(element) ) {
       if ( graph.changeNodeType(element) === false ) {
         //restore old value
-        
-        if ( elementTools.isDatatype(element) === true ) {
-          
-        }
         editSidebar.updateSelectionInformation(element);
       }
     }

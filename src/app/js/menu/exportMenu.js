@@ -10,7 +10,6 @@ module.exports = function ( graph ){
     exportJsonButton,
     exportTurtleButton,
     exportTexButton,
-    copyButton,
     exportableJsonText;
   
   var exportTTLModule = require("./exportTTLModule")(graph);
@@ -31,7 +30,7 @@ module.exports = function ( graph ){
     exportJsonButton = d3.select("#exportJson")
       .on("click", exportJson);
     
-    copyButton = d3.select("#copyBt")
+    d3.select("#copyBt")
       .on("click", copyUrl);
     
     exportTexButton = d3.select("#exportTex")
@@ -782,26 +781,7 @@ module.exports = function ( graph ){
       .attr("download", jsonExportFileName);
   }
   
-  var curveFunction = d3.line()
-    .x(function ( d ){
-      return d.x;
-    })
-    .y(function ( d ){
-      return d.y;
-    })
-    .curve(d3.curveCardinal);
-  var loopFunction = d3.line()
-    .x(function ( d ){
-      return d.x;
-    })
-    .y(function ( d ){
-      return d.y;
-    })
-    .curve(d3.curveCardinal.tension(-1));
-  
   function exportTex(event){
-    var zoom = graph.scaleFactor();
-    var grTranslate = graph.translation();
     var bbox = graph.getBoundingBoxForTex();
     var comment = " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
     comment += " %        Generated with the experimental alpha version of the TeX exporter of WebVOWL (version 1.1.3) %%% \n";
@@ -963,7 +943,7 @@ module.exports = function ( graph ){
       var len;
       var ahAngle;
       var pathLen;
-      var markerOffset = 7;
+
       
       var arrowType = "triangleBlack";
       var linkWidth = ",line width=2pt";
@@ -1310,8 +1290,7 @@ module.exports = function ( graph ){
             }
           }
         }
-        else {
-        }
+
       }
       if ( correspondingProp.type() === "setOperatorProperty" ) {
         continue; // this property does not have a label
@@ -1447,18 +1426,7 @@ module.exports = function ( graph ){
     
     
   }
-  
-  function calculateRadian( angle ){
-    angle = angle % 360;
-    if ( angle < 0 ) {
-      angle = angle + 360;
-    }
-    return (Math.PI * angle) / 180;
-  }
-  
-  function calculateAngle( radian ){
-    return radian * (180 / Math.PI);
-  }
+
   
   return exportMenu;
 };

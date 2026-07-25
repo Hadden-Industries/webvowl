@@ -1,4 +1,4 @@
-var unescape = require("lodash/unescape");
+
 
 module.exports = function ( graph ){
   
@@ -7,7 +7,6 @@ module.exports = function ( graph ){
     loadingProgress = d3.select("#loading-progress"),
     
     ontologyMenuTimeout,
-    fileToLoad,
     stopTimer = false,
     loadingError = false,
     loadingStatusTimer,
@@ -244,7 +243,6 @@ module.exports = function ( graph ){
         uploadButton.property("disabled", true);
       } else {
         inputLabel.text(selectedFiles[0].name);
-        fileToLoad = selectedFiles[0].name;
         uploadButton.property("disabled", false);
         uploadButton.node().click();
         // close menu;
@@ -437,18 +435,6 @@ module.exports = function ( graph ){
     
   }
   
-  function callbackFromDirectInput_Success( parameter ){
-    var local_conversionId = parameter[1];
-    if ( local_conversionId !== conversion_sessionId ) {
-      console.log("The conversion process for file:" + parameter[1] + " has been canceled!");
-      ontologyMenu.conversionFinished(local_conversionId);
-      return;
-    }
-    loadingModule.loadFromOWL2VOWL(parameter[0], "DirectInputConversionID" + local_conversionId);
-    ontologyMenu.conversionFinished();
-    
-  }
-  
   ontologyMenu.getConversionId = function (){
     return conversion_sessionId;
   };
@@ -535,29 +521,6 @@ module.exports = function ( graph ){
     if ( request && request.responseText.length === 0 ) {
       append_message("<span style='color:red'>Received empty graph</span>");
     }
-    graph.handleOnLoadingError();
-    ontologyMenu.conversionFinished();
-  }
-  
-  function callbackFromDirectInput_ERROR( parameter ){
-    
-    var error = parameter[0];
-    var request = parameter[1];
-    var local_conversionId = parameter[2];
-    if ( local_conversionId !== conversion_sessionId ) {
-      console.log("The loading process for direct input has been canceled!");
-      return;
-    }
-    // callbackUpdateLoadingMessage("<br> <span style='color:red'> Failed to convert the file.</span> "+
-    //     "Ontology could not be loaded.<br>Is it a valid OWL ontology? Please check with <a target=\"_blank\"" +
-    //     "href=\"http://visualdataweb.de/validator/\">OWL Validator</a>");
-    if ( error !== null && error.status === 500 ) {
-      append_message("<span style='color:red'>Could not convert direct input</span>");
-    }
-    if ( request && request.responseText.length === 0 ) {
-      append_message("<span style='color:red'>Received empty graph</span>");
-    }
-    
     graph.handleOnLoadingError();
     ontologyMenu.conversionFinished();
   }

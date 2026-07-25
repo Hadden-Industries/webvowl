@@ -286,26 +286,7 @@ module.exports = function ( graph ){
         });
     }
   };
-  
-  function requestServerTimeStampForJSON_URL( callback, parameter ){
-    fetch("serverTimeStamp", { headers: { "Accept": "application/text" } })
-      .then(function(response) {
-        if (!response.ok) throw response;
-        return response.text();
-      })
-      .then(function(responseText) {
-        conversion_sessionId = responseText;
-        ontologyMenu.setConversionID(conversion_sessionId);
-        parameter.push(conversion_sessionId);
-        callback(parameter);
-      })
-      .catch(function(error) {
-        // could not get server timestamp -> no connection to owl2vowl
-        ontologyMenu.append_bulletPoint("Could not establish connection to OWL2VOWL service");
-        fallbackForJSON_URL(callback, parameter);
-      });
-    
-  }
+
   
   loadingModule.requestServerTimeStampForDirectInput = function ( callback, text ){
     // Bypassed timestamp for client side parsing
@@ -383,7 +364,7 @@ module.exports = function ( graph ){
         parseOntologyContent(ontologyContent);
       };
     } else {
-      var reader = new FileReader();
+      reader = new FileReader();
       reader.readAsText(file);
       reader.onload = function (){
         try {
@@ -450,7 +431,7 @@ module.exports = function ( graph ){
           parseOntologyContent(ontologyContent);
         };
       } else {
-        var reader = new FileReader();
+        reader = new FileReader();
         reader.readAsText(selectedFile);
         reader.onload = function (){
           try {
@@ -482,91 +463,7 @@ module.exports = function ( graph ){
       }
     }
   };
-  
-  function fallbackForJSON_URL( callback, parameter ){
-    ontologyMenu.append_message_toLastBulletPoint("<br>Trying to convert with other communication protocol.");
-    callback(parameter);
-    
-  }
-  
-  function fallbackConversion( parameter ){
-    ontologyMenu.append_message_toLastBulletPoint("<br>Trying to convert with other communication protocol.");
-    var file = parameter[0];
-    var name = parameter[1];
-    var formData = new FormData();
-    formData.append("ontology", file);
-    
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "convert", true);
-    var ontologyContent = "";
-    xhr.onload = function (){
-      if ( xhr.status === 200 ) {
-        ontologyContent = xhr.responseText;
-        ontologyMenu.setCachedOntology(name, ontologyContent);
-        ontologyIdentifierFromURL = name;
-        missingImportsWarning = true; // using this variable for warnings
-        ontologyMenu.append_message_toLastBulletPoint("<br>Success, <span style='color:yellow'>but you are using a deprecated OWL2VOWL service!<span>");
-        parseOntologyContent(ontologyContent);
-      }
-    };
-    
-    // check what this thing is doing;
-    xhr.onreadystatechange = function (){
-      if ( xhr.readyState === 4 && xhr.status === 0 ) {
-        ontologyMenu.append_message_toLastBulletPoint("<br>Old protocol also failed to establish connection to OWL2VOWL service!");
-        loadingModule.setErrorMode();
-        ontologyMenu.append_bulletPoint("Failed to load ontology");
-        ontologyMenu.append_message_toLastBulletPoint("<br><span style='color:red'>Could not connect to OWL2VOWL service </span>");
-        loadingModule.showErrorDetailsMessage();
-      }
-    };
-    xhr.send(formData);
-  }
-  
-  function requestServerTimeStampForIRI_Converte( callback, parameterArray ){
-    fetch("serverTimeStamp", { headers: { "Accept": "application/text" } })
-      .then(function(response) {
-        if (!response.ok) throw response;
-        return response.text();
-      })
-      .then(function(responseText) {
-        loadingModule.setBusyMode();
-        conversion_sessionId = responseText;
-        ontologyMenu.setConversionID(conversion_sessionId);
-        // update paramater for new communication paradigm
-        parameterArray[0] = parameterArray[0] + "&sessionId=" + conversion_sessionId;
-        parameterArray.push(conversion_sessionId);
-        callback(parameterArray);
-      })
-      .catch(function(error) {
-        loadingModule.setBusyMode();
-        // could not get server timestamp -> no connection to owl2vowl
-        ontologyMenu.append_bulletPoint("Could not establish connection to OWL2VOWL service");
-        loadingModule.setErrorMode();
-        ontologyMenu.append_bulletPoint("Failed to load ontology");
-        ontologyMenu.append_message_toLastBulletPoint("<br><span style='color:red'>Could not connect to OWL2VOWL service </span>");
-        loadingModule.showErrorDetailsMessage();
-      });
-  }
-  
-  function requestServerTimeStamp( callback, parameterArray ){
-    fetch("serverTimeStamp", { headers: { "Accept": "application/text" } })
-      .then(function(response) {
-        if (!response.ok) throw response;
-        return response.text();
-      })
-      .then(function(responseText) {
-        conversion_sessionId = responseText;
-        ontologyMenu.setConversionID(conversion_sessionId);
-        console.log("Request Session ID:" + conversion_sessionId);
-        callback(parameterArray[0], parameterArray[1], conversion_sessionId);
-      })
-      .catch(function(error) {
-        // could not get server timestamp -> no connection to owl2vowl
-        ontologyMenu.append_bulletPoint("Could not establish connection to OWL2VOWL service");
-        fallbackConversion(parameterArray); // tries o2v version0.3.4 communication
-      });
-  }
+
   
   loadingModule.directInput = function ( text ){
     ontologyMenu.clearDetailInformation();

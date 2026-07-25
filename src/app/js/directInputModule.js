@@ -31,7 +31,7 @@ module.exports = function ( graph ){
         directInputModule.setDirectInputMode(false);
       }
     }
-    catch ( e ) {
+    catch ( _e ) {
       try {
         // Initialize;
         graph.options().loadingModule().initializeLoader();

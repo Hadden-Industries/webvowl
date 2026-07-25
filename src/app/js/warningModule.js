@@ -7,7 +7,6 @@ module.exports = function ( graph ){
   var _visibleStatus = [];
   
   var _filterHintId;
-  var _editorHintId;
   var _messageId = -1;
   superContainer.style("display", "inline-block");
   var cssStyleIndex = 0;
@@ -69,7 +68,6 @@ module.exports = function ( graph ){
       _messageContainers[tokens] = null;
     }
     // remove event listener
-    var c = d3.select(this);
     // c.node().removeEventListener("animationend",_msgContainer_animationEnd);
   }
   
@@ -78,7 +76,6 @@ module.exports = function ( graph ){
     var moduleContainer = _messageContainers[id];
     var generalHint = warningContainer.append('div');
     generalHint.node().innerHTML = "";
-    _editorHintId = id;
     /** Editing mode activated. You can now modify an existing ontology or create a new one via the <em>ontology</em> menu. You can save any ontology using the <em>export</em> menu (and exporting it as TTL file).**/
     generalHint.node().innerHTML += "Editing mode activated.<br>" +
       "You can now modify an existing ontology or create a new one via the <em>ontology</em> menu.<br>" +

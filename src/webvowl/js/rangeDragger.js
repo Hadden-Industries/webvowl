@@ -154,25 +154,8 @@ module.exports = function ( graph ){
     //     {"x": 0, "y": 0}
     // ];
     
-    var lineData = [
-      { "x": -40, "y": 0 }, // start
-      { "x": -20, "y": -10 },
-      { "x": 20, "y": -50 },
-      { "x": -10, "y": 0 }, // center
-      { "x": 20, "y": 50 },
-      { "x": -20, "y": 10 },
-      { "x": -40, "y": 0 }
-    ];
-    
-    
-    var lineFunction = d3.line()
-      .x(function ( d ){
-        return d.x;
-      })
-      .y(function ( d ){
-        return d.y;
-      })
-      .curve(d3.curveBasisClosed);
+
+
     var pathData = "M 61,40 C 41,15 41,-15 61,-40 L 1,0 Z";
     
     Range_dragger.nodeElement = Range_dragger.rootNodeLayer.append('path').attr("d", pathData);

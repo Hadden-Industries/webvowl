@@ -11,6 +11,7 @@
  */
 
 // Import both library entry points (CJS, transformed by vite-plugin-commonjs)
+// eslint-disable-next-line no-redeclare -- Entry point: creates the webvowl global
 var webvowl = require("./webvowl/js/entry");
 var app = require("./app/js/entry");
 

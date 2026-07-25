@@ -66,29 +66,18 @@ module.exports = function (){
   
   function storeClassAndDatatypeCount( classesAndDatatypes ){
     // Each datatype should be counted just a single time
-    var datatypeSet = new Set(),
-      hasThing = false,
-      hasNothing = false;
+    var datatypeSet = new Set();
     classCount = 0;
-    var old = 0, newcc = 0;
     classesAndDatatypes.forEach(function ( node ){
       if ( elementTools.isDatatype(node) ) {
         datatypeSet.add(node.defaultLabel());
       } else if ( !(node instanceof SetOperatorNode) ) {
-        if ( node instanceof OwlThing ) {
-          hasThing = true;
-        } else if ( node instanceof OwlNothing ) {
-          hasNothing = true;
-        } else {
-          old = classCount;
+        if ( !(node instanceof OwlThing) && !(node instanceof OwlNothing) ) {
           var adds = 1 + countElementArray(node.equivalents());
           classCount += adds;
-          newcc = classCount;
         }
       } else if ( node instanceof SetOperatorNode ) {
-        old = classCount;
         classCount += 1;
-        newcc = classCount;
       }
     });
     

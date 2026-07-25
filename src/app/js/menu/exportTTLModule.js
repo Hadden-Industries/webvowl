@@ -7,7 +7,6 @@ module.exports = function ( graph ){
   var resultingTTLContent = "";
   var currentNodes;
   var currentProperties;
-  var currentAxioms;
   var Map_ID2Node = {};
   var Map_ID2Prop = {};
   var prefixModule = webvowl.util.prefixTools(graph);
