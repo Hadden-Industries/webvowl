@@ -31,7 +31,7 @@ module.exports = [
     },
     rules: {
       // Base pipeline optimization and syntax overrides
-      "no-unused-vars": ["warn", { vars: "all", args: "none" }],
+      "no-unused-vars": ["warn", { vars: "all", args: "none", caughtErrorsIgnorePattern: "^_" }],
       "no-console": "off", // Replicates "devel": true validation behavior
       semi: ["error", "always"],
       "no-undef": "error", // Replicates "undef": true

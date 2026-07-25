@@ -5,9 +5,7 @@
  */
 module.exports = function ( graph ){
   
-  var leftSidebar = {},
-    languageTools = webvowl.util.languageTools(),
-    elementTools = webvowl.util.elementTools();
+  var leftSidebar = {};
   var collapseButton = d3.select("#leftSideBarCollapseButton");
   var visibleSidebar = 0;
   var backupVisibility = 0;

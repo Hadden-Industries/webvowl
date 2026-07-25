@@ -20,7 +20,6 @@ module.exports = function ( graph ){
   var results = [];
   var resultID = [];
   var c_locate = d3.select("#locateSearchResult");
-  var c_search = d3.select("#c_search");
   var m_search = d3.select("#m_search"); // << dropdown container;
   
   
@@ -367,7 +366,6 @@ module.exports = function ( graph ){
     if ( numEntries > maxEntries )
       numEntries = maxEntries;
     
-    var filteredOutElements = 0;
     for ( i = 0; i < numEntries; i++ ) {
       //add results to the dropdown menu
       var testEntry = document.createElement('li');
@@ -425,7 +423,6 @@ module.exports = function ( graph ){
           testEntry.onclick = function (){
           };
           d3.select(testEntry).style("cursor", "default");
-          filteredOutElements++;
         }
       } else {
         if ( visible < 1 ) {
@@ -434,7 +431,6 @@ module.exports = function ( graph ){
           };
           testEntry.title = newResults[i] + "\nAll elements are filtered out.";
           d3.select(testEntry).style("cursor", "default");
-          filteredOutElements++;
         } else {
           searchEntryNode.style("color", "");
         }

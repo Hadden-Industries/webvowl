@@ -11,7 +11,6 @@ module.exports = function ( menu ){
     filteredProperties,
     maxDegreeSetter,
     degreeGetter,
-    lastFiltedDegree,
     degreeSetter;
   
   
@@ -19,7 +18,6 @@ module.exports = function ( menu ){
   
   
   filter.initialize = function ( nodes, properties ){
-    lastFiltedDegree = -1;
     var maxLinkCount = findMaxLinkCount(nodes);
     if ( maxDegreeSetter instanceof Function ) {
       maxDegreeSetter(maxLinkCount);
@@ -88,7 +86,6 @@ module.exports = function ( menu ){
       filteredNodes = untouchedNodes;
       filteredProperties = untouchedProperties;
     }
-    lastFiltedDegree = degreeGetter();
   };
   
   function findMaxLinkCount( nodes ){

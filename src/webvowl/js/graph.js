@@ -50,7 +50,6 @@ module.exports = function ( graphContainerSelector ){
     centerGraphViewOnLoad = false,
     transformAnimation = false,
     graphTranslation = [0, 0],
-    graphUpdateRequired = false,
     pulseNodeIds = [],
     nodeArrayForPulse = [],
     nodeMap = [],
@@ -72,7 +71,6 @@ module.exports = function ( graphContainerSelector ){
     delayedHider,
     nodeFreezer,
     hoveredNodeElement = null,
-    currentlySelectedNode = null,
     hoveredPropertyElement = null,
     draggingStarted = false,
     frozenDomainForPropertyDragger,
@@ -1002,17 +1000,7 @@ module.exports = function ( graphContainerSelector ){
   
   graph.getAxiomsForTtlExport = function (){
     var axioms = [];
-    var allProperties = unfilteredData.properties;
-    for ( var i = 0; i < allProperties.length; i++ ) {
-      // currently using only the object properties
-      if ( allProperties[i].type() === "owl:ObjectProperty" ||
-        allProperties[i].type() === "owl:DatatypeProperty" ||
-        allProperties[i].type() === "owl:ObjectProperty" ||
-        allProperties[i].type() === "rdfs:subClassOf"
-      ) {
-      } else {
-      }
-    }
+    // TODO: Implement axiom extraction for TTL export
     return axioms;
   };
   
@@ -1649,7 +1637,6 @@ module.exports = function ( graphContainerSelector ){
     generateDictionary(unfilteredData);
     
     parser.parseSettings();
-    graphUpdateRequired = parser.settingsImported();
     centerGraphViewOnLoad = true;
     if ( parser.settingsImportGraphZoomAndTranslation() === true ) {
       centerGraphViewOnLoad = false;
@@ -2254,10 +2241,6 @@ module.exports = function ( graphContainerSelector ){
         missedIds.push(selectedId);
       }
     }
-    
-    if ( missedIds.length === nodeIdArray.length ) {
-      
-    }
     // store the highlight on the missed nodes;
     var s_nodes = unfilteredData.nodes;
     var s_props = unfilteredData.properties;
@@ -2332,7 +2315,6 @@ module.exports = function ( graphContainerSelector ){
     // tighten further;
     var allForceNodes = force.nodes();
     var numNodes = allForceNodes.length;
-    var visibleNodes = [];
     var bbx;
     
     
@@ -3395,14 +3377,12 @@ module.exports = function ( graphContainerSelector ){
     var remId;
     
     if ( property.type().toLocaleLowerCase() === "owl:datatypeproperty" ) {
-      var datatype = property.range();
       remId = unfilteredData.nodes.indexOf(property.range());
       if ( remId !== -1 )
         unfilteredData.nodes.splice(remId, 1);
       remId = classNodes.indexOf(property.range());
       if ( remId !== -1 )
         classNodes.splice(remId, 1);
-      datatype = null;
     }
     remId = unfilteredData.properties.indexOf(property);
     if ( remId !== -1 )

@@ -33,3 +33,7 @@ __pycache__/
 
 # NetBeans files
 **/nbproject/**
+
+# Linter caches
+.stylelintcache
+.eslintcache

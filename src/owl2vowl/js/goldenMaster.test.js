@@ -56,7 +56,7 @@ function runJavaConverter(filePath) {
       throw new Error("Could not find valid JSON in Java output");
     }
     return JSON.parse(stdout.substring(jsonStart, jsonEnd + 1));
-  } catch (err) {
+  } catch (_err) {
     return null;
   }
 }
