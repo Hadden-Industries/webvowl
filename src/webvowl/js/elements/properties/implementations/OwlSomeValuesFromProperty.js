@@ -1,11 +1,11 @@
-var BaseProperty = require("../BaseProperty");
+const BaseProperty = require("../BaseProperty");
 
 module.exports = (function (){
   
-  var o = function ( graph ){
+  const o = function ( graph ){
     BaseProperty.apply(this, arguments);
     
-    var superGenerateCardinalityText = this.generateCardinalityText;
+    const superGenerateCardinalityText = this.generateCardinalityText;
     
     this.linkType("values-from")
       .markerType("filled values-from")
@@ -13,9 +13,9 @@ module.exports = (function (){
       .type("owl:someValuesFrom");
     
     this.generateCardinalityText = function (){
-      var cardinalityText = "E";
+      let cardinalityText = "E";
       
-      var superCardinalityText = superGenerateCardinalityText();
+      const superCardinalityText = superGenerateCardinalityText();
       if ( superCardinalityText ) {
         cardinalityText += ", " + superCardinalityText;
       }

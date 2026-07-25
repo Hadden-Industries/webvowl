@@ -1,14 +1,14 @@
-var BaseProperty = require("../elements/properties/BaseProperty");
-var BaseNode = require("../elements/nodes/BaseNode");
-var DatatypeNode = require("../elements/nodes/DatatypeNode");
-var Thing = require("../elements/nodes/implementations/OwlThing");
-var ObjectProperty = require("../elements/properties/implementations/OwlObjectProperty");
-var DatatypeProperty = require("../elements/properties/implementations/OwlDatatypeProperty");
-var RdfsSubClassOf = require("../elements/properties/implementations/RdfsSubClassOf");
-var Label = require("../elements/links/Label");
+const BaseProperty = require("../elements/properties/BaseProperty");
+const BaseNode = require("../elements/nodes/BaseNode");
+const DatatypeNode = require("../elements/nodes/DatatypeNode");
+const Thing = require("../elements/nodes/implementations/OwlThing");
+const ObjectProperty = require("../elements/properties/implementations/OwlObjectProperty");
+const DatatypeProperty = require("../elements/properties/implementations/OwlDatatypeProperty");
+const RdfsSubClassOf = require("../elements/properties/implementations/RdfsSubClassOf");
+const Label = require("../elements/links/Label");
 
 
-var tools = {};
+const tools = {};
 module.exports = function (){
   return tools;
 };

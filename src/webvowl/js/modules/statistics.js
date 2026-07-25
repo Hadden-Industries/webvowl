@@ -1,23 +1,23 @@
-var SetOperatorNode = require("../elements/nodes/SetOperatorNode");
-var OwlThing = require("../elements/nodes/implementations/OwlThing");
-var OwlNothing = require("../elements/nodes/implementations/OwlNothing");
-var elementTools = require("../util/elementTools")();
+const SetOperatorNode = require("../elements/nodes/SetOperatorNode");
+const OwlThing = require("../elements/nodes/implementations/OwlThing");
+const OwlNothing = require("../elements/nodes/implementations/OwlNothing");
+const elementTools = require("../util/elementTools")();
 
 module.exports = function (){
   
-  var statistics = {},
-    nodeCount,
-    occurencesOfClassAndDatatypeTypes = {},
-    edgeCount,
-    occurencesOfPropertyTypes = {},
-    classCount,
-    datatypeCount,
-    datatypePropertyCount,
-    objectPropertyCount,
-    propertyCount,
-    totalIndividualCount,
-    filteredNodes,
-    filteredProperties;
+  const statistics = {};
+  let nodeCount;
+  const occurencesOfClassAndDatatypeTypes = {};
+  let edgeCount;
+  const occurencesOfPropertyTypes = {};
+  let classCount;
+  let datatypeCount;
+  let datatypePropertyCount;
+  let objectPropertyCount;
+  let propertyCount;
+  let totalIndividualCount;
+  let filteredNodes;
+  let filteredProperties;
   
   
   statistics.filter = function ( classesAndDatatypes, properties ){
@@ -50,7 +50,10 @@ module.exports = function (){
   function storeTotalCounts( classesAndDatatypes, properties ){
     nodeCount = classesAndDatatypes.length;
     
-    var seenProperties = require("../util/set")(), i, l, property;
+    const seenProperties = require("../util/set")();
+    let i;
+    let l;
+    let property;
     for ( i = 0, l = properties.length; i < l; i++ ) {
       property = properties[i];
       if ( !seenProperties.has(property) ) {
@@ -66,29 +69,22 @@ module.exports = function (){
   
   function storeClassAndDatatypeCount( classesAndDatatypes ){
     // Each datatype should be counted just a single time
-    var datatypeSet = d3.set(),
-      hasThing = false,
-      hasNothing = false;
+    const datatypeSet = d3.set();
     classCount = 0;
-    var old = 0, newcc = 0;
     classesAndDatatypes.forEach(function ( node ){
       if ( elementTools.isDatatype(node) ) {
         datatypeSet.add(node.defaultLabel());
       } else if ( !(node instanceof SetOperatorNode) ) {
         if ( node instanceof OwlThing ) {
-          hasThing = true;
+          // Counted through the existing class-count policy below.
         } else if ( node instanceof OwlNothing ) {
-          hasNothing = true;
+          // Counted through the existing class-count policy below.
         } else {
-          old = classCount;
-          var adds = 1 + countElementArray(node.equivalents());
+          const adds = 1 + countElementArray(node.equivalents());
           classCount += adds;
-          newcc = classCount;
         }
       } else if ( node instanceof SetOperatorNode ) {
-        old = classCount;
         classCount += 1;
-        newcc = classCount;
       }
     });
     
@@ -100,10 +96,11 @@ module.exports = function (){
   }
   
   function storePropertyCount( properties ){
-    for ( var i = 0, l = properties.length; i < l; i++ ) {
-      var property = properties[i];
-      var attr;
-      var result = false;
+    let attr;
+                                             for ( let i = 0, l = properties.length; i < l; i++ ) {
+      const property = properties[i];
+      
+      let result = false;
       if ( property.attributes ) {
         attr = property.attributes();
         if ( attr && attr.indexOf("datatype") !== -1 ) {
@@ -121,7 +118,7 @@ module.exports = function (){
   
   function getExtendedPropertyCount( property ){
     // count the property itself
-    var count = 1;
+    let count = 1;
     
     // and count properties this property represents
     count += countElementArray(property.equivalents());
@@ -139,8 +136,8 @@ module.exports = function (){
   
   function storeOccurencesOfTypes( elements, storage ){
     elements.forEach(function ( element ){
-      var type = element.type(),
-        typeCount = storage[type];
+      const type = element.type();
+      let typeCount = storage[type];
       
       if ( typeof typeCount === "undefined" ) {
         typeCount = 0;
@@ -152,13 +149,13 @@ module.exports = function (){
   }
   
   function storeTotalIndividualCount( nodes ){
-    var sawIndividuals = {};
-    var totalCount = 0;
-    for ( var i = 0, l = nodes.length; i < l; i++ ) {
-      var individuals = nodes[i].individuals();
+    let sawIndividuals = {};
+    let totalCount = 0;
+    for ( let i = 0, l = nodes.length; i < l; i++ ) {
+      const individuals = nodes[i].individuals();
       
-      var tempCount = 0;
-      for ( var iA = 0; iA < individuals.length; iA++ ) {
+      let tempCount = 0;
+      for ( let iA = 0; iA < individuals.length; iA++ ) {
         if ( sawIndividuals[individuals[iA].iri()] === undefined ) {
           sawIndividuals[individuals[iA].iri()] = 1; // this iri for that individual is now set to 1 >> seen it
           tempCount++;

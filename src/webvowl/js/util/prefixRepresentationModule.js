@@ -1,8 +1,8 @@
 module.exports = function ( graph ){
   /** variable defs **/
-  var prefixRepresentationModule = {};
+  const prefixRepresentationModule = {};
   
-  var currentPrefixModel;
+  let currentPrefixModel;
   
   prefixRepresentationModule.updatePrefixModel = function (){
     currentPrefixModel = graph.options().prefixList();
@@ -13,18 +13,18 @@ module.exports = function ( graph ){
     return validURL(url);
   };
   function validURL( str ){
-    var urlregex = /^(https?|ftp):\/\/([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(:[0-9]+)*(\/($|[a-zA-Z0-9.,?'\\+&%$#=~_-]+))*$/;
+    const urlregex = /^(https?|ftp):\/\/([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(:[0-9]+)*(\/($|[a-zA-Z0-9.,?'\\+&%$#=~_-]+))*$/;
     return urlregex.test(str);
   }
   
   function splitURLIntoBaseAndResource( fullURL ){
-    var splitedURL = { base: "", resource: "" };
+    let splitedURL = { base: "", resource: "" };
     if ( fullURL === undefined ) {
       splitedURL = { base: "ERROR", resource: "NOT FOUND" };
       return splitedURL;
     }
     
-    var resource, base;
+    let resource, base;
     // check if there is a last hashTag
     if ( fullURL.indexOf("#") > -1 ) {
       resource = fullURL.substring(fullURL.lastIndexOf('#') + 1);
@@ -50,12 +50,12 @@ module.exports = function ( graph ){
   
   prefixRepresentationModule.getPrefixRepresentationForFullURI = function ( fullURL ){
     prefixRepresentationModule.updatePrefixModel();
-    var splittedURL = splitURLIntoBaseAndResource(fullURL);
+    const splittedURL = splitURLIntoBaseAndResource(fullURL);
     
     // lazy approach , for
     // loop over prefix model
-    for ( var name in currentPrefixModel ) {
-      if ( currentPrefixModel.hasOwnProperty(name) ) {
+    for ( const name in currentPrefixModel ) {
+      if ( Object.prototype.hasOwnProperty.call(currentPrefixModel, name) ) {
         // THIS IS CASE SENSITIVE!
         if ( currentPrefixModel[name] === splittedURL.base ) {
           return name + ":" + splittedURL.resource;

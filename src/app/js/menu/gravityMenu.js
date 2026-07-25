@@ -6,7 +6,7 @@
  */
 module.exports = function ( graph ){
   
-  var gravityMenu = {},
+  const gravityMenu = {},
     sliders = [],
     options = graph.graphOptions(),
     defaultCharge = options.charge();
@@ -16,9 +16,9 @@ module.exports = function ( graph ){
    * Adds the gravity sliders to the website.
    */
   gravityMenu.setup = function (){
-    var menuEntry = d3.select("#m_gravity");
+    const menuEntry = d3.select("#m_gravity");
     menuEntry.on("mouseover", function (){
-      var searchMenu = graph.options().searchMenu();
+      const searchMenu = graph.options().searchMenu();
       searchMenu.hideSearchEntries();
     });
     addDistanceSlider("#classSliderOption", "class", "Class distance", options.classDistance);
@@ -26,17 +26,16 @@ module.exports = function ( graph ){
   };
   
   function addDistanceSlider( selector, identifier, label, distanceFunction ){
-    var defaultLinkDistance = distanceFunction();
+    const defaultLinkDistance = distanceFunction();
     
-    var sliderContainer,
-      sliderValueLabel;
     
-    sliderContainer = d3.select(selector)
+    
+    const sliderContainer = d3.select(selector)
       .append("div")
       .datum({ distanceFunction: distanceFunction }) // connect the options-function with the slider
       .classed("distanceSliderContainer", true);
     
-    var slider = sliderContainer.append("input")
+    const slider = sliderContainer.append("input")
       .attr("id", identifier + "DistanceSlider")
       .attr("type", "range")
       .attr("min", 10)
@@ -49,7 +48,7 @@ module.exports = function ( graph ){
       .attr("for", identifier + "DistanceSlider")
       .text(label);
     
-    sliderValueLabel = sliderContainer.append("label")
+    const sliderValueLabel = sliderContainer.append("label")
       .classed("value", true)
       .attr("for", identifier + "DistanceSlider")
       .text(distanceFunction());
@@ -62,7 +61,7 @@ module.exports = function ( graph ){
     });
     
     slider.on("input", function (){
-      var distance = slider.property("value");
+      const distance = slider.property("value");
       distanceFunction(distance);
       adjustCharge(defaultLinkDistance);
       sliderValueLabel.text(distance);
@@ -71,12 +70,12 @@ module.exports = function ( graph ){
     
     // add wheel event to the slider
     slider.on("wheel", function (){
-      var wheelEvent = d3.event;
-      var offset;
-      if ( wheelEvent.deltaY < 0 ) offset = 10;
-      if ( wheelEvent.deltaY > 0 ) offset = -10;
-      var oldVal = parseInt(slider.property("value"));
-      var newSliderValue = oldVal + offset;
+      const wheelEvent = d3.event;
+      let offset;
+      if ( wheelEvent.deltaY < 0 ) {offset = 10;}
+      if ( wheelEvent.deltaY > 0 ) {offset = -10;}
+      const oldVal = parseInt(slider.property("value"));
+      const newSliderValue = oldVal + offset;
       if ( newSliderValue !== oldVal ) {
         slider.property("value", newSliderValue);
         distanceFunction(newSliderValue);
@@ -87,7 +86,7 @@ module.exports = function ( graph ){
   }
   
   function adjustCharge( defaultLinkDistance ){
-    var greaterDistance = Math.max(options.classDistance(), options.datatypeDistance()),
+    const greaterDistance = Math.max(options.classDistance(), options.datatypeDistance()),
       ratio = greaterDistance / defaultLinkDistance,
       newCharge = defaultCharge * ratio;
     

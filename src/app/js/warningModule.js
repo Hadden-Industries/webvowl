@@ -1,33 +1,33 @@
 module.exports = function ( graph ){
   /** variable defs **/
-  var warningModule = {};
-  var superContainer = d3.select("#WarningErrorMessages");
-  var _messageContainers = [];
-  var _messageContext = [];
-  var _visibleStatus = [];
+  const warningModule = {};
+  const superContainer = d3.select("#WarningErrorMessages");
+  const _messageContainers = [];
+  const _messageContext = [];
+  const _visibleStatus = [];
   
-  var _filterHintId;
-  var _messageId = -1;
+  let _filterHintId;
+  let _messageId = -1;
   superContainer.style("display", "inline-block");
-  var cssStyleIndex = 0;
-  var styleSelectorIndex = 2;
+  const cssStyleIndex = 0;
+  const styleSelectorIndex = 2;
   
 
   // helper for standalone webvowl in chrome
   function createCSSSelector( name, rules ){
-    var style = document.createElement('style');
+    const style = document.createElement('style');
     style.type = 'text/css';
     document.getElementsByTagName('head')[0].appendChild(style);
     if ( !(style.sheet || {}).insertRule )
-      (style.styleSheet || style.sheet).addRule(name, rules);
+      {(style.styleSheet || style.sheet).addRule(name, rules);}
     else
-      style.sheet.insertRule(name + "{" + rules + "}", 0);
+      {style.sheet.insertRule(name + "{" + rules + "}", 0);}
   }
   
   
   function findCSS_Index(){
     createCSSSelector("@keyframes msg_CollapseAnimation", " 0% { top: 0; } 100% { top: -400px;}");
-    console.log(document.styleSheets );
+    console.warn(document.styleSheets );
   }
   
   findCSS_Index();
@@ -36,10 +36,10 @@ module.exports = function ( graph ){
     
     // add a container;
     _messageId++;
-    var messageContainer = d3.select("#WarningErrorMessages").append("div");
+    const messageContainer = d3.select("#WarningErrorMessages").append("div");
     messageContainer.node().id = "messageContainerId_" + _messageId;
     
-    var messageContext = messageContainer.append("div");
+    const messageContext = messageContainer.append("div");
     messageContext.node().id = "messageContextId_" + _messageId;
     messageContext.style("top", "0");
     messageContainer.style("position", "relative");
@@ -57,9 +57,9 @@ module.exports = function ( graph ){
   };
   
   function _msgContainer_animationEnd(){
-    var containerId = this.id;
-    var tokens = containerId.split("_")[1];
-    var mContainer = d3.select("#" + containerId);
+    const containerId = this.id;
+    const tokens = containerId.split("_")[1];
+    const mContainer = d3.select("#" + containerId);
     // get number of children
     mContainer.classed("hidden", !_visibleStatus[tokens]);
     // clean up DOM
@@ -73,9 +73,9 @@ module.exports = function ( graph ){
   }
   
   warningModule.createMessageContext = function ( id ){
-    var warningContainer = _messageContext[id];
-    var moduleContainer = _messageContainers[id];
-    var generalHint = warningContainer.append('div');
+    const warningContainer = _messageContext[id];
+    const moduleContainer = _messageContainers[id];
+    const generalHint = warningContainer.append('div');
     generalHint.node().innerHTML = "";
     /** Editing mode activated. You can now modify an existing ontology or create a new one via the <em>ontology</em> menu. You can save any ontology using the <em>export</em> menu (and exporting it as TTL file).**/
     generalHint.node().innerHTML += "Editing mode activated.<br>" +
@@ -87,14 +87,14 @@ module.exports = function ( graph ){
     generalHint.style("font-size", "1.2em");
     
     
-    var ul = warningContainer.append('ul');
+    const ul = warningContainer.append('ul');
     ul.append('li').node().innerHTML = "Create a class with <b>double click / tap</b> on empty canvas area.";
     ul.append('li').node().innerHTML = "Edit names with <b>double click / tap</b> on element.</li>";
     ul.append('li').node().innerHTML = "Selection of default constructors is provided in the left sidebar.";
     ul.append('li').node().innerHTML = "Additional editing functionality is provided in the right sidebar.";
     
     
-    var gotItButton = warningContainer.append("label");
+    const gotItButton = warningContainer.append("label");
     gotItButton.node().id = "killWarningErrorMessages_" + id;
     gotItButton.node().innerHTML = "Got It";
     gotItButton.on("click", warningModule.closeMessage);
@@ -105,16 +105,16 @@ module.exports = function ( graph ){
   };
   
   warningModule.showMessage = function ( id ){
-    var moduleContainer = _messageContainers[id];
+    const moduleContainer = _messageContainers[id];
     moduleContainer.classed("hidden", false);
     moduleContainer.style("-webkit-animation-name", "warn_ExpandAnimation");
     moduleContainer.style("-webkit-animation-duration", "0.5s");
   };
   
   warningModule.closeMessage = function ( id ){
-    var nId;
+    let nId;
     if ( id === undefined ) {
-      var givenId = this.id;
+      const givenId = this.id;
       nId = givenId.split("_")[1];
     } else {
       nId = id;
@@ -124,21 +124,21 @@ module.exports = function ( graph ){
     }
     _visibleStatus[nId] = false;
     // get module;
-    var moduleContainer = _messageContainers[nId];
+    const moduleContainer = _messageContainers[nId];
     moduleContainer.style("-webkit-animation-name", "warn_CollapseAnimation");
     moduleContainer.style("-webkit-animation-duration", "0.5s");
     
-    var m_height = moduleContainer.node().getBoundingClientRect().height;
+    const m_height = moduleContainer.node().getBoundingClientRect().height;
     
     // find my id in the children
-    var pNode = moduleContainer.node().parentNode;
+    const pNode = moduleContainer.node().parentNode;
     
-    var followingChildren = [];
-    var pChild = pNode.children;
-    var pChild_len = pChild.length;
-    var containerId = moduleContainer.node().id;
-    var found_me = false;
-    for ( var i = 0; i < pChild_len; i++ ) {
+    const followingChildren = [];
+    const pChild = pNode.children;
+    const pChild_len = pChild.length;
+    const containerId = moduleContainer.node().id;
+    let found_me = false;
+    for ( let i = 0; i < pChild_len; i++ ) {
       if ( found_me === true ) {
         followingChildren.push(pChild[i].id);
       }
@@ -148,10 +148,10 @@ module.exports = function ( graph ){
       }
     }
     
-    for ( var fc = 0; fc < followingChildren.length; fc++ ) {
-      var child = d3.select("#" + followingChildren[fc]);
+    for ( let fc = 0; fc < followingChildren.length; fc++ ) {
+      const child = d3.select("#" + followingChildren[fc]);
       // get the document style and overwrite it;
-      var superCss = document.styleSheets[styleSelectorIndex].cssRules[cssStyleIndex];
+      const superCss = document.styleSheets[styleSelectorIndex].cssRules[cssStyleIndex];
       // remove the existing 0% and 100% rules
       superCss.deleteRule("0%");
       superCss.deleteRule("100%");
@@ -166,7 +166,7 @@ module.exports = function ( graph ){
   };
   
   function _child_animationEnd(){
-    var c = d3.select(this);
+    const c = d3.select(this);
     c.style("-webkit-animation-name", "");
     c.style("-webkit-animation-duration", "");
     c.node().removeEventListener("animationend", _child_animationEnd);
@@ -183,7 +183,7 @@ module.exports = function ( graph ){
   };
   
   warningModule.showEditorHint = function (){
-    var id = warningModule.addMessageBox();
+    const id = warningModule.addMessageBox();
     warningModule.createMessageContext(id);
   };
 
@@ -194,22 +194,22 @@ module.exports = function ( graph ){
   
   
   warningModule.responseWarning = function ( header, reason, action, callback, parameterArray, forcedWarning ){
-    var id = warningModule.addMessageBox();
-    var warningContainer = _messageContext[id];
-    var moduleContainer = _messageContainers[id];
+    const id = warningModule.addMessageBox();
+    const warningContainer = _messageContext[id];
+    const moduleContainer = _messageContainers[id];
     _visibleStatus[id] = true;
     d3.select("#blockGraphInteractions").classed("hidden", false);
-    var graphWidth = 0.5 * graph.options().width();
+    const graphWidth = 0.5 * graph.options().width();
     
     if ( header.length > 0 ) {
-      var head = warningContainer.append("div");
+      const head = warningContainer.append("div");
       head.style("padding", "5px");
-      var titleHeader = head.append("div");
+      const titleHeader = head.append("div");
       // some classes
       titleHeader.style("display", "inline-flex");
       titleHeader.node().innerHTML = "<b>Warning:</b>";
       titleHeader.style("padding-right", "3px");
-      var msgHeader = head.append("div");
+      const msgHeader = head.append("div");
       // some classes
       msgHeader.style("display", "inline-flex");
       msgHeader.style("max-width", graphWidth + "px");
@@ -217,36 +217,36 @@ module.exports = function ( graph ){
       msgHeader.node().innerHTML = header;
     }
     if ( reason.length > 0 ) {
-      var reasonContainer = warningContainer.append("div");
+      const reasonContainer = warningContainer.append("div");
       reasonContainer.style("padding", "5px");
-      var reasonHeader = reasonContainer.append("div");
+      const reasonHeader = reasonContainer.append("div");
       // some classes
       reasonHeader.style("display", "inline-flex");
       reasonHeader.style("padding-right", "3px");
       
       reasonHeader.node().innerHTML = "<b>Reason:</b>";
-      var msgReason = reasonContainer.append("div");
+      const msgReason = reasonContainer.append("div");
       // some classes
       msgReason.style("display", "inline-flex");
       msgReason.style("max-width", graphWidth + "px");
       msgReason.node().innerHTML = reason;
     }
     if ( action.length > 0 ) {
-      var actionContainer = warningContainer.append("div");
+      const actionContainer = warningContainer.append("div");
       actionContainer.style("padding", "5px");
-      var actionHeader = actionContainer.append("div");
+      const actionHeader = actionContainer.append("div");
       // some classes
       actionHeader.style("display", "inline-flex");
       actionHeader.style("padding-right", "8px");
       actionHeader.node().innerHTML = "<b>Action:</b>";
-      var msgAction = actionContainer.append("div");
+      const msgAction = actionContainer.append("div");
       // some classes
       msgAction.style("display", "inline-flex");
       msgAction.style("max-width", graphWidth + "px");
       msgAction.node().innerHTML = action;
     }
     
-    var gotItButton = warningContainer.append("label");
+    const gotItButton = warningContainer.append("label");
     gotItButton.node().id = "killWarningErrorMessages_" + id;
     gotItButton.node().innerHTML = "Continue";
     gotItButton.on("click", function (){
@@ -255,7 +255,7 @@ module.exports = function ( graph ){
       callback(parameterArray[0], parameterArray[1], parameterArray[2], parameterArray[3]);
     });
     warningContainer.append("span").node().innerHTML = "|";
-    var cancelButton = warningContainer.append("label");
+    const cancelButton = warningContainer.append("label");
     cancelButton.node().id = "cancelButton_" + id;
     cancelButton.node().innerHTML = "Cancel";
     cancelButton.on("click", function (){
@@ -268,13 +268,13 @@ module.exports = function ( graph ){
   };
   
   warningModule.showFilterHint = function (){
-    var id = warningModule.addMessageBox();
-    var warningContainer = _messageContext[id];
-    var moduleContainer = _messageContainers[id];
+    const id = warningModule.addMessageBox();
+    const warningContainer = _messageContext[id];
+    const moduleContainer = _messageContainers[id];
     _visibleStatus[id] = true;
     
     _filterHintId = id;
-    var generalHint = warningContainer.append('div');
+    const generalHint = warningContainer.append('div');
     /** Editing mode activated. You can now modify an existing ontology or create a new one via the <em>ontology</em> menu. You can save any ontology using the <em>export</em> menu (and exporting it as TTL file).**/
     generalHint.node().innerHTML = "Collapsing filter activated.<br>" +
       "The number of visualized elements has been automatically reduced.<br>" +
@@ -286,7 +286,7 @@ module.exports = function ( graph ){
     generalHint.style("line-height", "1.2em");
     generalHint.style("font-size", "1.2em");
     
-    var gotItButton = warningContainer.append("label");
+    const gotItButton = warningContainer.append("label");
     gotItButton.node().id = "killFilterMessages_" + id;
     gotItButton.node().innerHTML = "Got It";
     gotItButton.on("click", warningModule.closeMessage);
@@ -297,13 +297,13 @@ module.exports = function ( graph ){
   };
   
   warningModule.showMultiFileUploadWarning = function (){
-    var id = warningModule.addMessageBox();
-    var warningContainer = _messageContext[id];
-    var moduleContainer = _messageContainers[id];
+    const id = warningModule.addMessageBox();
+    const warningContainer = _messageContext[id];
+    const moduleContainer = _messageContainers[id];
     _visibleStatus[id] = true;
     
     _filterHintId = id;
-    var generalHint = warningContainer.append('div');
+    const generalHint = warningContainer.append('div');
     
     generalHint.node().innerHTML = "Uploading multiple files is not supported.<br>";
     
@@ -311,7 +311,7 @@ module.exports = function ( graph ){
     generalHint.style("line-height", "1.2em");
     generalHint.style("font-size", "1.2em");
     
-    var gotItButton = warningContainer.append("label");
+    const gotItButton = warningContainer.append("label");
     gotItButton.node().id = "killFilterMessages_" + id;
     gotItButton.node().innerHTML = "Got It";
     gotItButton.on("click", warningModule.closeMessage);
@@ -322,23 +322,23 @@ module.exports = function ( graph ){
   };
   
   warningModule.showWarning = function ( header, reason, action, type, forcedWarning, additionalOpts ){
-    var id = warningModule.addMessageBox();
-    var warningContainer = _messageContext[id];
-    var moduleContainer = _messageContainers[id];
+    const id = warningModule.addMessageBox();
+    const warningContainer = _messageContext[id];
+    const moduleContainer = _messageContainers[id];
     _visibleStatus[id] = true;
     
     // add new one;
-    var graphWidth = 0.5 * graph.options().width();
+    const graphWidth = 0.5 * graph.options().width();
     
     if ( header.length > 0 ) {
-      var head = warningContainer.append("div");
+      const head = warningContainer.append("div");
       head.style("padding", "5px");
-      var titleHeader = head.append("div");
+      const titleHeader = head.append("div");
       // some classes
       titleHeader.style("display", "inline-flex");
       titleHeader.node().innerHTML = "<b>Warning:</b>";
       titleHeader.style("padding-right", "3px");
-      var msgHeader = head.append("div");
+      const msgHeader = head.append("div");
       // some classes
       msgHeader.style("display", "inline-flex");
       msgHeader.style("max-width", graphWidth + "px");
@@ -346,36 +346,36 @@ module.exports = function ( graph ){
       msgHeader.node().innerHTML = header;
     }
     if ( reason.length > 0 ) {
-      var reasonContainer = warningContainer.append("div");
+      const reasonContainer = warningContainer.append("div");
       reasonContainer.style("padding", "5px");
-      var reasonHeader = reasonContainer.append("div");
+      const reasonHeader = reasonContainer.append("div");
       // some classes
       reasonHeader.style("display", "inline-flex");
       reasonHeader.style("padding-right", "3px");
       
       reasonHeader.node().innerHTML = "<b>Reason:</b>";
-      var msgReason = reasonContainer.append("div");
+      const msgReason = reasonContainer.append("div");
       // some classes
       msgReason.style("display", "inline-flex");
       msgReason.style("max-width", graphWidth + "px");
       msgReason.node().innerHTML = reason;
     }
     if ( action.length > 0 ) {
-      var actionContainer = warningContainer.append("div");
+      const actionContainer = warningContainer.append("div");
       actionContainer.style("padding", "5px");
-      var actionHeader = actionContainer.append("div");
+      const actionHeader = actionContainer.append("div");
       // some classes
       actionHeader.style("display", "inline-flex");
       actionHeader.style("padding-right", "8px");
       actionHeader.node().innerHTML = "<b>Action:</b>";
-      var msgAction = actionContainer.append("div");
+      const msgAction = actionContainer.append("div");
       // some classes
       msgAction.style("display", "inline-flex");
       msgAction.style("max-width", graphWidth + "px");
       msgAction.node().innerHTML = action;
     }
     
-    var gotItButton;
+    let gotItButton;
     if ( type === 1 ) {
       gotItButton = warningContainer.append("label");
       gotItButton.node().id = "killWarningErrorMessages_" + id;
@@ -389,7 +389,7 @@ module.exports = function ( graph ){
       gotItButton.node().innerHTML = "Got It";
       gotItButton.on("click", warningModule.closeMessage);
       warningContainer.append("span").node().innerHTML = "|";
-      var zoomToElementButton = warningContainer.append("label");
+      const zoomToElementButton = warningContainer.append("label");
       zoomToElementButton.node().id = "zoomElementThing_" + id;
       zoomToElementButton.node().innerHTML = "Zoom to element ";
       zoomToElementButton.on("click", function (){
@@ -397,7 +397,7 @@ module.exports = function ( graph ){
         graph.zoomToElementInGraph(additionalOpts);
       });
       warningContainer.append("span").node().innerHTML = "|";
-      var ShowElementButton = warningContainer.append("label");
+      const ShowElementButton = warningContainer.append("label");
       ShowElementButton.node().id = "showElementThing_" + id;
       ShowElementButton.node().innerHTML = "Indicate element";
       ShowElementButton.on("click", function (){

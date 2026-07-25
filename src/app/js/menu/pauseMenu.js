@@ -6,17 +6,17 @@
  */
 module.exports = function ( graph ){
   
-  var pauseMenu = {},
-    pauseButton;
+  const pauseMenu = {};
+  let pauseButton;
   
   
   /**
    * Adds the pause button to the website.
    */
   pauseMenu.setup = function (){
-    var menuEntry = d3.select("#pauseOption");
+    const menuEntry = d3.select("#pauseOption");
     menuEntry.on("mouseover", function (){
-      var searchMenu = graph.options().searchMenu();
+      const searchMenu = graph.options().searchMenu();
       searchMenu.hideSearchEntries();
     });
     pauseButton = d3.select("#pause-button")

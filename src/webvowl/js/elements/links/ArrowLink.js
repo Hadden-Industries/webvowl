@@ -1,4 +1,4 @@
-var PlainLink = require("./PlainLink");
+const PlainLink = require("./PlainLink");
 
 
 module.exports = ArrowLink;
@@ -12,8 +12,8 @@ ArrowLink.prototype.constructor = ArrowLink;
 
 
 ArrowLink.prototype.draw = function ( linkGroup, markerContainer ){
-  var property = this.label().property();
-  var inverse = this.label().inverse();
+  const property = this.label().property();
+  const inverse = this.label().inverse();
   
   createPropertyMarker(markerContainer, property);
   if ( inverse ) {
@@ -30,12 +30,12 @@ ArrowLink.prototype.draw = function ( linkGroup, markerContainer ){
 };
 
 function createPropertyMarker( markerContainer, property ){
-  var marker = appendBasicMarker(markerContainer, property);
+  const marker = appendBasicMarker(markerContainer, property);
   //marker.attr("refX", 12);
-  var m1X = -12;
-  var m1Y = 8;
-  var m2X = -12;
-  var m2Y = -8;
+  const m1X = -12;
+  const m1Y = 8;
+  const m2X = -12;
+  const m2Y = -8;
   marker.append("path")
   //.attr("d", "M0,-8L12,0L0,8Z")
     .attr("d", "M0,0L " + m1X + "," + m1Y + "L" + m2X + "," + m2Y + "L" + 0 + "," + 0)
@@ -45,11 +45,11 @@ function createPropertyMarker( markerContainer, property ){
 }
 
 function createInverseMarker( markerContainer, inverse ){
-  var m1X = -12;
-  var m1Y = 8;
-  var m2X = -12;
-  var m2Y = -8;
-  var inverseMarker = appendBasicMarker(markerContainer, inverse);
+  const m1X = -12;
+  const m1Y = 8;
+  const m2X = -12;
+  const m2Y = -8;
+  const inverseMarker = appendBasicMarker(markerContainer, inverse);
   inverseMarker.append("path")
   //.attr("d", "M12,-8L0,0L12,8Z")
     .attr("d", "M0,0L " + -m1X + "," + -m1Y + "L" + -m2X + "," + -m2Y + "L" + 0 + "," + 0)

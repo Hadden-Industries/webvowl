@@ -1,14 +1,14 @@
-var RoundNode = require("../RoundNode");
-var drawTools = require("../../drawTools")();
+const RoundNode = require("../RoundNode");
+const drawTools = require("../../drawTools")();
 
 module.exports = (function (){
   
-  var o = function ( graph ){
+  const o = function ( graph ){
     RoundNode.apply(this, arguments);
     
-    var CIRCLE_SIZE_DIFFERENCE = 4;
-    var renderingElement;
-    var that = this,
+    const CIRCLE_SIZE_DIFFERENCE = 4;
+    let renderingElement;
+    const that = this,
       superActualRadiusFunction = that.actualRadius;
     
     this.styleClass("equivalentclass")
@@ -21,12 +21,12 @@ module.exports = (function (){
     this.redrawElement = function (){
       renderingElement.remove();
       that.textBlock().remove();
-      var bgColor = that.backgroundColor();
+      let bgColor = that.backgroundColor();
       
       if ( that.attributes().indexOf("deprecated") > -1 ) {
         bgColor = undefined;
       }
-      var cssClasses = that.collectCssClasses();
+      const cssClasses = that.collectCssClasses();
       renderingElement = that.nodeElement().append("g");
       
       if ( that.getRectangularRepresentation() === true ) {
@@ -34,9 +34,9 @@ module.exports = (function (){
         drawTools.appendRectangularClass(renderingElement, 80 - CIRCLE_SIZE_DIFFERENCE, 80 - CIRCLE_SIZE_DIFFERENCE, cssClasses, that.labelForCurrentLanguage(), bgColor);
       } else {
         drawTools.appendCircularClass(renderingElement, that.actualRadius(), ["white", "embedded"]);
-        console.log(cssClasses);
-        console.log(that.attributes());
-        console.log("what is bgColor" + bgColor);
+        console.warn(cssClasses);
+        console.warn(that.attributes());
+        console.warn("what is bgColor" + bgColor);
         drawTools.appendCircularClass(renderingElement, that.actualRadius() - CIRCLE_SIZE_DIFFERENCE, cssClasses, that.labelForCurrentLanguage(), bgColor);
         
       }
@@ -44,11 +44,11 @@ module.exports = (function (){
       
     };
     this.draw = function ( parentElement ){
-      var cssClasses = that.collectCssClasses();
+      const cssClasses = that.collectCssClasses();
       
       that.nodeElement(parentElement);
       renderingElement = parentElement.append("g");
-      var bgColor = that.backgroundColor();
+      let bgColor = that.backgroundColor();
       if ( that.attributes().indexOf("deprecated") > -1 ) {
         bgColor = undefined;
       }

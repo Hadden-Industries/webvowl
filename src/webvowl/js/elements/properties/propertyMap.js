@@ -1,4 +1,4 @@
-var properties = [];
+const properties = [];
 properties.push(require("./implementations/OwlAllValuesFromProperty"));
 properties.push(require("./implementations/OwlDatatypeProperty"));
 properties.push(require("./implementations/OwlDeprecatedProperty"));
@@ -14,7 +14,7 @@ properties.push(require("./implementations/RdfProperty"));
 properties.push(require("./implementations/RdfsSubClassOf"));
 properties.push(require("./implementations/SetOperatorProperty"));
 
-var map = d3.map(properties, function ( Prototype ){
+const map = d3.map(properties, function ( Prototype ){
   return new Prototype().type();
 });
 

@@ -6,7 +6,7 @@
  * @param _link
  */
 module.exports = function ( _domain, _range, _link ){
-  var linkPart = {},
+  const linkPart = {},
     domain = _domain,
     link = _link,
     range = _range;

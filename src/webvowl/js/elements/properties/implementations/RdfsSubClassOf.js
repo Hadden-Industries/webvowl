@@ -1,11 +1,11 @@
-var BaseProperty = require("../BaseProperty");
+const BaseProperty = require("../BaseProperty");
 
 module.exports = (function (){
   
-  var o = function ( graph ){
+  const o = function ( graph ){
     BaseProperty.apply(this, arguments);
     
-    var that = this,
+    const that = this,
       superDrawFunction = that.draw,
       label = "Subclass of";
     
@@ -16,7 +16,7 @@ module.exports = (function (){
     
     // Disallow overwriting the label
     this.label = function ( p ){
-      if ( !arguments.length ) return label;
+      if ( !arguments.length ) {return label;}
       return this;
     };
     

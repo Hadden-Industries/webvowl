@@ -1,8 +1,8 @@
-var elementTools = require("./elementTools")();
+const elementTools = require("./elementTools")();
 
 module.exports = (function (){
   
-  var tools = {};
+  const tools = {};
   
   /**
    * Filters the passed nodes and removes dangling properties.
@@ -12,7 +12,7 @@ module.exports = (function (){
    * @returns {{nodes: Array, properties: Array}} the filtered nodes and properties
    */
   tools.filterNodesAndTidy = function ( nodes, properties, shouldKeepNode ){
-    var removedNodes = require("./set")(),
+    const removedNodes = require("./set")(),
       cleanedNodes = [],
       cleanedProperties = [];
     
@@ -29,7 +29,7 @@ module.exports = (function (){
         cleanedProperties.push(property);
       } else if ( elementTools.isDatatypeProperty(property) ) {
         // Remove floating datatypes/literals, because they belong to their datatype property
-        var index = cleanedNodes.indexOf(property.range());
+        const index = cleanedNodes.indexOf(property.range());
         if ( index >= 0 ) {
           cleanedNodes.splice(index, 1);
         }

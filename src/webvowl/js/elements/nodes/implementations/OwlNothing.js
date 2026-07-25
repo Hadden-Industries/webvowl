@@ -1,8 +1,8 @@
-var OwlThing = require("./OwlThing");
+const OwlThing = require("./OwlThing");
 
 module.exports = (function (){
   
-  var o = function ( graph ){
+  const o = function ( graph ){
     OwlThing.apply(this, arguments);
     
     this.label("Nothing")

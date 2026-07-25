@@ -1,8 +1,8 @@
-var RoundNode = require("../RoundNode");
+const RoundNode = require("../RoundNode");
 
 module.exports = (function (){
   
-  var o = function ( graph ){
+  const o = function ( graph ){
     RoundNode.apply(this, arguments);
     
     this.attributes(["deprecated"])

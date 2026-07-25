@@ -1,8 +1,8 @@
 module.exports = function (){
   
-  var filter = {},
-    filteredNodes,
-    filteredProperties;
+  const filter = {};
+  let filteredNodes;
+  let filteredProperties;
   
   
   filter.filter = function ( nodes, properties ){

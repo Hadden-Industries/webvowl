@@ -1,7 +1,7 @@
 module.exports = AbstractTextElement;
 
 function AbstractTextElement( container, backgroundColor ){
-  var textBlock = container.append("text")
+  const textBlock = container.append("text")
     .classed("text", true)
     .style("fill", this._getTextColor(backgroundColor))
     .attr("text-anchor", "middle");
@@ -45,7 +45,7 @@ AbstractTextElement.prototype._getTextColor = function ( rawBackgroundColor ){
     return AbstractTextElement.prototype.DARK_TEXT_COLOR;
   }
   
-  var backgroundColor = d3.rgb(rawBackgroundColor);
+  const backgroundColor = d3.rgb(rawBackgroundColor);
   if ( calculateLuminance(backgroundColor) > 0.5 ) {
     return AbstractTextElement.prototype.DARK_TEXT_COLOR;
   } else {

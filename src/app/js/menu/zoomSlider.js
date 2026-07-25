@@ -1,18 +1,18 @@
 /** The zoom Slider **/
 module.exports = function ( graph ){
-  var zoomSlider = {};
-  var minMag = graph.options().minMagnification(),
-    maxMag = graph.options().maxMagnification(),
-    defZoom,
-    t_zoomOut,
-    t_zoomIn,
-    zoomValue,
-    showSlider = true,
-    w = graph.options().width(),
-    h = graph.options().height(),
-    slider;
+  const zoomSlider = {};
+  const minMag = graph.options().minMagnification();
+  const maxMag = graph.options().maxMagnification();
   
-  defZoom = Math.min(w, h) / 1000;
+  let t_zoomOut;
+  let t_zoomIn;
+  let zoomValue;
+  let showSlider = true;
+  const w = graph.options().width();
+  const h = graph.options().height();
+  let slider;
+  
+  const defZoom = Math.min(w, h) / 1000;
   
   function clearAllTimers(){
     cancelAnimationFrame(t_zoomOut);
@@ -91,14 +91,14 @@ module.exports = function ( graph ){
   };
   
   zoomSlider.showSlider = function ( val ){
-    if ( !arguments.length ) return showSlider;
+    if ( !arguments.length ) {return showSlider;}
     d3.select("#zoomSlider").classed("hidden", !val);
     showSlider = val;
   };
   
   zoomSlider.zooming = function (){
     graph.options().navigationMenu().hideAllMenus();
-    var zoomValue = slider.property("value");
+    const zoomValue = slider.property("value");
     slider.attr("value", zoomValue);
     graph.setSliderZoom(zoomValue);
   };

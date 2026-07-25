@@ -119,7 +119,7 @@ export function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
       const prefix = term.value.substring(0, idx);
       const local = term.value.substring(idx + 1);
       const ns = cleanPrefixes[prefix];
-      if (ns) return ns + local;
+      if (ns) {return ns + local;}
       return term.value;
     }
     if (term.type === "KEYWORD" && term.value === "a") {

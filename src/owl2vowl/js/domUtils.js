@@ -10,10 +10,10 @@ import { NAMESPACES } from "./constants.js";
 export function getAttr(el, name, ns) {
   if (ns) {
     const val = el.getAttributeNS(ns, name);
-    if (val !== null && val !== "") return val;
+    if (val !== null && val !== "") {return val;}
   }
   const val = el.getAttribute(name) || el.getAttribute("rdf:" + name) || el.getAttribute("owl:" + name);
-  if (val !== null && val !== "") return val;
+  if (val !== null && val !== "") {return val;}
   
   // Fallback: check all attributes for local name match
   if (el.attributes) {
@@ -34,7 +34,7 @@ export function getAttr(el, name, ns) {
  */
 export function getAbout(el) {
   const about = getAttr(el, "about", NAMESPACES.RDF);
-  if (about !== null && about !== "") return about;
+  if (about !== null && about !== "") {return about;}
   const id = getAttr(el, "ID", NAMESPACES.RDF);
   if (id !== null && id !== "") {
     return id.startsWith("#") ? id : "#" + id;

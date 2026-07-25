@@ -1,21 +1,21 @@
-var BaseNode = require("./BaseNode");
-var CenteringTextElement = require("../../util/CenteringTextElement");
-var drawTools = require("../drawTools")();
+const BaseNode = require("./BaseNode");
+const CenteringTextElement = require("../../util/CenteringTextElement");
+const drawTools = require("../drawTools")();
 
 module.exports = (function (){
   
-  var o = function ( graph ){
+  const o = function ( graph ){
     BaseNode.apply(this, arguments);
     
-    var that = this,
-      collapsible = false,
-      radius = 50,
-      collapsingGroupElement,
-      pinGroupElement,
-      haloGroupElement = null,
-      rectangularRepresentation = false,
-      renderingElement,
-      textBlock;
+    const that = this;
+    let collapsible = false;
+    let radius = 50;
+    let collapsingGroupElement;
+    let pinGroupElement;
+    let haloGroupElement = null;
+    let rectangularRepresentation = false;
+    let renderingElement;
+    let textBlock;
     
     this.setRectangularRepresentation = function ( val ){
       rectangularRepresentation = val;
@@ -30,13 +30,13 @@ module.exports = (function (){
     
     // Properties
     this.collapsible = function ( p ){
-      if ( !arguments.length ) return collapsible;
+      if ( !arguments.length ) {return collapsible;}
       collapsible = p;
       return this;
     };
     
     this.textBlock = function ( p ){
-      if ( !arguments.length ) return textBlock;
+      if ( !arguments.length ) {return textBlock;}
       textBlock = p;
       return this;
     };
@@ -47,7 +47,7 @@ module.exports = (function (){
      * @returns {*}
      */
     this.radius = function ( p ){
-      if ( !arguments.length ) return radius;
+      if ( !arguments.length ) {return radius;}
       radius = p;
       return this;
     };
@@ -59,12 +59,12 @@ module.exports = (function (){
     };
     
     this.textWidth = function ( yOffset ){
-      var availableWidth = this.actualRadius() * 2;
+      let availableWidth = this.actualRadius() * 2;
       
       // if the text is not placed in the center of the circle, it can't have the full width
       if ( yOffset ) {
-        var relativeOffset = Math.abs(yOffset) / this.actualRadius();
-        var isOffsetInsideOfNode = relativeOffset <= 1;
+        const relativeOffset = Math.abs(yOffset) / this.actualRadius();
+        const isOffsetInsideOfNode = relativeOffset <= 1;
         
         if ( isOffsetInsideOfNode ) {
           availableWidth = Math.cos(relativeOffset) * availableWidth;
@@ -79,7 +79,7 @@ module.exports = (function (){
     this.toggleFocus = function (){
       that.focused(!that.focused());
       if ( that.nodeElement() )
-        that.nodeElement().select("circle").classed("focused", that.focused());
+        {that.nodeElement().select("circle").classed("focused", that.focused());}
       graph.resetSearchHighlight();
       graph.options().searchMenu().clearText();
       
@@ -90,7 +90,7 @@ module.exports = (function (){
         return that.radius();
       } else {
         // we could "listen" for radius and maxIndividualCount changes, but this is easier
-        var MULTIPLIER = 8,
+        const MULTIPLIER = 8,
           additionalRadius = Math.log(that.individuals().length + 1) * MULTIPLIER + 5;
         
         return that.radius() + additionalRadius;
@@ -118,7 +118,7 @@ module.exports = (function (){
         haloGroupElement = drawTools.drawHalo(that.nodeElement(), that.actualRadius(), this.removeHalo);
       }
       if ( pulseAnimation === false ) {
-        var pulseItem = haloGroupElement.selectAll(".searchResultA");
+        const pulseItem = haloGroupElement.selectAll(".searchResultA");
         pulseItem.classed("searchResultA", false);
         pulseItem.classed("searchResultB", true);
         pulseItem.attr("animationRunning", false);
@@ -130,7 +130,7 @@ module.exports = (function (){
      */
     this.drawPin = function (){
       that.pinned(true);
-      var dx = (-3.5 / 5) * that.actualRadius(),
+      const dx = (-3.5 / 5) * that.actualRadius(),
         dy = (-7 / 10) * that.actualRadius();
       pinGroupElement = drawTools.drawPin(that.nodeElement(), dx, dy, this.removePin, graph.options().showDraggerObject, graph.options().useAccuracyHelper());
       
@@ -154,7 +154,7 @@ module.exports = (function (){
         .append("g")
         .classed("hidden-in-export", true)
         .attr("transform", function (){
-          var dx = (-2 / 5) * that.actualRadius(),
+          const dx = (-2 / 5) * that.actualRadius(),
             dy = (1 / 2) * that.actualRadius();
           return "translate(" + dx + "," + dy + ")";
         });
@@ -185,11 +185,11 @@ module.exports = (function (){
      * @param [additionalCssClasses] additional css classes
      */
     this.draw = function ( parentElement, additionalCssClasses ){
-      var cssClasses = that.collectCssClasses();
+      let cssClasses = that.collectCssClasses();
       that.nodeElement(parentElement);
       
-      var bgColor = that.backgroundColor();
-      if ( bgColor === null ) bgColor = undefined;
+      let bgColor = that.backgroundColor();
+      if ( bgColor === null ) {bgColor = undefined;}
       if ( that.attributes().indexOf("deprecated") > -1 ) {
         bgColor = undefined;
       }
@@ -207,12 +207,12 @@ module.exports = (function (){
     this.redrawElement = function (){
       renderingElement.remove();
       textBlock.remove();
-      var bgColor = that.backgroundColor();
+      let bgColor = that.backgroundColor();
       if ( that.attributes().indexOf("deprecated") > -1 ) {
         bgColor = undefined;
       }
       
-      var cssClasses = that.collectCssClasses();
+      const cssClasses = that.collectCssClasses();
       
       if ( rectangularRepresentation === true ) {
         renderingElement = drawTools.appendRectangularClass(that.nodeElement(), 80, 80, cssClasses, that.labelForCurrentLanguage(), bgColor);
@@ -245,14 +245,14 @@ module.exports = (function (){
       renderingElement.select("title").text(that.labelForCurrentLanguage());
     };
     function createTextBlock(){
-      var bgColor = that.backgroundColor();
+      let bgColor = that.backgroundColor();
       if ( that.attributes().indexOf("deprecated") > -1 )
-        bgColor = undefined;
+        {bgColor = undefined;}
       
-      var textBlock = new CenteringTextElement(that.nodeElement(), bgColor);
+      const textBlock = new CenteringTextElement(that.nodeElement(), bgColor);
       
-      var equivalentsString = that.equivalentsString();
-      var suffixForFollowingEquivalents = equivalentsString ? "," : "";
+      const equivalentsString = that.equivalentsString();
+      const suffixForFollowingEquivalents = equivalentsString ? "," : "";
       
       textBlock.addText(that.labelForCurrentLanguage(), "", suffixForFollowingEquivalents);
       textBlock.addEquivalents(equivalentsString);
@@ -265,7 +265,7 @@ module.exports = (function (){
     }
     
     this.equivalentsString = function (){
-      var equivalentClasses = that.equivalents();
+      const equivalentClasses = that.equivalents();
       if ( !equivalentClasses ) {
         return;
       }

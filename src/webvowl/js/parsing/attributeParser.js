@@ -3,7 +3,7 @@
  * @returns {Function}
  */
 module.exports = (function (){
-  var attributeParser = {},
+  const attributeParser = {},
     // Style
     ANONYMOUS = "anonymous",
     DATATYPE = "datatype",
@@ -49,7 +49,7 @@ module.exports = (function (){
   }
   
   function setVisualAttributeOfGroup( element, group ){
-    var i, l, attribute;
+    let i, l, attribute;
     
     for ( i = 0, l = group.length; i < l; i++ ) {
       attribute = group[i];
@@ -63,7 +63,7 @@ module.exports = (function (){
   }
   
   function parseClassIndications( clazz ){
-    var i, l, indication;
+    let i, l, indication;
     
     for ( i = 0, l = CLASS_INDICATIONS.length; i < l; i++ ) {
       indication = CLASS_INDICATIONS[i];
@@ -88,7 +88,7 @@ module.exports = (function (){
   };
   
   function parsePropertyIndications( property ){
-    var i, l, indication;
+    let i, l, indication;
     
     for ( i = 0, l = PROPERTY_INDICATIONS.length; i < l; i++ ) {
       indication = PROPERTY_INDICATIONS[i];

@@ -1,13 +1,13 @@
-var elementTools = require("../util/elementTools")();
+const elementTools = require("../util/elementTools")();
 
 module.exports = function (){
   
-  var filter = {},
-    nodes,
-    properties,
-    enabled = false,
-    filteredNodes,
-    filteredProperties;
+  const filter = {};
+  let nodes;
+  let properties;
+  let enabled = false;
+  let filteredNodes;
+  let filteredProperties;
   
   
   /**
@@ -28,14 +28,14 @@ module.exports = function (){
   };
   
   function hideSubclassesWithoutOwnProperties(){
-    var unneededProperties = [],
-      unneededClasses = [],
-      subclasses = [],
-      connectedProperties,
-      subclass,
-      property,
-      i, // index,
-      l; // length
+    let unneededProperties = [];
+    const unneededClasses = [];
+    const subclasses = [];
+    let connectedProperties;
+    let subclass;
+    let property;
+    let i; // index
+    let l; // length
     
     
     for ( i = 0, l = properties.length; i < l; i++ ) {
@@ -72,7 +72,7 @@ module.exports = function (){
    * @returns {Array}
    */
   function findRelevantConnectedProperties( node, allProperties, visitedNodes ){
-    var connectedProperties = [],
+    let connectedProperties = [],
       property,
       i,
       l;
@@ -92,13 +92,13 @@ module.exports = function (){
         
         // Look only for subclass properties, because these are the relevant properties
         if ( elementTools.isRdfsSubClassOf(property) ) {
-          var domain = property.domain();
+          const domain = property.domain();
           visitedNodes = visitedNodes || require("../util/set")();
           
           // If we have the range, there might be a nested property on the domain
           if ( node === property.range() && !visitedNodes.has(domain) ) {
             visitedNodes.add(domain);
-            var nestedConnectedProperties = findRelevantConnectedProperties(domain, allProperties, visitedNodes);
+            const nestedConnectedProperties = findRelevantConnectedProperties(domain, allProperties, visitedNodes);
             connectedProperties = connectedProperties.concat(nestedConnectedProperties);
           }
         }
@@ -109,7 +109,7 @@ module.exports = function (){
   }
   
   function areOnlySubclassProperties( connectedProperties ){
-    var onlySubclassProperties = true,
+    let onlySubclassProperties = true,
       property,
       i,
       l;
@@ -127,10 +127,10 @@ module.exports = function (){
   }
   
   function doesNotInheritFromMultipleClasses( subclass, connectedProperties ){
-    var superClassCount = 0;
+    let superClassCount = 0;
     
-    for ( var i = 0, l = connectedProperties.length; i < l; i++ ) {
-      var property = connectedProperties[i];
+    for ( let i = 0, l = connectedProperties.length; i < l; i++ ) {
+      const property = connectedProperties[i];
       
       if ( property.domain() === subclass ) {
         superClassCount += 1;
@@ -145,10 +145,10 @@ module.exports = function (){
   }
   
   function removeUnneededElements( array, removableElements ){
-    var disjoint = [],
-      element,
-      i,
-      l;
+    const disjoint = [];
+    let element;
+    let i;
+    let l;
     
     for ( i = 0, l = array.length; i < l; i++ ) {
       element = array[i];
@@ -160,7 +160,7 @@ module.exports = function (){
   }
   
   filter.enabled = function ( p ){
-    if ( !arguments.length ) return enabled;
+    if ( !arguments.length ) {return enabled;}
     enabled = p;
     return filter;
   };

@@ -43,7 +43,7 @@ export function parseRdfXml(xmlString, resolver, context) {
     while (current) {
       if (current.getAttribute) {
         const base = current.getAttribute("xml:base") || current.getAttribute("base");
-        if (base) return base;
+        if (base) {return base;}
       }
       current = current.parentNode;
     }
@@ -88,9 +88,9 @@ export function parseRdfXml(xmlString, resolver, context) {
   }
 
   function isDatatypeIri(iri) {
-    if (!iri) return false;
-    if (iri === "http://www.w3.org/2000/01/rdf-schema#Literal") return false;
-    if (iri.startsWith("http://www.w3.org/2001/XMLSchema#")) return true;
+    if (!iri) {return false;}
+    if (iri === "http://www.w3.org/2000/01/rdf-schema#Literal") {return false;}
+    if (iri.startsWith("http://www.w3.org/2001/XMLSchema#")) {return true;}
     if (iri.startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#")) {
       const local = resolver.getLocalName(iri);
       return ["PlainLiteral", "XMLLiteral", "HTML", "langString"].includes(local);
@@ -123,8 +123,8 @@ export function parseRdfXml(xmlString, resolver, context) {
     
     const isAnonymous = type === "owl:unionOf";
     const attributes = [];
-    if (isAnonymous) attributes.push("anonymous");
-    if (type === "rdfs:Datatype") attributes.push("datatype");
+    if (isAnonymous) {attributes.push("anonymous");}
+    if (type === "rdfs:Datatype") {attributes.push("datatype");}
 
     const cls = {
       id: id,
@@ -162,10 +162,10 @@ export function parseRdfXml(xmlString, resolver, context) {
     for (const [, cls] of context.classMap.entries()) {
       if (cls.type === type) {
         let clsMembers = null;
-        if (type === "owl:unionOf") clsMembers = cls.unionMembers;
-        else if (type === "owl:intersectionOf") clsMembers = cls.intersectionMembers;
-        else if (type === "owl:disjointUnionOf") clsMembers = cls.disjointUnionMembers;
-        else if (type === "owl:oneOf") clsMembers = cls.oneOfMembers;
+        if (type === "owl:unionOf") {clsMembers = cls.unionMembers;}
+        else if (type === "owl:intersectionOf") {clsMembers = cls.intersectionMembers;}
+        else if (type === "owl:disjointUnionOf") {clsMembers = cls.disjointUnionMembers;}
+        else if (type === "owl:oneOf") {clsMembers = cls.oneOfMembers;}
 
         if (clsMembers) {
           const clsSorted = [...clsMembers].sort();
@@ -217,7 +217,7 @@ export function parseRdfXml(xmlString, resolver, context) {
     }
 
     for (let pred = element.firstChild; pred; pred = pred.nextSibling) {
-      if (pred.nodeType !== 1) continue;
+      if (pred.nodeType !== 1) {continue;}
 
       const predLocal = pred.localName;
       const predNs = pred.namespaceURI;
@@ -226,7 +226,7 @@ export function parseRdfXml(xmlString, resolver, context) {
       const resource = rawResource ? (rawResource.startsWith("_:") || (!rawResource.includes(":") && !rawResource.startsWith("#")) ? (rawResource.startsWith("_:") ? rawResource : "_:" + rawResource) : resolver.resolve(rawResource, activeBasePred)) : null;
 
       if (predLocal === "type" && predNs === NAMESPACES.RDF) {
-        if (resource) subject.types.add(resource);
+        if (resource) {subject.types.add(resource);}
       } else if (predLocal === "label" && predNs === NAMESPACES.RDFS) {
         const rawLang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
         const lang = registerLanguage(rawLang);
@@ -240,7 +240,7 @@ export function parseRdfXml(xmlString, resolver, context) {
           }
         }
 
-        if (!subject.annotations["label"]) subject.annotations["label"] = [];
+        if (!subject.annotations["label"]) {subject.annotations["label"] = [];}
         subject.annotations["label"].push({
           value: labelVal,
           type: "label",
@@ -331,7 +331,7 @@ export function parseRdfXml(xmlString, resolver, context) {
                 logicalEl.getAttribute("rdf:parseType") === "Collection";
               if (isCollection) {
                 for (let child = logicalEl.firstChild; child; child = child.nextSibling) {
-                  if (child.nodeType !== 1) continue;
+                  if (child.nodeType !== 1) {continue;}
                   const childAbout = getAbout(child) || getAttr(child, "resource", NAMESPACES.RDF);
                   const childNodeId = child.getAttribute("rdf:nodeID") || child.getAttribute("nodeID");
                   if (childAbout) {
@@ -467,9 +467,9 @@ export function parseRdfXml(xmlString, resolver, context) {
             }
           }
           if (members.length > 0) {
-            if (predLocal === "unionOf") subject.unionOf = members;
-            else if (predLocal === "intersectionOf") subject.intersectionOf = members;
-            else if (predLocal === "disjointUnionOf") subject.disjointUnionOf = members;
+            if (predLocal === "unionOf") {subject.unionOf = members;}
+            else if (predLocal === "intersectionOf") {subject.intersectionOf = members;}
+            else if (predLocal === "disjointUnionOf") {subject.disjointUnionOf = members;}
           }
         }
       } else {
@@ -492,7 +492,7 @@ export function parseRdfXml(xmlString, resolver, context) {
           }
         }
         
-        if (!subject.annotations[key]) subject.annotations[key] = [];
+        if (!subject.annotations[key]) {subject.annotations[key] = [];}
         subject.annotations[key].push({
           value: val,
           type: resource || (val && val.startsWith("http")) ? "iri" : "label",
@@ -615,9 +615,9 @@ export function parseRdfXml(xmlString, resolver, context) {
           const maxAnn = subject.annotations["maxQualifiedCardinality"] || subject.annotations["maxCardinality"];
           const cardAnn = subject.annotations["qualifiedCardinality"] || subject.annotations["cardinality"];
 
-          if (minAnn && minAnn[0]) minCardVal = minAnn[0].value;
-          if (maxAnn && maxAnn[0]) maxCardVal = maxAnn[0].value;
-          if (cardAnn && cardAnn[0]) cardVal = cardAnn[0].value;
+          if (minAnn && minAnn[0]) {minCardVal = minAnn[0].value;}
+          if (maxAnn && maxAnn[0]) {maxCardVal = maxAnn[0].value;}
+          if (cardAnn && cardAnn[0]) {cardVal = cardAnn[0].value;}
 
           if (minCardVal || maxCardVal || cardVal) {
             context.parsedCardinalities.push({

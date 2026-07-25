@@ -5,18 +5,17 @@
  */
 module.exports = function ( graph ){
   
-  var sidebar = {},
-    languageTools = webvowl.util.languageTools(),
-    elementTools = webvowl.util.elementTools(),
-    // Required for reloading when the language changes
-    ontologyInfo,
-    visibleSidebar = 1,
-    lastSelectedElement,
-    
-    detailArea = d3.select("#detailsArea"),
-    graphArea = d3.select("#canvasArea"),
-    menuArea = d3.select("#swipeBarContainer"),
-    collapseButton = d3.select("#sidebarExpandButton");
+  const sidebar = {};
+  const languageTools = webvowl.util.languageTools();
+  const elementTools = webvowl.util.elementTools();
+  // Required for reloading when the language changes
+  let ontologyInfo;
+  let visibleSidebar = 1;
+  let lastSelectedElement;
+  const detailArea = d3.select("#detailsArea");
+  const graphArea = d3.select("#canvasArea");
+  const menuArea = d3.select("#swipeBarContainer");
+  const collapseButton = d3.select("#sidebarExpandButton");
   
   /**
    * Setup the menu bar.
@@ -33,13 +32,13 @@ module.exports = function ( graph ){
       containers.classed("hidden", false);
     }
     
-    var triggers = d3.selectAll(".accordion-trigger");
+    const triggers = d3.selectAll(".accordion-trigger");
     
     // Collapse all inactive triggers on startup
     collapseContainers(d3.selectAll(".accordion-trigger:not(.accordion-trigger-active) + div"));
     
     triggers.on("click", function (){
-      var selectedTrigger = d3.select(this),
+      const selectedTrigger = d3.select(this),
         activeTriggers = d3.selectAll(".accordion-trigger-active");
       
       if ( selectedTrigger.classed("accordion-trigger-active") ) {
@@ -64,7 +63,7 @@ module.exports = function ( graph ){
     d3.select("#version").text("--");
     d3.select("#authors").text("--");
     d3.select("#description").text("No description available.");
-    var container = d3.select("#ontology-metadata");
+    const container = d3.select("#ontology-metadata");
     container.selectAll("*").remove();
     d3.select("#classCount")
       .text("0");
@@ -80,7 +79,7 @@ module.exports = function ( graph ){
       .text("0");
     
     // clear selectedNode info
-    var isTriggerActive = d3.select("#selection-details-trigger").classed("accordion-trigger-active");
+    const isTriggerActive = d3.select("#selection-details-trigger").classed("accordion-trigger-active");
     if ( isTriggerActive ) {
       // close accordion
       d3.select("#selection-details-trigger").node().click();
@@ -126,7 +125,7 @@ module.exports = function ( graph ){
       return a.localeCompare(b);
     });
     
-    var languageSelection = d3.select("#language")
+    const languageSelection = d3.select("#language")
       .on("change", function (){
         graph.language(d3.event.target.value);
         updateGraphInformation();
@@ -152,7 +151,7 @@ module.exports = function ( graph ){
   }
   
   function trySelectDefaultLanguage( selection, languages, language ){
-    var langIndex = languages.indexOf(language);
+    const langIndex = languages.indexOf(language);
     if ( langIndex >= 0 ) {
       selection.property("selectedIndex", langIndex);
       graph.language(language);
@@ -163,11 +162,11 @@ module.exports = function ( graph ){
   }
   
   function updateGraphInformation(){
-    var title = languageTools.textInLanguage(ontologyInfo.title, graph.language());
+    const title = languageTools.textInLanguage(ontologyInfo.title, graph.language());
     d3.select("#title").text(title || "No title available");
     d3.select("#about").attr("href", ontologyInfo.iri).attr("target", "_blank").text(ontologyInfo.iri);
     d3.select("#version").text(ontologyInfo.version || "--");
-    var authors = ontologyInfo.author;
+    const authors = ontologyInfo.author;
     if ( typeof authors === "string" ) {
       // Stay compatible with author info as strings after change in january 2015
       d3.select("#authors").text(authors);
@@ -177,7 +176,7 @@ module.exports = function ( graph ){
       d3.select("#authors").text("--");
     }
     
-    var description = languageTools.textInLanguage(ontologyInfo.description, graph.language());
+    const description = languageTools.textInLanguage(ontologyInfo.description, graph.language());
     d3.select("#description").text(description || "No description available.");
   }
   
@@ -200,7 +199,7 @@ module.exports = function ( graph ){
   }
   
   function displayMetadata( metadata ){
-    var container = d3.select("#ontology-metadata");
+    const container = d3.select("#ontology-metadata");
     container.selectAll("*").remove();
     
     listAnnotations(container, metadata);
@@ -214,9 +213,9 @@ module.exports = function ( graph ){
     annotationObject = annotationObject || {};  //todo
     
     // Collect the annotations in an array for simpler processing
-    var annotations = [];
-    for ( var annotation in annotationObject ) {
-      if ( annotationObject.hasOwnProperty(annotation) ) {
+    const annotations = [];
+    for ( const annotation in annotationObject ) {
+      if ( Object.prototype.hasOwnProperty.call(annotationObject, annotation) ) {
         annotations.push(annotationObject[annotation][0]);
       }
     }
@@ -246,7 +245,7 @@ module.exports = function ( graph ){
       return;
     }
     
-    var isTriggerActive = d3.select("#selection-details-trigger").classed("accordion-trigger-active");
+    const isTriggerActive = d3.select("#selection-details-trigger").classed("accordion-trigger-active");
     if ( selectedElement && !isTriggerActive ) {
       d3.select("#selection-details-trigger").node().click();
     } else if ( !selectedElement && isTriggerActive ) {
@@ -284,7 +283,7 @@ module.exports = function ( graph ){
       d3.select("#inverse").classed("hidden", true);
     }
     
-    var equivalentIriSpan = d3.select("#propEquivUri");
+    const equivalentIriSpan = d3.select("#propEquivUri");
     listNodeArray(equivalentIriSpan, property.equivalents());
     
     listNodeArray(d3.select("#subproperties"), property.subproperties());
@@ -329,7 +328,7 @@ module.exports = function ( graph ){
   }
   
   function setIriLabel( element, name, iri ){
-    var parent = d3.select(element.node().parentNode);
+    const parent = d3.select(element.node().parentNode);
     
     if ( name ) {
       element.selectAll("*").remove();
@@ -341,7 +340,7 @@ module.exports = function ( graph ){
   }
   
   function appendIriLabel( element, name, iri ){
-    var tag;
+    let tag;
     
     if ( iri ) {
       tag = element.append("a")
@@ -355,7 +354,7 @@ module.exports = function ( graph ){
   }
   
   function displayAttributes( attributes, textSpan ){
-    var spanParent = d3.select(textSpan.node().parentNode);
+    const spanParent = d3.select(textSpan.node().parentNode);
     
     if ( attributes && attributes.length > 0 ) {
       // Remove redundant redundant attributes for sidebar
@@ -374,7 +373,7 @@ module.exports = function ( graph ){
   }
   
   function removeElementFromArray( element, array ){
-    var index = array.indexOf(element);
+    const index = array.indexOf(element);
     if ( index > -1 ) {
       array.splice(index, 1);
     }
@@ -386,15 +385,15 @@ module.exports = function ( graph ){
     setIriLabel(d3.select("#name"), node.labelForCurrentLanguage(), node.iri());
     
     /* Equivalent stuff. */
-    var equivalentIriSpan = d3.select("#classEquivUri");
+    const equivalentIriSpan = d3.select("#classEquivUri");
     listNodeArray(equivalentIriSpan, node.equivalents());
     
     d3.select("#typeNode").text(node.type());
     listNodeArray(d3.select("#individuals"), node.individuals());
     
     /* Disjoint stuff. */
-    var disjointNodes = d3.select("#disjointNodes");
-    var disjointNodesParent = d3.select(disjointNodes.node().parentNode);
+    const disjointNodes = d3.select("#disjointNodes");
+    const disjointNodesParent = d3.select(disjointNodes.node().parentNode);
     
     if ( node.disjointWith() !== undefined ) {
       disjointNodes.selectAll("*").remove();
@@ -424,7 +423,7 @@ module.exports = function ( graph ){
   }
   
   function listNodeArray( textSpan, nodes ){
-    var spanParent = d3.select(textSpan.node().parentNode);
+    const spanParent = d3.select(textSpan.node().parentNode);
     
     if ( nodes && nodes.length ) {
       textSpan.selectAll("*").remove();
@@ -442,8 +441,8 @@ module.exports = function ( graph ){
   }
   
   function setTextAndVisibility( label, value ){
-    var parentNode = d3.select(label.node().parentNode);
-    var hasValue = !!value;
+    const parentNode = d3.select(label.node().parentNode);
+    const hasValue = !!value;
     if ( value ) {
       label.text(value);
     }
@@ -524,14 +523,14 @@ module.exports = function ( graph ){
   };
   
   sidebar.updateSideBarVis = function ( init ){
-    var vis = sidebar.getSidebarVisibility();
+    const vis = sidebar.getSidebarVisibility();
     sidebar.showSidebar(parseInt(vis), init);
   };
   
   sidebar.getSidebarVisibility = function (){
-    var isHidden = detailArea.classed("hidden");
-    if ( isHidden === false ) return String(1);
-    if ( isHidden === true ) return String(0);
+    const isHidden = detailArea.classed("hidden");
+    if ( isHidden === false ) {return String(1);}
+    if ( isHidden === true ) {return String(0);}
   };
   
   sidebar.initSideBarAnimation = function (){
@@ -548,15 +547,15 @@ module.exports = function ( graph ){
     
     collapseButton.on("click", function (){
       graph.options().navigationMenu().hideAllMenus();
-      var settingValue = parseInt(sidebar.getSidebarVisibility());
-      if ( settingValue === 1 ) sidebar.showSidebar(0);
-      else                  sidebar.showSidebar(1);
+      const settingValue = parseInt(sidebar.getSidebarVisibility());
+      if ( settingValue === 1 ) {sidebar.showSidebar(0);}
+      else                  {sidebar.showSidebar(1);}
     });
   };
   
   
   sidebar.updateShowedInformation = function (){
-    var editMode = graph.editorMode();
+    const editMode = graph.editorMode();
     d3.select("#generalDetails").classed("hidden", editMode);
     d3.select("#generalDetailsEdit").classed("hidden", !editMode);
     
@@ -572,9 +571,9 @@ module.exports = function ( graph ){
   
   sidebar.updateGeneralOntologyInfo = function (){
     // get it from graph.options
-    var generalMetaObj = graph.options().getGeneralMetaObject();
-    var preferredLanguage = graph && graph.language ? graph.language() : null;
-    if ( generalMetaObj.hasOwnProperty("title") ) {
+    const generalMetaObj = graph.options().getGeneralMetaObject();
+    const preferredLanguage = graph && graph.language ? graph.language() : null;
+    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "title") ) {
       // title has language to it -.-
       if ( typeof generalMetaObj.title === "object" ) {
         d3.select("#title").node().value = languageTools.textInLanguage(generalMetaObj.title, preferredLanguage);
@@ -583,12 +582,12 @@ module.exports = function ( graph ){
       }
       
     }
-    if ( generalMetaObj.hasOwnProperty("iri") ) d3.select("#about").node().innerHTML = generalMetaObj.iri;
-    if ( generalMetaObj.hasOwnProperty("iri") ) d3.select("#about").node().href = generalMetaObj.iri;
-    if ( generalMetaObj.hasOwnProperty("version") ) d3.select("#version").node().innerHTML = generalMetaObj.version;
-    if ( generalMetaObj.hasOwnProperty("author") ) d3.select("#authors").node().innerHTML = generalMetaObj.author;
+    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "iri") ) {d3.select("#about").node().innerHTML = generalMetaObj.iri;}
+    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "iri") ) {d3.select("#about").node().href = generalMetaObj.iri;}
+    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "version") ) {d3.select("#version").node().innerHTML = generalMetaObj.version;}
+    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "author") ) {d3.select("#authors").node().innerHTML = generalMetaObj.author;}
     // this could also be an object >>
-    if ( generalMetaObj.hasOwnProperty("description") ) {
+    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "description") ) {
       if ( typeof generalMetaObj.description === "object" ) {
         d3.select("#description").node().innerHTML = languageTools.textInLanguage(generalMetaObj.description, preferredLanguage);
       }

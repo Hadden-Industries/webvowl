@@ -1,9 +1,9 @@
-var CenteringTextElement = require("./util/CenteringTextElement");
-var elementTools = require("./util/elementTools")();
-var math = require("./util/math")();
+const CenteringTextElement = require("./util/CenteringTextElement");
+const elementTools = require("./util/elementTools")();
+const math = require("./util/math")();
 module.exports = function ( graph ){
   /** variable defs **/
-  var ShadowClone = {};
+  const ShadowClone = {};
   ShadowClone.nodeId = 10003;
   ShadowClone.parent = undefined;
   ShadowClone.s_x = 0;
@@ -30,12 +30,12 @@ module.exports = function ( graph ){
   ShadowClone.setParentProperty = function ( parentProperty, inverted ){
     ShadowClone.invertedProperty = inverted;
     ShadowClone.parent = parentProperty;
-    var renElment;
+    let renElment;
     if ( inverted === true ) {
       renElment = parentProperty.inverse().labelObject();
       if ( renElment.linkRangeIntersection && renElment.linkDomainIntersection ) {
-        var iiP_range = renElment.linkDomainIntersection;
-        var iiP_domain = renElment.linkRangeIntersection;
+        const iiP_range = renElment.linkDomainIntersection;
+        const iiP_domain = renElment.linkRangeIntersection;
         ShadowClone.s_x = iiP_domain.x;
         ShadowClone.s_y = iiP_domain.y;
         ShadowClone.e_x = iiP_range.x;
@@ -46,8 +46,8 @@ module.exports = function ( graph ){
       renElment = parentProperty.labelObject();
       
       if ( renElment.linkRangeIntersection && renElment.linkDomainIntersection ) {
-        var iP_range = renElment.linkRangeIntersection;
-        var iP_domain = renElment.linkDomainIntersection;
+        const iP_range = renElment.linkRangeIntersection;
+        const iP_domain = renElment.linkDomainIntersection;
         ShadowClone.s_x = iP_domain.x;
         ShadowClone.s_y = iP_domain.y;
         ShadowClone.e_x = iP_range.x;
@@ -83,7 +83,7 @@ module.exports = function ( graph ){
         .attr("markerHeight", parentProperty.markerElement().attr("markerHeight"))
         .attr("orient", parentProperty.markerElement().attr("orient"));
       
-      var markerPath = parentProperty.markerElement().select("path");
+      const markerPath = parentProperty.markerElement().select("path");
       ShadowClone.markerElement.append("path")
         .attr("d", markerPath.attr("d"))
         .classed(parentProperty.markerType(), true);
@@ -91,7 +91,7 @@ module.exports = function ( graph ){
       ShadowClone.pathElement.attr("marker-end", "url(#" + "shadowCloneMarker" + ")");
       ShadowClone.markerElement.classed("hidden", !elementTools.isDatatypeProperty(parentProperty));
     }
-    var rect = ShadowClone.rootNodeLayer.append("rect")
+    const rect = ShadowClone.rootNodeLayer.append("rect")
       .classed(parentProperty.styleClass(), true)
       .classed("property", true)
       .attr("x", -parentProperty.width() / 2)
@@ -103,7 +103,7 @@ module.exports = function ( graph ){
       rect.classed(parentProperty.visualAttributes(), true);
     }
     rect.classed("datatype", false);
-    var bgColor = parentProperty.backgroundColor();
+    let bgColor = parentProperty.backgroundColor();
     
     if ( parentProperty.attributes().indexOf("deprecated") > -1 ) {
       bgColor = undefined;
@@ -114,18 +114,18 @@ module.exports = function ( graph ){
     rect.style("fill", bgColor);
     
     // add Text;
-    var equivalentsString = parentProperty.equivalentsString();
-    var suffixForFollowingEquivalents = equivalentsString ? "," : "";
+    const equivalentsString = parentProperty.equivalentsString();
+    const suffixForFollowingEquivalents = equivalentsString ? "," : "";
     
     
-    var textElement = new CenteringTextElement(ShadowClone.rootNodeLayer, bgColor);
+    const textElement = new CenteringTextElement(ShadowClone.rootNodeLayer, bgColor);
     textElement.addText(parentProperty.labelForCurrentLanguage(), "", suffixForFollowingEquivalents);
     textElement.addEquivalents(equivalentsString);
     textElement.addSubText(parentProperty.indicationString());
     
     
-    var cx = 0.5 * (ShadowClone.s_x + ShadowClone.e_x);
-    var cy = 0.5 * (ShadowClone.s_y + ShadowClone.e_y);
+    const cx = 0.5 * (ShadowClone.s_x + ShadowClone.e_x);
+    const cy = 0.5 * (ShadowClone.s_y + ShadowClone.e_y);
     ShadowClone.rootNodeLayer.attr("transform", "translate(" + cx + "," + cy + ")");
     ShadowClone.rootNodeLayer.classed("hidden", true);
     ShadowClone.pathElement.classed("hidden", true);
@@ -134,17 +134,17 @@ module.exports = function ( graph ){
   };
   
   ShadowClone.hideClone = function ( val ){
-    if ( ShadowClone.rootNodeLayer ) ShadowClone.rootNodeLayer.classed("hidden", val);
-    if ( ShadowClone.pathElement ) ShadowClone.pathElement.classed("hidden", val);
+    if ( ShadowClone.rootNodeLayer ) {ShadowClone.rootNodeLayer.classed("hidden", val);}
+    if ( ShadowClone.pathElement ) {ShadowClone.pathElement.classed("hidden", val);}
   };
   
   ShadowClone.hideParentProperty = function ( val ){
     
-    var labelObj = ShadowClone.parent.labelObject();
+    const labelObj = ShadowClone.parent.labelObject();
     if ( labelObj ) {
       if ( ShadowClone.parent.labelElement().attr("transform") === "translate(0,15)" ||
         ShadowClone.parent.labelElement().attr("transform") === "translate(0,-15)" )
-        ShadowClone.parent.inverse().hide(val);
+        {ShadowClone.parent.inverse().hide(val);}
       
       
     }
@@ -167,7 +167,7 @@ module.exports = function ( graph ){
   
   ShadowClone.svgRoot = function ( root ){
     if ( !arguments.length )
-      return ShadowClone.rootElement;
+      {return ShadowClone.rootElement;}
     ShadowClone.rootElement = root;
     ShadowClone.rootNodeLayer = ShadowClone.rootElement.append('g');
     
@@ -191,17 +191,17 @@ module.exports = function ( graph ){
       .attr("x2", ShadowClone.s_x)
       .attr("y2", ShadowClone.s_y);
     
-    var cx = 0.5 * (ShadowClone.s_x + ShadowClone.e_x);
-    var cy = 0.5 * (ShadowClone.s_y + ShadowClone.e_y);
+    const cx = 0.5 * (ShadowClone.s_x + ShadowClone.e_x);
+    const cy = 0.5 * (ShadowClone.s_y + ShadowClone.e_y);
     ShadowClone.rootNodeLayer.attr("transform", "translate(" + cx + "," + cy + ")");
   };
   
   ShadowClone.setInitialPosition = function (){
     
-    var renElment = ShadowClone.parent.labelObject();
+    const renElment = ShadowClone.parent.labelObject();
     if ( renElment.linkRangeIntersection && renElment.linkDomainIntersection ) {
-      var iP_range = renElment.linkRangeIntersection;
-      var iP_domain = renElment.linkDomainIntersection;
+      const iP_range = renElment.linkRangeIntersection;
+      const iP_domain = renElment.linkDomainIntersection;
       ShadowClone.e_x = iP_domain.x;
       ShadowClone.e_y = iP_domain.y;
       ShadowClone.s_x = iP_range.x;
@@ -234,22 +234,22 @@ module.exports = function ( graph ){
   };
   ShadowClone.setPositionDomain = function ( e_x, e_y ){
     
-    var rex = ShadowClone.parent.range().x;
-    var rey = ShadowClone.parent.range().y;
+    const rex = ShadowClone.parent.range().x;
+    const rey = ShadowClone.parent.range().y;
     
     
     if ( elementTools.isDatatype(ShadowClone.parent.range()) === true ) {
-      var intersection = math.calculateIntersection({ x: e_x, y: e_y }, ShadowClone.parent.range(), 0);
+      const intersection = math.calculateIntersection({ x: e_x, y: e_y }, ShadowClone.parent.range(), 0);
       ShadowClone.s_x = intersection.x;
       ShadowClone.s_y = intersection.y;
     } else {
-      var dir_X = rex - e_x;
-      var dir_Y = rey - e_y;
+      const dir_X = rex - e_x;
+      const dir_Y = rey - e_y;
       
-      var len = Math.sqrt(dir_X * dir_X + dir_Y * dir_Y);
+      const len = Math.sqrt(dir_X * dir_X + dir_Y * dir_Y);
       
-      var nX = dir_X / len;
-      var nY = dir_Y / len;
+      const nX = dir_X / len;
+      const nY = dir_Y / len;
       ShadowClone.s_x = rex - nX * ShadowClone.parent.range().actualRadius();
       ShadowClone.s_y = rey - nY * ShadowClone.parent.range().actualRadius();
       
@@ -267,16 +267,16 @@ module.exports = function ( graph ){
     
     // add normalized dir;
     
-    var dex = ShadowClone.parent.domain().x;
-    var dey = ShadowClone.parent.domain().y;
+    const dex = ShadowClone.parent.domain().x;
+    const dey = ShadowClone.parent.domain().y;
     
-    var dir_X = s_x - dex;
-    var dir_Y = s_y - dey;
+    const dir_X = s_x - dex;
+    const dir_Y = s_y - dey;
     
-    var len = Math.sqrt(dir_X * dir_X + dir_Y * dir_Y);
+    const len = Math.sqrt(dir_X * dir_X + dir_Y * dir_Y);
     
-    var nX = dir_X / len;
-    var nY = dir_Y / len;
+    const nX = dir_X / len;
+    const nY = dir_Y / len;
     
     
     ShadowClone.e_x = dex + nX * ShadowClone.parent.domain().actualRadius();

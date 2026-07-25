@@ -1,11 +1,11 @@
-var SetOperatorNode = require("../SetOperatorNode");
+const SetOperatorNode = require("../SetOperatorNode");
 
 module.exports = (function (){
   
-  var o = function ( graph ){
+  const o = function ( graph ){
     SetOperatorNode.apply(this, arguments);
     
-    var that = this,
+    const that = this,
       superDrawFunction = that.draw;
     
     this.styleClass("complementof")
@@ -14,7 +14,7 @@ module.exports = (function (){
     this.draw = function ( element ){
       superDrawFunction(element);
       
-      var symbol = element.append("g").classed("embedded", true);
+      const symbol = element.append("g").classed("embedded", true);
       
       symbol.append("circle")
         .attr("class", "symbol")

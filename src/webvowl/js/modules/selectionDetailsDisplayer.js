@@ -1,6 +1,6 @@
 module.exports = function ( handlerFunction ){
-  var viewer = {},
-    lastSelectedElement;
+  const viewer = {};
+  let lastSelectedElement;
   
   viewer.handle = function ( selectedElement ){
     // Don't display details on a drag event, which will be prevented
@@ -8,7 +8,7 @@ module.exports = function ( handlerFunction ){
       return;
     }
     
-    var isSelection = true;
+    let isSelection = true;
     
     // Deselection of the focused element
     if ( lastSelectedElement === selectedElement ) {

@@ -1,4 +1,4 @@
-var nodes = [];
+const nodes = [];
 nodes.push(require("./implementations/ExternalClass"));
 nodes.push(require("./implementations/OwlClass"));
 nodes.push(require("./implementations/OwlComplementOf"));
@@ -14,7 +14,7 @@ nodes.push(require("./implementations/RdfsDatatype"));
 nodes.push(require("./implementations/RdfsLiteral"));
 nodes.push(require("./implementations/RdfsResource"));
 
-var map = d3.map(nodes, function ( Prototype ){
+const map = d3.map(nodes, function ( Prototype ){
   return new Prototype().type();
 });
 

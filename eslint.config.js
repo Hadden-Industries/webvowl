@@ -2,7 +2,7 @@ const js = require("@eslint/js");
 const globals = require("globals");
 
 module.exports = [
-  // Global ignores registry (mirrors legacy ignorePatterns / .jshintignore)
+  // Global ignores registry
   {
     ignores: [
       "src/webvowl/js/entry.js",
@@ -14,12 +14,12 @@ module.exports = [
   // Base ESLint recommended rules
   js.configs.recommended,
 
-  // Main source configuration
+  // Main source configuration - modern strict standards
   {
     files: ["**/*.js"],
     languageOptions: {
-      ecmaVersion: 5,
-      sourceType: "script",
+      ecmaVersion: 2024,
+      sourceType: "module",
       globals: {
         ...globals.browser,
         ...globals.node,
@@ -30,40 +30,44 @@ module.exports = [
       }
     },
     rules: {
-      // Base pipeline optimization and syntax overrides
-      "no-unused-vars": ["warn", { vars: "all", args: "none", caughtErrorsIgnorePattern: "^_" }],
-      "no-console": "off", // Replicates "devel": true validation behavior
+      // Modern JS standards
+      "no-var": "error",
+      "prefer-const": "error",
+      curly: ["error", "all"],
+
+      // Strict quality assertions
+      "no-unused-vars": [
+        "error",
+        {
+          vars: "all",
+          args: "none",
+          caughtErrors: "all",
+          caughtErrorsIgnorePattern: "^_"
+        }
+      ],
+      "no-console": ["warn", { allow: ["warn", "error"] }],
       semi: ["error", "always"],
-      "no-undef": "error", // Replicates "undef": true
-      "no-prototype-builtins": "off",
-      "no-empty": "warn",
-      "no-control-regex": "off",
-      "no-redeclare": "warn",
+      "no-undef": "error",
+      "no-prototype-builtins": "error",
+      "no-empty": ["error", { allowEmptyCatch: false }],
+      "no-control-regex": "error",
+      "no-redeclare": "error",
 
-      // Exact structural replications of legacy JSHint quality assertions:
-      eqeqeq: ["error", "always"],                           // Replicates "eqeqeq": true
-      "no-bitwise": "error",                                    // Replicates "bitwise": true
-      "guard-for-in": "error",                                  // Replicates "forin": true
-      "no-caller": "error",                                     // Replicates "noarg": true
-      "no-new": "error",                                        // Replicates "nonew": true
-      "no-use-before-define": ["error", { functions: false }] // Replicates "latedef": "nofunc"
+      // Quality & safety
+      eqeqeq: ["error", "always"],
+      "no-bitwise": "error",
+      "guard-for-in": "error",
+      "no-caller": "error",
+      "no-new": "error",
+      "no-use-before-define": ["error", { functions: false }]
     }
   },
 
-  // Overrides for modern ES6 modules under src/owl2vowl/
-  {
-    files: ["src/owl2vowl/**/*.js"],
-    languageOptions: {
-      ecmaVersion: 2022,
-      sourceType: "module"
-    }
-  },
-
-  // Overrides for unit test files (supports ES6+ arrow functions and Jest globals)
+  // Overrides for unit test files (supports Jest globals)
   {
     files: ["**/*.test.js"],
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 2024,
       sourceType: "module"
     }
   }

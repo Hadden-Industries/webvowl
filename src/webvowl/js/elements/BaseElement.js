@@ -3,9 +3,10 @@
  */
 module.exports = (function (){
   
-  var Base = function ( graph ){
+  const Base = function ( graph ){
+    const languageTools = require("../util/languageTools")();
     // Basic attributes
-    var equivalents = [],
+    let equivalents = [],
       id,
       label,
       type,
@@ -26,24 +27,22 @@ module.exports = (function (){
       styleClass,
       visible = true,
       
-      backupLabel,
-      // Other
-      languageTools = require("../util/languageTools")();
+      backupLabel;
     
     
     this.backupLabel = function ( label ){
-      if ( !arguments.length ) return backupLabel;
+      if ( !arguments.length ) {return backupLabel;}
       backupLabel = label;
     };
     // Properties
     this.attributes = function ( p ){
-      if ( !arguments.length ) return attributes;
+      if ( !arguments.length ) {return attributes;}
       attributes = p;
       return this;
     };
     
     this.annotations = function ( p ){
-      if ( !arguments.length ) return annotations;
+      if ( !arguments.length ) {return annotations;}
       annotations = p;
       return this;
     };
@@ -53,97 +52,97 @@ module.exports = (function (){
     };
     
     this.backgroundColor = function ( p ){
-      if ( !arguments.length ) return backgroundColor;
+      if ( !arguments.length ) {return backgroundColor;}
       backgroundColor = p;
       return this;
     };
     
     this.baseIri = function ( p ){
-      if ( !arguments.length ) return baseIri;
+      if ( !arguments.length ) {return baseIri;}
       baseIri = p;
       return this;
     };
     
     this.comment = function ( p ){
-      if ( !arguments.length ) return comment;
+      if ( !arguments.length ) {return comment;}
       comment = p;
       return this;
     };
     
     this.description = function ( p ){
-      if ( !arguments.length ) return description;
+      if ( !arguments.length ) {return description;}
       description = p;
       return this;
     };
     
     this.equivalents = function ( p ){
-      if ( !arguments.length ) return equivalents;
+      if ( !arguments.length ) {return equivalents;}
       equivalents = p || [];
       return this;
     };
     
     this.equivalentBase = function ( p ){
-      if ( !arguments.length ) return equivalentBase;
+      if ( !arguments.length ) {return equivalentBase;}
       equivalentBase = p;
       return this;
     };
     
     this.focused = function ( p ){
-      if ( !arguments.length ) return focused;
+      if ( !arguments.length ) {return focused;}
       focused = p;
       return this;
     };
     
     this.id = function ( p ){
-      if ( !arguments.length ) return id;
+      if ( !arguments.length ) {return id;}
       id = p;
       return this;
     };
     
     this.indications = function ( p ){
-      if ( !arguments.length ) return indications;
+      if ( !arguments.length ) {return indications;}
       indications = p;
       return this;
     };
     
     this.iri = function ( p ){
-      if ( !arguments.length ) return iri;
+      if ( !arguments.length ) {return iri;}
       iri = p;
       return this;
     };
     
     this.label = function ( p ){
-      if ( !arguments.length ) return label;
+      if ( !arguments.length ) {return label;}
       label = p;
       return this;
     };
     
     this.mouseEntered = function ( p ){
-      if ( !arguments.length ) return mouseEntered;
+      if ( !arguments.length ) {return mouseEntered;}
       mouseEntered = p;
       return this;
     };
     
     this.styleClass = function ( p ){
-      if ( !arguments.length ) return styleClass;
+      if ( !arguments.length ) {return styleClass;}
       styleClass = p;
       return this;
     };
     
     this.type = function ( p ){
-      if ( !arguments.length ) return type;
+      if ( !arguments.length ) {return type;}
       type = p;
       return this;
     };
     
     this.visible = function ( p ){
-      if ( !arguments.length ) return visible;
+      if ( !arguments.length ) {return visible;}
       visible = p;
       return this;
     };
     
     this.visualAttributes = function ( p ){
-      if ( !arguments.length ) return visualAttributes;
+      if ( !arguments.length ) {return visualAttributes;}
       visualAttributes = p;
       return this;
     };
@@ -173,7 +172,7 @@ module.exports = (function (){
     };
     
     this.labelForCurrentLanguage = function (){
-      var preferredLanguage = graph && graph.language ? graph.language() : null;
+      const preferredLanguage = graph && graph.language ? graph.language() : null;
       return languageTools.textInLanguage(this.label(), preferredLanguage);
     };
   };

@@ -5,20 +5,20 @@
  * @returns {{}}
  */
 module.exports = function ( graph ){
-  var navigationMenu = {},
-    scrollContainer = d3.select("#menuElementContainer").node(),
-    menuContainer = d3.select("#menuContainer").node(),
-    leftButton = d3.select("#scrollLeftButton"),
-    rightButton = d3.select("#scrollRightButton"),
-    scrolLeftValue,
-    scrollMax,
-    currentlyVisibleMenu,
-    currentlyHoveredEntry,
-    touchedElement = false,
-    t_scrollLeft,
-    t_scrollRight,
-    c_select = [],
-    m_select = [];
+  const navigationMenu = {};
+  const scrollContainer = d3.select("#menuElementContainer").node();
+  const menuContainer = d3.select("#menuContainer").node();
+  const leftButton = d3.select("#scrollLeftButton");
+  const rightButton = d3.select("#scrollRightButton");
+  let scrolLeftValue;
+  let scrollMax;
+  let currentlyVisibleMenu;
+  let currentlyHoveredEntry;
+  let touchedElement = false;
+  let t_scrollLeft;
+  let t_scrollRight;
+  let c_select = [];
+  let m_select = [];
   
   
   function clearAllTimers(){
@@ -55,17 +55,17 @@ module.exports = function ( graph ){
     c_select = [];
     m_select = [];
     
-    var c_temp = [];
-    var m_temp = [];
-    var i;
-    var controlElements = scrollContainer.children;
-    var numEntries = controlElements.length;
+    const c_temp = [];
+    const m_temp = [];
+    let i;
+    const controlElements = scrollContainer.children;
+    let numEntries = controlElements.length;
     
     for ( i = 0; i < numEntries; i++ ) {
       c_temp.push(controlElements[i].id.slice(2));
     }
     
-    var menuElements = menuContainer.children;
+    const menuElements = menuContainer.children;
     numEntries = menuElements.length;
     for ( i = 0; i < numEntries; i++ ) {
       m_temp.push(menuElements[i].id.slice(2));
@@ -90,10 +90,10 @@ module.exports = function ( graph ){
     
     // connect to mouseWheel
     d3.select("#menuElementContainer").on("wheel", function (){
-      var wheelEvent = d3.event;
-      var offset;
-      if ( wheelEvent.deltaY < 0 ) offset = 20;
-      if ( wheelEvent.deltaY > 0 ) offset = -20;
+      const wheelEvent = d3.event;
+      let offset;
+      if ( wheelEvent.deltaY < 0 ) {offset = 20;}
+      if ( wheelEvent.deltaY > 0 ) {offset = -20;}
       scrollContainer.scrollLeft += offset;
       navigationMenu.hideAllMenus();
       navigationMenu.updateScrollButtonVisibility();
@@ -145,9 +145,9 @@ module.exports = function ( graph ){
   }
   
   function menuElementClicked(){
-    var m_element = m_select[c_select.indexOf(this.id)];
+    const m_element = m_select[c_select.indexOf(this.id)];
     if ( m_element ) {
-      var menuElement = d3.select("#" + m_element);
+      const menuElement = d3.select("#" + m_element);
       if ( menuElement ) {
         if ( menuElement.style("display") === "block" ) {
           menuElement.style("display", "none");// hide it
@@ -177,7 +177,7 @@ module.exports = function ( graph ){
   function showSingleMenu( controllerID ){
     currentlyHoveredEntry = d3.select("#" + controllerID).node();
     // get the corresponding menu element for this controller
-    var m_element = m_select[c_select.indexOf(controllerID)];
+    const m_element = m_select[c_select.indexOf(controllerID)];
     if ( m_element ) {
       if ( controllerID !== "c_search" ) {
         
@@ -188,19 +188,19 @@ module.exports = function ( graph ){
       currentlyVisibleMenu = d3.select("#" + m_element);
       currentlyVisibleMenu.style("display", "block");
       if ( m_element === "m_export" )
-        graph.options().exportMenu().exportAsUrl();
+        {graph.options().exportMenu().exportAsUrl();}
       updateMenuPosition();
     }
   }
   
   function updateMenuPosition(){
     if ( currentlyHoveredEntry ) {
-      var leftOffset = currentlyHoveredEntry.offsetLeft;
-      var scrollOffset = scrollContainer.scrollLeft;
-      var totalOffset = leftOffset - scrollOffset;
-      var finalOffset = Math.max(0, totalOffset);
-      var fullContainer_width = scrollContainer.getBoundingClientRect().width;
-      var elementWidth = currentlyVisibleMenu.node().getBoundingClientRect().width;
+      const leftOffset = currentlyHoveredEntry.offsetLeft;
+      const scrollOffset = scrollContainer.scrollLeft;
+      const totalOffset = leftOffset - scrollOffset;
+      let finalOffset = Math.max(0, totalOffset);
+      const fullContainer_width = scrollContainer.getBoundingClientRect().width;
+      const elementWidth = currentlyVisibleMenu.node().getBoundingClientRect().width;
       // make priority > first check if we are right
       if ( finalOffset + elementWidth > fullContainer_width ) {
         finalOffset = fullContainer_width - elementWidth;

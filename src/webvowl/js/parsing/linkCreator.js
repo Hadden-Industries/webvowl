@@ -1,25 +1,25 @@
-var ArrowLink = require("../elements/links/ArrowLink");
-var BoxArrowLink = require("../elements/links/BoxArrowLink");
-var PlainLink = require("../elements/links/PlainLink");
-var OwlDisjointWith = require("../elements/properties/implementations/OwlDisjointWith");
-var SetOperatorProperty = require("../elements/properties/implementations/SetOperatorProperty");
+const ArrowLink = require("../elements/links/ArrowLink");
+const BoxArrowLink = require("../elements/links/BoxArrowLink");
+const PlainLink = require("../elements/links/PlainLink");
+const OwlDisjointWith = require("../elements/properties/implementations/OwlDisjointWith");
+const SetOperatorProperty = require("../elements/properties/implementations/SetOperatorProperty");
 
 /**
  * Stores the passed properties in links.
  * @returns {Function}
  */
 module.exports = (function (){
-  var linkCreator = {};
+  const linkCreator = {};
   
   /**
    * Creates links from the passed properties.
    * @param properties
    */
   linkCreator.createLinks = function ( properties ){
-    var links = groupPropertiesToLinks(properties);
+    const links = groupPropertiesToLinks(properties);
     
-    for ( var i = 0, l = links.length; i < l; i++ ) {
-      var link = links[i];
+    for ( let i = 0, l = links.length; i < l; i++ ) {
+      const link = links[i];
       
       countAndSetLayers(link, links);
       countAndSetLoops(link, links);
@@ -34,15 +34,15 @@ module.exports = (function (){
    * @returns {Array}
    */
   function groupPropertiesToLinks( properties ){
-    var links = [],
-      property,
-      addedProperties = require("../util/set")();
+    const links = [];
+    let property;
+    const addedProperties = require("../util/set")();
     
-    for ( var i = 0, l = properties.length; i < l; i++ ) {
+    for ( let i = 0, l = properties.length; i < l; i++ ) {
       property = properties[i];
       
       if ( !addedProperties.has(property) ) {
-        var link = createLink(property);
+        const link = createLink(property);
         
         property.link(link);
         if ( property.inverse() ) {
@@ -62,7 +62,7 @@ module.exports = (function (){
   }
   
   function countAndSetLayers( link, allLinks ){
-    var layer,
+    let layer,
       layers,
       i, l;
     
@@ -71,7 +71,7 @@ module.exports = (function (){
       
       // Search for other links that are another layer
       for ( i = 0, l = allLinks.length; i < l; i++ ) {
-        var otherLink = allLinks[i];
+        const otherLink = allLinks[i];
         if ( link.domain() === otherLink.domain() && link.range() === otherLink.range() ||
           link.domain() === otherLink.range() && link.range() === otherLink.domain() ) {
           layers.push(otherLink);
@@ -89,7 +89,7 @@ module.exports = (function (){
   }
   
   function countAndSetLoops( link, allLinks ){
-    var loop,
+    let loop,
       loops,
       i, l;
     
@@ -98,7 +98,7 @@ module.exports = (function (){
       
       // Search for other links that are also loops of the same node
       for ( i = 0, l = allLinks.length; i < l; i++ ) {
-        var otherLink = allLinks[i];
+        const otherLink = allLinks[i];
         if ( link.domain() === otherLink.domain() && link.domain() === otherLink.range() ) {
           loops.push(otherLink);
         }
@@ -115,8 +115,8 @@ module.exports = (function (){
   }
   
   function createLink( property ){
-    var domain = property.domain();
-    var range = property.range();
+    const domain = property.domain();
+    const range = property.range();
     
     if ( property instanceof OwlDisjointWith ) {
       return new PlainLink(domain, range, property);

@@ -1,5 +1,5 @@
-var textTools = require("./textTools")();
-var AbstractTextElement = require("./AbstractTextElement");
+const textTools = require("./textTools")();
+const AbstractTextElement = require("./AbstractTextElement");
 
 module.exports = AbsoluteTextElement;
 function AbsoluteTextElement( container, backgroundColor ){
@@ -35,9 +35,9 @@ AbsoluteTextElement.prototype.addInstanceCount = function ( instanceCount, yShif
 
 
 AbsoluteTextElement.prototype.addTextline = function ( text, style, yShift, prefix, postfix ){
-  var truncatedText = textTools.truncate(text, this._textBlock().datum().textWidth(yShift), style);
+  const truncatedText = textTools.truncate(text, this._textBlock().datum().textWidth(yShift), style);
   
-  var tspan = this._textBlock().append("tspan")
+  const tspan = this._textBlock().append("tspan")
     .classed(this.CSS_CLASSES.default, true)
     .classed(style, true)
     .text(this._applyPreAndPostFix(truncatedText, prefix, postfix))
@@ -46,11 +46,11 @@ AbsoluteTextElement.prototype.addTextline = function ( text, style, yShift, pref
 };
 
 AbsoluteTextElement.prototype._repositionTextLine = function ( tspan, yShift ){
-  var fontSizeProperty = window.getComputedStyle(tspan.node()).getPropertyValue("font-size");
-  var fontSize = parseFloat(fontSizeProperty);
+  const fontSizeProperty = window.getComputedStyle(tspan.node()).getPropertyValue("font-size");
+  const fontSize = parseFloat(fontSizeProperty);
   
   /* BBox height is not supported in Firefox for tspans and dominant-baseline doesn't work in some SVG editors */
-  var approximatedShiftForVerticalCentering = (1 / 3) * fontSize;
+  const approximatedShiftForVerticalCentering = (1 / 3) * fontSize;
   
   tspan.attr("y", approximatedShiftForVerticalCentering + (yShift || 0) + "px");
 };

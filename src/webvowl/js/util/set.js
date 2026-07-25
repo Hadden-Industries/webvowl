@@ -4,7 +4,7 @@
  */
 module.exports = function ( array ){
   
-  var set = {},
+  const set = {},
     d3Set = d3.set(array);
   
   set.has = function ( webvowlElement ){
