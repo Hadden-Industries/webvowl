@@ -207,6 +207,9 @@ module.exports = (function (){
           that.label(newLabel);
           that.backupLabel(newLabel);
           that.redrawLabelText();
+          if ( graph.options().searchMenu() ) {
+            graph.options().searchMenu().requestDictionaryUpdate();
+          }
           that.frozen(graph.paused());
           that.locked(graph.paused());
           graph.ignoreOtherHoverEvents(false);

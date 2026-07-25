@@ -686,6 +686,9 @@ module.exports = function ( graph ){
   function changeLabelForElement( element ){
     element.label(d3.select("#element_labelEditor").node().value);
     element.redrawLabelText();
+    if ( graph.options().searchMenu() ) {
+      graph.options().searchMenu().requestDictionaryUpdate();
+    }
   }
   
   editSidebar.updateEditDeleteButtonIds = function ( oldPrefix, newPrefix ){

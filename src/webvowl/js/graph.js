@@ -1509,7 +1509,9 @@ module.exports = function ( graphContainerSelector ){
     }
     // tell the parser that the dictionary is updated
     parser.setDictionary(newDict);
-    
+    if ( graph.options().searchMenu() ) {
+      graph.options().searchMenu().requestDictionaryUpdate();
+    }
   }
   
   graph.updateProgressBarMode = function (){
