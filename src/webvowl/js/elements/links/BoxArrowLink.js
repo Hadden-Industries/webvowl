@@ -1,4 +1,4 @@
-var PlainLink = require("./PlainLink");
+const PlainLink = require("./PlainLink");
 
 
 module.exports = BoxArrowLink;
@@ -12,8 +12,8 @@ BoxArrowLink.prototype.constructor = BoxArrowLink;
 
 
 BoxArrowLink.prototype.draw = function ( linkGroup, markerContainer ){
-  var property = this.label().property();
-  var inverse = this.label().inverse();
+  const property = this.label().property();
+  const inverse = this.label().inverse();
   
   createPropertyMarker(markerContainer, property);
   if ( inverse ) {
@@ -31,7 +31,7 @@ BoxArrowLink.prototype.draw = function ( linkGroup, markerContainer ){
 
 
 function createPropertyMarker( markerContainer, inverse ){
-  var inverseMarker = appendBasicMarker(markerContainer, inverse);
+  const inverseMarker = appendBasicMarker(markerContainer, inverse);
   inverseMarker.attr("refX", -8);
   inverseMarker.append("path")
     .attr("d", "M0,-8L8,0L0,8L-8,0L0,-8L8,0")
@@ -41,7 +41,7 @@ function createPropertyMarker( markerContainer, inverse ){
 }
 
 function createInverseMarker( markerContainer, property ){
-  var marker = appendBasicMarker(markerContainer, property);
+  const marker = appendBasicMarker(markerContainer, property);
   marker.attr("refX", 8);
   marker.append("path")
     .attr("d", "M0,-8L8,0L0,8L-8,0L0,-8L8,0")

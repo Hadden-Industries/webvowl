@@ -1,10 +1,10 @@
 String.prototype.replaceAll = function ( search, replacement ){
-  var target = this;
+  const target = this;
   return target.split(search).join(replacement);
 };
 module.exports = function (){
-  var newOntologyCounter = 1;
-  var app = {},
+  let newOntologyCounter = 1;
+  const app = {},
     graph = webvowl.graph(),
     options = graph.graphOptions(),
     languageTools = webvowl.util.languageTools(),
@@ -56,36 +56,36 @@ module.exports = function (){
   // app.afterInitializationCallback=undefined;
   
   
-  var executeFileDrop = false;
-  var wasMessageToShow = false;
-  var firstTime = false;
-  var initialTouchZoomHandled = false;
+  let executeFileDrop = false;
+  let wasMessageToShow = false;
+  let firstTime = false;
+  let initialTouchZoomHandled = false;
   
   function addFileDropEvents( selector ){
-    var node = d3.select(selector);
+    const node = d3.select(selector);
     
     node.node().ondragover = function ( e ){
       e.preventDefault();
 
       d3.select("#dragDropContainer").classed("hidden", false);
       // get svg size
-      var w = graph.options().width();
-      var h = graph.options().height();
+      const w = graph.options().width();
+      const h = graph.options().height();
       
       // get event position; (using clientX and clientY);
-      var cx = e.clientX;
-      var cy = e.clientY;
+      const cx = e.clientX;
+      const cy = e.clientY;
       
       if ( firstTime === false ) {
-        var state = d3.select("#loading-info").classed("hidden");
+        const state = d3.select("#loading-info").classed("hidden");
         wasMessageToShow = !state;
         firstTime = true;
         d3.select("#loading-info").classed("hidden", true); // hide it so it does not conflict with drop event
-        var bb=d3.select("#drag_msg").node().getBoundingClientRect();
-        var hs = bb.height;
-        var ws = bb.width;
+        const bb=d3.select("#drag_msg").node().getBoundingClientRect();
+        const hs = bb.height;
+        const ws = bb.width;
         
-        var icon_scale=Math.min(hs,ws);
+        let icon_scale=Math.min(hs,ws);
         icon_scale/=100;
         
         d3.select("#drag_icon_group").attr("transform", "translate ( " + 0.25 * ws + " " + 0.25 * hs + ")");
@@ -138,7 +138,7 @@ module.exports = function (){
         if ( ev.dataTransfer.items ) {
           if ( ev.dataTransfer.items.length === 1 ) {
             if ( ev.dataTransfer.items[0].kind === 'file' ) {
-              var file = ev.dataTransfer.items[0].getAsFile();
+              const file = ev.dataTransfer.items[0].getAsFile();
               graph.options().loadingModule().fromFileDrop(file.name, file);
             }
           }
@@ -152,23 +152,23 @@ module.exports = function (){
     };
     
     node.node().ondragleave = function ( e ){
-      var w = graph.options().width();
-      var h = graph.options().height();
+      const w = graph.options().width();
+      const h = graph.options().height();
       
       // get event position; (using clientX and clientY);
-      var cx = e.clientX;
-      var cy = e.clientY;
+      const cx = e.clientX;
+      const cy = e.clientY;
       
-      var hidden = false;
+      let hidden = false;
       firstTime = false;
       
-      if ( cx < 0.1 * w || cx > 0.9 * w ) hidden = true;
-      if ( cy < 0.1 * h || cy > 0.9 * h ) hidden = true;
+      if ( cx < 0.1 * w || cx > 0.9 * w ) {hidden = true;}
+      if ( cy < 0.1 * h || cy > 0.9 * h ) {hidden = true;}
       d3.select("#dragDropContainer").classed("hidden", hidden);
       
       d3.select("#loading-info").classed("hidden", !wasMessageToShow); // show it again
       // check if it should be visible
-      var should_show=graph.options().loadingModule().getMessageVisibilityStatus();
+      const should_show=graph.options().loadingModule().getMessageVisibilityStatus();
       if (should_show===false){
         d3.select("#loading-info").classed("hidden", true); // hide it
       }
@@ -217,10 +217,10 @@ module.exports = function (){
     leftSidebar.setup();
     editSidebar.setup();
     debugMenu.setup();
-    var agentVersion = getInternetExplorerVersion();
+    const agentVersion = getInternetExplorerVersion();
     if ( agentVersion > 0 && agentVersion <= 11 ) {
-      console.log("Agent version " + agentVersion);
-      console.log("This agent is not supported");
+      console.warn("Agent version " + agentVersion);
+      console.warn("This agent is not supported");
       d3.select("#browserCheck").classed("hidden", false);
       d3.select("#killWarning").classed("hidden", true);
       d3.select("#optionsArea").classed("hidden", true);
@@ -279,17 +279,16 @@ module.exports = function (){
       
       graph.start();
       
-      var modeOp = d3.select("#modeOfOperationString");
+      const modeOp = d3.select("#modeOfOperationString");
       modeOp.style("font-size", "0.6em");
       modeOp.style("font-style", "italic");
       
       adjustSize();
-      var defZoom;
-      var w = graph.options().width();
-      var h = graph.options().height();
-      defZoom = Math.min(w, h) / 1000;
+      const w = graph.options().width();
+      const h = graph.options().height();
+      const defZoom = Math.min(w, h) / 1000;
       
-      var hideDebugOptions = true;
+      const hideDebugOptions = true;
       if ( hideDebugOptions === false ) {
         graph.setForceTickFunctionWithFPS();
       }
@@ -298,7 +297,7 @@ module.exports = function (){
       d3.selectAll(".debugOption").classed("hidden", hideDebugOptions);
       
       // prevent backspace reloading event
-      var htmlBody = d3.select("body");
+      const htmlBody = d3.select("body");
       d3.select(document).on("keydown", function ( event ){
         if ( event.keyCode === 8 && event.target === htmlBody.node() ) {
           // we could add here an alert
@@ -311,7 +310,7 @@ module.exports = function (){
         }
       });
       if ( d3.select("#maxLabelWidthSliderOption") ) {
-        var setValue = !graph.options().dynamicLabelWidth();
+        const setValue = !graph.options().dynamicLabelWidth();
         d3.select("#maxLabelWidthSlider").node().disabled = setValue;
         d3.select("#maxLabelWidthvalueLabel").classed("disabledLabelForSlider", setValue);
         d3.select("#maxLabelWidthDescriptionLabel").classed("disabledLabelForSlider", setValue);
@@ -372,10 +371,10 @@ module.exports = function (){
       return;
     }
     graph.editorMode(); // updates the checkbox
-    var data;
+    let data;
     if ( jsonText ) {
       // validate JSON FILE
-      var validJSON;
+      let validJSON;
       try {
         data = JSON.parse(jsonText);
         validJSON = true;
@@ -390,8 +389,8 @@ module.exports = function (){
       
       if ( !filename ) {
         // First look if an ontology title exists, otherwise take the alternative filename
-        var ontologyNames = data.header ? data.header.title : undefined;
-        var ontologyName = languageTools.textInLanguage(ontologyNames);
+        const ontologyNames = data.header ? data.header.title : undefined;
+        const ontologyName = languageTools.textInLanguage(ontologyNames);
         
         if ( ontologyName ) {
           filename = ontologyName;
@@ -403,12 +402,12 @@ module.exports = function (){
     
     
     // check if we have graph data
-    var classCount = 0;
+    let classCount = 0;
     if ( data.class !== undefined ) {
       classCount = data.class.length;
     }
     
-    var loadEmptyOntologyForEditing = false;
+    let loadEmptyOntologyForEditing = false;
     if ( location.hash.indexOf("#new_ontology") !== -1 ) {
       loadEmptyOntologyForEditing = true;
       newOntologyCounter++;
@@ -433,15 +432,15 @@ module.exports = function (){
       graph.updateZoomSliderValueFromOutside();
       adjustSize();
       
-      var flagOfCheckBox = d3.select("#editorModeModuleCheckbox").node().checked;
+      const flagOfCheckBox = d3.select("#editorModeModuleCheckbox").node().checked;
       graph.editorMode(flagOfCheckBox);// update gui
       
     }
   }
   
   function adjustSize(){
-    var isMobileOrTablet = window.innerWidth <= 1024;
-    var graphContainer = d3.select(GRAPH_SELECTOR),
+    const isMobileOrTablet = window.innerWidth <= 1024;
+    const graphContainer = d3.select(GRAPH_SELECTOR),
       svg = graphContainer.select("svg"),
       height = window.innerHeight - 44,
       width = (sidebar.getSidebarVisibility() === "0" || isMobileOrTablet)
@@ -471,7 +470,7 @@ module.exports = function (){
     
     if ( isTouchDevice() === true ) {
       if ( graph.isEditorMode() === true )
-        d3.select("#modeOfOperationString").node().innerHTML = "touch able device detected";
+        {d3.select("#modeOfOperationString").node().innerHTML = "touch able device detected";}
       graph.setTouchDevice(true);
       
       if ( !initialTouchZoomHandled && isMultiTouchZoomDevice() ) {
@@ -480,7 +479,7 @@ module.exports = function (){
       }
     } else {
       if ( graph.isEditorMode() === true )
-        d3.select("#modeOfOperationString").node().innerHTML = "point & click device detected";
+        {d3.select("#modeOfOperationString").node().innerHTML = "point & click device detected";}
       graph.setTouchDevice(false);
     }
     
@@ -489,9 +488,9 @@ module.exports = function (){
     
     adjustSliderSize();
     // update also the padding options of loading and the logo positions;
-    var warningDiv = d3.select("#browserCheck");
+    const warningDiv = d3.select("#browserCheck");
     if ( warningDiv.classed("hidden") === false ) {
-      var offset = 10 + warningDiv.node().getBoundingClientRect().height;
+      const offset = 10 + warningDiv.node().getBoundingClientRect().height;
       d3.select("#logo").style("padding", offset + "px 10px");
     } else {
       // remove the dynamic padding from the logo element;
@@ -499,10 +498,10 @@ module.exports = function (){
     }
     
     // scrollbar tests;
-    var element = d3.select("#menuElementContainer").node();
-    var maxScrollLeft = element.scrollWidth - element.clientWidth;
-    var leftButton = d3.select("#scrollLeftButton");
-    var rightButton = d3.select("#scrollRightButton");
+    const element = d3.select("#menuElementContainer").node();
+    const maxScrollLeft = element.scrollWidth - element.clientWidth;
+    const leftButton = d3.select("#scrollLeftButton");
+    const rightButton = d3.select("#scrollRightButton");
     if ( maxScrollLeft > 0 ) {
       // show both and then check how far is bar;
       rightButton.classed("hidden", false);
@@ -518,15 +517,15 @@ module.exports = function (){
     editSidebar.updateElementWidth();
     
     
-    var hs = d3.select("#drag_msg").node().getBoundingClientRect().height;
-    var ws = d3.select("#drag_msg").node().getBoundingClientRect().width;
+    const hs = d3.select("#drag_msg").node().getBoundingClientRect().height;
+    const ws = d3.select("#drag_msg").node().getBoundingClientRect().width;
     d3.select("#drag_icon_group").attr("transform", "translate ( " + 0.25 * ws + " " + 0.25 * hs + ")");
     
   }
   
   function adjustSliderSize(){
-    var fullHeight = window.innerHeight - 44;
-    var isSliderAllowed = options.zoomSlider().showSlider();
+    const fullHeight = window.innerHeight - 44;
+    const isSliderAllowed = options.zoomSlider().showSlider();
     if ( fullHeight < 150 || !isSliderAllowed ) {
       d3.select("#zoomSlider").classed("hidden", true);
     } else {
@@ -556,18 +555,18 @@ module.exports = function (){
   
   
   function getInternetExplorerVersion(){
-    var ua,
+    let ua,
       re,
       rv = -1;
     
     // check for edge
-    var isEdge = /(?:\b(MS)?IE\s+|\bTrident\/7\.0;.*\s+rv:|\bEdge\/)(\d+)/.test(navigator.userAgent);
+    const isEdge = /(?:\b(MS)?IE\s+|\bTrident\/7\.0;.*\s+rv:|\bEdge\/)(\d+)/.test(navigator.userAgent);
     if ( isEdge ) {
       rv = parseInt("12");
       return rv;
     }
     
-    var isIE11 = /Trident.*rv[ :]*11\./.test(navigator.userAgent);
+    const isIE11 = /Trident.*rv[ :]*11\./.test(navigator.userAgent);
     if ( isIE11 ) {
       rv = parseInt("11");
       return rv;

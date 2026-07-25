@@ -4,19 +4,19 @@
  */
 module.exports = function ( graph ){
   
-  var exportMenu = {},
-    exportSvgButton,
-    exportFilename,
-    exportJsonButton,
-    exportTurtleButton,
-    exportTexButton,
-    exportableJsonText;
+  const exportMenu = {};
+  let exportSvgButton;
+  let exportFilename;
+  let exportJsonButton;
+  let exportTurtleButton;
+  let exportTexButton;
+  let exportableJsonText;
   
-  var exportTTLModule = require("./exportTTLModule")(graph);
+  const exportTTLModule = require("./exportTTLModule")(graph);
   
   
   String.prototype.replaceAll = function ( search, replacement ){
-    var target = this;
+    const target = this;
     return target.split(search).join(replacement);
   };
   
@@ -39,20 +39,20 @@ module.exports = function ( graph ){
     exportTurtleButton = d3.select("#exportTurtle")
       .on("click", exportTurtle);
     
-    var menuEntry = d3.select("#m_export");
+    const menuEntry = d3.select("#m_export");
     menuEntry.on("mouseover", function (){
-      var searchMenu = graph.options().searchMenu();
+      const searchMenu = graph.options().searchMenu();
       searchMenu.hideSearchEntries();
       exportMenu.exportAsUrl();
     });
   };
   function exportTurtle(event){
-    var success = exportTTLModule.requestExport();
-    var result = exportTTLModule.resultingTTL_Content();
-    var ontoTitle = "NewOntology";
-    console.log("Exporter was successful: " + success);
+    const success = exportTTLModule.requestExport();
+    const result = exportTTLModule.resultingTTL_Content();
+    const ontoTitle = "NewOntology";
+    console.warn("Exporter was successful: " + success);
     if ( success ) {
-      // console.log("The result is : " + result);
+      // console.warn("The result is : " + result);
       // var ontoTitle=graph.options().getGeneralMetaObjectProperty('title');
       // if (ontoTitle===undefined || ontoTitle.length===0)
       // 	ontoTitle="NewOntology";
@@ -65,7 +65,7 @@ module.exports = function ( graph ){
       
       
       // // write the data
-      var dataURI = "data:text/json;charset=utf-8," + encodeURIComponent(result);
+      const dataURI = "data:text/json;charset=utf-8," + encodeURIComponent(result);
       
       exportTurtleButton.attr("href", dataURI)
         .attr("download", ontoTitle + ".ttl");
@@ -73,9 +73,9 @@ module.exports = function ( graph ){
       // okay restore old href?
       //  exportTurtleButton.attr("href", oldHref);
     } else {
-      console.log("ShowWarning!");
+      console.warn("ShowWarning!");
       graph.options().warningModule().showExporterWarning();
-      console.log("Stay on the page! " + window.location.href);
+      console.warn("Stay on the page! " + window.location.href);
       exportTurtleButton.attr("href", window.location.href);
       event.preventDefault(); // prevent the href to be called ( reloads the page otherwise )
     }
@@ -98,14 +98,14 @@ module.exports = function ( graph ){
   }
   
   function prepareOptionString( defOpts, currOpts ){
-    var setOptions = 0;
-    var optsString = "opts=";
+    let setOptions = 0;
+    let optsString = "opts=";
     
-    for ( var name in defOpts ) {
+    for ( const name in defOpts ) {
       // define key and value ;
-      if ( defOpts.hasOwnProperty(name) ) {// for travis warning
-        var def_value = defOpts[name];
-        var cur_value = currOpts[name];
+      if ( Object.prototype.hasOwnProperty.call(defOpts, name) ) {// for travis warning
+        const def_value = defOpts[name];
+        const cur_value = currOpts[name];
         if ( def_value !== cur_value ) {
           optsString += name + "=" + cur_value + ";";
           setOptions++;
@@ -120,12 +120,12 @@ module.exports = function ( graph ){
   }
   
   exportMenu.exportAsUrl = function (){
-    var currObj = {};
+    const currObj = {};
     currObj.sidebar = graph.options().sidebar().getSidebarVisibility();
     
     // identify default value given by ontology;
-    var defOntValue = graph.options().filterMenu().getDefaultDegreeValue();
-    var currentValue = graph.options().filterMenu().getDegreeSliderValue();
+    const defOntValue = graph.options().filterMenu().getDefaultDegreeValue();
+    const currentValue = graph.options().filterMenu().getDegreeSliderValue();
     if ( parseInt(defOntValue) === parseInt(currentValue) ) {
       currObj.doc = -1;
     } else {
@@ -153,26 +153,26 @@ module.exports = function ( graph ){
     currObj.debugFeatures = String(!graph.options().getHideDebugFeatures());
     currObj.rect = 0;
     
-    var defObj = graph.options().initialConfig();
-    var optsString = prepareOptionString(defObj, currObj);
-    var urlString = String(location);
-    var htmlElement;
+    const defObj = graph.options().initialConfig();
+    const optsString = prepareOptionString(defObj, currObj);
+    let urlString = String(location);
+    let htmlElement;
     // when everything is default then there is nothing to write
     if ( optsString.length === 0 ) {
       // building up parameter list;
       
       // remove the all options form location
-      var hashCode = location.hash;
+      const hashCode = location.hash;
       urlString = urlString.split(hashCode)[0];
       
-      var lPos = hashCode.lastIndexOf("#");
+      const lPos = hashCode.lastIndexOf("#");
       if ( lPos === -1 ) {
         htmlElement = d3.select("#exportedUrl").node();
         htmlElement.value = String(location);
         htmlElement.title = String(location);
         return;  // nothing to change in the location String
       }
-      var newURL = hashCode.slice(lPos, hashCode.length);
+      const newURL = hashCode.slice(lPos, hashCode.length);
       htmlElement = d3.select("#exportedUrl").node();
       htmlElement.value = urlString + newURL;
       htmlElement.title = urlString + newURL;
@@ -180,14 +180,14 @@ module.exports = function ( graph ){
     }
     
     // generate the options string;
-    var numParameters = (urlString.match(/#/g) || []).length;
-    var newUrlString;
+    const numParameters = (urlString.match(/#/g) || []).length;
+    let newUrlString;
     if ( numParameters === undefined || numParameters === 0 ) {
       newUrlString = urlString + "#" + optsString;
     }
     if ( numParameters > 0 ) {
-      var tokens = urlString.split("#");
-      var i;
+      const tokens = urlString.split("#");
+      let i;
       if ( tokens[1].indexOf("opts=") >= 0 ) {
         tokens[1] = optsString;
         newUrlString = tokens[0];
@@ -212,10 +212,8 @@ module.exports = function ( graph ){
   function exportSvg(){
     graph.options().navigationMenu().hideAllMenus();
     // Get the d3js SVG element
-    var graphSvg = d3.select(graph.options().graphContainerSelector()).select("svg"),
-      graphSvgCode,
-      escapedGraphSvgCode,
-      dataURI;
+    const graphSvg = d3.select(graph.options().graphContainerSelector()).select("svg");
+    let graphSvgCode;
     
     // inline the styles, so that the exported svg code contains the css rules
     inlineVowlStyles();
@@ -229,9 +227,9 @@ module.exports = function ( graph ){
     graphSvgCode = "<!-- Created with WebVOWL (version " + webvowl.version + ")" +
       ", http://vowl.visualdataweb.org -->\n" + graphSvgCode;
     
-    escapedGraphSvgCode = escapeUnicodeCharacters(graphSvgCode);
+    const escapedGraphSvgCode = escapeUnicodeCharacters(graphSvgCode);
     //btoa(); Creates a base-64 encoded ASCII string from a "string" of binary data.
-    dataURI = "data:image/svg+xml;base64," + btoa(escapedGraphSvgCode);
+    const dataURI = "data:image/svg+xml;base64," + btoa(escapedGraphSvgCode);
     
     
     exportSvgButton.attr("href", dataURI)
@@ -244,10 +242,11 @@ module.exports = function ( graph ){
   }
   
   function escapeUnicodeCharacters( text ){
-    var textSnippets = [],
-      i, textLength = text.length,
-      character,
-      charCode;
+    const textSnippets = [];
+    let i;
+    const textLength = text.length;
+    let character;
+    let charCode;
     
     for ( i = 0; i < textLength; i++ ) {
       character = text.charAt(i);
@@ -304,14 +303,14 @@ module.exports = function ( graph ){
   }
   
   function setStyleSensitively( selector, styles ){
-    var elements = d3.selectAll(selector);
+    const elements = d3.selectAll(selector);
     if ( elements.empty() ) {
       return;
     }
     
     styles.forEach(function ( style ){
       elements.each(function (){
-        var element = d3.select(this);
+        const element = d3.select(this);
         if ( !shouldntChangeInlineCss(element, style.name) ) {
           element.style(style.name, style.value);
         }
@@ -324,7 +323,7 @@ module.exports = function ( graph ){
   }
   
   function hasBackgroundColorSet( element ){
-    var data = element.datum();
+    const data = element.datum();
     if ( data === undefined ) {
       return false;
     }
@@ -341,11 +340,11 @@ module.exports = function ( graph ){
   function removeVowlInlineStyles(){
     d3.selectAll(".text, .subtext, .text.instance-count, .external + text .instance-count, .cardinality, .text, .embedded, .class, .object, .disjoint, .objectproperty, .disjointwith, .equivalentproperty, .transitiveproperty, .functionalproperty, .inversefunctionalproperty, .symmetricproperty, .allvaluesfromproperty, .somevaluesfromproperty, .label .datatype, .datatypeproperty, .rdf, .rdfproperty, .literal, .node .datatype, .deprecated, .deprecatedproperty, .external, .externalproperty, path, .nofill, .symbol, .values-from.filled, marker path, .class, path, line, .fineline, .white, .subclass, .subclassproperty, .external + text, .class.hovered, .property.hovered, .cardinality.hovered, .cardinality.focused, circle.pin, .filled.hovered, .filled.focused, .focused, path.hovered, .indirect-highlighting, .feature:hover, .values-from, .class, path, line, .fineline, .dashed, .anonymous, .dotted, rect.focused, circle.focused, .nostroke, marker path")
       .each(function (){
-        var element = d3.select(this);
+        const element = d3.select(this);
         
-        var inlineStyles = element.node().style;
-        for ( var styleName in inlineStyles ) {
-          if ( inlineStyles.hasOwnProperty(styleName) ) {
+        const inlineStyles = element.node().style;
+        for ( const styleName in inlineStyles ) {
+          if ( Object.prototype.hasOwnProperty.call(inlineStyles, styleName) ) {
             if ( shouldntChangeInlineCss(element, styleName) ) {
               continue;
             }
@@ -361,12 +360,12 @@ module.exports = function ( graph ){
       });
     
     // repair svg icons in the menu;
-    var scrollContainer = d3.select("#menuElementContainer").node();
-    var controlElements = scrollContainer.children;
-    var numEntries = controlElements.length;
+    const scrollContainer = d3.select("#menuElementContainer").node();
+    const controlElements = scrollContainer.children;
+    const numEntries = controlElements.length;
     
-    for ( var i = 0; i < numEntries; i++ ) {
-      var currentMenu = controlElements[i].id;
+    for ( let i = 0; i < numEntries; i++ ) {
+      const currentMenu = controlElements[i].id;
       d3.select("#" + currentMenu).select("path").style("stroke-width", "0");
       d3.select("#" + currentMenu).select("path").style("fill", "#fff");
     }
@@ -381,15 +380,15 @@ module.exports = function ( graph ){
   }
   
   exportMenu.createJSON_exportObject = function (){
-    var i, j, k; // an index variable for the for-loops
+    let i, j, k; // an index variable for the for-loops
     
     /** get data for exporter **/
       if (!graph.options().data()) {return {};} // return an empty json object
       // extract onotology information;
-    var unfilteredData = graph.getUnfilteredData();
-    var ontologyComment = graph.options().data()._comment;
-    var metaObj = graph.options().getGeneralMetaObject();
-    var header = graph.options().data().header;
+    const unfilteredData = graph.getUnfilteredData();
+    const ontologyComment = graph.options().data()._comment;
+    const metaObj = graph.options().getGeneralMetaObject();
+    const header = graph.options().data().header;
     
     if ( metaObj.iri && metaObj.iri !== header.iri ) {
       header.iri = metaObj.iri;
@@ -408,7 +407,7 @@ module.exports = function ( graph ){
     }
     
     
-    var exportText = {};
+    const exportText = {};
     exportText._comment = ontologyComment;
     exportText.header = header;
     exportText.namespace = graph.options().data().namespace;
@@ -419,13 +418,13 @@ module.exports = function ( graph ){
     
     
     // var classAttributeString='classAttribute:[ \n';
-    var nodes = unfilteredData.nodes;
-    var nLen = nodes.length; // hope for compiler unroll
-    var classObjects = [];
-    var classAttributeObjects = [];
+    const nodes = unfilteredData.nodes;
+    const nLen = nodes.length; // hope for compiler unroll
+    const classObjects = [];
+    const classAttributeObjects = [];
     for ( i = 0; i < nLen; i++ ) {
-      var classObj = {};
-      var classAttr = {};
+      const classObj = {};
+      const classAttr = {};
       classObj.id = nodes[i].id();
       classObj.type = nodes[i].type();
       classObjects.push(classObj);
@@ -451,10 +450,10 @@ module.exports = function ( graph ){
       
       
       if ( nodes[i].individuals().length > 0 ) {
-        var classIndividualElements = [];
-        var nIndividuals = nodes[i].individuals();
+        const classIndividualElements = [];
+        const nIndividuals = nodes[i].individuals();
         for ( j = 0; j < nIndividuals.length; j++ ) {
-          var indObj = {};
+          const indObj = {};
           indObj.iri = nIndividuals[j].iri();
           indObj.baseIri = nIndividuals[j].baseIri();
           indObj.labels = nIndividuals[j].label();
@@ -472,13 +471,13 @@ module.exports = function ( graph ){
         classAttr.individuals = classIndividualElements;
       }
       
-      var equalsForAttributes = undefined;
+      let equalsForAttributes = undefined;
       if ( nodes[i].equivalents().length > 0 ) {
         equalsForAttributes = [];
-        var equals = nodes[i].equivalents();
+        const equals = nodes[i].equivalents();
         for ( j = 0; j < equals.length; j++ ) {
-          var eqObj = {};
-          var eqAttr = {};
+          const eqObj = {};
+          const eqAttr = {};
           eqObj.id = equals[j].id();
           equalsForAttributes.push(equals[j].id());
           eqObj.type = equals[j].type();
@@ -506,10 +505,10 @@ module.exports = function ( graph ){
           }
           
           if ( equals[j].individuals().length > 0 ) {
-            var e_classIndividualElements = [];
-            var e_nIndividuals = equals[i].individuals();
+            const e_classIndividualElements = [];
+            const e_nIndividuals = equals[i].individuals();
             for ( k = 0; k < e_nIndividuals.length; k++ ) {
-              var e_indObj = {};
+              const e_indObj = {};
               e_indObj.iri = e_nIndividuals[k].iri();
               e_indObj.baseIri = e_nIndividuals[k].baseIri();
               e_indObj.labels = e_nIndividuals[k].label();
@@ -550,14 +549,14 @@ module.exports = function ( graph ){
     }
     
     /** -- properties -- **/
-    var properties = unfilteredData.properties;
-    var pLen = properties.length; // hope for compiler unroll
-    var propertyObjects = [];
-    var propertyAttributeObjects = [];
+    const properties = unfilteredData.properties;
+    const pLen = properties.length; // hope for compiler unroll
+    const propertyObjects = [];
+    const propertyAttributeObjects = [];
     
     for ( i = 0; i < pLen; i++ ) {
-      var pObj = {};
-      var pAttr = {};
+      const pObj = {};
+      const pAttr = {};
       pObj.id = properties[i].id();
       pObj.type = properties[i].type();
       propertyObjects.push(pObj);
@@ -595,22 +594,22 @@ module.exports = function ( graph ){
       pAttr.range = properties[i].range().id();
       // sub properties;
       if ( properties[i].subproperties() ) {
-        var subProps = properties[i].subproperties();
-        var subPropsIdArray = [];
+        const subProps = properties[i].subproperties();
+        const subPropsIdArray = [];
         for ( j = 0; j < subProps.length; j++ ) {
           if ( subProps[j].id )
-            subPropsIdArray.push(subProps[j].id());
+            {subPropsIdArray.push(subProps[j].id());}
         }
         pAttr.subproperty = subPropsIdArray;
       }
       
       // super properties
       if ( properties[i].superproperties() ) {
-        var superProps = properties[i].superproperties();
-        var superPropsIdArray = [];
+        const superProps = properties[i].superproperties();
+        const superPropsIdArray = [];
         for ( j = 0; j < superProps.length; j++ ) {
           if ( superProps[j].id )
-            superPropsIdArray.push(superProps[j].id());
+            {superPropsIdArray.push(superProps[j].id());}
         }
         pAttr.superproperty = superPropsIdArray;
       }
@@ -618,7 +617,7 @@ module.exports = function ( graph ){
       // check for inverse element
       if ( properties[i].inverse() ) {
         if ( properties[i].inverse().id )
-          pAttr.inverse = properties[i].inverse().id();
+          {pAttr.inverse = properties[i].inverse().id();}
       }
       propertyAttributeObjects.push(pAttr);
     }
@@ -629,27 +628,27 @@ module.exports = function ( graph ){
     exportText.propertyAttribute = propertyAttributeObjects;
     
     
-    var nodeElements = graph.graphNodeElements();  // get visible nodes
-    var propElements = graph.graphLabelElements(); // get visible labels
+    const nodeElements = graph.graphNodeElements();  // get visible nodes
+    const propElements = graph.graphLabelElements(); // get visible labels
     // var jsonObj = JSON.parse(exportableJsonText);	   // reparse the original input json
     
     /** modify comment **/
-    var comment = exportText._comment;
-    var additionalString = " [Additional Information added by WebVOWL Exporter Version: " + "@@WEBVOWL_VERSION" + "]";
+    const comment = exportText._comment;
+    const additionalString = " [Additional Information added by WebVOWL Exporter Version: " + "@@WEBVOWL_VERSION" + "]";
     // adding new string to comment only if it does not exist
     if ( comment.indexOf(additionalString) === -1 ) {
       exportText._comment = comment + " [Additional Information added by WebVOWL Exporter Version: " + "@@WEBVOWL_VERSION" + "]";
     }
     
-    var classAttribute = exportText.classAttribute;
-    var propAttribute = exportText.propertyAttribute;
+    const classAttribute = exportText.classAttribute;
+    const propAttribute = exportText.propertyAttribute;
     /**  remove previously stored variables **/
     for ( i = 0; i < classAttribute.length; i++ ) {
-      var classObj_del = classAttribute[i];
+      const classObj_del = classAttribute[i];
       delete classObj_del.pos;
       delete classObj_del.pinned;
     }
-    var propertyObj;
+    let propertyObj;
     for ( i = 0; i < propAttribute.length; i++ ) {
       propertyObj = propAttribute[i];
       delete propertyObj.pos;
@@ -658,27 +657,27 @@ module.exports = function ( graph ){
     /**  add new variables to jsonObj  **/
     // class attribute variables
     nodeElements.each(function ( node ){
-      var nodeId = node.id();
+      const nodeId = node.id();
       for ( i = 0; i < classAttribute.length; i++ ) {
-        var classObj = classAttribute[i];
+        const classObj = classAttribute[i];
         if ( classObj.id === nodeId ) {
           // store relative positions
           classObj.pos = [parseFloat(node.x.toFixed(2)), parseFloat(node.y.toFixed(2))];
           if ( node.pinned() )
-            classObj.pinned = true;
+            {classObj.pinned = true;}
           break;
         }
       }
     });
     // property attribute variables
     for ( j = 0; j < propElements.length; j++ ) {
-      var correspondingProp = propElements[j].property();
+      const correspondingProp = propElements[j].property();
       for ( i = 0; i < propAttribute.length; i++ ) {
         propertyObj = propAttribute[i];
         if ( propertyObj.id === correspondingProp.id() ) {
           propertyObj.pos = [parseFloat(propElements[j].x.toFixed(2)), parseFloat(propElements[j].y.toFixed(2))];
           if ( propElements[j].pinned() )
-            propertyObj.pinned = true;
+            {propertyObj.pinned = true;}
           break;
         }
       }
@@ -687,30 +686,30 @@ module.exports = function ( graph ){
     exportText.settings = {};
     
     // Global Settings
-    var zoom = graph.scaleFactor();
-    var paused = graph.paused();
-    var translation = [parseFloat(graph.translation()[0].toFixed(2)), parseFloat(graph.translation()[1].toFixed(2))];
+    const zoom = graph.scaleFactor();
+    const paused = graph.paused();
+    const translation = [parseFloat(graph.translation()[0].toFixed(2)), parseFloat(graph.translation()[1].toFixed(2))];
     exportText.settings.global = {};
     exportText.settings.global.zoom = zoom.toFixed(2);
     exportText.settings.global.translation = translation;
     exportText.settings.global.paused = paused;
     
     // shared variable declaration
-    var cb_text;
-    var isEnabled;
-    var cb_obj;
+    let cb_text;
+    let isEnabled;
+    let cb_obj;
     
     // Gravity Settings
-    var classDistance = graph.options().classDistance();
-    var datatypeDistance = graph.options().datatypeDistance();
+    const classDistance = graph.options().classDistance();
+    const datatypeDistance = graph.options().datatypeDistance();
     exportText.settings.gravity = {};
     exportText.settings.gravity.classDistance = classDistance;
     exportText.settings.gravity.datatypeDistance = datatypeDistance;
     
     // Filter Settings
-    var fMenu = graph.options().filterMenu();
-    var fContainer = fMenu.getCheckBoxContainer();
-    var cbCont = [];
+    const fMenu = graph.options().filterMenu();
+    const fContainer = fMenu.getCheckBoxContainer();
+    const cbCont = [];
     for ( i = 0; i < fContainer.length; i++ ) {
       cb_text = fContainer[i].checkbox.attr("id");
       isEnabled = fContainer[i].checkbox.property("checked");
@@ -719,15 +718,15 @@ module.exports = function ( graph ){
       cb_obj.checked = isEnabled;
       cbCont.push(cb_obj);
     }
-    var degreeSliderVal = fMenu.getDegreeSliderValue();
+    const degreeSliderVal = fMenu.getDegreeSliderValue();
     exportText.settings.filter = {};
     exportText.settings.filter.checkBox = cbCont;
     exportText.settings.filter.degreeSliderValue = degreeSliderVal;
     
     // Modes Settings
-    var mMenu = graph.options().modeMenu();
-    var mContainer = mMenu.getCheckBoxContainer();
-    var cb_modes = [];
+    const mMenu = graph.options().modeMenu();
+    const mContainer = mMenu.getCheckBoxContainer();
+    const cb_modes = [];
     for ( i = 0; i < mContainer.length; i++ ) {
       cb_text = mContainer[i].attr("id");
       isEnabled = mContainer[i].property("checked");
@@ -736,12 +735,12 @@ module.exports = function ( graph ){
       cb_obj.checked = isEnabled;
       cb_modes.push(cb_obj);
     }
-    var colorSwitchState = mMenu.colorModeState();
+    const colorSwitchState = mMenu.colorModeState();
     exportText.settings.modes = {};
     exportText.settings.modes.checkBox = cb_modes;
     exportText.settings.modes.colorSwitchState = colorSwitchState;
     
-    var exportObj = {};
+    const exportObj = {};
     // todo: [ ] find better way for ordering the objects
     // hack for ordering of objects, so settings is after metrics
     exportObj._comment = exportText._comment;
@@ -767,23 +766,23 @@ module.exports = function ( graph ){
       return;
     }
     
-    var exportObj = exportMenu.createJSON_exportObject();
+    const exportObj = exportMenu.createJSON_exportObject();
     
     // make a string again;
-    var exportText = JSON.stringify(exportObj, null, '  ');
+    const exportText = JSON.stringify(exportObj, null, '  ');
     // write the data
-    var dataURI = "data:text/json;charset=utf-8," + encodeURIComponent(exportText);
-    var jsonExportFileName = exportFilename;
+    const dataURI = "data:text/json;charset=utf-8," + encodeURIComponent(exportText);
+    let jsonExportFileName = exportFilename;
     
     if ( !jsonExportFileName.endsWith(".json") )
-      jsonExportFileName += ".json";
+      {jsonExportFileName += ".json";}
     exportJsonButton.attr("href", dataURI)
       .attr("download", jsonExportFileName);
   }
   
   function exportTex(event){
-    var bbox = graph.getBoundingBoxForTex();
-    var comment = " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    const bbox = graph.getBoundingBoxForTex();
+    let comment = " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
     comment += " %        Generated with the experimental alpha version of the TeX exporter of WebVOWL (version 1.1.3) %%% \n";
     comment += " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n";
     comment += " %   The content can be used as import in other TeX documents. \n";
@@ -809,7 +808,7 @@ module.exports = function ( graph ){
     comment += " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n";
     
     
-    var texString = comment + "\\definecolor{imageBGCOLOR}{HTML}{FFFFFF} \n" +
+    let texString = comment + "\\definecolor{imageBGCOLOR}{HTML}{FFFFFF} \n" +
       "\\definecolor{owlClassColor}{HTML}{AACCFF}\n" +
       "\\definecolor{owlObjectPropertyColor}{HTML}{AACCFF}\n" +
       "\\definecolor{owlExternalClassColor}{HTML}{AACCFF}\n" +
@@ -915,38 +914,38 @@ module.exports = function ( graph ){
       return;
     }
     
-    var i = 0, identifier;
+    let i = 0, identifier;
     
     /** get data for exporter **/
-    var nodeElements = graph.graphNodeElements();  // get visible nodes
-    var propElements = graph.graphLabelElements(); // get visible labels
-    var links = graph.graphLinkElements();
+    const nodeElements = graph.graphNodeElements();  // get visible nodes
+    const propElements = graph.graphLabelElements(); // get visible labels
+    const links = graph.graphLinkElements();
     
     // export only nodes;
     // draw Links;
     for ( i = 0; i < links.length; i++ ) {
-      var link = links[i];
-      // console.log("\n****************\nInverstigating Link for property "+link.property().labelForCurrentLanguage());
+      const link = links[i];
+      // console.warn("\n****************\nInverstigating Link for property "+link.property().labelForCurrentLanguage());
       
-      var prop = link.property();
-      var dx, dy, px, py, rx, ry;
-      var colorStr = "black";
-      var linkDomainIntersection;
-      var linkRangeIntersection;
-      var center;
-      var linkStyle = "";
-      var isLoop = "";
-      var curvePoint;
-      var pathStart;
-      var pathEnd;
-      var controlPoints;
-      var len;
-      var ahAngle;
-      var pathLen;
+      const prop = link.property();
+      let dx, dy, px, py, rx, ry;
+      let colorStr = "black";
+      let linkDomainIntersection;
+      let linkRangeIntersection;
+      let center;
+      let linkStyle = "";
+      let isLoop = "";
+      let curvePoint;
+      let pathStart;
+      let pathEnd;
+      let controlPoints;
+      let len;
+      let ahAngle;
+      let pathLen;
 
-      
-      var arrowType = "triangleBlack";
-      var linkWidth = ",line width=2pt";
+
+      let arrowType = "triangleBlack";
+      const linkWidth = ",line width=2pt";
       if ( prop.linkType ) {
         if ( prop.linkType() === "dotted" ) {
           //stroke-dasharray: 3;
@@ -964,7 +963,7 @@ module.exports = function ( graph ){
         
       }
       
-      var startX, startY, endX, endY, normX, normY, lg;
+      let startX, startY, endX, endY, normX, normY, lg;
       
       if ( link.layers().length === 1 && !link.loops() ) {
         
@@ -983,8 +982,8 @@ module.exports = function ( graph ){
         curvePoint = center;
         pathEnd = linkRangeIntersection;
         
-        var nx = rx - px;
-        var ny = ry - py;
+        let nx = rx - px;
+        let ny = ry - py;
         
         // normalize ;
         len = Math.sqrt(nx * nx + ny * ny);
@@ -1020,7 +1019,7 @@ module.exports = function ( graph ){
         dx + "pt, " + dy + "pt) (" + px + "pt, " + py + "pt)  (" + rx + "pt, " + ry + "pt)};\n";
       
       
-      if ( link.property().markerElement() === undefined ) continue;
+      if ( link.property().markerElement() === undefined ) {continue;}
       
       // add arrow head;
       
@@ -1031,9 +1030,9 @@ module.exports = function ( graph ){
       
       lg = link.pathObj();
       pathLen = Math.floor(lg.node().getTotalLength());
-      var p1 = lg.node().getPointAtLength(pathLen - 4);
-      var p2 = lg.node().getPointAtLength(pathLen);
-      var markerCenter = lg.node().getPointAtLength(pathLen - 6);
+      let p1 = lg.node().getPointAtLength(pathLen - 4);
+      let p2 = lg.node().getPointAtLength(pathLen);
+      let markerCenter = lg.node().getPointAtLength(pathLen - 6);
       
       if ( link.property().type() === "setOperatorProperty" ) {
         p1 = lg.node().getPointAtLength(4);
@@ -1057,7 +1056,7 @@ module.exports = function ( graph ){
       if ( link.property().type() === "setOperatorProperty" ) {
         ahAngle -= 45;
       }
-      // console.log(link.property().labelForCurrentLanguage()+ ": "+normX+ " "+normY +"  "+ahAngle);
+      // console.warn(link.property().labelForCurrentLanguage()+ ": "+normX+ " "+normY +"  "+ahAngle);
       rx = markerCenter.x;
       ry = markerCenter.y;
       if ( link.layers().length === 1 && !link.loops() ) {
@@ -1074,13 +1073,13 @@ module.exports = function ( graph ){
       // }
       
       // add cardinality;
-      var cardinalityText = link.property().generateCardinalityText();
+      let cardinalityText = link.property().generateCardinalityText();
       if ( cardinalityText && cardinalityText.length > 0 ) {
-        var cardinalityCenter = lg.node().getPointAtLength(pathLen - 18);
-        var cx = cardinalityCenter.x - (10 * normY);
-        var cy = cardinalityCenter.y + (10 * normX); // using orthonormal y Coordinate
+        const cardinalityCenter = lg.node().getPointAtLength(pathLen - 18);
+        const cx = cardinalityCenter.x - (10 * normY);
+        let cy = cardinalityCenter.y + (10 * normX); // using orthonormal y Coordinate
         cy *= -1.0;
-        var textColor = "black";
+        const textColor = "black";
         if ( cardinalityText.indexOf("A") > -1 ) {
           cardinalityText = "$\\forall$";
         }
@@ -1096,9 +1095,9 @@ module.exports = function ( graph ){
       if ( link.property().inverse() ) {
         lg = link.pathObj();
         pathLen = Math.floor(lg.node().getTotalLength());
-        var p1_inv = lg.node().getPointAtLength(4);
-        var p2_inv = lg.node().getPointAtLength(0);
-        var markerCenter_inv = lg.node().getPointAtLength(6);
+        const p1_inv = lg.node().getPointAtLength(4);
+        const p2_inv = lg.node().getPointAtLength(0);
+        const markerCenter_inv = lg.node().getPointAtLength(6);
         startX = p1_inv.x;
         startY = p1_inv.y;
         endX = p2_inv.x;
@@ -1111,7 +1110,7 @@ module.exports = function ( graph ){
         
         ahAngle = -1.0 * Math.atan2(normY, normX) * (180 / Math.PI);
         ahAngle -= 90;
-        //   console.log("INV>>\n "+link.property().inverse().labelForCurrentLanguage()+ ": "+normX+ " "+normY +"  "+ahAngle);
+        //   console.warn("INV>>\n "+link.property().inverse().labelForCurrentLanguage()+ ": "+normX+ " "+normY +"  "+ahAngle);
         rx = markerCenter_inv.x;
         ry = markerCenter_inv.y;
         if ( link.layers().length === 1 && !link.loops() ) {
@@ -1130,21 +1129,21 @@ module.exports = function ( graph ){
     
     nodeElements.each(function ( node ){
       
-      px = node.x;
-      py = -node.y;
-      identifier = node.labelForCurrentLanguage();
-      // console.log("Writing : "+ identifier);
-      if ( identifier === undefined ) identifier = "";
-      var qType = "owlClass";
+      const px = node.x;
+      const py = -node.y;
+      let identifier = node.labelForCurrentLanguage();
+      // console.warn("Writing : "+ identifier);
+      if ( identifier === undefined ) {identifier = "";}
+      let qType = "owlClass";
       if ( node.type() === "owl:Thing" || node.type() === "owl:Nothing" )
-        qType = "owlThing";
+        {qType = "owlThing";}
       
       if ( node.type() === "owl:equivalentClass" ) {
         qType = "owlEquivalentClass";
       }
-      var textColorStr = "";
+      let textColorStr = "";
       if ( node.textBlock ) {
-        var txtColor = node.textBlock()._textBlock().style("fill");
+        const txtColor = node.textBlock()._textBlock().style("fill");
         if ( txtColor === "rgb(0, 0, 0)" ) {
           textColorStr = ", text=black";
         }
@@ -1153,13 +1152,13 @@ module.exports = function ( graph ){
         }
         
         
-        var tspans = node.textBlock()._textBlock().node().children;
+        const tspans = node.textBlock()._textBlock().node().children;
         if ( tspans[0] ) {
           identifier = tspans[0].innerHTML;
           if ( node.individuals() && node.individuals().length === parseInt(tspans[0].innerHTML) ) {
             identifier = "{\\color{gray} " + tspans[0].innerHTML + " }";
           }
-          for ( var t = 1; t < tspans.length; t++ ) {
+          for ( let t = 1; t < tspans.length; t++ ) {
             if ( node.individuals() && node.individuals().length === parseInt(tspans[t].innerHTML) ) {
               identifier += "\\\\ {\\color{gray} " + tspans[t].innerHTML + " }";
             } else {
@@ -1180,13 +1179,13 @@ module.exports = function ( graph ){
       
       
       if ( node.type() === "owl:unionOf" || node.type() === "owl:complementOf" || node.type() === "owl:disjointUnionOf" || node.type() === "owl:intersectionOf" )
-        qType = "owlClass";
+        {qType = "owlClass";}
       
-      var bgColorStr = "";
-      var widthString = "";
+      let bgColorStr = "";
+      let widthString = "";
       
       if ( node.type() === "rdfs:Literal" || node.type() === "rdfs:Datatype" ) {
-        var width = node.width();
+        const width = node.width();
         widthString = ",minimum width=" + width + "pt";
       }
       else {
@@ -1194,7 +1193,7 @@ module.exports = function ( graph ){
         
       }
       if ( node.backgroundColor() ) {
-        var bgColor = node.backgroundColor();
+        let bgColor = node.backgroundColor();
         bgColor.toUpperCase();
         bgColor = bgColor.slice(1, bgColor.length);
         texString += "\\definecolor{Node" + i + "_COLOR}{HTML}{" + bgColor + "} \n ";
@@ -1205,9 +1204,9 @@ module.exports = function ( graph ){
         bgColorStr = ", fill=Node" + i + "_COLOR ";
       }
       
-      var leftPos = px - 7;
-      var rightPos = px + 7;
-      var txtOffset = py + 20;
+      const leftPos = px - 7;
+      const rightPos = px + 7;
+      const txtOffset = py + 20;
       if ( node.type() !== "owl:unionOf" || node.type() !== "owl:disjointUnionOf" ) {
         texString += "\\node[" + qType + " " + widthString + " " + bgColorStr + " " + textColorStr + "] at (" + px + "pt, " + py + "pt)   (Node" + i + ") {" + identifier.replaceAll("_", "\\_ ") + "};\n";
       }
@@ -1258,30 +1257,30 @@ module.exports = function ( graph ){
       
     });
     for ( i = 0; i < propElements.length; i++ ) {
-      var correspondingProp = propElements[i].property();
-      var p_px = propElements[i].x;
-      var p_py = -propElements[i].y;
+      const correspondingProp = propElements[i].property();
+      const p_px = propElements[i].x;
+      const p_py = -propElements[i].y;
       identifier = correspondingProp.labelForCurrentLanguage();
-      if ( identifier === undefined ) identifier = "";
-      var textColorStr = "";
+      if ( identifier === undefined ) {identifier = "";}
+      let textColorStr = "";
       if ( correspondingProp.textBlock && correspondingProp.textBlock() ) {
-        var txtColor = correspondingProp.textBlock()._textBlock().style("fill");
-        //  console.log("PropertyTextColor="+txtColor);
+        const txtColor = correspondingProp.textBlock()._textBlock().style("fill");
+        //  console.warn("PropertyTextColor="+txtColor);
         if ( txtColor === "rgb(0, 0, 0)" ) {
           textColorStr = ", text=black";
         }
         if ( txtColor === "rgb(255, 255, 255)" ) {
           textColorStr = ", text=white";
         }
-        var tspans = correspondingProp.textBlock()._textBlock().node().children;
+        const tspans = correspondingProp.textBlock()._textBlock().node().children;
         
         // identifier=node.textBlock()._textBlock().text();
-        // console.log(tspans);
+        // console.warn(tspans);
         if ( tspans[0] ) {
           identifier = tspans[0].innerHTML;
           
-          for ( var t = 1; t < tspans.length; t++ ) {
-            var spanText = tspans[t].innerHTML;
+          for ( let t = 1; t < tspans.length; t++ ) {
+            const spanText = tspans[t].innerHTML;
             if ( spanText.indexOf("(") > -1 ) {
               identifier += "\\\\ {\\small " + tspans[t].innerHTML + " }";
             }
@@ -1295,7 +1294,7 @@ module.exports = function ( graph ){
       if ( correspondingProp.type() === "setOperatorProperty" ) {
         continue; // this property does not have a label
       }
-      var qType = "owlObjectProperty";
+      let qType = "owlObjectProperty";
       if ( correspondingProp.type() === "owl:DatatypeProperty" ) {
         qType = "owlDatatypeProperty";
       }
@@ -1307,11 +1306,11 @@ module.exports = function ( graph ){
       }
       
       
-      var bgColorStr = "";
+      let bgColorStr = "";
       if ( correspondingProp.backgroundColor() ) {
-        // console.log("Found backGround color");
-        var bgColor = correspondingProp.backgroundColor();
-        //console.log(bgColor);
+        // console.warn("Found backGround color");
+        let bgColor = correspondingProp.backgroundColor();
+        //console.warn(bgColor);
         bgColor.toUpperCase();
         bgColor = bgColor.slice(1, bgColor.length);
         texString += "\\definecolor{property" + i + "_COLOR}{HTML}{" + bgColor + "} \n ";
@@ -1322,16 +1321,16 @@ module.exports = function ( graph ){
         bgColorStr = ", fill=property" + i + "_COLOR ";
       }
       
-      var widthString = "";
-      var width = correspondingProp.textWidth();
+      let widthString = "";
+      const width = correspondingProp.textWidth();
       widthString = ",minimum width=" + width + "pt";
       
       
       // OWL INTERSECTION OF
       if ( correspondingProp.type() === "owl:disjointWith" ) {
-        var leftPos = p_px - 12;
-        var rightPos = p_px + 12;
-        var txtOffset = p_py - 20;
+        const leftPos = p_px - 12;
+        const rightPos = p_px + 12;
+        const txtOffset = p_py - 20;
         texString += "\\node[" + qType + " " + widthString + " " + bgColorStr + " " + textColorStr + "] at (" + p_px + "pt, " + p_py + "pt)   (Node" + i + ") {};\n";
         texString += "\\node[disjointWith , text=black] at (" + leftPos + "pt, " + p_py + "pt)   (SymbolNode" + i + ") {};\n";
         texString += "\\node[disjointWith , text=black] at (" + rightPos + "pt, " + p_py + "pt)   (SymbolNode" + i + ") {};\n";
@@ -1345,33 +1344,33 @@ module.exports = function ( graph ){
       
       
       if ( correspondingProp.inverse() ) {
-        var inv_correspondingProp = correspondingProp.inverse();
+        const inv_correspondingProp = correspondingProp.inverse();
         // create the rendering element for the inverse property;
-        var inv_identifier = inv_correspondingProp.labelForCurrentLanguage();
-        if ( inv_identifier === undefined ) inv_identifier = "";
-        var inv_textColorStr = "";
-        //console.log(inv_correspondingProp);
-        //console.log(inv_correspondingProp.textBlock());
+        let inv_identifier = inv_correspondingProp.labelForCurrentLanguage();
+        if ( inv_identifier === undefined ) {inv_identifier = "";}
+        let inv_textColorStr = "";
+        //console.warn(inv_correspondingProp);
+        //console.warn(inv_correspondingProp.textBlock());
         
         if ( inv_correspondingProp.textBlock && inv_correspondingProp.textBlock() ) {
           
-          var inv_txtColor = inv_correspondingProp.textBlock()._textBlock().style("fill");
-          //  console.log("PropertyTextColor="+inv_txtColor);
+          const inv_txtColor = inv_correspondingProp.textBlock()._textBlock().style("fill");
+          //  console.warn("PropertyTextColor="+inv_txtColor);
           if ( inv_txtColor === "rgb(0, 0, 0)" ) {
             inv_textColorStr = ", text=black";
           }
           if ( inv_txtColor === "rgb(255, 255, 255)" ) {
             inv_textColorStr = ", text=white";
           }
-          var inv_tspans = inv_correspondingProp.textBlock()._textBlock().node().children;
+          const inv_tspans = inv_correspondingProp.textBlock()._textBlock().node().children;
           
           // identifier=node.textBlock()._textBlock().text();
-          //  console.log(inv_tspans);
+          //  console.warn(inv_tspans);
           if ( inv_tspans[0] ) {
             inv_identifier = inv_tspans[0].innerHTML;
             
-            for ( var inv_t = 1; inv_t < inv_tspans.length; inv_t++ ) {
-              var ispanText = inv_tspans[inv_t].innerHTML;
+            for ( let inv_t = 1; inv_t < inv_tspans.length; inv_t++ ) {
+              const ispanText = inv_tspans[inv_t].innerHTML;
               if ( ispanText.indexOf("(") > -1 ) {
                 inv_identifier += "\\\\ {\\small " + inv_tspans[inv_t].innerHTML + " }";
               } else {
@@ -1380,13 +1379,13 @@ module.exports = function ( graph ){
             }
           }
         }
-        var inv_qType = "owlObjectProperty";
-        var inv_bgColorStr = "";
+        const inv_qType = "owlObjectProperty";
+        let inv_bgColorStr = "";
         
         if ( inv_correspondingProp.backgroundColor() ) {
-          //  console.log("Found backGround color");
-          var inv_bgColor = inv_correspondingProp.backgroundColor();
-          //   console.log(inv_bgColor);
+          //  console.warn("Found backGround color");
+          let inv_bgColor = inv_correspondingProp.backgroundColor();
+          //   console.warn(inv_bgColor);
           inv_bgColor.toUpperCase();
           inv_bgColor = inv_bgColor.slice(1, inv_bgColor.length);
           texString += "\\definecolor{inv_property" + i + "_COLOR}{HTML}{" + inv_bgColor + "} \n ";
@@ -1397,11 +1396,11 @@ module.exports = function ( graph ){
           inv_bgColorStr = ", fill=inv_property" + i + "_COLOR ";
         }
         
-        var inv_widthString = "";
-        var inv_width = inv_correspondingProp.textWidth();
+        let inv_widthString = "";
+        const inv_width = inv_correspondingProp.textWidth();
         
-        var pOY1 = p_py - 14;
-        var pOY2 = p_py + 14;
+        const pOY1 = p_py - 14;
+        const pOY2 = p_py + 14;
         inv_widthString = ",minimum width=" + inv_width + "pt";
         texString += "% Createing Inverse Property \n";
         texString += "\\node[" + inv_qType + " " + inv_widthString + " " + inv_bgColorStr + " " + inv_textColorStr + "] at (" + p_px + "pt, " + pOY1 + "pt)   (property" + i + ") {" + inv_identifier.replaceAll("_", "\\_ ") + "};\n";
@@ -1419,8 +1418,8 @@ module.exports = function ( graph ){
     
     texString += "\\end{tikzpicture}\n}\n \\end{center}\n";
     
-    //   console.log("Tex Output\n"+ texString);
-    var dataURI = "data:text/json;charset=utf-8," + encodeURIComponent(texString);
+    //   console.warn("Tex Output\n"+ texString);
+    const dataURI = "data:text/json;charset=utf-8," + encodeURIComponent(texString);
     exportTexButton.attr("href", dataURI)
       .attr("download", exportFilename + ".tex");
     

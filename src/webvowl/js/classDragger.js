@@ -1,6 +1,6 @@
 module.exports = function ( graph ){
   /** variable defs **/
-  var Class_dragger = {};
+  const Class_dragger = {};
   Class_dragger.nodeId = 10001;
   Class_dragger.parent = undefined;
   Class_dragger.x = 0;
@@ -45,9 +45,9 @@ module.exports = function ( graph ){
   };
   
   Class_dragger.hideDragger = function ( val ){
-    if ( Class_dragger.pathElement ) Class_dragger.pathElement.classed("hidden", val);
-    if ( Class_dragger.nodeElement ) Class_dragger.nodeElement.classed("hidden", val);
-    if ( Class_dragger.draggerObject ) Class_dragger.draggerObject.classed("hidden", val);
+    if ( Class_dragger.pathElement ) {Class_dragger.pathElement.classed("hidden", val);}
+    if ( Class_dragger.nodeElement ) {Class_dragger.nodeElement.classed("hidden", val);}
+    if ( Class_dragger.draggerObject ) {Class_dragger.draggerObject.classed("hidden", val);}
     
   };
   /** BASE HANDLING FUNCTIONS ------------------------------------------------- **/
@@ -64,7 +64,7 @@ module.exports = function ( graph ){
   
   Class_dragger.svgRoot = function ( root ){
     if ( !arguments.length )
-      return Class_dragger.rootElement;
+      {return Class_dragger.rootElement;}
     Class_dragger.rootElement = root;
     Class_dragger.rootNodeLayer = Class_dragger.rootElement.append('g');
     Class_dragger.addMouseEvents();
@@ -89,7 +89,7 @@ module.exports = function ( graph ){
     
     
 
-    var pathData = "M 20,40 C 0,15 0,-15 20,-40 L -40,0 Z";
+    const pathData = "M 20,40 C 0,15 0,-15 20,-40 L -40,0 Z";
     // var pathData="M 20,40 C 0,15 0,-15 20,-40 20,-40 -35.22907,-23.905556 -45.113897,0.06313453 -35.22907,20.095453 20,40 20,40 Z";
     // var pathData="M 39.107144,51.25 C 0,17.362169 0,-13.75 39.285715,-49.821429 c 0,0 -69.58321,34.511175 -100.714286,50.35714329 C -22.96643,20.324376 39.107144,51.25 39.107144,51.25 Z";
     
@@ -116,25 +116,25 @@ module.exports = function ( graph ){
       // compute start point ;
       
       
-      var sX = Class_dragger.parent.x,
+      const sX = Class_dragger.parent.x,
         sY = Class_dragger.parent.y,
         eX = Class_dragger.x,
         eY = Class_dragger.y;
       
       
       // this is used only when you dont have a proper layout ordering;
-      var dirX = eX - sX;
-      var dirY = eY - sY;
-      var len = Math.sqrt((dirX * dirX) + (dirY * dirY));
+      const dirX = eX - sX;
+      const dirY = eY - sY;
+      const len = Math.sqrt((dirX * dirX) + (dirY * dirY));
       
-      var nX = dirX / len;
-      var nY = dirY / len;
+      const nX = dirX / len;
+      const nY = dirY / len;
       
-      var ppX = sX + nX * Class_dragger.parent.actualRadius();
-      var ppY = sY + nY * Class_dragger.parent.actualRadius();
+      const ppX = sX + nX * Class_dragger.parent.actualRadius();
+      const ppY = sY + nY * Class_dragger.parent.actualRadius();
       
-      var ncx = nX * 15;
-      var ncy = nY * 15;
+      const ncx = nX * 15;
+      const ncy = nY * 15;
       Class_dragger.draggerObject.attr("cx", ncx)
         .attr("cy", ncy);
       
@@ -143,11 +143,11 @@ module.exports = function ( graph ){
         .attr("x2", eX)
         .attr("y2", eY);
     }
-    var angle = Math.atan2(Class_dragger.parent.y - Class_dragger.y, Class_dragger.parent.x - Class_dragger.x) * 180 / Math.PI;
+    const angle = Math.atan2(Class_dragger.parent.y - Class_dragger.y, Class_dragger.parent.x - Class_dragger.x) * 180 / Math.PI;
     
     Class_dragger.nodeElement.attr("transform", "translate(" + Class_dragger.x + "," + Class_dragger.y + ")" + "rotate(" + angle + ")");
     Class_dragger.draggerObject.attr("transform", "translate(" + Class_dragger.x + "," + Class_dragger.y + ")");
-    // console.log("update Elmenent root element"+Class_dragger.x + "," + Class_dragger.y );
+    // console.warn("update Elmenent root element"+Class_dragger.x + "," + Class_dragger.y );
     //
     // Class_dragger.nodeElement.attr("transform", function (d) {
     //     return "rotate(" + angle + ")";
@@ -157,7 +157,7 @@ module.exports = function ( graph ){
   /** MOUSE HANDLING FUNCTIONS ------------------------------------------------- **/
   
   Class_dragger.addMouseEvents = function (){
-    // console.log("adding mouse events");
+    // console.warn("adding mouse events");
     Class_dragger.rootNodeLayer.selectAll("*").on("mouseover", Class_dragger.onMouseOver)
       .on("mouseout", Class_dragger.onMouseOut)
       .on("click", function (){
@@ -172,18 +172,18 @@ module.exports = function ( graph ){
     Class_dragger.nodeElement.style("cursor", "move");
     Class_dragger.nodeElement.classed("classDraggerNodeHovered", true);
     Class_dragger.mouseButtonPressed = true;
-    console.log("Mouse DOWN from Dragger");
+    console.warn("Mouse DOWN from Dragger");
   };
   
   Class_dragger.mouseUp = function (){
     Class_dragger.nodeElement.style("cursor", "auto");
     Class_dragger.mouseButtonPressed = false;
-    console.log("Mouse UP from Dragger");
+    console.warn("Mouse UP from Dragger");
   };
   
   
   Class_dragger.mouseEntered = function ( p ){
-    if ( !arguments.length ) return Class_dragger.mouseEnteredVar;
+    if ( !arguments.length ) {return Class_dragger.mouseEnteredVar;}
     Class_dragger.mouseEnteredVar = p;
     return Class_dragger;
   };
@@ -200,7 +200,7 @@ module.exports = function ( graph ){
     }
     Class_dragger.nodeElement.classed("classDraggerNode", false);
     Class_dragger.nodeElement.classed("classDraggerNodeHovered", true);
-    var selectedNode = Class_dragger.rootElement.node(),
+    const selectedNode = Class_dragger.rootElement.node(),
       nodeContainer = selectedNode.parentNode;
     nodeContainer.appendChild(selectedNode);
     
@@ -209,7 +209,7 @@ module.exports = function ( graph ){
   };
   Class_dragger.onMouseOut = function (){
     if ( Class_dragger.mouseButtonPressed === true )
-      return;
+      {return;}
     Class_dragger.nodeElement.classed("classDraggerNodeHovered", false);
     Class_dragger.nodeElement.classed("classDraggerNode", true);
     Class_dragger.mouseEntered(false);
@@ -223,7 +223,7 @@ module.exports = function ( graph ){
   };
   
   Class_dragger.setAdditionalClassForClass_dragger = function ( name, val ){
-    // console.log("Class_dragger should sett the class here")
+    // console.warn("Class_dragger should sett the class here")
     // Class_dragger.nodeElement.classed(name,val);
     
   };

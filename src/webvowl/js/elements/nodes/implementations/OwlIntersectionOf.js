@@ -1,11 +1,11 @@
-var SetOperatorNode = require("../SetOperatorNode");
+const SetOperatorNode = require("../SetOperatorNode");
 
 module.exports = (function (){
   
-  var o = function ( graph ){
+  const o = function ( graph ){
     SetOperatorNode.apply(this, arguments);
     
-    var that = this,
+    const that = this,
       superDrawFunction = that.draw,
       INTERSECTION_BACKGROUND_PATH = createIntersectionPath();
     
@@ -15,9 +15,9 @@ module.exports = (function (){
     this.draw = function ( element ){
       superDrawFunction(element);
       
-      var symbol = element.append("g").classed("embedded", true);
+      const symbol = element.append("g").classed("embedded", true);
       
-      var symbolRadius = 10;
+      const symbolRadius = 10;
       symbol.append("path")
         .attr("class", "nostroke")
         .classed("symbol", true)
@@ -44,18 +44,18 @@ module.exports = (function (){
     };
     
     function createIntersectionPath(){
-      var height = 18;
+      const height = 18;
       
-      var offsetX = 5;
-      var offsetY = -(height / 2);
+      const offsetX = 5;
+      const offsetY = -(height / 2);
       
-      var bezierX = 7;
-      var bezierY = 5;
-      var bottomBezierY = height - bezierY;
+      const bezierX = 7;
+      const bezierY = 5;
+      const bottomBezierY = height - bezierY;
       
-      var startPosition = "M" + offsetX + "," + offsetY;
-      var rightSide = "c" + bezierX + "," + bezierY + " " + bezierX + "," + bottomBezierY + " 0," + height;
-      var leftSide = "c" + -bezierX + "," + -bezierY + " " + -bezierX + "," + -bottomBezierY + " 0," + -height;
+      const startPosition = "M" + offsetX + "," + offsetY;
+      const rightSide = "c" + bezierX + "," + bezierY + " " + bezierX + "," + bottomBezierY + " 0," + height;
+      const leftSide = "c" + -bezierX + "," + -bezierY + " " + -bezierX + "," + -bottomBezierY + " 0," + -height;
       
       return startPosition + rightSide + leftSide;
     }

@@ -1,11 +1,11 @@
-var constants = require("./constants")();
+const constants = require("./constants")();
 
 /**
  * Encapsulates methods which return a label in a specific language for a preferred language.
  */
 module.exports = (function (){
   
-  var languageTools = {};
+  const languageTools = {};
   
   
   languageTools.textInLanguage = function ( textObject, preferredLanguage ){
@@ -17,11 +17,11 @@ module.exports = (function (){
       return textObject;
     }
     
-    if ( preferredLanguage && textObject.hasOwnProperty(preferredLanguage) ) {
+    if ( preferredLanguage && Object.prototype.hasOwnProperty.call(textObject, preferredLanguage) ) {
       return textObject[preferredLanguage];
     }
     
-    var textForLanguage = searchLanguage(textObject, "en");
+    let textForLanguage = searchLanguage(textObject, "en");
     if ( textForLanguage ) {
       return textForLanguage;
     }
@@ -35,8 +35,8 @@ module.exports = (function (){
   
   
   function searchLanguage( textObject, preferredLanguage ){
-    for ( var language in textObject ) {
-      if ( language === preferredLanguage && textObject.hasOwnProperty(language) ) {
+    for ( const language in textObject ) {
+      if ( language === preferredLanguage && Object.prototype.hasOwnProperty.call(textObject, language) ) {
         return textObject[language];
       }
     }

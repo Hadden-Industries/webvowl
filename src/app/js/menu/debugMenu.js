@@ -1,16 +1,16 @@
 module.exports = function ( graph ){
-  var debugMenu = {},
+  const debugMenu = {},
     checkboxes = [];
   
   
-  var hoverFlag = false;
-  var specialCbx;
+  let hoverFlag = false;
+  let specialCbx;
   debugMenu.setup = function (){
-    var menuEntry = d3.select("#debugMenuHref");
+    const menuEntry = d3.select("#debugMenuHref");
     
     menuEntry.on("mouseover", function (){
       if ( hoverFlag === false ) {
-        var searchMenu = graph.options().searchMenu();
+        const searchMenu = graph.options().searchMenu();
         searchMenu.hideSearchEntries();
         specialCbx.on("click")(true);
         if ( graph.editorMode() === false ) {
@@ -43,14 +43,14 @@ module.exports = function ( graph ){
           d3.select("#showDraggerObject").style("pointer-events", "auto");
         }
         
-        if ( silent === true ) return;
+        if ( silent === true ) {return;}
         graph.lazyRefresh();
         graph.updateDraggerElements();
       }
     );
     addCheckBox("showDraggerObject", "Show accuracy helper", "#showDraggerObject", graph.options().showDraggerObject,
       function ( enabled, silent ){
-        if ( silent === true ) return;
+        if ( silent === true ) {return;}
         graph.lazyRefresh();
         graph.updateDraggerElements();
       });
@@ -79,10 +79,10 @@ module.exports = function ( graph ){
   
   
   function addCheckBox( identifier, modeName, selector, onChangeFunc, _callbackFunction ){
-    var configOptionContainer = d3.select(selector)
+    const configOptionContainer = d3.select(selector)
       .append("div")
       .classed("checkboxContainer", true);
-    var configCheckbox = configOptionContainer.append("input")
+    const configCheckbox = configOptionContainer.append("input")
       .classed("moduleCheckbox", true)
       .attr("id", identifier + "ConfigCheckbox")
       .attr("type", "checkbox")
@@ -90,9 +90,9 @@ module.exports = function ( graph ){
     
     
     configCheckbox.on("click", function ( arg1, arg2 ){
-      var isEnabled = configCheckbox.property("checked");
+      const isEnabled = configCheckbox.property("checked");
       onChangeFunc(isEnabled);
-      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
+      const silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
       _callbackFunction(isEnabled, silent);
       
     });
@@ -105,8 +105,8 @@ module.exports = function ( graph ){
   }
   
   debugMenu.setCheckBoxValue = function ( identifier, value ){
-    for ( var i = 0; i < checkboxes.length; i++ ) {
-      var cbdId = checkboxes[i].attr("id");
+    for ( let i = 0; i < checkboxes.length; i++ ) {
+      const cbdId = checkboxes[i].attr("id");
       if ( cbdId === identifier ) {
         checkboxes[i].property("checked", value);
         break;
@@ -115,8 +115,8 @@ module.exports = function ( graph ){
   };
   
   debugMenu.getCheckBoxValue = function ( id ){
-    for ( var i = 0; i < checkboxes.length; i++ ) {
-      var cbdId = checkboxes[i].attr("id");
+    for ( let i = 0; i < checkboxes.length; i++ ) {
+      const cbdId = checkboxes[i].attr("id");
       if ( cbdId === id ) {
         return checkboxes[i].property("checked");
       }
@@ -126,7 +126,7 @@ module.exports = function ( graph ){
   debugMenu.updateSettings = function (){
     d3.selectAll(".debugOption").classed("hidden", graph.options().getHideDebugFeatures());
     
-    var silent = true;
+    const silent = true;
     checkboxes.forEach(function ( checkbox ){
       checkbox.on("click")(silent);
     });

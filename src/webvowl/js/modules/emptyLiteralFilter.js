@@ -4,11 +4,11 @@
 
 module.exports = function (){
   
-  var filter = {},
-    enabled = true,
-    filteredNodes,
-    removedNodes,
-    filteredProperties;
+  const filter = {};
+  let enabled = true;
+  let filteredNodes;
+  let removedNodes;
+  let filteredProperties;
   
   filter.enabled = function ( val ){
     if ( !arguments.length ) {
@@ -24,12 +24,12 @@ module.exports = function (){
       removedNodes = [];
       return;
     }
-    var literalUsageMap = [];
-    var thingUsageMap = [];
-    var node;
-    for ( var i = 0; i < properties.length; i++ ) {
+    const literalUsageMap = [];
+    const thingUsageMap = [];
+    let node;
+    for ( let i = 0; i < properties.length; i++ ) {
       // get property range;
-      var prop = properties[i];
+      const prop = properties[i];
       
       // checking for literals
       if ( prop.range() ) {
@@ -53,11 +53,11 @@ module.exports = function (){
       }
       
     }
-    var nodesToRemove = [];
-    var newNodes = [];
+    const nodesToRemove = [];
+    const newNodes = [];
     // todo: test and make it faster
-    for ( i = 0; i < nodes.length; i++ ) {
-      var nodeId = nodes[i].id();
+    for ( let i = 0; i < nodes.length; i++ ) {
+      const nodeId = nodes[i].id();
       if ( nodes[i].type() === "rdfs:Literal" ) {
         if ( literalUsageMap[nodeId] === undefined ) {
           nodesToRemove.push(nodeId);

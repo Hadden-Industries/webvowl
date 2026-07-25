@@ -62,7 +62,7 @@ function runJavaConverter(filePath) {
 }
 
 function normalizeAnnotations(annotations) {
-  if (!annotations) return "";
+  if (!annotations) {return "";}
   const normalized = {};
   Object.keys(annotations).sort().forEach(key => {
     normalized[key] = annotations[key].map(ann => {
@@ -80,7 +80,7 @@ function normalizeAnnotations(annotations) {
 }
 
 function parseVowlJson(json) {
-  if (!json) return null;
+  if (!json) {return null;}
   
   const classIdToIri = {};
   if (json.classAttribute) {
@@ -205,8 +205,8 @@ describe("Golden Master Compatibility Tests", () => {
         }
       }
 
-      let resolved = resolveImportUrl(url);
-      let filePath = path.join(WORKSPACE_PARENT, resolved.replace("../ontology/", "universal-ontology/"));
+      const resolved = resolveImportUrl(url);
+      const filePath = path.join(WORKSPACE_PARENT, resolved.replace("../ontology/", "universal-ontology/"));
 
       if (fs.existsSync(filePath)) {
         const textContent = fs.readFileSync(filePath, 'utf8');
@@ -272,20 +272,20 @@ describe("Golden Master Compatibility Tests", () => {
       const javaThingAttrs = javaRaw.classAttribute ? javaRaw.classAttribute.filter(a => a.iri === "http://www.w3.org/2002/07/owl#Thing") : [];
       const jsThingAttrs = jsRaw.classAttribute ? jsRaw.classAttribute.filter(a => a.iri === "http://www.w3.org/2002/07/owl#Thing") : [];
       javaThingAttrs.forEach(a => {
-        if (a.attributes) expect(a.attributes).not.toContain("external");
+        if (a.attributes) {expect(a.attributes).not.toContain("external");}
       });
       jsThingAttrs.forEach(a => {
-        if (a.attributes) expect(a.attributes).not.toContain("external");
+        if (a.attributes) {expect(a.attributes).not.toContain("external");}
       });
 
       // 2. Check rdfs:Literal attributes (none should contain "external")
       const javaLiteralAttrs = javaRaw.classAttribute ? javaRaw.classAttribute.filter(a => a.iri === "http://www.w3.org/2000/01/rdf-schema#Literal") : [];
       const jsLiteralAttrs = jsRaw.classAttribute ? jsRaw.classAttribute.filter(a => a.iri === "http://www.w3.org/2000/01/rdf-schema#Literal") : [];
       javaLiteralAttrs.forEach(a => {
-        if (a.attributes) expect(a.attributes).not.toContain("external");
+        if (a.attributes) {expect(a.attributes).not.toContain("external");}
       });
       jsLiteralAttrs.forEach(a => {
-        if (a.attributes) expect(a.attributes).not.toContain("external");
+        if (a.attributes) {expect(a.attributes).not.toContain("external");}
       });
 
       // 3. Check virtual literal class type
@@ -298,8 +298,8 @@ describe("Golden Master Compatibility Tests", () => {
       const connectedNodeIds = new Set();
       if (jsRaw.propertyAttribute) {
         jsRaw.propertyAttribute.forEach(p => {
-          if (p.domain) connectedNodeIds.add(String(p.domain));
-          if (p.range) connectedNodeIds.add(String(p.range));
+          if (p.domain) {connectedNodeIds.add(String(p.domain));}
+          if (p.range) {connectedNodeIds.add(String(p.range));}
         });
       }
       const datatypeAttrs = [];
@@ -307,7 +307,7 @@ describe("Golden Master Compatibility Tests", () => {
         jsRaw.class.forEach(c => {
           if (c.type === 'rdfs:Datatype') {
             const attr = jsRaw.classAttribute.find(a => a.id === c.id);
-            if (attr) datatypeAttrs.push(attr);
+            if (attr) {datatypeAttrs.push(attr);}
           }
         });
       }
@@ -422,9 +422,9 @@ describe("Golden Master Compatibility Tests", () => {
       });
 
       const isExactMatch = iriMatch && classesMatch && propsMatch && subclassesMatch && annotationsMatch && instancesMatch && disjointsMatch;
-      console.log(`[DIAGNOSTIC] File ${keyName}: exact match? ${isExactMatch}`);
+      console.warn(`[DIAGNOSTIC] File ${keyName}: exact match? ${isExactMatch}`);
       if (!isExactMatch) {
-        console.log(`  Failed: iri=${iriMatch}, classes=${classesMatch}, props=${propsMatch}, subclasses=${subclassesMatch}, annotations=${annotationsMatch}, instances=${instancesMatch}, disjoints=${disjointsMatch}`);
+        console.warn(`  Failed: iri=${iriMatch}, classes=${classesMatch}, props=${propsMatch}, subclasses=${subclassesMatch}, annotations=${annotationsMatch}, instances=${instancesMatch}, disjoints=${disjointsMatch}`);
       }
 
       if (!isExactMatch) {
@@ -437,7 +437,7 @@ describe("Golden Master Compatibility Tests", () => {
 
   test("BenchmarkOntology.rdf structural counts validation", () => {
     const file = path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "ontologies", "ontovibe", "BenchmarkOntology.rdf");
-    if (!fs.existsSync(file)) return;
+    if (!fs.existsSync(file)) {return;}
 
     const xml = fs.readFileSync(file, 'utf8');
     const jsResult = owl2vowl(xml);

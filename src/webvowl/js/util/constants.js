@@ -1,6 +1,6 @@
 module.exports = (function (){
   
-  var constants = {};
+  const constants = {};
   
   constants.LANG_IRIBASED = "IRI-based";
   constants.LANG_UNDEFINED = "undefined";

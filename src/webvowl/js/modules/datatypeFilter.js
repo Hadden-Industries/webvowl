@@ -1,14 +1,14 @@
-var elementTools = require("../util/elementTools")();
-var filterTools = require("../util/filterTools")();
+const elementTools = require("../util/elementTools")();
+const filterTools = require("../util/filterTools")();
 
 module.exports = function (){
   
-  var filter = {},
-    nodes,
-    properties,
-    enabled = false,
-    filteredNodes,
-    filteredProperties;
+  const filter = {};
+  let nodes;
+  let properties;
+  let enabled = false;
+  let filteredNodes;
+  let filteredProperties;
   
   
   /**
@@ -29,7 +29,7 @@ module.exports = function (){
   };
   
   function removeDatatypesAndLiterals(){
-    var filteredData = filterTools.filterNodesAndTidy(nodes, properties, isNoDatatypeOrLiteral);
+    const filteredData = filterTools.filterNodesAndTidy(nodes, properties, isNoDatatypeOrLiteral);
     
     nodes = filteredData.nodes;
     properties = filteredData.properties;
@@ -40,7 +40,7 @@ module.exports = function (){
   }
   
   filter.enabled = function ( p ){
-    if ( !arguments.length ) return enabled;
+    if ( !arguments.length ) {return enabled;}
     enabled = p;
     return filter;
   };

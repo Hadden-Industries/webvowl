@@ -1,6 +1,6 @@
 module.exports = function (){
-  var options = {},
-    data,
+  const options = {};
+  let data,
     graphContainerSelector,
     classDistance = 200,
     datatypeDistance = 120,
@@ -36,46 +36,46 @@ module.exports = function (){
     graphObject,
     zoomSlider,
     datatypeFilter,
-    focuserModule,
-    colorExternalsModule,
-    compactNotationModule,
-    objectPropertyFilter,
-    subclassFilter,
-    setOperatorFilter,
-    maxLabelWidth = 120,
-    metadataObject = {},
-    generalOntologyMetaData = {},
-    disjointPropertyFilter,
-    rectangularRep = false,
-    warningModule,
-    prefixModule,
-    drawPropertyDraggerOnHover = true,
-    showDraggerObject = false,
-    directInputModule,
-    scaleNodesByIndividuals = true,
-    useAccuracyHelper = true,
-    showRenderingStatistic = true,
-    showInputModality = false,
-    hideDebugOptions = true,
-    nodeDegreeFilter,
-    debugMenu,
+    focuserModule;
+  let colorExternalsModule;
+  let compactNotationModule;
+  let objectPropertyFilter;
+  let subclassFilter;
+  let setOperatorFilter;
+  let maxLabelWidth = 120;
+  const metadataObject = {};
+  let generalOntologyMetaData = {};
+  let disjointPropertyFilter;
+  let rectangularRep = false;
+  let warningModule;
+  let prefixModule;
+  let drawPropertyDraggerOnHover = true;
+  let showDraggerObject = false;
+  let directInputModule;
+  let scaleNodesByIndividuals = true;
+  let useAccuracyHelper = true;
+  let showRenderingStatistic = true;
+  let showInputModality = false;
+  let hideDebugOptions = true;
+  let nodeDegreeFilter;
+  let debugMenu;
     
-    supportedDatatypes = ["rdfs:Literal", "xsd:boolean", "xsd:double", "xsd:integer", "xsd:string", "undefined"],
-    supportedClasses = ["owl:Thing", "owl:Class", "owl:DeprecatedClass"],
-    supportedProperties = ["owl:objectProperty",
-      "rdfs:subClassOf",
-      "owl:disjointWith",
-      "owl:allValuesFrom",
-      "owl:someValuesFrom"
-    ],
-    prefixList = {
-      rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-      rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
-      owl: 'http://www.w3.org/2002/07/owl#',
-      xsd: 'http://www.w3.org/2001/XMLSchema#',
-      dc: 'http://purl.org/dc/elements/1.1/#',
-      xml: 'http://www.w3.org/XML/1998/namespace'
-    };
+  const supportedDatatypes = ["rdfs:Literal", "xsd:boolean", "xsd:double", "xsd:integer", "xsd:string", "undefined"];
+  const supportedClasses = ["owl:Thing", "owl:Class", "owl:DeprecatedClass"];
+  const supportedProperties = ["owl:objectProperty",
+    "rdfs:subClassOf",
+    "owl:disjointWith",
+    "owl:allValuesFrom",
+    "owl:someValuesFrom"
+  ];
+  const prefixList = {
+    rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+    rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
+    owl: 'http://www.w3.org/2002/07/owl#',
+    xsd: 'http://www.w3.org/2001/XMLSchema#',
+    dc: 'http://purl.org/dc/elements/1.1/#',
+    xml: 'http://www.w3.org/XML/1998/namespace'
+  };
   
   options.clearMetaObject = function (){
     generalOntologyMetaData = {};
@@ -85,7 +85,7 @@ module.exports = function (){
   };
   
   options.debugMenu = function ( val ){
-    if ( !arguments.length ) return debugMenu;
+    if ( !arguments.length ) {return debugMenu;}
     debugMenu = val;
   };
   
@@ -109,7 +109,7 @@ module.exports = function (){
   
   
   options.addOrUpdateGeneralObjectEntry = function ( property, value ){
-    if ( generalOntologyMetaData.hasOwnProperty(property) ) {
+    if ( Object.prototype.hasOwnProperty.call(generalOntologyMetaData, property) ) {
       //console.log("Updating Property:"+ property);
       if ( property === "iri" ) {
         if ( validURL(value) === false ) {
@@ -125,7 +125,7 @@ module.exports = function (){
   };
   
   options.getGeneralMetaObjectProperty = function ( property ){
-    if ( generalOntologyMetaData.hasOwnProperty(property) ) {
+    if ( Object.prototype.hasOwnProperty.call(generalOntologyMetaData, property) ) {
       return generalOntologyMetaData[property];
     }
   };
@@ -136,7 +136,7 @@ module.exports = function (){
   
   options.addOrUpdateMetaObjectEntry = function ( property, value ){
     
-    if ( metadataObject.hasOwnProperty(property) ) {
+    if ( Object.prototype.hasOwnProperty.call(metadataObject, property) ) {
       metadataObject[property] = value;
     } else {
       metadataObject[property] = value;
@@ -144,7 +144,7 @@ module.exports = function (){
   };
   
   options.getMetaObjectProperty = function ( property ){
-    if ( metadataObject.hasOwnProperty(property) ) {
+    if ( Object.prototype.hasOwnProperty.call(metadataObject, property) ) {
       return metadataObject[property];
     }
   };
@@ -161,7 +161,7 @@ module.exports = function (){
   };
   
   function validURL( str ){
-    var urlregex = /^(https?|ftp):\/\/([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(:[0-9]+)*(\/($|[a-zA-Z0-9.,?'\\+&%$#=~_-]+))*$/;
+    const urlregex = /^(https?|ftp):\/\/([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(:[0-9]+)*(\/($|[a-zA-Z0-9.,?'\\+&%$#=~_-]+))*$/;
     return urlregex.test(str);
   }
   
@@ -184,7 +184,7 @@ module.exports = function (){
     if ( oldPrefix !== newPrefix && validURL(newURL) === true ) {
       
       // sanity check
-      if ( prefixList.hasOwnProperty(newPrefix) ) {
+      if ( Object.prototype.hasOwnProperty.call(prefixList, newPrefix) ) {
         //  console.log("Already have this prefix!");
         warningModule.showWarning("Prefix Already Exist", "Prefix: " + newPrefix + " is already defined", "You should use an other one", 1, false);
         return false;
@@ -219,7 +219,7 @@ module.exports = function (){
   };
   
   options.datatypeFilter = function ( val ){
-    if ( !arguments.length ) return datatypeFilter;
+    if ( !arguments.length ) {return datatypeFilter;}
     datatypeFilter = val;
   };
   
@@ -255,77 +255,77 @@ module.exports = function (){
   };
   
   options.drawPropertyDraggerOnHover = function ( val ){
-    if ( !arguments.length ) return drawPropertyDraggerOnHover;
+    if ( !arguments.length ) {return drawPropertyDraggerOnHover;}
     drawPropertyDraggerOnHover = val;
   };
   
   options.warningModule = function ( val ){
-    if ( !arguments.length ) return warningModule;
+    if ( !arguments.length ) {return warningModule;}
     warningModule = val;
   };
   options.directInputModule = function ( val ){
-    if ( !arguments.length ) return directInputModule;
+    if ( !arguments.length ) {return directInputModule;}
     directInputModule = val;
   };
   options.prefixModule = function ( val ){
-    if ( !arguments.length ) return prefixModule;
+    if ( !arguments.length ) {return prefixModule;}
     prefixModule = val;
   };
   
   options.focuserModule = function ( val ){
-    if ( !arguments.length ) return focuserModule;
+    if ( !arguments.length ) {return focuserModule;}
     focuserModule = val;
   };
   options.colorExternalsModule = function ( val ){
-    if ( !arguments.length ) return colorExternalsModule;
+    if ( !arguments.length ) {return colorExternalsModule;}
     colorExternalsModule = val;
   };
   options.compactNotationModule = function ( val ){
-    if ( !arguments.length ) return compactNotationModule;
+    if ( !arguments.length ) {return compactNotationModule;}
     compactNotationModule = val;
   };
   
   options.maxLabelWidth = function ( val ){
-    if ( !arguments.length ) return maxLabelWidth;
+    if ( !arguments.length ) {return maxLabelWidth;}
     maxLabelWidth = val;
   };
   options.objectPropertyFilter = function ( val ){
-    if ( !arguments.length ) return objectPropertyFilter;
+    if ( !arguments.length ) {return objectPropertyFilter;}
     objectPropertyFilter = val;
   };
   options.disjointPropertyFilter = function ( val ){
-    if ( !arguments.length ) return disjointPropertyFilter;
+    if ( !arguments.length ) {return disjointPropertyFilter;}
     disjointPropertyFilter = val;
   };
   options.subclassFilter = function ( val ){
-    if ( !arguments.length ) return subclassFilter;
+    if ( !arguments.length ) {return subclassFilter;}
     subclassFilter = val;
   };
   options.setOperatorFilter = function ( val ){
-    if ( !arguments.length ) return setOperatorFilter;
+    if ( !arguments.length ) {return setOperatorFilter;}
     setOperatorFilter = val;
   };
   options.leftSidebar = function ( val ){
-    if ( !arguments.length ) return leftSidebar;
+    if ( !arguments.length ) {return leftSidebar;}
     leftSidebar = val;
   };
   options.editSidebar = function ( val ){
-    if ( !arguments.length ) return editSidebar;
+    if ( !arguments.length ) {return editSidebar;}
     editSidebar = val;
   };
   
   options.zoomSlider = function ( val ){
-    if ( !arguments.length ) return zoomSlider;
+    if ( !arguments.length ) {return zoomSlider;}
     zoomSlider = val;
   };
   
   options.graphObject = function ( val ){
-    if ( !arguments.length ) return graphObject;
+    if ( !arguments.length ) {return graphObject;}
     graphObject = val;
   };
   
   
-  var defaultOptionsConfig = {};
+  const defaultOptionsConfig = {};
   defaultOptionsConfig.sidebar = "1";
   defaultOptionsConfig.doc = -1;
   defaultOptionsConfig.cd = 200;
@@ -346,7 +346,7 @@ module.exports = function (){
   
   
   options.initialConfig = function (){
-    var initCfg = {};
+    const initCfg = {};
     initCfg.sidebar = "1";
     initCfg.doc = -1;
     initCfg.cd = 200;
@@ -399,7 +399,7 @@ module.exports = function (){
   };
   
   options.exportMenu = function ( val ){
-    if ( !arguments.length ) return exportMenu;
+    if ( !arguments.length ) {return exportMenu;}
     exportMenu = val;
   };
   
@@ -407,7 +407,7 @@ module.exports = function (){
     if ( !arguments.length ) {
       return rectangularRep;
     } else {
-      var intVal = parseInt(val);
+      const intVal = parseInt(val);
       if ( intVal === 0 ) {
         rectangularRep = false;
       } else {
@@ -418,183 +418,183 @@ module.exports = function (){
   
   options.dynamicLabelWidth = function ( val ){
     if ( !arguments.length )
-      return dynamicLabelWidth;
+      {return dynamicLabelWidth;}
     else {
       dynamicLabelWidth = val;
     }
   };
   options.sidebar = function ( s ){
-    if ( !arguments.length ) return sidebar;
+    if ( !arguments.length ) {return sidebar;}
     sidebar = s;
     return options;
     
   };
   
   options.navigationMenu = function ( m ){
-    if ( !arguments.length ) return navigationMenu;
+    if ( !arguments.length ) {return navigationMenu;}
     navigationMenu = m;
     return options;
     
   };
   
   options.ontologyMenu = function ( m ){
-    if ( !arguments.length ) return ontologyMenu;
+    if ( !arguments.length ) {return ontologyMenu;}
     ontologyMenu = m;
     return options;
   };
   
   options.searchMenu = function ( m ){
-    if ( !arguments.length ) return searchMenu;
+    if ( !arguments.length ) {return searchMenu;}
     searchMenu = m;
     return options;
   };
   
   options.resetMenu = function ( m ){
-    if ( !arguments.length ) return resetMenu;
+    if ( !arguments.length ) {return resetMenu;}
     resetMenu = m;
     return options;
   };
   
   options.pausedMenu = function ( m ){
-    if ( !arguments.length ) return pausedMenu;
+    if ( !arguments.length ) {return pausedMenu;}
     pausedMenu = m;
     return options;
   };
   
   options.pickAndPinModule = function ( m ){
-    if ( !arguments.length ) return pickAndPinModule;
+    if ( !arguments.length ) {return pickAndPinModule;}
     pickAndPinModule = m;
     return options;
   };
   
   options.gravityMenu = function ( m ){
-    if ( !arguments.length ) return gravityMenu;
+    if ( !arguments.length ) {return gravityMenu;}
     gravityMenu = m;
     return options;
   };
   
   options.filterMenu = function ( m ){
-    if ( !arguments.length ) return filterMenu;
+    if ( !arguments.length ) {return filterMenu;}
     filterMenu = m;
     return options;
   };
   
   options.modeMenu = function ( m ){
-    if ( !arguments.length ) return modeMenu;
+    if ( !arguments.length ) {return modeMenu;}
     modeMenu = m;
     return options;
   };
   
   options.charge = function ( p ){
-    if ( !arguments.length ) return charge;
+    if ( !arguments.length ) {return charge;}
     charge = +p;
     return options;
   };
   
   options.classDistance = function ( p ){
-    if ( !arguments.length ) return classDistance;
+    if ( !arguments.length ) {return classDistance;}
     classDistance = +p;
     return options;
   };
   
   options.compactNotation = function ( p ){
     
-    if ( !arguments.length ) return compactNotation;
+    if ( !arguments.length ) {return compactNotation;}
     compactNotation = p;
     return options;
   };
   
   options.data = function ( p ){
-    if ( !arguments.length ) return data;
+    if ( !arguments.length ) {return data;}
     data = p;
     return options;
   };
   
   options.datatypeDistance = function ( p ){
-    if ( !arguments.length ) return datatypeDistance;
+    if ( !arguments.length ) {return datatypeDistance;}
     datatypeDistance = +p;
     return options;
   };
   
   options.filterModules = function ( p ){
-    if ( !arguments.length ) return filterModules;
+    if ( !arguments.length ) {return filterModules;}
     filterModules = p;
     return options;
   };
   
   options.graphContainerSelector = function ( p ){
-    if ( !arguments.length ) return graphContainerSelector;
+    if ( !arguments.length ) {return graphContainerSelector;}
     graphContainerSelector = p;
     return options;
   };
   
   options.gravity = function ( p ){
-    if ( !arguments.length ) return gravity;
+    if ( !arguments.length ) {return gravity;}
     gravity = +p;
     return options;
   };
   
   options.height = function ( p ){
-    if ( !arguments.length ) return height;
+    if ( !arguments.length ) {return height;}
     height = +p;
     return options;
   };
   
   options.linkStrength = function ( p ){
-    if ( !arguments.length ) return linkStrength;
+    if ( !arguments.length ) {return linkStrength;}
     linkStrength = +p;
     return options;
   };
   
   options.loopDistance = function ( p ){
-    if ( !arguments.length ) return loopDistance;
+    if ( !arguments.length ) {return loopDistance;}
     loopDistance = p;
     return options;
   };
   
   options.minMagnification = function ( p ){
-    if ( !arguments.length ) return minMagnification;
+    if ( !arguments.length ) {return minMagnification;}
     minMagnification = +p;
     return options;
   };
   
   options.maxMagnification = function ( p ){
-    if ( !arguments.length ) return maxMagnification;
+    if ( !arguments.length ) {return maxMagnification;}
     maxMagnification = +p;
     return options;
   };
   
   options.scaleNodesByIndividuals = function ( p ){
-    if ( !arguments.length ) return scaleNodesByIndividuals;
+    if ( !arguments.length ) {return scaleNodesByIndividuals;}
     scaleNodesByIndividuals = p;
     return options;
   };
   
   options.selectionModules = function ( p ){
-    if ( !arguments.length ) return selectionModules;
+    if ( !arguments.length ) {return selectionModules;}
     selectionModules = p;
     return options;
   };
   
   options.width = function ( p ){
-    if ( !arguments.length ) return width;
+    if ( !arguments.length ) {return width;}
     width = +p;
     return options;
   };
   
   options.literalFilter = function ( p ){
-    if ( !arguments.length ) return literalFilter;
+    if ( !arguments.length ) {return literalFilter;}
     literalFilter = p;
     return options;
   };
   options.nodeDegreeFilter = function ( p ){
-    if ( !arguments.length ) return nodeDegreeFilter;
+    if ( !arguments.length ) {return nodeDegreeFilter;}
     nodeDegreeFilter = p;
     return options;
   };
   
   options.loadingModule = function ( p ){
-    if ( !arguments.length ) return loadingModule;
+    if ( !arguments.length ) {return loadingModule;}
     loadingModule = p;
     return options;
   };
@@ -602,17 +602,17 @@ module.exports = function (){
   // define url loadable options;
   // update all set values in the default object
   options.setOptionsFromURL = function ( opts, changeEditFlag ){
-    if ( opts.sidebar !== undefined ) sidebar.showSidebar(parseInt(opts.sidebar), true);
+    if ( opts.sidebar !== undefined ) {sidebar.showSidebar(parseInt(opts.sidebar), true);}
     if ( opts.doc ) {
-      var asInt = parseInt(opts.doc);
+      const asInt = parseInt(opts.doc);
       filterMenu.setDegreeSliderValue(asInt);
       graphObject.setGlobalDOF(asInt);
       // reset the value to be -1;
       defaultOptionsConfig.doc = -1;
     }
-    var settingFlag = false;
+    let settingFlag = false;
     if ( opts.editorMode ) {
-      if ( opts.editorMode === "true" ) settingFlag = true;
+      if ( opts.editorMode === "true" ) {settingFlag = true;}
       d3.select("#editorModeModuleCheckbox").node().checked = settingFlag;
       
       if ( changeEditFlag && changeEditFlag === true ) {
@@ -631,17 +631,17 @@ module.exports = function (){
       options.datatypeDistance(opts.dd);
       defaultOptionsConfig.cd = opts.cd;
     }
-    if ( opts.cd || opts.dd ) options.gravityMenu().reset(); // reset the values so the slider is updated;
+    if ( opts.cd || opts.dd ) {options.gravityMenu().reset();} // reset the values so the slider is updated;
     
     
     settingFlag = false;
     if ( opts.filter_datatypes ) {
-      if ( opts.filter_datatypes === "true" ) settingFlag = true;
+      if ( opts.filter_datatypes === "true" ) {settingFlag = true;}
       filterMenu.setCheckBoxValue("datatypeFilterCheckbox", settingFlag);
       defaultOptionsConfig.filter_datatypes = opts.filter_datatypes;
     }
     if ( opts.debugFeatures ) {
-      if ( opts.debugFeatures === "true" ) settingFlag = true;
+      if ( opts.debugFeatures === "true" ) {settingFlag = true;}
       hideDebugOptions = settingFlag;
       if ( options.getHideDebugFeatures() === false ) {
         options.executeHiddenDebugFeatuers();
@@ -651,25 +651,25 @@ module.exports = function (){
     
     settingFlag = false;
     if ( opts.filter_objectProperties ) {
-      if ( opts.filter_objectProperties === "true" ) settingFlag = true;
+      if ( opts.filter_objectProperties === "true" ) {settingFlag = true;}
       filterMenu.setCheckBoxValue("objectPropertyFilterCheckbox", settingFlag);
       defaultOptionsConfig.filter_objectProperties = opts.filter_objectProperties;
     }
     settingFlag = false;
     if ( opts.filter_sco ) {
-      if ( opts.filter_sco === "true" ) settingFlag = true;
+      if ( opts.filter_sco === "true" ) {settingFlag = true;}
       filterMenu.setCheckBoxValue("subclassFilterCheckbox", settingFlag);
       defaultOptionsConfig.filter_sco = opts.filter_sco;
     }
     settingFlag = false;
     if ( opts.filter_disjoint ) {
-      if ( opts.filter_disjoint === "true" ) settingFlag = true;
+      if ( opts.filter_disjoint === "true" ) {settingFlag = true;}
       filterMenu.setCheckBoxValue("disjointFilterCheckbox", settingFlag);
       defaultOptionsConfig.filter_disjoint = opts.filter_disjoint;
     }
     settingFlag = false;
     if ( opts.filter_setOperator ) {
-      if ( opts.filter_setOperator === "true" ) settingFlag = true;
+      if ( opts.filter_setOperator === "true" ) {settingFlag = true;}
       filterMenu.setCheckBoxValue("setoperatorFilterCheckbox", settingFlag);
       defaultOptionsConfig.filter_setOperator = opts.filter_setOperator;
     }
@@ -678,7 +678,7 @@ module.exports = function (){
     // modesMenu
     settingFlag = false;
     if ( opts.mode_dynamic ) {
-      if ( opts.mode_dynamic === "true" ) settingFlag = true;
+      if ( opts.mode_dynamic === "true" ) {settingFlag = true;}
       modeMenu.setDynamicLabelWidth(settingFlag);
       dynamicLabelWidth = settingFlag;
       defaultOptionsConfig.mode_dynamic = opts.mode_dynamic;
@@ -691,35 +691,35 @@ module.exports = function (){
     
     settingFlag = false;
     if ( opts.mode_pnp ) {
-      if ( opts.mode_pnp === "true" ) settingFlag = true;
+      if ( opts.mode_pnp === "true" ) {settingFlag = true;}
       modeMenu.setCheckBoxValue("pickandpinModuleCheckbox", settingFlag);
       defaultOptionsConfig.mode_pnp = opts.mode_pnp;
     }
     
     settingFlag = false;
     if ( opts.mode_scaling ) {
-      if ( opts.mode_scaling === "true" ) settingFlag = true;
+      if ( opts.mode_scaling === "true" ) {settingFlag = true;}
       modeMenu.setCheckBoxValue("nodescalingModuleCheckbox", settingFlag);
       defaultOptionsConfig.mode_scaling = opts.mode_scaling;
     }
     
     settingFlag = false;
     if ( opts.mode_compact ) {
-      if ( opts.mode_compact === "true" ) settingFlag = true;
+      if ( opts.mode_compact === "true" ) {settingFlag = true;}
       modeMenu.setCheckBoxValue("compactnotationModuleCheckbox", settingFlag);
       defaultOptionsConfig.mode_compact = opts.mode_compact;
     }
     
     settingFlag = false;
     if ( opts.mode_colorExt ) {
-      if ( opts.mode_colorExt === "true" ) settingFlag = true;
+      if ( opts.mode_colorExt === "true" ) {settingFlag = true;}
       modeMenu.setCheckBoxValue("colorexternalsModuleCheckbox", settingFlag);
       defaultOptionsConfig.mode_colorExt = opts.mode_colorExt;
     }
     
     settingFlag = false;
     if ( opts.mode_multiColor ) {
-      if ( opts.mode_multiColor === "true" ) settingFlag = true;
+      if ( opts.mode_multiColor === "true" ) {settingFlag = true;}
       modeMenu.setColorSwitchStateUsingURL(settingFlag);
       defaultOptionsConfig.mode_multiColor = opts.mode_multiColor;
     }

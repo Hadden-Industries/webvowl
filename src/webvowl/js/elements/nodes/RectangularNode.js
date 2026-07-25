@@ -1,35 +1,35 @@
-var BaseNode = require("./BaseNode");
-var CenteringTextElement = require("../../util/CenteringTextElement");
-var drawTools = require("../drawTools")();
-var rectangularElementTools = require("../rectangularElementTools")();
+const BaseNode = require("./BaseNode");
+const CenteringTextElement = require("../../util/CenteringTextElement");
+const drawTools = require("../drawTools")();
+const rectangularElementTools = require("../rectangularElementTools")();
 
 module.exports = (function (){
   
-  var o = function ( graph ){
+  const o = function ( graph ){
     BaseNode.apply(this, arguments);
     
-    var that = this,
-      height = 20,
-      width = 60,
-      pinGroupElement,
-      haloGroupElement,
-      labelWidth = 80,
-      myWidth = 80,
-      defaultWidth = 80,
-      shapeElement,
-      textBlock,
-      smallestRadius = height / 2;
+    const that = this;
+    let height = 20;
+    let width = 60;
+    let pinGroupElement;
+    let haloGroupElement;
+    let labelWidth = 80;
+    let myWidth = 80;
+    const defaultWidth = 80;
+    let shapeElement;
+    let textBlock;
+    const smallestRadius = height / 2;
     
     that.renderType("rect");
     // Properties
     this.height = function ( p ){
-      if ( !arguments.length ) return height;
+      if ( !arguments.length ) {return height;}
       height = p;
       return this;
     };
     
     this.width = function ( p ){
-      if ( !arguments.length ) return width;
+      if ( !arguments.length ) {return width;}
       width = p;
       return this;
     };
@@ -51,9 +51,9 @@ module.exports = (function (){
     this.setHoverHighlighting = function ( enable ){
       that.nodeElement().selectAll("rect").classed("hovered", enable);
       
-      var haloGroup = that.getHalos();
+      const haloGroup = that.getHalos();
       if ( haloGroup ) {
-        var test = haloGroup.selectAll(".searchResultA");
+        const test = haloGroup.selectAll(".searchResultA");
         test.classed("searchResultA", false);
         test.classed("searchResultB", true);
       }
@@ -73,14 +73,14 @@ module.exports = (function (){
     
     this.getMyWidth = function (){
       // use a simple heuristic
-      var text = that.labelForCurrentLanguage();
+      const text = that.labelForCurrentLanguage();
       myWidth = measureTextWidth(text, "text") + 20;
       
       // check for sub names;
-      var indicatorText = that.indicationString();
-      var indicatorWidth = measureTextWidth(indicatorText, "subtext") + 20;
+      const indicatorText = that.indicationString();
+      const indicatorWidth = measureTextWidth(indicatorText, "subtext") + 20;
       if ( indicatorWidth > myWidth )
-        myWidth = indicatorWidth;
+        {myWidth = indicatorWidth;}
       
       return myWidth;
     };
@@ -93,7 +93,7 @@ module.exports = (function (){
       if ( !textStyle ) {
         textStyle = "text";
       }
-      var d = d3.select("body")
+      const d = d3.select("body")
           .append("div")
           .attr("class", textStyle)
           .attr("id", "width-test") // tag this element to identify it
@@ -117,7 +117,7 @@ module.exports = (function (){
      * @param [additionalCssClasses] additional css classes
      */
     this.draw = function ( parentElement, additionalCssClasses ){
-      var cssClasses = that.collectCssClasses();
+      let cssClasses = that.collectCssClasses();
       
       that.nodeElement(parentElement);
       
@@ -127,8 +127,8 @@ module.exports = (function (){
       
       // set the value for that.width()
       // update labelWidth Value;
-      if ( graph.options().dynamicLabelWidth() === true ) labelWidth = Math.min(that.getMyWidth(), graph.options().maxLabelWidth());
-      else                              labelWidth = defaultWidth;
+      if ( graph.options().dynamicLabelWidth() === true ) {labelWidth = Math.min(that.getMyWidth(), graph.options().maxLabelWidth());}
+      else                              {labelWidth = defaultWidth;}
       
       width = labelWidth;
       shapeElement = drawTools.appendRectangularClass(parentElement, that.width(), that.height(), cssClasses, that.labelForCurrentLanguage(), that.backgroundColor());
@@ -152,7 +152,7 @@ module.exports = (function (){
       // else                							labelWidth=defaultWidth;
       // width=labelWidth;
       // console.log("this element label Width is "+labelWidth);
-      var dx = -0.5 * labelWidth + 5,
+      const dx = -0.5 * labelWidth + 5,
         dy = -1.1 * height;
       
       pinGroupElement = drawTools.drawPin(that.nodeElement(), dx, dy, this.removePin, graph.options().showDraggerObject, graph.options().useAccuracyHelper());
@@ -178,19 +178,19 @@ module.exports = (function (){
     this.drawHalo = function ( pulseAnimation ){
       that.halo(true);
       
-      var offset = 0;
+      const offset = 0;
       haloGroupElement = drawTools.drawRectHalo(that, this.width(), this.height(), offset);
       
       if ( pulseAnimation === false ) {
-        var pulseItem = haloGroupElement.selectAll(".searchResultA");
+        const pulseItem = haloGroupElement.selectAll(".searchResultA");
         pulseItem.classed("searchResultA", false);
         pulseItem.classed("searchResultB", true);
         pulseItem.attr("animationRunning", false);
       }
       
       if ( that.pinned() ) {
-        var selectedNode = pinGroupElement.node();
-        var nodeContainer = selectedNode.parentNode;
+        const selectedNode = pinGroupElement.node();
+        const nodeContainer = selectedNode.parentNode;
         nodeContainer.appendChild(selectedNode);
       }
       
@@ -215,7 +215,7 @@ module.exports = (function (){
     
     this.animateDynamicLabelWidth = function ( dynamic ){
       that.removeHalo();
-      var height = that.height();
+      const height = that.height();
       if ( dynamic === true ) {
         labelWidth = Math.min(that.getMyWidth(), graph.options().maxLabelWidth());
         shapeElement.transition().tween("attr", function (){
@@ -241,7 +241,7 @@ module.exports = (function (){
       // for the pin we dont need to differ between different widths -- they are already set
       if ( that.pinned() === true && pinGroupElement ) {
         
-        var dx = 0.5 * labelWidth - 10,
+        const dx = 0.5 * labelWidth - 10,
           dy = -1.1 * height;
         
         pinGroupElement.transition()
@@ -254,7 +254,7 @@ module.exports = (function (){
     };
     
     this.addTextLabelElement = function (){
-      var parentElement = that.nodeElement();
+      const parentElement = that.nodeElement();
       textBlock = new CenteringTextElement(parentElement, this.backgroundColor());
       textBlock.addText(that.labelForCurrentLanguage());
     };

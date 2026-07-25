@@ -1,8 +1,8 @@
-var OwlDisjointWith = require("./elements/properties/implementations/OwlDisjointWith");
-var attributeParser = require("./parsing/attributeParser")();
-var equivalentPropertyMerger = require("./parsing/equivalentPropertyMerger")();
-var nodePrototypeMap = require("./elements/nodes/nodeMap")();
-var propertyPrototypeMap = require("./elements/properties/propertyMap")();
+const OwlDisjointWith = require("./elements/properties/implementations/OwlDisjointWith");
+const attributeParser = require("./parsing/attributeParser")();
+const equivalentPropertyMerger = require("./parsing/equivalentPropertyMerger")();
+const nodePrototypeMap = require("./elements/nodes/nodeMap")();
+const propertyPrototypeMap = require("./elements/properties/propertyMap")();
 
 /**
  * Encapsulates the parsing and preparation logic of the input data.
@@ -10,8 +10,8 @@ var propertyPrototypeMap = require("./elements/properties/propertyMap")();
  * @returns {{}}
  */
 module.exports = function ( graph ){
-  var parser = {},
-    nodes,
+  const parser = {};
+  let nodes,
     properties,
     classMap,
     settingsData,
@@ -46,30 +46,30 @@ module.exports = function ( graph ){
     /** global settings **********************************************************/
     if ( settingsData.global ) {
       if ( settingsData.global.zoom ) {
-        var zoomFactor = settingsData.global.zoom;
+        const zoomFactor = settingsData.global.zoom;
         graph.setZoom(zoomFactor);
         settingsImportGraphZoomAndTranslation = true;
       }
       
       if ( settingsData.global.translation ) {
-        var translation = settingsData.global.translation;
+        const translation = settingsData.global.translation;
         graph.setTranslation(translation);
         settingsImportGraphZoomAndTranslation = true;
       }
       
       if ( settingsData.global.paused ) {
-        var paused = settingsData.global.paused;
+        const paused = settingsData.global.paused;
         graph.options().pausedMenu().setPauseValue(paused);
       }
     }
     /** Gravity Settings  **********************************************************/
     if ( settingsData.gravity ) {
       if ( settingsData.gravity.classDistance ) {
-        var classDistance = settingsData.gravity.classDistance;
+        const classDistance = settingsData.gravity.classDistance;
         graph.options().classDistance(classDistance);
       }
       if ( settingsData.gravity.datatypeDistance ) {
-        var datatypeDistance = settingsData.gravity.datatypeDistance;
+        const datatypeDistance = settingsData.gravity.datatypeDistance;
         graph.options().datatypeDistance(datatypeDistance);
       }
       graph.options().gravityMenu().reset(); // reads the options values and sets the gui values
@@ -78,14 +78,14 @@ module.exports = function ( graph ){
     
     // shared variable declaration
     
-    var i;
-    var id;
-    var checked;
+    let i;
+    let id;
+    let checked;
     /** Filter Settings **********************************************************/
     if ( settingsData.filter ) {
       // checkbox settings
       if ( settingsData.filter.checkBox ) {
-        var filter_cb = settingsData.filter.checkBox;
+        const filter_cb = settingsData.filter.checkBox;
         for ( i = 0; i < filter_cb.length; i++ ) {
           id = filter_cb[i].id;
           checked = filter_cb[i].checked;
@@ -94,7 +94,7 @@ module.exports = function ( graph ){
       }
       // node degree filter settings
       if ( settingsData.filter.degreeSliderValue ) {
-        var degreeSliderValue = settingsData.filter.degreeSliderValue;
+        const degreeSliderValue = settingsData.filter.degreeSliderValue;
         graph.options().filterMenu().setDegreeSliderValue(degreeSliderValue);
       }
       graph.options().filterMenu().updateSettings();
@@ -104,7 +104,7 @@ module.exports = function ( graph ){
     if ( settingsData.modes ) {
       // checkbox settings
       if ( settingsData.modes.checkBox ) {
-        var modes_cb = settingsData.modes.checkBox;
+        const modes_cb = settingsData.modes.checkBox;
         for ( i = 0; i < modes_cb.length; i++ ) {
           id = modes_cb[i].id;
           checked = modes_cb[i].checked;
@@ -112,7 +112,7 @@ module.exports = function ( graph ){
         }
       }
       // color switch settings
-      var state = settingsData.modes.colorSwitchState;
+      const state = settingsData.modes.colorSwitchState;
       // state could be undefined
       if ( state === true || state === false ) {
         graph.options().modeMenu().setColorSwitchState(state);
@@ -135,18 +135,17 @@ module.exports = function ( graph ){
       return;
     }
     dictionary = [];
-    if ( ontologyData.settings ) settingsData = ontologyData.settings;
-    else settingsData = undefined;
+    if ( ontologyData.settings ) {settingsData = ontologyData.settings;}
+    else {settingsData = undefined;}
     
-    var classes = combineClasses(ontologyData.class, ontologyData.classAttribute),
-      datatypes = combineClasses(ontologyData.datatype, ontologyData.datatypeAttribute),
-      combinedClassesAndDatatypes = classes.concat(datatypes),
-      unparsedProperties = ontologyData.property || [],
-      combinedProperties;
-    
+    const classes = combineClasses(ontologyData.class, ontologyData.classAttribute);
+    const datatypes = combineClasses(ontologyData.datatype, ontologyData.datatypeAttribute);
+    const combinedClassesAndDatatypes = classes.concat(datatypes);
+    const unparsedProperties = ontologyData.property || [];
+
     // Inject properties for unions, intersections, ...
     addSetOperatorProperties(combinedClassesAndDatatypes, unparsedProperties);
-    combinedProperties = combineProperties(unparsedProperties, ontologyData.propertyAttribute);
+    const combinedProperties = combineProperties(unparsedProperties, ontologyData.propertyAttribute);
     classMap = mapElements(combinedClassesAndDatatypes);
     propertyMap = mapElements(combinedProperties);
     mergeRangesOfEquivalentProperties(combinedProperties, combinedClassesAndDatatypes);
@@ -177,17 +176,17 @@ module.exports = function ( graph ){
    * attributes defined in the base of the prototype.
    */
   function combineClasses( baseObjects, attributes ){
-    var combinations = [];
-    var prototypeMap = createLowerCasePrototypeMap(nodePrototypeMap);
+    const combinations = [];
+    const prototypeMap = createLowerCasePrototypeMap(nodePrototypeMap);
     
     if ( baseObjects ) {
       baseObjects.forEach(function ( element ){
-        var matchingAttribute;
+        let matchingAttribute;
         
         if ( attributes ) {
           // Look for an attribute with the same id and merge them
-          for ( var i = 0; i < attributes.length; i++ ) {
-            var attribute = attributes[i];
+          for ( let i = 0; i < attributes.length; i++ ) {
+            const attribute = attributes[i];
             if ( element.id === attribute.id ) {
               matchingAttribute = attribute;
               break;
@@ -197,12 +196,12 @@ module.exports = function ( graph ){
         }
         
         // Then look for a prototype to add its properties
-        var Prototype = prototypeMap.get(element.type.toLowerCase());
+        const Prototype = prototypeMap.get(element.type.toLowerCase());
         
         if ( Prototype ) {
           addAdditionalAttributes(element, Prototype); // TODO might be unnecessary
           
-          var node = new Prototype(graph);
+          const node = new Prototype(graph);
           node.annotations(element.annotations)
             .baseIri(element.baseIri)
             .comment(element.comment)
@@ -223,7 +222,7 @@ module.exports = function ( graph ){
             node.py = node.y;
           }
           //class element pin
-          var elementPinned = element.pinned;
+          const elementPinned = element.pinned;
           if ( elementPinned === true ) {
             node.pinned(true);
             graph.options().pickAndPinModule().addPinnedElement(node);
@@ -231,7 +230,7 @@ module.exports = function ( graph ){
           // Create node objects for all individuals
           if ( element.individuals ) {
             element.individuals.forEach(function ( individual ){
-              var individualNode = new Prototype(graph);
+              const individualNode = new Prototype(graph);
               individualNode.label(individual.labels)
                 .iri(individual.iri);
               
@@ -240,7 +239,7 @@ module.exports = function ( graph ){
           }
           
           if ( element.attributes ) {
-            var deduplicatedAttributes = new Set(element.attributes.concat(node.attributes()));
+            const deduplicatedAttributes = new Set(element.attributes.concat(node.attributes()));
             node.attributes(Array.from(deduplicatedAttributes));
           }
           combinations.push(node);
@@ -254,17 +253,17 @@ module.exports = function ( graph ){
   }
   
   function combineProperties( baseObjects, attributes ){
-    var combinations = [];
-    var prototypeMap = createLowerCasePrototypeMap(propertyPrototypeMap);
+    const combinations = [];
+    const prototypeMap = createLowerCasePrototypeMap(propertyPrototypeMap);
     
     if ( baseObjects ) {
       baseObjects.forEach(function ( element ){
-        var matchingAttribute;
+        let matchingAttribute;
         
         if ( attributes ) {
           // Look for an attribute with the same id and merge them
-          for ( var i = 0; i < attributes.length; i++ ) {
-            var attribute = attributes[i];
+          for ( let i = 0; i < attributes.length; i++ ) {
+            const attribute = attributes[i];
             if ( element.id === attribute.id ) {
               matchingAttribute = attribute;
               break;
@@ -274,11 +273,11 @@ module.exports = function ( graph ){
         }
         
         // Then look for a prototype to add its properties
-        var Prototype = prototypeMap.get(element.type.toLowerCase());
+        const Prototype = prototypeMap.get(element.type.toLowerCase());
         
         if ( Prototype ) {
           // Create the matching object and set the properties
-          var property = new Prototype(graph);
+          const property = new Prototype(graph);
           property.annotations(element.annotations)
             .baseIri(element.baseIri)
             .cardinality(element.cardinality)
@@ -304,7 +303,7 @@ module.exports = function ( graph ){
             property.px = element.pos[0];
             property.py = element.pos[1];
           }
-          var elementPinned = element.pinned;
+          const elementPinned = element.pinned;
           if ( elementPinned === true ) {
             property.pinned(true);
             graph.options().pickAndPinModule().addPinnedElement(property);
@@ -312,7 +311,7 @@ module.exports = function ( graph ){
           
           
           if ( element.attributes ) {
-            var deduplicatedAttributes = new Set(element.attributes.concat(property.attributes()));
+            const deduplicatedAttributes = new Set(element.attributes.concat(property.attributes()));
             property.attributes(Array.from(deduplicatedAttributes));
           }
           combinations.push(property);
@@ -334,7 +333,7 @@ module.exports = function ( graph ){
   
   function mergeRangesOfEquivalentProperties( properties, nodes ){
     // pass clones of arrays into the merger to keep the current functionality of this module
-    var newNodes = equivalentPropertyMerger.merge(properties.slice(), nodes.slice(), propertyMap, classMap, graph);
+    const newNodes = equivalentPropertyMerger.merge(properties.slice(), nodes.slice(), propertyMap, classMap, graph);
     
     // replace all the existing nodes and map the nodes again
     nodes.length = 0;
@@ -350,10 +349,10 @@ module.exports = function ( graph ){
    * because it is not necessary.
    */
   function createNodeStructure( rawNodes, classMap ){
-    var nodes = [];
+    const nodes = [];
     
     // Set the default values
-    var maxIndividualCount = 0;
+    let maxIndividualCount = 0;
     rawNodes.forEach(function ( node ){
       maxIndividualCount = Math.max(maxIndividualCount, node.individuals().length);
       node.visible(true);
@@ -387,7 +386,7 @@ module.exports = function ( graph ){
       return;
     }
     
-    var domain = property.domain(),
+    const domain = property.domain(),
       range = property.range();
     
     // Check the domain.
@@ -414,7 +413,7 @@ module.exports = function ( graph ){
    * @param propertyMap the properties in a map
    */
   function createPropertyStructure( rawProperties, classMap, propertyMap ){
-    var properties = [];
+    const properties = [];
     // Set default values
     rawProperties.forEach(function ( property ){
       property.visible(true);
@@ -422,7 +421,7 @@ module.exports = function ( graph ){
     
     // Connect properties
     rawProperties.forEach(function ( property ){
-      var domain,
+      let domain,
         range,
         domainObject,
         rangeObject,
@@ -432,7 +431,7 @@ module.exports = function ( graph ){
        inverse properties with optional inverse and optional domain and range attributes */
       if ( (property.domain() && property.range()) || property.inverse() ) {
         
-        var inversePropertyId = findId(property.inverse());
+        const inversePropertyId = findId(property.inverse());
         // Look if an inverse property exists
         if ( inversePropertyId ) {
           inverse = propertyMap[inversePropertyId];
@@ -489,7 +488,7 @@ module.exports = function ( graph ){
     // Add additional information to the properties
     rawProperties.forEach(function ( property ){
       // Properties of merged classes should point to/from the visible equivalent class
-      var propertyWasRerouted = false;
+      let propertyWasRerouted = false;
       
       if ( property.domain() === undefined ) {
         return;
@@ -507,7 +506,7 @@ module.exports = function ( graph ){
         propertyWasRerouted = true;
       }
       // But there should not be two equal properties between the same domain and range
-      var equalProperty = getOtherEqualProperty(rawProperties, property);
+      const equalProperty = getOtherEqualProperty(rawProperties, property);
       
       if ( propertyWasRerouted && equalProperty ) {
         property.visible(false);
@@ -529,15 +528,15 @@ module.exports = function ( graph ){
   }
   
   function referenceSubOrSuperProperties( subOrSuperPropertiesArray ){
-    var i, l;
+    let i, l;
     
     if ( !subOrSuperPropertiesArray ) {
       return;
     }
     
     for ( i = 0, l = subOrSuperPropertiesArray.length; i < l; ++i ) {
-      var subOrSuperPropertyId = findId(subOrSuperPropertiesArray[i]);
-      var subOrSuperProperty = propertyMap[subOrSuperPropertyId];
+      const subOrSuperPropertyId = findId(subOrSuperPropertiesArray[i]);
+      const subOrSuperProperty = propertyMap[subOrSuperPropertyId];
       
       if ( subOrSuperProperty ) {
         // Replace id with object
@@ -553,7 +552,7 @@ module.exports = function ( graph ){
   }
   
   function getOtherEqualProperty( properties, referenceProperty ){
-    var i, l, property;
+    let i, l, property;
     
     for ( i = 0, l = properties.length; i < l; i++ ) {
       property = properties[i];
@@ -592,7 +591,7 @@ module.exports = function ( graph ){
       }
       
       rangeIds.forEach(function ( rangeId, index ){
-        var property = {
+        const property = {
           id: "GENERATED-" + operatorType + "-" + domainId + "-" + rangeId + "-" + index,
           type: "setOperatorProperty",
           domain: domainId,
@@ -618,16 +617,16 @@ module.exports = function ( graph ){
    * @param elementMap a map where nodes/properties can be looked up
    */
   function processEquivalentIds( element, elementMap ){
-    var eqIds = element.equivalents();
+    const eqIds = element.equivalents();
     
     if ( !eqIds || element.equivalentBase() ) {
       return;
     }
     
     // Replace ids with the corresponding objects
-    for ( var i = 0, l = eqIds.length; i < l; ++i ) {
-      var eqId = findId(eqIds[i]);
-      var eqObject = elementMap[eqId];
+    for ( let i = 0, l = eqIds.length; i < l; ++i ) {
+      const eqId = findId(eqIds[i]);
+      const eqObject = elementMap[eqId];
       
       if ( eqObject ) {
         // Cross reference both objects
@@ -663,9 +662,9 @@ module.exports = function ( graph ){
    * @returns {{}}
    */
   function mapElements( array ){
-    var map = {};
-    for ( var i = 0, length = array.length; i < length; i++ ) {
-      var element = array[i];
+    const map = {};
+    for ( let i = 0, length = array.length; i < length; i++ ) {
+      const element = array[i];
       map[element.id()] = element;
     }
     return map;
@@ -683,9 +682,9 @@ module.exports = function ( graph ){
     // Check for an undefined value
     addition = addition || {};
     
-    for ( var addAttribute in addition ) {
+    for ( const addAttribute in addition ) {
       // Add the attribute if it doesn't exist
-      if ( !(addAttribute in base) && addition.hasOwnProperty(addAttribute) ) {
+      if ( !(addAttribute in base) && Object.prototype.hasOwnProperty.call(addition, addAttribute) ) {
         base[addAttribute] = addition[addAttribute];
       }
     }
@@ -699,14 +698,14 @@ module.exports = function ( graph ){
    * @returns {string} the processed address with the (possibly) replaced namespace
    */
   function replaceNamespace( address, namespaces ){
-    var separatorIndex = address.indexOf(":");
+    const separatorIndex = address.indexOf(":");
     if ( separatorIndex === -1 ) {
       return address;
     }
-    var namespaceName = address.substring(0, separatorIndex);
+    const namespaceName = address.substring(0, separatorIndex);
     
-    for ( var i = 0, length = namespaces.length; i < length; ++i ) {
-      var namespace = namespaces[i];
+    for ( let i = 0, length = namespaces.length; i < length; ++i ) {
+      const namespace = namespaces[i];
       if ( namespaceName === namespace.name ) {
         return namespace.iri + address.substring(separatorIndex + 1);
       }

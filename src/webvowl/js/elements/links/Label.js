@@ -18,32 +18,32 @@ function Label( property, link ){
   // "Forward" the fixed value set on the property to avoid having to access this container
   Object.defineProperty(this, "fixed", {
     get: function (){
-      var inverseFixed = property.inverse() ? property.inverse().fixed : false;
+      const inverseFixed = property.inverse() ? property.inverse().fixed : false;
       return property.fixed || inverseFixed;
     },
     set: function ( v ){
       property.fixed = v;
-      if ( property.inverse() ) property.inverse().fixed = v;
+      if ( property.inverse() ) {property.inverse().fixed = v;}
     }
   });
   Object.defineProperty(this, "fx", {
     get: function (){
-      var inverseFx = property.inverse() ? property.inverse().fx : null;
+      const inverseFx = property.inverse() ? property.inverse().fx : null;
       return property.fx !== null && property.fx !== undefined ? property.fx : inverseFx;
     },
     set: function ( v ){
       property.fx = v;
-      if ( property.inverse() ) property.inverse().fx = v;
+      if ( property.inverse() ) {property.inverse().fx = v;}
     }
   });
   Object.defineProperty(this, "fy", {
     get: function (){
-      var inverseFy = property.inverse() ? property.inverse().fy : null;
+      const inverseFy = property.inverse() ? property.inverse().fy : null;
       return property.fy !== null && property.fy !== undefined ? property.fy : inverseFy;
     },
     set: function ( v ){
       property.fy = v;
-      if ( property.inverse() ) property.inverse().fy = v;
+      if ( property.inverse() ) {property.inverse().fy = v;}
     }
   });
   this.frozen = property.frozen;
@@ -68,10 +68,10 @@ Label.prototype.equals = function ( other ){
     return false;
   }
   
-  var instance = other instanceof Label;
-  var equalProperty = this.property().equals(other.property());
+  const instance = other instanceof Label;
+  const equalProperty = this.property().equals(other.property());
   
-  var equalInverse = false;
+  let equalInverse = false;
   if ( this.inverse() ) {
     equalInverse = this.inverse().equals(other.inverse());
   } else if ( !other.inverse() ) {

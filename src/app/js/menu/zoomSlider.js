@@ -1,18 +1,17 @@
 /** The zoom Slider **/
 module.exports = function ( graph ){
-  var zoomSlider = {};
-  var minMag = graph.options().minMagnification(),
-    maxMag = graph.options().maxMagnification(),
-    defZoom,
-    t_zoomOut,
-    t_zoomIn,
-    zoomValue,
-    showSlider = true,
-    w = graph.options().width(),
-    h = graph.options().height(),
-    slider;
+  const zoomSlider = {};
+  const minMag = graph.options().minMagnification();
+  const maxMag = graph.options().maxMagnification();
+  let t_zoomOut;
+  let t_zoomIn;
+  let zoomValue;
+  let showSlider = true;
+  const w = graph.options().width();
+  const h = graph.options().height();
+  let slider;
   
-  defZoom = Math.min(w, h) / 1000;
+  const defZoom = Math.min(w, h) / 1000;
   
   function clearAllTimers(){
     cancelAnimationFrame(t_zoomOut);
@@ -54,18 +53,18 @@ module.exports = function ( graph ){
       });
     
     function handleContainerTouch(event){
-      if ( !event || !event.touches || event.touches.length === 0 ) return;
-      var touch = event.touches[0];
-      var container = d3.select("#zoomSliderParagraph").node();
-      if ( !container ) return;
-      var rect = container.getBoundingClientRect();
-      var touchY = touch.clientY;
-      var fraction = (rect.bottom - touchY) / rect.height;
+      if ( !event || !event.touches || event.touches.length === 0 ) {return;}
+      const touch = event.touches[0];
+      const container = d3.select("#zoomSliderParagraph").node();
+      if ( !container ) {return;}
+      const rect = container.getBoundingClientRect();
+      const touchY = touch.clientY;
+      let fraction = (rect.bottom - touchY) / rect.height;
       fraction = Math.max(0, Math.min(1, fraction));
-      var newZoom = minMag + fraction * (maxMag - minMag);
+      const newZoom = minMag + fraction * (maxMag - minMag);
       slider.node().value = newZoom;
       zoomSlider.zooming();
-      if ( event.cancelable ) event.preventDefault();
+      if ( event.cancelable ) {event.preventDefault();}
     }
 
     d3.select("#zoomSliderParagraph")
@@ -110,14 +109,14 @@ module.exports = function ( graph ){
   };
   
   zoomSlider.showSlider = function ( val ){
-    if ( !arguments.length ) return showSlider;
+    if ( !arguments.length ) {return showSlider;}
     d3.select("#zoomSlider").classed("hidden", !val);
     showSlider = val;
   };
   
   zoomSlider.zooming = function (){
     graph.options().navigationMenu().hideAllMenus();
-    var zoomValue = slider.property("value");
+    const zoomValue = slider.property("value");
     slider.attr("value", zoomValue);
     graph.setSliderZoom(zoomValue);
   };

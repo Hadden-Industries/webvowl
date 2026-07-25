@@ -26,7 +26,7 @@ export class PerformanceIriResolver {
    */
   resolve(iri, baseIri) {
     const activeBase = baseIri || this.#ontologyBaseIri;
-    if (!iri) return activeBase;
+    if (!iri) {return activeBase;}
     
     const cacheKey = baseIri ? baseIri + "|" + iri : iri;
     if (this.#resolvedCache.has(cacheKey)) {
@@ -62,7 +62,7 @@ export class PerformanceIriResolver {
    * @returns {string}
    */
   getLocalName(iri) {
-    if (!iri) return "";
+    if (!iri) {return "";}
     if (this.#localNameCache.has(iri)) {
       return this.#localNameCache.get(iri);
     }
@@ -86,7 +86,7 @@ export class PerformanceIriResolver {
    * @returns {string}
    */
   getBaseIri(iri) {
-    if (!iri) return "";
+    if (!iri) {return "";}
     if (this.#baseIriCache.has(iri)) {
       return this.#baseIriCache.get(iri);
     }

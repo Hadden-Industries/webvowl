@@ -1,56 +1,56 @@
-var BaseElement = require("../BaseElement");
-var forceLayoutNodeFunctions = require("../forceLayoutNodeFunctions")();
+const BaseElement = require("../BaseElement");
+const forceLayoutNodeFunctions = require("../forceLayoutNodeFunctions")();
 
 module.exports = (function (){
   
-  var Base = function ( graph ){
+  const Base = function ( graph ){
     BaseElement.apply(this, arguments);
     
-    var that = this,
-      // Basic attributes
-      complement,
-      disjointUnion,
-      disjointWith,
-      individuals = [],
-      intersection,
-      union,
-      links,
-      rendertype = "round",
-      // Additional attributes
-      maxIndividualCount,
-      fobj, // foreigner object for editing
-      ignoreLocalHoverEvents = false,
-      backupFullIri,
-      // Element containers
-      nodeElement;
+    const that = this;
+    // Basic attributes
+    let complement;
+    let disjointUnion;
+    let disjointWith;
+    let individuals = [];
+    let intersection;
+    let union;
+    let links;
+    let rendertype = "round";
+    // Additional attributes
+    let maxIndividualCount;
+    let fobj; // foreigner object for editing
+    let ignoreLocalHoverEvents = false;
+    let backupFullIri;
+    // Element containers
+    let nodeElement;
     
     // array to store my properties; // we will need this also later for semantic zooming stuff
-    var assignedProperties = [];
+    let assignedProperties = [];
     that.editingTextElement = false;
     
     this.isPropertyAssignedToThisElement = function ( property ){
       // this goes via IRIS
-      console.log("Element IRI :" + property.iri());
+      console.warn("Element IRI :" + property.iri());
       if ( property.type() === "rdfs:subClassOf" )
-        for ( var i = 0; i < assignedProperties.length; i++ ) {
-          var iriEl = assignedProperties[i].iri();
+        {for ( let i = 0; i < assignedProperties.length; i++ ) {
+          const iriEl = assignedProperties[i].iri();
           if ( property.iri() === iriEl ) {
             return true;
           }
           if ( property.type() === "rdfs:subClassOf" && assignedProperties[i].type() === "rdfs:subClassOf" )
-            return true;
+            {return true;}
           if ( property.type() === "owl:disjointWith" && assignedProperties[i].type() === "owl:disjointWith" )
-            return true;
+            {return true;}
           
-        }
+        }}
       return false;
     };
     
     
     this.existingPropertyIRI = function ( url ){
       // this goes via IRIS
-      for ( var i = 0; i < assignedProperties.length; i++ ) {
-        var iriEl = assignedProperties[i].iri();
+      for ( let i = 0; i < assignedProperties.length; i++ ) {
+        const iriEl = assignedProperties[i].iri();
         if ( iriEl === url ) {
           return true;
         }
@@ -79,9 +79,9 @@ module.exports = (function (){
     };
     
     this.copyInformation = function ( other ){
-      console.log(other.labelForCurrentLanguage());
+      console.warn(other.labelForCurrentLanguage());
       if ( other.type() !== "owl:Thing" )
-        that.label(other.label());
+        {that.label(other.label());}
       that.complement(other.complement());
       that.iri(other.iri());
       that.copyOtherProperties(other.getMyProperties());
@@ -97,14 +97,14 @@ module.exports = (function (){
     
     this.enableEditing = function ( autoEditing ){
       if ( autoEditing === false )
-        return;
+        {return;}
       that.raiseDoubleClickEdit(true);
     };
     
     this.raiseDoubleClickEdit = function ( forceIRISync, event ){
       d3.selectAll(".foreignelements").remove();
       if ( nodeElement === undefined || this.type() === "owl:Thing" || this.type() === "rdfs:Literal" ) {
-        console.log("No Container found");
+        console.warn("No Container found");
         return;
       }
       if ( fobj !== undefined ) {
@@ -133,7 +133,7 @@ module.exports = (function (){
         }) // remove drag operations of text element)
         .attr("width", that.textWidth() - 2);
       
-      var editText = fobj.append("xhtml:input")
+      const editText = fobj.append("xhtml:input")
         .attr("class", "nodeEditSpan")
         .attr("id", that.id())
         .attr("align", "center")
@@ -142,8 +142,8 @@ module.exports = (function (){
           return false;
         }); // remove drag operations of text element)
       
-      var bgColor = '#f00';
-      var txtWidth = that.textWidth() - 2;
+      const bgColor = '#f00';
+      const txtWidth = that.textWidth() - 2;
       editText.style({
         
         'align': 'center',
@@ -153,7 +153,7 @@ module.exports = (function (){
         'background-color': bgColor,
         'border-bottom': '2px solid black'
       });
-      var txtNode = editText.node();
+      const txtNode = editText.node();
       txtNode.value = that.labelForCurrentLanguage();
       txtNode.focus();
       txtNode.select();
@@ -186,9 +186,9 @@ module.exports = (function (){
         })
         .on("keyup", function (event){
           if ( forceIRISync ) {
-            var labelName = editText.node().value;
-            var resourceName = labelName.replaceAll(" ", "_");
-            var syncedIRI = that.baseIri() + resourceName;
+            const labelName = editText.node().value;
+            const resourceName = labelName.replaceAll(" ", "_");
+            const syncedIRI = that.baseIri() + resourceName;
             backupFullIri = syncedIRI;
             
             d3.select("#element_iriEditor").node().title = syncedIRI;
@@ -201,7 +201,7 @@ module.exports = (function (){
           that.editingTextElement = false;
           ignoreLocalHoverEvents = false;
           that.nodeElement().selectAll("circle").classed("hoveredForEditing", false);
-          var newLabel = editText.node().value;
+          const newLabel = editText.node().value;
           nodeElement.selectAll(".foreignelements").remove();
           // that.setLabelForCurrentLanguage(classNameConvention(editText.node().value));
           that.label(newLabel);
@@ -212,7 +212,7 @@ module.exports = (function (){
           graph.ignoreOtherHoverEvents(false);
           // console.log("Calling blur on Node!");
           if ( backupFullIri ) {
-            var sanityCheckResult = graph.checkIfIriClassAlreadyExist(backupFullIri);
+            const sanityCheckResult = graph.checkIfIriClassAlreadyExist(backupFullIri);
             if ( sanityCheckResult === false ) {
               that.iri(backupFullIri);
             } else {
@@ -232,61 +232,61 @@ module.exports = (function (){
     
     
     this.renderType = function ( t ){
-      if ( !arguments.length ) return rendertype;
+      if ( !arguments.length ) {return rendertype;}
       rendertype = t;
       return this;
     };
     // Properties
     this.complement = function ( p ){
-      if ( !arguments.length ) return complement;
+      if ( !arguments.length ) {return complement;}
       complement = p;
       return this;
     };
     
     this.disjointUnion = function ( p ){
-      if ( !arguments.length ) return disjointUnion;
+      if ( !arguments.length ) {return disjointUnion;}
       disjointUnion = p;
       return this;
     };
     
     this.disjointWith = function ( p ){
-      if ( !arguments.length ) return disjointWith;
+      if ( !arguments.length ) {return disjointWith;}
       disjointWith = p;
       return this;
     };
     
     this.individuals = function ( p ){
-      if ( !arguments.length ) return individuals;
+      if ( !arguments.length ) {return individuals;}
       individuals = p || [];
       return this;
     };
     
     this.intersection = function ( p ){
-      if ( !arguments.length ) return intersection;
+      if ( !arguments.length ) {return intersection;}
       intersection = p;
       return this;
     };
     
     this.links = function ( p ){
-      if ( !arguments.length ) return links;
+      if ( !arguments.length ) {return links;}
       links = p;
       return this;
     };
     
     this.maxIndividualCount = function ( p ){
-      if ( !arguments.length ) return maxIndividualCount;
+      if ( !arguments.length ) {return maxIndividualCount;}
       maxIndividualCount = p;
       return this;
     };
     
     this.nodeElement = function ( p ){
-      if ( !arguments.length ) return nodeElement;
+      if ( !arguments.length ) {return nodeElement;}
       nodeElement = p;
       return this;
     };
     
     this.union = function ( p ){
-      if ( !arguments.length ) return union;
+      if ( !arguments.length ) {return union;}
       union = p;
       return this;
     };
@@ -297,7 +297,7 @@ module.exports = (function (){
      * @returns {Array}
      */
     that.collectCssClasses = function (){
-      var cssClasses = [];
+      let cssClasses = [];
       
       if ( typeof that.styleClass() === "string" ) {
         cssClasses.push(that.styleClass());
@@ -323,10 +323,10 @@ module.exports = (function (){
     };
     
     this.animationProcess = function (){
-      var animRuns = false;
+      let animRuns = false;
       if ( that.getHalos() ) {
-        var haloGr = that.getHalos();
-        var haloEls = haloGr.selectAll(".searchResultA");
+        const haloGr = that.getHalos();
+        const haloEls = haloGr.selectAll(".searchResultA");
         animRuns = haloGr.attr("animationRunning");
         if ( typeof animRuns !== "boolean" ) {
           // parse this to a boolean value
@@ -341,7 +341,7 @@ module.exports = (function (){
     };
     
     this.foreground = function (){
-      var selectedNode = that.nodeElement().node(),
+      const selectedNode = that.nodeElement().node(),
         nodeContainer = selectedNode.parentNode;
       // check if the halo is present and an animation is running
       if ( that.animationProcess() === false ) {
@@ -356,7 +356,7 @@ module.exports = (function (){
         return;
       }
       
-      var selectedNode = that.nodeElement().node(),
+      const selectedNode = that.nodeElement().node(),
         nodeContainer = selectedNode.parentNode;
       
       // Append hovered element as last child to the container list.

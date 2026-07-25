@@ -1,11 +1,11 @@
-var DatatypeNode = require("../DatatypeNode");
+const DatatypeNode = require("../DatatypeNode");
 
 module.exports = (function (){
   
-  var o = function ( graph ){
+  const o = function ( graph ){
     DatatypeNode.apply(this, arguments);
     
-    var superDrawFunction = this.draw,
+    const superDrawFunction = this.draw,
       superLabelFunction = this.label;
     
     this.attributes(["datatype"])
@@ -19,7 +19,7 @@ module.exports = (function (){
     };
     
     this.label = function ( p ){
-      if ( !arguments.length ) return superLabelFunction();
+      if ( !arguments.length ) {return superLabelFunction();}
       return this;
     };
   };

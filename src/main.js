@@ -11,9 +11,9 @@
  */
 
 // Import both library entry points (CJS, transformed by vite-plugin-commonjs)
-// eslint-disable-next-line no-redeclare -- Entry point: creates the webvowl global
-var webvowl = require("./webvowl/js/entry");
-var app = require("./app/js/entry");
+ 
+const webvowl = require("./webvowl/js/entry");
+const app = require("./app/js/entry");
 
 // Assign to window globals to replicate webpack library.type: "assign" behaviour.
 // webpack output did:

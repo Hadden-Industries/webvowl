@@ -10,7 +10,7 @@ import { resolveXmlEntities } from "./xmlUtils.js";
  * @returns {string}
  */
 export function resolveImportUrl(importUri) {
-  if (!importUri) return importUri;
+  if (!importUri) {return importUri;}
   
   // Normalize lookup keys by trimming trailing separators
   const normalizedUri = importUri.replace(/[#/]$/, "");
@@ -72,7 +72,7 @@ export function loadWithImports(initialXmlText, rootParserFn) {
   function getAttr(el, name, ns) {
     if (ns) {
       const val = el.getAttributeNS(ns, name);
-      if (val !== null && val !== "") return val;
+      if (val !== null && val !== "") {return val;}
     }
     return el.getAttribute(name) || el.getAttribute("rdf:" + name) || el.getAttribute("owl:" + name);
   }
@@ -94,17 +94,17 @@ export function loadWithImports(initialXmlText, rootParserFn) {
   const ontologyEl = (mainDoc.getElementsByTagNameNS ? mainDoc.getElementsByTagNameNS("*", "Ontology") : mainDoc.getElementsByTagName("owl:Ontology"))[0];
   if (ontologyEl) {
     mainOntologyIri = getAttr(ontologyEl, "about", NAMESPACES.RDF) || "";
-    if (mainOntologyIri) loadedUrls.add(mainOntologyIri);
+    if (mainOntologyIri) {loadedUrls.add(mainOntologyIri);}
   }
   const baseAttr = rootEl.getAttribute("xml:base") || rootEl.getAttribute("base") || "";
-  if (baseAttr) loadedUrls.add(baseAttr);
+  if (baseAttr) {loadedUrls.add(baseAttr);}
 
   function fetchAndMerge(doc) {
     const imports = getImports(doc);
     const promises = [];
     
     for (const url of imports) {
-      if (loadedUrls.has(url)) continue;
+      if (loadedUrls.has(url)) {continue;}
       loadedUrls.add(url);
       
       let resolvedUrl = resolveImportUrl(url);

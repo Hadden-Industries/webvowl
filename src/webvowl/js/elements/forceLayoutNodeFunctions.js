@@ -7,7 +7,7 @@
  *
  * @type {{}}
  */
-var nodeFunctions = {};
+const nodeFunctions = {};
 module.exports = function (){
   return nodeFunctions;
 };
@@ -18,7 +18,7 @@ nodeFunctions.addTo = function ( node ){
 };
 
 function addFixedLocationFunctions( node ){
-  var locked = false,
+  let locked = false,
     frozen = false,
     halo = false,
     pinned = false;

@@ -1,55 +1,55 @@
-var BaseElement = require("../BaseElement");
-var CenteringTextElement = require("../../util/CenteringTextElement");
-var drawTools = require("../drawTools")();
-var forceLayoutNodeFunctions = require("../forceLayoutNodeFunctions")();
-var rectangularElementTools = require("../rectangularElementTools")();
+const BaseElement = require("../BaseElement");
+const CenteringTextElement = require("../../util/CenteringTextElement");
+const drawTools = require("../drawTools")();
+const forceLayoutNodeFunctions = require("../forceLayoutNodeFunctions")();
+const rectangularElementTools = require("../rectangularElementTools")();
 
 
 module.exports = (function (){
   
   // Static variables
-  var labelHeight = 28,
+  const labelHeight = 28,
     labelWidth = 80,
     smallestRadius = labelHeight / 2;
   
   
   // Constructor, private variables and privileged methods
-  var Base = function ( graph ){
+  const Base = function ( graph ){
     BaseElement.apply(this, arguments);
     
-    var that = this,
-      // Basic attributes
-      cardinality,
-      domain,
-      inverse,
-      link,
-      minCardinality,
-      maxCardinality,
-      range,
-      subproperties,
-      superproperties,
-      // Style attributes
-      linkType = "normal",
-      markerType = "filled",
-      labelVisible = true,
-      // Element containers
-      cardinalityElement,
-      labelElement,
-      linkGroup,
-      markerElement,
-      // Other
-      ignoreLocalHoverEvents,
-      fobj,
-      pinGroupElement,
-      haloGroupElement,
-      myWidth = 80,
-      defaultWidth = 80,
-      shapeElement,
-      textElement,
-      parent_labelObject,
-      backupFullIri,
-      
-      redundantProperties = [];
+    const that = this;
+    // Basic attributes
+    let cardinality;
+    let domain;
+    let inverse;
+    let link;
+    let minCardinality;
+    let maxCardinality;
+    let range;
+    let subproperties;
+    let superproperties;
+    // Style attributes
+    let linkType = "normal";
+    let markerType = "filled";
+    let labelVisible = true;
+    // Element containers
+    let cardinalityElement;
+    let labelElement;
+    let linkGroup;
+    let markerElement;
+    // Other
+    let ignoreLocalHoverEvents;
+    let fobj;
+    let pinGroupElement;
+    let haloGroupElement;
+    let myWidth = 80;
+    const defaultWidth = 80;
+    let shapeElement;
+    let textElement;
+    let parent_labelObject;
+    let backupFullIri;
+
+    let redundantProperties = [];
     
     
     this.existingPropertyIRI = function ( url ){
@@ -79,108 +79,108 @@ module.exports = (function (){
       that.labelElement().classed("hidden", val);
       that.linkGroup().classed("hidden", val);
       if ( that.cardinalityElement() )
-        that.cardinalityElement().classed("hidden", val);
+        {that.cardinalityElement().classed("hidden", val);}
     };
     
     // Properties
     this.cardinality = function ( p ){
-      if ( !arguments.length ) return cardinality;
+      if ( !arguments.length ) {return cardinality;}
       cardinality = p;
       return this;
     };
     
     this.cardinalityElement = function ( p ){
-      if ( !arguments.length ) return cardinalityElement;
+      if ( !arguments.length ) {return cardinalityElement;}
       cardinalityElement = p;
       return this;
     };
     
     this.domain = function ( p ){
-      if ( !arguments.length ) return domain;
+      if ( !arguments.length ) {return domain;}
       domain = p;
       return this;
     };
     
     this.inverse = function ( p ){
-      if ( !arguments.length ) return inverse;
+      if ( !arguments.length ) {return inverse;}
       inverse = p;
       return this;
     };
     
     this.labelElement = function ( p ){
-      if ( !arguments.length ) return labelElement;
+      if ( !arguments.length ) {return labelElement;}
       labelElement = p;
       return this;
     };
     
     this.labelVisible = function ( p ){
-      if ( !arguments.length ) return labelVisible;
+      if ( !arguments.length ) {return labelVisible;}
       labelVisible = p;
       return this;
     };
     
     this.link = function ( p ){
-      if ( !arguments.length ) return link;
+      if ( !arguments.length ) {return link;}
       link = p;
       return this;
     };
     
     this.linkGroup = function ( p ){
-      if ( !arguments.length ) return linkGroup;
+      if ( !arguments.length ) {return linkGroup;}
       linkGroup = p;
       return this;
     };
     
     this.linkType = function ( p ){
-      if ( !arguments.length ) return linkType;
+      if ( !arguments.length ) {return linkType;}
       linkType = p;
       return this;
     };
     
     this.markerElement = function ( p ){
-      if ( !arguments.length ) return markerElement;
+      if ( !arguments.length ) {return markerElement;}
       markerElement = p;
       return this;
     };
     
     this.markerType = function ( p ){
-      if ( !arguments.length ) return markerType;
+      if ( !arguments.length ) {return markerType;}
       markerType = p;
       return this;
     };
     
     this.maxCardinality = function ( p ){
-      if ( !arguments.length ) return maxCardinality;
+      if ( !arguments.length ) {return maxCardinality;}
       maxCardinality = p;
       return this;
     };
     
     this.minCardinality = function ( p ){
-      if ( !arguments.length ) return minCardinality;
+      if ( !arguments.length ) {return minCardinality;}
       minCardinality = p;
       return this;
     };
     
     this.range = function ( p ){
-      if ( !arguments.length ) return range;
+      if ( !arguments.length ) {return range;}
       range = p;
       return this;
     };
     
     this.redundantProperties = function ( p ){
-      if ( !arguments.length ) return redundantProperties;
+      if ( !arguments.length ) {return redundantProperties;}
       redundantProperties = p;
       return this;
     };
     
     this.subproperties = function ( p ){
-      if ( !arguments.length ) return subproperties;
+      if ( !arguments.length ) {return subproperties;}
       subproperties = p;
       return this;
     };
     
     this.superproperties = function ( p ){
-      if ( !arguments.length ) return superproperties;
+      if ( !arguments.length ) {return superproperties;}
       superproperties = p;
       return this;
     };
@@ -236,7 +236,7 @@ module.exports = (function (){
     // Reused functions TODO refactor
     this.draw = function ( labelGroup ){
       function attachLabel( property ){
-        var labelContainer = labelGroup.append("g")
+        const labelContainer = labelGroup.append("g")
           .datum(property)
           .classed("label", true)
           .attr("id", property.id());
@@ -248,13 +248,13 @@ module.exports = (function (){
       if ( !that.labelVisible() ) {
         return undefined;
       }
-      if ( graph.options().dynamicLabelWidth() === true ) myWidth = Math.min(that.getMyWidth(), graph.options().maxLabelWidth());
-      else                              myWidth = defaultWidth;
+      if ( graph.options().dynamicLabelWidth() === true ) {myWidth = Math.min(that.getMyWidth(), graph.options().maxLabelWidth());}
+      else                              {myWidth = defaultWidth;}
       
       that.labelElement(attachLabel(that));
       // Draw an inverse label and reposition both labels if necessary
       if ( that.inverse() ) {
-        var yTransformation = (that.height() / 2) + 1 /* additional space */;
+        const yTransformation = (that.height() / 2) + 1 /* additional space */;
         that.inverse()
           .labelElement(attachLabel(that.inverse()));
         
@@ -272,13 +272,13 @@ module.exports = (function (){
       }
       
       if ( that.halo() )
-        that.drawHalo(false);
+        {that.drawHalo(false);}
       
       return that.labelElement();
     };
     
     this.addRect = function ( labelContainer ){
-      var rect = labelContainer.append("rect")
+      const rect = labelContainer.append("rect")
         .classed(that.styleClass(), true)
         .classed("property", true)
         .attr("x", -that.width() / 2)
@@ -299,7 +299,7 @@ module.exports = (function (){
         rect.classed(that.visualAttributes(), true);
       }
       
-      var bgColor = that.backgroundColor();
+      let bgColor = that.backgroundColor();
       
       if ( that.attributes().indexOf("deprecated") > -1 ) {
         bgColor = undefined;
@@ -314,10 +314,10 @@ module.exports = (function (){
     this.drawLabel = function ( labelContainer ){
       shapeElement = this.addRect(labelContainer);
       
-      var equivalentsString = that.equivalentsString();
-      var suffixForFollowingEquivalents = equivalentsString ? "," : "";
+      const equivalentsString = that.equivalentsString();
+      const suffixForFollowingEquivalents = equivalentsString ? "," : "";
       
-      var bgColor = that.backgroundColor();
+      let bgColor = that.backgroundColor();
       if ( that.attributes().indexOf("deprecated") > -1 ) {
         bgColor = undefined;
       }
@@ -328,7 +328,7 @@ module.exports = (function (){
     };
     
     this.equivalentsString = function (){
-      var equivalentProperties = that.equivalents();
+      const equivalentProperties = that.equivalents();
       if ( !equivalentProperties ) {
         return;
       }
@@ -344,7 +344,7 @@ module.exports = (function (){
     };
     
     this.drawCardinality = function ( container ){
-      var cardinalityText = this.generateCardinalityText();
+      const cardinalityText = this.generateCardinalityText();
       
       if ( cardinalityText ) {
         that.cardinalityElement(container);
@@ -386,8 +386,8 @@ module.exports = (function (){
       if ( that.cardinality() ) {
         return that.cardinality();
       } else if ( that.minCardinality() || that.maxCardinality() ) {
-        var minBoundary = that.minCardinality() || "0";
-        var maxBoundary = that.maxCardinality() || "*";
+        const minBoundary = that.minCardinality() || "0";
+        const maxBoundary = that.maxCardinality() || "*";
         return minBoundary + ".." + maxBoundary;
       }
     };
@@ -404,7 +404,7 @@ module.exports = (function (){
           that.cardinalityElement().classed("hovered", enable);
         }
       }
-      var subAndSuperProperties = getSubAndSuperProperties();
+      const subAndSuperProperties = getSubAndSuperProperties();
       subAndSuperProperties.forEach(function ( property ){
         
         if ( property.labelElement && property.labelElement() ) {
@@ -413,7 +413,7 @@ module.exports = (function (){
         }
         
       });
-      var inversed = false;
+      let inversed = false;
       
       if ( graph.ignoreOtherHoverEvents() === false ) {
         if ( that.inverse() ) {
@@ -443,7 +443,7 @@ module.exports = (function (){
      * @returns {Array}
      */
     function getSubAndSuperProperties(){
-      var properties = [];
+      let properties = [];
       
       if ( that.subproperties() ) {
         properties = properties.concat(that.subproperties());
@@ -461,11 +461,11 @@ module.exports = (function (){
     this.foreground = function (){
       // check for additional objects that we can highlight
       if ( !that.labelElement() )
-        return;
+        {return;}
       if ( that.labelElement().node().parentNode === null ) {
         return;
       }
-      var selectedLabelGroup = that.labelElement().node().parentNode,
+      const selectedLabelGroup = that.labelElement().node().parentNode,
         labelContainer = selectedLabelGroup.parentNode,
         selectedLinkGroup = that.linkGroup().node(),
         linkContainer = that.linkGroup().node().parentNode;
@@ -480,10 +480,10 @@ module.exports = (function (){
      * This is separated from the foreground-function to prevent endless loops.
      */
     function foregroundSubAndSuperProperties(){
-      var subAndSuperProperties = getSubAndSuperProperties();
+      const subAndSuperProperties = getSubAndSuperProperties();
       
       subAndSuperProperties.forEach(function ( property ){
-        if ( property.foreground ) property.foreground();
+        if ( property.foreground ) {property.foreground();}
       });
     }
     
@@ -504,21 +504,21 @@ module.exports = (function (){
     
     this.drawPin = function (){
       that.pinned(true);
-      if ( graph.options().dynamicLabelWidth() === true ) myWidth = that.getMyWidth();
-      else                              myWidth = defaultWidth;
+      if ( graph.options().dynamicLabelWidth() === true ) {myWidth = that.getMyWidth();}
+      else                              {myWidth = defaultWidth;}
       
       if ( that.inverse() ) {
         // check which element is rendered on top and add a pin to it
-        var tr_that = that.labelElement().attr("transform");
-        var tr_inv = that.inverse().labelElement().attr("transform");
+        const tr_that = that.labelElement().attr("transform");
+        const tr_inv = that.inverse().labelElement().attr("transform");
         
-        var thatY = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_that)[2];
-        var invY = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_inv)[2];
+        const thatY = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_that)[2];
+        const invY = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_inv)[2];
         
         if ( thatY < invY )
-          pinGroupElement = drawTools.drawPin(that.labelElement(), -0.5 * that.width() + 10, -25, this.removePin, graph.options().showDraggerObject, graph.options().useAccuracyHelper());
+          {pinGroupElement = drawTools.drawPin(that.labelElement(), -0.5 * that.width() + 10, -25, this.removePin, graph.options().showDraggerObject, graph.options().useAccuracyHelper());}
         else
-          pinGroupElement = drawTools.drawPin(that.inverse().labelElement(), -0.5 * that.inverse().width() + 10, -25, this.removePin, graph.options().showDraggerObject, graph.options().useAccuracyHelper());
+          {pinGroupElement = drawTools.drawPin(that.inverse().labelElement(), -0.5 * that.inverse().width() + 10, -25, this.removePin, graph.options().showDraggerObject, graph.options().useAccuracyHelper());}
         
       }
       else {
@@ -548,10 +548,10 @@ module.exports = (function (){
     };
     
     this.animationProcess = function (){
-      var animRuns = false;
+      let animRuns = false;
       if ( that.getHalos() ) {
-        var haloGr = that.getHalos();
-        var haloEls = haloGr.selectAll(".searchResultA");
+        const haloGr = that.getHalos();
+        const haloEls = haloGr.selectAll(".searchResultA");
         animRuns = haloGr.attr("animationRunning");
         
         if ( typeof animRuns !== "boolean" ) {
@@ -568,22 +568,22 @@ module.exports = (function (){
     
     this.drawHalo = function ( pulseAnimation ){
       that.halo(true);
-      var offset = 0;
+      const offset = 0;
       if ( that.labelElement() && that.labelElement().node() ) {
-        var labelNode = that.labelElement().node();
-        var labelContainer = labelNode.parentNode;
+        const labelNode = that.labelElement().node();
+        const labelContainer = labelNode.parentNode;
         // do this only if animation is not running
         if ( that.animationProcess() === false )
-          labelContainer.appendChild(labelNode);
+          {labelContainer.appendChild(labelNode);}
       }
       haloGroupElement = drawTools.drawRectHalo(that, that.width(), that.height(), offset);
       if ( haloGroupElement ) {
-        var haloNode = haloGroupElement.node();
-        var haloContainer = haloNode.parentNode;
+        const haloNode = haloGroupElement.node();
+        const haloContainer = haloNode.parentNode;
         haloContainer.appendChild(haloNode);
       }
-      var selectedNode;
-      var nodeContainer;
+      let selectedNode;
+      let nodeContainer;
       if ( that.pinned() ) {
         selectedNode = pinGroupElement.node();
         nodeContainer = selectedNode.parentNode;
@@ -597,7 +597,7 @@ module.exports = (function (){
         }
       }
       if ( pulseAnimation === false ) {
-        var pulseItem = haloGroupElement.selectAll(".searchResultA");
+        const pulseItem = haloGroupElement.selectAll(".searchResultA");
         pulseItem.classed("searchResultA", false);
         pulseItem.classed("searchResultB", true);
         pulseItem.attr("animationRunning", false);
@@ -605,13 +605,13 @@ module.exports = (function (){
     };
     
     this.getMyWidth = function (){
-      var text = that.labelForCurrentLanguage();
+      const text = that.labelForCurrentLanguage();
       myWidth = measureTextWidth(text, "text") + 20;
       // check for sub names;
-      var indicatorText = that.indicationString();
-      var indicatorWidth = measureTextWidth(indicatorText, "subtext") + 20;
+      const indicatorText = that.indicationString();
+      const indicatorWidth = measureTextWidth(indicatorText, "subtext") + 20;
       if ( indicatorWidth > myWidth )
-        myWidth = indicatorWidth;
+        {myWidth = indicatorWidth;}
       
       return myWidth;
     };
@@ -621,7 +621,7 @@ module.exports = (function (){
       if ( !textStyle ) {
         textStyle = "text";
       }
-      var d = d3.select("body")
+      const d = d3.select("body")
           .append("div")
           .attr("class", textStyle)
           .attr("id", "width-test") // tag this element to identify it
@@ -645,7 +645,7 @@ module.exports = (function (){
         return;
       }
       
-      var h = that.height();
+      const h = that.height();
       if ( dynamic === true ) {
         myWidth = Math.min(that.getMyWidth(), graph.options().maxLabelWidth());
         shapeElement.transition().tween("attr", function (){
@@ -667,7 +667,7 @@ module.exports = (function (){
           .attr({ x: -myWidth / 2, y: -h / 2, width: myWidth, height: h });
       }
       if ( that.pinned() === true && pinGroupElement ) {
-        var dx = -0.5 * myWidth + 10,
+        const dx = -0.5 * myWidth + 10,
           dy = -25;
         pinGroupElement.transition()
           .tween("attr.translate", function (){
@@ -686,10 +686,10 @@ module.exports = (function (){
     };
     
     this.addTextLabelElement = function (){
-      var labelContainer = that.labelElement();
+      const labelContainer = that.labelElement();
       
-      var equivalentsString = that.equivalentsString();
-      var suffixForFollowingEquivalents = equivalentsString ? "," : "";
+      const equivalentsString = that.equivalentsString();
+      const suffixForFollowingEquivalents = equivalentsString ? "," : "";
       
       textElement = new CenteringTextElement(labelContainer, this.backgroundColor());
       textElement.addText(this.labelForCurrentLanguage(), "", suffixForFollowingEquivalents);
@@ -702,14 +702,14 @@ module.exports = (function (){
     };
     this.enableEditing = function ( autoEditing ){
       if ( autoEditing === false )
-        return;
+        {return;}
       that.raiseDoubleClickEdit(true);
     };
     
     this.raiseDoubleClickEdit = function ( forceIRISync, event ){
       d3.selectAll(".foreignelements").remove();
       if ( that.labelElement() === undefined || this.type() === "owl:disjointWith" || this.type() === "rdfs:subClassOf" ) {
-        console.log("No Container found");
+        console.warn("No Container found");
         return;
       }
       if ( fobj !== undefined ) {
@@ -737,7 +737,7 @@ module.exports = (function (){
       //
       //
       //
-      var editText = fobj.append("xhtml:input")
+      const editText = fobj.append("xhtml:input")
         .attr("class", "nodeEditSpan")
         .attr("id", that.id())
         .attr("align", "center")
@@ -746,8 +746,8 @@ module.exports = (function (){
           return false;
         }); // remove drag operations of text element)
       
-      var bgColor = '#f00';
-      var txtWidth = that.textWidth() - 2;
+      const bgColor = '#f00';
+      const txtWidth = that.textWidth() - 2;
       editText.style({
         // 'line-height': '30px',
         'align': 'center',
@@ -756,27 +756,27 @@ module.exports = (function (){
         'background-color': bgColor,
         'border-bottom': '2px solid black'
       });
-      var txtNode = editText.node();
+      const txtNode = editText.node();
       txtNode.value = that.labelForCurrentLanguage();
       txtNode.focus();
       txtNode.select();
-      if ( event && event.stopPropagation ) event.stopPropagation();
-      if ( event && event.sourceEvent && event.sourceEvent.stopPropagation ) event.sourceEvent.stopPropagation();
+      if ( event && event.stopPropagation ) {event.stopPropagation();}
+      if ( event && event.sourceEvent && event.sourceEvent.stopPropagation ) {event.sourceEvent.stopPropagation();}
       
       // add some events that relate to this object
       editText.on("click", function (event){
-        if ( event && event.stopPropagation ) event.stopPropagation();
-        if ( event && event.sourceEvent && event.sourceEvent.stopPropagation ) event.sourceEvent.stopPropagation();
+        if ( event && event.stopPropagation ) {event.stopPropagation();}
+        if ( event && event.sourceEvent && event.sourceEvent.stopPropagation ) {event.sourceEvent.stopPropagation();}
         
       });
       // // remove hover Events for now;
       editText.on("mouseout", function (event){
-        if ( event && event.stopPropagation ) event.stopPropagation();
-        if ( event && event.sourceEvent && event.sourceEvent.stopPropagation ) event.sourceEvent.stopPropagation();
+        if ( event && event.stopPropagation ) {event.stopPropagation();}
+        if ( event && event.sourceEvent && event.sourceEvent.stopPropagation ) {event.sourceEvent.stopPropagation();}
       });
       editText.on("mousedown", function (event){
-        if ( event && event.stopPropagation ) event.stopPropagation();
-        if ( event && event.sourceEvent && event.sourceEvent.stopPropagation ) event.sourceEvent.stopPropagation();
+        if ( event && event.stopPropagation ) {event.stopPropagation();}
+        if ( event && event.sourceEvent && event.sourceEvent.stopPropagation ) {event.sourceEvent.stopPropagation();}
       })
         .on("keydown", function (event){
           
@@ -788,9 +788,9 @@ module.exports = (function (){
         })
         .on("keyup", function (event){
           if ( forceIRISync ) {
-            var labelName = editText.node().value;
-            var resourceName = labelName.replaceAll(" ", "_");
-            var syncedIRI = that.baseIri() + resourceName;
+            const labelName = editText.node().value;
+            const resourceName = labelName.replaceAll(" ", "_");
+            const syncedIRI = that.baseIri() + resourceName;
             backupFullIri = syncedIRI;
             
             d3.select("#element_iriEditor").node().title = syncedIRI;
@@ -805,7 +805,7 @@ module.exports = (function (){
           that.editingTextElement = false;
           ignoreLocalHoverEvents = false;
           that.labelElement().selectAll("rect").classed("hoveredForEditing", false);
-          var newLabel = editText.node().value;
+          const newLabel = editText.node().value;
           that.labelElement().selectAll(".foreignelements").remove();
           // that.setLabelForCurrentLanguage(classNameConvention(editText.node().value));
           that.label(newLabel);
@@ -825,7 +825,7 @@ module.exports = (function (){
           graph.removeEditElements();
           if ( backupFullIri ) {
             // console.log("Checking if element is Identical ?");
-            var sanityCheckResult = graph.options().editSidebar().checkProperIriChange(that, backupFullIri);
+            const sanityCheckResult = graph.options().editSidebar().checkProperIriChange(that, backupFullIri);
             if ( sanityCheckResult !== false ) {
               graph.options().warningModule().showWarning("Already seen this property",
                 "Input IRI: " + backupFullIri + " for element: " + that.labelForCurrentLanguage() + " already been set",
@@ -845,7 +845,7 @@ module.exports = (function (){
     // update hover elements
     function updateHoverElements( enable ){
       if ( graph.ignoreOtherHoverEvents() === false ) {
-        var inversed = false;
+        let inversed = false;
         if ( that.inverse() ) {
           inversed = true;
         }

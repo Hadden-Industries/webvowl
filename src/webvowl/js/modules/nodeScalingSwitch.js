@@ -5,14 +5,14 @@
  */
 module.exports = function ( graph ){
   
-  var DEFAULT_STATE = true;
+  const DEFAULT_STATE = true;
   
-  var filter = {},
-    nodes,
-    properties,
-    enabled = DEFAULT_STATE,
-    filteredNodes,
-    filteredProperties;
+  const filter = {};
+  let nodes;
+  let properties;
+  let enabled = DEFAULT_STATE;
+  let filteredNodes;
+  let filteredProperties;
   
   
   /**
@@ -31,7 +31,7 @@ module.exports = function ( graph ){
   };
   
   filter.enabled = function ( p ){
-    if ( !arguments.length ) return enabled;
+    if ( !arguments.length ) {return enabled;}
     enabled = p;
     return filter;
   };

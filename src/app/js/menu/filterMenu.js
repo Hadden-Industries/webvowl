@@ -6,13 +6,13 @@
  */
 module.exports = function ( graph ){
   
-  var filterMenu = {},
-    checkboxData = [],
-    menuControl = d3.select("#c_filter a"),
-    nodeDegreeContainer = d3.select("#nodeDegreeFilteringOption"),
-    graphDegreeLevel,
-    defaultDegreeValue = 0,
-    degreeSlider;
+  const filterMenu = {};
+  const checkboxData = [];
+  const menuControl = d3.select("#c_filter a");
+  const nodeDegreeContainer = d3.select("#nodeDegreeFilteringOption");
+  let graphDegreeLevel;
+  let defaultDegreeValue = 0;
+  let degreeSlider;
   
   filterMenu.setDefaultDegreeValue = function ( val ){
     defaultDegreeValue = val;
@@ -44,7 +44,7 @@ module.exports = function ( graph ){
   filterMenu.setup = function ( datatypeFilter, objectPropertyFilter, subclassFilter, disjointFilter, setOperatorFilter, nodeDegreeFilter ){
     // TODO: is this here really necessarry? << new menu visualization style?
     menuControl.on("mouseover", function (){
-      var searchMenu = graph.options().searchMenu();
+      const searchMenu = graph.options().searchMenu();
       searchMenu.hideSearchEntries();
     });
     menuControl.on("mouseleave", function (){
@@ -63,14 +63,11 @@ module.exports = function ( graph ){
   
   
   function addFilterItem( filter, identifier, pluralNameOfFilteredItems, selector ){
-    var filterContainer,
-      filterCheckbox;
-    
-    filterContainer = d3.select(selector)
+    const filterContainer = d3.select(selector)
       .append("div")
       .classed("checkboxContainer", true);
     
-    filterCheckbox = filterContainer.append("input")
+    const filterCheckbox = filterContainer.append("input")
       .classed("filterCheckbox", true)
       .attr("id", identifier + "FilterCheckbox")
       .attr("type", "checkbox")
@@ -82,9 +79,9 @@ module.exports = function ( graph ){
     filterCheckbox.on("click", function ( arg1, arg2 ){
       // There might be no parameters passed because of a manual
       // invocation when resetting the filters
-      var isEnabled = filterCheckbox.property("checked");
+      const isEnabled = filterCheckbox.property("checked");
       filter.enabled(isEnabled);
-      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
+      const silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
       if ( silent !== true ) {
         // updating graph when silent is false or the parameter is not given.
         graph.update();
@@ -110,10 +107,7 @@ module.exports = function ( graph ){
       setSliderValue(degreeSlider, value);
     });
     
-    var sliderContainer,
-      sliderValueLabel;
-    
-    sliderContainer = container.append("div")
+    const sliderContainer = container.append("div")
       .classed("distanceSliderContainer", true);
     
     degreeSlider = sliderContainer.append("input")
@@ -127,14 +121,14 @@ module.exports = function ( graph ){
       .attr("for", "nodeDegreeDistanceSlider")
       .text("Degree of collapsing");
     
-    sliderValueLabel = sliderContainer.append("label")
+    const sliderValueLabel = sliderContainer.append("label")
       .classed("value", true)
       .attr("for", "nodeDegreeDistanceSlider")
       .text(0);
     
     
     degreeSlider.on("change", function ( arg1, arg2 ){
-      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
+      const silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
       if ( silent !== true ) {
         graph.update();
         graphDegreeLevel = degreeSlider.property("value");
@@ -143,7 +137,7 @@ module.exports = function ( graph ){
     
     
     degreeSlider.on("input", function (){
-      var degree = degreeSlider.property("value");
+      const degree = degreeSlider.property("value");
       sliderValueLabel.text(degree);
     });
     
@@ -158,14 +152,14 @@ module.exports = function ( graph ){
   }
   
   function handleWheelEvent(event){
-    var wheelEvent = event;
+    const wheelEvent = event;
     
-    var offset;
-    if ( wheelEvent.deltaY < 0 ) offset = 1;
-    if ( wheelEvent.deltaY > 0 ) offset = -1;
-    var maxDeg = parseInt(degreeSlider.attr("max"));
-    var oldVal = parseInt(degreeSlider.property("value"));
-    var newSliderValue = oldVal + offset;
+    let offset;
+    if ( wheelEvent.deltaY < 0 ) {offset = 1;}
+    if ( wheelEvent.deltaY > 0 ) {offset = -1;}
+    const maxDeg = parseInt(degreeSlider.attr("max"));
+    const oldVal = parseInt(degreeSlider.property("value"));
+    const newSliderValue = oldVal + offset;
     if ( oldVal !== newSliderValue && (newSliderValue >= 0 && newSliderValue <= maxDeg) ) {
       // only update when they are different [reducing redundant updates]
       // set the new value and emit an update signal
@@ -185,7 +179,7 @@ module.exports = function ( graph ){
    */
   filterMenu.reset = function (){
     checkboxData.forEach(function ( checkboxData ){
-      var checkbox = checkboxData.checkbox,
+      const checkbox = checkboxData.checkbox,
         enabledByDefault = checkboxData.defaultState,
         isChecked = checkbox.property("checked");
       
@@ -223,7 +217,7 @@ module.exports = function ( graph ){
     // pulse button handling
     if ( menuControl.classed("buttonPulse") === true && enable === true ) {
       menuControl.classed("buttonPulse", false);
-      var timer = setTimeout(function (){
+      const timer = setTimeout(function (){
         menuControl.classed("buttonPulse", enable);
         clearTimeout(timer);
         // after the time is done, remove the pulse but stay highlighted
@@ -239,8 +233,8 @@ module.exports = function ( graph ){
   // setting manually the values of the filter
   // no update of the gui settings, these are updated in updateSettings
   filterMenu.setCheckBoxValue = function ( id, checked ){
-    for ( var i = 0; i < checkboxData.length; i++ ) {
-      var cbdId = checkboxData[i].checkbox.attr("id");
+    for ( let i = 0; i < checkboxData.length; i++ ) {
+      const cbdId = checkboxData[i].checkbox.attr("id");
       if ( cbdId === id ) {
         checkboxData[i].checkbox.property("checked", checked);
         break;
@@ -249,8 +243,8 @@ module.exports = function ( graph ){
   };
   
   filterMenu.getCheckBoxValue = function ( id ){
-    for ( var i = 0; i < checkboxData.length; i++ ) {
-      var cbdId = checkboxData[i].checkbox.attr("id");
+    for ( let i = 0; i < checkboxData.length; i++ ) {
+      const cbdId = checkboxData[i].checkbox.attr("id");
       if ( cbdId === id ) {
         return checkboxData[i].checkbox.property("checked");
         
@@ -268,15 +262,15 @@ module.exports = function ( graph ){
   
   // update the gui without invoking graph update (calling silent onclick function)
   filterMenu.updateSettings = function (){
-    var silent = true;
-    var sliderValue = degreeSlider.property("value");
+    const silent = true;
+    const sliderValue = degreeSlider.property("value");
     if ( sliderValue > 0 ) {
       filterMenu.highlightForDegreeSlider(true);
     } else {
       filterMenu.highlightForDegreeSlider(false);
     }
     checkboxData.forEach(function ( checkboxData ){
-      var checkbox = checkboxData.checkbox;
+      const checkbox = checkboxData.checkbox;
       checkbox.on("click")(silent);
     });
     

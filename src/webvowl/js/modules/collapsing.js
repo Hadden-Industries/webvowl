@@ -1,9 +1,10 @@
-var elementTools = require("../util/elementTools")();
+const elementTools = require("../util/elementTools")();
 
 module.exports = function (){
-  var collapsing = {},
-    enabled = false,
-    filteredNodes, filteredProperties;
+  const collapsing = {};
+  let enabled = false;
+  let filteredNodes;
+  let filteredProperties;
   
   collapsing.filter = function ( nodes, properties ){
     // Nothing is filtered, we just need to draw everywehere
@@ -11,7 +12,7 @@ module.exports = function (){
     filteredProperties = properties;
     
     
-    var i, l, node;
+    let i, l, node;
     
     for ( i = 0, l = nodes.length; i < l; i++ ) {
       node = nodes[i];
@@ -22,7 +23,7 @@ module.exports = function (){
   };
   
   collapsing.enabled = function ( p ){
-    if ( !arguments.length ) return enabled;
+    if ( !arguments.length ) {return enabled;}
     enabled = p;
     return collapsing;
   };

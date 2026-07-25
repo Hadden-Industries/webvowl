@@ -1,8 +1,8 @@
-var RectangularNode = require("./RectangularNode");
+const RectangularNode = require("./RectangularNode");
 
 module.exports = (function (){
   
-  var o = function ( graph ){
+  const o = function ( graph ){
     RectangularNode.apply(this, arguments);
   };
   o.prototype = Object.create(RectangularNode.prototype);

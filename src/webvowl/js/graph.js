@@ -1,114 +1,115 @@
-var _ = require("lodash/core");
-var math = require("./util/math")();
-var linkCreator = require("./parsing/linkCreator")();
-var elementTools = require("./util/elementTools")();
+const _ = require("lodash/core");
+const math = require("./util/math")();
+const linkCreator = require("./parsing/linkCreator")();
+const elementTools = require("./util/elementTools")();
 // add some maps for nodes and properties -- used for object generation
-var nodePrototypeMap = require("./elements/nodes/nodeMap")();
-var propertyPrototypeMap = require("./elements/properties/propertyMap")();
+const nodePrototypeMap = require("./elements/nodes/nodeMap")();
+const propertyPrototypeMap = require("./elements/properties/propertyMap")();
 
 
 module.exports = function ( graphContainerSelector ){
-  var graph = {},
-    CARDINALITY_HDISTANCE = 20,
-    CARDINALITY_VDISTANCE = 10,
-    curveFunction = d3.line()
-      .x(function ( d ){
-        return d.x;
-      })
-      .y(function ( d ){
-        return d.y;
-      })
-      .curve(d3.curveCardinal),
-    options = require("./options")(),
-    parser = require("./parser")(graph),
-    language = "default",
-    paused = false,
-    // Container for visual elements
-    graphContainer,
-    nodeContainer,
-    labelContainer,
-    cardinalityContainer,
-    linkContainer,
-    // Visual elements
-    nodeElements,
-    initialLoad = true,
-    updateRenderingDuringSimulation = false,
-    labelGroupElements,
-    linkGroups,
-    linkPathElements,
-    cardinalityElements,
-    // Internal data
-    classNodes,
-    labelNodes,
-    links,
-    properties,
-    unfilteredData,
-    // Graph behaviour
-    force,
-    forceLink,
-    dragBehaviour,
-    zoomFactor = 1.0,
-    centerGraphViewOnLoad = false,
-    transformAnimation = false,
-    graphTranslation = [0, 0],
-    pulseNodeIds = [],
-    nodeArrayForPulse = [],
-    nodeMap = [],
-    locationId = 0,
-    defaultZoom = 1.0,
-    defaultTargetZoom = 0.8,
-    global_dof = -1,
-    touchDevice = false,
-    last_canvas_touch_time = 0,
-    last_element_tap_time = 0,
-    originalD3_dblClickFunction = null,
-    originalD3_touchZoomFunction = null,
+  const graph = {};
+  const CARDINALITY_HDISTANCE = 20;
+  const CARDINALITY_VDISTANCE = 10;
+  const curveFunction = d3.line()
+    .x(function ( d ){
+      return d.x;
+    })
+    .y(function ( d ){
+      return d.y;
+    })
+    .curve(d3.curveCardinal);
+  const options = require("./options")();
+  const parser = require("./parser")(graph);
+  let language = "default";
+  let paused = false;
+  // Container for visual elements
+  let graphContainer;
+  let nodeContainer;
+  let labelContainer;
+  let cardinalityContainer;
+  let linkContainer;
+  // Visual elements
+  let nodeElements;
+  let initialLoad = true;
+  let updateRenderingDuringSimulation = false;
+  let labelGroupElements;
+  let linkGroups;
+  let linkPathElements;
+  let cardinalityElements;
+  // Internal data
+  let classNodes;
+  let labelNodes;
+  let links;
+  let properties;
+  let unfilteredData;
+  // Graph behaviour
+  let force;
+  let forceLink;
+  let dragBehaviour;
+  let zoomFactor = 1.0;
+  let centerGraphViewOnLoad = false;
+  let transformAnimation = false;
+  let graphTranslation = [0, 0];
+  let pulseNodeIds = [];
+  let nodeArrayForPulse = [];
+  let nodeMap = [];
+  let locationId = 0;
+  let defaultZoom = 1.0;
+  let defaultTargetZoom = 0.8;
+  let global_dof = -1;
+  let touchDevice = false;
+  let last_canvas_touch_time = 0;
+  let last_element_tap_time = 0;
+  let originalD3_dblClickFunction = null;
+  let originalD3_touchZoomFunction = null;
+
+  // editing elements
+  let deleteGroupElement;
+  let addDataPropertyGroupElement;
+  let editContainer;
+  let draggerLayer = null;
+  const draggerObjectsArray = [];
+  let delayedHider;
+  let nodeFreezer;
+  let hoveredNodeElement = null;
+  let hoveredPropertyElement = null;
+  let draggingStarted = false;
+  let frozenDomainForPropertyDragger;
+  let frozenRangeForPropertyDragger;
+
+  let eP = 0; // id for new properties
+  let eN = 0; // id for new Nodes
+  let editMode = true;
+  const debugContainer = d3.select("#FPS_Statistics");
+  let finishedLoadingSequence = false;
     
-    // editing elements
-    deleteGroupElement,
-    addDataPropertyGroupElement,
-    editContainer,
-    draggerLayer = null,
-    draggerObjectsArray = [],
-    delayedHider,
-    nodeFreezer,
-    hoveredNodeElement = null,
-    hoveredPropertyElement = null,
-    draggingStarted = false,
-    frozenDomainForPropertyDragger,
-    frozenRangeForPropertyDragger,
-    
-    eP = 0, // id for new properties
-    eN = 0, // id for new Nodes
-    editMode = true,
-    debugContainer = d3.select("#FPS_Statistics"),
-    finishedLoadingSequence = false,
-    
-    ignoreOtherHoverEvents = false,
-    forceNotZooming = false,
-    now, then, // used for fps computation
-    showFPS = false,
-    seenEditorHint = false,
-    seenFilterWarning = false,
-    showFilterWarning = false,
-    
-    keepDetailsCollapsedOnLoading = true,
-    adjustingGraphSize = false,
-    showReloadButtonAfterLayoutOptimization = false,
-    zoom;
+  let ignoreOtherHoverEvents = false;
+  let forceNotZooming = false;
+  let now;
+  let then; // used for fps computation
+  let showFPS = false;
+  let seenEditorHint = false;
+  let seenFilterWarning = false;
+  let showFilterWarning = false;
+
+  let keepDetailsCollapsedOnLoading = true;
+  let adjustingGraphSize = false;
+  let showReloadButtonAfterLayoutOptimization = false;
+  let zoom;
   //var prefixModule=require("./prefixRepresentationModule")(graph);
   function syncZoomState() {
-    var svgNode = graphContainer && graphContainer.node() ? graphContainer.node().parentNode : null;
+    const svgNode = graphContainer && graphContainer.node() ? graphContainer.node().parentNode : null;
     if (svgNode) {
       svgNode.__zoom = d3.zoomIdentity.translate(graphTranslation[0], graphTranslation[1]).scale(zoomFactor);
     }
   }
-  var NodePrototypeMap = createLowerCasePrototypeMap(nodePrototypeMap);
-  var PropertyPrototypeMap = createLowerCasePrototypeMap(propertyPrototypeMap);
-  var classDragger = require("./classDragger")(graph);
-  var rangeDragger = require("./rangeDragger")(graph);
-  var domainDragger = require("./domainDragger")(graph);
-  var shadowClone = require("./shadowClone")(graph);
+  const NodePrototypeMap = createLowerCasePrototypeMap(nodePrototypeMap);
+  const PropertyPrototypeMap = createLowerCasePrototypeMap(propertyPrototypeMap);
+  const classDragger = require("./classDragger")(graph);
+  const rangeDragger = require("./rangeDragger")(graph);
+  const domainDragger = require("./domainDragger")(graph);
+  const shadowClone = require("./shadowClone")(graph);
   
   graph.math = function (){
     return math;
@@ -164,12 +165,12 @@ module.exports = function ( graphContainerSelector ){
   
   graph.setSliderZoom = function ( val ){
     
-    var cx = 0.5 * graph.options().width();
-    var cy = 0.5 * graph.options().height();
-    var cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
-    var sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
-    var eP = [cp.x, cp.y, graph.options().height() / val];
-    var pos_intp = d3.interpolateZoom(sP, eP);
+    const cx = 0.5 * graph.options().width();
+    const cy = 0.5 * graph.options().height();
+    const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
+    const sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
+    const eP = [cp.x, cp.y, graph.options().height() / val];
+    const pos_intp = d3.interpolateZoom(sP, eP);
     
     graphContainer.attr("transform", transform(sP, cx, cy))
       .transition()
@@ -206,7 +207,7 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.language = function ( newLanguage ){
-    if ( !arguments.length ) return language;
+    if ( !arguments.length ) {return language;}
     
     // Just update if the language changes
     if ( language !== newLanguage ) {
@@ -224,10 +225,10 @@ module.exports = function ( graphContainerSelector ){
   /** graph / rendering  related functions                      **/
   /** --------------------------------------------------------- **/
   
-  var lastExecutedElement = null;
-  var lastExecutedTime = 0;
+  let lastExecutedElement = null;
+  let lastExecutedTime = 0;
   function executeModules( selectedElement, event ){
-    var now = performance.now();
+    const now = performance.now();
     if ( lastExecutedElement === selectedElement && (now - lastExecutedTime) < 300 ) {
       return;
     }
@@ -243,7 +244,7 @@ module.exports = function ( graphContainerSelector ){
   function initializeGraph(){
     
     options.graphContainerSelector(graphContainerSelector);
-    var moved = false;
+    let moved = false;
     force = d3.forceSimulation()
       .on("tick", hiddenRecalculatePositions);
     forceLink = d3.forceLink();
@@ -346,15 +347,15 @@ module.exports = function ( graphContainerSelector ){
       .on("end", function ( event, d ){
         graph.ignoreOtherHoverEvents(false);
         if ( d.type && d.type() === "Class_dragger" ) {
-          var nX = classDragger.x;
-          var nY = classDragger.y;
+          const nX = classDragger.x;
+          const nY = classDragger.y;
           clearTimeout(delayedHider);
           classDragger.mouseButtonPressed = false;
           classDragger.selectedViaTouch(false);
           d.setParentNode(d.parentNode());
           
-          var draggerEndPos = [nX, nY];
-          var targetNode = graph.getTargetNode(draggerEndPos);
+          const draggerEndPos = [nX, nY];
+          const targetNode = graph.getTargetNode(draggerEndPos);
           if ( targetNode ) {
             createNewObjectProperty(d.parentNode(), targetNode, draggerEndPos);
           }
@@ -373,13 +374,13 @@ module.exports = function ( graphContainerSelector ){
           domainDragger.updateElement();
           rangeDragger.updateElement();
           shadowClone.hideClone(true);
-          var rX = rangeDragger.x;
-          var rY = rangeDragger.y;
-          var rangeDraggerEndPos = [rX, rY];
-          var targetRangeNode = graph.getTargetNode(rangeDraggerEndPos);
+          const rX = rangeDragger.x;
+          const rY = rangeDragger.y;
+          const rangeDraggerEndPos = [rX, rY];
+          let targetRangeNode = graph.getTargetNode(rangeDraggerEndPos);
           if ( elementTools.isDatatype(targetRangeNode) === true ) {
             targetRangeNode = null;
-            console.log("---------------TARGET NODE IS A DATATYPE/ LITERAL ------------");
+            console.warn("---------------TARGET NODE IS A DATATYPE/ LITERAL ------------");
           }
           
           if ( targetRangeNode === null ) {
@@ -403,13 +404,13 @@ module.exports = function ( graphContainerSelector ){
           rangeDragger.updateElement();
           shadowClone.hideClone(true);
           
-          var dX = domainDragger.x;
-          var dY = domainDragger.y;
-          var domainDraggerEndPos = [dX, dY];
-          var targetDomainNode = graph.getTargetNode(domainDraggerEndPos);
+          const dX = domainDragger.x;
+          const dY = domainDragger.y;
+          const domainDraggerEndPos = [dX, dY];
+          let targetDomainNode = graph.getTargetNode(domainDraggerEndPos);
           if ( elementTools.isDatatype(targetDomainNode) === true ) {
             targetDomainNode = null;
-            console.log("---------------TARGET NODE IS A DATATYPE/ LITERAL ------------");
+            console.warn("---------------TARGET NODE IS A DATATYPE/ LITERAL ------------");
           }
           shadowClone.hideClone(true);
           if ( targetDomainNode === null ) {
@@ -425,7 +426,7 @@ module.exports = function ( graphContainerSelector ){
         
         else {
           d.locked(false);
-          var pnp = graph.options().pickAndPinModule();
+          const pnp = graph.options().pickAndPinModule();
           if ( pnp.enabled() === true && moved === true ) {
             if ( d.id ) { // node
               pnp.handle(event, d, true);
@@ -481,9 +482,9 @@ module.exports = function ( graphContainerSelector ){
       return;
     }
     if ( updateRenderingDuringSimulation === false ) {
-      var progress = Math.max(0, Math.min(1, 1.0 - force.alpha()));
-      var percentValue = Math.min(100, Math.max(0, parseInt(200 * progress)));
-      var percent = percentValue + "%";
+      const progress = Math.max(0, Math.min(1, 1.0 - force.alpha()));
+      const percentValue = Math.min(100, Math.max(0, parseInt(200 * progress)));
+      let percent = percentValue + "%";
       graph.options().loadingModule().setPercentValue(percent);
       d3.select("#progressBarValue").style("width", percent);
       d3.select("#progressBarValue").node().innerHTML = percent;
@@ -506,7 +507,7 @@ module.exports = function ( graphContainerSelector ){
         
         if ( initialLoad ) {
           if ( graph.paused() === false )
-            force.alpha(0.3).restart(); // resume force
+            {force.alpha(0.3).restart();} // resume force
           initialLoad = false;
           
         }
@@ -523,8 +524,8 @@ module.exports = function ( graphContainerSelector ){
         }
         
         if ( centerGraphViewOnLoad === true && force.nodes().length > 0 ) {
-          if ( force.nodes().length < 10 ) graph.forceRelocationEvent(true); // uses dynamic zoomer;
-          else graph.forceRelocationEvent();
+          if ( force.nodes().length < 10 ) {graph.forceRelocationEvent(true);} // uses dynamic zoomer;
+          else {graph.forceRelocationEvent();}
           centerGraphViewOnLoad = false;
           // console.log("--------------------------------------")
         }
@@ -569,8 +570,8 @@ module.exports = function ( graphContainerSelector ){
     
     recalculatePositions();
     now = Date.now();
-    var diff = now - then;
-    var fps = (1000 / (diff)).toFixed(2);
+    const diff = now - then;
+    const fps = (1000 / (diff)).toFixed(2);
     
     debugContainer.node().innerHTML = "FPS: " + fps + "<br>" + "Nodes: " + force.nodes().length + "<br>" + "Links: " + forceLink.links().length;
     then = Date.now();
@@ -589,13 +590,13 @@ module.exports = function ( graphContainerSelector ){
       
       // Set label group positions
       labelGroupElements.attr("transform", function ( label ){
-        var position;
+        let position;
         
         // force centered positions on single-layered links
-        var link = label.link();
+        const link = label.link();
         if ( link.layers().length === 1 && !link.loops() ) {
-          var linkDomainIntersection = math.calculateIntersection(link.range(), link.domain(), 0);
-          var linkRangeIntersection = math.calculateIntersection(link.domain(), link.range(), 0);
+          const linkDomainIntersection = math.calculateIntersection(link.range(), link.domain(), 0);
+          const linkRangeIntersection = math.calculateIntersection(link.domain(), link.range(), 0);
           position = math.calculateCenter(linkDomainIntersection, linkRangeIntersection);
           label.x = position.x;
           label.y = position.y;
@@ -607,9 +608,9 @@ module.exports = function ( graphContainerSelector ){
         if ( l.isLoop() ) {
           return math.calculateLoopPath(l);
         }
-        var curvePoint = l.label();
-        var pathStart = math.calculateIntersection(curvePoint, l.domain(), 1);
-        var pathEnd = math.calculateIntersection(curvePoint, l.range(), 1);
+        const curvePoint = l.label();
+        const pathStart = math.calculateIntersection(curvePoint, l.domain(), 1);
+        const pathEnd = math.calculateIntersection(curvePoint, l.range(), 1);
         
         return curveFunction([pathStart, curvePoint, pathEnd]);
       });
@@ -617,7 +618,7 @@ module.exports = function ( graphContainerSelector ){
       // Set cardinality positions
       cardinalityElements.attr("transform", function ( property ){
         
-        var label = property.link().label(),
+        const label = property.link().label(),
           pos = math.calculateIntersection(label, property.range(), CARDINALITY_HDISTANCE),
           normalV = math.calculateNormalVector(label, property.range(), CARDINALITY_VDISTANCE);
         
@@ -638,13 +639,13 @@ module.exports = function ( graphContainerSelector ){
     
     // Set label group positions
     labelGroupElements.attr("transform", function ( label ){
-      var position;
+      let position;
       
       // force centered positions on single-layered links
-      var link = label.link();
+      const link = label.link();
       if ( link.layers().length === 1 && !link.loops() ) {
-        var linkDomainIntersection = math.calculateIntersection(link.range(), link.domain(), 0);
-        var linkRangeIntersection = math.calculateIntersection(link.domain(), link.range(), 0);
+        const linkDomainIntersection = math.calculateIntersection(link.range(), link.domain(), 0);
+        const linkRangeIntersection = math.calculateIntersection(link.domain(), link.range(), 0);
         position = math.calculateCenter(linkDomainIntersection, linkRangeIntersection);
         label.x = position.x;
         label.y = position.y;
@@ -673,7 +674,7 @@ module.exports = function ( graphContainerSelector ){
     linkPathElements.attr("d", function ( l ){
       if ( l.isLoop() ) {
         
-        var ptrAr = math.getLoopPoints(l);
+        const ptrAr = math.getLoopPoints(l);
         l.label().linkRangeIntersection = ptrAr[1];
         l.label().linkDomainIntersection = ptrAr[0];
         
@@ -683,9 +684,9 @@ module.exports = function ( graphContainerSelector ){
         }
         return math.calculateLoopPath(l);
       }
-      var curvePoint = l.label();
-      var pathStart = math.calculateIntersection(curvePoint, l.domain(), 1);
-      var pathEnd = math.calculateIntersection(curvePoint, l.range(), 1);
+      const curvePoint = l.label();
+      const pathStart = math.calculateIntersection(curvePoint, l.domain(), 1);
+      const pathEnd = math.calculateIntersection(curvePoint, l.range(), 1);
       l.linkRangeIntersection = pathStart;
       l.linkDomainIntersection = pathEnd;
       if ( l.property().focused() === true || hoveredPropertyElement !== undefined ) {
@@ -700,7 +701,7 @@ module.exports = function ( graphContainerSelector ){
     // Set cardinality positions
     cardinalityElements.attr("transform", function ( property ){
       
-      var label = property.link().label(),
+      const label = property.link().label(),
         pos = math.calculateIntersection(label, property.range(), CARDINALITY_HDISTANCE),
         normalV = math.calculateNormalVector(label, property.range(), CARDINALITY_VDISTANCE);
       
@@ -824,7 +825,7 @@ module.exports = function ( graphContainerSelector ){
   function defaultIriValue( element ){
     // get the iri of that element;
     if ( graph.options().getGeneralMetaObject().iri ) {
-      var str2Compare = graph.options().getGeneralMetaObject().iri + element.id();
+      const str2Compare = graph.options().getGeneralMetaObject().iri + element.id();
       return element.iri() === str2Compare;
     }
     return false;
@@ -838,9 +839,9 @@ module.exports = function ( graphContainerSelector ){
     }
     
     
-    var zoomEventByMWheel = false;
+    let zoomEventByMWheel = false;
     if ( event.sourceEvent ) {
-      if ( event.sourceEvent.deltaY ) zoomEventByMWheel = true;
+      if ( event.sourceEvent.deltaY ) {zoomEventByMWheel = true;}
     }
     if ( zoomEventByMWheel === false ) {
       if ( transformAnimation === true ) {
@@ -860,16 +861,16 @@ module.exports = function ( graphContainerSelector ){
       .tween("attr.translate", function (){
         return function ( t ){
           transformAnimation = true;
-          var svgNode = graphContainer.node() ? graphContainer.node().parentNode : null;
+          const svgNode = graphContainer.node() ? graphContainer.node().parentNode : null;
           if (svgNode && svgNode.__zoom) {
               graphTranslation[0] = svgNode.__zoom.x;
               graphTranslation[1] = svgNode.__zoom.y;
               zoomFactor = svgNode.__zoom.k;
           } else {
               // fallback: parse from attribute
-              var transformAttr = graphContainer.attr("transform") || "";
-              var matchTranslate = transformAttr.match(/translate\(([^,)]+)[,\s]+([^)]+)\)/);
-              var matchScale = transformAttr.match(/scale\(([^)]+)\)/);
+              const transformAttr = graphContainer.attr("transform") || "";
+              const matchTranslate = transformAttr.match(/translate\(([^,)]+)[,\s]+([^)]+)\)/);
+              const matchScale = transformAttr.match(/scale\(([^)]+)\)/);
               if (matchTranslate) {
                   graphTranslation[0] = parseFloat(matchTranslate[1]);
                   graphTranslation[1] = parseFloat(matchTranslate[2]);
@@ -902,7 +903,7 @@ module.exports = function ( graphContainerSelector ){
       .append("g");
     // add touch and double click functions
     
-    var svgGraph = d3.selectAll(".vowlGraph");
+    const svgGraph = d3.selectAll(".vowlGraph");
     originalD3_dblClickFunction = svgGraph.on("dblclick.zoom");
     originalD3_touchZoomFunction = svgGraph.on("touchstart.zoom");
     if ( originalD3_touchZoomFunction ) {
@@ -970,7 +971,7 @@ module.exports = function ( graphContainerSelector ){
       .attr("cy", 0)
       .append("title").text("Delete This Node");
     
-    var crossLen = 5;
+    const crossLen = 5;
     deleteGroupElement.append("line")
       .attr("x1", -crossLen)
       .attr("y1", -crossLen)
@@ -1002,9 +1003,9 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.getClassDataForTtlExport = function (){
-    var allNodes = unfilteredData.nodes;
-    var nodeData = [];
-    for ( var i = 0; i < allNodes.length; i++ ) {
+    const allNodes = unfilteredData.nodes;
+    const nodeData = [];
+    for ( let i = 0; i < allNodes.length; i++ ) {
       if ( allNodes[i].type() !== "rdfs:Literal" &&
         allNodes[i].type() !== "rdfs:Datatype" &&
         allNodes[i].type() !== "owl:Thing" ) {
@@ -1015,9 +1016,9 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.getPropertyDataForTtlExport = function (){
-    var propertyData = [];
-    var allProperties = unfilteredData.properties;
-    for ( var i = 0; i < allProperties.length; i++ ) {
+    const propertyData = [];
+    const allProperties = unfilteredData.properties;
+    for ( let i = 0; i < allProperties.length; i++ ) {
       // currently using only the object properties
       if ( allProperties[i].type() === "owl:ObjectProperty" ||
         allProperties[i].type() === "owl:DatatypeProperty" ||
@@ -1040,7 +1041,7 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.getAxiomsForTtlExport = function (){
-    var axioms = [];
+    const axioms = [];
     // TODO: Implement axiom extraction for TTL export
     return axioms;
   };
@@ -1051,9 +1052,9 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.getClassDataForTtlExport = function (){
-    var allNodes = unfilteredData.nodes;
-    var nodeData = [];
-    for ( var i = 0; i < allNodes.length; i++ ) {
+    const allNodes = unfilteredData.nodes;
+    const nodeData = [];
+    for ( let i = 0; i < allNodes.length; i++ ) {
       if ( allNodes[i].type() !== "rdfs:Literal" &&
         allNodes[i].type() !== "rdfs:Datatype" &&
         allNodes[i].type() !== "owl:Thing" ) {
@@ -1065,7 +1066,7 @@ module.exports = function ( graphContainerSelector ){
   
   
   function redrawContent(){
-    var markerContainer;
+    let markerContainer;
     
     if ( !graphContainer ) {
       return;
@@ -1081,7 +1082,7 @@ module.exports = function ( graphContainerSelector ){
     nodeContainer = graphContainer.append("g").classed("nodeContainer", true);
     
     // adding editing Elements
-    var draggerPathLayer = graphContainer.append("g").classed("linkContainer", true);
+    const draggerPathLayer = graphContainer.append("g").classed("linkContainer", true);
     draggerLayer = graphContainer.append("g").classed("editContainer", true);
     editContainer = graphContainer.append("g").classed("editContainer", true);
     
@@ -1091,7 +1092,7 @@ module.exports = function ( graphContainerSelector ){
     
     // Add an extra container for all markers
     markerContainer = linkContainer.append("defs");
-    var drElement = draggerLayer.selectAll(".node")
+    const drElement = draggerLayer.selectAll(".node")
       .data(draggerObjectsArray).enter()
       .append("g")
       .classed("node", true)
@@ -1119,7 +1120,7 @@ module.exports = function ( graphContainerSelector ){
     
     // Draw nodes
     
-    if ( classNodes === undefined ) classNodes = [];
+    if ( classNodes === undefined ) {classNodes = [];}
     
     nodeElements = nodeContainer.selectAll(".node")
       .data(classNodes).enter()
@@ -1134,7 +1135,7 @@ module.exports = function ( graphContainerSelector ){
     });
     
     
-    if ( labelNodes === undefined ) labelNodes = [];
+    if ( labelNodes === undefined ) {labelNodes = [];}
     
     // Draw label groups (property + inverse)
     labelGroupElements = labelContainer.selectAll(".labelGroup")
@@ -1144,7 +1145,7 @@ module.exports = function ( graphContainerSelector ){
       .call(dragBehaviour);
     
     labelGroupElements.each(function ( label ){
-      var success = label.draw(d3.select(this));
+      const success = label.draw(d3.select(this));
       label.property().labelObject(label);
       // Remove empty groups without a label.
       if ( !success ) {
@@ -1159,11 +1160,11 @@ module.exports = function ( graphContainerSelector ){
       }
       
       if ( elementTools.isRdfsSubClassOf(label.property()) ) {
-        var parentNode = this.parentNode;
+        const parentNode = this.parentNode;
         parentNode.insertBefore(this, parentNode.firstChild);
       }
     });
-    if ( properties === undefined ) properties = [];
+    if ( properties === undefined ) {properties = [];}
     // Draw cardinality elements
     cardinalityElements = cardinalityContainer.selectAll(".cardinality")
       .data(properties).enter()
@@ -1171,7 +1172,7 @@ module.exports = function ( graphContainerSelector ){
       .classed("cardinality", true);
     
     cardinalityElements.each(function ( property ){
-      var success = property.drawCardinality(d3.select(this));
+      const success = property.drawCardinality(d3.select(this));
       
       // Remove empty groups without a label.
       if ( !success ) {
@@ -1179,7 +1180,7 @@ module.exports = function ( graphContainerSelector ){
       }
     });
     // Draw links
-    if ( links === undefined ) links = [];
+    if ( links === undefined ) {links = [];}
     linkGroups = linkContainer.selectAll(".link")
       .data(links).enter()
       .append("g")
@@ -1204,7 +1205,7 @@ module.exports = function ( graphContainerSelector ){
   
   graph.updateCanvasContainerSize = function (){
     if ( graphContainer ) {
-      var svgElement = d3.selectAll(".vowlGraph");
+      const svgElement = d3.selectAll(".vowlGraph");
       svgElement.attr("width", options.width());
       svgElement.attr("height", options.height());
       graphContainer.attr("transform", "translate(" + graphTranslation + ")scale(" + zoomFactor + ")");
@@ -1244,8 +1245,8 @@ module.exports = function ( graphContainerSelector ){
     force.stop();
     loadGraphData();
     refreshGraphData();
-    for ( var i = 0; i < labelNodes.length; i++ ) {
-      var label = labelNodes[i];
+    for ( let i = 0; i < labelNodes.length; i++ ) {
+      const label = labelNodes[i];
       if ( label.property().x && label.property().y ) {
         label.x = label.property().x;
         label.y = label.property().y;
@@ -1275,23 +1276,23 @@ module.exports = function ( graphContainerSelector ){
   };
   function updateNodeMap(){
     nodeMap = [];
-    var node;
-    for ( var j = 0; j < force.nodes().length; j++ ) {
+    let node;
+    for ( let j = 0; j < force.nodes().length; j++ ) {
       node = force.nodes()[j];
       if ( node.id ) {
         nodeMap[node.id()] = j;
         // check for equivalents
-        var eqs = node.equivalents();
+        const eqs = node.equivalents();
         if ( eqs.length > 0 ) {
-          for ( var e = 0; e < eqs.length; e++ ) {
-            var eqObject = eqs[e];
+          for ( let e = 0; e < eqs.length; e++ ) {
+            const eqObject = eqs[e];
             nodeMap[eqObject.id()] = j;
           }
         }
       }
       if ( node.property ) {
         nodeMap[node.property().id()] = j;
-        var inverse = node.inverse();
+        const inverse = node.inverse();
         if ( inverse ) {
           nodeMap[inverse.id()] = j;
         }
@@ -1300,10 +1301,10 @@ module.exports = function ( graphContainerSelector ){
   }
   
   function updateHaloStyles(){
-    var haloElement;
-    var halo;
-    var node;
-    for ( var j = 0; j < force.nodes().length; j++ ) {
+    let haloElement;
+    let halo;
+    let node;
+    for ( let j = 0; j < force.nodes().length; j++ ) {
       node = force.nodes()[j];
       if ( node.id ) {
         haloElement = node.getHalos();
@@ -1327,7 +1328,7 @@ module.exports = function ( graphContainerSelector ){
   
   // Updates the graphs displayed data and style.
   graph.update = function ( init ){
-    var validOntology = graph.options().loadingModule().successfullyLoadedOntology();
+    const validOntology = graph.options().loadingModule().successfullyLoadedOntology();
     if ( validOntology === false && (init && init === true) ) {
       graph.options().loadingModule().collapseDetails();
       return;
@@ -1349,18 +1350,18 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.paused = function ( p ){
-    if ( !arguments.length ) return paused;
+    if ( !arguments.length ) {return paused;}
     paused = p;
     graph.updateStyle();
     return graph;
   };
   graph.reset = function (){
     // window size
-    var w = 0.5 * graph.options().width();
-    var h = 0.5 * graph.options().height();
+    const w = 0.5 * graph.options().width();
+    const h = 0.5 * graph.options().height();
     // computing initial translation for the graph due tue the dynamic default zoom level
-    var tx = w - defaultZoom * w;
-    var ty = h - defaultZoom * h;
+    const tx = w - defaultZoom * w;
+    const ty = h - defaultZoom * h;
     graphTranslation = [tx, ty];
     zoomFactor = defaultZoom;
     syncZoomState();
@@ -1369,18 +1370,18 @@ module.exports = function ( graphContainerSelector ){
   
   graph.zoomOut = function (){
     
-    var minMag = options.minMagnification(),
+    const minMag = options.minMagnification(),
       maxMag = options.maxMagnification();
-    var stepSize = (maxMag - minMag) / 10;
-    var val = zoomFactor - stepSize;
-    if ( val < minMag ) val = minMag;
+    const stepSize = (maxMag - minMag) / 10;
+    let val = zoomFactor - stepSize;
+    if ( val < minMag ) {val = minMag;}
     
-    var cx = 0.5 * graph.options().width();
-    var cy = 0.5 * graph.options().height();
-    var cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
-    var sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
-    var eP = [cp.x, cp.y, graph.options().height() / val];
-    var pos_intp = d3.interpolateZoom(sP, eP);
+    const cx = 0.5 * graph.options().width();
+    const cy = 0.5 * graph.options().height();
+    const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
+    const sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
+    const eP = [cp.x, cp.y, graph.options().height() / val];
+    const pos_intp = d3.interpolateZoom(sP, eP);
     
     graphContainer.attr("transform", transform(sP, cx, cy))
       .transition()
@@ -1400,17 +1401,17 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.zoomIn = function (){
-    var minMag = options.minMagnification(),
+    const minMag = options.minMagnification(),
       maxMag = options.maxMagnification();
-    var stepSize = (maxMag - minMag) / 10;
-    var val = zoomFactor + stepSize;
-    if ( val > maxMag ) val = maxMag;
-    var cx = 0.5 * graph.options().width();
-    var cy = 0.5 * graph.options().height();
-    var cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
-    var sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
-    var eP = [cp.x, cp.y, graph.options().height() / val];
-    var pos_intp = d3.interpolateZoom(sP, eP);
+    const stepSize = (maxMag - minMag) / 10;
+    let val = zoomFactor + stepSize;
+    if ( val > maxMag ) {val = maxMag;}
+    const cx = 0.5 * graph.options().width();
+    const cy = 0.5 * graph.options().height();
+    const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
+    const sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
+    const eP = [cp.x, cp.y, graph.options().height() / val];
+    const pos_intp = d3.interpolateZoom(sP, eP);
     
     graphContainer.attr("transform", transform(sP, cx, cy))
       .transition()
@@ -1434,7 +1435,7 @@ module.exports = function ( graphContainerSelector ){
   /** -- data related handling                               -- **/
   /** --------------------------------------------------------- **/
   
-  var cachedJsonOBJ = null;
+  let cachedJsonOBJ = null;
   graph.clearAllGraphData = function (){
     if ( graph.graphNodeElements() && graph.graphNodeElements().length > 0 ) {
       cachedJsonOBJ = graph.options().exportMenu().createJSON_exportObject();
@@ -1454,46 +1455,46 @@ module.exports = function ( graphContainerSelector ){
   // removes data when data could not be loaded
   graph.clearGraphData = function (){
     force.stop();
-    var sidebar = graph.options().sidebar();
+    const sidebar = graph.options().sidebar();
     if ( sidebar )
-      sidebar.clearOntologyInformation();
+      {sidebar.clearOntologyInformation();}
     if ( graphContainer )
-      redrawGraph();
+      {redrawGraph();}
   };
   
   function generateDictionary( data ){
-    var i;
-    var originalDictionary = [];
-    var nodes = data.nodes;
+    let i;
+    const originalDictionary = [];
+    const nodes = data.nodes;
     for ( i = 0; i < nodes.length; i++ ) {
       // check if node has a label
       if ( nodes[i].labelForCurrentLanguage() !== undefined )
-        originalDictionary.push(nodes[i]);
+        {originalDictionary.push(nodes[i]);}
     }
-    var props = data.properties;
+    const props = data.properties;
     for ( i = 0; i < props.length; i++ ) {
       if ( props[i].labelForCurrentLanguage() !== undefined )
-        originalDictionary.push(props[i]);
+        {originalDictionary.push(props[i]);}
     }
     parser.setDictionary(originalDictionary);
     
-    var literFilter = graph.options().literalFilter();
-    var idsToRemove = literFilter.removedNodes();
-    var originalDict = parser.getDictionary();
-    var newDict = [];
+    const literFilter = graph.options().literalFilter();
+    const idsToRemove = literFilter.removedNodes();
+    const originalDict = parser.getDictionary();
+    const newDict = [];
     
     // go through the dictionary and remove the ids;
     for ( i = 0; i < originalDict.length; i++ ) {
-      var dictElement = originalDict[i];
-      var dictElementId;
+      const dictElement = originalDict[i];
+      let dictElementId;
       if ( dictElement.property )
-        dictElementId = dictElement.property().id();
+        {dictElementId = dictElement.property().id();}
       else
-        dictElementId = dictElement.id();
+        {dictElementId = dictElement.id();}
       // compare against the removed ids;
-      var addToDictionary = true;
-      for ( var j = 0; j < idsToRemove.length; j++ ) {
-        var currentId = idsToRemove[j];
+      let addToDictionary = true;
+      for ( let j = 0; j < idsToRemove.length; j++ ) {
+        const currentId = idsToRemove[j];
         if ( currentId === dictElementId ) {
           addToDictionary = false;
         }
@@ -1508,9 +1509,9 @@ module.exports = function ( graphContainerSelector ){
   }
   
   graph.updateProgressBarMode = function (){
-    var loadingModule = graph.options().loadingModule();
+    const loadingModule = graph.options().loadingModule();
     
-    var state = loadingModule.getProgressBarMode();
+    const state = loadingModule.getProgressBarMode();
     switch ( state ) {
       case  0:
         loadingModule.setErrorMode();
@@ -1532,7 +1533,7 @@ module.exports = function ( graphContainerSelector ){
   function loadGraphData( init ){
     // reset the locate button and previously selected locations and other variables
     
-    var loadingModule = graph.options().loadingModule();
+    const loadingModule = graph.options().loadingModule();
     force.stop();
     
     force.nodes([]);
@@ -1562,13 +1563,13 @@ module.exports = function ( graphContainerSelector ){
     
     
     // using the ids of elements if to ensure that loaded elements will not get the same id;
-    for ( var p = 0; p < unfilteredData.properties.length; p++ ) {
-      var currentId = unfilteredData.properties[p].id();
+    for ( let p = 0; p < unfilteredData.properties.length; p++ ) {
+      const currentId = unfilteredData.properties[p].id();
       if ( currentId.indexOf('objectProperty') !== -1 ) {
         // could be ours;
-        var idStr = currentId.split('objectProperty');
+        const idStr = currentId.split('objectProperty');
         if ( idStr[0].length === 0 ) {
-          var idInt = parseInt(idStr[1]);
+          const idInt = parseInt(idStr[1]);
           if ( eP < idInt ) {
             eP = idInt + 1;
           }
@@ -1576,13 +1577,13 @@ module.exports = function ( graphContainerSelector ){
       }
     }
     // using the ids of elements if to ensure that loaded elements will not get the same id;
-    for ( var n = 0; n < unfilteredData.nodes.length; n++ ) {
-      var currentId_Nodes = unfilteredData.nodes[n].id();
+    for ( let n = 0; n < unfilteredData.nodes.length; n++ ) {
+      const currentId_Nodes = unfilteredData.nodes[n].id();
       if ( currentId_Nodes.indexOf('Class') !== -1 ) {
         // could be ours;
-        var idStr_Nodes = currentId_Nodes.split('Class');
+        const idStr_Nodes = currentId_Nodes.split('Class');
         if ( idStr_Nodes[0].length === 0 ) {
-          var idInt_Nodes = parseInt(idStr_Nodes[1]);
+          const idInt_Nodes = parseInt(idStr_Nodes[1]);
           if ( eN < idInt_Nodes ) {
             eN = idInt_Nodes + 1;
           }
@@ -1595,7 +1596,7 @@ module.exports = function ( graphContainerSelector ){
     
     // loading handler
     updateRenderingDuringSimulation = true;
-    var validOntology = graph.options().loadingModule().successfullyLoadedOntology();
+    const validOntology = graph.options().loadingModule().successfullyLoadedOntology();
     if ( graphContainer && validOntology === true ) {
       
       updateRenderingDuringSimulation = false;
@@ -1627,7 +1628,7 @@ module.exports = function ( graphContainerSelector ){
     graph.options().clearGeneralMetaObject();
     graph.options().editSidebar().clearMetaObjectValue();
     if ( options.data() !== undefined ) {
-      var header = options.data().header;
+      const header = options.data().header;
       if ( header ) {
         if ( header.iri ) {
           graph.options().addOrUpdateGeneralObjectEntry("iri", header.iri);
@@ -1645,21 +1646,21 @@ module.exports = function ( graphContainerSelector ){
           graph.options().addOrUpdateGeneralObjectEntry("description", header.description);
         }
         if ( header.prefixList ) {
-          var pL = header.prefixList;
-          for ( var pr in pL ) {
-            if ( pL.hasOwnProperty(pr) ) {
-              var val = pL[pr];
+          const pL = header.prefixList;
+          for ( const pr in pL ) {
+            if ( Object.prototype.hasOwnProperty.call(pL, pr) ) {
+              const val = pL[pr];
               graph.options().addPrefix(pr, val);
             }
           }
         }
         // get other metadata;
         if ( header.other ) {
-          var otherObjects = header.other;
-          for ( var name in otherObjects ) {
-            if ( otherObjects.hasOwnProperty(name) ) {
-              var otherObj = otherObjects[name];
-              if ( otherObj.hasOwnProperty("identifier") && otherObj.hasOwnProperty("value") ) {
+          const otherObjects = header.other;
+          for ( const name in otherObjects ) {
+            if ( Object.prototype.hasOwnProperty.call(otherObjects, name) ) {
+              const otherObj = otherObjects[name];
+              if ( Object.prototype.hasOwnProperty.call(otherObj, "identifier") && Object.prototype.hasOwnProperty.call(otherObj, "value") ) {
                 graph.options().addOrUpdateMetaObjectEntry(otherObj.identfier, otherObj.value);
               }
             }
@@ -1669,7 +1670,7 @@ module.exports = function ( graphContainerSelector ){
     }
     // update more meta OBJECT
     // Initialize filters with data to replicate consecutive filtering
-    var initializationData = _.clone(unfilteredData);
+    let initializationData = _.clone(unfilteredData);
     options.filterModules().forEach(function ( module ){
       initializationData = filterFunction(module, initializationData, true);
     });
@@ -1709,11 +1710,11 @@ module.exports = function ( graphContainerSelector ){
   
   //Applies the data of the graph options object and parses it. The graph is not redrawn.
   function refreshGraphData(){
-    var shouldExecuteEmptyFilter = options.literalFilter().enabled();
+    const shouldExecuteEmptyFilter = options.literalFilter().enabled();
     graph.executeEmptyLiteralFilter();
     options.literalFilter().enabled(shouldExecuteEmptyFilter);
     
-    var preprocessedData = _.clone(unfilteredData);
+    let preprocessedData = _.clone(unfilteredData);
     
     // Filter the data
     options.filterModules().forEach(function ( module ){
@@ -1755,13 +1756,13 @@ module.exports = function ( graphContainerSelector ){
   /** -- force-layout related functions                      -- **/
   /** --------------------------------------------------------- **/
   function storeLinksOnNodes( nodes, links ){
-    for ( var i = 0, nodesLength = nodes.length; i < nodesLength; i++ ) {
-      var node = nodes[i],
+    for ( let i = 0, nodesLength = nodes.length; i < nodesLength; i++ ) {
+      const node = nodes[i],
         connectedLinks = [];
       
       // look for properties where this node is the domain or range
-      for ( var j = 0, linksLength = links.length; j < linksLength; j++ ) {
-        var link = links[j];
+      for ( let j = 0, linksLength = links.length; j < linksLength; j++ ) {
+        const link = links[j];
         
         if ( link.domain() === node || link.range() === node ) {
           connectedLinks.push(link);
@@ -1772,12 +1773,12 @@ module.exports = function ( graphContainerSelector ){
   }
   
   function setForceLayoutData( classNodes, labelNodes, links ){
-    var d3Links = [];
+    let d3Links = [];
     links.forEach(function ( link ){
       d3Links = d3Links.concat(link.linkParts());
     });
     
-    var d3Nodes = [].concat(classNodes).concat(labelNodes);
+    const d3Nodes = [].concat(classNodes).concat(labelNodes);
     setPositionOfOldLabelsOnNewLabels(force.nodes(), labelNodes);
     
     force.nodes(d3Nodes);
@@ -1789,8 +1790,8 @@ module.exports = function ( graphContainerSelector ){
   // their position information. With this hack the position of old labels is copied to the new labels.
   function setPositionOfOldLabelsOnNewLabels( oldLabelNodes, labelNodes ){
     labelNodes.forEach(function ( labelNode ){
-      for ( var i = 0; i < oldLabelNodes.length; i++ ) {
-        var oldNode = oldLabelNodes[i];
+      for ( let i = 0; i < oldLabelNodes.length; i++ ) {
+        const oldNode = oldLabelNodes[i];
         if ( oldNode.equals(labelNode) ) {
           labelNode.x = oldNode.x;
           labelNode.y = oldNode.y;
@@ -1806,14 +1807,14 @@ module.exports = function ( graphContainerSelector ){
   function refreshGraphStyle(){
     zoom = zoom.scaleExtent([options.minMagnification(), options.maxMagnification()]);
     if ( graphContainer ) {
-      var svgNode = graphContainer.node() ? graphContainer.node().parentNode : null;
+      const svgNode = graphContainer.node() ? graphContainer.node().parentNode : null;
       if (svgNode) {
           d3.select(svgNode).call(zoom.transform, d3.zoomIdentity.translate(graphTranslation[0], graphTranslation[1]).scale(zoomFactor));
       }
     }
     
     force.force("charge", d3.forceManyBody().strength(function ( element ){
-      var charge = options.charge();
+      let charge = options.charge();
       if ( elementTools.isLabel(element) ) {
         charge *= 0.8;
       }
@@ -1833,14 +1834,14 @@ module.exports = function ( graphContainerSelector ){
   }
   
   function calculateLinkPartDistance( linkPart ){
-    var link = linkPart.link();
+    const link = linkPart.link();
     
     if ( link.isLoop() ) {
       return options.loopDistance();
     }
     
     // divide by 2 to receive the length for a single link part
-    var linkPartDistance = getVisibleLinkDistance(link) / 2;
+    let linkPartDistance = getVisibleLinkDistance(link) / 2;
     linkPartDistance += linkPart.domain().actualRadius();
     linkPartDistance += linkPart.range().actualRadius();
     return linkPartDistance;
@@ -1859,10 +1860,10 @@ module.exports = function ( graphContainerSelector ){
   /** --------------------------------------------------------- **/
   
   graph.animateDynamicLabelWidth = function (){
-    var wantedWidth = options.dynamicLabelWidth();
-    var i;
+    const wantedWidth = options.dynamicLabelWidth();
+    let i;
     for ( i = 0; i < classNodes.length; i++ ) {
-      var nodeElement = classNodes[i];
+      const nodeElement = classNodes[i];
       if ( elementTools.isDatatype(nodeElement) ) {
         nodeElement.animateDynamicLabelWidth(wantedWidth);
       }
@@ -1878,31 +1879,31 @@ module.exports = function ( graphContainerSelector ){
   /** --------------------------------------------------------- **/
   function updateHaloRadius(){
     if ( pulseNodeIds && pulseNodeIds.length > 0 ) {
-      var forceNodes = force.nodes();
-      for ( var i = 0; i < pulseNodeIds.length; i++ ) {
-        var node = forceNodes[pulseNodeIds[i]];
+      const forceNodes = force.nodes();
+      for ( let i = 0; i < pulseNodeIds.length; i++ ) {
+        const node = forceNodes[pulseNodeIds[i]];
         if ( node ) {
           if ( node.property ) {
             // match search strings with property label
             if ( node.property().inverse ) {
-              var searchString = graph.options().searchMenu().getSearchString().toLowerCase();
-              var name = node.property().labelForCurrentLanguage().toLowerCase();
-              if ( name === searchString ) computeDistanceToCenter(node);
+              const searchString = graph.options().searchMenu().getSearchString().toLowerCase();
+              const name = node.property().labelForCurrentLanguage().toLowerCase();
+              if ( name === searchString ) {computeDistanceToCenter(node);}
               else {
                 node.property().removeHalo();
                 if ( node.property().inverse() ) {
                   if ( !node.property().inverse().getHalos() )
-                    node.property().inverse().drawHalo();
+                    {node.property().inverse().drawHalo();}
                   computeDistanceToCenter(node, true);
                 }
                 if ( node.property().equivalents() ) {
-                  var eq = node.property().equivalents();
-                  for ( var e = 0; e < eq.length; e++ ) {
+                  const eq = node.property().equivalents();
+                  for ( let e = 0; e < eq.length; e++ ) {
                     if ( !eq[e].getHalos() )
-                      eq[e].drawHalo();
+                      {eq[e].drawHalo();}
                   }
                   if ( !node.property().getHalos() )
-                    node.property().drawHalo();
+                    {node.property().drawHalo();}
                   computeDistanceToCenter(node, false);
                   
                 }
@@ -1916,41 +1917,41 @@ module.exports = function ( graphContainerSelector ){
   }
   
   function getScreenCoords( x, y, translate, scale ){
-    var xn = translate[0] + x * scale;
-    var yn = translate[1] + y * scale;
+    const xn = translate[0] + x * scale;
+    const yn = translate[1] + y * scale;
     return { x: xn, y: yn };
   }
   
   function getClickedScreenCoords( x, y, translate, scale ){
-    var xn = (x - translate[0]) / scale;
-    var yn = (y - translate[1]) / scale;
+    const xn = (x - translate[0]) / scale;
+    const yn = (y - translate[1]) / scale;
     return { x: xn, y: yn };
   }
   
   
   function computeDistanceToCenter( node, inverse ){
-    var container = node;
-    var w = graph.options().width();
-    var h = graph.options().height();
-    var posXY = getScreenCoords(node.x, node.y, graphTranslation, zoomFactor);
+    let container = node;
+    const w = graph.options().width();
+    const h = graph.options().height();
+    let posXY = getScreenCoords(node.x, node.y, graphTranslation, zoomFactor);
     
-    var highlightOfInv = false;
+    let highlightOfInv = false;
     
     if ( inverse && inverse === true ) {
       highlightOfInv = true;
       posXY = getScreenCoords(node.x, node.y + 20, graphTranslation, zoomFactor);
     }
-    var x = posXY.x;
-    var y = posXY.y;
-    var nodeIsRect = false;
-    var halo;
-    var roundHalo;
-    var rectHalo;
-    var borderPoint_x = 0;
-    var borderPoint_y = 0;
-    var defaultRadius;
-    var offset = 15;
-    var radius;
+    const x = posXY.x;
+    const y = posXY.y;
+    let nodeIsRect = false;
+    let halo;
+    let roundHalo;
+    let rectHalo;
+    let borderPoint_x = 0;
+    let borderPoint_y = 0;
+    let defaultRadius;
+    const offset = 15;
+    let radius;
     
     if ( node.property && highlightOfInv === true ) {
       if ( node.property().inverse() ) {
@@ -1958,7 +1959,7 @@ module.exports = function ( graphContainerSelector ){
         
       } else {
         if ( node.property().getHalos() )
-          rectHalo = node.property().getHalos().select("rect");
+          {rectHalo = node.property().getHalos().select("rect");}
         else {
           node.property().drawHalo();
           rectHalo = node.property().getHalos().select("rect");
@@ -1987,7 +1988,7 @@ module.exports = function ( graphContainerSelector ){
     }
     
     if ( node.id ) {
-      if ( !node.getHalos() ) return; // something went wrong before
+      if ( !node.getHalos() ) {return;} // something went wrong before
       halo = node.getHalos().select("rect");
       if ( halo.node() === null ) {
         // this is a round node
@@ -2012,7 +2013,7 @@ module.exports = function ( graphContainerSelector ){
       }
     }
     if ( node.property && !inverse ) {
-      if ( !node.property().getHalos() ) return; // something went wrong before
+      if ( !node.property().getHalos() ) {return;} // something went wrong before
       rectHalo = node.property().getHalos().select("rect");
       rectHalo.classed("hidden", true);
       
@@ -2066,34 +2067,34 @@ module.exports = function ( graphContainerSelector ){
       container.getHalos().select("circle").classed("searchResultB", true);
       halo.classed("hidden", false);
       // compute in pixel coordinates length of difference vector
-      var borderRadius_x = borderPoint_x - x;
-      var borderRadius_y = borderPoint_y - y;
+      const borderRadius_x = borderPoint_x - x;
+      const borderRadius_y = borderPoint_y - y;
       
-      var len = borderRadius_x * borderRadius_x + borderRadius_y * borderRadius_y;
+      let len = borderRadius_x * borderRadius_x + borderRadius_y * borderRadius_y;
       len = Math.sqrt(len);
       
-      var normedX = borderRadius_x / len;
-      var normedY = borderRadius_y / len;
+      const normedX = borderRadius_x / len;
+      const normedY = borderRadius_y / len;
       
       len = len + 20; // add 20 px;
       
       // re-normalized vector
-      var newVectorX = normedX * len + x;
-      var newVectorY = normedY * len + y;
+      const newVectorX = normedX * len + x;
+      const newVectorY = normedY * len + y;
       // compute world coordinates of this point
-      var wX = (newVectorX - graphTranslation[0]) / zoomFactor;
-      var wY = (newVectorY - graphTranslation[1]) / zoomFactor;
+      const wX = (newVectorX - graphTranslation[0]) / zoomFactor;
+      const wY = (newVectorY - graphTranslation[1]) / zoomFactor;
       
       // compute distance in world coordinates
-      var dx = wX - node.x;
-      var dy = wY - node.y;
+      const dx = wX - node.x;
+      let dy = wY - node.y;
       if ( highlightOfInv === true )
-        dy = wY - node.y - 20;
+        {dy = wY - node.y - 20;}
       
       if ( highlightOfInv === false && node.property && node.property().inverse() )
-        dy = wY - node.y + 20;
+        {dy = wY - node.y + 20;}
       
-      var newRadius = Math.sqrt(dx * dx + dy * dy);
+      let newRadius = Math.sqrt(dx * dx + dy * dy);
       halo = container.getHalos().select("circle");
       // sanity checks and setting new halo radius
       if ( !nodeIsRect ) {
@@ -2105,7 +2106,7 @@ module.exports = function ( graphContainerSelector ){
       } else {
         defaultRadius = 0.5 * container.width();
         if ( newRadius < defaultRadius )
-          newRadius = defaultRadius;
+          {newRadius = defaultRadius;}
         halo.attr("r", newRadius);
       }
     } else { // node is in viewport , render original;
@@ -2118,7 +2119,7 @@ module.exports = function ( graphContainerSelector ){
         halo.classed("hidden", false);
         //halo.classed("searchResultB", true);
         //halo.classed("searchResultA", false);
-        var aCircHalo = container.getHalos().select("circle");
+        const aCircHalo = container.getHalos().select("circle");
         aCircHalo.classed("hidden", true);
         
         container.getHalos().select("rect").classed("hidden", false);
@@ -2147,16 +2148,16 @@ module.exports = function ( graphContainerSelector ){
   
   function targetLocationZoom( target ){
     // store the original information
-    var cx = 0.5 * graph.options().width();
-    var cy = 0.5 * graph.options().height();
-    var cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
-    var sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
+    const cx = 0.5 * graph.options().width();
+    const cy = 0.5 * graph.options().height();
+    const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
+    const sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
     
-    var zoomLevel = Math.max(defaultZoom + 0.5 * defaultZoom, defaultTargetZoom);
-    var eP = [target.x, target.y, graph.options().height() / zoomLevel];
-    var pos_intp = d3.interpolateZoom(sP, eP);
+    const zoomLevel = Math.max(defaultZoom + 0.5 * defaultZoom, defaultTargetZoom);
+    const eP = [target.x, target.y, graph.options().height() / zoomLevel];
+    const pos_intp = d3.interpolateZoom(sP, eP);
     
-    var lenAnimation = pos_intp.duration;
+    let lenAnimation = pos_intp.duration;
     if ( lenAnimation > 2500 ) {
       lenAnimation = 2500;
     }
@@ -2177,7 +2178,8 @@ module.exports = function ( graphContainerSelector ){
   }
   
   function getWorldPosFromScreen( x, y, translate, scale ){
-    var temp = scale[0], xn, yn;
+    const temp = scale[0];
+    let xn, yn;
     if ( temp ) {
       xn = (x - translate[0]) / temp;
       yn = (y - translate[1]) / temp;
@@ -2191,12 +2193,12 @@ module.exports = function ( graphContainerSelector ){
   graph.locateSearchResult = function (){
     if ( pulseNodeIds && pulseNodeIds.length > 0 ) {
       // move the center of the viewport to this location
-      if ( transformAnimation === true ) return; // << prevents incrementing the location id if we are in an animation
-      var node = force.nodes()[pulseNodeIds[locationId]];
+      if ( transformAnimation === true ) {return;} // << prevents incrementing the location id if we are in an animation
+      const node = force.nodes()[pulseNodeIds[locationId]];
       locationId++;
       locationId = locationId % pulseNodeIds.length;
-      if ( node.id ) node.foreground();
-      if ( node.property ) node.property().foreground();
+      if ( node.id ) {node.foreground();}
+      if ( node.property ) {node.property().foreground();}
       
       targetLocationZoom(node);
     }
@@ -2210,28 +2212,28 @@ module.exports = function ( graphContainerSelector ){
       return;
     }
     // clear from stored nodes
-    var nodes = unfilteredData.nodes;
-    var props = unfilteredData.properties;
-    var j;
+    const nodes = unfilteredData.nodes;
+    const props = unfilteredData.properties;
+    let j;
     for ( j = 0; j < nodes.length; j++ ) {
-      var node = nodes[j];
+      const node = nodes[j];
       if ( node && node.removeHalo )
-        node.removeHalo();
+        {node.removeHalo();}
     }
     for ( j = 0; j < props.length; j++ ) {
-      var prop = props[j];
+      const prop = props[j];
       if ( prop && prop.removeHalo )
-        prop.removeHalo();
+        {prop.removeHalo();}
     }
   };
   
   graph.updatePulseIds = function ( nodeIdArray ){
     pulseNodeIds = [];
-    for ( var i = 0; i < nodeIdArray.length; i++ ) {
-      var selectedId = nodeIdArray[i];
-      var forceId = nodeMap[selectedId];
+    for ( let i = 0; i < nodeIdArray.length; i++ ) {
+      const selectedId = nodeIdArray[i];
+      const forceId = nodeMap[selectedId];
       if ( forceId !== undefined ) {
-        var le_node = force.nodes()[forceId];
+        const le_node = force.nodes()[forceId];
         if ( le_node.id ) {
           if ( pulseNodeIds.indexOf(forceId) === -1 ) {
             pulseNodeIds.push(forceId);
@@ -2262,14 +2264,14 @@ module.exports = function ( graphContainerSelector ){
     }
     pulseNodeIds = [];
     nodeArrayForPulse = nodeIdArray;
-    var missedIds = [];
+    const missedIds = [];
     
     // identify the force id to highlight
-    for ( var i = 0; i < nodeIdArray.length; i++ ) {
-      var selectedId = nodeIdArray[i];
-      var forceId = nodeMap[selectedId];
+    for ( let i = 0; i < nodeIdArray.length; i++ ) {
+      const selectedId = nodeIdArray[i];
+      const forceId = nodeMap[selectedId];
       if ( forceId !== undefined ) {
-        var le_node = force.nodes()[forceId];
+        const le_node = force.nodes()[forceId];
         if ( le_node.id ) {
           if ( pulseNodeIds.indexOf(forceId) === -1 ) {
             pulseNodeIds.push(forceId);
@@ -2290,19 +2292,19 @@ module.exports = function ( graphContainerSelector ){
       }
     }
     // store the highlight on the missed nodes;
-    var s_nodes = unfilteredData.nodes;
-    var s_props = unfilteredData.properties;
-    for ( i = 0; i < missedIds.length; i++ ) {
-      var missedId = missedIds[i];
+    const s_nodes = unfilteredData.nodes;
+    const s_props = unfilteredData.properties;
+    for ( let i = 0; i < missedIds.length; i++ ) {
+      const missedId = missedIds[i];
       // search for this in the nodes;
-      for ( var n = 0; n < s_nodes.length; n++ ) {
-        var nodeId = s_nodes[n].id();
+      for ( let n = 0; n < s_nodes.length; n++ ) {
+        const nodeId = s_nodes[n].id();
         if ( nodeId === missedId ) {
           s_nodes[n].drawHalo();
         }
       }
-      for ( var p = 0; p < s_props.length; p++ ) {
-        var propId = s_props[p].id();
+      for ( let p = 0; p < s_props.length; p++ ) {
+        const propId = s_props[p].id();
         if ( propId === missedId ) {
           s_props[p].drawHalo();
         }
@@ -2319,61 +2321,61 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.hideHalos = function (){
-    var haloElements = d3.selectAll(".searchResultA,.searchResultB");
+    const haloElements = d3.selectAll(".searchResultA,.searchResultB");
     haloElements.classed("hidden", true);
     return haloElements;
   };
   
   function nodeInViewport( node, property ){
     
-    var w = graph.options().width();
-    var h = graph.options().height();
-    var posXY = getScreenCoords(node.x, node.y, graphTranslation, zoomFactor);
-    var x = posXY.x;
-    var y = posXY.y;
+    const w = graph.options().width();
+    const h = graph.options().height();
+    const posXY = getScreenCoords(node.x, node.y, graphTranslation, zoomFactor);
+    const x = posXY.x;
+    const y = posXY.y;
     
-    var retVal = !(x < 0 || x > w || y < 0 || y > h);
+    const retVal = !(x < 0 || x > w || y < 0 || y > h);
     return retVal;
   }
   
   graph.getBoundingBoxForTex = function (){
-    var halos = graph.hideHalos();
-    var bbox = graphContainer.node().getBoundingClientRect();
+    const halos = graph.hideHalos();
+    const bbox = graphContainer.node().getBoundingClientRect();
     halos.classed("hidden", false);
-    var w = graph.options().width();
-    var h = graph.options().height();
+    const w = graph.options().width();
+    const h = graph.options().height();
     
     // get the graph coordinates
-    var topLeft = getWorldPosFromScreen(0, 0, graphTranslation, zoomFactor);
-    var botRight = getWorldPosFromScreen(w, h, graphTranslation, zoomFactor);
+    const topLeft = getWorldPosFromScreen(0, 0, graphTranslation, zoomFactor);
+    const botRight = getWorldPosFromScreen(w, h, graphTranslation, zoomFactor);
     
     
-    var t_topLeft = getWorldPosFromScreen(bbox.left, bbox.top, graphTranslation, zoomFactor);
-    var t_botRight = getWorldPosFromScreen(bbox.right, bbox.bottom, graphTranslation, zoomFactor);
+    const t_topLeft = getWorldPosFromScreen(bbox.left, bbox.top, graphTranslation, zoomFactor);
+    const t_botRight = getWorldPosFromScreen(bbox.right, bbox.bottom, graphTranslation, zoomFactor);
     
     // tighten up the bounding box;
     
-    var tX = Math.max(t_topLeft.x, topLeft.x);
-    var tY = Math.max(t_topLeft.y, topLeft.y);
+    let tX = Math.max(t_topLeft.x, topLeft.x);
+    let tY = Math.max(t_topLeft.y, topLeft.y);
     
-    var bX = Math.min(t_botRight.x, botRight.x);
-    var bY = Math.min(t_botRight.y, botRight.y);
+    let bX = Math.min(t_botRight.x, botRight.x);
+    let bY = Math.min(t_botRight.y, botRight.y);
     
     
     // tighten further;
-    var allForceNodes = force.nodes();
-    var numNodes = allForceNodes.length;
-    var bbx;
+    const allForceNodes = force.nodes();
+    const numNodes = allForceNodes.length;
+    let bbx;
     
     
-    var contentBBox = { tx: 1000000000000, ty: 1000000000000, bx: -1000000000000, by: -1000000000000 };
+    const contentBBox = { tx: 1000000000000, ty: 1000000000000, bx: -1000000000000, by: -1000000000000 };
     
-    for ( var i = 0; i < numNodes; i++ ) {
-      var node = allForceNodes[i];
+    for ( let i = 0; i < numNodes; i++ ) {
+      const node = allForceNodes[i];
       if ( node ) {
         if ( node.property ) {
           if ( nodeInViewport(node, true) ) {
-            if ( node.property().labelElement() === undefined ) continue;
+            if ( node.property().labelElement() === undefined ) {continue;}
             bbx = node.property().labelElement().node().getBoundingClientRect();
             if ( bbx ) {
               contentBBox.tx = Math.min(contentBBox.tx, bbx.left);
@@ -2396,8 +2398,8 @@ module.exports = function ( graphContainerSelector ){
       }
     }
     
-    var tt_topLeft = getWorldPosFromScreen(contentBBox.tx, contentBBox.ty, graphTranslation, zoomFactor);
-    var tt_botRight = getWorldPosFromScreen(contentBBox.bx, contentBBox.by, graphTranslation, zoomFactor);
+    const tt_topLeft = getWorldPosFromScreen(contentBBox.tx, contentBBox.ty, graphTranslation, zoomFactor);
+    const tt_botRight = getWorldPosFromScreen(contentBBox.bx, contentBBox.by, graphTranslation, zoomFactor);
     
     tX = Math.max(tX, tt_topLeft.x);
     tY = Math.max(tY, tt_topLeft.y);
@@ -2409,44 +2411,44 @@ module.exports = function ( graphContainerSelector ){
     
   };
   
-  var updateTargetElement = function (){
-    var bbox = graphContainer.node().getBoundingClientRect();
+  const updateTargetElement = function (){
+    const bbox = graphContainer.node().getBoundingClientRect();
     
     
     // get the graph coordinates
-    var bboxOffset = 50; // default radius of a node;
-    var topLeft = getWorldPosFromScreen(bbox.left, bbox.top, graphTranslation, zoomFactor);
-    var botRight = getWorldPosFromScreen(bbox.right, bbox.bottom, graphTranslation, zoomFactor);
+    const bboxOffset = 50; // default radius of a node;
+    const topLeft = getWorldPosFromScreen(bbox.left, bbox.top, graphTranslation, zoomFactor);
+    const botRight = getWorldPosFromScreen(bbox.right, bbox.bottom, graphTranslation, zoomFactor);
     
-    var w = graph.options().width();
+    let w = graph.options().width();
     if ( graph.options().leftSidebar().isSidebarVisible() === true )
-      w -= 200;
-    var h = graph.options().height();
+      {w -= 200;}
+    const h = graph.options().height();
     topLeft.x += bboxOffset;
     topLeft.y -= bboxOffset;
     botRight.x -= bboxOffset;
     botRight.y += bboxOffset;
     
-    var g_w = botRight.x - topLeft.x;
-    var g_h = botRight.y - topLeft.y;
+    const g_w = botRight.x - topLeft.x;
+    const g_h = botRight.y - topLeft.y;
     
     // endpoint position calculations
-    var posX = 0.5 * (topLeft.x + botRight.x);
-    var posY = 0.5 * (topLeft.y + botRight.y);
-    var cx = 0.5 * w,
-      cy = 0.5 * h;
+    const posX = 0.5 * (topLeft.x + botRight.x);
+    const posY = 0.5 * (topLeft.y + botRight.y);
+    let cx = 0.5 * w;
+    const cy = 0.5 * h;
     
     if ( graph.options().leftSidebar().isSidebarVisible() === true )
-      cx += 200;
-    var cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
+      {cx += 200;}
+    const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
     
     // zoom factor calculations and fail safes;
-    var newZoomFactor = 1.0; // fail save if graph and window are squares
+    let newZoomFactor = 1.0; // fail save if graph and window are squares
     //get the smaller one
-    var a = w / g_w;
-    var b = h / g_h;
-    if ( a < b ) newZoomFactor = a;
-    else      newZoomFactor = b;
+    const a = w / g_w;
+    const b = h / g_h;
+    if ( a < b ) {newZoomFactor = a;}
+    else      {newZoomFactor = b;}
     
     
     // fail saves
@@ -2458,55 +2460,55 @@ module.exports = function ( graphContainerSelector ){
     }
     
     // apply Zooming
-    var sP = [cp.x, cp.y, h / zoomFactor];
-    var eP = [posX, posY, h / newZoomFactor];
+    const sP = [cp.x, cp.y, h / zoomFactor];
+    const eP = [posX, posY, h / newZoomFactor];
     
     
-    var pos_intp = d3.interpolateZoom(sP, eP);
+    const pos_intp = d3.interpolateZoom(sP, eP);
     return [pos_intp, cx, cy];
     
   };
   
   graph.forceRelocationEvent = function ( dynamic ){
     // we need to kill the halo to determine the bounding box;
-    var halos = graph.hideHalos();
-    var bbox = graphContainer.node().getBoundingClientRect();
+    const halos = graph.hideHalos();
+    const bbox = graphContainer.node().getBoundingClientRect();
     halos.classed("hidden", false);
     
     // get the graph coordinates
-    var bboxOffset = 50; // default radius of a node;
-    var topLeft = getWorldPosFromScreen(bbox.left, bbox.top, graphTranslation, zoomFactor);
-    var botRight = getWorldPosFromScreen(bbox.right, bbox.bottom, graphTranslation, zoomFactor);
+    const bboxOffset = 50; // default radius of a node;
+    const topLeft = getWorldPosFromScreen(bbox.left, bbox.top, graphTranslation, zoomFactor);
+    const botRight = getWorldPosFromScreen(bbox.right, bbox.bottom, graphTranslation, zoomFactor);
     
-    var w = graph.options().width();
+    let w = graph.options().width();
     if ( graph.options().leftSidebar().isSidebarVisible() === true )
-      w -= 200;
-    var h = graph.options().height();
+      {w -= 200;}
+    const h = graph.options().height();
     topLeft.x += bboxOffset;
     topLeft.y -= bboxOffset;
     botRight.x -= bboxOffset;
     botRight.y += bboxOffset;
     
-    var g_w = botRight.x - topLeft.x;
-    var g_h = botRight.y - topLeft.y;
+    const g_w = botRight.x - topLeft.x;
+    const g_h = botRight.y - topLeft.y;
     
     // endpoint position calculations
-    var posX = 0.5 * (topLeft.x + botRight.x);
-    var posY = 0.5 * (topLeft.y + botRight.y);
-    var cx = 0.5 * w,
-      cy = 0.5 * h;
+    const posX = 0.5 * (topLeft.x + botRight.x);
+    const posY = 0.5 * (topLeft.y + botRight.y);
+    let cx = 0.5 * w;
+    const cy = 0.5 * h;
     
     if ( graph.options().leftSidebar().isSidebarVisible() === true )
-      cx += 200;
-    var cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
+      {cx += 200;}
+    const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
     
     // zoom factor calculations and fail safes;
-    var newZoomFactor = 1.0; // fail save if graph and window are squares
+    let newZoomFactor = 1.0; // fail save if graph and window are squares
     //get the smaller one
-    var a = w / g_w;
-    var b = h / g_h;
-    if ( a < b ) newZoomFactor = a;
-    else      newZoomFactor = b;
+    const a = w / g_w;
+    const b = h / g_h;
+    if ( a < b ) {newZoomFactor = a;}
+    else      {newZoomFactor = b;}
     
     
     // fail saves
@@ -2518,12 +2520,12 @@ module.exports = function ( graphContainerSelector ){
     }
     
     // apply Zooming
-    var sP = [cp.x, cp.y, h / zoomFactor];
-    var eP = [posX, posY, h / newZoomFactor];
+    const sP = [cp.x, cp.y, h / zoomFactor];
+    const eP = [posX, posY, h / newZoomFactor];
     
     
-    var pos_intp = d3.interpolateZoom(sP, eP);
-    var lenAnimation = pos_intp.duration;
+    const pos_intp = d3.interpolateZoom(sP, eP);
+    let lenAnimation = pos_intp.duration;
     if ( lenAnimation > 2500 ) {
       lenAnimation = 2500;
     }
@@ -2533,8 +2535,8 @@ module.exports = function ( graphContainerSelector ){
       .attrTween("transform", function (){
         return function ( t ){
           if ( dynamic ) {
-            var param = updateTargetElement();
-            var nV = param[0](t);
+            const param = updateTargetElement();
+            const nV = param[0](t);
             return transform(nV, cx, cy);
           }
           return transform(pos_intp(t), cx, cy);
@@ -2569,7 +2571,7 @@ module.exports = function ( graphContainerSelector ){
   
   graph.changeNodeType = function ( element ){
     
-    var typeString = d3.select("#typeEditor").node().value;
+    const typeString = d3.select("#typeEditor").node().value;
     
     if ( graph.classesSanityCheck(element, typeString) === false ) {
       // call reselection to restore previous type selection
@@ -2577,8 +2579,8 @@ module.exports = function ( graphContainerSelector ){
       return;
     }
     
-    var prototype = NodePrototypeMap.get(typeString.toLowerCase());
-    var aNode = new prototype(graph);
+    const prototype = NodePrototypeMap.get(typeString.toLowerCase());
+    const aNode = new prototype(graph);
     
     aNode.x = element.x;
     aNode.y = element.y;
@@ -2602,13 +2604,13 @@ module.exports = function ( graphContainerSelector ){
     
     if ( typeString === "rdfs:Datatype" ) {
       if ( aNode.dType() === "undefined" )
-        aNode.label("undefined");
+        {aNode.label("undefined");}
       else {
-        var identifier = aNode.dType().split(":")[1];
+        const identifier = aNode.dType().split(":")[1];
         aNode.label(identifier);
       }
     }
-    var i;
+    let i;
     // updates the property domain and range
     for ( i = 0; i < unfilteredData.properties.length; i++ ) {
       if ( unfilteredData.properties[i].domain() === element ) {
@@ -2633,12 +2635,12 @@ module.exports = function ( graphContainerSelector ){
       }
     }
     
-    var remId = unfilteredData.nodes.indexOf(element);
+    let remId = unfilteredData.nodes.indexOf(element);
     if ( remId !== -1 )
-      unfilteredData.nodes.splice(remId, 1);
+      {unfilteredData.nodes.splice(remId, 1);}
     remId = classNodes.indexOf(element);
     if ( remId !== -1 )
-      classNodes.splice(remId, 1);
+      {classNodes.splice(remId, 1);}
     // very important thing for selection!;
     addNewNodeElement(aNode);
     // handle focuser!
@@ -2650,13 +2652,13 @@ module.exports = function ( graphContainerSelector ){
   
   
   graph.changePropertyType = function ( element ){
-    var typeString = d3.select("#typeEditor").node().value;
+    const typeString = d3.select("#typeEditor").node().value;
     
     // create warning
-    if ( graph.sanityCheckProperty(element.domain(), element.range(), typeString) === false ) return false;
+    if ( graph.sanityCheckProperty(element.domain(), element.range(), typeString) === false ) {return false;}
     
-    var propPrototype = PropertyPrototypeMap.get(typeString.toLowerCase());
-    var aProp = new propPrototype(graph);
+    const propPrototype = PropertyPrototypeMap.get(typeString.toLowerCase());
+    const aProp = new propPrototype(graph);
     aProp.copyInformation(element);
     aProp.id(element.id());
     
@@ -2675,7 +2677,7 @@ module.exports = function ( graphContainerSelector ){
       aProp.iri("http://www.w3.org/2000/01/rdf-schema#subClassOf");
     } else {
       if ( element.iri() === "http://www.w3.org/2000/01/rdf-schema#subClassOf" )
-        aProp.iri(graph.options().getGeneralMetaObjectProperty('iri') + aProp.id());
+        {aProp.iri(graph.options().getGeneralMetaObjectProperty('iri') + aProp.id());}
       
     }
     
@@ -2693,15 +2695,15 @@ module.exports = function ( graphContainerSelector ){
     // add this to the data;
     unfilteredData.properties.push(aProp);
     if ( properties.indexOf(aProp) === -1 )
-      properties.push(aProp);
-    var remId = unfilteredData.properties.indexOf(element);
+      {properties.push(aProp);}
+    let remId = unfilteredData.properties.indexOf(element);
     if ( remId !== -1 )
-      unfilteredData.properties.splice(remId, 1);
+      {unfilteredData.properties.splice(remId, 1);}
     if ( properties.indexOf(aProp) === -1 )
-      properties.push(aProp);
+      {properties.push(aProp);}
     remId = properties.indexOf(element);
     if ( remId !== -1 )
-      properties.splice(remId, 1);
+      {properties.splice(remId, 1);}
     graph.fastUpdate();
     aProp.domain().addProperty(aProp);
     aProp.range().addProperty(aProp);
@@ -2728,9 +2730,9 @@ module.exports = function ( graphContainerSelector ){
     
     classDragger.hideDragger(true);
     if ( addDataPropertyGroupElement )
-      addDataPropertyGroupElement.classed("hidden", true);
+      {addDataPropertyGroupElement.classed("hidden", true);}
     if ( deleteGroupElement )
-      deleteGroupElement.classed("hidden", true);
+      {deleteGroupElement.classed("hidden", true);}
     
     
     if ( hoveredNodeElement ) {
@@ -2750,10 +2752,10 @@ module.exports = function ( graphContainerSelector ){
   }
   
   graph.editorMode = function ( val ){
-    var create_entry = d3.select("#empty");
-    var create_container = d3.select("#emptyContainer");
+    const create_entry = d3.select("#empty");
+    const create_container = d3.select("#emptyContainer");
     
-    var modeOfOpString = d3.select("#modeOfOperationString").node();
+    const modeOfOpString = d3.select("#modeOfOperationString").node();
     if ( !arguments.length ) {
       create_entry.node().checked = editMode;
       if ( editMode === false ) {
@@ -2800,7 +2802,7 @@ module.exports = function ( graphContainerSelector ){
     // adjust compact notation
     // selector = compactNotationOption;
     // box =ModuleCheckbox
-    var compactNotationContainer = d3.select("#compactnotationModuleCheckbox");
+    const compactNotationContainer = d3.select("#compactnotationModuleCheckbox");
     if ( compactNotationContainer ) {
       compactNotationContainer.classed("disabled", !editMode);
       if ( !editMode ) {
@@ -2834,7 +2836,7 @@ module.exports = function ( graphContainerSelector ){
         modeOfOpString.innerHTML = "point & click device detected";
       }
     }
-    var svgGraph = d3.selectAll(".vowlGraph");
+    const svgGraph = d3.selectAll(".vowlGraph");
     
     if ( editMode === true ) {
       options.leftSidebar().showSidebar(options.leftSidebar().getSidebarVisibility(), true);
@@ -2862,14 +2864,10 @@ module.exports = function ( graphContainerSelector ){
   }
   
   function createNewNodeAtPosition( pos ){
-    var aNode, prototype;
-    var forceUpdate = true;
-    // create a node of that id;
-    
-    var typeToCreate = d3.select("#defaultClass").node().title;
-    prototype = NodePrototypeMap.get(typeToCreate.toLowerCase());
-    aNode = new prototype(graph);
-    var autoEditElement = false;
+    const typeToCreate = d3.select("#defaultClass").node().title;
+    const prototype = NodePrototypeMap.get(typeToCreate.toLowerCase());
+    const aNode = new prototype(graph);
+    let autoEditElement = false;
     if ( typeToCreate === "owl:Thing" ) {
       aNode.label("Thing");
     }
@@ -2886,7 +2884,7 @@ module.exports = function ( graphContainerSelector ){
     
     aNode.baseIri(d3.select("#iriEditor").node().value);
     aNode.iri(aNode.baseIri() + aNode.id());
-    addNewNodeElement(aNode, forceUpdate);
+    addNewNodeElement(aNode);
     options.focuserModule().handle(null, aNode, true);
     aNode.frozen(graph.paused());
     aNode.locked(graph.paused());
@@ -2897,7 +2895,7 @@ module.exports = function ( graphContainerSelector ){
   function addNewNodeElement( element ){
     unfilteredData.nodes.push(element);
     if ( classNodes.indexOf(element) === -1 )
-      classNodes.push(element);
+      {classNodes.push(element);}
     
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
@@ -2905,22 +2903,22 @@ module.exports = function ( graphContainerSelector ){
   }
   
   graph.getTargetNode = function ( position ){
-    var dx = position[0];
-    var dy = position[1];
-    var tN = null;
-    var minDist = 1000000000000;
+    const dx = position[0];
+    const dy = position[1];
+    let tN = null;
+    let minDist = 1000000000000;
     // This is a bit OVERKILL for the computation of one node >> TODO: KD-TREE SEARCH
     unfilteredData.nodes.forEach(function ( el ){
-      var cDist = Math.sqrt((el.x - dx) * (el.x - dx) + (el.y - dy) * (el.y - dy));
+      const cDist = Math.sqrt((el.x - dx) * (el.x - dx) + (el.y - dy) * (el.y - dy));
       if ( cDist < minDist ) {
         minDist = cDist;
         tN = el;
       }
     });
     if ( hoveredNodeElement ) {
-      var offsetDist = hoveredNodeElement.actualRadius() + 30;
-      if ( minDist > offsetDist ) return null;
-      if ( tN.renderType() === "rect" ) return null;
+      const offsetDist = hoveredNodeElement.actualRadius() + 30;
+      if ( minDist > offsetDist ) {return null;}
+      if ( tN.renderType() === "rect" ) {return null;}
       if ( tN === hoveredNodeElement && minDist <= hoveredNodeElement.actualRadius() ) {
         return tN;
       } else if ( tN === hoveredNodeElement && minDist > hoveredNodeElement.actualRadius() ) {
@@ -2931,8 +2929,8 @@ module.exports = function ( graphContainerSelector ){
     else {
       
       if ( minDist > (tN.actualRadius() + 30) )
-        return null;
-      else return tN;
+        {return null;}
+      else {return tN;}
       
     }
   };
@@ -2983,14 +2981,14 @@ module.exports = function ( graphContainerSelector ){
   
   graph.checkIfIriClassAlreadyExist = function ( url ){
     // search for a class node with this url
-    var allNodes = unfilteredData.nodes;
-    for ( var i = 0; i < allNodes.length; i++ ) {
+    const allNodes = unfilteredData.nodes;
+    for ( let i = 0; i < allNodes.length; i++ ) {
       if ( elementTools.isDatatype(allNodes[i]) === true || allNodes[i].type() === "owl:Thing" )
-        continue;
+        {continue;}
       
       // now we are a real class;
       //get class IRI
-      var classIRI = allNodes[i].iri();
+      const classIRI = allNodes[i].iri();
       
       // this gives me the node for halo
       if ( url === classIRI ) {
@@ -3006,12 +3004,12 @@ module.exports = function ( graphContainerSelector ){
     // when it has a property attached to it that uses these restrictions
     //
     
-    if ( targetType === "owl:Class" ) return true;
+    if ( targetType === "owl:Class" ) {return true;}
     
     else {
       // collect all properties which have that one as a domain or range
-      var allProps = unfilteredData.properties;
-      for ( var i = 0; i < allProps.length; i++ ) {
+      const allProps = unfilteredData.properties;
+      for ( let i = 0; i < allProps.length; i++ ) {
         if ( allProps[i].range() === classElement || allProps[i].domain() === classElement ) {
           // check for the type of that property
           if ( allProps[i].type() === "owl:someValuesFrom" ) {
@@ -3035,12 +3033,12 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.propertyCheckExistenceChecker = function ( property, domain, range ){
-    var allProps = unfilteredData.properties;
-    var i;
+    const allProps = unfilteredData.properties;
+    let i;
     if ( property.type() === "rdfs:subClassOf" || property.type() === "owl:disjointWith" ) {
       
       for ( i = 0; i < allProps.length; i++ ) {
-        if ( allProps[i] === property ) continue;
+        if ( allProps[i] === property ) {continue;}
         if ( allProps[i].domain() === domain && allProps[i].range() === range && allProps[i].type() === property.type() ) {
           graph.options().warningModule().showWarning("Warning",
             "This triple already exist!",
@@ -3142,14 +3140,14 @@ module.exports = function ( graphContainerSelector ){
   function createNewObjectProperty( domain, range, draggerEndposition ){
     // check type of the property that we want to create;
     
-    var defaultPropertyName = d3.select("#defaultProperty").node().title;
+    const defaultPropertyName = d3.select("#defaultProperty").node().title;
     
     // check if we are allow to create that property
-    if ( graph.sanityCheckProperty(domain, range, defaultPropertyName) === false ) return false;
+    if ( graph.sanityCheckProperty(domain, range, defaultPropertyName) === false ) {return false;}
     
     
-    var propPrototype = PropertyPrototypeMap.get(defaultPropertyName.toLowerCase());
-    var aProp = new propPrototype(graph);
+    const propPrototype = PropertyPrototypeMap.get(defaultPropertyName.toLowerCase());
+    const aProp = new propPrototype(graph);
     aProp.id("objectProperty" + eP++);
     aProp.domain(domain);
     aProp.range(range);
@@ -3164,24 +3162,24 @@ module.exports = function ( graphContainerSelector ){
       return false;
     }
     
-    var autoEditElement = false;
+    let autoEditElement = false;
     
     if ( defaultPropertyName === "owl:objectProperty" ) {
       autoEditElement = true;
     }
-    var pX = 0.49 * (domain.x + range.x);
-    var pY = 0.49 * (domain.y + range.y);
+    let pX = 0.49 * (domain.x + range.x);
+    let pY = 0.49 * (domain.y + range.y);
     
     if ( domain === range ) {
       // we use the dragger endposition to determine an angle to put the loop there;
-      var dirD_x = draggerEndposition[0] - domain.x;
-      var dirD_y = draggerEndposition[1] - domain.y;
+      const dirD_x = draggerEndposition[0] - domain.x;
+      const dirD_y = draggerEndposition[1] - domain.y;
       
       // normalize;
-      var len = Math.sqrt(dirD_x * dirD_x + dirD_y * dirD_y);
+      const len = Math.sqrt(dirD_x * dirD_x + dirD_y * dirD_y);
       // it should be very hard to set the position on the same sport but why not handling this
-      var nx = dirD_x / len;
-      var ny = dirD_y / len;
+      let nx = dirD_x / len;
+      let ny = dirD_y / len;
       // is Nan in javascript like in c len==len returns false when it is not a number?
       if ( isNaN(len) ) {
         nx = 0;
@@ -3189,7 +3187,7 @@ module.exports = function ( graphContainerSelector ){
       }
       
       // get domain actual raidus
-      var offset = 2 * domain.actualRadius() + 50;
+      const offset = 2 * domain.actualRadius() + 50;
       pX = domain.x + offset * nx;
       pY = domain.y + offset * ny;
     }
@@ -3202,7 +3200,7 @@ module.exports = function ( graphContainerSelector ){
     // add this to the data;
     unfilteredData.properties.push(aProp);
     if ( properties.indexOf(aProp) === -1 )
-      properties.push(aProp);
+      {properties.push(aProp);}
     graph.fastUpdate();
     aProp.labelObject().x = pX;
     aProp.labelObject().px = pX;
@@ -3238,10 +3236,10 @@ module.exports = function ( graphContainerSelector ){
     }
     
     
-    var aNode, prototype;
+    let aNode, prototype;
     
     // create a default datatype Node >> HERE LITERAL;
-    var defaultDatatypeName = d3.select("#defaultDatatype").node().title;
+    const defaultDatatypeName = d3.select("#defaultDatatype").node().title;
     if ( defaultDatatypeName === "rdfs:Literal" ) {
       prototype = NodePrototypeMap.get("rdfs:literal");
       aNode = new prototype(graph);
@@ -3251,7 +3249,7 @@ module.exports = function ( graphContainerSelector ){
     } else {
       prototype = NodePrototypeMap.get("rdfs:datatype");
       aNode = new prototype(graph);
-      var identifier = "";
+      let identifier = "";
       if ( defaultDatatypeName === "undefined" ) {
         identifier = "undefined";
         
@@ -3270,8 +3268,8 @@ module.exports = function ( graphContainerSelector ){
     }
     
     
-    var nX = node.x - node.actualRadius() - 100;
-    var nY = node.y + node.actualRadius() + 100;
+    const nX = node.x - node.actualRadius() - 100;
+    const nY = node.y + node.actualRadius() + 100;
     
     aNode.x = nX;
     aNode.y = nY;
@@ -3281,12 +3279,12 @@ module.exports = function ( graphContainerSelector ){
     // add this property to the nodes;
     unfilteredData.nodes.push(aNode);
     if ( classNodes.indexOf(aNode) === -1 )
-      classNodes.push(aNode);
+      {classNodes.push(aNode);}
     
     
     // add also the datatype Property to it
-    var propPrototype = PropertyPrototypeMap.get("owl:datatypeproperty");
-    var aProp = new propPrototype(graph);
+    const propPrototype = PropertyPrototypeMap.get("owl:datatypeproperty");
+    const aProp = new propPrototype(graph);
     aProp.id("datatypeProperty" + eP++);
     
     // create the connection
@@ -3296,13 +3294,13 @@ module.exports = function ( graphContainerSelector ){
     
     
     // TODO: change its base IRI to proper value
-    var ontoIri = d3.select("#iriEditor").node().value;
+    const ontoIri = d3.select("#iriEditor").node().value;
     aProp.baseIri(ontoIri);
     aProp.iri(ontoIri + aProp.id());
     // add this to the data;
     unfilteredData.properties.push(aProp);
     if ( properties.indexOf(aProp) === -1 )
-      properties.push(aProp);
+      {properties.push(aProp);}
     graph.fastUpdate();
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
@@ -3321,15 +3319,15 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.removeNodesViaResponse = function ( nodesToRemove, propsToRemove ){
-    var i, remId;
+    let i, remId;
     // splice them;
     for ( i = 0; i < propsToRemove.length; i++ ) {
       remId = unfilteredData.properties.indexOf(propsToRemove[i]);
       if ( remId !== -1 )
-        unfilteredData.properties.splice(remId, 1);
+        {unfilteredData.properties.splice(remId, 1);}
       remId = properties.indexOf(propsToRemove[i]);
       if ( remId !== -1 )
-        properties.splice(remId, 1);
+        {properties.splice(remId, 1);}
       propsToRemove[i] = null;
     }
     for ( i = 0; i < nodesToRemove.length; i++ ) {
@@ -3339,7 +3337,7 @@ module.exports = function ( graphContainerSelector ){
       }
       remId = classNodes.indexOf(nodesToRemove[i]);
       if ( remId !== -1 )
-        classNodes.splice(remId, 1);
+        {classNodes.splice(remId, 1);}
       nodesToRemove[i] = null;
     }
     graph.fastUpdate();
@@ -3352,14 +3350,14 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.removeNodeViaEditor = function ( node ){
-    var propsToRemove = [];
-    var nodesToRemove = [];
-    var datatypes = 0;
+    let propsToRemove = [];
+    let nodesToRemove = [];
+    let datatypes = 0;
     
-    var remId;
+    let remId;
     
     nodesToRemove.push(node);
-    for ( var i = 0; i < unfilteredData.properties.length; i++ ) {
+    for ( let i = 0; i < unfilteredData.properties.length; i++ ) {
       if ( unfilteredData.properties[i].domain() === node || unfilteredData.properties[i].range() === node ) {
         propsToRemove.push(unfilteredData.properties[i]);
         if ( unfilteredData.properties[i].type().toLocaleLowerCase() === "owl:datatypeproperty" &&
@@ -3369,9 +3367,9 @@ module.exports = function ( graphContainerSelector ){
         }
       }
     }
-    var removedItems = propsToRemove.length + nodesToRemove.length;
+    const removedItems = propsToRemove.length + nodesToRemove.length;
     if ( removedItems > 2 ) {
-      var text = "You are about to delete 1 class and " + propsToRemove.length + " properties";
+      let text = "You are about to delete 1 class and " + propsToRemove.length + " properties";
       if ( datatypes !== 0 ) {
         text = "You are about to delete 1 class, " + datatypes + " datatypes  and " + propsToRemove.length + " properties";
       }
@@ -3391,22 +3389,22 @@ module.exports = function ( graphContainerSelector ){
       // }
     } else {
       // splice them;
-      for ( i = 0; i < propsToRemove.length; i++ ) {
+      for ( let i = 0; i < propsToRemove.length; i++ ) {
         remId = unfilteredData.properties.indexOf(propsToRemove[i]);
         if ( remId !== -1 )
-          unfilteredData.properties.splice(remId, 1);
+          {unfilteredData.properties.splice(remId, 1);}
         remId = properties.indexOf(propsToRemove[i]);
         if ( remId !== -1 )
-          properties.splice(remId, 1);
+          {properties.splice(remId, 1);}
         propsToRemove[i] = null;
       }
-      for ( i = 0; i < nodesToRemove.length; i++ ) {
+      for ( let i = 0; i < nodesToRemove.length; i++ ) {
         remId = unfilteredData.nodes.indexOf(nodesToRemove[i]);
         if ( remId !== -1 )
-          unfilteredData.nodes.splice(remId, 1);
+          {unfilteredData.nodes.splice(remId, 1);}
         remId = classNodes.indexOf(nodesToRemove[i]);
         if ( remId !== -1 )
-          classNodes.splice(remId, 1);
+          {classNodes.splice(remId, 1);}
         nodesToRemove[i] = null;
       }
       graph.fastUpdate();
@@ -3421,22 +3419,22 @@ module.exports = function ( graphContainerSelector ){
   graph.removePropertyViaEditor = function ( property ){
     property.domain().removePropertyElement(property);
     property.range().removePropertyElement(property);
-    var remId;
+    let remId;
     
     if ( property.type().toLocaleLowerCase() === "owl:datatypeproperty" ) {
       remId = unfilteredData.nodes.indexOf(property.range());
       if ( remId !== -1 )
-        unfilteredData.nodes.splice(remId, 1);
+        {unfilteredData.nodes.splice(remId, 1);}
       remId = classNodes.indexOf(property.range());
       if ( remId !== -1 )
-        classNodes.splice(remId, 1);
+        {classNodes.splice(remId, 1);}
     }
     remId = unfilteredData.properties.indexOf(property);
     if ( remId !== -1 )
-      unfilteredData.properties.splice(remId, 1);
+      {unfilteredData.properties.splice(remId, 1);}
     remId = properties.indexOf(property);
     if ( remId !== -1 )
-      properties.splice(remId, 1);
+      {properties.splice(remId, 1);}
     if ( property.inverse() ) {
       // so we have inverse
       property.inverse().inverse(0);
@@ -3478,10 +3476,10 @@ module.exports = function ( graphContainerSelector ){
   /** --------------------------------------------------------- **/
   
   graph.animateDynamicLabelWidth = function (){
-    var wantedWidth = options.dynamicLabelWidth();
-    var i;
+    const wantedWidth = options.dynamicLabelWidth();
+    let i;
     for ( i = 0; i < classNodes.length; i++ ) {
-      var nodeElement = classNodes[i];
+      const nodeElement = classNodes[i];
       if ( elementTools.isDatatype(nodeElement) ) {
         nodeElement.animateDynamicLabelWidth(wantedWidth);
       }
@@ -3509,20 +3507,20 @@ module.exports = function ( graphContainerSelector ){
     event.stopPropagation();
     event.preventDefault();
     // get position where we want to add the node;
-    var grPos = getClickedScreenCoords(event.clientX, event.clientY, graph.translation(), graph.scaleFactor());
+    const grPos = getClickedScreenCoords(event.clientX, event.clientY, graph.translation(), graph.scaleFactor());
     createNewNodeAtPosition(grPos);
   };
   
   function doubletap(event){
-    var touch_time = event ? event.timeStamp : 0;
-    var numTouchers = 1;
+    const touch_time = event ? event.timeStamp : 0;
+    let numTouchers = 1;
     if ( event && event.touches && event.touches.length )
-      numTouchers = event.touches.length;
+      {numTouchers = event.touches.length;}
     
     if ( last_element_tap_time > 0 && (touch_time - last_element_tap_time < 300) && numTouchers === 1 ) {
-      if ( event.stopPropagation ) event.stopPropagation();
+      if ( event.stopPropagation ) {event.stopPropagation();}
       if ( editMode === true ) {
-        if ( event.preventDefault ) event.preventDefault();
+        if ( event.preventDefault ) {event.preventDefault();}
         last_element_tap_time = 0;
         return true;
       }
@@ -3535,20 +3533,20 @@ module.exports = function ( graphContainerSelector ){
   function touchzoomed(event, d){
     forceNotZooming = true;
     
-    var touch_time = event ? event.timeStamp : 0;
-    var numTouches = (event && event.touches) ? event.touches.length : 0;
+    const touch_time = event ? event.timeStamp : 0;
+    const numTouches = (event && event.touches) ? event.touches.length : 0;
     if ( last_canvas_touch_time > 0 && (touch_time - last_canvas_touch_time < 300) && numTouches === 1 ) {
-      if ( event.stopPropagation ) event.stopPropagation();
+      if ( event.stopPropagation ) {event.stopPropagation();}
       
       if ( editMode === true ) {
-        if ( event.preventDefault ) event.preventDefault();
+        if ( event.preventDefault ) {event.preventDefault();}
         syncZoomState();
         graph.modified_dblTouchFunction(event);
       }
       else {
         forceNotZooming = false;
         if ( originalD3_touchZoomFunction )
-          originalD3_touchZoomFunction.call(this, event, d);
+          {originalD3_touchZoomFunction.call(this, event, d);}
       }
       last_canvas_touch_time = 0;
       return;
@@ -3556,17 +3554,17 @@ module.exports = function ( graphContainerSelector ){
     forceNotZooming = false;
     last_canvas_touch_time = touch_time;
     if ( originalD3_touchZoomFunction )
-      originalD3_touchZoomFunction.call(this, event, d);
+      {originalD3_touchZoomFunction.call(this, event, d);}
   }
   
   graph.modified_dblTouchFunction = function ( event ){
     event.stopPropagation();
     event.preventDefault();
-    var xy;
+    let xy;
     if ( editMode === true ) {
       xy = d3.pointers(event, d3.selectAll(".vowlGraph").node());
     }
-    var grPos = getClickedScreenCoords(xy[0][0], xy[0][1], graph.translation(), graph.scaleFactor());
+    const grPos = getClickedScreenCoords(xy[0][0], xy[0][1], graph.translation(), graph.scaleFactor());
     createNewNodeAtPosition(grPos);
   };
   
@@ -3578,13 +3576,13 @@ module.exports = function ( graphContainerSelector ){
     if ( !arguments.length ) {
       return ignoreOtherHoverEvents;
     }
-    else  ignoreOtherHoverEvents = val;
+    else  {ignoreOtherHoverEvents = val;}
   };
   
   function delayedHiddingHoverElements( tbh ){
-    if ( tbh === true ) return;
+    if ( tbh === true ) {return;}
     if ( hoveredNodeElement ) {
-      if ( hoveredNodeElement.editingTextElement === true ) return;
+      if ( hoveredNodeElement.editingTextElement === true ) {return;}
       delayedHider = setTimeout(function (){
         deleteGroupElement.classed("hidden", true);
         addDataPropertyGroupElement.classed("hidden", true);
@@ -3596,7 +3594,7 @@ module.exports = function ( graphContainerSelector ){
       }, 1000);
     }
     if ( hoveredPropertyElement ) {
-      if ( hoveredPropertyElement.editingTextElement === true ) return;
+      if ( hoveredPropertyElement.editingTextElement === true ) {return;}
       delayedHider = setTimeout(function (){
         deleteGroupElement.classed("hidden", true);
         addDataPropertyGroupElement.classed("hidden", true);
@@ -3643,7 +3641,7 @@ module.exports = function ( graphContainerSelector ){
   }
   
   function editElementHoverOn( touch ){
-    if ( touch === true ) return;
+    if ( touch === true ) {return;}
     clearTimeout(delayedHider); // ignore touch behaviour
     
   }
@@ -3656,9 +3654,9 @@ module.exports = function ( graphContainerSelector ){
   
   function editElementHoverOut( tbh ){
     if ( hoveredNodeElement ) {
-      if ( graph.ignoreOtherHoverEvents() === true || tbh === true || hoveredNodeElement.editingTextElement === true ) return;
+      if ( graph.ignoreOtherHoverEvents() === true || tbh === true || hoveredNodeElement.editingTextElement === true ) {return;}
       delayedHider = setTimeout(function (){
-        if ( graph.isADraggerActive() === true ) return;
+        if ( graph.isADraggerActive() === true ) {return;}
         deleteGroupElement.classed("hidden", true);
         addDataPropertyGroupElement.classed("hidden", true);
         classDragger.hideDragger(true);
@@ -3670,9 +3668,9 @@ module.exports = function ( graphContainerSelector ){
       }, 1000);
     }
     if ( hoveredPropertyElement ) {
-      if ( graph.ignoreOtherHoverEvents() === true || tbh === true || hoveredPropertyElement.editingTextElement === true ) return;
+      if ( graph.ignoreOtherHoverEvents() === true || tbh === true || hoveredPropertyElement.editingTextElement === true ) {return;}
       delayedHider = setTimeout(function (){
-        if ( graph.isADraggerActive() === true ) return;
+        if ( graph.isADraggerActive() === true ) {return;}
         deleteGroupElement.classed("hidden", true);
         addDataPropertyGroupElement.classed("hidden", true);
         classDragger.hideDragger(true);
@@ -3686,10 +3684,10 @@ module.exports = function ( graphContainerSelector ){
   }
   
   graph.activateHoverElementsForProperties = function ( val, property, inversed, touchBehaviour ){
-    if ( editMode === false ) return; // nothing to do;
+    if ( editMode === false ) {return;} // nothing to do;
     
     if ( touchBehaviour === undefined )
-      touchBehaviour = false;
+      {touchBehaviour = false;}
     
     if ( val === true ) {
       clearTimeout(delayedHider);
@@ -3782,11 +3780,11 @@ module.exports = function ( graphContainerSelector ){
   };
   
   function setAddDataPropertyHoverElementPosition( node ){
-    var delX, delY = 0;
+    let delX, delY = 0;
     if ( node.renderType() === "round" ) {
-      var scale = 0.5 * Math.sqrt(2.0);
-      var oX = scale * node.actualRadius();
-      var oY = scale * node.actualRadius();
+      const scale = 0.5 * Math.sqrt(2.0);
+      const oX = scale * node.actualRadius();
+      const oY = scale * node.actualRadius();
       delX = node.x - oX;
       delY = node.y + oY;
       addDataPropertyGroupElement.attr("transform", "translate(" + delX + "," + delY + ")");
@@ -3794,11 +3792,11 @@ module.exports = function ( graphContainerSelector ){
   }
   
   function setDeleteHoverElementPosition( node ){
-    var delX, delY = 0;
+    let delX, delY = 0;
     if ( node.renderType() === "round" ) {
-      var scale = 0.5 * Math.sqrt(2.0);
-      var oX = scale * node.actualRadius();
-      var oY = scale * node.actualRadius();
+      const scale = 0.5 * Math.sqrt(2.0);
+      const oX = scale * node.actualRadius();
+      const oY = scale * node.actualRadius();
       delX = node.x + oX;
       delY = node.y - oY;
     } else {
@@ -3810,17 +3808,17 @@ module.exports = function ( graphContainerSelector ){
   
   function setDeleteHoverElementPositionProperty( property, inversed ){
     if ( property && property.labelElement() ) {
-      var pos = [property.labelObject().x, property.labelObject().y];
-      var widthElement = parseFloat(property.getShapeElement().attr("width"));
-      var heightElement = parseFloat(property.getShapeElement().attr("height"));
-      var delX = pos[0] + 0.5 * widthElement + 6;
-      var delY = pos[1] - 0.5 * heightElement - 6;
+      const pos = [property.labelObject().x, property.labelObject().y];
+      const widthElement = parseFloat(property.getShapeElement().attr("width"));
+      const heightElement = parseFloat(property.getShapeElement().attr("height"));
+      const delX = pos[0] + 0.5 * widthElement + 6;
+      let delY = pos[1] - 0.5 * heightElement - 6;
       // this is the lower element
       if ( property.labelElement().attr("transform") === "translate(0,15)" )
-        delY += 15;
+        {delY += 15;}
       // this is upper element
       if ( property.labelElement().attr("transform") === "translate(0,-15)" )
-        delY -= 15;
+        {delY -= 15;}
       deleteGroupElement.attr("transform", "translate(" + delX + "," + delY + ")");
     } else {
       deleteGroupElement.classed("hidden", true);// hide when there is no property
@@ -3833,7 +3831,7 @@ module.exports = function ( graphContainerSelector ){
     if ( editMode === false ) {
       return; // nothing to do;
     }
-    if ( touchBehaviour === undefined ) touchBehaviour = false;
+    if ( touchBehaviour === undefined ) {touchBehaviour = false;}
     if ( val === true ) {
       if ( graph.options().drawPropertyDraggerOnHover() === true ) {
         rangeDragger.hideDragger(true);

@@ -5,17 +5,17 @@
  */
 module.exports = function ( graph ){
   
-  var sidebar = {},
-    languageTools = webvowl.util.languageTools(),
-    elementTools = webvowl.util.elementTools(),
-    // Required for reloading when the language changes
-    ontologyInfo,
-    visibleSidebar = 1,
-    lastSelectedElement,
-    
-    detailArea = d3.select("#detailsArea"),
-    graphArea = d3.select("#canvasArea"),
-    collapseButton = d3.select("#sidebarExpandButton");
+  const sidebar = {};
+  const languageTools = webvowl.util.languageTools();
+  const elementTools = webvowl.util.elementTools();
+  // Required for reloading when the language changes
+  let ontologyInfo;
+  let visibleSidebar = 1;
+  let lastSelectedElement;
+
+  const detailArea = d3.select("#detailsArea");
+  const graphArea = d3.select("#canvasArea");
+  const collapseButton = d3.select("#sidebarExpandButton");
   
   /**
    * Setup the menu bar.
@@ -32,14 +32,14 @@ module.exports = function ( graph ){
       containers.classed("hidden", false);
     }
     
-    var triggers = d3.selectAll(".accordion-trigger");
+    const triggers = d3.selectAll(".accordion-trigger");
 
     // Collapse all inactive triggers on startup
     collapseContainers(d3.selectAll(".accordion-trigger:not(.accordion-trigger-active) + div"));
 
     triggers.attr("tabindex", "0").attr("role", "button");
     triggers.on("keydown", function (event){
-      var evt = event || window.event;
+      const evt = event || window.event;
       if ( evt && (evt.key === "Enter" || evt.key === " ") ) {
         evt.preventDefault();
         d3.select(this).node().click();
@@ -47,7 +47,7 @@ module.exports = function ( graph ){
     });
 
     triggers.on("click", function (){
-      var selectedTrigger = d3.select(this),
+      const selectedTrigger = d3.select(this),
         activeTriggers = d3.selectAll(".accordion-trigger-active");
       
       if ( selectedTrigger.classed("accordion-trigger-active") ) {
@@ -72,7 +72,7 @@ module.exports = function ( graph ){
     d3.select("#version").text("--");
     d3.select("#authors").text("--");
     d3.select("#description").text("No description available.");
-    var container = d3.select("#ontology-metadata");
+    const container = d3.select("#ontology-metadata");
     container.selectAll("*").remove();
     d3.select("#classCount")
       .text("0");
@@ -88,7 +88,7 @@ module.exports = function ( graph ){
       .text("0");
     
     // clear selectedNode info
-    var isTriggerActive = d3.select("#selection-details-trigger").classed("accordion-trigger-active");
+    const isTriggerActive = d3.select("#selection-details-trigger").classed("accordion-trigger-active");
     if ( isTriggerActive ) {
       // close accordion
       d3.select("#selection-details-trigger").node().click();
@@ -116,11 +116,11 @@ module.exports = function ( graph ){
   };
   
   function getBrowserLanguages(){
-    var nav = typeof navigator !== "undefined" ? navigator : {};
-    var browserLangs = [];
+    const nav = typeof navigator !== "undefined" ? navigator : {};
+    const browserLangs = [];
     if ( Array.isArray(nav.languages) ) {
-      for ( var i = 0; i < nav.languages.length; i++ ) {
-        var l = nav.languages[i];
+      for ( let i = 0; i < nav.languages.length; i++ ) {
+        const l = nav.languages[i];
         if ( l && typeof l === "string" && browserLangs.indexOf(l) === -1 ) {
           browserLangs.push(l);
         }
@@ -140,12 +140,12 @@ module.exports = function ( graph ){
       return null;
     }
 
-    var browserLangs = getBrowserLanguages();
+    const browserLangs = getBrowserLanguages();
 
     // 1. Try exact matches with browser languages (case-insensitive)
-    for ( var i = 0; i < browserLangs.length; i++ ) {
-      var bLang = browserLangs[i].toLowerCase();
-      for ( var j = 0; j < languages.length; j++ ) {
+    for ( let i = 0; i < browserLangs.length; i++ ) {
+      const bLang = browserLangs[i].toLowerCase();
+      for ( let j = 0; j < languages.length; j++ ) {
         if ( typeof languages[j] === "string" && languages[j].toLowerCase() === bLang ) {
           return languages[j];
         }
@@ -153,13 +153,13 @@ module.exports = function ( graph ){
     }
 
     // 2. Try primary language tag matches (e.g., "de-DE" matches "de", or "de" matches "de-DE")
-    for ( var k = 0; k < browserLangs.length; k++ ) {
-      if ( typeof browserLangs[k] !== "string" ) continue;
-      var primaryBLang = browserLangs[k].split("-")[0].toLowerCase();
-      for ( var m = 0; m < languages.length; m++ ) {
-        if ( typeof languages[m] !== "string" ) continue;
-        var langLower = languages[m].toLowerCase();
-        var primaryLang = langLower.split("-")[0];
+    for ( let k = 0; k < browserLangs.length; k++ ) {
+      if ( typeof browserLangs[k] !== "string" ) {continue;}
+      const primaryBLang = browserLangs[k].split("-")[0].toLowerCase();
+      for ( let m = 0; m < languages.length; m++ ) {
+        if ( typeof languages[m] !== "string" ) {continue;}
+        const langLower = languages[m].toLowerCase();
+        const primaryLang = langLower.split("-")[0];
         if ( langLower === primaryBLang || primaryLang === primaryBLang ) {
           return languages[m];
         }
@@ -167,9 +167,9 @@ module.exports = function ( graph ){
     }
 
     // 3. Fallback: English ("en" or "en-*")
-    for ( var n = 0; n < languages.length; n++ ) {
+    for ( let n = 0; n < languages.length; n++ ) {
       if ( typeof languages[n] === "string" ) {
-        var lLower = languages[n].toLowerCase();
+        const lLower = languages[n].toLowerCase();
         if ( lLower === "en" || lLower.split("-")[0] === "en" ) {
           return languages[n];
         }
@@ -177,13 +177,13 @@ module.exports = function ( graph ){
     }
 
     // 4. Fallback: LANG_UNDEFINED ("undefined")
-    var langUndefined = webvowl.util.constants().LANG_UNDEFINED;
+    const langUndefined = webvowl.util.constants().LANG_UNDEFINED;
     if ( languages.indexOf(langUndefined) >= 0 ) {
       return langUndefined;
     }
 
     // 5. Fallback: LANG_IRIBASED ("id")
-    var langIri = webvowl.util.constants().LANG_IRIBASED;
+    const langIri = webvowl.util.constants().LANG_IRIBASED;
     if ( languages.indexOf(langIri) >= 0 ) {
       return langIri;
     }
@@ -210,7 +210,7 @@ module.exports = function ( graph ){
       return a.localeCompare(b);
     });
     
-    var languageSelection = d3.select("#language")
+    const languageSelection = d3.select("#language")
       .on("change", function (event){
         graph.language(event.target.value);
         updateGraphInformation();
@@ -228,9 +228,9 @@ module.exports = function ( graph ){
         return d;
       });
     
-    var selectedLanguage = findBestMatchingLanguage(languages);
+    const selectedLanguage = findBestMatchingLanguage(languages);
     if ( selectedLanguage ) {
-      var langIndex = languages.indexOf(selectedLanguage);
+      const langIndex = languages.indexOf(selectedLanguage);
       if ( langIndex >= 0 ) {
         languageSelection.property("selectedIndex", langIndex);
       }
@@ -242,11 +242,11 @@ module.exports = function ( graph ){
   }
   
   function updateGraphInformation(){
-    var title = languageTools.textInLanguage(ontologyInfo.title, graph.language());
+    const title = languageTools.textInLanguage(ontologyInfo.title, graph.language());
     d3.select("#title").text(title || "No title available");
     d3.select("#about").attr("href", ontologyInfo.iri).attr("target", "_blank").text(ontologyInfo.iri);
     d3.select("#version").text(ontologyInfo.version || "--");
-    var authors = ontologyInfo.author;
+    const authors = ontologyInfo.author;
     if ( typeof authors === "string" ) {
       // Stay compatible with author info as strings after change in january 2015
       d3.select("#authors").text(authors);
@@ -256,7 +256,7 @@ module.exports = function ( graph ){
       d3.select("#authors").text("--");
     }
     
-    var description = languageTools.textInLanguage(ontologyInfo.description, graph.language());
+    const description = languageTools.textInLanguage(ontologyInfo.description, graph.language());
     d3.select("#description").text(description || "No description available.");
   }
   
@@ -279,7 +279,7 @@ module.exports = function ( graph ){
   }
   
   function displayMetadata( metadata ){
-    var container = d3.select("#ontology-metadata");
+    const container = d3.select("#ontology-metadata");
     container.selectAll("*").remove();
     
     listAnnotations(container, metadata);
@@ -289,7 +289,7 @@ module.exports = function ( graph ){
     }
   }
   
-  var RANK_MAP = {
+  const RANK_MAP = {
     "name": 1,
     "skos:definition": 2,
     "definition": 2,
@@ -342,31 +342,31 @@ module.exports = function ( graph ){
   };
 
   function getParagraphIdentifier( pNode ){
-    var dataId = pNode.getAttribute("data-identifier");
-    if ( dataId ) return dataId;
+    const dataId = pNode.getAttribute("data-identifier");
+    if ( dataId ) {return dataId;}
     
-    var span = pNode.querySelector("span");
+    const span = pNode.querySelector("span");
     if ( span && span.id ) {
-      var id = span.id;
-      if ( id === "propname" ) return "name";
-      if ( id === "typeProp" || id === "typeNode" ) return "type";
-      if ( id === "classEquivUri" || id === "propEquivUri" ) return "equiv";
-      if ( id === "disjointNodes" ) return "disjoint";
-      if ( id === "classAttributes" || id === "propAttributes" ) return "charac";
-      if ( id === "individuals" ) return "individuals";
-      if ( id === "nodeDescription" || id === "propDescription" ) return "description";
-      if ( id === "nodeComment" || id === "propComment" ) return "comment";
-      if ( id === "subproperties" ) return "subprop";
-      if ( id === "superproperties" ) return "superprop";
-      if ( id === "infoCardinality" || id === "minCardinality" || id === "maxCardinality" ) return "cardinality";
-      if ( id === "inverse" ) return "inverse";
-      if ( id === "domain" ) return "domain";
-      if ( id === "range" ) return "range";
+      const id = span.id;
+      if ( id === "propname" ) {return "name";}
+      if ( id === "typeProp" || id === "typeNode" ) {return "type";}
+      if ( id === "classEquivUri" || id === "propEquivUri" ) {return "equiv";}
+      if ( id === "disjointNodes" ) {return "disjoint";}
+      if ( id === "classAttributes" || id === "propAttributes" ) {return "charac";}
+      if ( id === "individuals" ) {return "individuals";}
+      if ( id === "nodeDescription" || id === "propDescription" ) {return "description";}
+      if ( id === "nodeComment" || id === "propComment" ) {return "comment";}
+      if ( id === "subproperties" ) {return "subprop";}
+      if ( id === "superproperties" ) {return "superprop";}
+      if ( id === "infoCardinality" || id === "minCardinality" || id === "maxCardinality" ) {return "cardinality";}
+      if ( id === "inverse" ) {return "inverse";}
+      if ( id === "domain" ) {return "domain";}
+      if ( id === "range" ) {return "range";}
       return id;
     }
     
-    var text = pNode.textContent || pNode.innerText || "";
-    var parts = text.split(":");
+    const text = pNode.textContent || pNode.innerText || "";
+    const parts = text.split(":");
     if ( parts.length > 0 ) {
       return parts[0].trim();
     }
@@ -374,34 +374,34 @@ module.exports = function ( graph ){
   }
 
   function compareParagraphs( a, b ) {
-    var idA = getParagraphIdentifier(a);
-    var idB = getParagraphIdentifier(b);
+    const idA = getParagraphIdentifier(a);
+    const idB = getParagraphIdentifier(b);
     
-    var rankA = RANK_MAP[idA] !== undefined ? RANK_MAP[idA] : 100;
-    var rankB = RANK_MAP[idB] !== undefined ? RANK_MAP[idB] : 100;
+    const rankA = RANK_MAP[idA] !== undefined ? RANK_MAP[idA] : 100;
+    const rankB = RANK_MAP[idB] !== undefined ? RANK_MAP[idB] : 100;
     
     if ( rankA !== rankB ) {
       return rankA - rankB;
     }
     
-    var labelA = String(idA).toLowerCase();
-    var labelB = String(idB).toLowerCase();
-    if ( labelA < labelB ) return -1;
-    if ( labelA > labelB ) return 1;
+    const labelA = String(idA).toLowerCase();
+    const labelB = String(idB).toLowerCase();
+    if ( labelA < labelB ) {return -1;}
+    if ( labelA > labelB ) {return 1;}
     
-    var textA = String(a.textContent || a.innerText || "").toLowerCase();
-    var textB = String(b.textContent || b.innerText || "").toLowerCase();
-    if ( textA < textB ) return -1;
-    if ( textA > textB ) return 1;
+    const textA = String(a.textContent || a.innerText || "").toLowerCase();
+    const textB = String(b.textContent || b.innerText || "").toLowerCase();
+    if ( textA < textB ) {return -1;}
+    if ( textA > textB ) {return 1;}
     
     return 0;
   }
 
   function sortDetailsPane( containerSelector ) {
-    var parent = document.querySelector(containerSelector);
-    if ( !parent ) return;
+    const parent = document.querySelector(containerSelector);
+    if ( !parent ) {return;}
     
-    var paragraphs = Array.prototype.slice.call(parent.children).filter(function ( el ) {
+    const paragraphs = Array.prototype.slice.call(parent.children).filter(function ( el ) {
       return el.tagName.toLowerCase() === "p";
     });
     
@@ -415,16 +415,16 @@ module.exports = function ( graph ){
   function listAnnotations( container, annotationObject ){
     annotationObject = annotationObject || {};
     
-    var annotations = [];
-    for ( var annotation in annotationObject ) {
-      if ( annotationObject.hasOwnProperty(annotation) ) {
-        var items = annotationObject[annotation];
+    const annotations = [];
+    for ( const annotation in annotationObject ) {
+      if ( Object.prototype.hasOwnProperty.call(annotationObject, annotation) ) {
+        const items = annotationObject[annotation];
         if ( items && items.length > 0 ) {
-          var sortedItems = items.slice(0).sort(function ( a, b ) {
-            var valA = String(a.value);
-            var valB = String(b.value);
-            if ( valA < valB ) return -1;
-            if ( valA > valB ) return 1;
+          const sortedItems = items.slice(0).sort(function ( a, b ) {
+            const valA = String(a.value);
+            const valB = String(b.value);
+            if ( valA < valB ) {return -1;}
+            if ( valA > valB ) {return 1;}
             return 0;
           });
           sortedItems.forEach(function ( item ) {
@@ -435,7 +435,7 @@ module.exports = function ( graph ){
     }
     
     container.selectAll(".annotation").remove();
-    var paragraphs = container.selectAll(".annotation").data(annotations).enter().append("p")
+    const paragraphs = container.selectAll(".annotation").data(annotations).enter().append("p")
       .classed("annotation", true)
       .classed("statisticDetails", true)
       .attr("data-identifier", function ( d ){
@@ -444,18 +444,18 @@ module.exports = function ( graph ){
     
     // Build the annotation property name as a hyperlink if a predicate IRI is available
     paragraphs.each(function ( d ) {
-      var p = d3.select(this);
+      const p = d3.select(this);
       // Determine the full IRI for the annotation property
-      var predicateIri = null;
-      var localName = null;
+      let predicateIri = null;
+      let localName = null;
       if ( d.predicateNs ) {
         // local name is everything after the last # or /
-        var rawLocal = d.identifier.replace(/^[^:]+:/, ""); // strip any CURIE prefix (e.g. "rdfs:" from "rdfs:label")
+        const rawLocal = d.identifier.replace(/^[^:]+:/, ""); // strip any CURIE prefix (e.g. "rdfs:" from "rdfs:label")
         predicateIri = d.predicateNs + rawLocal;
         localName = rawLocal;
       } else if ( d.identifier && d.identifier.indexOf(":") !== -1 ) {
         // identifier is already a CURIE — resolve using well-known prefixes
-        var WELL_KNOWN = {
+        const WELL_KNOWN = {
           "rdf":     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
           "rdfs":    "http://www.w3.org/2000/01/rdf-schema#",
           "owl":     "http://www.w3.org/2002/07/owl#",
@@ -464,8 +464,8 @@ module.exports = function ( graph ){
           "dcterms": "http://purl.org/dc/terms/",
           "dc":      "http://purl.org/dc/elements/1.1/"
         };
-        var parts = d.identifier.split(":");
-        var prefix = parts[0];
+        const parts = d.identifier.split(":");
+        const prefix = parts[0];
         localName = parts.slice(1).join(":");
         if ( WELL_KNOWN[prefix] ) {
           predicateIri = WELL_KNOWN[prefix] + localName;
@@ -484,7 +484,7 @@ module.exports = function ( graph ){
       }
       
 
-      var valueSpan = p.append("span");
+      const valueSpan = p.append("span");
       if ( d.type === "iri" ) {
         valueSpan.append("a")
           .attr("href", d.value)
@@ -509,7 +509,7 @@ module.exports = function ( graph ){
       return;
     }
     
-    var isTriggerActive = d3.select("#selection-details-trigger").classed("accordion-trigger-active");
+    const isTriggerActive = d3.select("#selection-details-trigger").classed("accordion-trigger-active");
     if ( selectedElement && !isTriggerActive ) {
       d3.select("#selection-details-trigger").node().click();
     } else if ( !selectedElement && isTriggerActive ) {
@@ -547,7 +547,7 @@ module.exports = function ( graph ){
       d3.select("#inverse").classed("hidden", true);
     }
     
-    var equivalentIriSpan = d3.select("#propEquivUri");
+    const equivalentIriSpan = d3.select("#propEquivUri");
     listNodeArray(equivalentIriSpan, property.equivalents());
     
     listNodeArray(d3.select("#subproperties"), property.subproperties());
@@ -584,21 +584,21 @@ module.exports = function ( graph ){
     setTextAndVisibility(d3.select("#propDescription"), property.descriptionForCurrentLanguage());
     setTextAndVisibility(d3.select("#propComment"), property.commentForCurrentLanguage());
     
-    var annotations = property.annotations();
-    var filteredAnnotations = {};
+    const annotations = property.annotations();
+    const filteredAnnotations = {};
     if ( annotations ) {
-      for ( var key in annotations ) {
+      for ( const key in annotations ) {
         // Skip prefLabel (shown as Name) and raw "label" key (handled below as rdfs:label)
-        if ( annotations.hasOwnProperty(key) && key !== "prefLabel" && key !== "label" ) {
+        if ( Object.prototype.hasOwnProperty.call(annotations, key) && key !== "prefLabel" && key !== "label" ) {
           filteredAnnotations[key] = annotations[key];
         }
       }
     }
     
     // Surface rdfs:label values that differ from the preferred display name
-    var prefName = property.labelForCurrentLanguage();
-    var allRdfsLabels = (annotations && annotations["label"]) ? annotations["label"] : [];
-    var rdfsLabels = allRdfsLabels.filter(function(entry) {
+    const prefName = property.labelForCurrentLanguage();
+    const allRdfsLabels = (annotations && annotations["label"]) ? annotations["label"] : [];
+    const rdfsLabels = allRdfsLabels.filter(function(entry) {
       return entry.value !== prefName;
     }).map(function(entry) {
       return { identifier: "rdfs:label", value: entry.value, type: "label", predicateNs: "http://www.w3.org/2000/01/rdf-schema#" };
@@ -616,7 +616,7 @@ module.exports = function ( graph ){
   }
   
   function setIriLabel( element, name, iri ){
-    var parent = d3.select(element.node().parentNode);
+    const parent = d3.select(element.node().parentNode);
     
     if ( name ) {
       element.selectAll("*").remove();
@@ -628,7 +628,7 @@ module.exports = function ( graph ){
   }
   
   function appendIriLabel( element, name, iri ){
-    var tag;
+    let tag;
     
     if ( iri ) {
       tag = element.append("a")
@@ -642,7 +642,7 @@ module.exports = function ( graph ){
   }
   
   function displayAttributes( attributes, textSpan ){
-    var spanParent = d3.select(textSpan.node().parentNode);
+    const spanParent = d3.select(textSpan.node().parentNode);
     
     if ( attributes && attributes.length > 0 ) {
       // Remove redundant redundant attributes for sidebar
@@ -661,7 +661,7 @@ module.exports = function ( graph ){
   }
   
   function removeElementFromArray( element, array ){
-    var index = array.indexOf(element);
+    const index = array.indexOf(element);
     if ( index > -1 ) {
       array.splice(index, 1);
     }
@@ -673,15 +673,15 @@ module.exports = function ( graph ){
     setIriLabel(d3.select("#name"), node.labelForCurrentLanguage(), node.iri());
     
     /* Equivalent stuff. */
-    var equivalentIriSpan = d3.select("#classEquivUri");
+    const equivalentIriSpan = d3.select("#classEquivUri");
     listNodeArray(equivalentIriSpan, node.equivalents());
     
     d3.select("#typeNode").text(node.type());
     listNodeArray(d3.select("#individuals"), node.individuals());
     
     /* Disjoint stuff. */
-    var disjointNodes = d3.select("#disjointNodes");
-    var disjointNodesParent = d3.select(disjointNodes.node().parentNode);
+    const disjointNodes = d3.select("#disjointNodes");
+    const disjointNodesParent = d3.select(disjointNodes.node().parentNode);
     
     if ( node.disjointWith() !== undefined ) {
       disjointNodes.selectAll("*").remove();
@@ -703,21 +703,21 @@ module.exports = function ( graph ){
     setTextAndVisibility(d3.select("#nodeDescription"), node.descriptionForCurrentLanguage());
     setTextAndVisibility(d3.select("#nodeComment"), node.commentForCurrentLanguage());
     
-    var annotations = node.annotations();
-    var filteredAnnotations = {};
+    const annotations = node.annotations();
+    const filteredAnnotations = {};
     if ( annotations ) {
-      for ( var key in annotations ) {
+      for ( const key in annotations ) {
         // Skip prefLabel (shown as Name) and raw "label" key (handled below as rdfs:label)
-        if ( annotations.hasOwnProperty(key) && key !== "prefLabel" && key !== "label" ) {
+        if ( Object.prototype.hasOwnProperty.call(annotations, key) && key !== "prefLabel" && key !== "label" ) {
           filteredAnnotations[key] = annotations[key];
         }
       }
     }
     
     // Surface rdfs:label values that differ from the preferred display name
-    var prefName = node.labelForCurrentLanguage();
-    var allRdfsLabels = (annotations && annotations["label"]) ? annotations["label"] : [];
-    var rdfsLabels = allRdfsLabels.filter(function(entry) {
+    const prefName = node.labelForCurrentLanguage();
+    const allRdfsLabels = (annotations && annotations["label"]) ? annotations["label"] : [];
+    const rdfsLabels = allRdfsLabels.filter(function(entry) {
       return entry.value !== prefName;
     }).map(function(entry) {
       return { identifier: "rdfs:label", value: entry.value, type: "label", predicateNs: "http://www.w3.org/2000/01/rdf-schema#" };
@@ -735,7 +735,7 @@ module.exports = function ( graph ){
   }
   
   function listNodeArray( textSpan, nodes ){
-    var spanParent = d3.select(textSpan.node().parentNode);
+    const spanParent = d3.select(textSpan.node().parentNode);
     
     if ( nodes && nodes.length ) {
       textSpan.selectAll("*").remove();
@@ -753,8 +753,8 @@ module.exports = function ( graph ){
   }
   
   function setTextAndVisibility( label, value ){
-    var parentNode = d3.select(label.node().parentNode);
-    var hasValue = !!value;
+    const parentNode = d3.select(label.node().parentNode);
+    const hasValue = !!value;
     if ( value ) {
       label.text(value);
     }
@@ -763,24 +763,24 @@ module.exports = function ( graph ){
   
   /** Collapsible Sidebar functions; **/
 
-  var DOCKED_CONTROL_OFFSET = 12;
+  const DOCKED_CONTROL_OFFSET = 12;
 
   sidebar.updateDockedControlsPosition = function (){
-    var isHidden = detailArea.classed("hidden");
-    var zoomSlider = d3.select("#zoomSlider");
+    const isHidden = detailArea.classed("hidden");
+    const zoomSlider = d3.select("#zoomSlider");
 
     if ( isHidden ) {
       zoomSlider.style("left", "auto").style("right", DOCKED_CONTROL_OFFSET + "px");
       collapseButton.style("left", "auto").style("right", DOCKED_CONTROL_OFFSET + "px");
     } else {
-      var sidebarRect = detailArea.node().getBoundingClientRect();
-      var sidebarLeft = sidebarRect.left;
+      const sidebarRect = detailArea.node().getBoundingClientRect();
+      const sidebarLeft = sidebarRect.left;
 
-      var sliderWidth = zoomSlider.node() ? (zoomSlider.node().getBoundingClientRect().width || 32) : 32;
-      var btnWidth = collapseButton.node() ? (collapseButton.node().getBoundingClientRect().width || 36) : 36;
+      const sliderWidth = zoomSlider.node() ? (zoomSlider.node().getBoundingClientRect().width || 32) : 32;
+      const btnWidth = collapseButton.node() ? (collapseButton.node().getBoundingClientRect().width || 36) : 36;
 
-      var sliderTargetLeft = sidebarLeft - sliderWidth - DOCKED_CONTROL_OFFSET;
-      var btnTargetLeft = sidebarLeft - btnWidth - DOCKED_CONTROL_OFFSET;
+      const sliderTargetLeft = sidebarLeft - sliderWidth - DOCKED_CONTROL_OFFSET;
+      const btnTargetLeft = sidebarLeft - btnWidth - DOCKED_CONTROL_OFFSET;
 
       zoomSlider.style("right", "auto").style("left", sliderTargetLeft + "px");
       collapseButton.style("right", "auto").style("left", btnTargetLeft + "px");
@@ -800,7 +800,7 @@ module.exports = function ( graph ){
   }
 
   sidebar.showSidebar = function ( val, init ){
-    var isMobileOrTablet = window.innerWidth <= 1024;
+    const isMobileOrTablet = window.innerWidth <= 1024;
 
     // make val to bool
     if ( val === 1 ) {
@@ -865,14 +865,14 @@ module.exports = function ( graph ){
   };
   
   sidebar.updateSideBarVis = function ( init ){
-    var vis = sidebar.getSidebarVisibility();
+    const vis = sidebar.getSidebarVisibility();
     sidebar.showSidebar(parseInt(vis), init);
   };
   
   sidebar.getSidebarVisibility = function (){
-    var isHidden = detailArea.classed("hidden");
-    if ( isHidden === false ) return String(1);
-    if ( isHidden === true ) return String(0);
+    const isHidden = detailArea.classed("hidden");
+    if ( isHidden === false ) {return String(1);}
+    if ( isHidden === true ) {return String(0);}
   };
   
   sidebar.initSideBarAnimation = function (){
@@ -889,9 +889,9 @@ module.exports = function ( graph ){
     
     collapseButton.on("click", function (){
       hideNavMenus();
-      var settingValue = parseInt(sidebar.getSidebarVisibility());
-      if ( settingValue === 1 ) sidebar.showSidebar(0);
-      else                  sidebar.showSidebar(1);
+      const settingValue = parseInt(sidebar.getSidebarVisibility());
+      if ( settingValue === 1 ) {sidebar.showSidebar(0);}
+      else                  {sidebar.showSidebar(1);}
     });
 
     if ( window.innerWidth <= 1024 ) {
@@ -901,7 +901,7 @@ module.exports = function ( graph ){
   
   
   sidebar.updateShowedInformation = function (){
-    var editMode = graph.editorMode();
+    const editMode = graph.editorMode();
     d3.select("#generalDetails").classed("hidden", editMode);
     d3.select("#generalDetailsEdit").classed("hidden", !editMode);
     
@@ -917,9 +917,9 @@ module.exports = function ( graph ){
   
   sidebar.updateGeneralOntologyInfo = function (){
     // get it from graph.options
-    var generalMetaObj = graph.options().getGeneralMetaObject();
-    var preferredLanguage = graph && graph.language ? graph.language() : null;
-    if ( generalMetaObj.hasOwnProperty("title") ) {
+    const generalMetaObj = graph.options().getGeneralMetaObject();
+    const preferredLanguage = graph && graph.language ? graph.language() : null;
+    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "title") ) {
       // title has language to it -.-
       if ( typeof generalMetaObj.title === "object" ) {
         d3.select("#title").node().value = languageTools.textInLanguage(generalMetaObj.title, preferredLanguage);
@@ -928,12 +928,12 @@ module.exports = function ( graph ){
       }
       
     }
-    if ( generalMetaObj.hasOwnProperty("iri") ) d3.select("#about").node().innerHTML = generalMetaObj.iri;
-    if ( generalMetaObj.hasOwnProperty("iri") ) d3.select("#about").node().href = generalMetaObj.iri;
-    if ( generalMetaObj.hasOwnProperty("version") ) d3.select("#version").node().innerHTML = generalMetaObj.version;
-    if ( generalMetaObj.hasOwnProperty("author") ) d3.select("#authors").node().innerHTML = generalMetaObj.author;
+    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "iri") ) {d3.select("#about").node().innerHTML = generalMetaObj.iri;}
+    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "iri") ) {d3.select("#about").node().href = generalMetaObj.iri;}
+    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "version") ) {d3.select("#version").node().innerHTML = generalMetaObj.version;}
+    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "author") ) {d3.select("#authors").node().innerHTML = generalMetaObj.author;}
     // this could also be an object >>
-    if ( generalMetaObj.hasOwnProperty("description") ) {
+    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "description") ) {
       if ( typeof generalMetaObj.description === "object" ) {
         d3.select("#description").node().innerHTML = languageTools.textInLanguage(generalMetaObj.description, preferredLanguage);
       }

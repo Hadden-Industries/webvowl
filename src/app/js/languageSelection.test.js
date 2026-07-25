@@ -1,8 +1,8 @@
 function getBrowserLanguages(nav) {
-  var browserLangs = [];
+  const browserLangs = [];
   if (Array.isArray(nav.languages)) {
-    for (var i = 0; i < nav.languages.length; i++) {
-      var l = nav.languages[i];
+    for (let i = 0; i < nav.languages.length; i++) {
+      const l = nav.languages[i];
       if (l && typeof l === "string" && browserLangs.indexOf(l) === -1) {
         browserLangs.push(l);
       }
@@ -22,12 +22,12 @@ function findBestMatchingLanguage(languages, mockNav) {
     return null;
   }
 
-  var browserLangs = getBrowserLanguages(mockNav || (typeof navigator !== "undefined" ? navigator : {}));
+  const browserLangs = getBrowserLanguages(mockNav || (typeof navigator !== "undefined" ? navigator : {}));
 
   // 1. Try exact matches with browser languages (case-insensitive)
-  for (var i = 0; i < browserLangs.length; i++) {
-    var bLang = browserLangs[i].toLowerCase();
-    for (var j = 0; j < languages.length; j++) {
+  for (let i = 0; i < browserLangs.length; i++) {
+    const bLang = browserLangs[i].toLowerCase();
+    for (let j = 0; j < languages.length; j++) {
       if (typeof languages[j] === "string" && languages[j].toLowerCase() === bLang) {
         return languages[j];
       }
@@ -35,13 +35,13 @@ function findBestMatchingLanguage(languages, mockNav) {
   }
 
   // 2. Try primary language tag matches (e.g., "de-DE" matches "de", or "de" matches "de-DE")
-  for (var k = 0; k < browserLangs.length; k++) {
-    if (typeof browserLangs[k] !== "string") continue;
-    var primaryBLang = browserLangs[k].split("-")[0].toLowerCase();
-    for (var m = 0; m < languages.length; m++) {
-      if (typeof languages[m] !== "string") continue;
-      var langLower = languages[m].toLowerCase();
-      var primaryLang = langLower.split("-")[0];
+  for (let k = 0; k < browserLangs.length; k++) {
+    if (typeof browserLangs[k] !== "string") {continue;}
+    const primaryBLang = browserLangs[k].split("-")[0].toLowerCase();
+    for (let m = 0; m < languages.length; m++) {
+      if (typeof languages[m] !== "string") {continue;}
+      const langLower = languages[m].toLowerCase();
+      const primaryLang = langLower.split("-")[0];
       if (langLower === primaryBLang || primaryLang === primaryBLang) {
         return languages[m];
       }
@@ -49,9 +49,9 @@ function findBestMatchingLanguage(languages, mockNav) {
   }
 
   // 3. Fallback: English ("en" or "en-*")
-  for (var n = 0; n < languages.length; n++) {
+  for (let n = 0; n < languages.length; n++) {
     if (typeof languages[n] === "string") {
-      var lLower = languages[n].toLowerCase();
+      const lLower = languages[n].toLowerCase();
       if (lLower === "en" || lLower.split("-")[0] === "en") {
         return languages[n];
       }

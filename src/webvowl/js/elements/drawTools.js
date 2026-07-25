@@ -3,7 +3,7 @@
  */
 module.exports = (function (){
   
-  var tools = {};
+  const tools = {};
   
   /**
    * Append a circular class node with the passed attributes.
@@ -15,7 +15,7 @@ module.exports = (function (){
    * @returns {*}
    */
   tools.appendCircularClass = function ( parent, radius, cssClasses, tooltip, backgroundColor ){
-    var circle = parent.append("circle")
+    const circle = parent.append("circle")
       .classed("class", true)
       .attr("r", radius);
     
@@ -57,7 +57,7 @@ module.exports = (function (){
    * @returns {*}
    */
   tools.appendRectangularClass = function ( parent, width, height, cssClasses, tooltip, backgroundColor ){
-    var rectangle = parent.append("rect")
+    const rectangle = parent.append("rect")
       .classed("class", true)
       .attr("x", -width / 2)
       .attr("y", -height / 2)
@@ -72,12 +72,12 @@ module.exports = (function (){
   };
   
   tools.drawPin = function ( container, dx, dy, onClick, accuraciesHelperFunction, useAccuracyHelper ){
-    var pinGroupElement = container
+    const pinGroupElement = container
       .append("g")
       .classed("hidden-in-export", true)
       .attr("transform", "translate(" + dx + "," + dy + ")");
     
-    var base = pinGroupElement.append("circle")
+    const base = pinGroupElement.append("circle")
       .classed("class pin feature", true)
       .attr("r", 12)
       .on("click", function (event){
@@ -121,18 +121,18 @@ module.exports = (function (){
   };
   
   tools.drawRectHalo = function ( node, width, height, offset ){
-    var container;
+    let container;
     if ( node.nodeElement )
-      container = node.nodeElement();
+      {container = node.nodeElement();}
     else
-      container = node.labelElement();
+      {container = node.labelElement();}
     
     if ( !container ) {
       // console.log("no container found");
       return;
     }
     
-    var haloGroupElement = container
+    const haloGroupElement = container
       .append("g")
       .classed("hidden-in-export", true);
     
@@ -145,13 +145,13 @@ module.exports = (function (){
     haloGroupElement.attr("animationRunning", true);
     
     haloGroupElement.node().addEventListener("webkitAnimationEnd", function (){
-      var test = haloGroupElement.selectAll(".searchResultA");
+      const test = haloGroupElement.selectAll(".searchResultA");
       test.classed("searchResultA", false)
         .classed("searchResultB", true);
       haloGroupElement.attr("animationRunning", false);
     });
     haloGroupElement.node().addEventListener("animationend", function (){
-      var test = haloGroupElement.selectAll(".searchResultA");
+      const test = haloGroupElement.selectAll(".searchResultA");
       test.classed("searchResultA", false)
         .classed("searchResultB", true);
       haloGroupElement.attr("animationRunning", false);
@@ -168,7 +168,7 @@ module.exports = (function (){
       // this means the node was not rendered previously
     }
     
-    var haloGroupElement = container
+    const haloGroupElement = container
       .append("g")
       .classed("hidden-in-export", true);
     
@@ -180,14 +180,14 @@ module.exports = (function (){
     
     
     haloGroupElement.node().addEventListener("webkitAnimationEnd", function (){
-      var test = haloGroupElement.selectAll(".searchResultA");
+      const test = haloGroupElement.selectAll(".searchResultA");
       test.classed("searchResultA", false)
         .classed("searchResultB", true)
         .attr("animationRunning", false);
       haloGroupElement.attr("animationRunning", false);
     });
     haloGroupElement.node().addEventListener("animationend", function (){
-      var test = haloGroupElement.selectAll(".searchResultA");
+      const test = haloGroupElement.selectAll(".searchResultA");
       test.classed("searchResultA", false)
         .classed("searchResultB", true)
         .attr("animationRunning", false);

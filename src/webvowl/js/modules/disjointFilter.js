@@ -1,14 +1,14 @@
-var OwlDisjointWith = require("../elements/properties/implementations/OwlDisjointWith");
+const OwlDisjointWith = require("../elements/properties/implementations/OwlDisjointWith");
 
 module.exports = function (){
   
-  var filter = {},
-    nodes,
-    properties,
-    // According to the specification enabled by default
-    enabled = true,
-    filteredNodes,
-    filteredProperties;
+  const filter = {};
+  let nodes;
+  let properties;
+  // According to the specification enabled by default
+  let enabled = true;
+  let filteredNodes;
+  let filteredProperties;
   
   
   /**
@@ -29,8 +29,8 @@ module.exports = function (){
   };
   
   function removeDisjointWithProperties(){
-    var cleanedProperties = [],
-      i, l, property;
+    const cleanedProperties = [];
+    let i, l, property;
     
     for ( i = 0, l = properties.length; i < l; i++ ) {
       property = properties[i];
@@ -44,7 +44,7 @@ module.exports = function (){
   }
   
   filter.enabled = function ( p ){
-    if ( !arguments.length ) return enabled;
+    if ( !arguments.length ) {return enabled;}
     enabled = p;
     return filter;
   };

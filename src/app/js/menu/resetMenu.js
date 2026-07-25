@@ -6,10 +6,10 @@
  */
 module.exports = function ( graph ){
   
-  var resetMenu = {},
-    options = graph.graphOptions(),
-    resettableModules,
-    untouchedOptions = webvowl.options();
+  const resetMenu = {};
+  const options = graph.graphOptions();
+  let resettableModules;
+  const untouchedOptions = webvowl.options();
   
   
   /**
@@ -19,9 +19,9 @@ module.exports = function ( graph ){
   resetMenu.setup = function ( _resettableModules ){
     resettableModules = _resettableModules;
     d3.select("#reset-button").on("click", resetGraph);
-    var menuEntry = d3.select("#resetOption");
+    const menuEntry = d3.select("#resetOption");
     menuEntry.on("mouseover", function (){
-      var searchMenu = graph.options().searchMenu();
+      const searchMenu = graph.options().searchMenu();
       searchMenu.hideSearchEntries();
     });
   };

@@ -1,14 +1,14 @@
-var _ = require("lodash/array");
-var elementTools = require("../util/elementTools")();
+const _ = require("lodash/array");
+const elementTools = require("../util/elementTools")();
 
 module.exports = function (){
-  var pap = {},
-    enabled = false,
-    pinnedElements = [];
+  const pap = {};
+  let enabled = false;
+  const pinnedElements = [];
   
   pap.addPinnedElement = function ( element ){
     // check if element is already in list
-    var indexInArray = pinnedElements.indexOf(element);
+    const indexInArray = pinnedElements.indexOf(element);
     if ( indexInArray === -1 ) {
       pinnedElements.push(element);
     }
@@ -47,7 +47,7 @@ module.exports = function (){
   }
   
   pap.enabled = function ( p ){
-    if ( !arguments.length ) return enabled;
+    if ( !arguments.length ) {return enabled;}
     enabled = p;
     return pap;
   };
