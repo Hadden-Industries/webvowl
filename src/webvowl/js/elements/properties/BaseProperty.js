@@ -939,6 +939,9 @@ module.exports = (function () {
           that.label(newLabel);
           that.backupLabel(newLabel);
           that.redrawLabelText();
+          if ( graph.options().searchMenu() ) {
+            graph.options().searchMenu().requestDictionaryUpdate();
+          }
           updateHoverElements(true);
           graph.showHoverElementsAfterAnimation(that, false);
           graph.ignoreOtherHoverEvents(false);

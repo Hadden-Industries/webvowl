@@ -234,7 +234,9 @@ module.exports = function (graphContainerSelector) {
     }
     lastExecutedElement = selectedElement;
     lastExecutedTime = now;
-    
+    if ( graph.options().searchMenu() ) {
+      graph.options().searchMenu().requestDictionaryUpdate();
+    }
     options.selectionModules().forEach(function ( module ){
       module.handle(event, selectedElement);
     });
