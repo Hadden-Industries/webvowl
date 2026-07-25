@@ -14,15 +14,10 @@ module.exports = function ( graph ){
         searchMenu.hideSearchEntries();
         specialCbx.on("click")(true);
         if ( graph.editorMode() === false ) {
-          d3.select("#useAccuracyHelper").style("color", "#979797");
-          d3.select("#useAccuracyHelper").style("pointer-events", "none");
-          
-          // regardless the state on which useAccuracyHelper is , we are not in editing mode -> disable it
-          d3.select("#showDraggerObject").style("color", "#979797");
-          d3.select("#showDraggerObject").style("pointer-events", "none");
+          d3.select("#useAccuracyHelper").classed("disabled", true);
+          d3.select("#showDraggerObject").classed("disabled", true);
         } else {
-          d3.select("#useAccuracyHelper").style("color", "#2980b9");
-          d3.select("#useAccuracyHelper").style("pointer-events", "auto");
+          d3.select("#useAccuracyHelper").classed("disabled", false);
         }
         hoverFlag = true;
       }
@@ -35,12 +30,10 @@ module.exports = function ( graph ){
     specialCbx = addCheckBox("useAccuracyHelper", "Use accuracy helper", "#useAccuracyHelper", graph.options().useAccuracyHelper,
       function ( enabled, silent ){
         if ( !enabled ) {
-          d3.select("#showDraggerObject").style("color", "#979797");
-          d3.select("#showDraggerObject").style("pointer-events", "none");
+          d3.select("#showDraggerObject").classed("disabled", true);
           d3.select("#showDraggerObjectConfigCheckbox").node().checked = false;
         } else {
-          d3.select("#showDraggerObject").style("color", "#2980b9");
-          d3.select("#showDraggerObject").style("pointer-events", "auto");
+          d3.select("#showDraggerObject").classed("disabled", false);
         }
         
         if ( silent === true ) {return;}
@@ -131,17 +124,10 @@ module.exports = function ( graph ){
       checkbox.on("click")(silent);
     });
     if ( graph.editorMode() === false ) {
-      
-      d3.select("#useAccuracyHelper").style("color", "#979797");
-      d3.select("#useAccuracyHelper").style("pointer-events", "none");
-      
-      // regardless the state on which useAccuracyHelper is , we are not in editing mode -> disable it
-      d3.select("#showDraggerObject").style("color", "#979797");
-      d3.select("#showDraggerObject").style("pointer-events", "none");
+      d3.select("#useAccuracyHelper").classed("disabled", true);
+      d3.select("#showDraggerObject").classed("disabled", true);
     } else {
-      
-      d3.select("#useAccuracyHelper").style("color", "#2980b9");
-      d3.select("#useAccuracyHelper").style("pointer-events", "auto");
+      d3.select("#useAccuracyHelper").classed("disabled", false);
     }
     
   };

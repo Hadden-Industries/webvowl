@@ -56,10 +56,10 @@ module.exports = function ( graph ){
     }
     if ( h < 80 ) {
       d3.select("#progressBarContext").classed("hidden", true);
-      d3.select("#layoutLoadingProgressBarContainer").style("height", "20px");
+      d3.select("#layoutLoadingProgressBarContainer").classed("compact", true);
     } else {
       d3.select("#progressBarContext").classed("hidden", false);
-      d3.select("#layoutLoadingProgressBarContainer").style("height", "50px");
+      d3.select("#layoutLoadingProgressBarContainer").classed("compact", false);
     }
   };
   
@@ -91,7 +91,7 @@ module.exports = function ( graph ){
   };
   
   loadingModule.showWarningDetailsMessage = function (){
-    d3.select("#currentLoadingStep").style("color", "#ff0");
+    d3.select("#currentLoadingStep").attr("class", "step-warning");
     loadingModule.showLoadingIndicator();
     loadingModule.expandDetails();
     d3.select("#loadingIndicator_closeButton").classed("hidden", false);
@@ -153,30 +153,30 @@ module.exports = function ( graph ){
   };
   
   loadingModule.setBusyMode = function (){
-    d3.select("#currentLoadingStep").style("color", "#fff");
+    d3.select("#currentLoadingStep").attr("class", "step-busy");
     d3.select("#progressBarValue").node().innherHTML = "";
-    d3.select("#progressBarValue").style("width", "20%");
+    d3.select("#progressBarValue").classed("pct-20", true).classed("pct-0", false);
     d3.select("#progressBarValue").classed("busyProgressBar", true);
     progressBarMode = PROGRESS_BAR_BUSY;
   };
   
   loadingModule.setSuccessful = function (){
-    d3.select("#currentLoadingStep").style("color", "#0f0");
+    d3.select("#currentLoadingStep").attr("class", "step-success");
   };
   
   loadingModule.setErrorMode = function (){
-    d3.select("#currentLoadingStep").style("color", "#f00");
-    d3.select("#progressBarValue").style("width", "0%");
+    d3.select("#currentLoadingStep").attr("class", "step-error");
+    d3.select("#progressBarValue").classed("pct-20", false).classed("pct-0", true);
     d3.select("#progressBarValue").classed("busyProgressBar", false);
     d3.select("#progressBarValue").node().innherHTML = "";
     progressBarMode = PROGRESS_BAR_ERROR;
   };
   
   loadingModule.setPercentMode = function (){
-    d3.select("#currentLoadingStep").style("color", "#fff");
+    d3.select("#currentLoadingStep").attr("class", "step-busy");
     d3.select("#progressBarValue").classed("busyProgressBar", false);
     d3.select("#progressBarValue").node().innherHTML = "0%";
-    d3.select("#progressBarValue").style("width", "0%");
+    d3.select("#progressBarValue").classed("pct-20", false).classed("pct-0", true);
     progressBarMode = PROGRESS_BAR_PERCENT;
   };
   

@@ -115,11 +115,11 @@ module.exports = function ( graph ){
     const deleteRect = d3.select("#del_rectFor_" + name);
     
     if ( enable === false ) {
-      deletePath.node().style = "stroke: #f00;";
-      deleteRect.style("cursor", "auto");
+      deletePath.classed("delete-path-style", true);
+      deleteRect.classed("non-clickable", true).classed("clickable", false);
     } else {
-      deletePath.node().style = "stroke: #ff972d;";
-      deleteRect.style("cursor", "pointer");
+      deletePath.classed("delete-path-style", true);
+      deleteRect.classed("clickable", true).classed("non-clickable", false);
     }
   }
   
@@ -129,18 +129,11 @@ module.exports = function ( graph ){
     const editRect = d3.select("#rectFor_" + name);
     
     if ( enable === false ) {
-      if ( fill )
-        {editPath.node().style = "fill: #fff; stroke : #fff; stroke-width : 1px";}
-      else
-        {editPath.node().style = " stroke : #fff; stroke-width : 1px";}
-      
-      editRect.style("cursor", "auto");
+      editPath.classed("edit-path-style", true);
+      editRect.classed("non-clickable", true).classed("clickable", false);
     } else {
-      if ( fill )
-        {editPath.node().style = "fill: #ff972d; stroke : #ff972d; stroke-width : 1px";}
-      else
-        {editPath.node().style = "stroke : #ff972d; stroke-width : 1px";}
-      editRect.style("cursor", "pointer");
+      editPath.classed("edit-path-style", true);
+      editRect.classed("clickable", true).classed("non-clickable", false);
     }
     
   }
@@ -159,14 +152,10 @@ module.exports = function ( graph ){
         prefixEditContainer.node().id = "prefixContainerFor_" + name;
         
         const IconContainer = prefixEditContainer.append("div");
-        IconContainer.style("position", "absolute");
+        IconContainer.classed("icon-container-abs", true);
         IconContainer.node().id = "containerFor_" + name;
         const editButton = IconContainer.append("svg");
-        editButton.style("width", "14px");
-        editButton.style("height", "20px");
-        //   editButton.classed("editPrefixButton", true);
-        editButton.classed("noselect", true);
-        //editButton.node().innerHTML = "\u2714";
+        editButton.classed("edit-btn-svg noselect", true);
         editButton.node().id = "editButtonFor_" + name;
         
         editButton.node().elementStyle = "save";
@@ -183,13 +172,10 @@ module.exports = function ( graph ){
         editRect.node().selectorName = name;
         IconContainer.node().title = "Save new prefix and IRI";
         
-        editPath.classed("editPrefixIcon");
-        editPath.style("stroke", "#fff");
-        editPath.style("stroke-width", "1px");
-        editPath.style("fill", "#fff");
+        editPath.classed("editPrefixIcon edit-path-style", true);
         editRect.attr("width", "14px");
         editRect.attr("height", "14px");
-        editRect.style("fill", "#18202A");
+        editRect.classed("edit-rect-style", true);
         editRect.attr("transform", "matrix(1,0,0,1,-3,4)");
         
         editButton.selectAll("g").on("mouseover", function (){
@@ -206,12 +192,11 @@ module.exports = function ( graph ){
         editPath.attr("transform", "matrix(0.45,0,0,0.45,0,5)");
         
         const prefInput = prefixEditContainer.append("input");
-        prefInput.classed("prefixInput", true);
+        prefInput.classed("prefixInput pref-input-style", true);
         prefInput.node().type = "text";
         prefInput.node().id = "prefixInputFor_" + name;
         prefInput.node().autocomplete = "off";
         prefInput.node().value = "";
-        prefInput.style("margin-left", "14px");
         
         const prefURL = prefixEditContainer.append("input");
         prefURL.classed("prefixURL", true);
@@ -224,12 +209,11 @@ module.exports = function ( graph ){
         prefURL.node().disabled = false;
         prefix_editMode = true;
         const deleteContainer = prefixEditContainer.append("div");
-        deleteContainer.style("float", "right");
+        deleteContainer.classed("delete-container-style", true);
         const deleteButton = deleteContainer.append("svg");
         deleteButton.node().id = "deleteButtonFor_" + name;
         deleteContainer.node().title = "Delete prefix and IRI";
-        deleteButton.style("width", "10px");
-        deleteButton.style("height", "20px");
+        deleteButton.classed("delete-btn-svg", true);
         const deleteIcon = deleteButton.append("g");
         const deleteRect = deleteIcon.append("rect");
         const deletePath = deleteIcon.append("path");
@@ -241,11 +225,10 @@ module.exports = function ( graph ){
         deletePath.node().selectorName = name;
         deleteRect.node().selectorName = name;
         
-        
-        deletePath.style("stroke", "#f00");
+        deletePath.classed("delete-path-style", true);
         deleteRect.attr("width", "10px");
         deleteRect.attr("height", "14px");
-        deleteRect.style("fill", "#18202A");
+        deleteRect.classed("delete-rect-style", true);
         deleteRect.attr("transform", "matrix(1,0,0,1,-3,4)");
         
         
@@ -290,12 +273,10 @@ module.exports = function ( graph ){
         
         // create edit button which enables the input fields
         const IconContainer = prefixEditContainer.append("div");
-        IconContainer.style("position", "absolute");
+        IconContainer.classed("icon-container-abs", true);
         IconContainer.node().id = "containerFor_" + name;
         const editButton = IconContainer.append("svg");
-        editButton.style("width", "14px");
-        editButton.style("height", "20px");
-        editButton.classed("noselect", true);
+        editButton.classed("edit-btn-svg noselect", true);
         editButton.node().id = "editButtonFor_" + name;
         IconContainer.node().title = "Edit prefix and IRI";
         editButton.node().elementStyle = "save";
@@ -314,57 +295,38 @@ module.exports = function ( graph ){
         editPath.node().selectorName = name;
         editRect.node().selectorName = name;
         
-        
-        editPath.classed("editPrefixIcon");
-        editPath.style("stroke", "#fff");
-        editPath.style("stroke-width", "1px");
+        editPath.classed("editPrefixIcon edit-path-style", true);
         editRect.attr("width", "14px");
         editRect.attr("height", "14px");
-        editRect.style("fill", "#18202A");
+        editRect.classed("edit-rect-style", true);
         editRect.attr("transform", "matrix(1,0,0,1,-3,4)");
         
         editButton.selectAll("g").on("mouseover", function (){
           const sender = this;
-          const fill = false;
           const enable = true;
           const f_editPath = d3.select("#pathFor_" + sender.selectorName);
           const f_editRect = d3.select("#rectFor_" + sender.selectorName);
           
           if ( enable === false ) {
-            if ( fill )
-              {f_editPath.node().style = "fill: #fff; stroke : #fff; stroke-width : 1px";}
-            else
-              {f_editPath.node().style = " stroke : #fff; stroke-width : 1px";}
-            
-            f_editRect.style("cursor", "auto");
+            f_editPath.classed("edit-path-style", true);
+            f_editRect.classed("non-clickable", true).classed("clickable", false);
           } else {
-            if ( fill )
-              {f_editPath.node().style = "fill: #ff972d; stroke : #ff972d; stroke-width : 1px";}
-            else
-              {f_editPath.node().style = "stroke : #ff972d; stroke-width : 1px";}
-            f_editRect.style("cursor", "pointer");
+            f_editPath.classed("edit-path-style", true);
+            f_editRect.classed("clickable", true).classed("non-clickable", false);
           }
         });
         editButton.selectAll("g").on("mouseout", function (){
           const sender = this;
-          const fill = false;
           const enable = false;
           const f_editPath = d3.select("#pathFor_" + sender.selectorName);
           const f_editRect = d3.select("#rectFor_" + sender.selectorName);
           
           if ( enable === false ) {
-            if ( fill )
-              {f_editPath.node().style = "fill: #fff; stroke : #fff; stroke-width : 1px";}
-            else
-              {f_editPath.node().style = " stroke : #fff; stroke-width : 1px";}
-            
-            f_editRect.style("cursor", "auto");
+            f_editPath.classed("edit-path-style", true);
+            f_editRect.classed("non-clickable", true).classed("clickable", false);
           } else {
-            if ( fill )
-              {f_editPath.node().style = "fill: #ff972d; stroke : #ff972d; stroke-width : 1px";}
-            else
-              {f_editPath.node().style = "stroke : #ff972d; stroke-width : 1px";}
-            f_editRect.style("cursor", "pointer");
+            f_editPath.classed("edit-path-style", true);
+            f_editRect.classed("clickable", true).classed("non-clickable", false);
           }
         });
         
@@ -373,12 +335,11 @@ module.exports = function ( graph ){
         
         // create input field for prefix
         const prefInput = prefixEditContainer.append("input");
-        prefInput.classed("prefixInput", true);
+        prefInput.classed("prefixInput pref-input-style", true);
         prefInput.node().type = "text";
         prefInput.node().id = "prefixInputFor_" + name;
         prefInput.node().autocomplete = "off";
         prefInput.node().value = name;
-        prefInput.style("margin-left", "14px");
         
         // create input field for prefix url
         const prefURL = prefixEditContainer.append("input");
@@ -388,18 +349,16 @@ module.exports = function ( graph ){
         prefURL.node().autocomplete = "off";
         prefURL.node().value = prefixElements[name];
         prefURL.node().title = prefixElements[name];
-        // disable the input fields (already defined elements can be edited later)
         prefInput.node().disabled = true;
         prefURL.node().disabled = true;
         
         // create the delete button
         const deleteContainer = prefixEditContainer.append("div");
-        deleteContainer.style("float", "right");
+        deleteContainer.classed("delete-container-style", true);
         const deleteButton = deleteContainer.append("svg");
         deleteButton.node().id = "deleteButtonFor_" + name;
         deleteContainer.node().title = "Delete prefix and IRI";
-        deleteButton.style("width", "10px");
-        deleteButton.style("height", "20px");
+        deleteButton.classed("delete-btn-svg", true);
         const deleteIcon = deleteButton.append("g");
         const deleteRect = deleteIcon.append("rect");
         const deletePath = deleteIcon.append("path");
@@ -411,13 +370,11 @@ module.exports = function ( graph ){
         deletePath.node().selectorName = name;
         deleteRect.node().selectorName = name;
         
-        
-        deletePath.style("stroke", "#f00");
+        deletePath.classed("delete-path-style", true);
         deleteRect.attr("width", "10px");
         deleteRect.attr("height", "14px");
-        deleteRect.style("fill", "#18202A");
+        deleteRect.classed("delete-rect-style", true);
         deleteRect.attr("transform", "matrix(1,0,0,1,-3,4)");
-        
         
         deletePath.attr("d", "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z");
         deletePath.attr("transform", "matrix(0.45,0,0,0.45,0,5)");
@@ -429,11 +386,11 @@ module.exports = function ( graph ){
           const f_deleteRect = d3.select("#del_rectFor_" + selector.selectorName);
           
           if ( enable === false ) {
-            f_deletePath.node().style = "stroke: #f00;";
-            f_deleteRect.style("cursor", "auto");
+            f_deletePath.classed("delete-path-style", true);
+            f_deleteRect.classed("non-clickable", true).classed("clickable", false);
           } else {
-            f_deletePath.node().style = "stroke: #ff972d;";
-            f_deleteRect.style("cursor", "pointer");
+            f_deletePath.classed("delete-path-style", true);
+            f_deleteRect.classed("clickable", true).classed("non-clickable", false);
           }
         });
         deleteButton.selectAll("g").on("mouseout", function (){
@@ -443,11 +400,11 @@ module.exports = function ( graph ){
           const f_deleteRect = d3.select("#del_rectFor_" + selector.selectorName);
           
           if ( enable === false ) {
-            f_deletePath.node().style = "stroke: #f00;";
-            f_deleteRect.style("cursor", "auto");
+            f_deletePath.classed("delete-path-style", true);
+            f_deleteRect.classed("non-clickable", true).classed("clickable", false);
           } else {
-            f_deletePath.node().style = "stroke: #ff972d;";
-            f_deleteRect.style("cursor", "pointer");
+            f_deletePath.classed("delete-path-style", true);
+            f_deleteRect.classed("clickable", true).classed("non-clickable", false);
           }
         });
         
@@ -1004,61 +961,6 @@ module.exports = function ( graph ){
   };
   
   editSidebar.updateElementWidth = function (){
-    const height = window.innerHeight - 40;
-    const lsb_offset = d3.select("#logo").node().getBoundingClientRect().height + 5;
-    const lsb_height = height - lsb_offset;
-    d3.select("#containerForLeftSideBar").style("top", lsb_offset + "px");
-    d3.select("#leftSideBarCollapseButton").style("top", lsb_offset + "px");
-    d3.select("#containerForLeftSideBar").style("height", lsb_height + "px");
-    
-    let div_width = d3.select("#generalDetailsEdit").node().getBoundingClientRect().width;
-    div_width += 10;
-    
-    const title_labelWidth = d3.select("#titleEditor-label").node().getBoundingClientRect().width + 20;
-    const iri_labelWidth = d3.select("#iriEditor-label").node().getBoundingClientRect().width + 20;
-    const version_labelWidth = d3.select("#versionEditor-label").node().getBoundingClientRect().width + 20;
-    const author_labelWidth = d3.select("#authorsEditor-label").node().getBoundingClientRect().width + 20;
-    //find max width;
-    let maxW = 0;
-    maxW = Math.max(maxW, title_labelWidth);
-    maxW = Math.max(maxW, iri_labelWidth);
-    maxW = Math.max(maxW, version_labelWidth);
-    maxW = Math.max(maxW, author_labelWidth);
-    
-    const meta_inputWidth = div_width - maxW - 10;
-    
-    d3.select("#titleEditor").style("width", meta_inputWidth + "px");
-    d3.select("#iriEditor").style("width", meta_inputWidth + "px");
-    d3.select("#versionEditor").style("width", meta_inputWidth + "px");
-    d3.select("#authorsEditor").style("width", meta_inputWidth + "px");
-    
-    
-    const elementIri_width = d3.select("#element_iriEditor-label").node().getBoundingClientRect().width + 20;
-    const elementLabel_width = d3.select("#element_labelEditor-label").node().getBoundingClientRect().width + 20;
-    const elementType_width = d3.select("#typeEditor-label").node().getBoundingClientRect().width + 20;
-    const elementDType_width = d3.select("#typeEditor_datatype-label").node().getBoundingClientRect().width + 20;
-    
-    maxW = 0;
-    maxW = Math.max(maxW, elementIri_width);
-    maxW = Math.max(maxW, elementLabel_width);
-    maxW = Math.max(maxW, elementType_width);
-    maxW = Math.max(maxW, elementDType_width);
-    const selectedElement_inputWidth = div_width - maxW - 10;
-    
-    d3.select("#element_iriEditor").style("width", selectedElement_inputWidth + "px");
-    d3.select("#element_labelEditor").style("width", selectedElement_inputWidth + "px");
-    d3.select("#typeEditor").style("width", selectedElement_inputWidth + 4 + "px");
-    d3.select("#typeEditor_datatype").style("width", selectedElement_inputWidth + 4 + "px");
-    
-    // update prefix Element width;
-    const containerWidth = d3.select("#containerForPrefixURL").node().getBoundingClientRect().width;
-    if ( containerWidth !== 0 ) {
-      const inputs = d3.selectAll(".prefixInput");
-      if ( inputs.node() ) {
-        const prefixWidth = d3.selectAll(".prefixInput").node().getBoundingClientRect().width;
-        d3.selectAll(".prefixURL").style("width", containerWidth - prefixWidth - 45 + "px");
-      }
-    }
   };
   
   function addElementsCharacteristics( element ){
@@ -1090,8 +992,7 @@ module.exports = function ( graph ){
       for ( i = 0; i < arrayOfNodeChars.length; i++ ) {
         filterContainer = charSelectionNode
           .append("div")
-          .classed("checkboxContainer", true)
-          .style("padding-top", "2px");
+          .classed("checkboxContainer warning-row", true);
         
         filterCheckbox = filterContainer.append("input")
           .classed("filterCheckbox", true)
@@ -1099,7 +1000,7 @@ module.exports = function ( graph ){
           .attr("type", "checkbox")
           .attr("characteristics", arrayOfNodeChars[i])
           .property("checked", getPresentAttribute(element, arrayOfNodeChars[i]));
-        //
+        
         filterContainer.append("label")
           .attr("for", "CharacteristicsCheckbox" + i)
           .text(arrayOfNodeChars[i]);
@@ -1118,8 +1019,7 @@ module.exports = function ( graph ){
       for ( i = 0; i < arrayOfPropertyChars.length; i++ ) {
         filterContainer = charSelectionNode
           .append("div")
-          .classed("checkboxContainer", true)
-          .style("padding-top", "2px");
+          .classed("checkboxContainer warning-row", true);
         
         filterCheckbox = filterContainer.append("input")
           .classed("filterCheckbox", true)

@@ -8,28 +8,7 @@ module.exports = function ( graph ){
   
   let _filterHintId;
   let _messageId = -1;
-  superContainer.style("display", "inline-block");
-  const cssStyleIndex = 0;
-  const styleSelectorIndex = 2;
-  
 
-  // helper for standalone webvowl in chrome
-  function createCSSSelector( name, rules ){
-    const style = document.createElement('style');
-    style.type = 'text/css';
-    document.getElementsByTagName('head')[0].appendChild(style);
-    if ( !(style.sheet || {}).insertRule )
-      {(style.styleSheet || style.sheet).addRule(name, rules);}
-    else
-      {style.sheet.insertRule(name + "{" + rules + "}", 0);}
-  }
-  
-  
-  function findCSS_Index(){
-    createCSSSelector("@keyframes msg_CollapseAnimation", " 0% { top: 0; } 100% { top: -400px;}");
-  }
-  
-  findCSS_Index();
   
   warningModule.addMessageBox = function (){
     
@@ -40,9 +19,8 @@ module.exports = function ( graph ){
     
     const messageContext = messageContainer.append("div");
     messageContext.node().id = "messageContextId_" + _messageId;
-    messageContext.style("top", "0");
-    messageContainer.style("position", "relative");
-    messageContainer.style("width", "100%");
+    messageContext.classed("warning-msg-context", true);
+    messageContainer.classed("warning-msg-container", true);
     //save in array
     _messageContainers.push(messageContainer);
     _messageContext.push(messageContext);
@@ -81,10 +59,7 @@ module.exports = function ( graph ){
       "You can now modify an existing ontology or create a new one via the <em>ontology</em> menu.<br>" +
       "You can save any ontology using the <em>export</em> menu (and exporting it as TTL file).";
     
-    generalHint.style("padding", "5px");
-    generalHint.style("line-height", "1.2em");
-    generalHint.style("font-size", "1.2em");
-    
+    generalHint.classed("warning-hint", true);
     
     const ul = warningContainer.append('ul');
     ul.append('li').node().innerHTML = "Create a class with <b>double click / tap</b> on empty canvas area.";
@@ -92,22 +67,19 @@ module.exports = function ( graph ){
     ul.append('li').node().innerHTML = "Selection of default constructors is provided in the left sidebar.";
     ul.append('li').node().innerHTML = "Additional editing functionality is provided in the right sidebar.";
     
-    
     const gotItButton = warningContainer.append("button").attr("type", "button");
     gotItButton.node().id = "killWarningErrorMessages_" + id;
     gotItButton.node().innerHTML = "Got It";
     gotItButton.on("click", warningModule.closeMessage);
     
     moduleContainer.classed("hidden", false);
-    moduleContainer.style("-webkit-animation-name", "warn_ExpandAnimation");
-    moduleContainer.style("-webkit-animation-duration", "0.5s");
+    moduleContainer.classed("warn-expanded", true);
   };
   
   warningModule.showMessage = function ( id ){
     const moduleContainer = _messageContainers[id];
     moduleContainer.classed("hidden", false);
-    moduleContainer.style("-webkit-animation-name", "warn_ExpandAnimation");
-    moduleContainer.style("-webkit-animation-duration", "0.5s");
+    moduleContainer.classed("warn-expanded", true);
   };
   
   warningModule.closeMessage = function ( id ){
@@ -127,8 +99,7 @@ module.exports = function ( graph ){
     _visibleStatus[nId] = false;
     // get module;
     const moduleContainer = _messageContainers[nId];
-    moduleContainer.style("-webkit-animation-name", "warn_CollapseAnimation");
-    moduleContainer.style("-webkit-animation-duration", "0.5s");
+    moduleContainer.classed("warn-collapsed", true);
     
     const m_height = moduleContainer.node().getBoundingClientRect().height;
     
@@ -152,25 +123,14 @@ module.exports = function ( graph ){
     
     for ( let fc = 0; fc < followingChildren.length; fc++ ) {
       const child = d3.select("#" + followingChildren[fc]);
-      // get the document style and overwrite it;
-      const superCss = document.styleSheets[styleSelectorIndex].cssRules[cssStyleIndex];
-      // remove the existing 0% and 100% rules
-      superCss.deleteRule("0%");
-      superCss.deleteRule("100%");
-      
-      superCss.appendRule("0%   {top: 0;}");
-      superCss.appendRule("100% {top: -" + m_height + "px;");
-      
-      child.style("-webkit-animation-name", "msg_CollapseAnimation");
-      child.style("-webkit-animation-duration", "0.5s");
+      child.classed("msg-collapsed", true);
       child.node().addEventListener("animationend", _child_animationEnd);
     }
   };
   
   function _child_animationEnd(){
     const c = d3.select(this);
-    c.style("-webkit-animation-name", "");
-    c.style("-webkit-animation-duration", "");
+    c.classed("msg-collapsed", false);
     c.node().removeEventListener("animationend", _child_animationEnd);
   }
   
@@ -205,46 +165,32 @@ module.exports = function ( graph ){
     
     if ( header.length > 0 ) {
       const head = warningContainer.append("div");
-      head.style("padding", "5px");
+      head.classed("warning-row", true);
       const titleHeader = head.append("div");
-      // some classes
-      titleHeader.style("display", "inline-flex");
+      titleHeader.classed("warning-inline-flex warning-pr-3", true);
       titleHeader.node().innerHTML = "<b>Warning:</b>";
-      titleHeader.style("padding-right", "3px");
       const msgHeader = head.append("div");
-      // some classes
-      msgHeader.style("display", "inline-flex");
-      msgHeader.style("max-width", graphWidth + "px");
-      
+      msgHeader.classed("warning-msg-content", true);
       msgHeader.node().innerHTML = header;
     }
     if ( reason.length > 0 ) {
       const reasonContainer = warningContainer.append("div");
-      reasonContainer.style("padding", "5px");
+      reasonContainer.classed("warning-row", true);
       const reasonHeader = reasonContainer.append("div");
-      // some classes
-      reasonHeader.style("display", "inline-flex");
-      reasonHeader.style("padding-right", "3px");
-      
+      reasonHeader.classed("warning-inline-flex warning-pr-3", true);
       reasonHeader.node().innerHTML = "<b>Reason:</b>";
       const msgReason = reasonContainer.append("div");
-      // some classes
-      msgReason.style("display", "inline-flex");
-      msgReason.style("max-width", graphWidth + "px");
+      msgReason.classed("warning-msg-content", true);
       msgReason.node().innerHTML = reason;
     }
     if ( action.length > 0 ) {
       const actionContainer = warningContainer.append("div");
-      actionContainer.style("padding", "5px");
+      actionContainer.classed("warning-row", true);
       const actionHeader = actionContainer.append("div");
-      // some classes
-      actionHeader.style("display", "inline-flex");
-      actionHeader.style("padding-right", "8px");
+      actionHeader.classed("warning-inline-flex warning-pr-8", true);
       actionHeader.node().innerHTML = "<b>Action:</b>";
       const msgAction = actionContainer.append("div");
-      // some classes
-      msgAction.style("display", "inline-flex");
-      msgAction.style("max-width", graphWidth + "px");
+      msgAction.classed("warning-msg-content", true);
       msgAction.node().innerHTML = action;
     }
     
@@ -265,8 +211,7 @@ module.exports = function ( graph ){
       d3.select("#blockGraphInteractions").classed("hidden", true);
     });
     moduleContainer.classed("hidden", false);
-    moduleContainer.style("-webkit-animation-name", "warn_ExpandAnimation");
-    moduleContainer.style("-webkit-animation-duration", "0.5s");
+    moduleContainer.classed("warn-expanded", true);
   };
   
   warningModule.showFilterHint = function (){
@@ -284,9 +229,7 @@ module.exports = function ( graph ){
       "<em>Note:</em> A performance decrease could be experienced with a growing amount of visual elements in the graph.";
     
     
-    generalHint.style("padding", "5px");
-    generalHint.style("line-height", "1.2em");
-    generalHint.style("font-size", "1.2em");
+    generalHint.classed("warning-hint", true);
     
     const gotItButton = warningContainer.append("button").attr("type", "button");
     gotItButton.node().id = "killFilterMessages_" + id;
@@ -294,8 +237,7 @@ module.exports = function ( graph ){
     gotItButton.on("click", warningModule.closeMessage);
     
     moduleContainer.classed("hidden", false);
-    moduleContainer.style("-webkit-animation-name", "warn_ExpandAnimation");
-    moduleContainer.style("-webkit-animation-duration", "0.5s");
+    moduleContainer.classed("warn-expanded", true);
   };
   
   warningModule.showMultiFileUploadWarning = function (){
@@ -304,14 +246,11 @@ module.exports = function ( graph ){
     const moduleContainer = _messageContainers[id];
     _visibleStatus[id] = true;
     
-    _filterHintId = id;
     const generalHint = warningContainer.append('div');
     
     generalHint.node().innerHTML = "Uploading multiple files is not supported.<br>";
     
-    generalHint.style("padding", "5px");
-    generalHint.style("line-height", "1.2em");
-    generalHint.style("font-size", "1.2em");
+    generalHint.classed("warning-hint", true);
     
     const gotItButton = warningContainer.append("button").attr("type", "button");
     gotItButton.node().id = "killFilterMessages_" + id;
@@ -319,8 +258,7 @@ module.exports = function ( graph ){
     gotItButton.on("click", warningModule.closeMessage);
     
     moduleContainer.classed("hidden", false);
-    moduleContainer.style("-webkit-animation-name", "warn_ExpandAnimation");
-    moduleContainer.style("-webkit-animation-duration", "0.5s");
+    moduleContainer.classed("warn-expanded", true);
   };
   
   warningModule.showWarning = function ( header, reason, action, type, forcedWarning, additionalOpts ){
@@ -334,46 +272,32 @@ module.exports = function ( graph ){
     
     if ( header.length > 0 ) {
       const head = warningContainer.append("div");
-      head.style("padding", "5px");
+      head.classed("warning-row", true);
       const titleHeader = head.append("div");
-      // some classes
-      titleHeader.style("display", "inline-flex");
+      titleHeader.classed("warning-inline-flex warning-pr-3", true);
       titleHeader.node().innerHTML = "<b>Warning:</b>";
-      titleHeader.style("padding-right", "3px");
       const msgHeader = head.append("div");
-      // some classes
-      msgHeader.style("display", "inline-flex");
-      msgHeader.style("max-width", graphWidth + "px");
-      
+      msgHeader.classed("warning-msg-content", true);
       msgHeader.node().innerHTML = header;
     }
     if ( reason.length > 0 ) {
       const reasonContainer = warningContainer.append("div");
-      reasonContainer.style("padding", "5px");
+      reasonContainer.classed("warning-row", true);
       const reasonHeader = reasonContainer.append("div");
-      // some classes
-      reasonHeader.style("display", "inline-flex");
-      reasonHeader.style("padding-right", "3px");
-      
+      reasonHeader.classed("warning-inline-flex warning-pr-3", true);
       reasonHeader.node().innerHTML = "<b>Reason:</b>";
       const msgReason = reasonContainer.append("div");
-      // some classes
-      msgReason.style("display", "inline-flex");
-      msgReason.style("max-width", graphWidth + "px");
+      msgReason.classed("warning-msg-content", true);
       msgReason.node().innerHTML = reason;
     }
     if ( action.length > 0 ) {
       const actionContainer = warningContainer.append("div");
-      actionContainer.style("padding", "5px");
+      actionContainer.classed("warning-row", true);
       const actionHeader = actionContainer.append("div");
-      // some classes
-      actionHeader.style("display", "inline-flex");
-      actionHeader.style("padding-right", "8px");
+      actionHeader.classed("warning-inline-flex warning-pr-8", true);
       actionHeader.node().innerHTML = "<b>Action:</b>";
       const msgAction = actionContainer.append("div");
-      // some classes
-      msgAction.style("display", "inline-flex");
-      msgAction.style("max-width", graphWidth + "px");
+      msgAction.classed("warning-msg-content", true);
       msgAction.node().innerHTML = action;
     }
     
@@ -395,7 +319,6 @@ module.exports = function ( graph ){
       zoomToElementButton.node().id = "zoomElementThing_" + id;
       zoomToElementButton.node().innerHTML = "Zoom to element ";
       zoomToElementButton.on("click", function (){
-        // assume the additional Element is for halo;
         graph.zoomToElementInGraph(additionalOpts);
       });
       warningContainer.append("span").node().innerHTML = "|";
@@ -403,7 +326,6 @@ module.exports = function ( graph ){
       ShowElementButton.node().id = "showElementThing_" + id;
       ShowElementButton.node().innerHTML = "Indicate element";
       ShowElementButton.on("click", function (){
-        // assume the additional Element is for halo;
         if ( additionalOpts.halo() === false ) {
           additionalOpts.drawHalo();
           graph.updatePulseIds([additionalOpts.id()]);
@@ -415,8 +337,7 @@ module.exports = function ( graph ){
       });
     }
     moduleContainer.classed("hidden", false);
-    moduleContainer.style("-webkit-animation-name", "warn_ExpandAnimation");
-    moduleContainer.style("-webkit-animation-duration", "0.5s");
+    moduleContainer.classed("warn-expanded", true);
     moduleContainer.classed("hidden", false);
   };
   

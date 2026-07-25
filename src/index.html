@@ -264,11 +264,10 @@
                     <input class="searchInputText" type="text" id="search-input-text" placeholder="Search">
                 </li>
                 <li id="c_locate">
-                    <a draggable="false" title="Nothing to locate, enter search term."
-                       href="#" id="locateSearchResult" aria-label="Locate search result"><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path style="fill: #fff; stroke-width: 0;" d="M11 2h2v3.06A7.001 7.001 0 0 1 18.94 11H22v2h-3.06A7.001 7.001 0 0 1 13 18.94V22h-2v-3.06A7.001 7.001 0 0 1 5.06 13H2v-2h3.06A7.001 7.001 0 0 1 11 5.06V2zm1 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></g></svg></i></a>
+                    <button type="button" class="navButton" id="locateSearchResult" title="Nothing to locate, enter search term." aria-label="Locate search result"><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path style="fill: #fff; stroke-width: 0;" d="M11 2h2v3.06A7.001 7.001 0 0 1 18.94 11H22v2h-3.06A7.001 7.001 0 0 1 13 18.94V22h-2v-3.06A7.001 7.001 0 0 1 5.06 13H2v-2h3.06A7.001 7.001 0 0 1 11 5.06V2zm1 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></g></svg></i></button>
                 </li>
                 <li id="c_select">
-                    <a draggable="false" href="#">
+                    <button type="button" class="navButton">
                         <i>
                             <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                                 <g>
@@ -278,9 +277,9 @@
                                     </path>
                                 </g>
                             </svg>
-                        </i> Ontology</a>
+                        </i> Ontology</button>
                 </li>
-                <li id="c_export"><a draggable="false" href="#">
+                <li id="c_export"><button type="button" class="navButton">
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
@@ -290,8 +289,8 @@
                                 </path>
                             </g>
                         </svg>
-                    </i> Export</a></li>
-                <li id="c_filter"><a draggable="false" href="#">
+                    </i> Export</button></li>
+                <li id="c_filter"><button type="button" class="navButton">
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
@@ -301,8 +300,8 @@
                                 </path>
                             </g>
                         </svg>
-                    </i>Filter</a></li>
-                <li id="c_config"><a draggable="false" href="#">
+                    </i>Filter</button></li>
+                <li id="c_config"><button type="button" class="navButton">
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
@@ -312,9 +311,9 @@
                                 </path>
                             </g>
                         </svg>
-                    </i>Options</a>
+                    </i>Options</button>
                 </li>
-                <li id="c_modes"><a draggable="false" href="#">
+                <li id="c_modes"><button type="button" class="navButton">
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
@@ -324,8 +323,8 @@
                                 </path>
                             </g>
                         </svg>
-                    </i>Modes</a></li>
-                <li id="c_reset"><a draggable="false" id="reset-button" href="#" type="reset">
+                    </i>Modes</button></li>
+                <li id="c_reset"><button type="button" class="navButton" id="reset-button">
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
@@ -335,10 +334,10 @@
                                 </path>
                             </g>
                         </svg>
-                    </i>Reset</a></li>
-                <li id="c_pause"><a draggable="false" id="pause-button" href="#">Pause</a>
+                    </i>Reset</button></li>
+                <li id="c_pause"><button type="button" class="navButton" id="pause-button">Pause</button>
                 </li>
-                <li id="c_debug" class="debugOption"><a id="debugMenuHref" draggable="false" href="#">
+                <li id="c_debug" class="debugOption"><button type="button" class="navButton" id="debugMenuHref">
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
@@ -349,8 +348,8 @@
                             </g>
                         </svg>
                     </i>
-                    Debug</a></li>
-                <li id="c_about"><a draggable="false" href="#">
+                    Debug</button></li>
+                <li id="c_about"><button type="button" class="navButton">
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
@@ -361,7 +360,7 @@
                             </g>
                         </svg>
                     </i>
-                    About</a></li>
+                    About</button></li>
             </ul>
         </nav>
         <div class="noselect" id="scrollRightButton"></div>

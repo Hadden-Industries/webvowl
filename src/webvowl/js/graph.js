@@ -335,7 +335,11 @@ module.exports = function ( graphContainerSelector ){
           d.y = event.y;
           d.fx = event.x;
           d.fy = event.y;
-          force.alpha(0.3).restart();
+          if ( graph.paused() === false ) {
+            force.alpha(0.3).restart();
+          } else {
+            recalculatePositions();
+          }
           updateHaloRadius();
           moved = true;
           if ( d.renderType && d.renderType() === "round" ) {
@@ -1552,6 +1556,11 @@ module.exports = function ( graphContainerSelector ){
     }
     
     showFilterWarning = false;
+    seenFilterWarning = false;
+    seenEditorHint = false;
+    if ( options.warningModule() ) {
+      options.warningModule().closeFilterHint();
+    }
     parser.parse(options.data());
     unfilteredData = {
       nodes: parser.nodes(),
@@ -2774,12 +2783,10 @@ module.exports = function ( graphContainerSelector ){
       return editMode;
     }
     graph.options().setEditorModeForDefaultObject(val);
-    
-    // if (seenEditorHint===false  && val===true){
-    //     seenEditorHint=true;
-    //     graph.options().warningModule().showEditorHint();
-    // }
     editMode = val;
+    if ( val === false ) {
+      seenEditorHint = false;
+    }
     
     if ( create_entry ) {
       create_entry.classed("disabled", !editMode);

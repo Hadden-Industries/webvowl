@@ -8,7 +8,7 @@ module.exports = function ( graph ){
   
   const filterMenu = {};
   const checkboxData = [];
-  const menuControl = d3.select("#c_filter a");
+  const menuControl = d3.select("#c_filter button");
   const nodeDegreeContainer = d3.select("#nodeDegreeFilteringOption");
   let graphDegreeLevel;
   let defaultDegreeValue = 0;

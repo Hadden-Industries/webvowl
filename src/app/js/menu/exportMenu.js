@@ -236,7 +236,6 @@ module.exports = function ( graph ){
       .attr("download", exportFilename + ".svg");
     
     // remove graphic styles for interaction to go back to normal
-    removeVowlInlineStyles();
     showNonExportableElements();
     graph.lazyRefresh();
   }
@@ -334,49 +333,12 @@ module.exports = function ( graph ){
    * For example the pin of the pick&pin module should be invisible in the exported graphic.
    */
   function hideNonExportableElements(){
-    d3.selectAll(".hidden-in-export").style("display", "none");
+    d3.selectAll(".hidden-in-export").classed("hidden", true);
   }
   
-  function removeVowlInlineStyles(){
-    d3.selectAll(".text, .subtext, .text.instance-count, .external + text .instance-count, .cardinality, .text, .embedded, .class, .object, .disjoint, .objectproperty, .disjointwith, .equivalentproperty, .transitiveproperty, .functionalproperty, .inversefunctionalproperty, .symmetricproperty, .allvaluesfromproperty, .somevaluesfromproperty, .label .datatype, .datatypeproperty, .rdf, .rdfproperty, .literal, .node .datatype, .deprecated, .deprecatedproperty, .external, .externalproperty, path, .nofill, .symbol, .values-from.filled, marker path, .class, path, line, .fineline, .white, .subclass, .subclassproperty, .external + text, .class.hovered, .property.hovered, .cardinality.hovered, .cardinality.focused, circle.pin, .filled.hovered, .filled.focused, .focused, path.hovered, .indirect-highlighting, .feature:hover, .values-from, .class, path, line, .fineline, .dashed, .anonymous, .dotted, rect.focused, circle.focused, .nostroke, marker path")
-      .each(function (){
-        const element = d3.select(this);
-        
-        const inlineStyles = element.node().style;
-        for ( const styleName in inlineStyles ) {
-          if ( Object.prototype.hasOwnProperty.call(inlineStyles, styleName) ) {
-            if ( shouldntChangeInlineCss(element, styleName) ) {
-              continue;
-            }
-            element.style(styleName, null);
-          }
-        }
-        
-        if ( element.datum && element.datum() !== undefined && element.datum().type ) {
-          if ( element.datum().type() === "rdfs:subClassOf" ) {
-            element.style("fill", null);
-          }
-        }
-      });
-    
-    // repair svg icons in the menu;
-    const scrollContainer = d3.select("#menuElementContainer").node();
-    const controlElements = scrollContainer.children;
-    const numEntries = controlElements.length;
-    
-    for ( let i = 0; i < numEntries; i++ ) {
-      const currentMenu = controlElements[i].id;
-      d3.select("#" + currentMenu).select("path").style("stroke-width", "0");
-      d3.select("#" + currentMenu).select("path").style("fill", "#fff");
-    }
-    
-    d3.select("#magnifyingGlass").style("stroke-width", "0");
-    d3.select("#magnifyingGlass").style("fill", "#666");
-    
-  }
-  
+
   function showNonExportableElements(){
-    d3.selectAll(".hidden-in-export").style("display", null);
+    d3.selectAll(".hidden-in-export").classed("hidden", false);
   }
   
   exportMenu.createJSON_exportObject = function (){
@@ -1143,7 +1105,7 @@ module.exports = function ( graph ){
       }
       let textColorStr = "";
       if ( node.textBlock ) {
-        const txtColor = node.textBlock()._textBlock().style("fill");
+        const txtColor = window.getComputedStyle(node.textBlock()._textBlock().node()).fill;
         if ( txtColor === "rgb(0, 0, 0)" ) {
           textColorStr = ", text=black";
         }
@@ -1264,8 +1226,7 @@ module.exports = function ( graph ){
       if ( identifier === undefined ) {identifier = "";}
       let textColorStr = "";
       if ( correspondingProp.textBlock && correspondingProp.textBlock() ) {
-        const txtColor = correspondingProp.textBlock()._textBlock().style("fill");
-        //  console.warn("PropertyTextColor="+txtColor);
+        const txtColor = window.getComputedStyle(correspondingProp.textBlock()._textBlock().node()).fill;
         if ( txtColor === "rgb(0, 0, 0)" ) {
           textColorStr = ", text=black";
         }
@@ -1354,8 +1315,7 @@ module.exports = function ( graph ){
         
         if ( inv_correspondingProp.textBlock && inv_correspondingProp.textBlock() ) {
           
-          const inv_txtColor = inv_correspondingProp.textBlock()._textBlock().style("fill");
-          //  console.warn("PropertyTextColor="+inv_txtColor);
+          const inv_txtColor = window.getComputedStyle(inv_correspondingProp.textBlock()._textBlock().node()).fill;
           if ( inv_txtColor === "rgb(0, 0, 0)" ) {
             inv_textColorStr = ", text=black";
           }

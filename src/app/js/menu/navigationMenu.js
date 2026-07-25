@@ -170,8 +170,8 @@ module.exports = function ( graph ){
     if ( m_element ) {
       const menuElement = d3.select("#" + m_element);
       if ( menuElement ) {
-        if ( menuElement.style("display") === "block" ) {
-          menuElement.style("display", "none");// hide it
+        if ( !menuElement.classed("hidden") ) {
+          menuElement.classed("hidden", true);
         } else {
           showSingleMenu(this.id);
         }
@@ -197,33 +197,19 @@ module.exports = function ( graph ){
   function hoveroutedControMenu( controllerID ){
     currentlyHoveredEntry = d3.select("#" + controllerID);
     if ( controllerID !== "c_search" ) {
-      const isCrosshair = currentlyHoveredEntry.select(".crosshairIcon").node();
-      if ( !isCrosshair ) {
-        d3.select("#" + controllerID).select("path").style("stroke-width", "0");
-        d3.select("#" + controllerID).select("path").style("fill", "#fff");
-      } else {
-        currentlyHoveredEntry.select("use, path").style("stroke", "#ffffff");
-      }
+      currentlyHoveredEntry.classed("active-menu-item", false);
     }
   }
   
   function showSingleMenu( controllerID ){
     currentlyHoveredEntry = d3.select("#" + controllerID).node();
-    // get the corresponding menu element for this controller
     const m_element = m_select[c_select.indexOf(controllerID)];
     if ( m_element ) {
       if ( controllerID !== "c_search" ) {
-        const isCrosshair = d3.select("#" + controllerID).select(".crosshairIcon").node();
-        if ( !isCrosshair ) {
-          d3.select("#" + controllerID).select("path").style("stroke-width", "0");
-          d3.select("#" + controllerID).select("path").style("fill", "#bdc3c7");
-        } else {
-          d3.select("#" + controllerID).select("use, path").style("stroke", "#bdc3c7");
-        }
+        d3.select("#" + controllerID).classed("active-menu-item", true);
       }
-      // show it if we have a menu
       currentlyVisibleMenu = d3.select("#" + m_element);
-      currentlyVisibleMenu.style("display", "block");
+      currentlyVisibleMenu.classed("is-open", true).classed("hidden", false);
       if ( m_element === "m_export" )
         {graph.options().exportMenu().exportAsUrl();}
       updateMenuPosition();
@@ -259,7 +245,7 @@ module.exports = function ( graph ){
   navigationMenu.updateMenuPosition = updateMenuPosition;
   
   navigationMenu.hideAllMenus = function (){
-    d3.selectAll(".toolTipMenu").style("display", "none"); // hiding all menus
+    d3.selectAll(".toolTipMenu").classed("is-open", false).classed("hidden", true);
   };
   
   navigationMenu.updateScrollButtonVisibility = function (){

@@ -47,13 +47,13 @@ module.exports = function ( graph ){
         d3.select("#reloadSvgIcon").node().disabled = true;
         d3.select("#reloadCachedOntology").node().title = "reloading original version not possible, please reload the file";
         d3.select("#reloadSvgIcon").classed("disabledReloadElement", true);
-        d3.select("#svgStringText").style("fill", "gray");
+        d3.select("#svgStringText").classed("svg-text-disabled", true);
         d3.select("#svgStringText").classed("noselect", true);
       }
       else {
         d3.select("#reloadCachedOntology").node().title = "generate new visualization and overwrite cached ontology";
         d3.select("#reloadSvgIcon").classed("disabledReloadElement", false);
-        d3.select("#svgStringText").style("fill", "black");
+        d3.select("#svgStringText").classed("svg-text-disabled", false);
         d3.select("#svgStringText").classed("noselect", true);
       }
     } else {
@@ -273,7 +273,6 @@ module.exports = function ( graph ){
       const div = bp_container.append("div");
       o2vConverterContainer = div.append("ul");
       o2vConverterContainer.attr("id", "o2vConverterContainer");
-      o2vConverterContainer.style("margin-left", "-25px");
     }
     // clear o2vConverterContainer;
     const htmlCollection = o2vConverterContainer.node().children;
@@ -603,10 +602,10 @@ module.exports = function ( graph ){
       event.stopPropagation();
     });
     
-    ontologySelection.style("display", "block");
+    ontologySelection.classed("hidden", false);
     
     function disableKeepingOpen(){
-      ontologySelection.style("display", undefined);
+      ontologySelection.classed("hidden", true);
       
       clearTimeout(ontologyMenuTimeout);
       d3.select(window).on("click", undefined).on("keydown", undefined);

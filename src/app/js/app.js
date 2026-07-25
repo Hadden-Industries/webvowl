@@ -97,8 +97,7 @@ module.exports = function (){
       if ( (cx > 0.25 * w && cx < 0.75 * w) && (cy > 0.25 * h && cy < 0.75 * h) ) {
         
         d3.select("#drag_msg_text").node().innerHTML = "Drop it here.";
-        d3.select("#drag_msg").style("background-color", "#67bc0f");
-        d3.select("#drag_msg").style("color", "#000000");
+        d3.select("#drag_msg").classed("drag-over", true);
         executeFileDrop = true;
         // d3.select("#drag_svg").transition()
         //   .duration(100)
@@ -113,8 +112,7 @@ module.exports = function (){
   
       } else {
         d3.select("#drag_msg_text").node().innerHTML = "Drag ontology file here.";
-        d3.select("#drag_msg").style("background-color", "#fefefe");
-        d3.select("#drag_msg").style("color", "#000000");
+        d3.select("#drag_msg").classed("drag-over", false);
         executeFileDrop = false;
   
         d3.select("#drag_icon").classed("hidden",false);
@@ -281,9 +279,6 @@ module.exports = function (){
       graph.start();
       
       const modeOp = d3.select("#modeOfOperationString");
-      modeOp.style("font-size", "0.6em");
-      modeOp.style("font-style", "italic");
-      
       adjustSize();
       const w = graph.options().width();
       const h = graph.options().height();
@@ -317,13 +312,7 @@ module.exports = function (){
         d3.select("#maxLabelWidthDescriptionLabel").classed("disabledLabelForSlider", setValue);
       }
       
-      d3.select("#blockGraphInteractions").style("position", "absolute")
-        .style("top", "0")
-        .style("background-color", "#bdbdbd")
-        .style("opacity", "0.5")
-        .style("pointer-events", "auto")
-        .style("width", graph.options().width() + "px")
-        .style("height", graph.options().height() + "px")
+      d3.select("#blockGraphInteractions")
         .on("click", function (event){
           event.preventDefault();
           event.stopPropagation();
@@ -449,15 +438,6 @@ module.exports = function (){
         : window.innerWidth - (window.innerWidth * 0.22);
     
     directInputMod.updateLayout();
-    d3.select("#blockGraphInteractions").style("width", window.innerWidth + "px");
-    d3.select("#blockGraphInteractions").style("height", window.innerHeight + "px");
-    
-    d3.select("#WarningErrorMessagesContainer").style("width", width + "px");
-    d3.select("#WarningErrorMessagesContainer").style("height", height + "px");
-    
-    d3.select("#WarningErrorMessages").style("max-height", (height - 12) + "px");
-    
-    graphContainer.style("height", height + "px");
     svg.attr("width", width)
       .attr("height", height);
     
@@ -484,19 +464,12 @@ module.exports = function (){
       graph.setTouchDevice(false);
     }
     
-    d3.select("#loadingInfo-container").style("height", 0.5 * (height - 80) + "px");
     loadingModule.checkForScreenSize();
     
     adjustSliderSize();
     // update also the padding options of loading and the logo positions;
     const warningDiv = d3.select("#browserCheck");
-    if ( warningDiv.classed("hidden") === false ) {
-      const offset = 10 + warningDiv.node().getBoundingClientRect().height;
-      d3.select("#logo").style("padding", offset + "px 10px");
-    } else {
-      // remove the dynamic padding from the logo element;
-      d3.select("#logo").style("padding", "10px");
-    }
+    d3.select("#logo").classed("has-warning", warningDiv.classed("hidden") === false);
     
     // scrollbar tests;
     const element = d3.select("#menuElementContainer").node();

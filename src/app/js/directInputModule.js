@@ -8,15 +8,8 @@ module.exports = function ( graph ){
   /** variable defs **/
   const directInputModule = {};
   const inputContainer = d3.select("#DirectInputContent");
-  inputContainer.style("top", "0");
-  inputContainer.style("position", "absolute");
   const textArea = d3.select("#directInputTextArea");
   let visibleContainer = false;
-  
-  inputContainer.style("border", "1px solid black");
-  inputContainer.style("padding", "5px");
-  inputContainer.style("background", "#fff");
-  
   
   // connect upload and close button;
   directInputModule.handleDirectUpload = function (){
@@ -58,10 +51,6 @@ module.exports = function ( graph ){
   };
   
   directInputModule.updateLayout = function (){
-    const w = graph.options().width();
-    const h = graph.options().height();
-    textArea.style("width", 0.4 * w + "px");
-    textArea.style("height", 0.7 * h + "px");
   };
   
   directInputModule.setDirectInputMode = function ( val ){

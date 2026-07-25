@@ -704,10 +704,34 @@ main {
     width: 100%;
 }
 
+.no-transition,
+.no-transition * {
+    transition: none !important;
+    animation: none !important;
+}
+
 #canvasArea {
     position: relative;
     margin: 0;
     padding: 0;
+    width: 100%;
+    transition: width 0.5s ease;
+}
+
+#WarningErrorMessagesContainer {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    transition: width 0.5s ease;
+}
+
+#canvasArea.sidebar-visible,
+#WarningErrorMessagesContainer.sidebar-visible {
     width: 78%;
 }
 
@@ -732,8 +756,237 @@ main {
 
     /* padding: 10px; */
     pointer-events: none;
+    padding: 10px;
 
     /* border: solid 1px red; */
+}
+
+#logo.has-warning {
+    padding-top: 40px !important;
+}
+
+#modeOfOperationString {
+    font-size: 0.6em;
+    font-style: italic;
+}
+
+#blockGraphInteractions {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #bdbdbd;
+    opacity: 0.5;
+    pointer-events: auto;
+}
+
+#drag_msg.drag-over {
+    background-color: #67bc0f !important;
+    color: #000000 !important;
+}
+
+#DirectInputContent {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 1px solid black;
+    padding: 5px;
+    background: #fff;
+    z-index: 1000;
+}
+
+#containerForLeftSideBar {
+    width: 0;
+    transition: width 0.5s ease;
+}
+
+#containerForLeftSideBar.sidebar-visible {
+    width: 200px;
+}
+
+#leftSideBarCollapseButton {
+    left: 0;
+    transition: left 0.5s ease;
+}
+
+#leftSideBarCollapseButton.aligned-to-left-sidebar {
+    left: 200px;
+}
+
+#WarningErrorMessages {
+    left: 0;
+    transition: left 0.5s ease;
+}
+
+#WarningErrorMessages.aligned-to-left-sidebar {
+    left: 100px;
+}
+
+#layoutLoadingProgressBarContainer.compact {
+    height: 20px !important;
+}
+
+.clickable {
+    cursor: pointer !important;
+}
+
+.search-entry-disabled {
+    color: #979797 !important;
+    cursor: default !important;
+}
+
+#svgStringText {
+    fill: black;
+}
+
+#svgStringText.svg-text-disabled {
+    fill: gray !important;
+}
+
+#o2vConverterContainer {
+    margin-left: -25px;
+}
+
+.toolTipMenu.is-open {
+    display: block !important;
+}
+
+.toolTipMenu.hidden {
+    display: none !important;
+}
+
+.active-menu-item path {
+    stroke-width: 0 !important;
+    fill: #bdc3c7 !important;
+}
+
+.active-menu-item use,
+.active-menu-item path {
+    stroke: #bdc3c7 !important;
+}
+
+#useAccuracyHelper.disabled,
+#showDraggerObject.disabled {
+    color: #979797 !important;
+    pointer-events: none !important;
+}
+
+.non-clickable {
+    cursor: auto !important;
+}
+
+.icon-container-abs {
+    position: absolute;
+}
+
+.edit-btn-svg {
+    width: 14px;
+    height: 20px;
+}
+
+.edit-path-style {
+    stroke: #fff;
+    stroke-width: 1px;
+    fill: #fff;
+}
+
+.edit-rect-style {
+    fill: #18202A;
+}
+
+.pref-input-style {
+    margin-left: 14px;
+}
+
+.delete-container-style {
+    float: right;
+}
+
+.delete-btn-svg {
+    width: 10px;
+    height: 20px;
+}
+
+.delete-path-style {
+    stroke: #f00;
+}
+
+.delete-rect-style {
+    fill: #18202A;
+}
+
+#titleEditor, #iriEditor, #versionEditor, #authorsEditor,
+#element_iriEditor, #element_labelEditor, #typeEditor, #typeEditor_datatype, .prefixURL {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#WarningErrorMessages {
+    display: inline-block;
+}
+
+.warning-msg-container {
+    position: relative;
+    width: 100%;
+}
+
+.warning-msg-context {
+    top: 0;
+}
+
+.warning-hint {
+    padding: 5px;
+    line-height: 1.2em;
+    font-size: 1.2em;
+}
+
+.warning-row {
+    padding: 5px;
+}
+
+.warning-inline-flex {
+    display: inline-flex;
+}
+
+.warning-pr-3 {
+    padding-right: 3px;
+}
+
+.warning-pr-8 {
+    padding-right: 8px;
+}
+
+.warning-msg-content {
+    display: inline-flex;
+    max-width: 50vw;
+}
+
+.warn-expanded {
+    animation: warn_ExpandAnimation 0.5s ease forwards;
+}
+
+.warn-collapsed {
+    animation: warn_CollapseAnimation 0.5s ease forwards;
+}
+
+.msg-collapsed {
+    animation: msg_CollapseAnimation 0.5s ease forwards;
+}
+
+#currentLoadingStep.step-warning { color: #ff0 !important; }
+#currentLoadingStep.step-success { color: #0f0 !important; }
+#currentLoadingStep.step-error { color: #f00 !important; }
+#currentLoadingStep.step-busy { color: #fff !important; }
+
+#progressBarValue.pct-20 { width: 20% !important; }
+#progressBarValue.pct-0 { width: 0% !important; }
+
+#directInputTextArea {
+    width: 40vw;
+    height: 70vh;
+    box-sizing: border-box;
 }
 
 #logo h2 {
@@ -810,6 +1063,17 @@ main {
     position: fixed;
     border-left: 1px solid #34495E;
     background-color: #18202A;
+    z-index: 1000;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+    transform: translateX(0);
+    opacity: 1;
+}
+
+#detailsArea.hidden {
+    display: block !important;
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
 }
 
 #detailsArea h1, #detailsArea h2 {
@@ -1126,7 +1390,7 @@ main {
     width: 32px;
     box-sizing: border-box;
     top: 8px;
-    right: 8px;
+    right: 12px;
     color: #ecf0f1;
     position: absolute;
     border: 1px solid #34495E;
@@ -1139,11 +1403,7 @@ main {
     font-size: 1.2em;
     font-weight: bold;
     z-index: 1001;
-    transition: right 0.3s ease;
-}
-
-#sidebarExpandButton.aligned-to-sidebar {
-    right: calc(22% + 8px) !important;
+    transition: right 0.5s ease;
 }
 
 .dropdownMenuClass {
@@ -1771,7 +2031,8 @@ main {
     font-size: 14px;
 }
 
-/* Link elements inside menu list items */
+/* Link & button elements inside menu list items */
+#menuElementContainer > li > button,
 #menuElementContainer > li > a {
     height: 44px;
     margin: 0;
@@ -1780,10 +2041,16 @@ main {
     align-items: center;
     justify-content: center;
     color: #fff;
+    background: transparent;
+    border: none;
+    font-family: inherit;
+    font-size: 14px;
     text-decoration: none;
     box-sizing: border-box;
     border-radius: 4px;
+    cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
+    outline: none;
 }
 
 #menuElementContainer .menuElementSvgElement {
@@ -1798,7 +2065,43 @@ main {
 
 .btn_shadowed {
     background-color: #fefefe;
-    box-shadow: 1px 1px 1px gray;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgb(0 0 0 / 20%);
+    border-radius: 4px;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.dbOption {
+    padding: 0 0 5px;
+    font-size: 12px;
+    color: #666;
+    margin-top: 10px;
+    border-top: 1px solid #eee;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-all;
+}
+
+.subElement {
+    margin-left: 20px;
+    font-size: 12px;
+    color: #666;
+}
+
+.subElementGroup {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 120px;
 }
 
 .reloadCachedOntologyIcon {
@@ -1997,7 +2300,7 @@ main {
 #zoomSlider {
     position: fixed;
     bottom: 60px !important;
-    right: 20px;
+    right: 12px;
     width: 32px;
     display: flex;
     flex-direction: column;
@@ -2010,7 +2313,11 @@ main {
     box-sizing: border-box;
     padding: 0;
     overflow: hidden;
-    transition: right 0.3s ease;
+    transition: right 0.5s ease;
+}
+
+#zoomSlider.aligned-to-sidebar {
+    right: calc(22% + 12px) !important;
 }
 
 #zoomSlider button {
@@ -2122,8 +2429,11 @@ main {
     padding: 0 6px 0 0;
 }
 
-#menuElementContainer a.highlighted {
-    background-color: #d90;
+#menuElementContainer a.highlighted,
+#menuElementContainer .navButton.highlighted,
+#menuElementContainer button.highlighted {
+    background-color: #d90 !important;
+    color: #fff !important;
 }
 
 /* #search-input-text.searchInputText { */
@@ -2205,22 +2515,46 @@ li#c_locate {
     padding: 0;
 }
 
+#c_pause {
+    min-width: 95px;
+}
+
+#pause-button,
 a#pause-button {
-    padding: 12px;
+    padding: 0 12px;
+    min-width: 95px;
+    box-sizing: border-box;
+    justify-content: center;
+    text-align: center;
 }
 
-/* Pause Button has a different behavior */
+/* Pause Button icon & highlight behavior */
+#pause-button.paused::before,
 a#pause-button.paused::before {
-    content: "►";
+    content: "► ";
+    margin-right: 4px;
 }
 
-a#pause-button.paused:hover {
-    background-color: #d90;
-    color: #fff;
+#pause-button.paused,
+#pause-button.highlighted,
+a#pause-button.paused,
+a#pause-button.highlighted {
+    background-color: #d90 !important;
+    color: #fff !important;
 }
 
+#pause-button.paused:hover,
+#pause-button.highlighted:hover,
+a#pause-button.paused:hover,
+a#pause-button.highlighted:hover {
+    background-color: #e5a000 !important;
+    color: #fff !important;
+}
+
+#pause-button:not(.paused)::before,
 a#pause-button:not(.paused)::before {
-    content: "II";
+    content: "❚❚ ";
+    margin-right: 4px;
 }
 
 .toolTipMenu li:hover {
@@ -2327,7 +2661,7 @@ a#locateSearchResult {
 
 }
 
-a#locateSearchResult.highlighted:hover {
+#locateSearchResult.highlighted:hover {
     background-color: #d90;
     color: red;
 }
@@ -2374,21 +2708,22 @@ a#locateSearchResult.highlighted:hover {
 #WarningErrorMessagesContainer {
     top: 50px;
     position: absolute;
-    text-align: center;
+    left: 0;
     width: 100%;
+    z-index: 1000;
     pointer-events: none;
+    display: flex;
+    justify-content: center;
 }
 
 /* Editor hints */
 #WarningErrorMessages {
     position: relative;
-
-    /* text-align: center; */
-    width: 50%;
+    width: 60%;
+    max-width: 600px;
+    margin: 0 auto;
     pointer-events: auto;
-    margin: 10px 0;
     padding-right: 12px;
-    overflow: hidden auto;
 }
 
 #WarningErrorMessages label, #WarningErrorMessages button {

@@ -763,28 +763,12 @@ module.exports = function ( graph ){
   
   /** Collapsible Sidebar functions; **/
 
-  const DOCKED_CONTROL_OFFSET = 12;
-
   sidebar.updateDockedControlsPosition = function (){
     const isHidden = detailArea.classed("hidden");
+    const isMobileOrTablet = window.innerWidth <= 1024;
     const zoomSlider = d3.select("#zoomSlider");
 
-    if ( isHidden ) {
-      zoomSlider.style("left", "auto").style("right", DOCKED_CONTROL_OFFSET + "px");
-      collapseButton.style("left", "auto").style("right", DOCKED_CONTROL_OFFSET + "px");
-    } else {
-      const sidebarRect = detailArea.node().getBoundingClientRect();
-      const sidebarLeft = sidebarRect.left;
-
-      const sliderWidth = zoomSlider.node() ? (zoomSlider.node().getBoundingClientRect().width || 32) : 32;
-      const btnWidth = collapseButton.node() ? (collapseButton.node().getBoundingClientRect().width || 36) : 36;
-
-      const sliderTargetLeft = sidebarLeft - sliderWidth - DOCKED_CONTROL_OFFSET;
-      const btnTargetLeft = sidebarLeft - btnWidth - DOCKED_CONTROL_OFFSET;
-
-      zoomSlider.style("right", "auto").style("left", sliderTargetLeft + "px");
-      collapseButton.style("right", "auto").style("left", btnTargetLeft + "px");
-    }
+    zoomSlider.classed("aligned-to-sidebar", !isHidden && !isMobileOrTablet);
   };
 
   function updateNavMenuScrollButtons(){
@@ -802,61 +786,40 @@ module.exports = function ( graph ){
   sidebar.showSidebar = function ( val, init ){
     const isMobileOrTablet = window.innerWidth <= 1024;
 
-    // make val to bool
+    if ( init === true ) {
+      d3.select("body").classed("no-transition", true);
+    }
+
     if ( val === 1 ) {
       visibleSidebar = true;
       collapseButton.node().innerHTML = ">";
       detailArea.classed("hidden", false);
       if ( isMobileOrTablet ) {
-        graphArea.style("width", "100%");
-        graphArea.style("-webkit-animation-name", "none");
-        d3.select("#WarningErrorMessagesContainer").style("width", "100%");
-        d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-name", "none");
+        graphArea.classed("sidebar-visible", false);
+        d3.select("#WarningErrorMessagesContainer").classed("sidebar-visible", false);
         graph.options().width(window.innerWidth);
       } else {
-        if ( init === true ) {
-          detailArea.classed("hidden", !visibleSidebar);
-          graphArea.style("width", "78%");
-          graphArea.style("-webkit-animation-name", "none");
-          d3.select("#WarningErrorMessagesContainer").style("width", "78%");
-          d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-name", "none");
-        } else {
-          graphArea.style("width", "78%");
-          graphArea.style("-webkit-animation-name", "sbCollapseAnimation");
-          graphArea.style("-webkit-animation-duration", "0.5s");
-          d3.select("#WarningErrorMessagesContainer").style("width", "78%");
-          d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-name", "warn_ExpandRightBarAnimation");
-          d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-duration", "0.5s");
-        }
+        graphArea.classed("sidebar-visible", true);
+        d3.select("#WarningErrorMessagesContainer").classed("sidebar-visible", true);
         graph.options().width(window.innerWidth - (window.innerWidth * 0.22));
       }
-      sidebar.updateDockedControlsPosition();
-      graph.updateCanvasContainerSize();
-      updateNavMenuScrollButtons();
-    }
-    if ( val === 0 ) {
+    } else {
       visibleSidebar = false;
-      detailArea.classed("hidden", true);
-      
       collapseButton.node().innerHTML = "<";
-      // adjust the layout
-      if ( init === true || isMobileOrTablet ) {
-        graphArea.style("width", "100%");
-        graphArea.style("-webkit-animation-name", "none");
-        d3.select("#WarningErrorMessagesContainer").style("width", "100%");
-        d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-name", "none");
-      } else {
-        graphArea.style("width", "100%");
-        graphArea.style("-webkit-animation-name", "sbExpandAnimation");
-        graphArea.style("-webkit-animation-duration", "0.5s");
-        d3.select("#WarningErrorMessagesContainer").style("width", "100%");
-        d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-name", "warn_CollapseRightBarAnimation");
-        d3.select("#WarningErrorMessagesContainer").style("-webkit-animation-duration", "0.5s");
-      }
-      sidebar.updateDockedControlsPosition();
+      detailArea.classed("hidden", true);
+      graphArea.classed("sidebar-visible", false);
+      d3.select("#WarningErrorMessagesContainer").classed("sidebar-visible", false);
       graph.options().width(window.innerWidth);
-      graph.updateCanvasContainerSize();
-      updateNavMenuScrollButtons();
+    }
+
+    sidebar.updateDockedControlsPosition();
+    graph.updateCanvasContainerSize();
+    updateNavMenuScrollButtons();
+
+    if ( init === true ) {
+      requestAnimationFrame(function (){
+        d3.select("body").classed("no-transition", false);
+      });
     }
   };
   
