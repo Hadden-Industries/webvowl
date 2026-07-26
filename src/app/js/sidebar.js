@@ -412,13 +412,75 @@ module.exports = function ( graph ){
     });
   }
 
+  function isLanguageMatch( entryLang, preferredLang ){
+    if ( !entryLang || !preferredLang ) {
+      return false;
+    }
+    const e = String(entryLang).toLowerCase().trim();
+    const p = String(preferredLang).toLowerCase().trim();
+    if ( e === p ) {
+      return true;
+    }
+    const eBase = e.split("-")[0];
+    const pBase = p.split("-")[0];
+    return eBase.length > 0 && eBase === pBase;
+  }
+
+  function filterAnnotationItems( items, preferredLanguage ){
+    if ( !items || items.length === 0 ) {
+      return [];
+    }
+
+    const universalEntries = [];
+    const languageEntries = [];
+
+    const langUndefined = webvowl.util.constants().LANG_UNDEFINED;
+    const langIri = webvowl.util.constants().LANG_IRIBASED;
+
+    for ( let i = 0; i < items.length; i++ ) {
+      const item = items[i];
+      const lang = item.language;
+      if ( item.type === "iri" || !lang || lang === "undefined" || lang === "id" || lang === langUndefined || lang === langIri ) {
+        universalEntries.push(item);
+      } else {
+        languageEntries.push(item);
+      }
+    }
+
+    if ( languageEntries.length === 0 ) {
+      return universalEntries;
+    }
+
+    if ( preferredLanguage ) {
+      const preferredMatches = languageEntries.filter(function ( item ){
+        return isLanguageMatch(item.language, preferredLanguage);
+      });
+      if ( preferredMatches.length > 0 ) {
+        return universalEntries.concat(preferredMatches);
+      }
+    }
+
+    // Fallback to English ("en") if preferred language didn't match
+    const englishMatches = languageEntries.filter(function ( item ){
+      return isLanguageMatch(item.language, "en");
+    });
+    if ( englishMatches.length > 0 ) {
+      return universalEntries.concat(englishMatches);
+    }
+
+    // Final fallback: return all universal entries + language entries
+    return universalEntries.concat(languageEntries);
+  }
+
   function listAnnotations( container, annotationObject ){
     annotationObject = annotationObject || {};
+    const preferredLanguage = graph && graph.language ? graph.language() : null;
     
     const annotations = [];
     for ( const annotation in annotationObject ) {
       if ( Object.prototype.hasOwnProperty.call(annotationObject, annotation) ) {
-        const items = annotationObject[annotation];
+        const rawItems = annotationObject[annotation];
+        const items = filterAnnotationItems(rawItems, preferredLanguage);
         if ( items && items.length > 0 ) {
           const sortedItems = items.slice(0).sort(function ( a, b ) {
             const valA = String(a.value);
@@ -601,7 +663,7 @@ module.exports = function ( graph ){
     const rdfsLabels = allRdfsLabels.filter(function(entry) {
       return entry.value !== prefName;
     }).map(function(entry) {
-      return { identifier: "rdfs:label", value: entry.value, type: "label", predicateNs: "http://www.w3.org/2000/01/rdf-schema#" };
+      return { identifier: "rdfs:label", value: entry.value, type: "label", predicateNs: "http://www.w3.org/2000/01/rdf-schema#", language: entry.language };
     });
     if ( rdfsLabels.length > 0 ) {
       filteredAnnotations["rdfs:label"] = rdfsLabels;
@@ -720,7 +782,7 @@ module.exports = function ( graph ){
     const rdfsLabels = allRdfsLabels.filter(function(entry) {
       return entry.value !== prefName;
     }).map(function(entry) {
-      return { identifier: "rdfs:label", value: entry.value, type: "label", predicateNs: "http://www.w3.org/2000/01/rdf-schema#" };
+      return { identifier: "rdfs:label", value: entry.value, type: "label", predicateNs: "http://www.w3.org/2000/01/rdf-schema#", language: entry.language };
     });
     if ( rdfsLabels.length > 0 ) {
       filteredAnnotations["rdfs:label"] = rdfsLabels;
