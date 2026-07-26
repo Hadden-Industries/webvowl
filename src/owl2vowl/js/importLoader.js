@@ -89,6 +89,21 @@ export function loadWithImports(initialXmlText, rootParserFn) {
   }
 
   const loadedUrls = new Set();
+  const normalizeUrl = (uri) => uri ? uri.replace(/^https?:\/\//i, "").replace(/[#/]$/, "").toLowerCase() : "";
+
+  function isAlreadyLoaded(uri) {
+    if (!uri) return true;
+    if (loadedUrls.has(uri)) return true;
+    const norm = normalizeUrl(uri);
+    return Boolean(norm && loadedUrls.has(norm));
+  }
+
+  function markLoaded(uri) {
+    if (!uri) return;
+    loadedUrls.add(uri);
+    const norm = normalizeUrl(uri);
+    if (norm) loadedUrls.add(norm);
+  }
   
   function getAttr(el, name, ns) {
     if (ns) {
@@ -122,10 +137,10 @@ export function loadWithImports(initialXmlText, rootParserFn) {
   const ontologyEl = (mainDoc.getElementsByTagNameNS ? mainDoc.getElementsByTagNameNS("*", "Ontology") : mainDoc.getElementsByTagName("owl:Ontology"))[0];
   if (ontologyEl) {
     mainOntologyIri = getAttr(ontologyEl, "about", NAMESPACES.RDF) || "";
-    if (mainOntologyIri) {loadedUrls.add(mainOntologyIri);}
+    if (mainOntologyIri) {markLoaded(mainOntologyIri);}
   }
   const baseAttr = rootEl.getAttribute("xml:base") || rootEl.getAttribute("base") || "";
-  if (baseAttr) {loadedUrls.add(baseAttr);}
+  if (baseAttr) {markLoaded(baseAttr);}
 
   function fetchAndMerge(doc, currentBase) {
     const docRoot = doc ? doc.documentElement : null;
@@ -134,9 +149,6 @@ export function loadWithImports(initialXmlText, rootParserFn) {
     const promises = [];
     
     for (const url of imports) {
-      if (loadedUrls.has(url)) {continue;}
-      loadedUrls.add(url);
-      
       let resolvedUrl = resolveImportUrl(url);
       const isHttpsPage = typeof window !== "undefined" && window.location && window.location.protocol === "https:";
       let wasUpgraded = false;
@@ -144,6 +156,13 @@ export function loadWithImports(initialXmlText, rootParserFn) {
         resolvedUrl = "https://" + resolvedUrl.substring(7);
         wasUpgraded = true;
       }
+
+      if (isAlreadyLoaded(url) || isAlreadyLoaded(resolvedUrl)) {
+        continue;
+      }
+
+      markLoaded(url);
+      markLoaded(resolvedUrl);
 
       const menu = (typeof window !== "undefined" && window.WebVOWL && window.WebVOWL.ontologyMenu) ? window.WebVOWL.ontologyMenu : null;
       if (menu && menu.append_bulletPoint) {
@@ -199,6 +218,16 @@ export function loadWithImports(initialXmlText, rootParserFn) {
             
             // Merge children, preserving original local base URI context (e.g. rdf:ID relative resolving)
             const importedBase = importedRoot.getAttribute("xml:base") || importedRoot.getAttribute("base") || resolvedUrl;
+            if (importedBase) {
+              markLoaded(importedBase);
+            }
+            const importedOntologyEl = (importedDoc.getElementsByTagNameNS ? importedDoc.getElementsByTagNameNS("*", "Ontology") : importedDoc.getElementsByTagName("owl:Ontology"))[0];
+            if (importedOntologyEl) {
+              const importedOntologyIri = getAttr(importedOntologyEl, "about", NAMESPACES.RDF) || "";
+              if (importedOntologyIri) {
+                markLoaded(importedOntologyIri);
+              }
+            }
             const children = importedRoot.childNodes;
             for (let i = 0; i < children.length; i++) {
               const child = children[i];
