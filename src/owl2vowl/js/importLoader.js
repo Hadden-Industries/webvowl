@@ -29,7 +29,7 @@ export function resolveImportUrl(importUri) {
 
   // 3. Filename/basename fallback match (e.g. "prov-o", "prov-o.rdf", "prov.owl")
   const getFilename = (str) => {
-    if (!str) return "";
+    if (!str) { return ""; }
     const clean = str.replace(/[#/]$/, "");
     const parts = clean.split("/");
     return parts[parts.length - 1].toLowerCase();
@@ -92,17 +92,17 @@ export function loadWithImports(initialXmlText, rootParserFn) {
   const normalizeUrl = (uri) => uri ? uri.replace(/^https?:\/\//i, "").replace(/[#/]$/, "").toLowerCase() : "";
 
   function isAlreadyLoaded(uri) {
-    if (!uri) return true;
-    if (loadedUrls.has(uri)) return true;
+    if (!uri) { return true; }
+    if (loadedUrls.has(uri)) { return true; }
     const norm = normalizeUrl(uri);
     return Boolean(norm && loadedUrls.has(norm));
   }
 
   function markLoaded(uri) {
-    if (!uri) return;
+    if (!uri) { return; }
     loadedUrls.add(uri);
     const norm = normalizeUrl(uri);
-    if (norm) loadedUrls.add(norm);
+    if (norm) { loadedUrls.add(norm); }
   }
   
   function getAttr(el, name, ns) {
@@ -122,7 +122,7 @@ export function loadWithImports(initialXmlText, rootParserFn) {
         if (docBase && !/^https?:\/\//i.test(res)) {
           try {
             res = new URL(res, docBase).href;
-          } catch (e) {
+          } catch (_e) {
             // Keep original res if resolution fails
           }
         }
