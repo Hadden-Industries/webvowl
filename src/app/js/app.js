@@ -428,14 +428,19 @@ module.exports = function (){
     }
   }
   
+  function getRightSidebarWidth(){
+    const styleVal = window.getComputedStyle(document.documentElement).getPropertyValue("--right-sidebar-width").trim();
+    const parsed = parseInt(styleVal, 10);
+    return isNaN(parsed) ? 280 : parsed;
+  }
+
   function adjustSize(){
-    const isMobileOrTablet = window.innerWidth <= 1024;
     const graphContainer = d3.select(GRAPH_SELECTOR),
       svg = graphContainer.select("svg"),
       height = window.innerHeight - 44,
-      width = (sidebar.getSidebarVisibility() === "0" || isMobileOrTablet)
+      width = (sidebar.getSidebarVisibility() === "0")
         ? window.innerWidth
-        : window.innerWidth - (window.innerWidth * 0.22);
+        : window.innerWidth - getRightSidebarWidth();
     
     directInputMod.updateLayout();
     svg.attr("width", width)
@@ -445,8 +450,8 @@ module.exports = function (){
       .height(height);
     
     graph.updateStyle();
-    if ( sidebar && sidebar.updateDockedControlsPosition ) {
-      sidebar.updateDockedControlsPosition();
+    if ( sidebar && sidebar.updateSideBarVis ) {
+      sidebar.updateSideBarVis(true);
     }
     
     if ( isTouchDevice() === true ) {

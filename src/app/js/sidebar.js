@@ -827,10 +827,11 @@ module.exports = function ( graph ){
 
   sidebar.updateDockedControlsPosition = function (){
     const isHidden = detailArea.classed("hidden");
-    const isMobileOrTablet = window.innerWidth <= 1024;
     const zoomSlider = d3.select("#zoomSlider");
+    const collapseButton = d3.select("#sidebarExpandButton");
 
-    zoomSlider.classed("aligned-to-sidebar", !isHidden && !isMobileOrTablet);
+    zoomSlider.classed("aligned-to-sidebar", !isHidden);
+    collapseButton.classed("aligned-to-sidebar", !isHidden);
   };
 
   function updateNavMenuScrollButtons(){
@@ -845,9 +846,13 @@ module.exports = function ( graph ){
     }
   }
 
-  sidebar.showSidebar = function ( val, init ){
-    const isMobileOrTablet = window.innerWidth <= 1024;
+  function getRightSidebarWidth(){
+    const styleVal = window.getComputedStyle(document.documentElement).getPropertyValue("--right-sidebar-width").trim();
+    const parsed = parseInt(styleVal, 10);
+    return isNaN(parsed) ? 280 : parsed;
+  }
 
+  sidebar.showSidebar = function ( val, init ){
     if ( init === true ) {
       d3.select("body").classed("no-transition", true);
     }
@@ -856,15 +861,9 @@ module.exports = function ( graph ){
       visibleSidebar = true;
       collapseButton.node().innerHTML = ">";
       detailArea.classed("hidden", false);
-      if ( isMobileOrTablet ) {
-        graphArea.classed("sidebar-visible", false);
-        d3.select("#WarningErrorMessagesContainer").classed("sidebar-visible", false);
-        graph.options().width(window.innerWidth);
-      } else {
-        graphArea.classed("sidebar-visible", true);
-        d3.select("#WarningErrorMessagesContainer").classed("sidebar-visible", true);
-        graph.options().width(window.innerWidth - (window.innerWidth * 0.22));
-      }
+      graphArea.classed("sidebar-visible", true);
+      d3.select("#WarningErrorMessagesContainer").classed("sidebar-visible", true);
+      graph.options().width(window.innerWidth - getRightSidebarWidth());
     } else {
       visibleSidebar = false;
       collapseButton.node().innerHTML = "<";

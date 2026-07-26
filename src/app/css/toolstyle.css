@@ -1,5 +1,23 @@
 @import url("https://fonts.googleapis.com/css?family=Open+Sans");
 
+:root {
+    --right-sidebar-width: 280px;
+    --left-sidebar-width: 200px;
+    --control-margin: 12px;
+}
+
+@media screen and (min-width: 1600px) {
+    :root {
+        --right-sidebar-width: 320px;
+    }
+}
+
+@media screen and (min-width: 2100px) {
+    :root {
+        --right-sidebar-width: 360px;
+    }
+}
+
 /* ----------------------------------------------
         WebVOWL page
 ---------------------------------------------- */
@@ -254,37 +272,7 @@ a:hover {
 ----------------------------------------------- */
 @keyframes sbExpandAnimation {
     0% {
-        width: 78%;
-    }
-
-    100% {
-        width: 100%;
-    }
-}
-
-@keyframes sbExpandAnimation {
-    0% {
-        width: 78%;
-    }
-
-    100% {
-        width: 100%;
-    }
-}
-
-@keyframes sbExpandAnimation {
-    0% {
-        width: 78%;
-    }
-
-    100% {
-        width: 100%;
-    }
-}
-
-@keyframes sbExpandAnimation {
-    0% {
-        width: 78%;
+        width: calc(100% - var(--right-sidebar-width));
     }
 
     100% {
@@ -299,37 +287,7 @@ a:hover {
     }
 
     100% {
-        width: 78%;
-    }
-}
-
-@keyframes sbCollapseAnimation {
-    0% {
-        width: 100%;
-    }
-
-    100% {
-        width: 78%;
-    }
-}
-
-@keyframes sbCollapseAnimation {
-    0% {
-        width: 100%;
-    }
-
-    100% {
-        width: 78%;
-    }
-}
-
-@keyframes sbCollapseAnimation {
-    0% {
-        width: 100%;
-    }
-
-    100% {
-        width: 78%;
+        width: calc(100% - var(--right-sidebar-width));
     }
 }
 
@@ -604,75 +562,14 @@ a:hover {
     }
 
     100% {
-        width: 78%;
+        width: calc(100% - var(--right-sidebar-width));
     }
-}
-
-@keyframes warn_ExpandRightBarAnimation {
-    0% {
-        width: 100%;
-    }
-
-    100% {
-        width: 78%;
-    }
-}
-
-@keyframes warn_ExpandRightBarAnimation {
-    0% {
-        width: 100%;
-    }
-
-    100% {
-        width: 78%;
-    }
-}
-
-@keyframes warn_ExpandRightBarAnimation {
-    0% {
-        width: 100%;
-    }
-
-    100% {
-        width: 78%;
-    }
-
 }
 
 /* Collapse Animation */
 @keyframes warn_CollapseRightBarAnimation {
     0% {
-        width: 78%;
-    }
-
-    100% {
-        width: 100%;
-    }
-}
-
-@keyframes warn_CollapseRightBarAnimation {
-    0% {
-        width: 78%;
-    }
-
-    100% {
-        width: 100%;
-    }
-}
-
-@keyframes warn_CollapseRightBarAnimation {
-    0% {
-        width: 78%;
-    }
-
-    100% {
-        width: 100%;
-    }
-}
-
-@keyframes warn_CollapseRightBarAnimation {
-    0% {
-        width: 78%;
+        width: calc(100% - var(--right-sidebar-width));
     }
 
     100% {
@@ -732,7 +629,7 @@ main {
 
 #canvasArea.sidebar-visible,
 #WarningErrorMessagesContainer.sidebar-visible {
-    width: 78%;
+    width: calc(100% - var(--right-sidebar-width));
 }
 
 #canvasArea #graph {
@@ -1058,13 +955,13 @@ main {
     bottom: 44px;
     color: #bdc3c7;
     height: calc(100% - 44px);
-    width: 22%;
+    width: var(--right-sidebar-width);
     overflow: hidden auto;
     position: fixed;
     border-left: 1px solid #34495E;
     background-color: #18202A;
     z-index: 1000;
-    transition: transform 0.5s ease, opacity 0.5s ease;
+    transition: transform 0.5s ease, opacity 0.5s ease, width 0.5s ease;
     transform: translateX(0);
     opacity: 1;
 }
@@ -1389,10 +1286,10 @@ main {
     height: 32px;
     width: 32px;
     box-sizing: border-box;
-    top: 8px;
+    top: 0;
     right: 12px;
     color: #ecf0f1;
-    position: absolute;
+    position: fixed;
     border: 1px solid #34495E;
     background-color: rgb(24 32 42 / 95%);
     border-radius: 6px;
@@ -1404,6 +1301,10 @@ main {
     font-weight: bold;
     z-index: 1001;
     transition: right 0.5s ease;
+}
+
+#sidebarExpandButton.aligned-to-sidebar {
+    right: var(--right-sidebar-width);
 }
 
 .dropdownMenuClass {
@@ -2328,7 +2229,7 @@ main {
 }
 
 #zoomSlider.aligned-to-sidebar {
-    right: calc(22% + 12px) !important;
+    right: calc(var(--right-sidebar-width) + var(--control-margin));
 }
 
 #zoomSlider button {
@@ -2849,21 +2750,14 @@ a#locateSearchResult {
   Responsive & iPad / Mobile Drawer Layout
 ---------------------------------------------- */
 @media screen and (width <= 1024px) {
-    #detailsArea {
-        width: 320px;
-        max-width: 85vw;
-        z-index: 1000;
-        box-shadow: -4px 0 20px rgb(0 0 0 / 50%);
-    }
-
     #sidebarExpandButton {
         position: fixed;
         z-index: 1001;
         width: 44px;
         height: 44px;
         font-size: 1.5em;
-        top: 8px;
-        right: 8px;
+        top: 0;
+        right: 12px;
         border-radius: 6px;
         background-color: rgb(24 32 42 / 95%);
         color: #ecf0f1;
@@ -2874,10 +2768,6 @@ a#locateSearchResult {
         transition: right 0.3s ease;
     }
 
-    #sidebarExpandButton.aligned-to-sidebar {
-        right: 328px !important;
-    }
-
     #leftSideBarCollapseButton {
         width: 44px;
         height: 44px;
@@ -2886,25 +2776,13 @@ a#locateSearchResult {
         border-radius: 6px;
     }
 
-    #canvasArea {
-        width: 100% !important;
-    }
-
-    #WarningErrorMessagesContainer {
-        width: 100% !important;
-    }
-
     #zoomSlider {
         width: 44px;
         position: fixed;
         bottom: 60px;
-        right: 20px;
+        right: 12px;
         z-index: 999;
         transition: right 0.3s ease;
-    }
-
-    #zoomSlider.slider-left-offset {
-        right: 335px !important;
     }
 
     #zoomSliderParagraph {
