@@ -43,12 +43,30 @@ function webvowlBuildPlugin(mode) {
     },
 
     closeBundle() {
-      // In production, remove benchmark data file (replicates grunt clean:testOntology)
+      // In production, remove benchmark data file (replicates grunt clean:testOntology) and any CSS/JS .map files
       if (mode === "production") {
         var benchmarkPath = resolve(__dirname, "deploy/data/benchmark.json");
         if (existsSync(benchmarkPath)) {
           unlinkSync(benchmarkPath);
           console.log("Removed deploy/data/benchmark.json (production release)");
+        }
+
+        var deployDir = resolve(__dirname, "deploy");
+        if (existsSync(deployDir)) {
+          var cleanMaps = function(dir) {
+            var entries = readdirSync(dir, { withFileTypes: true });
+            for (var i = 0; i < entries.length; i++) {
+              var fullPath = resolve(dir, entries[i].name);
+              if (entries[i].isDirectory()) {
+                cleanMaps(fullPath);
+              } else if (entries[i].isFile() && entries[i].name.endsWith(".map")) {
+                unlinkSync(fullPath);
+                var relPath = fullPath.replace(__dirname + "\\", "").replace(__dirname + "/", "");
+                console.log("Removed " + relPath.replace(/\\/g, "/") + " (production release)");
+              }
+            }
+          };
+          cleanMaps(deployDir);
         }
       }
     }
