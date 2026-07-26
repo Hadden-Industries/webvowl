@@ -901,7 +901,7 @@ module.exports = function (graph) {
   function updateZoomSliderPosition(){
     var isHidden = detailArea.classed("hidden");
     var zoomSlider = d3.select("#zoomSlider");
-    const isMobileOrTablet = window.innerWidth <= 1024;
+    const collapseButton = d3.select("#sidebarExpandButton");
 
     if ( isHidden ) {
       zoomSlider.style("left", "auto").style("right", DOCKED_CONTROL_OFFSET + "px");
@@ -931,6 +931,12 @@ module.exports = function (graph) {
     if ( graph.options().navigationMenu && graph.options().navigationMenu() ) {
       graph.options().navigationMenu().hideAllMenus();
     }
+  }
+
+  function getRightSidebarWidth(){
+    const styleVal = window.getComputedStyle(document.documentElement).getPropertyValue("--right-sidebar-width").trim();
+    const parsed = parseInt(styleVal, 10);
+    return isNaN(parsed) ? 280 : parsed;
   }
 
     var isMobileOrTablet = window.innerWidth <= 1024;

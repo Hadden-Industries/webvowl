@@ -120,6 +120,9 @@ module.exports = function (graph) {
     }
     d3.select("#zoomSlider").classed("hidden", !val);
     showSlider = val;
+    if ( graph.options().sidebar && graph.options().sidebar() ) {
+      graph.options().sidebar().updateDockedControlsPosition();
+    }
   };
 
   zoomSlider.zooming = function () {

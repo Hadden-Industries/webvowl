@@ -493,6 +493,12 @@ module.exports = function () {
       width = window.innerWidth;
     }
 
+  function getRightSidebarWidth(){
+    const styleVal = window.getComputedStyle(document.documentElement).getPropertyValue("--right-sidebar-width").trim();
+    const parsed = parseInt(styleVal, 10);
+    return isNaN(parsed) ? 280 : parsed;
+  }
+
     directInputMod.updateLayout();
     d3.select("#blockGraphInteractions").style(
       "width",
@@ -514,8 +520,8 @@ module.exports = function () {
     options.width(width).height(height);
 
     graph.updateStyle();
-    if ( sidebar && sidebar.updateDockedControlsPosition ) {
-      sidebar.updateDockedControlsPosition();
+    if ( sidebar && sidebar.updateSideBarVis ) {
+      sidebar.updateSideBarVis(true);
     }
 
     if (isTouchDevice() === true) {
