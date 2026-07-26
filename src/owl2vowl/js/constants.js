@@ -27,6 +27,7 @@ export const ONTOLOGY_CATALOG = Object.freeze({
   "http://www.w3.org/ns/dcat": "../ontology/external/dcat3.rdf",
   "http://www.w3.org/ns/org": "../ontology/external/org.rdf",
   "http://www.w3.org/ns/prov": "../ontology/external/prov.owl",
+  "http://www.w3.org/ns/prov-o": "https://raw.githubusercontent.com/w3c/ns/refs/heads/main/prov-o.rdf",
   "http://www.w3.org/ns/sosa": "../ontology/external/sosa.ttl",
   "http://www.w3.org/ns/ssn": "../ontology/external/ssn.ttl",
   "http://www.w3.org/ns/time/gregorian": "../ontology/external/time-gregorian.ttl",
