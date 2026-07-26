@@ -1,5 +1,7 @@
 import { describe, test, expect } from "@jest/globals";
 
+const { describe, test, expect } = require("@jest/globals");
+
 function getBrowserLanguages(nav) {
   var browserLangs = [];
   if (Array.isArray(nav.languages)) {
@@ -74,6 +76,61 @@ function findBestMatchingLanguage(languages, mockNav) {
   return languages[0];
 }
 
+function isLanguageMatch( entryLang, preferredLang ){
+  if ( !entryLang || !preferredLang ) {
+    return false;
+  }
+  const e = String(entryLang).toLowerCase().trim();
+  const p = String(preferredLang).toLowerCase().trim();
+  if ( e === p ) {
+    return true;
+  }
+  const eBase = e.split("-")[0];
+  const pBase = p.split("-")[0];
+  return eBase.length > 0 && eBase === pBase;
+}
+
+function filterAnnotationItems( items, preferredLanguage ){
+  if ( !items || items.length === 0 ) {
+    return [];
+  }
+
+  const universalEntries = [];
+  const languageEntries = [];
+
+  for ( let i = 0; i < items.length; i++ ) {
+    const item = items[i];
+    const lang = item.language;
+    if ( item.type === "iri" || !lang || lang === "undefined" || lang === "id" ) {
+      universalEntries.push(item);
+    } else {
+      languageEntries.push(item);
+    }
+  }
+
+  if ( languageEntries.length === 0 ) {
+    return universalEntries;
+  }
+
+  if ( preferredLanguage ) {
+    const preferredMatches = languageEntries.filter(function ( item ){
+      return isLanguageMatch(item.language, preferredLanguage);
+    });
+    if ( preferredMatches.length > 0 ) {
+      return universalEntries.concat(preferredMatches);
+    }
+  }
+
+  const englishMatches = languageEntries.filter(function ( item ){
+    return isLanguageMatch(item.language, "en");
+  });
+  if ( englishMatches.length > 0 ) {
+    return universalEntries.concat(englishMatches);
+  }
+
+  return universalEntries.concat(languageEntries);
+}
+
 describe("navigator.language ontology language resolution", () => {
   test("exact match between navigator.language and ontology languages", () => {
     const nav = { language: "de-DE", languages: ["de-DE", "en-US"] };
@@ -114,5 +171,59 @@ describe("navigator.language ontology language resolution", () => {
   test("returns null for empty language list", () => {
     const nav = { language: "en" };
     expect(findBestMatchingLanguage([], nav)).toBeNull();
+  });
+});
+
+describe("selection details annotation attribute language filtering", () => {
+  const sampleEditorialNotes = [
+    {
+      identifier: "editorialNote",
+      language: "en",
+      value: "Feature at risk - added in 2017 revision, and not yet widely used.",
+      type: "label"
+    },
+    {
+      identifier: "editorialNote",
+      language: "es",
+      value: "Característica en riesgo - añadida en la revisión de 2017, y no utilizada todavía de forma amplia.",
+      type: "label"
+    }
+  ];
+
+  test("filters annotation items keeping only matching language 'en'", () => {
+    const filtered = filterAnnotationItems(sampleEditorialNotes, "en");
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].language).toBe("en");
+    expect(filtered[0].value).toContain("Feature at risk");
+  });
+
+  test("filters annotation items keeping only matching language 'es'", () => {
+    const filtered = filterAnnotationItems(sampleEditorialNotes, "es");
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].language).toBe("es");
+    expect(filtered[0].value).toContain("Característica en riesgo");
+  });
+
+  test("matches derivative language tags (e.g. 'en-GB' matches 'en')", () => {
+    const filtered = filterAnnotationItems(sampleEditorialNotes, "en-GB");
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].language).toBe("en");
+  });
+
+  test("retains universal/IRI/undefined annotations alongside language-specific annotations", () => {
+    const mixedAnnotations = [
+      { identifier: "isDefinedBy", language: "undefined", value: "http://example.org/ont", type: "iri" },
+      ...sampleEditorialNotes
+    ];
+    const filtered = filterAnnotationItems(mixedAnnotations, "en");
+    expect(filtered).toHaveLength(2);
+    expect(filtered[0].identifier).toBe("isDefinedBy");
+    expect(filtered[1].language).toBe("en");
+  });
+
+  test("falls back to English when selected language is not present in annotation", () => {
+    const filtered = filterAnnotationItems(sampleEditorialNotes, "fr");
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].language).toBe("en");
   });
 });
