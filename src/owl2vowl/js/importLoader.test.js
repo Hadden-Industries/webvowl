@@ -17,6 +17,18 @@ describe("importLoader.js unit tests", () => {
     const resolvedDc = resolveImportUrl("http://purl.org/dc/elements/1.1");
     expect(resolvedDc).toBe("../ontology/external/dc.rdf");
 
+    // Absolute remote catalog match
+    const resolvedProvO = resolveImportUrl("http://www.w3.org/ns/prov-o");
+    expect(resolvedProvO).toBe("https://raw.githubusercontent.com/w3c/ns/refs/heads/main/prov-o.rdf");
+
+    // Protocol normalization (https vs http)
+    const resolvedProvHttps = resolveImportUrl("https://www.w3.org/ns/prov-o/");
+    expect(resolvedProvHttps).toBe("https://raw.githubusercontent.com/w3c/ns/refs/heads/main/prov-o.rdf");
+
+    // Filename fallback match
+    const resolvedProvFilename = resolveImportUrl("prov-o");
+    expect(resolvedProvFilename).toBe("https://raw.githubusercontent.com/w3c/ns/refs/heads/main/prov-o.rdf");
+
     // Normalized match (trailing slash)
     const resolvedFoaf = resolveImportUrl("http://xmlns.com/foaf/0.1/");
     expect(resolvedFoaf).toBe("../ontology/external/foaf.rdf");

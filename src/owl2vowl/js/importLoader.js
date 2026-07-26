@@ -12,18 +12,39 @@ import { resolveXmlEntities } from "./xmlUtils.js";
 export function resolveImportUrl(importUri) {
   if (!importUri) {return importUri;}
   
-  // Normalize lookup keys by trimming trailing separators
-  const normalizedUri = importUri.replace(/[#/]$/, "");
-  
   // 1. Precise match
   if (ONTOLOGY_CATALOG[importUri]) {
     return ONTOLOGY_CATALOG[importUri];
   }
   
-  // 2. Normalized prefix/key match
+  const normalize = (uri) => uri ? uri.replace(/^https?:\/\//i, "").replace(/[#/]$/, "").toLowerCase() : "";
+  const targetNorm = normalize(importUri);
+
+  // 2. Normalized protocol/separator match
   for (const [key, val] of Object.entries(ONTOLOGY_CATALOG)) {
-    if (key.replace(/[#/]$/, "") === normalizedUri) {
+    if (normalize(key) === targetNorm) {
       return val;
+    }
+  }
+
+  // 3. Filename/basename fallback match (e.g. "prov-o", "prov-o.rdf", "prov.owl")
+  const getFilename = (str) => {
+    if (!str) return "";
+    const clean = str.replace(/[#/]$/, "");
+    const parts = clean.split("/");
+    return parts[parts.length - 1].toLowerCase();
+  };
+
+  const targetFile = getFilename(importUri);
+  const targetFileNoExt = targetFile.replace(/\.(rdf|owl|ttl|xml)$/i, "");
+
+  if (targetFileNoExt) {
+    for (const [key, val] of Object.entries(ONTOLOGY_CATALOG)) {
+      const keyFile = getFilename(key).replace(/\.(rdf|owl|ttl|xml)$/i, "");
+      const valFile = getFilename(val).replace(/\.(rdf|owl|ttl|xml)$/i, "");
+      if (keyFile === targetFileNoExt || valFile === targetFileNoExt) {
+        return val;
+      }
     }
   }
   
@@ -77,12 +98,19 @@ export function loadWithImports(initialXmlText, rootParserFn) {
     return el.getAttribute(name) || el.getAttribute("rdf:" + name) || el.getAttribute("owl:" + name);
   }
 
-  function getImports(doc) {
+  function getImports(doc, docBase) {
     const imports = [];
     const elements = doc.getElementsByTagNameNS ? doc.getElementsByTagNameNS("*", "imports") : doc.getElementsByTagName("owl:imports");
     for (let i = 0; i < elements.length; i++) {
-      const res = getAttr(elements[i], "resource", NAMESPACES.RDF);
+      let res = getAttr(elements[i], "resource", NAMESPACES.RDF);
       if (res) {
+        if (docBase && !/^https?:\/\//i.test(res)) {
+          try {
+            res = new URL(res, docBase).href;
+          } catch (e) {
+            // Keep original res if resolution fails
+          }
+        }
         imports.push(res);
       }
     }
@@ -99,8 +127,10 @@ export function loadWithImports(initialXmlText, rootParserFn) {
   const baseAttr = rootEl.getAttribute("xml:base") || rootEl.getAttribute("base") || "";
   if (baseAttr) {loadedUrls.add(baseAttr);}
 
-  function fetchAndMerge(doc) {
-    const imports = getImports(doc);
+  function fetchAndMerge(doc, currentBase) {
+    const docRoot = doc ? doc.documentElement : null;
+    const docBase = (docRoot && (docRoot.getAttribute("xml:base") || docRoot.getAttribute("base"))) || currentBase || baseAttr || "";
+    const imports = getImports(doc, docBase);
     const promises = [];
     
     for (const url of imports) {
