@@ -125,4 +125,43 @@ describe("importLoader.js unit tests", () => {
 
     await expect(loadWithImports(mainXml, rootParserFn)).rejects.toThrow("HTTP Error 404: Not Found");
   });
+
+  test("loadWithImports deduplicates duplicate imports across protocol and URL variations", async () => {
+    const mainXml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#">
+        <owl:Ontology rdf:about="http://example.org/main">
+          <owl:imports rdf:resource="http://purl.org/dc/elements/1.1"/>
+          <owl:imports rdf:resource="https://purl.org/dc/elements/1.1/"/>
+          <owl:imports rdf:resource="../ontology/external/dc.rdf"/>
+        </owl:Ontology>
+      </rdf:RDF>
+    `;
+
+    const dcXml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#">
+        <owl:Ontology rdf:about="http://purl.org/dc/elements/1.1/"/>
+        <owl:Class rdf:about="http://purl.org/dc/elements/1.1/Creator"/>
+      </rdf:RDF>
+    `;
+
+    global.fetch = jest.fn((url) => {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        text: () => Promise.resolve(dcXml)
+      });
+    });
+
+    const rootParserFn = jest.fn((mergedXml) => {
+      expect(mergedXml).toContain('rdf:about="http://purl.org/dc/elements/1.1/Creator"');
+      return "SUCCESS";
+    });
+
+    const result = await loadWithImports(mainXml, rootParserFn);
+    expect(result).toBe("SUCCESS");
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
 });
