@@ -23,7 +23,6 @@ module.exports = [
       globals: {
         ...globals.browser,
         ...globals.node,
-        ...globals.jasmine,
         ...globals.jest,
         d3: "readonly",
         webvowl: "writable",
