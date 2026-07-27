@@ -4,7 +4,7 @@ module.exports = function ( graph ){
   const elementTools = webvowl.util.elementTools();
   focuser.handle = function ( event, selectedElement, forced ){
     // Don't display details on a drag event, which will be prevented
-    if ( event && event.defaultPrevented && forced === undefined ) {
+    if ( event && event.defaultPrevented && !forced ) {
       return;
     }
     

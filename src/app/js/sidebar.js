@@ -563,11 +563,11 @@ module.exports = function ( graph ){
    * Update the information of the selected node.
    * @param selectedElement the selection or null if nothing is selected
    */
-  sidebar.updateSelectionInformation = function ( selectedElement, event ){
+  sidebar.updateSelectionInformation = function ( selectedElement, event, forced ){
     lastSelectedElement = selectedElement;
     
     // Click event was prevented when dragging
-    if ( event && event.defaultPrevented ) {
+    if ( event && event.defaultPrevented && !forced ) {
       return;
     }
     
