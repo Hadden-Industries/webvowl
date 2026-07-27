@@ -6,13 +6,13 @@
     --control-margin: 12px;
 }
 
-@media screen and (min-width: 1600px) {
+@media screen and (width >= 1600px) {
     :root {
         --right-sidebar-width: 320px;
     }
 }
 
-@media screen and (min-width: 2100px) {
+@media screen and (width >= 2100px) {
     :root {
         --right-sidebar-width: 360px;
     }
@@ -761,11 +761,6 @@ main {
     padding-top: 40px !important;
 }
 
-#modeOfOperationString {
-    font-size: 0.6em;
-    font-style: italic;
-}
-
 #blockGraphInteractions {
     position: absolute;
     top: 0;
@@ -779,7 +774,7 @@ main {
 
 #drag_msg.drag-over {
     background-color: #67bc0f !important;
-    color: #000000 !important;
+    color: #000 !important;
 }
 
 #DirectInputContent {
@@ -791,29 +786,6 @@ main {
     padding: 5px;
     background: #fff;
     z-index: 1000;
-}
-
-#containerForLeftSideBar {
-    width: 0;
-    transition: width 0.5s ease;
-}
-
-#containerForLeftSideBar.sidebar-visible {
-    width: 200px;
-}
-
-#leftSideBarCollapseButton {
-    left: 0;
-    transition: left 0.5s ease;
-}
-
-#leftSideBarCollapseButton.aligned-to-left-sidebar {
-    left: 200px;
-}
-
-#WarningErrorMessages {
-    left: 0;
-    transition: left 0.5s ease;
 }
 
 #WarningErrorMessages.aligned-to-left-sidebar {
@@ -835,6 +807,7 @@ main {
 
 #svgStringText {
     fill: black;
+    font-size: 9px;
 }
 
 #svgStringText.svg-text-disabled {
@@ -917,10 +890,6 @@ main {
 #element_iriEditor, #element_labelEditor, #typeEditor, #typeEditor_datatype, .prefixURL {
     width: 100%;
     box-sizing: border-box;
-}
-
-#WarningErrorMessages {
-    display: inline-block;
 }
 
 .warning-msg-container {
@@ -1299,10 +1268,6 @@ main {
 
 #containerForAddPrefixButton {
     left: 0;
-}
-
-#svgStringText {
-    font-size: 9px;
 }
 
 #reloadCachedOntologyString {
@@ -1922,8 +1887,7 @@ li#c_search input.searchInputText {
     width: 0;
     height: 300px;
     z-index: 1000;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden auto;
     transition: width 0.5s ease;
 }
 
@@ -2976,6 +2940,9 @@ a#locateSearchResult {
   margin: 10px 0;
   padding-right: 12px;
   overflow: hidden auto;
+    left: 0;
+    transition: left 0.5s ease;
+    display: inline-block;
 }
 
 #WarningErrorMessages label, #WarningErrorMessages button {
