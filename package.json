@@ -30,7 +30,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "lint": "npm run lint:html && npm run lint:css && run lint:js",
+    "lint": "npm run lint:html && npm run lint:css && npm run lint:js",
     "lint:css": "stylelint \"src/**/*.css\"",
     "lint:html": "html-validate src/index.html",
     "lint:js": "eslint src/",
