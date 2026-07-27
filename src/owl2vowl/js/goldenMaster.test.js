@@ -39,8 +39,8 @@ const expectedDifferences = {
   "wgs84_pos.rdf": "Java reasoner additions and minor annotation differences",
   "wine.rdf": "Minor differences in equivalent class links and implicit inverse property generation; class restrictions domain/range properties match 100%",
   // Versioned ontologies
-  "iso-31073/20260626": "Java reasoner additions, minor duplicate union differences",
-  "iso-iec11179-3/20260714": "Java reasoner additions and minor annotation differences",
+  "ed-1/20260626": "Java reasoner additions, minor duplicate union differences",
+  "ed-4/20260714": "Java reasoner additions and minor annotation differences",
   "reference-data/20260714": "Java reasoner additions and minor annotation differences",
   "core/20260714": "Java reasoner additions and minor annotation differences",
   "extended/20260714": "Java reasoner additions and minor annotation differences"
@@ -180,15 +180,15 @@ describe("Golden Master Compatibility Tests", () => {
       if (url.startsWith("https://haddenindustries.com/ontology/")) {
         let relPath = null;
         if (url.includes("iso/31073/ed-1")) {
-          relPath = "universal-ontology/iso-31073/versions/20260626";
+          relPath = "universal-ontology/dist/iso/31073/ed-1/20260626";
         } else if (url.includes("iso-iec/11179/-3/ed-4")) {
-          relPath = "universal-ontology/iso-iec11179-3/versions/20260714";
+          relPath = "universal-ontology/dist/iso-iec/11179/-3/ed-4/20260714";
         } else if (url.includes("universal/reference-data")) {
-          relPath = "universal-ontology/reference-data/versions/20260714";
+          relPath = "universal-ontology/dist/universal/reference-data/20260714";
         } else if (url.includes("universal/core")) {
-          relPath = "universal-ontology/core/versions/20260714";
+          relPath = "universal-ontology/dist/universal/core/20260714";
         } else if (url.includes("universal/extended")) {
-          relPath = "universal-ontology/extended/versions/20260714";
+          relPath = "universal-ontology/dist/universal/extended/20260714";
         }
         
         if (relPath) {
@@ -237,11 +237,11 @@ describe("Golden Master Compatibility Tests", () => {
   });
 
   const extraTargetFiles = [
-    path.join(WORKSPACE_PARENT, "universal-ontology", "iso-31073", "versions", "20260626"),
-    path.join(WORKSPACE_PARENT, "universal-ontology", "iso-iec11179-3", "versions", "20260714"),
-    path.join(WORKSPACE_PARENT, "universal-ontology", "reference-data", "versions", "20260714"),
-    path.join(WORKSPACE_PARENT, "universal-ontology", "core", "versions", "20260714"),
-    path.join(WORKSPACE_PARENT, "universal-ontology", "extended", "versions", "20260714")
+    path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "iso", "31073", "ed-1", "20260626"),
+    path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "iso-iec", "11179", "-3", "ed-4", "20260714"),
+    path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "universal", "reference-data", "20260714"),
+    path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "universal", "core", "20260714"),
+    path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "universal", "extended", "20260714")
   ];
 
   const targetFiles = Array.from(new Set([...baseTargetFiles, ...extraTargetFiles]))
@@ -249,9 +249,9 @@ describe("Golden Master Compatibility Tests", () => {
     .sort();
 
   targetFiles.forEach(file => {
-    const isVersioned = file.includes("versions");
+    const isVersioned = file.includes("dist");
     const baseName = path.basename(file);
-    const parentDir = path.basename(path.dirname(path.dirname(file)));
+    const parentDir = path.basename(path.dirname(file));
     const keyName = isVersioned ? `${parentDir}/${baseName}` : baseName;
     const testTitle = isVersioned ? `Golden master compatibility for ${parentDir} version ${baseName}` : `Golden master compatibility for ${baseName}`;
 
@@ -449,7 +449,7 @@ describe("Golden Master Compatibility Tests", () => {
   });
 
   test("ProductOrService named union class preserves all metadata attributes", () => {
-    const coreFilePath = path.join(WORKSPACE_PARENT, "universal-ontology", "core", "versions", "20260714");
+    const coreFilePath = path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "universal", "core", "20260714");
     if (!fs.existsSync(coreFilePath)) {
       console.warn("Skipping ProductOrService regression test: core versioned file not found.");
       return;
