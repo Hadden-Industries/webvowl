@@ -60,14 +60,5 @@ module.exports = [
       "no-new": "error",
       "no-use-before-define": ["error", { functions: false }]
     }
-  },
-
-  // Overrides for unit test files (supports Jest globals)
-  {
-    files: ["**/*.test.js"],
-    languageOptions: {
-      ecmaVersion: 2024,
-      sourceType: "module"
-    }
   }
 ];
