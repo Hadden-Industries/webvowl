@@ -6,13 +6,13 @@
     --control-margin: 12px;
 }
 
-@media screen and (min-width: 1600px) {
+@media screen and (width >= 1600px) {
     :root {
         --right-sidebar-width: 320px;
     }
 }
 
-@media screen and (min-width: 2100px) {
+@media screen and (width >= 2100px) {
     :root {
         --right-sidebar-width: 360px;
     }
@@ -112,11 +112,8 @@ html {
 }
 
 #modeOfOperationString {
-    /* position: absolute; */
-
-    /* right: 50px; */
-
-    /* top : 60px; */
+    font-size: 0.6em;
+    font-style: italic;
     padding-left: 34px;
 }
 
@@ -662,11 +659,6 @@ main {
     padding-top: 40px !important;
 }
 
-#modeOfOperationString {
-    font-size: 0.6em;
-    font-style: italic;
-}
-
 #blockGraphInteractions {
     position: absolute;
     top: 0;
@@ -680,7 +672,7 @@ main {
 
 #drag_msg.drag-over {
     background-color: #67bc0f !important;
-    color: #000000 !important;
+    color: #000 !important;
 }
 
 #DirectInputContent {
@@ -694,27 +686,8 @@ main {
     z-index: 1000;
 }
 
-#containerForLeftSideBar {
-    width: 0;
-    transition: width 0.5s ease;
-}
-
-#containerForLeftSideBar.sidebar-visible {
-    width: 200px;
-}
-
-#leftSideBarCollapseButton {
-    left: 0;
-    transition: left 0.5s ease;
-}
-
 #leftSideBarCollapseButton.aligned-to-left-sidebar {
     left: 200px;
-}
-
-#WarningErrorMessages {
-    left: 0;
-    transition: left 0.5s ease;
 }
 
 #WarningErrorMessages.aligned-to-left-sidebar {
@@ -736,6 +709,7 @@ main {
 
 #svgStringText {
     fill: black;
+    font-size: 9px;
 }
 
 #svgStringText.svg-text-disabled {
@@ -818,10 +792,6 @@ main {
 #element_iriEditor, #element_labelEditor, #typeEditor, #typeEditor_datatype, .prefixURL {
     width: 100%;
     box-sizing: border-box;
-}
-
-#WarningErrorMessages {
-    display: inline-block;
 }
 
 .warning-msg-container {
@@ -1024,10 +994,6 @@ main {
     text-align: center;
     width: 100%;
     margin-top: 5px;
-}
-
-#svgStringText {
-    font-size: 9px;
 }
 
 #reloadCachedOntologyString {
@@ -1354,10 +1320,6 @@ main {
     transition: left 0.5s ease;
 }
 
-#leftSideBarCollapseButton.aligned-to-left-sidebar {
-    left: 200px;
-}
-
 #leftSideBarCollapseButton:hover {
     background-color: #d90;
 }
@@ -1586,8 +1548,7 @@ main {
     width: 0;
     height: 300px;
     z-index: 1000;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden auto;
     transition: width 0.5s ease;
 }
 
@@ -1984,10 +1945,6 @@ main {
 
 .noselect {
     -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
 }
 
@@ -1998,7 +1955,6 @@ main {
     margin-top: 10px;
     border-top: 1px solid #eee;
     white-space: normal;
-    word-wrap: break-word;
     overflow-wrap: break-word;
     word-break: break-all;
 }
@@ -2617,17 +2573,6 @@ a#locateSearchResult {
 
 }
 
-#WarningErrorMessagesContainer {
-    top: 50px;
-    position: absolute;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-    pointer-events: none;
-    display: flex;
-    justify-content: center;
-}
-
 /* Editor hints */
 #WarningErrorMessages {
     position: relative;
@@ -2636,6 +2581,9 @@ a#locateSearchResult {
     margin: 0 auto;
     pointer-events: auto;
     padding-right: 12px;
+    left: 0;
+    transition: left 0.5s ease;
+    display: inline-block;
 }
 
 #WarningErrorMessages label, #WarningErrorMessages button {
