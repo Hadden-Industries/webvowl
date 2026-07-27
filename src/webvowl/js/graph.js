@@ -227,7 +227,7 @@ module.exports = function (graphContainerSelector) {
 
   var lastExecutedElement = null;
   var lastExecutedTime = 0;
-  function executeModules( selectedElement, event ){
+  function executeModules( selectedElement, event, forced ){
     var now = performance.now();
     if ( lastExecutedElement === selectedElement && (now - lastExecutedTime) < 300 ) {
       return;
@@ -238,7 +238,7 @@ module.exports = function (graphContainerSelector) {
       graph.options().searchMenu().requestDictionaryUpdate();
     }
     options.selectionModules().forEach(function ( module ){
-      module.handle(event, selectedElement);
+      module.handle(event, selectedElement, forced);
     });
   }
   
@@ -435,7 +435,7 @@ module.exports = function (graphContainerSelector) {
           }
           else if ( moved === false ) {
             if ( d.id ) {
-              executeModules(d, event);
+              executeModules(d, event, true);
             }
           }
         }
