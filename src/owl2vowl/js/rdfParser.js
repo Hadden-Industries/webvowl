@@ -184,7 +184,7 @@ export function parseRdfXml(xmlString, resolver, context) {
     const rawAbout = getAbout(element);
     const nodeId = element.getAttribute("rdf:nodeID") || element.getAttribute("nodeID");
     
-    let subjectIri = null;
+    let subjectIri;
     if (rawAbout) {
       subjectIri = resolver.resolve(rawAbout, getActiveBaseUri(element));
     } else if (nodeId) {
@@ -438,7 +438,7 @@ export function parseRdfXml(xmlString, resolver, context) {
               if (child.nodeType === 1) {
                 const childAbout = getAbout(child) || getAttr(child, "resource", NAMESPACES.RDF);
                 const childNodeId = child.getAttribute("rdf:nodeID") || child.getAttribute("nodeID");
-                let memberIri = null;
+                let memberIri;
                 if (childAbout) {
                   memberIri = resolver.resolve(childAbout, getActiveBaseUri(child));
                 } else if (childNodeId) {

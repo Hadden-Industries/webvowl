@@ -2454,7 +2454,7 @@ module.exports = function ( graphContainerSelector ){
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
     
     // zoom factor calculations and fail safes;
-    let newZoomFactor = 1.0; // fail save if graph and window are squares
+    let newZoomFactor; // fail save if graph and window are squares
     //get the smaller one
     const a = w / g_w;
     const b = h / g_h;
@@ -2514,7 +2514,7 @@ module.exports = function ( graphContainerSelector ){
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
     
     // zoom factor calculations and fail safes;
-    let newZoomFactor = 1.0; // fail save if graph and window are squares
+    let newZoomFactor; // fail save if graph and window are squares
     //get the smaller one
     const a = w / g_w;
     const b = h / g_h;
@@ -2658,7 +2658,6 @@ module.exports = function ( graphContainerSelector ){
     options.focuserModule().handle(null, aNode);
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
-    element = null;
   };
   
   
@@ -2726,7 +2725,6 @@ module.exports = function ( graphContainerSelector ){
     }
     
     options.focuserModule().handle(null, aProp);
-    element = null;
   };
   
   graph.removeEditElements = function (){
@@ -3258,7 +3256,7 @@ module.exports = function ( graphContainerSelector ){
     } else {
       prototype = NodePrototypeMap.get("rdfs:datatype");
       aNode = new prototype(graph);
-      let identifier = "";
+      let identifier;
       if ( defaultDatatypeName === "undefined" ) {
         identifier = "undefined";
         
@@ -3353,14 +3351,12 @@ module.exports = function ( graphContainerSelector ){
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
     options.focuserModule().handle(null, undefined);
-    nodesToRemove = null;
-    propsToRemove = null;
     
   };
   
   graph.removeNodeViaEditor = function ( node ){
-    let propsToRemove = [];
-    let nodesToRemove = [];
+    const propsToRemove = [];
+    const nodesToRemove = [];
     let datatypes = 0;
     
     let remId;
@@ -3420,8 +3416,6 @@ module.exports = function ( graphContainerSelector ){
       generateDictionary(unfilteredData);
       graph.getUpdateDictionary();
       options.focuserModule().handle(null, undefined);
-      nodesToRemove = null;
-      propsToRemove = null;
     }
   };
   
@@ -3456,7 +3450,6 @@ module.exports = function ( graphContainerSelector ){
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
     options.focuserModule().handle(null, undefined);
-    property = null;
   };
   
   graph.executeColorExternalsModule = function (){
@@ -3795,19 +3788,19 @@ module.exports = function ( graphContainerSelector ){
   };
   
   function setAddDataPropertyHoverElementPosition( node ){
-    let delX, delY = 0;
     if ( node.renderType() === "round" ) {
       const scale = 0.5 * Math.sqrt(2.0);
       const oX = scale * node.actualRadius();
       const oY = scale * node.actualRadius();
-      delX = node.x - oX;
-      delY = node.y + oY;
+      const delX = node.x - oX;
+      const delY = node.y + oY;
       addDataPropertyGroupElement.attr("transform", "translate(" + delX + "," + delY + ")");
     }
   }
   
   function setDeleteHoverElementPosition( node ){
-    let delX, delY = 0;
+    let delX;
+    let delY;
     if ( node.renderType() === "round" ) {
       const scale = 0.5 * Math.sqrt(2.0);
       const oX = scale * node.actualRadius();

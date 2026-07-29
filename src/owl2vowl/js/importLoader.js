@@ -133,10 +133,9 @@ export function loadWithImports(initialXmlText, rootParserFn) {
   }
 
   // Identify main ontology IRI to avoid self-imports
-  let mainOntologyIri = "";
   const ontologyEl = (mainDoc.getElementsByTagNameNS ? mainDoc.getElementsByTagNameNS("*", "Ontology") : mainDoc.getElementsByTagName("owl:Ontology"))[0];
   if (ontologyEl) {
-    mainOntologyIri = getAttr(ontologyEl, "about", NAMESPACES.RDF) || "";
+    const mainOntologyIri = getAttr(ontologyEl, "about", NAMESPACES.RDF) || "";
     if (mainOntologyIri) {markLoaded(mainOntologyIri);}
   }
   const baseAttr = rootEl.getAttribute("xml:base") || rootEl.getAttribute("base") || "";
@@ -193,7 +192,7 @@ export function loadWithImports(initialXmlText, rootParserFn) {
                 const parsed = parseTurtle(resolvedText);
                 parsedXmlText = serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
               } catch (parseErr) {
-                throw new Error(`Turtle parsing error inside imported ontology "${resolvedUrl}": ${parseErr.message}`);
+                throw new Error(`Turtle parsing error inside imported ontology "${resolvedUrl}": ${parseErr.message}`, { cause: parseErr });
               }
             }
             const importedDoc = parser.parseFromString(parsedXmlText, "application/xml");

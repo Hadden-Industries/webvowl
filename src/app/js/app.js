@@ -278,7 +278,6 @@ module.exports = function (){
       
       graph.start();
       
-      const modeOp = d3.select("#modeOfOperationString");
       adjustSize();
       const w = graph.options().width();
       const h = graph.options().height();

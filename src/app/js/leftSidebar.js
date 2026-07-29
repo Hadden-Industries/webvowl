@@ -8,7 +8,6 @@ module.exports = function ( graph ){
   const leftSidebar = {};
   const collapseButton = d3.select("#leftSideBarCollapseButton");
   let visibleSidebar = 0;
-  let backupVisibility = 0;
   const sideBarContent = d3.select("#leftSideBarContent");
   const sideBarContainer = d3.select("#containerForLeftSideBar");
   const defaultClassSelectionContainers = [];
@@ -23,7 +22,6 @@ module.exports = function ( graph ){
       const settingValue = parseInt(leftSidebar.getSidebarVisibility());
       if ( settingValue === 0 ) {leftSidebar.showSidebar(1);}
       else                  {leftSidebar.showSidebar(0);}
-      backupVisibility = settingValue;
     });
     
     setupSelectionContainers();

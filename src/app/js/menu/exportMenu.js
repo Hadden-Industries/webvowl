@@ -903,7 +903,6 @@ module.exports = function ( graph ){
       let controlPoints;
       let len;
       let ahAngle;
-      let pathLen;
 
 
       let arrowType = "triangleBlack";
@@ -938,24 +937,6 @@ module.exports = function ( graph ){
         py = -center.y;
         rx = linkRangeIntersection.x;
         ry = -linkRangeIntersection.y;
-        
-        
-        pathStart = linkDomainIntersection;
-        curvePoint = center;
-        pathEnd = linkRangeIntersection;
-        
-        let nx = rx - px;
-        let ny = ry - py;
-        
-        // normalize ;
-        len = Math.sqrt(nx * nx + ny * ny);
-        
-        nx = nx / len;
-        ny = ny / len;
-        
-        ahAngle = Math.atan2(ny, nx) * (180 / Math.PI);
-        normX = nx;
-        normY = ny;
       }
       else {
         if ( link.isLoop() ) {
@@ -991,7 +972,7 @@ module.exports = function ( graph ){
       }
       
       lg = link.pathObj();
-      pathLen = Math.floor(lg.node().getTotalLength());
+      const pathLen = Math.floor(lg.node().getTotalLength());
       let p1 = lg.node().getPointAtLength(pathLen - 4);
       let p2 = lg.node().getPointAtLength(pathLen);
       let markerCenter = lg.node().getPointAtLength(pathLen - 6);
@@ -1056,7 +1037,6 @@ module.exports = function ( graph ){
       
       if ( link.property().inverse() ) {
         lg = link.pathObj();
-        pathLen = Math.floor(lg.node().getTotalLength());
         const p1_inv = lg.node().getPointAtLength(4);
         const p2_inv = lg.node().getPointAtLength(0);
         const markerCenter_inv = lg.node().getPointAtLength(6);
@@ -1144,7 +1124,7 @@ module.exports = function ( graph ){
         {qType = "owlClass";}
       
       let bgColorStr = "";
-      let widthString = "";
+      let widthString;
       
       if ( node.type() === "rdfs:Literal" || node.type() === "rdfs:Datatype" ) {
         const width = node.width();
@@ -1282,9 +1262,8 @@ module.exports = function ( graph ){
         bgColorStr = ", fill=property" + i + "_COLOR ";
       }
       
-      let widthString = "";
       const width = correspondingProp.textWidth();
-      widthString = ",minimum width=" + width + "pt";
+      const widthString = ",minimum width=" + width + "pt";
       
       
       // OWL INTERSECTION OF
@@ -1356,12 +1335,11 @@ module.exports = function ( graph ){
           inv_bgColorStr = ", fill=inv_property" + i + "_COLOR ";
         }
         
-        let inv_widthString = "";
         const inv_width = inv_correspondingProp.textWidth();
         
         const pOY1 = p_py - 14;
         const pOY2 = p_py + 14;
-        inv_widthString = ",minimum width=" + inv_width + "pt";
+        const inv_widthString = ",minimum width=" + inv_width + "pt";
         texString += "% Createing Inverse Property \n";
         texString += "\\node[" + inv_qType + " " + inv_widthString + " " + inv_bgColorStr + " " + inv_textColorStr + "] at (" + p_px + "pt, " + pOY1 + "pt)   (property" + i + ") {" + inv_identifier.replaceAll("_", "\\_ ") + "};\n";
         texString += "% " + inv_qType + " vs " + qType + "\n";

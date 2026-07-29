@@ -587,7 +587,7 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
       const individualIri = iri;
       const localName = resolver.getLocalName(individualIri);
 
-      let finalLabels = {};
+      let finalLabels;
       if (Object.keys(subject.labels).length > 0) {
         finalLabels = Object.assign({}, subject.labels);
         if (!finalLabels["undefined"]) {

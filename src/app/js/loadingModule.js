@@ -259,10 +259,9 @@ module.exports = function ( graph ){
     const filename = decodeURIComponent(fileName.slice("url=".length));
     ontologyIdentifierFromURL = filename;
     
-    let ontologyContent = "";
     if ( ontologyMenu.cachedOntology(filename) ) {
       ontologyMenu.append_bulletPoint("Loading already cached ontology: " + filename);
-      ontologyContent = ontologyMenu.cachedOntology(filename);
+      const ontologyContent = ontologyMenu.cachedOntology(filename);
       loadingWasSuccessFul = true; // cached Ontology should be true;
       parseOntologyContent(ontologyContent);
       
@@ -297,10 +296,9 @@ module.exports = function ( graph ){
     const filename = decodeURIComponent(fileName.slice("iri=".length));
     ontologyIdentifierFromURL = filename;
     
-    let ontologyContent = "";
     if ( ontologyMenu.cachedOntology(filename) ) {
       ontologyMenu.append_bulletPoint("Loading already cached ontology: " + filename);
-      ontologyContent = ontologyMenu.cachedOntology(filename);
+      const ontologyContent = ontologyMenu.cachedOntology(filename);
       loadingWasSuccessFul = true; // cached Ontology should be true;
       parseOntologyContent(ontologyContent);
     } else {
@@ -700,7 +698,7 @@ module.exports = function ( graph ){
     const urlKey = "url=";
     const fileKey = "file=";
     
-    let method = -1;
+    let method;
     if ( url.substr(0, fileKey.length) === fileKey ) {
       method = FILE_UPLOAD;
     } else if ( url.substr(0, urlKey.length) === urlKey ) {

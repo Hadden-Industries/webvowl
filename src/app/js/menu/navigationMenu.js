@@ -11,7 +11,7 @@ module.exports = function ( graph ){
   const leftButton = d3.select("#scrollLeftButton");
   const rightButton = d3.select("#scrollRightButton");
   let scrolLeftValue;
-  let scrollMax;
+  const scrollMax = 0;
   let currentlyVisibleMenu;
   let currentlyHoveredEntry;
   let touchedElement = false;
