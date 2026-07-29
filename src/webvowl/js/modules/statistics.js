@@ -149,7 +149,7 @@ module.exports = function (){
   }
   
   function storeTotalIndividualCount( nodes ){
-    let sawIndividuals = {};
+    const sawIndividuals = {};
     let totalCount = 0;
     for ( let i = 0, l = nodes.length; i < l; i++ ) {
       const individuals = nodes[i].individuals();
@@ -164,8 +164,6 @@ module.exports = function (){
       totalCount += tempCount;
     }
     totalIndividualCount = totalCount;
-    sawIndividuals = {}; // clear the object
-    
   }
   
   

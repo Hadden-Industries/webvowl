@@ -65,7 +65,7 @@ module.exports = function ( graph ){
     
     mergedStringsList = [];
     mergedIdList = [];
-    let indexInStringList = -1;
+    let indexInStringList;
     let currentString;
     let currentObjectId;
     
@@ -94,15 +94,6 @@ module.exports = function ( graph ){
     
     for ( i = 0; i < mergedStringsList.length; i++ ) {
       const aString = mergedStringsList[i];
-      const correspondingIdList = mergedIdList[i];
-      let idListResult = "[ ";
-      for ( let j = 0; j < correspondingIdList.length; j++ ) {
-        idListResult = idListResult + correspondingIdList[j].toString();
-        idListResult = idListResult + ", ";
-      }
-      idListResult = idListResult.substring(0, idListResult.length - 2);
-      idListResult = idListResult + " ]";
-      
       dictionary.push(aString);
       entryNames.push(aString);
     }

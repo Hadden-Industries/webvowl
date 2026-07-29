@@ -21,7 +21,7 @@ export default function owl2vowl(xmlString) {
       const parsed = parseTurtle(xmlText);
       xmlText = serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
     } catch (parseErr) {
-      throw new Error("Turtle parsing error: " + parseErr.message);
+      throw new Error("Turtle parsing error: " + parseErr.message, { cause: parseErr });
     }
   }
 

@@ -1,10 +1,10 @@
 module.exports = function ( graph ){
   /** variable defs **/
   const warningModule = {};
-  const superContainer = d3.select("#WarningErrorMessages");
   const _messageContainers = [];
   const _messageContext = [];
   const _visibleStatus = [];
+  const superContainer = d3.select("#WarningErrorMessages");
   
   let _filterHintId;
   let _messageId = -1;
@@ -125,10 +125,9 @@ module.exports = function ( graph ){
     _visibleStatus[nId] = false;
     // get module;
     const moduleContainer = _messageContainers[nId];
+    const m_height = moduleContainer.node().getBoundingClientRect().height;
     moduleContainer.style("-webkit-animation-name", "warn_CollapseAnimation");
     moduleContainer.style("-webkit-animation-duration", "0.5s");
-    
-    const m_height = moduleContainer.node().getBoundingClientRect().height;
     
     // find my id in the children
     const pNode = moduleContainer.node().parentNode;
@@ -198,8 +197,8 @@ module.exports = function ( graph ){
     const warningContainer = _messageContext[id];
     const moduleContainer = _messageContainers[id];
     _visibleStatus[id] = true;
-    d3.select("#blockGraphInteractions").classed("hidden", false);
     const graphWidth = 0.5 * graph.options().width();
+    d3.select("#blockGraphInteractions").classed("hidden", false);
     
     if ( header.length > 0 ) {
       const head = warningContainer.append("div");
@@ -326,8 +325,6 @@ module.exports = function ( graph ){
     const warningContainer = _messageContext[id];
     const moduleContainer = _messageContainers[id];
     _visibleStatus[id] = true;
-    
-    // add new one;
     const graphWidth = 0.5 * graph.options().width();
     
     if ( header.length > 0 ) {
@@ -420,5 +417,3 @@ module.exports = function ( graph ){
   
   return warningModule;
 };
-
-

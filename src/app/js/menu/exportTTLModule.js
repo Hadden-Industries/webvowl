@@ -141,7 +141,7 @@ module.exports = function ( graph ){
     objectDef += "; \r\n";
     for ( let e = 0; e < node.equivalents().length; e++ ) {
       const eqIRI = prefixModule.getPrefixRepresentationForFullURI(node.equivalents()[e].iri());
-      let eqNode_prefRepresentation = "";
+      let eqNode_prefRepresentation;
       if ( prefixModule.validURL(eqIRI) === true )
         {eqNode_prefRepresentation = "<" + eqIRI + ">";}
       else
@@ -185,7 +185,7 @@ module.exports = function ( graph ){
       objectDef += indent + " owl:disjointUnionOf (";
       for ( let duE = 0; duE < arrayOfNodes.length; duE++ ) {
         const duIri = prefixModule.getPrefixRepresentationForFullURI(arrayOfNodes[duE].iri());
-        let duNode_prefRepresentation = "";
+        let duNode_prefRepresentation;
         if ( prefixModule.validURL(duIri) === true )
           {duNode_prefRepresentation = "<" + duIri + ">";}
         else
@@ -204,7 +204,7 @@ module.exports = function ( graph ){
         
         if ( arrayOfUnionNodes[uE] && arrayOfUnionNodes[uE].iri() ) {
           const uIri = prefixModule.getPrefixRepresentationForFullURI(arrayOfUnionNodes[uE].iri());
-          let uNode_prefRepresentation = "";
+          let uNode_prefRepresentation;
           if ( prefixModule.validURL(uIri) === true )
             {uNode_prefRepresentation = "<" + uIri + ">";}
           else

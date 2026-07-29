@@ -22,9 +22,9 @@ module.exports = function ( graph ){
     collapseButton.on("click", function (){
       graph.options().navigationMenu().hideAllMenus();
       const settingValue = parseInt(leftSidebar.getSidebarVisibility());
+      backupVisibility = settingValue;
       if ( settingValue === 0 ) {leftSidebar.showSidebar(1);}
       else                  {leftSidebar.showSidebar(0);}
-      backupVisibility = settingValue;
     });
     
     setupSelectionContainers();
