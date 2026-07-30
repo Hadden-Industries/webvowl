@@ -26,6 +26,7 @@
   },
   "scripts": {
     "dev": "vite --open",
+    "prebuild": "npm run lint",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
@@ -34,7 +35,9 @@
     "lint:css": "stylelint \"src/**/*.css\"",
     "lint:html": "html-validate src/index.html",
     "lint:js": "eslint src/",
-    "zip": "node util/zip.js"
+    "zip": "node util/zip.js",
+    "predeploy": "npm run build",
+    "deploy": "python ./util/upload_to_s3.py"
   },
   "license": "AGPL-3.0-only",
   "private": true
