@@ -265,7 +265,13 @@ module.exports = (function () {
           .append("g")
           .datum(property)
           .classed("label", true)
-          .attr("id", property.id());
+          .attr("id", property.id())
+          .on("mouseover", function ( event ){
+            onMouseOver(event);
+          })
+          .on("mouseout", function ( event ){
+            onMouseOut(event);
+          });
 
         property.drawLabel(labelContainer);
         return labelContainer;
@@ -462,6 +468,10 @@ module.exports = (function () {
           property
             .labelElement()
             .select("rect")
+            .classed("indirect-highlighting", enable);
+        }
+        if ( property.inverse && property.inverse() && property.inverse().labelElement && property.inverse().labelElement() ) {
+          property.inverse().labelElement().select("rect")
             .classed("indirect-highlighting", enable);
         }
       });
