@@ -27,11 +27,15 @@ module.exports = function (graph) {
   function resetGraph() {
   let resetFlashTimer;
     const resetButton = d3.select("#reset-button");
-    resetButton.classed("flash-active", true);
+
+    // 1. Apply visual feedback SYNCHRONOUSLY before any async work.
+    //    will-change: transform on #reset-button and will-change: opacity
+    //    on .reset-glow are ALWAYS set in CSS, so their compositor layers
+    //    are pre-established — no creation delay at click time.
     clearTimeout(resetFlashTimer);
-    resetFlashTimer = setTimeout(function (){
-      resetButton.classed("flash-active", false);
-    }, 400);
+    resetButton.classed("flash-out", false).classed("flash-active", false);
+    const _reflow = resetButton.node().offsetWidth; // eslint-disable-line no-unused-vars
+    resetButton.classed("flash-active", true);
 
     graph.resetSearchHighlight();
     graph.options().searchMenu().clearText();
