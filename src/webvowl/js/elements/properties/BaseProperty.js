@@ -239,7 +239,13 @@ module.exports = (function (){
         const labelContainer = labelGroup.append("g")
           .datum(property)
           .classed("label", true)
-          .attr("id", property.id());
+          .attr("id", property.id())
+          .on("mouseover", function ( event ){
+            onMouseOver(event);
+          })
+          .on("mouseout", function ( event ){
+            onMouseOut(event);
+          });
         
         property.drawLabel(labelContainer);
         return labelContainer;
@@ -284,13 +290,7 @@ module.exports = (function (){
         .attr("x", -that.width() / 2)
         .attr("y", -that.height() / 2)
         .attr("width", that.width())
-        .attr("height", that.height())
-        .on("mouseover", function ( event ){
-          onMouseOver(event);
-        })
-        .on("mouseout", function ( event ){
-          onMouseOut(event);
-        });
+        .attr("height", that.height());
       
       rect.append("title")
         .text(that.labelForCurrentLanguage());
@@ -409,6 +409,10 @@ module.exports = (function (){
         
         if ( property.labelElement && property.labelElement() ) {
           property.labelElement().select("rect")
+            .classed("indirect-highlighting", enable);
+        }
+        if ( property.inverse && property.inverse() && property.inverse().labelElement && property.inverse().labelElement() ) {
+          property.inverse().labelElement().select("rect")
             .classed("indirect-highlighting", enable);
         }
         
