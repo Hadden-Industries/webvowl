@@ -354,5 +354,61 @@ describe("jsonExporter.js unit tests", () => {
     expect(result.header.baseIris).toEqual(["http://example.org"]);
     expect(result.header.baseIris).not.toContain("_:anon_1");
   });
+
+  test("Deduplicates owl:disjointWith property exports for mutual disjoint classes", () => {
+    context.classMap.set("http://xmlns.com/foaf/0.1/Person", {
+      id: "1",
+      type: "owl:Class",
+      iri: "http://xmlns.com/foaf/0.1/Person",
+      baseIri: "http://xmlns.com/foaf/0.1/",
+      label: { en: "Person" },
+      attributes: [],
+      disjointWith: ["http://xmlns.com/foaf/0.1/Organization"]
+    });
+
+    context.classMap.set("http://xmlns.com/foaf/0.1/Organization", {
+      id: "2",
+      type: "owl:Class",
+      iri: "http://xmlns.com/foaf/0.1/Organization",
+      baseIri: "http://xmlns.com/foaf/0.1/",
+      label: { en: "Organization" },
+      attributes: [],
+      disjointWith: ["http://xmlns.com/foaf/0.1/Person"]
+    });
+
+    const result = exportToJson(resolver, context, header);
+    const disjointProps = result.property.filter(p => p.type === "owl:disjointWith");
+
+    // Must emit exactly 1 owl:disjointWith property for the pair (Person, Organization)
+    expect(disjointProps.length).toBe(1);
+  });
+
+  test("Deduplicates rdfs:SubClassOf property exports for duplicate subclass relations", () => {
+    context.classMap.set("http://example.org/Sub", { id: "1", type: "owl:Class", iri: "http://example.org/Sub" });
+    context.classMap.set("http://example.org/Super", { id: "2", type: "owl:Class", iri: "http://example.org/Super" });
+
+    context.subclassRelations.push(
+      { subclassIri: "http://example.org/Sub", superclassIri: "http://example.org/Super" },
+      { subclassIri: "http://example.org/Sub", superclassIri: "http://example.org/Super" }
+    );
+
+    const result = exportToJson(resolver, context, header);
+    const subProps = result.property.filter(p => p.type === "rdfs:SubClassOf");
+    expect(subProps.length).toBe(1);
+  });
+
+  test("Deduplicates restriction property exports for duplicate restriction axioms", () => {
+    context.classMap.set("http://example.org/ClassA", { id: "1", type: "owl:Class", iri: "http://example.org/ClassA" });
+    context.classMap.set("http://example.org/ClassB", { id: "2", type: "owl:Class", iri: "http://example.org/ClassB" });
+
+    context.parsedRestrictions.push(
+      { domainIri: "http://example.org/ClassA", propertyIri: "http://example.org/prop", rangeIri: "http://example.org/ClassB", type: "owl:someValuesFrom" },
+      { domainIri: "http://example.org/ClassA", propertyIri: "http://example.org/prop", rangeIri: "http://example.org/ClassB", type: "owl:someValuesFrom" }
+    );
+
+    const result = exportToJson(resolver, context, header);
+    const restProps = result.property.filter(p => p.type === "owl:someValuesFrom");
+    expect(restProps.length).toBe(1);
+  });
 });
 
