@@ -376,9 +376,10 @@ export function exportToJson(resolver, context, header) {
   
   const reserved = ["http://www.w3.org/2002/07/owl", "http://www.w3.org/1999/02/22-rdf-syntax-ns", "http://www.w3.org/2000/01/rdf-schema", "http://www.w3.org/2001/XMLSchema"];
   usedNamespaces.forEach(ns => {
-    if (ns && !reserved.includes(ns)) {header.baseIris.push(ns);}
+    if (ns && !reserved.includes(ns) && !ns.startsWith("_:")) {header.baseIris.push(ns);}
   });
   
+  header.baseIris = Array.from(new Set(header.baseIris.filter(b => b && !b.startsWith("_:"))));
   header.baseIris.sort();
 
   return {
