@@ -22,7 +22,12 @@ module.exports = function ( graph ){
       const settingValue = parseInt(leftSidebar.getSidebarVisibility());
       if ( settingValue === 0 ) {leftSidebar.showSidebar(1);}
       else                  {leftSidebar.showSidebar(0);}
-    });
+    })
+      .on("contextmenu", function (event){
+        if ( event ) {
+          event.preventDefault();
+        }
+      });
     
     setupSelectionContainers();
   };

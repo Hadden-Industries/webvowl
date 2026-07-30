@@ -988,6 +988,7 @@ main {
     line-height: inherit;
     appearance: none;
     cursor: pointer;
+    -webkit-touch-callout: none;
 }
 
 #containerForAddPrefixButton {
