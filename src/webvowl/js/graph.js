@@ -256,6 +256,7 @@ module.exports = function (graphContainerSelector) {
       })
       .on("dragstart", function (d) {
         d3.event.sourceEvent.stopPropagation(); // Prevent panning
+        clearAllHover();
         graph.ignoreOtherHoverEvents(true);
         if (d.type && d.type() === "Class_dragger") {
           classDragger.mouseButtonPressed = true;
@@ -343,6 +344,7 @@ module.exports = function (graphContainerSelector) {
       })
       .on("dragend", function (d) {
         graph.ignoreOtherHoverEvents(false);
+        clearAllHover();
         if (d.type && d.type() === "Class_dragger") {
           const nX = classDragger.x;
           const nY = classDragger.y;
@@ -446,6 +448,9 @@ module.exports = function (graphContainerSelector) {
       .zoom()
       .duration(150)
       .scaleExtent([options.minMagnification(), options.maxMagnification()])
+      .on("start", function (){
+        clearAllHover();
+      })
       .on("zoom", zoomed);
 
     draggerObjectsArray.push(classDragger);
@@ -989,6 +994,8 @@ module.exports = function (graphContainerSelector) {
     // add touch and double click functions
 
     const svgGraph = d3.selectAll(".vowlGraph");
+    svgGraph.on("mouseleave", clearAllHover);
+    svgGraph.on("pointerleave", clearAllHover);
     originalD3_dblClickFunction = svgGraph.on("dblclick.zoom");
     originalD3_touchZoomFunction = svgGraph.on("touchstart.zoom");
     if ( originalD3_touchZoomFunction ) {
@@ -1456,6 +1463,7 @@ module.exports = function (graphContainerSelector) {
       .loadingModule()
       .successfullyLoadedOntology();
     if (validOntology === false && init && init === true) {
+    clearAllHover();
       graph.options().loadingModule().collapseDetails();
       return;
     }
@@ -4100,6 +4108,36 @@ module.exports = function (graphContainerSelector) {
       ignoreOtherHoverEvents = val;
     }
   };
+
+  function clearAllHover(){
+    d3.selectAll(".hovered, .hoveredForEditing, .indirect-highlighting, .classDraggerNodeHovered, .hovered-MathSymbol")
+      .classed("hovered", false)
+      .classed("hoveredForEditing", false)
+      .classed("indirect-highlighting", false)
+      .classed("classDraggerNodeHovered", false)
+      .classed("hovered-MathSymbol", false);
+    
+    if ( hoveredNodeElement ) {
+      if ( typeof hoveredNodeElement.setHoverHighlighting === "function" ) {
+        hoveredNodeElement.setHoverHighlighting(false);
+      }
+      if ( typeof hoveredNodeElement.mouseEntered === "function" ) {
+        hoveredNodeElement.mouseEntered(false);
+      }
+      hoveredNodeElement = undefined;
+    }
+    if ( hoveredPropertyElement ) {
+      if ( typeof hoveredPropertyElement.setHighlighting === "function" ) {
+        hoveredPropertyElement.setHighlighting(false);
+      }
+      if ( typeof hoveredPropertyElement.mouseEntered === "function" ) {
+        hoveredPropertyElement.mouseEntered(false);
+      }
+      hoveredPropertyElement = undefined;
+    }
+  }
+
+  graph.clearAllHover = clearAllHover;
 
   function delayedHiddingHoverElements(tbh) {
     if (tbh === true) {

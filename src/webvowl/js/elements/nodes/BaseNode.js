@@ -392,8 +392,8 @@ module.exports = (function () {
     };
 
     this.foreground = function () {
-      const selectedNode = that.nodeElement().node(),
-        nodeContainer = selectedNode.parentNode;
+      const selectedNode = that.nodeElement() ? that.nodeElement().node() : null,
+        nodeContainer = selectedNode ? selectedNode.parentNode : null;
       // check if the halo is present and an animation is running
       if (that.animationProcess() === false) {
         // Append hovered element as last child to the container list.
@@ -406,8 +406,8 @@ module.exports = (function () {
         return;
       }
 
-      const selectedNode = that.nodeElement().node(),
-        nodeContainer = selectedNode.parentNode;
+      const selectedNode = that.nodeElement() ? that.nodeElement().node() : null,
+        nodeContainer = selectedNode ? selectedNode.parentNode : null;
 
       // Append hovered element as last child to the container list.
       if (that.animationProcess() === false) {
