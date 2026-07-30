@@ -383,4 +383,35 @@ describe("rdfParser.js unit tests", () => {
     expect(unionSubject.unionOf).not.toContain("http://example.org/#numericPosition");
     expect(unionSubject.unionOf).not.toContain("http://example.org/#nominalPosition");
   });
+
+  test("Parses XML property attributes on subject elements (e.g. rdfs:label, rdfs:comment, vs:term_status)", () => {
+    const xml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#"
+               xmlns:vs="http://www.w3.org/2003/06/sw-vocab-status/ns#"
+               xml:base="http://xmlns.com/foaf/0.1/">
+        <rdf:Property rdf:about="http://xmlns.com/foaf/0.1/isPrimaryTopicOf"
+                      vs:term_status="stable"
+                      rdfs:label="is primary topic of"
+                      rdfs:comment="A document that this thing is the primary topic of.">
+          <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#InverseFunctionalProperty"/>
+        </rdf:Property>
+      </rdf:RDF>
+    `;
+
+    const result = parseRdfXml(xml, resolver, context);
+    const subject = result.subjects["http://xmlns.com/foaf/0.1/isPrimaryTopicOf"];
+    expect(subject).toBeDefined();
+
+    // Verify label extracted from XML attribute
+    expect(subject.labels.undefined).toBe("is primary topic of");
+    // Verify comment extracted from XML attribute
+    expect(subject.comments.undefined).toBe("A document that this thing is the primary topic of.");
+    // Verify vs:term_status extracted from XML attribute into annotations
+    expect(subject.annotations.term_status).toBeDefined();
+    expect(subject.annotations.term_status[0].value).toBe("stable");
+    // Verify InverseFunctionalProperty type
+    expect(subject.types.has("http://www.w3.org/2002/07/owl#InverseFunctionalProperty")).toBe(true);
+  });
 });

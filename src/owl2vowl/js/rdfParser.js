@@ -216,6 +216,98 @@ export function parseRdfXml(xmlString, resolver, context) {
       }
     }
 
+    function addSubjectProperty(subj, predLocal, predNs, resource, textValue, lang, QName) {
+      if (predLocal === "type" && (predNs === NAMESPACES.RDF || QName === "rdf:type" || QName === "type")) {
+        if (resource) { subj.types.add(resource); }
+      } else if (predLocal === "label" && (predNs === NAMESPACES.RDFS || QName === "rdfs:label" || QName === "label")) {
+        const cleanLang = registerLanguage(lang);
+        const labelVal = textValue;
+        if (labelVal) {
+          subj.labels[cleanLang] = labelVal;
+          if (cleanLang.includes("-")) {
+            const baseLang = cleanLang.split("-")[0];
+            if (!subj.labels[baseLang]) { subj.labels[baseLang] = labelVal; }
+          }
+          if (!subj.annotations["label"]) { subj.annotations["label"] = []; }
+          subj.annotations["label"].push({
+            value: labelVal,
+            type: "label",
+            language: cleanLang,
+            identifier: "rdfs:label",
+            predicateNs: predNs || NAMESPACES.RDFS
+          });
+        }
+      } else if (
+        (predLocal === "comment" && (predNs === NAMESPACES.RDFS || predNs === NAMESPACES.OWL || QName === "rdfs:comment" || QName === "owl:comment")) ||
+        (predLocal === "description" && (predNs === NAMESPACES.DCTERMS || predNs === NAMESPACES.DC || QName === "dc:description" || QName === "dcterms:description"))
+      ) {
+        const cleanLang = registerLanguage(lang);
+        const commentVal = textValue;
+        if (commentVal) {
+          subj.comments[cleanLang] = commentVal;
+          if (cleanLang.includes("-")) {
+            const baseLang = cleanLang.split("-")[0];
+            if (!subj.comments[baseLang]) { subj.comments[baseLang] = commentVal; }
+          }
+        }
+      } else {
+        const cleanLang = registerLanguage(lang);
+        const key = predLocal;
+        const val = resource || textValue;
+        if (val) {
+          if (!subj.annotations[key]) { subj.annotations[key] = []; }
+          subj.annotations[key].push({
+            value: val,
+            type: resource || (val && (val.startsWith("http://") || val.startsWith("https://"))) ? "iri" : "label",
+            language: cleanLang,
+            identifier: key,
+            predicateNs: predNs || ""
+          });
+          if (cleanLang.includes("-")) {
+            const baseLang = cleanLang.split("-")[0];
+            const hasBase = subj.annotations[key].some(ann => ann.language === baseLang);
+            if (!hasBase) {
+              subj.annotations[key].push({
+                value: val,
+                type: resource ? "iri" : "label",
+                language: baseLang,
+                identifier: key,
+                predicateNs: predNs || ""
+              });
+            }
+          }
+        }
+      }
+    }
+
+    // Process property attributes directly defined on the subject element
+    if (element.attributes) {
+      const SYSTEM_ATTRS = new Set(["about", "nodeid", "id", "parsetype", "base", "lang"]);
+      for (let i = 0; i < element.attributes.length; i++) {
+        const attr = element.attributes[i];
+        const attrName = attr.name;
+        if (attrName.startsWith("xmlns:") || attrName === "xmlns" || attrName === "xml:base" || attrName === "xml:lang") {continue;}
+        
+        const local = attr.localName || attrName.split(":").pop();
+        if (SYSTEM_ATTRS.has(local.toLowerCase())) {continue;}
+
+        let attrNs = attr.namespaceURI || "";
+        if (!attrNs && attrName.includes(":")) {
+          const prefix = attrName.split(":")[0];
+          attrNs = prefixList[prefix] || "";
+        }
+
+        const attrVal = attr.value.trim();
+        if (!attrVal) {continue;}
+
+        const isResource = (local === "type" || local === "domain" || local === "range" || local === "subClassOf" || local === "subPropertyOf" || local === "inverseOf" || local === "isDefinedBy" || local === "seeAlso" || attrVal.startsWith("http://") || attrVal.startsWith("https://"));
+        const activeBase = getActiveBaseUri(element);
+        const resource = isResource ? (attrVal.startsWith("_:") || (!attrVal.includes(":") && !attrVal.startsWith("#")) ? (attrVal.startsWith("_:") ? attrVal : "_:" + attrVal) : resolver.resolve(attrVal, activeBase)) : null;
+
+        addSubjectProperty(subject, local, attrNs, resource, isResource ? null : attrVal, "undefined", attrName);
+      }
+    }
+
     for (let pred = element.firstChild; pred; pred = pred.nextSibling) {
       if (pred.nodeType !== 1) {continue;}
 
@@ -224,46 +316,19 @@ export function parseRdfXml(xmlString, resolver, context) {
       const activeBasePred = getActiveBaseUri(pred);
       const rawResource = getAttr(pred, "resource", NAMESPACES.RDF) || getAttr(pred, "nodeID", NAMESPACES.RDF);
       const resource = rawResource ? (rawResource.startsWith("_:") || (!rawResource.includes(":") && !rawResource.startsWith("#")) ? (rawResource.startsWith("_:") ? rawResource : "_:" + rawResource) : resolver.resolve(rawResource, activeBasePred)) : null;
+      const rawLang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
+      const predText = pred.textContent.trim();
 
       if (predLocal === "type" && predNs === NAMESPACES.RDF) {
-        if (resource) {subject.types.add(resource);}
+        addSubjectProperty(subject, predLocal, predNs, resource, predText, rawLang, predLocal);
       } else if (predLocal === "label" && predNs === NAMESPACES.RDFS) {
-        const rawLang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
-        const lang = registerLanguage(rawLang);
-        const labelVal = pred.textContent.trim();
-        
-        subject.labels[lang] = labelVal;
-        if (lang.includes("-")) {
-          const baseLang = lang.split("-")[0];
-          if (!subject.labels[baseLang]) {
-            subject.labels[baseLang] = labelVal;
-          }
-        }
-
-        if (!subject.annotations["label"]) {subject.annotations["label"] = [];}
-        subject.annotations["label"].push({
-          value: labelVal,
-          type: "label",
-          language: lang,
-          identifier: "rdfs:label",
-          predicateNs: NAMESPACES.RDFS
-        });
+        addSubjectProperty(subject, predLocal, predNs, resource, predText, rawLang, predLocal);
       } else if (
         (predLocal === "comment" && predNs === NAMESPACES.RDFS) ||
         (predLocal === "comment" && predNs === NAMESPACES.OWL) ||
         (predLocal === "description" && (predNs === NAMESPACES.DCTERMS || predNs === NAMESPACES.DC))
       ) {
-        const rawLang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
-        const lang = registerLanguage(rawLang);
-        const commentVal = pred.textContent.trim();
-        
-        subject.comments[lang] = commentVal;
-        if (lang.includes("-")) {
-          const baseLang = lang.split("-")[0];
-          if (!subject.comments[baseLang]) {
-            subject.comments[baseLang] = commentVal;
-          }
-        }
+        addSubjectProperty(subject, predLocal, predNs, resource, predText, rawLang, predLocal);
       } else if (
         (predLocal === "domain" || predLocal === "range" || predLocal === "subClassOf" || 
          predLocal === "subPropertyOf" || predLocal === "inverseOf" || 
