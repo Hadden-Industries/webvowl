@@ -478,7 +478,7 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
       }
       cls.comment = subject.comments;
       cls.annotations = subject.annotations;
-      cls.disjointWith = subject.disjointWith;
+      cls.disjointWith = Array.isArray(subject.disjointWith) ? Array.from(new Set(subject.disjointWith)) : [];
 
       if (types.some(t => t === NAMESPACES.OWL + "DeprecatedClass")) {
         if (!cls.attributes.includes("deprecated")) {cls.attributes.push("deprecated");}
@@ -959,9 +959,13 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     if (rel.superpropIri && IGNORED_PROPERTIES.has(rel.superpropIri)) {return;}
     const subProp = context.propertyMap.get(rel.subpropIri);
     const superProp = context.propertyMap.get(rel.superpropIri);
-    if (subProp && superProp) {
-      subProp.superproperty.push(superProp.id);
-      superProp.subproperty.push(subProp.id);
+    if (subProp && superProp && subProp.id !== superProp.id) {
+      if (!subProp.superproperty.includes(superProp.id)) {
+        subProp.superproperty.push(superProp.id);
+      }
+      if (!superProp.subproperty.includes(subProp.id)) {
+        superProp.subproperty.push(subProp.id);
+      }
     }
   });
 

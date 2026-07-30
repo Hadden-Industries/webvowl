@@ -1088,4 +1088,66 @@ describe("ontologyConverter.js unit tests", () => {
     expect(primaryTopic.attributes).toContain("functional");
     expect(primaryTopic.attributes).not.toContain("inferred");
   });
+
+  test("Deduplicates subClasses, superClasses, subproperty, superproperty, and disjointWith entries", () => {
+    const subjects = {
+      "http://example.org/ClassA": {
+        iri: "http://example.org/ClassA",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {}, comments: {}, domains: [], ranges: [],
+        superClasses: ["http://example.org/ClassB", "http://example.org/ClassB"],
+        subClasses: [], superProperties: [], subProperties: [],
+        inverses: [], equivalentClasses: [], equivalentProperties: [],
+        disjointWith: ["http://example.org/ClassB", "http://example.org/ClassB"],
+        annotations: {}
+      },
+      "http://example.org/ClassB": {
+        iri: "http://example.org/ClassB",
+        types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
+        labels: {}, comments: {}, domains: [], ranges: [],
+        superClasses: [], subClasses: [], superProperties: [], subProperties: [],
+        inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
+        annotations: {}
+      },
+      "http://example.org/propSub": {
+        iri: "http://example.org/propSub",
+        types: new Set(["http://www.w3.org/2002/07/owl#ObjectProperty"]),
+        labels: {}, comments: {}, domains: [], ranges: [],
+        superClasses: [], subClasses: [],
+        superProperties: ["http://example.org/propSuper"], subProperties: [],
+        inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
+        annotations: {}
+      },
+      "http://example.org/propSuper": {
+        iri: "http://example.org/propSuper",
+        types: new Set(["http://example.org/owl#ObjectProperty"]),
+        labels: {}, comments: {}, domains: [], ranges: [],
+        superClasses: [], subClasses: [], superProperties: [], subProperties: [],
+        inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
+        annotations: {}
+      }
+    };
+
+    context.subclassRelations.push(
+      { subclassIri: "http://example.org/ClassA", superclassIri: "http://example.org/ClassB" },
+      { subclassIri: "http://example.org/ClassA", superclassIri: "http://example.org/ClassB" }
+    );
+
+    context.subpropertyRelations.push(
+      { subpropIri: "http://example.org/propSub", superpropIri: "http://example.org/propSuper" },
+      { subpropIri: "http://example.org/propSub", superpropIri: "http://example.org/propSuper" }
+    );
+
+    convertOntology(subjects, new Set(["en"]), resolver, context, header);
+
+    const clsA = context.classMap.get("http://example.org/ClassA");
+    expect(clsA.disjointWith).toEqual(["http://example.org/ClassB"]);
+    expect(clsA.superClasses.length).toBe(1);
+
+    const propSub = context.propertyMap.get("http://example.org/propSub");
+    expect(propSub.superproperty.length).toBe(1);
+
+    const propSuper = context.propertyMap.get("http://example.org/propSuper");
+    expect(propSuper.subproperty.length).toBe(1);
+  });
 });

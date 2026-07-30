@@ -88,33 +88,45 @@ function createVirtualDatatype(datatypeIri, resolver, context) {
  */
 export function exportToJson(resolver, context, header) {
   const subclassProperties = [];
+  const exportedSubclassPairs = new Set();
   context.subclassRelations.forEach(rel => {
     if (rel.superclassIri === "http://www.w3.org/2002/07/owl#Thing") {return;}
     const subCls = context.classMap.get(rel.subclassIri);
     const superCls = context.classMap.get(rel.superclassIri);
     
-    if (subCls && superCls) {
-      const propId = context.nextId();
-      subclassProperties.push({
-        property: { id: propId, type: "rdfs:SubClassOf" },
-        attribute: {
-          id: propId,
-          iri: "http://www.w3.org/2000/01/rdf-schema#subClassOf",
-          baseIri: "http://www.w3.org/2000/01/rdf-schema",
-          domain: subCls.id,
-          range: superCls.id,
-          attributes: ["transitive"]
-        }
-      });
+    if (subCls && superCls && subCls.id !== superCls.id) {
+      const pairKey = String(subCls.id) + ":" + String(superCls.id);
+      if (!exportedSubclassPairs.has(pairKey)) {
+        exportedSubclassPairs.add(pairKey);
+        const propId = context.nextId();
+        subclassProperties.push({
+          property: { id: propId, type: "rdfs:SubClassOf" },
+          attribute: {
+            id: propId,
+            iri: "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+            baseIri: "http://www.w3.org/2000/01/rdf-schema",
+            domain: subCls.id,
+            range: superCls.id,
+            attributes: ["transitive"]
+          }
+        });
+      }
     }
   });
 
   const restrictionProperties = [];
+  const exportedRestrictionKeys = new Set();
   context.parsedRestrictions.forEach(rest => {
     const subCls = context.classMap.get(rest.domainIri);
     const superCls = context.classMap.get(rest.rangeIri);
     
     if (subCls && superCls) {
+      const restKey = `${subCls.id}:${rest.propertyIri}:${superCls.id}:${rest.type}`;
+      if (exportedRestrictionKeys.has(restKey)) {
+        return;
+      }
+      exportedRestrictionKeys.add(restKey);
+
       const refProp = context.propertyMap.get(rest.propertyIri);
       const propId = context.nextId();
       const attributes = ["object"];
@@ -202,6 +214,7 @@ export function exportToJson(resolver, context, header) {
   const classesArray = [];
   const classAttributesArray = [];
   const disjointProperties = [];
+  const exportedDisjointPairs = new Set();
 
   function exportClassNode(cls) {
     if (shouldSkipDatatype(cls, connectedNodeIds, connectedDatatypeIris)) {return;}
@@ -243,16 +256,20 @@ export function exportToJson(resolver, context, header) {
       cls.disjointWith.forEach(targetIri => {
         const targetCls = context.classMap.get(targetIri);
         if (targetCls) {
-          const propId = context.nextId();
-          disjointProperties.push({
-            property: { id: propId, type: "owl:disjointWith" },
-            propertyAttribute: {
-              id: propId,
-              domain: cls.id,
-              range: targetCls.id,
-              attributes: ["object", "anonymous"]
-            }
-          });
+          const pairKey = [String(cls.id), String(targetCls.id)].sort().join(":");
+          if (!exportedDisjointPairs.has(pairKey)) {
+            exportedDisjointPairs.add(pairKey);
+            const propId = context.nextId();
+            disjointProperties.push({
+              property: { id: propId, type: "owl:disjointWith" },
+              propertyAttribute: {
+                id: propId,
+                domain: cls.id,
+                range: targetCls.id,
+                attributes: ["object", "anonymous"]
+              }
+            });
+          }
         }
       });
     }
