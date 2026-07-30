@@ -2027,13 +2027,16 @@ main {
 
 /* Action Control Pills (Reset, Pause/Resume) */
 .navButton.action-pill {
+    position: relative; /* needed for ::after glow overlay */
+    overflow: visible;
     border: 1px solid rgb(255 255 255 / 12%);
     border-radius: 8px;
     background: rgb(255 255 255 / 4%);
     padding: 0 10px;
     height: 32px;
     margin: 0 2px;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .navButton.action-pill:hover {
@@ -2050,29 +2053,82 @@ main {
     border-color: rgb(255 255 255 / 6%) !important;
 }
 
-/* Reset Button Micro-Flash Feedback */
-@keyframes reset-flash {
+/*
+ * Reset Button Click Feedback
+ *
+ * COMPOSITOR-THREAD STRATEGY:
+ * Only `transform` and `opacity` can run on the compositor thread
+ * independently while JS blocks the main thread.
+ *
+ * Key insight: `will-change` must be set BEFORE the click, not at click
+ * time. A compositor layer created at the same moment as graph.reset()
+ * starts may not be committed before the main thread blocks.
+ *
+ * Solution:
+ *   1. #reset-button always has `will-change: transform` → its compositor
+ *      layer is pre-established and ready immediately on click.
+ *   2. .reset-glow (a real <span>, not ::after) always has
+ *      `will-change: opacity` → its compositor layer is also always ready.
+ *      Pseudo-elements cannot reliably get independent compositor layers.
+ *   3. Double requestAnimationFrame in JS ensures TWO full paint+commit
+ *      cycles happen before graph.reset() starts. After two frames the
+ *      compositor has an established, independent animation state.
+ *   4. We use a CSS transition (not keyframes) on .reset-glow opacity so
+ *      the compositor can play it as a standalone composited transition.
+ */
+
+/* Always promote #reset-button to its own compositor layer */
+#reset-button {
+    will-change: transform;
+}
+
+/* Scale bounce on click — compositor-thread-safe */
+@keyframes reset-flash-scale {
     0% {
-        background: rgb(99 102 241 / 60%);
-        border-color: #818cf8;
-        box-shadow: 0 0 14px rgb(99 102 241 / 55%);
+        transform: scale(0.91);
     }
 
-    60% {
-        background: rgb(99 102 241 / 25%);
-        border-color: #6366f1;
-        box-shadow: 0 0 6px rgb(99 102 241 / 25%);
+    40% {
+        transform: scale(1.06);
     }
 
     100% {
-        background: rgb(255 255 255 / 4%);
-        border-color: rgb(255 255 255 / 12%);
-        box-shadow: none;
+        transform: scale(1);
     }
 }
 
 .navButton.action-pill.flash-active {
-    animation: reset-flash 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: reset-flash-scale 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Glow overlay — real DOM node, always in its own compositor layer.
+ * Default: invisible, but compositor layer is ALWAYS maintained.
+ * z-index: -1 paints the glow ABOVE the button's own background paint
+ * but BELOW the button's inline text and icon content (CSS painting
+ * order: background → z-index: -1 children → inline content).
+ * This keeps the "Reset" label and SVG at full white contrast (WCAG AA). */
+.reset-glow {
+    position: absolute;
+    inset: -3px;
+    border-radius: 10px;
+    background: #22d3ee;
+    opacity: 0;
+    pointer-events: none;
+    will-change: opacity;
+    z-index: -1;
+}
+
+/* Glow instantly on when flash starts (no transition — instant bright) */
+.navButton.action-pill.flash-active .reset-glow {
+    opacity: 1;
+    transition: none;
+}
+
+/* Glow fades out after reset work completes — compositor runs this
+ * transition independently, even if main thread is still busy */
+.navButton.action-pill.flash-out .reset-glow {
+    opacity: 0;
+    transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Simulation Paused Warning Highlight */

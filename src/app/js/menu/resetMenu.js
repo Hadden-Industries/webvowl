@@ -29,26 +29,49 @@ module.exports = function ( graph ){
   let resetFlashTimer;
   function resetGraph(){
     const resetButton = d3.select("#reset-button");
-    resetButton.classed("flash-active", true);
-    clearTimeout(resetFlashTimer);
-    resetFlashTimer = setTimeout(function (){
-      resetButton.classed("flash-active", false);
-    }, 400);
 
-    graph.resetSearchHighlight();
-    graph.options().searchMenu().clearText();
-    options.classDistance(untouchedOptions.classDistance());
-    options.datatypeDistance(untouchedOptions.datatypeDistance());
-    options.charge(untouchedOptions.charge());
-    options.gravity(untouchedOptions.gravity());
-    options.linkStrength(untouchedOptions.linkStrength());
-    graph.reset();
-    
-    resettableModules.forEach(function ( module ){
-      module.reset();
+    // 1. Apply visual feedback SYNCHRONOUSLY before any async work.
+    //    will-change: transform on #reset-button and will-change: opacity
+    //    on .reset-glow are ALWAYS set in CSS, so their compositor layers
+    //    are pre-established — no creation delay at click time.
+    clearTimeout(resetFlashTimer);
+    resetButton.classed("flash-out", false).classed("flash-active", false);
+    const _reflow = resetButton.node().offsetWidth; // eslint-disable-line no-unused-vars
+    resetButton.classed("flash-active", true);
+
+    // 2. DOUBLE requestAnimationFrame: guarantees TWO full paint+commit
+    //    cycles complete before the heavy work starts.
+    //
+    //    Frame N   (after click event):  classes set → browser paints
+    //    Frame N+1 (first rAF):          scale frame 1 painted & committed
+    //    Frame N+2 (second rAF):         graph.reset() runs — compositor
+    //                                    now has N+1's committed state and
+    //                                    can animate independently.
+    requestAnimationFrame(function (){
+      requestAnimationFrame(function (){
+        graph.resetSearchHighlight();
+        graph.options().searchMenu().clearText();
+        options.classDistance(untouchedOptions.classDistance());
+        options.datatypeDistance(untouchedOptions.datatypeDistance());
+        options.charge(untouchedOptions.charge());
+        options.gravity(untouchedOptions.gravity());
+        options.linkStrength(untouchedOptions.linkStrength());
+        graph.reset();
+
+        resettableModules.forEach(function ( module ){
+          module.reset();
+        });
+
+        graph.updateStyle();
+
+        // Trigger glow fade-out via CSS transition — runs on the compositor
+        // layer of .reset-glow independently of any remaining main-thread work.
+        resetButton.classed("flash-active", false).classed("flash-out", true);
+        resetFlashTimer = setTimeout(function (){
+          resetButton.classed("flash-out", false);
+        }, 700);
+      });
     });
-    
-    graph.updateStyle();
   }
   
   
