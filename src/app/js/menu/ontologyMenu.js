@@ -6,7 +6,6 @@ module.exports = function ( graph ){
   const loadingInfo = d3.select("#loading-info");
   const loadingProgress = d3.select("#loading-progress");
 
-  let ontologyMenuTimeout;
   let stopTimer = false;
   const loadingError = false;
   let loadingStatusTimer;
@@ -193,12 +192,8 @@ module.exports = function ( graph ){
     const iriConverterInput = d3.select("#iri-converter-input");
     
     iriConverterInput.on("input", function (){
-      keepOntologySelectionOpenShortly();
-      
       const inputIsEmpty = iriConverterInput.property("value") === "";
       iriConverterButton.attr("disabled", inputIsEmpty || undefined);
-    }).on("click", function (){
-      keepOntologySelectionOpenShortly();
     });
     
     d3.select("#iri-converter-form").on("submit", function (event){
@@ -593,43 +588,7 @@ module.exports = function ( graph ){
       });
   };
   
-  function keepOntologySelectionOpenShortly(){
-    // Events in the menu should not be considered
-    const ontologySelection = d3.select("#select .toolTipMenu");
-    ontologySelection.on("click", function (event){
-      event.stopPropagation();
-    }).on("keydown", function (event){
-      event.stopPropagation();
-    });
-    
-    ontologySelection.classed("hidden", false);
-    
-    function disableKeepingOpen(){
-      ontologySelection.classed("hidden", true);
-      
-      clearTimeout(ontologyMenuTimeout);
-      d3.select(window).on("click", undefined).on("keydown", undefined);
-      ontologySelection.on("mouseover", undefined);
-    }
-    
-    // Clear the timeout to handle fast calls of this function
-    clearTimeout(ontologyMenuTimeout);
-    ontologyMenuTimeout = setTimeout(function (){
-      disableKeepingOpen();
-    }, 3000);
-    
-    // Disable forced open selection on interaction
-    d3.select(window).on("click", function (){
-      disableKeepingOpen();
-    }).on("keydown", function (){
-      disableKeepingOpen();
-    });
-    
-    ontologySelection.on("mouseover", function (){
-      disableKeepingOpen();
-    });
-  }
-  
+
   ontologyMenu.showLoadingStatus = function ( visible ){
     if ( visible === true ) {
       displayLoadingIndicators();

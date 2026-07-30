@@ -158,47 +158,71 @@ html {
     text-align: center;
 }
 
-/** adding searching Styles **/
-.dbEntry {
-    background-color: #fff;
-    color: #2980b9;
-    padding: 10px;
-    font-size: 14px;
-    border: none;
-    cursor: pointer;
-}
-
-
-
-.dbEntrySelected {
-    background-color: #bdc3c7;
-    color: #2980b9;
-    padding: 10px;
-    font-size: 14px;
-    border: none;
-    cursor: pointer;
-}
-
-.dbEntry:hover, .dbEntry:focus {
-    background-color: #bdc3c7;
-}
-
-.searchMenuEntry {
-    background-color: #fff;
-    bottom: 0;
-    font-size: 14px;
-    min-width: 50px;
+/** Modern W3C ARIA Autocomplete Combobox Search Styles **/
+.search-combobox-popup {
+    position: fixed;
+    bottom: 60px;
+    left: 16px;
+    transform: none;
+    width: 340px;
+    max-width: calc(100vw - 32px);
+    max-height: 320px;
+    overflow-y: auto;
     margin: 0;
-    padding: 0;
-    z-index: 99;
-    border-radius: 4px 4px 0 0;
-    border: 1px solid rgb(0 0 0 / 15%);
-    box-shadow: 0 6px 12px rgb(0 0 0 / 17.5%);
-    box-sizing: border-box;
-    border-bottom: none;
-    display: none;
-    position: absolute;
+    padding: 6px;
     list-style: none;
+    background: rgb(24 32 42 / 95%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgb(0 0 0 / 60%);
+    z-index: 2500;
+}
+
+.search-combobox-popup.hidden {
+    display: none !important;
+}
+
+.search-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: #ecf0f1;
+    font-size: 13px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.search-option:hover,
+.search-option[aria-selected="true"],
+.search-option.selected {
+    background-color: rgb(59 153 252 / 20%);
+    color: #fff;
+    border-left: 3px solid #3b99fc;
+}
+
+.search-match {
+    color: #3b99fc;
+    font-weight: 700;
+    background: transparent;
+}
+
+.search-count-badge {
+    font-family: monospace;
+    font-size: 11px;
+    background: rgb(255 255 255 / 8%);
+    color: #a0aec0;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 8px;
+}
+
+.search-option.search-entry-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .searchInputText {
@@ -243,7 +267,7 @@ a:hover {
     background-color: #d90;
 }
 
-.toolTipMenu li.highlighted {
+.popover-menu-list li.highlighted {
     background-color: #feb;
 }
 
@@ -720,13 +744,19 @@ main {
     margin-left: -25px;
 }
 
-.toolTipMenu.is-open {
-    display: block !important;
-}
+/* DEPRECATED: Replaced by Popover API */
 
-.toolTipMenu.hidden {
-    display: none !important;
-}
+/* .toolTipMenu.is-open { */
+
+    /* display: block !important; */
+
+/* } */
+
+/* .toolTipMenu.hidden { */
+
+    /* display: none !important; */
+
+/* } */
 
 .active-menu-item path {
     stroke-width: 0 !important;
@@ -905,6 +935,9 @@ main {
 }
 
 .slideOption {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
     position: relative;
     padding: 8px 5px;
     outline: none;
@@ -1180,6 +1213,9 @@ main {
     background-color: #24323e;
 }
 
+/* DEPRECATED: Replaced by modern flexbox rules at bottom of file */
+
+/*
 .converter-form:not(:first-child) {
     margin-top: 5px;
 }
@@ -1212,7 +1248,7 @@ main {
     cursor: pointer;
     height: 20px;
     width: 74%;
-}
+} */
 
 #killWarning {
     cursor: pointer;
@@ -1240,14 +1276,14 @@ main {
 
 /* cursor: pointer; */
 
-/* } */
-
+/* DEPRECATED: Replaced by .copy-url-btn rules at bottom of file
 #copyBt {
     box-sizing: border-box;
     height: 20px;
     width: 31%;
     border: 1px solid #34495E;
 }
+*/
 
 #sidebarExpandButton {
     height: 32px;
@@ -1714,24 +1750,43 @@ main {
 
 .color-mode-switch {
     float: right;
-    width: 90px;
+    min-width: 96px;
+    height: 24px;
+    padding: 0 10px;
+    border: 1px solid rgb(255 255 255 / 15%);
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #a0aec0;
+    background-color: rgb(255 255 255 / 6%);
     cursor: pointer;
-    height: 20px;
-    padding: 0;
-    border: 0;
-    color: #555;
-    background-color: #ECEEEF;
-    box-shadow: 0 1px 4px rgb(0 0 0 / 20%), inset 0 0 3px rgb(0 0 0 / 10%);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%);
 }
 
-.color-mode-switch:focus {
-    outline-width: 0;
+.color-mode-switch:hover {
+    color: #fff;
+    background-color: rgb(255 255 255 / 12%);
+}
+
+.color-mode-switch:focus-visible {
+    outline: 2px solid #3b99fc;
+    outline-offset: 2px;
 }
 
 .color-mode-switch.active {
-    color: #FFF;
-    background-color: #32CD32;
-    box-shadow: inset 0 1px 4px rgb(0 0 0 / 20%), inset 0 0 3px rgb(0 0 0 / 10%);
+    color: #fff;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 35%, #10b981 70%, #f59e0b 100%);
+    border-color: rgb(255 255 255 / 20%);
+    box-shadow: 0 2px 10px rgb(139 92 246 / 45%);
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 60%);
+}
+
+.color-mode-switch.active:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 4px 14px rgb(139 92 246 / 60%);
 }
 
 /* adding button pulse animation */
@@ -1790,61 +1845,95 @@ main {
 
 /* swipe bar definition */
 
+/* DEPRECATED: Replaced by .modern-popover sizing */
+
 /* Overwriting individual menu widths */
-#m_about {
-    max-width: 200px;
-    width: 200px;
-    position: absolute;
 
-}
+/* #m_about { */
 
-#m_modes {
-    max-width: 160px;
-    width: 160px;
-    position: absolute;
-}
+    /* max-width: 200px; */
 
-#m_filter {
-    max-width: 170px;
-    width: 170px;
-    position: absolute;
-}
+    /* width: 200px; */
 
-#m_gravity {
-    max-width: 180px;
-    width: 180px;
-    position: absolute;
-}
+    /* position: absolute; */
 
-#m_export {
-    max-width: 160px;
-    width: 160px;
-    position: absolute;
+/* } */
 
-}
+/* #m_modes { */
+
+    /* max-width: 160px; */
+
+    /* width: 160px; */
+
+    /* position: absolute; */
+
+/* } */
+
+/* #m_filter { */
+
+    /* max-width: 170px; */
+
+    /* width: 170px; */
+
+    /* position: absolute; */
+
+/* } */
+
+/* #m_gravity { */
+
+    /* max-width: 180px; */
+
+    /* width: 180px; */
+
+    /* position: absolute; */
+
+/* } */
+
+/* #m_export { */
+
+    /* max-width: 160px; */
+
+    /* width: 160px; */
+
+    /* position: absolute; */
+
+/* } */
 
 #exportedUrl {
     width: 100px;
 }
 
-#m_select {
-    max-width: 300px;
-    width: 300px;
-    position: absolute;
-}
+/* #m_select { */
 
-#m_config {
-    max-width: 240px;
-    width: 240px;
-    position: absolute;
-}
+    /* max-width: 300px; */
 
-#m_search {
-    max-width: 250px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+    /* width: 300px; */
+
+    /* position: absolute; */
+
+/* } */
+
+/* #m_config { */
+
+    /* max-width: 240px; */
+
+    /* width: 240px; */
+
+    /* position: absolute; */
+
+/* } */
+
+/* #m_search { */
+
+    /* max-width: 250px; */
+
+    /* white-space: nowrap; */
+
+    /* overflow: hidden; */
+
+    /* text-overflow: ellipsis; */
+
+/* } */
 
 /***************** REWRITING MENU ELEMENT CONTAINERS ***********************/
 
@@ -1919,12 +2008,86 @@ main {
     border: none;
     font-family: inherit;
     font-size: 14px;
+    font-weight: 500;
     text-decoration: none;
-    box-sizing: border-box;
-    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    outline: none;
+    box-sizing: border-box;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* Toolbar Divider separating Menu Drawers from Graph Action Buttons */
+.nav-separator {
+    width: 1px;
+    height: 22px;
+    background: rgb(255 255 255 / 15%);
+    margin: 0 8px;
+    align-self: center;
+    list-style: none;
+}
+
+/* Action Control Pills (Reset, Pause/Resume) */
+.navButton.action-pill {
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 8px;
+    background: rgb(255 255 255 / 4%);
+    padding: 0 10px;
+    height: 32px;
+    margin: 0 2px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.navButton.action-pill:hover {
+    background: rgb(255 255 255 / 12%);
+    border-color: rgb(255 255 255 / 25%);
+}
+
+.navButton.action-pill:disabled,
+.navButton.action-pill[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed !important;
+    pointer-events: none;
+    background: transparent !important;
+    border-color: rgb(255 255 255 / 6%) !important;
+}
+
+/* Reset Button Micro-Flash Feedback */
+@keyframes reset-flash {
+    0% {
+        background: rgb(99 102 241 / 60%);
+        border-color: #818cf8;
+        box-shadow: 0 0 14px rgb(99 102 241 / 55%);
+    }
+
+    60% {
+        background: rgb(99 102 241 / 25%);
+        border-color: #6366f1;
+        box-shadow: 0 0 6px rgb(99 102 241 / 25%);
+    }
+
+    100% {
+        background: rgb(255 255 255 / 4%);
+        border-color: rgb(255 255 255 / 12%);
+        box-shadow: none;
+    }
+}
+
+.navButton.action-pill.flash-active {
+    animation: reset-flash 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Simulation Paused Warning Highlight */
+.navButton.action-pill.paused,
+#c_pause button.paused {
+    background: rgb(245 158 11 / 20%) !important;
+    border-color: #f59e0b !important;
+    color: #fbbf24 !important;
+    box-shadow: 0 0 12px rgb(245 158 11 / 35%);
+}
+
+.navButton.action-pill.paused:hover,
+#c_pause button.paused:hover {
+    background: rgb(245 158 11 / 30%) !important;
+    border-color: #f59e0b !important;
 }
 
 #menuElementContainer .menuElementSvgElement {
@@ -2055,50 +2218,78 @@ main {
 }
 
 /* ToolTip Menu Definition */
-.toolTipMenu {
-    box-shadow: 0 6px 12px rgb(0 0 0 / 17.5%);
-    box-sizing: border-box;
-    background-color: #fff;
-    border: 1px solid rgb(0 0 0 / 15%);
-    border-bottom: none;
-    border-radius: 4px 4px 0 0;
-    bottom: 0;
-    display: none;
-    font-size: 14px;
-    list-style: none;
+
+/* DEPRECATED: Replaced by Popover API */
+
+/* .toolTipMenu { */
+
+    /* box-shadow: 0 6px 12px rgb(0 0 0 / 17.5%); */
+
+    /* box-sizing: border-box; */
+
+    /* background-color: #fff; */
+
+    /* border: 1px solid rgb(0 0 0 / 15%); */
+
+    /* border-bottom: none; */
+
+    /* border-radius: 4px 4px 0 0; */
+
+    /* bottom: 0; */
+
+    /* display: none; */
+
+    /* font-size: 14px; */
+
+    /* list-style: none; */
 
     /* max-width: 300px; */
-    margin: 0;
-    padding: 0;
-    white-space: normal;
-    position: absolute;
-    z-index: 99;
-}
 
-.toolTipMenu > li:first-of-type {
+    /* margin: 0; */
+
+    /* padding: 0; */
+
+    /* white-space: normal; */
+
+    /* position: absolute; */
+
+    /* z-index: 99; */
+
+/* } */
+
+.popover-menu-list > li:first-of-type {
     border: none;
 }
 
-.toolTipMenu a {
-    color: #2980b9;
+.popover-menu-list a {
+    color: #60a5fa;
+    text-decoration: none;
 }
 
-.toolTipMenu > li {
-    border-top: solid 1px #bdc3c7;
+.popover-menu-list > li {
+    border-top: 1px solid rgb(255 255 255 / 8%);
+    border-radius: 8px;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.toolTipMenu li {
-    color: #2980b9;
+.popover-menu-list li {
+    color: #ecf0f1;
     display: block;
 }
 
 /* MenuElement hovering enables the toolTip of the corresponding menu */
-#menuElementContainer > li:hover .toolTipMenu {
-    display: block;
-}
 
-#menuElementContainer li > ul.toolTipMenu li a:hover {
-    background: #e1e1e1;
+/* DEPRECATED: Replaced by Popover API */
+
+/* #menuElementContainer > li:hover .toolTipMenu { */
+
+    /* display: block; */
+
+/* } */
+
+.popover-menu-list li a:hover {
+    background-color: rgb(255 255 255 / 8%);
+    color: #93c5fd;
 }
 
 /***************************************************************************  */
@@ -2426,20 +2617,17 @@ a#pause-button:not(.paused)::before {
     margin-right: 4px;
 }
 
-.toolTipMenu li:hover {
-    background-color: #e1e1e1;
+.popover-menu-list li:hover {
+    background-color: rgb(255 255 255 / 8%);
 }
 
-#emptyLiHover {
-    background-color: #FFF;
-}
-
+#emptyLiHover,
 #emptyLiHover:hover {
-    background-color: #FFF;
+    background-color: transparent;
 }
 
-.toggleOption li:hover {
-    background-color: #e1e1e1;
+.popover-menu-list .toggleOption li:hover {
+    background-color: rgb(255 255 255 / 8%);
 }
 
 .toggleOption {
@@ -2447,10 +2635,10 @@ a#pause-button:not(.paused)::before {
 }
 
 #converter-option:hover {
-    background-color: #fff;
+    background-color: transparent;
 }
 
-.toolTipMenu li a:only-child, .option {
+.popover-menu-list li a:only-child, .option {
     display: block;
     float: none;
     padding: 8px 5px;
@@ -2777,5 +2965,395 @@ a#locateSearchResult {
 @supports (padding: env(safe-area-inset-top)) {
     body {
         padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+}
+
+/* ==========================================================================
+   Modern Popover & Overlay Stacking (Popover API)
+   ========================================================================== */
+
+/* Polyfill compatibility: support both native :popover-open and polyfill class */
+/* stylelint-disable-next-line selector-class-pattern */
+[popover]:is(:popover-open, .\:popover-open) {
+    display: block;
+}
+
+/* Base Popover Styling (Desktop Floating Card) */
+.modern-popover {
+    position: fixed;
+    inset: auto;
+    bottom: 60px;
+    left: 16px;
+    transform: none;
+    margin: 0;
+    padding: 0;
+    width: 360px;
+    max-width: calc(100vw - 32px);
+    max-height: 82vh;
+    background: rgb(24 32 42 / 92%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 16px;
+    box-shadow: 0 16px 40px rgb(0 0 0 / 50%);
+    color: #ecf0f1;
+    overflow: hidden;
+    z-index: 2000;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Hover bridge to prevent mouseleave when moving across the 16px gap from toolbar */
+.modern-popover::after {
+    content: "";
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+    right: 0;
+    height: 20px;
+}
+
+/* Native Popover Backdrop Overlay (Dim & Blur Application Background) */
+.modern-popover::backdrop {
+    background-color: rgb(0 0 0 / 50%);
+    backdrop-filter: blur(4px);
+    animation: backdropFadeIn 0.25s ease forwards;
+}
+
+@keyframes backdropFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Desktop: hide sheet handle */
+.sheet-handle {
+    display: none;
+}
+
+/* Popover Header */
+.popover-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid rgb(255 255 255 / 8%);
+    background: rgb(255 255 255 / 3%);
+}
+
+.popover-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.popover-close-btn {
+    background: transparent;
+    border: none;
+    color: #a0aec0;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: color 0.2s, background 0.2s;
+}
+
+.popover-close-btn:hover {
+    color: #fff;
+    background: rgb(255 255 255 / 10%);
+}
+
+/* Popover Content */
+.popover-content {
+    padding: 12px 18px 18px;
+    overflow-y: auto;
+    max-height: calc(82vh - 60px);
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 20%) transparent;
+}
+
+.popover-content::-webkit-scrollbar,
+.search-combobox-popup::-webkit-scrollbar {
+    width: 6px;
+}
+
+.popover-content::-webkit-scrollbar-track,
+.search-combobox-popup::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.popover-content::-webkit-scrollbar-thumb,
+.search-combobox-popup::-webkit-scrollbar-thumb {
+    background: rgb(255 255 255 / 20%);
+    border-radius: 3px;
+}
+
+.popover-content::-webkit-scrollbar-thumb:hover,
+.search-combobox-popup::-webkit-scrollbar-thumb:hover {
+    background: rgb(255 255 255 / 40%);
+}
+
+/* Menu List (replaces .toolTipMenu ul) */
+.popover-menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* ==========================================================================
+   Touch-Optimized Range Slider Controls
+   ========================================================================== */
+
+.slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: #cbd5e0;
+}
+
+.slider-value {
+    font-family: monospace;
+    font-size: 12px;
+    background: rgb(59 153 252 / 15%);
+    color: #3b99fc;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+/* 44px Minimum Touch Target Container */
+.range-touch-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 44px;
+    width: 100%;
+}
+
+.range-touch-wrapper input[type="range"] {
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: rgb(255 255 255 / 15%);
+    border-radius: 3px;
+    outline: none;
+    margin: 0;
+    cursor: pointer;
+    touch-action: pan-x;
+}
+
+/* WebKit Range Thumb (Chrome, Safari, Edge) */
+.range-touch-wrapper input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #3b99fc;
+    border: 3px solid #18202a;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 40%);
+    cursor: grab;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.range-touch-wrapper input[type="range"]::-webkit-slider-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.15);
+    background: #60a5fa;
+}
+
+/* Gecko Range Thumb (Firefox) */
+.range-touch-wrapper input[type="range"]::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #3b99fc;
+    border: 3px solid #18202a;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 40%);
+    cursor: grab;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.range-touch-wrapper input[type="range"]::-moz-range-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.15);
+    background: #60a5fa;
+}
+
+/* Focus Indicator for Accessibility */
+.range-touch-wrapper input[type="range"]:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px rgb(59 153 252 / 50%);
+}
+
+.range-touch-wrapper input[type="range"]:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 3px rgb(59 153 252 / 50%);
+}
+
+/* Modern flexbox layout for Ontology Custom Converter Inputs */
+.converter-form,
+.converter-form-Editor {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgb(255 255 255 / 8%);
+}
+
+.converter-form label,
+.converter-form-Editor label {
+    display: block;
+    width: 100%;
+    font-size: 13px;
+    font-weight: 500;
+    color: #cbd5e0;
+}
+
+.converter-form input[type="text"],
+.converter-form-Editor input[type="text"],
+#iri-converter-input {
+    flex: 1 1 180px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 1px solid rgb(255 255 255 / 15%);
+    background: rgb(255 255 255 / 5%);
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+    box-sizing: border-box;
+    float: none;
+}
+
+.converter-form input[type="text"]:focus,
+.converter-form-Editor input[type="text"]:focus,
+#iri-converter-input:focus {
+    border-color: #3b99fc;
+    background: rgb(255 255 255 / 8%);
+}
+
+#file-converter-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 160px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 1px dashed rgb(255 255 255 / 20%);
+    background: rgb(255 255 255 / 5%);
+    color: #cbd5e0;
+    font-size: 13px;
+    cursor: pointer;
+    box-sizing: border-box;
+    float: none;
+    transition: all 0.2s ease;
+}
+
+#file-converter-label:hover {
+    border-color: #3b99fc;
+    color: #fff;
+    background: rgb(59 153 252 / 10%);
+}
+
+.converter-form button,
+.converter-form-Editor button,
+#iri-converter-button,
+#file-converter-button {
+    flex: 0 0 auto;
+    height: 34px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: none;
+    background: #3b99fc;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    float: none;
+    transition: background 0.2s ease;
+}
+
+.converter-form button:hover:not(:disabled),
+.converter-form-Editor button:hover:not(:disabled),
+#iri-converter-button:hover:not(:disabled),
+#file-converter-button:hover:not(:disabled) {
+    background: #2563eb;
+}
+
+.converter-form button:disabled,
+.converter-form-Editor button:disabled,
+#iri-converter-button:disabled,
+#file-converter-button:disabled {
+    background: rgb(255 255 255 / 10%);
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+.copy-url-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: 0 0 118px;
+    width: 118px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: none;
+    background-color: #3b99fc;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 6px rgb(59 153 252 / 30%);
+}
+
+.copy-url-btn:hover {
+    background-color: #2563eb;
+    box-shadow: 0 4px 12px rgb(37 99 235 / 40%);
+}
+
+.copy-url-btn.copied {
+    background-color: #22c55e;
+    box-shadow: 0 2px 10px rgb(34 197 94 / 40%);
+}
+
+/* ==========================================================================
+   Responsive Mobile Bottom Sheet Transformation (<= 768px)
+   ========================================================================== */
+
+@media screen and (width <= 768px) {
+    .modern-popover {
+        inset: auto 0 0 !important;
+        transform: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 80vh !important;
+        border-radius: 20px 20px 0 0 !important;
+        border-bottom: none !important;
+        padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
+        animation: sheetSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .sheet-handle {
+        display: block;
+        width: 36px;
+        height: 4px;
+        background: rgb(255 255 255 / 30%);
+        border-radius: 2px;
+        margin: 8px auto 4px;
+    }
+
+    @keyframes sheetSlideUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
     }
 }

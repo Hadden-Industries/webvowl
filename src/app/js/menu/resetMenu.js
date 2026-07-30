@@ -26,7 +26,15 @@ module.exports = function ( graph ){
     });
   };
   
+  let resetFlashTimer;
   function resetGraph(){
+    const resetButton = d3.select("#reset-button");
+    resetButton.classed("flash-active", true);
+    clearTimeout(resetFlashTimer);
+    resetFlashTimer = setTimeout(function (){
+      resetButton.classed("flash-active", false);
+    }, 400);
+
     graph.resetSearchHighlight();
     graph.options().searchMenu().clearText();
     options.classDistance(untouchedOptions.classDistance());
@@ -44,5 +52,9 @@ module.exports = function ( graph ){
   }
   
   
+  resetMenu.setMenuMode = function ( enabled ){
+    d3.select("#reset-button").property("disabled", !enabled);
+  };
+
   return resetMenu;
 };

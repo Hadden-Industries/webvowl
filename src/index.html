@@ -135,117 +135,211 @@
         </div>
         <nav id="menuContainer" aria-label="Main Navigation">
             <!--Ontology Menu-->
-            <ul id="m_select" class="toolTipMenu noselect">
-                <li><a href="#foaf" id="foaf">Friend of a Friend (FOAF) vocabulary</a></li>
-                <li><a href="#goodrelations" id="goodrelations">GoodRelations Vocabulary for E-Commerce</a></li>
-                <li><a href="#muto" id="muto">Modular and Unified Tagging Ontology (MUTO)</a></li>
-                <li><a href="#ontovibe" id="ontovibe">Ontology Visualization Benchmark (OntoViBe)</a></li>
-                <li><a href="#personasonto" id="personasonto">Personas Ontology (PersonasOnto)</a></li>
-                <li><a href="#sioc" id="sioc">SIOC (Semantically-Interlinked Online Communities) Core Ontology</a></li>
+            <div id="m_select" popover="auto" role="dialog" class="modern-popover noselect" aria-label="Ontology">
+                <div class="sheet-handle" aria-hidden="true"></div>
+                <div class="popover-header">
+                    <h3>Ontology</h3>
+                    <button type="button" class="popover-close-btn" popovertarget="m_select" popovertargetaction="hide" aria-label="Close menu">
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                            <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="popover-content">
+                    <ul class="popover-menu-list">
+                        <li><a href="#foaf" id="foaf">Friend of a Friend (FOAF) vocabulary</a></li>
+                        <li><a href="#goodrelations" id="goodrelations">GoodRelations Vocabulary for E-Commerce</a></li>
+                        <li><a href="#muto" id="muto">Modular and Unified Tagging Ontology (MUTO)</a></li>
+                        <li><a href="#ontovibe" id="ontovibe">Ontology Visualization Benchmark (OntoViBe)</a></li>
+                        <li><a href="#personasonto" id="personasonto">Personas Ontology (PersonasOnto)</a></li>
+                        <li><a href="#sioc" id="sioc">SIOC (Semantically-Interlinked Online Communities) Core Ontology</a></li>
 
-                <!-- build:remove release-->
-                <li><a href="#benchmark" id="benchmark">Benchmark Graph for VOWL</a></li>
-                <!-- /build -->
-                <li class="option" id="converter-option">
-                    <form class="converter-form" id="iri-converter-form">
-                        <label for="iri-converter-input">Custom Ontology:</label>
+                        <!-- build:remove release-->
+                        <li><a href="#benchmark" id="benchmark">Benchmark Graph for VOWL</a></li>
+                        <!-- /build -->
+                        <li class="option" id="converter-option">
+                            <form class="converter-form" id="iri-converter-form">
+                                <label for="iri-converter-input">Custom Ontology:</label>
 
-                        <input type="text" id="iri-converter-input" placeholder="Enter ontology IRI">
-                        <button type="submit" id="iri-converter-button" disabled>Visualize</button>
-                    </form>
-                    <div class="converter-form">
-                        <input class="hidden" type="file" id="file-converter-input">
-                        <label class="truncate" id="file-converter-label" for="file-converter-input">Select ontology
-                            file</label>
-                        <button type="submit" id="file-converter-button" disabled>
-                            Upload
-                        </button>
+                                <input type="text" id="iri-converter-input" placeholder="Enter ontology IRI">
+                                <button type="submit" id="iri-converter-button" disabled>Visualize</button>
+                            </form>
+                            <div class="converter-form">
+                                <input class="hidden" type="file" id="file-converter-input">
+                                <label class="truncate" id="file-converter-label" for="file-converter-input">Select ontology
+                                    file</label>
+                                <button type="submit" id="file-converter-button" disabled>
+                                    Upload
+                                </button>
 
-                    </div>
-                    <div id="emptyContainer">
-                        <a href="#opts=editorMode=true;#new_ontology1" id="empty">Create new ontology</a>
-                    </div>
-                    <div>
-                        <!--<button class="debugOption" type="submit" id="direct-text-input">-->
-                        <!--Direct input-->
-                        <!--</button>-->
-                    </div>
-                </li>
-
-            </ul>
+                            </div>
+                            <div id="emptyContainer">
+                                <a href="#opts=editorMode=true;#new_ontology1" id="empty">Create new ontology</a>
+                            </div>
+                            <div>
+                                <!--<button class="debugOption" type="submit" id="direct-text-input">-->
+                                <!--Direct input-->
+                                <!--</button>-->
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
             <!--Export Menu-->
-            <ul id="m_export" class="toolTipMenu noselect">
-                <li><a href="#" download id="exportJson">Export as JSON</a></li>
-                <li><a href="#" download id="exportSvg">Export as SVG</a></li>
-                <li><a href="#" download id="exportTex">Export as TeX <span>(alpha)</span></a>
-                </li>
-                <li><a href="#" download id="exportTurtle">Export as TTL <span>(alpha)</span></a>
-                </li>
+            <div id="m_export" popover="auto" role="dialog" class="modern-popover noselect" aria-label="Export">
+                <div class="sheet-handle" aria-hidden="true"></div>
+                <div class="popover-header">
+                    <h3>Export</h3>
+                    <button type="button" class="popover-close-btn" popovertarget="m_export" popovertargetaction="hide" aria-label="Close menu">
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                            <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="popover-content">
+                    <ul class="popover-menu-list">
+                        <li><a href="#" download id="exportJson">Export as JSON</a></li>
+                        <li><a href="#" download id="exportSvg">Export as SVG</a></li>
+                        <li><a href="#" download id="exportTex">Export as TeX <span>(alpha)</span></a>
+                        </li>
+                        <li><a href="#" download id="exportTurtle">Export as TTL <span>(alpha)</span></a>
+                        </li>
 
-                <li class="option" id="emptyLiHover">
-                    <div>
-                        <form class="converter-form" id="url-copy-form">
-                            <label for="exportedUrl">Export as URL:</label>
-                            <input type="text" id="exportedUrl" placeholder="#">
-                            <button type="submit" id="copyBt" title="Copy to clipboard">Copy</button>
-                        </form>
-                    </div>
-                </li>
-            </ul>
+                        <li class="option" id="emptyLiHover">
+                            <div>
+                                <form class="converter-form" id="url-copy-form">
+                                    <label for="exportedUrl">Export as URL:</label>
+                                    <input type="text" id="exportedUrl" placeholder="#" readonly>
+                                    <button type="submit" id="copyBt" title="Copy URL to clipboard" class="copy-url-btn">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" class="copy-icon" aria-hidden="true">
+                                            <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                        </svg>
+                                        <span class="copy-text">Copy URL</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
             <!--Filter Menu-->
-            <ul id="m_filter" class="toolTipMenu noselect">
-                <li class="toggleOption" id="datatypeFilteringOption"></li>
-                <li class="toggleOption" id="objectPropertyFilteringOption"></li>
-                <li class="toggleOption" id="subclassFilteringOption"></li>
-                <li class="toggleOption" id="disjointFilteringOption"></li>
-                <li class="toggleOption" id="setOperatorFilteringOption"></li>
-                <li class="slideOption" id="nodeDegreeFilteringOption"></li>
-            </ul>
+            <div id="m_filter" popover="auto" role="dialog" class="modern-popover noselect" aria-label="Filter">
+                <div class="sheet-handle" aria-hidden="true"></div>
+                <div class="popover-header">
+                    <h3>Filter</h3>
+                    <button type="button" class="popover-close-btn" popovertarget="m_filter" popovertargetaction="hide" aria-label="Close menu">
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                            <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="popover-content">
+                    <ul class="popover-menu-list">
+                        <li class="toggleOption" id="datatypeFilteringOption"></li>
+                        <li class="toggleOption" id="objectPropertyFilteringOption"></li>
+                        <li class="toggleOption" id="subclassFilteringOption"></li>
+                        <li class="toggleOption" id="disjointFilteringOption"></li>
+                        <li class="toggleOption" id="setOperatorFilteringOption"></li>
+                        <li class="slideOption" id="nodeDegreeFilteringOption"></li>
+                    </ul>
+                </div>
+            </div>
             <!--Options Menu -->
-            <ul id="m_config" class="toolTipMenu noselect">
-                <li class="toggleOption" id="zoomSliderOption"></li>
+            <div id="m_config" popover="auto" role="dialog" class="modern-popover noselect" aria-label="Options">
+                <div class="sheet-handle" aria-hidden="true"></div>
+                <div class="popover-header">
+                    <h3>Options</h3>
+                    <button type="button" class="popover-close-btn" popovertarget="m_config" popovertargetaction="hide" aria-label="Close menu">
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                            <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="popover-content">
+                    <ul class="popover-menu-list">
+                        <li class="toggleOption" id="zoomSliderOption"></li>
 
-                <li class="slideOption" id="classSliderOption"></li>
-                <li class="slideOption" id="datatypeSliderOption"></li>
-                <li class="toggleOption" id="dynamicLabelWidth"></li>
-                <li class="slideOption" id="maxLabelWidthSliderOption"></li>
-                <li class="toggleOption" id="nodeScalingOption"></li>
-                <li class="toggleOption" id="compactNotationOption"></li>
-                <li class="toggleOption" id="colorExternalsOption"></li>
-            </ul>
+                        <li class="slideOption" id="classSliderOption"></li>
+                        <li class="slideOption" id="datatypeSliderOption"></li>
+                        <li class="toggleOption" id="dynamicLabelWidth"></li>
+                        <li class="slideOption" id="maxLabelWidthSliderOption"></li>
+                        <li class="toggleOption" id="nodeScalingOption"></li>
+                        <li class="toggleOption" id="compactNotationOption"></li>
+                        <li class="toggleOption" id="colorExternalsOption"></li>
+                    </ul>
+                </div>
+            </div>
             <!--Modes Menu -->
-            <ul id="m_modes" class="toolTipMenu noselect">
-                <li class="toggleOption" id="editMode"></li>
-                <li class="toggleOption" id="pickAndPinOption"></li>
-            </ul>
+            <div id="m_modes" popover="auto" role="dialog" class="modern-popover noselect" aria-label="Modes">
+                <div class="sheet-handle" aria-hidden="true"></div>
+                <div class="popover-header">
+                    <h3>Modes</h3>
+                    <button type="button" class="popover-close-btn" popovertarget="m_modes" popovertargetaction="hide" aria-label="Close menu">
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                            <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="popover-content">
+                    <ul class="popover-menu-list">
+                        <li class="toggleOption" id="editMode"></li>
+                        <li class="toggleOption" id="pickAndPinOption"></li>
+                    </ul>
+                </div>
+            </div>
 
             <!--Debug Menu -->
-            <ul id="m_debug" class="toolTipMenu noselect">
-                <li class=" toggleOption" id="useAccuracyHelper"></li>
-                <li class=" toggleOption" id="showDraggerObject"></li>
-                <li class=" toggleOption" id="showFPS_Statistics"></li>
-                <li class=" toggleOption" id="showModeOfOperation"></li>
-            </ul>
+            <div id="m_debug" popover="auto" role="dialog" class="modern-popover noselect" aria-label="Debug">
+                <div class="sheet-handle" aria-hidden="true"></div>
+                <div class="popover-header">
+                    <h3>Debug</h3>
+                    <button type="button" class="popover-close-btn" popovertarget="m_debug" popovertargetaction="hide" aria-label="Close menu">
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                            <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="popover-content">
+                    <ul class="popover-menu-list">
+                        <li class=" toggleOption" id="useAccuracyHelper"></li>
+                        <li class=" toggleOption" id="showDraggerObject"></li>
+                        <li class=" toggleOption" id="showFPS_Statistics"></li>
+                        <li class=" toggleOption" id="showModeOfOperation"></li>
+                    </ul>
+                </div>
+            </div>
 
 
             <!--About Menu-->
-            <ul id="m_about" class="toolTipMenu">
-                <li><a href="license.txt" target="_blank">MIT License &copy; 2014-2026</a></li>
-                <li id="credits" class="option">WebVOWL Developers:<br>
-                    <a href="https://dl.acm.org/profile/99660135128" target="_blank">Vincent Link</a>,
-                    <a href="https://dl.acm.org/profile/81387598426" target="_blank">Steffen Lohmann</a>,
-                    <a href="https://dl.acm.org/profile/99659485748" target="_blank">Eduard Marbach</a>,
-                    <a href="https://github.com/blankdots" target="_blank">Stefan Negru</a>,
-                    <a href="https://github.com/vitalis-wiens" target="_blank">Vitalis Wiens</a>,
-                    <a href="https://github.com/MaksymShostak" target="_blank">Maksym Shostak</a>
-                </li>
-                <!-- build:process -->
-                <li><a href="https://github.com/VisualDataWeb/WebVOWL/releases" target="_blank">
-                    Version: __WEBVOWL_VERSION__<br>(release history)</a></li>
-                <!-- /build -->
-                <li><a href="http://purl.org/vowl/" target="_blank">VOWL Specification &raquo;</a></li>
-            </ul>
-            <ul id="m_search" class="toolTipMenu"></ul>
+            <div id="m_about" popover="auto" role="dialog" class="modern-popover" aria-label="About">
+                <div class="sheet-handle" aria-hidden="true"></div>
+                <div class="popover-header">
+                    <h3>About</h3>
+                    <button type="button" class="popover-close-btn" popovertarget="m_about" popovertargetaction="hide" aria-label="Close menu">
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                            <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="popover-content">
+                    <ul class="popover-menu-list">
+                        <li><a href="license.txt" target="_blank">MIT License &copy; 2014-2026</a></li>
+                        <li id="credits" class="option">WebVOWL Developers:<br>
+                            <a href="https://dl.acm.org/profile/99660135128" target="_blank">Vincent Link</a>,
+                            <a href="https://dl.acm.org/profile/81387598426" target="_blank">Steffen Lohmann</a>,
+                            <a href="https://dl.acm.org/profile/99659485748" target="_blank">Eduard Marbach</a>,
+                            <a href="https://github.com/blankdots" target="_blank">Stefan Negru</a>,
+                            <a href="https://github.com/vitalis-wiens" target="_blank">Vitalis Wiens</a>,
+                            <a href="https://github.com/MaksymShostak" target="_blank">Maksym Shostak</a>
+                        </li>
+                        <!-- build:process -->
+                        <li><a href="https://github.com/VisualDataWeb/WebVOWL/releases" target="_blank">
+                            Version: __WEBVOWL_VERSION__<br>(release history)</a></li>
+                        <!-- /build -->
+                        <li><a href="http://purl.org/vowl/" target="_blank">VOWL Specification &raquo;</a></li>
+                    </ul>
+                </div>
+            </div>
         </nav>
         <nav class="noselect" id="swipeBarContainer" aria-label="Toolbar Navigation">
             <ul id="menuElementContainer">
@@ -261,13 +355,15 @@
                         </svg>
                     </i>
                     <label class="sr-only" for="search-input-text">Search ontology</label>
-                    <input class="searchInputText" type="text" id="search-input-text" placeholder="Search">
+                    <input class="searchInputText" type="text" id="search-input-text" placeholder="Search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-haspopup="listbox" aria-controls="search-results-listbox">
+                    <!-- [html-validate-disable-next prefer-native-element] -->
+                    <ul id="search-results-listbox" role="listbox" class="search-combobox-popup hidden" aria-label="Search suggestions"></ul>
                 </li>
                 <li id="c_locate">
                     <button type="button" class="navButton" id="locateSearchResult" title="Nothing to locate, enter search term." aria-label="Locate search result"><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path style="fill: #fff; stroke-width: 0;" d="M11 2h2v3.06A7.001 7.001 0 0 1 18.94 11H22v2h-3.06A7.001 7.001 0 0 1 13 18.94V22h-2v-3.06A7.001 7.001 0 0 1 5.06 13H2v-2h3.06A7.001 7.001 0 0 1 11 5.06V2zm1 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></g></svg></i></button>
                 </li>
                 <li id="c_select">
-                    <button type="button" class="navButton">
+                    <button type="button" class="navButton" popovertarget="m_select">
                         <i>
                             <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                                 <g>
@@ -279,7 +375,7 @@
                             </svg>
                         </i> Ontology</button>
                 </li>
-                <li id="c_export"><button type="button" class="navButton">
+                <li id="c_export"><button type="button" class="navButton" popovertarget="m_export">
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
@@ -290,7 +386,7 @@
                             </g>
                         </svg>
                     </i> Export</button></li>
-                <li id="c_filter"><button type="button" class="navButton">
+                <li id="c_filter"><button type="button" class="navButton" popovertarget="m_filter">
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
@@ -301,7 +397,7 @@
                             </g>
                         </svg>
                     </i>Filter</button></li>
-                <li id="c_config"><button type="button" class="navButton">
+                <li id="c_config"><button type="button" class="navButton" popovertarget="m_config">
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
@@ -313,7 +409,7 @@
                         </svg>
                     </i>Options</button>
                 </li>
-                <li id="c_modes"><button type="button" class="navButton">
+                <li id="c_modes"><button type="button" class="navButton" popovertarget="m_modes">
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
@@ -324,20 +420,7 @@
                             </g>
                         </svg>
                     </i>Modes</button></li>
-                <li id="c_reset"><button type="button" class="navButton" id="reset-button">
-                    <i>
-                        <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
-                            <g>
-                                <path style="fill : #fff; stroke-width:0;"
-                                      d="m 12,5 0,-4 5,5 -5,5 0,-4 c -3.31,0 -6,2.69 -6,6 0,3.31 2.69,6 6,6 3.31,0 6,-2.69 6,-6 l 2,0 c 0,4.42 -3.58,8 -8,8 C 7.58,21 4,17.42 4,13 4,8.58 7.58,5 12,5 Z"
-                                      transform="matrix(0.75,0,0,0.75,3.5,2.5)">
-                                </path>
-                            </g>
-                        </svg>
-                    </i>Reset</button></li>
-                <li id="c_pause"><button type="button" class="navButton" id="pause-button">Pause</button>
-                </li>
-                <li id="c_debug" class="debugOption"><button type="button" class="navButton" id="debugMenuHref">
+                <li id="c_debug" class="debugOption"><button type="button" class="navButton" id="debugMenuHref" popovertarget="m_debug">
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
@@ -349,18 +432,36 @@
                         </svg>
                     </i>
                     Debug</button></li>
-                <li id="c_about"><button type="button" class="navButton">
+                <li id="c_about"><button type="button" class="navButton" popovertarget="m_about">
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
                                 <path style="fill : #fff; stroke-width:0;"
-                                      d="m 10.08,10.86 c 0.05,-0.33 0.16,-0.62 0.3,-0.87 0.14,-0.25 0.34,-0.46 0.59,-0.62 0.24,-0.15 0.54,-0.22 0.91,-0.23 0.23,0.01 0.44,0.05 0.63,0.13 0.2,0.09 0.38,0.21 0.52,0.36 0.14,0.15 0.25,0.33 0.34,0.53 0.09,0.2 0.13,0.42 0.14,0.64 l 1.79,0 C 15.28,10.33 15.19,9.9 15.02,9.51 14.85,9.12 14.62,8.78 14.32,8.5 14.02,8.22 13.66,8 13.24,7.84 12.82,7.68 12.36,7.61 11.85,7.61 11.2,7.61 10.63,7.72 10.15,7.95 9.67,8.18 9.27,8.48 8.95,8.87 8.63,9.26 8.39,9.71 8.24,10.23 8.09,10.75 8,11.29 8,11.87 l 0,0.27 c 0,0.58 0.08,1.12 0.23,1.64 0.15,0.52 0.39,0.97 0.71,1.35 0.32,0.38 0.72,0.69 1.2,0.91 0.48,0.22 1.05,0.34 1.7,0.34 0.47,0 0.91,-0.08 1.32,-0.23 0.41,-0.15 0.77,-0.36 1.08,-0.63 0.31,-0.27 0.56,-0.58 0.74,-0.94 0.18,-0.36 0.29,-0.74 0.3,-1.15 l -1.79,0 c -0.01,0.21 -0.06,0.4 -0.15,0.58 -0.09,0.18 -0.21,0.33 -0.36,0.46 -0.15,0.13 -0.32,0.23 -0.52,0.3 -0.19,0.07 -0.39,0.09 -0.6,0.1 C 11.5,14.86 11.2,14.79 10.97,14.64 10.72,14.48 10.52,14.27 10.38,14.02 10.24,13.77 10.13,13.47 10.08,13.14 10.03,12.81 10,12.47 10,12.14 l 0,-0.27 c 0,-0.35 0.03,-0.68 0.08,-1.01 z M 12,2 C 6.48,2 2,6.48 2,12 2,17.52 6.48,22 12,22 17.52,22 22,17.52 22,12 22,6.48 17.52,2 12,2 Z m 0,18 C 7.59,20 4,16.41 4,12 4,7.59 7.59,4 12,4 c 4.41,0 8,3.59 8,8 0,4.41 -3.59,8 -8,8 z"
+                                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
                             </g>
                         </svg>
                     </i>
                     About</button></li>
+
+                <!-- Vertical Toolbar Divider separating Menu Drawers from Graph Action Controls -->
+                <li class="nav-separator" role="separator" aria-orientation="vertical"></li>
+
+                <!-- Direct Graph Execution Action Buttons -->
+                <li id="c_reset"><button type="button" class="navButton action-pill" id="reset-button" disabled title="Reset layout and filters">
+                    <i>
+                        <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
+                            <g>
+                                <path style="fill : #fff; stroke-width:0;"
+                                      d="m 12,5 0,-4 5,5 -5,5 0,-4 c -3.31,0 -6,2.69 -6,6 0,3.31 2.69,6 6,6 3.31,0 6,-2.69 6,-6 l 2,0 c 0,4.42 -3.58,8 -8,8 C 7.58,21 4,17.42 4,13 4,8.58 7.58,5 12,5 Z"
+                                      transform="matrix(0.75,0,0,0.75,3.5,2.5)">
+                                </path>
+                            </g>
+                        </svg>
+                    </i>Reset</button></li>
+                <li id="c_pause"><button type="button" class="navButton action-pill" id="pause-button" disabled aria-pressed="false" title="Pause or resume graph physics simulation">Pause</button>
+                </li>
             </ul>
         </nav>
         <div class="noselect" id="scrollRightButton"></div>
@@ -557,6 +658,11 @@
 
 <script src="js/d3.min.js"></script>
 <script type="module" src="main.js"></script>
+<script type="module">
+  if (!("popover" in HTMLElement.prototype)) {
+    import("https://cdn.jsdelivr.net/npm/@oddbird/popover-polyfill@latest/dist/popover.min.js");
+  }
+</script>
 </body>
 </html>
 

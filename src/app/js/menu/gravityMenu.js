@@ -30,27 +30,34 @@ module.exports = function ( graph ){
     
     const sliderContainer = d3.select(selector)
       .append("div")
-      .datum({ distanceFunction: distanceFunction }) // connect the options-function with the slider
+      .datum({ distanceFunction: distanceFunction })
       .classed("distanceSliderContainer", true);
-    
-    const slider = sliderContainer.append("input")
+
+    const sliderHeader = sliderContainer.append("div")
+      .classed("slider-header", true);
+
+    sliderHeader.append("label")
+      .classed("description", true)
+      .attr("for", identifier + "DistanceSlider")
+      .text(label);
+
+    const sliderValueLabel = sliderHeader.append("span")
+      .classed("slider-value", true)
+      .attr("id", identifier + "DistanceSliderValue")
+      .text(distanceFunction());
+
+    const touchWrapper = sliderContainer.append("div")
+      .classed("range-touch-wrapper", true);
+
+    const slider = touchWrapper.append("input")
       .datum({ distanceFunction: distanceFunction })
       .attr("id", identifier + "DistanceSlider")
       .attr("type", "range")
       .attr("min", 10)
       .attr("max", 600)
       .attr("value", distanceFunction())
-      .attr("step", 10);
-    
-    sliderContainer.append("label")
-      .classed("description", true)
-      .attr("for", identifier + "DistanceSlider")
-      .text(label);
-    
-    const sliderValueLabel = sliderContainer.append("label")
-      .classed("value", true)
-      .attr("for", identifier + "DistanceSlider")
-      .text(distanceFunction());
+      .attr("step", 10)
+      .attr("aria-label", label);
     
     // Store slider for easier resetting
     sliders.push(slider);

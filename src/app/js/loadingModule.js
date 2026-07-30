@@ -603,6 +603,8 @@ module.exports = function ( graph ){
   loadingModule.validJsonFile = function (){
     ontologyMenu.append_message_toLastBulletPoint("done");
     loadingWasSuccessFul = true;
+    if ( graph.options().resetMenu() ) { graph.options().resetMenu().setMenuMode(true); }
+    if ( graph.options().pausedMenu() ) { graph.options().pausedMenu().setMenuMode(true); }
   };
   
   

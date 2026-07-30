@@ -15,12 +15,11 @@ module.exports = function ( graph ){
   let dictionaryUpdateRequired = true;
   let labelDictionary;
   let inputText;
-  let viewStatusOfSearchEntries = false;
   
   let results = [];
   let resultID = [];
   const c_locate = d3.select("#locateSearchResult");
-  const m_search = d3.select("#m_search"); // << dropdown container;
+  const listbox = d3.select("#search-results-listbox");
   
   
   String.prototype.beginsWith = function ( string ){
@@ -29,13 +28,16 @@ module.exports = function ( graph ){
   
   searchMenu.requestDictionaryUpdate = function (){
     dictionaryUpdateRequired = true;
-    // clear possible pre searched entries
-    const htmlCollection = m_search.node().children;
-    const numEntries = htmlCollection.length;
-    
-    for ( let i = 0; i < numEntries; i++ )
-      {htmlCollection[0].remove();}
-    searchLineEdit.node().value = "";
+    if ( listbox.node() ) {
+      const htmlCollection = listbox.node().children;
+      const numEntries = htmlCollection.length;
+      for ( let i = 0; i < numEntries; i++ ) {
+        htmlCollection[0].remove();
+      }
+    }
+    if ( searchLineEdit && searchLineEdit.node() ) {
+      searchLineEdit.node().value = "";
+    }
   };
   
   
@@ -105,8 +107,11 @@ module.exports = function ( graph ){
     searchLineEdit = d3.select("#search-input-text");
     searchLineEdit.on("input", userInput);
     searchLineEdit.on("keydown", userNavigation);
-    searchLineEdit.on("click", toggleSearchEntryView);
-    searchLineEdit.on("mouseover", hoverSearchEntryView);
+    searchLineEdit.on("click", function (){
+      updateSelectionStatusFlags();
+      searchMenu.showSearchEntries();
+    });
+    searchLineEdit.on("focus", hoverSearchEntryView);
     
     c_locate.on("click", function (){
       graph.locateSearchResult();
@@ -115,7 +120,14 @@ module.exports = function ( graph ){
     c_locate.on("mouseover", function (){
       searchMenu.hideSearchEntries();
     });
-    
+
+    // Light dismiss: Close search listbox when clicking outside c_search container
+    d3.select(document).on("click.searchCombobox", function (event){
+      const cSearchNode = d3.select("#c_search").node();
+      if ( cSearchNode && !cSearchNode.contains(event.target) ) {
+        searchMenu.hideSearchEntries();
+      }
+    });
   };
   
   function hoverSearchEntryView(){
@@ -123,31 +135,41 @@ module.exports = function ( graph ){
     searchMenu.showSearchEntries();
   }
   
-  function toggleSearchEntryView(){
-    if ( viewStatusOfSearchEntries ) {
-      searchMenu.hideSearchEntries();
-    } else {
-      searchMenu.showSearchEntries();
-    }
-  }
-  
+
   searchMenu.hideSearchEntries = function (){
-    m_search.classed("is-open", false).classed("hidden", true);
-    viewStatusOfSearchEntries = false;
+    listbox.classed("hidden", true);
+    if ( searchLineEdit && searchLineEdit.node() ) {
+      searchLineEdit.attr("aria-expanded", "false");
+      searchLineEdit.attr("aria-activedescendant", null);
+    }
   };
   
   searchMenu.showSearchEntries = function (){
-    m_search.classed("is-open", true).classed("hidden", false);
-    viewStatusOfSearchEntries = true;
-    graph.options().navigationMenu().updateMenuPosition();
+    if ( listbox.node() && listbox.node().children.length > 0 ) {
+      const cSearchNode = d3.select("#c_search").node();
+      if ( cSearchNode ) {
+        const buttonRect = cSearchNode.getBoundingClientRect();
+        let finalLeft = buttonRect.left;
+        const maxRight = window.innerWidth - 340 - 16;
+        if ( finalLeft > maxRight ) {
+          finalLeft = maxRight;
+        }
+        finalLeft = Math.max(16, finalLeft);
+        listbox.style("left", finalLeft + "px").style("transform", "none");
+      }
+      listbox.classed("hidden", false);
+      if ( searchLineEdit && searchLineEdit.node() ) {
+        searchLineEdit.attr("aria-expanded", "true");
+      }
+    } else {
+      searchMenu.hideSearchEntries();
+    }
   };
   
   function ValidURL( str ){
     const urlregex = /^(https?|ftp):\/\/([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(:[0-9]+)*(\/($|[a-zA-Z0-9.,?'\\+&%$#=~_-]+))*$/;
     return urlregex.test(str);
-    
   }
-  
   
   function updateSelectionStatusFlags(){
     if ( searchLineEdit.node().value.length === 0 ) {
@@ -161,21 +183,25 @@ module.exports = function ( graph ){
     if ( dictionaryUpdateRequired ) {
       updateSearchDictionary();
     }
+
+    if ( event.keyCode === 27 ) { // Escape key
+      searchMenu.hideSearchEntries();
+      return;
+    }
     
-    const htmlCollection = m_search.node().children;
+    const htmlCollection = listbox.node().children;
     const numEntries = htmlCollection.length;
-    
     
     let move = 0;
     let i;
     let selectedEntry = -1;
     for ( i = 0; i < numEntries; i++ ) {
-      const atr = htmlCollection[i].getAttribute('class');
-      if ( atr === "dbEntrySelected" ) {
+      if ( htmlCollection[i].getAttribute("aria-selected") === "true" || htmlCollection[i].classList.contains("selected") ) {
         selectedEntry = i;
       }
     }
-    if ( event.keyCode === 13 ) {
+
+    if ( event.keyCode === 13 ) { // Enter key
       if ( selectedEntry >= 0 && selectedEntry < numEntries ) {
         // simulate onClick event
         htmlCollection[selectedEntry].onclick();
@@ -183,20 +209,16 @@ module.exports = function ( graph ){
       }
       else if ( numEntries === 0 ) {
         inputText = searchLineEdit.node().value;
-        // check if input text ends or begins with with space
-        // remove first spaces
         let clearedText = inputText.replace(/%20/g, " ");
         while ( clearedText.beginsWith(" ") ) {
           clearedText = clearedText.substr(1, clearedText.length);
         }
-        // remove ending spaces
         while ( clearedText.endsWith(" ") ) {
           clearedText = clearedText.substr(0, clearedText.length - 1);
         }
         const iri = clearedText.replace(/ /g, "%20");
         
         const valid = ValidURL(iri);
-        // validate url:
         if ( valid ) {
           const ontM = graph.options().ontologyMenu();
           ontM.setIriText(iri);
@@ -206,31 +228,36 @@ module.exports = function ( graph ){
           console.warn(iri + " is not a valid URL!");
         }
       }
+      return;
     }
-    if ( event.keyCode === 38 ) {
+
+    if ( event.keyCode === 38 ) { // ArrowUp
       move = -1;
       searchMenu.showSearchEntries();
     }
-    if ( event.keyCode === 40 ) {
+    if ( event.keyCode === 40 ) { // ArrowDown
       move = +1;
       searchMenu.showSearchEntries();
     }
     
     const newSelection = selectedEntry + move;
-    if ( newSelection !== selectedEntry ) {
-      
-      if ( newSelection < 0 && selectedEntry <= 0 ) {
-        htmlCollection[0].setAttribute('class', "dbEntrySelected");
+    if ( newSelection !== selectedEntry && numEntries > 0 ) {
+      let targetIdx = newSelection;
+      if ( targetIdx < 0 ) {
+        targetIdx = numEntries - 1;
+      } else if ( targetIdx >= numEntries ) {
+        targetIdx = 0;
       }
-      
-      if ( newSelection >= numEntries ) {
-        htmlCollection[selectedEntry].setAttribute('class', "dbEntrySelected");
+
+      for ( i = 0; i < numEntries; i++ ) {
+        htmlCollection[i].setAttribute("aria-selected", "false");
+        htmlCollection[i].classList.remove("selected");
       }
-      if ( newSelection >= 0 && newSelection < numEntries ) {
-        htmlCollection[newSelection].setAttribute('class', "dbEntrySelected");
-        if ( selectedEntry >= 0 )
-          {htmlCollection[selectedEntry].setAttribute('class', "dbEntry");}
-      }
+
+      const activeOpt = htmlCollection[targetIdx];
+      activeOpt.setAttribute("aria-selected", "true");
+      activeOpt.classList.add("selected");
+      searchLineEdit.attr("aria-activedescendant", activeOpt.id);
     }
   }
   
@@ -238,16 +265,16 @@ module.exports = function ( graph ){
     return searchLineEdit.node().value;
   };
   
-  
   function clearSearchEntries(){
-    const htmlCollection = m_search.node().children;
-    const numEntries = htmlCollection.length;
-    for ( let i = 0; i < numEntries; i++ ) {
-      htmlCollection[0].remove();
+    if ( listbox.node() ) {
+      const htmlCollection = listbox.node().children;
+      const numEntries = htmlCollection.length;
+      for ( let i = 0; i < numEntries; i++ ) {
+        htmlCollection[0].remove();
+      }
     }
     results = [];
     resultID = [];
-    
   }
   
   function createSearchEntries(){
@@ -259,8 +286,6 @@ module.exports = function ( graph ){
     for ( i = 0; i < dictionary.length; i++ ) {
       const tokenElement = dictionary[i];
       if ( tokenElement === undefined ) {
-        //@WORKAROUND : nodes with undefined labels are skipped
-        //@FIX: these nodes are now not added to the dictionary
         continue;
       }
       token = dictionary[i].toLowerCase();
@@ -270,105 +295,63 @@ module.exports = function ( graph ){
       }
     }
   }
-  
-  function measureTextWidth( text, textStyle ){
-    // Set a default value
-    if ( !textStyle ) {
-      textStyle = "text";
-    }
-    const d = d3.select("body")
-        .append("div")
-        .attr("class", textStyle)
-        .attr("id", "width-test") // tag this element to identify it
-        .attr("style", "position:absolute; float:left; white-space:nowrap; visibility:hidden;")
-        .text(text),
-      w = document.getElementById("width-test").offsetWidth;
-    d.remove();
-    return w;
-  }
-  
-  function cropText( input ){
-    const maxWidth = 250;
-    const textStyle = "dbEntry";
-    let truncatedText = input;
-    let textWidth;
-    let ratio;
-    let newTruncatedTextLength;
-    while ( true ) {
-      textWidth = measureTextWidth(truncatedText, textStyle);
-      if ( textWidth <= maxWidth ) {
-        break;
-      }
-      
-      ratio = textWidth / maxWidth;
-      newTruncatedTextLength = Math.floor(truncatedText.length / ratio);
-      
-      // detect if nothing changes
-      if ( truncatedText.length === newTruncatedTextLength ) {
-        break;
-      }
-      
-      truncatedText = truncatedText.substring(0, newTruncatedTextLength);
-    }
-    
-    if ( input.length > truncatedText.length ) {
-      return input.substring(0, truncatedText.length - 6);
-    }
-    return input;
+
+  function highlightQueryMatch( fullText, query ){
+    if ( !query ) {return fullText;}
+    const idx = fullText.toLowerCase().indexOf(query.toLowerCase());
+    if ( idx === -1 ) {return fullText;}
+    const before = fullText.substring(0, idx);
+    const match = fullText.substring(idx, idx + query.length);
+    const after = fullText.substring(idx + query.length);
+    return before + '<mark class="search-match">' + match + '</mark>' + after;
   }
   
   function createDropDownElements(){
-    let numEntries;
-    const copyRes = results;
+    const copyRes = [];
     let i;
-    let token;
+    for ( i = 0; i < results.length; i++ ) {
+      copyRes.push(results[i]);
+    }
+    
     const newResults = [];
     const newResultsIds = [];
     
-    const lc_text = searchLineEdit.node().value.toLowerCase();
-    // set the number of shown results to be maxEntries or less;
-    numEntries = results.length;
-    if ( numEntries > maxEntries )
-      {numEntries = maxEntries;}
-    
-    
-    for ( i = 0; i < numEntries; i++ ) {
-      // search for the best entry
-      let indexElement = 1000000;
-      let lengthElement = 1000000;
-      let bestElement = -1;
-      for ( let j = 0; j < copyRes.length; j++ ) {
-        token = copyRes[j].toLowerCase();
-        const tIe = token.indexOf(lc_text);
-        const tLe = token.length;
-        if ( tIe > -1 && tIe <= indexElement && tLe <= lengthElement ) {
-          bestElement = j;
-          indexElement = tIe;
-          lengthElement = tLe;
+    while ( copyRes.length > 0 ) {
+      let minLen = Number.MAX_VALUE;
+      let minIdx = -1;
+      for ( i = 0; i < copyRes.length; i++ ) {
+        if ( copyRes[i] !== "" ) {
+          if ( copyRes[i].length < minLen ) {
+            minLen = copyRes[i].length;
+            minIdx = i;
+          }
         }
       }
-      newResults.push(copyRes[bestElement]);
-      newResultsIds.push(resultID[bestElement]);
-      copyRes[bestElement] = "";
+      if ( minIdx === -1 ) {
+        break;
+      }
+      newResults.push(copyRes[minIdx]);
+      newResultsIds.push(resultID[minIdx]);
+      copyRes[minIdx] = "";
     }
     
-    // add the results to the entry menu
-    //******************************************
-    numEntries = results.length;
-    if ( numEntries > maxEntries )
-      {numEntries = maxEntries;}
+    let numEntries = newResults.length;
+    if ( numEntries > maxEntries ) {
+      numEntries = maxEntries;
+    }
     
     for ( i = 0; i < numEntries; i++ ) {
-      //add results to the dropdown menu
-      const testEntry = document.createElement('li');
-      testEntry.setAttribute('elementID', newResultsIds[i]);
+      const optionId = "search-option-" + i;
+      const testEntry = document.createElement("li");
+      testEntry.setAttribute("id", optionId);
+      testEntry.setAttribute("role", "option");
+      testEntry.setAttribute("aria-selected", "false");
+      testEntry.setAttribute("elementID", newResultsIds[i]);
       testEntry.onclick = handleClick(newResultsIds[i]);
-      testEntry.setAttribute('class', "dbEntry");
+      testEntry.setAttribute("class", "search-option");
       
       const entries = mergedIdList[newResultsIds[i]];
       const eLen = entries.length;
-      
-      let croppedText = cropText(newResults[i]);
       
       const el0 = entries[0];
       let allSame = true;
@@ -387,55 +370,46 @@ module.exports = function ( graph ){
           allSame = false;
         }
       }
-      if ( croppedText !== newResults[i] ) {
-        // append ...(#numElements) if needed
-        if ( eLen > 1 && allSame === false ) {
-          if ( eLen !== visible )
-            {croppedText += "... (" + visible + "/" + eLen + ")";}
-        }
-        else {
-          croppedText += "...";
-        }
-        testEntry.title = newResults[i];
-      }
-      else {
-        if ( eLen > 1 && allSame === false ) {
-          if ( eLen !== visible )
-            {croppedText += " (" + visible + "/" + eLen + ")";}
-          else
-            {croppedText += " (" + eLen + ")";}
-        }
-      }
       
+      const rawTitle = newResults[i];
+      const queryStr = searchLineEdit.node().value;
+      const matchHtml = highlightQueryMatch(rawTitle, queryStr);
+      let badgeHtml = "";
+
+      if ( eLen > 1 && allSame === false ) {
+        if ( eLen !== visible ) {
+          badgeHtml = '<span class="search-count-badge">' + visible + "/" + eLen + " visible</span>";
+        } else {
+          badgeHtml = '<span class="search-count-badge">' + eLen + "</span>";
+        }
+      }
+
       const searchEntryNode = d3.select(testEntry);
       if ( eLen === 1 || allSame === true ) {
         if ( nodeMap[entries[0]] === undefined ) {
           searchEntryNode.classed("search-entry-disabled", true);
-          testEntry.title = newResults[i] + "\nElement is filtered out.";
-          testEntry.onclick = function (){
-          };
+          testEntry.title = rawTitle + "\nElement is filtered out.";
+          testEntry.onclick = function (){};
         }
       } else {
         if ( visible < 1 ) {
           searchEntryNode.classed("search-entry-disabled", true);
-          testEntry.onclick = function (){
-          };
-          testEntry.title = newResults[i] + "\nAll elements are filtered out.";
+          testEntry.onclick = function (){};
+          testEntry.title = rawTitle + "\nAll elements are filtered out.";
         } else {
           searchEntryNode.classed("search-entry-disabled", false);
         }
         if ( visible < eLen && visible > 1 ) {
-          testEntry.title = newResults[i] + "\n" + visible + "/" + eLen + " elements are visible.";
+          testEntry.title = rawTitle + "\n" + visible + "/" + eLen + " elements are visible.";
         }
       }
-      searchEntryNode.node().innerHTML = croppedText;
-      m_search.node().appendChild(testEntry);
+
+      testEntry.innerHTML = "<span>" + matchHtml + "</span>" + badgeHtml;
+      listbox.node().appendChild(testEntry);
     }
   }
   
-  
   function handleAutoCompletion(){
-    /**  pre condition: autoCompletion has already a valid text**/
     clearSearchEntries();
     createSearchEntries();
     createDropDownElements();
@@ -466,12 +440,10 @@ module.exports = function ( graph ){
   }
   
   function handleClick( elementId ){
-    
     return function (){
       const id = elementId;
       const correspondingIds = mergedIdList[id];
       
-      // autoComplete the text for the user
       const autoComStr = entryNames[id];
       searchLineEdit.node().value = autoComStr;
       
@@ -489,10 +461,12 @@ module.exports = function ( graph ){
     searchLineEdit.node().value = "";
     c_locate.classed("highlighted", false);
     c_locate.node().title = "Nothing to locate";
-    const htmlCollection = m_search.node().children;
-    const numEntries = htmlCollection.length;
-    for ( let i = 0; i < numEntries; i++ ) {
-      htmlCollection[0].remove();
+    if ( listbox.node() ) {
+      const htmlCollection = listbox.node().children;
+      const numEntries = htmlCollection.length;
+      for ( let i = 0; i < numEntries; i++ ) {
+        htmlCollection[0].remove();
+      }
     }
   };
   

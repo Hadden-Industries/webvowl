@@ -175,6 +175,9 @@ module.exports = function ( graph ){
   }
   
   function menuElementOnHovered(){
+    if ( !window.matchMedia("(hover: hover)").matches ) {
+      return;
+    }
     navigationMenu.hideAllMenus();
     if ( touchedElement ) {
       return;
@@ -190,11 +193,17 @@ module.exports = function ( graph ){
   function menuElementClicked(){
     const m_element = m_select[c_select.indexOf(this.id)];
     if ( m_element ) {
-      const menuElement = d3.select("#" + m_element);
-      if ( menuElement ) {
-        if ( !menuElement.classed("hidden") ) {
-          menuElement.classed("hidden", true);
-        } else {
+      const menuNode = document.getElementById(m_element);
+      if ( menuNode ) {
+        try {
+          if ( menuNode.matches(":popover-open") ) {
+            menuNode.hidePopover();
+          } else {
+            navigationMenu.hideAllMenus();
+            showSingleMenu(this.id);
+          }
+        } catch {
+          navigationMenu.hideAllMenus();
           showSingleMenu(this.id);
         }
       }
@@ -231,26 +240,37 @@ module.exports = function ( graph ){
         d3.select("#" + controllerID).classed("active-menu-item", true);
       }
       currentlyVisibleMenu = d3.select("#" + m_element);
-      currentlyVisibleMenu.classed("is-open", true).classed("hidden", false);
+      try { currentlyVisibleMenu.node().showPopover(); } catch { /* ignore if open */ }
       if ( m_element === "m_export" )
         {graph.options().exportMenu().exportAsUrl();}
       updateMenuPosition();
     }
   }
   
-  function updateMenuPosition(){
-    if ( currentlyHoveredEntry && currentlyVisibleMenu && currentlyVisibleMenu.node() ) {
-      const leftOffset = currentlyHoveredEntry.offsetLeft;
-      const scrollOffset = scrollContainer.scrollLeft;
-      const totalOffset = leftOffset - scrollOffset;
-      let finalOffset = Math.max(0, totalOffset);
+  function updateMenuPosition( controllerID ){
+    if ( controllerID ) {
+      currentlyHoveredEntry = d3.select("#" + controllerID).node();
+    }
+    if ( !currentlyVisibleMenu || !currentlyVisibleMenu.node() ) {
+      return;
+    }
 
-      let maxRightBoundary = scrollContainer.getBoundingClientRect().width;
+    // On mobile screen widths, clear inline positioning to allow CSS bottom sheet rules to govern
+    if ( window.innerWidth <= 768 ) {
+      currentlyVisibleMenu.style("left", null).style("transform", null);
+      return;
+    }
+
+    if ( currentlyHoveredEntry ) {
+      const buttonRect = currentlyHoveredEntry.getBoundingClientRect();
+      let finalOffset = buttonRect.left;
+
+      let maxRightBoundary = window.innerWidth - 16;
       const detailArea = d3.select("#detailsArea");
       if ( detailArea.node() && !detailArea.classed("hidden") ) {
         const sidebarLeft = detailArea.node().getBoundingClientRect().left;
         if ( sidebarLeft > 0 ) {
-          maxRightBoundary = Math.min(maxRightBoundary, sidebarLeft);
+          maxRightBoundary = Math.min(maxRightBoundary, sidebarLeft - 16);
         }
       }
 
@@ -259,15 +279,21 @@ module.exports = function ( graph ){
         finalOffset = maxRightBoundary - elementWidth;
       }
 
-      finalOffset = Math.max(0, finalOffset);
-      currentlyVisibleMenu.style("left", finalOffset + "px");
+      finalOffset = Math.max(16, finalOffset);
+      currentlyVisibleMenu.style("left", finalOffset + "px").style("transform", "none");
     }
   }
 
   navigationMenu.updateMenuPosition = updateMenuPosition;
   
   navigationMenu.hideAllMenus = function (){
-    d3.selectAll(".toolTipMenu").classed("is-open", false).classed("hidden", true);
+    d3.selectAll(".modern-popover").each(function (){
+      try {
+        if ( this.matches(":popover-open") ) {
+          this.hidePopover();
+        }
+      } catch { /* ignore */ }
+    });
   };
   
   navigationMenu.updateScrollButtonVisibility = function (){
@@ -287,17 +313,24 @@ module.exports = function ( graph ){
   
   navigationMenu.setup = function (){
     setupControlsAndMenus();
-    // make sure that the menu elements follow their controller and also their restrictions
-    // some hovering behavior -- lets the menu disappear when hovered in graph or sidebar;
-    d3.select("#graph").on("mouseover", function (){
-      navigationMenu.hideAllMenus();
-    }).on("touchstart", function (){
+    // Allow popover light-dismiss natively on click; avoid closing on hover across graph gap
+    d3.select("#graph").on("touchstart", function (){
       navigationMenu.hideAllMenus();
     });
-    d3.select("#generalDetails").on("mouseover", function (){
+    d3.select("#generalDetails").on("touchstart", function (){
       navigationMenu.hideAllMenus();
-    }).on("touchstart", function (){
-      navigationMenu.hideAllMenus();
+    });
+    
+    // Sync active-menu-item class when popovers are dismissed externally
+    d3.selectAll(".modern-popover").on("toggle", function (){
+      if ( !this.matches(":popover-open") ) {
+        // Find the corresponding controller and remove active state
+        const menuId = this.id;
+        const controllerIdx = m_select.indexOf(menuId);
+        if ( controllerIdx > -1 ) {
+          d3.select("#" + c_select[controllerIdx]).classed("active-menu-item", false);
+        }
+      }
     });
   };
   

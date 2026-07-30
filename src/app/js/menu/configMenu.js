@@ -19,24 +19,31 @@ module.exports = function ( graph ){
     const sliderContainer = d3.select(selector)
       .append("div")
       .classed("distanceSliderContainer", true);
-    
-    const slider = sliderContainer.append("input")
+
+    const sliderHeader = sliderContainer.append("div")
+      .classed("slider-header", true);
+
+    sliderHeader.append("label")
+      .classed("description", true)
+      .attr("for", identifier + "Slider")
+      .text(label);
+
+    const sliderValueLabel = sliderHeader.append("span")
+      .classed("slider-value", true)
+      .attr("id", identifier + "SliderValue")
+      .text(onChangeFunction());
+
+    const touchWrapper = sliderContainer.append("div")
+      .classed("range-touch-wrapper", true);
+
+    const slider = touchWrapper.append("input")
       .attr("id", identifier + "Slider")
       .attr("type", "range")
       .attr("min", 20)
       .attr("max", 600)
       .attr("value", onChangeFunction())
-      .attr("step", 10);
-    sliderContainer.append("label")
-      .classed("description", true)
-      .attr("for", identifier + "Slider")
-      .attr("id", identifier + "DescriptionLabel")
-      .text(label);
-    const sliderValueLabel = sliderContainer.append("label")
-      .classed("value", true)
-      .attr("for", identifier + "Slider")
-      .attr("id", identifier + "valueLabel")
-      .text(onChangeFunction());
+      .attr("step", 10)
+      .attr("aria-label", label);
     
     slider.on("input", function (){
       const value = slider.property("value");

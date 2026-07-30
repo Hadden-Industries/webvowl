@@ -45,9 +45,9 @@ module.exports = function ( graph ){
   }
   
   function updatePauseButtonClass(){
-    pauseButton.classed("paused", function ( d ){
-      return d.paused;
-    });
+    const isPaused = pauseButton.datum().paused;
+    pauseButton.classed("paused", isPaused);
+    pauseButton.attr("aria-pressed", isPaused ? "true" : "false");
   }
   
   function updatePauseButtonText(){
@@ -64,5 +64,9 @@ module.exports = function ( graph ){
   };
   
   
+  pauseMenu.setMenuMode = function ( enabled ){
+    d3.select("#pause-button").property("disabled", !enabled);
+  };
+
   return pauseMenu;
 };

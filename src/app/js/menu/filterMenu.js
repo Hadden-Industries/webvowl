@@ -109,22 +109,29 @@ module.exports = function ( graph ){
     
     const sliderContainer = container.append("div")
       .classed("distanceSliderContainer", true);
-    
-    degreeSlider = sliderContainer.append("input")
-      .attr("id", "nodeDegreeDistanceSlider")
-      .attr("type", "range")
-      .attr("min", 0)
-      .attr("step", 1);
-    
-    sliderContainer.append("label")
+
+    const sliderHeader = sliderContainer.append("div")
+      .classed("slider-header", true);
+
+    sliderHeader.append("label")
       .classed("description", true)
       .attr("for", "nodeDegreeDistanceSlider")
       .text("Degree of collapsing");
-    
-    const sliderValueLabel = sliderContainer.append("label")
-      .classed("value", true)
-      .attr("for", "nodeDegreeDistanceSlider")
+
+    const sliderValueLabel = sliderHeader.append("span")
+      .classed("slider-value", true)
+      .attr("id", "nodeDegreeSliderValue")
       .text(0);
+
+    const touchWrapper = sliderContainer.append("div")
+      .classed("range-touch-wrapper", true);
+
+    degreeSlider = touchWrapper.append("input")
+      .attr("id", "nodeDegreeDistanceSlider")
+      .attr("type", "range")
+      .attr("min", 0)
+      .attr("step", 1)
+      .attr("aria-label", "Degree of collapsing");
     
     
     degreeSlider.on("change", function ( arg1, arg2 ){
