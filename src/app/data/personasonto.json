@@ -1,9 +1,9 @@
 {
-  "_comment": "Created with OWL2VOWL (version 0.3.4), http://vowl.visualdataweb.org",
+  "_comment": "Created with OWL2VOWL (version 0.3.7), http://vowl.visualdataweb.org [Additional Information added by WebVOWL Exporter Version: 1.1.7]",
   "header": {
     "languages": [
-      "en",
-      "undefined"
+      "undefined",
+      "en"
     ],
     "baseIris": [
       "http://www.w3.org/1999/02/22-rdf-syntax-ns",
@@ -11,6 +11,18 @@
       "http://www.w3.org/2000/01/rdf-schema",
       "http://www.w3.org/2001/XMLSchema"
     ],
+    "prefixList": {
+      "owl": "http://www.w3.org/2002/07/owl#",
+      "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "xsd": "http://www.w3.org/2001/XMLSchema#",
+      "": "http://purl.org/dc/elements/1.1/",
+      "dc": "http://purl.org/dc/elements/1.1/",
+      "xml": "http://www.w3.org/XML/1998/namespace",
+      "foaf": "http://xmlns.com/foaf/spec/index.rdf",
+      "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+      "foaf2": "http://xmlns.com/foaf/0.1/"
+    },
     "title": {
       "en": "PersonasOnto"
     },
@@ -85,12 +97,6 @@
     }
   },
   "namespace": [],
-  "metrics": {
-    "classCount": 53,
-    "objectPropertyCount": 36,
-    "datatypePropertyCount": 30,
-    "individualCount": 0
-  },
   "class": [
     {
       "id": "8",
@@ -101,31 +107,27 @@
       "type": "owl:Class"
     },
     {
-      "id": "23",
+      "id": "4",
       "type": "owl:Class"
     },
     {
-      "id": "25",
+      "id": "24",
       "type": "owl:Class"
     },
     {
-      "id": "29",
+      "id": "28",
       "type": "owl:Class"
     },
     {
-      "id": "54",
+      "id": "56",
       "type": "owl:Class"
     },
     {
-      "id": "55",
+      "id": "57",
       "type": "owl:Class"
     },
     {
-      "id": "46",
-      "type": "owl:Class"
-    },
-    {
-      "id": "88",
+      "id": "48",
       "type": "owl:Class"
     },
     {
@@ -133,67 +135,39 @@
       "type": "owl:Class"
     },
     {
-      "id": "33",
+      "id": "90",
       "type": "owl:Class"
     },
     {
-      "id": "42",
-      "type": "rdfs:Literal"
-    },
-    {
-      "id": "30",
+      "id": "101",
       "type": "owl:Class"
     },
     {
-      "id": "108",
+      "id": "113",
       "type": "rdfs:Literal"
     },
     {
-      "id": "66",
-      "type": "rdfs:Literal"
+      "id": "29",
+      "type": "owl:Class"
     },
     {
-      "id": "109",
-      "type": "rdfs:Literal"
-    },
-    {
-      "id": "106",
+      "id": "69",
       "type": "rdfs:Datatype"
     },
     {
-      "id": "117",
+      "id": "115",
       "type": "rdfs:Literal"
     },
     {
-      "id": "100",
-      "type": "rdfs:Literal"
-    },
-    {
-      "id": "118",
+      "id": "116",
       "type": "rdfs:Datatype"
-    },
-    {
-      "id": "79",
-      "type": "owl:Class"
-    },
-    {
-      "id": "119",
-      "type": "rdfs:Literal"
-    },
-    {
-      "id": "120",
-      "type": "rdfs:Literal"
     },
     {
       "id": "121",
-      "type": "rdfs:Datatype"
+      "type": "rdfs:Literal"
     },
     {
-      "id": "111",
-      "type": "rdfs:Datatype"
-    },
-    {
-      "id": "122",
+      "id": "124",
       "type": "rdfs:Datatype"
     },
     {
@@ -201,7 +175,39 @@
       "type": "rdfs:Datatype"
     },
     {
-      "id": "123",
+      "id": "76",
+      "type": "rdfs:Datatype"
+    },
+    {
+      "id": "7",
+      "type": "owl:Class"
+    },
+    {
+      "id": "67",
+      "type": "rdfs:Literal"
+    },
+    {
+      "id": "106",
+      "type": "rdfs:Literal"
+    },
+    {
+      "id": "125",
+      "type": "rdfs:Literal"
+    },
+    {
+      "id": "126",
+      "type": "rdfs:Datatype"
+    },
+    {
+      "id": "127",
+      "type": "rdfs:Literal"
+    },
+    {
+      "id": "128",
+      "type": "rdfs:Datatype"
+    },
+    {
+      "id": "129",
       "type": "rdfs:Datatype"
     },
     {
@@ -209,111 +215,103 @@
       "type": "owl:Class"
     },
     {
-      "id": "126",
+      "id": "33",
       "type": "owl:Class"
+    },
+    {
+      "id": "88",
+      "type": "rdfs:Datatype"
+    },
+    {
+      "id": "136",
+      "type": "rdfs:Literal"
+    },
+    {
+      "id": "43",
+      "type": "owl:Class"
+    },
+    {
+      "id": "135",
+      "type": "rdfs:Datatype"
+    },
+    {
+      "id": "139",
+      "type": "rdfs:Literal"
+    },
+    {
+      "id": "140",
+      "type": "rdfs:Literal"
     },
     {
       "id": "131",
+      "type": "owl:Class"
+    },
+    {
+      "id": "144",
+      "type": "rdfs:Datatype"
+    },
+    {
+      "id": "145",
       "type": "rdfs:Literal"
     },
     {
-      "id": "75",
-      "type": "rdfs:Datatype"
-    },
-    {
-      "id": "41",
+      "id": "92",
       "type": "owl:Class"
     },
     {
-      "id": "68",
+      "id": "112",
       "type": "rdfs:Datatype"
     },
     {
-      "id": "134",
-      "type": "rdfs:Datatype"
-    },
-    {
-      "id": "103",
-      "type": "rdfs:Datatype"
-    },
-    {
-      "id": "125",
+      "id": "72",
       "type": "owl:Class"
     },
     {
-      "id": "130",
+      "id": "149",
       "type": "rdfs:Datatype"
     },
     {
-      "id": "142",
+      "id": "150",
       "type": "rdfs:Literal"
-    },
-    {
-      "id": "1",
-      "type": "owl:Class"
-    },
-    {
-      "id": "143",
-      "type": "rdfs:Literal"
-    },
-    {
-      "id": "71",
-      "type": "owl:Class"
-    },
-    {
-      "id": "147",
-      "type": "rdfs:Datatype"
-    },
-    {
-      "id": "86",
-      "type": "owl:unionOf"
     },
     {
       "id": "87",
-      "type": "rdfs:Datatype"
+      "type": "owl:unionOf"
+    },
+    {
+      "id": "151",
+      "type": "owl:Class"
+    },
+    {
+      "id": "35",
+      "type": "owl:Class"
     },
     {
       "id": "148",
       "type": "owl:Class"
     },
     {
-      "id": "139",
-      "type": "owl:Class"
-    },
-    {
-      "id": "146",
-      "type": "owl:Class"
-    },
-    {
-      "id": "155",
+      "id": "109",
       "type": "rdfs:Datatype"
-    },
-    {
-      "id": "156",
-      "type": "owl:Class"
     },
     {
       "id": "157",
-      "type": "rdfs:Literal"
+      "type": "owl:Class"
     },
     {
-      "id": "153",
-      "type": "rdfs:Literal"
-    },
-    {
-      "id": "113",
+      "id": "118",
       "type": "rdfs:Datatype"
     },
     {
+      "id": "44",
+      "type": "rdfs:Literal"
+    },
+    {
       "id": "158",
-      "type": "owl:unionOf"
+      "type": "rdfs:Datatype"
     },
     {
-      "id": "128",
-      "type": "owl:unionOf"
-    },
-    {
-      "id": "161",
+      "id": "159",
       "type": "owl:unionOf"
     },
     {
@@ -321,7 +319,15 @@
       "type": "owl:unionOf"
     },
     {
-      "id": "165",
+      "id": "164",
+      "type": "owl:unionOf"
+    },
+    {
+      "id": "133",
+      "type": "owl:unionOf"
+    },
+    {
+      "id": "166",
       "type": "owl:unionOf"
     },
     {
@@ -329,47 +335,59 @@
       "type": "owl:Class"
     },
     {
-      "id": "166",
+      "id": "167",
       "type": "owl:unionOf"
     },
     {
-      "id": "167",
+      "id": "168",
       "type": "rdfs:Datatype"
     },
     {
-      "id": "45",
+      "id": "47",
       "type": "owl:Class"
     },
     {
-      "id": "170",
+      "id": "171",
       "type": "owl:unionOf"
     },
     {
-      "id": "37",
+      "id": "39",
       "type": "owl:Class"
     },
     {
-      "id": "144",
+      "id": "146",
       "type": "owl:Class"
     },
     {
-      "id": "4",
+      "id": "85",
       "type": "owl:Class"
     },
     {
-      "id": "60",
+      "id": "1",
       "type": "owl:Class"
     },
     {
-      "id": "190",
+      "id": "51",
       "type": "owl:Class"
     },
     {
-      "id": "27",
+      "id": "26",
       "type": "owl:Class"
     },
     {
-      "id": "136",
+      "id": "141",
+      "type": "owl:Class"
+    },
+    {
+      "id": "32",
+      "type": "owl:Class"
+    },
+    {
+      "id": "160",
+      "type": "owl:Class"
+    },
+    {
+      "id": "23",
       "type": "owl:Class"
     },
     {
@@ -377,19 +395,7 @@
       "type": "owl:Class"
     },
     {
-      "id": "164",
-      "type": "owl:Class"
-    },
-    {
-      "id": "24",
-      "type": "owl:Class"
-    },
-    {
-      "id": "132",
-      "type": "owl:Class"
-    },
-    {
-      "id": "7",
+      "id": "94",
       "type": "owl:Class"
     },
     {
@@ -397,27 +403,27 @@
       "type": "owl:Class"
     },
     {
-      "id": "6",
+      "id": "96",
       "type": "owl:Class"
     },
     {
-      "id": "97",
+      "id": "103",
       "type": "owl:Thing"
     },
     {
-      "id": "116",
+      "id": "123",
       "type": "owl:Thing"
     },
     {
-      "id": "151",
+      "id": "154",
       "type": "owl:Thing"
     },
     {
-      "id": "138",
+      "id": "142",
       "type": "owl:Class"
     },
     {
-      "id": "98",
+      "id": "104",
       "type": "owl:Class"
     },
     {
@@ -425,11 +431,11 @@
       "type": "owl:Thing"
     },
     {
-      "id": "36",
+      "id": "38",
       "type": "owl:Thing"
     },
     {
-      "id": "57",
+      "id": "59",
       "type": "owl:Thing"
     },
     {
@@ -437,11 +443,11 @@
       "type": "owl:Thing"
     },
     {
-      "id": "73",
+      "id": "74",
       "type": "owl:Thing"
     },
     {
-      "id": "93",
+      "id": "97",
       "type": "owl:Thing"
     },
     {
@@ -449,35 +455,19 @@
       "type": "owl:Thing"
     },
     {
-      "id": "133",
+      "id": "138",
       "type": "owl:Class"
     },
     {
-      "id": "140",
+      "id": "36",
       "type": "owl:Class"
     },
     {
-      "id": "2",
+      "id": "82",
       "type": "owl:Class"
     },
     {
-      "id": "49",
-      "type": "owl:Class"
-    },
-    {
-      "id": "135",
-      "type": "owl:Class"
-    },
-    {
-      "id": "21",
-      "type": "owl:Class"
-    },
-    {
-      "id": "141",
-      "type": "owl:Class"
-    },
-    {
-      "id": "70",
+      "id": "99",
       "type": "owl:Class"
     },
     {
@@ -485,1258 +475,1219 @@
       "type": "owl:Class"
     },
     {
-      "id": "145",
+      "id": "21",
       "type": "owl:Class"
     },
     {
-      "id": "81",
+      "id": "143",
+      "type": "owl:Class"
+    },
+    {
+      "id": "71",
+      "type": "owl:Class"
+    },
+    {
+      "id": "6",
+      "type": "owl:Class"
+    },
+    {
+      "id": "147",
+      "type": "owl:Class"
+    },
+    {
+      "id": "2",
       "type": "owl:Class"
     }
   ],
   "classAttribute": [
     {
+      "id": "8",
       "iri": "http://blankdots.com/open/personasonto.owl#Document",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A paper or digital document (web-page, text document etc.)."
-      },
       "label": {
         "IRI-based": "Document"
       },
-      "id": "8",
-      "superClasses": [
-        "9"
+      "description": {
+        "undefined": "A paper or digital document (web-page, text document etc.)."
+      },
+      "pos": [
+        390.11,
+        -516.75
       ]
     },
     {
+      "id": "13",
       "iri": "http://blankdots.com/open/personasonto.owl#Product",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A physical product or a digital product (Software Application)."
-      },
       "label": {
         "IRI-based": "Product"
       },
-      "id": "13",
-      "superClasses": [
-        "9"
-      ]
+      "description": {
+        "undefined": "A physical product or a digital product (Software Application)."
+      }
     },
     {
+      "id": "4",
       "iri": "http://blankdots.com/open/personasonto.owl#SupplementalType",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Needs are completely satisfied by one of the primary interfaces yet they are part of the set or personas to ensure comprehensive representation."
-      },
       "label": {
         "IRI-based": "SupplementalType"
       },
-      "id": "23",
-      "superClasses": [
-        "24"
+      "description": {
+        "undefined": "Needs are completely satisfied by one of the primary interfaces yet they are part of the set or personas to ensure comprehensive representation."
+      },
+      "pos": [
+        2220.53,
+        -795.96
       ]
     },
     {
+      "id": "24",
       "iri": "http://blankdots.com/open/personasonto.owl#UsabilityTest",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A usability test evaluates the usability of a certain Product in a Scenario."
-      },
       "label": {
         "IRI-based": "UsabilityTest"
       },
-      "id": "25"
+      "description": {
+        "undefined": "A usability test evaluates the usability of a certain Product in a Scenario."
+      },
+      "pos": [
+        -78.19,
+        296.76
+      ]
     },
     {
+      "id": "28",
       "iri": "http://blankdots.com/open/personasonto.owl#TechnicalGoals",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Technical goals reflect technical aspects regarding an application/product for example: run in a variety of browser, data privacy\netc."
-      },
       "label": {
         "IRI-based": "TechnicalGoals"
       },
-      "id": "29",
-      "superClasses": [
-        "30"
-      ]
+      "description": {
+        "undefined": "Technical goals reflect technical aspects regarding an application/product for example: run in a variety of browser, data privacy\netc."
+      }
     },
     {
+      "id": "56",
       "iri": "http://blankdots.com/open/personasonto.owl#Participant",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A person that participates in the usability test. Usualy a participant has a diresct correspondent to a Persona type."
-      },
       "label": {
         "IRI-based": "Participant"
       },
-      "id": "54",
-      "superClasses": [
-        "27"
+      "description": {
+        "undefined": "A person that participates in the usability test. Usualy a participant has a diresct correspondent to a Persona type."
+      },
+      "pos": [
+        120.25,
+        -369.46
       ]
     },
     {
+      "id": "57",
       "iri": "http://blankdots.com/open/personasonto.owl#LifeGoals",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Life goals represent personal aspirations of the user that typically go beyond the context of the product being designed."
-      },
       "label": {
         "IRI-based": "LifeGoals"
       },
-      "id": "55",
-      "superClasses": [
-        "30"
-      ]
+      "description": {
+        "undefined": "Life goals represent personal aspirations of the user that typically go beyond the context of the product being designed."
+      }
     },
     {
+      "id": "48",
       "iri": "http://blankdots.com/open/personasonto.owl#Scenario",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A series of tasks the user performs in a certain context."
-      },
       "label": {
         "IRI-based": "Scenario"
       },
-      "id": "46"
+      "description": {
+        "undefined": "A series of tasks the user performs in a certain context."
+      },
+      "pos": [
+        -180.16,
+        170.68
+      ]
     },
     {
+      "id": "89",
       "iri": "http://blankdots.com/open/personasonto.owl#Tangible",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A context might be described by an Tangible enviroment - real world."
-      },
       "label": {
         "IRI-based": "Tangible"
       },
-      "id": "88",
-      "superClasses": [
-        "45"
-      ]
+      "description": {
+        "undefined": "A context might be described by an Tangible enviroment - real world."
+      }
     },
     {
+      "id": "90",
       "iri": "http://blankdots.com/open/personasonto.owl#EndGoals",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "End goals represent the user’s motivation for performing the tasks associated with using a specific product."
-      },
       "label": {
         "IRI-based": "EndGoals"
       },
-      "id": "89",
-      "superClasses": [
-        "30"
-      ]
+      "description": {
+        "undefined": "End goals represent the user’s motivation for performing the tasks associated with using a specific product."
+      }
     },
     {
+      "id": "101",
       "iri": "http://blankdots.com/open/personasonto.owl#DevelopmentDisability",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Any disability that related to growth and development problems."
-      },
       "label": {
         "IRI-based": "DevelopmentDisability"
       },
-      "id": "33",
-      "superClasses": [
-        "83"
+      "description": {
+        "undefined": "Any disability that related to growth and development problems."
+      },
+      "pos": [
+        1341.76,
+        18.31
       ]
     },
     {
+      "id": "113",
       "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
       "baseIri": "http://www.w3.org/2000/01/rdf-schema",
-      "id": "42",
-      "label": {
-        "IRI-based": "Literal",
-        "undefined": "Literal"
-      }
+      "label": "Literal",
+      "attributes": [
+        "datatype"
+      ]
     },
     {
+      "id": "29",
       "iri": "http://blankdots.com/open/personasonto.owl#Goals",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "The goals of a Persona. The goals are divided accordingly, depending on each persona type."
-      },
       "label": {
         "IRI-based": "Goals"
       },
-      "subClasses": [
-        "18",
-        "89",
-        "98",
-        "55",
-        "29"
-      ],
-      "id": "30"
+      "description": {
+        "undefined": "The goals of a Persona. The goals are divided accordingly, depending on each persona type."
+      },
+      "pos": [
+        350.17,
+        417.96
+      ]
     },
     {
-      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
-      "baseIri": "http://www.w3.org/2000/01/rdf-schema",
-      "id": "108",
-      "label": {
-        "IRI-based": "Literal",
-        "undefined": "Literal"
-      }
-    },
-    {
-      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
-      "baseIri": "http://www.w3.org/2000/01/rdf-schema",
-      "id": "66",
-      "label": {
-        "IRI-based": "Literal",
-        "undefined": "Literal"
-      }
-    },
-    {
-      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
-      "baseIri": "http://www.w3.org/2000/01/rdf-schema",
-      "id": "109",
-      "label": {
-        "IRI-based": "Literal",
-        "undefined": "Literal"
-      }
-    },
-    {
+      "id": "69",
       "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
       "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "106",
       "label": {
         "IRI-based": "positiveInteger"
-      }
+      },
+      "attributes": [
+        "datatype"
+      ]
     },
     {
+      "id": "115",
       "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
       "baseIri": "http://www.w3.org/2000/01/rdf-schema",
-      "id": "117",
-      "label": {
-        "IRI-based": "Literal",
-        "undefined": "Literal"
-      }
+      "label": "Literal",
+      "attributes": [
+        "datatype"
+      ]
     },
     {
-      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
-      "baseIri": "http://www.w3.org/2000/01/rdf-schema",
-      "id": "100",
-      "label": {
-        "IRI-based": "Literal",
-        "undefined": "Literal"
-      }
-    },
-    {
-      "iri": "http://www.w3.org/2001/XMLSchema#double",
+      "id": "116",
+      "iri": "http://www.w3.org/2001/XMLSchema#string",
       "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "118",
       "label": {
-        "IRI-based": "double"
-      }
+        "IRI-based": "string"
+      },
+      "attributes": [
+        "datatype"
+      ]
     },
     {
+      "id": "121",
+      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
+      "baseIri": "http://www.w3.org/2000/01/rdf-schema",
+      "label": "Literal",
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "124",
+      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
+      "baseIri": "http://www.w3.org/2001/XMLSchema",
+      "label": {
+        "IRI-based": "positiveInteger"
+      },
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "22",
+      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
+      "baseIri": "http://www.w3.org/2001/XMLSchema",
+      "label": {
+        "IRI-based": "positiveInteger"
+      },
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "76",
+      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
+      "baseIri": "http://www.w3.org/2001/XMLSchema",
+      "label": {
+        "IRI-based": "positiveInteger"
+      },
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "7",
       "iri": "http://blankdots.com/open/personasonto.owl#PrimaryType",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "\"The goal is to find a single persona from the set whose needs and goals can be completely and happily satisfied by a single interface without disenfranchising any of the other personas\", About Face 2.0, Cooper, pg. 71. This is the Primary Persona Type"
-      },
       "label": {
         "IRI-based": "PrimaryType"
       },
-      "id": "79",
-      "superClasses": [
-        "24"
+      "description": {
+        "undefined": "\"The goal is to find a single persona from the set whose needs and goals can be completely and happily satisfied by a single interface without disenfranchising any of the other personas\", About Face 2.0, Cooper, pg. 71. This is the Primary Persona Type"
+      },
+      "pos": [
+        2625.43,
+        -634.53
       ]
     },
     {
+      "id": "67",
       "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
       "baseIri": "http://www.w3.org/2000/01/rdf-schema",
-      "id": "119",
-      "label": {
-        "IRI-based": "Literal",
-        "undefined": "Literal"
-      }
+      "label": "Literal",
+      "attributes": [
+        "datatype"
+      ]
     },
     {
+      "id": "106",
       "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
       "baseIri": "http://www.w3.org/2000/01/rdf-schema",
-      "id": "120",
-      "label": {
-        "IRI-based": "Literal",
-        "undefined": "Literal"
-      }
+      "label": "Literal",
+      "attributes": [
+        "datatype"
+      ]
     },
     {
+      "id": "125",
+      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
+      "baseIri": "http://www.w3.org/2000/01/rdf-schema",
+      "label": "Literal",
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "126",
+      "iri": "http://www.w3.org/2001/XMLSchema#float",
+      "baseIri": "http://www.w3.org/2001/XMLSchema",
+      "label": {
+        "IRI-based": "float"
+      },
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "127",
+      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
+      "baseIri": "http://www.w3.org/2000/01/rdf-schema",
+      "label": "Literal",
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "128",
+      "iri": "http://www.w3.org/2001/XMLSchema#dateTime",
+      "baseIri": "http://www.w3.org/2001/XMLSchema",
+      "label": {
+        "IRI-based": "dateTime"
+      },
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "129",
       "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
       "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "121",
       "label": {
         "IRI-based": "positiveInteger"
-      }
+      },
+      "attributes": [
+        "datatype"
+      ]
     },
     {
-      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
-      "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "111",
-      "label": {
-        "IRI-based": "positiveInteger"
-      }
-    },
-    {
-      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
-      "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "122",
-      "label": {
-        "IRI-based": "positiveInteger"
-      }
-    },
-    {
-      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
-      "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "22",
-      "label": {
-        "IRI-based": "positiveInteger"
-      }
-    },
-    {
-      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
-      "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "123",
-      "label": {
-        "IRI-based": "positiveInteger"
-      }
-    },
-    {
+      "id": "9",
       "iri": "http://blankdots.com/open/personasonto.owl#Resource",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Type of resources available, physical or digital."
-      },
       "label": {
         "IRI-based": "Resource"
       },
-      "subClasses": [
-        "8",
-        "37",
-        "13"
-      ],
-      "id": "9"
+      "description": {
+        "undefined": "Type of resources available, physical or digital."
+      },
+      "pos": [
+        440.79,
+        -96.9
+      ]
     },
     {
+      "id": "33",
       "iri": "http://blankdots.com/open/personasonto.owl#MediumBusiness",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A particular medium sized business or branch of an organization. ( restaurant, medical practice etc.)"
-      },
       "label": {
         "IRI-based": "MediumBusiness"
       },
-      "id": "126",
-      "superClasses": [
-        "125"
+      "description": {
+        "undefined": "A particular medium sized business or branch of an organization. ( restaurant, medical practice etc.)"
+      },
+      "pos": [
+        332.11,
+        1550.88
       ]
     },
     {
+      "id": "88",
+      "iri": "http://www.w3.org/2001/XMLSchema#string",
+      "baseIri": "http://www.w3.org/2001/XMLSchema",
+      "label": {
+        "IRI-based": "string"
+      },
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "136",
       "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
       "baseIri": "http://www.w3.org/2000/01/rdf-schema",
-      "id": "131",
-      "label": {
-        "IRI-based": "Literal",
-        "undefined": "Literal"
-      }
+      "label": "Literal",
+      "attributes": [
+        "datatype"
+      ]
     },
     {
-      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
-      "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "75",
-      "label": {
-        "IRI-based": "positiveInteger"
-      }
-    },
-    {
+      "id": "43",
       "iri": "http://blankdots.com/open/personasonto.owl#Task",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Tasks performed by a Person in a Scenario."
-      },
       "label": {
         "IRI-based": "Task"
       },
-      "subClasses": [
-        "132",
-        "133"
-      ],
-      "id": "41"
-    },
-    {
-      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
-      "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "68",
-      "label": {
-        "IRI-based": "positiveInteger"
-      }
-    },
-    {
-      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
-      "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "134",
-      "label": {
-        "IRI-based": "positiveInteger"
-      }
-    },
-    {
-      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
-      "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "103",
-      "label": {
-        "IRI-based": "positiveInteger"
-      }
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#Organization",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
       "description": {
-        "undefined": "The type of Organization a Person belongs to."
+        "undefined": "Tasks performed by a Person in a Scenario."
       },
-      "label": {
-        "IRI-based": "Organization"
-      },
-      "subClasses": [
-        "135",
-        "136",
-        "137",
-        "138",
-        "139",
-        "140",
-        "126",
-        "141"
-      ],
-      "id": "125"
-    },
-    {
-      "iri": "http://www.w3.org/2001/XMLSchema#string",
-      "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "130",
-      "label": {
-        "IRI-based": "string"
-      }
-    },
-    {
-      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
-      "baseIri": "http://www.w3.org/2000/01/rdf-schema",
-      "id": "142",
-      "label": {
-        "IRI-based": "Literal",
-        "undefined": "Literal"
-      }
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#HearingImpairment",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Conditions in which persons are fully or partially unable to detect or perceive at least some frequencies of sound."
-      },
-      "label": {
-        "IRI-based": "HearingImpairment"
-      },
-      "id": "1",
-      "superClasses": [
-        "83"
+      "pos": [
+        29.53,
+        -177.42
       ]
     },
     {
-      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
-      "baseIri": "http://www.w3.org/2000/01/rdf-schema",
-      "id": "143",
+      "id": "135",
+      "iri": "http://www.w3.org/2001/XMLSchema#string",
+      "baseIri": "http://www.w3.org/2001/XMLSchema",
       "label": {
-        "IRI-based": "Literal",
-        "undefined": "Literal"
-      }
+        "IRI-based": "string"
+      },
+      "attributes": [
+        "datatype"
+      ]
     },
     {
+      "id": "139",
+      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
+      "baseIri": "http://www.w3.org/2000/01/rdf-schema",
+      "label": "Literal",
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "140",
+      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
+      "baseIri": "http://www.w3.org/2000/01/rdf-schema",
+      "label": "Literal",
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "131",
+      "iri": "http://blankdots.com/open/personasonto.owl#Organization",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "Organization"
+      },
+      "description": {
+        "undefined": "The type of Organization a Person belongs to."
+      },
+      "pos": [
+        426.23,
+        828.09
+      ]
+    },
+    {
+      "id": "144",
+      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
+      "baseIri": "http://www.w3.org/2001/XMLSchema",
+      "label": {
+        "IRI-based": "positiveInteger"
+      },
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "145",
+      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
+      "baseIri": "http://www.w3.org/2000/01/rdf-schema",
+      "label": "Literal",
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "92",
+      "iri": "http://blankdots.com/open/personasonto.owl#HearingImpairment",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "HearingImpairment"
+      },
+      "description": {
+        "undefined": "Conditions in which persons are fully or partially unable to detect or perceive at least some frequencies of sound."
+      },
+      "pos": [
+        1661.81,
+        -0.42
+      ]
+    },
+    {
+      "id": "112",
+      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
+      "baseIri": "http://www.w3.org/2001/XMLSchema",
+      "label": {
+        "IRI-based": "positiveInteger"
+      },
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "72",
       "iri": "http://blankdots.com/open/personasonto.owl#AffectiveState",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "The affective state of a person at a certain moment and in a certain Context."
-      },
       "label": {
         "IRI-based": "AffectiveState"
       },
-      "subClasses": [
-        "144",
-        "145",
-        "146"
-      ],
-      "id": "71"
+      "description": {
+        "undefined": "The affective state of a person at a certain moment and in a certain Context."
+      },
+      "pos": [
+        103.96,
+        88.19
+      ]
     },
     {
-      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
+      "id": "149",
+      "iri": "http://www.w3.org/2001/XMLSchema#double",
       "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "147",
       "label": {
-        "IRI-based": "positiveInteger"
-      }
-    },
-    {
-      "instances": 0,
-      "union": [
-        "125",
-        "148"
-      ],
+        "IRI-based": "double"
+      },
       "attributes": [
-        "anonymous",
-        "union"
-      ],
-      "id": "86"
+        "datatype"
+      ]
     },
     {
-      "iri": "http://www.w3.org/2001/XMLSchema#string",
-      "baseIri": "http://www.w3.org/2001/XMLSchema",
+      "id": "150",
+      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
+      "baseIri": "http://www.w3.org/2000/01/rdf-schema",
+      "label": "Literal",
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
       "id": "87",
-      "label": {
-        "IRI-based": "string"
-      }
+      "attributes": [
+        "union",
+        "anonymous"
+      ]
     },
     {
+      "id": "151",
       "iri": "http://blankdots.com/open/personasonto.owl#Place",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "The appropriate Place which describes the Context. "
-      },
       "label": {
         "IRI-based": "Place"
       },
       "comment": {
         "undefined": "A Context might only be described by a certain Place."
       },
-      "id": "148",
-      "superClasses": [
-        "45"
+      "description": {
+        "undefined": "The appropriate Place which describes the Context. "
+      },
+      "pos": [
+        -481.26,
+        985.67
       ]
     },
     {
+      "id": "35",
       "iri": "http://blankdots.com/open/personasonto.owl#NGO",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A Non-Governamental Organization."
-      },
       "label": {
         "IRI-based": "NGO"
       },
-      "id": "139",
-      "superClasses": [
-        "125"
+      "description": {
+        "undefined": "A Non-Governamental Organization."
+      },
+      "pos": [
+        431.37,
+        1410.24
       ]
     },
     {
+      "id": "148",
       "iri": "http://blankdots.com/open/personasonto.owl#Feeling",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Feelings relate more to a property associated to and object or being, than to a person’s state of mind."
-      },
       "label": {
         "IRI-based": "Feeling"
       },
-      "id": "146",
-      "superClasses": [
-        "71"
-      ]
-    },
-    {
-      "iri": "http://www.w3.org/2001/XMLSchema#dateTime",
-      "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "155",
-      "label": {
-        "IRI-based": "dateTime"
+      "description": {
+        "undefined": "Feelings relate more to a property associated to and object or being, than to a person’s state of mind."
       }
     },
     {
+      "id": "109",
+      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
+      "baseIri": "http://www.w3.org/2001/XMLSchema",
+      "label": {
+        "IRI-based": "positiveInteger"
+      },
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "157",
       "iri": "http://blankdots.com/open/personasonto.owl#Intangible",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A context might be described by an Intangible enviroment (Operating System, Application etc. -- virtual world)."
-      },
       "label": {
         "IRI-based": "Intangible"
       },
-      "id": "156",
-      "superClasses": [
-        "45"
+      "description": {
+        "undefined": "A context might be described by an Intangible enviroment (Operating System, Application etc. -- virtual world)."
+      }
+    },
+    {
+      "id": "118",
+      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
+      "baseIri": "http://www.w3.org/2001/XMLSchema",
+      "label": {
+        "IRI-based": "positiveInteger"
+      },
+      "attributes": [
+        "datatype"
       ]
     },
     {
+      "id": "44",
       "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
       "baseIri": "http://www.w3.org/2000/01/rdf-schema",
-      "id": "157",
-      "label": {
-        "IRI-based": "Literal",
-        "undefined": "Literal"
-      }
+      "label": "Literal",
+      "attributes": [
+        "datatype"
+      ]
     },
     {
-      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
-      "baseIri": "http://www.w3.org/2000/01/rdf-schema",
-      "id": "153",
-      "label": {
-        "IRI-based": "Literal",
-        "undefined": "Literal"
-      }
-    },
-    {
-      "iri": "http://www.w3.org/2001/XMLSchema#string",
+      "id": "158",
+      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
       "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "113",
       "label": {
-        "IRI-based": "string"
-      }
-    },
-    {
-      "instances": 0,
-      "union": [
-        "54",
-        "27"
-      ],
+        "IRI-based": "positiveInteger"
+      },
       "attributes": [
-        "anonymous",
-        "union"
-      ],
-      "id": "158"
+        "datatype"
+      ]
     },
     {
-      "instances": 0,
-      "union": [
-        "9",
-        "25",
-        "46"
-      ],
+      "id": "159",
       "attributes": [
-        "anonymous",
-        "union"
+        "union",
+        "anonymous"
       ],
-      "id": "128"
+      "pos": [
+        -743.76,
+        1390.58
+      ]
     },
     {
-      "instances": 0,
-      "union": [
-        "88",
-        "156"
-      ],
+      "id": "163",
       "attributes": [
-        "anonymous",
-        "union"
+        "union",
+        "anonymous"
       ],
-      "id": "161"
+      "pos": [
+        -496.39,
+        -2.68
+      ]
     },
     {
-      "instances": 0,
-      "union": [
-        "164",
-        "148"
-      ],
+      "id": "164",
       "attributes": [
-        "anonymous",
-        "union"
+        "union",
+        "anonymous"
       ],
-      "id": "163"
+      "pos": [
+        -426.56,
+        -173.88
+      ]
     },
     {
-      "instances": 0,
-      "union": [
-        "25",
-        "46"
-      ],
+      "id": "133",
       "attributes": [
-        "anonymous",
-        "union"
+        "union",
+        "anonymous"
       ],
-      "id": "165"
+      "pos": [
+        -38.46,
+        -357.64
+      ]
     },
     {
+      "id": "166",
+      "attributes": [
+        "union",
+        "anonymous"
+      ],
+      "pos": [
+        459.8,
+        -344.16
+      ]
+    },
+    {
+      "id": "18",
       "iri": "http://blankdots.com/open/personasonto.owl#BusinessGoals",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Business goals represent the goals of the organization the persons works for."
-      },
       "label": {
         "IRI-based": "BusinessGoals"
       },
-      "id": "18",
-      "superClasses": [
-        "30"
-      ]
-    },
-    {
-      "instances": 0,
-      "union": [
-        "54",
-        "41",
-        "46"
-      ],
-      "attributes": [
-        "anonymous",
-        "union"
-      ],
-      "id": "166"
-    },
-    {
-      "iri": "http://www.w3.org/2001/XMLSchema#float",
-      "baseIri": "http://www.w3.org/2001/XMLSchema",
-      "id": "167",
-      "label": {
-        "IRI-based": "float"
+      "description": {
+        "undefined": "Business goals represent the goals of the organization the persons works for."
       }
     },
     {
+      "id": "167",
+      "attributes": [
+        "union",
+        "anonymous"
+      ],
+      "pos": [
+        996.56,
+        -444.09
+      ]
+    },
+    {
+      "id": "168",
+      "iri": "http://www.w3.org/2001/XMLSchema#positiveInteger",
+      "baseIri": "http://www.w3.org/2001/XMLSchema",
+      "label": {
+        "IRI-based": "positiveInteger"
+      },
+      "attributes": [
+        "datatype"
+      ]
+    },
+    {
+      "id": "47",
       "iri": "http://blankdots.com/open/personasonto.owl#Context",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "The Context in which a scenario takes place."
-      },
       "label": {
         "IRI-based": "Context"
       },
-      "subClasses": [
-        "88",
-        "164",
-        "156",
-        "148"
-      ],
-      "id": "45"
+      "description": {
+        "undefined": "The Context in which a scenario takes place."
+      },
+      "pos": [
+        -20.24,
+        504.12
+      ]
     },
     {
-      "instances": 0,
-      "union": [
-        "71",
-        "70"
-      ],
+      "id": "171",
       "attributes": [
-        "anonymous",
-        "union"
+        "union",
+        "anonymous"
       ],
-      "id": "170"
+      "pos": [
+        -838.89,
+        1763.75
+      ]
     },
     {
+      "id": "39",
       "iri": "http://blankdots.com/open/personasonto.owl#Image",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "An image, which might be used to describe a product or person."
-      },
       "label": {
         "IRI-based": "Image"
       },
-      "id": "37",
-      "superClasses": [
-        "9"
-      ]
+      "description": {
+        "undefined": "An image, which might be used to describe a product or person."
+      }
     },
     {
+      "id": "146",
       "iri": "http://blankdots.com/open/personasonto.owl#Mood",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Are not directed at any object in particular and are experienced as more diffuse, global, and general state."
-      },
       "label": {
         "IRI-based": "Mood"
       },
-      "id": "144",
-      "superClasses": [
-        "71"
-      ]
+      "description": {
+        "undefined": "Are not directed at any object in particular and are experienced as more diffuse, global, and general state."
+      }
     },
     {
+      "id": "85",
       "iri": "http://blankdots.com/open/personasonto.owl#VisualImpairment",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Visual impairment refers to vision loss to such a degree as a person needs an additional support to get through its surroundings."
-      },
       "label": {
         "IRI-based": "VisualImpairment"
       },
-      "id": "4",
-      "superClasses": [
-        "83"
+      "description": {
+        "undefined": "Visual impairment refers to vision loss to such a degree as a person needs an additional support to get through its surroundings."
+      },
+      "pos": [
+        1651.72,
+        403.1
       ]
     },
     {
+      "id": "1",
       "iri": "http://blankdots.com/open/personasonto.owl#ServedType",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Do not directly use the product you are designing but they are somehow affected by the system."
-      },
       "label": {
         "IRI-based": "ServedType"
       },
-      "id": "60",
-      "superClasses": [
-        "24"
+      "description": {
+        "undefined": "Do not directly use the product you are designing but they are somehow affected by the system."
+      },
+      "pos": [
+        2328.79,
+        -948.88
       ]
     },
     {
+      "id": "51",
       "iri": "http://blankdots.com/open/personasonto.owl#CustomerType",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Are not the end user but the customer of the product, but might be the person making, buying decisions."
-      },
       "label": {
         "IRI-based": "CustomerType"
       },
-      "id": "190",
-      "superClasses": [
-        "24"
+      "description": {
+        "undefined": "Are not the end user but the customer of the product, but might be the person making, buying decisions."
+      },
+      "pos": [
+        2548.56,
+        -853.17
       ]
     },
     {
+      "id": "26",
       "iri": "http://blankdots.com/open/personasonto.owl#Person",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A person represents an individual, most likely a human."
-      },
       "label": {
         "IRI-based": "Person"
       },
-      "subClasses": [
-        "21",
-        "54"
-      ],
-      "id": "27"
+      "description": {
+        "undefined": "A person represents an individual, most likely a human."
+      },
+      "pos": [
+        565.36,
+        147.56
+      ]
     },
     {
+      "id": "141",
       "iri": "http://blankdots.com/open/personasonto.owl#EducationalOrganization",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "An educational organization. "
-      },
       "label": {
         "IRI-based": "EducationalOrganization"
       },
-      "id": "136",
-      "superClasses": [
-        "125"
+      "description": {
+        "undefined": "An educational organization. "
+      },
+      "pos": [
+        430.45,
+        1726.05
       ]
     },
     {
+      "id": "32",
       "iri": "http://blankdots.com/open/personasonto.owl#SportsTeam",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A sports team (football, basketball, bowling etc.)."
-      },
       "label": {
         "IRI-based": "SportsTeam"
       },
-      "id": "137",
-      "superClasses": [
-        "125"
+      "description": {
+        "undefined": "A sports team (football, basketball, bowling etc.)."
+      },
+      "pos": [
+        687.42,
+        1340.87
       ]
     },
     {
+      "id": "160",
       "iri": "http://blankdots.com/open/personasonto.owl#Time",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "The appropriate Time which describes the Context. "
-      },
       "label": {
         "IRI-based": "Time"
       },
       "comment": {
         "undefined": "A Context might only be described at a certain Time."
       },
-      "id": "164",
-      "superClasses": [
-        "45"
-      ]
+      "description": {
+        "undefined": "The appropriate Time which describes the Context. "
+      }
     },
     {
+      "id": "23",
       "iri": "http://blankdots.com/open/personasonto.owl#PersonaType",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Each Persona is classified by a PersonaType and a Person might fit into several PersonaTypes."
-      },
       "label": {
         "IRI-based": "PersonaType"
       },
-      "subClasses": [
-        "190",
-        "62",
-        "60",
-        "23",
-        "79",
-        "81"
-      ],
-      "id": "24",
-      "superClasses": [
-        "21"
+      "description": {
+        "undefined": "Each Persona is classified by a PersonaType and a Person might fit into several PersonaTypes."
+      },
+      "pos": [
+        1994.27,
+        -625.92
       ]
     },
     {
+      "id": "137",
       "iri": "http://blankdots.com/open/personasonto.owl#NonInteractiveTask",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "NonInteractiveTask could be a machine response to that action."
-      },
       "label": {
         "IRI-based": "NonInteractiveTask"
       },
-      "id": "132",
-      "superClasses": [
-        "41"
-      ]
+      "description": {
+        "undefined": "NonInteractiveTask could be a machine response to that action."
+      }
     },
     {
+      "id": "94",
       "iri": "http://blankdots.com/open/personasonto.owl#MentalEmotionalDisorder",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Any mental disorder/illness described as a psychological or behavioral pattern associated with distress or disability that occurs in an person."
-      },
       "label": {
         "IRI-based": "MentalEmotionalDisorder"
       },
-      "id": "7",
-      "superClasses": [
-        "83"
+      "description": {
+        "undefined": "Any mental disorder/illness described as a psychological or behavioral pattern associated with distress or disability that occurs in an person."
+      },
+      "pos": [
+        1345.1,
+        304.72
       ]
     },
     {
+      "id": "83",
       "iri": "http://blankdots.com/open/personasonto.owl#Disability",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A person’s disabilities mental and/or physical."
-      },
       "label": {
         "IRI-based": "Disability"
       },
-      "subClasses": [
-        "2",
-        "4",
-        "1",
-        "7",
-        "6",
-        "49",
-        "33"
-      ],
-      "id": "83"
+      "description": {
+        "undefined": "A person’s disabilities mental and/or physical."
+      },
+      "pos": [
+        835.81,
+        163.04
+      ]
     },
     {
+      "id": "96",
       "iri": "http://blankdots.com/open/personasonto.owl#IntellectualImpairment",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "This type of impairment ranges from mental retardation to cognitive deficits too mild or too specific."
-      },
       "label": {
         "IRI-based": "IntellectualImpairment"
       },
-      "id": "6",
-      "superClasses": [
-        "83"
+      "description": {
+        "undefined": "This type of impairment ranges from mental retardation to cognitive deficits too mild or too specific."
+      },
+      "pos": [
+        1450.87,
+        459.05
       ]
     },
     {
+      "id": "103",
       "iri": "http://www.w3.org/2002/07/owl#Thing",
       "baseIri": "http://owl2vowl.de",
-      "id": "97",
       "label": {
         "undefined": "Thing"
       }
     },
     {
+      "id": "123",
       "iri": "http://www.w3.org/2002/07/owl#Thing",
       "baseIri": "http://owl2vowl.de",
-      "id": "116",
       "label": {
         "undefined": "Thing"
       }
     },
     {
+      "id": "154",
       "iri": "http://www.w3.org/2002/07/owl#Thing",
       "baseIri": "http://owl2vowl.de",
-      "id": "151",
       "label": {
         "undefined": "Thing"
       }
     },
     {
+      "id": "142",
       "iri": "http://blankdots.com/open/personasonto.owl#GovermentOrganization",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A governmental organization or agency. "
-      },
       "label": {
         "IRI-based": "GovermentOrganization"
       },
-      "id": "138",
-      "superClasses": [
-        "125"
+      "description": {
+        "undefined": "A governmental organization or agency. "
+      },
+      "pos": [
+        817.65,
+        1723.96
       ]
     },
     {
+      "id": "104",
       "iri": "http://blankdots.com/open/personasonto.owl#ExperienceGoals",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Experience goals are simple, universal, and personal."
-      },
       "label": {
         "IRI-based": "ExperienceGoals"
       },
-      "id": "98",
-      "superClasses": [
-        "30"
-      ]
+      "description": {
+        "undefined": "Experience goals are simple, universal, and personal."
+      }
     },
     {
-      "iri": "http://www.w3.org/2002/07/owl#Thing",
-      "baseIri": "http://owl2vowl.de",
       "id": "17",
+      "iri": "http://www.w3.org/2002/07/owl#Thing",
+      "baseIri": "http://owl2vowl.de",
       "label": {
         "undefined": "Thing"
       }
     },
     {
+      "id": "38",
       "iri": "http://www.w3.org/2002/07/owl#Thing",
       "baseIri": "http://owl2vowl.de",
-      "id": "36",
       "label": {
         "undefined": "Thing"
       }
     },
     {
+      "id": "59",
       "iri": "http://www.w3.org/2002/07/owl#Thing",
       "baseIri": "http://owl2vowl.de",
-      "id": "57",
       "label": {
         "undefined": "Thing"
       }
     },
     {
-      "iri": "http://www.w3.org/2002/07/owl#Thing",
-      "baseIri": "http://owl2vowl.de",
       "id": "221",
+      "iri": "http://www.w3.org/2002/07/owl#Thing",
+      "baseIri": "http://owl2vowl.de",
       "label": {
         "undefined": "Thing"
       }
     },
     {
+      "id": "74",
       "iri": "http://www.w3.org/2002/07/owl#Thing",
       "baseIri": "http://owl2vowl.de",
-      "id": "73",
       "label": {
         "undefined": "Thing"
       }
     },
     {
+      "id": "97",
       "iri": "http://www.w3.org/2002/07/owl#Thing",
       "baseIri": "http://owl2vowl.de",
-      "id": "93",
       "label": {
         "undefined": "Thing"
       }
     },
     {
-      "iri": "http://www.w3.org/2002/07/owl#Thing",
-      "baseIri": "http://owl2vowl.de",
       "id": "252",
+      "iri": "http://www.w3.org/2002/07/owl#Thing",
+      "baseIri": "http://owl2vowl.de",
       "label": {
         "undefined": "Thing"
       }
     },
     {
+      "id": "138",
       "iri": "http://blankdots.com/open/personasonto.owl#InteractiveTask",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "InteractiveTask could be certain action performed by a person (not too often by a machine)."
-      },
       "label": {
         "IRI-based": "InteractiveTask"
       },
-      "id": "133",
-      "superClasses": [
-        "41"
-      ]
+      "description": {
+        "undefined": "InteractiveTask could be certain action performed by a person (not too often by a machine)."
+      }
     },
     {
+      "id": "36",
       "iri": "http://blankdots.com/open/personasonto.owl#SmallBusiness",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A particular small business like a local shop or market (usually under 5 employees)."
-      },
       "label": {
         "IRI-based": "SmallBusiness"
       },
-      "id": "140",
-      "superClasses": [
-        "125"
+      "description": {
+        "undefined": "A particular small business like a local shop or market (usually under 5 employees)."
+      },
+      "pos": [
+        859.84,
+        1366.6
       ]
     },
     {
+      "id": "82",
       "iri": "http://blankdots.com/open/personasonto.owl#SomatosensoryImpairment",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Insensitivity to stimuli such as touch, heat, cold, and pain."
-      },
       "label": {
         "IRI-based": "SomatosensoryImpairment"
       },
-      "id": "2",
-      "superClasses": [
-        "83"
+      "description": {
+        "undefined": "Insensitivity to stimuli such as touch, heat, cold, and pain."
+      },
+      "pos": [
+        1470.83,
+        -106.3
       ]
     },
     {
+      "id": "99",
       "iri": "http://blankdots.com/open/personasonto.owl#GustatoryImpairment",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Impairment of the sense of smell and taste."
-      },
       "label": {
         "IRI-based": "GustatoryImpairment"
       },
-      "id": "49",
-      "superClasses": [
-        "83"
+      "description": {
+        "undefined": "Impairment of the sense of smell and taste."
+      },
+      "pos": [
+        1735.28,
+        207.8
       ]
     },
     {
+      "id": "62",
       "iri": "http://blankdots.com/open/personasonto.owl#Group",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Any kind of (small or large) group a person might be part of (book club)."
-      },
       "label": {
         "IRI-based": "Group"
       },
-      "id": "135",
-      "superClasses": [
-        "125"
+      "description": {
+        "undefined": "Any kind of (small or large) group a person might be part of (book club)."
+      },
+      "pos": [
+        623.43,
+        1792.1
       ]
     },
     {
+      "id": "21",
       "iri": "http://blankdots.com/open/personasonto.owl#Persona",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "As a subclass of Person, the Persona class could be regarded of being a separate identity of a person, although it has the same usage."
-      },
       "label": {
         "IRI-based": "Persona"
       },
-      "subClasses": [
-        "24"
-      ],
-      "id": "21",
-      "superClasses": [
-        "27"
-      ]
+      "description": {
+        "undefined": "As a subclass of Person, the Persona class could be regarded of being a separate identity of a person, although it has the same usage."
+      }
     },
     {
+      "id": "143",
       "iri": "http://blankdots.com/open/personasonto.owl#Corporation",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "A business corporation. "
-      },
       "label": {
         "IRI-based": "Corporation"
       },
-      "id": "141",
-      "superClasses": [
-        "125"
+      "description": {
+        "undefined": "A business corporation. "
+      },
+      "pos": [
+        920.92,
+        1553.29
       ]
     },
     {
+      "id": "71",
       "iri": "http://blankdots.com/open/personasonto.owl#Personality",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "The MyersBriggs personality of a person."
-      },
       "label": {
         "IRI-based": "Personality"
       },
-      "id": "70"
+      "description": {
+        "undefined": "The MyersBriggs personality of a person."
+      },
+      "pos": [
+        165.99,
+        17.33
+      ]
     },
     {
+      "id": "6",
       "iri": "http://blankdots.com/open/personasonto.owl#SecondaryType",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "The secondary persona's goals and needs can mostly be met by focusing on the primary persona. Still, there are a few goals specific to them that are not a priority for the primary persona."
-      },
       "label": {
         "IRI-based": "SecondaryType"
       },
-      "id": "62",
-      "superClasses": [
-        "24"
+      "description": {
+        "undefined": "The secondary persona's goals and needs can mostly be met by focusing on the primary persona. Still, there are a few goals specific to them that are not a priority for the primary persona."
+      },
+      "pos": [
+        2511.55,
+        -439.92
       ]
     },
     {
+      "id": "147",
       "iri": "http://blankdots.com/open/personasonto.owl#Emotion",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Emotion encompasses physiological, affective, behavioral, andcognitive components."
-      },
       "label": {
         "IRI-based": "Emotion"
       },
-      "id": "145",
-      "superClasses": [
-        "71"
-      ]
+      "description": {
+        "undefined": "Emotion encompasses physiological, affective, behavioral, andcognitive components."
+      }
     },
     {
+      "id": "2",
       "iri": "http://blankdots.com/open/personasonto.owl#NegativeType",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "instances": 0,
-      "description": {
-        "undefined": "Are used to remind and communicate, who is NOT the target of the design."
-      },
       "label": {
         "IRI-based": "NegativeType"
       },
-      "id": "81",
-      "superClasses": [
-        "24"
+      "description": {
+        "undefined": "Are used to remind and communicate, who is NOT the target of the design."
+      },
+      "pos": [
+        2307.87,
+        -455.39
       ]
     }
   ],
@@ -1775,18 +1726,22 @@
     },
     {
       "id": "16",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "20",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
-      "id": "26",
-      "type": "owl:objectProperty"
+      "id": "25",
+      "type": "owl:ObjectProperty"
     },
     {
-      "id": "28",
+      "id": "27",
+      "type": "owl:disjointWith"
+    },
+    {
+      "id": "30",
       "type": "owl:disjointWith"
     },
     {
@@ -1794,43 +1749,31 @@
       "type": "owl:disjointWith"
     },
     {
-      "id": "32",
-      "type": "owl:disjointWith"
-    },
-    {
       "id": "34",
       "type": "owl:disjointWith"
     },
     {
-      "id": "35",
-      "type": "owl:objectProperty"
+      "id": "37",
+      "type": "owl:ObjectProperty"
     },
     {
-      "id": "39",
+      "id": "41",
       "type": "owl:disjointWith"
     },
     {
-      "id": "40",
-      "type": "owl:datatypeProperty"
+      "id": "42",
+      "type": "owl:DatatypeProperty"
     },
     {
-      "id": "43",
+      "id": "45",
       "type": "owl:disjointWith"
     },
     {
-      "id": "44",
-      "type": "owl:objectProperty"
-    },
-    {
-      "id": "48",
-      "type": "owl:disjointWith"
+      "id": "46",
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "50",
-      "type": "owl:disjointWith"
-    },
-    {
-      "id": "51",
       "type": "owl:disjointWith"
     },
     {
@@ -1842,16 +1785,20 @@
       "type": "owl:disjointWith"
     },
     {
-      "id": "56",
-      "type": "owl:objectProperty"
+      "id": "54",
+      "type": "owl:disjointWith"
+    },
+    {
+      "id": "55",
+      "type": "owl:disjointWith"
     },
     {
       "id": "58",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
-      "id": "59",
-      "type": "owl:disjointWith"
+      "id": "60",
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "61",
@@ -1867,187 +1814,187 @@
     },
     {
       "id": "65",
-      "type": "owl:datatypeProperty"
+      "type": "owl:disjointWith"
     },
     {
-      "id": "67",
-      "type": "owl:datatypeProperty"
+      "id": "66",
+      "type": "owl:DatatypeProperty"
     },
     {
-      "id": "69",
-      "type": "owl:objectProperty"
+      "id": "68",
+      "type": "owl:DatatypeProperty"
     },
     {
-      "id": "72",
-      "type": "owl:objectProperty"
+      "id": "70",
+      "type": "owl:ObjectProperty"
     },
     {
-      "id": "74",
-      "type": "owl:datatypeProperty"
+      "id": "73",
+      "type": "owl:ObjectProperty"
     },
     {
-      "id": "76",
-      "type": "rdfs:SubClassOf"
+      "id": "75",
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "77",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "78",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
+    },
+    {
+      "id": "79",
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "80",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
-      "id": "82",
-      "type": "rdfs:SubClassOf"
+      "id": "81",
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "84",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
-      "id": "85",
-      "type": "owl:datatypeProperty"
-    },
-    {
-      "id": "90",
-      "type": "rdfs:SubClassOf"
+      "id": "86",
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "91",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
-      "id": "92",
-      "type": "rdfs:SubClassOf"
-    },
-    {
-      "id": "38",
-      "type": "owl:objectProperty"
-    },
-    {
-      "id": "94",
-      "type": "rdfs:SubClassOf"
+      "id": "93",
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "95",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
-      "id": "96",
-      "type": "owl:objectProperty"
+      "id": "40",
+      "type": "owl:ObjectProperty"
     },
     {
-      "id": "99",
-      "type": "owl:datatypeProperty"
+      "id": "98",
+      "type": "rdfs:subClassOf"
     },
     {
-      "id": "101",
-      "type": "owl:objectProperty"
+      "id": "100",
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "102",
-      "type": "owl:datatypeProperty"
-    },
-    {
-      "id": "104",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "105",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "107",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
+    },
+    {
+      "id": "108",
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "110",
-      "type": "owl:datatypeProperty"
+      "type": "owl:ObjectProperty"
     },
     {
-      "id": "112",
-      "type": "owl:datatypeProperty"
+      "id": "111",
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "114",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
-      "id": "115",
-      "type": "owl:objectProperty"
+      "id": "117",
+      "type": "owl:DatatypeProperty"
     },
     {
-      "id": "124",
-      "type": "owl:objectProperty"
+      "id": "119",
+      "type": "owl:DatatypeProperty"
     },
     {
-      "id": "127",
-      "type": "owl:objectProperty"
+      "id": "120",
+      "type": "owl:ObjectProperty"
     },
     {
-      "id": "129",
-      "type": "owl:datatypeProperty"
+      "id": "122",
+      "type": "owl:ObjectProperty"
     },
     {
-      "id": "149",
-      "type": "owl:datatypeProperty"
+      "id": "130",
+      "type": "owl:ObjectProperty"
     },
     {
-      "id": "150",
-      "type": "owl:objectProperty"
+      "id": "132",
+      "type": "owl:ObjectProperty"
+    },
+    {
+      "id": "134",
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "152",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
-      "id": "154",
-      "type": "owl:datatypeProperty"
+      "id": "153",
+      "type": "owl:ObjectProperty"
     },
     {
-      "id": "159",
-      "type": "owl:objectProperty"
+      "id": "155",
+      "type": "owl:DatatypeProperty"
     },
     {
-      "id": "160",
-      "type": "owl:objectProperty"
+      "id": "156",
+      "type": "owl:DatatypeProperty"
+    },
+    {
+      "id": "161",
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "162",
-      "type": "owl:datatypeProperty"
+      "type": "owl:ObjectProperty"
     },
     {
-      "id": "47",
-      "type": "owl:objectProperty"
+      "id": "165",
+      "type": "owl:DatatypeProperty"
     },
     {
-      "id": "168",
-      "type": "owl:disjointWith"
+      "id": "49",
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "169",
       "type": "owl:someValuesFrom"
     },
     {
-      "id": "171",
-      "type": "owl:disjointWith"
+      "id": "170",
+      "type": "owl:someValuesFrom"
     },
     {
       "id": "172",
-      "type": "owl:datatypeProperty"
+      "type": "owl:disjointWith"
     },
     {
       "id": "173",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "174",
-      "type": "owl:disjointWith"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "175",
@@ -2055,59 +2002,63 @@
     },
     {
       "id": "176",
-      "type": "rdfs:SubClassOf"
+      "type": "owl:disjointWith"
     },
     {
       "id": "177",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "178",
-      "type": "owl:disjointWith"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "179",
-      "type": "rdfs:SubClassOf"
+      "type": "owl:disjointWith"
     },
     {
       "id": "180",
-      "type": "owl:disjointWith"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "181",
-      "type": "rdfs:SubClassOf"
+      "type": "owl:disjointWith"
     },
     {
       "id": "182",
-      "type": "owl:disjointWith"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "183",
-      "type": "rdfs:SubClassOf"
+      "type": "owl:disjointWith"
     },
     {
       "id": "184",
-      "type": "owl:disjointWith"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "185",
-      "type": "rdfs:SubClassOf"
+      "type": "owl:disjointWith"
     },
     {
       "id": "186",
-      "type": "owl:disjointWith"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "187",
-      "type": "rdfs:SubClassOf"
-    },
-    {
-      "id": "188",
       "type": "owl:disjointWith"
     },
     {
+      "id": "188",
+      "type": "rdfs:subClassOf"
+    },
+    {
       "id": "189",
-      "type": "rdfs:SubClassOf"
+      "type": "owl:disjointWith"
+    },
+    {
+      "id": "190",
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "191",
@@ -2115,7 +2066,7 @@
     },
     {
       "id": "192",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "193",
@@ -2123,23 +2074,23 @@
     },
     {
       "id": "194",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "195",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "196",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "197",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "198",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "199",
@@ -2147,7 +2098,7 @@
     },
     {
       "id": "200",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "201",
@@ -2159,7 +2110,7 @@
     },
     {
       "id": "203",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "204",
@@ -2167,7 +2118,7 @@
     },
     {
       "id": "205",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "206",
@@ -2175,7 +2126,7 @@
     },
     {
       "id": "207",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "208",
@@ -2183,7 +2134,7 @@
     },
     {
       "id": "209",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "210",
@@ -2191,11 +2142,11 @@
     },
     {
       "id": "211",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "212",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "213",
@@ -2203,11 +2154,11 @@
     },
     {
       "id": "214",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "215",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "216",
@@ -2215,7 +2166,7 @@
     },
     {
       "id": "217",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "218",
@@ -2223,11 +2174,11 @@
     },
     {
       "id": "219",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "220",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "222",
@@ -2235,15 +2186,15 @@
     },
     {
       "id": "223",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "224",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "225",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "226",
@@ -2251,7 +2202,7 @@
     },
     {
       "id": "227",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "228",
@@ -2259,15 +2210,15 @@
     },
     {
       "id": "229",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "230",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "231",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "232",
@@ -2275,7 +2226,7 @@
     },
     {
       "id": "233",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "234",
@@ -2283,7 +2234,7 @@
     },
     {
       "id": "235",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "236",
@@ -2291,11 +2242,11 @@
     },
     {
       "id": "237",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "238",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "239",
@@ -2303,7 +2254,7 @@
     },
     {
       "id": "240",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "241",
@@ -2311,7 +2262,7 @@
     },
     {
       "id": "242",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "243",
@@ -2319,7 +2270,7 @@
     },
     {
       "id": "244",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "245",
@@ -2327,7 +2278,7 @@
     },
     {
       "id": "246",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "247",
@@ -2335,7 +2286,7 @@
     },
     {
       "id": "248",
-      "type": "rdfs:SubClassOf"
+      "type": "rdfs:subClassOf"
     },
     {
       "id": "249",
@@ -2347,7 +2298,7 @@
     },
     {
       "id": "251",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "253",
@@ -2379,7 +2330,7 @@
     },
     {
       "id": "260",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "261",
@@ -2407,11 +2358,11 @@
     },
     {
       "id": "267",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "268",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "269",
@@ -2419,7 +2370,7 @@
     },
     {
       "id": "270",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "271",
@@ -2427,7 +2378,7 @@
     },
     {
       "id": "272",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "273",
@@ -2463,7 +2414,7 @@
     },
     {
       "id": "281",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "282",
@@ -2471,15 +2422,15 @@
     },
     {
       "id": "283",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "284",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "285",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "286",
@@ -2491,11 +2442,11 @@
     },
     {
       "id": "19",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "288",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "289",
@@ -2579,7 +2530,7 @@
     },
     {
       "id": "309",
-      "type": "owl:someValuesFrom"
+      "type": "owl:disjointWith"
     },
     {
       "id": "310",
@@ -2611,7 +2562,7 @@
     },
     {
       "id": "317",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "318",
@@ -2619,7 +2570,7 @@
     },
     {
       "id": "319",
-      "type": "owl:objectProperty"
+      "type": "owl:ObjectProperty"
     },
     {
       "id": "320",
@@ -2651,2596 +2602,3647 @@
     },
     {
       "id": "327",
-      "type": "owl:datatypeProperty"
+      "type": "owl:DatatypeProperty"
     },
     {
       "id": "328",
       "type": "owl:disjointWith"
+    },
+    {
+      "id": "GENERATED-UNION-87-131-0",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-87-151-1",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-159-160-0",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-159-151-1",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-163-24-0",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-163-48-1",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-164-56-0",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-164-43-1",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-164-48-2",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-133-9-0",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-133-24-1",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-133-48-2",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-166-72-0",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-166-71-1",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-167-56-0",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-167-26-1",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-171-89-0",
+      "type": "setOperatorProperty"
+    },
+    {
+      "id": "GENERATED-UNION-171-157-1",
+      "type": "setOperatorProperty"
     }
   ],
   "propertyAttribute": [
     {
-      "range": "2",
+      "id": "0",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
       "domain": "1",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "0"
+      "range": "2",
+      "pos": [
+        2318.33,
+        -702.14
+      ]
     },
     {
-      "range": "1",
+      "id": "3",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
       "domain": "4",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "3"
+      "range": "2",
+      "pos": [
+        2264.2,
+        -625.67
+      ]
     },
     {
+      "id": "5",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "6",
       "range": "7",
-      "domain": "6",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "5"
+      "pos": [
+        2568.49,
+        -537.23
+      ]
     },
     {
-      "range": "2",
-      "domain": "6",
+      "id": "10",
+      "label": "Disjoint With",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "10"
+      "domain": "1",
+      "range": "7",
+      "pos": [
+        2477.11,
+        -791.71
+      ]
     },
     {
-      "range": "4",
-      "domain": "6",
+      "id": "11",
+      "label": "Disjoint With",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "11"
-    },
-    {
-      "range": "2",
       "domain": "7",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "12"
-    },
-    {
       "range": "4",
-      "domain": "7",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "14"
+      "pos": [
+        2422.98,
+        -715.24
+      ]
     },
     {
-      "range": "2",
-      "domain": "4",
+      "id": "12",
+      "label": "Disjoint With",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "15"
+      "domain": "6",
+      "range": "1",
+      "pos": [
+        2420.17,
+        -694.4
+      ]
     },
     {
+      "id": "14",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "6",
+      "range": "4",
+      "pos": [
+        2366.04,
+        -617.94
+      ]
+    },
+    {
+      "id": "15",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "1",
+      "range": "4",
+      "pos": [
+        2274.66,
+        -872.42
+      ]
+    },
+    {
+      "id": "16",
       "iri": "http://blankdots.com/open/personasonto.owl#hasBusinessGoal",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "18",
       "label": {
         "IRI-based": "hasBusinessGoal"
       },
-      "superproperty": [
-        "19"
-      ],
-      "domain": "17",
       "attributes": [
         "object"
       ],
-      "id": "16"
+      "domain": "17",
+      "range": "18",
+      "superproperty": [
+        "19"
+      ]
     },
     {
+      "id": "20",
       "iri": "http://blankdots.com/open/personasonto.owl#minHeight",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "22",
-      "description": {
-        "undefined": "Minimum Height."
-      },
       "label": {
         "IRI-based": "minHeight"
       },
-      "domain": "21",
       "attributes": [
-        "functional",
-        "datatype"
+        "datatype",
+        "functional"
       ],
-      "id": "20"
+      "description": {
+        "undefined": "Minimum Height."
+      },
+      "domain": "21",
+      "range": "22"
     },
     {
+      "id": "25",
       "iri": "http://blankdots.com/open/personasonto.owl#hasTopicOfInterest",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "9",
-      "description": {
-        "undefined": "A person might have a certain topic of interest which is correspondent to a cetain resource."
-      },
       "label": {
         "IRI-based": "hasTopicOfInterest"
       },
-      "domain": "27",
       "attributes": [
         "object"
       ],
-      "id": "26"
+      "description": {
+        "undefined": "A person might have a certain topic of interest which is correspondent to a cetain resource."
+      },
+      "domain": "26",
+      "range": "9",
+      "pos": [
+        671.25,
+        -88.12
+      ]
     },
     {
-      "range": "1",
-      "domain": "6",
+      "id": "27",
+      "label": "Disjoint With",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "28"
-    },
-    {
-      "range": "1",
       "domain": "7",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "31"
+      "range": "2",
+      "pos": [
+        2466.65,
+        -544.96
+      ]
     },
     {
-      "range": "33",
+      "id": "30",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
       "domain": "6",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "32"
+      "range": "2",
+      "pos": [
+        2409.71,
+        -447.66
+      ]
     },
     {
+      "id": "31",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "32",
       "range": "33",
-      "domain": "7",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "34"
+      "pos": [
+        509.77,
+        1445.87
+      ]
     },
     {
+      "id": "34",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "35",
+      "range": "36",
+      "pos": [
+        645.61,
+        1388.42
+      ]
+    },
+    {
+      "id": "37",
       "iri": "http://blankdots.com/open/personasonto.owl#depictsImage",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "37",
       "label": {
         "IRI-based": "depictsImage"
       },
-      "superproperty": [
-        "38"
-      ],
-      "domain": "36",
       "attributes": [
         "object"
       ],
-      "id": "35"
+      "domain": "38",
+      "range": "39",
+      "superproperty": [
+        "40"
+      ]
     },
     {
-      "range": "2",
-      "domain": "33",
+      "id": "41",
+      "label": "Disjoint With",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "39"
+      "domain": "35",
+      "range": "32",
+      "pos": [
+        559.4,
+        1375.55
+      ]
     },
     {
+      "id": "42",
       "iri": "http://blankdots.com/open/personasonto.owl#taskName",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "42",
-      "description": {
-        "undefined": "A generic (short) name for a task."
-      },
       "label": {
         "IRI-based": "taskName"
       },
-      "domain": "41",
       "attributes": [
         "datatype"
       ],
-      "id": "40"
-    },
-    {
-      "range": "33",
-      "domain": "4",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "43"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#isContextOf",
-      "inverse": "47",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "46",
       "description": {
-        "undefined": "Inverse property of hasContext, isContextof represents the context belonging to a scenario."
+        "undefined": "A generic (short) name for a task."
       },
+      "domain": "43",
+      "range": "44"
+    },
+    {
+      "id": "45",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "32",
+      "range": "36",
+      "pos": [
+        773.63,
+        1353.73
+      ]
+    },
+    {
+      "id": "46",
+      "iri": "http://blankdots.com/open/personasonto.owl#isContextOf",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
       "label": {
         "IRI-based": "isContextOf"
       },
-      "domain": "45",
       "attributes": [
         "object"
       ],
-      "id": "44"
+      "description": {
+        "undefined": "Inverse property of hasContext, isContextof represents the context belonging to a scenario."
+      },
+      "domain": "47",
+      "range": "48",
+      "inverse": "49",
+      "pos": [
+        -233.76,
+        399.64
+      ]
     },
     {
-      "range": "1",
-      "domain": "49",
+      "id": "50",
+      "label": "Disjoint With",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "48"
+      "domain": "2",
+      "range": "51",
+      "pos": [
+        2428.21,
+        -654.28
+      ]
     },
     {
-      "range": "49",
-      "domain": "6",
+      "id": "52",
+      "label": "Disjoint With",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "50"
-    },
-    {
-      "range": "49",
       "domain": "7",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "51"
+      "range": "51",
+      "pos": [
+        2586.99,
+        -743.85
+      ]
     },
     {
-      "range": "2",
-      "domain": "49",
+      "id": "53",
+      "label": "Disjoint With",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "52"
+      "domain": "6",
+      "range": "51",
+      "pos": [
+        2530.05,
+        -646.55
+      ]
     },
     {
-      "range": "49",
+      "id": "54",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "1",
+      "range": "51",
+      "pos": [
+        2438.67,
+        -901.03
+      ]
+    },
+    {
+      "id": "55",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
       "domain": "4",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "53"
+      "range": "51",
+      "pos": [
+        2384.55,
+        -824.57
+      ]
     },
     {
+      "id": "58",
       "iri": "http://blankdots.com/open/personasonto.owl#depictsProduct",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "13",
       "label": {
         "IRI-based": "depictsProduct"
       },
-      "superproperty": [
-        "38"
-      ],
-      "domain": "57",
       "attributes": [
         "object"
       ],
-      "id": "56"
+      "domain": "59",
+      "range": "13",
+      "superproperty": [
+        "40"
+      ]
     },
     {
+      "id": "60",
       "iri": "http://blankdots.com/open/personasonto.owl#isGoalOf",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "27",
-      "description": {
-        "undefined": "Inverse property of hasGoal, isGoalof represents the goal belonging to a person."
-      },
       "label": {
         "IRI-based": "isGoalOf"
       },
-      "domain": "30",
       "attributes": [
         "object"
       ],
-      "id": "58"
+      "description": {
+        "undefined": "Inverse property of hasGoal, isGoalof represents the goal belonging to a person."
+      },
+      "domain": "29",
+      "range": "26",
+      "inverse": "19",
+      "pos": [
+        545.52,
+        360.77
+      ]
     },
     {
-      "range": "23",
-      "domain": "60",
+      "id": "61",
+      "label": "Disjoint With",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "59"
-    },
-    {
-      "range": "23",
       "domain": "62",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "61"
+      "range": "32",
+      "pos": [
+        655.43,
+        1566.48
+      ]
     },
     {
+      "id": "63",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "62",
+      "range": "36",
+      "pos": [
+        741.64,
+        1579.35
+      ]
+    },
+    {
+      "id": "64",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "35",
       "range": "33",
-      "domain": "49",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "63"
+      "pos": [
+        381.74,
+        1480.56
+      ]
     },
     {
-      "range": "1",
-      "domain": "33",
+      "id": "65",
+      "label": "Disjoint With",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "64"
+      "domain": "36",
+      "range": "33",
+      "pos": [
+        595.98,
+        1458.74
+      ]
     },
     {
+      "id": "66",
       "iri": "http://blankdots.com/open/personasonto.owl#title",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "66",
-      "description": {
-        "undefined": "Academic, professional or military prefix/suffix for a person. "
-      },
       "label": {
         "IRI-based": "title"
       },
-      "domain": "27",
       "attributes": [
         "datatype"
       ],
-      "id": "65"
+      "description": {
+        "undefined": "Academic, professional or military prefix/suffix for a person. "
+      },
+      "domain": "26",
+      "range": "67"
     },
     {
+      "id": "68",
       "iri": "http://blankdots.com/open/personasonto.owl#maxFeetSize",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "68",
-      "description": {
-        "undefined": "Maximum Feet Size."
-      },
       "label": {
         "IRI-based": "maxFeetSize"
       },
-      "domain": "21",
       "attributes": [
-        "functional",
-        "datatype"
+        "datatype",
+        "functional"
       ],
-      "id": "67"
+      "description": {
+        "undefined": "Maximum Feet Size."
+      },
+      "domain": "21",
+      "range": "69"
     },
     {
+      "id": "70",
       "iri": "http://blankdots.com/open/personasonto.owl#influences",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "71",
-      "description": {
-        "undefined": "The personality influences the affective state o a person."
-      },
       "label": {
         "IRI-based": "influences"
       },
-      "domain": "70",
       "attributes": [
         "object"
       ],
-      "id": "69"
+      "description": {
+        "undefined": "The personality influences the affective state o a person."
+      },
+      "domain": "71",
+      "range": "72",
+      "inverse": "170",
+      "pos": [
+        -22.12,
+        -91.14
+      ]
     },
     {
+      "id": "73",
       "iri": "http://blankdots.com/open/personasonto.owl#depictsDocument",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "8",
       "label": {
         "IRI-based": "depictsDocument"
       },
-      "superproperty": [
-        "38"
-      ],
-      "domain": "73",
       "attributes": [
         "object"
       ],
-      "id": "72"
+      "domain": "74",
+      "range": "8",
+      "superproperty": [
+        "40"
+      ]
     },
     {
+      "id": "75",
       "iri": "http://blankdots.com/open/personasonto.owl#maxBustSize",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "75",
-      "description": {
-        "undefined": "Maximum Bust Size."
-      },
       "label": {
         "IRI-based": "maxBustSize"
       },
+      "attributes": [
+        "datatype",
+        "functional"
+      ],
+      "description": {
+        "undefined": "Maximum Bust Size."
+      },
       "domain": "21",
-      "attributes": [
-        "functional",
-        "datatype"
-      ],
-      "id": "74"
+      "range": "76"
     },
     {
-      "range": "21",
-      "domain": "24",
+      "id": "77",
+      "label": "Subclass of",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "76"
-    },
-    {
-      "range": "24",
       "domain": "23",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "77"
+      "range": "21"
     },
     {
-      "range": "24",
-      "domain": "79",
+      "id": "78",
+      "label": "Subclass of",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "78"
-    },
-    {
-      "range": "24",
-      "domain": "81",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "80"
-    },
-    {
-      "range": "83",
-      "domain": "2",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "82"
-    },
-    {
-      "range": "83",
       "domain": "4",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "84"
+      "range": "23",
+      "pos": [
+        2107.4,
+        -710.94
+      ]
     },
     {
+      "id": "79",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "7",
+      "range": "23",
+      "pos": [
+        2309.85,
+        -630.23
+      ]
+    },
+    {
+      "id": "80",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "2",
+      "range": "23",
+      "pos": [
+        2151.07,
+        -540.66
+      ]
+    },
+    {
+      "id": "81",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "82",
+      "range": "83",
+      "pos": [
+        1153.32,
+        28.37
+      ]
+    },
+    {
+      "id": "84",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "85",
+      "range": "83",
+      "pos": [
+        1243.77,
+        283.07
+      ]
+    },
+    {
+      "id": "86",
       "iri": "http://blankdots.com/open/personasonto.owl#location",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "87",
-      "description": {
-        "undefined": "Geographic location (City/Country)."
-      },
       "label": {
         "IRI-based": "location"
       },
-      "domain": "86",
       "attributes": [
         "datatype"
       ],
-      "id": "85"
+      "description": {
+        "undefined": "Geographic location (City/Country)."
+      },
+      "domain": "87",
+      "range": "88"
     },
     {
-      "range": "83",
-      "domain": "1",
+      "id": "91",
+      "label": "Subclass of",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "90"
-    },
-    {
+      "domain": "92",
       "range": "83",
-      "domain": "7",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "91"
+      "pos": [
+        1248.81,
+        81.31
+      ]
     },
     {
+      "id": "93",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "94",
       "range": "83",
-      "domain": "6",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "92"
+      "pos": [
+        1090.45,
+        233.88
+      ]
     },
     {
+      "id": "95",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "96",
+      "range": "83",
+      "pos": [
+        1143.34,
+        311.05
+      ]
+    },
+    {
+      "id": "40",
       "iri": "http://blankdots.com/open/personasonto.owl#depiction",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "9",
-      "description": {
-        "undefined": "A certain resource might depict a/any thing."
-      },
       "label": {
         "IRI-based": "depiction"
       },
-      "domain": "93",
-      "subproperty": [
-        "35",
-        "56",
-        "72"
-      ],
       "attributes": [
         "object"
       ],
-      "id": "38"
+      "description": {
+        "undefined": "A certain resource might depict a/any thing."
+      },
+      "domain": "97",
+      "range": "9",
+      "subproperty": [
+        "37",
+        "58",
+        "73"
+      ]
     },
     {
-      "range": "83",
-      "domain": "49",
+      "id": "98",
+      "label": "Subclass of",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "94"
-    },
-    {
+      "domain": "99",
       "range": "83",
-      "domain": "33",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "95"
+      "pos": [
+        1285.55,
+        185.42
+      ]
     },
     {
+      "id": "100",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "101",
+      "range": "83",
+      "pos": [
+        1088.78,
+        90.68
+      ]
+    },
+    {
+      "id": "102",
       "iri": "http://blankdots.com/open/personasonto.owl#hasExperienceGoal",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "98",
       "label": {
         "IRI-based": "hasExperienceGoal"
       },
-      "superproperty": [
-        "19"
-      ],
-      "domain": "97",
       "attributes": [
         "object"
       ],
-      "id": "96"
+      "domain": "103",
+      "range": "104",
+      "superproperty": [
+        "19"
+      ]
     },
     {
+      "id": "105",
       "iri": "http://blankdots.com/open/personasonto.owl#scenarioName",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "100",
-      "description": {
-        "undefined": "The name of each scenario."
-      },
       "label": {
         "IRI-based": "scenarioName"
       },
-      "domain": "46",
       "attributes": [
-        "functional",
-        "datatype"
+        "datatype",
+        "functional"
       ],
-      "id": "99"
+      "description": {
+        "undefined": "The name of each scenario."
+      },
+      "domain": "48",
+      "range": "106"
     },
     {
+      "id": "107",
       "iri": "http://blankdots.com/open/personasonto.owl#influencedBy",
-      "inverse": "69",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "70",
-      "description": {
-        "undefined": "The affective state of a person is influenced by the personality of that person. (inverse property influences)"
-      },
       "label": {
         "IRI-based": "influencedBy"
       },
-      "domain": "71",
       "attributes": [
         "object"
       ],
-      "id": "101"
+      "description": {
+        "undefined": "The affective state of a person is influenced by the personality of that person. (inverse property influences)"
+      },
+      "domain": "72",
+      "range": "71",
+      "inverse": "70",
+      "pos": [
+        -75.9,
+        -15.99
+      ]
     },
     {
+      "id": "108",
       "iri": "http://blankdots.com/open/personasonto.owl#maxWaistSize",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "103",
-      "description": {
-        "undefined": "Maximum Waist Size."
-      },
       "label": {
         "IRI-based": "maxWaistSize"
       },
-      "domain": "21",
       "attributes": [
-        "functional",
-        "datatype"
+        "datatype",
+        "functional"
       ],
-      "id": "102"
+      "description": {
+        "undefined": "Maximum Waist Size."
+      },
+      "domain": "21",
+      "range": "109"
     },
     {
+      "id": "110",
       "iri": "http://blankdots.com/open/personasonto.owl#uses",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "9",
-      "description": {
-        "undefined": "A person makes use of a resource (document, image, product)."
-      },
       "label": {
         "IRI-based": "uses"
       },
-      "domain": "27",
       "attributes": [
         "object"
       ],
-      "id": "104"
+      "description": {
+        "undefined": "A person makes use of a resource (document, image, product)."
+      },
+      "domain": "26",
+      "range": "9",
+      "pos": [
+        613.88,
+        -36.47
+      ]
     },
     {
+      "id": "111",
       "iri": "http://blankdots.com/open/personasonto.owl#minWeight",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "106",
-      "description": {
-        "undefined": "Minimum Weight."
-      },
       "label": {
         "IRI-based": "minWeight"
       },
-      "domain": "21",
       "attributes": [
-        "functional",
-        "datatype"
+        "datatype",
+        "functional"
       ],
-      "id": "105"
+      "description": {
+        "undefined": "Minimum Weight."
+      },
+      "domain": "21",
+      "range": "112"
     },
     {
+      "id": "114",
       "iri": "http://blankdots.com/open/personasonto.owl#hasAffectiveState",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "71",
-      "description": {
-        "undefined": "A person might have a certain affective state on a given moment or in a given context."
-      },
       "label": {
         "IRI-based": "hasAffectiveState"
       },
-      "domain": "27",
       "attributes": [
         "object"
       ],
-      "id": "107"
+      "description": {
+        "undefined": "A person might have a certain affective state on a given moment or in a given context."
+      },
+      "domain": "26",
+      "range": "72",
+      "pos": [
+        342.9,
+        83.53
+      ]
     },
     {
+      "id": "117",
       "iri": "http://blankdots.com/open/personasonto.owl#minBustSize",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "111",
-      "description": {
-        "undefined": "Minimum Bust Size."
-      },
       "label": {
         "IRI-based": "minBustSize"
       },
-      "domain": "21",
       "attributes": [
-        "functional",
-        "datatype"
+        "datatype",
+        "functional"
       ],
-      "id": "110"
+      "description": {
+        "undefined": "Minimum Bust Size."
+      },
+      "domain": "21",
+      "range": "118"
     },
     {
+      "id": "119",
       "iri": "http://blankdots.com/open/personasonto.owl#familyName",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "113",
-      "description": {
-        "undefined": "Family or Last name of a person."
-      },
       "label": {
         "IRI-based": "familyName"
       },
-      "domain": "27",
       "attributes": [
-        "functional",
-        "datatype"
+        "datatype",
+        "functional"
       ],
-      "id": "112"
+      "description": {
+        "undefined": "Family or Last name of a person."
+      },
+      "domain": "26",
+      "range": "116"
     },
     {
+      "id": "120",
       "iri": "http://blankdots.com/open/personasonto.owl#hasInterest",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "9",
-      "description": {
-        "undefined": "A person might be interested in a certain resource (product, application, document)."
-      },
       "label": {
         "IRI-based": "hasInterest"
       },
-      "domain": "27",
       "attributes": [
         "object"
       ],
-      "id": "114"
+      "description": {
+        "undefined": "A person might be interested in a certain resource (product, application, document)."
+      },
+      "domain": "26",
+      "range": "9",
+      "pos": [
+        603.79,
+        -97.3
+      ]
     },
     {
+      "id": "122",
       "iri": "http://blankdots.com/open/personasonto.owl#hasLifeGoal",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "55",
       "label": {
         "IRI-based": "hasLifeGoal"
       },
-      "superproperty": [
-        "19"
-      ],
-      "domain": "116",
       "attributes": [
         "object"
       ],
-      "id": "115"
+      "domain": "123",
+      "range": "57",
+      "superproperty": [
+        "19"
+      ]
     },
     {
+      "id": "130",
       "iri": "http://blankdots.com/open/personasonto.owl#isMemberOf",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "125",
-      "description": {
-        "undefined": "A person might be memeber of an organization."
-      },
       "label": {
         "IRI-based": "isMemberOf"
       },
-      "domain": "27",
       "attributes": [
         "object"
       ],
-      "id": "124"
+      "description": {
+        "undefined": "A person might be memeber of an organization."
+      },
+      "domain": "26",
+      "range": "131",
+      "pos": [
+        503.83,
+        514.7
+      ]
     },
     {
+      "id": "132",
       "iri": "http://blankdots.com/open/personasonto.owl#hasReview",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "8",
-      "description": {
-        "undefined": "A resource, scenario or usability test is described, reviewed via a document."
-      },
       "label": {
         "IRI-based": "hasReview"
       },
-      "domain": "128",
       "attributes": [
         "object"
       ],
-      "id": "127"
+      "description": {
+        "undefined": "A resource, scenario or usability test is described, reviewed via a document."
+      },
+      "domain": "133",
+      "range": "8",
+      "pos": [
+        175.82,
+        -437.19
+      ]
     },
     {
+      "id": "134",
       "iri": "http://blankdots.com/open/personasonto.owl#firstName",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "130",
-      "description": {
-        "undefined": "First or Given name of a person."
-      },
       "label": {
         "IRI-based": "firstName"
       },
-      "domain": "27",
       "attributes": [
-        "functional",
-        "datatype"
+        "datatype",
+        "functional"
       ],
-      "id": "129"
+      "description": {
+        "undefined": "First or Given name of a person."
+      },
+      "domain": "26",
+      "range": "135"
     },
     {
+      "id": "152",
       "iri": "http://blankdots.com/open/personasonto.owl#frustrationPoint",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "142",
-      "description": {
-        "undefined": "Elements of a UI/UX or certain characteristics that frustrate the user or (s)he sees as pain points."
-      },
       "label": {
         "IRI-based": "frustrationPoint"
       },
-      "domain": "27",
       "attributes": [
         "datatype"
       ],
-      "id": "149"
+      "description": {
+        "undefined": "Elements of a UI/UX or certain characteristics that frustrate the user or (s)he sees as pain points."
+      },
+      "domain": "26",
+      "range": "145"
     },
     {
+      "id": "153",
       "iri": "http://blankdots.com/open/personasonto.owl#hasTechnicalGoal",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "29",
       "label": {
         "IRI-based": "hasTechnicalGoal"
       },
-      "superproperty": [
-        "19"
-      ],
-      "domain": "151",
       "attributes": [
         "object"
       ],
-      "id": "150"
+      "domain": "154",
+      "range": "28",
+      "superproperty": [
+        "19"
+      ]
     },
     {
+      "id": "155",
       "iri": "http://blankdots.com/open/personasonto.owl#experienceLevel",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "153",
-      "description": {
-        "undefined": "Reflects the experience level of a persona with the application\nor product; proposed levels: Beginner, Intermediate, Advanced."
-      },
       "label": {
         "IRI-based": "experienceLevel"
       },
-      "domain": "27",
+      "attributes": [
+        "datatype",
+        "functional"
+      ],
       "comment": {
         "undefined": "It is different from technical level, because a person might be experienced in some product or application but does not have technical skills."
       },
-      "attributes": [
-        "functional",
-        "datatype"
-      ],
-      "id": "152"
+      "description": {
+        "undefined": "Reflects the experience level of a persona with the application\nor product; proposed levels: Beginner, Intermediate, Advanced."
+      },
+      "domain": "26",
+      "range": "113"
     },
     {
+      "id": "156",
       "iri": "http://blankdots.com/open/personasonto.owl#maxHeight",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "134",
-      "description": {
-        "undefined": "Maximum Height."
-      },
       "label": {
         "IRI-based": "maxHeight"
       },
-      "domain": "21",
       "attributes": [
-        "functional",
-        "datatype"
+        "datatype",
+        "functional"
       ],
-      "id": "154"
+      "description": {
+        "undefined": "Maximum Height."
+      },
+      "domain": "21",
+      "range": "129"
     },
     {
+      "id": "161",
       "iri": "http://blankdots.com/open/personasonto.owl#hasDisability",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "83",
-      "description": {
-        "undefined": "A person might have a disability."
-      },
       "label": {
         "IRI-based": "hasDisability"
       },
-      "domain": "27",
       "attributes": [
         "object"
       ],
-      "id": "159"
+      "description": {
+        "undefined": "A person might have a disability."
+      },
+      "domain": "26",
+      "range": "83",
+      "pos": [
+        767.02,
+        289.56
+      ]
     },
     {
+      "id": "162",
       "iri": "http://blankdots.com/open/personasonto.owl#dependsOn",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "41",
-      "description": {
-        "undefined": "The completion of a Task might depend on another Task, as several Tasks are part of a Scenario."
-      },
       "label": {
         "IRI-based": "dependsOn"
       },
-      "domain": "41",
       "attributes": [
         "object"
       ],
-      "id": "160"
+      "description": {
+        "undefined": "The completion of a Task might depend on another Task, as several Tasks are part of a Scenario."
+      },
+      "domain": "43",
+      "range": "43",
+      "pos": [
+        -95.42,
+        -351.68
+      ]
     },
     {
+      "id": "165",
       "iri": "http://blankdots.com/open/personasonto.owl#mainPoint",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "131",
-      "description": {
-        "undefined": "Main points are specific elements to each persona category."
-      },
       "label": {
         "IRI-based": "mainPoint"
       },
-      "domain": "27",
       "attributes": [
         "datatype"
       ],
-      "id": "162"
+      "description": {
+        "undefined": "Main points are specific elements to each persona category."
+      },
+      "domain": "26",
+      "range": "136"
     },
     {
+      "id": "49",
       "iri": "http://blankdots.com/open/personasonto.owl#hasContext",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "45",
-      "description": {
-        "undefined": "A scenario is characterized by a certain context."
-      },
       "label": {
         "IRI-based": "hasContext"
       },
-      "domain": "46",
       "attributes": [
         "object"
       ],
-      "id": "47"
+      "description": {
+        "undefined": "A scenario is characterized by a certain context."
+      },
+      "domain": "48",
+      "range": "47",
+      "inverse": "46"
     },
     {
-      "range": "133",
-      "domain": "132",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "168"
-    },
-    {
+      "id": "169",
       "iri": "http://blankdots.com/open/personasonto.owl#influences",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "71",
-      "description": {
-        "undefined": "The personality influences the affective state o a person."
-      },
       "label": {
         "IRI-based": "influences"
       },
-      "domain": "70",
       "attributes": [
-        "object",
-        "someValues"
+        "someValues",
+        "object"
       ],
-      "id": "169"
-    },
-    {
-      "range": "30",
-      "domain": "70",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "171"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#age",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "167",
       "description": {
-        "undefined": "Age of a person."
-      },
-      "label": {
-        "IRI-based": "age"
-      },
-      "domain": "27",
-      "attributes": [
-        "functional",
-        "datatype"
-      ],
-      "id": "172"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#minFeetSize",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "122",
-      "description": {
-        "undefined": "Minimum Feet Size."
-      },
-      "label": {
-        "IRI-based": "minFeetSize"
-      },
-      "domain": "21",
-      "attributes": [
-        "functional",
-        "datatype"
-      ],
-      "id": "173"
-    },
-    {
-      "range": "27",
-      "domain": "30",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "174"
-    },
-    {
-      "range": "30",
-      "domain": "125",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "175"
-    },
-    {
-      "range": "71",
-      "domain": "146",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "176"
-    },
-    {
-      "range": "45",
-      "domain": "88",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "177"
-    },
-    {
-      "range": "83",
-      "domain": "46",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "178"
-    },
-    {
-      "range": "45",
-      "domain": "164",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "179"
-    },
-    {
-      "range": "9",
-      "domain": "83",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "180"
-    },
-    {
-      "range": "45",
-      "domain": "156",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "181"
-    },
-    {
-      "range": "25",
-      "domain": "83",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "182"
-    },
-    {
-      "range": "45",
-      "domain": "148",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "183"
-    },
-    {
-      "range": "41",
-      "domain": "83",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "184"
-    },
-    {
-      "range": "27",
-      "domain": "21",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "185"
-    },
-    {
-      "range": "83",
-      "domain": "125",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "186"
-    },
-    {
-      "range": "27",
-      "domain": "54",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "187"
-    },
-    {
-      "range": "30",
-      "domain": "83",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "188"
-    },
-    {
-      "range": "24",
-      "domain": "190",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "189"
-    },
-    {
-      "range": "70",
-      "domain": "83",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "191"
-    },
-    {
-      "range": "24",
-      "domain": "62",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "192"
-    },
-    {
-      "range": "27",
-      "domain": "83",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "193"
-    },
-    {
-      "range": "24",
-      "domain": "60",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "194"
-    },
-    {
-      "range": "71",
-      "domain": "145",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "195"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#status",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "119",
-      "description": {
-        "undefined": "Marital status or a person."
-      },
-      "label": {
-        "IRI-based": "status"
+        "undefined": "The personality influences the affective state o a person."
       },
       "domain": "71",
-      "attributes": [
-        "functional",
-        "datatype"
-      ],
-      "id": "196"
+      "range": "72",
+      "pos": [
+        -85.63,
+        26.74
+      ]
     },
     {
-      "iri": "http://blankdots.com/open/personasonto.owl#knows",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "27",
-      "description": {
-        "undefined": "A person knows another person (similar to FOAF ontology)."
-      },
-      "label": {
-        "IRI-based": "knows"
-      },
-      "domain": "27",
-      "attributes": [
-        "object"
-      ],
-      "id": "197"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#interactionCount",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "147",
-      "description": {
-        "undefined": "A count of specific user actions (comments, facebook likes, tweets, etc.)."
-      },
-      "label": {
-        "IRI-based": "interactionCount"
-      },
-      "domain": "133",
-      "attributes": [
-        "datatype"
-      ],
-      "id": "198"
-    },
-    {
-      "range": "45",
-      "domain": "41",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "199"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#tagline",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "120",
-      "description": {
-        "undefined": "A tagline specific to a persona."
-      },
-      "label": {
-        "IRI-based": "tagline"
-      },
-      "domain": "21",
-      "attributes": [
-        "functional",
-        "datatype"
-      ],
-      "id": "200"
-    },
-    {
-      "range": "45",
-      "domain": "46",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "201"
-    },
-    {
-      "range": "45",
-      "domain": "25",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "202"
-    },
-    {
-      "range": "125",
-      "domain": "135",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "203"
-    },
-    {
-      "range": "27",
-      "domain": "45",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "204"
-    },
-    {
-      "range": "125",
-      "domain": "136",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "205"
-    },
-    {
-      "range": "45",
-      "domain": "125",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "206"
-    },
-    {
-      "range": "125",
-      "domain": "137",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "207"
-    },
-    {
-      "range": "45",
-      "domain": "9",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "208"
-    },
-    {
-      "range": "125",
-      "domain": "138",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "209"
-    },
-    {
-      "range": "45",
-      "domain": "70",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "210"
-    },
-    {
-      "range": "125",
-      "domain": "139",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "211"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#isPartOfTest",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "25",
-      "description": {
-        "undefined": "Usability tests have participants (observers and users), tasks and a scenario."
-      },
-      "label": {
-        "IRI-based": "isPartOfTest"
-      },
-      "domain": "166",
-      "attributes": [
-        "object"
-      ],
-      "id": "212"
-    },
-    {
-      "range": "25",
-      "domain": "71",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "213"
-    },
-    {
-      "range": "125",
-      "domain": "140",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "214"
-    },
-    {
-      "range": "125",
-      "domain": "126",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "215"
-    },
-    {
-      "range": "30",
-      "domain": "45",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "216"
-    },
-    {
-      "range": "125",
-      "domain": "141",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "217"
-    },
-    {
-      "range": "45",
-      "domain": "83",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "218"
-    },
-    {
-      "range": "71",
-      "domain": "144",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "219"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#hasEndGoal",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "89",
-      "label": {
-        "IRI-based": "hasEndGoal"
-      },
-      "superproperty": [
-        "19"
-      ],
-      "domain": "221",
-      "attributes": [
-        "object"
-      ],
-      "id": "220"
-    },
-    {
-      "range": "9",
-      "domain": "46",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "222"
-    },
-    {
-      "range": "41",
-      "domain": "132",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "223"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#hasPersonality",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "70",
-      "description": {
-        "undefined": "A person has a certain personality corresponding to Myers Briggs personality classification."
-      },
-      "label": {
-        "IRI-based": "hasPersonality"
-      },
-      "domain": "27",
-      "attributes": [
-        "object"
-      ],
-      "id": "224"
-    },
-    {
-      "range": "41",
-      "domain": "133",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "225"
-    },
-    {
-      "range": "25",
-      "domain": "9",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "226"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#birthday",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "155",
-      "description": {
-        "undefined": "Date of birth of a person."
-      },
-      "label": {
-        "IRI-based": "birthday"
-      },
-      "domain": "27",
-      "attributes": [
-        "datatype"
-      ],
-      "id": "227"
-    },
-    {
-      "range": "41",
-      "domain": "9",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "228"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#hasInfluence",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "170",
-      "description": {
-        "undefined": "The disability of a person migh have an effect on the affective state or personality on the person."
-      },
-      "label": {
-        "IRI-based": "hasInfluence"
-      },
-      "domain": "83",
-      "attributes": [
-        "object"
-      ],
-      "id": "229"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#gender",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "143",
-      "description": {
-        "undefined": "Gender of a person."
-      },
-      "label": {
-        "IRI-based": "gender"
-      },
-      "domain": "27",
-      "attributes": [
-        "functional",
-        "datatype"
-      ],
-      "id": "230"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#userRole",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "109",
-      "description": {
-        "undefined": "The role of the user in the application/product."
-      },
-      "label": {
-        "IRI-based": "userRole"
-      },
-      "domain": "54",
-      "attributes": [
-        "datatype"
-      ],
-      "id": "231"
-    },
-    {
-      "range": "70",
-      "domain": "46",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "232"
-    },
-    {
-      "range": "30",
-      "domain": "18",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "233"
-    },
-    {
-      "range": "70",
-      "domain": "9",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "234"
-    },
-    {
-      "range": "30",
-      "domain": "89",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "235"
-    },
-    {
-      "range": "25",
-      "domain": "70",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "236"
-    },
-    {
-      "range": "30",
-      "domain": "98",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "237"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#involvedIn",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "165",
-      "description": {
-        "undefined": "A participant (a certain user or observer) is involvedIn a scenario or Usability Test."
-      },
-      "label": {
-        "IRI-based": "involvedIn"
-      },
-      "domain": "54",
-      "attributes": [
-        "object"
-      ],
-      "id": "238"
-    },
-    {
-      "range": "41",
-      "domain": "70",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "239"
-    },
-    {
-      "range": "30",
-      "domain": "55",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "240"
-    },
-    {
-      "range": "27",
-      "domain": "46",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "241"
-    },
-    {
-      "range": "30",
-      "domain": "29",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "242"
-    },
-    {
-      "range": "27",
-      "domain": "9",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "243"
-    },
-    {
-      "range": "9",
-      "domain": "8",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "244"
-    },
-    {
-      "range": "27",
-      "domain": "25",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "245"
-    },
-    {
-      "range": "9",
-      "domain": "37",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "246"
-    },
-    {
-      "range": "27",
-      "domain": "41",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "247"
-    },
-    {
-      "range": "9",
-      "domain": "13",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "248"
-    },
-    {
-      "range": "27",
-      "domain": "70",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "249"
-    },
-    {
-      "range": "25",
-      "domain": "125",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "250"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#details",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "157",
-      "description": {
-        "undefined": "Any kind of details."
-      },
-      "label": {
-        "IRI-based": "details"
-      },
-      "domain": "252",
-      "attributes": [
-        "functional",
-        "datatype"
-      ],
-      "id": "251"
-    },
-    {
-      "range": "41",
-      "domain": "125",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "253"
-    },
-    {
-      "range": "70",
-      "domain": "125",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "254"
-    },
-    {
-      "range": "27",
-      "domain": "125",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "255"
-    },
-    {
-      "range": "46",
-      "domain": "125",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "256"
-    },
-    {
-      "range": "9",
-      "domain": "125",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "257"
-    },
-    {
-      "range": "30",
-      "domain": "46",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "258"
-    },
-    {
-      "range": "30",
-      "domain": "9",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "259"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#hasPublications",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "8",
-      "description": {
-        "undefined": "A person (of academic, journalistic profession) has published several documents."
-      },
-      "label": {
-        "IRI-based": "hasPublications"
-      },
-      "domain": "27",
-      "attributes": [
-        "object"
-      ],
-      "id": "260"
-    },
-    {
-      "range": "30",
-      "domain": "25",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "261"
-    },
-    {
-      "range": "30",
-      "domain": "41",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "262"
-    },
-    {
-      "range": "140",
-      "domain": "138",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "263"
-    },
-    {
-      "range": "139",
-      "domain": "138",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "264"
-    },
-    {
-      "range": "126",
-      "domain": "135",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "265"
-    },
-    {
-      "range": "137",
-      "domain": "138",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "266"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#performs",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "41",
-      "description": {
-        "undefined": "A person performs a task in the usability test or when using a product/application."
-      },
-      "label": {
-        "IRI-based": "performs"
-      },
-      "domain": "27",
-      "attributes": [
-        "object"
-      ],
-      "id": "267"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#myerBriggs",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "117",
-      "description": {
-        "undefined": "Inspired by FOAF Myers Briggs personality classification which includes 16 4-letter textual codes."
-      },
-      "label": {
-        "IRI-based": "myerBriggs"
-      },
-      "domain": "70",
-      "attributes": [
-        "functional",
-        "datatype"
-      ],
-      "id": "268"
-    },
-    {
-      "range": "126",
-      "domain": "138",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "269"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#sensorData",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "118",
-      "description": {
-        "undefined": "Data recieved from a sensor (could be a number, temperature, etc.)."
-      },
-      "label": {
-        "IRI-based": "sensorData"
-      },
-      "domain": "45",
-      "attributes": [
-        "datatype"
-      ],
-      "id": "270"
-    },
-    {
-      "range": "138",
-      "domain": "135",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "271"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#includes",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "163",
-      "description": {
-        "undefined": "In order to describe context we consider the medium of interaction Tangible or Intangible which is included in a Place and/or Time."
-      },
-      "label": {
-        "IRI-based": "includes"
-      },
-      "domain": "161",
-      "attributes": [
-        "object"
-      ],
-      "id": "272"
-    },
-    {
-      "range": "136",
-      "domain": "137",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "273"
-    },
-    {
-      "range": "136",
-      "domain": "126",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "274"
-    },
-    {
-      "range": "136",
-      "domain": "135",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "275"
-    },
-    {
-      "range": "136",
-      "domain": "140",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "276"
-    },
-    {
-      "range": "136",
-      "domain": "139",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "277"
-    },
-    {
-      "range": "140",
-      "domain": "141",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "278"
-    },
-    {
-      "range": "139",
-      "domain": "141",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "279"
-    },
-    {
-      "range": "136",
-      "domain": "138",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "280"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#hasPersonaType",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "24",
-      "description": {
-        "undefined": "The type of Persona: Primary, Secondary, Negative, Supplemental, Served or Customer."
-      },
-      "label": {
-        "IRI-based": "hasPersonaType"
-      },
-      "domain": "158",
-      "attributes": [
-        "object"
-      ],
-      "id": "281"
-    },
-    {
-      "range": "137",
-      "domain": "141",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "282"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#minWaistSize",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "123",
-      "description": {
-        "undefined": "Minimum Waist Size."
-      },
-      "label": {
-        "IRI-based": "minWaistSize"
-      },
-      "domain": "21",
-      "attributes": [
-        "functional",
-        "datatype"
-      ],
-      "id": "283"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#hasTask",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "41",
-      "description": {
-        "undefined": "A scenario has a set of tasks (or just one). (inverseproperty isTaskfor)"
-      },
-      "label": {
-        "IRI-based": "hasTask"
-      },
-      "domain": "46",
-      "attributes": [
-        "object"
-      ],
-      "id": "284"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#hasAffiliation",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "125",
-      "description": {
-        "undefined": "A person might have a certain type of affiliation to an organization and might not be member of it."
-      },
-      "label": {
-        "IRI-based": "hasAffiliation"
-      },
-      "domain": "27",
-      "attributes": [
-        "object"
-      ],
-      "id": "285"
-    },
-    {
-      "range": "141",
-      "domain": "135",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "286"
-    },
-    {
-      "range": "141",
-      "domain": "138",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "287"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#hasGoal",
-      "inverse": "58",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "30",
-      "description": {
-        "undefined": "A person might have one or more (short/long term) goals depending on the context."
-      },
-      "label": {
-        "IRI-based": "hasGoal"
-      },
-      "domain": "27",
-      "subproperty": [
-        "220",
-        "16",
-        "115",
-        "96",
-        "150"
-      ],
-      "attributes": [
-        "object"
-      ],
-      "id": "19"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#isTaskFor",
-      "inverse": "284",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "46",
-      "description": {
-        "undefined": "A certain task (or a series of tasks) is (are) part of a scenario."
-      },
-      "label": {
-        "IRI-based": "isTaskFor"
-      },
-      "domain": "41",
-      "attributes": [
-        "object"
-      ],
-      "id": "288"
-    },
-    {
-      "range": "126",
-      "domain": "141",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "289"
-    },
-    {
-      "range": "25",
-      "domain": "46",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "290"
-    },
-    {
-      "range": "41",
-      "domain": "46",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "291"
-    },
-    {
-      "range": "136",
-      "domain": "141",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "292"
-    },
-    {
-      "range": "41",
-      "domain": "25",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "293"
-    },
-    {
-      "range": "79",
-      "domain": "60",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "294"
-    },
-    {
-      "range": "79",
-      "domain": "62",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "295"
-    },
-    {
-      "range": "60",
-      "domain": "62",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "296"
-    },
-    {
-      "range": "23",
-      "domain": "79",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "297"
-    },
-    {
-      "range": "81",
-      "domain": "62",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "298"
-    },
-    {
-      "range": "81",
-      "domain": "23",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "299"
-    },
-    {
-      "range": "81",
-      "domain": "60",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "300"
-    },
-    {
-      "range": "83",
-      "domain": "71",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "301"
-    },
-    {
-      "range": "30",
-      "domain": "71",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "302"
-    },
-    {
-      "range": "125",
-      "domain": "71",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "303"
-    },
-    {
-      "range": "27",
-      "domain": "71",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "304"
-    },
-    {
-      "range": "70",
-      "domain": "71",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "305"
-    },
-    {
-      "range": "9",
-      "domain": "71",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "306"
-    },
-    {
-      "range": "46",
-      "domain": "71",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "307"
-    },
-    {
-      "range": "41",
-      "domain": "71",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "308"
-    },
-    {
+      "id": "170",
       "iri": "http://blankdots.com/open/personasonto.owl#influencedBy",
-      "inverse": "69",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "70",
-      "description": {
-        "undefined": "The affective state of a person is influenced by the personality of that person. (inverse property influences)"
-      },
       "label": {
         "IRI-based": "influencedBy"
       },
-      "domain": "71",
       "attributes": [
-        "object",
-        "someValues"
+        "someValues",
+        "object"
       ],
-      "id": "309"
-    },
-    {
-      "range": "45",
-      "domain": "71",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "310"
-    },
-    {
-      "range": "190",
-      "domain": "60",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "311"
-    },
-    {
-      "range": "190",
-      "domain": "62",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "312"
-    },
-    {
-      "range": "81",
-      "domain": "79",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "313"
-    },
-    {
-      "range": "190",
-      "domain": "23",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "314"
-    },
-    {
-      "range": "140",
-      "domain": "137",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "315"
-    },
-    {
-      "range": "137",
-      "domain": "139",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "316"
-    },
-    {
-      "iri": "http://blankdots.com/open/personasonto.owl#maxWeight",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "121",
       "description": {
-        "undefined": "Maximum Weight."
+        "undefined": "The affective state of a person is influenced by the personality of that person. (inverse property influences)"
       },
+      "domain": "72",
+      "range": "71",
+      "inverse": "70"
+    },
+    {
+      "id": "172",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "9",
+      "range": "29",
+      "pos": [
+        395.48,
+        160.53
+      ]
+    },
+    {
+      "id": "173",
+      "iri": "http://blankdots.com/open/personasonto.owl#age",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
       "label": {
-        "IRI-based": "maxWeight"
+        "IRI-based": "age"
+      },
+      "attributes": [
+        "datatype",
+        "functional"
+      ],
+      "description": {
+        "undefined": "Age of a person."
+      },
+      "domain": "26",
+      "range": "126"
+    },
+    {
+      "id": "174",
+      "iri": "http://blankdots.com/open/personasonto.owl#minFeetSize",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "minFeetSize"
+      },
+      "attributes": [
+        "datatype",
+        "functional"
+      ],
+      "description": {
+        "undefined": "Minimum Feet Size."
       },
       "domain": "21",
-      "attributes": [
-        "functional",
-        "datatype"
-      ],
-      "id": "317"
+      "range": "124"
     },
     {
-      "range": "190",
-      "domain": "79",
+      "id": "175",
+      "label": "Disjoint With",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "318"
+      "domain": "71",
+      "range": "29",
+      "pos": [
+        258.08,
+        217.64
+      ]
     },
     {
-      "iri": "http://blankdots.com/open/personasonto.owl#hasAward",
-      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "id": "176",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "29",
+      "range": "26",
+      "pos": [
+        579.03,
+        373.32
+      ]
+    },
+    {
+      "id": "177",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "148",
+      "range": "72"
+    },
+    {
+      "id": "178",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "89",
+      "range": "47"
+    },
+    {
+      "id": "179",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "83",
+      "range": "43",
+      "pos": [
+        432.67,
+        -7.19
+      ]
+    },
+    {
+      "id": "180",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "160",
+      "range": "47"
+    },
+    {
+      "id": "181",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "48",
+      "range": "83",
+      "pos": [
+        327.83,
+        166.86
+      ]
+    },
+    {
+      "id": "182",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "157",
+      "range": "47"
+    },
+    {
+      "id": "183",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "131",
+      "range": "29",
+      "pos": [
+        388.2,
+        623.03
+      ]
+    },
+    {
+      "id": "184",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "151",
+      "range": "47",
+      "pos": [
+        -250.75,
+        744.89
+      ]
+    },
+    {
+      "id": "185",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "83",
+      "range": "24",
+      "pos": [
+        378.81,
+        229.9
+      ]
+    },
+    {
+      "id": "186",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "21",
+      "range": "26"
+    },
+    {
+      "id": "187",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "83",
+      "range": "26",
+      "pos": [
+        733.01,
+        278.41
+      ]
+    },
+    {
+      "id": "188",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "56",
+      "range": "26",
+      "pos": [
+        342.81,
+        -110.95
+      ]
+    },
+    {
+      "id": "189",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "131",
+      "range": "83",
+      "pos": [
+        631.02,
+        495.57
+      ]
+    },
+    {
+      "id": "190",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "51",
+      "range": "23",
+      "pos": [
+        2271.41,
+        -739.55
+      ]
+    },
+    {
+      "id": "191",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "83",
       "range": "9",
-      "description": {
-        "undefined": "A person might have been awarded with some sort of distinction (depicted usually by a trophy or document)."
-      },
+      "pos": [
+        638.3,
+        33.07
+      ]
+    },
+    {
+      "id": "192",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "6",
+      "range": "23",
+      "pos": [
+        2252.91,
+        -532.92
+      ]
+    },
+    {
+      "id": "193",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "83",
+      "range": "71",
+      "pos": [
+        500.9,
+        90.18
+      ]
+    },
+    {
+      "id": "194",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "1",
+      "range": "23",
+      "pos": [
+        2161.53,
+        -787.4
+      ]
+    },
+    {
+      "id": "195",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "147",
+      "range": "72"
+    },
+    {
+      "id": "196",
+      "iri": "http://blankdots.com/open/personasonto.owl#status",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
       "label": {
-        "IRI-based": "hasAward"
+        "IRI-based": "status"
       },
-      "domain": "27",
+      "attributes": [
+        "datatype",
+        "functional"
+      ],
+      "description": {
+        "undefined": "Marital status or a person."
+      },
+      "domain": "72",
+      "range": "150"
+    },
+    {
+      "id": "197",
+      "iri": "http://blankdots.com/open/personasonto.owl#knows",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "knows"
+      },
       "attributes": [
         "object"
       ],
-      "id": "319"
+      "description": {
+        "undefined": "A person knows another person (similar to FOAF ontology)."
+      },
+      "domain": "26",
+      "range": "26",
+      "pos": [
+        742.82,
+        147.7
+      ]
     },
     {
-      "range": "190",
-      "domain": "81",
+      "id": "198",
+      "iri": "http://blankdots.com/open/personasonto.owl#interactionCount",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "interactionCount"
+      },
       "attributes": [
-        "object",
-        "anonymous"
+        "datatype"
       ],
-      "id": "320"
+      "description": {
+        "undefined": "A count of specific user actions (comments, facebook likes, tweets, etc.)."
+      },
+      "domain": "138",
+      "range": "168"
     },
     {
-      "range": "140",
-      "domain": "139",
+      "id": "199",
+      "label": "Disjoint With",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "321"
+      "domain": "24",
+      "range": "47",
+      "pos": [
+        -49.22,
+        400.44
+      ]
     },
     {
-      "range": "126",
+      "id": "200",
+      "iri": "http://blankdots.com/open/personasonto.owl#tagline",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "tagline"
+      },
+      "attributes": [
+        "datatype",
+        "functional"
+      ],
+      "description": {
+        "undefined": "A tagline specific to a persona."
+      },
+      "domain": "21",
+      "range": "139"
+    },
+    {
+      "id": "201",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "43",
+      "range": "47",
+      "pos": [
+        4.65,
+        163.35
+      ]
+    },
+    {
+      "id": "202",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "83",
+      "range": "29",
+      "pos": [
+        592.99,
+        290.5
+      ]
+    },
+    {
+      "id": "203",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "62",
+      "range": "131",
+      "pos": [
+        524.83,
+        1310.1
+      ]
+    },
+    {
+      "id": "204",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "71",
+      "range": "47",
+      "pos": [
+        72.87,
+        260.72
+      ]
+    },
+    {
+      "id": "205",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "32",
+      "range": "131",
+      "pos": [
+        556.83,
+        1084.48
+      ]
+    },
+    {
+      "id": "206",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "47",
+      "range": "26",
+      "pos": [
+        272.56,
+        325.84
+      ]
+    },
+    {
+      "id": "207",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "141",
+      "range": "131",
+      "pos": [
+        428.34,
+        1277.07
+      ]
+    },
+    {
+      "id": "208",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "48",
+      "range": "47",
+      "pos": [
+        -264.02,
+        408.95
+      ]
+    },
+    {
+      "id": "209",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "142",
+      "range": "131",
+      "pos": [
+        621.94,
+        1276.03
+      ]
+    },
+    {
+      "id": "210",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "9",
+      "range": "47",
+      "pos": [
+        210.28,
+        203.61
+      ]
+    },
+    {
+      "id": "211",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "35",
+      "range": "131",
+      "pos": [
+        428.8,
+        1119.16
+      ]
+    },
+    {
+      "id": "212",
+      "iri": "http://blankdots.com/open/personasonto.owl#isPartOfTest",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "isPartOfTest"
+      },
+      "attributes": [
+        "object"
+      ],
+      "description": {
+        "undefined": "Usability tests have participants (observers and users), tasks and a scenario."
+      },
+      "domain": "164",
+      "range": "24",
+      "pos": [
+        -252.38,
+        61.44
+      ]
+    },
+    {
+      "id": "213",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "83",
+      "range": "47",
+      "pos": [
+        407.79,
+        333.58
+      ]
+    },
+    {
+      "id": "214",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "36",
+      "range": "131",
+      "pos": [
+        643.04,
+        1097.34
+      ]
+    },
+    {
+      "id": "215",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "33",
+      "range": "131",
+      "pos": [
+        379.17,
+        1189.49
+      ]
+    },
+    {
+      "id": "216",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "131",
+      "range": "47",
+      "pos": [
+        203,
+        666.11
+      ]
+    },
+    {
+      "id": "217",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "143",
+      "range": "131",
+      "pos": [
+        673.58,
+        1190.69
+      ]
+    },
+    {
+      "id": "218",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "47",
+      "range": "29",
+      "pos": [
+        164.97,
+        461.04
+      ]
+    },
+    {
+      "id": "219",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "146",
+      "range": "72"
+    },
+    {
+      "id": "220",
+      "iri": "http://blankdots.com/open/personasonto.owl#hasEndGoal",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "hasEndGoal"
+      },
+      "attributes": [
+        "object"
+      ],
+      "domain": "221",
+      "range": "90",
+      "superproperty": [
+        "19"
+      ]
+    },
+    {
+      "id": "222",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "9",
+      "range": "43",
+      "pos": [
+        235.16,
+        -137.16
+      ]
+    },
+    {
+      "id": "223",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
       "domain": "137",
-      "attributes": [
-        "object",
-        "anonymous"
-      ],
-      "id": "322"
+      "range": "43"
     },
     {
-      "range": "126",
-      "domain": "140",
+      "id": "224",
+      "iri": "http://blankdots.com/open/personasonto.owl#hasPersonality",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "hasPersonality"
+      },
       "attributes": [
-        "object",
-        "anonymous"
+        "object"
       ],
-      "id": "323"
+      "description": {
+        "undefined": "A person has a certain personality corresponding to Myers Briggs personality classification."
+      },
+      "domain": "26",
+      "range": "71",
+      "pos": [
+        398.15,
+        -0.36
+      ]
     },
     {
-      "range": "140",
-      "domain": "135",
+      "id": "225",
+      "label": "Subclass of",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "324"
+      "domain": "138",
+      "range": "43"
     },
     {
-      "range": "139",
-      "domain": "135",
+      "id": "226",
+      "label": "Disjoint With",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "325"
+      "domain": "48",
+      "range": "43",
+      "pos": [
+        -234.41,
+        -94.13
+      ]
     },
     {
-      "range": "126",
-      "domain": "139",
+      "id": "227",
+      "iri": "http://blankdots.com/open/personasonto.owl#birthday",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "birthday"
+      },
       "attributes": [
-        "object",
-        "anonymous"
+        "datatype"
       ],
-      "id": "326"
+      "description": {
+        "undefined": "Date of birth of a person."
+      },
+      "domain": "26",
+      "range": "128"
     },
     {
+      "id": "228",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "9",
+      "range": "24",
+      "pos": [
+        181.3,
+        99.93
+      ]
+    },
+    {
+      "id": "229",
+      "iri": "http://blankdots.com/open/personasonto.owl#hasInfluence",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "hasInfluence"
+      },
+      "attributes": [
+        "object"
+      ],
+      "description": {
+        "undefined": "The disability of a person migh have an effect on the affective state or personality on the person."
+      },
+      "domain": "83",
+      "range": "166",
+      "pos": [
+        647.81,
+        -90.56
+      ]
+    },
+    {
+      "id": "230",
+      "iri": "http://blankdots.com/open/personasonto.owl#gender",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "gender"
+      },
+      "attributes": [
+        "datatype",
+        "functional"
+      ],
+      "description": {
+        "undefined": "Gender of a person."
+      },
+      "domain": "26",
+      "range": "140"
+    },
+    {
+      "id": "231",
+      "iri": "http://blankdots.com/open/personasonto.owl#userRole",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "userRole"
+      },
+      "attributes": [
+        "datatype"
+      ],
+      "description": {
+        "undefined": "The role of the user in the application/product."
+      },
+      "domain": "56",
+      "range": "127"
+    },
+    {
+      "id": "232",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "71",
+      "range": "43",
+      "pos": [
+        97.76,
+        -80.05
+      ]
+    },
+    {
+      "id": "233",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "90",
+      "range": "29"
+    },
+    {
+      "id": "234",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "48",
+      "range": "71",
+      "pos": [
+        -7.08,
+        94.01
+      ]
+    },
+    {
+      "id": "235",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "18",
+      "range": "29"
+    },
+    {
+      "id": "236",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "48",
+      "range": "9",
+      "pos": [
+        130.32,
+        36.89
+      ]
+    },
+    {
+      "id": "237",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "104",
+      "range": "29"
+    },
+    {
+      "id": "238",
+      "iri": "http://blankdots.com/open/personasonto.owl#involvedIn",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "involvedIn"
+      },
+      "attributes": [
+        "object"
+      ],
+      "description": {
+        "undefined": "A participant (a certain user or observer) is involvedIn a scenario or Usability Test."
+      },
+      "domain": "56",
+      "range": "163",
+      "pos": [
+        -188.07,
+        -186.07
+      ]
+    },
+    {
+      "id": "239",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "71",
+      "range": "24",
+      "pos": [
+        43.9,
+        157.04
+      ]
+    },
+    {
+      "id": "240",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "57",
+      "range": "29"
+    },
+    {
+      "id": "241",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "43",
+      "range": "26",
+      "pos": [
+        348.23,
+        -128.21
+      ]
+    },
+    {
+      "id": "242",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "28",
+      "range": "29"
+    },
+    {
+      "id": "243",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "48",
+      "range": "26",
+      "pos": [
+        192.6,
+        159.12
+      ]
+    },
+    {
+      "id": "244",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "8",
+      "range": "9",
+      "pos": [
+        415.45,
+        -306.82
+      ]
+    },
+    {
+      "id": "245",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "9",
+      "range": "71",
+      "pos": [
+        303.39,
+        -39.78
+      ]
+    },
+    {
+      "id": "246",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "39",
+      "range": "9"
+    },
+    {
+      "id": "247",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "24",
+      "range": "26",
+      "pos": [
+        243.58,
+        222.16
+      ]
+    },
+    {
+      "id": "248",
+      "label": "Subclass of",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "13",
+      "range": "9"
+    },
+    {
+      "id": "249",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "9",
+      "range": "26",
+      "pos": [
+        634.32,
+        -61.11
+      ]
+    },
+    {
+      "id": "250",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "71",
+      "range": "26",
+      "pos": [
+        392.06,
+        42.29
+      ]
+    },
+    {
+      "id": "251",
+      "iri": "http://blankdots.com/open/personasonto.owl#details",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "details"
+      },
+      "attributes": [
+        "datatype",
+        "functional"
+      ],
+      "description": {
+        "undefined": "Any kind of details."
+      },
+      "domain": "252",
+      "range": "121"
+    },
+    {
+      "id": "253",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "131",
+      "range": "24",
+      "pos": [
+        174.02,
+        562.43
+      ]
+    },
+    {
+      "id": "254",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "131",
+      "range": "9",
+      "pos": [
+        433.51,
+        365.6
+      ]
+    },
+    {
+      "id": "255",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "131",
+      "range": "71",
+      "pos": [
+        296.11,
+        422.71
+      ]
+    },
+    {
+      "id": "256",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "131",
+      "range": "43",
+      "pos": [
+        227.88,
+        325.34
+      ]
+    },
+    {
+      "id": "257",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "131",
+      "range": "48",
+      "pos": [
+        123.04,
+        499.39
+      ]
+    },
+    {
+      "id": "258",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "43",
+      "range": "29",
+      "pos": [
+        189.85,
+        120.27
+      ]
+    },
+    {
+      "id": "259",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "48",
+      "range": "29",
+      "pos": [
+        85.01,
+        294.32
+      ]
+    },
+    {
+      "id": "260",
+      "iri": "http://blankdots.com/open/personasonto.owl#hasPublications",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "hasPublications"
+      },
+      "attributes": [
+        "object"
+      ],
+      "description": {
+        "undefined": "A person (of academic, journalistic profession) has published several documents."
+      },
+      "domain": "26",
+      "range": "8",
+      "pos": [
+        477.73,
+        -184.59
+      ]
+    },
+    {
+      "id": "261",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "131",
+      "range": "26",
+      "pos": [
+        528.1,
+        535.64
+      ]
+    },
+    {
+      "id": "262",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "24",
+      "range": "29",
+      "pos": [
+        135.99,
+        357.36
+      ]
+    },
+    {
+      "id": "263",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "96",
+      "range": "85",
+      "pos": [
+        1551.3,
+        431.08
+      ]
+    },
+    {
+      "id": "264",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "96",
+      "range": "82",
+      "pos": [
+        1460.85,
+        176.38
+      ]
+    },
+    {
+      "id": "265",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "94",
+      "range": "85",
+      "pos": [
+        1498.41,
+        353.91
+      ]
+    },
+    {
+      "id": "266",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "94",
+      "range": "82",
+      "pos": [
+        1407.96,
+        99.21
+      ]
+    },
+    {
+      "id": "267",
+      "iri": "http://blankdots.com/open/personasonto.owl#performs",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "performs"
+      },
+      "attributes": [
+        "object"
+      ],
+      "description": {
+        "undefined": "A person performs a task in the usability test or when using a product/application."
+      },
+      "domain": "26",
+      "range": "43",
+      "pos": [
+        311.79,
+        -71.22
+      ]
+    },
+    {
+      "id": "268",
+      "iri": "http://blankdots.com/open/personasonto.owl#myerBriggs",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "myerBriggs"
+      },
+      "attributes": [
+        "datatype",
+        "functional"
+      ],
+      "description": {
+        "undefined": "Inspired by FOAF Myers Briggs personality classification which includes 16 4-letter textual codes."
+      },
+      "domain": "71",
+      "range": "115"
+    },
+    {
+      "id": "269",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "96",
+      "range": "94",
+      "pos": [
+        1397.98,
+        381.88
+      ]
+    },
+    {
+      "id": "270",
+      "iri": "http://blankdots.com/open/personasonto.owl#sensorData",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "sensorData"
+      },
+      "attributes": [
+        "datatype"
+      ],
+      "description": {
+        "undefined": "Data recieved from a sensor (could be a number, temperature, etc.)."
+      },
+      "domain": "47",
+      "range": "149"
+    },
+    {
+      "id": "271",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "85",
+      "range": "92",
+      "pos": [
+        1656.77,
+        201.34
+      ]
+    },
+    {
+      "id": "272",
+      "iri": "http://blankdots.com/open/personasonto.owl#includes",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "includes"
+      },
+      "attributes": [
+        "object"
+      ],
+      "description": {
+        "undefined": "In order to describe context we consider the medium of interaction Tangible or Intangible which is included in a Place and/or Time."
+      },
+      "domain": "171",
+      "range": "159",
+      "pos": [
+        -791.32,
+        1577.17
+      ]
+    },
+    {
+      "id": "273",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "92",
+      "range": "82",
+      "pos": [
+        1566.32,
+        -53.36
+      ]
+    },
+    {
+      "id": "274",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "85",
+      "range": "99",
+      "pos": [
+        1693.5,
+        305.45
+      ]
+    },
+    {
+      "id": "275",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "99",
+      "range": "82",
+      "pos": [
+        1603.06,
+        50.75
+      ]
+    },
+    {
+      "id": "276",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "94",
+      "range": "92",
+      "pos": [
+        1503.46,
+        152.15
+      ]
+    },
+    {
+      "id": "277",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "96",
+      "range": "92",
+      "pos": [
+        1556.34,
+        229.31
+      ]
+    },
+    {
+      "id": "278",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "99",
+      "range": "92",
+      "pos": [
+        1698.55,
+        103.69
+      ]
+    },
+    {
+      "id": "279",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "85",
+      "range": "101",
+      "pos": [
+        1496.74,
+        210.71
+      ]
+    },
+    {
+      "id": "280",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "94",
+      "range": "99",
+      "pos": [
+        1540.19,
+        256.26
+      ]
+    },
+    {
+      "id": "281",
+      "iri": "http://blankdots.com/open/personasonto.owl#hasPersonaType",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "hasPersonaType"
+      },
+      "attributes": [
+        "object"
+      ],
+      "description": {
+        "undefined": "The type of Persona: Primary, Secondary, Negative, Supplemental, Served or Customer."
+      },
+      "domain": "167",
+      "range": "23",
+      "pos": [
+        1495.42,
+        -535.01
+      ]
+    },
+    {
+      "id": "282",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "96",
+      "range": "99",
+      "pos": [
+        1593.08,
+        333.43
+      ]
+    },
+    {
+      "id": "283",
+      "iri": "http://blankdots.com/open/personasonto.owl#minWaistSize",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "minWaistSize"
+      },
+      "attributes": [
+        "datatype",
+        "functional"
+      ],
+      "description": {
+        "undefined": "Minimum Waist Size."
+      },
+      "domain": "21",
+      "range": "144"
+    },
+    {
+      "id": "284",
+      "iri": "http://blankdots.com/open/personasonto.owl#hasTask",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "hasTask"
+      },
+      "attributes": [
+        "object"
+      ],
+      "description": {
+        "undefined": "A scenario has a set of tasks (or just one). (inverseproperty isTaskfor)"
+      },
+      "domain": "48",
+      "range": "43",
+      "inverse": "288",
+      "pos": [
+        -218.6,
+        -67.23
+      ]
+    },
+    {
+      "id": "285",
+      "iri": "http://blankdots.com/open/personasonto.owl#hasAffiliation",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "hasAffiliation"
+      },
+      "attributes": [
+        "object"
+      ],
+      "description": {
+        "undefined": "A person might have a certain type of affiliation to an organization and might not be member of it."
+      },
+      "domain": "26",
+      "range": "131",
+      "pos": [
+        557.74,
+        524.09
+      ]
+    },
+    {
+      "id": "286",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "94",
+      "range": "101",
+      "pos": [
+        1343.43,
+        161.51
+      ]
+    },
+    {
+      "id": "287",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "96",
+      "range": "101",
+      "pos": [
+        1396.31,
+        238.68
+      ]
+    },
+    {
+      "id": "19",
+      "iri": "http://blankdots.com/open/personasonto.owl#hasGoal",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "hasGoal"
+      },
+      "attributes": [
+        "object"
+      ],
+      "description": {
+        "undefined": "A person might have one or more (short/long term) goals depending on the context."
+      },
+      "domain": "26",
+      "range": "29",
+      "subproperty": [
+        "220",
+        "16",
+        "122",
+        "102",
+        "153"
+      ],
+      "inverse": "60"
+    },
+    {
+      "id": "288",
+      "iri": "http://blankdots.com/open/personasonto.owl#isTaskFor",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "isTaskFor"
+      },
+      "attributes": [
+        "object"
+      ],
+      "description": {
+        "undefined": "A certain task (or a series of tasks) is (are) part of a scenario."
+      },
+      "domain": "43",
+      "range": "48",
+      "inverse": "284"
+    },
+    {
+      "id": "289",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "101",
+      "range": "82",
+      "pos": [
+        1406.29,
+        -43.99
+      ]
+    },
+    {
+      "id": "290",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "24",
+      "range": "43",
+      "pos": [
+        -24.33,
+        59.67
+      ]
+    },
+    {
+      "id": "291",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "48",
+      "range": "24",
+      "pos": [
+        -129.17,
+        233.72
+      ]
+    },
+    {
+      "id": "292",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "101",
+      "range": "92",
+      "pos": [
+        1501.78,
+        8.94
+      ]
+    },
+    {
+      "id": "293",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "99",
+      "range": "101",
+      "pos": [
+        1538.52,
+        113.06
+      ]
+    },
+    {
+      "id": "294",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "142",
+      "range": "32",
+      "pos": [
+        752.54,
+        1532.41
+      ]
+    },
+    {
+      "id": "295",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "142",
+      "range": "36",
+      "pos": [
+        838.75,
+        1545.28
+      ]
+    },
+    {
+      "id": "296",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "62",
+      "range": "35",
+      "pos": [
+        527.4,
+        1601.17
+      ]
+    },
+    {
+      "id": "297",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "62",
+      "range": "33",
+      "pos": [
+        477.77,
+        1671.49
+      ]
+    },
+    {
+      "id": "298",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "62",
+      "range": "142",
+      "pos": [
+        720.54,
+        1758.03
+      ]
+    },
+    {
+      "id": "299",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "142",
+      "range": "35",
+      "pos": [
+        624.51,
+        1567.1
+      ]
+    },
+    {
+      "id": "300",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "142",
+      "range": "33",
+      "pos": [
+        574.88,
+        1637.42
+      ]
+    },
+    {
+      "id": "301",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "72",
+      "range": "29",
+      "pos": [
+        227.07,
+        253.08
+      ]
+    },
+    {
+      "id": "302",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "72",
+      "range": "131",
+      "pos": [
+        265.1,
+        458.14
+      ]
+    },
+    {
+      "id": "303",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "72",
+      "range": "26",
+      "pos": [
+        352.36,
+        161.75
+      ]
+    },
+    {
+      "id": "304",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "72",
+      "range": "71",
+      "pos": [
+        13.02,
+        -122.46
+      ]
+    },
+    {
+      "id": "305",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "72",
+      "range": "9",
+      "pos": [
+        272.38,
+        -4.35
+      ]
+    },
+    {
+      "id": "306",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "72",
+      "range": "48",
+      "pos": [
+        -38.1,
+        129.44
+      ]
+    },
+    {
+      "id": "307",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "72",
+      "range": "43",
+      "pos": [
+        66.75,
+        -44.61
+      ]
+    },
+    {
+      "id": "308",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "72",
+      "range": "24",
+      "pos": [
+        12.89,
+        192.48
+      ]
+    },
+    {
+      "id": "309",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "72",
+      "range": "47",
+      "pos": [
+        41.86,
+        296.16
+      ]
+    },
+    {
+      "id": "310",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "72",
+      "range": "83",
+      "pos": [
+        469.89,
+        125.62
+      ]
+    },
+    {
+      "id": "311",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "35",
+      "range": "141",
+      "pos": [
+        430.91,
+        1568.14
+      ]
+    },
+    {
+      "id": "312",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "33",
+      "range": "141",
+      "pos": [
+        381.28,
+        1638.47
+      ]
+    },
+    {
+      "id": "313",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "32",
+      "range": "141",
+      "pos": [
+        558.94,
+        1533.46
+      ]
+    },
+    {
+      "id": "314",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "36",
+      "range": "141",
+      "pos": [
+        645.15,
+        1546.32
+      ]
+    },
+    {
+      "id": "315",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "143",
+      "range": "32",
+      "pos": [
+        804.17,
+        1447.08
+      ]
+    },
+    {
+      "id": "316",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "143",
+      "range": "36",
+      "pos": [
+        890.38,
+        1459.94
+      ]
+    },
+    {
+      "id": "317",
+      "iri": "http://blankdots.com/open/personasonto.owl#maxWeight",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "maxWeight"
+      },
+      "attributes": [
+        "datatype",
+        "functional"
+      ],
+      "description": {
+        "undefined": "Maximum Weight."
+      },
+      "domain": "21",
+      "range": "158"
+    },
+    {
+      "id": "318",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "62",
+      "range": "141",
+      "pos": [
+        526.94,
+        1759.08
+      ]
+    },
+    {
+      "id": "319",
+      "iri": "http://blankdots.com/open/personasonto.owl#hasAward",
+      "baseIri": "http://blankdots.com/open/personasonto.owl",
+      "label": {
+        "IRI-based": "hasAward"
+      },
+      "attributes": [
+        "object"
+      ],
+      "description": {
+        "undefined": "A person might have been awarded with some sort of distinction (depicted usually by a trophy or document)."
+      },
+      "domain": "26",
+      "range": "9",
+      "pos": [
+        669.08,
+        -35.61
+      ]
+    },
+    {
+      "id": "320",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "142",
+      "range": "141",
+      "pos": [
+        624.05,
+        1725.01
+      ]
+    },
+    {
+      "id": "321",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "143",
+      "range": "35",
+      "pos": [
+        676.15,
+        1481.76
+      ]
+    },
+    {
+      "id": "322",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "143",
+      "range": "33",
+      "pos": [
+        626.52,
+        1552.09
+      ]
+    },
+    {
+      "id": "323",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "62",
+      "range": "143",
+      "pos": [
+        772.18,
+        1672.7
+      ]
+    },
+    {
+      "id": "324",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "137",
+      "range": "138"
+    },
+    {
+      "id": "325",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "85",
+      "range": "82",
+      "pos": [
+        1561.28,
+        148.4
+      ]
+    },
+    {
+      "id": "326",
+      "label": "Disjoint With",
+      "attributes": [
+        "anonymous",
+        "object"
+      ],
+      "domain": "142",
+      "range": "143",
+      "pos": [
+        869.29,
+        1638.63
+      ]
+    },
+    {
+      "id": "327",
       "iri": "http://blankdots.com/open/personasonto.owl#technicalLevel",
       "baseIri": "http://blankdots.com/open/personasonto.owl",
-      "range": "108",
-      "description": {
-        "undefined": "Reflects the technical level of a person."
-      },
       "label": {
         "IRI-based": "technicalLevel"
       },
-      "domain": "27",
+      "attributes": [
+        "datatype",
+        "functional"
+      ],
       "comment": {
         "undefined": "If a person has technical or programming skills it's relevant."
       },
-      "attributes": [
-        "functional",
-        "datatype"
-      ],
-      "id": "327"
+      "description": {
+        "undefined": "Reflects the technical level of a person."
+      },
+      "domain": "26",
+      "range": "125"
     },
     {
-      "range": "137",
-      "domain": "135",
+      "id": "328",
+      "label": "Disjoint With",
       "attributes": [
-        "object",
-        "anonymous"
+        "anonymous",
+        "object"
       ],
-      "id": "328"
+      "domain": "143",
+      "range": "141",
+      "pos": [
+        675.69,
+        1639.67
+      ]
+    },
+    {
+      "id": "GENERATED-UNION-87-131-0",
+      "domain": "87",
+      "range": "131"
+    },
+    {
+      "id": "GENERATED-UNION-87-151-1",
+      "domain": "87",
+      "range": "151"
+    },
+    {
+      "id": "GENERATED-UNION-159-160-0",
+      "domain": "159",
+      "range": "160"
+    },
+    {
+      "id": "GENERATED-UNION-159-151-1",
+      "domain": "159",
+      "range": "151",
+      "pos": [
+        -612.51,
+        1188.13
+      ]
+    },
+    {
+      "id": "GENERATED-UNION-163-24-0",
+      "domain": "163",
+      "range": "24",
+      "pos": [
+        -287.29,
+        147.04
+      ]
+    },
+    {
+      "id": "GENERATED-UNION-163-48-1",
+      "domain": "163",
+      "range": "48",
+      "pos": [
+        -338.27,
+        84
+      ]
+    },
+    {
+      "id": "GENERATED-UNION-164-56-0",
+      "domain": "164",
+      "range": "56",
+      "pos": [
+        -153.15,
+        -271.67
+      ]
+    },
+    {
+      "id": "GENERATED-UNION-164-43-1",
+      "domain": "164",
+      "range": "43",
+      "pos": [
+        -198.51,
+        -175.65
+      ]
+    },
+    {
+      "id": "GENERATED-UNION-164-48-2",
+      "domain": "164",
+      "range": "48",
+      "pos": [
+        -303.36,
+        -1.6
+      ]
+    },
+    {
+      "id": "GENERATED-UNION-133-9-0",
+      "domain": "133",
+      "range": "9",
+      "pos": [
+        201.17,
+        -227.27
+      ]
+    },
+    {
+      "id": "GENERATED-UNION-133-24-1",
+      "domain": "133",
+      "range": "24",
+      "pos": [
+        -58.33,
+        -30.44
+      ]
+    },
+    {
+      "id": "GENERATED-UNION-133-48-2",
+      "domain": "133",
+      "range": "48",
+      "pos": [
+        -109.31,
+        -93.48
+      ]
+    },
+    {
+      "id": "GENERATED-UNION-166-72-0",
+      "domain": "166",
+      "range": "72",
+      "pos": [
+        281.88,
+        -127.98
+      ]
+    },
+    {
+      "id": "GENERATED-UNION-166-71-1",
+      "domain": "166",
+      "range": "71",
+      "pos": [
+        312.9,
+        -163.41
+      ]
+    },
+    {
+      "id": "GENERATED-UNION-167-56-0",
+      "domain": "167",
+      "range": "56",
+      "pos": [
+        558.41,
+        -406.78
+      ]
+    },
+    {
+      "id": "GENERATED-UNION-167-26-1",
+      "domain": "167",
+      "range": "26",
+      "pos": [
+        780.96,
+        -148.26
+      ]
+    },
+    {
+      "id": "GENERATED-UNION-171-89-0",
+      "domain": "171",
+      "range": "89"
+    },
+    {
+      "id": "GENERATED-UNION-171-157-1",
+      "domain": "171",
+      "range": "157"
     }
   ]
 }
