@@ -4305,6 +4305,12 @@ module.exports = function (graphContainerSelector) {
           hoveredPropertyElement.labelObject().increasedLoopAngle = false;
           recalculatePositions();
         }
+        if ( typeof hoveredPropertyElement.setHighlighting === "function" ) {
+          hoveredPropertyElement.setHighlighting(false);
+        }
+        if ( typeof hoveredPropertyElement.mouseEntered === "function" ) {
+          hoveredPropertyElement.mouseEntered(false);
+        }
       }
 
       hoveredPropertyElement = property;

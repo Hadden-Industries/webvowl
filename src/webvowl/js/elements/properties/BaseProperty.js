@@ -543,7 +543,9 @@ module.exports = (function () {
       if (that.animationProcess() === false) {
         labelContainer.appendChild(selectedLabelGroup);
       }
-      linkContainer.appendChild(selectedLinkGroup);
+      if ( linkContainer && linkContainer.lastChild !== selectedLinkGroup ) {
+        linkContainer.appendChild(selectedLinkGroup);
+      }
     };
 
     /**
