@@ -1005,4 +1005,50 @@ describe("ontologyConverter.js unit tests", () => {
     );
     expect(subclassRelations.length).toBe(0);
   });
+
+  test("Correctly parses ontology-level header details matching Java OWL2VOWL specification", () => {
+    const subjects = {
+      "http://purl.org/goodrelations/v1": {
+        iri: "http://purl.org/goodrelations/v1",
+        types: new Set(["http://www.w3.org/2002/07/owl#Ontology"]),
+        labels: { en: "GoodRelations Ontology" },
+        comments: { en: "The GoodRelations ontology provides..." },
+        domains: [], ranges: [], superClasses: [], subClasses: [],
+        superProperties: [], subProperties: [], inverses: [],
+        equivalentClasses: [], equivalentProperties: [], disjointWith: [],
+        annotations: {
+          title: [{ value: "The GoodRelations Vocabulary", language: "en", type: "label" }],
+          creator: [{ value: "Martin Hepp", language: "en", type: "label" }],
+          versionInfo: [{ value: "V 1.0", language: "en", type: "label" }],
+          label: [{ value: "GoodRelations Ontology", language: "en", type: "label" }],
+          comment: [{ value: "The GoodRelations ontology provides...", language: "en", type: "label" }],
+          rights: [{ value: "CC-BY 3.0", language: "en", type: "label" }]
+        }
+      }
+    };
+
+    const languagesSet = new Set(["undefined", "en"]);
+    convertOntology(subjects, languagesSet, resolver, context, header);
+
+    // Title should be taken from dc:title / title annotation
+    expect(header.title).toEqual({ en: "The GoodRelations Vocabulary" });
+    // Labels should be taken from rdfs:label
+    expect(header.labels).toEqual({ en: "GoodRelations Ontology" });
+    // Comments should be taken from rdfs:comment
+    expect(header.comments).toEqual({ en: "The GoodRelations ontology provides..." });
+    // Author & Version
+    expect(header.author).toEqual(["Martin Hepp"]);
+    expect(header.version).toBe("V 1.0");
+
+    // header.other should contain title, creator, versionInfo, rights but NOT label or comment
+    expect(header.other).toHaveProperty("title");
+    expect(header.other).toHaveProperty("creator");
+    expect(header.other).toHaveProperty("versionInfo");
+    expect(header.other).toHaveProperty("rights");
+    expect(header.other).not.toHaveProperty("label");
+    expect(header.other).not.toHaveProperty("comment");
+
+    // Languages should put defined language first, undefined last
+    expect(header.languages).toEqual(["en", "undefined"]);
+  });
 });

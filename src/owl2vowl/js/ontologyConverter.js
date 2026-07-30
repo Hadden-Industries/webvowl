@@ -335,47 +335,64 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     }
   }
 
-  // Sort dyn-constructed regional languages alphabetically
+  // Sort dyn-constructed regional languages alphabetically (with 'undefined' last)
   const rawLanguages = Array.from(languagesSet).filter(l => l !== "undefined");
   rawLanguages.sort();
-  const finalLanguages = [];
+  const finalLanguages = [...rawLanguages];
   if (languagesSet.has("undefined") || languagesSet.size === 0) {
     finalLanguages.push("undefined");
   }
-  finalLanguages.push(...rawLanguages);
 
   // Populate header properties
   header.languages = finalLanguages;
   header.iri = ontologySubject ? ontologySubject.iri : "https://haddenindustries.com/ontology/newOntology/";
   
   if (ontologySubject) {
-    header.title = ontologySubject.labels;
-    header.description = ontologySubject.comments;
+    const annos = ontologySubject.annotations || {};
 
-    if (Object.keys(header.title).length === 0) {
-      const titles = ontologySubject.annotations["title"] || ontologySubject.annotations["label"] || [];
+    // 1. Labels from rdfs:label
+    header.labels = Object.assign({}, ontologySubject.labels);
+
+    // 2. Title from dc:title / title, fallback to rdfs:label
+    header.title = {};
+    const titles = annos["title"] || [];
+    if (titles.length > 0) {
       titles.forEach(t => {
         header.title[t.language || "undefined"] = t.value;
       });
-    }
-    if (Object.keys(header.description).length === 0) {
-      const descs = ontologySubject.annotations["description"] || ontologySubject.annotations["comment"] || [];
-      descs.forEach(d => {
-        header.description[d.language || "undefined"] = d.value;
-      });
+    } else if (Object.keys(header.labels).length > 0) {
+      header.title = Object.assign({}, header.labels);
     }
 
-    const versions = ontologySubject.annotations["versionInfo"] || [];
+    // 3. Comments from rdfs:comment
+    header.comments = Object.assign({}, ontologySubject.comments);
+
+    // 4. Description from dc:description / description
+    header.description = {};
+    const descs = annos["description"] || [];
+    descs.forEach(d => {
+      header.description[d.language || "undefined"] = d.value;
+    });
+
+    // 5. Version & Author
+    const versions = annos["versionInfo"] || [];
     if (versions.length > 0) {
       header.version = versions[0].value;
     }
 
-    const creators = ontologySubject.annotations["creator"] || [];
+    const creators = annos["creator"] || [];
     creators.forEach(c => {
       header.author.push(c.value);
     });
 
-    header.other = ontologySubject.annotations;
+    // 6. Other annotations (exclude label and comment)
+    const otherAnnos = {};
+    for (const [key, val] of Object.entries(annos)) {
+      if (key !== "label" && key !== "comment") {
+        otherAnnos[key] = val;
+      }
+    }
+    header.other = otherAnnos;
   } else {
     header.title = { "en": "Ontology" };
   }

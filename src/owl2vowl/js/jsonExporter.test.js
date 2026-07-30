@@ -345,5 +345,14 @@ describe("jsonExporter.js unit tests", () => {
     // disconnectedAnonId should be skipped because it is anonymous and not referenced anywhere (disconnected)
     expect(exportedIds).not.toContain("disconnectedAnonId");
   });
+
+  test("header.baseIris excludes blank node IRIs starting with _:", () => {
+    header.baseIris = ["_:anon_1", "_:anon_2", "http://example.org"];
+    
+    const result = exportToJson(resolver, context, header);
+
+    expect(result.header.baseIris).toEqual(["http://example.org"]);
+    expect(result.header.baseIris).not.toContain("_:anon_1");
+  });
 });
 
