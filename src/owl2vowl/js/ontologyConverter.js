@@ -552,8 +552,13 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
       }
 
       if (types.some(t => t === NAMESPACES.OWL + "FunctionalProperty")) {attributes.push("functional");}
+      if (types.some(t => t === NAMESPACES.OWL + "InverseFunctionalProperty")) {attributes.push("inverse functional");}
       if (types.some(t => t === NAMESPACES.OWL + "TransitiveProperty")) {attributes.push("transitive");}
       if (types.some(t => t === NAMESPACES.OWL + "SymmetricProperty")) {attributes.push("symmetric");}
+      if (types.some(t => t === NAMESPACES.OWL + "AsymmetricProperty")) {attributes.push("asymmetric");}
+      if (types.some(t => t === NAMESPACES.OWL + "ReflexiveProperty")) {attributes.push("reflexive");}
+      if (types.some(t => t === NAMESPACES.OWL + "IrreflexiveProperty")) {attributes.push("irreflexive");}
+      if (types.some(t => t === NAMESPACES.OWL + "DeprecatedProperty" || t === NAMESPACES.OWL + "DeprecatedClass")) {attributes.push("deprecated");}
       
       const propLabel = Object.keys(subject.labels).length > 0 ? Object.assign({}, subject.labels) : { "undefined": resolver.getLocalName(iri) };
       if (!propLabel["undefined"]) {
@@ -747,7 +752,7 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   });
   inversesToCreate.forEach(invIri => {
     const prop = ensurePropertyExists(invIri, "owl:objectProperty", resolver, context);
-    if (!prop.attributes.includes("inferred")) {
+    if (!subjects[invIri] && !prop.attributes.includes("inferred")) {
       prop.attributes.push("inferred");
     }
   });

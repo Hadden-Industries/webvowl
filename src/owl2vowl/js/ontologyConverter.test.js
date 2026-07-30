@@ -1051,4 +1051,41 @@ describe("ontologyConverter.js unit tests", () => {
     // Languages should put defined language first, undefined last
     expect(header.languages).toEqual(["en", "undefined"]);
   });
+
+  test("Correctly maps InverseFunctionalProperty and avoids marking explicit inverse properties as inferred", () => {
+    const subjects = {
+      "http://xmlns.com/foaf/0.1/primaryTopic": {
+        iri: "http://xmlns.com/foaf/0.1/primaryTopic",
+        types: new Set(["http://www.w3.org/2002/07/owl#ObjectProperty", "http://www.w3.org/2002/07/owl#FunctionalProperty"]),
+        labels: { en: "primary topic" },
+        comments: {}, domains: ["http://xmlns.com/foaf/0.1/Document"], ranges: ["http://www.w3.org/2002/07/owl#Thing"],
+        superClasses: [], subClasses: [], superProperties: [], subProperties: [],
+        inverses: ["http://xmlns.com/foaf/0.1/isPrimaryTopicOf"], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
+        annotations: {}
+      },
+      "http://xmlns.com/foaf/0.1/isPrimaryTopicOf": {
+        iri: "http://xmlns.com/foaf/0.1/isPrimaryTopicOf",
+        types: new Set(["http://www.w3.org/2002/07/owl#ObjectProperty", "http://www.w3.org/2002/07/owl#InverseFunctionalProperty"]),
+        labels: { en: "is primary topic of" },
+        comments: { en: "A document that this thing is the primary topic of." },
+        domains: ["http://www.w3.org/2002/07/owl#Thing"], ranges: ["http://xmlns.com/foaf/0.1/Document"],
+        superClasses: [], subClasses: [], superProperties: [], subProperties: [],
+        inverses: ["http://xmlns.com/foaf/0.1/primaryTopic"], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
+        annotations: {}
+      }
+    };
+
+    convertOntology(subjects, new Set(["en"]), resolver, context, header);
+
+    const isPrimaryTopicOf = context.propertyMap.get("http://xmlns.com/foaf/0.1/isPrimaryTopicOf");
+    expect(isPrimaryTopicOf).toBeDefined();
+    expect(isPrimaryTopicOf.attributes).toContain("inverse functional");
+    expect(isPrimaryTopicOf.attributes).not.toContain("inferred");
+    expect(isPrimaryTopicOf.label.en).toBe("is primary topic of");
+
+    const primaryTopic = context.propertyMap.get("http://xmlns.com/foaf/0.1/primaryTopic");
+    expect(primaryTopic).toBeDefined();
+    expect(primaryTopic.attributes).toContain("functional");
+    expect(primaryTopic.attributes).not.toContain("inferred");
+  });
 });
