@@ -400,8 +400,12 @@ module.exports = function ( graph ){
       range.disjointWith([]);
     }
     
-    domain.disjointWith().push(property.range());
-    range.disjointWith().push(property.domain());
+    if ( domain.disjointWith().indexOf(property.range()) === -1 ) {
+      domain.disjointWith().push(property.range());
+    }
+    if ( range.disjointWith().indexOf(property.domain()) === -1 ) {
+      range.disjointWith().push(property.domain());
+    }
   }
   
   /**
