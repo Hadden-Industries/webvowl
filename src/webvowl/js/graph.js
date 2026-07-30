@@ -344,7 +344,9 @@ module.exports = function (graphContainerSelector) {
       })
       .on("dragend", function (d) {
         graph.ignoreOtherHoverEvents(false);
-        clearAllHover();
+        if ( moved === true ) {
+          clearAllHover();
+        }
         if (d.type && d.type() === "Class_dragger") {
           const nX = classDragger.x;
           const nY = classDragger.y;
@@ -4321,6 +4323,7 @@ module.exports = function (graphContainerSelector) {
             recalculatePositions();
           }
           shadowClone.setParentProperty(property, inversed);
+          shadowClone.hideClone(true);
           rangeDragger.setParentProperty(property, inversed);
           rangeDragger.hideDragger(false);
           rangeDragger.addMouseEvents();
@@ -4329,6 +4332,7 @@ module.exports = function (graphContainerSelector) {
           domainDragger.addMouseEvents();
         } else if (property.type() === "owl:DatatypeProperty") {
           shadowClone.setParentProperty(property, inversed);
+          shadowClone.hideClone(true);
           rangeDragger.setParentProperty(property, inversed);
           rangeDragger.hideDragger(true);
           rangeDragger.addMouseEvents();

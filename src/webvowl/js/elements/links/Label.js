@@ -15,6 +15,42 @@ function Label(property, link) {
     return property;
   };
 
+  Object.defineProperty(this, "x", {
+    get: function (){
+      return property.x;
+    },
+    set: function ( v ){
+      property.x = v;
+      if ( property.inverse() ) {property.inverse().x = v;}
+    }
+  });
+  Object.defineProperty(this, "y", {
+    get: function (){
+      return property.y;
+    },
+    set: function ( v ){
+      property.y = v;
+      if ( property.inverse() ) {property.inverse().y = v;}
+    }
+  });
+  Object.defineProperty(this, "px", {
+    get: function (){
+      return property.px;
+    },
+    set: function ( v ){
+      property.px = v;
+      if ( property.inverse() ) {property.inverse().px = v;}
+    }
+  });
+  Object.defineProperty(this, "py", {
+    get: function (){
+      return property.py;
+    },
+    set: function ( v ){
+      property.py = v;
+      if ( property.inverse() ) {property.inverse().py = v;}
+    }
+  });
   // "Forward" the fixed value set on the property to avoid having to access this container
   Object.defineProperty(this, "fixed", {
     get: function () {

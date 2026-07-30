@@ -267,10 +267,10 @@ module.exports = (function () {
           .classed("label", true)
           .attr("id", property.id())
           .on("mouseover", function ( event ){
-            onMouseOver(event);
+            onMouseOver(event, property);
           })
           .on("mouseout", function ( event ){
-            onMouseOut(event);
+            onMouseOut(event, property);
           });
 
         property.drawLabel(labelContainer);
@@ -566,15 +566,15 @@ module.exports = (function () {
       if (that.mouseEntered() || ignoreLocalHoverEvents === true) {
         return;
       }
-      that.mouseEntered(true);
-      that.setHighlighting(true);
-      that.foreground();
-      foregroundSubAndSuperProperties();
+      prop.mouseEntered(true);
+      prop.setHighlighting(true);
+      prop.foreground();
+      foregroundSubAndSuperProperties(prop);
     }
 
     function onMouseOut() {
-      that.mouseEntered(false);
-      that.setHighlighting(false);
+      prop.mouseEntered(false);
+      prop.setHighlighting(false);
     }
 
     this.drawPin = function () {
@@ -586,12 +586,18 @@ module.exports = (function () {
       }
 
       if (that.inverse()) {
+      if ( that.inverse() ) {
+        that.inverse().pinned(true);
+      }
         // check which element is rendered on top and add a pin to it
-        const tr_that = that.labelElement().attr("transform");
-        const tr_inv = that.inverse().labelElement().attr("transform");
+        const tr_that = that.labelElement() ? that.labelElement().attr("transform") : "";
+        const tr_inv = (that.inverse() && that.inverse().labelElement()) ? that.inverse().labelElement().attr("transform") : "";
 
-        const thatY = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_that)[2];
-        const invY = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_inv)[2];
+        const matchThat = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_that);
+        const matchInv = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_inv);
+        
+        const thatY = matchThat ? parseFloat(matchThat[2]) : -15;
+        const invY = matchInv ? parseFloat(matchInv[2]) : 15;
 
         if (thatY < invY) {
           pinGroupElement = drawTools.drawPin(
@@ -629,6 +635,9 @@ module.exports = (function () {
      */
     this.removePin = function () {
       that.pinned(false);
+      if ( that.inverse() ) {
+        that.inverse().pinned(false);
+      }
       if (pinGroupElement) {
         pinGroupElement.remove();
       }
