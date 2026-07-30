@@ -351,7 +351,9 @@ module.exports = function ( graphContainerSelector ){
       })
       .on("end", function ( event, d ){
         graph.ignoreOtherHoverEvents(false);
-        clearAllHover();
+        if ( moved === true ) {
+          clearAllHover();
+        }
         if ( d.type && d.type() === "Class_dragger" ) {
           const nX = classDragger.x;
           const nY = classDragger.y;
@@ -433,12 +435,25 @@ module.exports = function ( graphContainerSelector ){
         else {
           d.locked(false);
           const pnp = graph.options().pickAndPinModule();
-          if ( pnp.enabled() === true && moved === true ) {
-            if ( d.id ) { // node
-              pnp.handle(event, d, true);
-            }
-            if ( d.property ) {
-              pnp.handle(event, d.property(), true);
+          if ( moved === true ) {
+            if ( pnp.enabled() === true ) {
+              if ( d.id ) { // node
+                pnp.handle(event, d, true);
+              }
+              if ( d.property ) {
+                pnp.handle(event, d.property(), true);
+              }
+            } else {
+              d.fx = null;
+              d.fy = null;
+              if ( d.property ) {
+                d.property().fx = null;
+                d.property().fy = null;
+                if ( d.property().inverse() ) {
+                  d.property().inverse().fx = null;
+                  d.property().inverse().fy = null;
+                }
+              }
             }
           }
           else if ( moved === false ) {
@@ -660,7 +675,7 @@ module.exports = function ( graphContainerSelector ){
         label.y = position.y;
         label.linkRangeIntersection = linkRangeIntersection;
         label.linkDomainIntersection = linkDomainIntersection;
-        if ( link.property().focused() === true || hoveredPropertyElement !== undefined ) {
+        if ( link.property().focused() === true || link.property() === hoveredPropertyElement ) {
           rangeDragger.updateElement();
           domainDragger.updateElement();
           // shadowClone.setPosition(link.property().range().x,link.property().range().y);
@@ -669,7 +684,7 @@ module.exports = function ( graphContainerSelector ){
       } else {
         label.linkDomainIntersection = math.calculateIntersection(link.label(), link.domain(), 0);
         label.linkRangeIntersection = math.calculateIntersection(link.label(), link.range(), 0);
-        if ( link.property().focused() === true || hoveredPropertyElement !== undefined ) {
+        if ( link.property().focused() === true || link.property() === hoveredPropertyElement ) {
           rangeDragger.updateElement();
           domainDragger.updateElement();
           // shadowClone.setPosition(link.property().range().x,link.property().range().y);
@@ -687,7 +702,7 @@ module.exports = function ( graphContainerSelector ){
         l.label().linkRangeIntersection = ptrAr[1];
         l.label().linkDomainIntersection = ptrAr[0];
         
-        if ( l.property().focused() === true || hoveredPropertyElement !== undefined ) {
+        if ( l.property().focused() === true || l.property() === hoveredPropertyElement ) {
           rangeDragger.updateElement();
           domainDragger.updateElement();
         }
@@ -698,7 +713,7 @@ module.exports = function ( graphContainerSelector ){
       const pathEnd = math.calculateIntersection(curvePoint, l.range(), 1);
       l.linkRangeIntersection = pathStart;
       l.linkDomainIntersection = pathEnd;
-      if ( l.property().focused() === true || hoveredPropertyElement !== undefined ) {
+      if ( l.property().focused() === true || l.property() === hoveredPropertyElement ) {
         domainDragger.updateElement();
         rangeDragger.updateElement();
         // shadowClone.setPosition(l.property().range().x,l.property().range().y);
@@ -752,7 +767,7 @@ module.exports = function ( graphContainerSelector ){
   
   function addClickEvents(){
     nodeElements.on("click", function ( event, clickedNode ){
-      executeModules(clickedNode, event, true);
+      executeModules(clickedNode, event);
       
       // manual double clicker // helper for iphone 6 etc...
       if ( touchDevice === true && doubletap(event) === true ) {
@@ -772,7 +787,7 @@ module.exports = function ( graphContainerSelector ){
     });
     
     labelGroupElements.selectAll(".label").on("click", function ( event, clickedProperty ){
-      executeModules(clickedProperty, event, true);
+      executeModules(clickedProperty, event);
       
       // this is for enviroments that do not define dblClick function;
       if ( touchDevice === true && doubletap(event) === true ) {
@@ -3760,16 +3775,16 @@ module.exports = function ( graphContainerSelector ){
             recalculatePositions();
           }
           shadowClone.setParentProperty(property, inversed);
+          shadowClone.hideClone(true);
           rangeDragger.setParentProperty(property, inversed);
           rangeDragger.hideDragger(false);
           rangeDragger.addMouseEvents();
           domainDragger.setParentProperty(property, inversed);
           domainDragger.hideDragger(false);
           domainDragger.addMouseEvents();
-          
-          
         } else if ( property.type() === "owl:DatatypeProperty" ) {
           shadowClone.setParentProperty(property, inversed);
+          shadowClone.hideClone(true);
           rangeDragger.setParentProperty(property, inversed);
           rangeDragger.hideDragger(true);
           rangeDragger.addMouseEvents();

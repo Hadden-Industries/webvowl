@@ -241,10 +241,10 @@ module.exports = (function (){
           .classed("label", true)
           .attr("id", property.id())
           .on("mouseover", function ( event ){
-            onMouseOver(event);
+            onMouseOver(event, property);
           })
           .on("mouseout", function ( event ){
-            onMouseOut(event);
+            onMouseOut(event, property);
           });
         
         property.drawLabel(labelContainer);
@@ -422,7 +422,7 @@ module.exports = (function (){
       let inversed = false;
       
       if ( graph.ignoreOtherHoverEvents() === false ) {
-        if ( that.inverse() ) {
+        if ( that.inverse() && that.labelElement() && that.labelElement().attr("transform") === "translate(0,15)" ) {
           inversed = true;
         }
         
@@ -489,45 +489,54 @@ module.exports = (function (){
      * Foregrounds the sub- and superproperties of this property.
      * This is separated from the foreground-function to prevent endless loops.
      */
-    function foregroundSubAndSuperProperties(){
-      const subAndSuperProperties = getSubAndSuperProperties();
+    function foregroundSubAndSuperProperties( targetProperty ){
+      const prop = targetProperty || that;
+      const subAndSuperProperties = prop.getSubAndSuperProperties ? prop.getSubAndSuperProperties() : getSubAndSuperProperties();
       
       subAndSuperProperties.forEach(function ( property ){
         if ( property.foreground ) {property.foreground();}
       });
     }
     
-    function onMouseOver( event ){
-      if ( that.mouseEntered() || ignoreLocalHoverEvents === true || graph.ignoreOtherHoverEvents() === true ) {
+    function onMouseOver( event, targetProperty ){
+      const prop = targetProperty || that;
+      if ( prop.mouseEntered() || ignoreLocalHoverEvents === true || graph.ignoreOtherHoverEvents() === true ) {
         return;
       }
-      that.mouseEntered(true);
-      that.setHighlighting(true);
-      that.foreground();
-      foregroundSubAndSuperProperties();
+      prop.mouseEntered(true);
+      prop.setHighlighting(true);
+      prop.foreground();
+      foregroundSubAndSuperProperties(prop);
     }
     
-    function onMouseOut( event ){
-      const labelNode = that.labelElement() ? that.labelElement().node() : null;
+    function onMouseOut( event, targetProperty ){
+      const prop = targetProperty || that;
+      const labelNode = prop.labelElement() ? prop.labelElement().node() : null;
       if ( event && event.relatedTarget && labelNode && labelNode.contains(event.relatedTarget) ) {
         return;
       }
-      that.mouseEntered(false);
-      that.setHighlighting(false);
+      prop.mouseEntered(false);
+      prop.setHighlighting(false);
     }
     
     this.drawPin = function (){
       that.pinned(true);
+      if ( that.inverse() ) {
+        that.inverse().pinned(true);
+      }
       if ( graph.options().dynamicLabelWidth() === true ) {myWidth = that.getMyWidth();}
       else                              {myWidth = defaultWidth;}
       
       if ( that.inverse() ) {
         // check which element is rendered on top and add a pin to it
-        const tr_that = that.labelElement().attr("transform");
-        const tr_inv = that.inverse().labelElement().attr("transform");
+        const tr_that = that.labelElement() ? that.labelElement().attr("transform") : "";
+        const tr_inv = (that.inverse() && that.inverse().labelElement()) ? that.inverse().labelElement().attr("transform") : "";
         
-        const thatY = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_that)[2];
-        const invY = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_inv)[2];
+        const matchThat = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_that);
+        const matchInv = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_inv);
+        
+        const thatY = matchThat ? parseFloat(matchThat[2]) : -15;
+        const invY = matchInv ? parseFloat(matchInv[2]) : 15;
         
         if ( thatY < invY )
           {pinGroupElement = drawTools.drawPin(that.labelElement(), -0.5 * that.width() + 10, -25, this.removePin, graph.options().showDraggerObject, graph.options().useAccuracyHelper());}
@@ -538,8 +547,6 @@ module.exports = (function (){
       else {
         pinGroupElement = drawTools.drawPin(that.labelElement(), -0.5 * that.width() + 10, -25, this.removePin, graph.options().showDraggerObject, graph.options().useAccuracyHelper());
       }
-      
-      
     };
     
     /**
@@ -547,6 +554,9 @@ module.exports = (function (){
      */
     this.removePin = function (){
       that.pinned(false);
+      if ( that.inverse() ) {
+        that.inverse().pinned(false);
+      }
       if ( pinGroupElement ) {
         pinGroupElement.remove();
       }
@@ -863,7 +873,7 @@ module.exports = (function (){
     function updateHoverElements( enable ){
       if ( graph.ignoreOtherHoverEvents() === false ) {
         let inversed = false;
-        if ( that.inverse() ) {
+        if ( that.inverse() && that.labelElement() && that.labelElement().attr("transform") === "translate(0,15)" ) {
           inversed = true;
         }
         if ( enable === true ) {

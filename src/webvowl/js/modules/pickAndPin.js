@@ -39,7 +39,7 @@ module.exports = function (){
   };
   
   function wasNotDragged(event){
-    return !event.defaultPrevented;
+    return event && !event.defaultPrevented;
   }
   
   function hasNoParallelProperties( property ){

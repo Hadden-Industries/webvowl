@@ -22,7 +22,7 @@ module.exports = function ( graph ){
       graph.options().editSidebar().updateSelectionInformation(focusedElement);
       if ( elementTools.isProperty(selectedElement) === true ) {
         let inversed = false;
-        if ( selectedElement.inverse() ) {
+        if ( selectedElement.inverse() && selectedElement.labelElement() && selectedElement.labelElement().attr("transform") === "translate(0,15)" ) {
           inversed = true;
         }
         graph.activateHoverElementsForProperties(true, selectedElement, inversed, graph.isTouchDevice());
