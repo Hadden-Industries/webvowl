@@ -449,7 +449,9 @@ module.exports = (function () {
 
     that.setHighlighting = function (enable) {
       if (that.labelElement && that.labelElement()) {
-        that.labelElement().select("rect").classed("hovered", enable);
+        that.labelElement().selectAll("rect")
+          .classed("hovered", enable)
+          .classed("indirect-highlighting", false);
       }
       that.linkGroup().selectAll("path, text").classed("hovered", enable);
       if (that.markerElement()) {
@@ -471,7 +473,7 @@ module.exports = (function () {
             .classed("indirect-highlighting", enable);
         }
         if ( property.inverse && property.inverse() && property.inverse().labelElement && property.inverse().labelElement() ) {
-          property.inverse().labelElement().select("rect")
+          property.inverse().labelElement().selectAll("rect")
             .classed("indirect-highlighting", enable);
         }
       });
@@ -485,7 +487,9 @@ module.exports = (function () {
         if (graph.isTouchDevice() === false) {
           graph.activateHoverElementsForProperties(enable, that, inversed);
         } else {
-          that.labelElement().select("rect").classed("hovered", false);
+          that.labelElement().selectAll("rect")
+            .classed("hovered", false)
+            .classed("indirect-highlighting", false);
           that.linkGroup().selectAll("path, text").classed("hovered", false);
           if (that.markerElement()) {
             that.markerElement().select("path").classed("hovered", false);
