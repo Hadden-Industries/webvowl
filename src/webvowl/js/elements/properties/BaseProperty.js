@@ -285,11 +285,11 @@ module.exports = (function (){
         .attr("y", -that.height() / 2)
         .attr("width", that.width())
         .attr("height", that.height())
-        .on("mouseover", function (){
-          onMouseOver();
+        .on("mouseover", function ( event ){
+          onMouseOver(event);
         })
-        .on("mouseout", function (){
-          onMouseOut();
+        .on("mouseout", function ( event ){
+          onMouseOut(event);
         });
       
       rect.append("title")
@@ -487,8 +487,8 @@ module.exports = (function (){
       });
     }
     
-    function onMouseOver(){
-      if ( that.mouseEntered() || ignoreLocalHoverEvents === true ) {
+    function onMouseOver( event ){
+      if ( that.mouseEntered() || ignoreLocalHoverEvents === true || graph.ignoreOtherHoverEvents() === true ) {
         return;
       }
       that.mouseEntered(true);
@@ -497,7 +497,11 @@ module.exports = (function (){
       foregroundSubAndSuperProperties();
     }
     
-    function onMouseOut(){
+    function onMouseOut( event ){
+      const labelNode = that.labelElement() ? that.labelElement().node() : null;
+      if ( event && event.relatedTarget && labelNode && labelNode.contains(event.relatedTarget) ) {
+        return;
+      }
       that.mouseEntered(false);
       that.setHighlighting(false);
     }

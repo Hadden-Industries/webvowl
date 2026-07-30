@@ -320,7 +320,7 @@ module.exports = (function (){
         return;
       }
       
-      that.nodeElement().selectAll("*")
+      that.nodeElement()
         .on("mouseover", onMouseOver)
         .on("mouseout", onMouseOut);
     };
@@ -344,45 +344,46 @@ module.exports = (function (){
     };
     
     this.foreground = function (){
-      const selectedNode = that.nodeElement().node(),
-        nodeContainer = selectedNode.parentNode;
+      const selectedNode = that.nodeElement() ? that.nodeElement().node() : null,
+        nodeContainer = selectedNode ? selectedNode.parentNode : null;
       // check if the halo is present and an animation is running
-      if ( that.animationProcess() === false ) {
+      if ( nodeContainer && nodeContainer.lastChild !== selectedNode && that.animationProcess() === false ) {
         // Append hovered element as last child to the container list.
         nodeContainer.appendChild(selectedNode);
       }
       
     };
     
-    function onMouseOver(){
-      if ( that.mouseEntered() || ignoreLocalHoverEvents === true ) {
+    function onMouseOver( event ){
+      if ( that.mouseEntered() || ignoreLocalHoverEvents === true || graph.ignoreOtherHoverEvents() === true ) {
         return;
       }
       
-      const selectedNode = that.nodeElement().node(),
-        nodeContainer = selectedNode.parentNode;
+      const selectedNode = that.nodeElement() ? that.nodeElement().node() : null,
+        nodeContainer = selectedNode ? selectedNode.parentNode : null;
       
-      // Append hovered element as last child to the container list.
-      if ( that.animationProcess() === false ) {
+      // Append hovered element as last child to the container list if not already last.
+      if ( nodeContainer && nodeContainer.lastChild !== selectedNode && that.animationProcess() === false ) {
         nodeContainer.appendChild(selectedNode);
       }
       if ( graph.isTouchDevice() === false ) {
         that.setHoverHighlighting(true);
         that.mouseEntered(true);
-        if ( graph.editorMode() === true && graph.ignoreOtherHoverEvents() === false ) {
+        if ( graph.editorMode() === true ) {
           graph.activateHoverElements(true, that);
         }
       } else {
-        if ( graph.editorMode() === true && graph.ignoreOtherHoverEvents() === false ) {
+        if ( graph.editorMode() === true ) {
           graph.activateHoverElements(true, that, true);
         }
-        
       }
-      
-      
     }
     
-    function onMouseOut(){
+    function onMouseOut( event ){
+      const selectedNode = that.nodeElement() ? that.nodeElement().node() : null;
+      if ( event && event.relatedTarget && selectedNode && selectedNode.contains(event.relatedTarget) ) {
+        return;
+      }
       that.setHoverHighlighting(false);
       that.mouseEntered(false);
       if ( graph.editorMode() === true && graph.ignoreOtherHoverEvents() === false ) {
