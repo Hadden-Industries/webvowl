@@ -15,12 +15,11 @@ module.exports = function (graph) {
   let dictionaryUpdateRequired = true;
   let labelDictionary;
   let inputText;
-  let viewStatusOfSearchEntries = false;
 
   let results = [];
   let resultID = [];
   const c_locate = d3.select("#locateSearchResult");
-  const m_search = d3.select("#m_search"); // << dropdown container;
+  const listbox = d3.select("#search-results-listbox");
 
   String.prototype.beginsWith = function (string) {
     return this.indexOf(string) === 0;
@@ -106,8 +105,11 @@ module.exports = function (graph) {
     searchLineEdit = d3.select("#search-input-text");
     searchLineEdit.on("input", userInput);
     searchLineEdit.on("keydown", userNavigation);
-    searchLineEdit.on("click", toggleSearchEntryView);
-    searchLineEdit.on("mouseover", hoverSearchEntryView);
+    searchLineEdit.on("click", function (){
+      updateSelectionStatusFlags();
+      searchMenu.showSearchEntries();
+    });
+    searchLineEdit.on("focus", hoverSearchEntryView);
 
     c_locate.on("click", function () {
       graph.locateSearchResult();
@@ -137,9 +139,25 @@ module.exports = function (graph) {
   };
 
   searchMenu.showSearchEntries = function () {
-    m_search.classed("is-open", true).classed("hidden", false);
-    viewStatusOfSearchEntries = true;
-    graph.options().navigationMenu().updateMenuPosition();
+    if ( listbox.node() && listbox.node().children.length > 0 ) {
+      const cSearchNode = d3.select("#c_search").node();
+      if ( cSearchNode ) {
+        const buttonRect = cSearchNode.getBoundingClientRect();
+        let finalLeft = buttonRect.left;
+        const maxRight = window.innerWidth - 340 - 16;
+        if ( finalLeft > maxRight ) {
+          finalLeft = maxRight;
+        }
+        finalLeft = Math.max(16, finalLeft);
+        listbox.style("left", finalLeft + "px").style("transform", "none");
+      }
+      listbox.classed("hidden", false);
+      if ( searchLineEdit && searchLineEdit.node() ) {
+        searchLineEdit.attr("aria-expanded", "true");
+      }
+    } else {
+      searchMenu.hideSearchEntries();
+    }
   };
 
   function ValidURL(str) {
@@ -161,7 +179,12 @@ module.exports = function (graph) {
       updateSearchDictionary();
     }
 
-    const htmlCollection = m_search.node().children;
+    if ( event.keyCode === 27 ) { // Escape key
+      searchMenu.hideSearchEntries();
+      return;
+    }
+
+    const htmlCollection = listbox.node().children;
     const numEntries = htmlCollection.length;
 
     let move = 0;
@@ -180,20 +203,16 @@ module.exports = function (graph) {
         searchMenu.hideSearchEntries();
       } else if (numEntries === 0) {
         inputText = searchLineEdit.node().value;
-        // check if input text ends or begins with with space
-        // remove first spaces
         let clearedText = inputText.replace(/%20/g, " ");
         while (clearedText.beginsWith(" ")) {
           clearedText = clearedText.substr(1, clearedText.length);
         }
-        // remove ending spaces
         while (clearedText.endsWith(" ")) {
           clearedText = clearedText.substr(0, clearedText.length - 1);
         }
         const iri = clearedText.replace(/ /g, "%20");
 
         const valid = ValidURL(iri);
-        // validate url:
         if (valid) {
           const ontM = graph.options().ontologyMenu();
           ontM.setIriText(iri);
@@ -202,6 +221,7 @@ module.exports = function (graph) {
           console.warn(iri + " is not a valid URL!");
         }
       }
+      return;
     }
     if (d3.event.keyCode === 38) {
       move = -1;
@@ -253,8 +273,6 @@ module.exports = function (graph) {
     for (i = 0; i < dictionary.length; i++) {
       const tokenElement = dictionary[i];
       if (tokenElement === undefined) {
-        //@WORKAROUND : nodes with undefined labels are skipped
-        //@FIX: these nodes are now not added to the dictionary
         continue;
       }
       token = dictionary[i].toLowerCase();
@@ -316,10 +334,11 @@ module.exports = function (graph) {
   }
 
   function createDropDownElements() {
-    let numEntries;
-    const copyRes = results;
+    const copyRes = [];
     let i;
-    let token;
+    for ( i = 0; i < results.length; i++ ) {
+      copyRes.push(results[i]);
+    }
     const newResults = [];
     const newResultsIds = [];
 
@@ -331,6 +350,10 @@ module.exports = function (graph) {
     }
 
     for (i = 0; i < numEntries; i++) {
+    let numEntries = newResults.length;
+    if ( numEntries > maxEntries ) {
+      numEntries = maxEntries;
+    }
       // search for the best entry
       let indexElement = 1000000;
       let lengthElement = 1000000;
@@ -431,13 +454,13 @@ module.exports = function (graph) {
             " elements are visible.";
         }
       }
-      searchEntryNode.node().innerHTML = croppedText;
-      m_search.node().appendChild(testEntry);
+
+      testEntry.innerHTML = "<span>" + matchHtml + "</span>" + badgeHtml;
+      listbox.node().appendChild(testEntry);
     }
   }
 
   function handleAutoCompletion() {
-    /**  pre condition: autoCompletion has already a valid text**/
     clearSearchEntries();
     createSearchEntries();
     createDropDownElements();
@@ -472,7 +495,6 @@ module.exports = function (graph) {
       const id = elementId;
       const correspondingIds = mergedIdList[id];
 
-      // autoComplete the text for the user
       const autoComStr = entryNames[id];
       searchLineEdit.node().value = autoComStr;
 

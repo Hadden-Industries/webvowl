@@ -84,11 +84,33 @@ module.exports = function (graph) {
   };
 
   function copyUrl() {
-    d3.select("#exportedUrl").node().focus();
-    d3.select("#exportedUrl").node().select();
-    document.execCommand("copy");
-    graph.options().navigationMenu().hideAllMenus();
-    event.preventDefault(); // prevent the href to be called ( reloads the page otherwise )
+  let copyFeedbackTimer;
+    event.preventDefault();
+    const urlInputNode = d3.select("#exportedUrl").node();
+    if ( urlInputNode ) {
+      urlInputNode.focus();
+      urlInputNode.select();
+      const urlText = urlInputNode.value;
+      if ( navigator.clipboard && navigator.clipboard.writeText ) {
+        navigator.clipboard.writeText(urlText).catch(function (){
+          document.execCommand("copy");
+        });
+      } else {
+        document.execCommand("copy");
+      }
+
+      const copyButtonNode = d3.select("#copyBt");
+      copyButtonNode.classed("copied", true);
+      copyButtonNode.select(".copy-text").text("Copied!");
+      copyButtonNode.select(".copy-icon path").attr("d", "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z");
+
+      clearTimeout(copyFeedbackTimer);
+      copyFeedbackTimer = setTimeout(function (){
+        copyButtonNode.classed("copied", false);
+        copyButtonNode.select(".copy-text").text("Copy URL");
+        copyButtonNode.select(".copy-icon path").attr("d", "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z");
+      }, 2000);
+    }
   }
 
   function prepareOptionString(defOpts, currOpts) {

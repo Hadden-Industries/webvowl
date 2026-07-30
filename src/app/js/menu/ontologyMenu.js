@@ -2,7 +2,6 @@ module.exports = function (graph) {
   const ontologyMenu = {};
   const loadingInfo = d3.select("#loading-info");
   const loadingProgress = d3.select("#loading-progress");
-  let ontologyMenuTimeout;
   let stopTimer = false;
   const loadingError = false;
   let loadingStatusTimer;

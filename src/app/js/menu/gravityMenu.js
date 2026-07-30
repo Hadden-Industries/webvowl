@@ -39,7 +39,7 @@ module.exports = function (graph) {
     const sliderContainer = d3
       .select(selector)
       .append("div")
-      .datum({ distanceFunction: distanceFunction }) // connect the options-function with the slider
+      .datum({ distanceFunction: distanceFunction })
       .classed("distanceSliderContainer", true);
 
     const slider = sliderContainer

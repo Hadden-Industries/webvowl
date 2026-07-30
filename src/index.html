@@ -564,6 +564,24 @@
             </li>
           </ul>
                     <label class="sr-only" for="search-input-text">Search ontology</label>
+
+                <!-- Vertical Toolbar Divider separating Menu Drawers from Graph Action Controls -->
+                <li class="nav-separator" role="separator" aria-orientation="vertical"></li>
+
+                <!-- Direct Graph Execution Action Buttons -->
+                <li id="c_reset"><button type="button" class="navButton action-pill" id="reset-button" disabled title="Reset layout and filters">
+                    <i>
+                        <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
+                            <g>
+                                <path style="fill : #fff; stroke-width:0;"
+                                      d="m 12,5 0,-4 5,5 -5,5 0,-4 c -3.31,0 -6,2.69 -6,6 0,3.31 2.69,6 6,6 3.31,0 6,-2.69 6,-6 l 2,0 c 0,4.42 -3.58,8 -8,8 C 7.58,21 4,17.42 4,13 4,8.58 7.58,5 12,5 Z"
+                                      transform="matrix(0.75,0,0,0.75,3.5,2.5)">
+                                </path>
+                            </g>
+                        </svg>
+                    </i>Reset</button></li>
+                <li id="c_pause"><button type="button" class="navButton action-pill" id="pause-button" disabled aria-pressed="false" title="Pause or resume graph physics simulation">Pause</button>
+                </li>
         </nav>
         <div class="noselect" id="scrollRightButton"></div>
         <div class="noselect" id="scrollLeftButton"></div>
@@ -887,5 +905,10 @@
     <script type="module" src="main.js"></script>
   </body>
             <label class="sr-only" for="directInputTextArea">Direct input JSON</label>
+<script type="module">
+  if (!("popover" in HTMLElement.prototype)) {
+    import("https://cdn.jsdelivr.net/npm/@oddbird/popover-polyfill@latest/dist/popover.min.js");
+  }
+</script>
 </html>
 

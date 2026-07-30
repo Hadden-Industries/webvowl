@@ -225,7 +225,7 @@ a:hover {
   background-color: #d90;
 }
 
-.toolTipMenu li.highlighted {
+.popover-menu-list li.highlighted {
   background-color: #feb;
 }
 
@@ -818,13 +818,19 @@ main {
     margin-left: -25px;
 }
 
-.toolTipMenu.is-open {
-    display: block !important;
-}
+/* DEPRECATED: Replaced by Popover API */
 
-.toolTipMenu.hidden {
-    display: none !important;
-}
+/* .toolTipMenu.is-open { */
+
+    /* display: block !important; */
+
+/* } */
+
+/* .toolTipMenu.hidden { */
+
+    /* display: none !important; */
+
+/* } */
 
 .active-menu-item path {
     stroke-width: 0 !important;
@@ -1024,6 +1030,9 @@ main {
 }
 
 .slideOption {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   position: relative;
   padding: 8px 5px;
   outline: none;
@@ -1493,6 +1502,9 @@ li#c_search input.searchInputText {
   background-color: #24323e;
 }
 
+/* DEPRECATED: Replaced by modern flexbox rules at bottom of file */
+
+/*
 .converter-form:not(:first-child) {
   margin-top: 5px;
 }
@@ -1525,7 +1537,7 @@ li#c_search input.searchInputText {
   cursor: pointer;
   height: 20px;
   width: 74%;
-}
+} */
 
 #killWarning {
   cursor: pointer;
@@ -1553,14 +1565,14 @@ li#c_search input.searchInputText {
 
 /* cursor: pointer; */
 
-/* } */
-
+/* DEPRECATED: Replaced by .copy-url-btn rules at bottom of file
 #copyBt {
   box-sizing: border-box;
   height: 20px;
   width: 31%;
   border: 1px solid #34495e;
 }
+*/
 
 #sidebarExpandButton {
   height: 24px;
@@ -2130,12 +2142,14 @@ li#c_search input.searchInputText {
 
 /* swipe bar definition */
 
+/* DEPRECATED: Replaced by .modern-popover sizing */
+
 /* Overwriting individual menu widths */
 #m_about {
   max-width: 200px;
   width: 200px;
   position: absolute;
-}
+/* #m_about { */
 
 #m_modes {
   max-width: 160px;
@@ -2159,7 +2173,45 @@ li#c_search input.searchInputText {
   max-width: 160px;
   width: 160px;
   position: absolute;
-}
+/* #m_modes { */
+
+    /* max-width: 160px; */
+
+    /* width: 160px; */
+
+    /* position: absolute; */
+
+/* } */
+
+/* #m_filter { */
+
+    /* max-width: 170px; */
+
+    /* width: 170px; */
+
+    /* position: absolute; */
+
+/* } */
+
+/* #m_gravity { */
+
+    /* max-width: 180px; */
+
+    /* width: 180px; */
+
+    /* position: absolute; */
+
+/* } */
+
+/* #m_export { */
+
+    /* max-width: 160px; */
+
+    /* width: 160px; */
+
+    /* position: absolute; */
+
+/* } */
 
 #exportedUrl {
   width: 100px;
@@ -2244,12 +2296,86 @@ li#c_search input.searchInputText {
     border: none;
     font-family: inherit;
     font-size: 14px;
+    font-weight: 500;
     text-decoration: none;
-    box-sizing: border-box;
-    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    outline: none;
+    box-sizing: border-box;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* Toolbar Divider separating Menu Drawers from Graph Action Buttons */
+.nav-separator {
+    width: 1px;
+    height: 22px;
+    background: rgb(255 255 255 / 15%);
+    margin: 0 8px;
+    align-self: center;
+    list-style: none;
+}
+
+/* Action Control Pills (Reset, Pause/Resume) */
+.navButton.action-pill {
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 8px;
+    background: rgb(255 255 255 / 4%);
+    padding: 0 10px;
+    height: 32px;
+    margin: 0 2px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.navButton.action-pill:hover {
+    background: rgb(255 255 255 / 12%);
+    border-color: rgb(255 255 255 / 25%);
+}
+
+.navButton.action-pill:disabled,
+.navButton.action-pill[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed !important;
+    pointer-events: none;
+    background: transparent !important;
+    border-color: rgb(255 255 255 / 6%) !important;
+}
+
+/* Reset Button Micro-Flash Feedback */
+@keyframes reset-flash {
+    0% {
+        background: rgb(99 102 241 / 60%);
+        border-color: #818cf8;
+        box-shadow: 0 0 14px rgb(99 102 241 / 55%);
+    }
+
+    60% {
+        background: rgb(99 102 241 / 25%);
+        border-color: #6366f1;
+        box-shadow: 0 0 6px rgb(99 102 241 / 25%);
+    }
+
+    100% {
+        background: rgb(255 255 255 / 4%);
+        border-color: rgb(255 255 255 / 12%);
+        box-shadow: none;
+    }
+}
+
+.navButton.action-pill.flash-active {
+    animation: reset-flash 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Simulation Paused Warning Highlight */
+.navButton.action-pill.paused,
+#c_pause button.paused {
+    background: rgb(245 158 11 / 20%) !important;
+    border-color: #f59e0b !important;
+    color: #fbbf24 !important;
+    box-shadow: 0 0 12px rgb(245 158 11 / 35%);
+}
+
+.navButton.action-pill.paused:hover,
+#c_pause button.paused:hover {
+    background: rgb(245 158 11 / 30%) !important;
+    border-color: #f59e0b !important;
 }
 
 #menuElementContainer .menuElementSvgElement {
@@ -2367,7 +2493,19 @@ li#c_search input.searchInputText {
   z-index: 99;
 }
 
-.toolTipMenu > li:first-of-type {
+    /* margin: 0; */
+
+    /* padding: 0; */
+
+    /* white-space: normal; */
+
+    /* position: absolute; */
+
+    /* z-index: 99; */
+
+/* } */
+
+.popover-menu-list > li:first-of-type {
   border: none;
 }
 
@@ -3143,5 +3281,395 @@ a#locateSearchResult {
         padding-bottom: env(safe-area-inset-bottom);
         padding-left: env(safe-area-inset-left);
         padding-right: env(safe-area-inset-right);
+    }
+}
+
+/* ==========================================================================
+   Modern Popover & Overlay Stacking (Popover API)
+   ========================================================================== */
+
+/* Polyfill compatibility: support both native :popover-open and polyfill class */
+/* stylelint-disable-next-line selector-class-pattern */
+[popover]:is(:popover-open, .\:popover-open) {
+    display: block;
+}
+
+/* Base Popover Styling (Desktop Floating Card) */
+.modern-popover {
+    position: fixed;
+    inset: auto;
+    bottom: 60px;
+    left: 16px;
+    transform: none;
+    margin: 0;
+    padding: 0;
+    width: 360px;
+    max-width: calc(100vw - 32px);
+    max-height: 82vh;
+    background: rgb(24 32 42 / 92%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 16px;
+    box-shadow: 0 16px 40px rgb(0 0 0 / 50%);
+    color: #ecf0f1;
+    overflow: hidden;
+    z-index: 2000;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Hover bridge to prevent mouseleave when moving across the 16px gap from toolbar */
+.modern-popover::after {
+    content: "";
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+    right: 0;
+    height: 20px;
+}
+
+/* Native Popover Backdrop Overlay (Dim & Blur Application Background) */
+.modern-popover::backdrop {
+    background-color: rgb(0 0 0 / 50%);
+    backdrop-filter: blur(4px);
+    animation: backdropFadeIn 0.25s ease forwards;
+}
+
+@keyframes backdropFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Desktop: hide sheet handle */
+.sheet-handle {
+    display: none;
+}
+
+/* Popover Header */
+.popover-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid rgb(255 255 255 / 8%);
+    background: rgb(255 255 255 / 3%);
+}
+
+.popover-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.popover-close-btn {
+    background: transparent;
+    border: none;
+    color: #a0aec0;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: color 0.2s, background 0.2s;
+}
+
+.popover-close-btn:hover {
+    color: #fff;
+    background: rgb(255 255 255 / 10%);
+}
+
+/* Popover Content */
+.popover-content {
+    padding: 12px 18px 18px;
+    overflow-y: auto;
+    max-height: calc(82vh - 60px);
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 20%) transparent;
+}
+
+.popover-content::-webkit-scrollbar,
+.search-combobox-popup::-webkit-scrollbar {
+    width: 6px;
+}
+
+.popover-content::-webkit-scrollbar-track,
+.search-combobox-popup::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.popover-content::-webkit-scrollbar-thumb,
+.search-combobox-popup::-webkit-scrollbar-thumb {
+    background: rgb(255 255 255 / 20%);
+    border-radius: 3px;
+}
+
+.popover-content::-webkit-scrollbar-thumb:hover,
+.search-combobox-popup::-webkit-scrollbar-thumb:hover {
+    background: rgb(255 255 255 / 40%);
+}
+
+/* Menu List (replaces .toolTipMenu ul) */
+.popover-menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* ==========================================================================
+   Touch-Optimized Range Slider Controls
+   ========================================================================== */
+
+.slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: #cbd5e0;
+}
+
+.slider-value {
+    font-family: monospace;
+    font-size: 12px;
+    background: rgb(59 153 252 / 15%);
+    color: #3b99fc;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+/* 44px Minimum Touch Target Container */
+.range-touch-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 44px;
+    width: 100%;
+}
+
+.range-touch-wrapper input[type="range"] {
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: rgb(255 255 255 / 15%);
+    border-radius: 3px;
+    outline: none;
+    margin: 0;
+    cursor: pointer;
+    touch-action: pan-x;
+}
+
+/* WebKit Range Thumb (Chrome, Safari, Edge) */
+.range-touch-wrapper input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #3b99fc;
+    border: 3px solid #18202a;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 40%);
+    cursor: grab;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.range-touch-wrapper input[type="range"]::-webkit-slider-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.15);
+    background: #60a5fa;
+}
+
+/* Gecko Range Thumb (Firefox) */
+.range-touch-wrapper input[type="range"]::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #3b99fc;
+    border: 3px solid #18202a;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 40%);
+    cursor: grab;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.range-touch-wrapper input[type="range"]::-moz-range-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.15);
+    background: #60a5fa;
+}
+
+/* Focus Indicator for Accessibility */
+.range-touch-wrapper input[type="range"]:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px rgb(59 153 252 / 50%);
+}
+
+.range-touch-wrapper input[type="range"]:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 3px rgb(59 153 252 / 50%);
+}
+
+/* Modern flexbox layout for Ontology Custom Converter Inputs */
+.converter-form,
+.converter-form-Editor {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgb(255 255 255 / 8%);
+}
+
+.converter-form label,
+.converter-form-Editor label {
+    display: block;
+    width: 100%;
+    font-size: 13px;
+    font-weight: 500;
+    color: #cbd5e0;
+}
+
+.converter-form input[type="text"],
+.converter-form-Editor input[type="text"],
+#iri-converter-input {
+    flex: 1 1 180px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 1px solid rgb(255 255 255 / 15%);
+    background: rgb(255 255 255 / 5%);
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+    box-sizing: border-box;
+    float: none;
+}
+
+.converter-form input[type="text"]:focus,
+.converter-form-Editor input[type="text"]:focus,
+#iri-converter-input:focus {
+    border-color: #3b99fc;
+    background: rgb(255 255 255 / 8%);
+}
+
+#file-converter-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 160px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 1px dashed rgb(255 255 255 / 20%);
+    background: rgb(255 255 255 / 5%);
+    color: #cbd5e0;
+    font-size: 13px;
+    cursor: pointer;
+    box-sizing: border-box;
+    float: none;
+    transition: all 0.2s ease;
+}
+
+#file-converter-label:hover {
+    border-color: #3b99fc;
+    color: #fff;
+    background: rgb(59 153 252 / 10%);
+}
+
+.converter-form button,
+.converter-form-Editor button,
+#iri-converter-button,
+#file-converter-button {
+    flex: 0 0 auto;
+    height: 34px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: none;
+    background: #3b99fc;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    float: none;
+    transition: background 0.2s ease;
+}
+
+.converter-form button:hover:not(:disabled),
+.converter-form-Editor button:hover:not(:disabled),
+#iri-converter-button:hover:not(:disabled),
+#file-converter-button:hover:not(:disabled) {
+    background: #2563eb;
+}
+
+.converter-form button:disabled,
+.converter-form-Editor button:disabled,
+#iri-converter-button:disabled,
+#file-converter-button:disabled {
+    background: rgb(255 255 255 / 10%);
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+.copy-url-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: 0 0 118px;
+    width: 118px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: none;
+    background-color: #3b99fc;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 6px rgb(59 153 252 / 30%);
+}
+
+.copy-url-btn:hover {
+    background-color: #2563eb;
+    box-shadow: 0 4px 12px rgb(37 99 235 / 40%);
+}
+
+.copy-url-btn.copied {
+    background-color: #22c55e;
+    box-shadow: 0 2px 10px rgb(34 197 94 / 40%);
+}
+
+/* ==========================================================================
+   Responsive Mobile Bottom Sheet Transformation (<= 768px)
+   ========================================================================== */
+
+@media screen and (width <= 768px) {
+    .modern-popover {
+        inset: auto 0 0 !important;
+        transform: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 80vh !important;
+        border-radius: 20px 20px 0 0 !important;
+        border-bottom: none !important;
+        padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
+        animation: sheetSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .sheet-handle {
+        display: block;
+        width: 36px;
+        height: 4px;
+        background: rgb(255 255 255 / 30%);
+        border-radius: 2px;
+        margin: 8px auto 4px;
+    }
+
+    @keyframes sheetSlideUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
     }
 }

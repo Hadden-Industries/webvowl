@@ -162,6 +162,9 @@ module.exports = function (graph) {
   }
 
   function menuElementOnHovered() {
+    if ( !window.matchMedia("(hover: hover)").matches ) {
+      return;
+    }
     navigationMenu.hideAllMenus();
     if (touchedElement) {
       return;
@@ -227,7 +230,7 @@ module.exports = function (graph) {
           .style("fill", "#bdc3c7");
       }
       currentlyVisibleMenu = d3.select("#" + m_element);
-      currentlyVisibleMenu.classed("is-open", true).classed("hidden", false);
+      try { currentlyVisibleMenu.node().showPopover(); } catch { /* ignore if open */ }
       if (m_element === "m_export") {
         graph.options().exportMenu().exportAsUrl();
       }
@@ -250,8 +253,8 @@ module.exports = function (graph) {
         finalOffset = fullContainer_width - elementWidth;
       }
 
-      finalOffset = Math.max(0, finalOffset);
-      currentlyVisibleMenu.style("left", finalOffset + "px");
+      finalOffset = Math.max(16, finalOffset);
+      currentlyVisibleMenu.style("left", finalOffset + "px").style("transform", "none");
 
       // // check if outside the viewport
       // var menuWidth=currentlyHoveredEntry.getBoundingClientRect().width;
@@ -266,7 +269,13 @@ module.exports = function (graph) {
   navigationMenu.updateMenuPosition = updateMenuPosition;
 
   navigationMenu.hideAllMenus = function () {
-    d3.selectAll(".toolTipMenu").classed("is-open", false).classed("hidden", true);
+    d3.selectAll(".modern-popover").each(function (){
+      try {
+        if ( this.matches(":popover-open") ) {
+          this.hidePopover();
+        }
+      } catch { /* ignore */ }
+    });
   };
 
   navigationMenu.updateScrollButtonVisibility = function () {
@@ -295,8 +304,18 @@ module.exports = function (graph) {
     });
     d3.select("#generalDetails").on("mouseover", function () {
       navigationMenu.hideAllMenus();
-    }).on("touchstart", function (){
-      navigationMenu.hideAllMenus();
+    });
+    
+    // Sync active-menu-item class when popovers are dismissed externally
+    d3.selectAll(".modern-popover").on("toggle", function (){
+      if ( !this.matches(":popover-open") ) {
+        // Find the corresponding controller and remove active state
+        const menuId = this.id;
+        const controllerIdx = m_select.indexOf(menuId);
+        if ( controllerIdx > -1 ) {
+          d3.select("#" + c_select[controllerIdx]).classed("active-menu-item", false);
+        }
+      }
     });
   };
 

@@ -61,5 +61,9 @@ module.exports = function (graph) {
     pauseMenu.setPauseValue(false);
   };
 
+  pauseMenu.setMenuMode = function ( enabled ){
+    d3.select("#pause-button").property("disabled", !enabled);
+  };
+
   return pauseMenu;
 };

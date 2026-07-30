@@ -1872,6 +1872,8 @@ module.exports = function (graphContainerSelector) {
     d3.select("#progressBarValue").classed("busyProgressBar", false);
     graph.options().loadingModule().setErrorMode();
     graph.options().loadingModule().showErrorDetailsMessage();
+    if ( graph.options().resetMenu() ) { graph.options().resetMenu().setMenuMode(false); }
+    if ( graph.options().pausedMenu() ) { graph.options().pausedMenu().setMenuMode(false); }
   };
 
   function quick_refreshGraphData() {
