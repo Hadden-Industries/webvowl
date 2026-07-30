@@ -85,6 +85,11 @@ module.exports = function (graph) {
         zoomValue = graph.scaleFactor();
         t_zoomOut = requestAnimationFrame(timed_zoomOut);
       })
+      .on("contextmenu", function (event){
+        if ( event ) {
+          event.preventDefault();
+        }
+      })
       .on("mouseup", clearAllTimers)
       .on("touchend", clearAllTimers)
       .on("touchcancel", clearAllTimers)
@@ -100,6 +105,11 @@ module.exports = function (graph) {
         graph.options().navigationMenu().hideAllMenus();
         zoomValue = graph.scaleFactor();
         t_zoomIn = requestAnimationFrame(timed_zoomIn);
+      })
+      .on("contextmenu", function (event){
+        if ( event ) {
+          event.preventDefault();
+        }
       })
       .on("mouseup", clearAllTimers)
       .on("touchend", clearAllTimers)

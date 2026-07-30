@@ -119,6 +119,11 @@ module.exports = function (graph) {
         navigationMenu.hideAllMenus();
         t_scrollRight = requestAnimationFrame(timed_scrollRight);
       })
+      .on("contextmenu", function (event){
+        if ( event ) {
+          event.preventDefault();
+        }
+      })
       .on("mouseup", clearAllTimers)
       .on("touchend", clearAllTimers)
       .on("touchcancel", clearAllTimers);
@@ -134,9 +139,20 @@ module.exports = function (graph) {
         navigationMenu.hideAllMenus();
         t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
       })
+      .on("contextmenu", function (event){
+        if ( event ) {
+          event.preventDefault();
+        }
+      })
       .on("mouseup", clearAllTimers)
       .on("touchend", clearAllTimers)
       .on("touchcancel", clearAllTimers);
+
+    d3.selectAll(".navButton").on("contextmenu", function (event){
+      if ( event ) {
+        event.preventDefault();
+      }
+    });
 
     // connect the scroll functionality;
     d3.select("#menuElementContainer").on("scroll", function () {

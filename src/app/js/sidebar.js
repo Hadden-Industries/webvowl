@@ -1066,7 +1066,12 @@ module.exports = function (graph) {
       } else {
         sidebar.showSidebar(1);
       }
-    });
+    })
+      .on("contextmenu", function (event){
+        if ( event ) {
+          event.preventDefault();
+        }
+      });
 
     if ( window.innerWidth <= 1024 ) {
       sidebar.showSidebar(0, true);

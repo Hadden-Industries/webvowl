@@ -26,7 +26,12 @@ module.exports = function (graph) {
       } else {
         leftSidebar.showSidebar(0);
       }
-    });
+    })
+      .on("contextmenu", function (event){
+        if ( event ) {
+          event.preventDefault();
+        }
+      });
 
     setupSelectionContainers();
     d3.select("#WarningErrorMessages")
