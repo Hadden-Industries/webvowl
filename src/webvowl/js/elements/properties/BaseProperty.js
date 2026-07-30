@@ -474,13 +474,15 @@ module.exports = (function (){
         return;
       }
       const selectedLabelGroup = that.labelElement().node().parentNode,
-        labelContainer = selectedLabelGroup.parentNode,
-        selectedLinkGroup = that.linkGroup().node(),
-        linkContainer = that.linkGroup().node().parentNode;
-      if ( that.animationProcess() === false ) {
+        labelContainer = selectedLabelGroup ? selectedLabelGroup.parentNode : null,
+        selectedLinkGroup = that.linkGroup() ? that.linkGroup().node() : null,
+        linkContainer = selectedLinkGroup ? selectedLinkGroup.parentNode : null;
+      if ( labelContainer && labelContainer.lastChild !== selectedLabelGroup && that.animationProcess() === false ) {
         labelContainer.appendChild(selectedLabelGroup);
       }
-      linkContainer.appendChild(selectedLinkGroup);
+      if ( linkContainer && linkContainer.lastChild !== selectedLinkGroup ) {
+        linkContainer.appendChild(selectedLinkGroup);
+      }
     };
     
     /**

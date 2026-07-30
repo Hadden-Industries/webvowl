@@ -3737,10 +3737,16 @@ module.exports = function ( graphContainerSelector ){
     
     if ( val === true ) {
       clearTimeout(delayedHider);
-      if ( hoveredPropertyElement ) {
+      if ( hoveredPropertyElement && hoveredPropertyElement !== property ) {
         if ( hoveredPropertyElement.domain() === hoveredPropertyElement.range() ) {
           hoveredPropertyElement.labelObject().increasedLoopAngle = false;
           recalculatePositions();
+        }
+        if ( typeof hoveredPropertyElement.setHighlighting === "function" ) {
+          hoveredPropertyElement.setHighlighting(false);
+        }
+        if ( typeof hoveredPropertyElement.mouseEntered === "function" ) {
+          hoveredPropertyElement.mouseEntered(false);
         }
       }
       
@@ -3887,22 +3893,33 @@ module.exports = function ( graphContainerSelector ){
       // make them visible
       clearTimeout(delayedHider);
       clearTimeout(nodeFreezer);
-      if ( hoveredNodeElement && node.pinned() === false && graph.paused() === false ) {
-        hoveredNodeElement.frozen(false);
-        hoveredNodeElement.locked(false);
-      }
-      hoveredNodeElement = node;
-      if ( node && node.frozen() === false && node.pinned() === false ) {
-        node.frozen(true);
-        node.locked(false);
-      }
-      if ( hoveredPropertyElement && hoveredPropertyElement.focused() === false ) {
-        hoveredPropertyElement.labelObject().increasedLoopAngle = false;
-        recalculatePositions();
-        // update the loopAngles;
-        
+      if ( hoveredPropertyElement ) {
+        if ( typeof hoveredPropertyElement.setHighlighting === "function" ) {
+          hoveredPropertyElement.setHighlighting(false);
+        }
+        if ( typeof hoveredPropertyElement.mouseEntered === "function" ) {
+          hoveredPropertyElement.mouseEntered(false);
+        }
+        if ( hoveredPropertyElement.focused() === false ) {
+          hoveredPropertyElement.labelObject().increasedLoopAngle = false;
+          recalculatePositions();
+          // update the loopAngles;
+        }
       }
       hoveredPropertyElement = undefined;
+      if ( hoveredNodeElement && hoveredNodeElement !== node ) {
+        if ( typeof hoveredNodeElement.setHoverHighlighting === "function" ) {
+          hoveredNodeElement.setHoverHighlighting(false);
+        }
+        if ( typeof hoveredNodeElement.mouseEntered === "function" ) {
+          hoveredNodeElement.mouseEntered(false);
+        }
+        if ( hoveredNodeElement.pinned() === false && graph.paused() === false ) {
+          hoveredNodeElement.frozen(false);
+          hoveredNodeElement.locked(false);
+        }
+      }
+      hoveredNodeElement = node;
       deleteGroupElement.classed("hidden", false);
       setDeleteHoverElementPosition(node);
       
