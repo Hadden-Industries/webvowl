@@ -1,18 +1,37 @@
 # GitHub Guidance
 
-- Prefer the GitHub MCP Server for all GitHub and repository interactions (such as managing issues, pull requests, branches, commits, and repository searches); it provides sandboxed execution, structured payloads, and robust observability.
-- **Local Workspace Commits & Pushing**: When asked to commit and push changes in the local repository workspace
-  1. Write a GitHub best-practice commit message by performing a diff on each and every uncommitted file and account for every changed section (the writing must contains at least as much detail as the Walkthrough does). Below the message header, write how the user experience will change as a result of these changes. Partition the rest of the commit message as changes per file, ordered by the file paths alphabetically e.g.
-```
+## Local Workspace Commits & Pushing
 
-src\app\css\toolstyle.css
-- Modify …
+When asked to commit, push, or draft a commit message in the local repository workspace, follow this strict, mandatory workflow:
 
-src\app\js\editSidebar.js
-- Update …
-```
-  Use the imperative mood throughout. Only mention net new changes; do not mention fixes for regressions introduced by the code changes themselves. Use a scratch file to upload the commit message.
-  2. Perform the add, commit, and push using the local Git CLI (`git add`, `git commit -m "..."`, `git push`). This ensures local workspace files and `.git` refs remain cleanly synchronized.
+### 1. Pre-Commit Verification Workflow
+1. **Mandatory Execution Order**: You MUST execute `git status` and `git diff` FIRST to inspect the active uncommitted working tree diff.
+2. **Strict Scope Enforcement**: Base the commit message EXCLUSIVELY on the active `git diff` output.
+   - DO NOT draft commit messages from conversation history, memory of earlier edits, or past prompts.
+   - DO NOT list files, features, or fixes that are already committed in previous commits, even if they were part of the same task session.
+   - DO NOT mention fixes for intermediate regressions or syntax errors introduced during your own uncommitted edits.
+
+### 2. Commit Message Structure & Formatting Rules
+1. **Imperative Mood Throughout**: Use the imperative, present-tense mood across **all** sections (e.g., "Fix", "Add", "Update", "Suppress" — NEVER "Fixed", "Added", "Updates", or "Suppressing").
+2. **Subject Line (Header) Rules**:
+   - Format: `<type>(<scope>): <Imperative summary>` (e.g., `fix(ui): Suppress long-press menu on UI controls`).
+   - Length: Target **~50 characters**, and **NEVER exceed 72 characters**.
+   - Formatting: Capitalize the first word after type/scope; do NOT end with a period (`.`).
+3. **Blank Line Delimiters**: Separate the header, the `User Experience Changes` section, and the file breakdown with **exactly one blank line**.
+4. **Body Line Wrapping**: Wrap body text, descriptions, and bullet points at **72 characters** per line for terminal readability.
+5. **Per-File Breakdown Rules**:
+   - Order file paths **alphabetically** using relative workspace paths (e.g., `src/app/css/toolstyle.css`).
+   - Detail line-by-line additions and deletions in the imperative mood.
+   - **Nested Sub-Bullets**: When a file contains multiple distinct changes or complex diffs, use indented sub-bullets beneath the file heading for enhanced readability.
+
+### 3. Execution Commands
+1. **Scratch File**: Write the completed commit message to a scratch file in your conversation artifacts scratch directory (`scratch/commit_msg.txt` in your artifact directory outside the workspace repository). Never create scratch files inside the repository working tree to avoid accidental staging or triggering Git file watchers.
+2. **Local Git CLI Execution**: Perform the add, commit, and push using the local Git CLI (`git add .`, `git commit -F <path-to-external-scratch-commit-msg>`, `git push`). This ensures local workspace files and `.git` refs remain cleanly synchronized without committing temporary scratch files.
+
+## GitHub MCP Server
+
+- Prefer the GitHub MCP Server for all GitHub and repository interactions (such as managing issues, pull requests, branches, managing commits (not creating them - use the "Local Workspace Commits & Pushing" guidance above), and repository searches); it provides sandboxed execution, structured payloads, and robust observability.
+
 - **MCP Unavailability**: If the GitHub MCP Server is unavailable for GitHub platform operations, attempt to resolve the cause of the unavailability first, and notify me if you cannot resolve it without my input before falling back to the Git CLI (`git`) or GitHub CLI (`gh`).
 - Before creating or modifying branches, pull requests, or issues, use the MCP tools to verify the current state of the repository to prevent merge conflicts or duplicate work.
 - When drafting pull request descriptions or issue comments, ensure clear, structured formatting and cross-reference relevant issue numbers directly.
