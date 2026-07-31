@@ -472,6 +472,19 @@ module.exports = function ( graph ){
           property.inverse(inverse);
           inverse.inverse(property);
           
+          // Synchronize coordinates and momentum to prevent D3 force velocity spikes
+          if ( typeof property.x !== "undefined" ) {
+            inverse.x = property.x;
+            inverse.y = property.y;
+            inverse.px = property.px;
+            inverse.py = property.py;
+          } else if ( typeof inverse.x !== "undefined" ) {
+            property.x = inverse.x;
+            property.y = inverse.y;
+            property.px = inverse.px;
+            property.py = inverse.py;
+          }
+          
           // Switch domain and range
           inverse.domain(rangeObject);
           inverse.range(domainObject);
