@@ -482,6 +482,23 @@ module.exports = function ( graph ){
       referenceSubOrSuperProperties(property.superproperties());
     });
     
+    // Ensure inverse property pairs are matched by type (e.g. ObjectProperty with ObjectProperty, someValuesFrom with someValuesFrom)
+    rawProperties.forEach(function ( property ){
+      const inverse = property.inverse();
+      if ( inverse && inverse.type() !== property.type() ) {
+        const matchingInverse = rawProperties.find(function ( p ){
+          return p !== property &&
+                 p.type() === property.type() &&
+                 ((p.inverse() && findId(p.inverse()) === property.id()) ||
+                  (p.iri() === inverse.iri()));
+        });
+        if ( matchingInverse ) {
+          property.inverse(matchingInverse);
+          matchingInverse.inverse(property);
+        }
+      }
+    });
+    
     // Merge equivalent properties and process disjoints.
     rawProperties.forEach(function ( property ){
       processEquivalentIds(property, propertyMap);
@@ -653,6 +670,7 @@ module.exports = function ( graph ){
    * @param namespaces an array of namespaces
    */
   function convertTypesToIris( elements, namespaces ){
+    namespaces = namespaces || [];
     elements.forEach(function ( element ){
       if ( typeof element.iri() === "string" ) {
         element.iri(replaceNamespace(element.iri(), namespaces));
