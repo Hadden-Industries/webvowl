@@ -4,12 +4,6 @@ module.exports = function ( graph ){
   
   
   configMenu.setup = function (){
-    const menuEntry = d3.select("#m_modes");
-    menuEntry.on("mouseover", function (){
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-    });
-    
     addCheckBox("showZoomSlider", "Zoom controls", "#zoomSliderOption", graph.options().zoomSlider().showSlider, 0);
     addLabelWidthSlider("#maxLabelWidthSliderOption", "maxLabelWidth", "Max label width", graph.options().maxLabelWidth);
   };

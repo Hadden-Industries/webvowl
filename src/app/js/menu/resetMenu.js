@@ -19,11 +19,6 @@ module.exports = function ( graph ){
   resetMenu.setup = function ( _resettableModules ){
     resettableModules = _resettableModules;
     d3.select("#reset-button").on("click", resetGraph);
-    const menuEntry = d3.select("#resetOption");
-    menuEntry.on("mouseover", function (){
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-    });
   };
   
   let resetFlashTimer;

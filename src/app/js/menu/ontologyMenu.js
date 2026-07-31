@@ -73,11 +73,6 @@ module.exports = function ( graph ){
   ontologyMenu.setup = function ( _loadOntologyFromText ){
     loadOntologyFromText = _loadOntologyFromText;
     loadingModule = graph.options().loadingModule();
-    const menuEntry = d3.select("#m_select");
-    menuEntry.on("mouseover", function (){
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-    });
     
     setupConverterButtons();
     setupUploadButton();

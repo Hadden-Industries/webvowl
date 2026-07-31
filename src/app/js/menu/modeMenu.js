@@ -38,11 +38,6 @@ module.exports = function ( graph ){
    * Connects the website with the available graph modes.
    */
   modeMenu.setup = function ( pickAndPin, nodeScaling, compactNotation, colorExternals ){
-    const menuEntry = d3.select("#m_modes");
-    menuEntry.on("mouseover", function (){
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-    });
     addCheckBoxD("labelWidth", "Dynamic label width", "#dynamicLabelWidth", graph.options().dynamicLabelWidth, 1);
     addCheckBox("editorMode", "Editing ", "#editMode", graph.editorMode);
     addModeItem(pickAndPin, "pickandpin", "Pick & pin", "#pickAndPinOption", false);

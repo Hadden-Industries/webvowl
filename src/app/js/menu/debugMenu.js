@@ -3,31 +3,8 @@ module.exports = function ( graph ){
     checkboxes = [];
   
   
-  let hoverFlag = false;
-  let specialCbx;
   debugMenu.setup = function (){
-    const menuEntry = d3.select("#debugMenuHref");
-    
-    menuEntry.on("mouseover", function (){
-      if ( hoverFlag === false ) {
-        const searchMenu = graph.options().searchMenu();
-        searchMenu.hideSearchEntries();
-        specialCbx.on("click")(true);
-        if ( graph.editorMode() === false ) {
-          d3.select("#useAccuracyHelper").classed("disabled", true);
-          d3.select("#showDraggerObject").classed("disabled", true);
-        } else {
-          d3.select("#useAccuracyHelper").classed("disabled", false);
-        }
-        hoverFlag = true;
-      }
-    });
-    menuEntry.on("mouseout", function (){
-      hoverFlag = false;
-    });
-    
-    
-    specialCbx = addCheckBox("useAccuracyHelper", "Use accuracy helper", "#useAccuracyHelper", graph.options().useAccuracyHelper,
+    addCheckBox("useAccuracyHelper", "Use accuracy helper", "#useAccuracyHelper", graph.options().useAccuracyHelper,
       function ( enabled, silent ){
         if ( !enabled ) {
           d3.select("#showDraggerObject").classed("disabled", true);

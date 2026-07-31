@@ -42,12 +42,6 @@ module.exports = function ( graph ){
    * @param nodeDegreeFilter filters nodes by their degree
    */
   filterMenu.setup = function ( datatypeFilter, objectPropertyFilter, subclassFilter, disjointFilter, setOperatorFilter, nodeDegreeFilter ){
-    // TODO: is this here really necessarry? << new menu visualization style?
-    menuControl.on("mouseover", function (){
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-    });
-    
     addFilterItem(datatypeFilter, "datatype", "Datatype properties", "#datatypeFilteringOption");
     addFilterItem(objectPropertyFilter, "objectProperty", "Object properties", "#objectPropertyFilteringOption");
     addFilterItem(subclassFilter, "subclass", "Solitary subclasses", "#subclassFilteringOption");

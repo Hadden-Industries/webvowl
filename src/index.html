@@ -344,23 +344,17 @@
         <nav class="noselect" id="swipeBarContainer" aria-label="Toolbar Navigation">
             <ul id="menuElementContainer">
                 <li id="c_search" class="inner-addon left-addon">
-                    <i class="searchIcon">
-                        <svg viewBox="0 0 24 24" height="100%" width="100%"
-                             pointer-events="none" display="block" aria-hidden="true">
-                            <g>
-                                <path id="magnifyingGlass" fill="#666" stroke-width="0"
-                                      d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z">
-                                </path>
-                            </g>
-                        </svg>
-                    </i>
+                    <button type="button" id="mobile-search-toggle-btn" class="navButton mobileSearchToggleBtn" aria-label="Open search" title="Open search">
+                        <i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path style="fill: #fff; stroke-width: 0;" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></g></svg></i>
+                    </button>
                     <label class="sr-only" for="search-input-text">Search ontology</label>
                     <input class="searchInputText" type="text" id="search-input-text" placeholder="Search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-haspopup="listbox" aria-controls="search-results-listbox">
+                    <button type="button" id="search-clear-btn" class="searchClearBtn hidden" aria-label="Clear search text" title="Clear search">✕</button>
                     <!-- [html-validate-disable-next prefer-native-element] -->
                     <ul id="search-results-listbox" role="listbox" class="search-combobox-popup hidden" aria-label="Search suggestions"></ul>
                 </li>
                 <li id="c_locate">
-                    <button type="button" class="navButton" id="locateSearchResult" title="Nothing to locate, enter search term." aria-label="Locate search result"><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path style="fill: #fff; stroke-width: 0;" d="M11 2h2v3.06A7.001 7.001 0 0 1 18.94 11H22v2h-3.06A7.001 7.001 0 0 1 13 18.94V22h-2v-3.06A7.001 7.001 0 0 1 5.06 13H2v-2h3.06A7.001 7.001 0 0 1 11 5.06V2zm1 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></g></svg></i></button>
+                    <button type="button" class="navButton" id="locateSearchResult" title="Nothing to locate" aria-label="Nothing to locate" disabled><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path style="fill: #fff; stroke-width: 0;" d="M11 2h2v3.06A7.001 7.001 0 0 1 18.94 11H22v2h-3.06A7.001 7.001 0 0 1 13 18.94V22h-2v-3.06A7.001 7.001 0 0 1 5.06 13H2v-2h3.06A7.001 7.001 0 0 1 11 5.06V2zm1 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></g></svg></i></button>
                 </li>
                 <li id="c_select">
                     <button type="button" class="navButton" popovertarget="m_select">
@@ -461,7 +455,7 @@
                             </g>
                         </svg>
                     </i>Reset</button></li>
-                <li id="c_pause"><button type="button" class="navButton action-pill" id="pause-button" disabled aria-pressed="false" title="Pause or resume graph physics simulation">Pause</button>
+                <li id="c_pause"><button type="button" class="navButton action-pill" id="pause-button" disabled aria-pressed="false" title="Pause or resume graph physics simulation"><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path style="fill: #fff; stroke-width: 0;" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></g></svg></i>Pause</button>
                 </li>
             </ul>
         </nav>

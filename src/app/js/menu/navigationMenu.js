@@ -14,7 +14,6 @@ module.exports = function ( graph ){
   const scrollMax = 0;
   let currentlyVisibleMenu;
   let currentlyHoveredEntry;
-  let touchedElement = false;
   let t_scrollLeft;
   let t_scrollRight;
   let c_select = [];
@@ -79,13 +78,7 @@ module.exports = function ( graph ){
       } else {
         m_select[i] = undefined;
       }
-      // create custom behavior for click, touch, and hover
-      d3.select("#" + c_select[i]).on("mouseover", menuElementOnHovered);
-      d3.select("#" + c_select[i]).on("mouseout", menuElementOutHovered);
-      
-      d3.select("#" + c_select[i]).on("click", menuElementClicked);
-      d3.select("#" + c_select[i]).on("touchstart", menuElementTouched);
-      
+      // Popover API buttons handle toggling natively via popovertarget attribute
     }
     
     // connect to mouseWheel
@@ -172,62 +165,6 @@ module.exports = function ( graph ){
       navigationMenu.updateScrollButtonVisibility();
       navigationMenu.hideAllMenus();
     });
-  }
-  
-  function menuElementOnHovered(){
-    if ( !window.matchMedia("(hover: hover)").matches ) {
-      return;
-    }
-    navigationMenu.hideAllMenus();
-    if ( touchedElement ) {
-      return;
-    }
-    showSingleMenu(this.id);
-  }
-  
-  function menuElementOutHovered(){
-    hoveroutedControMenu(this.id);
-  }
-  
-  let touchResetTimer;
-  function menuElementClicked(){
-    clearTimeout(touchResetTimer);
-    touchResetTimer = setTimeout(function (){
-      touchedElement = false;
-    }, 400);
-  }
-  
-  function menuElementTouched(){
-    // it sets a flag that we have touched it,
-    // since d3 propagates the event for touch as hover and then click, we block the hover event
-    touchedElement = true;
-    clearTimeout(touchResetTimer);
-    touchResetTimer = setTimeout(function (){
-      touchedElement = false;
-    }, 500);
-  }
-  
-  
-  function hoveroutedControMenu( controllerID ){
-    const entry = d3.select("#" + controllerID);
-    if ( controllerID !== "c_search" ) {
-      entry.classed("active-menu-item", false);
-    }
-  }
-  
-  function showSingleMenu( controllerID ){
-    currentlyHoveredEntry = d3.select("#" + controllerID).node();
-    const m_element = m_select[c_select.indexOf(controllerID)];
-    if ( m_element ) {
-      if ( controllerID !== "c_search" ) {
-        d3.select("#" + controllerID).classed("active-menu-item", true);
-      }
-      currentlyVisibleMenu = d3.select("#" + m_element);
-      try { currentlyVisibleMenu.node().showPopover(); } catch { /* ignore if open */ }
-      if ( m_element === "m_export" )
-        {graph.options().exportMenu().exportAsUrl();}
-      updateMenuPosition();
-    }
   }
   
   function updateMenuPosition( controllerID ){

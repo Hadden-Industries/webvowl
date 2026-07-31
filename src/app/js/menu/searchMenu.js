@@ -101,30 +101,89 @@ module.exports = function ( graph ){
     }
   }
   
+  function setLocateButtonState( enabled ){
+    if ( c_locate && c_locate.node() ) {
+      c_locate.classed("highlighted", enabled);
+      c_locate.property("disabled", !enabled);
+      if ( typeof c_locate.node().disabled !== "undefined" ) {
+        c_locate.node().disabled = !enabled;
+      }
+      const titleText = enabled ? "Locate search term" : "Nothing to locate";
+      c_locate.node().title = titleText;
+      c_locate.attr("aria-label", titleText);
+    }
+  }
+
+  function expandMobileSearch(){
+    d3.select("#c_search").classed("search-expanded", true);
+    d3.select("#scrollLeftButton").classed("hidden-by-search", true);
+    d3.select("#scrollRightButton").classed("hidden-by-search", true);
+    updateClearButtonVisibility();
+  }
+
+  function collapseMobileSearch(){
+    d3.select("#c_search").classed("search-expanded", false);
+    d3.select("#scrollLeftButton").classed("hidden-by-search", false);
+    d3.select("#scrollRightButton").classed("hidden-by-search", false);
+  }
+
   searchMenu.setup = function (){
     // clear dictionary;
     dictionary = [];
+
+    setLocateButtonState(false);
+
     searchLineEdit = d3.select("#search-input-text");
+
     searchLineEdit.on("input", userInput);
     searchLineEdit.on("keydown", userNavigation);
+    searchLineEdit.on("keyup", function (){
+      const isNav = d3.event.keyCode === 38 || d3.event.keyCode === 40 || d3.event.keyCode === 13 || d3.event.keyCode === 27;
+      if ( !isNav ) {
+        userInput();
+      }
+    });
     searchLineEdit.on("click", function (){
       updateSelectionStatusFlags();
       searchMenu.showSearchEntries();
     });
     searchLineEdit.on("focus", hoverSearchEntryView);
     
-    c_locate.on("click", function (){
-      graph.locateSearchResult();
-    });
-    
-    c_locate.on("mouseover", function (){
-      searchMenu.hideSearchEntries();
+    const mobileToggleBtn = d3.select("#mobile-search-toggle-btn");
+    mobileToggleBtn.on("click", function (event){
+      if ( event ) {
+        event.stopPropagation();
+      }
+      expandMobileSearch();
+      if ( searchLineEdit && searchLineEdit.node() ) {
+        searchLineEdit.node().focus();
+      }
+      updateSelectionStatusFlags();
+      searchMenu.showSearchEntries();
     });
 
-    // Light dismiss: Close search listbox when tapping outside c_search or search-results-listbox
+    const clearBtn = d3.select("#search-clear-btn");
+    clearBtn.on("click", function (event){
+      if ( event ) {
+        event.stopPropagation();
+      }
+      searchMenu.clearText();
+      if ( searchLineEdit && searchLineEdit.node() ) {
+        searchLineEdit.node().focus();
+      }
+    });
+
+    c_locate.on("click", function (){
+      if ( c_locate.classed("highlighted") ) {
+        graph.locateSearchResult();
+      }
+    });
+
+    // Light dismiss: Close search listbox & mobile overlay when tapping outside c_search or search-results-listbox
     const dismissSearchOnOutsideTap = function (event){
       const cSearchNode = d3.select("#c_search").node();
       const listboxNode = listbox.node();
+      const cLocateNode = d3.select("#c_locate").node();
       if ( event && event.target ) {
         if ( cSearchNode && cSearchNode.contains(event.target) ) {
           return;
@@ -132,14 +191,32 @@ module.exports = function ( graph ){
         if ( listboxNode && listboxNode.contains(event.target) ) {
           return;
         }
+        if ( cLocateNode && cLocateNode.contains(event.target) ) {
+          return;
+        }
       }
       searchMenu.hideSearchEntries();
+      collapseMobileSearch();
     };
 
     d3.select(document)
       .on("click.searchCombobox", dismissSearchOnOutsideTap)
       .on("pointerdown.searchCombobox", dismissSearchOnOutsideTap)
       .on("touchstart.searchCombobox", dismissSearchOnOutsideTap);
+
+    listbox.on("click", function (event){
+      let target = (event && event.target) ? event.target : (d3.event ? d3.event.target : null);
+      while ( target && target !== this && target.tagName !== "LI" ) {
+        target = target.parentElement;
+      }
+      if ( target && target.classList && target.classList.contains("search-option") && !target.classList.contains("search-entry-disabled") ) {
+        const elementId = target.getAttribute("elementID");
+        if ( elementId !== null && elementId !== undefined ) {
+          const handler = handleClick(parseInt(elementId, 10));
+          handler(event);
+        }
+      }
+    });
 
     if ( window.visualViewport ) {
       window.visualViewport.addEventListener("resize", function (){
@@ -200,6 +277,7 @@ module.exports = function ( graph ){
 
     if ( event.keyCode === 27 ) { // Escape key
       searchMenu.hideSearchEntries();
+      collapseMobileSearch();
       return;
     }
     
@@ -429,9 +507,16 @@ module.exports = function ( graph ){
     createDropDownElements();
   }
   
+  function updateClearButtonVisibility(){
+    const clearBtn = d3.select("#search-clear-btn");
+    if ( clearBtn.node() ) {
+      const hasValue = searchLineEdit && searchLineEdit.node() && searchLineEdit.node().value.length > 0;
+      clearBtn.classed("hidden", !hasValue);
+    }
+  }
+
   function userInput(){
-    c_locate.classed("highlighted", false);
-    c_locate.node().title = "Nothing to locate";
+    setLocateButtonState(false);
     
     if ( dictionaryUpdateRequired ) {
       updateSearchDictionary();
@@ -443,6 +528,7 @@ module.exports = function ( graph ){
       return;
     }
     inputText = searchLineEdit.node().value;
+    updateClearButtonVisibility();
     
     clearSearchEntries();
     if ( inputText.length !== 0 ) {
@@ -454,16 +540,24 @@ module.exports = function ( graph ){
   }
   
   function handleClick( elementId ){
-    return function (){
-      const id = elementId;
+    return function (event){
+      if ( event && event.stopPropagation ) {
+        event.stopPropagation();
+      }
+      const id = parseInt(elementId, 10);
       const correspondingIds = mergedIdList[id];
       
       const autoComStr = entryNames[id];
-      searchLineEdit.node().value = autoComStr;
+      if ( searchLineEdit && searchLineEdit.node() ) {
+        searchLineEdit.node().value = autoComStr;
+      }
+      updateClearButtonVisibility();
       
-      graph.resetSearchHighlight();
-      graph.highLightNodes(correspondingIds);
-      c_locate.node().title = "Locate search term";
+      if ( correspondingIds && graph ) {
+        graph.resetSearchHighlight();
+        graph.highLightNodes(correspondingIds);
+      }
+      setLocateButtonState(true);
       if ( autoComStr !== inputText ) {
         handleAutoCompletion();
       }
@@ -472,9 +566,14 @@ module.exports = function ( graph ){
   }
   
   searchMenu.clearText = function (){
-    searchLineEdit.node().value = "";
-    c_locate.classed("highlighted", false);
-    c_locate.node().title = "Nothing to locate";
+    if ( searchLineEdit && searchLineEdit.node() ) {
+      searchLineEdit.node().value = "";
+    }
+    if ( graph && graph.resetSearchHighlight ) {
+      graph.resetSearchHighlight();
+    }
+    setLocateButtonState(false);
+    updateClearButtonVisibility();
     if ( listbox.node() ) {
       const htmlCollection = listbox.node().children;
       const numEntries = htmlCollection.length;

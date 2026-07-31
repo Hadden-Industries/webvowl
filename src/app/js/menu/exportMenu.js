@@ -38,13 +38,6 @@ module.exports = function ( graph ){
     
     exportTurtleButton = d3.select("#exportTurtle")
       .on("click", exportTurtle);
-    
-    const menuEntry = d3.select("#m_export");
-    menuEntry.on("mouseover", function (){
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-      exportMenu.exportAsUrl();
-    });
   };
   function exportTurtle(event){
     const success = exportTTLModule.requestExport();

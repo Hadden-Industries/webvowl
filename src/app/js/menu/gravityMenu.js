@@ -16,11 +16,6 @@ module.exports = function ( graph ){
    * Adds the gravity sliders to the website.
    */
   gravityMenu.setup = function (){
-    const menuEntry = d3.select("#m_gravity");
-    menuEntry.on("mouseover", function (){
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-    });
     addDistanceSlider("#classSliderOption", "class", "Class distance", options.classDistance);
     addDistanceSlider("#datatypeSliderOption", "datatype", "Datatype distance", options.datatypeDistance);
   };
