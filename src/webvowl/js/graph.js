@@ -3075,6 +3075,7 @@ module.exports = function (graphContainerSelector) {
   graph.editorMode = function (val) {
     const create_entry = d3.select("#empty");
     const create_container = d3.select("#emptyContainer");
+    const emptyHint = d3.select("#empty-disabled-hint");
 
     const modeOfOpString = d3.select("#modeOfOperationString").node();
     if (!arguments.length) {
@@ -3118,12 +3119,21 @@ module.exports = function (graphContainerSelector) {
         d3.select("#useAccuracyHelper").style("color", "#979797");
         d3.select("#useAccuracyHelper").style("pointer-events", "none");
         create_entry.style("pointer-events", "none");
+        if ( emptyHint.node() ) {
+          emptyHint.text("Enable editing in Modes menu to be able to create a new ontology");
+          emptyHint.classed("hidden", false);
+        }
       } else {
         create_container.node().title = "Creates a new empty ontology";
         create_entry.node().title = "Creates a new empty ontology";
+        create_entry.node().disabled = false;
         d3.select("#useAccuracyHelper").style("color", "#2980b9");
         d3.select("#useAccuracyHelper").style("pointer-events", "auto");
         create_entry.style("pointer-events", "auto");
+        if ( emptyHint.node() ) {
+          emptyHint.text("Creates a new empty ontology");
+          emptyHint.classed("hidden", true);
+        }
       }
     }
 
