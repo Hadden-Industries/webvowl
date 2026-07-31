@@ -21,7 +21,6 @@ function Label( property, link ){
     },
     set: function ( v ){
       property.x = v;
-      if ( property.inverse() ) {property.inverse().x = v;}
     }
   });
   Object.defineProperty(this, "y", {
@@ -30,7 +29,6 @@ function Label( property, link ){
     },
     set: function ( v ){
       property.y = v;
-      if ( property.inverse() ) {property.inverse().y = v;}
     }
   });
   Object.defineProperty(this, "px", {
@@ -39,7 +37,6 @@ function Label( property, link ){
     },
     set: function ( v ){
       property.px = v;
-      if ( property.inverse() ) {property.inverse().px = v;}
     }
   });
   Object.defineProperty(this, "py", {
@@ -48,7 +45,22 @@ function Label( property, link ){
     },
     set: function ( v ){
       property.py = v;
-      if ( property.inverse() ) {property.inverse().py = v;}
+    }
+  });
+  Object.defineProperty(this, "vx", {
+    get: function (){
+      return property.vx;
+    },
+    set: function ( v ){
+      property.vx = v;
+    }
+  });
+  Object.defineProperty(this, "vy", {
+    get: function (){
+      return property.vy;
+    },
+    set: function ( v ){
+      property.vy = v;
     }
   });
   // "Forward" the fixed value set on the property to avoid having to access this container
@@ -59,27 +71,22 @@ function Label( property, link ){
     },
     set: function ( v ){
       property.fixed = v;
-      if ( property.inverse() ) {property.inverse().fixed = v;}
     }
   });
   Object.defineProperty(this, "fx", {
     get: function (){
-      const inverseFx = property.inverse() ? property.inverse().fx : null;
-      return property.fx !== null && property.fx !== undefined ? property.fx : inverseFx;
+      return property.fx;
     },
     set: function ( v ){
       property.fx = v;
-      if ( property.inverse() ) {property.inverse().fx = v;}
     }
   });
   Object.defineProperty(this, "fy", {
     get: function (){
-      const inverseFy = property.inverse() ? property.inverse().fy : null;
-      return property.fy !== null && property.fy !== undefined ? property.fy : inverseFy;
+      return property.fy;
     },
     set: function ( v ){
       property.fy = v;
-      if ( property.inverse() ) {property.inverse().fy = v;}
     }
   });
   this.frozen = property.frozen;
