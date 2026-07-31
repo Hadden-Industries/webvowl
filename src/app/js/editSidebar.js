@@ -631,9 +631,17 @@ module.exports = function (graph) {
   function changeDatatypeType(element) {
     const datatypeEditorSelection = d3.select("#typeEditor_datatype").node();
     const givenName = datatypeEditorSelection.value;
-    let identifier = givenName.split(":")[1];
+    const prefix = givenName.includes(":") ? givenName.split(":")[0] : "";
+    let identifier = givenName.includes(":") ? givenName.split(":")[1] : givenName;
 
     if (datatypeEditorSelection.value !== "undefined") {
+    let baseNs = "http://www.w3.org/2001/XMLSchema#";
+    if ( prefix === "owl" ) {
+      baseNs = "http://www.w3.org/2002/07/owl#";
+    } else if ( prefix === "rdfs" ) {
+      baseNs = "http://www.w3.org/2000/01/rdf-schema#";
+    }
+
       d3.select("#element_iriEditor").node().disabled = true;
       d3.select("#element_labelEditor").node().disabled = true;
     } else {
@@ -643,8 +651,8 @@ module.exports = function (graph) {
     }
     element.label(identifier);
     element.dType(givenName);
-    element.iri("http://www.w3.org/2001/XMLSchema#" + identifier);
-    element.baseIri("http://www.w3.org/2001/XMLSchema#");
+    element.iri(baseNs + identifier);
+    element.baseIri(baseNs);
     element.redrawLabelText();
 
     d3.select("#element_iriEditor").node().value =
