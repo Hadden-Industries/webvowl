@@ -423,7 +423,7 @@ describe("navigationMenu and popover event listeners", () => {
       }, 200);
     });
 
-    test("applies rubberband scaling when pulling upward (dy < 0)", () => {
+    test("clamps upward dragging (dy < 0) to translateY(0px) to prevent tearing from bottom of screen", () => {
       global.window.innerWidth = 480;
 
       const mockGraph = {
@@ -451,7 +451,7 @@ describe("navigationMenu and popover event listeners", () => {
       });
       handleNode.dispatchEvent(moveEvent);
 
-      expect(popover.style.transform).toBe("translateY(-10px)");
+      expect(popover.style.transform).toBe("translateY(0px)");
     });
 
     test("ignores drag initialization when target is close button", () => {
