@@ -3389,7 +3389,7 @@ a#locateSearchResult {
 @media screen and (width <= 768px) {
     .modern-popover {
         inset: auto 0 0 !important;
-        transform: none !important;
+        transform: none;
         width: 100% !important;
         max-width: 100% !important;
         max-height: 80vh !important;
@@ -3397,6 +3397,27 @@ a#locateSearchResult {
         border-bottom: none !important;
         padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
         animation: sheetSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        will-change: transform;
+    }
+
+    .modern-popover.has-dragged {
+        animation: none !important;
+    }
+
+    .modern-popover.dragging {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .modern-popover.snap-back {
+        animation: none !important;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .modern-popover.sheet-dismissing {
+        animation: none !important;
+        transition: transform 0.2s ease-in !important;
+        transform: translateY(100%) !important;
     }
 
     .sheet-handle {
@@ -3406,6 +3427,20 @@ a#locateSearchResult {
         background: rgb(255 255 255 / 30%);
         border-radius: 2px;
         margin: 8px auto 4px;
+        touch-action: none;
+        user-select: none;
+        cursor: grab;
+    }
+
+    .popover-header {
+        touch-action: none;
+        user-select: none;
+        cursor: grab;
+    }
+
+    .sheet-handle:active,
+    .popover-header:active {
+        cursor: grabbing;
     }
 
     @keyframes sheetSlideUp {

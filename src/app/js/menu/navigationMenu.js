@@ -312,6 +312,16 @@ module.exports = function ( graph ){
 
       const isOpen = (event && event.newState) ? (event.newState === "open") : this.matches(":popover-open");
 
+      // Reset drag classes and inline transform when state changes
+      d3.select(this).classed("dragging", false).classed("has-dragged", false).classed("snap-back", false).classed("sheet-dismissing", false);
+      if ( this.style ) {
+        if ( typeof this.style.removeProperty === "function" ) {
+          this.style.removeProperty("transform");
+        } else {
+          this.style.transform = "";
+        }
+      }
+
       if ( isOpen ) {
         if ( controllerId && controllerId !== "c_search" ) {
           d3.select("#" + controllerId).classed("active-menu-item", true);
@@ -330,7 +340,114 @@ module.exports = function ( graph ){
         }
       }
     });
+
+    setupMobileSheetDragDismiss();
   };
+
+  function setupMobileSheetDragDismiss(){
+    d3.selectAll(".modern-popover").each(function (){
+      const popoverNode = this;
+      if ( !popoverNode.querySelectorAll ) {return;}
+      const dragAreaNodes = popoverNode.querySelectorAll(".sheet-handle, .popover-header");
+
+      let startY = 0;
+      let startTime = 0;
+      let currentDy = 0;
+      let isDragging = false;
+
+      function onTouchStart(event){
+        if ( window.innerWidth > 768 ) {
+          return;
+        }
+        // Don't start drag gesture if tapping close button
+        if ( event.target && typeof event.target.closest === "function" && event.target.closest(".popover-close-btn") ) {
+          return;
+        }
+        if ( event.touches && event.touches.length === 1 ) {
+          startY = event.touches[0].clientY;
+          startTime = Date.now();
+          currentDy = 0;
+          isDragging = true;
+          d3.select(popoverNode).classed("dragging", true).classed("has-dragged", true).classed("snap-back", false).classed("sheet-dismissing", false);
+        }
+      }
+
+      function onTouchMove(event){
+        if ( !isDragging || window.innerWidth > 768 ) {
+          return;
+        }
+        if ( event.touches && event.touches.length === 1 ) {
+          const currentY = event.touches[0].clientY;
+          let dy = currentY - startY;
+
+          // Rubberband upward pull
+          if ( dy < 0 ) {
+            dy = dy * 0.2;
+          }
+
+          currentDy = dy;
+          popoverNode.style.transform = "translateY(" + dy + "px)";
+
+          if ( event.cancelable ) {
+            event.preventDefault();
+          }
+        }
+      }
+
+      function onTouchEnd(){
+        if ( !isDragging ) {
+          return;
+        }
+        isDragging = false;
+        const duration = Date.now() - startTime;
+        const velocity = currentDy / Math.max(1, duration);
+
+        d3.select(popoverNode).classed("dragging", false);
+
+        const dismissThreshold = 80;
+        const velocityThreshold = 0.3;
+
+        if ( currentDy >= dismissThreshold || (currentDy > 20 && velocity > velocityThreshold) ) {
+          // Slide off-screen down and hide popover
+          d3.select(popoverNode).classed("sheet-dismissing", true);
+          setTimeout(function (){
+            try {
+              if ( popoverNode.matches(":popover-open") ) {
+                popoverNode.hidePopover();
+              }
+            } catch { /* ignore */ }
+            if ( popoverNode.style && typeof popoverNode.style.removeProperty === "function" ) {
+              popoverNode.style.removeProperty("transform");
+            } else if ( popoverNode.style ) {
+              popoverNode.style.transform = "";
+            }
+            d3.select(popoverNode).classed("sheet-dismissing", false);
+          }, 200);
+        } else {
+          // Snap back into place
+          d3.select(popoverNode).classed("snap-back", true);
+          popoverNode.style.transform = "translateY(0)";
+          setTimeout(function (){
+            if ( popoverNode.style && typeof popoverNode.style.removeProperty === "function" ) {
+              popoverNode.style.removeProperty("transform");
+            } else if ( popoverNode.style ) {
+              popoverNode.style.transform = "";
+            }
+            d3.select(popoverNode).classed("snap-back", false);
+          }, 250);
+        }
+      }
+
+      dragAreaNodes.forEach(function (node){
+        if ( node && typeof node.addEventListener === "function" ) {
+          node.addEventListener("touchstart", onTouchStart, { passive: true });
+          node.addEventListener("touchmove", onTouchMove, { passive: false });
+          node.addEventListener("touchend", onTouchEnd, { passive: true });
+          node.addEventListener("touchcancel", onTouchEnd, { passive: true });
+        }
+      });
+    });
+  }
   
   return navigationMenu;
 };

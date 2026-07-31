@@ -14,8 +14,8 @@ class MockElement {
     const self = this;
     this.style = {
       _props: {},
-      setProperty: (k, v) => { self.style._props[k] = v; },
-      removeProperty: (k) => { delete self.style._props[k]; },
+      setProperty: (k, v) => { self.style._props[k] = v; self.style[k] = v; },
+      removeProperty: (k) => { delete self.style._props[k]; delete self.style[k]; },
       getPropertyValue: (k) => self.style._props[k] || "",
     };
     this.ownerDocument = global.document;
@@ -38,15 +38,19 @@ class MockElement {
   get classList() {
     const self = this;
     return {
-      add: (...names) => names.forEach((n) => self._classList.add(n)),
-      remove: (...names) => names.forEach((n) => self._classList.delete(n)),
+      add: (...names) => {
+        names.forEach((n) => self._classList.add(n));
+      },
+      remove: (...names) => {
+        names.forEach((n) => self._classList.delete(n));
+      },
       contains: (name) => self._classList.has(name),
       toggle: (name, force) => {
         if (force === undefined) {
-          if (self._classList.has(name)) {self._classList.delete(name);}
-          else {self._classList.add(name);}
-        } else if (force) {self._classList.add(name);}
-        else {self._classList.delete(name);}
+          if (self._classList.has(name)) { self._classList.delete(name); }
+          else { self._classList.add(name); }
+        } else if (force) { self._classList.add(name); }
+        else { self._classList.delete(name); }
       },
     };
   }
@@ -63,7 +67,9 @@ class MockElement {
   }
 
   dispatchEvent(evt) {
-    evt.target = this;
+    if (!evt.target) {
+      evt.target = this;
+    }
     const handlers = (this.listeners[evt.type] || []).slice();
     for (const h of handlers) {
       h.call(this, evt, this.__data__);
@@ -119,6 +125,20 @@ class MockElement {
   hidePopover() {
     this.popoverState = "closed";
   }
+
+  querySelectorAll(selector) {
+    if (selector.includes(".sheet-handle") || selector.includes(".popover-header")) {
+      if (!this.children || this.children.length === 0) {
+        const handle = new MockElement("", "sheet-handle");
+        const header = new MockElement("", "popover-header");
+        handle.parentNode = this;
+        header.parentNode = this;
+        this.children = [handle, header];
+      }
+      return this.children;
+    }
+    return [];
+  }
 }
 
 class MockCustomEvent {
@@ -128,6 +148,8 @@ class MockCustomEvent {
     this.bubbles = opts.bubbles || false;
     this.defaultPrevented = false;
     this.newState = opts.newState || "";
+    this.touches = opts.touches || [];
+    this.target = opts.target || null;
   }
 
   preventDefault() {
@@ -287,6 +309,162 @@ describe("navigationMenu and popover event listeners", () => {
       popover.dispatchEvent(toggleEvent);
 
       expect(controller.classList.contains("active-menu-item")).toBe(false);
+    });
+  });
+
+  describe("Mobile Bottom Sheet Touch Drag-to-Dismiss", () => {
+    test("tracks downward touch displacement and dismisses when drag exceeds threshold on mobile viewport", (done) => {
+      global.window.innerWidth = 480;
+
+      const mockGraph = {
+        options: () => ({
+          navigationMenu: () => ({ hideAllMenus: () => {} }),
+        }),
+      };
+
+      const navMenu = navigationMenuFactory(mockGraph);
+      navMenu.setup();
+
+      const popover = getOrCreateElement("m_select");
+      popover.popoverState = "open";
+      const handles = popover.querySelectorAll(".sheet-handle, .popover-header");
+      const handleNode = handles[0];
+
+      const startEvent = new CustomEvent("touchstart", {
+        touches: [{ clientY: 100 }],
+      });
+      handleNode.dispatchEvent(startEvent);
+
+      const moveEvent = new CustomEvent("touchmove", {
+        cancelable: true,
+        touches: [{ clientY: 220 }],
+      });
+      handleNode.dispatchEvent(moveEvent);
+
+      expect(popover.style.transform).toBe("translateY(120px)");
+      expect(popover.classList.contains("has-dragged")).toBe(true);
+
+      const endEvent = new CustomEvent("touchend", {});
+      handleNode.dispatchEvent(endEvent);
+
+      expect(popover.classList.contains("sheet-dismissing")).toBe(true);
+
+      setTimeout(() => {
+        expect(popover.popoverState).toBe("closed");
+        done();
+      }, 250);
+    });
+
+    test("snaps back and maintains has-dragged class when drag is below threshold to prevent double bounce-back", (done) => {
+      global.window.innerWidth = 480;
+
+      const mockGraph = {
+        options: () => ({
+          navigationMenu: () => ({ hideAllMenus: () => {} }),
+        }),
+      };
+
+      const navMenu = navigationMenuFactory(mockGraph);
+      navMenu.setup();
+
+      const popover = getOrCreateElement("m_select");
+      popover.popoverState = "open";
+      const handles = popover.querySelectorAll(".sheet-handle, .popover-header");
+      const handleNode = handles[0];
+
+      const startEvent = new CustomEvent("touchstart", {
+        touches: [{ clientY: 100 }],
+      });
+      handleNode.dispatchEvent(startEvent);
+
+      const moveEvent = new CustomEvent("touchmove", {
+        cancelable: true,
+        touches: [{ clientY: 130 }],
+      });
+      handleNode.dispatchEvent(moveEvent);
+
+      expect(popover.style.transform).toBe("translateY(30px)");
+
+      setTimeout(() => {
+        const endEvent = new CustomEvent("touchend", {});
+        handleNode.dispatchEvent(endEvent);
+
+        expect(popover.classList.contains("snap-back")).toBe(true);
+        expect(popover.classList.contains("has-dragged")).toBe(true);
+
+        setTimeout(() => {
+          expect(popover.classList.contains("snap-back")).toBe(false);
+          expect(popover.classList.contains("has-dragged")).toBe(true);
+          expect(popover.popoverState).toBe("open");
+          done();
+        }, 300);
+      }, 200);
+    });
+
+    test("applies rubberband scaling when pulling upward (dy < 0)", () => {
+      global.window.innerWidth = 480;
+
+      const mockGraph = {
+        options: () => ({
+          navigationMenu: () => ({ hideAllMenus: () => {} }),
+        }),
+      };
+
+      const navMenu = navigationMenuFactory(mockGraph);
+      navMenu.setup();
+
+      const popover = getOrCreateElement("m_select");
+      popover.popoverState = "open";
+      const handles = popover.querySelectorAll(".sheet-handle, .popover-header");
+      const handleNode = handles[0];
+
+      const startEvent = new CustomEvent("touchstart", {
+        touches: [{ clientY: 100 }],
+      });
+      handleNode.dispatchEvent(startEvent);
+
+      const moveEvent = new CustomEvent("touchmove", {
+        cancelable: true,
+        touches: [{ clientY: 50 }],
+      });
+      handleNode.dispatchEvent(moveEvent);
+
+      expect(popover.style.transform).toBe("translateY(-10px)");
+    });
+
+    test("ignores drag initialization when target is close button", () => {
+      global.window.innerWidth = 480;
+
+      const mockGraph = {
+        options: () => ({
+          navigationMenu: () => ({ hideAllMenus: () => {} }),
+        }),
+      };
+
+      const navMenu = navigationMenuFactory(mockGraph);
+      navMenu.setup();
+
+      const popover = getOrCreateElement("m_select");
+      popover.popoverState = "open";
+      const handles = popover.querySelectorAll(".sheet-handle, .popover-header");
+      const handleNode = handles[1]; // popover-header
+
+      const closeBtnTarget = new MockElement("", "popover-close-btn");
+      closeBtnTarget.closest = (sel) => (sel === ".popover-close-btn" ? closeBtnTarget : null);
+
+      const startEvent = new CustomEvent("touchstart", {
+        touches: [{ clientY: 100 }],
+        target: closeBtnTarget,
+      });
+      handleNode.dispatchEvent(startEvent);
+
+      const moveEvent = new CustomEvent("touchmove", {
+        cancelable: true,
+        touches: [{ clientY: 150 }],
+      });
+      handleNode.dispatchEvent(moveEvent);
+
+      expect(popover.style.transform).toBeUndefined();
     });
   });
 });
