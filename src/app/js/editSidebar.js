@@ -102,7 +102,7 @@ module.exports = function ( graph ){
   
   function setupSupportedDatatypes(){
     const datatypeEditorSelection = d3.select("#typeEditor_datatype").node();
-    const supportedDatatypes = ["undefined", "xsd:boolean", "xsd:double", "xsd:integer", "xsd:string"];
+    const supportedDatatypes = graph.options().supportedDatatypes().filter(d => d !== "rdfs:Literal");
     for ( let i = 0; i < supportedDatatypes.length; i++ ) {
       const optB = document.createElement('option');
       optB.innerHTML = supportedDatatypes[i];
@@ -511,8 +511,16 @@ module.exports = function ( graph ){
   function changeDatatypeType( element ){
     const datatypeEditorSelection = d3.select("#typeEditor_datatype").node();
     const givenName = datatypeEditorSelection.value;
-    let identifier = givenName.split(":")[1];
+    const prefix = givenName.includes(":") ? givenName.split(":")[0] : "";
+    let identifier = givenName.includes(":") ? givenName.split(":")[1] : givenName;
     
+    let baseNs = "http://www.w3.org/2001/XMLSchema#";
+    if ( prefix === "owl" ) {
+      baseNs = "http://www.w3.org/2002/07/owl#";
+    } else if ( prefix === "rdfs" ) {
+      baseNs = "http://www.w3.org/2000/01/rdf-schema#";
+    }
+
     if ( datatypeEditorSelection.value !== "undefined" ) {
       d3.select("#element_iriEditor").node().disabled = true;
       d3.select("#element_labelEditor").node().disabled = true;
@@ -523,8 +531,8 @@ module.exports = function ( graph ){
     }
     element.label(identifier);
     element.dType(givenName);
-    element.iri("http://www.w3.org/2001/XMLSchema#" + identifier);
-    element.baseIri("http://www.w3.org/2001/XMLSchema#");
+    element.iri(baseNs + identifier);
+    element.baseIri(baseNs);
     element.redrawLabelText();
     
     d3.select("#element_iriEditor").node().value = prefixModule.getPrefixRepresentationForFullURI(element.iri());
