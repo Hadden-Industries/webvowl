@@ -47,9 +47,6 @@ module.exports = function ( graph ){
       const searchMenu = graph.options().searchMenu();
       searchMenu.hideSearchEntries();
     });
-    menuControl.on("mouseleave", function (){
-      filterMenu.highlightForDegreeSlider(false);
-    });
     
     addFilterItem(datatypeFilter, "datatype", "Datatype properties", "#datatypeFilteringOption");
     addFilterItem(objectPropertyFilter, "objectProperty", "Object properties", "#objectPropertyFilteringOption");
@@ -135,10 +132,14 @@ module.exports = function ( graph ){
     
     
     degreeSlider.on("change", function ( arg1, arg2 ){
+      const degree = degreeSlider.property("value");
+      if ( parseInt(degree, 10) === 0 ) {
+        filterMenu.highlightForDegreeSlider(false);
+      }
       const silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
       if ( silent !== true ) {
         graph.update();
-        graphDegreeLevel = degreeSlider.property("value");
+        graphDegreeLevel = degree;
       }
     });
     
@@ -146,6 +147,9 @@ module.exports = function ( graph ){
     degreeSlider.on("input", function (){
       const degree = degreeSlider.property("value");
       sliderValueLabel.text(degree);
+      if ( parseInt(degree, 10) === 0 ) {
+        filterMenu.highlightForDegreeSlider(false);
+      }
     });
     
     
