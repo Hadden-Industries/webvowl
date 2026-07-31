@@ -3759,6 +3759,15 @@ a#locateSearchResult {
         cursor: grabbing;
     }
 
+    .search-combobox-popup {
+        position: fixed;
+        inset: max(16px, env(safe-area-inset-top, 16px)) 16px auto;
+        width: auto;
+        max-width: calc(100vw - 32px);
+        max-height: 45vh;
+        z-index: 3000;
+    }
+
     @keyframes sheetSlideUp {
         from { transform: translateY(100%); }
         to { transform: translateY(0); }

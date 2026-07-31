@@ -117,7 +117,26 @@ module.exports = function (graph) {
 
     c_locate.on("mouseover", function () {
       searchMenu.hideSearchEntries();
-    });
+      searchMenu.hideSearchEntries();
+    };
+
+    d3.select(document)
+      .on("click.searchCombobox", dismissSearchOnOutsideTap)
+      .on("pointerdown.searchCombobox", dismissSearchOnOutsideTap)
+      .on("touchstart.searchCombobox", dismissSearchOnOutsideTap);
+
+    if ( window.visualViewport ) {
+      window.visualViewport.addEventListener("resize", function (){
+        if ( listbox.node() && !listbox.classed("hidden") ) {
+          searchMenu.showSearchEntries();
+        }
+      });
+      window.visualViewport.addEventListener("scroll", function (){
+        if ( listbox.node() && !listbox.classed("hidden") ) {
+          searchMenu.showSearchEntries();
+        }
+      });
+    }
   };
 
   function hoverSearchEntryView() {
@@ -140,17 +159,6 @@ module.exports = function (graph) {
 
   searchMenu.showSearchEntries = function () {
     if ( listbox.node() && listbox.node().children.length > 0 ) {
-      const cSearchNode = d3.select("#c_search").node();
-      if ( cSearchNode ) {
-        const buttonRect = cSearchNode.getBoundingClientRect();
-        let finalLeft = buttonRect.left;
-        const maxRight = window.innerWidth - 340 - 16;
-        if ( finalLeft > maxRight ) {
-          finalLeft = maxRight;
-        }
-        finalLeft = Math.max(16, finalLeft);
-        listbox.style("left", finalLeft + "px").style("transform", "none");
-      }
       listbox.classed("hidden", false);
       if ( searchLineEdit && searchLineEdit.node() ) {
         searchLineEdit.attr("aria-expanded", "true");
