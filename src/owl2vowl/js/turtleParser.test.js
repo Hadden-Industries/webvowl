@@ -48,7 +48,7 @@ describe("turtleParser.js - parseTurtle", () => {
     // Subject of second and third triples should match object of first triple
     const bnodeId = result.triples[0].object.value;
     expect(result.triples[0].object.type).toBe("BNODE");
-    expect(bnodeId).toMatch(/^_:b/);
+    expect(bnodeId).toMatch(/^b/);
 
     expect(result.triples[1].subject.value).toBe(bnodeId);
     expect(result.triples[1].object).toEqual({
@@ -104,5 +104,18 @@ describe("turtleParser.js - serializeTriplesToRdfXml", () => {
     expect(xml).toContain("<rdf:Description rdf:about=\"http://example.org/s\">");
     expect(xml).toContain("<rdf:type rdf:resource=\"http://example.org/Class\" />");
     expect(xml).toContain("xml:lang=\"en\">test label</ex:label>");
+  });
+
+  test("generates dynamic auto-prefixes for un-prefixed predicate namespaces", () => {
+    const triples = [
+      {
+        subject: { type: "URI", value: "http://example.org/s" },
+        predicate: { type: "URI", value: "http://custom-namespace.org/vocab#hasCustomProp" },
+        object: { type: "LITERAL", value: "custom value" }
+      }
+    ];
+    const xml = serializeTriplesToRdfXml(triples, {}, "http://example.org/");
+    expect(xml).toContain('xmlns:ns0="http://custom-namespace.org/vocab#"');
+    expect(xml).toContain('<ns0:hasCustomProp>custom value</ns0:hasCustomProp>');
   });
 });
