@@ -25,8 +25,8 @@ module.exports = function (graph) {
   }
 
   function timed_scrollRight() {
-    scrolLeftValue += 5;
-    scrollContainer.scrollLeft = scrolLeftValue;
+    const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+    scrollContainer.scrollLeft += 5;
     navigationMenu.updateScrollButtonVisibility();
     if (scrolLeftValue >= scrollMax) {
       clearAllTimers();
@@ -36,8 +36,7 @@ module.exports = function (graph) {
   }
 
   function timed_scrollLeft() {
-    scrolLeftValue -= 5;
-    scrollContainer.scrollLeft = scrolLeftValue;
+    scrollContainer.scrollLeft -= 5;
     navigationMenu.updateScrollButtonVisibility();
     if (scrolLeftValue <= 0) {
       clearAllTimers();
@@ -109,12 +108,10 @@ module.exports = function (graph) {
     // connect scrollIndicator Buttons;
     d3.select("#scrollRightButton")
       .on("mousedown", function () {
-        scrolLeftValue = scrollContainer.scrollLeft;
         navigationMenu.hideAllMenus();
         t_scrollRight = requestAnimationFrame(timed_scrollRight);
       })
       .on("touchstart", function () {
-        scrolLeftValue = scrollContainer.scrollLeft;
         navigationMenu.hideAllMenus();
         t_scrollRight = requestAnimationFrame(timed_scrollRight);
       })
@@ -129,12 +126,10 @@ module.exports = function (graph) {
 
     d3.select("#scrollLeftButton")
       .on("mousedown", function () {
-        scrolLeftValue = scrollContainer.scrollLeft;
         navigationMenu.hideAllMenus();
         t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
       })
       .on("touchstart", function () {
-        scrolLeftValue = scrollContainer.scrollLeft;
         navigationMenu.hideAllMenus();
         t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
       })
@@ -304,7 +299,6 @@ module.exports = function (graph) {
     d3.select("#generalDetails").on("mouseover", function () {
       navigationMenu.hideAllMenus();
     });
-    
     // Sync active-menu-item class, positioning, and export state when popovers toggle
     d3.selectAll(".modern-popover").on("toggle", function (event){
       const menuId = this.id;

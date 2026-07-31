@@ -4,6 +4,7 @@
     --right-sidebar-width: 280px;
     --left-sidebar-width: 200px;
     --control-margin: 12px;
+    --action-pill-desktop-min-width: 95px;
 }
 
 @media screen and (width >= 1600px) {
@@ -2302,6 +2303,7 @@ li#c_search input.searchInputText {
     text-decoration: none;
     cursor: pointer;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
     transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -2317,8 +2319,8 @@ li#c_search input.searchInputText {
 
 /* Action Control Pills (Reset, Pause/Resume) */
 .navButton.action-pill {
-    position: relative; /* needed for ::after glow overlay */
-    overflow: visible;
+    position: relative; /* needed for glow overlay */
+    overflow: hidden; /* Clamps animations, glows, and backgrounds to rounded corners */
     border: 1px solid rgb(255 255 255 / 12%);
     border-radius: 8px;
     background: rgb(255 255 255 / 4%);
@@ -2372,14 +2374,14 @@ li#c_search input.searchInputText {
     will-change: transform;
 }
 
-/* Scale bounce on click — compositor-thread-safe */
+/* Scale bounce on click — compositor-thread-safe and clamped within button bounds */
 @keyframes reset-flash-scale {
     0% {
-        transform: scale(0.91);
+        transform: scale(0.92);
     }
 
     40% {
-        transform: scale(1.06);
+        transform: scale(0.98);
     }
 
     100% {
@@ -2399,8 +2401,8 @@ li#c_search input.searchInputText {
  * This keeps the "Reset" label and SVG at full white contrast (WCAG AA). */
 .reset-glow {
     position: absolute;
-    inset: -3px;
-    border-radius: 10px;
+    inset: 0;
+    border-radius: 7px;
     background: #22d3ee;
     opacity: 0;
     pointer-events: none;
@@ -2592,7 +2594,8 @@ li#c_search input.searchInputText {
 /***************************************************************************  */
 
 /* ScrollButton behavior */
-#scrollLeftButton {
+#scrollLeftButton,
+#scrollRightButton {
   height: 30px;
   width: 30px;
   padding: 5px 0 5px 10px;
@@ -2603,9 +2606,24 @@ li#c_search input.searchInputText {
   font-size: 2em;
   background-color: #24323e;
   left: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
 }
 
-#scrollLeftButton:focus {
+#scrollLeftButton {
+    left: 0;
+    border-top: 1px solid #34495E;
+    border-right: 1px solid #34495E;
+}
+
+#scrollRightButton {
+    right: 0;
+    border-top: 1px solid #34495E;
+    border-left: 1px solid #34495E;
+}
+
+#scrollLeftButton:focus,
+#scrollRightButton:focus {
   outline: none;
 }
 
@@ -3206,7 +3224,6 @@ a#locateSearchResult {
   margin: 10px 0;
   padding-right: 12px;
   overflow: hidden auto;
-    left: 0;
     transition: left 0.5s ease;
     display: inline-block;
 }
@@ -3388,6 +3405,12 @@ a#locateSearchResult {
 }
 
 @media screen and (max-width: 768px) {
+    #menuElementContainer > li > button.action-pill {
+        width: 44px !important;
+        min-width: 44px !important;
+        padding: 0 !important;
+    }
+
     #swipeBarContainer {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
@@ -3870,12 +3893,6 @@ a#locateSearchResult {
 }
 
 @media screen and (width < 768px) {
-    #c_pause,
-    #pause-button,
-    a#pause-button {
-        min-width: 0 !important;
-    }
-
     #menuElementContainer > li > button,
     #menuElementContainer > li > a {
         font-size: 0 !important;
@@ -3885,7 +3902,8 @@ a#locateSearchResult {
     #menuElementContainer > li > button > i,
     #menuElementContainer > li > a > i,
     #menuElementContainer > li > button > svg,
-    #menuElementContainer > li > a > svg {
+    #menuElementContainer > li > a > svg,
+    #menuElementContainer .menuElementSvgElement {
         font-size: 14px !important;
         margin: 0 !important;
     }
@@ -3903,6 +3921,7 @@ a#locateSearchResult {
         padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
         animation: sheetSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         will-change: transform;
+        z-index: 99999 !important;
     }
 
     .modern-popover.has-dragged {
