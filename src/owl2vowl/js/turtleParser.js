@@ -6,7 +6,9 @@ function mapTerm(term) {
     return { type: "URI", value: term.value };
   }
   if (term.termType === "BlankNode") {
-    return { type: "BNODE", value: "_:" + term.value };
+    // Strip leading '_:' if present so blank node IDs conform to XML NCName (e.g. 'b1')
+    const val = term.value.startsWith("_:") ? term.value.substring(2) : term.value;
+    return { type: "BNODE", value: val };
   }
   if (term.termType === "Literal") {
     const mapped = { type: "LITERAL", value: term.value };
@@ -24,6 +26,7 @@ function mapTerm(term) {
 
 /**
  * Parses Turtle string into triples, prefixes, and baseIri using N3.js.
+ * Conforming to W3C Turtle and Java OWLAPI (org.semanticweb.owlapi.rdf.turtle).
  * @param {string} ttlString
  * @returns {object}
  */
@@ -50,8 +53,6 @@ export function parseTurtle(ttlString) {
 
   return { triples, prefixes, baseIri };
 }
-
-
 
 /**
  * Serializes Turtle triples into valid RDF/XML string structure.
@@ -84,32 +85,13 @@ export function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
   }, prefixes);
   
   const cleanPrefixes = {};
-  let defaultNs = null;
   for (const [p, ns] of Object.entries(allPrefixes)) {
     const cleanP = p.replace(/[^a-zA-Z0-9-]/g, "");
-    if (cleanP === "") {
-      defaultNs = ns;
-    } else {
+    if (cleanP !== "") {
       cleanPrefixes[cleanP] = ns;
     }
   }
-  if (defaultNs) {
-    cleanPrefixes["defaultns"] = defaultNs;
-  }
-  
-  let xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
-  xml += "<rdf:RDF";
-  if (baseIri) {
-    xml += ` xml:base="${baseIri}"`;
-  }
-  if (defaultNs) {
-    xml += ` xmlns="${defaultNs}"`;
-  }
-  for (const [p, ns] of Object.entries(cleanPrefixes)) {
-    xml += ` xmlns:${p}="${ns}"`;
-  }
-  xml += ">\n";
-  
+
   function getIri(term) {
     if (term.type === "URI") {
       return term.value;
@@ -128,7 +110,45 @@ export function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
     return term.value;
   }
 
+  // Pre-scan all predicate IRIs to ensure every namespace has a declared prefix mapping
+  let autoNsCount = 0;
+  for (const group of subjectGroups.values()) {
+    for (const t of group.triples) {
+      const pIri = getIri(t.predicate);
+      let matched = false;
+      for (const ns of Object.values(cleanPrefixes)) {
+        if (pIri.startsWith(ns)) {
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        // Extract namespace (up to '#' or last '/')
+        let splitIdx = pIri.lastIndexOf("#");
+        if (splitIdx === -1) {
+          splitIdx = pIri.lastIndexOf("/");
+        }
+        if (splitIdx !== -1) {
+          const autoNs = pIri.substring(0, splitIdx + 1);
+          const autoPfx = "ns" + (autoNsCount++);
+          cleanPrefixes[autoPfx] = autoNs;
+        }
+      }
+    }
+  }
+  
+  let xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+  xml += "<rdf:RDF";
+  if (baseIri) {
+    xml += ` xml:base="${escapeXml(baseIri)}"`;
+  }
+  for (const [p, ns] of Object.entries(cleanPrefixes)) {
+    xml += ` xmlns:${p}="${escapeXml(ns)}"`;
+  }
+  xml += ">\n";
+
   function escapeXml(unsafe) {
+    if (!unsafe) {return "";}
     return unsafe.replace(/[<>&'"]/g, function (c) {
       switch (c) {
         case "<": return "&lt;";
@@ -157,11 +177,16 @@ export function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
       let qname = null;
       for (const [p, ns] of Object.entries(cleanPrefixes)) {
         if (pIri.startsWith(ns)) {
-          qname = `${p}:${pIri.substring(ns.length)}`;
-          break;
+          const local = pIri.substring(ns.length);
+          if (local) {
+            qname = `${p}:${local}`;
+            break;
+          }
         }
       }
+
       if (!qname) {
+        // Fallback QName if no split was possible
         qname = "rdf:Description";
       }
       
