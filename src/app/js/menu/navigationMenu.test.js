@@ -1,23 +1,54 @@
-const { describe, test, expect, beforeEach } = require("@jest/globals");
-const d3 = require("d3");
-const navigationMenuFactory = require("./navigationMenu");
+import { describe, test, expect, beforeEach, jest } from "@jest/globals";
+import * as d3 from "d3";
+import navigationMenuFactory from "./navigationMenu.js";
 
 const HTML_NAMESPACE = "http://www.w3.org/1999/xhtml";
 
 class MockElement {
   constructor(id, className, tagName = "div") {
     this.id = id || "";
-    this.className = className || "";
+    this._classList = new Set(className ? className.split(/\s+/).filter(Boolean) : []);
     this.tagName = tagName.toUpperCase();
     this.nodeName = this.tagName;
     this.listeners = {};
-    this.style = {};
+    const self = this;
+    this.style = {
+      _props: {},
+      setProperty: (k, v) => { self.style._props[k] = v; },
+      removeProperty: (k) => { delete self.style._props[k]; },
+      getPropertyValue: (k) => self.style._props[k] || "",
+    };
     this.ownerDocument = global.document;
     this.nodeType = 1;
     this.attributes = {};
     this.children = [];
     this.scrollLeft = 0;
     this.namespaceURI = HTML_NAMESPACE;
+    this.popoverState = "closed";
+  }
+
+  get className() {
+    return Array.from(this._classList).join(" ");
+  }
+
+  set className(val) {
+    this._classList = new Set(val ? val.split(/\s+/).filter(Boolean) : []);
+  }
+
+  get classList() {
+    const self = this;
+    return {
+      add: (...names) => names.forEach((n) => self._classList.add(n)),
+      remove: (...names) => names.forEach((n) => self._classList.delete(n)),
+      contains: (name) => self._classList.has(name),
+      toggle: (name, force) => {
+        if (force === undefined) {
+          if (self._classList.has(name)) {self._classList.delete(name);}
+          else {self._classList.add(name);}
+        } else if (force) {self._classList.add(name);}
+        else {self._classList.delete(name);}
+      },
+    };
   }
 
   addEventListener(type, fn) {
@@ -42,9 +73,13 @@ class MockElement {
 
   setAttribute(name, val) {
     this.attributes[name] = val;
+    if (name === "class") {
+      this.className = val;
+    }
   }
 
   getAttribute(name) {
+    if (name === "class") {return this.className;}
     return this.attributes[name] || "";
   }
 
@@ -63,6 +98,27 @@ class MockElement {
   getBoundingClientRect() {
     return { top: 0, left: 0, width: 100, height: 100, bottom: 100, right: 100 };
   }
+
+  matches(selector) {
+    if (selector === ":popover-open") {
+      return this.popoverState === "open";
+    }
+    if (selector.startsWith(".")) {
+      return this._classList.has(selector.slice(1));
+    }
+    if (selector.startsWith("#")) {
+      return this.id === selector.slice(1);
+    }
+    return false;
+  }
+
+  showPopover() {
+    this.popoverState = "open";
+  }
+
+  hidePopover() {
+    this.popoverState = "closed";
+  }
 }
 
 class MockCustomEvent {
@@ -71,6 +127,7 @@ class MockCustomEvent {
     this.cancelable = opts.cancelable !== undefined ? opts.cancelable : true;
     this.bubbles = opts.bubbles || false;
     this.defaultPrevented = false;
+    this.newState = opts.newState || "";
   }
 
   preventDefault() {
@@ -80,7 +137,7 @@ class MockCustomEvent {
   }
 }
 
-describe("navigationMenu and adjacent button event listeners", () => {
+describe("navigationMenu and popover event listeners", () => {
   let elementMap;
 
   const getOrCreateElement = (idKey) => {
@@ -108,6 +165,12 @@ describe("navigationMenu and adjacent button event listeners", () => {
             getOrCreateElement("reset-button"),
           ];
         }
+        if (selector === ".modern-popover") {
+          return [
+            getOrCreateElement("m_select"),
+            getOrCreateElement("m_export"),
+          ];
+        }
         return [];
       },
       createElement: (tag) => new MockElement("", "", tag),
@@ -117,14 +180,22 @@ describe("navigationMenu and adjacent button event listeners", () => {
     global.window = {
       addEventListener: () => {},
       removeEventListener: () => {},
+      matchMedia: () => ({ matches: false }),
+      innerWidth: 1024,
       document: global.document,
     };
     global.document.defaultView = global.window;
 
-    const scrollContainer = getOrCreateElement("scrollContainer");
+    const scrollContainer = getOrCreateElement("menuElementContainer");
     scrollContainer.children = [
-      getOrCreateElement("c_menu1"),
-      getOrCreateElement("c_menu2"),
+      getOrCreateElement("c_select"),
+      getOrCreateElement("c_export"),
+    ];
+
+    const menuContainer = getOrCreateElement("menuContainer");
+    menuContainer.children = [
+      getOrCreateElement("m_select"),
+      getOrCreateElement("m_export"),
     ];
 
     global.d3 = d3;
@@ -166,5 +237,56 @@ describe("navigationMenu and adjacent button event listeners", () => {
     const contextEventNav = new CustomEvent("contextmenu", { cancelable: true, bubbles: true });
     navBtn.dispatchEvent(contextEventNav);
     expect(contextEventNav.defaultPrevented).toBe(true);
+  });
+
+  describe("Popover toggle event synchronization", () => {
+    test("sets active-menu-item and triggers exportAsUrl when toggle opens export popover", () => {
+      const exportAsUrlMock = jest.fn();
+      const mockGraph = {
+        options: () => ({
+          navigationMenu: () => ({ hideAllMenus: () => {} }),
+          exportMenu: () => ({ exportAsUrl: exportAsUrlMock }),
+        }),
+        scaleFactor: () => 1.0,
+      };
+
+      const navMenu = navigationMenuFactory(mockGraph);
+      navMenu.setup();
+
+      const popover = getOrCreateElement("m_export");
+      popover._classList.add("modern-popover");
+      popover.popoverState = "open";
+
+      const toggleEvent = new CustomEvent("toggle", { bubbles: true, newState: "open" });
+      popover.dispatchEvent(toggleEvent);
+
+      const controller = getOrCreateElement("c_export");
+      expect(controller.classList.contains("active-menu-item")).toBe(true);
+      expect(exportAsUrlMock).toHaveBeenCalled();
+    });
+
+    test("removes active-menu-item when toggle closes popover", () => {
+      const mockGraph = {
+        options: () => ({
+          navigationMenu: () => ({ hideAllMenus: () => {} }),
+        }),
+        scaleFactor: () => 1.0,
+      };
+
+      const navMenu = navigationMenuFactory(mockGraph);
+      navMenu.setup();
+
+      const controller = getOrCreateElement("c_select");
+      controller.classList.add("active-menu-item");
+
+      const popover = getOrCreateElement("m_select");
+      popover._classList.add("modern-popover");
+      popover.popoverState = "closed";
+
+      const toggleEvent = new CustomEvent("toggle", { bubbles: true, newState: "closed" });
+      popover.dispatchEvent(toggleEvent);
+
+      expect(controller.classList.contains("active-menu-item")).toBe(false);
+    });
   });
 });

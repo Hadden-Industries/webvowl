@@ -191,23 +191,6 @@ module.exports = function ( graph ){
   
   let touchResetTimer;
   function menuElementClicked(){
-    const m_element = m_select[c_select.indexOf(this.id)];
-    if ( m_element ) {
-      const menuNode = document.getElementById(m_element);
-      if ( menuNode ) {
-        try {
-          if ( menuNode.matches(":popover-open") ) {
-            menuNode.hidePopover();
-          } else {
-            navigationMenu.hideAllMenus();
-            showSingleMenu(this.id);
-          }
-        } catch {
-          navigationMenu.hideAllMenus();
-          showSingleMenu(this.id);
-        }
-      }
-    }
     clearTimeout(touchResetTimer);
     touchResetTimer = setTimeout(function (){
       touchedElement = false;
@@ -321,14 +304,29 @@ module.exports = function ( graph ){
       navigationMenu.hideAllMenus();
     });
     
-    // Sync active-menu-item class when popovers are dismissed externally
-    d3.selectAll(".modern-popover").on("toggle", function (){
-      if ( !this.matches(":popover-open") ) {
-        // Find the corresponding controller and remove active state
-        const menuId = this.id;
-        const controllerIdx = m_select.indexOf(menuId);
-        if ( controllerIdx > -1 ) {
-          d3.select("#" + c_select[controllerIdx]).classed("active-menu-item", false);
+    // Sync active-menu-item class, positioning, and export state when popovers toggle
+    d3.selectAll(".modern-popover").on("toggle", function (event){
+      const menuId = this.id;
+      const controllerIdx = m_select.indexOf(menuId);
+      const controllerId = controllerIdx > -1 ? c_select[controllerIdx] : null;
+
+      const isOpen = (event && event.newState) ? (event.newState === "open") : this.matches(":popover-open");
+
+      if ( isOpen ) {
+        if ( controllerId && controllerId !== "c_search" ) {
+          d3.select("#" + controllerId).classed("active-menu-item", true);
+        }
+        currentlyVisibleMenu = d3.select("#" + menuId);
+        if ( controllerId ) {
+          currentlyHoveredEntry = d3.select("#" + controllerId).node();
+        }
+        if ( menuId === "m_export" ) {
+          graph.options().exportMenu().exportAsUrl();
+        }
+        updateMenuPosition(controllerId);
+      } else {
+        if ( controllerId && controllerId !== "c_search" ) {
+          d3.select("#" + controllerId).classed("active-menu-item", false);
         }
       }
     });
