@@ -240,6 +240,18 @@ module.exports = function ( graphContainerSelector ){
     });
   }
   
+  function isSolitaryLabel( d ){
+    if ( !d ) { return false; }
+    let link;
+    if ( elementTools.isLabel(d) || elementTools.isProperty(d) ) {
+      link = d.link();
+    }
+    if ( link && typeof link.layers === "function" && link.layers() && link.layers().length === 1 && !link.loops() ) {
+      return true;
+    }
+    return false;
+  }
+
   // Initializes the graph.
   function initializeGraph(){
     
@@ -254,6 +266,9 @@ module.exports = function ( graphContainerSelector ){
         return d;
       })
       .on("start", function ( event, d ){
+        if ( isSolitaryLabel(d) ) {
+          return;
+        }
         clearAllHover();
         event.sourceEvent.stopPropagation(); // Prevent panning
         graph.ignoreOtherHoverEvents(true);
@@ -312,6 +327,9 @@ module.exports = function ( graphContainerSelector ){
         }
       })
       .on("drag", function ( event, d ){
+        if ( isSolitaryLabel(d) ) {
+          return;
+        }
         
         if ( d.type && d.type() === "Class_dragger" ) {
           clearTimeout(delayedHider);
@@ -350,6 +368,10 @@ module.exports = function ( graphContainerSelector ){
         }
       })
       .on("end", function ( event, d ){
+        if ( isSolitaryLabel(d) ) {
+          graph.ignoreOtherHoverEvents(false);
+          return;
+        }
         graph.ignoreOtherHoverEvents(false);
         if ( moved === true ) {
           clearAllHover();
