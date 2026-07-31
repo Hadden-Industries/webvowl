@@ -176,14 +176,21 @@ module.exports = function (graph) {
 
     degreeSlider.on("change", function (silent) {
       if (silent !== true) {
+      const degree = degreeSlider.property("value");
+      if ( parseInt(degree, 10) === 0 ) {
+        filterMenu.highlightForDegreeSlider(false);
+      }
         graph.update();
-        graphDegreeLevel = degreeSlider.property("value");
+        graphDegreeLevel = degree;
       }
     });
 
     degreeSlider.on("input", function () {
       const degree = degreeSlider.property("value");
       sliderValueLabel.text(degree);
+      if ( parseInt(degree, 10) === 0 ) {
+        filterMenu.highlightForDegreeSlider(false);
+      }
     });
 
     // adding wheel events
