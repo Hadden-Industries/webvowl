@@ -117,37 +117,50 @@ describe("BaseProperty Unit Tests", () => {
     let primaryTransform = "";
     let inverseTransform = "";
 
-    const createTransformMockSelection = (isPrimary) => ({
+    const primaryLabelSel = {
       attr: jest.fn().mockImplementation((name, val) => {
-        if (name === "transform") {
-          if (isPrimary) { primaryTransform = val; }
-          else { inverseTransform = val; }
-        }
-        return createTransformMockSelection(isPrimary);
+        if (name === "transform") { primaryTransform = val; }
+        return primaryLabelSel;
       }),
-      datum: function () { return this; },
-      classed: function () { return this; },
-      on: function () { return this; },
+      datum: function () { return primaryLabelSel; },
+      classed: function () { return primaryLabelSel; },
+      on: function () { return primaryLabelSel; },
       node: function () { return {}; },
-      append: function () { return createTransformMockSelection(isPrimary); },
-      selectAll: function () { return this; },
-      select: function () { return this; },
-    });
+      append: function () { return primaryLabelSel; },
+      selectAll: function () { return primaryLabelSel; },
+      select: function () { return primaryLabelSel; },
+    };
+
+    const inverseLabelSel = {
+      attr: jest.fn().mockImplementation((name, val) => {
+        if (name === "transform") { inverseTransform = val; }
+        return inverseLabelSel;
+      }),
+      datum: function () { return inverseLabelSel; },
+      classed: function () { return inverseLabelSel; },
+      on: function () { return inverseLabelSel; },
+      node: function () { return {}; },
+      append: function () { return inverseLabelSel; },
+      selectAll: function () { return inverseLabelSel; },
+      select: function () { return inverseLabelSel; },
+    };
 
     const linkMock = { property: () => primaryProperty };
     primaryProperty.link(linkMock);
     inverseProperty.link(linkMock);
 
-    const primaryLabelSel = createTransformMockSelection(true);
-    const inverseLabelSel = createTransformMockSelection(false);
-
     primaryProperty.labelElement(primaryLabelSel);
     inverseProperty.labelElement(inverseLabelSel);
 
     const labelGroup = {
-      append: jest.fn()
-        .mockReturnValueOnce(primaryLabelSel)
-        .mockReturnValueOnce(inverseLabelSel),
+      append: jest.fn().mockImplementation(() => ({
+        datum: jest.fn().mockImplementation((prop) => {
+          if (prop === primaryProperty) { return primaryLabelSel; }
+          return inverseLabelSel;
+        }),
+        classed: function () { return this; },
+        attr: function () { return this; },
+      })),
     };
 
     primaryProperty.drawLabel = jest.fn();
