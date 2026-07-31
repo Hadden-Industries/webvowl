@@ -53,7 +53,7 @@
     /* fill: #36c; */
 }
 
-path, .nofill {
+#graph path, .nofill {
     fill: none;
 }
 
@@ -65,7 +65,7 @@ marker path {
     stroke-dasharray: 100;
 }
 
-.class, path, line, .fineline {
+.class, #graph path, line, .fineline {
     stroke: #000;
 }
 

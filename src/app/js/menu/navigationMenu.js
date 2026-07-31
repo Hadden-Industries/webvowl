@@ -10,8 +10,6 @@ module.exports = function ( graph ){
   const menuContainer = d3.select("#menuContainer").node();
   const leftButton = d3.select("#scrollLeftButton");
   const rightButton = d3.select("#scrollRightButton");
-  let scrolLeftValue;
-  const scrollMax = 0;
   let currentlyVisibleMenu;
   let currentlyHoveredEntry;
   let t_scrollLeft;
@@ -26,22 +24,20 @@ module.exports = function ( graph ){
   }
   
   function timed_scrollRight(){
-    scrolLeftValue += 5;
-    scrollContainer.scrollLeft = scrolLeftValue;
+    const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+    scrollContainer.scrollLeft += 5;
     navigationMenu.updateScrollButtonVisibility();
-    if ( scrolLeftValue >= scrollMax ) {
+    if ( scrollContainer.scrollLeft >= maxScroll ) {
       clearAllTimers();
       return;
     }
     t_scrollRight = requestAnimationFrame(timed_scrollRight);
-    
   }
   
   function timed_scrollLeft(){
-    scrolLeftValue -= 5;
-    scrollContainer.scrollLeft = scrolLeftValue;
+    scrollContainer.scrollLeft -= 5;
     navigationMenu.updateScrollButtonVisibility();
-    if ( scrolLeftValue <= 0 ) {
+    if ( scrollContainer.scrollLeft <= 0 ) {
       clearAllTimers();
       return;
     }
@@ -102,7 +98,6 @@ module.exports = function ( graph ){
     // connect scrollIndicator Buttons;
     d3.select("#scrollRightButton")
       .on("mousedown", function (){
-        scrolLeftValue = scrollContainer.scrollLeft;
         navigationMenu.hideAllMenus();
         t_scrollRight = requestAnimationFrame(timed_scrollRight);
       })
@@ -110,7 +105,6 @@ module.exports = function ( graph ){
         if ( event && event.cancelable ) {
           event.preventDefault();
         }
-        scrolLeftValue = scrollContainer.scrollLeft;
         navigationMenu.hideAllMenus();
         t_scrollRight = requestAnimationFrame(timed_scrollRight);
       })
@@ -129,7 +123,6 @@ module.exports = function ( graph ){
     
     d3.select("#scrollLeftButton")
       .on("mousedown", function (){
-        scrolLeftValue = scrollContainer.scrollLeft;
         navigationMenu.hideAllMenus();
         t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
       })
@@ -137,7 +130,6 @@ module.exports = function ( graph ){
         if ( event && event.cancelable ) {
           event.preventDefault();
         }
-        scrolLeftValue = scrollContainer.scrollLeft;
         navigationMenu.hideAllMenus();
         t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
       })
