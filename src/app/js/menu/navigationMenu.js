@@ -206,7 +206,7 @@ module.exports = function (graph) {
   }
 
   function hoveroutedControMenu(controllerID) {
-    currentlyHoveredEntry = d3.select("#" + controllerID);
+    const entry = d3.select("#" + controllerID);
     if (controllerID !== "c_search") {
       d3.select("#" + controllerID)
         .select("path")
