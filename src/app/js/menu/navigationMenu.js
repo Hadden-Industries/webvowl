@@ -311,9 +311,9 @@ module.exports = function ( graph ){
           const currentY = event.touches[0].clientY;
           let dy = currentY - startY;
 
-          // Rubberband upward pull
+          // Clamp upward drag so full-width bottom sheet cannot be torn away from bottom of screen
           if ( dy < 0 ) {
-            dy = dy * 0.2;
+            dy = 0;
           }
 
           currentDy = dy;
