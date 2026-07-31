@@ -38,6 +38,25 @@ describe("rdfParser.js unit tests", () => {
     expect(result.languagesSet.has("undefined")).toBe(true);
   });
 
+  test("Inherits parent xml:lang attribute when child element omits explicit language tag", () => {
+    const xml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#"
+               xml:base="http://example.org/">
+        <owl:Class rdf:about="#Agent" xml:lang="fr">
+          <rdfs:label>Agent Label</rdfs:label>
+        </owl:Class>
+      </rdf:RDF>
+    `;
+
+    const result = parseRdfXml(xml, resolver, context);
+    const agent = result.subjects["http://example.org/#Agent"];
+    expect(agent).toBeDefined();
+    expect(agent.labels.fr).toBe("Agent Label");
+    expect(result.languagesSet.has("fr")).toBe(true);
+  });
+
   test("Parses owl:ObjectProperty and owl:DatatypeProperty with domains and ranges", () => {
     const xml = `
       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"

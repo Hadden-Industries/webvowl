@@ -50,6 +50,18 @@ export function parseRdfXml(xmlString, resolver, context) {
     return ontologyBaseIri;
   }
 
+  function getActiveLanguage(element) {
+    let current = element;
+    while (current) {
+      if (current.getAttribute) {
+        const lang = current.getAttribute("xml:lang") || current.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || current.getAttribute("lang");
+        if (lang) {return lang;}
+      }
+      current = current.parentNode;
+    }
+    return "undefined";
+  }
+
   function registerLanguage(rawLang) {
     const clean = (rawLang || "").trim().toLowerCase();
     if (!clean || clean === "undefined") {
@@ -304,7 +316,7 @@ export function parseRdfXml(xmlString, resolver, context) {
         const activeBase = getActiveBaseUri(element);
         const resource = isResource ? (attrVal.startsWith("_:") || (!attrVal.includes(":") && !attrVal.startsWith("#")) ? (attrVal.startsWith("_:") ? attrVal : "_:" + attrVal) : resolver.resolve(attrVal, activeBase)) : null;
 
-        addSubjectProperty(subject, local, attrNs, resource, isResource ? null : attrVal, "undefined", attrName);
+        addSubjectProperty(subject, local, attrNs, resource, isResource ? null : attrVal, getActiveLanguage(element), attrName);
       }
     }
 
@@ -316,7 +328,7 @@ export function parseRdfXml(xmlString, resolver, context) {
       const activeBasePred = getActiveBaseUri(pred);
       const rawResource = getAttr(pred, "resource", NAMESPACES.RDF) || getAttr(pred, "nodeID", NAMESPACES.RDF);
       const resource = rawResource ? (rawResource.startsWith("_:") || (!rawResource.includes(":") && !rawResource.startsWith("#")) ? (rawResource.startsWith("_:") ? rawResource : "_:" + rawResource) : resolver.resolve(rawResource, activeBasePred)) : null;
-      const rawLang = pred.getAttribute("xml:lang") || pred.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang") || "undefined";
+      const rawLang = getActiveLanguage(pred);
       const predText = pred.textContent.trim();
 
       if (predLocal === "type" && predNs === NAMESPACES.RDF) {
