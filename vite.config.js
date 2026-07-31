@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, normalizePath } from "vite";
 import { resolve, relative } from "node:path";
 import { readFileSync, existsSync, rmSync, statSync, utimesSync, readdirSync } from "node:fs";
 import commonjs from "vite-plugin-commonjs";
@@ -234,7 +234,7 @@ export default defineConfig(({ mode }) => {
       viteStaticCopy({
         targets: [
           {
-            src: "../node_modules/d3/dist/d3.min.js",
+            src: normalizePath(resolve(__dirname, "node_modules/d3/dist/d3.min.js")),
             dest: "js",
             rename: { stripBase: true }
           },
@@ -246,9 +246,11 @@ export default defineConfig(({ mode }) => {
           { src: "favicon.ico", dest: "." },
           { src: "favicon.svg", dest: "." },
           {
-            src: "../LICENSE",
-            dest: ".",
-            rename: { name: "license.txt", stripBase: true }
+            src: normalizePath(resolve(__dirname, "LICENSE")),
+            // Bypasses the '.' collapse bug
+            // as per http://gemini.google.com/app/793f7f5228862e6b
+            dest: "deploy",
+            rename: { name: "license.txt" }
           }
         ]
       }),
