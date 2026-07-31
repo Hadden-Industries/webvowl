@@ -46,7 +46,7 @@ module.exports = function ( graph ){
       clearAllTimers();
       return;
     }
-    t_scrollRight = requestAnimationFrame(timed_scrollLeft);
+    t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
   }
   
   // collect all menu entries and stuff;
