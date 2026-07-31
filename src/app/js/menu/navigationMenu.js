@@ -209,9 +209,9 @@ module.exports = function ( graph ){
   
   
   function hoveroutedControMenu( controllerID ){
-    currentlyHoveredEntry = d3.select("#" + controllerID);
+    const entry = d3.select("#" + controllerID);
     if ( controllerID !== "c_search" ) {
-      currentlyHoveredEntry.classed("active-menu-item", false);
+      entry.classed("active-menu-item", false);
     }
   }
   
@@ -244,8 +244,10 @@ module.exports = function ( graph ){
       return;
     }
 
-    if ( currentlyHoveredEntry ) {
-      const buttonRect = currentlyHoveredEntry.getBoundingClientRect();
+    const targetNode = (currentlyHoveredEntry && typeof currentlyHoveredEntry.node === "function") ? currentlyHoveredEntry.node() : currentlyHoveredEntry;
+
+    if ( targetNode && typeof targetNode.getBoundingClientRect === "function" ) {
+      const buttonRect = targetNode.getBoundingClientRect();
       let finalOffset = buttonRect.left;
 
       let maxRightBoundary = window.innerWidth - 16;

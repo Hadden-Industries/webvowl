@@ -310,6 +310,28 @@ describe("navigationMenu and popover event listeners", () => {
 
       expect(controller.classList.contains("active-menu-item")).toBe(false);
     });
+
+    test("does not throw error in updateMenuPosition when mouseout occurs", () => {
+      const mockGraph = {
+        options: () => ({
+          navigationMenu: () => ({ hideAllMenus: () => {} }),
+        }),
+      };
+
+      const navMenu = navigationMenuFactory(mockGraph);
+      navMenu.setup();
+
+      const controller = getOrCreateElement("c_select");
+      const popover = getOrCreateElement("m_select");
+      popover.popoverState = "open";
+
+      const mouseoutEvent = new CustomEvent("mouseout", { bubbles: true });
+      controller.dispatchEvent(mouseoutEvent);
+
+      expect(() => {
+        navMenu.updateMenuPosition();
+      }).not.toThrow();
+    });
   });
 
   describe("Mobile Bottom Sheet Touch Drag-to-Dismiss", () => {
