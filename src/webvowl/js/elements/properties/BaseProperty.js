@@ -258,26 +258,17 @@ module.exports = (function (){
       else                              {myWidth = defaultWidth;}
       
       that.labelElement(attachLabel(that));
-      // Draw an inverse label and reposition both labels deterministically
+      // Draw an inverse label and reposition both labels if necessary
       if ( that.inverse() ) {
         const yTransformation = (that.height() / 2) + 1 /* additional space */;
         that.inverse()
           .labelElement(attachLabel(that.inverse()));
         
-        const primaryProperty = that.link() ? that.link().property() : that;
-        if ( that === primaryProperty ) {
-          that.labelElement()
-            .attr("transform", "translate(" + 0 + ",-" + yTransformation + ")");
-          that.inverse()
-            .labelElement()
-            .attr("transform", "translate(" + 0 + "," + yTransformation + ")");
-        } else {
-          that.labelElement()
-            .attr("transform", "translate(" + 0 + "," + yTransformation + ")");
-          that.inverse()
-            .labelElement()
-            .attr("transform", "translate(" + 0 + ",-" + yTransformation + ")");
-        }
+        that.labelElement()
+          .attr("transform", "translate(" + 0 + ",-" + yTransformation + ")");
+        that.inverse()
+          .labelElement()
+          .attr("transform", "translate(" + 0 + "," + yTransformation + ")");
       }
       
       if ( that.pinned() ) {
