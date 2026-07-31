@@ -2747,7 +2747,7 @@ p#zoomSliderParagraph:hover {
     height: 24px;
     border-radius: 50%;
     background: #2b5797;
-    border: none;
+    border-top-color: transparent;
     cursor: pointer;
     box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
 }
