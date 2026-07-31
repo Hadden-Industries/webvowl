@@ -242,6 +242,18 @@ module.exports = function (graphContainerSelector) {
     });
   }
   
+  function isSolitaryLabel( d ){
+    if ( !d ) { return false; }
+    let link;
+    if ( elementTools.isLabel(d) || elementTools.isProperty(d) ) {
+      link = d.link();
+    }
+    if ( link && typeof link.layers === "function" && link.layers() && link.layers().length === 1 && !link.loops() ) {
+      return true;
+    }
+    return false;
+  }
+
   // Initializes the graph.
   function initializeGraph() {
     options.graphContainerSelector(graphContainerSelector);
@@ -256,6 +268,9 @@ module.exports = function (graphContainerSelector) {
       })
       .on("dragstart", function (d) {
         d3.event.sourceEvent.stopPropagation(); // Prevent panning
+        if ( isSolitaryLabel(d) ) {
+          return;
+        }
         clearAllHover();
         graph.ignoreOtherHoverEvents(true);
         if (d.type && d.type() === "Class_dragger") {
@@ -311,6 +326,9 @@ module.exports = function (graphContainerSelector) {
       })
       .on("drag", function (d) {
         if (d.type && d.type() === "Class_dragger") {
+        if ( isSolitaryLabel(d) ) {
+          return;
+        }
           clearTimeout(delayedHider);
           classDragger.setPosition(event.x, event.y);
         } else if (d.type && d.type() === "Range_dragger") {
@@ -343,6 +361,10 @@ module.exports = function (graphContainerSelector) {
         }
       })
       .on("dragend", function (d) {
+        if ( isSolitaryLabel(d) ) {
+          graph.ignoreOtherHoverEvents(false);
+          return;
+        }
         graph.ignoreOtherHoverEvents(false);
         if ( moved === true ) {
           clearAllHover();
