@@ -287,7 +287,7 @@ module.exports = (function () {
       }
 
       that.labelElement(attachLabel(that));
-      // Draw an inverse label and reposition both labels if necessary
+      // Draw an inverse label and reposition both labels deterministically
       if (that.inverse()) {
         const yTransformation = that.height() / 2 + 1; /* additional space */
         that.inverse().labelElement(attachLabel(that.inverse()));

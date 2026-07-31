@@ -112,4 +112,55 @@ describe("BaseProperty Unit Tests", () => {
     expect(primaryProperty.pinned()).toBe(false);
     expect(inverseProperty.pinned()).toBe(false);
   });
+
+  test("maintains deterministic top and bottom vertical transforms for primary vs inverse property labels", () => {
+    let primaryTransform = "";
+    let inverseTransform = "";
+
+    const createTransformMockSelection = (isPrimary) => ({
+      attr: jest.fn().mockImplementation((name, val) => {
+        if (name === "transform") {
+          if (isPrimary) { primaryTransform = val; }
+          else { inverseTransform = val; }
+        }
+        return createTransformMockSelection(isPrimary);
+      }),
+      datum: function () { return this; },
+      classed: function () { return this; },
+      on: function () { return this; },
+      node: function () { return {}; },
+      append: function () { return createTransformMockSelection(isPrimary); },
+      selectAll: function () { return this; },
+      select: function () { return this; },
+    });
+
+    const linkMock = { property: () => primaryProperty };
+    primaryProperty.link(linkMock);
+    inverseProperty.link(linkMock);
+
+    const primaryLabelSel = createTransformMockSelection(true);
+    const inverseLabelSel = createTransformMockSelection(false);
+
+    primaryProperty.labelElement(primaryLabelSel);
+    inverseProperty.labelElement(inverseLabelSel);
+
+    const labelGroup = {
+      append: jest.fn()
+        .mockReturnValueOnce(primaryLabelSel)
+        .mockReturnValueOnce(inverseLabelSel),
+    };
+
+    primaryProperty.drawLabel = jest.fn();
+    inverseProperty.drawLabel = jest.fn();
+
+    // Draw from primary property perspective
+    primaryProperty.draw(labelGroup);
+    expect(primaryTransform).toBe("translate(0,-15)");
+    expect(inverseTransform).toBe("translate(0,15)");
+
+    // Draw from inverse property perspective (e.g. during hover/animation tick on inverse element)
+    inverseProperty.draw(labelGroup);
+    expect(primaryTransform).toBe("translate(0,-15)");
+    expect(inverseTransform).toBe("translate(0,15)");
+  });
 });
