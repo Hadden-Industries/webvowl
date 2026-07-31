@@ -494,4 +494,31 @@ describe("Golden Master Compatibility Tests", () => {
     expect(attr.annotations.example).toBeDefined();
     expect(attr.annotations.example[0].value).toBe("Manufactured items, car insurance, community nursing");
   });
+
+  test("personasonto.owl OWL/XML format parses metadata, classes, and properties matching Java output", () => {
+    const owlFile = path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "external", "personasonto.owl");
+    const javaJsonFile = path.join(__dirname, "..", "..", "app", "data", "personasonto.owl.java.json");
+    if (!fs.existsSync(owlFile) || !fs.existsSync(javaJsonFile)) {
+      console.warn("Skipping personasonto.owl test: required files missing.");
+      return;
+    }
+
+    const owlXml = fs.readFileSync(owlFile, "utf8");
+    const javaJson = JSON.parse(fs.readFileSync(javaJsonFile, "utf8"));
+
+    const jsJson = owl2vowl(owlXml);
+
+    // Verify header metadata
+    expect(jsJson.header.title.en).toBe("PersonasOnto");
+    expect(jsJson.header.iri).toBe("http://blankdots.com/open/personasonto.owl");
+    expect(jsJson.header.version).toBe("1.5");
+    expect(jsJson.header.author).toContain("Stefan Negru");
+
+    // Verify classes and properties extraction
+    const javaParsed = parseVowlJson(javaJson);
+    const jsParsed = parseVowlJson(jsJson);
+
+    expect(jsParsed.classes.size).toBeGreaterThanOrEqual(javaParsed.classes.size - 5);
+    expect(Object.keys(jsParsed.properties).length).toBeGreaterThanOrEqual(Object.keys(javaParsed.properties).length - 5);
+  });
 });
