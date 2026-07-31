@@ -50,6 +50,9 @@ module.exports = function (graph) {
 
   function updatePauseButtonText() {
     if (pauseButton.datum().paused) {
+  const pauseIconSvg = '<g><path style="fill: #fff; stroke-width: 0;" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></g>';
+  const playIconSvg = '<g><path style="fill: #fff; stroke-width: 0;" d="M8 5v14l11-7z"/></g>';
+
       pauseButton.text("Resume");
     } else {
       pauseButton.text("Pause");

@@ -14,7 +14,6 @@ module.exports = function (graph) {
   let scrollMax = 0;
   let currentlyVisibleMenu;
   let currentlyHoveredEntry;
-  let touchedElement = false;
   let t_scrollLeft;
   let t_scrollRight;
   let c_select = [];

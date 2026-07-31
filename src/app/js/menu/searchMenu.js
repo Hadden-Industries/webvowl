@@ -100,11 +100,47 @@ module.exports = function (graph) {
   }
 
   searchMenu.setup = function () {
+  function setLocateButtonState( enabled ){
+    if ( c_locate && c_locate.node() ) {
+      c_locate.classed("highlighted", enabled);
+      c_locate.property("disabled", !enabled);
+      if ( typeof c_locate.node().disabled !== "undefined" ) {
+        c_locate.node().disabled = !enabled;
+      }
+      const titleText = enabled ? "Locate search term" : "Nothing to locate";
+      c_locate.node().title = titleText;
+      c_locate.attr("aria-label", titleText);
+    }
+  }
+
+  function expandMobileSearch(){
+    d3.select("#c_search").classed("search-expanded", true);
+    d3.select("#scrollLeftButton").classed("hidden-by-search", true);
+    d3.select("#scrollRightButton").classed("hidden-by-search", true);
+    updateClearButtonVisibility();
+  }
+
+  function collapseMobileSearch(){
+    d3.select("#c_search").classed("search-expanded", false);
+    d3.select("#scrollLeftButton").classed("hidden-by-search", false);
+    d3.select("#scrollRightButton").classed("hidden-by-search", false);
+  }
+
     // clear dictionary;
     dictionary = [];
+
+    setLocateButtonState(false);
+
     searchLineEdit = d3.select("#search-input-text");
+
     searchLineEdit.on("input", userInput);
     searchLineEdit.on("keydown", userNavigation);
+    searchLineEdit.on("keyup", function (){
+      const isNav = d3.event.keyCode === 38 || d3.event.keyCode === 40 || d3.event.keyCode === 13 || d3.event.keyCode === 27;
+      if ( !isNav ) {
+        userInput();
+      }
+    });
     searchLineEdit.on("click", function (){
       updateSelectionStatusFlags();
       searchMenu.showSearchEntries();
@@ -117,13 +153,32 @@ module.exports = function (graph) {
 
     c_locate.on("mouseover", function () {
       searchMenu.hideSearchEntries();
+      const cLocateNode = d3.select("#c_locate").node();
+        if ( cLocateNode && cLocateNode.contains(event.target) ) {
+          return;
+        }
       searchMenu.hideSearchEntries();
+      collapseMobileSearch();
     };
 
     d3.select(document)
       .on("click.searchCombobox", dismissSearchOnOutsideTap)
       .on("pointerdown.searchCombobox", dismissSearchOnOutsideTap)
       .on("touchstart.searchCombobox", dismissSearchOnOutsideTap);
+
+    listbox.on("click", function (event){
+      let target = (event && event.target) ? event.target : (d3.event ? d3.event.target : null);
+      while ( target && target !== this && target.tagName !== "LI" ) {
+        target = target.parentElement;
+      }
+      if ( target && target.classList && target.classList.contains("search-option") && !target.classList.contains("search-entry-disabled") ) {
+        const elementId = target.getAttribute("elementID");
+        if ( elementId !== null && elementId !== undefined ) {
+          const handler = handleClick(parseInt(elementId, 10));
+          handler(event);
+        }
+      }
+    });
 
     if ( window.visualViewport ) {
       window.visualViewport.addEventListener("resize", function (){
@@ -189,6 +244,7 @@ module.exports = function (graph) {
 
     if ( event.keyCode === 27 ) { // Escape key
       searchMenu.hideSearchEntries();
+      collapseMobileSearch();
       return;
     }
 
@@ -475,8 +531,15 @@ module.exports = function (graph) {
   }
 
   function userInput() {
-    c_locate.classed("highlighted", false);
-    c_locate.node().title = "Nothing to locate";
+  function updateClearButtonVisibility(){
+    const clearBtn = d3.select("#search-clear-btn");
+    if ( clearBtn.node() ) {
+      const hasValue = searchLineEdit && searchLineEdit.node() && searchLineEdit.node().value.length > 0;
+      clearBtn.classed("hidden", !hasValue);
+    }
+  }
+
+    setLocateButtonState(false);
 
     if (dictionaryUpdateRequired) {
       updateSearchDictionary();
@@ -488,6 +551,7 @@ module.exports = function (graph) {
       return;
     }
     inputText = searchLineEdit.node().value;
+    updateClearButtonVisibility();
 
     clearSearchEntries();
     if (inputText.length !== 0) {
@@ -504,11 +568,16 @@ module.exports = function (graph) {
       const correspondingIds = mergedIdList[id];
 
       const autoComStr = entryNames[id];
-      searchLineEdit.node().value = autoComStr;
+      if ( searchLineEdit && searchLineEdit.node() ) {
+        searchLineEdit.node().value = autoComStr;
+      }
+      updateClearButtonVisibility();
 
-      graph.resetSearchHighlight();
-      graph.highLightNodes(correspondingIds);
-      c_locate.node().title = "Locate search term";
+      if ( correspondingIds && graph ) {
+        graph.resetSearchHighlight();
+        graph.highLightNodes(correspondingIds);
+      }
+      setLocateButtonState(true);
       if (autoComStr !== inputText) {
         handleAutoCompletion();
       }
@@ -517,9 +586,14 @@ module.exports = function (graph) {
   }
 
   searchMenu.clearText = function () {
-    searchLineEdit.node().value = "";
-    c_locate.classed("highlighted", false);
-    c_locate.node().title = "Nothing to locate";
+    if ( searchLineEdit && searchLineEdit.node() ) {
+      searchLineEdit.node().value = "";
+    }
+    if ( graph && graph.resetSearchHighlight ) {
+      graph.resetSearchHighlight();
+    }
+    setLocateButtonState(false);
+    updateClearButtonVisibility();
     const htmlCollection = m_search.node().children;
     const numEntries = htmlCollection.length;
     for (let i = 0; i < numEntries; i++) {

@@ -2,8 +2,6 @@ module.exports = function (graph) {
   const debugMenu = {},
     checkboxes = [];
 
-  let hoverFlag = false;
-  let specialCbx;
   debugMenu.setup = function () {
     const menuEntry = d3.select("#debugMenuHref");
 
