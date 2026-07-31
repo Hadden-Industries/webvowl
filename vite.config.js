@@ -49,11 +49,20 @@ function webvowlBuildPlugin(mode) {
       const deployDir = resolve(__dirname, "deploy");
       if (!existsSync(deployDir)) return;
 
-      // 1. Remove benchmark data file (replicates grunt clean:testOntology)
-      const benchmarkPath = resolve(deployDir, "data/benchmark.json");
-      if (existsSync(benchmarkPath)) {
-        rmSync(benchmarkPath, { force: true });
-        console.log("[webvowl-build] Removed deploy/data/benchmark.json (production release)");
+      // 1. Remove non-prod data files
+      const filesToRemove = [
+        // Remove benchmark data file (replicates grunt clean:testOntology)
+        "data/benchmark.json",
+        "data/personasonto.owl.java.json"
+      ];
+
+      for (const file of filesToRemove) {
+        const filePath = resolve(deployDir, file);
+
+        if (existsSync(filePath)) {
+          rmSync(filePath, { force: true });
+          console.log(`[webvowl-build] Removed deploy/${file} (production release)`);
+        }
       }
 
       // 2. Clean up any sourcemaps (.map files) in the deploy directory
