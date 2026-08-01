@@ -5,6 +5,53 @@
 const createExportSvgClone = require("./svgExportStyles");
 
 module.exports = function (graph) {
+}
+
+function legacyCopyInputValue( inputNode, documentNode ){
+  const popoverNode = inputNode.closest ? inputNode.closest(".modern-popover") : null;
+  const contentNode = inputNode.closest ? inputNode.closest(".popover-content") : null;
+  const previousFocus = documentNode.activeElement;
+  const popoverScrollTop = popoverNode ? popoverNode.scrollTop : 0;
+  const contentScrollTop = contentNode ? contentNode.scrollTop : 0;
+  let copied;
+
+  try {
+    inputNode.focus({ preventScroll: true });
+    inputNode.select();
+    copied = typeof documentNode.execCommand === "function" && documentNode.execCommand("copy");
+  } catch {
+    copied = false;
+  } finally {
+    if ( previousFocus && previousFocus !== inputNode && typeof previousFocus.focus === "function" ) {
+      try {
+        previousFocus.focus({ preventScroll: true });
+      } catch {
+        previousFocus.focus();
+      }
+    }
+    if ( popoverNode ) {
+      popoverNode.scrollTop = popoverScrollTop;
+    }
+    if ( contentNode ) {
+      contentNode.scrollTop = contentScrollTop;
+    }
+  }
+
+  return copied;
+}
+
+async function copyInputValue( inputNode, clipboardApi, documentNode ){
+  const resolvedClipboard = clipboardApi === undefined && typeof navigator !== "undefined" ? navigator.clipboard : clipboardApi;
+  const resolvedDocument = documentNode || document;
+
+  if ( resolvedClipboard && typeof resolvedClipboard.writeText === "function" ) {
+    try {
+      await resolvedClipboard.writeText(inputNode.value);
+      return true;
+    } catch { /* use the synchronous fallback below */ }
+  }
+
+  return legacyCopyInputValue(inputNode, resolvedDocument);
   const exportMenu = {};
   let exportFilename;
 
@@ -83,30 +130,20 @@ module.exports = function (graph) {
   let copyFeedbackTimer;
     event.preventDefault();
     const urlInputNode = d3.select("#exportedUrl").node();
-    if ( urlInputNode ) {
-      urlInputNode.focus();
-      urlInputNode.select();
-      const urlText = urlInputNode.value;
-      if ( navigator.clipboard && navigator.clipboard.writeText ) {
-        navigator.clipboard.writeText(urlText).catch(function (){
-          document.execCommand("copy");
-        });
-      } else {
-        document.execCommand("copy");
-      }
+    if ( !urlInputNode ) {return;}
 
-      const copyButtonNode = d3.select("#copyBt");
-      copyButtonNode.classed("copied", true);
-      copyButtonNode.select(".copy-text").text("Copied!");
-      copyButtonNode.select(".copy-icon path").attr("d", "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z");
+    const copied = await copyInputValue(urlInputNode);
+    const copyButtonNode = d3.select("#copyBt");
+    copyButtonNode.classed("copied", copied).classed("copy-failed", !copied);
+    copyButtonNode.select(".copy-text").text(copied ? "Copied!" : "Copy failed");
+    copyButtonNode.select(".copy-icon path").attr("d", copied ? "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" : "M18.3 5.71 12 12l-6.3-6.29-1.4 1.42L10.59 13.4 4.3 19.7l1.4 1.4 6.3-6.29 6.3 6.29 1.4-1.4-6.29-6.3 6.29-6.29z");
 
-      clearTimeout(copyFeedbackTimer);
-      copyFeedbackTimer = setTimeout(function (){
-        copyButtonNode.classed("copied", false);
-        copyButtonNode.select(".copy-text").text("Copy URL");
-        copyButtonNode.select(".copy-icon path").attr("d", "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z");
-      }, 2000);
-    }
+    clearTimeout(copyFeedbackTimer);
+    copyFeedbackTimer = setTimeout(function (){
+      copyButtonNode.classed("copied", false).classed("copy-failed", false);
+      copyButtonNode.select(".copy-text").text("Copy URL");
+      copyButtonNode.select(".copy-icon path").attr("d", "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z");
+    }, 2000);
   }
 
   function prepareOptionString(defOpts, currOpts) {
@@ -2100,5 +2137,7 @@ module.exports = function (graph) {
 }
 
 createExportMenu.downloadFile = downloadFile;
+createExportMenu.copyInputValue = copyInputValue;
+createExportMenu.legacyCopyInputValue = legacyCopyInputValue;
 
 module.exports = createExportMenu;
