@@ -345,7 +345,9 @@
             </div>
         </nav>
         <nav class="noselect" id="swipeBarContainer" aria-label="Toolbar Navigation">
-            <ul id="menuElementContainer">
+            <div class="toolbar-control-row">
+                <button type="button" class="noselect" id="scrollLeftButton" aria-label="Scroll menu left" aria-controls="menuElementContainer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button>
+                <ul id="menuElementContainer">
                 <li id="c_search" class="inner-addon left-addon">
                     <button type="button" id="mobile-search-toggle-btn" class="navButton mobileSearchToggleBtn" aria-label="Open search" title="Open search" disabled>
                         <i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></g></svg></i>
@@ -353,8 +355,6 @@
                     <label class="sr-only" for="search-input-text">Search ontology</label>
                     <input class="searchInputText" type="text" id="search-input-text" placeholder="Search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-haspopup="listbox" aria-controls="search-results-listbox" disabled>
                     <button type="button" id="search-clear-btn" class="searchClearBtn hidden" aria-label="Clear search text" title="Clear search" disabled>✕</button>
-                    <!-- [html-validate-disable-next prefer-native-element] -->
-                    <ul id="search-results-listbox" role="listbox" class="search-combobox-popup hidden" aria-label="Search suggestions"></ul>
                 </li>
                 <li id="c_locate">
                     <button type="button" class="navButton" id="locateSearchResult" title="Nothing to locate" aria-label="Nothing to locate" disabled><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path d="M11 2h2v3.06A7.001 7.001 0 0 1 18.94 11H22v2h-3.06A7.001 7.001 0 0 1 13 18.94V22h-2v-3.06A7.001 7.001 0 0 1 5.06 13H2v-2h3.06A7.001 7.001 0 0 1 11 5.06V2zm1 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></g></svg></i></button>
@@ -460,10 +460,10 @@
                     </i>Reset</button></li>
                 <li id="c_pause"><button type="button" class="navButton action-pill" id="pause-button" disabled aria-pressed="false" title="Pause or resume graph physics simulation"><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></g></svg></i>Pause</button>
                 </li>
-            </ul>
+                </ul>
+                <button type="button" class="noselect" id="scrollRightButton" aria-label="Scroll menu right" aria-controls="menuElementContainer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></button>
+            </div>
         </nav>
-        <button type="button" class="noselect" id="scrollRightButton" aria-label="Scroll menu right"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></button>
-        <button type="button" class="noselect" id="scrollLeftButton" aria-label="Scroll menu left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button>
         <div id="zoomSlider" class="btn_shadowed">
             <button class="noselect" id="centerGraphButton" type="button" aria-label="Center graph" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 2h2v3.06A7.001 7.001 0 0 1 18.94 11H22v2h-3.06A7.001 7.001 0 0 1 13 18.94V22h-2v-3.06A7.001 7.001 0 0 1 5.06 13H2v-2h3.06A7.001 7.001 0 0 1 11 5.06V2zm1 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg></button>
             <button class="noselect" id="zoomInButton" type="button" aria-label="Zoom in" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
@@ -627,6 +627,10 @@
             </div>
         </section>
     </aside>
+    <div class="application-overlay-layer" id="applicationOverlayLayer">
+        <!-- [html-validate-disable-next prefer-native-element] -->
+        <ul id="search-results-listbox" role="listbox" class="search-combobox-popup hidden" aria-label="Search suggestions"></ul>
+    </div>
     <div id="blockGraphInteractions" class="hidden"></div>
     <div id="WarningErrorMessagesContainer" class="">
         <div id="WarningErrorMessages" class="">

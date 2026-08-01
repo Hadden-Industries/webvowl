@@ -5,6 +5,22 @@
     --left-sidebar-width: 200px;
     --control-margin: 12px;
     --action-pill-desktop-min-width: 95px;
+    --toolbar-control-size: 44px;
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --bottom-gesture-buffer: 0px;
+    --bottom-control-offset: calc(var(--safe-area-bottom) + var(--bottom-gesture-buffer));
+    --bottom-bar-size: calc(var(--toolbar-control-size) + var(--bottom-control-offset));
+    --visual-viewport-height: 100dvh;
+    --visual-viewport-offset-top: 0px;
+}
+
+@media screen and (width <= 1024px) and (any-pointer: coarse) {
+    :root {
+        --bottom-gesture-buffer: 16px;
+    }
 }
 
 @media screen and (width >= 1600px) {
@@ -24,6 +40,9 @@
 ---------------------------------------------- */
 html {
     -ms-content-zooming: none;
+    background: rgb(24 32 42);
+    height: 100%;
+    overflow: hidden;
 }
 
 
@@ -108,8 +127,8 @@ html {
 
 #additionalInformationContainer {
     position: absolute;
-    top: 10px;
-    right: 50px;
+    top: calc(10px + var(--safe-area-top));
+    right: calc(50px + var(--safe-area-right));
 }
 
 #modeOfOperationString {
@@ -186,15 +205,27 @@ html {
 }
 
 /** Modern W3C ARIA Autocomplete Combobox Search Styles **/
+.application-overlay-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    pointer-events: none;
+}
+
+.application-overlay-layer > .search-combobox-popup {
+    pointer-events: auto;
+}
+
 .search-combobox-popup {
     position: fixed;
-    bottom: 60px;
-    left: 16px;
+    bottom: calc(var(--bottom-bar-size) + 16px);
+    left: max(16px, var(--safe-area-left));
     transform: none;
     width: 340px;
-    max-width: calc(100vw - 32px);
+    max-width: calc(100dvw - max(16px, var(--safe-area-left)) - max(16px, var(--safe-area-right)));
     max-height: 320px;
     overflow-y: auto;
+    overscroll-behavior-y: contain;
     margin: 0;
     padding: 6px;
     list-style: none;
@@ -214,6 +245,7 @@ html {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    box-sizing: border-box;
     padding: 10px 12px;
     border-radius: 8px;
     color: #ecf0f1;
@@ -641,7 +673,9 @@ a:hover {
 ---------------------------------------------- */
 body {
     background: rgb(24 32 42);
+    box-sizing: border-box;
     height: 100%;
+    height: 100dvh;
     font-size: 14px;
     font-family: 'Open Sans', Helvetica, Arial, sans-serif;
     line-height: 1;
@@ -667,6 +701,7 @@ main {
 }
 
 #canvasArea {
+    height: calc(100% - var(--bottom-bar-size));
     position: relative;
     margin: 0;
     padding: 0;
@@ -676,7 +711,7 @@ main {
 
 #WarningErrorMessagesContainer {
     position: absolute;
-    top: 50px;
+    top: calc(50px + var(--safe-area-top));
     left: 0;
     width: 100%;
     z-index: 1000;
@@ -697,6 +732,7 @@ main {
     background-color: #ecf0f1;
     overflow: hidden;
     padding: 0;
+    height: 100%;
     width: 100%;
 }
 
@@ -712,13 +748,13 @@ main {
 
     /* padding: 10px; */
     pointer-events: none;
-    padding: 10px;
+    padding: calc(10px + var(--safe-area-top)) 10px 10px calc(10px + var(--safe-area-left));
 
     /* border: solid 1px red; */
 }
 
 #logo.has-warning {
-    padding-top: 40px !important;
+    padding-top: calc(40px + var(--safe-area-top)) !important;
 }
 
 #blockGraphInteractions {
@@ -739,7 +775,7 @@ main {
 
 #DirectInputContent {
     position: absolute;
-    top: 0;
+    top: var(--safe-area-top);
     left: 50%;
     transform: translateX(-50%);
     border: 1px solid black;
@@ -749,7 +785,7 @@ main {
 }
 
 #leftSideBarCollapseButton.aligned-to-left-sidebar {
-    left: 200px;
+    left: calc(var(--left-sidebar-width) + var(--safe-area-left));
 }
 
 #WarningErrorMessages.aligned-to-left-sidebar {
@@ -991,12 +1027,14 @@ main {
 #detailsArea {
     top: 0;
     right: 0;
-    bottom: 44px;
+    bottom: var(--bottom-bar-size);
     color: #bdc3c7;
-    height: calc(100% - 44px);
     width: var(--right-sidebar-width);
     overflow: hidden auto;
     position: fixed;
+    box-sizing: border-box;
+    padding-top: var(--safe-area-top);
+    padding-right: var(--safe-area-right);
     border-left: 1px solid #34495E;
     background-color: #18202A;
     z-index: 1000;
@@ -1325,8 +1363,8 @@ main {
     height: 32px;
     width: 32px;
     box-sizing: border-box;
-    top: 0;
-    right: 12px;
+    top: var(--safe-area-top);
+    right: calc(12px + var(--safe-area-right));
     color: #ecf0f1;
     position: fixed;
     border: 1px solid #34495E;
@@ -1376,8 +1414,8 @@ main {
     height: 32px;
     width: 32px;
     box-sizing: border-box;
-    top: 50px;
-    left: 0;
+    top: calc(50px + var(--safe-area-top));
+    left: var(--safe-area-left);
     color: #ecf0f1;
     position: absolute;
     border: 1px solid #34495E;
@@ -1619,10 +1657,10 @@ main {
 }
 
 #containerForLeftSideBar {
-    top: 50px;
+    top: calc(50px + var(--safe-area-top));
     position: absolute;
     background-color: #1b252e;
-    left: 0;
+    left: var(--safe-area-left);
     width: 0;
     height: 300px;
     z-index: 1000;
@@ -1631,7 +1669,7 @@ main {
 }
 
 #containerForLeftSideBar.sidebar-visible {
-    width: 200px;
+    width: var(--left-sidebar-width);
 }
 
 #leftSideBar {
@@ -1644,8 +1682,8 @@ main {
     position: absolute;
     text-align: center;
     width: 100%;
-    height: 80%;
-    top: 0;
+    height: calc(80% - var(--safe-area-top));
+    top: var(--safe-area-top);
     pointer-events: none;
 }
 
@@ -1739,7 +1777,7 @@ main {
     padding: 2px;
     margin: 0;
     white-space: pre-wrap;
-    max-height: calc(100vh - 125px);
+    max-height: calc(100svh - 125px);
     max-width: 75vw;
     overflow: auto;
 }
@@ -1965,30 +2003,43 @@ main {
 
 /***************** REWRITING MENU ELEMENT CONTAINERS ***********************/
 
-/* Fixed 44px bottom navigation bar */
+/* Fixed bottom navigation surface, including its non-interactive safe-area strip */
 #swipeBarContainer {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 44px;
+    height: var(--bottom-bar-size);
     margin: 0;
-    padding: 0;
+    padding: 0 0 var(--bottom-control-offset);
     background-color: #18202A;
-    border-top: 1px solid #34495E;
+    box-shadow: inset 0 1px #34495E;
     z-index: 1100;
     box-sizing: border-box;
-    display: flex;
-    align-items: center;
     overflow: hidden;
+    overscroll-behavior-y: none;
+}
+
+/* The safe-area strip remains outside this 44px interactive control row. */
+.toolbar-control-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--toolbar-control-size) minmax(0, 1fr) var(--toolbar-control-size);
+    grid-template-rows: var(--toolbar-control-size);
+    width: 100%;
+    height: var(--toolbar-control-size);
+    padding: 0 var(--safe-area-right) 0 var(--safe-area-left);
+    box-sizing: border-box;
 }
 
 /* Scroll-able horizontal container for menu entries */
 #menuElementContainer {
+    grid-column: 2;
+    min-width: 0;
     width: 100%;
-    height: 44px;
+    height: var(--toolbar-control-size);
     margin: 0;
-    padding: 0 44px;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -1996,6 +2047,9 @@ main {
     white-space: nowrap;
     list-style-type: none;
     box-sizing: border-box;
+    overscroll-behavior: none contain;
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
@@ -2010,7 +2064,7 @@ main {
 
 /* Individual menu entry list items (100% vertically centered) */
 #menuElementContainer > li {
-    height: 44px;
+    height: var(--toolbar-control-size);
     margin: 0;
     padding: 0 4px;
     display: inline-flex;
@@ -2025,7 +2079,7 @@ main {
 /* Link & button elements inside menu list items */
 #menuElementContainer > li > button,
 #menuElementContainer > li > a {
-    height: 44px;
+    height: var(--toolbar-control-size);
     margin: 0;
     padding: 0 10px;
     display: inline-flex;
@@ -2476,38 +2530,38 @@ main {
 /* ScrollButton behavior */
 #scrollLeftButton,
 #scrollRightButton {
-    position: fixed;
-    bottom: 0;
-    height: 44px;
-    width: 44px;
+    position: static;
+    grid-row: 1;
+    height: var(--toolbar-control-size);
+    width: var(--toolbar-control-size);
     padding: 0;
     color: #fff;
     cursor: pointer;
     background-color: #18202A;
     border: none;
-    z-index: 1200;
+    z-index: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
+    touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
 }
 
 #scrollLeftButton {
-    left: 0;
-    border-top: 1px solid #34495E;
+    grid-column: 1;
     border-right: 1px solid #34495E;
 }
 
 #scrollRightButton {
-    right: 0;
-    border-top: 1px solid #34495E;
+    grid-column: 3;
     border-left: 1px solid #34495E;
 }
 
-#scrollLeftButton:focus,
-#scrollRightButton:focus {
-    outline: none;
+#scrollLeftButton:focus-visible,
+#scrollRightButton:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -4px;
 }
 
 #scrollLeftButton > svg,
@@ -2537,8 +2591,8 @@ body:has(.search-expanded) #scrollRightButton {
 /* Ground-up CSS Flexbox Vertical Zoom Slider Panel */
 #zoomSlider {
     position: fixed;
-    bottom: 60px !important;
-    right: 12px;
+    bottom: calc(var(--bottom-bar-size) + 16px) !important;
+    right: calc(12px + var(--safe-area-right));
     width: 32px;
     display: flex;
     flex-direction: column;
@@ -3139,8 +3193,8 @@ a#locateSearchResult {
         width: 44px;
         height: 44px;
         font-size: 1.5em;
-        top: 0;
-        right: 12px;
+        top: var(--safe-area-top);
+        right: calc(12px + var(--safe-area-right));
         border-radius: 6px;
         background-color: rgb(24 32 42 / 95%);
         color: #ecf0f1;
@@ -3162,8 +3216,8 @@ a#locateSearchResult {
     #zoomSlider {
         width: 44px;
         position: fixed;
-        bottom: 60px;
-        right: 12px;
+        bottom: calc(var(--bottom-bar-size) + 16px);
+        right: calc(12px + var(--safe-area-right));
         z-index: 999;
         transition: right 0.3s ease;
     }
@@ -3202,7 +3256,7 @@ a#locateSearchResult {
 }
 
 @media screen and (width < 768px) {
-    #menuElementContainer > li > button,
+    #menuElementContainer > li > button:not(#search-clear-btn),
     #menuElementContainer > li > a {
         font-size: 0 !important;
         padding: 0 8px !important;
@@ -3226,8 +3280,7 @@ a#locateSearchResult {
 
 @media screen and (width < 600px) {
     #swipeBarContainer {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        overflow: hidden;
     }
 
     #menuElementContainer li a {
@@ -3260,9 +3313,9 @@ a#locateSearchResult {
 
     li#c_search.search-expanded {
         position: absolute !important;
-        inset: 0 48px 0 0 !important;
-        width: calc(100% - 48px) !important;
-        max-width: calc(100% - 48px) !important;
+        inset: 0 calc(var(--safe-area-right) + 48px) 0 var(--safe-area-left) !important;
+        width: auto !important;
+        max-width: none !important;
         height: 100% !important;
         z-index: 1300 !important;
         background-color: #18202a !important;
@@ -3280,7 +3333,8 @@ a#locateSearchResult {
     body:has(.search-expanded) li#c_locate,
     li#c_search.search-expanded + li#c_locate {
         position: absolute !important;
-        inset: 0 4px 0 auto !important;
+        inset: 50% calc(var(--safe-area-right) + 4px) auto auto !important;
+        transform: translateY(-50%);
         height: 44px !important;
         width: 44px !important;
         z-index: 1400 !important;
@@ -3315,11 +3369,15 @@ a#locateSearchResult {
         width: 100% !important;
         min-width: calc(100% - 16px) !important;
         padding-left: 36px !important;
-        padding-right: 36px !important;
+        padding-right: 48px !important;
     }
 
     li#c_search.search-expanded #search-clear-btn {
-        right: 16px !important;
+        right: 4px !important;
+        width: var(--toolbar-control-size) !important;
+        height: var(--toolbar-control-size) !important;
+        min-width: var(--toolbar-control-size) !important;
+        min-height: var(--toolbar-control-size) !important;
     }
 
     li#c_search.search-expanded #search-clear-btn:not(.hidden) {
@@ -3327,9 +3385,22 @@ a#locateSearchResult {
     }
 }
 
-@supports (padding: env(safe-area-inset-top)) {
-    body {
-        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+@media screen and (width <= 1024px) and (any-pointer: coarse) {
+    .navButton.action-pill,
+    #search-clear-btn,
+    .popover-close-btn,
+    .search-option {
+        min-width: var(--toolbar-control-size);
+        min-height: var(--toolbar-control-size);
+    }
+
+    #search-clear-btn {
+        width: var(--toolbar-control-size) !important;
+        height: var(--toolbar-control-size) !important;
+    }
+
+    li#c_search.search-expanded input.searchInputText {
+        padding-right: 48px !important;
     }
 }
 
@@ -3347,14 +3418,14 @@ a#locateSearchResult {
 .modern-popover {
     position: fixed;
     inset: auto;
-    bottom: 60px;
-    left: var(--popover-inline-start, 16px);
+    bottom: calc(var(--bottom-bar-size) + 16px);
+    left: max(var(--popover-inline-start, 16px), calc(var(--safe-area-left) + 16px));
     transform: translateY(var(--sheet-drag-y, 0));
     margin: 0;
     padding: 0;
     width: 360px;
-    max-width: calc(100vw - 32px);
-    max-height: 82vh;
+    max-width: calc(100dvw - max(var(--popover-inline-start, 16px), calc(var(--safe-area-left) + 16px)) - max(16px, var(--safe-area-right)));
+    max-height: 82svh;
     background: rgb(24 32 42 / 92%);
     backdrop-filter: blur(20px);
     border: 1px solid rgb(255 255 255 / 12%);
@@ -3432,7 +3503,7 @@ a#locateSearchResult {
 .popover-content {
     padding: 12px 18px 18px;
     overflow-y: auto;
-    max-height: calc(82vh - 60px);
+    max-height: calc(82svh - 60px);
     scrollbar-width: thin;
     scrollbar-color: rgb(255 255 255 / 20%) transparent;
 }
@@ -3701,10 +3772,10 @@ a#locateSearchResult {
         transform: translateY(var(--sheet-drag-y, 0));
         width: 100% !important;
         max-width: 100% !important;
-        max-height: 80vh !important;
+        max-height: 80svh !important;
         border-radius: 20px 20px 0 0 !important;
         border-bottom: none !important;
-        padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
+        padding-bottom: max(16px, var(--bottom-control-offset)) !important;
         animation: sheetSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         will-change: transform;
         z-index: 99999 !important;
@@ -3755,10 +3826,10 @@ a#locateSearchResult {
 
     .search-combobox-popup {
         position: fixed;
-        inset: max(16px, env(safe-area-inset-top, 16px)) 16px auto;
+        inset: calc(var(--visual-viewport-offset-top) + var(--safe-area-top) + 16px) max(16px, var(--safe-area-right)) auto max(16px, var(--safe-area-left));
         width: auto;
-        max-width: calc(100vw - 32px);
-        max-height: 45vh;
+        max-width: none;
+        max-height: min(45svh, calc(var(--visual-viewport-height) - var(--safe-area-top) - 32px));
         z-index: 3000;
     }
 

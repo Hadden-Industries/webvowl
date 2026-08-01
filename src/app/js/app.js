@@ -59,6 +59,8 @@ module.exports = function (){
   let wasMessageToShow = false;
   let firstTime = false;
   let initialTouchZoomHandled = false;
+  let resizeAnimationFrame;
+  let graphResizeObserver;
   
   function addFileDropEvents( selector ){
     const node = d3.select(selector);
@@ -202,7 +204,13 @@ module.exports = function (){
     options.filterModules().push(compactNotationSwitch);
     options.filterModules().push(colorExternalsSwitch);
     
-    d3.select(window).on("resize", adjustSize);
+    d3.select(window).on("resize", scheduleSizeAdjustment);
+
+    const graphHost = d3.select(GRAPH_SELECTOR).node();
+    if ( !graphResizeObserver && graphHost && typeof ResizeObserver !== "undefined" ) {
+      graphResizeObserver = new ResizeObserver(scheduleSizeAdjustment);
+      graphResizeObserver.observe(graphHost);
+    }
     
     exportMenu.setup();
     gravityMenu.setup();
@@ -424,31 +432,21 @@ module.exports = function (){
     }
   }
   
-  function getRightSidebarWidth(){
-    const styleVal = window.getComputedStyle(document.documentElement).getPropertyValue("--right-sidebar-width").trim();
-    const parsed = parseInt(styleVal, 10);
-    return isNaN(parsed) ? 280 : parsed;
+  function scheduleSizeAdjustment(){
+    if ( resizeAnimationFrame !== undefined ) {
+      cancelAnimationFrame(resizeAnimationFrame);
+    }
+    resizeAnimationFrame = requestAnimationFrame(function (){
+      resizeAnimationFrame = undefined;
+      adjustSize();
+    });
   }
 
   function adjustSize(){
-    const graphContainer = d3.select(GRAPH_SELECTOR),
-      svg = graphContainer.select("svg"),
-      height = window.innerHeight - 44,
-      width = (sidebar.getSidebarVisibility() === "0")
-        ? window.innerWidth
-        : window.innerWidth - getRightSidebarWidth();
-    
     directInputMod.updateLayout();
-    svg.attr("width", width)
-      .attr("height", height);
-    
-    options.width(width)
-      .height(height);
+    const viewport = graph.updateCanvasContainerSize();
     
     graph.updateStyle();
-    if ( sidebar && sidebar.updateSideBarVis ) {
-      sidebar.updateSideBarVis(true);
-    }
     
     if ( isTouchDevice() === true ) {
       if ( graph.isEditorMode() === true )
@@ -467,26 +465,12 @@ module.exports = function (){
     
     loadingModule.checkForScreenSize();
     
-    adjustSliderSize();
+    adjustSliderSize(viewport.height);
     // update also the padding options of loading and the logo positions;
     const warningDiv = d3.select("#browserCheck");
     d3.select("#logo").classed("has-warning", warningDiv.classed("hidden") === false);
     
-    // scrollbar tests;
-    const element = d3.select("#menuElementContainer").node();
-    const maxScrollLeft = element.scrollWidth - element.clientWidth;
-    const leftButton = d3.select("#scrollLeftButton");
-    const rightButton = d3.select("#scrollRightButton");
-    if ( maxScrollLeft > 0 ) {
-      // show both and then check how far is bar;
-      rightButton.classed("hidden", false);
-      leftButton.classed("hidden", false);
-      navigationMenu.updateScrollButtonVisibility();
-    } else {
-      // hide both;
-      rightButton.classed("hidden", true);
-      leftButton.classed("hidden", true);
-    }
+    navigationMenu.updateScrollButtonVisibility();
     
     // adjust height of the leftSidebar element;
     editSidebar.updateElementWidth();
@@ -498,8 +482,7 @@ module.exports = function (){
     
   }
   
-  function adjustSliderSize(){
-    const fullHeight = window.innerHeight - 44;
+  function adjustSliderSize( fullHeight ){
     const isSliderAllowed = options.zoomSlider().showSlider();
     if ( fullHeight < 150 || !isSliderAllowed ) {
       d3.select("#zoomSlider").classed("hidden", true);

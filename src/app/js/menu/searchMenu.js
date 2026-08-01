@@ -17,6 +17,7 @@ module.exports = function ( graph ){
   let inputText;
   let menuEnabled = true;
   let locateAvailable = false;
+  let visualViewportAnimationFrame;
   
   let results = [];
   let resultID = [];
@@ -131,9 +132,38 @@ module.exports = function ( graph ){
     d3.select("#scrollRightButton").classed("hidden-by-search", false);
   }
 
+  function updateVisualViewportMetrics(){
+    if ( !window.visualViewport || !document.documentElement || !document.documentElement.style ) {return;}
+
+    const updateMetrics = function (){
+      visualViewportAnimationFrame = undefined;
+      document.documentElement.style.setProperty("--visual-viewport-height", window.visualViewport.height + "px");
+      document.documentElement.style.setProperty("--visual-viewport-offset-top", window.visualViewport.offsetTop + "px");
+    };
+
+    if ( visualViewportAnimationFrame !== undefined && typeof cancelAnimationFrame === "function" ) {
+      cancelAnimationFrame(visualViewportAnimationFrame);
+    }
+    if ( typeof requestAnimationFrame === "function" ) {
+      visualViewportAnimationFrame = requestAnimationFrame(updateMetrics);
+    } else {
+      updateMetrics();
+    }
+  }
+
+  function portalSearchResults(){
+    const overlayLayer = document.getElementById("applicationOverlayLayer");
+    const listboxNode = listbox.node();
+    if ( overlayLayer && listboxNode && listboxNode.parentNode !== overlayLayer ) {
+      overlayLayer.appendChild(listboxNode);
+    }
+  }
+
   searchMenu.setup = function (){
     // clear dictionary;
     dictionary = [];
+
+    portalSearchResults();
 
     setLocateButtonState(false);
 
@@ -218,16 +248,16 @@ module.exports = function ( graph ){
     });
 
     if ( window.visualViewport ) {
-      window.visualViewport.addEventListener("resize", function (){
+      const handleVisualViewportChange = function (){
+        updateVisualViewportMetrics();
         if ( listbox.node() && !listbox.classed("hidden") ) {
           searchMenu.showSearchEntries();
         }
-      });
-      window.visualViewport.addEventListener("scroll", function (){
-        if ( listbox.node() && !listbox.classed("hidden") ) {
-          searchMenu.showSearchEntries();
-        }
-      });
+      };
+
+      updateVisualViewportMetrics();
+      window.visualViewport.addEventListener("resize", handleVisualViewportChange);
+      window.visualViewport.addEventListener("scroll", handleVisualViewportChange);
     }
   };
   

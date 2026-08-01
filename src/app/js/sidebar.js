@@ -857,12 +857,6 @@ function createSidebar( graph ){
     }
   }
 
-  function getRightSidebarWidth(){
-    const styleVal = window.getComputedStyle(document.documentElement).getPropertyValue("--right-sidebar-width").trim();
-    const parsed = parseInt(styleVal, 10);
-    return isNaN(parsed) ? 280 : parsed;
-  }
-
   sidebar.showSidebar = function ( val, init ){
     if ( init === true ) {
       d3.select("body").classed("no-transition", true);
@@ -874,14 +868,12 @@ function createSidebar( graph ){
       detailArea.classed("hidden", false);
       graphArea.classed("sidebar-visible", true);
       d3.select("#WarningErrorMessagesContainer").classed("sidebar-visible", true);
-      graph.options().width(window.innerWidth - getRightSidebarWidth());
     } else {
       visibleSidebar = false;
       collapseButton.node().innerHTML = "<";
       detailArea.classed("hidden", true);
       graphArea.classed("sidebar-visible", false);
       d3.select("#WarningErrorMessagesContainer").classed("sidebar-visible", false);
-      graph.options().width(window.innerWidth);
     }
 
     sidebar.updateDockedControlsPosition();
@@ -911,7 +903,8 @@ function createSidebar( graph ){
   };
   
   sidebar.initSideBarAnimation = function (){
-    graphArea.node().addEventListener("animationend", function (){
+    graphArea.node().addEventListener("transitionend", function (event){
+      if ( event.propertyName !== "width" ) {return;}
       detailArea.classed("hidden", !visibleSidebar);
       graph.updateCanvasContainerSize();
       updateNavMenuScrollButtons();
