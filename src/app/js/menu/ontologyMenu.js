@@ -143,33 +143,47 @@ module.exports = function ( graph ){
       htmlCollection[0].remove();
     }
   };
-  ontologyMenu.append_message = function ( msg ){
+  ontologyMenu.append_message = function ( msg, options ){
     // forward call
-    append_message(msg);
+    append_message(msg, options);
   };
-  function append_message( msg ){
+  function appendStructuredMessage( container, msg, options ){
+    const messageOptions = options || {};
+    if ( messageOptions.breakBefore ) {
+      container.append("br");
+    }
+    const messageElement = container.append(messageOptions.block ? "p" : "span")
+      .classed("loading-message", true)
+      .classed("loading-message--error", messageOptions.tone === "error")
+      .text(String(msg));
+    if ( messageOptions.breakAfter ) {
+      container.append("br");
+    }
+    return messageElement;
+  }
+
+  function append_message( msg, options ){
     const bpContainer = d3.select("#bulletPoint_container");
     const div = bpContainer.append("div");
-    div.node().innerHTML = msg;
+    appendStructuredMessage(div, msg, options);
     loadingModule.scrollDownDetails();
   }
   
-  ontologyMenu.append_message_toLastBulletPoint = function ( msg ){
+  ontologyMenu.append_message_toLastBulletPoint = function ( msg, options ){
     // forward call
-    append_message_toLastBulletPoint(msg);
+    append_message_toLastBulletPoint(msg, options);
   };
   
   ontologyMenu.append_bulletPoint = function ( msg ){
     // forward call
     append_bulletPoint(msg);
   };
-  function append_message_toLastBulletPoint( msg ){
+  function append_message_toLastBulletPoint( msg, options ){
     const bpContainer = d3.select("#bulletPoint_container");
     const htmlCollection = bpContainer.node().getElementsByTagName("LI");
     const lastItem = htmlCollection.length - 1;
     if ( lastItem >= 0 ) {
-      const oldText = htmlCollection[lastItem].innerHTML;
-      htmlCollection[lastItem].innerHTML = oldText + msg;
+      appendStructuredMessage(d3.select(htmlCollection[lastItem]), msg, options);
     }
     loadingModule.scrollDownDetails();
   }
@@ -177,8 +191,8 @@ module.exports = function ( graph ){
   function append_bulletPoint( msg ){
     const bp_container = d3.select("#bulletPoint_container");
     const bp = bp_container.append("li");
-    bp.node().innerHTML = msg;
-    d3.select("#currentLoadingStep").node().innerHTML = msg;
+    bp.text(msg);
+    d3.select("#currentLoadingStep").text(msg);
     loadingModule.scrollDownDetails();
   }
   
@@ -274,7 +288,22 @@ module.exports = function ( graph ){
     });
   }
   
-  function setLoadingStatusInfo( message ){
+  function appendLoadingStatusText( container, message ){
+    const validatorUrl = "http://visualdataweb.de/validator/";
+    const parts = String(message).split(validatorUrl);
+    parts.forEach(function ( part, index ){
+      container.append("span").text(part);
+      if ( index < parts.length - 1 ) {
+        container.append("a")
+          .attr("href", validatorUrl)
+          .attr("target", "_blank")
+          .attr("rel", "noopener noreferrer")
+          .text("OWL Validator");
+      }
+    });
+  }
+
+  function setLoadingStatusInfo( message, errorMessage ){
     // check if there is a owl2vowl li item;
     let o2vConverterContainer = d3.select("#o2vConverterContainer");
     if ( !o2vConverterContainer.node() ) {
@@ -283,26 +312,26 @@ module.exports = function ( graph ){
       o2vConverterContainer = div.append("ul");
       o2vConverterContainer.attr("id", "o2vConverterContainer");
     }
-    // clear o2vConverterContainer;
-    const htmlCollection = o2vConverterContainer.node().children;
-    const numEntries = htmlCollection.length;
-    for ( let i = 0; i < numEntries; i++ ) {
-      htmlCollection[0].remove();
-    }
+    o2vConverterContainer.selectAll("*").remove();
     // split tokens provided by o2v messages
     const tokens = message.split("* ");
-    let liForToken;
     for ( let t = 0; t < tokens.length; t++ ) {
       const tokenMessage = tokens[t];
       // create li for tokens;
       if ( tokenMessage.length > 0 ) {
-        liForToken = o2vConverterContainer.append("li");
-        liForToken.attr("type", "disc");
-        liForToken.node().innerHTML = tokenMessage.replace(/\n/g, "<br>");
+        const liForToken = o2vConverterContainer.append("li");
+        liForToken.attr("type", "disc")
+          .classed("loading-status-entry", true);
+        appendLoadingStatusText(liForToken, tokenMessage);
       }
     }
-    if ( liForToken )
-      {liForToken.node().innerHTML += "<br>";}
+    if ( errorMessage ) {
+      const errorEntry = o2vConverterContainer.append("li")
+        .attr("type", "disc")
+        .classed("loading-status-entry", true)
+        .classed("loading-message--error", true);
+      appendLoadingStatusText(errorEntry, errorMessage);
+    }
     
     loadingModule.scrollDownDetails();
   }
@@ -368,10 +397,10 @@ module.exports = function ( graph ){
         return response.text();
       })
       .then(function(responseText) {
-        setLoadingStatusInfo(responseText + "<br>" + msg);
+        setLoadingStatusInfo(responseText, msg);
       })
       .catch(function(error) {
-        append_message(msg);
+        append_message(msg, { tone: "error" });
       });
   }
   
@@ -495,15 +524,14 @@ module.exports = function ( graph ){
       ontologyMenu.conversionFinished(local_conversionId);
       return;
     }
-    callbackUpdateLoadingMessage("<br><span style='color:red'> Failed to convert the file.</span> " +
-      " Ontology could not be loaded.<br>Is it a valid OWL ontology? Please check with <a target=\"_blank\"" +
-      "href=\"http://visualdataweb.de/validator/\">OWL Validator</a>");
+    callbackUpdateLoadingMessage("Failed to convert the file. Ontology could not be loaded. " +
+      "Is it a valid OWL ontology? Check with http://visualdataweb.de/validator/");
     
     if ( error !== null && error.status === 500 ) {
-      append_message("<span style='color:red'>Could not find ontology  at the URL</span>");
+      append_message("Could not find ontology at the URL", { tone: "error" });
     }
     if ( request && request.responseText.length === 0 ) {
-      append_message("<span style='color:red'>Received empty graph</span>");
+      append_message("Received empty graph", { tone: "error" });
     }
     graph.handleOnLoadingError();
     ontologyMenu.conversionFinished();
@@ -519,15 +547,14 @@ module.exports = function ( graph ){
       ontologyMenu.conversionFinished(local_conversionId);
       return;
     }
-    callbackUpdateLoadingMessage("<br><span style='color:red'> Failed to convert the file.</span> " +
-      " Ontology could not be loaded.<br>Is it a valid OWL ontology? Please check with <a target=\"_blank\"" +
-      "href=\"http://visualdataweb.de/validator/\">OWL Validator</a>");
+    callbackUpdateLoadingMessage("Failed to convert the file. Ontology could not be loaded. " +
+      "Is it a valid OWL ontology? Check with http://visualdataweb.de/validator/");
     
     if ( error !== null && error.status === 500 ) {
-      append_message("<span style='color:red'>Could not find ontology  at the URL</span>");
+      append_message("Could not find ontology at the URL", { tone: "error" });
     }
     if ( request && request.responseText.length === 0 ) {
-      append_message("<span style='color:red'>Received empty graph</span>");
+      append_message("Received empty graph", { tone: "error" });
     }
     graph.handleOnLoadingError();
     ontologyMenu.conversionFinished();
@@ -572,13 +599,10 @@ module.exports = function ( graph ){
     } else {
       const uglyJson=xhr.responseText;
       const jsonResut=JSON.parse(uglyJson);
-      let niceJSON=JSON.stringify(jsonResut, 'null', '  ');
-      niceJSON = niceJSON.replace(/\r?\n/g, '<br />');
-      callbackUpdateLoadingMessage("Failed to convert the file. " +
-          "<br />Server answer: <br />"+
-          "<hr>"+niceJSON+ "<hr>"+
-        "Ontology could not be loaded.<br />Is it a valid OWL ontology? Please check with <a target=\"_blank\"" +
-        "href=\"http://visualdataweb.de/validator/\">OWL Validator</a>");
+      const niceJSON=JSON.stringify(jsonResut, null, 2);
+      callbackUpdateLoadingMessage("Failed to convert the file.\nServer answer:\n" + niceJSON +
+        "\nOntology could not be loaded. Is it a valid OWL ontology? " +
+        "Check with http://visualdataweb.de/validator/");
       
       graph.handleOnLoadingError();
       ontologyMenu.conversionFinished();

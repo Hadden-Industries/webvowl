@@ -2,26 +2,36 @@ const textToolsFactory = require("./textTools");
 
 describe("Truncating of text", () => {
   let tools;
+  let attributes;
 
   beforeEach(() => {
     const mockElement = { offsetWidth: 20 };
+    attributes = {};
     global.d3 = {
       select: () => ({
         append: () => ({
-          attr: function () { return this; },
+          attr: function (name, value) {
+            attributes[name] = value;
+            return this;
+          },
           text: function (txt) {
             mockElement.offsetWidth = txt.length * 5;
             return this;
           },
+          node: () => mockElement,
           remove: () => {}
         })
       })
     };
-    global.document = {
-      getElementById: () => mockElement
-    };
 
     tools = textToolsFactory();
+  });
+
+  test("uses the shared CSS measurement class without an inline style", () => {
+    tools.measureTextWidth("Ontology", "text");
+
+    expect(attributes.class).toBe("text text-measurement-probe");
+    expect(attributes.style).toBeUndefined();
   });
 
   test("should not truncate too short strings", () => {

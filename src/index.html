@@ -45,7 +45,9 @@
                     <h4 id="currentLoadingStep">
                         Layout optimization</h4>
                     <div id="progressBarContext">
-                        <div id="progressBarValue" class="busyProgressBar"></div>
+                        <label class="sr-only" for="progressBarValue">Layout optimization progress</label>
+                        <progress id="progressBarValue" max="100"></progress>
+                        <output id="progressBarLabel" for="progressBarValue" aria-live="polite"></output>
                     </div>
                 </div>
                 <div id="loadingInfo_msgBox">
@@ -66,7 +68,7 @@
                 <svg viewBox="38 -12.5 18 18" class="reloadCachedOntologyIcon btn_shadowed" id="reloadSvgIcon" aria-hidden="true">
                     <g>
                         <text id="svgStringText" dx="5px" dy="-1px">Reload ontology</text>
-                        <path style="fill : #444; stroke-width:0;"
+                        <path class="reload-cached-ontology-path"
                               d="m 42.277542,5.1367119 c -5.405,0 -10.444,1.577 -14.699,4.282 l -5.75,-5.75 0,16.1100001 16.11,0 -6.395,-6.395 c 3.18,-1.787 6.834,-2.82 10.734,-2.82 12.171,0 22.073,9.902 22.073,22.074 0,2.899 -0.577,5.664 -1.599,8.202 l 4.738,2.762 c 1.47,-3.363 2.288,-7.068 2.288,-10.964 0,-15.164 -12.337,-27.5010001 -27.5,-27.5010001 m 11.5,46.7460001 c -3.179,1.786 -6.826,2.827 -10.726,2.827 -12.171,0 -22.073,-9.902 -22.073,-22.073 0,-2.739 0.524,-5.35 1.439,-7.771 l -4.731,-2.851 c -1.375,3.271 -2.136,6.858 -2.136,10.622 0,15.164 12.336,27.5 27.5,27.5 5.406,0 10.434,-1.584 14.691,-4.289 l 5.758,5.759 0,-16.112 -16.111,0 6.389,6.388 z"
                               transform="matrix(0.20,0,0,0.20,75,-10)">
                         </path>
@@ -93,11 +95,11 @@
                         </g>
                     </defs>
                     <g id="drag_icon_group">
-                        <path id="drag_icon" style="fill : #444; stroke-width:0;"
+                        <path id="drag_icon"
                               d="m 9.0000002,-8.9899999 -18.0000001,0 c -1.1000001,0 -1.9999991,0.9 -1.9999991,2 l 0,3.99 1.9999991,0 0,-4.01 18.0000001,0 0,14.0299996 -18.0000001,0 0,-4.02 -1.9999991,0 0,4.01 c 0,1.1 0.899999,1.98 1.9999991,1.98 l 18.0000001,0 c 1.1000008,0 2.0000008,-0.88 2.0000008,-1.98 l 0,-13.9999996 c 0,-1.11 -0.9,-2 -2.0000008,-2 z M -1,3.9999997 3.0000001,-3.3898305e-7 -1,-3.9999999 l 0,2.9999996 -9.999999,0 0,1.99999996 9.999999,0 0,3.00000004 z"
                               transform="matrix(5.0,0,0,5.0,0,0)">
                         </path>
-                        <path id="drag_icon_drop" class="hidden" style="fill : #444; stroke-width:0;"
+                        <path id="drag_icon_drop" class="hidden"
                               d="m 8.9900008,8.9999991 0,-18.0000001 c 0,-1.1 -0.9,-1.999999 -2,-1.999999 l -3.99,0 0,1.999999 4.01,0 0,18.0000001 -14.0299996,0 0,-18.0000001 4.02,0 0,-1.999999 -4.01,0 c -1.1,0 -1.98,0.899999 -1.98,1.999999 l 0,18.0000001 c 0,1.1000009 0.88,2.0000009 1.98,2.0000009 l 13.9999996,0 c 1.11,0 2,-0.9 2,-2.0000009 z M -3.9999988,-1.0000011 1.2389831e-6,2.999999 4.0000008,-1.0000011 l -2.9999996,0 0,-9.9999989 -1.99999996,0 0,9.9999989 -3.00000004,0 z"
                               transform="matrix(5.0,0,0,5.0,0,0)">
                         </path>
@@ -346,7 +348,7 @@
             <ul id="menuElementContainer">
                 <li id="c_search" class="inner-addon left-addon">
                     <button type="button" id="mobile-search-toggle-btn" class="navButton mobileSearchToggleBtn" aria-label="Open search" title="Open search">
-                        <i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path style="fill: #fff; stroke-width: 0;" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></g></svg></i>
+                        <i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></g></svg></i>
                     </button>
                     <label class="sr-only" for="search-input-text">Search ontology</label>
                     <input class="searchInputText" type="text" id="search-input-text" placeholder="Search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-haspopup="listbox" aria-controls="search-results-listbox">
@@ -355,14 +357,14 @@
                     <ul id="search-results-listbox" role="listbox" class="search-combobox-popup hidden" aria-label="Search suggestions"></ul>
                 </li>
                 <li id="c_locate">
-                    <button type="button" class="navButton" id="locateSearchResult" title="Nothing to locate" aria-label="Nothing to locate" disabled><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path style="fill: #fff; stroke-width: 0;" d="M11 2h2v3.06A7.001 7.001 0 0 1 18.94 11H22v2h-3.06A7.001 7.001 0 0 1 13 18.94V22h-2v-3.06A7.001 7.001 0 0 1 5.06 13H2v-2h3.06A7.001 7.001 0 0 1 11 5.06V2zm1 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></g></svg></i></button>
+                    <button type="button" class="navButton" id="locateSearchResult" title="Nothing to locate" aria-label="Nothing to locate" disabled><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path d="M11 2h2v3.06A7.001 7.001 0 0 1 18.94 11H22v2h-3.06A7.001 7.001 0 0 1 13 18.94V22h-2v-3.06A7.001 7.001 0 0 1 5.06 13H2v-2h3.06A7.001 7.001 0 0 1 11 5.06V2zm1 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></g></svg></i></button>
                 </li>
                 <li id="c_select">
                     <button type="button" class="navButton" popovertarget="m_select">
                         <i>
                             <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                                 <g>
-                                    <path style="fill : #fff; stroke-width:0;"
+                                    <path
                                           d="M3 15h18v-2H3v2zm0 4h18v-2H3v2zm0-8h18V9H3v2zm0-6v2h18V5H3z"
                                           transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                     </path>
@@ -374,7 +376,7 @@
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
-                                <path style="fill : #fff; stroke-width:0;"
+                                <path
                                       d="M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
@@ -385,7 +387,7 @@
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
-                                <path style="fill : #fff; stroke-width:0;"
+                                <path
                                       d="M3 4l9 16 9-16H3zm3.38 2h11.25L12 16 6.38 6z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
@@ -396,7 +398,7 @@
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
-                                <path style="fill : #fff; stroke-width:0;"
+                                <path
                                       d="m 21.163138,13.127428 0,-2.356764 -2.546629,-0.424622 C 18.439272,9.5807939 18.137791,8.8661419 17.733863,8.218291 L 19.2356,6.116978 17.569296,4.450673 15.466841,5.951269 C 14.818953,5.548483 14.104338,5.24586 13.33909,5.067482 l -0.424622,-2.545488 -2.356764,0 -0.424622,2.545488 C 9.3689769,5.24586 8.6531829,5.548519 8.0053319,5.951269 l -2.102455,-1.500596 -1.666304,1.666305 1.501737,2.101313 c -0.403928,0.6467469 -0.705409,1.3625029 -0.882646,2.127751 l -2.546629,0.424622 0,2.356764 2.546629,0.424622 c 0.177237,0.765248 0.478718,1.4799 0.882646,2.127751 l -1.501737,2.102455 1.666304,1.666304 2.103596,-1.501737 c 0.646747,0.403928 1.362504,0.705409 2.1266091,0.882646 l 0.424622,2.546629 2.356764,0 0.424622,-2.546629 c 0.764106,-0.177237 1.4799,-0.478718 2.127751,-0.882646 l 2.102455,1.501737 1.666304,-1.666304 -1.501737,-2.102455 c 0.403928,-0.647888 0.705409,-1.363645 0.882646,-2.127751 l 2.546629,-0.424622 z m -9.427053,3.535144 c -2.6030431,0 -4.7135241,-2.110517 -4.7135241,-4.713527 0,-2.6030071 2.110518,-4.713525 4.7135241,-4.713525 2.60301,0 4.713527,2.1105179 4.713527,4.713525 0,2.60301 -2.110481,4.713527 -4.713527,4.713527 z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
@@ -408,7 +410,7 @@
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
-                                <path style="fill : #fff; stroke-width:0;"
+                                <path
                                       d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
@@ -419,7 +421,7 @@
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
-                                <path style="fill : #fff; stroke-width:0;"
+                                <path
                                       d="M 20,8 17.19,8 C 16.74,7.22 16.12,6.55 15.37,6.04 L 17,4.41 15.59,3 13.42,5.17 C 12.96,5.06 12.49,5 12,5 11.51,5 11.04,5.06 10.59,5.17 L 8.41,3 7,4.41 8.62,6.04 C 7.88,6.55 7.26,7.22 6.81,8 L 4,8 4,10 6.09,10 C 6.04,10.33 6,10.66 6,11 l 0,1 -2,0 0,2 2,0 0,1 c 0,0.34 0.04,0.67 0.09,1 L 4,16 l 0,2 2.81,0 c 1.04,1.79 2.97,3 5.19,3 2.22,0 4.15,-1.21 5.19,-3 l 2.81,0 0,-2 -2.09,0 C 17.96,15.67 18,15.34 18,15 l 0,-1 2,0 0,-2 -2,0 0,-1 c 0,-0.34 -0.04,-0.67 -0.09,-1 L 20,10 Z m -4,4 0,3 c 0,0.22 -0.03,0.47 -0.07,0.7 L 15.83,16.35 15.46,17 C 14.74,18.24 13.42,19 12,19 10.58,19 9.26,18.23 8.54,17 L 8.17,16.36 8.07,15.71 C 8.03,15.47 8,15.22 8,15 L 8,11 C 8,10.78 8.03,10.53 8.07,10.3 L 8.17,9.65 8.54,9 C 8.84,8.48 9.26,8.03 9.75,7.69 L 10.32,7.3 11.06,7.12 C 11.37,7.04 11.69,7 12,7 c 0.32,0 0.63,0.04 0.95,0.12 l 0.68,0.16 0.61,0.42 c 0.5,0.34 0.91,0.78 1.21,1.31 l 0.38,0.65 0.1,0.65 C 15.97,10.53 16,10.78 16,11 Z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
@@ -431,7 +433,7 @@
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
-                                <path style="fill : #fff; stroke-width:0;"
+                                <path
                                       d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
@@ -449,14 +451,14 @@
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
-                                <path style="fill : #fff; stroke-width:0;"
+                                <path
                                       d="m 12,5 0,-4 5,5 -5,5 0,-4 c -3.31,0 -6,2.69 -6,6 0,3.31 2.69,6 6,6 3.31,0 6,-2.69 6,-6 l 2,0 c 0,4.42 -3.58,8 -8,8 C 7.58,21 4,17.42 4,13 4,8.58 7.58,5 12,5 Z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
                             </g>
                         </svg>
                     </i>Reset</button></li>
-                <li id="c_pause"><button type="button" class="navButton action-pill" id="pause-button" disabled aria-pressed="false" title="Pause or resume graph physics simulation"><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path style="fill: #fff; stroke-width: 0;" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></g></svg></i>Pause</button>
+                <li id="c_pause"><button type="button" class="navButton action-pill" id="pause-button" disabled aria-pressed="false" title="Pause or resume graph physics simulation"><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></g></svg></i>Pause</button>
                 </li>
             </ul>
         </nav>
@@ -661,4 +663,3 @@
 </script>
 </body>
 </html>
-

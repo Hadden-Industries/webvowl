@@ -254,7 +254,7 @@ export function loadWithImports(initialXmlText, rootParserFn) {
                 err.message.indexOf("XML parsing error") === 0 || 
                 err.message.indexOf("The imported ontology") === 0) {
               if (menu && menu.append_message_toLastBulletPoint) {
-                menu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+                menu.append_message_toLastBulletPoint("failed", { tone: "error" });
               }
               throw err;
             }
@@ -290,7 +290,7 @@ export function loadWithImports(initialXmlText, rootParserFn) {
             return checkPromise.then(function (diagnosticMsg) {
               const fullMsg = `Failed to load transitive import: "${url}" (fetching: "${resolvedUrl}").\n` + diagnosticMsg;
               if (menu && menu.append_message_toLastBulletPoint) {
-                menu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+                menu.append_message_toLastBulletPoint("failed", { tone: "error" });
               }
               throw new Error(fullMsg);
             });

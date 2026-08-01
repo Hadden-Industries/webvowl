@@ -1,6 +1,7 @@
 const CenteringTextElement = require("./util/CenteringTextElement");
 const elementTools = require("./util/elementTools")();
 const math = require("./util/math")();
+const drawTools = require("./elements/drawTools")();
 module.exports = function ( graph ){
   /** variable defs **/
   const ShadowClone = {};
@@ -111,7 +112,7 @@ module.exports = function ( graph ){
     } else {
       rect.classed("deprecatedproperty", false);
     }
-    rect.style("fill", bgColor);
+    drawTools.setBackgroundColor(rect, bgColor);
     
     // add Text;
     const equivalentsString = parentProperty.equivalentsString();
@@ -293,5 +294,4 @@ module.exports = function ( graph ){
   
   return ShadowClone;
 };
-
 

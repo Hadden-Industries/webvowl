@@ -1,5 +1,6 @@
 const BaseNode = require("./BaseNode");
 const CenteringTextElement = require("../../util/CenteringTextElement");
+const textTools = require("../../util/textTools")();
 const drawTools = require("../drawTools")();
 const rectangularElementTools = require("../rectangularElementTools")();
 
@@ -74,11 +75,11 @@ module.exports = (function (){
     this.getMyWidth = function (){
       // use a simple heuristic
       const text = that.labelForCurrentLanguage();
-      myWidth = measureTextWidth(text, "text") + 20;
+      myWidth = textTools.measureTextWidth(text, "text") + 20;
       
       // check for sub names;
       const indicatorText = that.indicationString();
-      const indicatorWidth = measureTextWidth(indicatorText, "subtext") + 20;
+      const indicatorWidth = textTools.measureTextWidth(indicatorText, "subtext") + 20;
       if ( indicatorWidth > myWidth )
         {myWidth = indicatorWidth;}
       
@@ -88,22 +89,6 @@ module.exports = (function (){
     this.textWidth = function (){
       return that.width();
     };
-    function measureTextWidth( text, textStyle ){
-      // Set a default value
-      if ( !textStyle ) {
-        textStyle = "text";
-      }
-      const d = d3.select("body")
-          .append("div")
-          .attr("class", textStyle)
-          .attr("id", "width-test") // tag this element to identify it
-          .attr("style", "position:absolute; float:left; white-space:nowrap; visibility:hidden;")
-          .text(text),
-        w = document.getElementById("width-test").offsetWidth;
-      d.remove();
-      return w;
-    }
-    
     this.toggleFocus = function (){
       that.focused(!that.focused());
       that.nodeElement().select("rect").classed("focused", that.focused());

@@ -74,7 +74,7 @@ module.exports = function ( graph ){
       .text(modeName);
     if ( identifier === "editorMode" ) {
       moduleOptionContainer.append("span")
-        .attr("style", "font-size:10px;padding-top:3px")
+        .attr("class", "experimental-label")
         .text("(experimental)");
     }
     
@@ -103,7 +103,7 @@ module.exports = function ( graph ){
       .text(modeName);
     if ( identifier === "editorMode" ) {
       moduleOptionContainer.append("span")
-        .attr("style", "font-size:10px;padding-top:3px")
+        .attr("class", "experimental-label")
         .text(" (experimental)");
     }
   }

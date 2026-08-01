@@ -9,14 +9,14 @@ function measureTextWidth( text, textStyle ){
   }
   const d = d3.select("body")
       .append("div")
-      .attr("class", textStyle)
-      .attr("id", "width-test") // tag this element to identify it
-      .attr("style", "position:absolute; float:left; white-space:nowrap; visibility:hidden;")
+      .attr("class", textStyle + " text-measurement-probe")
       .text(text),
-    w = document.getElementById("width-test").offsetWidth;
+    w = d.node().offsetWidth;
   d.remove();
   return w;
 }
+
+tools.measureTextWidth = measureTextWidth;
 
 tools.truncate = function ( text, maxWidth, textStyle, additionalTextSpace ){
   maxWidth -= isNaN(additionalTextSpace) ? ADDITIONAL_TEXT_SPACE : additionalTextSpace;

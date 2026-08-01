@@ -134,7 +134,7 @@ module.exports = (function (){
         .attr("width", that.textWidth() - 2);
       
       const editText = fobj.append("xhtml:input")
-        .attr("class", "nodeEditSpan")
+        .attr("class", "nodeEditSpan nodeEditSpan--node")
         .attr("id", that.id())
         .attr("align", "center")
         .attr("contentEditable", "true")
@@ -142,17 +142,6 @@ module.exports = (function (){
           return false;
         }); // remove drag operations of text element)
       
-      const bgColor = '#f00';
-      const txtWidth = that.textWidth() - 2;
-      editText.style({
-        
-        'align': 'center',
-        'color': 'black',
-        'width': txtWidth + "px",
-        'height': '15px',
-        'background-color': bgColor,
-        'border-bottom': '2px solid black'
-      });
       const txtNode = editText.node();
       txtNode.value = that.labelForCurrentLanguage();
       txtNode.focus();

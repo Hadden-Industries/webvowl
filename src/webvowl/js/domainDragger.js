@@ -249,13 +249,13 @@ module.exports = function ( graph ){
   };
   
   Domain_dragger.mouseDown = function (){
-    Domain_dragger.nodeElement.style("cursor", "move");
+    Domain_dragger.nodeElement.classed("is-dragging", true);
     Domain_dragger.nodeElement.classed("classDraggerNodeHovered", true);
     Domain_dragger.mouseButtonPressed = true;
   };
   
   Domain_dragger.mouseUp = function (){
-    Domain_dragger.nodeElement.style("cursor", "auto");
+    Domain_dragger.nodeElement.classed("is-dragging", false);
     Domain_dragger.nodeElement.classed("classDraggerNodeHovered", false);
     Domain_dragger.mouseButtonPressed = false;
   };
@@ -330,5 +330,4 @@ module.exports = function ( graph ){
   };
   return Domain_dragger;
 };
-
 

@@ -147,16 +147,42 @@ html {
     height: 25px;
     border: solid 1px black;
     margin: auto;
-
+    position: relative;
+    overflow: hidden;
 }
 
 #progressBarValue {
-    border-radius: 9px;
-    width: 0%;
-    background-color: #2980b9;
+    display: block;
+    width: 100%;
     height: 25px;
+    border: 0;
+    border-radius: 9px;
+    accent-color: #2980b9;
+}
+
+#progressBarValue::-webkit-progress-bar {
+    background-color: #bdc3c7;
+    border-radius: 9px;
+}
+
+#progressBarValue::-webkit-progress-value {
+    background-color: #2980b9;
+    border-radius: 9px;
+}
+
+#progressBarValue::-moz-progress-bar {
+    background-color: #2980b9;
+    border-radius: 9px;
+}
+
+#progressBarLabel {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #fff;
     line-height: 1.5;
-    text-align: center;
+    pointer-events: none;
 }
 
 /** Modern W3C ARIA Autocomplete Combobox Search Styles **/
@@ -781,7 +807,8 @@ main {
 }
 
 #useAccuracyHelper.disabled,
-#showDraggerObject.disabled {
+#showDraggerObject.disabled,
+#compactNotationOption.disabled {
     color: #979797 !important;
     pointer-events: none !important;
 }
@@ -888,9 +915,6 @@ main {
 #currentLoadingStep.step-success { color: #0f0 !important; }
 #currentLoadingStep.step-error { color: #f00 !important; }
 #currentLoadingStep.step-busy { color: #fff !important; }
-
-#progressBarValue.pct-20 { width: 20% !important; }
-#progressBarValue.pct-0 { width: 0% !important; }
 
 #directInputTextArea {
     width: 40vw;
@@ -1383,12 +1407,17 @@ main {
 
 .nodeEditSpan {
     color: #000;
-    background-color: #fff;
+    background-color: #f00;
     text-align: center;
-
-    /* overflow: auto; */
+    box-sizing: border-box;
+    width: 100%;
     border: none;
+    border-bottom: 2px solid #000;
     padding-top: 6px;
+}
+
+.nodeEditSpan--node {
+    height: 15px;
 }
 
 .nodeEditSpan:focus {
@@ -1658,25 +1687,12 @@ main {
     display: inline-block;
 }
 
-.busyProgressBar {
-    background-color: #000;
-    height: 25px;
-    position: relative;
-    animation: busy 2s linear infinite;
+.loading-message--error {
+    color: #f00;
 }
 
-@keyframes busy {
-    0% {
-        left: 0%;
-    }
-
-    50% {
-        left: 80%;
-    }
-
-    100% {
-        left: 0%;
-    }
+.loading-status-entry {
+    white-space: pre-line;
 }
 
 #bulletPoint_container {
@@ -2167,6 +2183,23 @@ main {
     position: static !important;
     pointer-events: none;
     fill: currentcolor;
+}
+
+#menuElementContainer .menuElementSvgElement path {
+    fill: inherit;
+    stroke-width: 0;
+}
+
+.reload-cached-ontology-path,
+#drag_icon,
+#drag_icon_drop {
+    fill: #444;
+    stroke-width: 0;
+}
+
+.experimental-label {
+    padding-top: 3px;
+    font-size: 10px;
 }
 
 .btn_shadowed {
@@ -3281,8 +3314,8 @@ a#locateSearchResult {
     position: fixed;
     inset: auto;
     bottom: 60px;
-    left: 16px;
-    transform: none;
+    left: var(--popover-inline-start, 16px);
+    transform: translateY(var(--sheet-drag-y, 0));
     margin: 0;
     padding: 0;
     width: 360px;
@@ -3631,7 +3664,7 @@ a#locateSearchResult {
 @media screen and (width <= 768px) {
     .modern-popover {
         inset: auto 0 0 !important;
-        transform: none;
+        transform: translateY(var(--sheet-drag-y, 0));
         width: 100% !important;
         max-width: 100% !important;
         max-height: 80vh !important;
@@ -3670,13 +3703,13 @@ a#locateSearchResult {
         background: rgb(255 255 255 / 30%);
         border-radius: 2px;
         margin: 8px auto 4px;
-        touch-action: none;
+        touch-action: pan-x;
         user-select: none;
         cursor: grab;
     }
 
     .popover-header {
-        touch-action: none;
+        touch-action: pan-x;
         user-select: none;
         cursor: grab;
     }
