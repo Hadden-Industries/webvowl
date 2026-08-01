@@ -62,4 +62,12 @@ When asked to commit, push, or draft a commit message in the local repository wo
   - The main sections of `walkthrough.md` must only describe the net observable code and configuration changes relative to the last commit for each referenced file.
   - Intermediate attempts, tested approaches, or reverted experiments must NOT be listed as active changes in the main sections. Instead, document them in a separate section titled `## Tested & Reverted Experiments` detailing what was tested, the outcome, and why it was reverted.
 
+# Repository Instructions
 
+## Configuration Safety
+
+- NEVER create, modify, rename, or delete configuration files without the user's explicit approval for the exact change.
+- Other approvals do not imply approval to change configuration.
+- Configuration files include build, bundler, package, lockfile, lint, formatting, test, CI/CD, container, deployment, hosting, environment, and repository-policy files.
+- Before requesting approval, identify the exact file and setting, explain the behavioral and pipeline impact, and propose the smallest change.
+- If a task appears to require a configuration change, stop and request approval instead of inferring permission.
