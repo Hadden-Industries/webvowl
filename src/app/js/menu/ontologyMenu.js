@@ -1,7 +1,52 @@
+const ONTOLOGY_URL_HINT = "Enter an ontology URL";
+const ONTOLOGY_URL_ERROR = "Enter a valid HTTP or HTTPS URL";
 
+function normalizeOntologyUrl( value ){
+  const enteredValue = typeof value === "string" ? value.trim() : "";
+  if ( !enteredValue ) {
+    return { valid: false, empty: true, message: ONTOLOGY_URL_HINT };
+  }
+  for ( let index = 0; index < enteredValue.length; index++ ) {
+    const characterCode = enteredValue.charCodeAt(index);
+    if ( characterCode <= 32 || characterCode === 127 ) {
+      return { valid: false, empty: false, message: ONTOLOGY_URL_ERROR };
+    }
+  }
 
-module.exports = function ( graph ){
-  
+  let candidate = enteredValue;
+  const explicitScheme = candidate.match(/^([a-z][a-z\d+.-]*):/i);
+  const hostWithPort = /^[^/?#]+:\d+(?:[/?#]|$)/.test(candidate);
+  if ( !explicitScheme || hostWithPort ) {
+    candidate = "https://" + candidate;
+  }
+
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(candidate);
+  } catch {
+    return { valid: false, empty: false, message: ONTOLOGY_URL_ERROR };
+  }
+
+  if ( parsedUrl.protocol === "http:" ) {
+    parsedUrl.protocol = "https:";
+  }
+
+  if ( parsedUrl.protocol !== "https:" || !parsedUrl.hostname || parsedUrl.hostname.includes("%") ||
+    parsedUrl.username || parsedUrl.password ) {
+    return { valid: false, empty: false, message: ONTOLOGY_URL_ERROR };
+  }
+
+  return {
+    valid: true,
+    empty: false,
+    normalizedUrl: parsedUrl.href,
+    isJson: parsedUrl.pathname.toLowerCase().endsWith(".json"),
+    wasNormalized: parsedUrl.href !== enteredValue
+  };
+}
+
+function createOntologyMenu( graph ){
+
   const ontologyMenu = {};
   const loadingInfo = d3.select("#loading-info");
   const loadingProgress = d3.select("#loading-progress");
@@ -14,28 +59,24 @@ module.exports = function ( graph ){
   let loadingModule;
   let loadOntologyFromText;
   let currentLoadedOntologyName = "";
-  
-  String.prototype.beginsWith = function ( string ){
-    return (this.indexOf(string) === 0);
-  };
-  
+
   ontologyMenu.getLoadingFunction = function (){
     return loadOntologyFromText;
   };
-  
+
   ontologyMenu.clearCachedVersion = function (){
     if ( cachedConversions[currentLoadedOntologyName] ) {
       cachedConversions[currentLoadedOntologyName] = undefined;
     }
   };
-  
-  
+
+
   ontologyMenu.reloadCachedOntology = function (){
     ontologyMenu.clearCachedVersion();
     graph.clearGraphData();
     loadingModule.parseUrlAndLoadOntology(false);
   };
-  
+
   ontologyMenu.cachedOntology = function ( ontoName ){
     currentLoadedOntologyName = ontoName;
     if ( cachedConversions[ontoName] ) {
@@ -57,7 +98,7 @@ module.exports = function ( graph ){
       }
     } else {
       graph.showReloadButtonAfterLayoutOptimization(false);
-      
+
     }
     return cachedConversions[ontoName];
   };
@@ -65,24 +106,24 @@ module.exports = function ( graph ){
     cachedConversions[ontoName] = ontoContent;
     currentLoadedOntologyName = ontoName;
   };
-  
+
   ontologyMenu.getErrorStatus = function (){
     return loadingError;
   };
-  
+
   ontologyMenu.setup = function ( _loadOntologyFromText ){
     loadOntologyFromText = _loadOntologyFromText;
     loadingModule = graph.options().loadingModule();
-    
+
     setupConverterButtons();
     setupUploadButton();
     setupEmptyButton();
-    
+
     const descriptionButton = d3.select("#error-description-button").datum({ open: false });
     descriptionButton.on("click", function ( data ){
       const errorContainer = d3.select("#error-description-container");
       const errorDetailsButton = d3.select(this);
-      
+
       // toggle the state
       data.open = !data.open;
       const descriptionVisible = data.open;
@@ -93,12 +134,12 @@ module.exports = function ( graph ){
       }
       errorContainer.classed("hidden", !descriptionVisible);
     });
-    
+
     setupUriListener();
     loadingModule.setOntologyMenu(ontologyMenu);
   };
-  
-  
+
+
   function setupUriListener(){
     // reload ontology when hash parameter gets changed manually
     d3.select(window).on("hashchange", function (event){
@@ -112,23 +153,31 @@ module.exports = function ( graph ){
       }
     });
   }
-  
+
   ontologyMenu.stopLoadingTimer = function (){
     stopTimer = true;
     clearTimeout(loadingStatusTimer);
   };
-  
+
   ontologyMenu.setIriText = function ( text ){
-    d3.select("#iri-converter-input").node().value = text;
-    d3.select("#iri-converter-button").attr("disabled", false);
-    d3.select("#iri-converter-form").on("submit")();
+    const iriInput = d3.select("#iri-converter-input");
+    const iriForm = d3.select("#iri-converter-form");
+    iriInput.property("value", text);
+    const inputHandler = iriInput.on("input");
+    if ( inputHandler ) {
+      inputHandler.call(iriInput.node());
+    }
+    const submitHandler = iriForm.on("submit");
+    if ( submitHandler ) {
+      submitHandler.call(iriForm.node());
+    }
   };
-  
+
   ontologyMenu.clearDetailInformation = function (){
     const bpContainer = d3.select("#bulletPoint_container");
     const htmlCollection = bpContainer.node().children;
     const numEntries = htmlCollection.length;
-    
+
     for ( let i = 0; i < numEntries; i++ ) {
       htmlCollection[0].remove();
     }
@@ -158,12 +207,12 @@ module.exports = function ( graph ){
     appendStructuredMessage(div, msg, options);
     loadingModule.scrollDownDetails();
   }
-  
+
   ontologyMenu.append_message_toLastBulletPoint = function ( msg, options ){
     // forward call
     append_message_toLastBulletPoint(msg, options);
   };
-  
+
   ontologyMenu.append_bulletPoint = function ( msg ){
     // forward call
     append_bulletPoint(msg);
@@ -177,7 +226,7 @@ module.exports = function ( graph ){
     }
     loadingModule.scrollDownDetails();
   }
-  
+
   function append_bulletPoint( msg ){
     const bp_container = d3.select("#bulletPoint_container");
     const bp = bp_container.append("li");
@@ -185,52 +234,93 @@ module.exports = function ( graph ){
     d3.select("#currentLoadingStep").text(msg);
     loadingModule.scrollDownDetails();
   }
-  
-  
+
+
   function setupConverterButtons(){
     const iriConverterButton = d3.select("#iri-converter-button");
     const iriConverterInput = d3.select("#iri-converter-input");
-    
+    const iriConverterHint = d3.select("#iri-converter-hint");
+    let validationWasShown = false;
+
+    function updateConverterState( options ){
+      const stateOptions = options || {};
+      const result = normalizeOntologyUrl(iriConverterInput.property("value"));
+
+      if ( stateOptions.normalize && result.valid ) {
+        iriConverterInput.property("value", result.normalizedUrl);
+      }
+
+      const showError = stateOptions.showError && !result.empty && !result.valid;
+      iriConverterButton.property("disabled", !result.valid);
+      iriConverterInput.attr("aria-invalid", showError ? "true" : null);
+      iriConverterHint
+        .text(showError ? result.message : ONTOLOGY_URL_HINT)
+        .classed("converter-input-hint--error", showError);
+
+      return result;
+    }
+
     iriConverterInput.on("input", function (){
-      const inputIsEmpty = iriConverterInput.property("value") === "";
-      iriConverterButton.attr("disabled", inputIsEmpty || undefined);
+      const result = updateConverterState({ showError: validationWasShown });
+      if ( result.valid || result.empty ) {
+        validationWasShown = false;
+      }
     });
-    
+
+    iriConverterInput.on("change", function (){
+      validationWasShown = true;
+      updateConverterState({ normalize: true, showError: true });
+    });
+
+    iriConverterInput.on("keydown", function (event){
+      if ( event && event.key === "Enter" ) {
+        validationWasShown = true;
+        const result = updateConverterState({ normalize: true, showError: true });
+        if ( !result.valid ) {
+          event.preventDefault();
+        }
+      }
+    });
+
+    iriConverterButton.on("click", function (event){
+      validationWasShown = true;
+      const result = updateConverterState({ normalize: true, showError: true });
+      if ( !result.valid && event && typeof event.preventDefault === "function" ) {
+        event.preventDefault();
+      }
+    });
+
     d3.select("#iri-converter-form").on("submit", function (event){
-      let inputName = iriConverterInput.property("value");
-      
-      // remove first spaces
-      let clearedName = inputName.replace(/%20/g, " ");
-      while ( clearedName.beginsWith(" ") ) {
-        clearedName = clearedName.substr(1, clearedName.length);
+      if ( event && typeof event.preventDefault === "function" ) {
+        event.preventDefault();
       }
-      // remove ending spaces
-      while ( clearedName.endsWith(" ") ) {
-        clearedName = clearedName.substr(0, clearedName.length - 1);
+
+      validationWasShown = true;
+      const result = updateConverterState({ normalize: true, showError: true });
+      if ( !result.valid ) {
+        const inputNode = iriConverterInput.node();
+        if ( inputNode && typeof inputNode.focus === "function" ) {
+          inputNode.focus();
+        }
+        return false;
       }
-      // check if iri is actually an url for a json file (ends with .json)
-      // create lowercase filenames;
-      inputName = clearedName;
-      const lc_iri = inputName.toLowerCase();
-      if ( lc_iri.endsWith(".json") ) {
-        location.hash = "url=" + inputName;
-        iriConverterInput.property("value", "");
-        iriConverterInput.on("input")();
-      } else {
-        location.hash = "iri=" + inputName;
-        iriConverterInput.property("value", "");
-        iriConverterInput.on("input")();
-      }
-      event.preventDefault();
+
+      const routeKey = result.isJson ? "url=" : "iri=";
+      location.hash = routeKey + encodeURIComponent(result.normalizedUrl);
+      iriConverterInput.property("value", "");
+      validationWasShown = false;
+      updateConverterState();
       return false;
     });
+
+    updateConverterState();
   }
-  
+
   function setupUploadButton(){
     const input = d3.select("#file-converter-input"),
       inputLabel = d3.select("#file-converter-label"),
       uploadButton = d3.select("#file-converter-button");
-    
+
     input.on("change", function (){
       const selectedFiles = input.property("files");
       if ( selectedFiles.length <= 0 ) {
@@ -244,7 +334,7 @@ module.exports = function ( graph ){
         graph.options().navigationMenu().hideAllMenus();
       }
     });
-    
+
     uploadButton.on("click", function (){
       const selectedFile = input.property("files")[0];
       if ( !selectedFile ) {
@@ -277,7 +367,7 @@ module.exports = function ( graph ){
     });
     graph.updateEditorModeDependentControls();
   }
-  
+
   function appendLoadingStatusText( container, message ){
     const validatorUrl = "http://visualdataweb.de/validator/";
     const parts = String(message).split(validatorUrl);
@@ -322,15 +412,15 @@ module.exports = function ( graph ){
         .classed("loading-message--error", true);
       appendLoadingStatusText(errorEntry, errorMessage);
     }
-    
+
     loadingModule.scrollDownDetails();
   }
-  
+
   ontologyMenu.setLoadingStatusInfo = function ( message ){
     // forward call
     setLoadingStatusInfo(message);
   };
-  
+
   function getLoadingStatusOnceCallBacked( callback, parameter ){
     fetch("loadingStatus?sessionId=" + conversion_sessionId, { headers: { "Accept": "application/text" } })
       .then(function(response) {
@@ -348,7 +438,7 @@ module.exports = function ( graph ){
         callback(parameter);
       });
   }
-  
+
   function getLoadingStatusTimeLooped(){
     fetch("loadingStatus?sessionId=" + conversion_sessionId, { headers: { "Accept": "application/text" } })
       .then(function(response) {
@@ -370,7 +460,7 @@ module.exports = function ( graph ){
         }
       });
   }
-  
+
   function timedLoadingStatusLogger(){
     clearTimeout(loadingStatusTimer);
     if ( stopTimer === false ) {
@@ -379,7 +469,7 @@ module.exports = function ( graph ){
       }, 1000);
     }
   }
-  
+
   function callbackUpdateLoadingMessage( msg ){
     fetch("loadingStatus", { headers: { "Accept": "application/text" } })
       .then(function(response) {
@@ -393,11 +483,11 @@ module.exports = function ( graph ){
         append_message(msg, { tone: "error" });
       });
   }
-  
+
   ontologyMenu.setConversionID = function ( id ){
     conversion_sessionId = id;
   };
-  
+
   ontologyMenu.callbackLoad_Ontology_FromIRI = function ( parameter ){
     const relativePath = parameter[0];
     const ontoName = parameter[1];
@@ -427,19 +517,19 @@ module.exports = function ( graph ){
         getLoadingStatusOnceCallBacked(callbackFromIRI_URL_ERROR, [error, null, localThreadId]);
       });
   };
-  
-  
+
+
   ontologyMenu.callbackLoad_Ontology_From_DirectInput = function ( text, parameter ){
     const input = text;
     const sessionId = parameter[1];
     stopTimer = false;
     timedLoadingStatusLogger();
-    
+
     const formData = new FormData();
     formData.append("input", input);
     formData.append("sessionId", sessionId);
     const xhr = new XMLHttpRequest();
-    
+
     xhr.open("POST", "directInput", true);
     xhr.onload = function (){
       clearTimeout(loadingStatusTimer);
@@ -448,7 +538,7 @@ module.exports = function ( graph ){
     };
     timedLoadingStatusLogger();
     xhr.send(formData);
-    
+
   };
   function callbackFromIRI_Success( parameter ){
     const local_conversionId = parameter[2];
@@ -459,13 +549,13 @@ module.exports = function ( graph ){
     }
     loadingModule.loadFromOWL2VOWL(parameter[0], parameter[1]);
     ontologyMenu.conversionFinished();
-    
+
   }
-  
+
   ontologyMenu.getConversionId = function (){
     return conversion_sessionId;
   };
-  
+
   ontologyMenu.callbackLoad_JSON_FromURL = function ( parameter ){
     const relativePath = parameter[0];
     const ontoName = parameter[1];
@@ -495,7 +585,7 @@ module.exports = function ( graph ){
         getLoadingStatusOnceCallBacked(callbackFromJSON_URL_ERROR, [error, null, local_conversionId]);
       });
   };
-  
+
   function callbackFromJSON_Success( parameter ){
     const local_conversionId = parameter[2];
     if ( local_conversionId !== conversion_sessionId ) {
@@ -504,7 +594,7 @@ module.exports = function ( graph ){
     }
     loadingModule.loadFromOWL2VOWL(parameter[0], parameter[1]);
   }
-  
+
   function callbackFromJSON_URL_ERROR( parameter ){
     const error = parameter[0];
     const request = parameter[1];
@@ -516,7 +606,7 @@ module.exports = function ( graph ){
     }
     callbackUpdateLoadingMessage("Failed to convert the file. Ontology could not be loaded. " +
       "Is it a valid OWL ontology? Check with http://visualdataweb.de/validator/");
-    
+
     if ( error !== null && error.status === 500 ) {
       append_message("Could not find ontology at the URL", { tone: "error" });
     }
@@ -526,8 +616,8 @@ module.exports = function ( graph ){
     graph.handleOnLoadingError();
     ontologyMenu.conversionFinished();
   }
-  
-  
+
+
   function callbackFromIRI_URL_ERROR( parameter ){
     const error = parameter[0];
     const request = parameter[1];
@@ -539,7 +629,7 @@ module.exports = function ( graph ){
     }
     callbackUpdateLoadingMessage("Failed to convert the file. Ontology could not be loaded. " +
       "Is it a valid OWL ontology? Check with http://visualdataweb.de/validator/");
-    
+
     if ( error !== null && error.status === 500 ) {
       append_message("Could not find ontology at the URL", { tone: "error" });
     }
@@ -549,20 +639,20 @@ module.exports = function ( graph ){
     graph.handleOnLoadingError();
     ontologyMenu.conversionFinished();
   }
-  
+
   ontologyMenu.callbackLoadFromOntology = function ( selectedFile, filename, local_threadId ){
     callbackLoadFromOntology(selectedFile, filename, local_threadId);
   };
-  
+
   function callbackLoadFromOntology( selectedFile, filename, local_threadId ){
     stopTimer = false;
     timedLoadingStatusLogger();
-    
+
     const formData = new FormData();
     formData.append("ontology", selectedFile);
     formData.append("sessionId", local_threadId);
     const xhr = new XMLHttpRequest();
-    
+
     xhr.open("POST", "convert", true);
     xhr.onload = function (){
       clearTimeout(loadingStatusTimer);
@@ -573,7 +663,7 @@ module.exports = function ( graph ){
     timedLoadingStatusLogger();
     xhr.send(formData);
   }
-  
+
   function callbackForConvert( parameter ){
     const xhr = parameter[0];
     const filename = parameter[1];
@@ -593,12 +683,12 @@ module.exports = function ( graph ){
       callbackUpdateLoadingMessage("Failed to convert the file.\nServer answer:\n" + niceJSON +
         "\nOntology could not be loaded. Is it a valid OWL ontology? " +
         "Check with http://visualdataweb.de/validator/");
-      
+
       graph.handleOnLoadingError();
       ontologyMenu.conversionFinished();
     }
   }
-  
+
   ontologyMenu.conversionFinished = function ( id ){
     let local_id = conversion_sessionId;
     if ( id ) {
@@ -615,7 +705,7 @@ module.exports = function ( graph ){
         console.warn(error);
       });
   };
-  
+
 
   ontologyMenu.showLoadingStatus = function ( visible ){
     if ( visible === true ) {
@@ -625,16 +715,20 @@ module.exports = function ( graph ){
       hideLoadingInformations();
     }
   };
-  
+
   function displayLoadingIndicators(){
     d3.select("#layoutLoadingProgressBarContainer").classed("hidden", false);
     loadingInfo.classed("hidden", false);
     loadingProgress.classed("hidden", false);
   }
-  
+
   function hideLoadingInformations(){
     loadingInfo.classed("hidden", true);
   }
-  
+
   return ontologyMenu;
-};
+}
+
+createOntologyMenu.normalizeOntologyUrl = normalizeOntologyUrl;
+
+module.exports = createOntologyMenu;
