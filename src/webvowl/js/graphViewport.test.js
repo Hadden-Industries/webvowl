@@ -1,5 +1,7 @@
 global.d3 = require("d3");
-const viewportTransform = require("./graph").viewportTransform;
+const graphModule = require("./graph");
+const viewportTransform = graphModule.viewportTransform;
+const measureViewportElement = graphModule.measureViewportElement;
 
 describe("graph viewport transform normalization", () => {
   test.each([NaN, Infinity, -Infinity, "NaN", "Infinity", "", null, undefined, true, 0, -1])(
@@ -43,5 +45,38 @@ describe("graph viewport transform normalization", () => {
   test("never serializes a non-finite SVG transform", () => {
     expect(viewportTransform.toSvgTransform(0.5, [12, -4])).toBe("translate(12,-4)scale(0.5)");
     expect(viewportTransform.toSvgTransform(NaN, [NaN, NaN])).toBeUndefined();
+  });
+});
+
+describe("graph viewport element measurement", () => {
+  test("uses the rendered client box when it is available", () => {
+    const element = {
+      clientWidth: 768,
+      clientHeight: 512,
+      getBoundingClientRect: () => ({ width: 760, height: 500 })
+    };
+
+    expect(measureViewportElement(element, 100, 100)).toEqual({ width: 768, height: 512 });
+  });
+
+  test("falls back to the bounding box when client dimensions are zero", () => {
+    const element = {
+      clientWidth: 0,
+      clientHeight: 0,
+      getBoundingClientRect: () => ({ width: 390.5, height: 700.25 })
+    };
+
+    expect(measureViewportElement(element, 100, 100)).toEqual({ width: 390.5, height: 700.25 });
+  });
+
+  test("retains the current viewport when the host is temporarily unmeasurable", () => {
+    const element = {
+      clientWidth: 0,
+      clientHeight: 0,
+      getBoundingClientRect: () => ({ width: 0, height: 0 })
+    };
+
+    expect(measureViewportElement(element, 1200, 800)).toEqual({ width: 1200, height: 800 });
+    expect(measureViewportElement(undefined, -1, "invalid")).toEqual({ width: 0, height: 0 });
   });
 });

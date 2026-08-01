@@ -585,8 +585,6 @@
                 <li id="c_pause"><button type="button" class="navButton action-pill" id="pause-button" disabled aria-pressed="false" title="Pause or resume graph physics simulation"><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></g></svg></i>Pause</button>
                 </li>
         </nav>
-        <button type="button" class="noselect" id="scrollRightButton" aria-label="Scroll menu right"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></button>
-        <button type="button" class="noselect" id="scrollLeftButton" aria-label="Scroll menu left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button>
         <div id="zoomSlider" class="btn_shadowed">
           <p class="noselect" id="centerGraphButton">&#8982;</p>
           <p class="noselect" id="zoomInButton">+</p>
@@ -899,8 +897,14 @@
                 <button id="close_directUploadBtn" type="button">Close</button>
               </li>
               <li id="Error_onLoad" class="hidden">Some text if ERROR</li>
-            </ul>
+                </ul>
+                <button type="button" class="noselect" id="scrollRightButton" aria-label="Scroll menu right" aria-controls="menuElementContainer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></button>
+            </div>
           </div>
+    <div class="application-overlay-layer" id="applicationOverlayLayer">
+        <!-- [html-validate-disable-next prefer-native-element] -->
+        <ul id="search-results-listbox" role="listbox" class="search-combobox-popup hidden" aria-label="Search suggestions"></ul>
+    </div>
         </div>
       </div>
     </main>

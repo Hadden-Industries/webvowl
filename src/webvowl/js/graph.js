@@ -13,6 +13,29 @@ function finiteNumber( value ){
   return Number.isFinite(number) ? number : undefined;
 }
 module.exports = function (graphContainerSelector) {
+
+function measureViewportElement( element, fallbackWidth, fallbackHeight ){
+  const normalizedFallbackWidth = finiteNumber(fallbackWidth);
+  const normalizedFallbackHeight = finiteNumber(fallbackHeight);
+  const fallback = {
+    width: normalizedFallbackWidth > 0 ? normalizedFallbackWidth : 0,
+    height: normalizedFallbackHeight > 0 ? normalizedFallbackHeight : 0
+  };
+  if ( !element ) {return fallback;}
+
+  const elementRect = typeof element.getBoundingClientRect === "function"
+    ? element.getBoundingClientRect()
+    : {};
+  const clientWidth = finiteNumber(element.clientWidth);
+  const clientHeight = finiteNumber(element.clientHeight);
+  const rectWidth = finiteNumber(elementRect.width);
+  const rectHeight = finiteNumber(elementRect.height);
+
+  return {
+    width: clientWidth > 0 ? clientWidth : (rectWidth > 0 ? rectWidth : fallback.width),
+    height: clientHeight > 0 ? clientHeight : (rectHeight > 0 ? rectHeight : fallback.height)
+  };
+}
   const graph = {};
   const CARDINALITY_HDISTANCE = 20;
   const CARDINALITY_VDISTANCE = 10;
@@ -1397,6 +1420,13 @@ module.exports = function (graphContainerSelector) {
   graph.updateCanvasContainerSize = function () {
     if (graphContainer) {
       const svgElement = d3.selectAll(".vowlGraph");
+      const svgNode = svgElement.node();
+      const graphHost = svgNode ? svgNode.parentNode : null;
+      const measuredViewport = measureViewportElement(graphHost, options.width(), options.height());
+
+      options.width(measuredViewport.width);
+      options.height(measuredViewport.height);
+
       svgElement.attr("width", options.width());
       svgElement.attr("height", options.height());
       graphContainer.attr(
@@ -1404,6 +1434,11 @@ module.exports = function (graphContainerSelector) {
         "translate(" + graphTranslation + ")scale(" + zoomFactor + ")",
       );
     }
+
+    return {
+      width: options.width(),
+      height: options.height()
+    };
   };
 
   // Loads all settings, removes the old graph (if it exists) and draws a new one.
@@ -4689,5 +4724,6 @@ module.exports = function (graphContainerSelector) {
 }
 
 createGraph.viewportTransform = viewportTransform;
+createGraph.measureViewportElement = measureViewportElement;
 
 module.exports = createGraph;

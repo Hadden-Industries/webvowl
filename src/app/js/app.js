@@ -58,6 +58,8 @@ module.exports = function () {
   let firstTime = false;
 
   function addFileDropEvents(selector) {
+  let resizeAnimationFrame;
+  let graphResizeObserver;
     const node = d3.select(selector);
 
     node.node().ondragover = function (e) {
@@ -216,7 +218,13 @@ module.exports = function () {
     options.filterModules().push(compactNotationSwitch);
     options.filterModules().push(colorExternalsSwitch);
 
-    d3.select(window).on("resize", adjustSize);
+    d3.select(window).on("resize", scheduleSizeAdjustment);
+
+    const graphHost = d3.select(GRAPH_SELECTOR).node();
+    if ( !graphResizeObserver && graphHost && typeof ResizeObserver !== "undefined" ) {
+      graphResizeObserver = new ResizeObserver(scheduleSizeAdjustment);
+      graphResizeObserver.observe(graphHost);
+    }
 
     exportMenu.setup();
     gravityMenu.setup();
@@ -492,10 +500,14 @@ module.exports = function () {
       width = window.innerWidth;
     }
 
-  function getRightSidebarWidth(){
-    const styleVal = window.getComputedStyle(document.documentElement).getPropertyValue("--right-sidebar-width").trim();
-    const parsed = parseInt(styleVal, 10);
-    return isNaN(parsed) ? 280 : parsed;
+  function scheduleSizeAdjustment(){
+    if ( resizeAnimationFrame !== undefined ) {
+      cancelAnimationFrame(resizeAnimationFrame);
+    }
+    resizeAnimationFrame = requestAnimationFrame(function (){
+      resizeAnimationFrame = undefined;
+      adjustSize();
+    });
   }
 
     directInputMod.updateLayout();
@@ -519,9 +531,6 @@ module.exports = function () {
     options.width(width).height(height);
 
     graph.updateStyle();
-    if ( sidebar && sidebar.updateSideBarVis ) {
-      sidebar.updateSideBarVis(true);
-    }
 
     if (isTouchDevice() === true) {
       if (graph.isEditorMode() === true) {
@@ -547,7 +556,7 @@ module.exports = function () {
     );
     loadingModule.checkForScreenSize();
 
-    adjustSliderSize();
+    adjustSliderSize(viewport.height);
     // update also the padding options of loading and the logo positions;
     const warningDiv = d3.select("#browserCheck");
     if (warningDiv.classed("hidden") === false) {

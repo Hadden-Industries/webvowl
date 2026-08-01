@@ -958,12 +958,6 @@ module.exports = function (graph) {
     }
   }
 
-  function getRightSidebarWidth(){
-    const styleVal = window.getComputedStyle(document.documentElement).getPropertyValue("--right-sidebar-width").trim();
-    const parsed = parseInt(styleVal, 10);
-    return isNaN(parsed) ? 280 : parsed;
-  }
-
     var isMobileOrTablet = window.innerWidth <= 1024;
 
     if ( init === true ) {
@@ -1046,7 +1040,6 @@ module.exports = function (graph) {
         );
       }
       sidebar.updateDockedControlsPosition();
-      graph.options().width(window.innerWidth);
       graph.updateCanvasContainerSize();
       updateNavMenuScrollButtons();
     }

@@ -11,7 +11,10 @@ class MockElement {
     this.tagName = tagName.toUpperCase();
     this.nodeName = this.tagName;
     this.listeners = {};
-    this.style = {};
+    this.style = {
+      setProperty(name, value) { this[name] = value; },
+      getPropertyValue(name) { return this[name] || ""; }
+    };
     this.ownerDocument = global.document;
     this.nodeType = 1;
     this.attributes = {};
@@ -87,6 +90,12 @@ class MockElement {
 
   appendChild(child) {
     if (child) {
+      if (child.parentNode && child.parentNode.children) {
+        const currentIndex = child.parentNode.children.indexOf(child);
+        if (currentIndex !== -1) {
+          child.parentNode.children.splice(currentIndex, 1);
+        }
+      }
       this.children.push(child);
       child.parentNode = this;
     }
@@ -159,7 +168,7 @@ class MockDocument {
     let prevented = false;
     event.preventDefault = () => { prevented = true; event.defaultPrevented = true; };
     if (this.listeners[type]) {
-      this.listeners[type].forEach(fn => fn(event));
+      this.listeners[type].forEach(fn => fn.call(this, event));
     }
     return !prevented;
   }
@@ -173,6 +182,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
   let searchInput;
   let clearBtn;
   let listbox;
+  let overlayLayer;
 
   beforeEach(() => {
     mockDoc = new MockDocument();
@@ -182,21 +192,28 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       addEventListener: () => {},
       removeEventListener: () => {}
     };
+    global.requestAnimationFrame = callback => { callback(); return 1; };
+    global.cancelAnimationFrame = () => {};
 
     cSearch = new MockElement("c_search", "inner-addon left-addon", "li");
     mobileToggleBtn = new MockElement("mobile-search-toggle-btn", "navButton mobileSearchToggleBtn", "button");
     searchInput = new MockElement("search-input-text", "searchInputText", "input");
     clearBtn = new MockElement("search-clear-btn", "searchClearBtn hidden", "button");
     listbox = new MockElement("search-results-listbox", "search-combobox-popup hidden", "ul");
+    overlayLayer = new MockElement("applicationOverlayLayer", "application-overlay-layer");
     const locateBtn = new MockElement("locateSearchResult", "navButton", "button");
 
-    cSearch.children.push(mobileToggleBtn, searchInput, clearBtn, listbox);
+    cSearch.appendChild(mobileToggleBtn);
+    cSearch.appendChild(searchInput);
+    cSearch.appendChild(clearBtn);
+    cSearch.appendChild(listbox);
 
     mockDoc.elements["c_search"] = cSearch;
     mockDoc.elements["mobile-search-toggle-btn"] = mobileToggleBtn;
     mockDoc.elements["search-input-text"] = searchInput;
     mockDoc.elements["search-clear-btn"] = clearBtn;
     mockDoc.elements["search-results-listbox"] = listbox;
+    mockDoc.elements["applicationOverlayLayer"] = overlayLayer;
     mockDoc.elements["locateSearchResult"] = locateBtn;
 
     global.d3 = d3;
@@ -227,6 +244,38 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     expect(cSearch.classList.contains("search-expanded")).toBe(true);
   });
 
+  test("portals search results outside the clipped toolbar before interaction", () => {
+    expect(listbox.parentNode).toBe(cSearch);
+
+    const searchMenu = searchMenuFactory(mockGraph);
+    searchMenu.setup();
+
+    expect(listbox.parentNode).toBe(overlayLayer);
+    expect(cSearch.children).not.toContain(listbox);
+  });
+
+  test("publishes visual viewport metrics for keyboard-safe result positioning", () => {
+    const listeners = {};
+    global.window.visualViewport = {
+      height: 420,
+      offsetTop: 12,
+      addEventListener: (type, callback) => { listeners[type] = callback; }
+    };
+
+    const searchMenu = searchMenuFactory(mockGraph);
+    searchMenu.setup();
+
+    expect(mockDoc.documentElement.style.getPropertyValue("--visual-viewport-height")).toBe("420px");
+    expect(mockDoc.documentElement.style.getPropertyValue("--visual-viewport-offset-top")).toBe("12px");
+
+    global.window.visualViewport.height = 360;
+    global.window.visualViewport.offsetTop = 20;
+    listeners.resize();
+
+    expect(mockDoc.documentElement.style.getPropertyValue("--visual-viewport-height")).toBe("360px");
+    expect(mockDoc.documentElement.style.getPropertyValue("--visual-viewport-offset-top")).toBe("20px");
+  });
+
   test("disables search and locate controls when no rendered ontology is available", () => {
     const searchMenu = searchMenuFactory(mockGraph);
     searchMenu.setup();
@@ -255,11 +304,32 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     searchInput.dispatchEvent({ type: "input", target: searchInput });
 
     expect(clearBtn.classList.contains("hidden")).toBe(false);
+    expect(listbox.parentNode).toBe(overlayLayer);
+    expect(listbox.children).toHaveLength(1);
+    expect(listbox.classList.contains("hidden")).toBe(false);
+    expect(searchInput.getAttribute("aria-expanded")).toBe("true");
 
     clearBtn.click();
 
     expect(searchInput.value).toBe("");
     expect(clearBtn.classList.contains("hidden")).toBe(true);
+  });
+
+  test("keeps portaled results open for option interaction and dismisses them outside", () => {
+    const searchMenu = searchMenuFactory(mockGraph);
+    searchMenu.setup();
+    mobileToggleBtn.click();
+    searchInput.value = "Person";
+    searchInput.dispatchEvent({ type: "input", target: searchInput });
+
+    const option = listbox.children[0];
+    mockDoc.dispatchEvent({ type: "pointerdown", target: option });
+    expect(listbox.classList.contains("hidden")).toBe(false);
+    expect(cSearch.classList.contains("search-expanded")).toBe(true);
+
+    mockDoc.dispatchEvent({ type: "pointerdown", target: new MockElement("outside") });
+    expect(listbox.classList.contains("hidden")).toBe(true);
+    expect(cSearch.classList.contains("search-expanded")).toBe(false);
   });
 
   test("accepts a typing keyup without throwing", () => {

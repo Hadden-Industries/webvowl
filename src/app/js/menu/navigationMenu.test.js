@@ -261,6 +261,41 @@ describe("navigationMenu and popover event listeners", () => {
     expect(contextEventNav.defaultPrevented).toBe(true);
   });
 
+  test("keeps scroll-button visibility in sync with the menu viewport", () => {
+    const mockGraph = {
+      options: () => ({
+        navigationMenu: () => ({ hideAllMenus: () => {} }),
+      }),
+      scaleFactor: () => 1.0,
+    };
+    const navMenu = navigationMenuFactory(mockGraph);
+    const scrollContainer = document.getElementById("menuElementContainer");
+    const leftButton = document.getElementById("scrollLeftButton");
+    const rightButton = document.getElementById("scrollRightButton");
+
+    scrollContainer.clientWidth = 300;
+    scrollContainer.scrollWidth = 500;
+    scrollContainer.scrollLeft = 0;
+    navMenu.updateScrollButtonVisibility();
+    expect(leftButton.classList.contains("hidden")).toBe(true);
+    expect(rightButton.classList.contains("hidden")).toBe(false);
+
+    scrollContainer.scrollLeft = 100;
+    navMenu.updateScrollButtonVisibility();
+    expect(leftButton.classList.contains("hidden")).toBe(false);
+    expect(rightButton.classList.contains("hidden")).toBe(false);
+
+    scrollContainer.scrollLeft = 200;
+    navMenu.updateScrollButtonVisibility();
+    expect(leftButton.classList.contains("hidden")).toBe(false);
+    expect(rightButton.classList.contains("hidden")).toBe(true);
+
+    scrollContainer.scrollWidth = 300;
+    navMenu.updateScrollButtonVisibility();
+    expect(leftButton.classList.contains("hidden")).toBe(true);
+    expect(rightButton.classList.contains("hidden")).toBe(true);
+  });
+
   describe("Popover toggle event synchronization", () => {
     test("sets active-menu-item and triggers exportAsUrl when toggle opens export popover", () => {
       const exportAsUrlMock = jest.fn();
