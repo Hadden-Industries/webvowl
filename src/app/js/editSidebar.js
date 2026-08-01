@@ -47,7 +47,7 @@ module.exports = function ( graph ){
       })
       .on("keydown", function (event){
         event.stopPropagation();
-        if ( event.keyCode === 13 ) {
+        if ( event.key === "Enter" ) {
           event.preventDefault();
           graph.options().addOrUpdateGeneralObjectEntry("title", d3.select("#titleEditor").node().value);
         }
@@ -61,7 +61,7 @@ module.exports = function ( graph ){
       })
       .on("keydown", function (event){
         event.stopPropagation();
-        if ( event.keyCode === 13 ) {
+        if ( event.key === "Enter" ) {
           event.preventDefault();
           if ( graph.options().addOrUpdateGeneralObjectEntry("iri", d3.select("#iriEditor").node().value) === false ) {
             // restore value
@@ -75,7 +75,7 @@ module.exports = function ( graph ){
       })
       .on("keydown", function (event){
         event.stopPropagation();
-        if ( event.keyCode === 13 ) {
+        if ( event.key === "Enter" ) {
           event.preventDefault();
           graph.options().addOrUpdateGeneralObjectEntry("version", d3.select("#versionEditor").node().value);
         }
@@ -86,7 +86,7 @@ module.exports = function ( graph ){
       })
       .on("keydown", function (event){
         event.stopPropagation();
-        if ( event.keyCode === 13 ) {
+        if ( event.key === "Enter" ) {
           event.preventDefault();
           graph.options().addOrUpdateGeneralObjectEntry("author", d3.select("#authorsEditor").node().value);
         }
@@ -765,7 +765,7 @@ module.exports = function ( graph ){
         })
         .on("keydown", function (event){
           event.stopPropagation();
-          if ( event.keyCode === 13 ) {
+          if ( event.key === "Enter" ) {
             event.preventDefault();
             console.warn("IRI CHANGED Via ENTER pressed");
             changeIriForElement(element);
@@ -809,7 +809,7 @@ module.exports = function ( graph ){
         })
         .on("keydown", function (event){
           event.stopPropagation();
-          if ( event.keyCode === 13 ) {
+          if ( event.key === "Enter" ) {
             event.preventDefault();
             let sanityCheckResult;
             console.warn("Element changed Label");

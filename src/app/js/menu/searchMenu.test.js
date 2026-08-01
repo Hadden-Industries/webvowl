@@ -45,6 +45,7 @@ class MockElement {
 
   setAttribute(name, value) {
     this.attributes[name] = String(value);
+    if (name === "id") { this.id = String(value); }
   }
 
   getAttribute(name) {
@@ -243,15 +244,54 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     expect(clearBtn.classList.contains("hidden")).toBe(true);
   });
 
+  test("accepts a typing keyup without throwing", () => {
+    const searchMenu = searchMenuFactory(mockGraph);
+    searchMenu.setup();
+
+    expect(() => searchInput.dispatchEvent({
+      type: "keyup",
+      key: "a",
+      target: searchInput
+    })).not.toThrow();
+  });
+
   test("collapses mobile overlay and hides listbox on Escape key press", () => {
     const searchMenu = searchMenuFactory(mockGraph);
     searchMenu.setup();
 
     cSearch.classList.add("search-expanded");
+    const escapeEvent = { type: "keydown", key: "Escape", target: searchInput };
 
-    searchInput.dispatchEvent({ type: "keydown", keyCode: 27, target: searchInput });
+    searchInput.dispatchEvent(escapeEvent);
 
     expect(cSearch.classList.contains("search-expanded")).toBe(false);
+    expect(escapeEvent.defaultPrevented).toBe(true);
+  });
+
+  test("moves through search suggestions with ArrowDown", () => {
+    const searchMenu = searchMenuFactory(mockGraph);
+    searchMenu.setup();
+    searchInput.value = "Per";
+    searchInput.dispatchEvent({ type: "input", target: searchInput });
+
+    searchInput.dispatchEvent({ type: "keydown", key: "ArrowDown", target: searchInput });
+
+    expect(listbox.children[0].getAttribute("aria-selected")).toBe("true");
+    expect(searchInput.getAttribute("aria-activedescendant")).toBe("search-option-0");
+  });
+
+  test("selects the active search suggestion with Enter", () => {
+    const searchMenu = searchMenuFactory(mockGraph);
+    searchMenu.setup();
+    searchInput.value = "Per";
+    searchInput.dispatchEvent({ type: "input", target: searchInput });
+    searchInput.dispatchEvent({ type: "keydown", key: "ArrowDown", target: searchInput });
+
+    searchInput.dispatchEvent({ type: "keydown", key: "Enter", target: searchInput });
+
+    expect(searchInput.value).toBe("Person");
+    expect(mockDoc.elements["locateSearchResult"].disabled).toBe(false);
+    expect(listbox.classList.contains("hidden")).toBe(true);
   });
 
   test("synchronizes locate button title, aria-label, and disabled state on search result selection and clearing", () => {

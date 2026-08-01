@@ -2561,9 +2561,20 @@ body:has(.search-expanded) #scrollRightButton {
     border-bottom: none;
 }
 
-#zoomSlider button:hover {
+#zoomSlider button:not([aria-disabled="true"]):hover {
     background-color: #d90;
     color: #fff;
+}
+
+#zoomSlider button[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+#zoomSlider button:focus-visible,
+#zoomSliderElement:focus-visible {
+    outline: 3px solid #3b99fc;
+    outline-offset: -3px;
 }
 
 #zoomSlider button svg {

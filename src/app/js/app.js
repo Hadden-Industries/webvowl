@@ -294,12 +294,12 @@ module.exports = function (){
       // prevent backspace reloading event
       const htmlBody = d3.select("body");
       d3.select(document).on("keydown", function ( event ){
-        if ( event.keyCode === 8 && event.target === htmlBody.node() ) {
+        if ( event.key === "Backspace" && event.target === htmlBody.node() ) {
           // we could add here an alert
           event.preventDefault();
         }
         // using ctrl+Shift+d as debug option
-        if ( event.ctrlKey && event.shiftKey && event.keyCode === 68 ) {
+        if ( event.ctrlKey && event.shiftKey && event.key && event.key.toLowerCase() === "d" ) {
           graph.options().executeHiddenDebugFeatuers();
           event.preventDefault();
         }

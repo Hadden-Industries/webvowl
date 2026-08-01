@@ -167,7 +167,7 @@ module.exports = (function (){
       })
         .on("keydown", function (event){
           event.stopPropagation();
-          if ( event.keyCode === 13 ) {
+          if ( event.key === "Enter" ) {
             this.blur();
             that.frozen(false); // << releases the not after selection
             that.locked(false);
