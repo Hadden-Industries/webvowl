@@ -2521,6 +2521,7 @@ body:has(.search-expanded) #scrollRightButton {
     position: static !important;
     top: auto !important;
     color: #000;
+    touch-action: manipulation;
 }
 
 #zoomSlider button:last-child {
