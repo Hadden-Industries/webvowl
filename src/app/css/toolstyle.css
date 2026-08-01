@@ -1087,7 +1087,7 @@ main {
     padding-left: 0;
 }
 
-#exportTex label, #exportTurtle label {
+#exportTex span, #exportTurtle span {
     font-size: 10px;
 }
 
@@ -1117,9 +1117,10 @@ main {
     height: 100%;
 }
 
-#generalDetails span #about {
+#generalDetails #about {
     border-bottom: solid 1px #34495e;
     display: block;
+    margin: 0;
     padding: 10px;
     text-align: center;
     overflow-wrap: break-word;
@@ -2429,6 +2430,17 @@ main {
     text-decoration: none;
 }
 
+.popover-menu-action {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: #60a5fa;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    width: 100%;
+}
+
 .popover-menu-list > li {
     border: 1px solid transparent;
     border-top-color: rgb(255 255 255 / 8%);
@@ -2453,7 +2465,8 @@ main {
 
 /* } */
 
-.popover-menu-list li a:hover {
+.popover-menu-list li a:hover,
+.popover-menu-list li .popover-menu-action:hover {
     background-color: rgb(255 255 255 / 8%);
     color: #93c5fd;
 }
@@ -2869,7 +2882,9 @@ a#pause-button.highlighted:hover {
     background-color: transparent;
 }
 
-.popover-menu-list li a:only-child, .option {
+.popover-menu-list li a:only-child,
+.popover-menu-list li .popover-menu-action:only-child,
+.option {
     display: block;
     float: none;
     padding: 8px 5px;

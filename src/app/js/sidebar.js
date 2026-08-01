@@ -1,9 +1,42 @@
+const NAVIGABLE_IRI_SCHEMES = new Set(["http:", "https:", "urn:"]);
+
+function navigableIri( value ){
+  if ( typeof value !== "string" ) {return undefined;}
+  const iri = value.trim();
+  if ( !iri ) {return undefined;}
+
+  try {
+    const parsedIri = new URL(iri);
+    return NAVIGABLE_IRI_SCHEMES.has(parsedIri.protocol.toLowerCase()) ? iri : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function appendIriLabel( element, name, iri ){
+  const href = navigableIri(iri);
+  const tag = element.append(href ? "a" : "span");
+
+  if ( href ) {
+    tag.attr("href", href)
+      .attr("title", href)
+      .attr("target", "_blank");
+  }
+  tag.text(name);
+}
+
+function renderOntologyIri( element, iri ){
+  element.text("");
+  const label = typeof iri === "string" && iri.trim() ? iri.trim() : "not given";
+  appendIriLabel(element, label, iri);
+}
+
 /**
  * Contains the logic for the sidebar.
  * @param graph the graph that belongs to these controls
  * @returns {{}}
  */
-module.exports = function ( graph ){
+function createSidebar( graph ){
   
   const sidebar = {};
   const languageTools = webvowl.util.languageTools();
@@ -68,7 +101,7 @@ module.exports = function ( graph ){
   sidebar.clearOntologyInformation = function (){
     
     d3.select("#title").text("No title available");
-    d3.select("#about").attr("href", "#").attr("target", "_blank").text("not given");
+    renderOntologyIri(d3.select("#about"));
     d3.select("#version").text("--");
     d3.select("#authors").text("--");
     d3.select("#description").text("No description available.");
@@ -244,7 +277,7 @@ module.exports = function ( graph ){
   function updateGraphInformation(){
     const title = languageTools.textInLanguage(ontologyInfo.title, graph.language());
     d3.select("#title").text(title || "No title available");
-    d3.select("#about").attr("href", ontologyInfo.iri).attr("target", "_blank").text(ontologyInfo.iri);
+    renderOntologyIri(d3.select("#about"), ontologyInfo.iri);
     d3.select("#version").text(ontologyInfo.version || "--");
     const authors = ontologyInfo.author;
     if ( typeof authors === "string" ) {
@@ -535,11 +568,7 @@ module.exports = function ( graph ){
       }
       
       if ( predicateIri && localName ) {
-        p.append("a")
-          .attr("href", predicateIri)
-          .attr("target", "_blank")
-          .attr("title", predicateIri)
-          .text(localName);
+        appendIriLabel(p, localName, predicateIri);
         p.node().appendChild(document.createTextNode(": "));
       } else {
         p.node().appendChild(document.createTextNode(d.identifier + ": "));
@@ -548,11 +577,7 @@ module.exports = function ( graph ){
 
       const valueSpan = p.append("span");
       if ( d.type === "iri" ) {
-        valueSpan.append("a")
-          .attr("href", d.value)
-          .attr("title", d.value)
-          .attr("target", "_blank")
-          .text(d.value);
+        appendIriLabel(valueSpan, d.value, d.value);
       } else {
         valueSpan.text(d.value);
       }
@@ -687,20 +712,6 @@ module.exports = function ( graph ){
     } else {
       parent.classed("hidden", true);
     }
-  }
-  
-  function appendIriLabel( element, name, iri ){
-    let tag;
-    
-    if ( iri ) {
-      tag = element.append("a")
-        .attr("href", iri)
-        .attr("title", iri)
-        .attr("target", "_blank");
-    } else {
-      tag = element.append("span");
-    }
-    tag.text(name);
   }
   
   function displayAttributes( attributes, textSpan ){
@@ -957,8 +968,9 @@ module.exports = function ( graph ){
       }
       
     }
-    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "iri") ) {d3.select("#about").node().innerHTML = generalMetaObj.iri;}
-    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "iri") ) {d3.select("#about").node().href = generalMetaObj.iri;}
+    if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "iri") ) {
+      renderOntologyIri(d3.select("#about"), generalMetaObj.iri);
+    }
     if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "version") ) {d3.select("#version").node().innerHTML = generalMetaObj.version;}
     if ( Object.prototype.hasOwnProperty.call(generalMetaObj, "author") ) {d3.select("#authors").node().innerHTML = generalMetaObj.author;}
     // this could also be an object >>
@@ -974,4 +986,9 @@ module.exports = function ( graph ){
   
   
   return sidebar;
-};
+}
+
+createSidebar.navigableIri = navigableIri;
+createSidebar.renderOntologyIri = renderOntologyIri;
+
+module.exports = createSidebar;

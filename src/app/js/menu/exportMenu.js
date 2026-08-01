@@ -4,14 +4,28 @@
  */
 const createExportSvgClone = require("./svgExportStyles");
 
-module.exports = function ( graph ){
+function downloadFile( content, mimeType, filename ){
+  const objectUrl = URL.createObjectURL(new Blob([content], { type: mimeType }));
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = filename;
+  link.hidden = true;
+  document.body.appendChild(link);
+
+  try {
+    link.click();
+  } finally {
+    link.remove();
+    setTimeout(function (){
+      URL.revokeObjectURL(objectUrl);
+    }, 0);
+  }
+}
+
+function createExportMenu( graph ){
   
   const exportMenu = {};
-  let exportSvgButton;
   let exportFilename;
-  let exportJsonButton;
-  let exportTurtleButton;
-  let exportTexButton;
   let exportableJsonText;
   
   const exportTTLModule = require("./exportTTLModule")(graph);
@@ -27,21 +41,21 @@ module.exports = function ( graph ){
    * Adds the export button to the website.
    */
   exportMenu.setup = function (){
-    exportSvgButton = d3.select("#exportSvg")
+    d3.select("#exportSvg")
       .on("click", exportSvg);
-    exportJsonButton = d3.select("#exportJson")
+    d3.select("#exportJson")
       .on("click", exportJson);
     
     d3.select("#copyBt")
       .on("click", copyUrl);
     
-    exportTexButton = d3.select("#exportTex")
+    d3.select("#exportTex")
       .on("click", exportTex);
     
-    exportTurtleButton = d3.select("#exportTurtle")
+    d3.select("#exportTurtle")
       .on("click", exportTurtle);
   };
-  function exportTurtle(event){
+  function exportTurtle(){
     const success = exportTTLModule.requestExport();
     const result = exportTTLModule.resultingTTL_Content();
     const ontoTitle = "NewOntology";
@@ -59,20 +73,11 @@ module.exports = function ( graph ){
       // TODO: show TEXT in warning module?
       
       
-      // // write the data
-      const dataURI = "data:text/json;charset=utf-8," + encodeURIComponent(result);
-      
-      exportTurtleButton.attr("href", dataURI)
-        .attr("download", ontoTitle + ".ttl");
-      
-      // okay restore old href?
-      //  exportTurtleButton.attr("href", oldHref);
+      downloadFile(result, "text/turtle;charset=utf-8", ontoTitle + ".ttl");
     } else {
       console.warn("ShowWarning!");
       graph.options().warningModule().showExporterWarning();
       console.warn("Stay on the page! " + window.location.href);
-      exportTurtleButton.attr("href", window.location.href);
-      event.preventDefault(); // prevent the href to be called ( reloads the page otherwise )
     }
   }
   
@@ -238,34 +243,7 @@ module.exports = function ( graph ){
     graphSvgCode = "<!-- Created with WebVOWL (version " + webvowl.version + ")" +
       ", http://vowl.visualdataweb.org -->\n" + graphSvgCode;
     
-    const escapedGraphSvgCode = escapeUnicodeCharacters(graphSvgCode);
-    //btoa(); Creates a base-64 encoded ASCII string from a "string" of binary data.
-    const dataURI = "data:image/svg+xml;base64," + btoa(escapedGraphSvgCode);
-    
-    
-    exportSvgButton.attr("href", dataURI)
-      .attr("download", exportFilename + ".svg");
-  }
-
-  function escapeUnicodeCharacters( text ){
-    const textSnippets = [];
-    let i;
-    const textLength = text.length;
-    let character;
-    let charCode;
-    
-    for ( i = 0; i < textLength; i++ ) {
-      character = text.charAt(i);
-      charCode = character.charCodeAt(0);
-      
-      if ( charCode < 128 ) {
-        textSnippets.push(character);
-      } else {
-        textSnippets.push("&#" + charCode + ";");
-      }
-    }
-    
-    return textSnippets.join("");
+    downloadFile(graphSvgCode, "image/svg+xml;charset=utf-8", exportFilename + ".svg");
   }
   
   exportMenu.createJSON_exportObject = function (){
@@ -645,13 +623,11 @@ module.exports = function ( graph ){
     return exportObj;
   };
   
-  function exportJson(event){
+  function exportJson(){
     graph.options().navigationMenu().hideAllMenus();
     /**  check if there is data **/
     if ( !exportableJsonText ) {
       alert("No graph data available.");
-      // Stop the redirection to the path of the href attribute
-      event.preventDefault();
       return;
     }
     
@@ -659,17 +635,14 @@ module.exports = function ( graph ){
     
     // make a string again;
     const exportText = JSON.stringify(exportObj, null, '  ');
-    // write the data
-    const dataURI = "data:text/json;charset=utf-8," + encodeURIComponent(exportText);
     let jsonExportFileName = exportFilename;
     
     if ( !jsonExportFileName.endsWith(".json") )
       {jsonExportFileName += ".json";}
-    exportJsonButton.attr("href", dataURI)
-      .attr("download", jsonExportFileName);
+    downloadFile(exportText, "application/json;charset=utf-8", jsonExportFileName);
   }
   
-  function exportTex(event){
+  function exportTex(){
     const bbox = graph.getBoundingBoxForTex();
     let comment = " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
     comment += " %        Generated with the experimental alpha version of the TeX exporter of WebVOWL (version 1.1.3) %%% \n";
@@ -798,8 +771,6 @@ module.exports = function ( graph ){
     /**  check if there is data **/
     if ( !exportableJsonText ) {
       alert("No graph data available.");
-      // Stop the redirection to the path of the href attribute
-      event.preventDefault();
       return;
     }
     
@@ -1284,13 +1255,15 @@ module.exports = function ( graph ){
     texString += "\\end{tikzpicture}\n}\n \\end{center}\n";
     
     //   console.warn("Tex Output\n"+ texString);
-    const dataURI = "data:text/json;charset=utf-8," + encodeURIComponent(texString);
-    exportTexButton.attr("href", dataURI)
-      .attr("download", exportFilename + ".tex");
+    downloadFile(texString, "application/x-tex;charset=utf-8", exportFilename + ".tex");
     
     
   }
 
   
   return exportMenu;
-};
+}
+
+createExportMenu.downloadFile = downloadFile;
+
+module.exports = createExportMenu;

@@ -201,11 +201,11 @@
                 </div>
                 <div class="popover-content">
                     <ul class="popover-menu-list">
-                        <li><a href="#" download id="exportJson">Export as JSON</a></li>
-                        <li><a href="#" download id="exportSvg">Export as SVG</a></li>
-                        <li><a href="#" download id="exportTex">Export as TeX <span>(alpha)</span></a>
+                        <li><button type="button" class="popover-menu-action" id="exportJson">Export as JSON</button></li>
+                        <li><button type="button" class="popover-menu-action" id="exportSvg">Export as SVG</button></li>
+                        <li><button type="button" class="popover-menu-action" id="exportTex">Export as TeX <span>(alpha)</span></button>
                         </li>
-                        <li><a href="#" download id="exportTurtle">Export as TTL <span>(alpha)</span></a>
+                        <li><button type="button" class="popover-menu-action" id="exportTurtle">Export as TTL <span>(alpha)</span></button>
                         </li>
 
                         <li class="option" id="emptyLiHover">
@@ -417,7 +417,7 @@
                             </g>
                         </svg>
                     </i>Modes</button></li>
-                <li id="c_debug" class="debugOption"><button type="button" class="navButton" id="debugMenuHref" popovertarget="m_debug" disabled>
+                <li id="c_debug" class="debugOption"><button type="button" class="navButton" id="debugMenuButton" popovertarget="m_debug" disabled>
                     <i>
                         <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
@@ -570,7 +570,7 @@
         </section>
         <section id="generalDetails" class="hidden">
             <h2 id="title">Ontology Details</h2>
-            <span><a id="about" href="#" aria-label="Ontology Link">Ontology Link</a></span>
+            <p id="about">not given</p>
             <h5>Version: <span id="version"></span></h5>
             <h5>Author(s): <span id="authors"></span></h5>
             <h5>

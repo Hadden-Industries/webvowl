@@ -108,25 +108,15 @@ module.exports = function ( graph ){
         if ( newURL === oldURL + "#" ) {
           return;
         }
-        updateNavigationHrefs();
         loadingModule.parseUrlAndLoadOntology();
       }
     });
-    updateNavigationHrefs();
   }
   
   ontologyMenu.stopLoadingTimer = function (){
     stopTimer = true;
     clearTimeout(loadingStatusTimer);
   };
-  
-  /**
-   * Quick fix: update all anchor tags that are used as buttons because a click on them
-   * changes the url and this will load an other ontology.
-   */
-  function updateNavigationHrefs(){
-    d3.selectAll("#menuElementContainer > li > a").attr("href", location.hash || "#");
-  }
   
   ontologyMenu.setIriText = function ( text ){
     d3.select("#iri-converter-input").node().value = text;
