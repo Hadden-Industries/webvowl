@@ -45,16 +45,24 @@ module.exports = function ( graph ){
     }
     /** global settings **********************************************************/
     if ( settingsData.global ) {
-      if ( settingsData.global.zoom ) {
-        const zoomFactor = settingsData.global.zoom;
-        graph.setZoom(zoomFactor);
-        settingsImportGraphZoomAndTranslation = true;
-      }
-      
-      if ( settingsData.global.translation ) {
-        const translation = settingsData.global.translation;
-        graph.setTranslation(translation);
-        settingsImportGraphZoomAndTranslation = true;
+      const hasZoom = Object.prototype.hasOwnProperty.call(settingsData.global, "zoom");
+      const hasTranslation = Object.prototype.hasOwnProperty.call(settingsData.global, "translation");
+
+      if ( hasZoom && hasTranslation && typeof graph.setViewportTransform === "function" ) {
+        settingsImportGraphZoomAndTranslation = graph.setViewportTransform(
+          settingsData.global.zoom,
+          settingsData.global.translation
+        ) !== false;
+      } else {
+        if ( hasZoom ) {
+          settingsImportGraphZoomAndTranslation = graph.setZoom(settingsData.global.zoom) !== false ||
+            settingsImportGraphZoomAndTranslation;
+        }
+
+        if ( hasTranslation ) {
+          settingsImportGraphZoomAndTranslation = graph.setTranslation(settingsData.global.translation) !== false ||
+            settingsImportGraphZoomAndTranslation;
+        }
       }
       
       if ( settingsData.global.paused ) {

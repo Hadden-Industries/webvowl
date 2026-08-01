@@ -3,7 +3,6 @@ String.prototype.replaceAll = function ( search, replacement ){
   return target.split(search).join(replacement);
 };
 module.exports = function (){
-  let newOntologyCounter = 1;
   const app = {},
     graph = webvowl.graph(),
     options = graph.graphOptions(),
@@ -271,6 +270,7 @@ module.exports = function (){
       
       ontologyMenu.setup(loadOntologyFromText);
       configMenu.setup();
+      loadingModule.refreshControlAvailability();
       
       leftSidebar.showSidebar(0);
       leftSidebar.hideCollapseButton(true);
@@ -359,7 +359,6 @@ module.exports = function (){
       loadingModule.notValidJsonFile();
       return;
     }
-    graph.editorMode(); // updates the checkbox
     let data;
     if ( jsonText ) {
       // validate JSON FILE
@@ -399,17 +398,15 @@ module.exports = function (){
     let loadEmptyOntologyForEditing = false;
     if ( location.hash.indexOf("#new_ontology") !== -1 ) {
       loadEmptyOntologyForEditing = true;
-      newOntologyCounter++;
-      d3.select("#empty").node().href = "#opts=editorMode=true;#new_ontology" + newOntologyCounter;
     }
     if ( classCount === 0 && graph.editorMode() === false && loadEmptyOntologyForEditing === false ) {
       // generate message for the user;
       loadingModule.emptyGraphContentError();
     } else {
-      loadingModule.validJsonFile();
       ontologyMenu.setCachedOntology(filename, jsonText);
       exportMenu.setJsonText(jsonText);
       options.data(data);
+      loadingModule.validJsonFile();
       graph.options().loadingModule().setPercentMode();
       if ( loadEmptyOntologyForEditing === true ) {
         graph.editorMode(true);

@@ -13,6 +13,7 @@ module.exports = function ( graph ){
   let previousFrameTime;
   let zoomValue;
   let showSlider = true;
+  let controlsEnabled = true;
   const w = graph.options().width();
   const h = graph.options().height();
   let slider;
@@ -30,6 +31,7 @@ module.exports = function ( graph ){
   }
 
   function applyZoomStep(direction, elapsedFrames){
+    if ( !controlsEnabled ) {return false;}
     const factor = direction > 0 ? zoomInFactor : zoomOutFactor;
     zoomValue *= Math.pow(factor, elapsedFrames);
     const reachedBoundary = direction > 0 ? zoomValue >= maxMag : zoomValue <= minMag;
@@ -47,8 +49,12 @@ module.exports = function ( graph ){
   }
 
   function updateZoomButtonStates(value){
-    d3.select("#zoomInButton").attr("aria-disabled", String(!zoomAvailable(1, value)));
-    d3.select("#zoomOutButton").attr("aria-disabled", String(!zoomAvailable(-1, value)));
+    const zoomInDisabled = !controlsEnabled || !zoomAvailable(1, value);
+    const zoomOutDisabled = !controlsEnabled || !zoomAvailable(-1, value);
+    d3.select("#zoomInButton")
+      .property("disabled", zoomInDisabled);
+    d3.select("#zoomOutButton")
+      .property("disabled", zoomOutDisabled);
   }
 
   function timedZoom(timestamp){
@@ -63,7 +69,7 @@ module.exports = function ( graph ){
   }
 
   function startContinuousZoom(direction){
-    if ( activeDirection !== 0 ) {return false;}
+    if ( !controlsEnabled || activeDirection !== 0 ) {return false;}
 
     zoomValue = Number(graph.scaleFactor());
     if ( !zoomAvailable(direction, zoomValue) ) {return false;}
@@ -78,6 +84,7 @@ module.exports = function ( graph ){
   }
 
   function applySingleZoom(direction){
+    if ( !controlsEnabled ) {return;}
     zoomValue = Number(graph.scaleFactor());
     if ( !zoomAvailable(direction, zoomValue) ) {return;}
     graph.options().navigationMenu().hideAllMenus();
@@ -101,12 +108,13 @@ module.exports = function ( graph ){
       .attr("aria-orientation", "vertical")
       .attr("aria-valuetext", zoomPercentage(defZoom))
       .attr("title", "Zoom level")
+      .property("disabled", !controlsEnabled)
       .on("input", function (){
         zoomSlider.zooming();
       });
     
     function handleContainerTouch(event){
-      if ( !event || !event.touches || event.touches.length === 0 ) {return;}
+      if ( !controlsEnabled || !event || !event.touches || event.touches.length === 0 ) {return;}
       const touch = event.touches[0];
       const container = d3.select("#zoomSliderParagraph").node();
       if ( !container ) {return;}
@@ -180,6 +188,7 @@ module.exports = function ( graph ){
     });
     
     d3.select("#centerGraphButton").on("click", function (){
+      if ( !controlsEnabled ) {return;}
       graph.options().navigationMenu().hideAllMenus();
       graph.forceRelocationEvent();
     }).attr("title", "center graph");
@@ -196,6 +205,7 @@ module.exports = function ( graph ){
   };
   
   zoomSlider.zooming = function (){
+    if ( !controlsEnabled ) {return;}
     graph.options().navigationMenu().hideAllMenus();
     const zoomValue = slider.property("value");
     slider.attr("value", zoomValue);
@@ -211,6 +221,14 @@ module.exports = function ( graph ){
       slider.attr("aria-valuetext", zoomPercentage(val));
       updateZoomButtonStates(val);
     }
+  };
+
+  zoomSlider.setMenuMode = function ( enabled ){
+    controlsEnabled = Boolean(enabled);
+    if ( !controlsEnabled ) {stopContinuousZoom();}
+    d3.select("#centerGraphButton").property("disabled", !controlsEnabled);
+    if ( slider ) {slider.property("disabled", !controlsEnabled);}
+    updateZoomButtonStates(graph.scaleFactor());
   };
   
   return zoomSlider;

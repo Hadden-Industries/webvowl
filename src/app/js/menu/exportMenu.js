@@ -579,7 +579,7 @@ module.exports = function ( graph ){
     const paused = graph.paused();
     const translation = [parseFloat(graph.translation()[0].toFixed(2)), parseFloat(graph.translation()[1].toFixed(2))];
     exportText.settings.global = {};
-    exportText.settings.global.zoom = zoom.toFixed(2);
+    exportText.settings.global.zoom = Number(zoom.toFixed(2));
     exportText.settings.global.translation = translation;
     exportText.settings.global.paused = paused;
     

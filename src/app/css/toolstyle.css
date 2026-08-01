@@ -1084,7 +1084,6 @@ main {
 }
 
 #empty {
-    pointer-events: none;
     padding-left: 0;
 }
 
@@ -2044,6 +2043,17 @@ main {
     transition: background 0.15s ease, color 0.15s ease;
 }
 
+#menuElementContainer > li > button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+#search-input-text:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
 /* Toolbar Divider separating Menu Drawers from Graph Action Buttons */
 .nav-separator {
     width: 1px;
@@ -2335,23 +2345,20 @@ main {
     transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
-#empty:hover:not(.disabled, :disabled),
-.empty-ontology-btn:hover:not(.disabled, :disabled) {
+#empty:hover:not(:disabled),
+.empty-ontology-btn:hover:not(:disabled) {
     background: #2563eb;
     border-color: #2563eb;
     color: #fff !important;
 }
 
-#empty.disabled,
 #empty:disabled,
-.empty-ontology-btn.disabled,
 .empty-ontology-btn:disabled {
     background: rgb(255 255 255 / 6%) !important;
     border-color: rgb(255 255 255 / 10%) !important;
     color: #64748b !important;
     opacity: 0.6;
     cursor: not-allowed !important;
-    pointer-events: none !important;
 }
 
 .empty-disabled-hint {
@@ -2561,12 +2568,13 @@ body:has(.search-expanded) #scrollRightButton {
     border-bottom: none;
 }
 
-#zoomSlider button:not([aria-disabled="true"]):hover {
+#zoomSlider button:not(:disabled):hover {
     background-color: #d90;
     color: #fff;
 }
 
-#zoomSlider button[aria-disabled="true"] {
+#zoomSlider button:disabled,
+#zoomSliderElement:disabled {
     cursor: not-allowed;
     opacity: 0.45;
 }

@@ -6,8 +6,54 @@ const elementTools = require("./util/elementTools")();
 const nodePrototypeMap = require("./elements/nodes/nodeMap")();
 const propertyPrototypeMap = require("./elements/properties/propertyMap")();
 
+function finiteNumber( value ){
+  if ( typeof value === "string" && value.trim() === "" ) {return undefined;}
+  if ( typeof value !== "number" && typeof value !== "string" ) {return undefined;}
+  const number = Number(value);
+  return Number.isFinite(number) ? number : undefined;
+}
 
-module.exports = function ( graphContainerSelector ){
+function normalizeZoom( value, minimum, maximum ){
+  const zoom = finiteNumber(value);
+  const min = finiteNumber(minimum);
+  const max = finiteNumber(maximum);
+  if ( zoom === undefined || zoom <= 0 ) {return undefined;}
+  if ( min !== undefined && zoom < min ) {return min;}
+  if ( max !== undefined && zoom > max ) {return max;}
+  return zoom;
+}
+
+function normalizeTranslation( value ){
+  if ( !value || typeof value === "string" || typeof value.length !== "number" || value.length < 2 ) {
+    return undefined;
+  }
+  const x = finiteNumber(value[0]);
+  const y = finiteNumber(value[1]);
+  return x === undefined || y === undefined ? undefined : [x, y];
+}
+
+function normalizeViewport( zoom, translation, minimum, maximum ){
+  const normalizedZoom = normalizeZoom(zoom, minimum, maximum);
+  const normalizedTranslation = normalizeTranslation(translation);
+  if ( normalizedZoom === undefined || normalizedTranslation === undefined ) {return undefined;}
+  return { zoom: normalizedZoom, translation: normalizedTranslation };
+}
+
+function toSvgTransform( zoom, translation ){
+  const viewport = normalizeViewport(zoom, translation);
+  if ( !viewport ) {return undefined;}
+  return "translate(" + viewport.translation[0] + "," + viewport.translation[1] + ")scale(" + viewport.zoom + ")";
+}
+
+const viewportTransform = Object.freeze({
+  finiteNumber,
+  normalizeTranslation,
+  normalizeViewport,
+  normalizeZoom,
+  toSvgTransform
+});
+
+function createGraph( graphContainerSelector ){
   const graph = {};
   const CARDINALITY_HDISTANCE = 20;
   const CARDINALITY_VDISTANCE = 10;
@@ -80,7 +126,7 @@ module.exports = function ( graphContainerSelector ){
 
   let eP = 0; // id for new properties
   let eN = 0; // id for new Nodes
-  let editMode = true;
+  let editMode = options.initialConfig().editorMode === "true";
   const debugContainer = d3.select("#FPS_Statistics");
   let finishedLoadingSequence = false;
     
@@ -103,6 +149,24 @@ module.exports = function ( graphContainerSelector ){
     if (svgNode) {
       svgNode.__zoom = d3.zoomIdentity.translate(graphTranslation[0], graphTranslation[1]).scale(zoomFactor);
     }
+  }
+
+  function updateViewportState( translation, scale, synchronize = true ){
+    const normalized = viewportTransform.normalizeViewport(
+      scale,
+      translation,
+      options.minMagnification(),
+      options.maxMagnification()
+    );
+    if ( !normalized ) {return false;}
+    graphTranslation = normalized.translation;
+    zoomFactor = normalized.zoom;
+    if ( synchronize ) {syncZoomState();}
+    return true;
+  }
+
+  function viewportTransformString(){
+    return viewportTransform.toSvgTransform(zoomFactor, graphTranslation) || "translate(0,0)scale(1)";
   }
   const NodePrototypeMap = createLowerCasePrototypeMap(nodePrototypeMap);
   const PropertyPrototypeMap = createLowerCasePrototypeMap(propertyPrototypeMap);
@@ -132,12 +196,18 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.setDefaultZoom = function ( val ){
-    defaultZoom = val;
+    const normalized = viewportTransform.normalizeZoom(val, options.minMagnification(), options.maxMagnification());
+    if ( normalized === undefined ) {return false;}
+    defaultZoom = normalized;
     graph.reset();
     graph.options().zoomSlider().updateZoomSliderValue(defaultZoom);
+    return true;
   };
   graph.setTargetZoom = function ( val ){
-    defaultTargetZoom = val;
+    const normalized = viewportTransform.normalizeZoom(val, options.minMagnification(), options.maxMagnification());
+    if ( normalized === undefined ) {return false;}
+    defaultTargetZoom = normalized;
+    return true;
   };
   graph.graphOptions = function (){
     return options;
@@ -164,12 +234,13 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.setSliderZoom = function ( val ){
-    
+    const targetZoom = viewportTransform.normalizeZoom(val, options.minMagnification(), options.maxMagnification());
+    if ( targetZoom === undefined || !graphContainer ) {return false;}
     const cx = 0.5 * graph.options().width();
     const cy = 0.5 * graph.options().height();
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
     const sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
-    const eP = [cp.x, cp.y, graph.options().height() / val];
+    const eP = [cp.x, cp.y, graph.options().height() / targetZoom];
     const pos_intp = d3.interpolateZoom(sP, eP);
     
     graphContainer.attr("transform", transform(sP, cx, cy))
@@ -181,21 +252,32 @@ module.exports = function ( graphContainerSelector ){
         };
       })
       .on("end", function (){
-        graphContainer.attr("transform", "translate(" + graphTranslation + ")scale(" + zoomFactor + ")");
+        graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
         graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
       });
+    return true;
   };
   
   
   graph.setZoom = function ( value ){
-    zoomFactor = value;
+    const normalized = viewportTransform.normalizeZoom(value, options.minMagnification(), options.maxMagnification());
+    if ( normalized === undefined ) {return false;}
+    zoomFactor = normalized;
     syncZoomState();
+    return true;
   };
   
   graph.setTranslation = function ( translation ){
-    graphTranslation = [translation[0], translation[1]];
+    const normalized = viewportTransform.normalizeTranslation(translation);
+    if ( !normalized ) {return false;}
+    graphTranslation = normalized;
     syncZoomState();
+    return true;
+  };
+
+  graph.setViewportTransform = function ( scale, translation ){
+    return updateViewportState(translation, scale);
   };
   
   graph.options = function (){
@@ -581,6 +663,7 @@ module.exports = function ( graphContainerSelector ){
           graph.options().loadingModule().showWarningDetailsMessage();
           graph.options().ontologyMenu().append_bulletPoint("Loaded ontology with warnings");
         }
+        graph.options().loadingModule().markReady();
       }
     }
   }
@@ -887,36 +970,39 @@ module.exports = function ( graphContainerSelector ){
       if ( transformAnimation === true ) {
         return;
       }
-      zoomFactor = event.transform.k;
-      graphTranslation = [event.transform.x, event.transform.y];
-      graphContainer.attr("transform", "translate(" + graphTranslation + ")scale(" + zoomFactor + ")");
+      if ( !event.transform || !updateViewportState([event.transform.x, event.transform.y], event.transform.k, false) ) {
+        syncZoomState();
+        return;
+      }
+      graphContainer.attr("transform", viewportTransformString());
       updateHaloRadius();
       graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
       return;
     }
     /** animate the transition **/
-    zoomFactor = event.transform.k;
-    graphTranslation = [event.transform.x, event.transform.y];
+    if ( !event.transform || !updateViewportState([event.transform.x, event.transform.y], event.transform.k, false) ) {
+      syncZoomState();
+      return;
+    }
     graphContainer.transition()
       .tween("attr.translate", function (){
         return function ( t ){
           transformAnimation = true;
           const svgNode = graphContainer.node() ? graphContainer.node().parentNode : null;
           if (svgNode && svgNode.__zoom) {
-              graphTranslation[0] = svgNode.__zoom.x;
-              graphTranslation[1] = svgNode.__zoom.y;
-              zoomFactor = svgNode.__zoom.k;
+              updateViewportState([svgNode.__zoom.x, svgNode.__zoom.y], svgNode.__zoom.k, false);
           } else {
               // fallback: parse from attribute
               const transformAttr = graphContainer.attr("transform") || "";
               const matchTranslate = transformAttr.match(/translate\(([^,)]+)[,\s]+([^)]+)\)/);
               const matchScale = transformAttr.match(/scale\(([^)]+)\)/);
               if (matchTranslate) {
-                  graphTranslation[0] = parseFloat(matchTranslate[1]);
-                  graphTranslation[1] = parseFloat(matchTranslate[2]);
-              }
-              if (matchScale) {
-                  zoomFactor = parseFloat(matchScale[1]);
+                  const parsedScale = matchScale ? parseFloat(matchScale[1]) : zoomFactor;
+                  updateViewportState(
+                    [parseFloat(matchTranslate[1]), parseFloat(matchTranslate[2])],
+                    parsedScale,
+                    false
+                  );
               }
           }
           updateHaloRadius();
@@ -926,7 +1012,7 @@ module.exports = function ( graphContainerSelector ){
       .on("end", function (){
         transformAnimation = false;
       })
-      .attr("transform", "translate(" + graphTranslation + ")scale(" + zoomFactor + ")")
+      .attr("transform", viewportTransformString())
       .ease(d3.easeLinear)
       .duration(250);
   }// end of zoomed function
@@ -1250,7 +1336,7 @@ module.exports = function ( graphContainerSelector ){
       const svgElement = d3.selectAll(".vowlGraph");
       svgElement.attr("width", options.width());
       svgElement.attr("height", options.height());
-      graphContainer.attr("transform", "translate(" + graphTranslation + ")scale(" + zoomFactor + ")");
+      graphContainer.attr("transform", viewportTransformString());
     }
   };
   
@@ -1405,9 +1491,7 @@ module.exports = function ( graphContainerSelector ){
     // computing initial translation for the graph due tue the dynamic default zoom level
     const tx = w - defaultZoom * w;
     const ty = h - defaultZoom * h;
-    graphTranslation = [tx, ty];
-    zoomFactor = defaultZoom;
-    syncZoomState();
+    updateViewportState([tx, ty], defaultZoom);
   };
   
   
@@ -1435,7 +1519,7 @@ module.exports = function ( graphContainerSelector ){
         };
       })
       .on("end", function (){
-        graphContainer.attr("transform", "translate(" + graphTranslation + ")scale(" + zoomFactor + ")");
+        graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
         updateHaloRadius();
         options.zoomSlider().updateZoomSliderValue(zoomFactor);
@@ -1465,7 +1549,7 @@ module.exports = function ( graphContainerSelector ){
         };
       })
       .on("end", function (){
-        graphContainer.attr("transform", "translate(" + graphTranslation + ")scale(" + zoomFactor + ")");
+        graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
         updateHaloRadius();
         options.zoomSlider().updateZoomSliderValue(zoomFactor);
@@ -1650,6 +1734,7 @@ module.exports = function ( graphContainerSelector ){
     if ( graphContainer && validOntology === true ) {
       
       updateRenderingDuringSimulation = false;
+      loadingModule.markRendering();
       graph.options().ontologyMenu().append_bulletPoint("Generating visualization ... ");
       loadingModule.setPercentMode();
       
@@ -1664,6 +1749,17 @@ module.exports = function ( graphContainerSelector ){
         else {
           force.on("tick", recalculatePositions);
         }
+        loadingModule.setPercentValue(100);
+        graph.options().ontologyMenu().append_message_toLastBulletPoint("done");
+        if ( loadingModule.missingImportsWarning() === false ) {
+          loadingModule.hideLoadingIndicator();
+          graph.options().ontologyMenu().append_bulletPoint("Successfully loaded ontology");
+          loadingModule.setSuccessful();
+        } else {
+          loadingModule.showWarningDetailsMessage();
+          graph.options().ontologyMenu().append_bulletPoint("Loaded ontology with warnings");
+        }
+        loadingModule.markReady();
       }
       
       force.alpha(1).restart();
@@ -1671,6 +1767,7 @@ module.exports = function ( graphContainerSelector ){
       force.stop();
       graph.options().ontologyMenu().append_bulletPoint("Failed to load ontology");
       loadingModule.setErrorMode();
+      loadingModule.markError();
     }
     // update prefixList(
     // update general MetaOBJECT
@@ -1743,6 +1840,7 @@ module.exports = function ( graphContainerSelector ){
     graph.clearGraphData();
     graph.options().ontologyMenu().append_bulletPoint("Failed to load ontology");
     graph.options().loadingModule().setErrorMode();
+    graph.options().loadingModule().markError();
     graph.options().loadingModule().showErrorDetailsMessage();
     if ( graph.options().resetMenu() ) { graph.options().resetMenu().setMenuMode(false); }
     if ( graph.options().pausedMenu() ) { graph.options().pausedMenu().setMenuMode(false); }
@@ -2180,13 +2278,21 @@ module.exports = function ( graphContainerSelector ){
   
   function transform( p, cx, cy ){
     // one iteration step for the locate target animation
-    zoomFactor = graph.options().height() / p[2];
-    graphTranslation = [(cx - p[0] * zoomFactor), (cy - p[1] * zoomFactor)];
+    if ( !p || p.length < 3 || !Number.isFinite(p[0]) || !Number.isFinite(p[1]) ||
+      !Number.isFinite(p[2]) || p[2] <= 0 || !Number.isFinite(cx) || !Number.isFinite(cy) ) {
+      return viewportTransformString();
+    }
+    const nextZoom = viewportTransform.normalizeZoom(
+      graph.options().height() / p[2],
+      options.minMagnification(),
+      options.maxMagnification()
+    );
+    if ( nextZoom === undefined ) {return viewportTransformString();}
+    const nextTranslation = [(cx - p[0] * nextZoom), (cy - p[1] * nextZoom)];
+    if ( !updateViewportState(nextTranslation, nextZoom) ) {return viewportTransformString();}
     updateHaloRadius();
-    // update the values in case the user wants to break the animation
-    syncZoomState();
     graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
-    return "translate(" + graphTranslation[0] + "," + graphTranslation[1] + ")scale(" + zoomFactor + ")";
+    return viewportTransformString();
   }
   
   graph.zoomToElementInGraph = function ( element ){
@@ -2197,6 +2303,7 @@ module.exports = function ( graphContainerSelector ){
   };
   
   function targetLocationZoom( target ){
+    if ( !target || !Number.isFinite(target.x) || !Number.isFinite(target.y) || !graphContainer ) {return;}
     // store the original information
     const cx = 0.5 * graph.options().width();
     const cy = 0.5 * graph.options().height();
@@ -2221,23 +2328,22 @@ module.exports = function ( graphContainerSelector ){
         };
       })
       .on("end", function (){
-        graphContainer.attr("transform", "translate(" + graphTranslation + ")scale(" + zoomFactor + ")");
+        graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
         updateHaloRadius();
       });
   }
   
   function getWorldPosFromScreen( x, y, translate, scale ){
-    const temp = scale[0];
-    let xn, yn;
-    if ( temp ) {
-      xn = (x - translate[0]) / temp;
-      yn = (y - translate[1]) / temp;
-    } else {
-      xn = (x - translate[0]) / scale;
-      yn = (y - translate[1]) / scale;
+    const normalizedScale = viewportTransform.normalizeZoom(scale);
+    const normalizedTranslation = viewportTransform.normalizeTranslation(translate);
+    if ( normalizedScale === undefined || !normalizedTranslation || !Number.isFinite(x) || !Number.isFinite(y) ) {
+      return { x: 0, y: 0 };
     }
-    return { x: xn, y: yn };
+    return {
+      x: (x - normalizedTranslation[0]) / normalizedScale,
+      y: (y - normalizedTranslation[1]) / normalizedScale
+    };
   }
   
   graph.locateSearchResult = function (){
@@ -2520,6 +2626,7 @@ module.exports = function ( graphContainerSelector ){
   };
   
   graph.forceRelocationEvent = function ( dynamic ){
+    if ( !graphContainer || !graphContainer.node() ) {return;}
     // we need to kill the halo to determine the bounding box;
     const halos = graph.hideHalos();
     const bbox = graphContainer.node().getBoundingClientRect();
@@ -2541,6 +2648,8 @@ module.exports = function ( graphContainerSelector ){
     
     const g_w = botRight.x - topLeft.x;
     const g_h = botRight.y - topLeft.y;
+    if ( !Number.isFinite(g_w) || !Number.isFinite(g_h) || g_w <= 0 || g_h <= 0 ||
+      !Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0 ) {return;}
     
     // endpoint position calculations
     const posX = 0.5 * (topLeft.x + botRight.x);
@@ -2597,7 +2706,7 @@ module.exports = function ( graphContainerSelector ){
           return;
         }
         
-        graphContainer.attr("transform", "translate(" + graphTranslation + ")scale(" + zoomFactor + ")");
+        graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
         graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
         
@@ -2799,75 +2908,45 @@ module.exports = function ( graphContainerSelector ){
     
   }
   
-  graph.editorMode = function ( val ){
+  function updateEditorModeDependentControls(){
     const create_entry = d3.select("#empty");
     const create_container = d3.select("#emptyContainer");
     const emptyHint = d3.select("#empty-disabled-hint");
-    const modeOfOpString = d3.select("#modeOfOperationString").node();
-    
-    if ( !arguments.length ) {
-      if ( create_entry.node() ) {
-        create_entry.node().checked = editMode;
-        if ( editMode === false ) {
-          create_container.node().title = "Enable editing in Modes menu to be able to create a new ontology";
-          create_entry.node().title = "Enable editing in Modes menu to be able to create a new ontology";
-          create_entry.node().disabled = true;
-          create_entry.classed("disabled", true);
-          d3.select("#useAccuracyHelper").classed("disabled", true).attr("aria-disabled", "true");
-          const accuracyCheckbox = d3.select("#useAccuracyHelperConfigCheckbox").node();
-          if ( accuracyCheckbox ) {accuracyCheckbox.disabled = true;}
-          if ( emptyHint.node() ) {
-            emptyHint.text("Enable editing in Modes menu to be able to create a new ontology");
-            emptyHint.classed("hidden", false);
-          }
-        } else {
-          create_container.node().title = "Creates a new empty ontology";
-          create_entry.node().title = "Creates a new empty ontology";
-          d3.select("#useAccuracyHelper").classed("disabled", false).attr("aria-disabled", null);
-          const accuracyCheckbox = d3.select("#useAccuracyHelperConfigCheckbox").node();
-          if ( accuracyCheckbox ) {accuracyCheckbox.disabled = false;}
-          create_entry.node().disabled = false;
-          create_entry.classed("disabled", false);
-          if ( emptyHint.node() ) {
-            emptyHint.text("Creates a new empty ontology");
-            emptyHint.classed("hidden", true);
-          }
-        }
-      }
-      return editMode;
+    const createMessage = editMode ?
+      "Creates a new empty ontology" :
+      "Enable editing in Modes menu to be able to create a new ontology";
+
+    if ( create_entry.node() ) {
+      create_entry
+        .property("disabled", !editMode)
+        .property("title", createMessage);
     }
-    graph.options().setEditorModeForDefaultObject(val);
-    editMode = val;
-    if ( val === false ) {
+    if ( create_container.node() ) {create_container.property("title", createMessage);}
+
+    d3.select("#useAccuracyHelper")
+      .classed("disabled", !editMode)
+      .attr("aria-disabled", editMode ? null : "true");
+    const accuracyCheckbox = d3.select("#useAccuracyHelperConfigCheckbox").node();
+    if ( accuracyCheckbox ) {accuracyCheckbox.disabled = !editMode;}
+
+    if ( emptyHint.node() ) {
+      emptyHint.text(createMessage);
+      emptyHint.classed("hidden", editMode);
+    }
+  }
+
+  graph.updateEditorModeDependentControls = updateEditorModeDependentControls;
+
+  graph.editorMode = function ( val ){
+    if ( !arguments.length ) {return editMode;}
+
+    const modeOfOpString = d3.select("#modeOfOperationString").node();
+    editMode = Boolean(val);
+    graph.options().setEditorModeForDefaultObject(editMode);
+    if ( editMode === false ) {
       seenEditorHint = false;
     }
-    
-    if ( create_entry.node() ) {
-      create_entry.classed("disabled", !editMode);
-      if ( !editMode ) {
-        create_container.node().title = "Enable editing in Modes menu to be able to create a new ontology";
-        create_entry.node().title = "Enable editing in Modes menu to be able to create a new ontology";
-        create_entry.node().disabled = true;
-        d3.select("#useAccuracyHelper").classed("disabled", true).attr("aria-disabled", "true");
-        const accuracyCheckbox = d3.select("#useAccuracyHelperConfigCheckbox").node();
-        if ( accuracyCheckbox ) {accuracyCheckbox.disabled = true;}
-        if ( emptyHint.node() ) {
-          emptyHint.text("Enable editing in Modes menu to be able to create a new ontology");
-          emptyHint.classed("hidden", false);
-        }
-      } else {
-        create_container.node().title = "Creates a new empty ontology";
-        create_entry.node().title = "Creates a new empty ontology";
-        create_entry.node().disabled = false;
-        d3.select("#useAccuracyHelper").classed("disabled", false).attr("aria-disabled", null);
-        const accuracyCheckbox = d3.select("#useAccuracyHelperConfigCheckbox").node();
-        if ( accuracyCheckbox ) {accuracyCheckbox.disabled = false;}
-        if ( emptyHint.node() ) {
-          emptyHint.text("Creates a new empty ontology");
-          emptyHint.classed("hidden", true);
-        }
-      }
-    }
+    updateEditorModeDependentControls();
     
     // adjust compact notation
     // selector = compactNotationOption;
@@ -4033,4 +4112,8 @@ module.exports = function ( graphContainerSelector ){
   
   
   return graph;
-};
+}
+
+createGraph.viewportTransform = viewportTransform;
+
+module.exports = createGraph;

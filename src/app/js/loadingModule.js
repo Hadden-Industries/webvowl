@@ -1,5 +1,6 @@
 const owl2vowlModule = require("../../owl2vowl/js/index.js");
 const owl2vowl = owl2vowlModule.default || owl2vowlModule;
+const ontologyLifecycle = require("./ontologyLifecycle");
 if (!owl2vowl.loadWithImports && owl2vowlModule.loadWithImports) {
   owl2vowl.loadWithImports = owl2vowlModule.loadWithImports;
 }
@@ -16,7 +17,7 @@ module.exports = function ( graph ){
   const PROGRESS_BAR_PERCENT = 2;
   let progressBarMode = 1;
   
-  let loadingWasSuccessFul = false;
+  let applicationState = ontologyLifecycle.STATES.IDLE;
   let missingImportsWarning = false;
   let showLoadingDetails = false;
   let visibilityStatus = true;
@@ -32,6 +33,7 @@ module.exports = function ( graph ){
   const closeButton = d3.select("#loadingIndicator_closeButton");
   let ontologyMenu;
   let ontologyIdentifierFromURL;
+  let newOntologyCounter = 1;
   
   /** functon defs **/
   loadingModule.checkForScreenSize = function (){
@@ -72,8 +74,56 @@ module.exports = function ( graph ){
   };
   
   loadingModule.successfullyLoadedOntology = function (){
-    return loadingWasSuccessFul;
+    return ontologyLifecycle.isModelAvailable(applicationState);
   };
+
+  loadingModule.state = function (){
+    return applicationState;
+  };
+
+  function optionModule( name ){
+    const graphOptions = graph.options && graph.options();
+    if ( !graphOptions || typeof graphOptions[name] !== "function" ) {return undefined;}
+    return graphOptions[name]();
+  }
+
+  function setDisabled( selector, disabled ){
+    d3.selectAll(selector).property("disabled", disabled);
+  }
+
+  function applyControlAvailability(){
+    const capabilities = ontologyLifecycle.capabilitiesFor(applicationState);
+    const graphControlsDisabled = !capabilities.graphControls;
+
+    setDisabled("#c_export > button, #c_filter > button, #c_config > button, #c_debug > button", graphControlsDisabled);
+    setDisabled("#c_select > button", !capabilities.ontologySource);
+    setDisabled("#c_modes > button", !capabilities.editorMode);
+
+    const resetMenu = optionModule("resetMenu");
+    if ( resetMenu && resetMenu.setMenuMode ) {resetMenu.setMenuMode(capabilities.graphControls);}
+    const pausedMenu = optionModule("pausedMenu");
+    if ( pausedMenu && pausedMenu.setMenuMode ) {pausedMenu.setMenuMode(capabilities.graphControls);}
+    const zoomSlider = optionModule("zoomSlider");
+    if ( zoomSlider && zoomSlider.setMenuMode ) {zoomSlider.setMenuMode(capabilities.graphControls);}
+    const searchMenu = optionModule("searchMenu");
+    if ( searchMenu && searchMenu.setMenuMode ) {searchMenu.setMenuMode(capabilities.graphControls);}
+
+    setDisabled("#m_modes input, #m_modes button", !capabilities.dataModes);
+    setDisabled("#editorModeModuleCheckbox", !capabilities.editorMode);
+  }
+
+  loadingModule.setState = function ( state ){
+    ontologyLifecycle.capabilitiesFor(state);
+    applicationState = state;
+    applyControlAvailability();
+  };
+
+  loadingModule.refreshControlAvailability = applyControlAvailability;
+  loadingModule.markLoading = function (){loadingModule.setState(ontologyLifecycle.STATES.LOADING);};
+  loadingModule.markModelReady = function (){loadingModule.setState(ontologyLifecycle.STATES.MODEL_READY);};
+  loadingModule.markRendering = function (){loadingModule.setState(ontologyLifecycle.STATES.RENDERING);};
+  loadingModule.markReady = function (){loadingModule.setState(ontologyLifecycle.STATES.READY);};
+  loadingModule.markError = function (){loadingModule.setState(ontologyLifecycle.STATES.ERROR);};
   
   loadingModule.missingImportsWarning = function (){
     return missingImportsWarning;
@@ -128,6 +178,7 @@ module.exports = function ( graph ){
       menuContainer.classed("hidden", true);
     });
     loadingModule.setBusyMode();
+    loadingModule.setState(ontologyLifecycle.STATES.IDLE);
   };
   
   loadingModule.updateSize = function (){
@@ -188,7 +239,6 @@ module.exports = function ( graph ){
     graph.clearGraphData();
     ontologyMenu.append_message_toLastBulletPoint("failed", { tone: "error" });
     ontologyMenu.append_message_toLastBulletPoint("Error: Received empty graph", { tone: "error", breakBefore: true });
-    loadingWasSuccessFul = false;
     graph.handleOnLoadingError();
     loadingModule.setErrorMode();
   };
@@ -198,6 +248,9 @@ module.exports = function ( graph ){
   };
   
   loadingModule.initializeLoader = function ( storeCache ){
+    loadingModule.markLoading();
+    const navigationMenu = optionModule("navigationMenu");
+    if ( navigationMenu && navigationMenu.hideAllMenus ) {navigationMenu.hideAllMenus();}
     if ( storeCache === true && graph.getCachedJsonObj() !== null ) {
       // save cached ontology;
       const cachedContent = JSON.stringify(graph.getCachedJsonObj());
@@ -248,6 +301,28 @@ module.exports = function ( graph ){
         console.warn("Could not identify loading method , or not IMPLEMENTED YET");
     }
   };
+
+  function nextNewOntologyIdentifier(){
+    const routeMatch = String(location.hash).match(/#new_ontology(\d+)/);
+    if ( routeMatch ) {
+      newOntologyCounter = Math.max(newOntologyCounter, Number(routeMatch[1]) + 1);
+    }
+    return "new_ontology" + newOntologyCounter++;
+  }
+
+  loadingModule.createNewOntology = function (){
+    const ontologyIdentifier = nextNewOntologyIdentifier();
+    const route = "#opts=editorMode=true;#" + ontologyIdentifier;
+
+    graph.editorMode(true);
+    graph.clearAllGraphData();
+    loadingModule.initializeLoader(true);
+    ontologyIdentifierFromURL = ontologyIdentifier;
+    window.history.pushState(null, "", route);
+    d3.select("#progressBarLabel").text("");
+    loadingModule.from_presetOntology(ontologyIdentifier);
+    return ontologyIdentifier;
+  };
   
   /** ------------------- LOADING --------------------- **/
   // the loading module splits into 3 branches
@@ -262,7 +337,6 @@ module.exports = function ( graph ){
     if ( ontologyMenu.cachedOntology(filename) ) {
       ontologyMenu.append_bulletPoint("Loading already cached ontology: " + filename);
       const ontologyContent = ontologyMenu.cachedOntology(filename);
-      loadingWasSuccessFul = true; // cached Ontology should be true;
       parseOntologyContent(ontologyContent);
       
     } else {
@@ -299,7 +373,6 @@ module.exports = function ( graph ){
     if ( ontologyMenu.cachedOntology(filename) ) {
       ontologyMenu.append_bulletPoint("Loading already cached ontology: " + filename);
       const ontologyContent = ontologyMenu.cachedOntology(filename);
-      loadingWasSuccessFul = true; // cached Ontology should be true;
       parseOntologyContent(ontologyContent);
     } else {
       ontologyMenu.append_bulletPoint("Retrieving ontology from IRI: " + filename);
@@ -403,7 +476,6 @@ module.exports = function ( graph ){
     if ( ontologyMenu.cachedOntology(filename) ) {
       ontologyMenu.append_bulletPoint("Loading already cached ontology: " + filename);
       ontologyContent = ontologyMenu.cachedOntology(filename);
-      loadingWasSuccessFul = true; // cached Ontology should be true;
       parseOntologyContent(ontologyContent);
       
     } else {
@@ -464,13 +536,13 @@ module.exports = function ( graph ){
 
   
   loadingModule.directInput = function ( text ){
+    loadingModule.markLoading();
     ontologyMenu.clearDetailInformation();
     parseOntologyContent(text);
   };
   
   loadingModule.loadFromOWL2VOWL = function ( ontoContent, filename ){
-    loadingWasSuccessFul = false;
-    
+    loadingModule.markLoading();
     const old = d3.select("#bulletPoint_container").node().innerHTML;
     if ( old.indexOf("(with warnings)") !== -1 ) {
       missingImportsWarning = true;
@@ -500,12 +572,10 @@ module.exports = function ( graph ){
       loadingNewOntologyForEditor=true;
     }
     
-    loadingWasSuccessFul = false;
     let ontologyContent = "";
     if ( ontologyMenu.cachedOntology(ontology) ) {
       ontologyMenu.append_bulletPoint("Loading already cached ontology: " + ontology);
       ontologyContent = ontologyMenu.cachedOntology(ontology);
-      loadingWasSuccessFul = true; // cached Ontology should be true;
       loadingModule.showLoadingIndicator();
       parseOntologyContent(ontologyContent);
       
@@ -597,16 +667,13 @@ module.exports = function ( graph ){
     graph.clearGraphData();
     ontologyMenu.append_message_toLastBulletPoint(" failed", { tone: "error" });
     ontologyMenu.append_message_toLastBulletPoint("Error: Received empty graph", { tone: "error", breakBefore: true });
-    loadingWasSuccessFul = false;
     graph.handleOnLoadingError();
     
   };
   
   loadingModule.validJsonFile = function (){
     ontologyMenu.append_message_toLastBulletPoint("done");
-    loadingWasSuccessFul = true;
-    if ( graph.options().resetMenu() ) { graph.options().resetMenu().setMenuMode(true); }
-    if ( graph.options().pausedMenu() ) { graph.options().pausedMenu().setMenuMode(true); }
+    loadingModule.markModelReady();
   };
   
   

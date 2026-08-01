@@ -273,19 +273,19 @@ module.exports = function ( graph ){
   function setupEmptyButton(){
     const emptyButton = d3.select("#empty");
     emptyButton.on("click", function (event){
-      if ( emptyButton.property("disabled") || emptyButton.classed("disabled") ) {
+      if ( emptyButton.property("disabled") ) {
         if ( event && typeof event.preventDefault === "function" ) {
           event.preventDefault();
         }
         return false;
       }
-      const targetHash = emptyButton.attr("data-href") || emptyButton.attr("href") || "#opts=editorMode=true;#new_ontology1";
-      location.hash = targetHash;
+      loadingModule.createNewOntology();
       if ( event && typeof event.preventDefault === "function" ) {
         event.preventDefault();
       }
       graph.options().navigationMenu().hideAllMenus();
     });
+    graph.updateEditorModeDependentControls();
   }
   
   function appendLoadingStatusText( container, message ){
