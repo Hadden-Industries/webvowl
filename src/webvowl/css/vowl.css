@@ -16,6 +16,14 @@
   fill: #666;
 }
 
+.text-on-light {
+    fill: #000;
+}
+
+.text-on-dark {
+    fill: #fff;
+}
+
 .external + text .instance-count {
   fill: #aaa;
 }
@@ -63,6 +71,10 @@
 .deprecated,
 .deprecatedproperty {
   fill: #ccc;
+}
+
+.has-custom-fill {
+    fill: var(--vowl-fill);
 }
 
 .external,
@@ -320,4 +332,18 @@ circle.focused {
   fill: #acf;
   stroke: black;
   stroke-width: 2px;
+}
+/* Shared off-screen probe used only for measuring rendered label widths. */
+.text-measurement-probe {
+    position: absolute;
+    float: left;
+    visibility: hidden;
+    white-space: nowrap;
+}
+.vowlGraph .is-render-pending {
+    opacity: 0;
+}
+
+.is-dragging {
+    cursor: grabbing;
 }

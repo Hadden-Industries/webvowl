@@ -131,7 +131,8 @@ html {
   border: solid 1px black;
   margin: auto;
 }
-
+    position: relative;
+    overflow: hidden;
 #progressBarValue {
   border-radius: 9px;
   width: 0%;
@@ -149,6 +150,23 @@ html {
   font-size: 14px;
   border: none;
   cursor: pointer;
+    display: block;
+    width: 100%;
+    border-radius: 9px;
+}
+
+#progressBarValue::-moz-progress-bar {
+    background-color: #2980b9;
+    border-radius: 9px;
+}
+
+#progressBarLabel {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    border: 0;
 }
 
 .dbEntrySelected {
@@ -844,7 +862,8 @@ main {
 }
 
 #useAccuracyHelper.disabled,
-#showDraggerObject.disabled {
+#showDraggerObject.disabled,
+#compactNotationOption.disabled {
     color: #979797 !important;
     pointer-events: none !important;
 }
@@ -951,9 +970,6 @@ main {
 #currentLoadingStep.step-success { color: #0f0 !important; }
 #currentLoadingStep.step-error { color: #f00 !important; }
 #currentLoadingStep.step-busy { color: #fff !important; }
-
-#progressBarValue.pct-20 { width: 20% !important; }
-#progressBarValue.pct-0 { width: 0% !important; }
 
 #directInputTextArea {
     width: 40vw;
@@ -1677,6 +1693,12 @@ li#c_search input.searchInputText {
   color: #000;
   background-color: #fff;
   text-align: center;
+    box-sizing: border-box;
+    width: 100%;
+    border: none;
+    border-bottom: 2px solid #000;
+    padding-top: 6px;
+}
 
   /* overflow: auto; */
   border: none;
@@ -2446,6 +2468,23 @@ li#c_search input.searchInputText {
   position: absolute;
   top: 10px;
   left: 8px;
+}
+
+#menuElementContainer .menuElementSvgElement path {
+    fill: inherit;
+    stroke-width: 0;
+}
+
+.reload-cached-ontology-path,
+#drag_icon,
+#drag_icon_drop {
+    fill: #444;
+    stroke-width: 0;
+}
+
+.experimental-label {
+    padding-top: 3px;
+    font-size: 10px;
 }
 
 .btn_shadowed {
@@ -3538,8 +3577,8 @@ a#locateSearchResult {
     position: fixed;
     inset: auto;
     bottom: 60px;
-    left: 16px;
-    transform: none;
+    left: var(--popover-inline-start, 16px);
+    transform: translateY(var(--sheet-drag-y, 0));
     margin: 0;
     padding: 0;
     width: 360px;
@@ -3913,7 +3952,7 @@ a#locateSearchResult {
 @media screen and (width < 600px) {
     .modern-popover {
         inset: auto 0 0 !important;
-        transform: none;
+        transform: translateY(var(--sheet-drag-y, 0));
         width: 100% !important;
         max-width: 100% !important;
         max-height: 80vh !important;
@@ -3952,13 +3991,13 @@ a#locateSearchResult {
         background: rgb(255 255 255 / 30%);
         border-radius: 2px;
         margin: 8px auto 4px;
-        touch-action: none;
+        touch-action: pan-x;
         user-select: none;
         cursor: grab;
     }
 
     .popover-header {
-        touch-action: none;
+        touch-action: pan-x;
         user-select: none;
         cursor: grab;
     }

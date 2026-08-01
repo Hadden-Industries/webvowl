@@ -52,6 +52,8 @@ module.exports = (function () {
     }
   }
 
+  tools.setBackgroundColor = addBackgroundColor;
+
   /**
    * Appends a rectangular class node with the passed attributes.
    * @param parent the parent element to which the rectangle will be appended

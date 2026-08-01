@@ -1,5 +1,6 @@
 const BaseNode = require("./BaseNode");
 const CenteringTextElement = require("../../util/CenteringTextElement");
+const textTools = require("../../util/textTools")();
 const drawTools = require("../drawTools")();
 const rectangularElementTools = require("../rectangularElementTools")();
 
@@ -74,11 +75,11 @@ module.exports = (function () {
     this.getMyWidth = function () {
       // use a simple heuristic
       const text = that.labelForCurrentLanguage();
-      myWidth = measureTextWidth(text, "text") + 20;
+      myWidth = textTools.measureTextWidth(text, "text") + 20;
 
       // check for sub names;
       const indicatorText = that.indicationString();
-      const indicatorWidth = measureTextWidth(indicatorText, "subtext") + 20;
+      const indicatorWidth = textTools.measureTextWidth(indicatorText, "subtext") + 20;
       if (indicatorWidth > myWidth) {
         myWidth = indicatorWidth;
       }

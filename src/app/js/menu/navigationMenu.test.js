@@ -285,6 +285,7 @@ describe("navigationMenu and popover event listeners", () => {
       const controller = getOrCreateElement("c_export");
       expect(controller.classList.contains("active-menu-item")).toBe(true);
       expect(exportAsUrlMock).toHaveBeenCalled();
+      expect(popover.style.getPropertyValue("--popover-inline-start")).toBe("16px");
     });
 
     test("removes active-menu-item when toggle closes popover", () => {
@@ -363,7 +364,7 @@ describe("navigationMenu and popover event listeners", () => {
       });
       handleNode.dispatchEvent(moveEvent);
 
-      expect(popover.style.transform).toBe("translateY(120px)");
+      expect(popover.style.getPropertyValue("--sheet-drag-y")).toBe("120px");
       expect(popover.classList.contains("has-dragged")).toBe(true);
 
       const endEvent = new CustomEvent("touchend", {});
@@ -405,7 +406,7 @@ describe("navigationMenu and popover event listeners", () => {
       });
       handleNode.dispatchEvent(moveEvent);
 
-      expect(popover.style.transform).toBe("translateY(30px)");
+      expect(popover.style.getPropertyValue("--sheet-drag-y")).toBe("30px");
 
       setTimeout(() => {
         const endEvent = new CustomEvent("touchend", {});
@@ -451,7 +452,7 @@ describe("navigationMenu and popover event listeners", () => {
       });
       handleNode.dispatchEvent(moveEvent);
 
-      expect(popover.style.transform).toBe("translateY(0px)");
+      expect(popover.style.getPropertyValue("--sheet-drag-y")).toBe("0px");
     });
 
     test("ignores drag initialization when target is close button", () => {
@@ -486,7 +487,7 @@ describe("navigationMenu and popover event listeners", () => {
       });
       handleNode.dispatchEvent(moveEvent);
 
-      expect(popover.style.transform).toBeUndefined();
+      expect(popover.style.getPropertyValue("--sheet-drag-y")).toBe("");
     });
   });
 });

@@ -148,7 +148,7 @@ module.exports = (function () {
 
       const editText = fobj
         .append("xhtml:input")
-        .attr("class", "nodeEditSpan")
+        .attr("class", "nodeEditSpan nodeEditSpan--node")
         .attr("id", that.id())
         .attr("align", "center")
         .attr("contentEditable", "true")

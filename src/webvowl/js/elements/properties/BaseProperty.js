@@ -1,5 +1,6 @@
 const BaseElement = require("../BaseElement");
 const CenteringTextElement = require("../../util/CenteringTextElement");
+const textTools = require("../../util/textTools")();
 const drawTools = require("../drawTools")();
 const forceLayoutNodeFunctions = require("../forceLayoutNodeFunctions")();
 const rectangularElementTools = require("../rectangularElementTools")();
@@ -344,7 +345,7 @@ module.exports = (function () {
       } else {
         rect.classed("deprecatedproperty", false);
       }
-      rect.style("fill", bgColor);
+      drawTools.setBackgroundColor(rect, bgColor);
 
       return rect;
     };
@@ -404,7 +405,7 @@ module.exports = (function () {
               "d",
               "m -8.8832678,-11.303355 -7.97e-4,0 0.717374,1.833297 8.22987151,21.371761 8.66826659,-21.2123526 0.797082,-1.9927054 0.02471,0 -0.8218553,1.9927054 -2.2517565,5.4201577 -12.4444429,8e-6 -2.2019394,-5.5795821 z",
             )
-            .style("fill", "none")
+            .classed("nofill", true)
             .attr("transform", "matrix(0.5,0,0,0.5,0.5,0.5)");
           return true;
         } else if (
@@ -420,7 +421,7 @@ module.exports = (function () {
               "d",
               "m -5.5788451,-8.0958763 10.8749368,0 0,8.34681523 -9.5707468,0.040132 9.5707468,-0.040132 0,8.42707237 -10.9150654,0",
             )
-            .style("fill", "none")
+            .classed("nofill", true)
             .attr("transform", "matrix(0.5,0,0,0.5,0.5,0.5)");
           return true;
         } else {
@@ -717,10 +718,10 @@ module.exports = (function () {
 
     this.getMyWidth = function () {
       const text = that.labelForCurrentLanguage();
-      myWidth = measureTextWidth(text, "text") + 20;
+      myWidth = textTools.measureTextWidth(text, "text") + 20;
       // check for sub names;
       const indicatorText = that.indicationString();
-      const indicatorWidth = measureTextWidth(indicatorText, "subtext") + 20;
+      const indicatorWidth = textTools.measureTextWidth(indicatorText, "subtext") + 20;
       if (indicatorWidth > myWidth) {
         myWidth = indicatorWidth;
       }
@@ -872,7 +873,7 @@ module.exports = (function () {
       //
       const editText = fobj
         .append("xhtml:input")
-        .attr("class", "nodeEditSpan")
+        .attr("class", "nodeEditSpan nodeEditSpan--property")
         .attr("id", that.id())
         .attr("align", "center")
         .attr("contentEditable", "true")

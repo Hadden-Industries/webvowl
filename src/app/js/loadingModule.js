@@ -154,9 +154,8 @@ module.exports = function (graph) {
 
   loadingModule.setBusyMode = function () {
     d3.select("#currentLoadingStep").attr("class", "step-busy");
-    d3.select("#progressBarValue").node().innherHTML = "";
-    d3.select("#progressBarValue").classed("pct-20", true).classed("pct-0", false);
-    d3.select("#progressBarValue").classed("busyProgressBar", true);
+    d3.select("#progressBarValue").attr("value", null);
+    d3.select("#progressBarLabel").text("");
     progressBarMode = PROGRESS_BAR_BUSY;
   };
 
@@ -166,22 +165,23 @@ module.exports = function (graph) {
 
   loadingModule.setErrorMode = function () {
     d3.select("#currentLoadingStep").attr("class", "step-error");
-    d3.select("#progressBarValue").classed("pct-20", false).classed("pct-0", true);
-    d3.select("#progressBarValue").classed("busyProgressBar", false);
-    d3.select("#progressBarValue").node().innherHTML = "";
+    d3.select("#progressBarValue").attr("value", 0);
+    d3.select("#progressBarLabel").text("");
     progressBarMode = PROGRESS_BAR_ERROR;
   };
 
   loadingModule.setPercentMode = function () {
     d3.select("#currentLoadingStep").attr("class", "step-busy");
-    d3.select("#progressBarValue").classed("busyProgressBar", false);
-    d3.select("#progressBarValue").node().innherHTML = "0%";
-    d3.select("#progressBarValue").classed("pct-20", false).classed("pct-0", true);
+    d3.select("#progressBarValue").attr("value", 0);
+    d3.select("#progressBarLabel").text("0%");
     progressBarMode = PROGRESS_BAR_PERCENT;
   };
 
   loadingModule.setPercentValue = function (val) {
-    d3.select("#progressBarValue").node().innherHTML = val;
+    const numericValue = Number.parseFloat(val);
+    const percent = Number.isFinite(numericValue) ? Math.max(0, Math.min(100, numericValue)) : 0;
+    d3.select("#progressBarValue").attr("value", percent);
+    d3.select("#progressBarLabel").text(Math.round(percent) + "%");
   };
 
   loadingModule.emptyGraphContentError = function () {
@@ -234,7 +234,7 @@ module.exports = function (graph) {
     const loadingMethod = identifyOntologyLoadingMethod(
       ontologyIdentifierFromURL,
     );
-    d3.select("#progressBarValue").node().innerHTML = " ";
+    d3.select("#progressBarLabel").text("");
     switch (loadingMethod) {
       case 0:
         loadingModule.from_presetOntology(ontologyIdentifierFromURL);
@@ -379,9 +379,9 @@ module.exports = function (graph) {
         })
         .catch(function(error) {
           console.error(error);
-          ontologyMenu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+          ontologyMenu.append_message_toLastBulletPoint("failed", { tone: "error" });
           ontologyMenu.append_bulletPoint("Could not fetch remote IRI: " + filename);
-          ontologyMenu.append_message_toLastBulletPoint("<br>CORS restrictions might prevent loading remote files directly in the browser.");
+          ontologyMenu.append_message_toLastBulletPoint("CORS restrictions might prevent loading remote files directly in the browser.", { breakBefore: true });
           loadingModule.setErrorMode();
           graph.handleOnLoadingError();
         });
@@ -390,7 +390,7 @@ module.exports = function (graph) {
 
   loadingModule.fromFileDrop = function (fileName, file) {
     let reader;
-    d3.select("#progressBarValue").node().innerHTML = " ";
+    d3.select("#progressBarLabel").text("");
     loadingModule.initializeLoader(false);
 
     ontologyMenu.append_bulletPoint(
@@ -478,7 +478,6 @@ module.exports = function (graph) {
             '" was found.</span><br>Please reupload the file.',
         );
         loadingModule.setErrorMode();
-        d3.select("#progressBarValue").classed("busyProgressBar", false);
         graph.handleOnLoadingError();
         return;
       } else {

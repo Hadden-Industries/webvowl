@@ -2,6 +2,8 @@
  * Contains the logic for the export button.
  * @returns {{}}
  */
+const createExportSvgClone = require("./svgExportStyles");
+
 module.exports = function (graph) {
   const exportMenu = {};
   let exportSvgButton;

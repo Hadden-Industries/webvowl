@@ -84,5 +84,62 @@ module.exports = [
       "no-new": "error",
       "no-use-before-define": ["error", { functions: false }]
     }
+  },
+
+  // Keep presentation in stylesheets. Runtime data may cross the boundary only
+  // through literal CSS custom properties; exportMenu's detached clone is the
+  // documented exception for standalone SVG serialization.
+  {
+    files: ["src/**/*.js"],
+    ignores: ["**/*.test.js", "src/app/js/menu/exportMenu.js", "src/app/js/menu/svgExportStyles.js"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.property.name='style']",
+          message: "Use a class, native state attribute, or CSS custom property instead of D3 .style()."
+        },
+        {
+          selector: "CallExpression[callee.property.name='attr'][arguments.0.value='style']",
+          message: "Do not generate inline style attributes."
+        },
+        {
+          selector: "AssignmentExpression[left.object.property.name='style']",
+          message: "Do not assign presentation properties through element.style."
+        },
+        {
+          selector: "CallExpression[callee.property.name=/^(setProperty|removeProperty)$/][arguments.0.type!='Literal']",
+          message: "CSS custom-property names must be literal so the style boundary remains auditable."
+        },
+        {
+          selector: "CallExpression[callee.property.name=/^(setProperty|removeProperty)$/][arguments.0.value=/^(?!--)/]",
+          message: "Only CSS custom properties may be changed through element.style."
+        },
+        {
+          selector: "Literal[value=/style\\s*=/i]",
+          message: "Do not generate markup containing inline style attributes."
+        }
+      ]
+    }
+  },
+  {
+    files: ["src/app/js/menu/exportMenu.js", "src/app/js/menu/svgExportStyles.js"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.property.name='style']",
+          message: "Do not mutate live presentation through D3 .style()."
+        },
+        {
+          selector: "CallExpression[callee.property.name='attr'][arguments.0.value='style']",
+          message: "Do not generate style attributes through D3."
+        },
+        {
+          selector: "AssignmentExpression[left.object.property.name='style']",
+          message: "Do not assign presentation properties through element.style."
+        }
+      ]
+    }
   }
 ];

@@ -130,7 +130,7 @@ module.exports = function (graph) {
     if (identifier === "editorMode") {
       moduleOptionContainer
         .append("label")
-        .attr("style", "font-size:10px;padding-top:3px")
+        .attr("class", "experimental-label")
         .text("(experimental)");
     }
 
@@ -164,7 +164,7 @@ module.exports = function (graph) {
     if (identifier === "editorMode") {
       moduleOptionContainer
         .append("label")
-        .attr("style", "font-size:10px;padding-top:3px")
+        .attr("class", "experimental-label")
         .text(" (experimental)");
     }
   }

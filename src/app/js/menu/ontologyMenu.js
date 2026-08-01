@@ -150,18 +150,18 @@ module.exports = function (graph) {
   };
   ontologyMenu.append_message = function (msg) {
     // forward call
-    append_message(msg);
+    append_message(msg, options);
   };
   function append_message(msg) {
     const bpContainer = d3.select("#bulletPoint_container");
     const div = bpContainer.append("div");
-    div.node().innerHTML = msg;
+    appendStructuredMessage(div, msg, options);
     loadingModule.scrollDownDetails();
   }
 
   ontologyMenu.append_message_toLastBulletPoint = function (msg) {
     // forward call
-    append_message_toLastBulletPoint(msg);
+    append_message_toLastBulletPoint(msg, options);
   };
 
   ontologyMenu.append_bulletPoint = function (msg) {
@@ -173,8 +173,7 @@ module.exports = function (graph) {
     const htmlCollection = bpContainer.node().getElementsByTagName("LI");
     const lastItem = htmlCollection.length - 1;
     if (lastItem >= 0) {
-      const oldText = htmlCollection[lastItem].innerHTML;
-      htmlCollection[lastItem].innerHTML = oldText + msg;
+      appendStructuredMessage(d3.select(htmlCollection[lastItem]), msg, options);
     }
     loadingModule.scrollDownDetails();
   }
@@ -182,8 +181,8 @@ module.exports = function (graph) {
   function append_bulletPoint(msg) {
     const bp_container = d3.select("#bulletPoint_container");
     const bp = bp_container.append("li");
-    bp.node().innerHTML = msg;
-    d3.select("#currentLoadingStep").node().innerHTML = msg;
+    bp.text(msg);
+    d3.select("#currentLoadingStep").text(msg);
     loadingModule.scrollDownDetails();
   }
 
@@ -301,14 +300,14 @@ module.exports = function (graph) {
     }
     // split tokens provided by o2v messages
     const tokens = message.split("* ");
-    let liForToken;
     for (let t = 0; t < tokens.length; t++) {
       const tokenMessage = tokens[t];
       // create li for tokens;
       if (tokenMessage.length > 0) {
-        liForToken = o2vConverterContainer.append("li");
-        liForToken.attr("type", "disc");
-        liForToken.node().innerHTML = tokenMessage.replace(/\n/g, "<br>");
+        const liForToken = o2vConverterContainer.append("li");
+        liForToken.attr("type", "disc")
+          .classed("loading-status-entry", true);
+        appendLoadingStatusText(liForToken, tokenMessage);
       }
     }
     if (liForToken) {
@@ -377,7 +376,7 @@ module.exports = function (graph) {
       if (request !== undefined) {
         setLoadingStatusInfo(request.responseText + "<br>" + msg);
       } else {
-        append_message(msg);
+        append_message(msg, { tone: "error" });
       });
   }
 
@@ -537,7 +536,7 @@ module.exports = function (graph) {
       );
     }
     if (request && request.responseText.length === 0) {
-      append_message("<span style='color:red'>Received empty graph</span>");
+      append_message("Received empty graph", { tone: "error" });
     }
     graph.handleOnLoadingError();
     ontologyMenu.conversionFinished();
@@ -564,7 +563,7 @@ module.exports = function (graph) {
       );
     }
     if (request && request.responseText.length === 0) {
-      append_message("<span style='color:red'>Received empty graph</span>");
+      append_message("Received empty graph", { tone: "error" });
     }
     graph.handleOnLoadingError();
     ontologyMenu.conversionFinished();

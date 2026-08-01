@@ -218,14 +218,14 @@ module.exports = function (graph) {
   };
 
   Class_dragger.mouseDown = function () {
-    Class_dragger.nodeElement.style("cursor", "move");
+    Class_dragger.nodeElement.classed("is-dragging", true);
     Class_dragger.nodeElement.classed("classDraggerNodeHovered", true);
     Class_dragger.mouseButtonPressed = true;
     console.warn("Mouse DOWN from Dragger");
   };
 
   Class_dragger.mouseUp = function () {
-    Class_dragger.nodeElement.style("cursor", "auto");
+    Class_dragger.nodeElement.classed("is-dragging", false);
     Class_dragger.mouseButtonPressed = false;
     console.warn("Mouse UP from Dragger");
   };
@@ -269,7 +269,6 @@ module.exports = function (graph) {
     Class_dragger.y = y;
     Class_dragger.updateElement();
   };
-
   Class_dragger.setAdditionalClassForClass_dragger = function (name, val) {
     // console.log("Class_dragger should sett the class here")
     // Class_dragger.nodeElement.classed(name,val);

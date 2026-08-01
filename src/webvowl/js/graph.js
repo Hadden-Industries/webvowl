@@ -503,7 +503,6 @@ module.exports = function (graphContainerSelector) {
       graph.options().loadingModule().successfullyLoadedOntology() === false
     ) {
       force.stop();
-      d3.select("#progressBarValue").node().innerHTML = "";
       graph.updateProgressBarMode();
       graph
         .options()
@@ -528,10 +527,8 @@ module.exports = function (graphContainerSelector) {
         updateRenderingDuringSimulation = true;
         // show graph container;
         if (graphContainer) {
-          graphContainer.style("opacity", "1");
-          percent = "100%";
-          d3.select("#progressBarValue").style("width", percent);
-          d3.select("#progressBarValue").node().innerHTML = percent;
+          graphContainer.classed("is-render-pending", false);
+          graph.options().loadingModule().setPercentValue(100);
           graph
             .options()
             .ontologyMenu()
@@ -1783,10 +1780,10 @@ module.exports = function (graphContainerSelector) {
       loadingModule.setPercentMode();
 
       if (unfilteredData.nodes.length > 0) {
-        graphContainer.style("opacity", "0");
+        graphContainer.classed("is-render-pending", true);
         force.on("tick", hiddenRecalculatePositions);
       } else {
-        graphContainer.style("opacity", "1");
+        graphContainer.classed("is-render-pending", false);
         if (showFPS === true) {
           force.on("tick", recalculatePositionsWithFPS);
         } else {
@@ -1890,8 +1887,6 @@ module.exports = function (graphContainerSelector) {
       .options()
       .ontologyMenu()
       .append_bulletPoint("Failed to load ontology");
-    d3.select("#progressBarValue").node().innherHTML = "";
-    d3.select("#progressBarValue").classed("busyProgressBar", false);
     graph.options().loadingModule().setErrorMode();
     graph.options().loadingModule().showErrorDetailsMessage();
     if ( graph.options().resetMenu() ) { graph.options().resetMenu().setMenuMode(false); }
@@ -3116,9 +3111,9 @@ module.exports = function (graphContainerSelector) {
         create_entry.node().title =
           "Enable editing in modes menu to create a new ontology";
         create_entry.node().disabled = true;
-        d3.select("#useAccuracyHelper").style("color", "#979797");
-        d3.select("#useAccuracyHelper").style("pointer-events", "none");
-        create_entry.style("pointer-events", "none");
+        d3.select("#useAccuracyHelper").classed("disabled", true).attr("aria-disabled", "true");
+        const accuracyCheckbox = d3.select("#useAccuracyHelperConfigCheckbox").node();
+        if ( accuracyCheckbox ) {accuracyCheckbox.disabled = true;}
         if ( emptyHint.node() ) {
           emptyHint.text("Enable editing in Modes menu to be able to create a new ontology");
           emptyHint.classed("hidden", false);
@@ -3127,9 +3122,9 @@ module.exports = function (graphContainerSelector) {
         create_container.node().title = "Creates a new empty ontology";
         create_entry.node().title = "Creates a new empty ontology";
         create_entry.node().disabled = false;
-        d3.select("#useAccuracyHelper").style("color", "#2980b9");
-        d3.select("#useAccuracyHelper").style("pointer-events", "auto");
-        create_entry.style("pointer-events", "auto");
+        d3.select("#useAccuracyHelper").classed("disabled", false).attr("aria-disabled", null);
+        const accuracyCheckbox = d3.select("#useAccuracyHelperConfigCheckbox").node();
+        if ( accuracyCheckbox ) {accuracyCheckbox.disabled = false;}
         if ( emptyHint.node() ) {
           emptyHint.text("Creates a new empty ontology");
           emptyHint.classed("hidden", true);
@@ -3148,9 +3143,7 @@ module.exports = function (graphContainerSelector) {
       if (!editMode) {
         compactNotationContainer.node().title = "";
         compactNotationContainer.node().disabled = false;
-        compactNotationContainer.style("pointer-events", "auto");
-        d3.select("#compactNotationOption").style("color", "");
-        d3.select("#compactNotationOption").node().title = "";
+        compactNotationOption.node().title = "";
         options.literalFilter().enabled(true);
         graph.update();
       } else {
@@ -3165,8 +3158,6 @@ module.exports = function (graphContainerSelector) {
         graph.executeCompactNotationModule();
         graph.executeEmptyLiteralFilter();
         graph.lazyRefresh();
-        compactNotationContainer.style("pointer-events", "none");
-        d3.select("#compactNotationOption").style("color", "#979797");
       }
     }
 

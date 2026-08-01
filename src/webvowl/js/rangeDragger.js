@@ -344,13 +344,13 @@ module.exports = function (graph) {
   };
 
   Range_dragger.mouseDown = function () {
-    Range_dragger.nodeElement.style("cursor", "move");
+    Range_dragger.nodeElement.classed("is-dragging", true);
     Range_dragger.nodeElement.classed("classDraggerNodeHovered", true);
     Range_dragger.mouseButtonPressed = true;
   };
 
   Range_dragger.mouseUp = function () {
-    Range_dragger.nodeElement.style("cursor", "auto");
+    Range_dragger.nodeElement.classed("is-dragging", false);
     Range_dragger.nodeElement.classed("classDraggerNodeHovered", false);
     Range_dragger.mouseButtonPressed = false;
   };
@@ -427,7 +427,6 @@ module.exports = function (graph) {
     Range_dragger.x = x;
     Range_dragger.y = y;
   };
-
   Range_dragger.setAdditionalClassForClass_dragger = function (name, val) {};
   return Range_dragger;
 };

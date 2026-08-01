@@ -3,8 +3,10 @@ module.exports = AbstractTextElement;
 function AbstractTextElement(container, backgroundColor) {
   const textBlock = container
     .append("text")
+  const textColor = this._getTextColor(backgroundColor);
     .classed("text", true)
-    .style("fill", this._getTextColor(backgroundColor))
+    .classed("text-on-dark", textColor === AbstractTextElement.prototype.LIGHT_TEXT_COLOR)
+    .classed("text-on-light", textColor === AbstractTextElement.prototype.DARK_TEXT_COLOR)
     .attr("text-anchor", "middle");
 
   this._textBlock = function () {

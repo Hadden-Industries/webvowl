@@ -17,10 +17,12 @@ function measureTextWidth(text, textStyle) {
         "position:absolute; float:left; white-space:nowrap; visibility:hidden;",
       )
       .text(text),
-    w = document.getElementById("width-test").offsetWidth;
+    w = d.node().offsetWidth;
   d.remove();
   return w;
 }
+
+tools.measureTextWidth = measureTextWidth;
 
 tools.truncate = function (text, maxWidth, textStyle, additionalTextSpace) {
   maxWidth -= isNaN(additionalTextSpace)

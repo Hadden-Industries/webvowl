@@ -19,6 +19,26 @@ module.exports = function (graph) {
   let c_select = [];
   let m_select = [];
 
+  function setPopoverInlineStart( node, value ){
+    if ( !node || !node.style || typeof node.style.setProperty !== "function" ) {return;}
+    node.style.setProperty("--popover-inline-start", value);
+  }
+
+  function clearPopoverInlineStart( node ){
+    if ( !node || !node.style || typeof node.style.removeProperty !== "function" ) {return;}
+    node.style.removeProperty("--popover-inline-start");
+  }
+
+  function setSheetDragY( node, value ){
+    if ( !node || !node.style || typeof node.style.setProperty !== "function" ) {return;}
+    node.style.setProperty("--sheet-drag-y", value);
+  }
+
+  function clearSheetDragY( node ){
+    if ( !node || !node.style || typeof node.style.removeProperty !== "function" ) {return;}
+    node.style.removeProperty("--sheet-drag-y");
+  }
+
   function clearAllTimers() {
     cancelAnimationFrame(t_scrollLeft);
     cancelAnimationFrame(t_scrollRight);
@@ -248,7 +268,7 @@ module.exports = function (graph) {
       }
 
       finalOffset = Math.max(16, finalOffset);
-      currentlyVisibleMenu.style("left", finalOffset + "px").style("transform", "none");
+      setPopoverInlineStart(menuNode, finalOffset + "px");
 
       // // check if outside the viewport
       // var menuWidth=currentlyHoveredEntry.getBoundingClientRect().width;
@@ -307,15 +327,9 @@ module.exports = function (graph) {
 
       const isOpen = (event && event.newState) ? (event.newState === "open") : this.matches(":popover-open");
 
-      // Reset drag classes and inline transform when state changes
+      // Reset drag classes and runtime positioning data when state changes.
       d3.select(this).classed("dragging", false).classed("has-dragged", false).classed("snap-back", false).classed("sheet-dismissing", false);
-      if ( this.style ) {
-        if ( typeof this.style.removeProperty === "function" ) {
-          this.style.removeProperty("transform");
-        } else {
-          this.style.transform = "";
-        }
-      }
+      clearSheetDragY(this);
 
       if ( isOpen ) {
         if ( controllerId && controllerId !== "c_search" ) {
@@ -381,7 +395,7 @@ module.exports = function (graph) {
           }
 
           currentDy = dy;
-          popoverNode.style.transform = "translateY(" + dy + "px)";
+          setSheetDragY(popoverNode, dy + "px");
 
           if ( event.cancelable ) {
             event.preventDefault();
@@ -411,23 +425,15 @@ module.exports = function (graph) {
                 popoverNode.hidePopover();
               }
             } catch { /* ignore */ }
-            if ( popoverNode.style && typeof popoverNode.style.removeProperty === "function" ) {
-              popoverNode.style.removeProperty("transform");
-            } else if ( popoverNode.style ) {
-              popoverNode.style.transform = "";
-            }
+            clearSheetDragY(popoverNode);
             d3.select(popoverNode).classed("sheet-dismissing", false);
           }, 200);
         } else {
           // Snap back into place
           d3.select(popoverNode).classed("snap-back", true);
-          popoverNode.style.transform = "translateY(0)";
+          setSheetDragY(popoverNode, "0px");
           setTimeout(function (){
-            if ( popoverNode.style && typeof popoverNode.style.removeProperty === "function" ) {
-              popoverNode.style.removeProperty("transform");
-            } else if ( popoverNode.style ) {
-              popoverNode.style.transform = "";
-            }
+            clearSheetDragY(popoverNode);
             d3.select(popoverNode).classed("snap-back", false);
           }, 250);
         }
