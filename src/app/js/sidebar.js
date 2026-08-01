@@ -1,3 +1,36 @@
+const NAVIGABLE_IRI_SCHEMES = new Set(["http:", "https:", "urn:"]);
+
+function navigableIri( value ){
+  if ( typeof value !== "string" ) {return undefined;}
+  const iri = value.trim();
+  if ( !iri ) {return undefined;}
+
+  try {
+    const parsedIri = new URL(iri);
+    return NAVIGABLE_IRI_SCHEMES.has(parsedIri.protocol.toLowerCase()) ? iri : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function appendIriLabel( element, name, iri ){
+  const href = navigableIri(iri);
+  const tag = element.append(href ? "a" : "span");
+
+  if ( href ) {
+    tag.attr("href", href)
+      .attr("title", href)
+      .attr("target", "_blank");
+  }
+  tag.text(name);
+}
+
+function renderOntologyIri( element, iri ){
+  element.text("");
+  const label = typeof iri === "string" && iri.trim() ? iri.trim() : "not given";
+  appendIriLabel(element, label, iri);
+}
+
 /**
  * Contains the logic for the sidebar.
  * @param graph the graph that belongs to these controls
@@ -574,11 +607,7 @@ module.exports = function (graph) {
       }
       
       if ( predicateIri && localName ) {
-        p.append("a")
-          .attr("href", predicateIri)
-          .attr("target", "_blank")
-          .attr("title", predicateIri)
-          .text(localName);
+        appendIriLabel(p, localName, predicateIri);
         p.node().appendChild(document.createTextNode(": "));
       } else {
         p.node().appendChild(document.createTextNode(d.identifier + ": "));
@@ -587,11 +616,7 @@ module.exports = function (graph) {
 
       var valueSpan = p.append("span");
       if ( d.type === "iri" ) {
-        valueSpan.append("a")
-          .attr("href", d.value)
-          .attr("title", d.value)
-          .attr("target", "_blank")
-          .text(d.value);
+        appendIriLabel(valueSpan, d.value, d.value);
       } else {
         valueSpan.text(d.value);
       }
@@ -1134,4 +1159,9 @@ module.exports = function (graph) {
   };
 
   return sidebar;
-};
+}
+
+createSidebar.navigableIri = navigableIri;
+createSidebar.renderOntologyIri = renderOntologyIri;
+
+module.exports = createSidebar;

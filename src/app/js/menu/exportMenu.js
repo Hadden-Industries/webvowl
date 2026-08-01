@@ -6,11 +6,7 @@ const createExportSvgClone = require("./svgExportStyles");
 
 module.exports = function (graph) {
   const exportMenu = {};
-  let exportSvgButton;
   let exportFilename;
-  let exportJsonButton;
-  let exportTurtleButton;
-  let exportTexButton;
 
   let exportableJsonText;
 
@@ -72,8 +68,6 @@ module.exports = function (graph) {
       console.warn("ShowWarning!");
       graph.options().warningModule().showExporterWarning();
       console.warn("Stay on the page! " + window.location.href);
-      exportTurtleButton.attr("href", window.location.href);
-      event.preventDefault(); // prevent the href to be called ( reloads the page otherwise )
     }
   }
 
@@ -953,8 +947,6 @@ module.exports = function (graph) {
     /**  check if there is data **/
     if (!exportableJsonText) {
       alert("No graph data available.");
-      // Stop the redirection to the path of the href attribute
-      event.preventDefault();
       return;
     }
 
@@ -1172,8 +1164,6 @@ module.exports = function (graph) {
     /**  check if there is data **/
     if (!exportableJsonText) {
       alert("No graph data available.");
-      // Stop the redirection to the path of the href attribute
-      event.preventDefault();
       return;
     }
 
@@ -2107,4 +2097,8 @@ module.exports = function (graph) {
   }
 
   return exportMenu;
-};
+}
+
+createExportMenu.downloadFile = downloadFile;
+
+module.exports = createExportMenu;

@@ -1342,7 +1342,7 @@ li#c_search input.searchInputText {
     padding-left: 0;
 }
 
-#exportTex label, #exportTurtle label {
+#exportTex span, #exportTurtle span {
     font-size: 10px;
 }
 
@@ -1385,13 +1385,14 @@ li#c_search input.searchInputText {
   height: 100%;
 }
 
-#generalDetails span #about {
+#generalDetails #about {
   border-bottom: solid 1px #34495e;
   display: block;
   padding: 10px;
   text-align: center;
   overflow-wrap: break-word;
   color: #69c;
+    margin: 0;
 }
 
 #generalDetails h4 {
@@ -2620,6 +2621,17 @@ li#c_search input.searchInputText {
 
 .toolTipMenu a {
   color: #2980b9;
+}
+
+.popover-menu-action {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: #60a5fa;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    width: 100%;
 }
 
 .toolTipMenu > li {

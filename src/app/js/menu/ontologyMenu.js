@@ -110,11 +110,9 @@ module.exports = function (graph) {
         if (newURL === oldURL + "#") {
           return;
         }
-        updateNavigationHrefs();
         loadingModule.parseUrlAndLoadOntology();
       }
     });
-    updateNavigationHrefs();
   }
 
   ontologyMenu.stopLoadingTimer = function () {
