@@ -2753,6 +2753,17 @@ body:has(.search-expanded) #scrollRightButton {
   border: 1px solid #000;
 
   /* background-color: #ecf0f1; */
+}
+
+#zoomSlider button[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+#zoomSlider button:focus-visible,
+#zoomSliderElement:focus-visible {
+    outline: 3px solid #3b99fc;
+    outline-offset: -3px;
 
   /* width: 28px; */
   height: 150px;

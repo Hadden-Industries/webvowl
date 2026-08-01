@@ -11,7 +11,6 @@ module.exports = function (graph) {
   let activeAnimationFrame;
   let activeDirection = 0;
   let activePointerId;
-  let activeKey;
   let previousFrameTime;
   let zoomValue;
   let showSlider = true;
@@ -33,7 +32,18 @@ module.exports = function (graph) {
       zoomValue = minMag;
     }
     graph.setSliderZoom(zoomValue);
+    updateZoomButtonStates(zoomValue);
     return !reachedBoundary;
+  }
+
+  function zoomAvailable(direction, value){
+    const numericValue = Number(value);
+    return direction > 0 ? numericValue < maxMag : numericValue > minMag;
+  }
+
+  function updateZoomButtonStates(value){
+    d3.select("#zoomInButton").attr("aria-disabled", String(!zoomAvailable(1, value)));
+    d3.select("#zoomOutButton").attr("aria-disabled", String(!zoomAvailable(-1, value)));
   }
 
   function timed_zoomIn() {
@@ -47,8 +57,9 @@ module.exports = function (graph) {
   function startContinuousZoom(direction){
     if ( activeDirection !== 0 ) {return false;}
 
-    graph.options().navigationMenu().hideAllMenus();
     zoomValue = Number(graph.scaleFactor());
+    if ( !zoomAvailable(direction, zoomValue) ) {return false;}
+    graph.options().navigationMenu().hideAllMenus();
     activeDirection = direction;
     previousFrameTime = performance.now();
 
@@ -59,16 +70,14 @@ module.exports = function (graph) {
   }
 
   function applySingleZoom(direction){
-    graph.options().navigationMenu().hideAllMenus();
     zoomValue = Number(graph.scaleFactor());
+    if ( !zoomAvailable(direction, zoomValue) ) {return;}
+    graph.options().navigationMenu().hideAllMenus();
     applyZoomStep(direction, 1);
   }
 
-  function activationKey(event){
-    if ( !event ) {return undefined;}
-    if ( event.key === "Enter" ) {return "Enter";}
-    if ( event.key === " " || event.key === "Spacebar" ) {return " ";}
-    return undefined;
+  function zoomPercentage(value){
+    return Math.round(Number(value) * 100) + "%";
   }
 
   zoomSlider.setup = function () {
@@ -82,7 +91,10 @@ module.exports = function (graph) {
       .attr("min", minMag)
       .attr("max", maxMag)
       .attr("step", (maxMag - minMag) / 40)
-      .attr("title", "zoom factor")
+      .attr("aria-label", "Zoom level")
+      .attr("aria-orientation", "vertical")
+      .attr("aria-valuetext", zoomPercentage(defZoom))
+      .attr("title", "Zoom level")
       .on("input", function () {
         zoomSlider.zooming();
       });
@@ -160,6 +172,7 @@ module.exports = function (graph) {
     if (!arguments.length) {
       return showSlider;
     }
+    updateZoomButtonStates(graph.scaleFactor());
     d3.select("#zoomSlider").classed("hidden", !val);
     showSlider = val;
     if ( graph.options().sidebar && graph.options().sidebar() ) {
@@ -171,6 +184,8 @@ module.exports = function (graph) {
     graph.options().navigationMenu().hideAllMenus();
     const zoomValue = slider.property("value");
     slider.attr("value", zoomValue);
+    slider.attr("aria-valuetext", zoomPercentage(zoomValue));
+    updateZoomButtonStates(zoomValue);
     graph.setSliderZoom(zoomValue);
   };
 
@@ -178,6 +193,8 @@ module.exports = function (graph) {
     if (slider) {
       slider.attr("value", val);
       slider.property("value", val);
+      slider.attr("aria-valuetext", zoomPercentage(val));
+      updateZoomButtonStates(val);
     }
   };
 

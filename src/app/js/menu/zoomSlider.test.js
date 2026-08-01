@@ -168,6 +168,8 @@ describe("zoomSlider input handling", () => {
       getScale: () => scale,
       hideAllMenus,
       setSliderZoom,
+      zoomSlider,
+      zoomSliderElement: document.getElementById("zoomSliderParagraph").children[0],
       zoomInButton: document.getElementById("zoomInButton"),
       zoomOutButton: document.getElementById("zoomOutButton"),
     };
@@ -279,21 +281,18 @@ describe("zoomSlider input handling", () => {
     expect(frameCallbacks.size).toBe(0);
   });
 
-  test.each(["Enter", " "])("supports %p keyboard press-and-hold", (key) => {
+  test.each(["Enter", " "])("uses native button activation for %p", (key) => {
     const { setSliderZoom, zoomOutButton } = mountZoomSlider();
     const keyDown = keyEvent("keydown", key);
 
     zoomOutButton.dispatchEvent(keyDown);
-    expect(keyDown.defaultPrevented).toBe(true);
+    zoomOutButton.dispatchEvent(keyEvent("keyup", key));
+    expect(keyDown.defaultPrevented).toBe(false);
+    expect(setSliderZoom).not.toHaveBeenCalled();
+
+    zoomOutButton.dispatchEvent(new MockEvent("click", { detail: 0 }));
+
     expect(setSliderZoom).toHaveBeenCalledTimes(1);
-
-    zoomOutButton.dispatchEvent(keyEvent("keydown", key, { repeat: true }));
-    expect(requestAnimationFrame).toHaveBeenCalledTimes(1);
-
-    runAnimationFrame(1000 / 60);
-    window.dispatchEvent(keyEvent("keyup", key));
-
-    expect(setSliderZoom).toHaveBeenCalledTimes(2);
     expect(frameCallbacks.size).toBe(0);
   });
 
@@ -305,6 +304,17 @@ describe("zoomSlider input handling", () => {
     expect(setSliderZoom).toHaveBeenCalledTimes(1);
     expect(getScale()).toBeCloseTo(0.98);
     expect(frameCallbacks.size).toBe(0);
+  });
+
+  test("exposes the vertical zoom range with an accessible name and value", () => {
+    const { zoomSlider, zoomSliderElement } = mountZoomSlider();
+
+    expect(zoomSliderElement.getAttribute("aria-label")).toBe("Zoom level");
+    expect(zoomSliderElement.getAttribute("aria-orientation")).toBe("vertical");
+    expect(zoomSliderElement.getAttribute("aria-valuetext")).toBe("60%");
+
+    zoomSlider.updateZoomSliderValue(1.25);
+    expect(zoomSliderElement.getAttribute("aria-valuetext")).toBe("125%");
   });
 
   test.each(["blur", "visibilitychange"])("%s stops the active interaction", (eventType) => {
@@ -344,6 +354,18 @@ describe("zoomSlider input handling", () => {
     expect(mounted.getScale()).toBe(expected);
     expect(frameCallbacks.size).toBe(0);
     expect(requestAnimationFrame).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ["zoom in", "zoomInButton", 4],
+    ["zoom out", "zoomOutButton", 0.1],
+  ])("exposes %s as unavailable at its boundary", (label, buttonName, scale) => {
+    const mounted = mountZoomSlider({ scale });
+    const button = mounted[buttonName];
+
+    expect(button.getAttribute("aria-disabled")).toBe("true");
+    button.dispatchEvent(new MockEvent("click", { detail: 0 }));
+    expect(mounted.setSliderZoom).not.toHaveBeenCalled();
   });
 
   test("retains context-menu prevention and center-graph behavior", () => {

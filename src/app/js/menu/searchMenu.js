@@ -135,12 +135,6 @@ module.exports = function (graph) {
 
     searchLineEdit.on("input", userInput);
     searchLineEdit.on("keydown", userNavigation);
-    searchLineEdit.on("keyup", function (){
-      const isNav = d3.event.keyCode === 38 || d3.event.keyCode === 40 || d3.event.keyCode === 13 || d3.event.keyCode === 27;
-      if ( !isNav ) {
-        userInput();
-      }
-    });
     searchLineEdit.on("click", function (){
       updateSelectionStatusFlags();
       searchMenu.showSearchEntries();
@@ -167,15 +161,14 @@ module.exports = function (graph) {
       .on("touchstart.searchCombobox", dismissSearchOnOutsideTap);
 
     listbox.on("click", function (event){
-      let target = (event && event.target) ? event.target : (d3.event ? d3.event.target : null);
+      let target = event && event.target;
       while ( target && target !== this && target.tagName !== "LI" ) {
         target = target.parentElement;
       }
       if ( target && target.classList && target.classList.contains("search-option") && !target.classList.contains("search-entry-disabled") ) {
         const elementId = target.getAttribute("elementID");
         if ( elementId !== null && elementId !== undefined ) {
-          const handler = handleClick(parseInt(elementId, 10));
-          handler(event);
+          selectSearchResult(parseInt(elementId, 10), event);
         }
       }
     });
@@ -242,7 +235,8 @@ module.exports = function (graph) {
       updateSearchDictionary();
     }
 
-    if ( event.keyCode === 27 ) { // Escape key
+    if ( event.key === "Escape" ) {
+      event.preventDefault();
       searchMenu.hideSearchEntries();
       collapseMobileSearch();
       return;
@@ -262,8 +256,8 @@ module.exports = function (graph) {
     }
     if (d3.event.keyCode === 13) {
       if (selectedEntry >= 0 && selectedEntry < numEntries) {
-        // simulate onClick event
-        htmlCollection[selectedEntry].onclick();
+        const elementId = htmlCollection[selectedEntry].getAttribute("elementID");
+        selectSearchResult(parseInt(elementId, 10), event);
         searchMenu.hideSearchEntries();
       } else if (numEntries === 0) {
         inputText = searchLineEdit.node().value;
@@ -583,6 +577,29 @@ module.exports = function (graph) {
       }
       searchMenu.hideSearchEntries();
     };
+  }
+
+  function selectSearchResult( elementId, event ){
+    if ( event && event.stopPropagation ) {
+      event.stopPropagation();
+    }
+    const id = parseInt(elementId, 10);
+    const correspondingIds = mergedIdList[id];
+    const autoComStr = entryNames[id];
+    if ( searchLineEdit && searchLineEdit.node() ) {
+      searchLineEdit.node().value = autoComStr;
+    }
+    updateClearButtonVisibility();
+
+    if ( correspondingIds && graph ) {
+      graph.resetSearchHighlight();
+      graph.highLightNodes(correspondingIds);
+    }
+    setLocateButtonState(true);
+    if ( autoComStr !== inputText ) {
+      handleAutoCompletion();
+    }
+    searchMenu.hideSearchEntries();
   }
 
   searchMenu.clearText = function () {

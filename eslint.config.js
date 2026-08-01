@@ -96,6 +96,14 @@ module.exports = [
       "no-restricted-syntax": [
         "error",
         {
+          selector: "MemberExpression[object.name='d3'][property.name='event']",
+          message: "D3 v7 passes the event to the listener; do not use the removed d3.event global."
+        },
+        {
+          selector: "MemberExpression[property.name='keyCode']",
+          message: "Use semantic KeyboardEvent.key values instead of deprecated numeric keyCode values."
+        },
+        {
           selector: "CallExpression[callee.property.name='style']",
           message: "Use a class, native state attribute, or CSS custom property instead of D3 .style()."
         },
