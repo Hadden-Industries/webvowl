@@ -1,4 +1,17 @@
 module.exports = function (graph) {
+const ONTOLOGY_URL_HINT = "Enter an ontology URL";
+const ONTOLOGY_URL_ERROR = "Enter a valid HTTP or HTTPS URL";
+function normalizeOntologyUrl( value ){
+  const enteredValue = typeof value === "string" ? value.trim() : "";
+  if ( !enteredValue ) {
+    return { valid: false, empty: true, message: ONTOLOGY_URL_HINT };
+  }
+  for ( let index = 0; index < enteredValue.length; index++ ) {
+    const characterCode = enteredValue.charCodeAt(index);
+    if ( characterCode <= 32 || characterCode === 127 ) {
+      return { valid: false, empty: false, message: ONTOLOGY_URL_ERROR };
+    }
+  }
   const ontologyMenu = {};
   const loadingInfo = d3.select("#loading-info");
   const loadingProgress = d3.select("#loading-progress");
@@ -132,9 +145,17 @@ module.exports = function (graph) {
   }
 
   ontologyMenu.setIriText = function (text) {
-    d3.select("#iri-converter-input").node().value = text;
-    d3.select("#iri-converter-button").attr("disabled", false);
-    d3.select("#iri-converter-form").on("submit")();
+    const iriInput = d3.select("#iri-converter-input");
+    const iriForm = d3.select("#iri-converter-form");
+    iriInput.property("value", text);
+    const inputHandler = iriInput.on("input");
+    if ( inputHandler ) {
+      inputHandler.call(iriInput.node());
+    }
+    const submitHandler = iriForm.on("submit");
+    if ( submitHandler ) {
+      submitHandler.call(iriForm.node());
+    }
   };
 
   ontologyMenu.clearDetailInformation = function () {
@@ -227,6 +248,8 @@ module.exports = function (graph) {
       event.preventDefault();
       return false;
     });
+
+    updateConverterState();
   }
 
   function setupUploadButton() {
@@ -715,4 +738,8 @@ module.exports = function (graph) {
   }
 
   return ontologyMenu;
-};
+}
+
+createOntologyMenu.normalizeOntologyUrl = normalizeOntologyUrl;
+
+module.exports = createOntologyMenu;
