@@ -15,6 +15,8 @@ module.exports = function (graph) {
   let dictionaryUpdateRequired = true;
   let labelDictionary;
   let inputText;
+  let menuEnabled = true;
+  let locateAvailable = false;
 
   let results = [];
   let resultID = [];
@@ -101,13 +103,15 @@ module.exports = function (graph) {
 
   searchMenu.setup = function () {
   function setLocateButtonState( enabled ){
+    locateAvailable = Boolean(enabled);
+    const effectiveEnabled = menuEnabled && locateAvailable;
     if ( c_locate && c_locate.node() ) {
-      c_locate.classed("highlighted", enabled);
-      c_locate.property("disabled", !enabled);
+      c_locate.classed("highlighted", effectiveEnabled);
+      c_locate.property("disabled", !effectiveEnabled);
       if ( typeof c_locate.node().disabled !== "undefined" ) {
-        c_locate.node().disabled = !enabled;
+        c_locate.node().disabled = !effectiveEnabled;
       }
-      const titleText = enabled ? "Locate search term" : "Nothing to locate";
+      const titleText = effectiveEnabled ? "Locate search term" : "Nothing to locate";
       c_locate.node().title = titleText;
       c_locate.attr("aria-label", titleText);
     }
@@ -143,10 +147,12 @@ module.exports = function (graph) {
 
     c_locate.on("click", function () {
       graph.locateSearchResult();
+      if ( !menuEnabled ) {return;}
     });
 
     c_locate.on("mouseover", function () {
       searchMenu.hideSearchEntries();
+      if ( !menuEnabled ) {return;}
       const cLocateNode = d3.select("#c_locate").node();
         if ( cLocateNode && cLocateNode.contains(event.target) ) {
           return;
@@ -615,6 +621,18 @@ module.exports = function (graph) {
     const numEntries = htmlCollection.length;
     for (let i = 0; i < numEntries; i++) {
       htmlCollection[0].remove();
+    }
+  };
+
+  searchMenu.setMenuMode = function ( enabled ){
+    menuEnabled = Boolean(enabled);
+    d3.select("#search-input-text").property("disabled", !menuEnabled);
+    d3.select("#mobile-search-toggle-btn").property("disabled", !menuEnabled);
+    d3.select("#search-clear-btn").property("disabled", !menuEnabled);
+    setLocateButtonState(locateAvailable);
+    if ( !menuEnabled ) {
+      searchMenu.hideSearchEntries();
+      collapseMobileSearch();
     }
   };
 

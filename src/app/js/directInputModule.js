@@ -18,18 +18,18 @@ module.exports = function (graph) {
   // connect upload and close button;
   directInputModule.handleDirectUpload = function () {
     const text = textArea.node().value;
+    const loadingModule = graph.options().loadingModule();
+    loadingModule.initializeLoader();
     let jsonOBJ;
     try {
       jsonOBJ = JSON.parse(text);
-      graph.options().loadingModule().directInput(text);
+      loadingModule.directInput(text);
       // close if successful
       if (jsonOBJ.class.length > 0) {
         directInputModule.setDirectInputMode(false);
       }
     } catch (_e) {
       try {
-        // Initialize;
-        graph.options().loadingModule().initializeLoader();
         owl2vowl
           .loadWithImports(text)
           .then(function (vowlJson) {
@@ -44,12 +44,14 @@ module.exports = function (graph) {
             d3.select("#Error_onLoad").classed("hidden", false);
             d3.select("#Error_onLoad").node().innerHTML =
               "Failed to convert the input! " + error2.message;
+            graph.handleOnLoadingError();
           });
       } catch (error2) {
         console.warn("Error " + error2);
         d3.select("#Error_onLoad").classed("hidden", false);
         d3.select("#Error_onLoad").node().innerHTML =
           "Failed to convert the input! " + error2.message;
+        graph.handleOnLoadingError();
       }
     }
   };

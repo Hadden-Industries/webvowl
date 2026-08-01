@@ -1238,7 +1238,6 @@ main {
     display: block !important;
     transform: translateX(100%);
     opacity: 0;
-    pointer-events: none;
 }
 
 #detailsArea h1, #detailsArea h2 {
@@ -2329,6 +2328,17 @@ li#c_search input.searchInputText {
     transition: background 0.15s ease, color 0.15s ease;
 }
 
+#menuElementContainer > li > button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+#search-input-text:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
 /* Toolbar Divider separating Menu Drawers from Graph Action Buttons */
 .nav-separator {
     width: 1px;
@@ -2755,7 +2765,8 @@ body:has(.search-expanded) #scrollRightButton {
   /* background-color: #ecf0f1; */
 }
 
-#zoomSlider button[aria-disabled="true"] {
+#zoomSlider button:disabled,
+#zoomSliderElement:disabled {
     cursor: not-allowed;
     opacity: 0.45;
 }
@@ -2876,7 +2887,6 @@ p#zoomSliderParagraph:hover {
     min-height: 20px !important;
     border: none !important;
     background: transparent !important;
-    pointer-events: none !important;
     z-index: 2 !important;
     display: inline-flex !important;
     align-items: center !important;

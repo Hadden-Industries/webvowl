@@ -317,6 +317,25 @@ describe("zoomSlider input handling", () => {
     expect(zoomSliderElement.getAttribute("aria-valuetext")).toBe("125%");
   });
 
+  test("disables every zoom control until graph interactions are enabled", () => {
+    const { zoomSlider, zoomSliderElement, zoomInButton, zoomOutButton } = mountZoomSlider();
+    const centerButton = document.getElementById("centerGraphButton");
+
+    zoomSlider.setMenuMode(false);
+
+    expect(zoomSliderElement.disabled).toBe(true);
+    expect(centerButton.disabled).toBe(true);
+    expect(zoomInButton.disabled).toBe(true);
+    expect(zoomOutButton.disabled).toBe(true);
+
+    zoomSlider.setMenuMode(true);
+
+    expect(zoomSliderElement.disabled).toBe(false);
+    expect(centerButton.disabled).toBe(false);
+    expect(zoomInButton.disabled).toBe(false);
+    expect(zoomOutButton.disabled).toBe(false);
+  });
+
   test.each(["blur", "visibilitychange"])("%s stops the active interaction", (eventType) => {
     const { zoomInButton } = mountZoomSlider();
     zoomInButton.dispatchEvent(pointerEvent("pointerdown"));
@@ -363,7 +382,7 @@ describe("zoomSlider input handling", () => {
     const mounted = mountZoomSlider({ scale });
     const button = mounted[buttonName];
 
-    expect(button.getAttribute("aria-disabled")).toBe("true");
+    expect(button.disabled).toBe(true);
     button.dispatchEvent(new MockEvent("click", { detail: 0 }));
     expect(mounted.setSliderZoom).not.toHaveBeenCalled();
   });

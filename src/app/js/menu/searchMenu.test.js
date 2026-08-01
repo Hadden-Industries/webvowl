@@ -227,6 +227,24 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     expect(cSearch.classList.contains("search-expanded")).toBe(true);
   });
 
+  test("disables search and locate controls when no rendered ontology is available", () => {
+    const searchMenu = searchMenuFactory(mockGraph);
+    searchMenu.setup();
+
+    searchMenu.setMenuMode(false);
+
+    expect(mobileToggleBtn.disabled).toBe(true);
+    expect(searchInput.disabled).toBe(true);
+    expect(clearBtn.disabled).toBe(true);
+    expect(mockDoc.elements["locateSearchResult"].disabled).toBe(true);
+
+    searchMenu.setMenuMode(true);
+
+    expect(mobileToggleBtn.disabled).toBe(false);
+    expect(searchInput.disabled).toBe(false);
+    expect(clearBtn.disabled).toBe(false);
+  });
+
   test("shows clear button on user input and clears text when clear button is clicked", () => {
     const searchMenu = searchMenuFactory(mockGraph);
     searchMenu.setup();

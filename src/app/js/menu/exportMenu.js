@@ -856,7 +856,7 @@ module.exports = function (graph) {
       parseFloat(graph.translation()[1].toFixed(2)),
     ];
     exportText.settings.global = {};
-    exportText.settings.global.zoom = zoom.toFixed(2);
+    exportText.settings.global.zoom = Number(zoom.toFixed(2));
     exportText.settings.global.translation = translation;
     exportText.settings.global.paused = paused;
 
