@@ -4,8 +4,15 @@ module.exports = function (graph) {
   const minMag = graph.options().minMagnification();
   const maxMag = graph.options().maxMagnification();
 
-  let t_zoomOut;
-  let t_zoomIn;
+  const nominalFrameDuration = 1000 / 60;
+  const maxFrameDuration = 100;
+  const zoomInFactor = 1.02;
+  const zoomOutFactor = 0.98;
+  let activeAnimationFrame;
+  let activeDirection = 0;
+  let activePointerId;
+  let activeKey;
+  let previousFrameTime;
   let zoomValue;
   let showSlider = true;
   const w = graph.options().width();
@@ -26,7 +33,7 @@ module.exports = function (graph) {
       zoomValue = minMag;
     }
     graph.setSliderZoom(zoomValue);
-    t_zoomOut = requestAnimationFrame(timed_zoomOut);
+    return !reachedBoundary;
   }
 
   function timed_zoomIn() {
@@ -35,8 +42,33 @@ module.exports = function (graph) {
     if (zoomValue > maxMag) {
       zoomValue = maxMag;
     }
-    graph.setSliderZoom(zoomValue);
-    t_zoomIn = requestAnimationFrame(timed_zoomIn);
+  }
+
+  function startContinuousZoom(direction){
+    if ( activeDirection !== 0 ) {return false;}
+
+    graph.options().navigationMenu().hideAllMenus();
+    zoomValue = Number(graph.scaleFactor());
+    activeDirection = direction;
+    previousFrameTime = performance.now();
+
+    if ( applyZoomStep(direction, 1) ) {
+      activeAnimationFrame = requestAnimationFrame(timedZoom);
+    }
+    return true;
+  }
+
+  function applySingleZoom(direction){
+    graph.options().navigationMenu().hideAllMenus();
+    zoomValue = Number(graph.scaleFactor());
+    applyZoomStep(direction, 1);
+  }
+
+  function activationKey(event){
+    if ( !event ) {return undefined;}
+    if ( event.key === "Enter" ) {return "Enter";}
+    if ( event.key === " " || event.key === "Spacebar" ) {return " ";}
+    return undefined;
   }
 
   zoomSlider.setup = function () {

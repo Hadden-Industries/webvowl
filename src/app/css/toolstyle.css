@@ -2704,6 +2704,7 @@ body:has(.search-expanded) #scrollRightButton {
 
 #zoomSlider > p:hover, #zoomSlider > button:hover {
   background-color: #d90;
+    touch-action: manipulation;
 }
 
 #zoomSliderParagraph {
