@@ -101,7 +101,7 @@ module.exports = (function () {
       fixPoint1 = { x: node.x + x1, y: node.y + y1 },
       fixPoint2 = { x: node.x + x2, y: node.y + y2 };
 
-    return loopFunction([fixPoint1, link.label(), fixPoint2]);
+    return math.calculateCurvePath([fixPoint1, link.label(), fixPoint2], -1);
   };
 
   math.calculateLoopPoints = function (link) {

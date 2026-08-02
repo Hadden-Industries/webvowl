@@ -20,20 +20,16 @@ ArrowLink.prototype.draw = function (linkGroup, markerContainer) {
 
   PlainLink.prototype.draw.apply(this, arguments);
 
-  // attach the markers to the link
-  linkGroup.attr("marker-end", "url(#" + property.markerId() + ")");
+  // Attach markers to the markable SVG path instead of relying on inheritance from its group.
+  const path = this.pathObj();
+  path.attr("marker-end", "url(#" + property.markerId() + ")");
   if (inverse) {
-    linkGroup.attr("marker-start", "url(#" + inverse.markerId() + ")");
+    path.attr("marker-start", "url(#" + inverse.markerId() + ")");
   }
 };
 
 function createPropertyMarker(markerContainer, property) {
   const marker = appendBasicMarker(markerContainer, property);
-  //marker.attr("refX", 12);
-  const m1X = -12;
-  const m1Y = 8;
-  const m2X = -12;
-  const m2Y = -8;
   marker
     .append("path")
     //.attr("d", "M0,-8L12,0L0,8Z")
@@ -47,10 +43,6 @@ function createPropertyMarker(markerContainer, property) {
 }
 
 function createInverseMarker(markerContainer, inverse) {
-  const m1X = -12;
-  const m1Y = 8;
-  const m2X = -12;
-  const m2Y = -8;
   const inverseMarker = appendBasicMarker(markerContainer, inverse);
   inverseMarker
     .append("path")
@@ -88,4 +80,6 @@ function appendBasicMarker(markerContainer, property) {
       //.attr("markerUnits", "userSpaceOnUse")
       .attr("orient", "auto")
   );
+    .attr("refX", 0)
+    .attr("refY", 0)
 }

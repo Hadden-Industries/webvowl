@@ -738,7 +738,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
         const pathStart = math.calculateIntersection(curvePoint, l.domain(), 1);
         const pathEnd = math.calculateIntersection(curvePoint, l.range(), 1);
 
-        return curveFunction([pathStart, curvePoint, pathEnd]);
+        return math.calculateCurvePath([pathStart, curvePoint, pathEnd]);
       });
 
       // Set cardinality positions
@@ -857,7 +857,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
         // shadowClone.setPosition(l.property().range().x,l.property().range().y);
         // shadowClone.setPositionDomain(l.property().domain().x,l.property().domain().y);
       }
-      return curveFunction([pathStart, curvePoint, pathEnd]);
+      return math.calculateCurvePath([pathStart, curvePoint, pathEnd]);
     });
 
     // Set cardinality positions
