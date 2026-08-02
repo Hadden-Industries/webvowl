@@ -80,14 +80,6 @@ function createGraph( graphContainerSelector ){
   const graph = {};
   const CARDINALITY_HDISTANCE = 20;
   const CARDINALITY_VDISTANCE = 10;
-  const curveFunction = d3.line()
-    .x(function ( d ){
-      return d.x;
-    })
-    .y(function ( d ){
-      return d.y;
-    })
-    .curve(d3.curveCardinal);
   const options = require("./options")();
   const parser = require("./parser")(graph);
   let language = "default";
@@ -758,7 +750,7 @@ function createGraph( graphContainerSelector ){
         const pathStart = math.calculateIntersection(curvePoint, l.domain(), 1);
         const pathEnd = math.calculateIntersection(curvePoint, l.range(), 1);
         
-        return curveFunction([pathStart, curvePoint, pathEnd]);
+        return math.calculateCurvePath([pathStart, curvePoint, pathEnd]);
       });
       
       // Set cardinality positions
@@ -841,7 +833,7 @@ function createGraph( graphContainerSelector ){
         // shadowClone.setPosition(l.property().range().x,l.property().range().y);
         // shadowClone.setPositionDomain(l.property().domain().x,l.property().domain().y);
       }
-      return curveFunction([pathStart, curvePoint, pathEnd]);
+      return math.calculateCurvePath([pathStart, curvePoint, pathEnd]);
     });
     
     // Set cardinality positions

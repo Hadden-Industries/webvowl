@@ -3,16 +3,80 @@
  * used for WebVOWL.
  */
 module.exports = (function (){
-  
-  const math = {},
-    loopFunction = d3.line()
-      .x(function ( d ){
-        return d.x;
-      })
-      .y(function ( d ){
-        return d.y;
-      })
-      .curve(d3.curveCardinal.tension(-1));
+  const DEFAULT_CURVE_TENSION = 0.7;
+  const TANGENT_EPSILON_SQUARED = 1e-12;
+  const math = {};
+
+  function formatCurveNumber( value ){
+    const rounded = Math.round(value * 1e12) / 1e12;
+    return Object.is(rounded, -0) ? 0 : rounded;
+  }
+
+  function formatCurvePoint( value ){
+    return formatCurveNumber(value.x) + "," + formatCurveNumber(value.y);
+  }
+
+  function squaredDistance( first, second ){
+    const dx = second.x - first.x;
+    const dy = second.y - first.y;
+    return dx * dx + dy * dy;
+  }
+
+  function controlsFor( middle, tangent ){
+    return {
+      first: {
+        x: middle.x - tangent.x,
+        y: middle.y - tangent.y
+      },
+      final: {
+        x: middle.x + tangent.x,
+        y: middle.y + tangent.y
+      }
+    };
+  }
+
+  function usableControls( start, end, controls ){
+    return squaredDistance(start, controls.first) > TANGENT_EPSILON_SQUARED &&
+      squaredDistance(controls.final, end) > TANGENT_EPSILON_SQUARED;
+  }
+
+  math.calculateCurvePath = function ( points, tension = DEFAULT_CURVE_TENSION ){
+    if ( !Array.isArray(points) || points.length !== 3 ) {
+      throw new TypeError("A three-point curve requires exactly three points");
+    }
+    if ( !points.every((value) => value && Number.isFinite(value.x) && Number.isFinite(value.y)) ) {
+      throw new TypeError("Curve points require finite x and y coordinates");
+    }
+    if ( !Number.isFinite(tension) ) {
+      throw new TypeError("Curve tension must be finite");
+    }
+
+    const [start, middle, end] = points;
+    const tangentScale = (1 - tension) / 3;
+    const tangent = {
+      x: (end.x - start.x) * tangentScale,
+      y: (end.y - start.y) * tangentScale
+    };
+    let controls = controlsFor(middle, tangent);
+
+    for ( let attempt = 0; attempt < 8 && !usableControls(start, end, controls); attempt++ ) {
+      tangent.x *= 0.5;
+      tangent.y *= 0.5;
+      controls = controlsFor(middle, tangent);
+    }
+
+    if ( !usableControls(start, end, controls) ) {
+      const chord = { x: end.x - start.x, y: end.y - start.y };
+      const fallback = squaredDistance(start, end) > TANGENT_EPSILON_SQUARED
+        ? { x: chord.x / 6, y: chord.y / 6 }
+        : { x: 1, y: 0 };
+      controls = controlsFor(middle, fallback);
+    }
+
+    return "M" + formatCurvePoint(start) +
+      " Q" + formatCurvePoint(controls.first) + " " + formatCurvePoint(middle) +
+      " Q" + formatCurvePoint(controls.final) + " " + formatCurvePoint(end);
+  };
   
   
   /**
@@ -111,7 +175,7 @@ module.exports = (function (){
       fixPoint1 = { "x": node.x + x1, "y": node.y + y1 },
       fixPoint2 = { "x": node.x + x2, "y": node.y + y2 };
     
-    return loopFunction([fixPoint1, link.label(), fixPoint2]);
+    return math.calculateCurvePath([fixPoint1, link.label(), fixPoint2], -1);
   };
   
   math.calculateLoopPoints = function ( link ){

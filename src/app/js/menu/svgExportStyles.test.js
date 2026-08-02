@@ -35,11 +35,13 @@ class FakeElement {
   }
 
   cloneNode(){
-    return new FakeElement({
+    const clone = new FakeElement({
       classNames: this.classNames.slice(),
       computed: { ...this.computed },
       children: this.children.map((child) => child.cloneNode(true))
     });
+    clone.attributes = { ...this.attributes };
+    return clone;
   }
 
   setAttribute( name, value ){
@@ -72,5 +74,21 @@ describe("detached SVG style materialization", () => {
     expect(exportedSvg.attributes.xmlns).toBe("http://www.w3.org/2000/svg");
     expect(visible.style.properties).toEqual({ "--vowl-fill": "#36c" });
     expect(liveSvg.querySelectorAll(".hidden-in-export")).toHaveLength(1);
+  });
+
+  test("preserves marker references and materializes marker fills in the exported SVG", () => {
+    const markerPath = new FakeElement({ computed: { fill: "rgb(0, 0, 0)" } });
+    const linkPath = new FakeElement({ computed: { fill: "none", stroke: "rgb(0, 0, 0)" } });
+    const liveSvg = new FakeElement({ children: [markerPath, linkPath] });
+    linkPath.setAttribute("marker-end", "url(#marker-property-1)");
+
+    const exportedSvg = createExportSvgClone(liveSvg, (element) => ({
+      getPropertyValue: (name) => element.computed[name] || ""
+    }));
+    const [exportedMarkerPath, exportedLinkPath] = exportedSvg.querySelectorAll("*");
+
+    expect(exportedMarkerPath.style.properties.fill).toBe("rgb(0, 0, 0)");
+    expect(exportedLinkPath.attributes["marker-end"]).toBe("url(#marker-property-1)");
+    expect(linkPath.attributes["marker-end"]).toBe("url(#marker-property-1)");
   });
 });
