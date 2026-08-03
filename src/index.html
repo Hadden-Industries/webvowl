@@ -353,97 +353,88 @@
                 <ul id="menuElementContainer">
                 <li id="c_search" class="inner-addon left-addon">
                     <button type="button" id="mobile-search-toggle-btn" class="navButton mobileSearchToggleBtn" aria-label="Open search" title="Open search" disabled>
-                        <i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></g></svg></i>
+                        <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></g></svg>
                     </button>
                     <label class="sr-only" for="search-input-text">Search ontology</label>
                     <input class="searchInputText" type="text" id="search-input-text" placeholder="Search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-haspopup="listbox" aria-controls="search-results-listbox" disabled>
                     <button type="button" id="search-clear-btn" class="searchClearBtn hidden" aria-label="Clear search text" title="Clear search" disabled>✕</button>
                 </li>
                 <li id="c_locate">
-                    <button type="button" class="navButton" id="locateSearchResult" title="Nothing to locate" aria-label="Nothing to locate" disabled><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path d="M11 2h2v3.06A7.001 7.001 0 0 1 18.94 11H22v2h-3.06A7.001 7.001 0 0 1 13 18.94V22h-2v-3.06A7.001 7.001 0 0 1 5.06 13H2v-2h3.06A7.001 7.001 0 0 1 11 5.06V2zm1 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></g></svg></i></button>
+                    <button type="button" class="navButton" id="locateSearchResult" title="Nothing to locate" aria-label="Nothing to locate" disabled><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path d="M11 2h2v3.06A7.001 7.001 0 0 1 18.94 11H22v2h-3.06A7.001 7.001 0 0 1 13 18.94V22h-2v-3.06A7.001 7.001 0 0 1 5.06 13H2v-2h3.06A7.001 7.001 0 0 1 11 5.06V2zm1 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></g></svg></button>
                 </li>
                 <li id="c_select">
                     <button type="button" class="navButton" popovertarget="m_select">
-                        <i>
-                            <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                                 <g>
                                     <path
                                           d="M3 15h18v-2H3v2zm0 4h18v-2H3v2zm0-8h18V9H3v2zm0-6v2h18V5H3z"
                                           transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                     </path>
                                 </g>
-                            </svg>
-                        </i> Ontology</button>
+                        </svg>
+                        <span class="menuElementLabel">Ontology</span></button>
                 </li>
                 <li id="c_export"><button type="button" class="navButton" popovertarget="m_export" disabled>
-                    <i>
-                        <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
                                 <path
                                       d="M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
                             </g>
-                        </svg>
-                    </i> Export</button></li>
+                    </svg>
+                    <span class="menuElementLabel">Export</span></button></li>
                 <li id="c_filter"><button type="button" class="navButton" popovertarget="m_filter" disabled>
-                    <i>
-                        <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
                                 <path
                                       d="M3 4l9 16 9-16H3zm3.38 2h11.25L12 16 6.38 6z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
                             </g>
-                        </svg>
-                    </i>Filter</button></li>
+                    </svg>
+                    <span class="menuElementLabel">Filter</span></button></li>
                 <li id="c_config"><button type="button" class="navButton" popovertarget="m_config" disabled>
-                    <i>
-                        <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
                                 <path
                                       d="m 21.163138,13.127428 0,-2.356764 -2.546629,-0.424622 C 18.439272,9.5807939 18.137791,8.8661419 17.733863,8.218291 L 19.2356,6.116978 17.569296,4.450673 15.466841,5.951269 C 14.818953,5.548483 14.104338,5.24586 13.33909,5.067482 l -0.424622,-2.545488 -2.356764,0 -0.424622,2.545488 C 9.3689769,5.24586 8.6531829,5.548519 8.0053319,5.951269 l -2.102455,-1.500596 -1.666304,1.666305 1.501737,2.101313 c -0.403928,0.6467469 -0.705409,1.3625029 -0.882646,2.127751 l -2.546629,0.424622 0,2.356764 2.546629,0.424622 c 0.177237,0.765248 0.478718,1.4799 0.882646,2.127751 l -1.501737,2.102455 1.666304,1.666304 2.103596,-1.501737 c 0.646747,0.403928 1.362504,0.705409 2.1266091,0.882646 l 0.424622,2.546629 2.356764,0 0.424622,-2.546629 c 0.764106,-0.177237 1.4799,-0.478718 2.127751,-0.882646 l 2.102455,1.501737 1.666304,-1.666304 -1.501737,-2.102455 c 0.403928,-0.647888 0.705409,-1.363645 0.882646,-2.127751 l 2.546629,-0.424622 z m -9.427053,3.535144 c -2.6030431,0 -4.7135241,-2.110517 -4.7135241,-4.713527 0,-2.6030071 2.110518,-4.713525 4.7135241,-4.713525 2.60301,0 4.713527,2.1105179 4.713527,4.713525 0,2.60301 -2.110481,4.713527 -4.713527,4.713527 z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
                             </g>
-                        </svg>
-                    </i>Options</button>
+                    </svg>
+                    <span class="menuElementLabel">Options</span></button>
                 </li>
                 <li id="c_modes"><button type="button" class="navButton" popovertarget="m_modes">
-                    <i>
-                        <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
                                 <path
                                       d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
                             </g>
-                        </svg>
-                    </i>Modes</button></li>
+                    </svg>
+                    <span class="menuElementLabel">Modes</span></button></li>
                 <li id="c_debug" class="debugOption"><button type="button" class="navButton" id="debugMenuButton" popovertarget="m_debug" disabled>
-                    <i>
-                        <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
                                 <path
                                       d="M 20,8 17.19,8 C 16.74,7.22 16.12,6.55 15.37,6.04 L 17,4.41 15.59,3 13.42,5.17 C 12.96,5.06 12.49,5 12,5 11.51,5 11.04,5.06 10.59,5.17 L 8.41,3 7,4.41 8.62,6.04 C 7.88,6.55 7.26,7.22 6.81,8 L 4,8 4,10 6.09,10 C 6.04,10.33 6,10.66 6,11 l 0,1 -2,0 0,2 2,0 0,1 c 0,0.34 0.04,0.67 0.09,1 L 4,16 l 0,2 2.81,0 c 1.04,1.79 2.97,3 5.19,3 2.22,0 4.15,-1.21 5.19,-3 l 2.81,0 0,-2 -2.09,0 C 17.96,15.67 18,15.34 18,15 l 0,-1 2,0 0,-2 -2,0 0,-1 c 0,-0.34 -0.04,-0.67 -0.09,-1 L 20,10 Z m -4,4 0,3 c 0,0.22 -0.03,0.47 -0.07,0.7 L 15.83,16.35 15.46,17 C 14.74,18.24 13.42,19 12,19 10.58,19 9.26,18.23 8.54,17 L 8.17,16.36 8.07,15.71 C 8.03,15.47 8,15.22 8,15 L 8,11 C 8,10.78 8.03,10.53 8.07,10.3 L 8.17,9.65 8.54,9 C 8.84,8.48 9.26,8.03 9.75,7.69 L 10.32,7.3 11.06,7.12 C 11.37,7.04 11.69,7 12,7 c 0.32,0 0.63,0.04 0.95,0.12 l 0.68,0.16 0.61,0.42 c 0.5,0.34 0.91,0.78 1.21,1.31 l 0.38,0.65 0.1,0.65 C 15.97,10.53 16,10.78 16,11 Z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
                             </g>
-                        </svg>
-                    </i>
-                    Debug</button></li>
+                    </svg>
+                    <span class="menuElementLabel">Debug</span></button></li>
                 <li id="c_about"><button type="button" class="navButton" popovertarget="m_about">
-                    <i>
-                        <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
                                 <path
                                       d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
                             </g>
-                        </svg>
-                    </i>
-                    About</button></li>
+                    </svg>
+                    <span class="menuElementLabel">About</span></button></li>
 
                 <!-- Vertical Toolbar Divider separating Menu Drawers from Graph Action Controls -->
                 <li class="nav-separator" role="separator" aria-orientation="vertical"></li>
@@ -451,17 +442,16 @@
                 <!-- Direct Graph Execution Action Buttons -->
                 <li id="c_reset"><button type="button" class="navButton action-pill" id="reset-button" disabled title="Reset layout and filters">
                     <span class="reset-glow" aria-hidden="true"></span>
-                    <i>
-                        <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
                             <g>
                                 <path
                                       d="m 12,5 0,-4 5,5 -5,5 0,-4 c -3.31,0 -6,2.69 -6,6 0,3.31 2.69,6 6,6 3.31,0 6,-2.69 6,-6 l 2,0 c 0,4.42 -3.58,8 -8,8 C 7.58,21 4,17.42 4,13 4,8.58 7.58,5 12,5 Z"
                                       transform="matrix(0.75,0,0,0.75,3.5,2.5)">
                                 </path>
                             </g>
-                        </svg>
-                    </i>Reset</button></li>
-                <li id="c_pause"><button type="button" class="navButton action-pill" id="pause-button" disabled aria-pressed="false" title="Pause or resume graph physics simulation"><i><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><g><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></g></svg></i>Pause</button>
+                    </svg>
+                    <span class="menuElementLabel">Reset</span></button></li>
+                <li id="c_pause"><button type="button" class="navButton action-pill" id="pause-button" disabled aria-pressed="false" title="Pause graph physics simulation"><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><path class="pause-icon-path" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/><path class="resume-icon-path" d="M8 5v14l11-7z"/></svg><span class="menuElementLabel">Pause</span></button>
                 </li>
                 </ul>
                 <button type="button" class="noselect" id="scrollRightButton" aria-label="Scroll menu right" aria-controls="menuElementContainer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></button>

@@ -1,6 +1,9 @@
 import { describe, test, expect, beforeEach } from "@jest/globals";
+import fs from "node:fs";
 import * as d3 from "d3";
 import pauseMenuFactory from "./pauseMenu.js";
+
+const pauseMenuSource = fs.readFileSync(new URL("./pauseMenu.js", import.meta.url), "utf8");
 
 const HTML_NAMESPACE = "http://www.w3.org/1999/xhtml";
 
@@ -102,6 +105,10 @@ class MockElement {
     if (selector === "svg") {
       return this.children.find(c => c.tagName === "SVG") || null;
     }
+    if (selector.startsWith(".")) {
+      const className = selector.substring(1);
+      return this.children.find(c => c.classList.contains(className)) || null;
+    }
     return null;
   }
 
@@ -160,6 +167,8 @@ describe("pauseMenu component", () => {
   let mockDoc;
   let mockGraph;
   let pauseBtnElement;
+  let pauseSvgElement;
+  let pauseLabelElement;
   let isPausedState;
 
   beforeEach(() => {
@@ -172,8 +181,12 @@ describe("pauseMenu component", () => {
     };
 
     pauseBtnElement = new MockElement("pause-button", "navButton action-pill", "button");
-    const initialTextNode = new MockTextNode("Pause");
-    pauseBtnElement.childNodes.push(initialTextNode);
+    pauseSvgElement = new MockElement("", "menuElementSvgElement", "svg");
+    pauseSvgElement.setAttribute("aria-hidden", "true");
+    pauseLabelElement = new MockElement("", "menuElementLabel", "span");
+    pauseLabelElement.textContent = "Pause";
+    pauseBtnElement.appendChild(pauseSvgElement);
+    pauseBtnElement.appendChild(pauseLabelElement);
 
     mockDoc.elements["pause-button"] = pauseBtnElement;
     global.d3 = d3;
@@ -195,29 +208,26 @@ describe("pauseMenu component", () => {
 
     expect(pauseBtnElement.classList.contains("paused")).toBe(false);
     expect(pauseBtnElement.getAttribute("aria-pressed")).toBe("false");
-    
-    const iconWrapper = pauseBtnElement.querySelector("i");
-    expect(iconWrapper).not.toBeNull();
-    const svgElem = iconWrapper.querySelector("svg");
-    expect(svgElem).not.toBeNull();
-
-    const textNode = pauseBtnElement.childNodes.find(c => c.nodeType === 3);
-    expect(textNode.textContent).toBe("Pause");
+    expect(pauseBtnElement.getAttribute("title")).toBe("Pause graph physics simulation");
+    expect(pauseBtnElement.children).toEqual([pauseSvgElement, pauseLabelElement]);
+    expect(pauseLabelElement.textContent).toBe("Pause");
   });
 
-  test("toggles paused state, aria-pressed, and button label on click", () => {
+  test("toggles paused state and aria-pressed without replacing button content", () => {
     const pauseMenu = pauseMenuFactory(mockGraph);
     pauseMenu.setup();
+
+    const originalChildren = [...pauseBtnElement.children];
 
     pauseBtnElement.click();
 
     expect(isPausedState).toBe(true);
     expect(pauseBtnElement.classList.contains("paused")).toBe(true);
-    expect(pauseBtnElement.classList.contains("highlighted")).toBe(true);
+    expect(pauseBtnElement.classList.contains("highlighted")).toBe(false);
     expect(pauseBtnElement.getAttribute("aria-pressed")).toBe("true");
-
-    let textNode = pauseBtnElement.childNodes.find(c => c.nodeType === 3);
-    expect(textNode.textContent).toBe("Resume");
+    expect(pauseBtnElement.getAttribute("title")).toBe("Resume graph physics simulation");
+    expect(pauseBtnElement.children).toEqual(originalChildren);
+    expect(pauseLabelElement.textContent).toBe("Resume");
 
     pauseBtnElement.click();
 
@@ -225,9 +235,9 @@ describe("pauseMenu component", () => {
     expect(pauseBtnElement.classList.contains("paused")).toBe(false);
     expect(pauseBtnElement.classList.contains("highlighted")).toBe(false);
     expect(pauseBtnElement.getAttribute("aria-pressed")).toBe("false");
-
-    textNode = pauseBtnElement.childNodes.find(c => c.nodeType === 3);
-    expect(textNode.textContent).toBe("Pause");
+    expect(pauseBtnElement.getAttribute("title")).toBe("Pause graph physics simulation");
+    expect(pauseBtnElement.children).toEqual(originalChildren);
+    expect(pauseLabelElement.textContent).toBe("Pause");
   });
 
   test("setPauseValue programmatic toggle", () => {
@@ -236,11 +246,16 @@ describe("pauseMenu component", () => {
 
     pauseMenu.setPauseValue(true);
     expect(isPausedState).toBe(true);
-    expect(pauseBtnElement.classList.contains("highlighted")).toBe(true);
+    expect(pauseBtnElement.classList.contains("paused")).toBe(true);
+    expect(pauseBtnElement.classList.contains("highlighted")).toBe(false);
+    expect(pauseLabelElement.textContent).toBe("Resume");
+    expect(pauseBtnElement.getAttribute("title")).toBe("Resume graph physics simulation");
 
     pauseMenu.setPauseValue(false);
     expect(isPausedState).toBe(false);
-    expect(pauseBtnElement.classList.contains("highlighted")).toBe(false);
+    expect(pauseBtnElement.classList.contains("paused")).toBe(false);
+    expect(pauseLabelElement.textContent).toBe("Pause");
+    expect(pauseBtnElement.getAttribute("title")).toBe("Pause graph physics simulation");
   });
 
   test("setMenuMode enables and disables button element", () => {
@@ -262,5 +277,11 @@ describe("pauseMenu component", () => {
     pauseMenu.reset();
     expect(isPausedState).toBe(false);
     expect(pauseBtnElement.classList.contains("paused")).toBe(false);
+  });
+
+  test("updates state without DOM construction or HTML injection", () => {
+    expect(pauseMenuSource).not.toMatch(/\.(?:append|insert|html)\s*\(/);
+    expect(pauseMenuSource).not.toMatch(/(?:innerHTML|createTextNode|createElement)/);
+    expect(pauseMenuSource).not.toContain('.classed("highlighted"');
   });
 });
