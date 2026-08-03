@@ -24,7 +24,6 @@ module.exports = function (graph) {
         graph.paused(!d.paused);
         d.paused = !d.paused;
         updatePauseButton();
-        pauseButton.classed("highlighted", d.paused);
       });
     // Set these properties the first time manually
     updatePauseButton();
@@ -33,7 +32,6 @@ module.exports = function (graph) {
   pauseMenu.setPauseValue = function (value) {
     pauseButton.datum().paused = value;
     graph.paused(value);
-    pauseButton.classed("highlighted", value);
     updatePauseButton();
   };
 

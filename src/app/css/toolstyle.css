@@ -4,7 +4,7 @@
     --right-sidebar-width: 280px;
     --left-sidebar-width: 200px;
     --control-margin: 12px;
-    --action-pill-desktop-min-width: 95px;
+    --action-pill-desktop-min-width: 112px;
     --toolbar-control-size: 44px;
     --safe-area-top: env(safe-area-inset-top, 0px);
     --safe-area-right: env(safe-area-inset-right, 0px);
@@ -1368,7 +1368,7 @@ li#c_search input.searchInputText {
     width: 100% !important;
     min-width: 180px !important;
     padding-left: 32px !important;
-    padding-right: 32px !important;
+    padding-right: 48px !important;
     font-size: 13px !important;
     border-radius: 18px !important;
     border: 1px solid #34495E !important;
@@ -2325,6 +2325,9 @@ li#c_search input.searchInputText {
 
 /* Scroll-able container for the menu entries */
 #menuElementContainer {
+    --menu-item-gap: 8px;
+    --menu-icon-size: 24px;
+
     grid-column: 2;
     min-width: 0;
     width: 100%;
@@ -2335,6 +2338,7 @@ li#c_search input.searchInputText {
   white-space: nowrap;
   text-align: right;
   list-style-type: none;
+    gap: var(--menu-item-gap);
     box-sizing: border-box;
     overscroll-behavior: none contain;
     touch-action: pan-x;
@@ -2363,14 +2367,14 @@ li#c_search input.searchInputText {
 }
 
 /* Link & button elements inside menu list items */
-#menuElementContainer > li > button,
-#menuElementContainer > li > a {
+#menuElementContainer > li > :is(button, a) {
     height: var(--toolbar-control-size);
     margin: 0;
     padding: 0 10px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    column-gap: 6px;
     color: #ffffff;
     background: transparent;
     border: none;
@@ -2382,6 +2386,11 @@ li#c_search input.searchInputText {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
     transition: background 0.15s ease, color 0.15s ease;
+}
+
+#menuElementContainer > li > :is(button, a):focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -3px;
 }
 
 #menuElementContainer > li > button:disabled {
@@ -2400,7 +2409,7 @@ li#c_search input.searchInputText {
     width: 1px;
     height: 22px;
     background: rgb(255 255 255 / 15%);
-    margin: 0 8px;
+    margin: 0;
     align-self: center;
     list-style: none;
 }
@@ -2414,7 +2423,7 @@ li#c_search input.searchInputText {
     background: rgb(255 255 255 / 4%);
     padding: 0 10px;
     height: 32px;
-    margin: 0 2px;
+    margin: 0;
     transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1),
                 border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -2512,18 +2521,24 @@ li#c_search input.searchInputText {
 }
 
 /* Simulation Paused Warning Highlight */
-.navButton.action-pill.paused,
-#c_pause button.paused {
-    background: rgb(245 158 11 / 20%) !important;
-    border-color: #f59e0b !important;
-    color: #fbbf24 !important;
-    box-shadow: 0 0 12px rgb(245 158 11 / 35%);
+#pause-button.paused {
+    background: rgb(245 158 11 / 50%);
+    border-color: #f59e0b;
 }
 
-.navButton.action-pill.paused:hover,
-#c_pause button.paused:hover {
-    background: rgb(245 158 11 / 30%) !important;
-    border-color: #f59e0b !important;
+@media (hover: hover) and (pointer: fine) {
+    #pause-button.paused:hover {
+        background: rgb(245 158 11 / 60%);
+    }
+}
+
+#pause-button .resume-icon-path,
+#pause-button.paused .pause-icon-path {
+    display: none;
+}
+
+#pause-button.paused .resume-icon-path {
+    display: block;
 }
 
 #menuElementContainer .menuElementSvgElement {
@@ -2945,13 +2960,13 @@ p#zoomSliderParagraph:hover {
 
 #mobile-search-toggle-btn {
     position: absolute !important;
-    left: 8px !important;
+    left: 6px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    width: 20px !important;
-    height: 20px !important;
-    min-width: 20px !important;
-    min-height: 20px !important;
+    width: var(--menu-icon-size) !important;
+    height: var(--menu-icon-size) !important;
+    min-width: var(--menu-icon-size) !important;
+    min-height: var(--menu-icon-size) !important;
     border: none !important;
     background: transparent !important;
     z-index: 2 !important;
@@ -2962,19 +2977,19 @@ p#zoomSliderParagraph:hover {
 }
 
 #mobile-search-toggle-btn svg {
-    width: 15px !important;
-    height: 15px !important;
+    width: var(--menu-icon-size) !important;
+    height: var(--menu-icon-size) !important;
 }
 
 #search-clear-btn {
     position: absolute !important;
-    right: 8px !important;
+    right: 0 !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    width: 22px !important;
-    height: 22px !important;
-    min-width: 22px !important;
-    min-height: 22px !important;
+    width: var(--toolbar-control-size) !important;
+    height: var(--toolbar-control-size) !important;
+    min-width: var(--toolbar-control-size) !important;
+    min-height: var(--toolbar-control-size) !important;
     border: none !important;
     background: transparent !important;
     color: #aaa !important;
@@ -3084,22 +3099,6 @@ a#pause-button.paused::before {
 a#pause-button.paused:hover {
   background-color: #d90;
   color: #fff;
-}
-
-#pause-button.paused,
-#pause-button.highlighted,
-a#pause-button.paused,
-a#pause-button.highlighted {
-    background-color: #d90 !important;
-    color: #fff !important;
-}
-
-#pause-button.paused:hover,
-#pause-button.highlighted:hover,
-a#pause-button.paused:hover,
-a#pause-button.highlighted:hover {
-    background-color: #e5a000 !important;
-    color: #fff !important;
 }
 
 #pause-button:not(.paused)::before,
@@ -3533,6 +3532,10 @@ a#locateSearchResult {
 }
 
 @media screen and (max-width: 768px) {
+    }
+
+    #menuElementContainer .menuElementLabel {
+        display: none;
     #menuElementContainer > li > button.action-pill {
         width: 44px !important;
         min-width: 44px !important;
@@ -3614,12 +3617,12 @@ a#locateSearchResult {
 
     li#c_search.search-expanded #mobile-search-toggle-btn {
         position: absolute !important;
-        left: 16px !important;
+        left: 14px !important;
         top: 50% !important;
         transform: translateY(-50%) !important;
         pointer-events: none !important;
-        width: 20px !important;
-        height: 20px !important;
+        width: var(--menu-icon-size) !important;
+        height: var(--menu-icon-size) !important;
         display: inline-flex !important;
     }
 
@@ -4054,16 +4057,12 @@ a#locateSearchResult {
 @media screen and (width < 768px) {
     #menuElementContainer > li > button:not(#search-clear-btn),
     #menuElementContainer > li > a {
-        font-size: 0 !important;
         padding: 0 8px !important;
     }
 
-    #menuElementContainer > li > button > i,
-    #menuElementContainer > li > a > i,
     #menuElementContainer > li > button > svg,
     #menuElementContainer > li > a > svg,
     #menuElementContainer .menuElementSvgElement {
-        font-size: 14px !important;
         margin: 0 !important;
     }
 }
