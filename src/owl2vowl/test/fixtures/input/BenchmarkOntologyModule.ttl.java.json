@@ -1,0 +1,182 @@
+{
+  "_comment" : "Created with OWL2VOWL (version 0.3.7), http://vowl.visualdataweb.org",
+  "header" : {
+    "languages" : [ "undefined" ],
+    "baseIris" : [ "http://www.w3.org/2000/01/rdf-schema", "http://ontovibe.visualdataweb.org/imported", "http://www.w3.org/2001/XMLSchema" ],
+    "prefixList" : {
+      "owl" : "http://www.w3.org/2002/07/owl#",
+      "rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "xsd" : "http://www.w3.org/2001/XMLSchema#",
+      "" : "http://www.semanticweb.org/owl/owlapi/turtle#",
+      "xml" : "http://www.w3.org/XML/1998/namespace",
+      "rdfs" : "http://www.w3.org/2000/01/rdf-schema#",
+      "this" : "http://ontovibe.visualdataweb.org/imported#"
+    },
+    "iri" : "http://ontovibe.visualdataweb.org/imported",
+    "version" : "2.0",
+    "other" : {
+      "priorVersion" : [ {
+        "identifier" : "priorVersion",
+        "language" : "undefined",
+        "value" : "http://ontovibe.visualdataweb.org/1.0/imported",
+        "type" : "iri"
+      } ],
+      "versionInfo" : [ {
+        "identifier" : "versionInfo",
+        "language" : "undefined",
+        "value" : "2.0",
+        "type" : "label"
+      } ],
+      "backwardCompatibleWith" : [ {
+        "identifier" : "backwardCompatibleWith",
+        "language" : "undefined",
+        "value" : "http://ontovibe.visualdataweb.org/1.0/imported",
+        "type" : "iri"
+      } ]
+    }
+  },
+  "namespace" : [ ],
+  "class" : [ {
+    "id" : "1",
+    "type" : "owl:Class"
+  }, {
+    "id" : "4",
+    "type" : "owl:Thing"
+  }, {
+    "id" : "7",
+    "type" : "owl:Thing"
+  }, {
+    "id" : "8",
+    "type" : "owl:Class"
+  }, {
+    "id" : "9",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "2",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "11",
+    "type" : "owl:Class"
+  } ],
+  "classAttribute" : [ {
+    "iri" : "http://ontovibe.visualdataweb.org/imported#ImportedClass",
+    "baseIri" : "http://ontovibe.visualdataweb.org/imported",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "ImportedClass"
+    },
+    "id" : "1"
+  }, {
+    "iri" : "http://www.w3.org/2002/07/owl#Thing",
+    "baseIri" : "http://owl2vowl.de",
+    "id" : "4",
+    "label" : {
+      "undefined" : "Thing"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2002/07/owl#Thing",
+    "baseIri" : "http://owl2vowl.de",
+    "id" : "7",
+    "label" : {
+      "undefined" : "Thing"
+    }
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/imported#DeprecatedImportedClass",
+    "baseIri" : "http://ontovibe.visualdataweb.org/imported",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "DeprecatedImportedClass"
+    },
+    "attributes" : [ "deprecated" ],
+    "id" : "8"
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#date",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "9",
+    "label" : {
+      "IRI-based" : "date"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#integer",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "2",
+    "label" : {
+      "IRI-based" : "integer"
+    }
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/imported#EquivalentImportedClassInLargeGroup",
+    "baseIri" : "http://ontovibe.visualdataweb.org/imported",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "EquivalentImportedClassInLargeGroup"
+    },
+    "id" : "11"
+  } ],
+  "property" : [ {
+    "id" : "0",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "3",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "5",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "6",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "10",
+    "type" : "owl:datatypeProperty"
+  } ],
+  "propertyAttribute" : [ {
+    "iri" : "http://ontovibe.visualdataweb.org/imported#importedDatatypeProperty",
+    "baseIri" : "http://ontovibe.visualdataweb.org/imported",
+    "range" : "2",
+    "label" : {
+      "IRI-based" : "importedDatatypeProperty"
+    },
+    "domain" : "1",
+    "attributes" : [ "datatype" ],
+    "id" : "0"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/imported#importedObjectPropertyWithDomain",
+    "baseIri" : "http://ontovibe.visualdataweb.org/imported",
+    "range" : "4",
+    "label" : {
+      "IRI-based" : "importedObjectPropertyWithDomain"
+    },
+    "domain" : "1",
+    "attributes" : [ "object", "transitive" ],
+    "id" : "3"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/imported#deprecatedImportedObjectProperty",
+    "baseIri" : "http://ontovibe.visualdataweb.org/imported",
+    "range" : "1",
+    "label" : {
+      "IRI-based" : "deprecatedImportedObjectProperty"
+    },
+    "domain" : "4",
+    "attributes" : [ "object", "deprecated" ],
+    "id" : "5"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/imported#importedObjectPropertyWithRange",
+    "baseIri" : "http://ontovibe.visualdataweb.org/imported",
+    "range" : "1",
+    "label" : {
+      "IRI-based" : "importedObjectPropertyWithRange"
+    },
+    "domain" : "4",
+    "attributes" : [ "object" ],
+    "id" : "6"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/imported#deprecatedImportedDatatypeProperty",
+    "baseIri" : "http://ontovibe.visualdataweb.org/imported",
+    "range" : "9",
+    "label" : {
+      "IRI-based" : "deprecatedImportedDatatypeProperty"
+    },
+    "domain" : "7",
+    "attributes" : [ "deprecated", "datatype" ],
+    "id" : "10"
+  } ]
+}

@@ -1,0 +1,320 @@
+{
+  "_comment" : "Created with OWL2VOWL (version 0.3.7), http://vowl.visualdataweb.org",
+  "header" : {
+    "baseIris" : [ "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39", "http://www.w3.org/2000/01/rdf-schema", "http://www.w3.org/2001/XMLSchema" ],
+    "prefixList" : {
+      "owl" : "http://www.w3.org/2002/07/owl#",
+      "rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "xsd" : "http://www.w3.org/2001/XMLSchema#",
+      "" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/",
+      "xml" : "http://www.w3.org/XML/1998/namespace",
+      "rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+    },
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/"
+  },
+  "namespace" : [ ],
+  "class" : [ {
+    "id" : "3",
+    "type" : "owl:Class"
+  }, {
+    "id" : "4",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "2",
+    "type" : "owl:Class"
+  }, {
+    "id" : "7",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "12",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "6",
+    "type" : "owl:Class"
+  }, {
+    "id" : "15",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "14",
+    "type" : "owl:Class"
+  }, {
+    "id" : "18",
+    "type" : "owl:Class"
+  }, {
+    "id" : "22",
+    "type" : "owl:Class"
+  }, {
+    "id" : "17",
+    "type" : "owl:Class"
+  }, {
+    "id" : "20",
+    "type" : "owl:Class"
+  }, {
+    "id" : "9",
+    "type" : "owl:Class"
+  }, {
+    "id" : "1",
+    "type" : "owl:Thing"
+  }, {
+    "id" : "11",
+    "type" : "owl:Class"
+  }, {
+    "id" : "24",
+    "type" : "owl:Thing"
+  } ],
+  "classAttribute" : [ {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/ObjectSomeValuesFrom",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "ObjectSomeValuesFrom"
+    },
+    "id" : "3"
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#integer",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "4",
+    "label" : {
+      "IRI-based" : "integer"
+    }
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/ObjectAllValuesFromRange",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "ObjectAllValuesFromRange"
+    },
+    "id" : "2"
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#dateTime",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "7",
+    "label" : {
+      "IRI-based" : "dateTime"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#integer",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "12",
+    "label" : {
+      "IRI-based" : "integer"
+    }
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/DataSomeValuesFrom",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "DataSomeValuesFrom"
+    },
+    "id" : "6"
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#dateTime",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "15",
+    "label" : {
+      "IRI-based" : "dateTime"
+    }
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/DataSomeValuesFrom_RL",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "DataSomeValuesFrom_RL"
+    },
+    "id" : "14"
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/ObjectSomeValuesFromRange_RL",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "ObjectSomeValuesFromRange_RL"
+    },
+    "id" : "18"
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/DataAllValuesFrom",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "DataAllValuesFrom"
+    },
+    "id" : "22"
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/ObjectSomeValuesFrom_RL",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "ObjectSomeValuesFrom_RL"
+    },
+    "id" : "17"
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/ObjectSomeValuesFromRange",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "ObjectSomeValuesFromRange"
+    },
+    "id" : "20"
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/Class1",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class1"
+    },
+    "id" : "9"
+  }, {
+    "iri" : "http://www.w3.org/2002/07/owl#Thing",
+    "baseIri" : "http://owl2vowl.de",
+    "id" : "1",
+    "label" : {
+      "undefined" : "Thing"
+    }
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/ObjectAllValuesFrom",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "ObjectAllValuesFrom"
+    },
+    "id" : "11"
+  }, {
+    "iri" : "http://www.w3.org/2002/07/owl#Thing",
+    "baseIri" : "http://owl2vowl.de",
+    "id" : "24",
+    "label" : {
+      "undefined" : "Thing"
+    }
+  } ],
+  "property" : [ {
+    "id" : "0",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "5",
+    "type" : "owl:someValuesFrom"
+  }, {
+    "id" : "8",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "10",
+    "type" : "owl:allValuesFrom"
+  }, {
+    "id" : "13",
+    "type" : "owl:someValuesFrom"
+  }, {
+    "id" : "16",
+    "type" : "owl:someValuesFrom"
+  }, {
+    "id" : "19",
+    "type" : "owl:someValuesFrom"
+  }, {
+    "id" : "21",
+    "type" : "owl:allValuesFrom"
+  }, {
+    "id" : "23",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "25",
+    "type" : "owl:datatypeProperty"
+  } ],
+  "propertyAttribute" : [ {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/objectAllValuesFromPropertyWithRangeAndNoDomain",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "range" : "2",
+    "label" : {
+      "IRI-based" : "objectAllValuesFromPropertyWithRangeAndNoDomain"
+    },
+    "domain" : "1",
+    "attributes" : [ "object" ],
+    "id" : "0"
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/dataSomeValuesFromProperty",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "range" : "7",
+    "label" : {
+      "IRI-based" : "dataSomeValuesFromProperty"
+    },
+    "domain" : "6",
+    "attributes" : [ "datatype", "someValues" ],
+    "id" : "5"
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/objectAllValuesFromPropertyWithDomainAndRange",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "range" : "2",
+    "label" : {
+      "IRI-based" : "objectAllValuesFromPropertyWithDomainAndRange"
+    },
+    "domain" : "9",
+    "attributes" : [ "object" ],
+    "id" : "8"
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/objectAllValuesFromProperty",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "range" : "2",
+    "label" : {
+      "IRI-based" : "objectAllValuesFromProperty"
+    },
+    "domain" : "11",
+    "attributes" : [ "object", "allValues" ],
+    "id" : "10"
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/dataSomeValuesFromProperty_RL",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "range" : "15",
+    "label" : {
+      "IRI-based" : "dataSomeValuesFromProperty_RL"
+    },
+    "domain" : "14",
+    "attributes" : [ "datatype", "someValues" ],
+    "id" : "13"
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/objectSomeValuesFromProperty_RL",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "range" : "18",
+    "label" : {
+      "IRI-based" : "objectSomeValuesFromProperty_RL"
+    },
+    "domain" : "17",
+    "attributes" : [ "object", "someValues" ],
+    "id" : "16"
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/objectSomeValuesFromProperty",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "range" : "20",
+    "label" : {
+      "IRI-based" : "objectSomeValuesFromProperty"
+    },
+    "domain" : "3",
+    "attributes" : [ "object", "someValues" ],
+    "id" : "19"
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/dataAllValuesFromProperty",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "range" : "4",
+    "label" : {
+      "IRI-based" : "dataAllValuesFromProperty"
+    },
+    "domain" : "22",
+    "attributes" : [ "datatype", "allValues" ],
+    "id" : "21"
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/objectAllValuesFromPropertyWithDomainAndNoRange",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "range" : "24",
+    "label" : {
+      "IRI-based" : "objectAllValuesFromPropertyWithDomainAndNoRange"
+    },
+    "domain" : "9",
+    "attributes" : [ "object" ],
+    "id" : "23"
+  }, {
+    "iri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39/dataAllValuesFromProperty",
+    "baseIri" : "http://webvowl.steffen-lohmann.de/ontobench-1.1.0-SNAPSHOT/ontology/39",
+    "range" : "12",
+    "label" : {
+      "IRI-based" : "dataAllValuesFromProperty"
+    },
+    "domain" : "9",
+    "attributes" : [ "datatype" ],
+    "id" : "25"
+  } ]
+}

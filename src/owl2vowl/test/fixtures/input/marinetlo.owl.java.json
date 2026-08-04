@@ -1,0 +1,4250 @@
+{
+  "_comment" : "Created with OWL2VOWL (version 0.3.7), http://vowl.visualdataweb.org",
+  "header" : {
+    "languages" : [ "en", "undefined" ],
+    "baseIris" : [ "http://www.w3.org/1999/02/22-rdf-syntax-ns", "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl", "http://www.w3.org/2002/07/owl", "http://www.w3.org/2000/01/rdf-schema", "http://www.w3.org/2001/XMLSchema", "http://xmlns.com/foaf/0.1" ],
+    "prefixList" : {
+      "owl" : "http://www.w3.org/2002/07/owl#",
+      "rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "dcterms" : "http://purl.org/dc/terms/",
+      "marinetlo" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+      "skos" : "http://www.w3.org/2004/02/skos/core#",
+      "xsd" : "http://www.w3.org/2001/XMLSchema#",
+      "" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+      "dc" : "http://purl.org/dc/elements/1.1/",
+      "xml" : "http://www.w3.org/XML/1998/namespace",
+      "vs" : "http://www.w3.org/2003/06/sw-vocab-status/ns#",
+      "foaf" : "http://xmlns.com/foaf/0.1/",
+      "rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+    },
+    "title" : {
+      "undefined" : "MarineTLO Ontology"
+    },
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "version" : "3.0",
+    "author" : [ "http://users.ics.forth.gr/~tzitzik/", " Chrysoula Bekiari ", "http://users.ics.forth.gr/~marketak/pages/aboutme.html", " Nikos Minadakis ", " Carlo Allocca ", "http://users.ics.forth.gr/~fafalios/", " Martin Doerr " ],
+    "description" : {
+      "undefined" : "MarineTLO is a top-level ontology for the marine domain (also applicable to the terrestrial domain)."
+    },
+    "other" : {
+      "license" : [ {
+        "identifier" : "license",
+        "language" : "undefined",
+        "value" : "http://creativecommons.org/licenses/by/3.0/",
+        "type" : "iri"
+      } ],
+      "creator" : [ {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : "http://users.ics.forth.gr/~marketak/pages/aboutme.html",
+        "type" : "iri"
+      }, {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : "http://users.ics.forth.gr/~fafalios/",
+        "type" : "iri"
+      }, {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : " Martin Doerr ",
+        "type" : "label"
+      }, {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : " Chrysoula Bekiari ",
+        "type" : "label"
+      }, {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : "http://users.ics.forth.gr/~tzitzik/",
+        "type" : "iri"
+      }, {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : " Carlo Allocca ",
+        "type" : "label"
+      }, {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : " Nikos Minadakis ",
+        "type" : "label"
+      } ],
+      "contributor" : [ {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : " Chrysoula Bekiari ",
+        "type" : "label"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : "http://users.ics.forth.gr/~tzitzik/",
+        "type" : "iri"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : " Nikos Minadakis ",
+        "type" : "label"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : " Julien Barde ",
+        "type" : "label"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : "http://users.ics.forth.gr/~marketak/pages/aboutme.html",
+        "type" : "iri"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : "http://users.ics.forth.gr/~fafalios/",
+        "type" : "iri"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : " Martin Doerr ",
+        "type" : "label"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : " Carlo Allocca ",
+        "type" : "label"
+      } ],
+      "rights" : [ {
+        "identifier" : "rights",
+        "language" : "undefined",
+        "value" : "Copyright © FORTH ICS",
+        "type" : "label"
+      } ],
+      "modified" : [ {
+        "identifier" : "modified",
+        "language" : "undefined",
+        "value" : "2014-04-22",
+        "type" : "label"
+      } ],
+      "publisher" : [ {
+        "identifier" : "publisher",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl",
+        "type" : "iri"
+      } ],
+      "versionInfo" : [ {
+        "identifier" : "versionInfo",
+        "language" : "undefined",
+        "value" : "3.0",
+        "type" : "label"
+      } ],
+      "title" : [ {
+        "identifier" : "title",
+        "language" : "undefined",
+        "value" : "MarineTLO Ontology",
+        "type" : "label"
+      } ],
+      "issued" : [ {
+        "identifier" : "issued",
+        "language" : "undefined",
+        "value" : "2013-10-15",
+        "type" : "label"
+      } ]
+    }
+  },
+  "namespace" : [ ],
+  "class" : [ {
+    "id" : "0",
+    "type" : "owl:Class"
+  }, {
+    "id" : "4",
+    "type" : "owl:Class"
+  }, {
+    "id" : "6",
+    "type" : "owl:Class"
+  }, {
+    "id" : "7",
+    "type" : "owl:Class"
+  }, {
+    "id" : "9",
+    "type" : "owl:Class"
+  }, {
+    "id" : "10",
+    "type" : "owl:Class"
+  }, {
+    "id" : "12",
+    "type" : "owl:Class"
+  }, {
+    "id" : "16",
+    "type" : "owl:Class"
+  }, {
+    "id" : "18",
+    "type" : "owl:Class"
+  }, {
+    "id" : "25",
+    "type" : "owl:Class"
+  }, {
+    "id" : "29",
+    "type" : "owl:Class"
+  }, {
+    "id" : "31",
+    "type" : "owl:Class"
+  }, {
+    "id" : "34",
+    "type" : "owl:Class"
+  }, {
+    "id" : "36",
+    "type" : "owl:Class"
+  }, {
+    "id" : "37",
+    "type" : "owl:Class"
+  }, {
+    "id" : "38",
+    "type" : "owl:Class"
+  }, {
+    "id" : "42",
+    "type" : "owl:Class"
+  }, {
+    "id" : "49",
+    "type" : "owl:Class"
+  }, {
+    "id" : "50",
+    "type" : "owl:Class"
+  }, {
+    "id" : "53",
+    "type" : "owl:Class"
+  }, {
+    "id" : "2",
+    "type" : "owl:Class"
+  }, {
+    "id" : "5",
+    "type" : "owl:Class"
+  }, {
+    "id" : "59",
+    "type" : "owl:Class"
+  }, {
+    "id" : "21",
+    "type" : "owl:Class"
+  }, {
+    "id" : "40",
+    "type" : "owl:Class"
+  }, {
+    "id" : "63",
+    "type" : "owl:Class"
+  }, {
+    "id" : "32",
+    "type" : "owl:Class"
+  }, {
+    "id" : "69",
+    "type" : "owl:Class"
+  }, {
+    "id" : "3",
+    "type" : "owl:Class"
+  }, {
+    "id" : "30",
+    "type" : "owl:Class"
+  }, {
+    "id" : "44",
+    "type" : "owl:Class"
+  }, {
+    "id" : "71",
+    "type" : "owl:Class"
+  }, {
+    "id" : "80",
+    "type" : "owl:Class"
+  }, {
+    "id" : "81",
+    "type" : "owl:Class"
+  }, {
+    "id" : "60",
+    "type" : "owl:Class"
+  }, {
+    "id" : "56",
+    "type" : "owl:Class"
+  }, {
+    "id" : "11",
+    "type" : "owl:Class"
+  }, {
+    "id" : "62",
+    "type" : "owl:Class"
+  }, {
+    "id" : "67",
+    "type" : "owl:Class"
+  }, {
+    "id" : "51",
+    "type" : "owl:Class"
+  }, {
+    "id" : "86",
+    "type" : "owl:Class"
+  }, {
+    "id" : "77",
+    "type" : "owl:Class"
+  }, {
+    "id" : "88",
+    "type" : "owl:Class"
+  }, {
+    "id" : "74",
+    "type" : "owl:Class"
+  }, {
+    "id" : "1",
+    "type" : "owl:Class"
+  }, {
+    "id" : "91",
+    "type" : "owl:Class"
+  }, {
+    "id" : "93",
+    "type" : "owl:Class"
+  }, {
+    "id" : "54",
+    "type" : "owl:Class"
+  }, {
+    "id" : "94",
+    "type" : "owl:Class"
+  }, {
+    "id" : "95",
+    "type" : "owl:Class"
+  }, {
+    "id" : "70",
+    "type" : "owl:Class"
+  }, {
+    "id" : "75",
+    "type" : "owl:Class"
+  }, {
+    "id" : "57",
+    "type" : "owl:Class"
+  }, {
+    "id" : "68",
+    "type" : "owl:Class"
+  }, {
+    "id" : "55",
+    "type" : "owl:Class"
+  }, {
+    "id" : "76",
+    "type" : "owl:Class"
+  }, {
+    "id" : "28",
+    "type" : "owl:Class"
+  }, {
+    "id" : "85",
+    "type" : "owl:Class"
+  }, {
+    "id" : "23",
+    "type" : "owl:Class"
+  }, {
+    "id" : "124",
+    "type" : "owl:Class"
+  }, {
+    "id" : "96",
+    "type" : "owl:Class"
+  }, {
+    "id" : "52",
+    "type" : "owl:Class"
+  }, {
+    "id" : "79",
+    "type" : "owl:Class"
+  }, {
+    "id" : "131",
+    "type" : "owl:Class"
+  }, {
+    "id" : "41",
+    "type" : "owl:Class"
+  }, {
+    "id" : "133",
+    "type" : "owl:Class"
+  }, {
+    "id" : "66",
+    "type" : "owl:Class"
+  }, {
+    "id" : "78",
+    "type" : "owl:Class"
+  }, {
+    "id" : "92",
+    "type" : "owl:Class"
+  }, {
+    "id" : "33",
+    "type" : "owl:Class"
+  }, {
+    "id" : "173",
+    "type" : "owl:Class"
+  }, {
+    "id" : "46",
+    "type" : "owl:Class"
+  }, {
+    "id" : "17",
+    "type" : "owl:Class"
+  }, {
+    "id" : "26",
+    "type" : "owl:Class"
+  }, {
+    "id" : "64",
+    "type" : "owl:Class"
+  }, {
+    "id" : "14",
+    "type" : "owl:Thing"
+  }, {
+    "id" : "19",
+    "type" : "owl:Class"
+  }, {
+    "id" : "147",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "127",
+    "type" : "owl:Thing"
+  }, {
+    "id" : "61",
+    "type" : "owl:Class"
+  }, {
+    "id" : "99",
+    "type" : "owl:Class"
+  }, {
+    "id" : "8",
+    "type" : "owl:Class"
+  }, {
+    "id" : "35",
+    "type" : "owl:Class"
+  } ],
+  "classAttribute" : [ {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#TemporalPhenomenonType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "TemporalPhenomenonType",
+      "undefined" : "Temporal Phenomenon Type"
+    },
+    "subClasses" : [ "2", "3" ],
+    "comment" : {
+      "en" : "This class comprises all types of phenomena, such as types of Periods, Events and states, which happen over a limited extent in time."
+    },
+    "id" : "0",
+    "superClasses" : [ "1" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Database",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Database",
+      "undefined" : "Database"
+    },
+    "comment" : {
+      "en" : "This class comprises organized collections of data.   The data are typically organized to model relevant aspects of reality  , in a way that supports processes requiring this information.  This organized collection maybe digitized or not."
+    },
+    "id" : "4",
+    "superClasses" : [ "5" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Dataset",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Dataset",
+      "undefined" : "Dataset"
+    },
+    "comment" : {
+      "en" : "This class comprises   contents of a single database table, or a single statistical data matrix, where each column of the table represents a particular variable, and each row corresponds to a given member of the dataset in question. The dataset lists values for each of the variables, such as height and weight of an object, for each member of the dataset. Each value is known as a datum. The dataset may comprise data for one or more members, corresponding to the number of rows.\nThe term dataset may also be used more loosely, to refer to the data in a collection of closely related tables, corresponding to a particular experiment or event.\n"
+    },
+    "id" : "6",
+    "superClasses" : [ "5" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Dimension",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Dimension",
+      "undefined" : "Dimension"
+    },
+    "comment" : {
+      "en" : "This class comprises quantifiable properties that can be measured by some calibrated means and can be approximated by values, i.e. points or regions in a mathematical or conceptual space, such as natural or real numbers, RGB values etc.\n\nAn instance of BC35 Dimension represents the true quantity, independent from its numerical approximation, e.g. in inches or in cm. The properties of the class BC35 Dimension allow for expressing the numerical approximation of the values of an instance of E54 Dimension. If the true values belong to a non-discrete space, such as spatial distances, it is recommended to record them as approximations by intervals or regions of indeterminacy enclosing the assumed true values. For instance, a length of 5 cm may be recorded as 4.5-5.5 cm, according to the precision of the respective observation. Note, that interoperability of values described in different units depends critically on the representation as value regions.\n\nNumerical approximations in archaic instances of E58 Measurement Unit used in historical records should be preserved. Equivalents corresponding to current knowledge should be recorded as additional instances of E54 Dimension as appropriate.\nExamples: \t\n1) currency: £26.00\n2) length: 3.9-4.1 cm \n3) diameter 26 mm\n4) weight 150 lbs\n5) density: 0.85 gm/cc\n6) luminescence: 56 ISO lumens\n7) tin content: 0.46 %\n8) taille au garot: 5 hands\n9) calibrated C14 date: 2460-2720 years, etc\n"
+    },
+    "id" : "7",
+    "superClasses" : [ "8" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#MeasurementUnit",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "MeasurementUnit",
+      "undefined" : "MeasurementUnit"
+    },
+    "comment" : {
+      "en" : "This class is a specialization of E55 Type and comprises the types of measurement units: feet, inches, centimetres, litres, lumens, etc. \n\nThis type is used categorically in the model without reference to instances of it, i.e. the Model does not foresee the description of instances of instances of E58 Measurement Unit, e.g.: “instances of cm”.\n\nSystème International (SI) units or internationally recognized non-SI terms should be used whenever possible. (ISO 1000:1992). Archaic Measurement Units used in historical records should be preserved.\n [Scope Note for E58 Measurement Unit CIDOC CRM version 5.1.2]\n"
+    },
+    "id" : "9",
+    "superClasses" : [ "5" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#D15RepositoryObject",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "D15RepositoryObject",
+      "undefined" : "D15RepositoryObject"
+    },
+    "comment" : {
+      "en" : "This class comprises data repositories of a set of integrated objects in computer science sense. These objects are modeled using structures defined in database schemas. Digital store includes not only data repositories like databases, it is a more general concept that includes also flat files that can store data. \nA digital store may contain binary datasets: raw data, normalized data, intermediate data of processing steps, scenes composed from several datasets, presentation objects, 3D models, 2D-Images and any kind of digital document (text, multimedia). It comprises a notion of complex objects, having datasets as parts. The content of a digital store  is responsible for holding information about where data-files and their replicas can be found\n"
+    },
+    "id" : "10",
+    "superClasses" : [ "11" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Image",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Image",
+      "undefined" : "Image"
+    },
+    "comment" : {
+      "en" : "This class comprises distributions of form, tone and colour that may be found on surfaces such as photos, paintings, prints and sculptures or directly on electronic media. \nThe degree to which variations in the distribution of form and colour affect the identity of an instance of BC5 Image depends on a given purpose.\n"
+    },
+    "id" : "12",
+    "superClasses" : [ "5" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#E65Creation",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "E65Creation",
+      "undefined" : "E65 Creation"
+    },
+    "subClasses" : [ "18" ],
+    "comment" : {
+      "en" : "This class comprises events that result in the creation of conceptual items or immaterial products, such as legends, poems, texts, music, images, movies, laws, types etc."
+    },
+    "id" : "16",
+    "superClasses" : [ "17" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#D7DigitalMachineEvent",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "D7DigitalMachineEvent",
+      "undefined" : "D7 Digital Machine Event"
+    },
+    "subClasses" : [ "19" ],
+    "id" : "18",
+    "superClasses" : [ "16" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#VisualType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "VisualType",
+      "undefined" : "Visual Type"
+    },
+    "comment" : {
+      "en" : "This metaclass comprises types of intellectual or conceptual aspects of recognizable marks and images."
+    },
+    "id" : "25",
+    "superClasses" : [ "26" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#AbioticElement",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "AbioticElement",
+      "undefined" : "Abiotic Element"
+    },
+    "comment" : {
+      "en" : "This class refers to the abiotic components of an ecosystem. This class comprises nonliving physical components of a system, for example: rocks, soil, etc. in an environment."
+    },
+    "id" : "29",
+    "superClasses" : [ "30" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#E70_Thing",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "E70_Thing",
+      "undefined" : "E70_Thing"
+    },
+    "subClasses" : [ "33" ],
+    "comment" : {
+      "en" : "This general class comprises usable discrete, identifiable, instances of E77 Persistent Item that are documented as single units. \n[Scope Note for E70 Thing CIDOC CRM version 5.1.2]\n\nThey can be either intellectual products or physical things which are constellations of matter with a relative stability of any form sufficient to associate them with a persistent identity, such as being confined to certain extent, which (confinement) can have a relative stability of form or structure, or containing a fixed amount of matter.  It is an abstraction of products of intellectual,  physical nature.\n"
+    },
+    "id" : "31",
+    "superClasses" : [ "32" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#BiologicalPart",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BiologicalPart",
+      "undefined" : "Biological Part"
+    },
+    "comment" : {
+      "en" : " This metaclass comprises biological parts of a biological object"
+    },
+    "id" : "34",
+    "superClasses" : [ "35" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#ScientificDataType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "ScientificDataType",
+      "undefined" : "Scientific Data Type"
+    },
+    "comment" : {
+      "en" : "This class comprises the types of Scientific data which are produced by Scientific Activity."
+    },
+    "id" : "36",
+    "superClasses" : [ "26" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#NonTargetByCatch",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "NonTargetByCatch"
+    },
+    "id" : "37",
+    "superClasses" : [ "38" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#ByCatch",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "ByCatch"
+    },
+    "subClasses" : [ "41", "37" ],
+    "id" : "38",
+    "superClasses" : [ "40" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Publication",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Publication",
+      "undefined" : "Publication"
+    },
+    "comment" : {
+      "en" : "This class comprises publication work."
+    },
+    "id" : "42",
+    "superClasses" : [ "5" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Capture_Activity",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Capture_Activity",
+      "undefined" : "Capture Activity"
+    },
+    "comment" : {
+      "en" : "This class compromises activities of BC45 Observation   where an BC8 Actor encounters an instance of BC35 Physical Thing of a kind relevant for the mission of the observation or a biological activity such as fishing, etc. This observation produces knowledge about the existence of the respective thing at a particular place in or on surrounding matter. This knowledge may be new to the group of people the actor belongs to. In that case we would talk about a discovery. The observer may recognize or assign an individual identity of the thing encountered or regard only the type as noteworthy in the associated documentation or report.\nAdditional parameters may be recorded like the kind of ecosystem, if the biological individual survives the observation, what detection or catching devices have been used or if the capture activity have been supported the detection of a new biological kind (“taxon”).\n"
+    },
+    "id" : "49",
+    "superClasses" : [ "17" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Appellation",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Appellation",
+      "undefined" : "Appellation"
+    },
+    "subClasses" : [ "51", "52" ],
+    "comment" : {
+      "en" : "This class comprises signs, either meaningful or not, or arrangements of signs following a specific syntax, that are used or can be used to refer to and identify a specific instance of some class or category within a certain context.\nSpecific subclasses of BC7 Appellation should be used when instances of BC7 Appellation of a characteristic form or format are used for particular objects\n"
+    },
+    "id" : "50",
+    "superClasses" : [ "5" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#AbioticElementType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "AbioticElementType",
+      "undefined" : "Abiotic Element Type"
+    },
+    "comment" : {
+      "en" : "This metaclass comprises types of abiotic components of a type of  Ecosystem."
+    },
+    "id" : "53",
+    "superClasses" : [ "54" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LegislativeZoneType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LegislativeZoneType",
+      "undefined" : "Legislative Zone Type"
+    },
+    "comment" : {
+      "en" : "This class comprises types of extents in space where real world phenomenon can be observed or measured."
+    },
+    "id" : "2",
+    "superClasses" : [ "0" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#ConceptualObject",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "ConceptualObject",
+      "undefined" : "ConceptualObject"
+    },
+    "subClasses" : [ "4", "42", "6", "12", "55", "50", "9", "11", "56", "57" ],
+    "comment" : {
+      "en" : "This class comprises non-material products of our minds and other human produced data that have become objects of a discourse. The production of such information may have been supported by the use of    technical devices such as cameras or computers.\n\nCharacteristically, instances of this class are created, invented or thought by someone, and then may be documented or communicated between persons. Instances of BC3 Conceptual Object have the ability to exist on more than one particular carrier at the same time, such as paper, book, electronic signals, marks, audio media, paintings, photos, human memories, etc.\n\nThey cannot be destroyed. They exist as long as they can be found on at least one carrier or in at least one human memory. Their existence ends when the last carrier and the last memory are lost.\n"
+    },
+    "id" : "5",
+    "superClasses" : [ "33" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Ecosystem",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Ecosystem",
+      "undefined" : "Ecosystem"
+    },
+    "comment" : {
+      "en" : "This class comprises specific systems consisting of observable material items, biotic, abiotic elements and interactions, as well as their associated relations and qualities in space time volume. Its coherence can be defined by the types of species and the types and frequency of interactions which can be observed in a space time volume."
+    },
+    "id" : "59",
+    "superClasses" : [ "60" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Software",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Software",
+      "undefined" : "Software\n"
+    },
+    "comment" : {
+      "en" : "This class comprises software codes, computer programs, procedures, and functions that are used to operate a system of digital objects."
+    },
+    "id" : "21",
+    "superClasses" : [ "11" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Capture",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Capture",
+      "undefined" : "Capture"
+    },
+    "subClasses" : [ "38", "62" ],
+    "id" : "40",
+    "superClasses" : [ "61" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#ActorType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "ActorType",
+      "undefined" : "Actor Type"
+    },
+    "comment" : {
+      "en" : "This class comprises types of human agents either individually or in groups, who have the potential to perform intentional actions for which they can be held responsible."
+    },
+    "id" : "63",
+    "superClasses" : [ "64" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#PersistentItem",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "PersistentItem",
+      "undefined" : "PersistentItem"
+    },
+    "subClasses" : [ "30", "31", "68" ],
+    "comment" : {
+      "en" : "This class comprises items that have a persistent identity, sometimes known as “endurants” in philosophy. They can be repeatedly recognized within the duration of their existence by identity criteria rather than by continuity or observation. Persistent Items can be either physical entities, such as people, animals or things, or conceptual entities such as ideas, concepts, products of the imagination or common names.\n\nThe criteria that determine the identity of an item are often difficult to establish -; the decision depends largely on the judgement of the observer. For example, a building is regarded as no longer existing if it is dismantled and the materials reused in a different configuration. On the other hand, human beings or biotic elements go through radical and profound changes during their life-span, affecting both material composition and form, yet preserve their identity by other criteria. Similarly, inanimate objects may be subject to exchange of parts and matter. The class BC10 Persistent Item does not take any position about the nature of the applicable identity criteria and if actual knowledge about identity of an instance of this class exists. There may be cases, where the identity of an BC10 Persistent Item is not decidable by a certain state of knowledge.\nThe main classes of objects that fall outside the scope the BC10 Persistent Item class are temporal objects such as periods, events and acts, and descriptive properties. \n"
+    },
+    "id" : "32",
+    "superClasses" : [ "8" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#D8DigitalDevice",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "D8DigitalDevice",
+      "undefined" : "D8 Digital Device"
+    },
+    "comment" : {
+      "en" : "This class comprises identifiable material items such as computers, scanners, cameras, etc. that have the capability to process or produce instances of  BC51 Digital Object.\n"
+    },
+    "id" : "69",
+    "superClasses" : [ "33" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#EventsType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "EventsType",
+      "undefined" : "Events Type"
+    },
+    "subClasses" : [ "70", "71" ],
+    "comment" : {
+      "en" : "This class comprises types of actions intentionally carried out by humans that result in changes of state in the scientific, social, or physical systems documented"
+    },
+    "id" : "3",
+    "superClasses" : [ "0" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#PhysicalThing",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "PhysicalThing",
+      "undefined" : "Physical Thing"
+    },
+    "subClasses" : [ "61", "74", "75", "29", "35" ],
+    "comment" : {
+      "en" : "This class comprises constellations of matter with a relative stability of any form sufficient to associate them with a persistent identity, such as being confined to certain extent, which (confinement) can have a relative stability of form or structure, or containing a fixed amount of matter. In particular, it comprises physical things in the narrower sense and fluid bodies. It is an abstraction of physical substance for solid and non-solid things of matter."
+    },
+    "id" : "30",
+    "superClasses" : [ "32" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#AttributeAssignment",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "AttributeAssignment",
+      "undefined" : "Attribute Assignment"
+    },
+    "subClasses" : [ "76", "23" ],
+    "comment" : {
+      "en" : "This class comprises the actions of making assertions about properties of an object or any relation between two items or concepts. \n\nThis class allows the documentation of how the respective assignment came about, and whose opinion it was. All the attributes or properties assigned in such an action can also be seen as directly attached to the respective item or concept, possibly as a collection of contradictory values. All cases of properties in this model that are also described indirectly through an action are characterised as \"short cuts\" of this action. This redundant modelling of two alternative views is preferred because many implementations may have good reasons to model either the action or the short cut, and the relation between both alternatives can be captured by simple rules. \n\nIn particular, the class describes the actions of people making propositions and statements during certain museum procedures, e.g. the person and date when a condition statement was made, an identifier was assigned, the museum object was measured, etc. Which kinds of such assignments and statements need to be documented explicitly in structures of a schema rather than free text, depends on if this information should be accessible by structured queries. \n \n[Scope Note for E13 Attribute Assignment  CIDOC CRM version 5.1.2]\n"
+    },
+    "id" : "44",
+    "superClasses" : [ "17" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#HumanActivityType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "HumanActivityType",
+      "undefined" : "Human Activity Type"
+    },
+    "subClasses" : [ "77", "78", "79" ],
+    "comment" : {
+      "en" : "This class comprises types of actions intentionally carried out by humans that result in changes of state in the scientific, social, or physical systems documented."
+    },
+    "id" : "71",
+    "superClasses" : [ "3" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#AppellationType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "AppellationType",
+      "undefined" : "Appellation Type"
+    },
+    "comment" : {
+      "en" : "This class comprises types of Appellation that are used or can be used to identify a specific instance of some class within a certain context. "
+    },
+    "id" : "80",
+    "superClasses" : [ "26" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#BC60Value",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BC60Value",
+      "undefined" : "BC60Value"
+    },
+    "comment" : {
+      "en" : "This class comprises primitive values used as documentation elements, which are not further elaborated upon within the model. \n\nAs such they are not considered as elements within our universe of discourse. No specific implementation recommendations are made. It is recommended that the primitive value system from the implementation platform be used to substitute for this class and its subclasses.\nExamples:\t\n• ABCDEFG (E62)\n• 3.14 (E60)\n• 0 \n• 1921-01-01 (E61)\n"
+    },
+    "id" : "81",
+    "superClasses" : [ "8" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Event",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Event",
+      "undefined" : "Event"
+    },
+    "subClasses" : [ "59", "17" ],
+    "comment" : {
+      "en" : "This class comprises changes of states in cultural, social or physical systems, regardless of scale, brought about by a series or group of coherent physical, cultural, technological or legal phenomena. Such changes of state will affect instances of E77 Persistent Item or its subclasses.\n\nThe distinction between an E5 Event and an E4 Period is partly a question of the scale of observation. Viewed at a coarse level of detail, an E5 Event is an ‘instantaneous’ change of state. At a fine level, the E5 Event can be analysed into its component phenomena within a space and time frame, and as such can be seen as an E4 Period. The reverse is not necessarily the case: not all instances of E4 Period give rise to a noteworthy change of state.\n\n[Scope Note for E5 Event  CIDOC CRM version 5.1.2]\n"
+    },
+    "id" : "60",
+    "superClasses" : [ "66" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Identifier",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Identifier",
+      "undefined" : "Identifier"
+    },
+    "comment" : {
+      "en" : "This class comprises strings or codes assigned to instances of BC10 Persistent Item in order to identify them uniquely and permanently within the context of one or more organisations. Such codes are often known as inventory numbers, registration codes, etc. and are typically composed of alphanumeric sequences. \nSpecific subclasses of BC4 Identifier should be used when instances of BC4 Identifier of a characteristic form or format are used for particular objects\n"
+    },
+    "id" : "56",
+    "superClasses" : [ "5" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#DigitalObject",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "DigitalObject",
+      "undefined" : "DigitalObject"
+    },
+    "subClasses" : [ "10", "21" ],
+    "comment" : {
+      "en" : "This class comprises identifiable immaterial items that can be represented as sets of bit sequences, such as data sets, e-texts, images, audio or video items, software, etc., and are documented as single units. \nAny aggregation of instances of BC23 Digital Object into a whole treated as single unit is also regarded as an instance of BC23 Digital Object. \nA BC23 Digital Object does not depend on a specific physical carrier, and it can exist on one or more carriers simultaneously.\n"
+    },
+    "id" : "11",
+    "superClasses" : [ "5" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Catch",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Catch"
+    },
+    "subClasses" : [ "85", "86" ],
+    "id" : "62",
+    "superClasses" : [ "40" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Time-Span",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Time-Span",
+      "undefined" : "Time-Span"
+    },
+    "comment" : {
+      "en" : "This class comprises abstract temporal extents, in the sense of Galilean physics, having a beginning, an end and a duration. Time Span has no other semantic connotations. Time-Spans are used to define the temporal extent of   phenomena valid for a certain time.  \n[Scope Note for E52 Time Span in CIDOC CRM version 5.1.2]\nInstances of BC2 Time-Span can best be considered as approximations of the actual Time-Spans of temporal entities. The properties of BC2 Time-Span are intended to allow these approximations to be expressed precisely.\n"
+    },
+    "id" : "67",
+    "superClasses" : [ "8" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Title",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Title",
+      "undefined" : "Title"
+    },
+    "comment" : {
+      "en" : "This class comprises the names assigned to works, such as texts, artworks or pieces of music. \n\nTitles are proper noun phrases or verbal phrases, and should not be confused with generic object names such as “chair”, “painting” or “book” (the latter are common nouns that stand for instances of E55 Type). Titles may be assigned by the creator of the work itself, or by a social group. \n\nThis class also comprises the translations of titles that are used as surrogates for the original titles in different social contexts.\n\n[Scope Note for E35 Title  CIDOC CRM version 5.1.2]\n"
+    },
+    "id" : "51",
+    "superClasses" : [ "50" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#NonTargetCatch",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "NonTargetCatch"
+    },
+    "id" : "86",
+    "superClasses" : [ "62" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#IdentifierAssignmentType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "IdentifierAssignmentType",
+      "undefined" : "Identifier Assignment Type"
+    },
+    "id" : "77",
+    "superClasses" : [ "71" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#EquipmentType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "EquipmentType",
+      "undefined" : "Equipment Type"
+    },
+    "comment" : {
+      "en" : "This class comprises types of physical objects purposely created by human activity."
+    },
+    "id" : "88",
+    "superClasses" : [ "54" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Equipment",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Equipment",
+      "undefined" : "Equipment"
+    },
+    "comment" : {
+      "en" : "This class comprises physical objects purposely created by human activity."
+    },
+    "id" : "74",
+    "superClasses" : [ "30" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#MarineTLOEntityType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "MarineTLOEntityType",
+      "undefined" : "MarineTLO Entity Type"
+    },
+    "subClasses" : [ "0", "64" ],
+    "comment" : {
+      "en" : "This class comprises types of things in the universe of discourse of the MarineTLO."
+    },
+    "id" : "1"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#ManMadeObject",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "ManMadeObject",
+      "undefined" : "Man Made Object"
+    },
+    "comment" : {
+      "en" : "This class comprises physical objects purposely created by human activity.\n\nNo assumptions are made as to the extent of modification required to justify regarding an object as man-made. For example, an inscribed piece of rock or a preserved butterfly are both regarded as instances of E22 Man-Made Object.\n\n[Scope Note for E22 Man-Made Object  CIDOC CRM version 5.1.2]\n"
+    },
+    "id" : "91",
+    "superClasses" : [ "92" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#BiologicalPartType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BiologicalPartType",
+      "undefined" : "Biological Part Type"
+    },
+    "comment" : {
+      "en" : "This metaclass comprises types of biological parts of a biological object."
+    },
+    "id" : "93",
+    "superClasses" : [ "46" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#PhysicalThingType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "PhysicalThingType",
+      "undefined" : "Physical Thing Type"
+    },
+    "subClasses" : [ "46", "53", "88" ],
+    "comment" : {
+      "en" : "This class comprises types of constellations of matter with a relative stability of any form sufficient to associate them with a persistent identity, such as being confined to certain extent, having a relative stability of form or structure, or containing a fixed amount of matter. In particular, it comprises physical things in the narrower sense and fluid bodies. It is an abstraction of physical substance for solid and non-solid things of matter."
+    },
+    "id" : "54",
+    "superClasses" : [ "64" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#DigitalObjectType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "DigitalObjectType",
+      "undefined" : "Digital Object Type"
+    },
+    "comment" : {
+      "en" : "This class comprises types of file formats, physical medium, or dimensions of the resource of digital objects, corresponds to dc format of Dublin core."
+    },
+    "id" : "94",
+    "superClasses" : [ "26" ]
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Class",
+    "baseIri" : "http://www.w3.org/2000/01/rdf-schema",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class"
+    },
+    "attributes" : [ "external" ],
+    "id" : "95"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#EcosystemType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "EcosystemType",
+      "undefined" : "Ecosystem Type"
+    },
+    "comment" : {
+      "en" : "This metaclass comprises types of  coherent ecological phenomena bounded in time and space. The  coherence of these phenomena is given by the type of interaction characteristic for biological systems. This coherence identifies the ecosystem and not the associated spatio-temporal bounds. These bounds are a mere approximation of the actual process of growth, spread and retreat. Consequently, different ecosystems can overlap and coexist in time and space."
+    },
+    "id" : "70",
+    "superClasses" : [ "3" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#WaterArea",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "WaterArea",
+      "undefined" : "Water Area"
+    },
+    "comment" : {
+      "en" : "This class comprises generic portions of the sea. A water area can be a statistical area, or an economic zone, or a geographic feature."
+    },
+    "id" : "75",
+    "superClasses" : [ "30", "96" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#DesignAndProcedure",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "DesignAndProcedure",
+      "undefined" : "DesignAndProcedure"
+    },
+    "comment" : {
+      "en" : "This class comprises documented plans for the execution of actions in order to achieve a result of a specific quality, form or contents. In particular it comprises plans for deliberate human activities that may result in the modification or production of instances of E24 Physical Thing.\n\nInstances of E29 Design or Procedure can be structured in parts and sequences or depend on others. This is modelled using P69 is associated with.\n\nDesigns or procedures can be seen as one of the following:\n\n1. schema for the activities it describes\n2. A schema of the products that result from their application.\n3. An independent intellectual product that may have never been applied, such as Leonardo da Vinci's famous plans for flying machines.\n4. Because designs or procedures may never be applied or only partially executed, the CRM models a loose relationship between the plan and the respective product.\n [Scope Note for E29 Design or Procedure (CIDOC CRM)]\n"
+    },
+    "id" : "57",
+    "superClasses" : [ "5" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Actor",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Actor",
+      "undefined" : "Actor"
+    },
+    "subClasses" : [ "99" ],
+    "comment" : {
+      "en" : "This class comprises people, either individually or in groups, who have the potential to perform intentional actions for which they can be held responsible. "
+    },
+    "id" : "68",
+    "superClasses" : [ "32" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#RepositoryObject",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "RepositoryObject",
+      "undefined" : "Repository Object"
+    },
+    "comment" : {
+      "en" : "This class comprises data repositories of a set of integrated objects in computer science sense. These objects are modeled using structures defined in database schemas. Digital store includes not only data repositories like databases, it is a more general concept that includes also flat files that can store data. \nA digital store may contain binary datasets: raw data, normalized data, intermediate data of processing steps, scenes composed from several datasets, presentation objects, 3D models, 2D-Images and any kind of digital document (text, multimedia). It comprises a notion of complex objects, having datasets as parts. The content of a digital store  is responsible for holding information about where data-files and their replicas can be found.\n"
+    },
+    "id" : "55",
+    "superClasses" : [ "5" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#IdentifierAssignment",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "IdentifierAssignment",
+      "undefined" : "Identifier Assignment"
+    },
+    "comment" : {
+      "en" : "This class comprises activities that result in the allocation of an identifier to an instance of E1 CRM Entity. An E15 Identifier Assignment may include the creation of the identifier from multiple constituents, which themselves may be instances of E41 Appellation. The syntax and kinds of constituents to be used may be declared in a rule constituting an instance of E29 Design or Procedure.\n[Scope Note for E15 Identifier Assignment CIDOC CRM version 5.1.2]\n"
+    },
+    "id" : "76",
+    "superClasses" : [ "44" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#DigitalMeasurementEvent",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "DigitalMeasurementEvent",
+      "undefined" : "Digital Measurement Event"
+    },
+    "comment" : {
+      "en" : "This class comprises actions measuring physical properties using a digital device, that are determined by a systematic procedure and creates an instance of BC23 Digital Object."
+    },
+    "id" : "28",
+    "superClasses" : [ "23" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#TargetCatch",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "TargetCatch"
+    },
+    "id" : "85",
+    "superClasses" : [ "62" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Measurement",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Measurement",
+      "undefined" : "Measurement"
+    },
+    "subClasses" : [ "28" ],
+    "comment" : {
+      "en" : "This class comprises actions measuring physical properties and other values that can be determined by a systematic procedure. \n\nExamples include measuring the monetary value of a collection of coins or the running time of a specific video cassette. \n\nThe E16 Measurement may use simple counting or tools, such as yardsticks or radiation detection devices. The interest is in the method and care applied, so that the reliability of the result may be judged at a later stage, or research continued on the associated documents. The date of the event is important for dimensions, which may change value over time, such as the length of an object subject to shrinkage. Details of methods and devices are best handled as free text, whereas basic techniques such as \"carbon 14 dating\" should be encoded using P2 has type (is type of:) E55 Type.\n[Scope Note for E16 Measurement  CIDOC CRM version 5.1.2]\n"
+    },
+    "id" : "23",
+    "superClasses" : [ "44" ]
+  }, {
+    "iri" : "http://xmlns.com/foaf/0.1/Person",
+    "baseIri" : "http://xmlns.com/foaf/0.1",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Person"
+    },
+    "individuals" : [ {
+      "iri" : "http://users.ics.forth.gr/~marketak/pages/aboutme.html",
+      "baseIri" : "http://users.ics.forth.gr/~marketak/pages",
+      "labels" : {
+        "IRI-based" : "aboutme.html"
+      }
+    }, {
+      "iri" : "http://users.ics.forth.gr/~tzitzik/",
+      "baseIri" : "http://users.ics.forth.gr",
+      "labels" : { }
+    }, {
+      "iri" : "http://users.ics.forth.gr/~fafalios/",
+      "baseIri" : "http://users.ics.forth.gr",
+      "labels" : { }
+    } ],
+    "attributes" : [ "external" ],
+    "id" : "124"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Place",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Place",
+      "undefined" : "Place"
+    },
+    "subClasses" : [ "75" ],
+    "comment" : {
+      "en" : "This class comprises extents in space, in particular on the surface of the earth, in the pure sense of physics: independent from temporal phenomena and matter. \n\nThe instances of E53 Place are usually determined by reference to the position of “immobile” objects such as buildings, cities, mountains, rivers, or dedicated geodetic marks. A Place can be determined by combining a frame of reference and a location with respect to this frame. It may be identified by one or more instances of E44 Place Appellation.\n\n It is sometimes argued that instances of E53 Place are best identified by global coordinates or absolute reference systems. However, relative references are often more relevant in the context of cultural documentation and tend to be more precise. In particular, we are often interested in position in relation to large, mobile objects, such as ships. For example, the Place at which Nelson died is known with reference to a large mobile object – H.M.S Victory. A resolution of this Place in terms of absolute coordinates would require knowledge of the movements of the vessel and the precise time of death, either of which may be revised, and the result would lack historical and cultural relevance.\n\nAny object can serve as a frame of reference for E53 Place determination. The model foresees the notion of a \"section\" of an E19 Physical Object as a valid E53 Place determination.\n[Scope Note for E53 Place in CIDOC CRM version 5.1.2]\n"
+    },
+    "id" : "96",
+    "superClasses" : [ "8" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Proposition",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Proposition",
+      "undefined" : "Proposition"
+    },
+    "comment" : {
+      "en" : "This class comprises immaterial items, including but not limited to scientific papers, plots, procedural prescriptions, algorithms, laws of physics or images that are, or represent in some sense, sets of propositions about real or imaginary things and that are documented as single units or serve as topic of discourse. This class also comprises items that are “about” something in the sense of a subject.  \nSpecific subclasses of BC8 Proposition should be used when instances of BC8 Proposition of a characteristic type such as publication, etc are used for particular objects.\n"
+    },
+    "id" : "52",
+    "superClasses" : [ "50" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#ScientificActivityType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "ScientificActivityType",
+      "undefined" : "Scientific Activity Type"
+    },
+    "id" : "79",
+    "superClasses" : [ "71" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#MarineAnimal",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "MarineAnimal",
+      "undefined" : "Marine Animal"
+    },
+    "comment" : {
+      "en" : "This class comprises any living thing in a marine environment that can move independently and that has senses for recognizing and reacting to the environment around it."
+    },
+    "id" : "131",
+    "superClasses" : [ "35" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#TargetByCatch",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "TargetByCatch"
+    },
+    "id" : "41",
+    "superClasses" : [ "38" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Language",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Language",
+      "undefined" : "Language"
+    },
+    "comment" : {
+      "en" : "This class comprises the natural languages in the sense of concepts, i.e. the Model does not foresee the description of instances of BT36 Language, e.g.: “instances of French”.\n\nIt is recommended that internationally or nationally agreed codes and terminology are used to denote instances of BT36 Language, such as those defined in ISO 639:1988.  [CIDOC CRM].\n"
+    },
+    "id" : "133",
+    "superClasses" : [ "26" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#TemporalPhenomenon",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "TemporalPhenomenon",
+      "undefined" : "Temporal Phenomenon"
+    },
+    "subClasses" : [ "60" ],
+    "comment" : {
+      "en" : "This class comprises all sets of phenomena, such as   Periods, Events and states, Ecosystems,   bounded in time and space. \nIt is the social or physical coherence of these phenomena that identify a BC4 Temporal Phenomenon and not the associated spatio-temporal bounds. These bounds are   approximations of the actual process of growth, spread and retreat. Consequently, different ecosystems   can overlap and coexist in time and space, such as when a nomadic culture exists in the same area as a sedentary culture.\n"
+    },
+    "id" : "66",
+    "superClasses" : [ "8" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#IndustrialActivityType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "IndustrialActivityType",
+      "undefined" : "Industrial Activity Type"
+    },
+    "id" : "78",
+    "superClasses" : [ "71" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#PhysicalManMadeThing",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "PhysicalManMadeThing",
+      "undefined" : "Physical Man Made Thing"
+    },
+    "subClasses" : [ "91" ],
+    "comment" : {
+      "en" : "\nThis class comprises man-made objects, such as a swords, and man-made features, such as rock art. No assumptions are made as to the extent of modification required to justify regarding an object as man-made. For example, a “cup and ring” carving on bedrock is regarded as instance of E24 Physical Man-Made Thing. \n\n[Scope Note for E24 Physical Man-Made Thing  CIDOC CRM version 5.1.2]\n\n"
+    },
+    "id" : "92",
+    "superClasses" : [ "33" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#ManMadeThings",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "ManMadeThings",
+      "undefined" : "ManMadeThings"
+    },
+    "subClasses" : [ "92", "5", "69" ],
+    "comment" : {
+      "en" : "This class comprises physical objects purposely created by human activity.\n\nNo assumptions are made as to the extent of modification required to justify regarding an object as man-made. For example, an inscribed piece of rock or a preserved butterfly are both regarded as instances of BC31 Man-Made Object.\nExamples:\t\n1) Mallard (the World’s fastest steam engine)\n2) the Portland Vase\n3) the Coliseum\n"
+    },
+    "id" : "33",
+    "superClasses" : [ "31" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#MarineAnimalType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "MarineAnimalType",
+      "undefined" : "Marine Animal Type"
+    },
+    "comment" : {
+      "en" : "This class comprises types marine animals that have a persistent identity."
+    },
+    "id" : "173",
+    "superClasses" : [ "46" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#BioticElementType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BioticElementType",
+      "undefined" : "Biotic Element Type"
+    },
+    "subClasses" : [ "93", "173" ],
+    "comment" : {
+      "en" : "This metaclass comprises types of material nature items which live, have lived or are natural products of or from living organisms. Such types of material nature items includes types of plants, types of fauna(animals), types of bacteria, fungi etc."
+    },
+    "id" : "46",
+    "superClasses" : [ "54" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#HumanActivity",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "HumanActivity",
+      "undefined" : "Human Activity"
+    },
+    "subClasses" : [ "44", "16", "49" ],
+    "comment" : {
+      "en" : "This class comprises actions intentionally carried out by instances of E39 Actor that result in changes of state in the cultural, social, or physical systems documented. \n\nThis notion includes complex, composite and long-lasting actions such as the building of a settlement or a war, as well as simple, short-lived actions such as the opening of a door.\n\n[Scope Note for E7 Activity  CIDOC CRM version 5.1.2]\n"
+    },
+    "id" : "17",
+    "superClasses" : [ "60" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#ConceptualObjectType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "ConceptualObjectType",
+      "undefined" : "Conceptual Object Type"
+    },
+    "subClasses" : [ "94", "133", "36", "25", "80" ],
+    "comment" : {
+      "en" : "This metaclass comprises types of identifiable immaterial items, such as, types of data sets, images, texts, multimedia objects, procedural prescriptions, computer program code, algorithm or mathematical formulae, that have an objectively recognizable structure and are documented as single units."
+    },
+    "id" : "26",
+    "superClasses" : [ "64" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#PersistentItemType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "PersistentItemType",
+      "undefined" : "Persistent Item Type"
+    },
+    "subClasses" : [ "54", "63", "26" ],
+    "comment" : {
+      "en" : "This class comprises types items that have a persistent identity, sometimes known as “endurants” in philosophy. The items of this type  can be repeatedly recognized within the duration of their existence by identity criteria rather than by continuity or observation. These can be either types of  physical entities, such as people, animals or things, or conceptual entities such as ideas, concepts, products of the imagination or common names"
+    },
+    "id" : "64",
+    "superClasses" : [ "1" ]
+  }, {
+    "iri" : "http://www.w3.org/2002/07/owl#Thing",
+    "baseIri" : "http://owl2vowl.de",
+    "id" : "14",
+    "label" : {
+      "undefined" : "Thing"
+    }
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#D10SoftwareExecution",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "D10SoftwareExecution",
+      "undefined" : "D10 Software Execution"
+    },
+    "id" : "19",
+    "superClasses" : [ "18" ]
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "147",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2002/07/owl#Thing",
+    "baseIri" : "http://owl2vowl.de",
+    "id" : "127",
+    "label" : {
+      "undefined" : "Thing"
+    }
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Collection",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Collection",
+      "undefined" : "Collection"
+    },
+    "subClasses" : [ "40" ],
+    "comment" : {
+      "en" : "\nThis class comprises aggregations of instances of E18 Physical Thing that are assembled and maintained (“curated” and “preserved,” in museological terminology) by one or more instances of E39 Actor over time for a specific purpose and audience, and according to a particular collection development plan.  \n\nItems may be added or removed from an E78 Collection in pursuit of this plan. This class should not be confused with the E39 Actor maintaining the E78 Collection often referred to with the name of the E78 Collection (e.g. “The Wallace Collection decided…”).\n\nCollective objects in the general sense, like a tomb full of gifts, a folder with stamps or a set of chessmen, should be documented as instances of E19 Physical Object, and not as instances of E78 Collection. This is because they form wholes either because they are physically bound together or because they are kept together for their functionality.\n\n\n[Scope Note for E78 Collection  CIDOC CRM version 5.1.2]\n\n"
+    },
+    "id" : "61",
+    "superClasses" : [ "30" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#Person",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Person",
+      "undefined" : "Person"
+    },
+    "comment" : {
+      "en" : "This class comprises real persons who live or are assumed to have lived. "
+    },
+    "id" : "99",
+    "superClasses" : [ "68" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#MarineTLOEntity",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "MarineTLOEntity",
+      "undefined" : "MarineTLOEntity"
+    },
+    "subClasses" : [ "7", "66", "32", "96", "81", "67" ],
+    "comment" : {
+      "en" : "This class comprises all objects of the MarineTLO discourse. It is an abstract concept providing for :\n1) Identification   by a preferred identifier\n2) Appellation\n3) all classes within this level of the MarineTLO are directly or indirectly specialisations of BC20 TLO Entity\n"
+    },
+    "id" : "8"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#BioticElement",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BioticElement",
+      "undefined" : "Biotic Element"
+    },
+    "subClasses" : [ "34", "131" ],
+    "comment" : {
+      "en" : "This class refers to the biotic components of an ecosystem. This class compromises individual living things that can react to stimuli, reproduce, grow, and maintain homeostasis. It can be a virus, bacterium, protist, fungus, plant, an animal or a human being. [http://www.biology-online.org/]"
+    },
+    "id" : "35",
+    "superClasses" : [ "30" ]
+  } ],
+  "property" : [ {
+    "id" : "13",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "20",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "22",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "27",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "39",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "43",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "45",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "58",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "65",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "72",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "73",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "47",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "82",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "83",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "87",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "24",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "89",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "90",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "97",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "98",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "100",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "101",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "102",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "103",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "104",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "105",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "106",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "107",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "108",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "109",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "110",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "111",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "112",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "113",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "114",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "116",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "117",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "118",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "119",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "120",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "121",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "122",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "123",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "125",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "126",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "115",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "128",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "129",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "130",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "132",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "134",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "135",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "136",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "137",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "138",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "139",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "140",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "141",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "142",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "143",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "144",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "145",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "84",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "146",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "15",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "148",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "149",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "150",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "151",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "152",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "153",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "154",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "155",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "156",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "157",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "158",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "159",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "160",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "161",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "162",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "163",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "164",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "165",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "166",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "167",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "168",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "169",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "170",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "171",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "172",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "174",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "175",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "176",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "177",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "178",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "179",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "180",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "181",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "182",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "183",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "184",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "185",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "186",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "187",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "188",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "48",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "189",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "190",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "191",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "192",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "193",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "194",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "195",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "196",
+    "type" : "rdfs:SubClassOf"
+  } ],
+  "propertyAttribute" : [ {
+    "iri" : "http://www.w3.org/2002/07/owl#topObjectProperty",
+    "baseIri" : "http://www.w3.org/2002/07/owl",
+    "range" : "14",
+    "label" : {
+      "IRI-based" : "topObjectProperty"
+    },
+    "domain" : "14",
+    "subproperty" : [ "15" ],
+    "attributes" : [ "external", "object" ],
+    "id" : "13"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#L23UsedSoftware",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "21",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "L23UsedSoftware",
+      "undefined" : "L23UsedSoftware"
+    },
+    "domain" : "19",
+    "comment" : {
+      "undefined" : "This property associates an instance of BC56 Digital Measurement  Event with the instance of BC59 Software."
+    },
+    "attributes" : [ "object" ],
+    "id" : "20"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P39WasMeasuredBy",
+    "inverse" : "24",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "23",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P39WasMeasuredBy",
+      "undefined" : "P39Measured"
+    },
+    "domain" : "8",
+    "attributes" : [ "object" ],
+    "id" : "22"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#O21Triggers",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "19",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "O21Triggers",
+      "undefined" : "O21Triggers"
+    },
+    "domain" : "28",
+    "attributes" : [ "object" ],
+    "id" : "27"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LT2usuallyConsistsOf",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "14",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LT2usuallyConsistsOf",
+      "undefined" : "LT2usuallyConsistsOf"
+    },
+    "domain" : "14",
+    "comment" : {
+      "undefined" : "This property describes the types of components   of an Temporal Phenomenon Type."
+    },
+    "attributes" : [ "object" ],
+    "id" : "39"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P141Assigned",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "8",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P141Assigned",
+      "undefined" : "P141Assigned"
+    },
+    "domain" : "44",
+    "comment" : {
+      "undefined" : "This property indicates the attribute that was assigned or the item that was related to the item denoted by a property P140 assigned attribute to in an Attribute assignment action.\nExamples:\t\n1)\tFebruary 1997 Current Ownership Assessment of Martin Doerr’s silver cup (E13) assigned Martin Doerr (E21)\n2)\t01 June 1997 Identifier Assignment of the silver cup donated by Martin Doerr (E15) assigned object identifier 232\n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "43"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LTusuallyFeedingOn",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "46",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LTusuallyFeedingOn",
+      "undefined" : "LTusuallyFeedingOn"
+    },
+    "domain" : "46",
+    "subproperty" : [ "47", "48" ],
+    "attributes" : [ "object" ],
+    "id" : "45"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P34Continued",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "17",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P34Continued",
+      "undefined" : "P34Continued"
+    },
+    "domain" : "17",
+    "comment" : {
+      "undefined" : "This property identifies the E18 Physical Thing that was assessed during an E14 Condition Assessment activity. \nConditions may be assessed either by direct observation or using recorded evidence. In the latter case the E18 Physical Thing does not need to be present or extant.\nExamples:\t\n1) 1997 condition assessment of the silver collection (E14) concerned silver cup 232 (E22)\n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "58"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P4HasTime-Span",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "67",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P4HasTime-Span",
+      "undefined" : "P4HasTime-Span"
+    },
+    "domain" : "66",
+    "comment" : {
+      "undefined" : "This property describes the temporal confinement of an instance of an E2 Temporal Entity.\n\nThe related E52 Time-Span is understood as the real Time-Span during which the phenomena were active, which make up the temporal entity instance. It does not convey any other meaning than a positioning on the “time-line” of chronology. The Time-Span in turn is approximated by a set of dates (E61 Time Primitive). A temporal entity can have in reality only one Time-Span, but there may exist alternative opinions about it, which we would express by assigning multiple Time-Spans. Related temporal entities may share a Time-Span. Time-Spans may have completely unknown dates but other descriptions by which we can infer knowledge.\nExamples: \t\n1) the Yalta Conference (E7) has time-span Yalta Conference time-span (E52) \n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "65"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LXhasType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "1",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LXhasType",
+      "undefined" : "LXhasType"
+    },
+    "domain" : "8",
+    "comment" : {
+      "undefined" : "This property allows sub typing of MarineTLO entities - a form of specialisation – through the use of a terminological hierarchy, or thesaurus."
+    },
+    "attributes" : [ "object" ],
+    "id" : "72"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#L12FHappenedOnDevice",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "69",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "L12FHappenedOnDevice",
+      "undefined" : "L12FHappenedOnDevice"
+    },
+    "domain" : "19",
+    "comment" : {
+      "undefined" : "This property associates an instance of BC56 Digital Measurement  Event with the instance of BC58 Digital Device that had used."
+    },
+    "attributes" : [ "object" ],
+    "id" : "73"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LTusuallyIsPredatorOf",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "14",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LTusuallyIsPredatorOf",
+      "undefined" : "LTusuallyIsPredatorOf"
+    },
+    "superproperty" : [ "45" ],
+    "domain" : "14",
+    "comment" : {
+      "undefined" : "This property connects the types of predators with their prey type."
+    },
+    "attributes" : [ "object" ],
+    "id" : "47"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P102HasTitle",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "51",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P102HasTitle",
+      "undefined" : "P102HasTitle"
+    },
+    "domain" : "8",
+    "comment" : {
+      "undefined" : "This property describes the E35 Title applied to an instance of E71 Man-Made Thing. The E55 Type of Title is assigned in a sub property.\n\nThe P102.1 has type property of the P102 has title (is title of) property enables the relationship between the Title and the thing to be further clarified, for example, if the Title was a given Title, a supplied Title etc.\nIt allows any man-made material or immaterial thing to be given a Title. It is possible to imagine a Title being created without a specific object in mind.\nExamples:\t\n1) the first book of the Old Testament (E33) has title “Genesis” (E35) has type translated (E55).\n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "82"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LC4isReferredBy",
+    "inverse" : "84",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "5",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LC4isReferredBy",
+      "undefined" : "LC4isReferredBy"
+    },
+    "domain" : "32",
+    "comment" : {
+      "undefined" : "This property documents that a BC18 Proposition makes a statement about an instance of BC1 TLO Entity."
+    },
+    "attributes" : [ "object" ],
+    "id" : "83"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LX3isAboutConcept",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "1",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX3isAboutConcept",
+      "undefined" : "LX3isAboutConcept"
+    },
+    "domain" : "5",
+    "comment" : {
+      "undefined" : "This property documents that an instance of BC17 Conceptual Object is a subject of an instance of BT1 TLO Entity Type."
+    },
+    "attributes" : [ "object" ],
+    "id" : "87"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P39Measured",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "8",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P39Measured",
+      "undefined" : "P39Measured"
+    },
+    "domain" : "23",
+    "comment" : {
+      "undefined" : "This property associates an instance of E16 Measurement with the instance of E1 CRM Entity to which it applied. An instance of E1 CRM Entity may be measured more than once. Material and immaterial things and processes may be measured, e.g. the number of words in a text, or the duration of an event.\nExamples:\t\n1) 31 August 1997 measurement of height of silver cup 232 (E16) measured silver cup 232 (E22).\n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "24"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LTbelongsTo",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "46",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LTbelongsTo",
+      "undefined" : "LTbelongsTo"
+    },
+    "domain" : "46",
+    "comment" : {
+      "undefined" : "This property associates a type of biotic element with the type of biotic element which is part of or member."
+    },
+    "attributes" : [ "object" ],
+    "id" : "89"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#L11HadOutput",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "11",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "L11HadOutput",
+      "undefined" : "L11HadOutput"
+    },
+    "domain" : "28",
+    "comment" : {
+      "undefined" : "This property associates an instance of BC56 Digital Measurement  Event with an instance of BC23 Digital Object which is the output of the activity."
+    },
+    "attributes" : [ "object" ],
+    "id" : "90"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P40WasObservedIn",
+    "inverse" : "15",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "23",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P40WasObservedIn",
+      "undefined" : "P40WasObservedIn"
+    },
+    "domain" : "7",
+    "comment" : {
+      "undefined" : "This property records the dimension that was observed in an E16 Measurement Event.\nE54 Dimension can be any quantifiable aspect of E70 Thing. Weight, image colour depth and monetary value are dimensions in this sense. One measurement activity may determine more than one dimension of one object.\nDimensions may be determined either by direct observation or using recorded evidence. In the latter case the measured Thing does not need to be present or extant.\nEven though knowledge of the value of a dimension requires measurement, the dimension may be an object of discourse prior to, or even without, any measurement being made.\nExamples:\t\n1) 31 August 1997 measurement of height of silver cup 232 (E16) observed dimension silver cup 232 height (E54) has unit mm (E58), has value 224 (E60)\n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "97"
+  }, {
+    "range" : "32",
+    "domain" : "68",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "98"
+  }, {
+    "range" : "32",
+    "domain" : "31",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "100"
+  }, {
+    "range" : "32",
+    "domain" : "30",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "101"
+  }, {
+    "range" : "40",
+    "domain" : "38",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "102"
+  }, {
+    "range" : "5",
+    "domain" : "57",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "103"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LC2hasAppellation",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "50",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LC2hasAppellation",
+      "undefined" : "LC2hasAppellation"
+    },
+    "domain" : "32",
+    "comment" : {
+      "undefined" : "This property associates an instance of BC1 TLO Entity with an instance of BC30 Appellation\nThis property is intended for names in general use. The property does not reveal anything about when, where and by whom this name was used. A more detailed representation can be made using the fully developed (i.e. indirect) path through BC46 Identifier Assignment.\n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "104"
+  }, {
+    "range" : "66",
+    "domain" : "60",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "105"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P7TookPlaceAt",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "96",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P7TookPlaceAt",
+      "undefined" : "P7TookPlaceAt"
+    },
+    "domain" : "66",
+    "comment" : {
+      "undefined" : "This property describes the spatial location of an instance of E4 Period. \n\nThe related E53 Place should be seen as an approximation of the geographical area within which the phenomena that characterise the period in question occurred. P7took place at (witnessed) does not convey any meaning other than spatial positioning (generally on the surface of the earth).  For example, the period “Révolution française” can be said to have taken place in “France”, the “Victorian” period, may be said to have taken place in “Britain” and its colonies, as well as other parts of Europe and north America.\nA period can take place at multiple locations.\nExamples: \t\n1) the period “Révolution française” (E4) took place at France (E53)\n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "106"
+  }, {
+    "range" : "40",
+    "domain" : "62",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "107"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P14CarriedOutBy",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "68",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P14CarriedOutBy",
+      "undefined" : "P14CarriedOutBy"
+    },
+    "domain" : "17",
+    "comment" : {
+      "undefined" : "This property describes the active participation of an E39 Actor in an E7 Activity. \n\nIt implies causal or legal responsibility. The P14.1 in the role of property of the property allows the nature of an Actor’s participation to be specified.\nExamples:\t\n1)the painting of the Sistine Chapel (E7)  carried out by Michaelangelo Buonaroti (E21) in the role of master craftsman (E55)\n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "108"
+  }, {
+    "range" : "5",
+    "domain" : "9",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "109"
+  }, {
+    "range" : "5",
+    "domain" : "50",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "110"
+  }, {
+    "range" : "5",
+    "domain" : "56",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "111"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LCproduces",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "40",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LCproduces",
+      "undefined" : "LCproduces"
+    },
+    "domain" : "49",
+    "comment" : {
+      "undefined" : "This property associates an instance of BC61 Capture Activity with the instance of BC57 Capture."
+    },
+    "attributes" : [ "object" ],
+    "id" : "112"
+  }, {
+    "range" : "5",
+    "domain" : "11",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "113"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LXusuallyIsBioticComponentOf",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "59",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LXusuallyIsBioticComponentOf",
+      "undefined" : "LXusuallyIsBioticComponentOf"
+    },
+    "superproperty" : [ "115" ],
+    "domain" : "46",
+    "attributes" : [ "object" ],
+    "id" : "114"
+  }, {
+    "range" : "5",
+    "domain" : "12",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "116"
+  }, {
+    "range" : "5",
+    "domain" : "6",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "117"
+  }, {
+    "range" : "5",
+    "domain" : "55",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "118"
+  }, {
+    "range" : "50",
+    "domain" : "52",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "119"
+  }, {
+    "range" : "50",
+    "domain" : "51",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "120"
+  }, {
+    "range" : "5",
+    "domain" : "42",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "121"
+  }, {
+    "range" : "5",
+    "domain" : "4",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "122"
+  }, {
+    "range" : "38",
+    "domain" : "41",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "123"
+  }, {
+    "range" : "96",
+    "domain" : "75",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "125"
+  }, {
+    "range" : "38",
+    "domain" : "37",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "126"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LXusuallyIsComponentOf",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "127",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LXusuallyIsComponentOf",
+      "undefined" : "LXusuallyIsComponentOf"
+    },
+    "domain" : "64",
+    "subproperty" : [ "114" ],
+    "attributes" : [ "object" ],
+    "id" : "115"
+  }, {
+    "range" : "11",
+    "domain" : "21",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "128"
+  }, {
+    "range" : "62",
+    "domain" : "86",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "129"
+  }, {
+    "range" : "62",
+    "domain" : "85",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "130"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P125UsedObjectOfType",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "64",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P125UsedObjectOfType",
+      "undefined" : "P125UsedObjectOfType"
+    },
+    "domain" : "17",
+    "comment" : {
+      "undefined" : "This property defines the kind of objects used in an E7 Activity, when the specific instance is either unknown or not of interest, such as use of \"a hammer\"."
+    },
+    "attributes" : [ "object" ],
+    "id" : "132"
+  }, {
+    "range" : "60",
+    "domain" : "59",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "134"
+  }, {
+    "range" : "71",
+    "domain" : "79",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "135"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LX2hasAppellation",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "50",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX2hasAppellation",
+      "undefined" : "LX2hasAppellation"
+    },
+    "domain" : "1",
+    "comment" : {
+      "undefined" : "This property associates an instance of BT1 TLO Entity Type with an instance of BC7 Appellation."
+    },
+    "attributes" : [ "object" ],
+    "id" : "136"
+  }, {
+    "range" : "11",
+    "domain" : "10",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "137"
+  }, {
+    "range" : "60",
+    "domain" : "17",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "138"
+  }, {
+    "range" : "44",
+    "domain" : "23",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "139"
+  }, {
+    "range" : "44",
+    "domain" : "76",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "140"
+  }, {
+    "range" : "71",
+    "domain" : "78",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "141"
+  }, {
+    "range" : "71",
+    "domain" : "77",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "142"
+  }, {
+    "range" : "33",
+    "domain" : "69",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "143"
+  }, {
+    "range" : "33",
+    "domain" : "5",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "144"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LX1isIdentifiedBy",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "56",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX1isIdentifiedBy",
+      "undefined" : "LX1isIdentifiedBy"
+    },
+    "domain" : "64",
+    "comment" : {
+      "undefined" : "This property describes the types of identifiers, names or labels of any marineTLO item type."
+    },
+    "attributes" : [ "object" ],
+    "id" : "145"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LC4refersTo",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "32",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LC4refersTo",
+      "undefined" : "LC4refersTo"
+    },
+    "domain" : "5",
+    "comment" : {
+      "undefined" : "This property documents that a BC18 Proposition makes a statement about an instance of BC1 TLO Entity."
+    },
+    "attributes" : [ "object" ],
+    "id" : "84"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P3HasNote",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "147",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P3HasNote"
+    },
+    "domain" : "8",
+    "comment" : {
+      "en" : "This property associates an entity to MarineTLO Environment with  abstraction levels where it is defined.  "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "146"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P40ObservedDimension",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "7",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P40ObservedDimension",
+      "undefined" : "P40ObservedDimension"
+    },
+    "superproperty" : [ "13" ],
+    "domain" : "23",
+    "comment" : {
+      "undefined" : "This property records the dimension that was observed in an E16 Measurement Event.\nE54 Dimension can be any quantifiable aspect of E70 Thing. Weight, image colour depth and monetary value are dimensions in this sense. One measurement activity may determine more than one dimension of one object.\nDimensions may be determined either by direct observation or using recorded evidence. In the latter case the measured Thing does not need to be present or extant.\nEven though knowledge of the value of a dimension requires measurement, the dimension may be an object of discourse prior to, or even without, any measurement being made.\nExamples:\t\n1) 31 August 1997 measurement of height of silver cup 232 (E16) observed dimension silver cup 232 height (E54) has unit mm (E58), has value 224 (E60)\n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "15"
+  }, {
+    "range" : "33",
+    "domain" : "92",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "148"
+  }, {
+    "range" : "30",
+    "domain" : "75",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "149"
+  }, {
+    "range" : "30",
+    "domain" : "74",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "150"
+  }, {
+    "range" : "30",
+    "domain" : "35",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "151"
+  }, {
+    "range" : "30",
+    "domain" : "29",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "152"
+  }, {
+    "range" : "3",
+    "domain" : "71",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "153"
+  }, {
+    "range" : "3",
+    "domain" : "70",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "154"
+  }, {
+    "range" : "30",
+    "domain" : "61",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "155"
+  }, {
+    "range" : "92",
+    "domain" : "91",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "156"
+  }, {
+    "range" : "8",
+    "domain" : "7",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "157"
+  }, {
+    "range" : "61",
+    "domain" : "40",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "158"
+  }, {
+    "range" : "8",
+    "domain" : "32",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "159"
+  }, {
+    "range" : "8",
+    "domain" : "66",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "160"
+  }, {
+    "range" : "54",
+    "domain" : "88",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "161"
+  }, {
+    "range" : "54",
+    "domain" : "53",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "162"
+  }, {
+    "range" : "54",
+    "domain" : "46",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "163"
+  }, {
+    "range" : "64",
+    "domain" : "26",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "164"
+  }, {
+    "range" : "64",
+    "domain" : "63",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "165"
+  }, {
+    "range" : "1",
+    "domain" : "64",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "166"
+  }, {
+    "range" : "1",
+    "domain" : "0",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "167"
+  }, {
+    "range" : "26",
+    "domain" : "25",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "168"
+  }, {
+    "range" : "26",
+    "domain" : "36",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "169"
+  }, {
+    "range" : "64",
+    "domain" : "54",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "170"
+  }, {
+    "range" : "26",
+    "domain" : "80",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "171"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LC1isIdentifiedBy",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "56",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LC1isIdentifiedBy",
+      "undefined" : "LC1isIdentifiedBy"
+    },
+    "domain" : "32",
+    "comment" : {
+      "undefined" : "This property describes the naming or identification of any real world item by a name or any other identifier. \n\nThis property is intended for identifiers in general use, which form part of the world the model intends to describe, and not merely for internal database identifiers which are specific to a technical system, unless these latter also have a more general use outside the technical context. This property includes in particular identification by mathematical expressions such as coordinate systems used for the identification of instances of E53 Place. The property does not reveal anything about when, where and by whom this identifier was used. A more detailed representation can be made using the fully developed (i.e. indirect) path through E15 Identifier Assignment.\n[Scope Note for P1 is identified by (identifies)CIDOC CRM version 5.1.2]\n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "172"
+  }, {
+    "range" : "26",
+    "domain" : "94",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "174"
+  }, {
+    "range" : "17",
+    "domain" : "49",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "175"
+  }, {
+    "range" : "26",
+    "domain" : "133",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "176"
+  }, {
+    "range" : "46",
+    "domain" : "173",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "177"
+  }, {
+    "range" : "46",
+    "domain" : "93",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "178"
+  }, {
+    "range" : "17",
+    "domain" : "16",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "179"
+  }, {
+    "range" : "17",
+    "domain" : "44",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "180"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P90hasValue",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "81",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P90hasValue",
+      "undefined" : "P90hasValue"
+    },
+    "domain" : "7",
+    "comment" : {
+      "undefined" : "This property allows an E54 Dimension to be approximated by an E60 Number primitive.\n\nExamples:\t\n1) height of silver cup 232 (E54) has value 226 (E60)\n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "181"
+  }, {
+    "range" : "0",
+    "domain" : "2",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "182"
+  }, {
+    "range" : "0",
+    "domain" : "3",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "183"
+  }, {
+    "range" : "68",
+    "domain" : "99",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "184"
+  }, {
+    "range" : "16",
+    "domain" : "18",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "185"
+  }, {
+    "range" : "18",
+    "domain" : "19",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "186"
+  }, {
+    "range" : "23",
+    "domain" : "28",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "187"
+  }, {
+    "range" : "31",
+    "domain" : "33",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "188"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#LTusuallyIsPreyOf",
+    "inverse" : "47",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "14",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LTusuallyIsPreyOf",
+      "undefined" : "LTusuallyIsPreyOf"
+    },
+    "superproperty" : [ "45" ],
+    "domain" : "14",
+    "comment" : {
+      "undefined" : "This property connects the types of predators with their prey type."
+    },
+    "attributes" : [ "object" ],
+    "id" : "48"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P105RightHeldBy",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "68",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P105RightHeldBy",
+      "undefined" : "P105RightHeldBy"
+    },
+    "domain" : "21",
+    "comment" : {
+      "undefined" : "This property identifies the E39 Actor who holds the instances of E30 Right to an E72 Legal Object.\nIt is a superproperty of P52 has current owner (is current owner of) because ownership is a right that is held on the owned object.\n\nP105 right held by (has right on) is a shortcut of the fully developed path from E72 Legal Object through P104 is subject to (applies to), E30 Right, P75 possesses (is possessed by) to E39 Actor.\n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "189"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P33UsedSpecificTechnique",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "57",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P33UsedSpecificTechnique",
+      "undefined" : "P33UsedSpecificTechnique"
+    },
+    "domain" : "17",
+    "comment" : {
+      "undefined" : "This property identifies a specific instance of E29 Design or Procedure in order to carry out an \t\tinstance of E7 Activity or parts of it. \n\nThe property differs from P32 used general technique (was technique of) in that P33 refers to an instance of E29 Design or Procedure, which is a concrete information object in its own right rather than simply being a term or a method known by tradition. \n\nTypical examples would include intervention plans for conservation or the construction plans of a building\nExamples:\t\n1) Ornamentation of silver cup 232  (E11) used specific technique ‘Instructions for golden chase work by A N Other’ (E29)\n2) Rebuilding of Reichstag (E11) used specific technique Architectural plans by Foster and Partners (E29)\n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "190"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl#P91HasUnit",
+    "baseIri" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+    "range" : "9",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/MarineTLO/v3/marinetlo.owl",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P91HasUnit",
+      "undefined" : "P91HasUnit"
+    },
+    "domain" : "7",
+    "comment" : {
+      "undefined" : "This property shows the type of unit an E54 Dimension was expressed in.\n\nExamples:\t\n1) height of silver cup 232 (E54) has unit mm (E58)\n"
+    },
+    "attributes" : [ "object" ],
+    "id" : "191"
+  }, {
+    "range" : "35",
+    "domain" : "131",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "192"
+  }, {
+    "range" : "8",
+    "domain" : "81",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "193"
+  }, {
+    "range" : "8",
+    "domain" : "96",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "194"
+  }, {
+    "range" : "35",
+    "domain" : "34",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "195"
+  }, {
+    "range" : "8",
+    "domain" : "67",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "196"
+  } ]
+}

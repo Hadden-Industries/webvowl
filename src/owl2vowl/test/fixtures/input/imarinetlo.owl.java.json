@@ -1,0 +1,3527 @@
+{
+  "_comment" : "Created with OWL2VOWL (version 0.3.7), http://vowl.visualdataweb.org",
+  "header" : {
+    "languages" : [ "en", "undefined" ],
+    "baseIris" : [ "http://www.w3.org/1999/02/22-rdf-syntax-ns", "http://www.w3.org/2002/07/owl", "http://www.w3.org/2000/01/rdf-schema", "http://www.ics.forth.gr/isl/ontology/iMarineTLO", "http://www.w3.org/2001/XMLSchema", "http://www.ics.forth.gr/isl/ontology/MarineTLO", "http://xmlns.com/foaf/0.1" ],
+    "prefixList" : {
+      "imarinetlo" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+      "owl" : "http://www.w3.org/2002/07/owl#",
+      "dcterms" : "http://purl.org/dc/terms/",
+      "marinetlo" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/",
+      "xsd" : "http://www.w3.org/2001/XMLSchema#",
+      "rdfs" : "http://www.w3.org/2000/01/rdf-schema#",
+      "rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "skos" : "http://www.w3.org/2004/02/skos/core#",
+      "" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+      "dc" : "http://purl.org/dc/elements/1.1/",
+      "xml" : "http://www.w3.org/XML/1998/namespace",
+      "vs" : "http://www.w3.org/2003/06/sw-vocab-status/ns#",
+      "foaf" : "http://xmlns.com/foaf/0.1/"
+    },
+    "title" : {
+      "undefined" : " MarineTLO Ontology for iMarine Project"
+    },
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+    "version" : "4.0",
+    "author" : [ "http://users.ics.forth.gr/~tzitzik/", " Chrysoula Bekiari ", " Nikos Minadakis ", "http://users.ics.forth.gr/~marketak/pages/aboutme.html", " Carlo Allocca ", "http://users.ics.forth.gr/~fafalios/", " Martin Doerr " ],
+    "description" : {
+      "undefined" : " Extending MarineTLO - a top-level ontology for the marine domain used in the context of the EU iMarine project."
+    },
+    "other" : {
+      "license" : [ {
+        "identifier" : "license",
+        "language" : "undefined",
+        "value" : "http://creativecommons.org/licenses/by/3.0/",
+        "type" : "iri"
+      } ],
+      "creator" : [ {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : " Nikos Minadakis ",
+        "type" : "label"
+      }, {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : "http://users.ics.forth.gr/~marketak/pages/aboutme.html",
+        "type" : "iri"
+      }, {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : "http://users.ics.forth.gr/~fafalios/",
+        "type" : "iri"
+      }, {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : "http://users.ics.forth.gr/~tzitzik/",
+        "type" : "iri"
+      }, {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : " Martin Doerr ",
+        "type" : "label"
+      }, {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : " Carlo Allocca ",
+        "type" : "label"
+      }, {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : " Chrysoula Bekiari ",
+        "type" : "label"
+      } ],
+      "contributor" : [ {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : " Carlo Allocca ",
+        "type" : "label"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : " Nikos Minadakis ",
+        "type" : "label"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : "http://users.ics.forth.gr/~fafalios/",
+        "type" : "iri"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : " Martin Doerr ",
+        "type" : "label"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : "http://users.ics.forth.gr/~marketak/pages/aboutme.html",
+        "type" : "iri"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : " Julien Barde ",
+        "type" : "label"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : "http://users.ics.forth.gr/~tzitzik/",
+        "type" : "iri"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : " Chrysoula Bekiari ",
+        "type" : "label"
+      } ],
+      "rights" : [ {
+        "identifier" : "rights",
+        "language" : "undefined",
+        "value" : "Copyright © FORTH ICS",
+        "type" : "label"
+      } ],
+      "modified" : [ {
+        "identifier" : "modified",
+        "language" : "undefined",
+        "value" : "2014-04-24",
+        "type" : "label"
+      } ],
+      "publisher" : [ {
+        "identifier" : "publisher",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl",
+        "type" : "iri"
+      } ],
+      "versionInfo" : [ {
+        "identifier" : "versionInfo",
+        "language" : "undefined",
+        "value" : "4.0",
+        "type" : "label"
+      } ],
+      "issued" : [ {
+        "identifier" : "issued",
+        "language" : "undefined",
+        "value" : "2014-04-24",
+        "type" : "label"
+      } ],
+      "title" : [ {
+        "identifier" : "title",
+        "language" : "undefined",
+        "value" : " MarineTLO Ontology for iMarine Project",
+        "type" : "label"
+      } ]
+    }
+  },
+  "namespace" : [ ],
+  "class" : [ {
+    "id" : "0",
+    "type" : "owl:Class"
+  }, {
+    "id" : "11",
+    "type" : "owl:Class"
+  }, {
+    "id" : "15",
+    "type" : "owl:Class"
+  }, {
+    "id" : "18",
+    "type" : "owl:Class"
+  }, {
+    "id" : "25",
+    "type" : "owl:Thing"
+  }, {
+    "id" : "26",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "32",
+    "type" : "owl:Class"
+  }, {
+    "id" : "39",
+    "type" : "owl:Thing"
+  }, {
+    "id" : "40",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "41",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "42",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "43",
+    "type" : "owl:Class"
+  }, {
+    "id" : "47",
+    "type" : "owl:Class"
+  }, {
+    "id" : "48",
+    "type" : "owl:Class"
+  }, {
+    "id" : "50",
+    "type" : "owl:Class"
+  }, {
+    "id" : "38",
+    "type" : "owl:Class"
+  }, {
+    "id" : "3",
+    "type" : "owl:Class"
+  }, {
+    "id" : "57",
+    "type" : "owl:Thing"
+  }, {
+    "id" : "58",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "59",
+    "type" : "owl:Thing"
+  }, {
+    "id" : "46",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "60",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "5",
+    "type" : "owl:Thing"
+  }, {
+    "id" : "65",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "66",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "67",
+    "type" : "owl:Class"
+  }, {
+    "id" : "9",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "68",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "76",
+    "type" : "owl:Class"
+  }, {
+    "id" : "78",
+    "type" : "owl:Class"
+  }, {
+    "id" : "37",
+    "type" : "owl:Class"
+  }, {
+    "id" : "12",
+    "type" : "owl:Class"
+  }, {
+    "id" : "16",
+    "type" : "owl:Class"
+  }, {
+    "id" : "62",
+    "type" : "owl:Class"
+  }, {
+    "id" : "51",
+    "type" : "owl:Class"
+  }, {
+    "id" : "91",
+    "type" : "owl:Class"
+  }, {
+    "id" : "117",
+    "type" : "owl:Class"
+  }, {
+    "id" : "92",
+    "type" : "owl:Class"
+  }, {
+    "id" : "70",
+    "type" : "owl:Class"
+  }, {
+    "id" : "35",
+    "type" : "owl:Class"
+  }, {
+    "id" : "97",
+    "type" : "owl:Class"
+  }, {
+    "id" : "89",
+    "type" : "owl:Class"
+  }, {
+    "id" : "8",
+    "type" : "owl:Class"
+  }, {
+    "id" : "54",
+    "type" : "owl:Class"
+  }, {
+    "id" : "73",
+    "type" : "owl:Class"
+  }, {
+    "id" : "55",
+    "type" : "owl:Class"
+  }, {
+    "id" : "118",
+    "type" : "owl:Class"
+  }, {
+    "id" : "84",
+    "type" : "owl:Class"
+  }, {
+    "id" : "108",
+    "type" : "owl:Class"
+  }, {
+    "id" : "79",
+    "type" : "owl:Class"
+  }, {
+    "id" : "140",
+    "type" : "owl:Class"
+  }, {
+    "id" : "110",
+    "type" : "owl:Class"
+  }, {
+    "id" : "52",
+    "type" : "owl:Class"
+  }, {
+    "id" : "105",
+    "type" : "owl:Class"
+  }, {
+    "id" : "2",
+    "type" : "owl:Class"
+  }, {
+    "id" : "14",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "115",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "132",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "113",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "87",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "63",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "135",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "75",
+    "type" : "owl:Class"
+  }, {
+    "id" : "139",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "33",
+    "type" : "owl:Class"
+  }, {
+    "id" : "122",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "95",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "103",
+    "type" : "owl:Class"
+  }, {
+    "id" : "101",
+    "type" : "owl:Class"
+  }, {
+    "id" : "53",
+    "type" : "owl:Class"
+  }, {
+    "id" : "56",
+    "type" : "owl:Class"
+  }, {
+    "id" : "72",
+    "type" : "owl:Class"
+  }, {
+    "id" : "20",
+    "type" : "owl:Class"
+  }, {
+    "id" : "121",
+    "type" : "owl:Class"
+  } ],
+  "classAttribute" : [ {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BT32_Persisten_Type",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BT32_Persisten_Type"
+    },
+    "attributes" : [ "external" ],
+    "id" : "0"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/BT11_1_Vessel_Type",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BT11_1_Vessel_Type",
+      "undefined" : "BT11_1_Vessel_Type"
+    },
+    "comment" : {
+      "en" : "\n\t\tThis class comprises the type of vessels that are concerns with the biotic elements of the domain of discourse. \n "
+    },
+    "id" : "11",
+    "superClasses" : [ "12" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/BC20_4_Sub_Division",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BC20_4_Sub_Division",
+      "undefined" : "BC20_4_Sub_Division"
+    },
+    "comment" : {
+      "en" : "This class comprises instances of BC20_3_Division whose extent may be used to define the location and spatial extent of property\nrights or national borders. "
+    },
+    "id" : "15",
+    "superClasses" : [ "16" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/CountryCode",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : " testing ",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "CountryCode",
+      "undefined" : "CountryCode"
+    },
+    "comment" : {
+      "en" : "This class allows instances of Country to be associated with any instances of CountryCode. "
+    },
+    "id" : "18",
+    "superClasses" : [ "3" ]
+  }, {
+    "iri" : "http://www.w3.org/2002/07/owl#Thing",
+    "baseIri" : "http://owl2vowl.de",
+    "id" : "25",
+    "label" : {
+      "undefined" : "Thing"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "id" : "26",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/CodificationSystemType",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "CodificationSystemType",
+      "undefined" : "CodificationSystemType"
+    },
+    "individuals" : [ {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/iso3_alpha",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the iso3_alpha code system.  "
+      },
+      "labels" : {
+        "IRI-based" : "iso3_alpha",
+        "undefined" : "iso3_alpha"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/iso_code",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the iso_code system.  "
+      },
+      "labels" : {
+        "IRI-based" : "iso_code",
+        "undefined" : "iso_code"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/iso2_alpha",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the iso2_alpha code system.  "
+      },
+      "labels" : {
+        "IRI-based" : "iso2_alpha",
+        "undefined" : "iso2_alpha"
+      }
+    } ],
+    "comment" : {
+      "en" : "\n\t\tThis class comprises the type of classification systems used for assigning codes to instances of MarineTLO Entity. \n "
+    },
+    "id" : "32",
+    "superClasses" : [ "33" ]
+  }, {
+    "iri" : "http://www.w3.org/2002/07/owl#Thing",
+    "baseIri" : "http://owl2vowl.de",
+    "id" : "39",
+    "label" : {
+      "undefined" : "Thing"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "id" : "40",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "id" : "41",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "id" : "42",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/BC20_3_Division",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BC20_3_Division",
+      "undefined" : "BC20_3_Division"
+    },
+    "comment" : {
+      "en" : "This class comprises instances of BC20_2_Sub_Area whose extent may be used to define the location and spatial extent of property\nrights or national borders. "
+    },
+    "id" : "43",
+    "superClasses" : [ "16" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BC64_Design_or_Procedure",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BC64_Design_or_Procedure"
+    },
+    "attributes" : [ "external" ],
+    "id" : "47"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/BT11_2_Gear_Type",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BT11_2_Gear_Type",
+      "undefined" : "BT11_2_Gear_Type"
+    },
+    "comment" : {
+      "en" : "\n\t\tThis class comprises the type of gears that are concerns with the vessel type of the domain of discourse. \n "
+    },
+    "id" : "48",
+    "superClasses" : [ "12" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/EcoscopeSpecies",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "EcoscopeSpecies",
+      "undefined" : "EcoscopeSpecies"
+    },
+    "comment" : {
+      "en" : "This class is a domain specific class to denote the particular instances of species that are from Ecoscope source.  "
+    },
+    "id" : "50",
+    "superClasses" : [ "51" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BC42_Collection",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BC42_Collection"
+    },
+    "subClasses" : [ "37" ],
+    "attributes" : [ "external" ],
+    "id" : "38"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BC32_Identifier",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BC32_Identifier"
+    },
+    "subClasses" : [ "35", "20", "18", "2", "52", "53", "54", "55", "56" ],
+    "attributes" : [ "external" ],
+    "id" : "3"
+  }, {
+    "iri" : "http://www.w3.org/2002/07/owl#Thing",
+    "baseIri" : "http://owl2vowl.de",
+    "id" : "57",
+    "label" : {
+      "undefined" : "Thing"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "id" : "58",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2002/07/owl#Thing",
+    "baseIri" : "http://owl2vowl.de",
+    "id" : "59",
+    "label" : {
+      "undefined" : "Thing"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "46",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "60",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2002/07/owl#Thing",
+    "baseIri" : "http://owl2vowl.de",
+    "id" : "5",
+    "label" : {
+      "undefined" : "Thing"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "65",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "66",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://xmlns.com/foaf/0.1/Person",
+    "baseIri" : "http://xmlns.com/foaf/0.1",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Person"
+    },
+    "individuals" : [ {
+      "iri" : "http://users.ics.forth.gr/~marketak/pages/aboutme.html",
+      "baseIri" : "http://users.ics.forth.gr/~marketak/pages",
+      "labels" : {
+        "IRI-based" : "aboutme.html"
+      }
+    }, {
+      "iri" : "http://users.ics.forth.gr/~tzitzik/",
+      "baseIri" : "http://users.ics.forth.gr",
+      "labels" : { }
+    }, {
+      "iri" : "http://users.ics.forth.gr/~fafalios/",
+      "baseIri" : "http://users.ics.forth.gr",
+      "labels" : { }
+    } ],
+    "attributes" : [ "external" ],
+    "id" : "67"
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "9",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "68",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/WoRMSSpecies",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "WoRMSSpecies",
+      "undefined" : "WoRMSSpecies"
+    },
+    "comment" : {
+      "en" : "This class is a domain specific class to denote the particular instances of species that are from Worms source.  "
+    },
+    "id" : "76",
+    "superClasses" : [ "51" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BC5_Dimension",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BC5_Dimension"
+    },
+    "individuals" : [ {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/global_statistic_landing",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the global_statistic_landing.  "
+      },
+      "labels" : {
+        "IRI-based" : "global_statistic_landing",
+        "undefined" : "global_statistic_landing"
+      }
+    } ],
+    "subClasses" : [ "79" ],
+    "attributes" : [ "external" ],
+    "id" : "78"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BC57_Capture",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BC57_Capture"
+    },
+    "attributes" : [ "external" ],
+    "id" : "37",
+    "superClasses" : [ "38" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BT11_Equipment_Type",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BT11_Equipment_Type"
+    },
+    "subClasses" : [ "48", "11" ],
+    "attributes" : [ "external" ],
+    "id" : "12"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BC20_Declarative_Place",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BC20_Declarative_Place"
+    },
+    "subClasses" : [ "43", "110", "108", "15" ],
+    "attributes" : [ "external" ],
+    "id" : "16"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BC46_Identifier_Assignment",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BC46_Identifier_Assignment"
+    },
+    "subClasses" : [ "97" ],
+    "attributes" : [ "external" ],
+    "id" : "62"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BT27_Species",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BT27_Species"
+    },
+    "subClasses" : [ "103", "101", "89", "76", "50" ],
+    "attributes" : [ "external" ],
+    "id" : "51"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/BC41_1_Vessel",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BC41_1_Vessel",
+      "undefined" : "BC41_1_Vessel"
+    },
+    "comment" : {
+      "en" : "This class comprises physical objects purposely created by human activity.\nNo assumptions are made as to the extent of modification required to just\nify regarding a vessel object as man\n- made. For example, an inscribed piece of rock or a preserved butterfly are both regarded as instances of E22 Man\n- Made Object. [ Scope Note for E22 Man - Made Object CIDOC CRM version 5.1.2] "
+    },
+    "id" : "91",
+    "superClasses" : [ "92" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/BC12_1_Marine_Ecosystem",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BC12_1_Marine_Ecosystem",
+      "undefined" : "BC12_1_Marine_Ecosystem"
+    },
+    "comment" : {
+      "en" : "This class comprises specific systems consisting of marine observable material items, biotic, abiotic elements and interactions, as well as their associated relations and qualities in space time volume. Its coherence can be defined by the types of species and the types and frequency of interactions which can be observed in a space time volume. "
+    },
+    "id" : "117",
+    "superClasses" : [ "118" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BC41_Man-Made_Object",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BC41_Man-Made_Object"
+    },
+    "subClasses" : [ "91" ],
+    "attributes" : [ "external" ],
+    "id" : "92"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/WebographyCitation",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "WebographyCitation",
+      "undefined" : "WebographyCitation"
+    },
+    "comment" : {
+      "en" : "This class allows instances of BC32_Identifier to be specific for the reference citation. "
+    },
+    "id" : "70",
+    "superClasses" : [ "8" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/VesselCode",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "VesselCode",
+      "undefined" : "VesselCode"
+    },
+    "comment" : {
+      "en" : "This class allows instances of BC32_Identifier to be specific for the code of vessels. "
+    },
+    "id" : "35",
+    "superClasses" : [ "3" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/BC46_1_Scientific_Name_Assignment",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BC46_1_Scientific_Name_Assignment",
+      "undefined" : "BC46_1_Scientific_Name_Assignment"
+    },
+    "comment" : {
+      "en" : "\nThis class comprises the actions of making assertions about the assignment of a scientific name of an object or any\nrelation between two items or concepts. \n "
+    },
+    "id" : "97",
+    "superClasses" : [ "62" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/FishBaseSpecies",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "FishBaseSpecies",
+      "undefined" : "FishBaseSpecies"
+    },
+    "comment" : {
+      "en" : "This class is a domain specific class to denote the particular instances of species that are from FishBase source.  "
+    },
+    "id" : "89",
+    "superClasses" : [ "51" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BC27_Publication",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BC27_Publication"
+    },
+    "subClasses" : [ "70", "75" ],
+    "attributes" : [ "external" ],
+    "id" : "8"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/WaterAreaCode",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "WaterAreaCode",
+      "undefined" : "WaterAreaCode"
+    },
+    "comment" : {
+      "en" : "This class allows instances of BC32_Identifier to be specific for the code of water area. "
+    },
+    "id" : "54",
+    "superClasses" : [ "3" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BC4_Temporal_Phenomenon",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BC4_Temporal_Phenomenon"
+    },
+    "subClasses" : [ "72", "121" ],
+    "attributes" : [ "external" ],
+    "id" : "73"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/CommonName",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "CommonName",
+      "undefined" : "CommonName"
+    },
+    "comment" : {
+      "en" : "\n\t\tThis class comprises the particular appellations used for a group of people w.r.t country, language, etc. \n "
+    },
+    "id" : "55",
+    "superClasses" : [ "3" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BC12_Ecosystem",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BC12_Ecosystem"
+    },
+    "subClasses" : [ "117" ],
+    "attributes" : [ "external" ],
+    "id" : "118"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/IdentifierType",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "IdentifierType",
+      "undefined" : "IdentifierType"
+    },
+    "individuals" : [ {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/FAOCode",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for typing a code from the FAO source.  "
+      },
+      "labels" : {
+        "IRI-based" : "FAOCode",
+        "undefined" : "FAOCode"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/FishBaseCode",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for typing a code from the FishBase source.  "
+      },
+      "labels" : {
+        "IRI-based" : "FishBaseCode",
+        "undefined" : "FishBaseCode"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/IRDCode",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for typing a code from the Ecoscope source.  "
+      },
+      "labels" : {
+        "IRI-based" : "IRDCode",
+        "undefined" : "IRDCode"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/DBpediaCode",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for typing a code from the DBpedia source.  "
+      },
+      "labels" : {
+        "IRI-based" : "DBpediaCode",
+        "undefined" : "DBpediaCode"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/WormsCode",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the Worm code for a species.  "
+      },
+      "labels" : {
+        "IRI-based" : "WormsCode",
+        "undefined" : "WormsCode"
+      }
+    } ],
+    "comment" : {
+      "en" : "This class allows instances of BC32_Identifier to be typed. "
+    },
+    "id" : "84",
+    "superClasses" : [ "33" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/BC20_1_Area",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BC20_1_Area",
+      "undefined" : "BC20_1_Area"
+    },
+    "comment" : {
+      "en" : "This class comprises instances of BC3 Place whose extent may be used to define the location and spatial extent of property\nrights or national borders. "
+    },
+    "id" : "108",
+    "superClasses" : [ "16" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/BC5_1_Biological_Dimension",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BC5_1_Biological_Dimension",
+      "undefined" : "BC5_1_Biological_Dimension"
+    },
+    "individuals" : [ {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LengthFemale",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the female length of species.  "
+      },
+      "labels" : {
+        "IRI-based" : "LengthFemale",
+        "undefined" : "LengthFemale"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/CommonLengthFemale",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the common female length of species.  "
+      },
+      "labels" : {
+        "IRI-based" : "CommonLengthFemale",
+        "undefined" : "CommonLengthFemale"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LongevityCaptive",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the longevity at capture time of species.  "
+      },
+      "labels" : {
+        "IRI-based" : "LongevityCaptive",
+        "undefined" : "LongevityCaptive"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/CommonLength",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the common length of species.  "
+      },
+      "labels" : {
+        "IRI-based" : "CommonLength",
+        "undefined" : "CommonLength"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/Weight",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the weight of species.  "
+      },
+      "labels" : {
+        "IRI-based" : "Weight",
+        "undefined" : "Weight"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LongevityWild",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the longevity wild of species.  "
+      },
+      "labels" : {
+        "IRI-based" : "LongevityWild",
+        "undefined" : "LongevityWild"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/Length",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the length of species.  "
+      },
+      "labels" : {
+        "IRI-based" : "Length",
+        "undefined" : "Length"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/WeightFemale",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the Female Weight of species.  "
+      },
+      "labels" : {
+        "IRI-based" : "WeightFemale",
+        "undefined" : "WeightFemale"
+      }
+    } ],
+    "comment" : {
+      "en" : "\n\t\tThis class comprises Biological Dimension as biologic objects purposely created by the actions of making assertions about its main measured charachteristics of biotic element. \n "
+    },
+    "id" : "79",
+    "superClasses" : [ "78" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/BibliographyResourceType",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BibliographyResourceType",
+      "undefined" : "BibliographyResourceType"
+    },
+    "individuals" : [ {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/book",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "annotations" : {
+        "isDefinedBy" : [ {
+          "identifier" : "isDefinedBy",
+          "language" : "undefined",
+          "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+          "type" : "iri"
+        } ],
+        "term_status" : [ {
+          "identifier" : "term_status",
+          "language" : "undefined",
+          "value" : "testing",
+          "type" : "label"
+        } ]
+      },
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for book type.  "
+      },
+      "labels" : {
+        "IRI-based" : "book",
+        "undefined" : "book"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/report",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "annotations" : {
+        "isDefinedBy" : [ {
+          "identifier" : "isDefinedBy",
+          "language" : "undefined",
+          "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+          "type" : "iri"
+        } ],
+        "term_status" : [ {
+          "identifier" : "term_status",
+          "language" : "undefined",
+          "value" : "testing",
+          "type" : "label"
+        } ]
+      },
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the report type.  "
+      },
+      "labels" : {
+        "IRI-based" : "report",
+        "undefined" : "report"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/thesis",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the thesis type.  "
+      },
+      "labels" : {
+        "IRI-based" : "thesis",
+        "undefined" : "thesis"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/bookChapter",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "annotations" : {
+        "isDefinedBy" : [ {
+          "identifier" : "isDefinedBy",
+          "language" : "undefined",
+          "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+          "type" : "iri"
+        } ],
+        "term_status" : [ {
+          "identifier" : "term_status",
+          "language" : "undefined",
+          "value" : "testing",
+          "type" : "label"
+        } ]
+      },
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for book Chapter type.  "
+      },
+      "labels" : {
+        "IRI-based" : "bookChapter",
+        "undefined" : "bookChapter"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/phd_thesis",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the phd thesis type.  "
+      },
+      "labels" : {
+        "IRI-based" : "phd_thesis",
+        "undefined" : "phd_thesis"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/article",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "annotations" : {
+        "isDefinedBy" : [ {
+          "identifier" : "isDefinedBy",
+          "language" : "undefined",
+          "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+          "type" : "iri"
+        } ],
+        "term_status" : [ {
+          "identifier" : "term_status",
+          "language" : "undefined",
+          "value" : "testing",
+          "type" : "label"
+        } ]
+      },
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for article type.  "
+      },
+      "labels" : {
+        "IRI-based" : "article",
+        "undefined" : "article"
+      }
+    }, {
+      "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/journal",
+      "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+      "annotations" : {
+        "isDefinedBy" : [ {
+          "identifier" : "isDefinedBy",
+          "language" : "undefined",
+          "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+          "type" : "iri"
+        } ],
+        "term_status" : [ {
+          "identifier" : "term_status",
+          "language" : "undefined",
+          "value" : "testing",
+          "type" : "label"
+        } ]
+      },
+      "comment" : {
+        "en" : "This stance is a domain specific individual to denote the uri use for the journal type.  "
+      },
+      "labels" : {
+        "IRI-based" : "journal",
+        "undefined" : "journal"
+      }
+    } ],
+    "comment" : {
+      "en" : "\n\t\tThis class comprises the type of the Bibliography resource of the domain of discourse. \n "
+    },
+    "id" : "140",
+    "superClasses" : [ "33" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/BC20_2_Sub_Area",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BC20_2_Sub_Area",
+      "undefined" : "BC20_2_Sub_Area"
+    },
+    "comment" : {
+      "en" : "This class comprises instances of BC20_1_Area whose extent may be used to define the location and spatial extent of property\nrights or national borders. "
+    },
+    "id" : "110",
+    "superClasses" : [ "16" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/SpeciesCode",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "SpeciesCode",
+      "undefined" : "SpeciesCode"
+    },
+    "comment" : {
+      "en" : "This class allows instances of BC32_Identifier to be specific for the code of species. "
+    },
+    "id" : "52",
+    "superClasses" : [ "3" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BC61_Capture_Activity",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BC61_Capture_Activity"
+    },
+    "attributes" : [ "external" ],
+    "id" : "105"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/EcosystemCode",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "EcosystemCode",
+      "undefined" : "EcosystemCode"
+    },
+    "comment" : {
+      "en" : "\n\t\tThis class comprises the particular appellations used for identifying marine ecosystems. \n "
+    },
+    "id" : "2",
+    "superClasses" : [ "3" ]
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "14",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "115",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "132",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "113",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "87",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "63",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "135",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/BibliographyResource",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BibliographyResource",
+      "undefined" : "BibliographyResource"
+    },
+    "comment" : {
+      "en" : "\n\t\tThis class comprises the Bibliography resource of the domain of discourse. \n "
+    },
+    "id" : "75",
+    "superClasses" : [ "8" ]
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "139",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/BT4_Conceptual_Object_Type",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "BT4_Conceptual_Object_Type"
+    },
+    "subClasses" : [ "140", "84", "32" ],
+    "attributes" : [ "external" ],
+    "id" : "33"
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "122",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#string",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "95",
+    "label" : {
+      "IRI-based" : "string"
+    }
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/DBpediaSpecies",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "DBpediaSpecies",
+      "undefined" : "DBpediaSpecies"
+    },
+    "comment" : {
+      "en" : "This class is a domain specific class to denote the particular instances of species that are from DBpedia source.  "
+    },
+    "id" : "103",
+    "superClasses" : [ "51" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/FLODSpecies",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "FLODSpecies",
+      "undefined" : "FLODSpecies"
+    },
+    "comment" : {
+      "en" : "This class is a domain specific class to denote the particular instances of species that are from FLOD source.  "
+    },
+    "id" : "101",
+    "superClasses" : [ "51" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/ExclusiveEconomicZoneCode",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "ExclusiveEconomicZoneCode",
+      "undefined" : "ExclusiveEconomicZoneCode"
+    },
+    "comment" : {
+      "en" : "\n\t\tThis class comprises the particular appellations used for identifying Exclusive Economic Zone. \n "
+    },
+    "id" : "53",
+    "superClasses" : [ "3" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/ScientificName",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "ScientificName",
+      "undefined" : "ScientificName"
+    },
+    "comment" : {
+      "en" : "This class allows instances of BC32_Identifier to be specific for the name of species. "
+    },
+    "id" : "56",
+    "superClasses" : [ "3" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/BC4_1_Exclusive_Economic_Zone",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BC4_1_Exclusive_Economic_Zone",
+      "undefined" : "BC4_1_Exclusive_Economic_Zone"
+    },
+    "comment" : {
+      "en" : "\nThis class comprises Exclusive Economic Zone objects purposely created by the actions of making assertions about the assignment of specific area of a country. \n "
+    },
+    "id" : "72",
+    "superClasses" : [ "73" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/GearCode",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "GearCode",
+      "undefined" : "GearCode"
+    },
+    "comment" : {
+      "en" : "This class is a domain specific class to denote the particular instances of species that are from FishBase source.  "
+    },
+    "id" : "20",
+    "superClasses" : [ "3" ]
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/BC4_2_Country",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "instances" : 0,
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "BC4_2_Country",
+      "undefined" : "BC4_2_Country"
+    },
+    "comment" : {
+      "en" : "\nThis class comprises countries as objects purposely created by the actions of making assertions about the assignment of specific area. \n "
+    },
+    "id" : "121",
+    "superClasses" : [ "73" ]
+  } ],
+  "property" : [ {
+    "id" : "1",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "4",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "7",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "10",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "13",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "17",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "19",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "21",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "27",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "34",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "36",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "31",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "44",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "45",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "49",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "29",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "61",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "64",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "69",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "71",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "74",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "24",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "77",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "80",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "28",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "83",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "85",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "86",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "88",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "90",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "93",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "94",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "96",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "98",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "99",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "100",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "102",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "104",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "106",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "107",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "109",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "111",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "112",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "114",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "81",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "116",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "119",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "120",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "123",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "124",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "125",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "126",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "127",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "128",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "129",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "130",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "131",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "133",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "134",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "136",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "137",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "22",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "138",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "30",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "82",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "141",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "142",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "143",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "144",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "145",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "146",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "147",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "148",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "23",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "149",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "150",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "6",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "151",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "152",
+    "type" : "owl:objectProperty"
+  } ],
+  "propertyAttribute" : [ {
+    "range" : "3",
+    "domain" : "2",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "1"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX_related_identifier_assignment",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX_related_identifier_assignment",
+      "undefined" : "LX_related_identifier_assignment"
+    },
+    "superproperty" : [ "6" ],
+    "domain" : "5",
+    "comment" : {
+      "en" : "This property allows instances of Biotic Element Type to assign its scientific name. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "4"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/authorName",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "9",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "authorName"
+    },
+    "domain" : "8",
+    "comment" : {
+      "en" : "This property assigns name of a reference resource. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "7"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/is_used_in",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "label" : {
+      "IRI-based" : "is_used_in"
+    },
+    "domain" : "5",
+    "attributes" : [ "object" ],
+    "id" : "10"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/remark",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "14",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "remark"
+    },
+    "domain" : "8",
+    "comment" : {
+      "en" : "This property assigns note to a bibliography resource. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "13"
+  }, {
+    "range" : "3",
+    "domain" : "18",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "17"
+  }, {
+    "range" : "3",
+    "domain" : "20",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "19"
+  }, {
+    "iri" : "http://www.w3.org/2002/07/owl#topObjectProperty",
+    "baseIri" : "http://www.w3.org/2002/07/owl",
+    "range" : "5",
+    "label" : {
+      "IRI-based" : "topObjectProperty"
+    },
+    "domain" : "5",
+    "subproperty" : [ "22", "23", "24" ],
+    "attributes" : [ "object", "external" ],
+    "id" : "21"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX9_is_biotic_component_of",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX9_is_biotic_component_of",
+      "undefined" : "LX9_is_biotic_component_of"
+    },
+    "superproperty" : [ "28" ],
+    "domain" : "5",
+    "subproperty" : [ "29", "30", "31" ],
+    "comment" : {
+      "en" : "This property allows instances of Biotic Element to be component type of MarineTLO Type. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "27"
+  }, {
+    "range" : "3",
+    "domain" : "35",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "34"
+  }, {
+    "range" : "38",
+    "domain" : "37",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "36"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX13_is_native_at",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX13_is_native_at",
+      "undefined" : "LX13_is_native_at"
+    },
+    "superproperty" : [ "27" ],
+    "domain" : "5",
+    "comment" : {
+      "en" : "This property expresses the the ecological state of a species being native to a defined geographic location, such as an island, nation, country or other defined zone, or habitat type. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "31"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/name",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "42",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "name",
+      "undefined" : "name"
+    },
+    "domain" : "5",
+    "comment" : {
+      "en" : "This data type property is used to assign a specific appellation - name - to a MarineTLO entity. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "44"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/rights",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "46",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "rights"
+    },
+    "domain" : "8",
+    "comment" : {
+      "en" : "This property assigns the right associated with a bibliography resource."
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "45"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/is_reference_for",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "label" : {
+      "IRI-based" : "is_reference_for"
+    },
+    "domain" : "5",
+    "attributes" : [ "object" ],
+    "id" : "49"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX11_is_endemic_to",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX11_is_endemic_to",
+      "undefined" : "LX11_is_endemic_to"
+    },
+    "superproperty" : [ "27" ],
+    "domain" : "5",
+    "comment" : {
+      "en" : "This property expresses the the ecological state of a species being unique to a defined geographic location, such as an island, nation, country or other defined zone, or habitat type. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "29"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/assignedDate",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "63",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "assignedDate"
+    },
+    "domain" : "62",
+    "comment" : {
+      "en" : "This property assigns the data of the event \"Identifier Assignment\" . "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "61"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LT5_usually_is_competitor_of",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LT5_usually_is_competitor_of",
+      "undefined" : "LT5_usually_is_competitor_of"
+    },
+    "domain" : "5",
+    "comment" : {
+      "en" : "This property expresses the biological association of \"being competitor” between two types of biotic element."
+    },
+    "attributes" : [ "object" ],
+    "id" : "64"
+  }, {
+    "range" : "8",
+    "domain" : "70",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "69"
+  }, {
+    "range" : "73",
+    "domain" : "72",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "71"
+  }, {
+    "range" : "8",
+    "domain" : "75",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "74"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX9_has_biotic_component",
+    "inverse" : "27",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX9_has_biotic_component"
+    },
+    "superproperty" : [ "21" ],
+    "domain" : "5",
+    "attributes" : [ "object" ],
+    "id" : "24"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/reference",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "58",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "reference",
+      "undefined" : "reference"
+    },
+    "domain" : "5",
+    "comment" : {
+      "en" : "This data type property is used to assign a source of information cited, e.g. book or article, of a MarineTLO entity. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "77"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/LC13_is_carried_out_by",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "range" : "5",
+    "label" : {
+      "IRI-based" : "LC13_is_carried_out_by"
+    },
+    "domain" : "5",
+    "subproperty" : [ "81" ],
+    "attributes" : [ "object", "external" ],
+    "id" : "80"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX10_is_biotically_related_to",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX10_is_biotically_related_to",
+      "undefined" : "LX10_is_biotically_related_to"
+    },
+    "domain" : "5",
+    "subproperty" : [ "82", "27" ],
+    "comment" : {
+      "en" : "This property expresses the biological association of \"any kind” between two types of biotic element. It is used when there is not much information available to establish the nature of the association. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "28"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX_has_code_type",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "84",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX_has_code_type",
+      "undefined" : "LX_has_code_type"
+    },
+    "domain" : "3",
+    "comment" : {
+      "en" : "This property allows instances of BC32_Identifier to be typed. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "83"
+  }, {
+    "range" : "51",
+    "domain" : "76",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "85"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/inSource",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "87",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "inSource"
+    },
+    "domain" : "8",
+    "comment" : {
+      "en" : "This property assigns the sourse in which a reference resource has been publishied. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "86"
+  }, {
+    "range" : "51",
+    "domain" : "89",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "88"
+  }, {
+    "range" : "92",
+    "domain" : "91",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "90"
+  }, {
+    "range" : "51",
+    "domain" : "50",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "93"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/hasValueCode",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "95",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "hasValueCode",
+      "undefined" : "hasValueCode"
+    },
+    "domain" : "18",
+    "comment" : {
+      "en" : "This property allows instances of Country to be associated with any instances of CountryCode. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "94"
+  }, {
+    "range" : "62",
+    "domain" : "97",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "96"
+  }, {
+    "range" : "16",
+    "domain" : "15",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "98"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/date",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "40",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "date"
+    },
+    "domain" : "8",
+    "comment" : {
+      "en" : "This property assigns date of a reference resource. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "99"
+  }, {
+    "range" : "51",
+    "domain" : "101",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "100"
+  }, {
+    "range" : "51",
+    "domain" : "103",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "102"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX_has_been_caught",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "105",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX_has_been_caught",
+      "undefined" : "LX_has_been_caught"
+    },
+    "domain" : "39",
+    "comment" : {
+      "en" : "This property allows instances of Biotic Element that have been caught is a capture activity. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "104"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/assignedName",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "41",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "assignedName",
+      "undefined" : "assignedName"
+    },
+    "domain" : "5",
+    "comment" : {
+      "en" : "This data type property is used to assign a appellation to a MarineTLO entity. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "106"
+  }, {
+    "range" : "16",
+    "domain" : "108",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "107"
+  }, {
+    "range" : "16",
+    "domain" : "110",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "109"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/keyWords",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "60",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "keyWords"
+    },
+    "domain" : "8",
+    "comment" : {
+      "en" : "This property assigns the key words describing a bibliography."
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "111"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/accessedData",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "113",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "accessedData"
+    },
+    "domain" : "70",
+    "comment" : {
+      "en" : "This property assigns the accessed data of a Webgraphy Citation. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "112"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/accessedFrom",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "115",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "accessedFrom"
+    },
+    "domain" : "70",
+    "comment" : {
+      "en" : "This property assigns the accessed info  of a Webgraphy Citation. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "114"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX_related_authorship_assignment",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX_related_authorship_assignment",
+      "undefined" : "LX_related_authorship_assignment"
+    },
+    "superproperty" : [ "80" ],
+    "domain" : "5",
+    "comment" : {
+      "en" : "This property allows instances of Biotic Element Type to assign its authorship. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "81"
+  }, {
+    "range" : "16",
+    "domain" : "43",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "116"
+  }, {
+    "iri" : "http://www.w3.org/2002/07/owl#topDataProperty",
+    "baseIri" : "http://www.w3.org/2002/07/owl",
+    "range" : "26",
+    "label" : {
+      "IRI-based" : "topDataProperty"
+    },
+    "domain" : "5",
+    "attributes" : [ "external", "datatype" ],
+    "id" : "119"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/hasAbbreviation",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "122",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "hasAbbreviation"
+    },
+    "domain" : "121",
+    "comment" : {
+      "en" : "This property assigns the abbreviation of a country (e.g. GR, IT, FR, UK, etc). "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "120"
+  }, {
+    "range" : "78",
+    "domain" : "79",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "123"
+  }, {
+    "range" : "3",
+    "domain" : "56",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "124"
+  }, {
+    "range" : "12",
+    "domain" : "11",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "125"
+  }, {
+    "range" : "12",
+    "domain" : "48",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "126"
+  }, {
+    "range" : "3",
+    "domain" : "53",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "127"
+  }, {
+    "range" : "3",
+    "domain" : "52",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "128"
+  }, {
+    "range" : "3",
+    "domain" : "55",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "129"
+  }, {
+    "range" : "3",
+    "domain" : "54",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "130"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/publisher",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "132",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "publisher"
+    },
+    "domain" : "8",
+    "comment" : {
+      "en" : "This property assignes the publisher's description related to a bibliography resource. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "131"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LC_is_documented_in",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "8",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LC_is_documented_in",
+      "undefined" : "LC_is_documented_in"
+    },
+    "domain" : "57",
+    "comment" : {
+      "en" : "This property is used to assign a conceptual object, e.g. book or article, where a MarineTLO entity is documented. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "133"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/title",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "135",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "title"
+    },
+    "domain" : "8",
+    "comment" : {
+      "en" : "This property assigns a title to works, such as texts, artworks or pieces of music. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "134"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LC_used_specific_technique",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "47",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LC_used_specific_technique",
+      "undefined" : "LC_used_specific_technique"
+    },
+    "domain" : "59",
+    "comment" : {
+      "en" : "This property identifies a specific E29 Design or Procedure used in an Event. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "136"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/format",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "65",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "format"
+    },
+    "domain" : "75",
+    "comment" : {
+      "en" : "This property assigns a format (e.g. pdf, word, etc) to a bibliography resource. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "137"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX_caught",
+    "inverse" : "104",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "39",
+    "label" : {
+      "IRI-based" : "LX_caught"
+    },
+    "superproperty" : [ "21" ],
+    "domain" : "105",
+    "attributes" : [ "object" ],
+    "id" : "22"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/hasLanguage",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "139",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "hasLanguage"
+    },
+    "domain" : "8",
+    "comment" : {
+      "en" : "This property assigns the language related to MarineTLO Entity."
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "138"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX14_is_introduced_at",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX14_is_introduced_at",
+      "undefined" : "LX14_is_introduced_at"
+    },
+    "superproperty" : [ "27" ],
+    "domain" : "5",
+    "comment" : {
+      "en" : "This property expresses the the ecological state of a species being brought to a defined geographic location, such as an island, nation, country or other defined zone, or habitat type. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "30"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX12_is_extirpated_from",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      }, {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX12_is_extirpated_from",
+      "undefined" : "LX12_is_extirpated_from"
+    },
+    "superproperty" : [ "28" ],
+    "domain" : "5",
+    "comment" : {
+      "en" : "This property expresses the the ecological state of a species being eradicate or destroy completely to a defined geographic location, such as an island, nation, country or other defined zone, or habitat type. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "82"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX_used_object_of_type",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "0",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX_used_object_of_type",
+      "undefined" : "LX_used_object_of_type"
+    },
+    "domain" : "25",
+    "comment" : {
+      "en" : "This property allows instances of MarineTLO Entity to be associated with activity types. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "141"
+  }, {
+    "range" : "33",
+    "domain" : "32",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "142"
+  }, {
+    "range" : "118",
+    "domain" : "117",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "143"
+  }, {
+    "range" : "73",
+    "domain" : "121",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "144"
+  }, {
+    "range" : "33",
+    "domain" : "84",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "145"
+  }, {
+    "range" : "33",
+    "domain" : "140",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "146"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LC_right_held_by",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LC_right_held_by",
+      "undefined" : "LC_used_specific_technique"
+    },
+    "domain" : "5",
+    "comment" : {
+      "en" : "This property identifies the E39 Actor w\nho holds the instances of E30 Right to an E72 Legal\nObject.  "
+    },
+    "attributes" : [ "object" ],
+    "id" : "147"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/is_associated_with",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "is_associated_with",
+      "undefined" : "is_associated_with"
+    },
+    "domain" : "5",
+    "comment" : {
+      "en" : "This property allows instances of Marine TLO Entity to be associated with any instances of MarineTLO Entity. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "148"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX_is_discarded_by",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "5",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX_is_discarded_by",
+      "undefined" : "LX_is_discarded_by"
+    },
+    "superproperty" : [ "21" ],
+    "domain" : "5",
+    "comment" : {
+      "en" : "This property allows instances of Biotic Element that have been discarded by a capture activity. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "23"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/LX_has_codification_system",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "32",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "LX_has_codification_system",
+      "undefined" : "LX_has_codification_system"
+    },
+    "domain" : "18",
+    "comment" : {
+      "en" : "This property allows instances of CountryCode to be typed. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "149"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/url",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "66",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "url",
+      "undefined" : "url"
+    },
+    "domain" : "8",
+    "comment" : {
+      "en" : "This property allows instances of Publication to be associated with a specific url denoting the publication itself. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "150"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO/LX6_type_was_attributed_by",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/MarineTLO",
+    "range" : "5",
+    "label" : {
+      "IRI-based" : "LX6_type_was_attributed_by"
+    },
+    "domain" : "5",
+    "subproperty" : [ "4" ],
+    "attributes" : [ "object", "external" ],
+    "id" : "6"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/assignedCode",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "68",
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/",
+        "type" : "iri"
+      } ],
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "assignedCode"
+    },
+    "domain" : "5",
+    "comment" : {
+      "en" : "This property assigns a code/identifier to a Water Area. "
+    },
+    "attributes" : [ "datatype" ],
+    "id" : "151"
+  }, {
+    "iri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO/isTypeOf",
+    "baseIri" : "http://www.ics.forth.gr/isl/ontology/iMarineTLO",
+    "range" : "140",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "stable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "isTypeOf",
+      "undefined" : "isTypeOf"
+    },
+    "domain" : "8",
+    "comment" : {
+      "en" : "This property allows instances of BC27_Publication to be associated with its type, BibliographyResourceType. "
+    },
+    "attributes" : [ "object" ],
+    "id" : "152"
+  } ]
+}
