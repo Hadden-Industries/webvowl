@@ -1,0 +1,1553 @@
+{
+  "_comment" : "Created with OWL2VOWL (version 0.3.7), http://vowl.visualdataweb.org",
+  "header" : {
+    "baseIris" : [ "http://www.w3.org/2000/01/rdf-schema", "http://www.w3.org/2001/XMLSchema", "http://ontovibe.visualdataweb.org/cardinalities" ],
+    "prefixList" : {
+      "owl" : "http://www.w3.org/2002/07/owl#",
+      "rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "xsd" : "http://www.w3.org/2001/XMLSchema#",
+      "" : "http://www.semanticweb.org/owl/owlapi/turtle#",
+      "xml" : "http://www.w3.org/XML/1998/namespace",
+      "rdfs" : "http://www.w3.org/2000/01/rdf-schema#",
+      "this" : "http://ontovibe.visualdataweb.org/cardinalities#"
+    },
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities"
+  },
+  "namespace" : [ ],
+  "class" : [ {
+    "id" : "6",
+    "type" : "owl:Class"
+  }, {
+    "id" : "10",
+    "type" : "owl:Class"
+  }, {
+    "id" : "1",
+    "type" : "owl:Class"
+  }, {
+    "id" : "15",
+    "type" : "owl:Class"
+  }, {
+    "id" : "17",
+    "type" : "owl:Class"
+  }, {
+    "id" : "21",
+    "type" : "owl:Class"
+  }, {
+    "id" : "26",
+    "type" : "owl:Class"
+  }, {
+    "id" : "42",
+    "type" : "owl:Class"
+  }, {
+    "id" : "12",
+    "type" : "owl:Class"
+  }, {
+    "id" : "49",
+    "type" : "owl:Class"
+  }, {
+    "id" : "24",
+    "type" : "owl:Class"
+  }, {
+    "id" : "54",
+    "type" : "owl:Class"
+  }, {
+    "id" : "55",
+    "type" : "owl:Class"
+  }, {
+    "id" : "13",
+    "type" : "owl:Class"
+  }, {
+    "id" : "73",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "34",
+    "type" : "owl:Class"
+  }, {
+    "id" : "58",
+    "type" : "owl:Class"
+  }, {
+    "id" : "7",
+    "type" : "owl:Class"
+  }, {
+    "id" : "38",
+    "type" : "owl:Class"
+  }, {
+    "id" : "28",
+    "type" : "owl:Class"
+  }, {
+    "id" : "20",
+    "type" : "owl:Class"
+  }, {
+    "id" : "22",
+    "type" : "owl:Class"
+  }, {
+    "id" : "37",
+    "type" : "owl:Class"
+  }, {
+    "id" : "72",
+    "type" : "owl:Class"
+  }, {
+    "id" : "64",
+    "type" : "owl:Class"
+  }, {
+    "id" : "70",
+    "type" : "owl:Class"
+  }, {
+    "id" : "43",
+    "type" : "owl:Class"
+  }, {
+    "id" : "41",
+    "type" : "owl:Class"
+  }, {
+    "id" : "16",
+    "type" : "owl:Class"
+  }, {
+    "id" : "35",
+    "type" : "owl:Class"
+  }, {
+    "id" : "50",
+    "type" : "owl:Class"
+  }, {
+    "id" : "53",
+    "type" : "owl:Class"
+  }, {
+    "id" : "86",
+    "type" : "owl:Class"
+  }, {
+    "id" : "4",
+    "type" : "owl:Class"
+  }, {
+    "id" : "19",
+    "type" : "owl:Class"
+  }, {
+    "id" : "93",
+    "type" : "owl:Class"
+  }, {
+    "id" : "67",
+    "type" : "owl:Class"
+  }, {
+    "id" : "40",
+    "type" : "owl:Class"
+  }, {
+    "id" : "47",
+    "type" : "owl:Class"
+  }, {
+    "id" : "52",
+    "type" : "owl:Class"
+  }, {
+    "id" : "46",
+    "type" : "owl:Class"
+  }, {
+    "id" : "63",
+    "type" : "owl:Class"
+  }, {
+    "id" : "32",
+    "type" : "owl:Class"
+  }, {
+    "id" : "79",
+    "type" : "owl:Class"
+  }, {
+    "id" : "110",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "9",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "111",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "5",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "102",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "113",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "80",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "97",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "105",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "84",
+    "type" : "rdfs:Literal"
+  }, {
+    "id" : "31",
+    "type" : "owl:Class"
+  }, {
+    "id" : "2",
+    "type" : "owl:Class"
+  }, {
+    "id" : "29",
+    "type" : "owl:Class"
+  } ],
+  "classAttribute" : [ {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class7bSub",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class7bSub"
+    },
+    "id" : "6",
+    "superClasses" : [ "7" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class1b",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class1b"
+    },
+    "id" : "10"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class1a",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class1a"
+    },
+    "id" : "1"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class9b",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class9b"
+    },
+    "subClasses" : [ "16" ],
+    "id" : "15"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class9a",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class9a"
+    },
+    "id" : "17"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class12aSub1",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class12aSub1"
+    },
+    "id" : "21",
+    "superClasses" : [ "22" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class12aSub2",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class12aSub2"
+    },
+    "id" : "26",
+    "superClasses" : [ "22" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class10b",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class10b"
+    },
+    "subClasses" : [ "43" ],
+    "id" : "42"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class10a",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class10a"
+    },
+    "id" : "12"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class5bSub",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class5bSub"
+    },
+    "id" : "49",
+    "superClasses" : [ "50" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class8b",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class8b"
+    },
+    "subClasses" : [ "53" ],
+    "id" : "24"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class8a",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class8a"
+    },
+    "id" : "54"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class14bSub",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class14bSub"
+    },
+    "id" : "55"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class11a",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class11a"
+    },
+    "id" : "13"
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "baseIri" : "http://www.w3.org/2000/01/rdf-schema",
+    "id" : "73",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class13aSub",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class13aSub"
+    },
+    "id" : "34",
+    "superClasses" : [ "35" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class11b",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class11b"
+    },
+    "id" : "58"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class7b",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class7b"
+    },
+    "subClasses" : [ "6" ],
+    "id" : "7"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class7a",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class7a"
+    },
+    "id" : "38"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class2bSub",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class2bSub"
+    },
+    "id" : "28",
+    "superClasses" : [ "29" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class12b",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class12b"
+    },
+    "subClasses" : [ "72", "70" ],
+    "id" : "20"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class12a",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class12a"
+    },
+    "subClasses" : [ "21", "26" ],
+    "id" : "22"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class6a",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class6a"
+    },
+    "id" : "37"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class12bSub1",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class12bSub1"
+    },
+    "id" : "72",
+    "superClasses" : [ "20" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class6b",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class6b"
+    },
+    "subClasses" : [ "63" ],
+    "id" : "64"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class12bSub2",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class12bSub2"
+    },
+    "id" : "70",
+    "superClasses" : [ "20" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class10bSub",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class10bSub"
+    },
+    "id" : "43",
+    "superClasses" : [ "42" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class13b",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class13b"
+    },
+    "subClasses" : [ "40" ],
+    "id" : "41"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class9bSub",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class9bSub"
+    },
+    "id" : "16",
+    "superClasses" : [ "15" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class13a",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class13a"
+    },
+    "subClasses" : [ "34" ],
+    "id" : "35"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class5b",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class5b"
+    },
+    "subClasses" : [ "49" ],
+    "id" : "50"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class8bSub",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class8bSub"
+    },
+    "id" : "53",
+    "superClasses" : [ "24" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#singleLinkMixedAnchor",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "singleLinkMixedAnchor"
+    },
+    "id" : "86"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class5a",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class5a"
+    },
+    "id" : "4"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#multiLinkMixedAnchor",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "multiLinkMixedAnchor"
+    },
+    "id" : "19"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class14b",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class14b"
+    },
+    "id" : "93"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class14a",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class14a"
+    },
+    "id" : "67"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class13bSub",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class13bSub"
+    },
+    "id" : "40",
+    "superClasses" : [ "41" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class4b",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class4b"
+    },
+    "subClasses" : [ "46" ],
+    "id" : "47"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class4a",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class4a"
+    },
+    "id" : "52"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class4bSub",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class4bSub"
+    },
+    "id" : "46",
+    "superClasses" : [ "47" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class6bSub",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class6bSub"
+    },
+    "id" : "63",
+    "superClasses" : [ "64" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class3b",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class3b"
+    },
+    "subClasses" : [ "31" ],
+    "id" : "32"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class3a",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class3a"
+    },
+    "id" : "79"
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "baseIri" : "http://www.w3.org/2000/01/rdf-schema",
+    "id" : "110",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "baseIri" : "http://www.w3.org/2000/01/rdf-schema",
+    "id" : "9",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "baseIri" : "http://www.w3.org/2000/01/rdf-schema",
+    "id" : "111",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "baseIri" : "http://www.w3.org/2000/01/rdf-schema",
+    "id" : "5",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "baseIri" : "http://www.w3.org/2000/01/rdf-schema",
+    "id" : "102",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "baseIri" : "http://www.w3.org/2000/01/rdf-schema",
+    "id" : "113",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "baseIri" : "http://www.w3.org/2000/01/rdf-schema",
+    "id" : "80",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "baseIri" : "http://www.w3.org/2000/01/rdf-schema",
+    "id" : "97",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "baseIri" : "http://www.w3.org/2000/01/rdf-schema",
+    "id" : "105",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "baseIri" : "http://www.w3.org/2000/01/rdf-schema",
+    "id" : "84",
+    "label" : {
+      "IRI-based" : "Literal",
+      "undefined" : "Literal"
+    }
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class3bSub",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class3bSub"
+    },
+    "id" : "31",
+    "superClasses" : [ "32" ]
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class2a",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class2a"
+    },
+    "id" : "2"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#Class2b",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Class2b"
+    },
+    "subClasses" : [ "28" ],
+    "id" : "29"
+  } ],
+  "property" : [ {
+    "id" : "0",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "3",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "8",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "11",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "14",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "18",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "23",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "27",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "30",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "33",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "36",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "39",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "44",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "45",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "48",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "51",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "56",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "57",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "59",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "60",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "62",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "65",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "66",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "68",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "69",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "71",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "74",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "75",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "76",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "77",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "78",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "81",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "82",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "83",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "85",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "87",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "88",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "89",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "90",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "91",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "92",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "61",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "94",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "95",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "96",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "98",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "99",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "100",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "101",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "103",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "25",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "104",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "106",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "107",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "108",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "109",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "112",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "114",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "115",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "116",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "117",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "118",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "119",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "120",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "121",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "122",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "123",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "124",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "125",
+    "type" : "owl:objectProperty"
+  } ],
+  "propertyAttribute" : [ {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#cardinalityAtDomain",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "2",
+    "label" : {
+      "IRI-based" : "cardinalityAtDomain"
+    },
+    "cardinality" : "1",
+    "domain" : "1",
+    "attributes" : [ "object" ],
+    "id" : "0"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#parallelDatatypeProperty2",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "5",
+    "label" : {
+      "IRI-based" : "parallelDatatypeProperty2"
+    },
+    "minCardinality" : "15",
+    "domain" : "4",
+    "attributes" : [ "datatype" ],
+    "id" : "3"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#parallelDatatypeProperty1",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "9",
+    "label" : {
+      "IRI-based" : "parallelDatatypeProperty1"
+    },
+    "maxCardinality" : "20",
+    "minCardinality" : "15",
+    "domain" : "4",
+    "attributes" : [ "datatype" ],
+    "id" : "8"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#parallel2",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "13",
+    "label" : {
+      "IRI-based" : "parallel2"
+    },
+    "maxCardinality" : "5",
+    "domain" : "12",
+    "attributes" : [ "object" ],
+    "id" : "11"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#parallel1",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "13",
+    "label" : {
+      "IRI-based" : "parallel1"
+    },
+    "cardinality" : "6",
+    "domain" : "12",
+    "attributes" : [ "object" ],
+    "id" : "14"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#multiLinkQualifiedProperty",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "20",
+    "label" : {
+      "IRI-based" : "multiLinkQualifiedProperty"
+    },
+    "minCardinality" : "4",
+    "domain" : "19",
+    "attributes" : [ "object" ],
+    "id" : "18"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithDifferentCardinality2_qualified",
+    "inverse" : "25",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "24",
+    "label" : {
+      "IRI-based" : "inverseWithDifferentCardinality2_qualified"
+    },
+    "domain" : "15",
+    "attributes" : [ "object" ],
+    "id" : "23"
+  }, {
+    "range" : "29",
+    "domain" : "28",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "27"
+  }, {
+    "range" : "32",
+    "domain" : "31",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "30"
+  }, {
+    "range" : "35",
+    "domain" : "34",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "33"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithCardinality",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "38",
+    "label" : {
+      "IRI-based" : "inverseWithCardinality"
+    },
+    "maxCardinality" : "16",
+    "minCardinality" : "1",
+    "domain" : "37",
+    "attributes" : [ "object" ],
+    "id" : "36"
+  }, {
+    "range" : "41",
+    "domain" : "40",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "39"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithBothCardinalities1_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "42",
+    "label" : {
+      "IRI-based" : "inverseWithBothCardinalities1_qualified"
+    },
+    "domain" : "15",
+    "attributes" : [ "object" ],
+    "id" : "44"
+  }, {
+    "range" : "47",
+    "domain" : "46",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "45"
+  }, {
+    "range" : "50",
+    "domain" : "49",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "48"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#cardinalityAtSameEnd2",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "52",
+    "label" : {
+      "IRI-based" : "cardinalityAtSameEnd2"
+    },
+    "maxCardinality" : "1",
+    "domain" : "4",
+    "attributes" : [ "object" ],
+    "id" : "51"
+  }, {
+    "range" : "22",
+    "domain" : "26",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "56"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#differentlyQualifiedObjectProperty_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "20",
+    "label" : {
+      "IRI-based" : "differentlyQualifiedObjectProperty_qualified"
+    },
+    "domain" : "58",
+    "attributes" : [ "object" ],
+    "id" : "57"
+  }, {
+    "range" : "22",
+    "domain" : "21",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "59"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithBothCardinalities2_qualified",
+    "inverse" : "61",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "15",
+    "label" : {
+      "IRI-based" : "inverseWithBothCardinalities2_qualified"
+    },
+    "domain" : "42",
+    "attributes" : [ "object" ],
+    "id" : "60"
+  }, {
+    "range" : "64",
+    "domain" : "63",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "62"
+  }, {
+    "range" : "7",
+    "domain" : "6",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "65"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#propertyFromSubClass",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "67",
+    "label" : {
+      "IRI-based" : "propertyFromSubClass"
+    },
+    "cardinality" : "99",
+    "domain" : "35",
+    "attributes" : [ "object" ],
+    "id" : "66"
+  }, {
+    "range" : "24",
+    "domain" : "53",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "68"
+  }, {
+    "range" : "20",
+    "domain" : "70",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "69"
+  }, {
+    "range" : "20",
+    "domain" : "72",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "71"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#cardinalityAtSameEnd1",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "4",
+    "label" : {
+      "IRI-based" : "cardinalityAtSameEnd1"
+    },
+    "minCardinality" : "13",
+    "domain" : "52",
+    "attributes" : [ "object" ],
+    "id" : "74"
+  }, {
+    "range" : "42",
+    "domain" : "43",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "75"
+  }, {
+    "range" : "15",
+    "domain" : "16",
+    "attributes" : [ "anonymous", "object" ],
+    "id" : "76"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#cardinalityAtBothEnds2_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "50",
+    "label" : {
+      "IRI-based" : "cardinalityAtBothEnds2_qualified"
+    },
+    "domain" : "64",
+    "attributes" : [ "object" ],
+    "id" : "77"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#singleDatatypeProperty",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "80",
+    "label" : {
+      "IRI-based" : "singleDatatypeProperty"
+    },
+    "cardinality" : "3",
+    "domain" : "79",
+    "attributes" : [ "datatype" ],
+    "id" : "78"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#parallel2_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "58",
+    "label" : {
+      "IRI-based" : "parallel2_qualified"
+    },
+    "domain" : "42",
+    "attributes" : [ "object" ],
+    "id" : "81"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithCardinality_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "7",
+    "label" : {
+      "IRI-based" : "inverseWithCardinality_qualified"
+    },
+    "domain" : "64",
+    "attributes" : [ "object" ],
+    "id" : "82"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#doubleDatatypeProperty2_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "84",
+    "label" : {
+      "IRI-based" : "doubleDatatypeProperty2_qualified"
+    },
+    "maxCardinality" : "16",
+    "domain" : "47",
+    "attributes" : [ "datatype" ],
+    "id" : "83"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#cardinalityAtDomain_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "29",
+    "label" : {
+      "IRI-based" : "cardinalityAtDomain_qualified"
+    },
+    "domain" : "10",
+    "attributes" : [ "object" ],
+    "id" : "85"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithSameCardinality1",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "54",
+    "label" : {
+      "IRI-based" : "inverseWithSameCardinality1"
+    },
+    "maxCardinality" : "8",
+    "minCardinality" : "8",
+    "domain" : "38",
+    "attributes" : [ "object" ],
+    "id" : "87"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithSameCardinality2",
+    "inverse" : "87",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "38",
+    "label" : {
+      "IRI-based" : "inverseWithSameCardinality2"
+    },
+    "maxCardinality" : "8",
+    "minCardinality" : "8",
+    "domain" : "54",
+    "attributes" : [ "object" ],
+    "id" : "88"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#cardinalityAtDomainAndRange_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "47",
+    "label" : {
+      "IRI-based" : "cardinalityAtDomainAndRange_qualified"
+    },
+    "domain" : "32",
+    "attributes" : [ "object" ],
+    "id" : "89"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithoutCardinality",
+    "inverse" : "36",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "37",
+    "label" : {
+      "IRI-based" : "inverseWithoutCardinality"
+    },
+    "domain" : "38",
+    "attributes" : [ "object" ],
+    "id" : "90"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithoutCardinality_qualified",
+    "inverse" : "36",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "64",
+    "label" : {
+      "IRI-based" : "inverseWithoutCardinality_qualified"
+    },
+    "domain" : "7",
+    "attributes" : [ "object" ],
+    "id" : "91"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithSameCardinality2_qualified",
+    "inverse" : "87",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "7",
+    "label" : {
+      "IRI-based" : "inverseWithSameCardinality2_qualified"
+    },
+    "domain" : "24",
+    "attributes" : [ "object" ],
+    "id" : "92"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithBothCardinalities1",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "12",
+    "label" : {
+      "IRI-based" : "inverseWithBothCardinalities1"
+    },
+    "maxCardinality" : "27",
+    "cardinality" : "7",
+    "minCardinality" : "23",
+    "domain" : "17",
+    "attributes" : [ "object" ],
+    "id" : "61"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#cardinalityAtBothEnds1_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "64",
+    "label" : {
+      "IRI-based" : "cardinalityAtBothEnds1_qualified"
+    },
+    "domain" : "50",
+    "attributes" : [ "object" ],
+    "id" : "94"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithBothCardinalities2",
+    "inverse" : "61",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "17",
+    "label" : {
+      "IRI-based" : "inverseWithBothCardinalities2"
+    },
+    "cardinality" : "2",
+    "minCardinality" : "18",
+    "domain" : "12",
+    "attributes" : [ "object" ],
+    "id" : "95"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#differentlyQualifiedDatatypeProperty_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "97",
+    "label" : {
+      "IRI-based" : "differentlyQualifiedDatatypeProperty_qualified"
+    },
+    "cardinality" : "4",
+    "domain" : "64",
+    "attributes" : [ "datatype" ],
+    "id" : "96"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#cardinalityAtRange",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "79",
+    "label" : {
+      "IRI-based" : "cardinalityAtRange"
+    },
+    "cardinality" : "15",
+    "domain" : "2",
+    "attributes" : [ "object" ],
+    "id" : "98"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#cardinalityAtSameEnd2_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "47",
+    "label" : {
+      "IRI-based" : "cardinalityAtSameEnd2_qualified"
+    },
+    "domain" : "50",
+    "attributes" : [ "object" ],
+    "id" : "99"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#singleLinkUnqualifiedProperty",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "12",
+    "label" : {
+      "IRI-based" : "singleLinkUnqualifiedProperty"
+    },
+    "minCardinality" : "14",
+    "domain" : "86",
+    "attributes" : [ "object" ],
+    "id" : "100"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#parallelDatatypeProperty2_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "102",
+    "label" : {
+      "IRI-based" : "parallelDatatypeProperty2_qualified"
+    },
+    "maxCardinality" : "6",
+    "minCardinality" : "3",
+    "domain" : "50",
+    "attributes" : [ "datatype" ],
+    "id" : "101"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithDifferentCardinality2",
+    "inverse" : "25",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "54",
+    "label" : {
+      "IRI-based" : "inverseWithDifferentCardinality2"
+    },
+    "maxCardinality" : "9",
+    "minCardinality" : "8",
+    "domain" : "17",
+    "attributes" : [ "object" ],
+    "id" : "103"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithDifferentCardinality1",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "17",
+    "label" : {
+      "IRI-based" : "inverseWithDifferentCardinality1"
+    },
+    "maxCardinality" : "7",
+    "minCardinality" : "6",
+    "domain" : "54",
+    "attributes" : [ "object" ],
+    "id" : "25"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#singleDatatypeProperty_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "105",
+    "label" : {
+      "IRI-based" : "singleDatatypeProperty_qualified"
+    },
+    "cardinality" : "10",
+    "domain" : "32",
+    "attributes" : [ "datatype" ],
+    "id" : "104"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#cardinalityAtBothEnds1",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "37",
+    "label" : {
+      "IRI-based" : "cardinalityAtBothEnds1"
+    },
+    "maxCardinality" : "19",
+    "domain" : "4",
+    "attributes" : [ "object" ],
+    "id" : "106"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#cardinalityAtBothEnds2",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "4",
+    "label" : {
+      "IRI-based" : "cardinalityAtBothEnds2"
+    },
+    "maxCardinality" : "1",
+    "minCardinality" : "1",
+    "domain" : "37",
+    "attributes" : [ "object" ],
+    "id" : "107"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#propertyFromSubClass_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "93",
+    "label" : {
+      "IRI-based" : "propertyFromSubClass_qualified"
+    },
+    "domain" : "41",
+    "attributes" : [ "object" ],
+    "id" : "108"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#parallelDatatypeProperty1_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "73",
+    "label" : {
+      "IRI-based" : "parallelDatatypeProperty1_qualified"
+    },
+    "maxCardinality" : "21",
+    "minCardinality" : "1",
+    "domain" : "50",
+    "attributes" : [ "datatype" ],
+    "id" : "109"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithDifferentCardinality1_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "15",
+    "label" : {
+      "IRI-based" : "inverseWithDifferentCardinality1_qualified"
+    },
+    "domain" : "24",
+    "attributes" : [ "object" ],
+    "id" : "112"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#cardinalityAtSameEnd1_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "50",
+    "label" : {
+      "IRI-based" : "cardinalityAtSameEnd1_qualified"
+    },
+    "domain" : "47",
+    "attributes" : [ "object" ],
+    "id" : "114"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#doubleDatatypeProperty2",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "111",
+    "label" : {
+      "IRI-based" : "doubleDatatypeProperty2"
+    },
+    "cardinality" : "1",
+    "domain" : "52",
+    "attributes" : [ "datatype" ],
+    "id" : "115"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#doubleDatatypeProperty1",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "110",
+    "label" : {
+      "IRI-based" : "doubleDatatypeProperty1"
+    },
+    "minCardinality" : "2",
+    "domain" : "52",
+    "attributes" : [ "datatype" ],
+    "id" : "116"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#doubleDatatypeProperty1_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "113",
+    "label" : {
+      "IRI-based" : "doubleDatatypeProperty1_qualified"
+    },
+    "maxCardinality" : "4",
+    "minCardinality" : "1",
+    "domain" : "47",
+    "attributes" : [ "datatype" ],
+    "id" : "117"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#propertyFromMultiSubClass_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "41",
+    "label" : {
+      "IRI-based" : "propertyFromMultiSubClass_qualified"
+    },
+    "cardinality" : "71",
+    "domain" : "20",
+    "attributes" : [ "object" ],
+    "id" : "118"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#singleLinkQualifiedProperty",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "20",
+    "label" : {
+      "IRI-based" : "singleLinkQualifiedProperty"
+    },
+    "domain" : "86",
+    "attributes" : [ "object" ],
+    "id" : "119"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#propertyFromMultiSubClass",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "35",
+    "label" : {
+      "IRI-based" : "propertyFromMultiSubClass"
+    },
+    "maxCardinality" : "100",
+    "cardinality" : "70",
+    "domain" : "22",
+    "attributes" : [ "object" ],
+    "id" : "120"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#cardinalityAtDomainAndRange",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "52",
+    "label" : {
+      "IRI-based" : "cardinalityAtDomainAndRange"
+    },
+    "minCardinality" : "1",
+    "domain" : "79",
+    "attributes" : [ "object" ],
+    "id" : "121"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#parallel1_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "58",
+    "label" : {
+      "IRI-based" : "parallel1_qualified"
+    },
+    "domain" : "42",
+    "attributes" : [ "object" ],
+    "id" : "122"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#multiLinkUnqualifiedProperty",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "12",
+    "label" : {
+      "IRI-based" : "multiLinkUnqualifiedProperty"
+    },
+    "minCardinality" : "2",
+    "domain" : "19",
+    "attributes" : [ "object" ],
+    "id" : "123"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#cardinalityAtRange_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "32",
+    "label" : {
+      "IRI-based" : "cardinalityAtRange_qualified"
+    },
+    "domain" : "29",
+    "attributes" : [ "object" ],
+    "id" : "124"
+  }, {
+    "iri" : "http://ontovibe.visualdataweb.org/cardinalities#inverseWithSameCardinality1_qualified",
+    "baseIri" : "http://ontovibe.visualdataweb.org/cardinalities",
+    "range" : "24",
+    "label" : {
+      "IRI-based" : "inverseWithSameCardinality1_qualified"
+    },
+    "domain" : "7",
+    "attributes" : [ "object" ],
+    "id" : "125"
+  } ]
+}
