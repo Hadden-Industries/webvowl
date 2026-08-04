@@ -1,0 +1,486 @@
+{
+  "_comment" : "Created with OWL2VOWL (version 0.3.7), http://vowl.visualdataweb.org",
+  "header" : {
+    "languages" : [ "undefined" ],
+    "baseIris" : [ "http://www.w3.org/2000/01/rdf-schema", "http://www.w3.org/2001/XMLSchema", "http://geovocab.org/spatial" ],
+    "prefixList" : {
+      "owl" : "http://www.w3.org/2002/07/owl#",
+      "rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "skos" : "http://www.w3.org/2004/02/skos/core#",
+      "xsd" : "http://www.w3.org/2001/XMLSchema#",
+      "" : "http://geovocab.org/spatial#",
+      "xml" : "http://www.w3.org/XML/1998/namespace",
+      "vs" : "http://www.w3.org/2003/06/sw-vocab-status/ns#",
+      "rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+    },
+    "iri" : "http://geovocab.org/spatial",
+    "labels" : {
+      "undefined" : "NeoGeo Spatial Ontology"
+    },
+    "comments" : {
+      "undefined" : "A vocabulary for describing topological relations between features. $Id: spatial# 81 2012-02-05 11:06:49Z non88sense@gmail.com $"
+    }
+  },
+  "namespace" : [ ],
+  "class" : [ {
+    "id" : "11",
+    "type" : "owl:Thing"
+  }, {
+    "id" : "1",
+    "type" : "owl:Class"
+  } ],
+  "classAttribute" : [ {
+    "iri" : "http://www.w3.org/2002/07/owl#Thing",
+    "baseIri" : "http://owl2vowl.de",
+    "id" : "11",
+    "label" : {
+      "undefined" : "Thing"
+    }
+  }, {
+    "iri" : "http://geovocab.org/spatial#Feature",
+    "baseIri" : "http://geovocab.org/spatial",
+    "instances" : 0,
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Feature",
+      "undefined" : "Feature"
+    },
+    "comment" : {
+      "undefined" : "A geographical feature, capable of holding spatial relations."
+    },
+    "id" : "1"
+  } ],
+  "property" : [ {
+    "id" : "0",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "3",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "7",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "9",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "10",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "12",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "14",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "13",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "2",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "5",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "4",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "17",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "8",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "16",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "6",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "15",
+    "type" : "owl:objectProperty"
+  } ],
+  "propertyAttribute" : [ {
+    "iri" : "http://geovocab.org/spatial#TPP",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "TPP",
+      "undefined" : "is tangential proper part of"
+    },
+    "superproperty" : [ "2" ],
+    "domain" : "1",
+    "comment" : {
+      "undefined" : "Relation TPP(x,y), read as 'x is a tangential proper part of y'. This relation holds, whenever a region x is \n\t\t\t\t\t\t  labeled as a proper part of a region y, and they share at least one common point in their borders, which means that they are\n\t\t\t\t\t\t  externally connected."
+    },
+    "attributes" : [ "object", "transitive" ],
+    "id" : "0"
+  }, {
+    "iri" : "http://geovocab.org/spatial#Pi",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Pi",
+      "undefined" : "contains"
+    },
+    "superproperty" : [ "4" ],
+    "domain" : "1",
+    "subproperty" : [ "5", "6" ],
+    "comment" : {
+      "undefined" : "Relation Pi(x,y), read as 'x contains y'. Inverse of the P(x,y) relation."
+    },
+    "attributes" : [ "object", "transitive" ],
+    "id" : "3"
+  }, {
+    "iri" : "http://geovocab.org/spatial#DC",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "DC",
+      "undefined" : "disconnected from"
+    },
+    "superproperty" : [ "8" ],
+    "domain" : "1",
+    "comment" : {
+      "undefined" : "Relation DC(x,y), read as 'x is disconnected from y'. In order to prevent an exponential growth of triples when handling large\n\t\t\t\t  amounts of data, a closed world assumption may also be possible. More precisely, by considering not explicitely connected regions as discrete\n\t\t\t\t  regions. Moreover, discrete regions, which are not explicitely labeled as externally connected, would be considered disconnected from\n\t\t\t\t  eachother."
+    },
+    "attributes" : [ "object", "symmetric" ],
+    "id" : "7"
+  }, {
+    "iri" : "http://geovocab.org/spatial#PO",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "PO",
+      "undefined" : "partially overlaps"
+    },
+    "superproperty" : [ "4" ],
+    "domain" : "1",
+    "comment" : {
+      "undefined" : "Relation PO(x,y), read as 'x partially overlaps y'. A region x overlaps a region y, if they share at least one common point of their \n\t\t\t\t   interiors, and one does not contain the other within its borders."
+    },
+    "attributes" : [ "object", "symmetric" ],
+    "id" : "9"
+  }, {
+    "iri" : "http://geovocab.org/spatial#inconsistentWith",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "11",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "unstable",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "inconsistentWith",
+      "undefined" : "inconsistent with"
+    },
+    "domain" : "11",
+    "comment" : {
+      "undefined" : "Although this relation is not a part of the RCC theory, it has been introduced in order to detect relations between regions\n\t\t\t\t\t\t\t\twhich are inconsistent with the RCC axioms."
+    },
+    "attributes" : [ "object", "symmetric" ],
+    "id" : "10"
+  }, {
+    "iri" : "http://geovocab.org/spatial#EC",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "EC",
+      "undefined" : "externally connected with"
+    },
+    "superproperty" : [ "8", "13" ],
+    "domain" : "1",
+    "comment" : {
+      "undefined" : "Relation EC(x,y), read as 'x is externally connected with y'. This relation holds, when the two regions share at least\n\t\t\t\t\t\t one common point of their borders, but share no points of their interiors, i.e. they do not overlap."
+    },
+    "attributes" : [ "object", "symmetric" ],
+    "id" : "12"
+  }, {
+    "iri" : "http://geovocab.org/spatial#TPPi",
+    "inverse" : "0",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "TPPi",
+      "undefined" : "tangentially properly contains"
+    },
+    "superproperty" : [ "5" ],
+    "domain" : "1",
+    "comment" : {
+      "undefined" : "Relation TPPi(x,y), read as 'x tangentially properly contains y'. Inverse of the TPP(x,y) relation."
+    },
+    "attributes" : [ "object", "transitive" ],
+    "id" : "14"
+  }, {
+    "iri" : "http://geovocab.org/spatial#C",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "C",
+      "undefined" : "connects with"
+    },
+    "domain" : "1",
+    "subproperty" : [ "4", "12" ],
+    "comment" : {
+      "undefined" : "Relation C(x,y), read as 'x is connected with y'. This relation holds when two regions share a common point. It is the primitive relation\n\t\t\t\tin the RCC theory."
+    },
+    "attributes" : [ "object", "symmetric" ],
+    "id" : "13"
+  }, {
+    "iri" : "http://geovocab.org/spatial#PP",
+    "inverse" : "5",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "PP",
+      "undefined" : "is proper part of"
+    },
+    "superproperty" : [ "15" ],
+    "domain" : "1",
+    "subproperty" : [ "0", "16" ],
+    "comment" : {
+      "undefined" : "Relation PP(x,y), read as 'x is a proper part of y', means that the region x is contained within the borders of the \n\t\t\t\tregion y, and region y is not contained within the borders of the region y, which means they are not equals."
+    },
+    "attributes" : [ "object", "transitive" ],
+    "id" : "2"
+  }, {
+    "iri" : "http://geovocab.org/spatial#PPi",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "PPi",
+      "undefined" : "properly contains"
+    },
+    "superproperty" : [ "3" ],
+    "domain" : "1",
+    "subproperty" : [ "17", "14" ],
+    "comment" : {
+      "undefined" : "Relation PPi(x,y), read as 'x properly contains y'. Inverse of the PP(x,y) relation."
+    },
+    "attributes" : [ "object", "transitive" ],
+    "id" : "5"
+  }, {
+    "iri" : "http://geovocab.org/spatial#O",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "O",
+      "undefined" : "overlaps"
+    },
+    "superproperty" : [ "13" ],
+    "domain" : "1",
+    "subproperty" : [ "3", "9", "15" ],
+    "comment" : {
+      "undefined" : "Relation O(x,y), read as 'x overlaps y'. A region x overlaps a region y, if they share at least one common point of their interiors."
+    },
+    "attributes" : [ "object", "symmetric" ],
+    "id" : "4"
+  }, {
+    "iri" : "http://geovocab.org/spatial#NTPPi",
+    "inverse" : "16",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "NTPPi",
+      "undefined" : "non tangentially properly contains"
+    },
+    "superproperty" : [ "5" ],
+    "domain" : "1",
+    "comment" : {
+      "undefined" : "Relation NTPPi(x,y), read as 'x non-tangentially properly contains y'. Inverse of the NTPP(x,y) relation."
+    },
+    "attributes" : [ "object", "transitive" ],
+    "id" : "17"
+  }, {
+    "iri" : "http://geovocab.org/spatial#DR",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "DR",
+      "undefined" : "discrete from"
+    },
+    "domain" : "1",
+    "subproperty" : [ "7", "12" ],
+    "comment" : {
+      "undefined" : "Relation DR(x,y), read as 'x is discrete from y'. In order to prevent an exponential growth of triples when handling large\n\t\t\t\t  amounts of data, a closed world assumption may also be possible. More precisely, by considering not explicitely connected regions as discrete\n\t\t\t\t  regions. Moreover, discrete regions, which are not explicitely labeled as externally connected, would be considered disconnected from\n\t\t\t\t  eachother."
+    },
+    "attributes" : [ "object", "symmetric" ],
+    "id" : "8"
+  }, {
+    "iri" : "http://geovocab.org/spatial#NTPP",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "NTPP",
+      "undefined" : "is non-tangential proper part of"
+    },
+    "superproperty" : [ "2" ],
+    "domain" : "1",
+    "comment" : {
+      "undefined" : "Relation NTPP(x,y), read as 'x is a non-tangential proper part of y'. This relation holds, whenever a region x is \n\t\t\t\t\t\t\t labeled as a proper part of a region y, and they do not share common point in their borders."
+    },
+    "attributes" : [ "object", "transitive" ],
+    "id" : "16"
+  }, {
+    "iri" : "http://geovocab.org/spatial#EQ",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "EQ",
+      "undefined" : "equals"
+    },
+    "superproperty" : [ "3", "15" ],
+    "domain" : "1",
+    "comment" : {
+      "undefined" : "Relation x=y, read as 'x is identical with y'. This relation holds when two regions are spatially co-located."
+    },
+    "attributes" : [ "object", "symmetric", "transitive" ],
+    "id" : "6"
+  }, {
+    "iri" : "http://geovocab.org/spatial#P",
+    "inverse" : "3",
+    "baseIri" : "http://geovocab.org/spatial",
+    "range" : "1",
+    "annotations" : {
+      "term_status" : [ {
+        "identifier" : "term_status",
+        "language" : "undefined",
+        "value" : "testing",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "P",
+      "undefined" : "is part of"
+    },
+    "superproperty" : [ "4" ],
+    "domain" : "1",
+    "subproperty" : [ "6", "2" ],
+    "comment" : {
+      "undefined" : "Relation P(x,y), read as 'x is a part of y', holds whenever the region x is contained within the borders of the region y."
+    },
+    "attributes" : [ "object", "transitive" ],
+    "id" : "15"
+  } ]
+}
