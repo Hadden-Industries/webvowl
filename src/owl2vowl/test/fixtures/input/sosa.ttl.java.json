@@ -1,0 +1,99 @@
+{
+  "_comment" : "Created with OWL2VOWL (version 0.3.7), http://vowl.visualdataweb.org",
+  "header" : {
+    "languages" : [ "en", "undefined" ],
+    "baseIris" : [ "http://www.w3.org/1999/02/22-rdf-syntax-ns", "http://www.w3.org/2000/01/rdf-schema", "http://www.w3.org/2001/XMLSchema", "http://xmlns.com/foaf/0.1" ],
+    "prefixList" : {
+      "owl" : "http://www.w3.org/2002/07/owl#",
+      "dcterms" : "http://purl.org/dc/terms/",
+      "xsd" : "http://www.w3.org/2001/XMLSchema#",
+      "rdfs" : "http://www.w3.org/2000/01/rdf-schema#",
+      "sosa-act" : "http://www.w3.org/ns/sosa/act/",
+      "sosa-common" : "http://www.w3.org/ns/sosa/common/",
+      "sosa-dep" : "http://www.w3.org/ns/sosa/dep/",
+      "rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "skos" : "http://www.w3.org/2004/02/skos/core#",
+      "sosa" : "http://www.w3.org/ns/sosa/",
+      "time" : "http://www.w3.org/2006/time#",
+      "" : "http://www.semanticweb.org/owl/owlapi/turtle#",
+      "xml" : "http://www.w3.org/XML/1998/namespace",
+      "schema" : "http://schema.org/",
+      "sosa-obs" : "http://www.w3.org/ns/sosa/obs/",
+      "sosa-sam" : "http://www.w3.org/ns/sosa/sam/",
+      "foaf" : "http://xmlns.com/foaf/0.1/",
+      "dqv" : "http://www.w3.org/ns/dqv#"
+    },
+    "title" : {
+      "en" : "Sensor, Observation, Sample, and Actuator (SOSA) Ontology"
+    },
+    "iri" : "http://www.w3.org/ns/sosa/",
+    "author" : [ "_:genid2" ],
+    "description" : {
+      "en" : "\n  This module imports all the terms in the SOSA module, and adds cross-module annotations (domain/rangeIncludes). \n  "
+    },
+    "other" : {
+      "license" : [ {
+        "identifier" : "license",
+        "language" : "undefined",
+        "value" : "http://www.opengeospatial.org/ogc/Software",
+        "type" : "iri"
+      }, {
+        "identifier" : "license",
+        "language" : "undefined",
+        "value" : "http://www.w3.org/Consortium/Legal/2015/copyright-software-and-document",
+        "type" : "iri"
+      } ],
+      "priorVersion" : [ {
+        "identifier" : "priorVersion",
+        "language" : "undefined",
+        "value" : "http://www.w3.org/ns/sosa/2017/",
+        "type" : "iri"
+      } ],
+      "creator" : [ {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : "_:genid2",
+        "type" : "label"
+      } ],
+      "created" : [ {
+        "identifier" : "created",
+        "language" : "undefined",
+        "value" : "2017-04-17",
+        "type" : "label"
+      } ],
+      "rights" : [ {
+        "identifier" : "rights",
+        "language" : "undefined",
+        "value" : "Copyright 2025 W3C/OGC.",
+        "type" : "label"
+      } ],
+      "modified" : [ {
+        "identifier" : "modified",
+        "language" : "undefined",
+        "value" : "2024-02-03",
+        "type" : "label"
+      } ],
+      "title" : [ {
+        "identifier" : "title",
+        "language" : "en",
+        "value" : "Sensor, Observation, Sample, and Actuator (SOSA) Ontology",
+        "type" : "label"
+      } ]
+    }
+  },
+  "namespace" : [ ],
+  "class" : [ {
+    "id" : "0",
+    "type" : "owl:Class"
+  } ],
+  "classAttribute" : [ {
+    "iri" : "http://xmlns.com/foaf/0.1/Agent",
+    "baseIri" : "http://xmlns.com/foaf/0.1",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Agent"
+    },
+    "attributes" : [ "external" ],
+    "id" : "0"
+  } ]
+}

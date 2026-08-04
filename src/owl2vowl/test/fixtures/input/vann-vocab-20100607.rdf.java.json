@@ -1,0 +1,193 @@
+{
+  "_comment" : "Created with OWL2VOWL (version 0.3.7), http://vowl.visualdataweb.org",
+  "header" : {
+    "languages" : [ "en", "undefined" ],
+    "baseIris" : [ "http://www.w3.org/1999/02/22-rdf-syntax-ns", "http://www.w3.org/2000/01/rdf-schema", "http://web.resource.org/cc", "http://www.w3.org/2001/XMLSchema", "http://xmlns.com/foaf/0.1" ],
+    "prefixList" : {
+      "owl" : "http://www.w3.org/2002/07/owl#",
+      "rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "vann" : "http://purl.org/vocab/vann/",
+      "xsd" : "http://www.w3.org/2001/XMLSchema#",
+      "dc" : "http://purl.org/dc/terms/",
+      "cc" : "http://web.resource.org/cc/",
+      "xml" : "http://www.w3.org/XML/1998/namespace",
+      "bio" : "http://purl.org/vocab/bio/0.1/",
+      "foaf" : "http://xmlns.com/foaf/0.1/",
+      "rdfs" : "http://www.w3.org/2000/01/rdf-schema#",
+      "dcterm" : "http://purl.org/dc/terms/"
+    },
+    "title" : {
+      "en" : "VANN: A vocabulary for annotating vocabulary descriptions"
+    },
+    "iri" : "http://purl.org/vocab/vann/",
+    "author" : [ "http://iandavis.com/id/me" ],
+    "description" : {
+      "en" : "This document describes a vocabulary for annotating descriptions of vocabularies with examples and usage notes."
+    },
+    "other" : {
+      "date" : [ {
+        "identifier" : "date",
+        "language" : "undefined",
+        "value" : "2010-06-07",
+        "type" : "label"
+      } ],
+      "identifier" : [ {
+        "identifier" : "identifier",
+        "language" : "undefined",
+        "value" : "http://purl.org/vocab/vann/vann-vocab-20050401",
+        "type" : "label"
+      } ],
+      "creator" : [ {
+        "identifier" : "creator",
+        "language" : "undefined",
+        "value" : "http://iandavis.com/id/me",
+        "type" : "iri"
+      } ],
+      "replaces" : [ {
+        "identifier" : "replaces",
+        "language" : "undefined",
+        "value" : "http://purl.org/vocab/vann/vann-vocab-20040305",
+        "type" : "iri"
+      } ],
+      "rights" : [ {
+        "identifier" : "rights",
+        "language" : "undefined",
+        "value" : "Copyright © 2005 Ian Davis",
+        "type" : "label"
+      } ],
+      "preferredNamespacePrefix" : [ {
+        "identifier" : "preferredNamespacePrefix",
+        "language" : "undefined",
+        "value" : "vann",
+        "type" : "label"
+      } ],
+      "isVersionOf" : [ {
+        "identifier" : "isVersionOf",
+        "language" : "undefined",
+        "value" : "http://purl.org/vocab/vann/",
+        "type" : "iri"
+      } ],
+      "preferredNamespaceUri" : [ {
+        "identifier" : "preferredNamespaceUri",
+        "language" : "undefined",
+        "value" : "http://purl.org/vocab/vann/",
+        "type" : "label"
+      } ],
+      "title" : [ {
+        "identifier" : "title",
+        "language" : "en",
+        "value" : "VANN: A vocabulary for annotating vocabulary descriptions",
+        "type" : "label"
+      } ]
+    }
+  },
+  "namespace" : [ ],
+  "class" : [ {
+    "id" : "0",
+    "type" : "owl:Class"
+  }, {
+    "id" : "1",
+    "type" : "owl:Class"
+  }, {
+    "id" : "2",
+    "type" : "owl:Class"
+  } ],
+  "classAttribute" : [ {
+    "iri" : "http://xmlns.com/foaf/0.1/Person",
+    "baseIri" : "http://xmlns.com/foaf/0.1",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Person"
+    },
+    "individuals" : [ {
+      "iri" : "http://iandavis.com/id/me",
+      "baseIri" : "http://iandavis.com/id",
+      "annotations" : {
+        "name" : [ {
+          "identifier" : "name",
+          "language" : "undefined",
+          "value" : "Ian Davis",
+          "type" : "label"
+        } ]
+      },
+      "labels" : {
+        "IRI-based" : "me"
+      }
+    } ],
+    "attributes" : [ "external" ],
+    "id" : "0"
+  }, {
+    "iri" : "http://web.resource.org/cc/Work",
+    "baseIri" : "http://web.resource.org/cc",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Work"
+    },
+    "individuals" : [ {
+      "iri" : "file:/C:/Users/maksy/GitHub/universal-ontology/src/external/vann-vocab-20100607.rdf",
+      "baseIri" : "file:/C:/Users/maksy/GitHub/universal-ontology/src/external",
+      "annotations" : {
+        "license" : [ {
+          "identifier" : "license",
+          "language" : "undefined",
+          "value" : "http://creativecommons.org/licenses/by/1.0/",
+          "type" : "iri"
+        } ],
+        "type" : [ {
+          "identifier" : "type",
+          "language" : "undefined",
+          "value" : "http://purl.org/dc/dcmitype/Text",
+          "type" : "iri"
+        } ]
+      },
+      "labels" : {
+        "IRI-based" : "vann-vocab-20100607.rdf"
+      }
+    } ],
+    "attributes" : [ "external" ],
+    "id" : "1"
+  }, {
+    "iri" : "http://web.resource.org/cc/License",
+    "baseIri" : "http://web.resource.org/cc",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "License"
+    },
+    "individuals" : [ {
+      "iri" : "http://creativecommons.org/licenses/by/1.0/",
+      "baseIri" : "http://creativecommons.org/licenses/by",
+      "annotations" : {
+        "permits" : [ {
+          "identifier" : "permits",
+          "language" : "undefined",
+          "value" : "http://web.resource.org/cc/Distribution",
+          "type" : "iri"
+        }, {
+          "identifier" : "permits",
+          "language" : "undefined",
+          "value" : "http://web.resource.org/cc/Reproduction",
+          "type" : "iri"
+        }, {
+          "identifier" : "permits",
+          "language" : "undefined",
+          "value" : "http://web.resource.org/cc/DerivativeWorks",
+          "type" : "iri"
+        } ],
+        "requires" : [ {
+          "identifier" : "requires",
+          "language" : "undefined",
+          "value" : "http://web.resource.org/cc/Attribution",
+          "type" : "iri"
+        }, {
+          "identifier" : "requires",
+          "language" : "undefined",
+          "value" : "http://web.resource.org/cc/Notice",
+          "type" : "iri"
+        } ]
+      },
+      "labels" : { }
+    } ],
+    "attributes" : [ "external" ],
+    "id" : "2"
+  } ]
+}

@@ -21,19 +21,59 @@ DEFAULT_JAR = (
     / "OWL2VOWL-0.3.7-shaded.jar"
 )
 
+EXTERNAL_ONTOLOGY_DIRECTORY = (
+    GITHUB_ROOT
+    / "universal-ontology"
+    / "src"
+    / "external"
+)
+
 DEFAULT_INPUTS = [
-    GITHUB_ROOT
-    / "VisualDataWeb"
-    / "OWL2VOWL"
-    / "ontologies"
-    / "ontovibe"
-    / "BenchmarkOntology.ttl",
-    GITHUB_ROOT
-    / "VisualDataWeb"
-    / "OWL2VOWL"
-    / "ontologies"
-    / "ontovibe"
-    / "ontovibe_cardinalities.ttl",
+# Generate BenchmarkOntology.ttl's VOWL manually by changing
+# `owl:imports <http://ontovibe.visualdataweb.org/2.0/imported>` to
+# `owl:imports <https://github.com/Hadden-Industries/universal-ontology/
+# raw/refs/heads/master/src/external/BenchmarkOntologyModule.ttl>`
+# and then running `python generate-owl2vowl-java-test-fixtures.py
+# --input "..\..\universal-ontology\dist\external\BenchmarkOntology.ttl"
+    # EXTERNAL_ONTOLOGY_DIRECTORY / "BenchmarkOntology.ttl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "BenchmarkOntologyModule.ttl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "Drammar_NunnaryScene_Optimized_Rules.owl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "StackExchange.ttl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "allvalues.ttl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "bibo.rdf.xml",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "cube.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "dc.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "dcat3.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "dcmitype.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "dcterms.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "doap.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "foaf.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "food.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "full_ontobench_test.ttl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "fullontobench.ttl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "goodrelations.owl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "imarinetlo.owl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "marinetlo.owl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "musicontology.rdfs",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "muto.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "ontology_v3.3.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "ontovibe_cardinalities.ttl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "org.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "personasonto.owl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "protege-dc.owl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "prov.owl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "schemaorg.owl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "sioc.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "skos.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "sosa.ttl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "ssn.ttl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "tagont.owl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "time-gregorian.ttl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "time.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "vann-vocab-20100607.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "void.ttl",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "wgs84_pos.rdf",
+    EXTERNAL_ONTOLOGY_DIRECTORY / "wine.rdf",
 ]
 
 DEFAULT_OUTPUT_DIRECTORY = (
@@ -115,6 +155,9 @@ def convert_ontology(
 
     command = [
         java,
+        # 100000 default causes error in processing of
+        # "Drammar_NunnaryScene_Optimized_Rules.owl"
+        "-Djdk.xml.totalEntitySizeLimit=1000000",
         "--add-opens",
         "java.base/java.lang=ALL-UNNAMED",
         "-jar",

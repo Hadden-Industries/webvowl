@@ -1,0 +1,915 @@
+{
+  "_comment" : "Created with OWL2VOWL (version 0.3.7), http://vowl.visualdataweb.org",
+  "header" : {
+    "languages" : [ "undefined" ],
+    "baseIris" : [ "http://rdf.vis.uni-stuttgart.de/stackexchange/p", "http://www.w3.org/2000/01/rdf-schema", "http://rdf.vis.uni-stuttgart.de/stackexchange/t", "http://www.w3.org/2001/XMLSchema", "http://xmlns.com/foaf/0.1" ],
+    "prefixList" : {
+      "owl" : "http://www.w3.org/2002/07/owl#",
+      "rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "se-type" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/",
+      "xsd" : "http://www.w3.org/2001/XMLSchema#",
+      "" : "http://www.semanticweb.org/owl/owlapi/turtle#",
+      "dc" : "http://purl.org/dc/elements/1.1/",
+      "se-prop" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/",
+      "xml" : "http://www.w3.org/XML/1998/namespace",
+      "foaf" : "http://xmlns.com/foaf/0.1/",
+      "rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+    },
+    "title" : {
+      "undefined" : "StackExchange Data Ontology"
+    },
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange",
+    "version" : "1.0",
+    "other" : {
+      "versionInfo" : [ {
+        "identifier" : "versionInfo",
+        "language" : "undefined",
+        "value" : "1.0",
+        "type" : "label"
+      } ],
+      "title" : [ {
+        "identifier" : "title",
+        "language" : "undefined",
+        "value" : "StackExchange Data Ontology",
+        "type" : "label"
+      } ]
+    }
+  },
+  "namespace" : [ ],
+  "class" : [ {
+    "id" : "3",
+    "type" : "owl:Class"
+  }, {
+    "id" : "9",
+    "type" : "owl:Class"
+  }, {
+    "id" : "8",
+    "type" : "owl:Class"
+  }, {
+    "id" : "20",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "22",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "18",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "19",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "28",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "2",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "29",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "32",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "35",
+    "type" : "owl:Class"
+  }, {
+    "id" : "36",
+    "type" : "owl:Class"
+  }, {
+    "id" : "39",
+    "type" : "owl:Class"
+  }, {
+    "id" : "21",
+    "type" : "owl:Class"
+  }, {
+    "id" : "45",
+    "type" : "owl:Class"
+  }, {
+    "id" : "6",
+    "type" : "owl:Class"
+  }, {
+    "id" : "46",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "47",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "48",
+    "type" : "owl:Class"
+  }, {
+    "id" : "1",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "26",
+    "type" : "owl:Class"
+  }, {
+    "id" : "55",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "54",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "56",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "44",
+    "type" : "owl:Class"
+  }, {
+    "id" : "57",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "24",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "27",
+    "type" : "owl:Class"
+  }, {
+    "id" : "53",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "15",
+    "type" : "rdfs:Datatype"
+  }, {
+    "id" : "50",
+    "type" : "owl:Class"
+  }, {
+    "id" : "60",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "5",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "63",
+    "type" : "owl:Class"
+  }, {
+    "id" : "38",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "41",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "66",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "67",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "31",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "69",
+    "type" : "owl:Class"
+  }, {
+    "id" : "34",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "43",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "11",
+    "type" : "owl:unionOf"
+  }, {
+    "id" : "68",
+    "type" : "owl:Class"
+  }, {
+    "id" : "51",
+    "type" : "owl:Class"
+  }, {
+    "id" : "14",
+    "type" : "owl:Class"
+  }, {
+    "id" : "12",
+    "type" : "owl:Class"
+  }, {
+    "id" : "25",
+    "type" : "owl:Class"
+  }, {
+    "id" : "62",
+    "type" : "owl:Class"
+  } ],
+  "classAttribute" : [ {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/Tag",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Tag"
+    },
+    "attributes" : [ "external" ],
+    "id" : "3"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/Unprotection",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Unprotection"
+    },
+    "attributes" : [ "external" ],
+    "id" : "9"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/TagExcerpt",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "TagExcerpt"
+    },
+    "attributes" : [ "external" ],
+    "id" : "8"
+  }, {
+    "instances" : 0,
+    "union" : [ "12", "6", "8", "14", "21" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "20"
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#dateTime",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "22",
+    "label" : {
+      "IRI-based" : "dateTime"
+    }
+  }, {
+    "instances" : 0,
+    "union" : [ "26", "27" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "18"
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#integer",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "19",
+    "label" : {
+      "IRI-based" : "integer"
+    }
+  }, {
+    "instances" : 0,
+    "union" : [ "12", "26", "27" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "28"
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#integer",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "2",
+    "label" : {
+      "IRI-based" : "integer"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#integer",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "29",
+    "label" : {
+      "IRI-based" : "integer"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#integer",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "32",
+    "label" : {
+      "IRI-based" : "integer"
+    }
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/Undeletion",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Undeletion"
+    },
+    "attributes" : [ "external" ],
+    "id" : "35"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/Comment",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Comment"
+    },
+    "attributes" : [ "external" ],
+    "id" : "36"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/Unlocking",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Unlocking"
+    },
+    "attributes" : [ "external" ],
+    "id" : "39"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/TagDescription",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "TagDescription"
+    },
+    "attributes" : [ "external" ],
+    "id" : "21"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/Locking",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Locking"
+    },
+    "attributes" : [ "external" ],
+    "id" : "45"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/Answer",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Answer"
+    },
+    "attributes" : [ "external" ],
+    "id" : "6"
+  }, {
+    "instances" : 0,
+    "union" : [ "26", "27" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "46"
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#dateTime",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "47",
+    "label" : {
+      "IRI-based" : "dateTime"
+    }
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/Reopening",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Reopening"
+    },
+    "attributes" : [ "external" ],
+    "id" : "48"
+  }, {
+    "instances" : 0,
+    "union" : [ "26", "27" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "1"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/User",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "User"
+    },
+    "attributes" : [ "external" ],
+    "id" : "26"
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#integer",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "55",
+    "label" : {
+      "IRI-based" : "integer"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#integer",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "54",
+    "label" : {
+      "IRI-based" : "integer"
+    }
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#integer",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "56",
+    "label" : {
+      "IRI-based" : "integer"
+    }
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/Account",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Account"
+    },
+    "attributes" : [ "external" ],
+    "id" : "44"
+  }, {
+    "instances" : 0,
+    "union" : [ "26", "27" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "57"
+  }, {
+    "instances" : 0,
+    "union" : [ "26", "27" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "24"
+  }, {
+    "iri" : "http://xmlns.com/foaf/0.1/Person",
+    "baseIri" : "http://xmlns.com/foaf/0.1",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Person"
+    },
+    "attributes" : [ "external" ],
+    "id" : "27"
+  }, {
+    "instances" : 0,
+    "union" : [ "12", "6", "36", "8", "14", "21" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "53"
+  }, {
+    "iri" : "http://www.w3.org/2001/XMLSchema#boolean",
+    "baseIri" : "http://www.w3.org/2001/XMLSchema",
+    "id" : "15",
+    "label" : {
+      "IRI-based" : "boolean"
+    }
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/Closure",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Closure"
+    },
+    "attributes" : [ "external" ],
+    "id" : "50"
+  }, {
+    "instances" : 0,
+    "union" : [ "12", "6" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "60"
+  }, {
+    "instances" : 0,
+    "union" : [ "12", "62" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "5"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/StartOfBounty",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "StartOfBounty"
+    },
+    "attributes" : [ "external" ],
+    "id" : "63"
+  }, {
+    "instances" : 0,
+    "union" : [ "12", "6", "36", "8", "14", "21" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "38"
+  }, {
+    "instances" : 0,
+    "union" : [ "12", "6", "3", "36", "8", "26", "25", "14", "21", "27" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "41"
+  }, {
+    "instances" : 0,
+    "union" : [ "12", "6" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "66"
+  }, {
+    "instances" : 0,
+    "union" : [ "50", "45", "68", "35", "48", "39", "9", "69" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "67"
+  }, {
+    "instances" : 0,
+    "union" : [ "50", "45", "68", "35", "48", "39", "9", "69" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "31"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/Deletion",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Deletion"
+    },
+    "attributes" : [ "external" ],
+    "id" : "69"
+  }, {
+    "instances" : 0,
+    "union" : [ "12", "6" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "34"
+  }, {
+    "instances" : 0,
+    "union" : [ "26", "27" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "43"
+  }, {
+    "instances" : 0,
+    "union" : [ "26", "27" ],
+    "attributes" : [ "union", "anonymous" ],
+    "id" : "11"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/Protection",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Protection"
+    },
+    "attributes" : [ "external" ],
+    "id" : "68"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/CloseReason",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "CloseReason"
+    },
+    "attributes" : [ "external" ],
+    "id" : "51"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/SiteInfo",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "SiteInfo"
+    },
+    "attributes" : [ "external" ],
+    "id" : "14"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/Question",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Question"
+    },
+    "attributes" : [ "external" ],
+    "id" : "12"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/Badge",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "Badge"
+    },
+    "attributes" : [ "external" ],
+    "id" : "25"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t/EndOfBounty",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/t",
+    "instances" : 0,
+    "label" : {
+      "IRI-based" : "EndOfBounty"
+    },
+    "attributes" : [ "external" ],
+    "id" : "62"
+  } ],
+  "property" : [ {
+    "id" : "0",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "4",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "7",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "10",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "13",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "16",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "17",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "23",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "30",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "33",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "37",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "40",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "42",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "49",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "52",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "58",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "59",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "61",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "64",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "65",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "70",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "71",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "72",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "73",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "74",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "75",
+    "type" : "owl:objectProperty"
+  }, {
+    "id" : "76",
+    "type" : "owl:datatypeProperty"
+  }, {
+    "id" : "77",
+    "type" : "owl:datatypeProperty"
+  } ],
+  "propertyAttribute" : [ {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/up-votes",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "2",
+    "label" : {
+      "IRI-based" : "up-votes"
+    },
+    "domain" : "1",
+    "attributes" : [ "external", "datatype" ],
+    "id" : "0"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/answer",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "6",
+    "label" : {
+      "IRI-based" : "answer"
+    },
+    "domain" : "5",
+    "attributes" : [ "object", "external" ],
+    "id" : "4"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/tag-excerpt",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "8",
+    "label" : {
+      "IRI-based" : "tag-excerpt"
+    },
+    "domain" : "3",
+    "attributes" : [ "object", "external" ],
+    "id" : "7"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/favorite",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "12",
+    "label" : {
+      "IRI-based" : "favorite"
+    },
+    "domain" : "11",
+    "attributes" : [ "object", "external" ],
+    "id" : "10"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/is-meta",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "15",
+    "label" : {
+      "IRI-based" : "is-meta"
+    },
+    "domain" : "14",
+    "attributes" : [ "external", "datatype" ],
+    "id" : "13"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/duplicate",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "12",
+    "label" : {
+      "IRI-based" : "duplicate"
+    },
+    "domain" : "12",
+    "attributes" : [ "object", "external" ],
+    "id" : "16"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/reputation",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "19",
+    "label" : {
+      "IRI-based" : "reputation"
+    },
+    "domain" : "18",
+    "attributes" : [ "external", "datatype" ],
+    "id" : "17"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/badge",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "25",
+    "label" : {
+      "IRI-based" : "badge"
+    },
+    "domain" : "24",
+    "attributes" : [ "object", "external" ],
+    "id" : "23"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/participant",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "26",
+    "label" : {
+      "IRI-based" : "participant"
+    },
+    "domain" : "31",
+    "attributes" : [ "object", "external" ],
+    "id" : "30"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/tag",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "3",
+    "label" : {
+      "IRI-based" : "tag"
+    },
+    "domain" : "34",
+    "attributes" : [ "object", "external" ],
+    "id" : "33"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/owner",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "26",
+    "label" : {
+      "IRI-based" : "owner"
+    },
+    "domain" : "38",
+    "attributes" : [ "object", "external" ],
+    "id" : "37"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/site",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "14",
+    "label" : {
+      "IRI-based" : "site"
+    },
+    "domain" : "41",
+    "attributes" : [ "object", "external" ],
+    "id" : "40"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/account",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "44",
+    "label" : {
+      "IRI-based" : "account"
+    },
+    "domain" : "43",
+    "attributes" : [ "object", "external" ],
+    "id" : "42"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/reason",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "51",
+    "label" : {
+      "IRI-based" : "reason"
+    },
+    "domain" : "50",
+    "attributes" : [ "object", "external" ],
+    "id" : "49"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/score",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "54",
+    "label" : {
+      "IRI-based" : "score"
+    },
+    "domain" : "53",
+    "attributes" : [ "external", "datatype" ],
+    "id" : "52"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/last-seen",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "47",
+    "label" : {
+      "IRI-based" : "last-seen"
+    },
+    "domain" : "46",
+    "attributes" : [ "external", "datatype" ],
+    "id" : "58"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/comment",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "36",
+    "label" : {
+      "IRI-based" : "comment"
+    },
+    "domain" : "60",
+    "attributes" : [ "object", "external" ],
+    "id" : "59"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/viewCount",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "32",
+    "label" : {
+      "IRI-based" : "viewCount"
+    },
+    "domain" : "28",
+    "attributes" : [ "external", "datatype" ],
+    "id" : "61"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/tag-description",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "21",
+    "label" : {
+      "IRI-based" : "tag-description"
+    },
+    "domain" : "3",
+    "attributes" : [ "object", "external" ],
+    "id" : "64"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/donor",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "26",
+    "label" : {
+      "IRI-based" : "donor"
+    },
+    "domain" : "63",
+    "attributes" : [ "object", "external" ],
+    "id" : "65"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/offered-amount",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "29",
+    "label" : {
+      "IRI-based" : "offered-amount"
+    },
+    "domain" : "63",
+    "attributes" : [ "external", "datatype" ],
+    "id" : "70"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/accepted",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "6",
+    "label" : {
+      "IRI-based" : "accepted"
+    },
+    "domain" : "12",
+    "attributes" : [ "object", "external" ],
+    "id" : "71"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/event",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "67",
+    "label" : {
+      "IRI-based" : "event"
+    },
+    "domain" : "66",
+    "attributes" : [ "object", "external" ],
+    "id" : "72"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/last-edited",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "22",
+    "label" : {
+      "IRI-based" : "last-edited"
+    },
+    "domain" : "20",
+    "attributes" : [ "external", "datatype" ],
+    "id" : "73"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/parent",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "14",
+    "label" : {
+      "IRI-based" : "parent"
+    },
+    "domain" : "14",
+    "attributes" : [ "object", "external" ],
+    "id" : "74"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/post",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "12",
+    "label" : {
+      "IRI-based" : "post"
+    },
+    "domain" : "63",
+    "attributes" : [ "object", "external" ],
+    "id" : "75"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/transferred-bounty",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "56",
+    "label" : {
+      "IRI-based" : "transferred-bounty"
+    },
+    "domain" : "62",
+    "attributes" : [ "external", "datatype" ],
+    "id" : "76"
+  }, {
+    "iri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p/down-votes",
+    "baseIri" : "http://rdf.vis.uni-stuttgart.de/stackexchange/p",
+    "range" : "55",
+    "label" : {
+      "IRI-based" : "down-votes"
+    },
+    "domain" : "57",
+    "attributes" : [ "external", "datatype" ],
+    "id" : "77"
+  } ]
+}

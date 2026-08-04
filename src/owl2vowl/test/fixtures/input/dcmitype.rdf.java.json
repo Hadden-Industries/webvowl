@@ -1,0 +1,510 @@
+{
+  "_comment" : "Created with OWL2VOWL (version 0.3.7), http://vowl.visualdataweb.org",
+  "header" : {
+    "languages" : [ "en", "undefined" ],
+    "baseIris" : [ "http://www.w3.org/1999/02/22-rdf-syntax-ns", "http://www.w3.org/2000/01/rdf-schema", "http://www.w3.org/2001/XMLSchema", "http://purl.org/dc/dcmitype" ],
+    "prefixList" : {
+      "dcam" : "http://purl.org/dc/dcam/",
+      "owl" : "http://www.w3.org/2002/07/owl#",
+      "rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "dcterms" : "http://purl.org/dc/terms/",
+      "skos" : "http://www.w3.org/2004/02/skos/core#",
+      "xsd" : "http://www.w3.org/2001/XMLSchema#",
+      "xml" : "http://www.w3.org/XML/1998/namespace",
+      "rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
+    },
+    "iri" : "No IRI set"
+  },
+  "namespace" : [ ],
+  "class" : [ {
+    "id" : "0",
+    "type" : "owl:Class"
+  }, {
+    "id" : "1",
+    "type" : "owl:Class"
+  }, {
+    "id" : "2",
+    "type" : "owl:Class"
+  }, {
+    "id" : "4",
+    "type" : "owl:Class"
+  }, {
+    "id" : "5",
+    "type" : "owl:Class"
+  }, {
+    "id" : "6",
+    "type" : "owl:Class"
+  }, {
+    "id" : "7",
+    "type" : "owl:Class"
+  }, {
+    "id" : "3",
+    "type" : "owl:Class"
+  }, {
+    "id" : "11",
+    "type" : "owl:Class"
+  }, {
+    "id" : "12",
+    "type" : "owl:Class"
+  }, {
+    "id" : "8",
+    "type" : "owl:Class"
+  }, {
+    "id" : "13",
+    "type" : "owl:Class"
+  } ],
+  "classAttribute" : [ {
+    "iri" : "http://purl.org/dc/dcmitype/Service",
+    "baseIri" : "http://purl.org/dc/dcmitype",
+    "instances" : 0,
+    "description" : {
+      "en" : "Examples include a photocopying service, a banking service, an authentication service, interlibrary loans, a Z39.50 or Web server."
+    },
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/dcmitype/",
+        "type" : "iri"
+      } ],
+      "memberOf" : [ {
+        "identifier" : "memberOf",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/terms/DCMIType",
+        "type" : "iri"
+      } ],
+      "issued" : [ {
+        "identifier" : "issued",
+        "language" : "undefined",
+        "value" : "2000-07-11",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Service",
+      "en" : "Service"
+    },
+    "comment" : {
+      "en" : "A system that provides one or more functions."
+    },
+    "attributes" : [ "external" ],
+    "id" : "0"
+  }, {
+    "iri" : "http://purl.org/dc/dcmitype/Event",
+    "baseIri" : "http://purl.org/dc/dcmitype",
+    "instances" : 0,
+    "description" : {
+      "en" : "Metadata for an event provides descriptive information that is the basis for discovery of the purpose, location, duration, and responsible agents associated with an event. Examples include an exhibition, webcast, conference, workshop, open day, performance, battle, trial, wedding, tea party, conflagration."
+    },
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/dcmitype/",
+        "type" : "iri"
+      } ],
+      "memberOf" : [ {
+        "identifier" : "memberOf",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/terms/DCMIType",
+        "type" : "iri"
+      } ],
+      "issued" : [ {
+        "identifier" : "issued",
+        "language" : "undefined",
+        "value" : "2000-07-11",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Event",
+      "en" : "Event"
+    },
+    "comment" : {
+      "en" : "A non-persistent, time-based occurrence."
+    },
+    "attributes" : [ "external" ],
+    "id" : "1"
+  }, {
+    "iri" : "http://purl.org/dc/dcmitype/MovingImage",
+    "baseIri" : "http://purl.org/dc/dcmitype",
+    "instances" : 0,
+    "description" : {
+      "en" : "Examples include animations, movies, television programs, videos, zoetropes, or visual output from a simulation.  Instances of the type Moving Image must also be describable as instances of the broader type Image."
+    },
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/dcmitype/",
+        "type" : "iri"
+      } ],
+      "memberOf" : [ {
+        "identifier" : "memberOf",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/terms/DCMIType",
+        "type" : "iri"
+      } ],
+      "issued" : [ {
+        "identifier" : "issued",
+        "language" : "undefined",
+        "value" : "2003-11-18",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "MovingImage",
+      "en" : "Moving Image"
+    },
+    "comment" : {
+      "en" : "A series of visual representations imparting an impression of motion when shown in succession."
+    },
+    "attributes" : [ "external" ],
+    "id" : "2",
+    "superClasses" : [ "3" ]
+  }, {
+    "iri" : "http://purl.org/dc/dcmitype/InteractiveResource",
+    "baseIri" : "http://purl.org/dc/dcmitype",
+    "instances" : 0,
+    "description" : {
+      "en" : "Examples include forms on Web pages, applets, multimedia learning objects, chat services, or virtual reality environments."
+    },
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/dcmitype/",
+        "type" : "iri"
+      } ],
+      "memberOf" : [ {
+        "identifier" : "memberOf",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/terms/DCMIType",
+        "type" : "iri"
+      } ],
+      "issued" : [ {
+        "identifier" : "issued",
+        "language" : "undefined",
+        "value" : "2000-07-11",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "InteractiveResource",
+      "en" : "Interactive Resource"
+    },
+    "comment" : {
+      "en" : "A resource requiring interaction from the user to be understood, executed, or experienced."
+    },
+    "attributes" : [ "external" ],
+    "id" : "4"
+  }, {
+    "iri" : "http://purl.org/dc/dcmitype/Sound",
+    "baseIri" : "http://purl.org/dc/dcmitype",
+    "instances" : 0,
+    "description" : {
+      "en" : "Examples include a music playback file format, an audio compact disc, and recorded speech or sounds."
+    },
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/dcmitype/",
+        "type" : "iri"
+      } ],
+      "memberOf" : [ {
+        "identifier" : "memberOf",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/terms/DCMIType",
+        "type" : "iri"
+      } ],
+      "issued" : [ {
+        "identifier" : "issued",
+        "language" : "undefined",
+        "value" : "2000-07-11",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Sound",
+      "en" : "Sound"
+    },
+    "comment" : {
+      "en" : "A resource primarily intended to be heard."
+    },
+    "attributes" : [ "external" ],
+    "id" : "5"
+  }, {
+    "iri" : "http://purl.org/dc/dcmitype/Dataset",
+    "baseIri" : "http://purl.org/dc/dcmitype",
+    "instances" : 0,
+    "description" : {
+      "en" : "Examples include lists, tables, and databases.  A dataset may be useful for direct machine processing."
+    },
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/dcmitype/",
+        "type" : "iri"
+      } ],
+      "memberOf" : [ {
+        "identifier" : "memberOf",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/terms/DCMIType",
+        "type" : "iri"
+      } ],
+      "issued" : [ {
+        "identifier" : "issued",
+        "language" : "undefined",
+        "value" : "2000-07-11",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Dataset",
+      "en" : "Dataset"
+    },
+    "comment" : {
+      "en" : "Data encoded in a defined structure."
+    },
+    "attributes" : [ "external" ],
+    "id" : "6"
+  }, {
+    "iri" : "http://purl.org/dc/dcmitype/Text",
+    "baseIri" : "http://purl.org/dc/dcmitype",
+    "instances" : 0,
+    "description" : {
+      "en" : "Examples include books, letters, dissertations, poems, newspapers, articles, archives of mailing lists. Note that facsimiles or images of texts are still of the genre Text."
+    },
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/dcmitype/",
+        "type" : "iri"
+      } ],
+      "memberOf" : [ {
+        "identifier" : "memberOf",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/terms/DCMIType",
+        "type" : "iri"
+      } ],
+      "issued" : [ {
+        "identifier" : "issued",
+        "language" : "undefined",
+        "value" : "2000-07-11",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Text",
+      "en" : "Text"
+    },
+    "comment" : {
+      "en" : "A resource consisting primarily of words for reading."
+    },
+    "attributes" : [ "external" ],
+    "id" : "7"
+  }, {
+    "iri" : "http://purl.org/dc/dcmitype/Image",
+    "baseIri" : "http://purl.org/dc/dcmitype",
+    "instances" : 0,
+    "description" : {
+      "en" : "Examples include images and photographs of physical objects, paintings, prints, drawings, other images and graphics, animations and moving pictures, film, diagrams, maps, musical notation.  Note that Image may include both electronic and physical representations."
+    },
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/dcmitype/",
+        "type" : "iri"
+      } ],
+      "memberOf" : [ {
+        "identifier" : "memberOf",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/terms/DCMIType",
+        "type" : "iri"
+      } ],
+      "issued" : [ {
+        "identifier" : "issued",
+        "language" : "undefined",
+        "value" : "2000-07-11",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Image",
+      "en" : "Image"
+    },
+    "subClasses" : [ "2", "8" ],
+    "comment" : {
+      "en" : "A visual representation other than text."
+    },
+    "attributes" : [ "external" ],
+    "id" : "3"
+  }, {
+    "iri" : "http://purl.org/dc/dcmitype/PhysicalObject",
+    "baseIri" : "http://purl.org/dc/dcmitype",
+    "instances" : 0,
+    "description" : {
+      "en" : "Note that digital representations of, or surrogates for, these objects should use Image, Text or one of the other types."
+    },
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/dcmitype/",
+        "type" : "iri"
+      } ],
+      "memberOf" : [ {
+        "identifier" : "memberOf",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/terms/DCMIType",
+        "type" : "iri"
+      } ],
+      "issued" : [ {
+        "identifier" : "issued",
+        "language" : "undefined",
+        "value" : "2002-07-13",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "PhysicalObject",
+      "en" : "Physical Object"
+    },
+    "comment" : {
+      "en" : "An inanimate, three-dimensional object or substance."
+    },
+    "attributes" : [ "external" ],
+    "id" : "11"
+  }, {
+    "iri" : "http://purl.org/dc/dcmitype/Software",
+    "baseIri" : "http://purl.org/dc/dcmitype",
+    "instances" : 0,
+    "description" : {
+      "en" : "Examples include a C source file, MS-Windows .exe executable, or Perl script."
+    },
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/dcmitype/",
+        "type" : "iri"
+      } ],
+      "memberOf" : [ {
+        "identifier" : "memberOf",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/terms/DCMIType",
+        "type" : "iri"
+      } ],
+      "issued" : [ {
+        "identifier" : "issued",
+        "language" : "undefined",
+        "value" : "2000-07-11",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Software",
+      "en" : "Software"
+    },
+    "comment" : {
+      "en" : "A computer program in source or compiled form."
+    },
+    "attributes" : [ "external" ],
+    "id" : "12"
+  }, {
+    "iri" : "http://purl.org/dc/dcmitype/StillImage",
+    "baseIri" : "http://purl.org/dc/dcmitype",
+    "instances" : 0,
+    "description" : {
+      "en" : "Examples include paintings, drawings, graphic designs, plans and maps. Recommended best practice is to assign the type Text to images of textual materials. Instances of the type Still Image must also be describable as instances of the broader type Image."
+    },
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/dcmitype/",
+        "type" : "iri"
+      } ],
+      "memberOf" : [ {
+        "identifier" : "memberOf",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/terms/DCMIType",
+        "type" : "iri"
+      } ],
+      "issued" : [ {
+        "identifier" : "issued",
+        "language" : "undefined",
+        "value" : "2003-11-18",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "StillImage",
+      "en" : "Still Image"
+    },
+    "comment" : {
+      "en" : "A static visual representation."
+    },
+    "attributes" : [ "external" ],
+    "id" : "8",
+    "superClasses" : [ "3" ]
+  }, {
+    "iri" : "http://purl.org/dc/dcmitype/Collection",
+    "baseIri" : "http://purl.org/dc/dcmitype",
+    "instances" : 0,
+    "description" : {
+      "en" : "A collection is described as a group; its parts may also be separately described."
+    },
+    "annotations" : {
+      "isDefinedBy" : [ {
+        "identifier" : "isDefinedBy",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/dcmitype/",
+        "type" : "iri"
+      } ],
+      "memberOf" : [ {
+        "identifier" : "memberOf",
+        "language" : "undefined",
+        "value" : "http://purl.org/dc/terms/DCMIType",
+        "type" : "iri"
+      } ],
+      "issued" : [ {
+        "identifier" : "issued",
+        "language" : "undefined",
+        "value" : "2000-07-11",
+        "type" : "label"
+      } ]
+    },
+    "label" : {
+      "IRI-based" : "Collection",
+      "en" : "Collection"
+    },
+    "comment" : {
+      "en" : "An aggregation of resources."
+    },
+    "attributes" : [ "external" ],
+    "id" : "13"
+  } ],
+  "property" : [ {
+    "id" : "9",
+    "type" : "rdfs:SubClassOf"
+  }, {
+    "id" : "10",
+    "type" : "rdfs:SubClassOf"
+  } ],
+  "propertyAttribute" : [ {
+    "range" : "3",
+    "domain" : "2",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "9"
+  }, {
+    "range" : "3",
+    "domain" : "8",
+    "attributes" : [ "object", "anonymous" ],
+    "id" : "10"
+  } ]
+}
