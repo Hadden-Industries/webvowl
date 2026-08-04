@@ -1,3 +1,10 @@
 {
-  "type": "module"
+  "name": "owl2vowl",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.js",
+  "scripts": {
+    "test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest --testPathIgnorePatterns=\"src/owl2vowl/js/goldenMaster\\.test\\.js$\""
+  }
 }
