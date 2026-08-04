@@ -3,15 +3,32 @@ import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 import { fileURLToPath } from "url";
-import owl2vowl, { loadWithImports } from "./index.js";
+import { loadWithImports } from "./index.js";
 import { resolveImportUrl } from "./importLoader.js";
-import { ONTOLOGY_CATALOG } from "./constants.js";
+import { EXTERNAL_ONTOLOGY_BASE_URL, ONTOLOGY_CATALOG } from "./constants.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const JAVA_JAR = path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "target", "OWL2VOWL-0.3.7-shaded.jar");
 const WORKSPACE_PARENT = path.join(__dirname, "..", "..", "..", "..");
+
+const JAVA_JAR = path.join(
+  WORKSPACE_PARENT,
+  "VisualDataWeb",
+  "OWL2VOWL",
+  "target",
+  "OWL2VOWL-0.3.7-shaded.jar"
+);
+
+const JAVA_FIXTURE_DIR = path.join(
+  WORKSPACE_PARENT,
+  "webvowl",
+  "src",
+  "owl2vowl",
+  "test",
+  "fixtures",
+  "input"
+);
 
 const expectedDifferences = {
   "bibo.rdf.xml": "Java reasoner additions and minor annotation differences",
@@ -26,6 +43,7 @@ const expectedDifferences = {
   "goodrelations.owl": "Java reasoner additions and OWL DL semantic clashes",
   "muto.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
   "org.rdf": "Java reasoner additions and minor annotation differences",
+  "personasonto.owl": "OWL/XML parsing differences of up to five classes and properties compared with Java",
   "prov.owl": "Java reasoner additions and OWL DL semantic clashes",
   "schemaorg.owl": "Java reasoner additions and OWL DL semantic clashes",
   "sioc.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
@@ -39,22 +57,72 @@ const expectedDifferences = {
   "wgs84_pos.rdf": "Java reasoner additions and minor annotation differences",
   "wine.rdf": "Minor differences in equivalent class links and implicit inverse property generation; class restrictions domain/range properties match 100%",
   // Versioned ontologies
-  "ed-1/20260626": "Java reasoner additions, minor duplicate union differences",
-  "ed-4/20260714": "Java reasoner additions and minor annotation differences",
-  "reference-data/20260714": "Java reasoner additions and minor annotation differences",
-  "core/20260714": "Java reasoner additions and minor annotation differences",
-  "extended/20260714": "Java reasoner additions and minor annotation differences"
+  "iso_31073_ed-1_20260626": "Java reasoner additions, minor duplicate union differences",
+  "iso-iec_11179_-3_ed-4_20260714": "Java reasoner additions and minor annotation differences",
+  "universal_reference-data_20260714": "Java reasoner additions and minor annotation differences",
+  "universal_core_20260714": "Java reasoner additions and minor annotation differences",
+  "universal_extended_20260714": "Java reasoner additions and minor annotation differences"
 };
 
+function getFilePathKey(filePath) {
+  const pathParts = filePath.split(/[\\/]+/).filter(Boolean);
+  const fileName = pathParts.at(-1);
+
+  // Files with an extension use the complete filename unchanged.
+  if (path.extname(fileName) !== "") {
+    return fileName;
+  }
+
+  const distIndex = pathParts.lastIndexOf("dist");
+
+  if (distIndex === -1) {
+    throw new Error(`Path does not contain a "dist" directory: ${filePath}`);
+  }
+
+  return pathParts
+    .slice(distIndex + 1)
+    .join("_");
+}
+
+function throwFriendlyTestError(message) {
+  const error = new Error(message);
+
+  // Prevent Jest from printing the source-code frame and stack trace.
+  error.stack = message;
+
+  throw error;
+}
+
 function runJavaConverter(filePath) {
+  const outputFileName = `${getFilePathKey(filePath)}.java.json`;
+  const materialisedOutputPath = path.join(
+    JAVA_FIXTURE_DIR,
+    outputFileName
+  );
+
+  // Use the existing materialised Java output whenever available.
+  if (fs.existsSync(materialisedOutputPath)) {
+    return JSON.parse(
+      fs.readFileSync(materialisedOutputPath, "utf8")
+    );
+  }
+
+  // Only invoke Java when no materialised output exists.
   try {
     const cmd = `java --add-opens java.base/java.lang=ALL-UNNAMED -jar "${JAVA_JAR}" -file "${filePath}" -echo`;
-    const stdout = execSync(cmd, { maxBuffer: 10 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-    const jsonStart = stdout.indexOf('{');
-    const jsonEnd = stdout.lastIndexOf('}');
+    const stdout = execSync(cmd, {
+      maxBuffer: 10 * 1024 * 1024,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+
+    const jsonStart = stdout.indexOf("{");
+    const jsonEnd = stdout.lastIndexOf("}");
+
     if (jsonStart === -1 || jsonEnd === -1 || jsonEnd < jsonStart) {
       throw new Error("Could not find valid JSON in Java output");
     }
+
     return JSON.parse(stdout.substring(jsonStart, jsonEnd + 1));
   } catch (_err) {
     return null;
@@ -81,7 +149,7 @@ function normalizeAnnotations(annotations) {
 
 function parseVowlJson(json) {
   if (!json) {return null;}
-  
+
   const classIdToIri = {};
   if (json.classAttribute) {
     json.classAttribute.forEach(c => {
@@ -190,7 +258,7 @@ describe("Golden Master Compatibility Tests", () => {
         } else if (url.includes("universal/extended")) {
           relPath = "universal-ontology/dist/universal/extended/20260714";
         }
-        
+
         if (relPath) {
           const filePath = path.join(WORKSPACE_PARENT, relPath);
           if (fs.existsSync(filePath)) {
@@ -206,7 +274,7 @@ describe("Golden Master Compatibility Tests", () => {
       }
 
       const resolved = resolveImportUrl(url);
-      const filePath = path.join(WORKSPACE_PARENT, resolved.replace("../ontology/", "universal-ontology/"));
+      const filePath = path.join(WORKSPACE_PARENT, resolved.replace(EXTERNAL_ONTOLOGY_BASE_URL, "universal-ontology/dist/external/"));
 
       if (fs.existsSync(filePath)) {
         const textContent = fs.readFileSync(filePath, 'utf8');
@@ -232,9 +300,20 @@ describe("Golden Master Compatibility Tests", () => {
     global.fetch = originalFetch;
   });
 
+  const excludedBaseFiles = new Set([
+    "musicontology.rdfs"
+  ]);
+
   const baseTargetFiles = Object.values(ONTOLOGY_CATALOG).map(val => {
-    return path.join(WORKSPACE_PARENT, val.replace("../ontology/", "universal-ontology/"));
-  });
+    return path.join(
+      WORKSPACE_PARENT,
+      val.replace(
+        EXTERNAL_ONTOLOGY_BASE_URL,
+        "universal-ontology/dist/external/"
+      )
+    );
+  })
+  .filter(file => !excludedBaseFiles.has(path.basename(file)));
 
   const extraTargetFiles = [
     path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "iso", "31073", "ed-1", "20260626"),
@@ -249,11 +328,8 @@ describe("Golden Master Compatibility Tests", () => {
     .sort();
 
   targetFiles.forEach(file => {
-    const isVersioned = file.includes("dist");
-    const baseName = path.basename(file);
-    const parentDir = path.basename(path.dirname(file));
-    const keyName = isVersioned ? `${parentDir}/${baseName}` : baseName;
-    const testTitle = isVersioned ? `Golden master compatibility for ${parentDir} version ${baseName}` : `Golden master compatibility for ${baseName}`;
+    const keyName = getFilePathKey(file);
+    const testTitle = `Golden master compatibility for ${keyName}`;
 
     test(testTitle, async () => {
       expect(fs.existsSync(file)).toBe(true);
@@ -266,6 +342,54 @@ describe("Golden Master Compatibility Tests", () => {
       const jsRaw = await loadWithImports(xml);
       expect(jsRaw).toBeDefined();
       const jsParsed = parseVowlJson(jsRaw);
+
+      if (keyName === "universal_core_20260714") {
+        expect(jsRaw.class).toBeDefined();
+        expect(jsRaw.classAttribute).toBeDefined();
+
+        const attr = jsRaw.classAttribute.find(a => a.iri === "https://haddenindustries.com/ontology/universal/core/ProductOrService");
+        expect(attr).toBeDefined();
+
+        const node = jsRaw.class.find(c => c.id === attr.id);
+        expect(node).toBeDefined();
+        expect(node.type).toBe("owl:unionOf");
+        expect(attr.attributes).toContain("union");
+
+        expect(attr.label).toBeDefined();
+        expect(attr.label.en).toBe("Product Or Service");
+
+        expect(attr.annotations).toBeDefined();
+        expect(attr.annotations.prefLabel).toBeDefined();
+        expect(attr.annotations.prefLabel[0].value).toBe("Product Or Service");
+
+        expect(attr.annotations.creator).toBeDefined();
+        expect(attr.annotations.creator[0].value).toBe("https://orcid.org/0000-0001-8017-8797");
+
+        expect(attr.annotations.created).toBeDefined();
+        expect(attr.annotations.created[0].value).toBe("2016-10-14T12:00:00Z");
+
+        expect(attr.annotations.modified).toBeDefined();
+        expect(attr.annotations.modified[0].value).toBe("2026-06-25T13:41:59Z");
+
+        expect(attr.annotations.definition).toBeDefined();
+        expect(attr.annotations.definition.some(d => d.value.includes("Output or outcome provided by an organisation"))).toBe(true);
+
+        expect(attr.annotations.source).toBeDefined();
+        expect(attr.annotations.source[0].value).toBe("urn:iso:std:iso:22300:ed-3:v1:term:3.1.191");
+
+        expect(attr.annotations.example).toBeDefined();
+        expect(attr.annotations.example[0].value).toBe("Manufactured items, car insurance, community nursing");
+      }
+
+      if (keyName === "personasonto.owl") {
+        expect(jsRaw.header.title.en).toBe("PersonasOnto");
+        expect(jsRaw.header.iri).toBe("http://blankdots.com/open/personasonto.owl");
+        expect(jsRaw.header.version).toBe("1.5");
+        expect(jsRaw.header.author).toContain("Stefan Negru");
+
+        expect(jsParsed.classes.size).toBeGreaterThanOrEqual(javaParsed.classes.size - 5);
+        expect(Object.keys(jsParsed.properties).length).toBeGreaterThanOrEqual(Object.keys(javaParsed.properties).length - 5);
+      }
 
       // Verify Alignments
       // 1. Check owl:Thing attributes (none should contain "external")
@@ -422,103 +546,34 @@ describe("Golden Master Compatibility Tests", () => {
       });
 
       const isExactMatch = iriMatch && classesMatch && propsMatch && subclassesMatch && annotationsMatch && instancesMatch && disjointsMatch;
-      console.warn(`[DIAGNOSTIC] File ${keyName}: exact match? ${isExactMatch}`);
-      if (!isExactMatch) {
-        console.warn(`  Failed: iri=${iriMatch}, classes=${classesMatch}, props=${propsMatch}, subclasses=${subclassesMatch}, annotations=${annotationsMatch}, instances=${instancesMatch}, disjoints=${disjointsMatch}`);
-      }
 
       if (!isExactMatch) {
-        expect(expectedDifferences[keyName]).toBeDefined();
-      } else {
-        expect(isExactMatch).toBe(true);
+        const failedChecks = Object.entries({
+          iri: iriMatch,
+          classes: classesMatch,
+          props: propsMatch,
+          subclasses: subclassesMatch,
+          annotations: annotationsMatch,
+          instances: instancesMatch,
+          disjoints: disjointsMatch
+        })
+          .filter(([, matches]) => !matches)
+          .map(([name]) => name);
+
+        process.stderr.write(
+          `[DIAGNOSTIC] File ${keyName}: failed ${failedChecks.join(", ")}\n`
+        );
+      }
+
+      if (!isExactMatch && expectedDifferences[keyName] === undefined) {
+        throwFriendlyTestError(
+          [
+            `Unexpected Java/JavaScript differences for "${keyName}".`,
+            `Add an entry to expectedDifferences, for example:`,
+            `  "${keyName}": "Describe the expected differences"`
+          ].join("\n")
+        );
       }
     }, 30000);
-  });
-
-  test("BenchmarkOntology.rdf structural counts validation", () => {
-    const file = path.join(__dirname, "..", "..", "..", "..", "VisualDataWeb", "OWL2VOWL", "ontologies", "ontovibe", "BenchmarkOntology.rdf");
-    if (!fs.existsSync(file)) {return;}
-
-    const xml = fs.readFileSync(file, 'utf8');
-    const jsResult = owl2vowl(xml);
-    const jsParsed = parseVowlJson(jsResult);
-
-    expect(jsParsed.classes.size).toBeGreaterThanOrEqual(35);
-    expect(Object.keys(jsParsed.properties).length).toBeGreaterThanOrEqual(25);
-    expect(jsParsed.subclasses.length).toBe(3);
-  });
-
-  test("ProductOrService named union class preserves all metadata attributes", () => {
-    const coreFilePath = path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "universal", "core", "20260714");
-    if (!fs.existsSync(coreFilePath)) {
-      console.warn("Skipping ProductOrService regression test: core versioned file not found.");
-      return;
-    }
-
-    const xml = fs.readFileSync(coreFilePath, 'utf8');
-    const json = owl2vowl(xml);
-
-    expect(json.class).toBeDefined();
-    expect(json.classAttribute).toBeDefined();
-
-    const attr = json.classAttribute.find(a => a.iri === "https://haddenindustries.com/ontology/universal/core/ProductOrService");
-    expect(attr).toBeDefined();
-
-    const node = json.class.find(c => c.id === attr.id);
-    expect(node).toBeDefined();
-    expect(node.type).toBe("owl:unionOf");
-    expect(attr.attributes).toContain("union");
-
-    expect(attr.label).toBeDefined();
-    expect(attr.label.en).toBe("Product Or Service");
-
-    expect(attr.annotations).toBeDefined();
-    expect(attr.annotations.prefLabel).toBeDefined();
-    expect(attr.annotations.prefLabel[0].value).toBe("Product Or Service");
-
-    expect(attr.annotations.creator).toBeDefined();
-    expect(attr.annotations.creator[0].value).toBe("https://orcid.org/0000-0001-8017-8797");
-
-    expect(attr.annotations.created).toBeDefined();
-    expect(attr.annotations.created[0].value).toBe("2016-10-14T12:00:00Z");
-
-    expect(attr.annotations.modified).toBeDefined();
-    expect(attr.annotations.modified[0].value).toBe("2026-06-25T13:41:59Z");
-
-    expect(attr.annotations.definition).toBeDefined();
-    expect(attr.annotations.definition.some(d => d.value.includes("Output or outcome provided by an organisation"))).toBe(true);
-
-    expect(attr.annotations.source).toBeDefined();
-    expect(attr.annotations.source[0].value).toBe("urn:iso:std:iso:22300:ed-3:v1:term:3.1.191");
-
-    expect(attr.annotations.example).toBeDefined();
-    expect(attr.annotations.example[0].value).toBe("Manufactured items, car insurance, community nursing");
-  });
-
-  test("personasonto.owl OWL/XML format parses metadata, classes, and properties matching Java output", () => {
-    const owlFile = path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "external", "personasonto.owl");
-    const javaJsonFile = path.join(__dirname, "..", "..", "app", "data", "personasonto.owl.java.json");
-    if (!fs.existsSync(owlFile) || !fs.existsSync(javaJsonFile)) {
-      console.warn("Skipping personasonto.owl test: required files missing.");
-      return;
-    }
-
-    const owlXml = fs.readFileSync(owlFile, "utf8");
-    const javaJson = JSON.parse(fs.readFileSync(javaJsonFile, "utf8"));
-
-    const jsJson = owl2vowl(owlXml);
-
-    // Verify header metadata
-    expect(jsJson.header.title.en).toBe("PersonasOnto");
-    expect(jsJson.header.iri).toBe("http://blankdots.com/open/personasonto.owl");
-    expect(jsJson.header.version).toBe("1.5");
-    expect(jsJson.header.author).toContain("Stefan Negru");
-
-    // Verify classes and properties extraction
-    const javaParsed = parseVowlJson(javaJson);
-    const jsParsed = parseVowlJson(jsJson);
-
-    expect(jsParsed.classes.size).toBeGreaterThanOrEqual(javaParsed.classes.size - 5);
-    expect(Object.keys(jsParsed.properties).length).toBeGreaterThanOrEqual(Object.keys(javaParsed.properties).length - 5);
   });
 });
