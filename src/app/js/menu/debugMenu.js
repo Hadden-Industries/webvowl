@@ -49,13 +49,8 @@ module.exports = function ( graph ){
   
   
   function addCheckBox( identifier, modeName, selector, onChangeFunc, _callbackFunction ){
-    const configOptionContainer = d3.select(selector)
-      .append("div")
-      .classed("checkboxContainer", true);
-    const configCheckbox = configOptionContainer.append("input")
-      .classed("moduleCheckbox", true)
-      .attr("id", identifier + "ConfigCheckbox")
-      .attr("type", "checkbox")
+    const configOptionContainer = d3.select(selector);
+    const configCheckbox = configOptionContainer.select("#" + identifier + "ConfigCheckbox")
       .property("checked", onChangeFunc());
     
     
@@ -67,9 +62,6 @@ module.exports = function ( graph ){
       
     });
     checkboxes.push(configCheckbox);
-    configOptionContainer.append("label")
-      .attr("for", identifier + "ConfigCheckbox")
-      .text(modeName);
     
     return configCheckbox;
   }

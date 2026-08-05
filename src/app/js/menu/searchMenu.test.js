@@ -228,13 +228,18 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       ],
       locateSearchResult: () => {},
       resetSearchHighlight: () => {},
-      highLightNodes: () => {},
+      highLightNodes: () => {
+        if (mockGraph.searchMenu) {
+          mockGraph.searchMenu.updateLocateButtonVisibility(true);
+        }
+      },
       getNodeMapForSearch: () => ({ "1": {} })
     };
   });
 
   test("expands mobile search overlay when mobile toggle button is clicked", () => {
     const searchMenu = searchMenuFactory(mockGraph);
+    mockGraph.searchMenu = searchMenu;
     searchMenu.setup();
 
     expect(cSearch.classList.contains("search-expanded")).toBe(false);
@@ -370,6 +375,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
 
   test("selects the active search suggestion with Enter", () => {
     const searchMenu = searchMenuFactory(mockGraph);
+    mockGraph.searchMenu = searchMenu;
     searchMenu.setup();
     searchInput.value = "Per";
     searchInput.dispatchEvent({ type: "input", target: searchInput });
@@ -387,6 +393,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     mockGraph.locateSearchResult = () => { locateCount++; };
 
     const searchMenu = searchMenuFactory(mockGraph);
+    mockGraph.searchMenu = searchMenu;
     searchMenu.setup();
 
     const locateBtn = mockDoc.elements["locateSearchResult"];
@@ -427,5 +434,66 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     expect(locateBtn.title).toBe("Nothing to locate");
     expect(locateBtn.getAttribute("aria-label")).toBe("Nothing to locate");
     expect(locateBtn.classList.contains("highlighted")).toBe(false);
+  });
+
+  test("clearing search or loading new ontology resets locateAvailable so setMenuMode(true) does not re-highlight locate button", () => {
+    const searchMenu = searchMenuFactory(mockGraph);
+    mockGraph.searchMenu = searchMenu;
+    const locateBtn = mockDoc.elements["locateSearchResult"];
+
+    searchMenu.setup();
+    searchMenu.setMenuMode(true);
+
+    searchInput.value = "Person";
+    searchInput.dispatchEvent({ type: "input", target: searchInput });
+
+    // Select search option
+    const mockOption = new MockElement("", "search-option", "li");
+    mockOption.setAttribute("elementID", "0");
+    listbox.appendChild(mockOption);
+    listbox.dispatchEvent({ type: "click", target: mockOption, stopPropagation: () => {} });
+
+    expect(locateBtn.classList.contains("highlighted")).toBe(true);
+
+    // Simulate loading a new ontology: searchMenu.clearText() is invoked
+    searchMenu.clearText();
+
+    expect(locateBtn.classList.contains("highlighted")).toBe(false);
+
+    // When graph finishes loading, setMenuMode(true) is called
+    searchMenu.setMenuMode(true);
+
+    // The locate button MUST NOT re-highlight
+    expect(locateBtn.classList.contains("highlighted")).toBe(false);
+    expect(locateBtn.disabled).toBe(true);
+    expect(locateBtn.title).toBe("Nothing to locate");
+  });
+
+  test("automatically disables and unhighlights locateSearchResult whenever search input text becomes empty", () => {
+    const searchMenu = searchMenuFactory(mockGraph);
+    mockGraph.searchMenu = searchMenu;
+    const locateBtn = mockDoc.elements["locateSearchResult"];
+
+    searchMenu.setup();
+    searchMenu.setMenuMode(true);
+
+    searchInput.value = "Person";
+    searchInput.dispatchEvent({ type: "input", target: searchInput });
+
+    const mockOption = new MockElement("", "search-option", "li");
+    mockOption.setAttribute("elementID", "0");
+    listbox.appendChild(mockOption);
+    listbox.dispatchEvent({ type: "click", target: mockOption, stopPropagation: () => {} });
+
+    expect(locateBtn.disabled).toBe(false);
+    expect(locateBtn.classList.contains("highlighted")).toBe(true);
+
+    // User deletes search text via backspace/typing
+    searchInput.value = "";
+    searchInput.dispatchEvent({ type: "input", target: searchInput });
+
+    expect(locateBtn.disabled).toBe(true);
+    expect(locateBtn.classList.contains("highlighted")).toBe(false);
+    expect(locateBtn.title).toBe("Nothing to locate");
   });
 });

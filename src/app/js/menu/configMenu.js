@@ -10,34 +10,11 @@ module.exports = function ( graph ){
   
   
   function addLabelWidthSlider( selector, identifier, label, onChangeFunction ){
-    const sliderContainer = d3.select(selector)
-      .append("div")
-      .classed("distanceSliderContainer", true);
-
-    const sliderHeader = sliderContainer.append("div")
-      .classed("slider-header", true);
-
-    sliderHeader.append("label")
-      .classed("description", true)
-      .attr("for", identifier + "Slider")
-      .text(label);
-
-    const sliderValueLabel = sliderHeader.append("span")
-      .classed("slider-value", true)
-      .attr("id", identifier + "SliderValue")
+    const sliderContainer = d3.select(selector);
+    const sliderValueLabel = sliderContainer.select("#" + identifier + "SliderValue")
       .text(onChangeFunction());
-
-    const touchWrapper = sliderContainer.append("div")
-      .classed("range-touch-wrapper", true);
-
-    const slider = touchWrapper.append("input")
-      .attr("id", identifier + "Slider")
-      .attr("type", "range")
-      .attr("min", 20)
-      .attr("max", 600)
-      .attr("value", onChangeFunction())
-      .attr("step", 10)
-      .attr("aria-label", label);
+    const slider = sliderContainer.select("#" + identifier + "Slider")
+      .attr("value", onChangeFunction());
     
     slider.on("input", function (){
       const value = slider.property("value");
@@ -66,13 +43,8 @@ module.exports = function ( graph ){
   }
   
   function addCheckBox( identifier, modeName, selector, onChangeFunc, updateLvl ){
-    const configOptionContainer = d3.select(selector)
-      .append("div")
-      .classed("checkboxContainer", true);
-    const configCheckbox = configOptionContainer.append("input")
-      .classed("moduleCheckbox", true)
-      .attr("id", identifier + "ConfigCheckbox")
-      .attr("type", "checkbox")
+    const configOptionContainer = d3.select(selector);
+    const configCheckbox = configOptionContainer.select("#" + identifier + "ConfigCheckbox")
       .property("checked", onChangeFunc());
     
     
@@ -97,9 +69,6 @@ module.exports = function ( graph ){
       
     });
     checkboxes.push(configCheckbox);
-    configOptionContainer.append("label")
-      .attr("for", identifier + "ConfigCheckbox")
-      .text(modeName);
   }
   
   configMenu.setCheckBoxValue = function ( identifier, value ){

@@ -47,14 +47,8 @@ module.exports = function ( graph ){
     colorModeSwitch = addExternalModeSelection(container, colorExternals);
   };
   function addCheckBoxD( identifier, modeName, selector, onChangeFunc, updateLvl ){
-    const moduleOptionContainer = d3.select(selector)
-      .append("div")
-      .classed("checkboxContainer", true);
-    
-    const moduleCheckbox = moduleOptionContainer.append("input")
-      .classed("moduleCheckbox", true)
-      .attr("id", identifier + "ModuleCheckbox")
-      .attr("type", "checkbox")
+    const moduleOptionContainer = d3.select(selector);
+    const moduleCheckbox = moduleOptionContainer.select("#" + identifier + "ModuleCheckbox")
       .property("checked", onChangeFunc());
     
     moduleCheckbox.on("click", function ( d ){
@@ -69,27 +63,13 @@ module.exports = function ( graph ){
         // graph.lazyRefresh();
       }
     });
-    moduleOptionContainer.append("label")
-      .attr("for", identifier + "ModuleCheckbox")
-      .text(modeName);
-    if ( identifier === "editorMode" ) {
-      moduleOptionContainer.append("span")
-        .attr("class", "experimental-label")
-        .text("(experimental)");
-    }
     
     dynamicLabelWidthCheckBox = moduleCheckbox;
   }
   
   function addCheckBox( identifier, modeName, selector, onChangeFunc ){
-    const moduleOptionContainer = d3.select(selector)
-      .append("div")
-      .classed("checkboxContainer", true);
-    
-    const moduleCheckbox = moduleOptionContainer.append("input")
-      .classed("moduleCheckbox", true)
-      .attr("id", identifier + "ModuleCheckbox")
-      .attr("type", "checkbox")
+    const moduleOptionContainer = d3.select(selector);
+    const moduleCheckbox = moduleOptionContainer.select("#" + identifier + "ModuleCheckbox")
       .property("checked", onChangeFunc());
     
     moduleCheckbox.on("click", function ( d ){
@@ -98,27 +78,12 @@ module.exports = function ( graph ){
       if ( isEnabled === true )
         {graph.showEditorHintIfNeeded();}
     });
-    moduleOptionContainer.append("label")
-      .attr("for", identifier + "ModuleCheckbox")
-      .text(modeName);
-    if ( identifier === "editorMode" ) {
-      moduleOptionContainer.append("span")
-        .attr("class", "experimental-label")
-        .text(" (experimental)");
-    }
   }
   
   function addModeItem( module, identifier, modeName, selector, updateGraphOnClick ){
-    const moduleOptionContainer = d3.select(selector)
-      .append("div")
-      .classed("checkboxContainer", true)
-      .datum({ module: module, defaultState: module.enabled() });
-    
-    const moduleCheckbox = moduleOptionContainer.append("input")
+    const moduleOptionContainer = d3.select(selector);
+    const moduleCheckbox = moduleOptionContainer.select("#" + identifier + "ModuleCheckbox")
       .datum({ module: module, defaultState: module.enabled() })
-      .classed("moduleCheckbox", true)
-      .attr("id", identifier + "ModuleCheckbox")
-      .attr("type", "checkbox")
       .property("checked", module.enabled());
     
     // Store for easier resetting all modes
@@ -136,15 +101,11 @@ module.exports = function ( graph ){
       }
     });
     
-    moduleOptionContainer.append("label")
-      .attr("for", identifier + "ModuleCheckbox")
-      .text(modeName);
-    
     return moduleOptionContainer;
   }
   
   function addExternalModeSelection( container, colorExternalsMode ){
-    const button = container.append("button").datum({ active: false }).classed("color-mode-switch", true);
+    const button = container.select(".color-mode-switch").datum({ active: false });
     applyColorModeSwitchState(button, colorExternalsMode);
     
     button.on("click", function ( arg1, arg2 ){

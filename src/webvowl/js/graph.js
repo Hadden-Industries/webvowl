@@ -1689,8 +1689,9 @@ function createGraph( graphContainerSelector ){
     nodeArrayForPulse = [];
     pulseNodeIds = [];
     locationId = 0;
-    d3.select("#locateSearchResult").classed("highlighted", false);
-    d3.select("#locateSearchResult").node().title = "Nothing to locate";
+    if ( options.searchMenu && options.searchMenu() && options.searchMenu().clearText ) {
+      options.searchMenu().clearText();
+    }
     graph.clearGraphData();
     
     if ( init ) {
@@ -2415,15 +2416,9 @@ function createGraph( graphContainerSelector ){
       }
     }
     locationId = 0;
-    if ( pulseNodeIds.length > 0 ) {
-      d3.select("#locateSearchResult").classed("highlighted", true);
-      d3.select("#locateSearchResult").node().title = "Locate search term";
+    if ( options.searchMenu && options.searchMenu() && options.searchMenu().updateLocateButtonVisibility ) {
+      options.searchMenu().updateLocateButtonVisibility(pulseNodeIds.length > 0);
     }
-    else {
-      d3.select("#locateSearchResult").classed("highlighted", false);
-      d3.select("#locateSearchResult").node().title = "Nothing to locate";
-    }
-    
   };
   
   graph.highLightNodes = function ( nodeIdArray ){
@@ -2478,13 +2473,10 @@ function createGraph( graphContainerSelector ){
         }
       }
     }
-    if ( missedIds.length === nodeIdArray.length ) {
-      d3.select("#locateSearchResult").classed("highlighted", false);
-    }
-    else {
-      d3.select("#locateSearchResult").classed("highlighted", true);
-    }
     locationId = 0;
+    if ( options.searchMenu && options.searchMenu() && options.searchMenu().updateLocateButtonVisibility ) {
+      options.searchMenu().updateLocateButtonVisibility(missedIds.length < nodeIdArray.length);
+    }
     updateHaloRadius();
   };
   

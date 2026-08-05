@@ -96,18 +96,13 @@ module.exports = function ( graph ){
   }
 
   zoomSlider.setup = function (){
-    slider = d3.select("#zoomSliderParagraph").append("input")
+    slider = d3.select("#zoomSliderElement")
       .datum({})
-      .attr("id", "zoomSliderElement")
-      .attr("type", "range")
       .attr("value", defZoom)
       .attr("min", minMag)
       .attr("max", maxMag)
       .attr("step", (maxMag - minMag) / 40)
-      .attr("aria-label", "Zoom level")
-      .attr("aria-orientation", "vertical")
       .attr("aria-valuetext", zoomPercentage(defZoom))
-      .attr("title", "Zoom level")
       .property("disabled", !controlsEnabled)
       .on("input", function (){
         zoomSlider.zooming();

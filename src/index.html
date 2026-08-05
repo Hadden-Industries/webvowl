@@ -241,11 +241,36 @@
                 </div>
                 <div class="popover-content">
                     <ul class="popover-menu-list">
-                        <li class="toggleOption" id="datatypeFilteringOption"></li>
-                        <li class="toggleOption" id="objectPropertyFilteringOption"></li>
-                        <li class="toggleOption" id="subclassFilteringOption"></li>
-                        <li class="toggleOption" id="disjointFilteringOption"></li>
-                        <li class="toggleOption" id="setOperatorFilteringOption"></li>
+                        <li class="toggleOption" id="datatypeFilteringOption">
+                            <div class="checkboxContainer">
+                                <input class="filterCheckbox" id="datatypeFilterCheckbox" type="checkbox">
+                                <label for="datatypeFilterCheckbox">Datatypes</label>
+                            </div>
+                        </li>
+                        <li class="toggleOption" id="objectPropertyFilteringOption">
+                            <div class="checkboxContainer">
+                                <input class="filterCheckbox" id="objectPropertyFilterCheckbox" type="checkbox">
+                                <label for="objectPropertyFilterCheckbox">Object properties</label>
+                            </div>
+                        </li>
+                        <li class="toggleOption" id="subclassFilteringOption">
+                            <div class="checkboxContainer">
+                                <input class="filterCheckbox" id="subclassFilterCheckbox" type="checkbox">
+                                <label for="subclassFilterCheckbox">Subclass relationships</label>
+                            </div>
+                        </li>
+                        <li class="toggleOption" id="disjointFilteringOption">
+                            <div class="checkboxContainer">
+                                <input class="filterCheckbox" id="disjointFilterCheckbox" type="checkbox">
+                                <label for="disjointFilterCheckbox">Disjoint with relationships</label>
+                            </div>
+                        </li>
+                        <li class="toggleOption" id="setOperatorFilteringOption">
+                            <div class="checkboxContainer">
+                                <input class="filterCheckbox" id="setoperatorFilterCheckbox" type="checkbox">
+                                <label for="setoperatorFilterCheckbox">Set operators</label>
+                            </div>
+                        </li>
                         <li class="slideOption" id="nodeDegreeFilteringOption">
                             <div class="distanceSliderContainer">
                                 <div class="slider-header">
@@ -253,7 +278,7 @@
                                     <span class="slider-value" id="nodeDegreeSliderValue">0</span>
                                 </div>
                                 <div class="range-touch-wrapper">
-                                    <input id="nodeDegreeDistanceSlider" type="range" min="0" step="1">
+                                    <input id="nodeDegreeDistanceSlider" type="range" min="0" value="0" step="1">
                                 </div>
                                 <span id="degree-of-collapsing-hint" class="degree-of-collapsing-hint tool-hint hidden">Showing only the most connected nodes for a fast, clear view. Adjust the filter to dial in the level of detail you need.</span>
                             </div>
@@ -274,15 +299,71 @@
                 </div>
                 <div class="popover-content">
                     <ul class="popover-menu-list">
-                        <li class="toggleOption" id="zoomSliderOption"></li>
+                        <li class="toggleOption" id="zoomSliderOption">
+                            <div class="checkboxContainer">
+                                <input class="moduleCheckbox" id="showZoomSliderConfigCheckbox" type="checkbox">
+                                <label for="showZoomSliderConfigCheckbox">Zoom controls</label>
+                            </div>
+                        </li>
 
-                        <li class="slideOption" id="classSliderOption"></li>
-                        <li class="slideOption" id="datatypeSliderOption"></li>
-                        <li class="toggleOption" id="dynamicLabelWidth"></li>
-                        <li class="slideOption" id="maxLabelWidthSliderOption"></li>
-                        <li class="toggleOption" id="nodeScalingOption"></li>
-                        <li class="toggleOption" id="compactNotationOption"></li>
-                        <li class="toggleOption" id="colorExternalsOption"></li>
+                        <li class="slideOption" id="classSliderOption">
+                            <div class="distanceSliderContainer">
+                                <div class="slider-header">
+                                    <label class="description" for="classDistanceSlider">Class distance</label>
+                                    <span class="slider-value" id="classDistanceSliderValue">200</span>
+                                </div>
+                                <div class="range-touch-wrapper">
+                                    <input id="classDistanceSlider" type="range" min="10" max="600" value="200" step="10">
+                                </div>
+                            </div>
+                        </li>
+                        <li class="slideOption" id="datatypeSliderOption">
+                            <div class="distanceSliderContainer">
+                                <div class="slider-header">
+                                    <label class="description" for="datatypeDistanceSlider">Datatype distance</label>
+                                    <span class="slider-value" id="datatypeDistanceSliderValue">120</span>
+                                </div>
+                                <div class="range-touch-wrapper">
+                                    <input id="datatypeDistanceSlider" type="range" min="10" max="600" value="120" step="10">
+                                </div>
+                            </div>
+                        </li>
+                        <li class="toggleOption" id="dynamicLabelWidth">
+                            <div class="checkboxContainer">
+                                <input class="moduleCheckbox" id="labelWidthModuleCheckbox" type="checkbox">
+                                <label for="labelWidthModuleCheckbox">Dynamic label width</label>
+                            </div>
+                        </li>
+                        <li class="slideOption" id="maxLabelWidthSliderOption">
+                            <div class="distanceSliderContainer">
+                                <div class="slider-header">
+                                    <label class="description" id="maxLabelWidthDescriptionLabel" for="maxLabelWidthSlider">Max label width</label>
+                                    <span class="slider-value" id="maxLabelWidthSliderValue">80</span>
+                                </div>
+                                <div class="range-touch-wrapper">
+                                    <input id="maxLabelWidthSlider" type="range" min="20" max="600" value="80" step="10">
+                                </div>
+                            </div>
+                        </li>
+                        <li class="toggleOption" id="nodeScalingOption">
+                            <div class="checkboxContainer">
+                                <input class="moduleCheckbox" id="nodescalingModuleCheckbox" type="checkbox">
+                                <label for="nodescalingModuleCheckbox">Node scaling</label>
+                            </div>
+                        </li>
+                        <li class="toggleOption" id="compactNotationOption">
+                            <div class="checkboxContainer">
+                                <input class="moduleCheckbox" id="compactnotationModuleCheckbox" type="checkbox">
+                                <label for="compactnotationModuleCheckbox">Compact notation</label>
+                            </div>
+                        </li>
+                        <li class="toggleOption" id="colorExternalsOption">
+                            <div class="checkboxContainer">
+                                <input class="moduleCheckbox" id="colorexternalsModuleCheckbox" type="checkbox">
+                                <label for="colorexternalsModuleCheckbox">Color externals</label>
+                                <button type="button" class="color-mode-switch" aria-label="Toggle color mode"></button>
+                            </div>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -299,8 +380,19 @@
                 </div>
                 <div class="popover-content">
                     <ul class="popover-menu-list">
-                        <li class="toggleOption" id="editMode"></li>
-                        <li class="toggleOption" id="pickAndPinOption"></li>
+                        <li class="toggleOption" id="editMode">
+                            <div class="checkboxContainer">
+                                <input class="moduleCheckbox" id="editorModeModuleCheckbox" type="checkbox">
+                                <label for="editorModeModuleCheckbox">Editing </label>
+                                <span class="experimental-label"> (experimental)</span>
+                            </div>
+                        </li>
+                        <li class="toggleOption" id="pickAndPinOption">
+                            <div class="checkboxContainer">
+                                <input class="moduleCheckbox" id="pickandpinModuleCheckbox" type="checkbox">
+                                <label for="pickandpinModuleCheckbox">Pick &amp; pin</label>
+                            </div>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -318,10 +410,30 @@
                 </div>
                 <div class="popover-content">
                     <ul class="popover-menu-list">
-                        <li class=" toggleOption" id="useAccuracyHelper"></li>
-                        <li class=" toggleOption" id="showDraggerObject"></li>
-                        <li class=" toggleOption" id="showFPS_Statistics"></li>
-                        <li class=" toggleOption" id="showModeOfOperation"></li>
+                        <li class="toggleOption" id="useAccuracyHelper">
+                            <div class="checkboxContainer">
+                                <input class="moduleCheckbox" id="useAccuracyHelperConfigCheckbox" type="checkbox">
+                                <label for="useAccuracyHelperConfigCheckbox">Use accuracy helper</label>
+                            </div>
+                        </li>
+                        <li class="toggleOption" id="showDraggerObject">
+                            <div class="checkboxContainer">
+                                <input class="moduleCheckbox" id="showDraggerObjectConfigCheckbox" type="checkbox">
+                                <label for="showDraggerObjectConfigCheckbox">Show accuracy helper</label>
+                            </div>
+                        </li>
+                        <li class="toggleOption" id="showFPS_Statistics">
+                            <div class="checkboxContainer">
+                                <input class="moduleCheckbox" id="showFPS_StatisticsConfigCheckbox" type="checkbox">
+                                <label for="showFPS_StatisticsConfigCheckbox">Show rendering statistics</label>
+                            </div>
+                        </li>
+                        <li class="toggleOption" id="showModeOfOperation">
+                            <div class="checkboxContainer">
+                                <input class="moduleCheckbox" id="showModeOfOperationConfigCheckbox" type="checkbox">
+                                <label for="showModeOfOperationConfigCheckbox">Show input modality</label>
+                            </div>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -471,7 +583,9 @@
         <div id="zoomSlider" class="btn_shadowed">
             <button class="noselect" id="centerGraphButton" type="button" aria-label="Center graph" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 2h2v3.06A7.001 7.001 0 0 1 18.94 11H22v2h-3.06A7.001 7.001 0 0 1 13 18.94V22h-2v-3.06A7.001 7.001 0 0 1 5.06 13H2v-2h3.06A7.001 7.001 0 0 1 11 5.06V2zm1 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg></button>
             <button class="noselect" id="zoomInButton" type="button" aria-label="Zoom in" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
-            <div class="noselect" id="zoomSliderParagraph"></div>
+            <div class="noselect" id="zoomSliderParagraph">
+                <input id="zoomSliderElement" type="range" min="0.1" max="4" value="1" step="0.0975" aria-label="Zoom level" aria-orientation="vertical" title="Zoom level">
+            </div>
             <button class="noselect" id="zoomOutButton" type="button" aria-label="Zoom out" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19 13H5v-2h14v2z"/></svg></button>
         </div>
     </section>

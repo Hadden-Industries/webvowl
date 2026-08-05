@@ -54,14 +54,8 @@ module.exports = function ( graph ){
   
   
   function addFilterItem( filter, identifier, pluralNameOfFilteredItems, selector ){
-    const filterContainer = d3.select(selector)
-      .append("div")
-      .classed("checkboxContainer", true);
-    
-    const filterCheckbox = filterContainer.append("input")
-      .classed("filterCheckbox", true)
-      .attr("id", identifier + "FilterCheckbox")
-      .attr("type", "checkbox")
+    const filterContainer = d3.select(selector);
+    const filterCheckbox = filterContainer.select("#" + identifier + "FilterCheckbox")
       .property("checked", filter.enabled());
     
     // Store for easier resetting
@@ -78,10 +72,6 @@ module.exports = function ( graph ){
         graph.update();
       }
     });
-    
-    filterContainer.append("label")
-      .attr("for", identifier + "FilterCheckbox")
-      .text(pluralNameOfFilteredItems);
   }
   
   function addNodeDegreeFilter( nodeDegreeFilter, container ){
