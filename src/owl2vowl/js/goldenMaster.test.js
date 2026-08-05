@@ -33,10 +33,19 @@ const JAVA_FIXTURE_DIR = path.join(
   "input",
 );
 
+const LOCAL_ONTOLOGY_DIR = path.join(
+  WORKSPACE_PARENT,
+  "universal-ontology",
+);
+
+const LOCAL_ONTOLOGY_DIST_DIR = path.join(
+  LOCAL_ONTOLOGY_DIR,
+  "dist",
+);
+
 const JAVA_MAX_BUFFER_BYTES = 10 * 1024 * 1024;
 const TEST_TIMEOUT_MS = 30_000;
 const ONTOLOGY_BASE_URL = "https://haddenindustries.com/ontology/";
-const LOCAL_EXTERNAL_ONTOLOGY_DIR = "universal-ontology/dist/external/";
 const RDFS_SUBCLASS_OF_IRI =
   "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const OWL_THING_IRI = "http://www.w3.org/2002/07/owl#Thing";
@@ -97,29 +106,29 @@ const expectedDifferences = {
     "Java reasoner additions and minor annotation differences",
 };
 
-const versionedOntologyPaths = [
-  {
-    urlFragment: "iso/31073/ed-1",
-    relativePath: "universal-ontology/dist/iso/31073/ed-1/20260626",
-  },
-  {
-    urlFragment: "iso-iec/11179/-3/ed-4",
-    relativePath: "universal-ontology/dist/iso-iec/11179/-3/ed-4/20260714",
-  },
-  {
-    urlFragment: "universal/reference-data",
-    relativePath:
-      "universal-ontology/dist/universal/reference-data/20260714",
-  },
-  {
-    urlFragment: "universal/core",
-    relativePath: "universal-ontology/dist/universal/core/20260714",
-  },
-  {
-    urlFragment: "universal/extended",
-    relativePath: "universal-ontology/dist/universal/extended/20260714",
-  },
-];
+function getLocalOntologyPath(requestUrl) {
+  if (requestUrl.startsWith(ONTOLOGY_BASE_URL)) {
+    const relativeUrlPath = requestUrl
+      .slice(ONTOLOGY_BASE_URL.length)
+      .split(/[?#]/, 1)[0];
+
+    return path.join(
+      LOCAL_ONTOLOGY_DIST_DIR,
+      ...relativeUrlPath.split("/").filter(Boolean),
+    );
+  }
+
+  const resolvedImportPath = resolveImportUrl(requestUrl);
+  const relativeOntologyPath = resolvedImportPath.replace(
+    /^\.\.[\\/]ontology[\\/]/,
+    "",
+  );
+
+  return path.join(
+    LOCAL_ONTOLOGY_DIR,
+    relativeOntologyPath,
+  );
+}
 
 function getFilePathKey(filePath) {
   const pathParts = filePath.split(/[\\/]+/).filter(Boolean);
@@ -411,31 +420,9 @@ describe("Golden Master Compatibility Tests", () => {
     globalThis.fetch = async (input) => {
       const requestUrl = getRequestUrl(input);
 
-      if (requestUrl.startsWith(ONTOLOGY_BASE_URL)) {
-        const versionedOntology = versionedOntologyPaths.find(
-          ({ urlFragment }) => requestUrl.includes(urlFragment),
-        );
+      const filePath = getLocalOntologyPath(requestUrl);
 
-        if (versionedOntology) {
-          const response = readLocalOntologyResponse(
-            path.join(WORKSPACE_PARENT, versionedOntology.relativePath),
-          );
-
-          if (response) {
-            return response;
-          }
-        }
-      }
-
-      const resolvedImportUrl = resolveImportUrl(requestUrl);
-      const externalOntologyPath = path.join(
-        WORKSPACE_PARENT,
-        resolvedImportUrl.replace(
-          EXTERNAL_ONTOLOGY_BASE_URL,
-          LOCAL_EXTERNAL_ONTOLOGY_DIR,
-        ),
-      );
-      const localResponse = readLocalOntologyResponse(externalOntologyPath);
+      const localResponse = readLocalOntologyResponse(filePath);
 
       if (localResponse) {
         return localResponse;
@@ -457,31 +444,19 @@ describe("Golden Master Compatibility Tests", () => {
   const excludedBaseFiles = new Set(["musicontology.rdfs"]);
 
   const baseTargetFiles = Object.values(ONTOLOGY_CATALOG)
-    .map((catalogUrl) =>
-      path.join(
-        WORKSPACE_PARENT,
-        catalogUrl.replace(
-          EXTERNAL_ONTOLOGY_BASE_URL,
-          LOCAL_EXTERNAL_ONTOLOGY_DIR,
-        ),
-      ),
-    )
+    .map(getLocalOntologyPath)
     .filter((file) => !excludedBaseFiles.has(path.basename(file)));
 
   const extraTargetFiles = [
     path.join(
-      WORKSPACE_PARENT,
-      "universal-ontology",
-      "dist",
+      LOCAL_ONTOLOGY_DIST_DIR,
       "iso",
       "31073",
       "ed-1",
       "20260626",
     ),
     path.join(
-      WORKSPACE_PARENT,
-      "universal-ontology",
-      "dist",
+      LOCAL_ONTOLOGY_DIST_DIR,
       "iso-iec",
       "11179",
       "-3",
@@ -489,25 +464,19 @@ describe("Golden Master Compatibility Tests", () => {
       "20260714",
     ),
     path.join(
-      WORKSPACE_PARENT,
-      "universal-ontology",
-      "dist",
+      LOCAL_ONTOLOGY_DIST_DIR,
       "universal",
       "reference-data",
       "20260714",
     ),
     path.join(
-      WORKSPACE_PARENT,
-      "universal-ontology",
-      "dist",
+      LOCAL_ONTOLOGY_DIST_DIR,
       "universal",
       "core",
       "20260714",
     ),
     path.join(
-      WORKSPACE_PARENT,
-      "universal-ontology",
-      "dist",
+      LOCAL_ONTOLOGY_DIST_DIR,
       "universal",
       "extended",
       "20260714",
