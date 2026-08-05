@@ -1,11 +1,14 @@
-import { describe, test, expect, beforeAll, afterAll } from "@jest/globals";
-import fs from "fs";
-import path from "path";
-import { execSync } from "child_process";
-import { fileURLToPath } from "url";
+import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { loadWithImports } from "./index.js";
 import { resolveImportUrl } from "./importLoader.js";
-import { EXTERNAL_ONTOLOGY_BASE_URL, ONTOLOGY_CATALOG } from "./constants.js";
+import {
+  EXTERNAL_ONTOLOGY_BASE_URL,
+  ONTOLOGY_CATALOG,
+} from "./constants.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +20,7 @@ const JAVA_JAR = path.join(
   "VisualDataWeb",
   "OWL2VOWL",
   "target",
-  "OWL2VOWL-0.3.7-shaded.jar"
+  "OWL2VOWL-0.3.7-shaded.jar",
 );
 
 const JAVA_FIXTURE_DIR = path.join(
@@ -27,42 +30,96 @@ const JAVA_FIXTURE_DIR = path.join(
   "owl2vowl",
   "test",
   "fixtures",
-  "input"
+  "input",
 );
+
+const JAVA_MAX_BUFFER_BYTES = 10 * 1024 * 1024;
+const TEST_TIMEOUT_MS = 30_000;
+const ONTOLOGY_BASE_URL = "https://haddenindustries.com/ontology/";
+const LOCAL_EXTERNAL_ONTOLOGY_DIR = "universal-ontology/dist/external/";
+const RDFS_SUBCLASS_OF_IRI =
+  "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+const OWL_THING_IRI = "http://www.w3.org/2002/07/owl#Thing";
+const RDFS_LITERAL_IRI = "http://www.w3.org/2000/01/rdf-schema#Literal";
+const EMPTY_ONTOLOGY_XML =
+  '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:owl="http://www.w3.org/2002/07/owl#"><owl:Ontology/></rdf:RDF>';
 
 const expectedDifferences = {
   "bibo.rdf.xml": "Java reasoner additions and minor annotation differences",
   "cube.rdf": "Java reasoner additions and minor annotation differences",
-  "dc.rdf": "Permissive parsing of rdf:Property in JS (ignored by Java due to strict OWL)",
+  "dc.rdf":
+    "Permissive parsing of rdf:Property in JS (ignored by Java due to strict OWL)",
   "dcat3.rdf": "Java reasoner additions and minor annotation differences",
-  "dcterms.rdf": "Permissive parsing of rdf:Property in JS (ignored by Java due to strict OWL)",
+  "dcterms.rdf":
+    "Permissive parsing of rdf:Property in JS (ignored by Java due to strict OWL)",
   "doap.rdf": "Java reasoner additions and minor annotation differences",
-  "foaf.rdf": "Java reasoner defaults InverseFunctional DatatypeProperty domains to owl:Thing due to OWL DL semantic clash (JS preserves syntactic foaf:Agent domain)",
-  "food.rdf": "Java reasoner narrows domain/range properties via class restrictions and adds equivalent class links",
-  "full_ontobench_test.ttl": "Java does not support owl:hasValue restrictions on data properties; JS preserves nested datatype expression ranges whereas Java falls back to rdfs:Literal",
+  "foaf.rdf":
+    "Java reasoner defaults InverseFunctional DatatypeProperty domains to owl:Thing due to OWL DL semantic clash (JS preserves syntactic foaf:Agent domain)",
+  "food.rdf":
+    "Java reasoner narrows domain/range properties via class restrictions and adds equivalent class links",
+  "full_ontobench_test.ttl":
+    "Java does not support owl:hasValue restrictions on data properties; JS preserves nested datatype expression ranges whereas Java falls back to rdfs:Literal",
   "goodrelations.owl": "Java reasoner additions and OWL DL semantic clashes",
-  "muto.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
+  "muto.rdf":
+    "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
   "org.rdf": "Java reasoner additions and minor annotation differences",
-  "personasonto.owl": "OWL/XML parsing differences of up to five classes and properties compared with Java",
+  "personasonto.owl":
+    "OWL/XML parsing differences of up to five classes and properties compared with Java",
   "prov.owl": "Java reasoner additions and OWL DL semantic clashes",
   "schemaorg.owl": "Java reasoner additions and OWL DL semantic clashes",
-  "sioc.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
-  "skos.rdf": "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
+  "sioc.rdf":
+    "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
+  "skos.rdf":
+    "Minor annotations differences between Java reasoner and JS (e.g. definition/scopeNote tags)",
   "sosa.ttl": "Java reasoner additions and minor annotation differences",
   "ssn.ttl": "Java reasoner additions and minor annotation differences",
-  "time-gregorian.ttl": "Java reasoner additions and minor annotation differences",
-  "time.rdf": "Minor differences in implicit inverse property generation; class restrictions domain/range properties match 100%",
-  "vann-vocab-20100607.rdf": "Java reasoner additions and minor annotation differences",
+  "time-gregorian.ttl":
+    "Java reasoner additions and minor annotation differences",
+  "time.rdf":
+    "Minor differences in implicit inverse property generation; class restrictions domain/range properties match 100%",
+  "vann-vocab-20100607.rdf":
+    "Java reasoner additions and minor annotation differences",
   "void.ttl": "Java reasoner additions and minor annotation differences",
-  "wgs84_pos.rdf": "Java reasoner additions and minor annotation differences",
-  "wine.rdf": "Minor differences in equivalent class links and implicit inverse property generation; class restrictions domain/range properties match 100%",
+  "wgs84_pos.rdf":
+    "Java reasoner additions and minor annotation differences",
+  "wine.rdf":
+    "Minor differences in equivalent class links and implicit inverse property generation; class restrictions domain/range properties match 100%",
   // Versioned ontologies
-  "iso_31073_ed-1_20260626": "Java reasoner additions, minor duplicate union differences",
-  "iso-iec_11179_-3_ed-4_20260714": "Java reasoner additions and minor annotation differences",
-  "universal_reference-data_20260714": "Java reasoner additions and minor annotation differences",
-  "universal_core_20260714": "Java reasoner additions and minor annotation differences",
-  "universal_extended_20260714": "Java reasoner additions and minor annotation differences"
+  "iso_31073_ed-1_20260626":
+    "Java reasoner additions, minor duplicate union differences",
+  "iso-iec_11179_-3_ed-4_20260714":
+    "Java reasoner additions and minor annotation differences",
+  "universal_reference-data_20260714":
+    "Java reasoner additions and minor annotation differences",
+  "universal_core_20260714":
+    "Java reasoner additions and minor annotation differences",
+  "universal_extended_20260714":
+    "Java reasoner additions and minor annotation differences",
 };
+
+const versionedOntologyPaths = [
+  {
+    urlFragment: "iso/31073/ed-1",
+    relativePath: "universal-ontology/dist/iso/31073/ed-1/20260626",
+  },
+  {
+    urlFragment: "iso-iec/11179/-3/ed-4",
+    relativePath: "universal-ontology/dist/iso-iec/11179/-3/ed-4/20260714",
+  },
+  {
+    urlFragment: "universal/reference-data",
+    relativePath:
+      "universal-ontology/dist/universal/reference-data/20260714",
+  },
+  {
+    urlFragment: "universal/core",
+    relativePath: "universal-ontology/dist/universal/core/20260714",
+  },
+  {
+    urlFragment: "universal/extended",
+    relativePath: "universal-ontology/dist/universal/extended/20260714",
+  },
+];
 
 function getFilePathKey(filePath) {
   const pathParts = filePath.split(/[\\/]+/).filter(Boolean);
@@ -79,9 +136,7 @@ function getFilePathKey(filePath) {
     throw new Error(`Path does not contain a "dist" directory: ${filePath}`);
   }
 
-  return pathParts
-    .slice(distIndex + 1)
-    .join("_");
+  return pathParts.slice(distIndex + 1).join("_");
 }
 
 function throwFriendlyTestError(message) {
@@ -95,26 +150,37 @@ function throwFriendlyTestError(message) {
 
 function runJavaConverter(filePath) {
   const outputFileName = `${getFilePathKey(filePath)}.java.json`;
-  const materialisedOutputPath = path.join(
-    JAVA_FIXTURE_DIR,
-    outputFileName
-  );
+  const materialisedOutputPath = path.join(JAVA_FIXTURE_DIR, outputFileName);
 
   // Use the existing materialised Java output whenever available.
   if (fs.existsSync(materialisedOutputPath)) {
-    return JSON.parse(
-      fs.readFileSync(materialisedOutputPath, "utf8")
-    );
+    return JSON.parse(fs.readFileSync(materialisedOutputPath, "utf8"));
   }
 
-  // Only invoke Java when no materialised output exists.
   try {
-    const cmd = `java --add-opens java.base/java.lang=ALL-UNNAMED -jar "${JAVA_JAR}" -file "${filePath}" -echo`;
-    const stdout = execSync(cmd, {
-      maxBuffer: 10 * 1024 * 1024,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"]
-    });
+    /*
+     * Keep this call synchronous because each test immediately compares its
+     * result. Passing arguments separately avoids shell parsing and the fragile
+     * quoting that a single command string would require on Windows and POSIX.
+     */
+    const stdout = execFileSync(
+      "java",
+      [
+        // 100000 default causes error in processing of
+        // e.g. "Drammar_NunnaryScene_Optimized_Rules.owl"
+        "-Djdk.xml.totalEntitySizeLimit=1000000",
+        "--add-opens",
+        "java.base/java.lang=ALL-UNNAMED",
+        "-jar", JAVA_JAR,
+        "-file", filePath,
+        "-echo",
+      ],
+      {
+        maxBuffer: JAVA_MAX_BUFFER_BYTES,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      },
+    );
 
     const jsonStart = stdout.indexOf("{");
     const jsonEnd = stdout.lastIndexOf("}");
@@ -123,107 +189,151 @@ function runJavaConverter(filePath) {
       throw new Error("Could not find valid JSON in Java output");
     }
 
-    return JSON.parse(stdout.substring(jsonStart, jsonEnd + 1));
-  } catch (_err) {
+    return JSON.parse(stdout.slice(jsonStart, jsonEnd + 1));
+  } catch {
     return null;
   }
 }
 
 function normalizeAnnotations(annotations) {
-  if (!annotations) {return "";}
-  const normalized = {};
-  Object.keys(annotations).sort().forEach(key => {
-    normalized[key] = annotations[key].map(ann => {
-      return {
-        value: ann.value,
-        type: ann.type,
-        language: ann.language || "undefined",
-        identifier: ann.identifier
-      };
-    }).sort((a, b) => {
-      return `${a.language}-${a.value}`.localeCompare(`${b.language}-${b.value}`);
-    });
-  });
+  if (!annotations) {
+    return "";
+  }
+
+  const normalized = Object.fromEntries(
+    Object.keys(annotations)
+      .sort()
+      .map((key) => [
+        key,
+        annotations[key]
+          .map(({ value, type, language, identifier }) => ({
+            value,
+            type,
+            language: language || "undefined",
+            identifier,
+          }))
+          .sort((left, right) =>
+            `${left.language}-${left.value}`.localeCompare(
+              `${right.language}-${right.value}`,
+            ),
+          ),
+      ]),
+  );
+
   return JSON.stringify(normalized);
 }
 
 function parseVowlJson(json) {
-  if (!json) {return null;}
-
-  const classIdToIri = {};
-  if (json.classAttribute) {
-    json.classAttribute.forEach(c => {
-      classIdToIri[c.id] = c.iri;
-    });
+  if (!json) {
+    return null;
   }
+
+  const classAttributes = json.classAttribute ?? [];
+  const propertyAttributes = json.propertyAttribute ?? [];
+  const rawProperties = json.property ?? [];
+
+  const classIdToIri = Object.fromEntries(
+    classAttributes.map(({ id, iri }) => [id, iri]),
+  );
+  const subclassPropertyIds = new Set(
+    rawProperties
+      .filter(({ type }) => type === "rdfs:SubClassOf")
+      .map(({ id }) => id),
+  );
+  const disjointPropertyIds = new Set(
+    rawProperties
+      .filter(({ type }) => type === "owl:disjointWith")
+      .map(({ id }) => id),
+  );
 
   const classes = new Set();
   const classAnnotations = {};
   const classInstances = {};
-  if (json.classAttribute) {
-    json.classAttribute.forEach(c => {
-      if (c.iri) {
-        classes.add(c.iri);
-        classAnnotations[c.iri] = normalizeAnnotations(c.annotations);
-        classInstances[c.iri] = c.instances || 0;
-      }
-    });
+  for (const classAttribute of classAttributes) {
+    if (classAttribute.iri) {
+      classes.add(classAttribute.iri);
+      classAnnotations[classAttribute.iri] = normalizeAnnotations(
+        classAttribute.annotations,
+      );
+      classInstances[classAttribute.iri] = classAttribute.instances || 0;
+    }
   }
 
   const properties = {};
   const propertyAnnotations = {};
-  if (json.propertyAttribute) {
-    json.propertyAttribute.forEach(p => {
-      if (p.iri && p.iri !== "http://www.w3.org/2000/01/rdf-schema#subClassOf") {
-        properties[p.iri] = {
-          domain: classIdToIri[p.domain] || p.domain || null,
-          range: classIdToIri[p.range] || p.range || null,
-        };
-        propertyAnnotations[p.iri] = normalizeAnnotations(p.annotations);
-      }
-    });
+  for (const propertyAttribute of propertyAttributes) {
+    if (
+      propertyAttribute.iri &&
+      propertyAttribute.iri !== RDFS_SUBCLASS_OF_IRI
+    ) {
+      properties[propertyAttribute.iri] = {
+        domain:
+          classIdToIri[propertyAttribute.domain] ||
+          propertyAttribute.domain ||
+          null,
+        range:
+          classIdToIri[propertyAttribute.range] ||
+          propertyAttribute.range ||
+          null,
+      };
+      propertyAnnotations[propertyAttribute.iri] = normalizeAnnotations(
+        propertyAttribute.annotations,
+      );
+    }
   }
 
   const subclasses = [];
-  if (json.propertyAttribute) {
-    json.propertyAttribute.forEach(p => {
-      const isSubClassProp = json.property && json.property.find(item => item.id === p.id && item.type === "rdfs:SubClassOf");
-      if (isSubClassProp || p.iri === "http://www.w3.org/2000/01/rdf-schema#subClassOf") {
-        const sub = classIdToIri[p.domain] || p.domain;
-        const sup = classIdToIri[p.range] || p.range;
-        if (sub && sup) {
-          subclasses.push(`${sub} -> ${sup}`);
-        }
+  for (const propertyAttribute of propertyAttributes) {
+    const isSubclassProperty = subclassPropertyIds.has(propertyAttribute.id);
+
+    if (
+      isSubclassProperty ||
+      propertyAttribute.iri === RDFS_SUBCLASS_OF_IRI
+    ) {
+      const subclass =
+        classIdToIri[propertyAttribute.domain] || propertyAttribute.domain;
+      const superclass =
+        classIdToIri[propertyAttribute.range] || propertyAttribute.range;
+
+      if (subclass && superclass) {
+        subclasses.push(`${subclass} -> ${superclass}`);
       }
-    });
+    }
   }
   subclasses.sort();
 
   const unions = {};
-  if (json.classAttribute) {
-    json.classAttribute.forEach(c => {
-      if (c.union) {
-        unions[c.iri || c.id] = c.union.map(mId => classIdToIri[mId] || mId).sort();
-      }
-    });
+  for (const classAttribute of classAttributes) {
+    if (classAttribute.union) {
+      unions[classAttribute.iri || classAttribute.id] = classAttribute.union
+        .map((memberId) => classIdToIri[memberId] || memberId)
+        .sort();
+    }
   }
 
   const disjoints = [];
-  if (json.propertyAttribute) {
-    json.propertyAttribute.forEach(p => {
-      const isDisjointProp = json.property && json.property.find(item => item.id === p.id && item.type === "owl:disjointWith");
-      if (isDisjointProp || p.type === "owl:disjointWith") {
-        const sub = classIdToIri[p.domain] || p.domain;
-        const sup = classIdToIri[p.range] || p.range;
-        if (sub && sup) {
-          const sorted = [sub, sup].sort();
-          disjoints.push(`${sorted[0]} <-> ${sorted[1]}`);
-        }
+  for (const propertyAttribute of propertyAttributes) {
+    const isDisjointProperty = disjointPropertyIds.has(propertyAttribute.id);
+
+    if (
+      isDisjointProperty ||
+      propertyAttribute.type === "owl:disjointWith"
+    ) {
+      const firstClass =
+        classIdToIri[propertyAttribute.domain] || propertyAttribute.domain;
+      const secondClass =
+        classIdToIri[propertyAttribute.range] || propertyAttribute.range;
+
+      if (firstClass && secondClass) {
+        const [lowerIri, higherIri] = [firstClass, secondClass].sort();
+        disjoints.push(`${lowerIri} <-> ${higherIri}`);
       }
-    });
+    }
   }
-  const uniqueDisjoints = Array.from(new Set(disjoints)).sort();
-  const title = json.header ? (json.header.title ? (json.header.title.en || json.header.title.undefined || "") : "") : "";
+
+  const uniqueDisjoints = [...new Set(disjoints)].sort();
+  const title =
+    json.header?.title?.en || json.header?.title?.undefined || "";
 
   return {
     ontologyIri: json.header ? json.header.iri : null,
@@ -235,345 +345,521 @@ function parseVowlJson(json) {
     propertyAnnotations,
     subclasses,
     unions,
-    disjoints: uniqueDisjoints
+    disjoints: uniqueDisjoints,
   };
+}
+
+function createTextResponse(textContent) {
+  return {
+    ok: true,
+    status: 200,
+    statusText: "OK",
+    text: async () => textContent,
+  };
+}
+
+function readLocalOntologyResponse(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return null;
+  }
+
+  return createTextResponse(fs.readFileSync(filePath, "utf8"));
+}
+
+function getRequestUrl(input) {
+  if (typeof input === "string") {
+    return input;
+  }
+
+  if (input instanceof URL) {
+    return input.href;
+  }
+
+  return input.url;
+}
+
+function arrayDifference(left, right) {
+  const rightValues = new Set(right);
+  return left.filter((value) => !rightValues.has(value));
+}
+
+function referencesMatch(leftReference, rightReference, leftUnions, rightUnions) {
+  if (leftReference === rightReference) {
+    return true;
+  }
+
+  const leftUnion = leftUnions[leftReference];
+  const rightUnion = rightUnions[rightReference];
+
+  /*
+   * Anonymous union nodes can receive different generated identifiers in the
+   * two converters. Their sorted member lists are therefore the stable value
+   * to compare, rather than the converter-specific node identifiers.
+   */
+  return Boolean(
+    leftUnion &&
+      rightUnion &&
+      JSON.stringify(leftUnion) === JSON.stringify(rightUnion),
+  );
 }
 
 describe("Golden Master Compatibility Tests", () => {
   let originalFetch;
 
   beforeAll(() => {
-    originalFetch = global.fetch;
-    global.fetch = function (url) {
-      if (url.startsWith("https://haddenindustries.com/ontology/")) {
-        let relPath = null;
-        if (url.includes("iso/31073/ed-1")) {
-          relPath = "universal-ontology/dist/iso/31073/ed-1/20260626";
-        } else if (url.includes("iso-iec/11179/-3/ed-4")) {
-          relPath = "universal-ontology/dist/iso-iec/11179/-3/ed-4/20260714";
-        } else if (url.includes("universal/reference-data")) {
-          relPath = "universal-ontology/dist/universal/reference-data/20260714";
-        } else if (url.includes("universal/core")) {
-          relPath = "universal-ontology/dist/universal/core/20260714";
-        } else if (url.includes("universal/extended")) {
-          relPath = "universal-ontology/dist/universal/extended/20260714";
-        }
+    originalFetch = globalThis.fetch;
+    globalThis.fetch = async (input) => {
+      const requestUrl = getRequestUrl(input);
 
-        if (relPath) {
-          const filePath = path.join(WORKSPACE_PARENT, relPath);
-          if (fs.existsSync(filePath)) {
-            const textContent = fs.readFileSync(filePath, 'utf8');
-            return Promise.resolve({
-              ok: true,
-              status: 200,
-              statusText: "OK",
-              text: () => Promise.resolve(textContent)
-            });
+      if (requestUrl.startsWith(ONTOLOGY_BASE_URL)) {
+        const versionedOntology = versionedOntologyPaths.find(
+          ({ urlFragment }) => requestUrl.includes(urlFragment),
+        );
+
+        if (versionedOntology) {
+          const response = readLocalOntologyResponse(
+            path.join(WORKSPACE_PARENT, versionedOntology.relativePath),
+          );
+
+          if (response) {
+            return response;
           }
         }
       }
 
-      const resolved = resolveImportUrl(url);
-      const filePath = path.join(WORKSPACE_PARENT, resolved.replace(EXTERNAL_ONTOLOGY_BASE_URL, "universal-ontology/dist/external/"));
+      const resolvedImportUrl = resolveImportUrl(requestUrl);
+      const externalOntologyPath = path.join(
+        WORKSPACE_PARENT,
+        resolvedImportUrl.replace(
+          EXTERNAL_ONTOLOGY_BASE_URL,
+          LOCAL_EXTERNAL_ONTOLOGY_DIR,
+        ),
+      );
+      const localResponse = readLocalOntologyResponse(externalOntologyPath);
 
-      if (fs.existsSync(filePath)) {
-        const textContent = fs.readFileSync(filePath, 'utf8');
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          statusText: "OK",
-          text: () => Promise.resolve(textContent)
-        });
+      if (localResponse) {
+        return localResponse;
       }
 
-      // Return a dummy empty XML document if not found locally to remain offline and fast
-      return Promise.resolve({
-        ok: true,
-        status: 200,
-        statusText: "OK",
-        text: () => Promise.resolve('<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:owl="http://www.w3.org/2002/07/owl#"><owl:Ontology/></rdf:RDF>')
-      });
+      /*
+       * The loader only consumes the small Response-like contract above. An
+       * empty ontology keeps the suite deterministic and prevents accidental
+       * network access when an optional import has no local fixture.
+       */
+      return createTextResponse(EMPTY_ONTOLOGY_XML);
     };
   });
 
   afterAll(() => {
-    global.fetch = originalFetch;
+    globalThis.fetch = originalFetch;
   });
 
-  const excludedBaseFiles = new Set([
-    "musicontology.rdfs"
-  ]);
+  const excludedBaseFiles = new Set(["musicontology.rdfs"]);
 
-  const baseTargetFiles = Object.values(ONTOLOGY_CATALOG).map(val => {
-    return path.join(
-      WORKSPACE_PARENT,
-      val.replace(
-        EXTERNAL_ONTOLOGY_BASE_URL,
-        "universal-ontology/dist/external/"
-      )
-    );
-  })
-  .filter(file => !excludedBaseFiles.has(path.basename(file)));
+  const baseTargetFiles = Object.values(ONTOLOGY_CATALOG)
+    .map((catalogUrl) =>
+      path.join(
+        WORKSPACE_PARENT,
+        catalogUrl.replace(
+          EXTERNAL_ONTOLOGY_BASE_URL,
+          LOCAL_EXTERNAL_ONTOLOGY_DIR,
+        ),
+      ),
+    )
+    .filter((file) => !excludedBaseFiles.has(path.basename(file)));
 
   const extraTargetFiles = [
-    path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "iso", "31073", "ed-1", "20260626"),
-    path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "iso-iec", "11179", "-3", "ed-4", "20260714"),
-    path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "universal", "reference-data", "20260714"),
-    path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "universal", "core", "20260714"),
-    path.join(WORKSPACE_PARENT, "universal-ontology", "dist", "universal", "extended", "20260714")
+    path.join(
+      WORKSPACE_PARENT,
+      "universal-ontology",
+      "dist",
+      "iso",
+      "31073",
+      "ed-1",
+      "20260626",
+    ),
+    path.join(
+      WORKSPACE_PARENT,
+      "universal-ontology",
+      "dist",
+      "iso-iec",
+      "11179",
+      "-3",
+      "ed-4",
+      "20260714",
+    ),
+    path.join(
+      WORKSPACE_PARENT,
+      "universal-ontology",
+      "dist",
+      "universal",
+      "reference-data",
+      "20260714",
+    ),
+    path.join(
+      WORKSPACE_PARENT,
+      "universal-ontology",
+      "dist",
+      "universal",
+      "core",
+      "20260714",
+    ),
+    path.join(
+      WORKSPACE_PARENT,
+      "universal-ontology",
+      "dist",
+      "universal",
+      "extended",
+      "20260714",
+    ),
   ];
 
-  const targetFiles = Array.from(new Set([...baseTargetFiles, ...extraTargetFiles]))
-    .filter(file => fs.existsSync(file))
+  const targetFiles = [...new Set([...baseTargetFiles, ...extraTargetFiles])]
+    .filter((file) => fs.existsSync(file))
     .sort();
 
-  targetFiles.forEach(file => {
+  for (const file of targetFiles) {
     const keyName = getFilePathKey(file);
     const testTitle = `Golden master compatibility for ${keyName}`;
 
-    test(testTitle, async () => {
-      expect(fs.existsSync(file)).toBe(true);
+    test(
+      testTitle,
+      async () => {
+        expect(fs.existsSync(file)).toBe(true);
 
-      const javaRaw = runJavaConverter(file);
-      expect(javaRaw).not.toBeNull();
-      const javaParsed = parseVowlJson(javaRaw);
+        const javaRaw = runJavaConverter(file);
+        expect(javaRaw).not.toBeNull();
+        const javaParsed = parseVowlJson(javaRaw);
 
-      const xml = fs.readFileSync(file, 'utf8');
-      const jsRaw = await loadWithImports(xml);
-      expect(jsRaw).toBeDefined();
-      const jsParsed = parseVowlJson(jsRaw);
+        const xml = fs.readFileSync(file, "utf8");
+        const jsRaw = await loadWithImports(xml);
+        expect(jsRaw).toBeDefined();
+        const jsParsed = parseVowlJson(jsRaw);
 
-      if (keyName === "universal_core_20260714") {
-        expect(jsRaw.class).toBeDefined();
-        expect(jsRaw.classAttribute).toBeDefined();
+        if (keyName === "universal_core_20260714") {
+          expect(jsRaw.class).toBeDefined();
+          expect(jsRaw.classAttribute).toBeDefined();
 
-        const attr = jsRaw.classAttribute.find(a => a.iri === "https://haddenindustries.com/ontology/universal/core/ProductOrService");
-        expect(attr).toBeDefined();
+          const productOrServiceAttribute = jsRaw.classAttribute.find(
+            ({ iri }) =>
+              iri ===
+              "https://haddenindustries.com/ontology/universal/core/ProductOrService",
+          );
+          expect(productOrServiceAttribute).toBeDefined();
 
-        const node = jsRaw.class.find(c => c.id === attr.id);
-        expect(node).toBeDefined();
-        expect(node.type).toBe("owl:unionOf");
-        expect(attr.attributes).toContain("union");
+          const productOrServiceNode = jsRaw.class.find(
+            ({ id }) => id === productOrServiceAttribute.id,
+          );
+          expect(productOrServiceNode).toBeDefined();
+          expect(productOrServiceNode.type).toBe("owl:unionOf");
+          expect(productOrServiceAttribute.attributes).toContain("union");
 
-        expect(attr.label).toBeDefined();
-        expect(attr.label.en).toBe("Product Or Service");
+          expect(productOrServiceAttribute.label).toBeDefined();
+          expect(productOrServiceAttribute.label.en).toBe(
+            "Product Or Service",
+          );
 
-        expect(attr.annotations).toBeDefined();
-        expect(attr.annotations.prefLabel).toBeDefined();
-        expect(attr.annotations.prefLabel[0].value).toBe("Product Or Service");
+          expect(productOrServiceAttribute.annotations).toBeDefined();
+          expect(
+            productOrServiceAttribute.annotations.prefLabel,
+          ).toBeDefined();
+          expect(
+            productOrServiceAttribute.annotations.prefLabel[0].value,
+          ).toBe("Product Or Service");
 
-        expect(attr.annotations.creator).toBeDefined();
-        expect(attr.annotations.creator[0].value).toBe("https://orcid.org/0000-0001-8017-8797");
+          expect(
+            productOrServiceAttribute.annotations.creator,
+          ).toBeDefined();
+          expect(productOrServiceAttribute.annotations.creator[0].value).toBe(
+            "https://orcid.org/0000-0001-8017-8797",
+          );
 
-        expect(attr.annotations.created).toBeDefined();
-        expect(attr.annotations.created[0].value).toBe("2016-10-14T12:00:00Z");
+          expect(
+            productOrServiceAttribute.annotations.created,
+          ).toBeDefined();
+          expect(productOrServiceAttribute.annotations.created[0].value).toBe(
+            "2016-10-14T12:00:00Z",
+          );
 
-        expect(attr.annotations.modified).toBeDefined();
-        expect(attr.annotations.modified[0].value).toBe("2026-06-25T13:41:59Z");
+          expect(
+            productOrServiceAttribute.annotations.modified,
+          ).toBeDefined();
+          expect(productOrServiceAttribute.annotations.modified[0].value).toBe(
+            "2026-06-25T13:41:59Z",
+          );
 
-        expect(attr.annotations.definition).toBeDefined();
-        expect(attr.annotations.definition.some(d => d.value.includes("Output or outcome provided by an organisation"))).toBe(true);
+          expect(
+            productOrServiceAttribute.annotations.definition,
+          ).toBeDefined();
+          expect(
+            productOrServiceAttribute.annotations.definition.some(
+              ({ value }) =>
+                value.includes(
+                  "Output or outcome provided by an organisation",
+                ),
+            ),
+          ).toBe(true);
 
-        expect(attr.annotations.source).toBeDefined();
-        expect(attr.annotations.source[0].value).toBe("urn:iso:std:iso:22300:ed-3:v1:term:3.1.191");
+          expect(productOrServiceAttribute.annotations.source).toBeDefined();
+          expect(productOrServiceAttribute.annotations.source[0].value).toBe(
+            "urn:iso:std:iso:22300:ed-3:v1:term:3.1.191",
+          );
 
-        expect(attr.annotations.example).toBeDefined();
-        expect(attr.annotations.example[0].value).toBe("Manufactured items, car insurance, community nursing");
-      }
+          expect(productOrServiceAttribute.annotations.example).toBeDefined();
+          expect(productOrServiceAttribute.annotations.example[0].value).toBe(
+            "Manufactured items, car insurance, community nursing",
+          );
+        }
 
-      if (keyName === "personasonto.owl") {
-        expect(jsRaw.header.title.en).toBe("PersonasOnto");
-        expect(jsRaw.header.iri).toBe("http://blankdots.com/open/personasonto.owl");
-        expect(jsRaw.header.version).toBe("1.5");
-        expect(jsRaw.header.author).toContain("Stefan Negru");
+        if (keyName === "personasonto.owl") {
+          expect(jsRaw.header.title.en).toBe("PersonasOnto");
+          expect(jsRaw.header.iri).toBe(
+            "http://blankdots.com/open/personasonto.owl",
+          );
+          expect(jsRaw.header.version).toBe("1.5");
+          expect(jsRaw.header.author).toContain("Stefan Negru");
 
-        expect(jsParsed.classes.size).toBeGreaterThanOrEqual(javaParsed.classes.size - 5);
-        expect(Object.keys(jsParsed.properties).length).toBeGreaterThanOrEqual(Object.keys(javaParsed.properties).length - 5);
-      }
+          expect(jsParsed.classes.size).toBeGreaterThanOrEqual(
+            javaParsed.classes.size - 5,
+          );
+          expect(Object.keys(jsParsed.properties).length).toBeGreaterThanOrEqual(
+            Object.keys(javaParsed.properties).length - 5,
+          );
+        }
 
-      // Verify Alignments
-      // 1. Check owl:Thing attributes (none should contain "external")
-      const javaThingAttrs = javaRaw.classAttribute ? javaRaw.classAttribute.filter(a => a.iri === "http://www.w3.org/2002/07/owl#Thing") : [];
-      const jsThingAttrs = jsRaw.classAttribute ? jsRaw.classAttribute.filter(a => a.iri === "http://www.w3.org/2002/07/owl#Thing") : [];
-      javaThingAttrs.forEach(a => {
-        if (a.attributes) {expect(a.attributes).not.toContain("external");}
-      });
-      jsThingAttrs.forEach(a => {
-        if (a.attributes) {expect(a.attributes).not.toContain("external");}
-      });
+        const javaClassAttributes = javaRaw.classAttribute ?? [];
+        const jsClassAttributes = jsRaw.classAttribute ?? [];
+        const jsPropertyAttributes = jsRaw.propertyAttribute ?? [];
+        const jsClasses = jsRaw.class ?? [];
 
-      // 2. Check rdfs:Literal attributes (none should contain "external")
-      const javaLiteralAttrs = javaRaw.classAttribute ? javaRaw.classAttribute.filter(a => a.iri === "http://www.w3.org/2000/01/rdf-schema#Literal") : [];
-      const jsLiteralAttrs = jsRaw.classAttribute ? jsRaw.classAttribute.filter(a => a.iri === "http://www.w3.org/2000/01/rdf-schema#Literal") : [];
-      javaLiteralAttrs.forEach(a => {
-        if (a.attributes) {expect(a.attributes).not.toContain("external");}
-      });
-      jsLiteralAttrs.forEach(a => {
-        if (a.attributes) {expect(a.attributes).not.toContain("external");}
-      });
-
-      // 3. Check virtual literal class type
-      const jsLiteralClasses = jsRaw.class ? jsRaw.class.filter(c => jsLiteralAttrs.some(a => a.id === c.id)) : [];
-      jsLiteralClasses.forEach(c => {
-        expect(c.type).toBe("rdfs:Literal");
-      });
-
-      // Datatype cleaning checks
-      const connectedNodeIds = new Set();
-      if (jsRaw.propertyAttribute) {
-        jsRaw.propertyAttribute.forEach(p => {
-          if (p.domain) {connectedNodeIds.add(String(p.domain));}
-          if (p.range) {connectedNodeIds.add(String(p.range));}
-        });
-      }
-      const datatypeAttrs = [];
-      if (jsRaw.class) {
-        jsRaw.class.forEach(c => {
-          if (c.type === 'rdfs:Datatype') {
-            const attr = jsRaw.classAttribute.find(a => a.id === c.id);
-            if (attr) {datatypeAttrs.push(attr);}
+        // Check owl:Thing attributes; neither converter should mark them external.
+        const javaThingAttributes = javaClassAttributes.filter(
+          ({ iri }) => iri === OWL_THING_IRI,
+        );
+        const jsThingAttributes = jsClassAttributes.filter(
+          ({ iri }) => iri === OWL_THING_IRI,
+        );
+        for (const attribute of [
+          ...javaThingAttributes,
+          ...jsThingAttributes,
+        ]) {
+          if (attribute.attributes) {
+            expect(attribute.attributes).not.toContain("external");
           }
-        });
-      }
-      const connectedDatatypeIris = new Set();
-      datatypeAttrs.forEach(attr => {
-        if (connectedNodeIds.has(String(attr.id)) && attr.iri) {
-          connectedDatatypeIris.add(attr.iri);
         }
-      });
-      datatypeAttrs.forEach(attr => {
-        const isConnected = connectedNodeIds.has(String(attr.id));
-        if (!isConnected && attr.iri) {
-          expect(connectedDatatypeIris.has(attr.iri)).toBe(false);
-        }
-      });
 
-      // Verify equivalent properties structure
-      if (jsRaw.propertyAttribute) {
+        // Check rdfs:Literal attributes; neither converter should mark them external.
+        const javaLiteralAttributes = javaClassAttributes.filter(
+          ({ iri }) => iri === RDFS_LITERAL_IRI,
+        );
+        const jsLiteralAttributes = jsClassAttributes.filter(
+          ({ iri }) => iri === RDFS_LITERAL_IRI,
+        );
+        for (const attribute of [
+          ...javaLiteralAttributes,
+          ...jsLiteralAttributes,
+        ]) {
+          if (attribute.attributes) {
+            expect(attribute.attributes).not.toContain("external");
+          }
+        }
+
+        // Check the virtual literal class type.
+        const jsLiteralAttributeIds = new Set(
+          jsLiteralAttributes.map(({ id }) => id),
+        );
+        const jsLiteralClasses = jsClasses.filter(({ id }) =>
+          jsLiteralAttributeIds.has(id),
+        );
+        for (const literalClass of jsLiteralClasses) {
+          expect(literalClass.type).toBe("rdfs:Literal");
+        }
+
+        // Check datatype cleanup.
+        const connectedNodeIds = new Set();
+        for (const propertyAttribute of jsPropertyAttributes) {
+          if (propertyAttribute.domain) {
+            connectedNodeIds.add(String(propertyAttribute.domain));
+          }
+          if (propertyAttribute.range) {
+            connectedNodeIds.add(String(propertyAttribute.range));
+          }
+        }
+
+        const jsClassAttributesById = new Map(
+          jsClassAttributes.map((attribute) => [attribute.id, attribute]),
+        );
+        const datatypeAttributes = jsClasses
+          .filter(({ type }) => type === "rdfs:Datatype")
+          .map(({ id }) => jsClassAttributesById.get(id))
+          .filter(Boolean);
+        const connectedDatatypeIris = new Set(
+          datatypeAttributes
+            .filter(
+              ({ id, iri }) => connectedNodeIds.has(String(id)) && iri,
+            )
+            .map(({ iri }) => iri),
+        );
+
+        for (const datatypeAttribute of datatypeAttributes) {
+          const isConnected = connectedNodeIds.has(
+            String(datatypeAttribute.id),
+          );
+
+          if (!isConnected && datatypeAttribute.iri) {
+            expect(
+              connectedDatatypeIris.has(datatypeAttribute.iri),
+            ).toBe(false);
+          }
+        }
+
+        // Verify equivalent-property structure.
+        const propertyAttributesById = new Map(
+          jsPropertyAttributes.map((attribute) => [
+            String(attribute.id),
+            attribute,
+          ]),
+        );
         const propertyMap = new Map();
-        if (jsRaw.property) {
-          jsRaw.property.forEach(p => {
-            const attr = jsRaw.propertyAttribute.find(a => a.id === p.id);
-            if (attr) {
-              propertyMap.set(String(p.id), { prop: p, attr: attr });
+        for (const property of jsRaw.property ?? []) {
+          const attribute = propertyAttributesById.get(String(property.id));
+          if (attribute) {
+            propertyMap.set(String(property.id), attribute);
+          }
+        }
+
+        for (const attribute of jsPropertyAttributes) {
+          if (attribute.equivalent?.length > 0) {
+            expect(attribute.attributes).toContain("equivalent");
+
+            for (const equivalentId of attribute.equivalent) {
+              const targetAttribute = propertyMap.get(String(equivalentId));
+              expect(targetAttribute).toBeDefined();
+              expect(targetAttribute.attributes).toContain("equivalent");
             }
-          });
-        }
-        jsRaw.propertyAttribute.forEach(attr => {
-          if (attr.equivalent && attr.equivalent.length > 0) {
-            expect(attr.attributes).toContain("equivalent");
-            attr.equivalent.forEach(equivId => {
-              const target = propertyMap.get(String(equivId));
-              expect(target).toBeDefined();
-              expect(target.attr.attributes).toContain("equivalent");
-            });
           }
+        }
+
+        // Check structural equivalence; documented differences remain permitted.
+        const iriMatch = javaParsed.ontologyIri === jsParsed.ontologyIri;
+        const classesMatch =
+          javaParsed.classes.size === jsParsed.classes.size;
+
+        const javaPropertyIris = Object.keys(javaParsed.properties).sort();
+        const jsPropertyIris = Object.keys(jsParsed.properties).sort();
+        const missingProperties = javaPropertyIris.filter(
+          (iri) => !Object.hasOwn(jsParsed.properties, iri),
+        );
+        const extraProperties = jsPropertyIris.filter(
+          (iri) => !Object.hasOwn(javaParsed.properties, iri),
+        );
+        const commonPropertyIris = javaPropertyIris.filter((iri) =>
+          Object.hasOwn(jsParsed.properties, iri),
+        );
+        const propertyStructuresMatch = commonPropertyIris.every((iri) => {
+          const javaProperty = javaParsed.properties[iri];
+          const jsProperty = jsParsed.properties[iri];
+
+          return (
+            referencesMatch(
+              javaProperty.domain,
+              jsProperty.domain,
+              javaParsed.unions,
+              jsParsed.unions,
+            ) &&
+            referencesMatch(
+              javaProperty.range,
+              jsProperty.range,
+              javaParsed.unions,
+              jsParsed.unions,
+            )
+          );
         });
-      }
+        const propertiesMatch =
+          missingProperties.length === 0 &&
+          extraProperties.length === 0 &&
+          propertyStructuresMatch;
 
-      // Check structural equivalence (only assert 1:1 if not an expected difference)
-      const iriMatch = javaParsed.ontologyIri === jsParsed.ontologyIri;
-      const classesMatch = javaParsed.classes.size === jsParsed.classes.size;
-
-      const javaPropKeys = Object.keys(javaParsed.properties).sort();
-      const jsPropKeys = Object.keys(jsParsed.properties).sort();
-      const missingProps = javaPropKeys.filter(p => !jsParsed.properties[p]);
-      const extraProps = jsPropKeys.filter(p => !javaParsed.properties[p]);
-
-      let propStructureMatches = true;
-      const commonProps = javaPropKeys.filter(p => jsParsed.properties[p]);
-      commonProps.forEach(p => {
-        const javaProp = javaParsed.properties[p];
-        const jsProp = jsParsed.properties[p];
-
-        let domainMatches = javaProp.domain === jsProp.domain;
-        let rangeMatches = javaProp.range === jsProp.range;
-
-        if (!domainMatches) {
-          const javaUnion = javaParsed.unions[javaProp.domain];
-          const jsUnion = jsParsed.unions[jsProp.domain];
-          if (javaUnion && jsUnion) {
-            domainMatches = JSON.stringify(javaUnion) === JSON.stringify(jsUnion);
-          }
-        }
-        if (!rangeMatches) {
-          const javaUnion = javaParsed.unions[javaProp.range];
-          const jsUnion = jsParsed.unions[jsProp.range];
-          if (javaUnion && jsUnion) {
-            rangeMatches = JSON.stringify(javaUnion) === JSON.stringify(jsUnion);
-          }
-        }
-
-        if (!domainMatches || !rangeMatches) {
-          propStructureMatches = false;
-        }
-      });
-
-      const propsMatch = missingProps.length === 0 && extraProps.length === 0 && propStructureMatches;
-
-      const missingSubclasses = javaParsed.subclasses.filter(s => !jsParsed.subclasses.includes(s));
-      const extraSubclasses = jsParsed.subclasses.filter(s => !javaParsed.subclasses.includes(s));
-      const subclassesMatch = missingSubclasses.length === 0 && extraSubclasses.length === 0;
-
-      let annotationsMatch = true;
-      let instancesMatch = true;
-      let disjointsMatch = true;
-
-      // Compare disjoints
-      const missingDisjoints = javaParsed.disjoints.filter(d => !jsParsed.disjoints.includes(d));
-      const extraDisjoints = jsParsed.disjoints.filter(d => !javaParsed.disjoints.includes(d));
-      if (missingDisjoints.length > 0 || extraDisjoints.length > 0) {
-        disjointsMatch = false;
-      }
-
-      // Compare class annotations & instances for common classes
-      const commonClasses = Array.from(javaParsed.classes).filter(c => jsParsed.classes.has(c));
-      commonClasses.forEach(c => {
-        if (javaParsed.classAnnotations[c] !== jsParsed.classAnnotations[c]) {
-          annotationsMatch = false;
-        }
-        if (javaParsed.classInstances[c] !== jsParsed.classInstances[c]) {
-          instancesMatch = false;
-        }
-      });
-
-      // Compare property annotations for common properties
-      const commonPropAnnotations = javaPropKeys.filter(p => jsParsed.properties[p]);
-      commonPropAnnotations.forEach(p => {
-        if (javaParsed.propertyAnnotations[p] !== jsParsed.propertyAnnotations[p]) {
-          annotationsMatch = false;
-        }
-      });
-
-      const isExactMatch = iriMatch && classesMatch && propsMatch && subclassesMatch && annotationsMatch && instancesMatch && disjointsMatch;
-
-      if (!isExactMatch) {
-        const failedChecks = Object.entries({
-          iri: iriMatch,
-          classes: classesMatch,
-          props: propsMatch,
-          subclasses: subclassesMatch,
-          annotations: annotationsMatch,
-          instances: instancesMatch,
-          disjoints: disjointsMatch
-        })
-          .filter(([, matches]) => !matches)
-          .map(([name]) => name);
-
-        process.stderr.write(
-          `[DIAGNOSTIC] File ${keyName}: failed ${failedChecks.join(", ")}\n`
+        const missingSubclasses = arrayDifference(
+          javaParsed.subclasses,
+          jsParsed.subclasses,
         );
-      }
-
-      if (!isExactMatch && expectedDifferences[keyName] === undefined) {
-        throwFriendlyTestError(
-          [
-            `Unexpected Java/JavaScript differences for "${keyName}".`,
-            `Add an entry to expectedDifferences, for example:`,
-            `  "${keyName}": "Describe the expected differences"`
-          ].join("\n")
+        const extraSubclasses = arrayDifference(
+          jsParsed.subclasses,
+          javaParsed.subclasses,
         );
-      }
-    }, 30000);
-  });
+        const subclassesMatch =
+          missingSubclasses.length === 0 && extraSubclasses.length === 0;
+
+        const missingDisjoints = arrayDifference(
+          javaParsed.disjoints,
+          jsParsed.disjoints,
+        );
+        const extraDisjoints = arrayDifference(
+          jsParsed.disjoints,
+          javaParsed.disjoints,
+        );
+        const disjointsMatch =
+          missingDisjoints.length === 0 && extraDisjoints.length === 0;
+
+        const commonClasses = [...javaParsed.classes].filter((iri) =>
+          jsParsed.classes.has(iri),
+        );
+        const classAnnotationsMatch = commonClasses.every(
+          (iri) =>
+            javaParsed.classAnnotations[iri] ===
+            jsParsed.classAnnotations[iri],
+        );
+        const instancesMatch = commonClasses.every(
+          (iri) =>
+            javaParsed.classInstances[iri] === jsParsed.classInstances[iri],
+        );
+        const propertyAnnotationsMatch = commonPropertyIris.every(
+          (iri) =>
+            javaParsed.propertyAnnotations[iri] ===
+            jsParsed.propertyAnnotations[iri],
+        );
+        const annotationsMatch =
+          classAnnotationsMatch && propertyAnnotationsMatch;
+
+        const isExactMatch =
+          iriMatch &&
+          classesMatch &&
+          propertiesMatch &&
+          subclassesMatch &&
+          annotationsMatch &&
+          instancesMatch &&
+          disjointsMatch;
+
+        if (!isExactMatch) {
+          const failedChecks = Object.entries({
+            iri: iriMatch,
+            classes: classesMatch,
+            props: propertiesMatch,
+            subclasses: subclassesMatch,
+            annotations: annotationsMatch,
+            instances: instancesMatch,
+            disjoints: disjointsMatch,
+          })
+            .filter(([, matches]) => !matches)
+            .map(([name]) => name);
+
+          process.stderr.write(
+            `[DIAGNOSTIC] File ${keyName}: failed ${failedChecks.join(", ")}\n`,
+          );
+        }
+
+        if (!isExactMatch && !Object.hasOwn(expectedDifferences, keyName)) {
+          throwFriendlyTestError(
+            [
+              `Unexpected Java/JavaScript differences for "${keyName}".`,
+              "Add an entry to expectedDifferences, for example:",
+              `  "${keyName}": "Describe the expected differences"`,
+            ].join("\n"),
+          );
+        }
+      },
+      TEST_TIMEOUT_MS,
+    );
+  }
 });
