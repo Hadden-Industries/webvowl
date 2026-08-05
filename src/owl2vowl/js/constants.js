@@ -1,8 +1,9 @@
-export const EXTERNAL_ONTOLOGY_BASE_URL =
-  "https://haddenindustries.com/ontology/external/";
+export const ONTOLOGY_BASE_URL = "https://haddenindustries.com/ontology/";
+
+const ONTOLOGY_EXTERNAL_URL = `${ONTOLOGY_BASE_URL}external/`;
 
 const externalOntology = filename =>
-  `${EXTERNAL_ONTOLOGY_BASE_URL}${filename}`;
+  new URL(filename, ONTOLOGY_EXTERNAL_URL).href;
 
 export const NAMESPACES = Object.freeze({
   RDF: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
