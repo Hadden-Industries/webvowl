@@ -2646,6 +2646,24 @@ li#c_search input.searchInputText {
   color: #979797;
 }
 
+.empty-disabled-hint,
+.degree-of-collapsing-hint {
+}
+
+.empty-disabled-hint {
+}
+
+.degree-of-collapsing-hint {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.degree-of-collapsing-hint.hidden {
+    visibility: hidden;
+    opacity: 0;
+}
+
 .disabled {
   pointer-events: none;
   cursor: default;
@@ -3938,9 +3956,6 @@ a#locateSearchResult {
 
 .converter-input-hint {
     flex: 1 0 100%;
-    color: #94a3b8;
-    font-size: 12px;
-    line-height: 1.4;
 }
 
 .converter-input-hint--error {

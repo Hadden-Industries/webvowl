@@ -81,6 +81,10 @@ class MockElement {
     return this.attributes[name] || "";
   }
 
+  querySelector(selector) {
+    return this.ownerDocument.querySelector(selector);
+  }
+
   appendChild(child) {
     this.children.push(child);
     child.parentNode = this;
@@ -158,7 +162,10 @@ describe("filterMenu degree slider highlight clearing", () => {
       setDegreeSetter: jest.fn(),
     };
 
-    const nodeDegreeContainer = getOrCreateElement("nodeDegreeFilteringOption");
+    const nodeDegreeContainer = getOrCreateElement("nodeDegreeFilteringOption", "", "li");
+    nodeDegreeContainer.appendChild(getOrCreateElement("nodeDegreeDistanceSlider", "", "input"));
+    nodeDegreeContainer.appendChild(getOrCreateElement("nodeDegreeSliderValue", "", "span"));
+    nodeDegreeContainer.appendChild(getOrCreateElement("degree-of-collapsing-hint", "degree-of-collapsing-hint hidden", "span"));
     getOrCreateElement("c_filter", "", "div").appendChild(getOrCreateElement("filterBtn", "", "button"));
 
     filterMenu.setup(mockFilter, mockFilter, mockFilter, mockFilter, mockFilter, mockNodeDegreeFilter);
@@ -175,5 +182,44 @@ describe("filterMenu degree slider highlight clearing", () => {
     sliderNode.dispatchEvent(inputEvent);
 
     expect(nodeDegreeContainer.classList.contains("highlighted")).toBe(false);
+  });
+
+  test("toggles degree-of-collapsing-hint hidden class when slider reaches 0", () => {
+    const mockGraph = {
+      update: jest.fn(),
+      options: () => ({
+        searchMenu: () => ({ hideSearchEntries: jest.fn() }),
+      }),
+    };
+
+    const filterMenu = filterMenuFactory(mockGraph);
+    const mockFilter = { enabled: () => false };
+    const mockNodeDegreeFilter = {
+      setMaxDegreeSetter: jest.fn(),
+      setDegreeGetter: jest.fn(),
+      setDegreeSetter: jest.fn(),
+    };
+
+    const hintNode = getOrCreateElement("degree-of-collapsing-hint", "degree-of-collapsing-hint hidden", "span");
+    const sliderNode = getOrCreateElement("nodeDegreeDistanceSlider", "", "input");
+    const nodeDegreeContainer = getOrCreateElement("nodeDegreeFilteringOption", "", "li");
+    nodeDegreeContainer.appendChild(sliderNode);
+    nodeDegreeContainer.appendChild(getOrCreateElement("nodeDegreeSliderValue", "", "span"));
+    nodeDegreeContainer.appendChild(hintNode);
+    getOrCreateElement("c_filter", "", "div").appendChild(getOrCreateElement("filterBtn", "", "button"));
+
+    filterMenu.setup(mockFilter, mockFilter, mockFilter, mockFilter, mockFilter, mockNodeDegreeFilter);
+
+    // Simulate loader auto-collapse highlighting
+    filterMenu.highlightForDegreeSlider(true);
+    expect(hintNode.classList.contains("hidden")).toBe(false);
+
+    sliderNode.value = "0";
+
+    // Dispatch input event (touch drag to 0)
+    const inputEvent = new CustomEvent("input", { bubbles: true });
+    sliderNode.dispatchEvent(inputEvent);
+
+    expect(hintNode.classList.contains("hidden")).toBe(true);
   });
 });

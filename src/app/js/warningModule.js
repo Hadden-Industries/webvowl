@@ -6,7 +6,6 @@ module.exports = function (graph) {
   const _visibleStatus = [];
   const superContainer = d3.select("#WarningErrorMessages");
 
-  let _filterHintId;
   let _messageId = -1;
   superContainer.style("display", "inline-block");
   const cssStyleIndex = 0;

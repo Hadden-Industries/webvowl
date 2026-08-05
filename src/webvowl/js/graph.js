@@ -1797,12 +1797,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
       return;
     }
 
-    showFilterWarning = false;
-    seenFilterWarning = false;
     seenEditorHint = false;
-    if ( options.warningModule() ) {
-      options.warningModule().closeFilterHint();
-    }
     parser.parse(options.data());
     unfilteredData = {
       nodes: parser.nodes(),
@@ -1842,7 +1837,6 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
     }
 
     initialLoad = true;
-    graph.options().warningModule().closeFilterHint();
 
     // loading handler
     updateRenderingDuringSimulation = true;

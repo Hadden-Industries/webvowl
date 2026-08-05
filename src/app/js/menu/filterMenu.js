@@ -272,6 +272,7 @@ module.exports = function (graph) {
     }
     menuControl.classed("highlighted", enable);
     nodeDegreeContainer.classed("highlighted", enable);
+    d3.select("#degree-of-collapsing-hint").classed("hidden", !enable);
     // pulse button handling
     if (menuControl.classed("buttonPulse") === true && enable === true) {
       menuControl.classed("buttonPulse", false);
