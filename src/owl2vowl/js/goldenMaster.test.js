@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { loadWithImports } from "./index.js";
 import { resolveImportUrl } from "./importLoader.js";
 import {
-  EXTERNAL_ONTOLOGY_BASE_URL,
+  ONTOLOGY_BASE_URL,
   ONTOLOGY_CATALOG,
 } from "./constants.js";
 
@@ -45,7 +45,6 @@ const LOCAL_ONTOLOGY_DIST_DIR = path.join(
 
 const JAVA_MAX_BUFFER_BYTES = 10 * 1024 * 1024;
 const TEST_TIMEOUT_MS = 30_000;
-const ONTOLOGY_BASE_URL = "https://haddenindustries.com/ontology/";
 const RDFS_SUBCLASS_OF_IRI =
   "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const OWL_THING_IRI = "http://www.w3.org/2002/07/owl#Thing";
