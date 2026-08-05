@@ -92,16 +92,11 @@ module.exports = function (graph) {
       .select("#zoomSliderParagraph")
       .append("input")
       .datum({})
-      .attr("id", "zoomSliderElement")
-      .attr("type", "range")
       .attr("value", defZoom)
       .attr("min", minMag)
       .attr("max", maxMag)
       .attr("step", (maxMag - minMag) / 40)
-      .attr("aria-label", "Zoom level")
-      .attr("aria-orientation", "vertical")
       .attr("aria-valuetext", zoomPercentage(defZoom))
-      .attr("title", "Zoom level")
       .property("disabled", !controlsEnabled)
       .on("input", function () {
         zoomSlider.zooming();

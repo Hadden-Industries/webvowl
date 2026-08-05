@@ -160,6 +160,15 @@ describe("zoomSlider input handling", () => {
       forceRelocationEvent,
     };
 
+    const zoomParagraph = getOrCreateElement("zoomSliderParagraph");
+    const zoomSliderElement = getOrCreateElement("zoomSliderElement", "", "input");
+    zoomSliderElement.setAttribute("aria-label", "Zoom level");
+    zoomSliderElement.setAttribute("aria-orientation", "vertical");
+    zoomSliderElement.setAttribute("title", "Zoom level");
+    if (!zoomParagraph.children.includes(zoomSliderElement)) {
+      zoomParagraph.appendChild(zoomSliderElement);
+    }
+
     const zoomSlider = zoomSliderFactory(graph);
     zoomSlider.setup();
 
@@ -169,9 +178,9 @@ describe("zoomSlider input handling", () => {
       hideAllMenus,
       setSliderZoom,
       zoomSlider,
-      zoomSliderElement: document.getElementById("zoomSliderParagraph").children[0],
-      zoomInButton: document.getElementById("zoomInButton"),
-      zoomOutButton: document.getElementById("zoomOutButton"),
+      zoomSliderElement,
+      zoomInButton: getOrCreateElement("zoomInButton", "", "button"),
+      zoomOutButton: getOrCreateElement("zoomOutButton", "", "button"),
     };
   }
 

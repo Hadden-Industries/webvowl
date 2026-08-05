@@ -104,7 +104,8 @@ module.exports = function (graph) {
 
   searchMenu.setup = function () {
   function setLocateButtonState( enabled ){
-    locateAvailable = Boolean(enabled);
+    const hasSearchText = searchLineEdit && searchLineEdit.node() && searchLineEdit.node().value.trim().length > 0;
+    locateAvailable = Boolean(enabled) && hasSearchText;
     const effectiveEnabled = menuEnabled && locateAvailable;
     if ( c_locate && c_locate.node() ) {
       c_locate.classed("highlighted", effectiveEnabled);
@@ -630,8 +631,9 @@ module.exports = function (graph) {
     if ( correspondingIds && graph ) {
       graph.resetSearchHighlight();
       graph.highLightNodes(correspondingIds);
+    } else {
+      setLocateButtonState(true);
     }
-    setLocateButtonState(true);
     if ( autoComStr !== inputText ) {
       handleAutoCompletion();
     }
@@ -652,6 +654,10 @@ module.exports = function (graph) {
     for (let i = 0; i < numEntries; i++) {
       htmlCollection[0].remove();
     }
+  };
+
+  searchMenu.updateLocateButtonVisibility = function( hasVisibleNodes ) {
+    setLocateButtonState(hasVisibleNodes);
   };
 
   searchMenu.setMenuMode = function ( enabled ){

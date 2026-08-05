@@ -162,6 +162,22 @@ describe("filterMenu degree slider highlight clearing", () => {
       setDegreeSetter: jest.fn(),
     };
 
+    const setupFilterItem = (id, identifier) => {
+      const container = getOrCreateElement(id, "toggleOption", "li");
+      const wrapper = getOrCreateElement(id + "_wrapper", "checkboxContainer", "div");
+      const input = getOrCreateElement(identifier + "FilterCheckbox", "filterCheckbox", "input");
+      const label = getOrCreateElement(identifier + "FilterCheckbox_label", "", "label");
+      wrapper.appendChild(input);
+      wrapper.appendChild(label);
+      container.appendChild(wrapper);
+    };
+
+    setupFilterItem("datatypeFilteringOption", "datatype");
+    setupFilterItem("objectPropertyFilteringOption", "objectProperty");
+    setupFilterItem("subclassFilteringOption", "subclass");
+    setupFilterItem("disjointFilteringOption", "disjoint");
+    setupFilterItem("setOperatorFilteringOption", "setOperator");
+
     const nodeDegreeContainer = getOrCreateElement("nodeDegreeFilteringOption", "", "li");
     nodeDegreeContainer.appendChild(getOrCreateElement("nodeDegreeDistanceSlider", "", "input"));
     nodeDegreeContainer.appendChild(getOrCreateElement("nodeDegreeSliderValue", "", "span"));

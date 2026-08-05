@@ -1788,8 +1788,9 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
     nodeArrayForPulse = [];
     pulseNodeIds = [];
     locationId = 0;
-    d3.select("#locateSearchResult").classed("highlighted", false);
-    d3.select("#locateSearchResult").node().title = "Nothing to locate";
+    if ( options.searchMenu && options.searchMenu() && options.searchMenu().clearText ) {
+      options.searchMenu().clearText();
+    }
     graph.clearGraphData();
 
     if (init) {

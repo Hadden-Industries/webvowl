@@ -185,9 +185,6 @@ module.exports = function (graph) {
     const moduleCheckbox = moduleOptionContainer
       .append("input")
       .datum({ module: module, defaultState: module.enabled() })
-      .classed("moduleCheckbox", true)
-      .attr("id", identifier + "ModuleCheckbox")
-      .attr("type", "checkbox")
       .property("checked", module.enabled());
 
     // Store for easier resetting all modes
