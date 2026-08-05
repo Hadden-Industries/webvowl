@@ -14,5 +14,8 @@ deploy/**
 !deploy/.htaccess
 webvowl*.zip
 
+# Local Agent Skills
+.agents/skills/
+
 # NetBeans files
 **/nbproject/**
