@@ -5,7 +5,6 @@ module.exports = function ( graph ){
   const _messageContext = [];
   const _visibleStatus = [];
   
-  let _filterHintId;
   let _messageId = -1;
 
   
@@ -131,16 +130,7 @@ module.exports = function ( graph ){
     c.node().removeEventListener("animationend", _child_animationEnd);
   }
   
-  warningModule.closeFilterHint = function (){
-    if ( _messageContainers[_filterHintId] ) {
-      _messageContainers[_filterHintId].classed("hidden", true);
-      _messageContainers[_filterHintId].remove();
-      _messageContainers[_filterHintId] = null;
-      _messageContext[_filterHintId] = null;
-      _visibleStatus[_filterHintId] = false;
-    }
-  };
-  
+
   warningModule.showEditorHint = function (){
     const id = warningModule.addMessageBox();
     warningModule.createMessageContext(id);
@@ -210,32 +200,7 @@ module.exports = function ( graph ){
     moduleContainer.classed("warn-expanded", true);
   };
   
-  warningModule.showFilterHint = function (){
-    const id = warningModule.addMessageBox();
-    const warningContainer = _messageContext[id];
-    const moduleContainer = _messageContainers[id];
-    _visibleStatus[id] = true;
-    
-    _filterHintId = id;
-    const generalHint = warningContainer.append('div');
-    /** Editing mode activated. You can now modify an existing ontology or create a new one via the <em>ontology</em> menu. You can save any ontology using the <em>export</em> menu (and exporting it as TTL file).**/
-    generalHint.node().innerHTML = "Collapsing filter activated.<br>" +
-      "The number of visualized elements has been automatically reduced.<br>" +
-      "Use the degree of collapsing slider in the <em>filter</em> menu to adjust the visualization.<br><br>" +
-      "<em>Note:</em> A performance decrease could be experienced with a growing amount of visual elements in the graph.";
-    
-    
-    generalHint.classed("warning-hint", true);
-    
-    const gotItButton = warningContainer.append("button").attr("type", "button");
-    gotItButton.node().id = "killFilterMessages_" + id;
-    gotItButton.node().innerHTML = "Got It";
-    gotItButton.on("click", warningModule.closeMessage);
-    
-    moduleContainer.classed("hidden", false);
-    moduleContainer.classed("warn-expanded", true);
-  };
-  
+
   warningModule.showMultiFileUploadWarning = function (){
     const id = warningModule.addMessageBox();
     const warningContainer = _messageContext[id];

@@ -167,7 +167,7 @@
                                     inputmode="url" autocomplete="url" spellcheck="false" required
                                     aria-describedby="iri-converter-hint">
                                 <button type="submit" id="iri-converter-button" disabled>Visualize</button>
-                                <span class="converter-input-hint" id="iri-converter-hint" aria-live="polite">Enter an ontology URL</span>
+                                <span class="converter-input-hint tool-hint" id="iri-converter-hint" aria-live="polite">Enter an ontology URL</span>
                             </form>
                             <div class="converter-form">
                                 <input class="hidden" type="file" id="file-converter-input">
@@ -180,7 +180,7 @@
                             </div>
                             <div id="emptyContainer">
                                 <button type="button" id="empty" class="empty-ontology-btn" disabled aria-describedby="empty-disabled-hint">Create new ontology</button>
-                                <span class="empty-disabled-hint" id="empty-disabled-hint">Enable editing in Modes menu to be able to create a new ontology</span>
+                                <span class="empty-disabled-hint tool-hint" id="empty-disabled-hint">Enable editing in Modes menu to be able to create a new ontology</span>
                             </div>
                             <div>
                                 <!--<button class="debugOption" type="submit" id="direct-text-input">-->
@@ -246,7 +246,18 @@
                         <li class="toggleOption" id="subclassFilteringOption"></li>
                         <li class="toggleOption" id="disjointFilteringOption"></li>
                         <li class="toggleOption" id="setOperatorFilteringOption"></li>
-                        <li class="slideOption" id="nodeDegreeFilteringOption"></li>
+                        <li class="slideOption" id="nodeDegreeFilteringOption">
+                            <div class="distanceSliderContainer">
+                                <div class="slider-header">
+                                    <label class="description" for="nodeDegreeDistanceSlider">Degree of collapsing</label>
+                                    <span class="slider-value" id="nodeDegreeSliderValue">0</span>
+                                </div>
+                                <div class="range-touch-wrapper">
+                                    <input id="nodeDegreeDistanceSlider" type="range" min="0" step="1">
+                                </div>
+                                <span id="degree-of-collapsing-hint" class="degree-of-collapsing-hint tool-hint hidden">Showing only the most connected nodes for a fast, clear view. Adjust the filter to dial in the level of detail you need.</span>
+                            </div>
+                        </li>
                     </ul>
                 </div>
             </div>

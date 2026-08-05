@@ -98,31 +98,8 @@ module.exports = function ( graph ){
       setSliderValue(degreeSlider, value);
     });
     
-    const sliderContainer = container.append("div")
-      .classed("distanceSliderContainer", true);
-
-    const sliderHeader = sliderContainer.append("div")
-      .classed("slider-header", true);
-
-    sliderHeader.append("label")
-      .classed("description", true)
-      .attr("for", "nodeDegreeDistanceSlider")
-      .text("Degree of collapsing");
-
-    const sliderValueLabel = sliderHeader.append("span")
-      .classed("slider-value", true)
-      .attr("id", "nodeDegreeSliderValue")
-      .text(0);
-
-    const touchWrapper = sliderContainer.append("div")
-      .classed("range-touch-wrapper", true);
-
-    degreeSlider = touchWrapper.append("input")
-      .attr("id", "nodeDegreeDistanceSlider")
-      .attr("type", "range")
-      .attr("min", 0)
-      .attr("step", 1)
-      .attr("aria-label", "Degree of collapsing");
+    const sliderValueLabel = container.select("#nodeDegreeSliderValue");
+    degreeSlider = container.select("#nodeDegreeDistanceSlider");
     
     
     degreeSlider.on("change", function ( arg1, arg2 ){
@@ -219,6 +196,7 @@ module.exports = function ( graph ){
     }
     menuControl.classed("highlighted", enable);
     nodeDegreeContainer.classed("highlighted", enable);
+    d3.select("#degree-of-collapsing-hint").classed("hidden", !enable);
     // pulse button handling
     if ( menuControl.classed("buttonPulse") === true && enable === true ) {
       menuControl.classed("buttonPulse", false);

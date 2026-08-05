@@ -29,8 +29,6 @@ module.exports = function ( menu ){
       degreeSetter(defaultDegree);
       if ( defaultDegree > 0 ) {
         menu.highlightForDegreeSlider(true);
-        menu.getGraphObject().setFilterWarning(true);
-        
       }
     } else {
       console.error("No degree setter function set.");

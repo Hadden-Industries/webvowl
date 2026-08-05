@@ -151,12 +151,10 @@ function createGraph( graphContainerSelector ){
   let then; // used for fps computation
   let showFPS = false;
   let seenEditorHint = false;
-  let seenFilterWarning = false;
-  let showFilterWarning = false;
+  let showReloadButtonAfterLayoutOptimization = false;
 
   let keepDetailsCollapsedOnLoading = true;
   let adjustingGraphSize = false;
-  let showReloadButtonAfterLayoutOptimization = false;
   let zoom;
   //var prefixModule=require("./prefixRepresentationModule")(graph);
   function syncZoomState() {
@@ -636,10 +634,6 @@ function createGraph( graphContainerSelector ){
           graph.options().loadingModule().setPercentValue(100);
           graph.options().ontologyMenu().append_message_toLastBulletPoint("done");
           d3.select("#reloadCachedOntology").classed("hidden", !showReloadButtonAfterLayoutOptimization);
-          if ( showFilterWarning === true && seenFilterWarning === false ) {
-            graph.options().warningModule().showFilterHint();
-            seenFilterWarning = true;
-          }
         }
         
         if ( initialLoad ) {
@@ -1683,9 +1677,6 @@ function createGraph( graphContainerSelector ){
     }
   };
   
-  graph.setFilterWarning = function ( val ){
-    showFilterWarning = val;
-  };
   function loadGraphData( init ){
     // reset the locate button and previously selected locations and other variables
     
@@ -1707,12 +1698,7 @@ function createGraph( graphContainerSelector ){
       return;
     }
     
-    showFilterWarning = false;
-    seenFilterWarning = false;
     seenEditorHint = false;
-    if ( options.warningModule() ) {
-      options.warningModule().closeFilterHint();
-    }
     parser.parse(options.data());
     unfilteredData = {
       nodes: parser.nodes(),
@@ -1753,7 +1739,6 @@ function createGraph( graphContainerSelector ){
     }
     
     initialLoad = true;
-    graph.options().warningModule().closeFilterHint();
     
     // loading handler
     updateRenderingDuringSimulation = true;

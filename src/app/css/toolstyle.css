@@ -2432,17 +2432,35 @@ main {
     cursor: not-allowed !important;
 }
 
-.empty-disabled-hint {
+.tool-hint {
     font-size: 12px;
     line-height: 1.4;
     color: #94a3b8;
+}
+
+.empty-disabled-hint,
+.degree-of-collapsing-hint {
     padding: 2px 4px;
     display: block;
+}
+
+.empty-disabled-hint {
     transition: opacity 0.2s ease;
 }
 
 .empty-disabled-hint.hidden {
     display: none !important;
+}
+
+.degree-of-collapsing-hint {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.degree-of-collapsing-hint.hidden {
+    visibility: hidden;
+    opacity: 0;
 }
 
 .disabled {
@@ -3677,9 +3695,6 @@ a#locateSearchResult {
 
 .converter-input-hint {
     flex: 1 0 100%;
-    color: #94a3b8;
-    font-size: 12px;
-    line-height: 1.4;
 }
 
 .converter-input-hint--error {
