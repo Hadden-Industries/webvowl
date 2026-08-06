@@ -1,0 +1,79 @@
+import { isManchesterSyntaxFormat, convertManchesterSyntaxToRdfXml } from "./manchesterSyntaxParser.js";
+import { resolveXmlEntities } from "./xmlUtils.js";
+
+describe("Manchester Syntax Parser", () => {
+  describe("isManchesterSyntaxFormat", () => {
+    it("should detect Ontology keyword", () => {
+      expect(isManchesterSyntaxFormat("Ontology: <http://test.com>\nClass: A")).toBe(true);
+    });
+    
+    it("should detect Prefix keyword", () => {
+      expect(isManchesterSyntaxFormat("Prefix: : <http://test.com>\nClass: A")).toBe(true);
+    });
+
+    it("should reject Turtle format", () => {
+      expect(isManchesterSyntaxFormat("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .")).toBe(false);
+    });
+
+    it("should reject OWL/XML format", () => {
+      expect(isManchesterSyntaxFormat("<Ontology xmlns=\"http://www.w3.org/2002/07/owl#\"></Ontology>")).toBe(false);
+    });
+  });
+
+  describe("convertManchesterSyntaxToRdfXml", () => {
+    it("should parse a simple class frame and return RDF/XML", () => {
+      const input = `
+        Prefix: : <http://example.com/test#>
+        Ontology: <http://example.com/test>
+        
+        Class: :Person
+          SubClassOf: :Animal
+      `;
+      
+      const rdfXml = convertManchesterSyntaxToRdfXml(input);
+      expect(rdfXml).toContain("<rdf:RDF");
+      expect(rdfXml).toContain("<rdf:Description rdf:about=\"http://example.com/test#Person\">");
+      expect(rdfXml).toContain("<rdf:type rdf:resource=\"http://www.w3.org/2002/07/owl#Class\" />");
+      expect(rdfXml).toContain("<rdfs:subClassOf rdf:resource=\"http://example.com/test#Animal\" />");
+    });
+    
+    it("should handle strict mode failures on invalid syntax", () => {
+      const input = `
+        Class: :Person
+          InvalidKeyword: :Animal
+      `;
+      
+      expect(() => {
+        convertManchesterSyntaxToRdfXml(input, { strictMode: true });
+      }).toThrowError(/Expected EOF but found invalidkeyword:/i);
+    });
+
+    it("should recover from invalid syntax in relaxed mode", () => {
+      const input = `
+        Class: :Person
+          InvalidKeyword: :Animal
+          
+        Class: :Dog
+      `;
+      
+      // In relaxed mode, it will skip the malformed Person frame but successfully parse Dog
+      const rdfXml = convertManchesterSyntaxToRdfXml(input, { strictMode: false });
+      expect(rdfXml).toContain("<rdf:Description rdf:about=\"http://example.com/test#Dog\">");
+    });
+
+    it("should parse existential restrictions", () => {
+      const input = `
+        Prefix: : <http://example.com/test#>
+        Ontology: <http://example.com/test>
+        
+        Class: :Parent
+          EquivalentTo: :Person and :hasChild some :Person
+      `;
+      
+      const rdfXml = convertManchesterSyntaxToRdfXml(input);
+      expect(rdfXml).toContain("<owl:Restriction");
+      expect(rdfXml).toContain("owl:someValuesFrom");
+      expect(rdfXml).toContain("owl:onProperty rdf:resource=\"http://example.com/test#hasChild\"");
+    });
+  });
+});
