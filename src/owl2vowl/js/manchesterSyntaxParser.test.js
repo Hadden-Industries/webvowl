@@ -75,5 +75,37 @@ describe("Manchester Syntax Parser", () => {
       expect(rdfXml).toContain("owl:someValuesFrom");
       expect(rdfXml).toContain("owl:onProperty rdf:resource=\"http://example.com/test#hasChild\"");
     });
+    it("should parse complex unions into rdf lists", () => {
+      const input = `
+        Prefix: : <http://example.com/test#>
+        Ontology: <http://example.com/test>
+        
+        Class: :UnionClass
+          EquivalentTo: :A or :B or :C
+      `;
+      
+      const rdfXml = convertManchesterSyntaxToRdfXml(input);
+      expect(rdfXml).toContain("<owl:unionOf");
+      expect(rdfXml).toContain("<rdf:first");
+      expect(rdfXml).toContain("<rdf:rest");
+      // Because we have 3 items, there should be multiple rdf:first/rdf:rest
+      const restMatches = rdfXml.match(/<rdf:rest/g);
+      expect(restMatches.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it("should parse top-level n-ary axioms", () => {
+      const input = `
+        Prefix: : <http://example.com/test#>
+        Ontology: <http://example.com/test>
+        
+        DisjointClasses: :A, :B, :C
+      `;
+      
+      const rdfXml = convertManchesterSyntaxToRdfXml(input);
+      expect(rdfXml).toContain("<owl:AllDisjointClasses");
+      expect(rdfXml).toContain("<owl:members");
+      expect(rdfXml).toContain("<rdf:first");
+      expect(rdfXml).toContain("<rdf:rest");
+    });
   });
 });
