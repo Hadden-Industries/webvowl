@@ -220,6 +220,9 @@ export class ManchesterParser {
         }
       }
       this.ast.push(frame);
+    } else if (['disjointclasses:', 'equivalentclasses:', 'equivalentproperties:', 'disjointproperties:', 'sameindividual:', 'differentindividuals:'].includes(kwLower)) {
+      const frame = { type: 'TopLevelAxiom', keyword, expressions: this.parseExpressionList() };
+      this.ast.push(frame);
     } else {
        this.error(`Unexpected frame keyword: ${keyword}`);
        this.recover();
@@ -420,9 +423,46 @@ export class TriplesEmitter {
             }
           }
         }
+      } else if (node.type === 'TopLevelAxiom') {
+        const kwLower = node.keyword.toLowerCase();
+        let rdfType = null;
+        if (kwLower === 'disjointclasses:') rdfType = 'owl:AllDisjointClasses';
+        else if (kwLower === 'equivalentclasses:') rdfType = 'owl:EquivalentClasses';
+        else if (kwLower === 'equivalentproperties:') rdfType = 'owl:EquivalentProperties';
+        else if (kwLower === 'disjointproperties:') rdfType = 'owl:AllDisjointProperties';
+        else if (kwLower === 'sameindividual:') rdfType = 'owl:SameIndividual';
+        else if (kwLower === 'differentindividuals:') rdfType = 'owl:AllDifferent';
+
+        if (rdfType) {
+          const bnode = this.newBNode();
+          this.add(bnode, 'rdf:type', this.getURI(rdfType));
+          this.add(bnode, 'owl:members', this.emitList(node.expressions));
+        }
       }
     }
     return this.triples;
+  }
+  
+  emitList(items) {
+    if (!items || items.length === 0) {
+      return this.getURI('rdf:nil');
+    }
+    const headNode = this.newBNode();
+    let current = headNode;
+    
+    for (let i = 0; i < items.length; i++) {
+      const itemNode = this.emitExpression(items[i]);
+      this.add(current, 'rdf:first', itemNode);
+      
+      if (i < items.length - 1) {
+        const nextNode = this.newBNode();
+        this.add(current, 'rdf:rest', nextNode);
+        current = nextNode;
+      } else {
+        this.add(current, 'rdf:rest', this.getURI('rdf:nil'));
+      }
+    }
+    return headNode;
   }
   
   emitExpression(expr) {
@@ -433,11 +473,34 @@ export class TriplesEmitter {
     if (expr.type === 'Individual') {
       return this.getURI(expr.iri);
     }
-    if (expr.type === 'Union' || expr.type === 'Intersection') {
-      // Basic translation, could be expanded for RDF lists
+    
+    // Convert binary AST trees into flat arrays for RDF lists
+    const flatten = (node, type) => {
+      if (node.type === type) {
+        return [...flatten(node.left, type), ...flatten(node.right, type)];
+      }
+      return [node];
+    };
+    
+    if (expr.type === 'Union') {
+      const items = flatten(expr, 'Union');
       const bnode = this.newBNode();
       this.add(bnode, 'rdf:type', this.getURI('owl:Class'));
-      // Simplified: Just returning bnode for now. A full RDF/XML serialization of unions requires rdf:List
+      this.add(bnode, 'owl:unionOf', this.emitList(items));
+      return bnode;
+    }
+    if (expr.type === 'Intersection') {
+      const items = flatten(expr, 'Intersection');
+      const bnode = this.newBNode();
+      this.add(bnode, 'rdf:type', this.getURI('owl:Class'));
+      this.add(bnode, 'owl:intersectionOf', this.emitList(items));
+      return bnode;
+    }
+    if (expr.type === 'OneOf') {
+      const bnode = this.newBNode();
+      this.add(bnode, 'rdf:type', this.getURI('owl:Class'));
+      const individuals = expr.individuals.map(iri => ({ type: 'Individual', iri }));
+      this.add(bnode, 'owl:oneOf', this.emitList(individuals));
       return bnode;
     }
     if (expr.type === 'Restriction') {
