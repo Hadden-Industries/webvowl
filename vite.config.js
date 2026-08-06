@@ -153,6 +153,24 @@ function d3ProvidePlugin() {
 }
 
 /**
+ * Injects static d3.min.js script tag into HTML during build without Vite warning.
+ */
+function d3InjectScriptPlugin() {
+  return {
+    name: "d3-inject-script",
+    transformIndexHtml() {
+      return [
+        {
+          tag: "script",
+          attrs: { src: "js/d3.min.js" },
+          injectTo: "head-prepend"
+        }
+      ];
+    }
+  };
+}
+
+/**
  * HTML-Validate linter integration plugin for src/index.html.
  */
 function htmlValidatePlugin(mode) {
@@ -215,6 +233,11 @@ export default defineConfig(({ mode }) => {
               return "css/[name].[ext]";
             }
             return "[name].[ext]";
+          },
+          manualChunks(id) {
+            if (id.includes("node_modules")) {
+              return "vendor";
+            }
           }
         }
       }
@@ -223,6 +246,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       mtimePreservePlugin(),
       d3ProvidePlugin(),
+      d3InjectScriptPlugin(),
       commonjs(),
       // Replace @@WEBVOWL_VERSION placeholder in JS source files with the package version
       replace({
