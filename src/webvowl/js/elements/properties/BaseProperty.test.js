@@ -176,4 +176,18 @@ describe("BaseProperty Unit Tests", () => {
     expect(primaryTransform).toBe("translate(0,-15)");
     expect(inverseTransform).toBe("translate(0,15)");
   });
+
+  test("setHighlighting handles undefined linkGroup gracefully without throwing", () => {
+    // Override linkGroup to simulate uninitialized/hidden link (e.g. SetOperatorNode)
+    primaryProperty.linkGroup(undefined);
+
+    // Should not throw Cannot read properties of undefined (reading 'selectAll')
+    expect(() => {
+      primaryProperty.setHighlighting(true);
+    }).not.toThrow();
+    
+    expect(() => {
+      primaryProperty.setHighlighting(false);
+    }).not.toThrow();
+  });
 });

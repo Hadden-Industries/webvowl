@@ -454,7 +454,9 @@ module.exports = (function () {
           .classed("hovered", enable)
           .classed("indirect-highlighting", false);
       }
-      that.linkGroup().selectAll("path, text").classed("hovered", enable);
+      if ( that.linkGroup() ) {
+        that.linkGroup().selectAll("path, text").classed("hovered", enable);
+      }
       if (that.markerElement()) {
         that.markerElement().select("path").classed("hovered", enable);
         if (that.cardinalityElement()) {
@@ -491,7 +493,9 @@ module.exports = (function () {
           that.labelElement().selectAll("rect")
             .classed("hovered", false)
             .classed("indirect-highlighting", false);
+        if ( that.linkGroup() ) {
           that.linkGroup().selectAll("path, text").classed("hovered", false);
+        }
           if (that.markerElement()) {
             that.markerElement().select("path").classed("hovered", false);
             if (that.cardinalityElement()) {
