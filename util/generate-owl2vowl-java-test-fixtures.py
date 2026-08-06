@@ -82,7 +82,7 @@ DEFAULT_OUTPUT_DIRECTORY = (
     / "owl2vowl"
     / "test"
     / "fixtures"
-    / "input"
+    / "java-reference-outputs"
 )
 
 

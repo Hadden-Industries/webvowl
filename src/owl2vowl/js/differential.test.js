@@ -30,7 +30,7 @@ const JAVA_FIXTURE_DIR = path.join(
   "owl2vowl",
   "test",
   "fixtures",
-  "input",
+  "java-reference-outputs",
 );
 
 const LOCAL_ONTOLOGY_DIR = path.join(
@@ -411,7 +411,9 @@ function referencesMatch(leftReference, rightReference, leftUnions, rightUnions)
   );
 }
 
-describe("Golden Master Compatibility Tests", () => {
+describe("OWL2VOWL Java-to-JavaScript differential tests", () => {
+  // Run ontology fixtures through the Java and JavaScript implementations,
+  // compare their outputs, and verify the accepted behaviour.
   let originalFetch;
 
   beforeAll(() => {
@@ -488,7 +490,7 @@ describe("Golden Master Compatibility Tests", () => {
 
   for (const file of targetFiles) {
     const keyName = getFilePathKey(file);
-    const testTitle = `Golden master compatibility for ${keyName}`;
+    const testTitle = `Differential test for ${keyName}`;
 
     test(
       testTitle,
