@@ -55,4 +55,24 @@ describe("owlXmlParser.js unit tests", () => {
     expect(rdfXml).toContain('<rdfs:domain rdf:resource="http://blankdots.com/open/personasonto.owl#Persona"/>');
     expect(rdfXml).toContain('<rdfs:range rdf:resource="http://blankdots.com/open/personasonto.owl#Goal"/>');
   });
+
+  test("Properly resolves tags for default namespaces without double colons", () => {
+    const owlXml = `<?xml version="1.0"?>
+    <Ontology xmlns="http://www.w3.org/2002/07/owl#" ontologyIRI="http://example.com/test#">
+      <Prefix name="" IRI="http://example.com/test#"/>
+      <Annotation>
+        <AnnotationProperty IRI="#hasChild"/>
+        <Literal>Timmy</Literal>
+      </Annotation>
+    </Ontology>`;
+
+    const rdfXml = convertOwlXmlToRdfXml(owlXml);
+    // Should emit standard naked tag for default namespaces, not <::hasChild>
+    expect(rdfXml).toContain('<hasChild>Timmy</hasChild>');
+    expect(rdfXml).not.toContain('<::hasChild>');
+    
+    // Should correctly emit xmlns="..." declaration
+    expect(rdfXml).toContain('xmlns="http://example.com/test#"');
+    expect(rdfXml).not.toContain('xmlns:=""');
+  });
 });

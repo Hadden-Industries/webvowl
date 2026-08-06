@@ -86,10 +86,11 @@ export function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
   
   const cleanPrefixes = {};
   for (const [p, ns] of Object.entries(allPrefixes)) {
-    const cleanP = p.replace(/[^a-zA-Z0-9-]/g, "");
-    if (cleanP !== "") {
-      cleanPrefixes[cleanP] = ns;
+    let cleanP = p.replace(/[^a-zA-Z0-9-]/g, "");
+    if (p === ":" || p === "") {
+      cleanP = "";
     }
+    cleanPrefixes[cleanP] = ns;
   }
 
   function getIri(term) {
@@ -143,7 +144,11 @@ export function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
     xml += ` xml:base="${escapeXml(baseIri)}"`;
   }
   for (const [p, ns] of Object.entries(cleanPrefixes)) {
-    xml += ` xmlns:${p}="${escapeXml(ns)}"`;
+    if (p === "") {
+      xml += ` xmlns="${escapeXml(ns)}"`;
+    } else {
+      xml += ` xmlns:${p}="${escapeXml(ns)}"`;
+    }
   }
   xml += ">\n";
 
@@ -179,7 +184,7 @@ export function serializeTriplesToRdfXml(triples, prefixes, baseIri) {
         if (pIri.startsWith(ns)) {
           const local = pIri.substring(ns.length);
           if (local) {
-            qname = `${p}:${local}`;
+            qname = p ? `${p}:${local}` : local;
             break;
           }
         }

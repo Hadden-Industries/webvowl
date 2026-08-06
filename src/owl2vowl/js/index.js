@@ -5,12 +5,8 @@ import { VowlParserContext } from "./parserContext.js";
 import { parseRdfXml } from "./rdfParser.js";
 import { convertOntology } from "./ontologyConverter.js";
 import { exportToJson } from "./jsonExporter.js";
-import { loadWithImports as internalLoadWithImports } from "./importLoader.js";
-import { isTurtleFormat, parseTurtle, serializeTriplesToRdfXml } from "./turtleParser.js";
-import { isOwlXmlFormat, convertOwlXmlToRdfXml } from "./owlXmlParser.js";
-import { isManchesterSyntaxFormat, convertManchesterSyntaxToRdfXml } from "./manchesterSyntaxParser.js";
+import { loadWithImports as internalLoadWithImports, convertToRdfXmlFallback } from "./importLoader.js";
 import { resolveXmlEntities } from "./xmlUtils.js";
-
 /**
  * Parses an RDF/XML, OWL/XML, Turtle, or Manchester Syntax ontology into VOWL-JSON.
  * @param {string} xmlString
@@ -18,27 +14,7 @@ import { resolveXmlEntities } from "./xmlUtils.js";
  */
 export default function owl2vowl(xmlString) {
   let xmlText = resolveXmlEntities(xmlString);
-  if (isTurtleFormat(xmlText)) {
-    try {
-      const parsed = parseTurtle(xmlText);
-      xmlText = serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
-    } catch (parseErr) {
-      throw new Error("Turtle parsing error: " + parseErr.message, { cause: parseErr });
-    }
-  } else if (isOwlXmlFormat(xmlText)) {
-    try {
-      xmlText = convertOwlXmlToRdfXml(xmlText);
-    } catch (parseErr) {
-      throw new Error("OWL/XML conversion error: " + parseErr.message, { cause: parseErr });
-    }
-  } else if (isManchesterSyntaxFormat(xmlText)) {
-    try {
-      // Use relaxed mode by default for WebVOWL to maximize rendering on syntax errors
-      xmlText = convertManchesterSyntaxToRdfXml(xmlText, { strictMode: false });
-    } catch (parseErr) {
-      throw new Error("Manchester Syntax parsing error: " + parseErr.message, { cause: parseErr });
-    }
-  }
+  xmlText = convertToRdfXmlFallback(xmlText);
 
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xmlText, "application/xml");

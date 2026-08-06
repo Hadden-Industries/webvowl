@@ -15,7 +15,9 @@ export function isOwlXmlFormat(xmlInput) {
     if (!trimmed.includes("<Ontology") && !trimmed.includes(":Ontology")) {
       return false;
     }
-    const parser = new DOMParser();
+    const parser = new DOMParser({
+      onError: () => {}
+    });
     try {
       const doc = parser.parseFromString(trimmed, "application/xml");
       const root = doc.documentElement;
@@ -197,8 +199,11 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
 
   function getPredXmlTag(predIri) {
     for (const [pfx, ns] of Object.entries(prefixMap)) {
-      if (pfx && ns && predIri.startsWith(ns)) {
+      if (ns && predIri.startsWith(ns)) {
         const local = predIri.substring(ns.length);
+        if (pfx === "" || pfx === ":") {
+          return local;
+        }
         return `${pfx}:${local}`;
       }
     }
@@ -450,8 +455,14 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
   // Construct full RDF/XML document header
   let nsAttrs = "";
   for (const [pfx, ns] of Object.entries(prefixMap)) {
-    if (pfx && ns && pfx !== ":" && pfx !== "") {
-      nsAttrs += ` xmlns:${pfx}="${escapeXml(ns)}"`;
+    if (ns) {
+      if (pfx === "" || pfx === ":") {
+        if (!nsAttrs.includes(' xmlns="')) {
+          nsAttrs += ` xmlns="${escapeXml(ns)}"`;
+        }
+      } else {
+        nsAttrs += ` xmlns:${pfx}="${escapeXml(ns)}"`;
+      }
     }
   }
   if (baseAttr) {
