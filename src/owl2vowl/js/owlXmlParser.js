@@ -52,7 +52,9 @@ function isRootOntologyNode(rootEl) {
  */
 export function convertOwlXmlToRdfXml(xmlString, resolver) {
   const resolvedXml = resolveXmlEntities(xmlString);
-  const parser = new DOMParser();
+  const parser = new DOMParser({
+    onError: () => {}
+  });
   const xmlDoc = parser.parseFromString(resolvedXml, "application/xml");
 
   const parserError = xmlDoc.getElementsByTagName("parsererror")[0];

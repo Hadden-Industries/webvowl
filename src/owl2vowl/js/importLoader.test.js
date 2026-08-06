@@ -1,6 +1,6 @@
 import { describe, test, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import * as fs from "node:fs";
-import { resolveImportUrl, loadWithImports } from "./importLoader.js";
+import { resolveImportUrl, loadWithImports, convertToRdfXmlFallback } from "./importLoader.js";
 import { getLocalOntologyPath } from "../test/helpers.js";
 
 describe("importLoader.js unit tests", () => {
@@ -202,5 +202,14 @@ describe("importLoader.js unit tests", () => {
     const result = await loadWithImports(mainXml, rootParserFn);
     expect(result).toBe("SUCCESS");
     expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test("convertToRdfXmlFallback tries parsers sequentially and catches errors", () => {
+    // OFN syntax
+    const ofnInput = `Prefix(:=<http://example.com/default#>)
+Ontology(Declaration(Class(:Test)))`;
+    
+    const result = convertToRdfXmlFallback(ofnInput);
+    expect(result).toContain('<owl:Class rdf:about="http://example.com/default#Test"/>');
   });
 });
