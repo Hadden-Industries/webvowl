@@ -3,12 +3,13 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { loadWithImports } from "./index.js";
-import { resolveImportUrl } from "./importLoader.js";
+import { loadWithImports } from "../js/index.js";
+import { resolveImportUrl } from "../js/importLoader.js";
 import {
   ONTOLOGY_BASE_URL,
   ONTOLOGY_CATALOG,
-} from "./constants.js";
+} from "../js/constants.js";
+import { getLocalOntologyPath, LOCAL_ONTOLOGY_DIR, LOCAL_ONTOLOGY_DIST_DIR } from "./helpers.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,15 +34,7 @@ const JAVA_FIXTURE_DIR = path.join(
   "java-reference-outputs",
 );
 
-const LOCAL_ONTOLOGY_DIR = path.join(
-  WORKSPACE_PARENT,
-  "universal-ontology",
-);
 
-const LOCAL_ONTOLOGY_DIST_DIR = path.join(
-  LOCAL_ONTOLOGY_DIR,
-  "dist",
-);
 
 const JAVA_MAX_BUFFER_BYTES = 10 * 1024 * 1024;
 const TEST_TIMEOUT_MS = 30_000;
@@ -105,29 +98,7 @@ const expectedDifferences = {
     "Java reasoner additions and minor annotation differences",
 };
 
-function getLocalOntologyPath(requestUrl) {
-  if (requestUrl.startsWith(ONTOLOGY_BASE_URL)) {
-    const relativeUrlPath = requestUrl
-      .slice(ONTOLOGY_BASE_URL.length)
-      .split(/[?#]/, 1)[0];
 
-    return path.join(
-      LOCAL_ONTOLOGY_DIST_DIR,
-      ...relativeUrlPath.split("/").filter(Boolean),
-    );
-  }
-
-  const resolvedImportPath = resolveImportUrl(requestUrl);
-  const relativeOntologyPath = resolvedImportPath.replace(
-    /^\.\.[\\/]ontology[\\/]/,
-    "",
-  );
-
-  return path.join(
-    LOCAL_ONTOLOGY_DIR,
-    relativeOntologyPath,
-  );
-}
 
 function getFilePathKey(filePath) {
   const pathParts = filePath.split(/[\\/]+/).filter(Boolean);

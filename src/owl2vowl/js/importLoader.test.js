@@ -1,5 +1,7 @@
 import { describe, test, expect, jest, beforeEach, afterEach } from "@jest/globals";
+import * as fs from "node:fs";
 import { resolveImportUrl, loadWithImports } from "./importLoader.js";
+import { getLocalOntologyPath } from "../test/helpers.js";
 
 describe("importLoader.js unit tests", () => {
   let originalFetch;
@@ -15,7 +17,7 @@ describe("importLoader.js unit tests", () => {
   test("resolveImportUrl resolves logical catalog IRIs", () => {
     // Exact match in catalog
     const resolvedDc = resolveImportUrl("http://purl.org/dc/elements/1.1");
-    expect(resolvedDc).toBe("../ontology/external/dc.rdf");
+    expect(resolvedDc).toBe("https://haddenindustries.com/ontology/external/dc.rdf");
 
     // Absolute remote catalog match
     const resolvedProvO = resolveImportUrl("http://www.w3.org/ns/prov-o");
@@ -31,7 +33,7 @@ describe("importLoader.js unit tests", () => {
 
     // Normalized match (trailing slash)
     const resolvedFoaf = resolveImportUrl("http://xmlns.com/foaf/0.1/");
-    expect(resolvedFoaf).toBe("../ontology/external/foaf.rdf");
+    expect(resolvedFoaf).toBe("https://haddenindustries.com/ontology/external/foaf.rdf");
 
     // Unknown IRI returns as-is
     const unknown = resolveImportUrl("http://example.org/unknown-ontology");
@@ -67,9 +69,14 @@ describe("importLoader.js unit tests", () => {
       </rdf:RDF>
     `;
 
-    // Setup mock fetch
+    // Setup mock fetch with getLocalOntologyPath check
     global.fetch = jest.fn((url) => {
-      if (url === "../ontology/external/dc.rdf" || url === "http://purl.org/dc/elements/1.1") {
+      const localPath = getLocalOntologyPath(url);
+      const isDc = url === "http://purl.org/dc/elements/1.1" || 
+                   url === "https://haddenindustries.com/ontology/external/dc.rdf" ||
+                   localPath.endsWith("dc.rdf");
+
+      if (isDc) {
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -100,6 +107,38 @@ describe("importLoader.js unit tests", () => {
     const result = await loadWithImports(mainXml, rootParserFn);
     expect(result).toBe("SUCCESS");
     expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  test("loadWithImports resolves ontology fetch locally via getLocalOntologyPath without network callout", async () => {
+    const mainXml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#">
+        <owl:Ontology rdf:about="http://example.org/main">
+          <owl:imports rdf:resource="http://purl.org/dc/elements/1.1/"/>
+        </owl:Ontology>
+      </rdf:RDF>
+    `;
+
+    global.fetch = jest.fn(async (url) => {
+      const filePath = getLocalOntologyPath(url);
+      expect(fs.existsSync(filePath)).toBe(true);
+      const content = fs.readFileSync(filePath, "utf-8");
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        text: () => Promise.resolve(content)
+      };
+    });
+
+    const rootParserFn = jest.fn((mergedXml) => {
+      expect(mergedXml).toBeDefined();
+      return "SUCCESS";
+    });
+
+    const result = await loadWithImports(mainXml, rootParserFn);
+    expect(result).toBe("SUCCESS");
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
   test("loadWithImports handles fetch failures gracefully", async () => {
@@ -133,7 +172,7 @@ describe("importLoader.js unit tests", () => {
         <owl:Ontology rdf:about="http://example.org/main">
           <owl:imports rdf:resource="http://purl.org/dc/elements/1.1"/>
           <owl:imports rdf:resource="https://purl.org/dc/elements/1.1/"/>
-          <owl:imports rdf:resource="../ontology/external/dc.rdf"/>
+          <owl:imports rdf:resource="https://haddenindustries.com/ontology/external/dc.rdf"/>
         </owl:Ontology>
       </rdf:RDF>
     `;
