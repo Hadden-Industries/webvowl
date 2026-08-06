@@ -1,69 +1,89 @@
 import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
 import { NAMESPACES, ONTOLOGY_CATALOG } from "./constants.js";
 import { resolveXmlEntities } from "./xmlUtils.js";
-import { isTurtleFormat, parseTurtle, serializeTriplesToRdfXml } from "./turtleParser.js";
+import { parseTurtle, serializeTriplesToRdfXml } from "./turtleParser.js";
 import { isOwlXmlFormat, convertOwlXmlToRdfXml } from "./owlXmlParser.js";
 import { isManchesterSyntaxFormat, convertManchesterSyntaxToRdfXml } from "./manchesterSyntaxParser.js";
+import { parseFunctionalSyntax } from "./functionalSyntaxParser.js";
 
 /**
  * Attempts to parse an ontology string across multiple syntax formats 
- * (Turtle, OWL/XML, Manchester Syntax) and convert it to RDF/XML.
+ * (OWL/XML, Functional, Turtle, Manchester Syntax) and convert it to RDF/XML.
  * Emulates the Java OWLAPI fall-through parser selection logic.
  * 
  * @param {string} text - The ontology source string
  * @returns {string} The converted RDF/XML string, or the original string if all converters fail (assuming it is native RDF/XML)
  */
 export function convertToRdfXmlFallback(text) {
-  const parsers = [
-    {
-      name: "Manchester Syntax",
-      sniff: isManchesterSyntaxFormat,
-      parse: (t) => convertManchesterSyntaxToRdfXml(t, { strictMode: false })
-    },
-    {
-      name: "OWL/XML",
-      sniff: isOwlXmlFormat,
-      parse: (t) => convertOwlXmlToRdfXml(t)
-    },
-    {
-      name: "Turtle",
-      sniff: isTurtleFormat,
-      parse: (t) => {
-        const parsed = parseTurtle(t);
-        return serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
-      }
-    }
-  ];
-
-  // Prioritize parsers based on sniffing regexes. Matched formats (1) go first.
-  parsers.sort((a, b) => {
-    const aMatch = a.sniff(text) ? 1 : 0;
-    const bMatch = b.sniff(text) ? 1 : 0;
-    return bMatch - aMatch;
-  });
-
   const domParser = new DOMParser({
     onError: () => {}
   });
 
-  for (const parserDef of parsers) {
-    const isPrimaryMatch = parserDef.sniff(text);
-    
-    // For Manchester Syntax, we enforce strict mode if it wasn't a sniff match, 
-    // to prevent relaxed mode from returning an empty ontology on garbage inputs (like RDF/XML files).
-    let convertedXml;
-    try {
-      if (parserDef.name === "Manchester Syntax" && !isPrimaryMatch) {
-        convertedXml = convertManchesterSyntaxToRdfXml(text, { strictMode: true });
-      } else {
-        convertedXml = parserDef.parse(text);
-      }
-      
-      // If the parser returned something that is literally just an empty ontology skeleton, and we didn't sniff it, reject it.
-      if (!isPrimaryMatch && convertedXml && convertedXml.includes("newOntology") && !text.includes("newOntology")) {
-         continue; // Reject relaxed mode empty output for non-matched files
-      }
+  // Java OWLAPI priority order (HasPriorityComparator sorts ascending — lower = first):
+  //   RDF/XML = 0 (highest), OWL/XML = 1, Functional = 2, Manchester = 4, Turtle = 12
+  //
+  // RDF/XML is the default format: try it first. If the text is already valid XML
+  // (no parsererror) AND it is not OWL/XML (which needs conversion), return it
+  // immediately without attempting any converter.
+  // Note: xmldom throws ParseError (not a parsererror element) on completely non-XML input.
+  try {
+    const nativeXmlDoc = domParser.parseFromString(text, "application/xml");
+    if (!nativeXmlDoc.getElementsByTagName("parsererror")[0] && !isOwlXmlFormat(nativeXmlDoc)) {
+      return text;
+    }
+  } catch (_xmlErr) {
+    // Not valid XML at all — proceed to format converters below
+  }
 
+  // Not valid XML — try each non-XML format converter in Java priority order:
+  // OWL/XML (1) → Functional (2) → Manchester (4) → Turtle (12) → DL Syntax (15) → KRSS2 (16)
+  const parsers = [
+    {
+      name: "OWL/XML",
+      parse: (t) => convertOwlXmlToRdfXml(t)
+    },
+    {
+      name: "Functional Syntax",
+      parse: (t) => parseFunctionalSyntax(t)
+    },
+    {
+      name: "Manchester Syntax",
+      parse: (t) => {
+        // Relaxed mode is very permissive — it accepts nearly anything and returns
+        // a near-empty ontology skeleton without throwing. Only apply it when the
+        // file is positively identified as Manchester syntax by the sniff check;
+        // otherwise throw so the fallback continues to the next parser.
+        if (!isManchesterSyntaxFormat(t)) {
+          throw new Error("Not Manchester syntax");
+        }
+        return convertManchesterSyntaxToRdfXml(t, { strictMode: false });
+      }
+    },
+    {
+      name: "Turtle",
+      parse: (t) => {
+        const parsed = parseTurtle(t);
+        return serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
+      }
+    },
+    {
+      // TODO: Implement DL Syntax parser (Java: DLSyntaxOWLParserFactory @HasPriority(15))
+      // Reference: owlapi/parsers/.../dlsyntax/parser/DLSyntaxOWLParserFactory.java
+      name: "DL Syntax",
+      parse: (_t) => { throw new Error("DL Syntax parser not yet implemented"); }
+    },
+    {
+      // TODO: Implement KRSS2 parser (Java: KRSS2OWLParserFactory @HasPriority(16))
+      // Reference: owlapi/parsers/.../krss2/parser/KRSS2OWLParserFactory.java
+      name: "KRSS2",
+      parse: (_t) => { throw new Error("KRSS2 parser not yet implemented"); }
+    }
+  ];
+
+  for (const parserDef of parsers) {
+    try {
+      const convertedXml = parserDef.parse(text);
+      
       // Validate that it produced structurally sound XML
       const doc = domParser.parseFromString(convertedXml, "application/xml");
       if (!doc.getElementsByTagName("parsererror")[0]) {
@@ -74,9 +94,8 @@ export function convertToRdfXmlFallback(text) {
     }
   }
 
-  // If all alternate format parsers fail, we assume it's native RDF/XML 
-  // and pass the original text through unmolested, letting the downstream RDF parser 
-  // handle it (and throw the final error if it truly is invalid).
+  // If all alternate format parsers fail, return the original text and let
+  // the downstream RDF parser produce the final error.
   return text;
 }
 
@@ -256,7 +275,9 @@ export function loadWithImports(initialXmlText, rootParserFn) {
           .then(xmlText => {
             const resolvedText = resolveXmlEntities(xmlText);
             const parsedXmlText = convertToRdfXmlFallback(resolvedText);
-            
+            const parser = new DOMParser({
+              onError: () => {}
+            });
             const importedDoc = parser.parseFromString(parsedXmlText, "application/xml");
             const parserError = importedDoc.getElementsByTagName("parsererror")[0];
             if (parserError) {

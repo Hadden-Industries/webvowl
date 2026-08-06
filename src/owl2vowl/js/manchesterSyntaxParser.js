@@ -10,11 +10,9 @@ export class ManchesterLexer {
   constructor(input) {
     this.input = input;
     this.pos = 0;
-    this.tokens = [];
-    this.tokenize();
   }
 
-  tokenize() {
+  *tokenize() {
     const length = this.input.length;
     const skip = new Set([' ', '\n', '\r', '\t']);
     const commentDelimiters = new Set(['#', '*']);
@@ -22,12 +20,12 @@ export class ManchesterLexer {
     
     let sb = "";
     
-    const consumeToken = () => {
+    function* consumeToken() {
       if (sb.length > 0) {
-        this.tokens.push(sb);
+        yield sb;
         sb = "";
       }
-    };
+    }
     
     while (this.pos < length) {
       const ch = this.input[this.pos];
@@ -54,7 +52,7 @@ export class ManchesterLexer {
             sb += strCh;
           }
         }
-        consumeToken();
+        yield* consumeToken();
       } else if (ch === '<') {
         sb = "<";
         const startPos = this.pos;
@@ -64,12 +62,12 @@ export class ManchesterLexer {
           if (/\s/.test(iriCh)) {
             this.pos = startPos;
             sb = "<";
-            consumeToken();
+            yield* consumeToken();
             isIRI = false;
             break;
           } else if (iriCh === '>') {
             sb += '>';
-            consumeToken();
+            yield* consumeToken();
             isIRI = false;
             break;
           } else {
@@ -77,38 +75,37 @@ export class ManchesterLexer {
           }
         }
         if (isIRI && sb.length > 0) {
-          consumeToken();
+          yield* consumeToken();
         }
       } else if (ch === '-' && this.pos < length && this.input[this.pos] === '>') {
-        consumeToken();
-        this.tokens.push("->");
+        yield* consumeToken();
+        yield "->";
         this.pos++;
       } else if (ch === '?') {
-        consumeToken();
+        yield* consumeToken();
         sb = "?";
         while (this.pos < length && !skip.has(this.input[this.pos]) && !delims.has(this.input[this.pos]) && !commentDelimiters.has(this.input[this.pos])) {
           sb += this.input[this.pos++];
         }
-        consumeToken();
+        yield* consumeToken();
       } else if (skip.has(ch)) {
-        consumeToken();
+        yield* consumeToken();
       } else if (commentDelimiters.has(ch)) {
-        consumeToken();
+        yield* consumeToken();
         while (this.pos < length && this.input[this.pos] !== '\n') {
           this.pos++;
         }
       } else if (delims.has(ch)) {
-        consumeToken();
+        yield* consumeToken();
         sb += ch;
         if (ch !== '@') {
-          consumeToken();
+          yield* consumeToken();
         }
       } else {
         sb += ch;
       }
     }
-    consumeToken();
-    this.tokens.push("|EOF|");
+    yield* consumeToken();
   }
 }
 
@@ -132,8 +129,9 @@ export const df = {
 // -----------------------------------------------------------------------------
 
 export class ManchesterParser {
-  constructor(tokens, config = { strictMode: false }) {
-    this.tokens = tokens;
+  constructor(lexer, config = { strictMode: false }) {
+    this.iterator = lexer.tokenize();
+    this.tokenBuffer = [];
     this.tokenIndex = 0;
     this.config = config;
     this.prefixes = {
@@ -147,8 +145,15 @@ export class ManchesterParser {
   }
   
   peekToken(ahead = 0) {
-    if (this.tokenIndex + ahead >= this.tokens.length) {return "|EOF|";}
-    return this.tokens[this.tokenIndex + ahead];
+    while (this.tokenBuffer.length <= this.tokenIndex + ahead) {
+      const next = this.iterator.next();
+      if (next.done) {
+        this.tokenBuffer.push("|EOF|");
+      } else {
+        this.tokenBuffer.push(next.value);
+      }
+    }
+    return this.tokenBuffer[this.tokenIndex + ahead];
   }
   
   consumeToken(expected = null) {
@@ -156,9 +161,7 @@ export class ManchesterParser {
     if (expected && tok.toLowerCase() !== expected.toLowerCase()) {
       this.error(`Expected ${expected} but found ${tok}`);
     }
-    if (this.tokenIndex < this.tokens.length) {
-      this.tokenIndex++;
-    }
+    this.tokenIndex++;
     return tok;
   }
 
@@ -181,7 +184,10 @@ export class ManchesterParser {
         } else if (kwLower === "ontology:") {
           this.parseOntology();
         } else if (kwLower === "import:") {
-          this.consumeToken(); // Skip imported URI for now
+          const importIri = this.consumeToken(); 
+          this.ast.push({ type: 'OntologyImport', iri: importIri });
+        } else if (kwLower === "annotations:") {
+          this.ast.push({ type: 'OntologyAnnotations', annotations: this.parseAnnotationList() });
         } else {
           this.parseFrames(keyword);
         }
@@ -401,9 +407,10 @@ export class ManchesterParser {
         this.consumeToken();
       }
       datatype = this.parseIRI();
-    } else if (this.peekToken() === '@') {
-      this.consumeToken();
-      lang = this.consumeToken();
+    } else if (this.peekToken().startsWith('@')) {
+      // Language tag is emitted as a single token, e.g. "@en" — mirrors Java's
+      // consumeToken().substring(1) in ManchesterOWLSyntaxParserImpl.parseLiteral
+      lang = this.consumeToken().substring(1);
     }
 
     return { type: 'Literal', value: val, datatype, lang };
@@ -588,6 +595,9 @@ export class TriplesEmitter {
   }
 
   emit(ast) {
+    if (this.baseIri) {
+      this.add(this.getURI(`<${this.baseIri}>`), 'rdf:type', this.getURI('owl:Ontology'));
+    }
     // 1-for-1 Context Gathering
     this.knownObjectProperties = new Set();
     this.knownDataProperties = new Set();
@@ -713,6 +723,15 @@ export class TriplesEmitter {
           this.add(bnode, 'rdf:type', this.getURI(rdfType));
           this.add(bnode, 'owl:members', this.emitList(node.expressions));
         }
+      } else if (node.type === 'OntologyAnnotations') {
+        const subject = this.baseIri ? this.getURI(`<${this.baseIri}>`) : this.newBNode();
+        for (const ann of node.annotations) {
+          const objNode = this.emitExpression(ann.value);
+          this.add(subject, ann.property, objNode);
+        }
+      } else if (node.type === 'OntologyImport') {
+        const subject = this.baseIri ? this.getURI(`<${this.baseIri}>`) : this.newBNode();
+        this.add(subject, 'owl:imports', this.getURI(node.iri));
       } else if (node.type === 'Rule') {
         const bnode = this.newBNode();
         this.add(bnode, 'rdf:type', this.getURI('swrl:Imp'));
@@ -923,7 +942,7 @@ export function isManchesterSyntaxFormat(text) {
 export function convertManchesterSyntaxToRdfXml(text, options = { strictMode: false }) {
   const resolvedText = resolveXmlEntities(text);
   const lexer = new ManchesterLexer(resolvedText);
-  const parser = new ManchesterParser(lexer.tokens, options);
+  const parser = new ManchesterParser(lexer, options);
   const ast = parser.parse();
   
   const emitter = new TriplesEmitter(parser.prefixes, parser.baseIri);
