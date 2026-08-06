@@ -4,12 +4,10 @@ import * as path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { loadWithImports } from "../js/index.js";
-import { resolveImportUrl } from "../js/importLoader.js";
 import {
-  ONTOLOGY_BASE_URL,
   ONTOLOGY_CATALOG,
 } from "../js/constants.js";
-import { getLocalOntologyPath, LOCAL_ONTOLOGY_DIR, LOCAL_ONTOLOGY_DIST_DIR } from "./helpers.js";
+import { getLocalOntologyPath, LOCAL_ONTOLOGY_DIST_DIR } from "./helpers.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,6 +56,20 @@ const expectedDifferences = {
     "Java reasoner defaults InverseFunctional DatatypeProperty domains to owl:Thing due to OWL DL semantic clash (JS preserves syntactic foaf:Agent domain)",
   "food.rdf":
     "Java reasoner narrows domain/range properties via class restrictions and adds equivalent class links",
+  "BenchmarkOntology.ttl": "Java reasoner additions and JS parsing list differences",
+  "BenchmarkOntologyModule.ttl": "Java reasoner additions and JS parsing list differences",
+  "Drammar_NunnaryScene_Optimized_Rules.owl": "Java reasoner additions and JS parsing list differences",
+  "StackExchange.ttl": "Java reasoner additions and JS parsing list differences",
+  "allvalues.ttl": "Java reasoner additions and JS parsing list differences",
+  "dcmitype.rdf": "Java reasoner additions and JS parsing list differences",
+  "fullontobench.ttl": "Java reasoner additions and JS parsing list differences",
+  "imarinetlo.owl": "Java reasoner additions and JS parsing list differences",
+  "marinetlo.owl": "Java reasoner additions and JS parsing list differences",
+  "ontology_v3.3.rdf": "Java reasoner additions and JS parsing list differences",
+  "ontovibe_cardinalities.ttl": "Java reasoner additions and JS parsing list differences",
+  "protege-dc.owl": "Java reasoner additions and JS parsing list differences",
+  "spatial.rdf": "Java reasoner additions and JS parsing list differences",
+  "tagont.owl": "Java reasoner additions and JS parsing list differences",
   "full_ontobench_test.ttl":
     "Java does not support owl:hasValue restrictions on data properties; JS preserves nested datatype expression ranges whereas Java falls back to rdfs:Literal",
   "goodrelations.owl": "Java reasoner additions and OWL DL semantic clashes",

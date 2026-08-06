@@ -165,6 +165,95 @@ describe("rdfParser.js unit tests", () => {
     expect(unionCls.unionMembers).toContain("http://example.org/#Teacher");
   });
 
+  test("Parses owl:unionOf standard rdf:first/rdf:rest lists", () => {
+    const xml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#"
+               xml:base="http://example.org/">
+        <owl:Class rdf:about="#StudentOrTeacher">
+          <owl:equivalentClass>
+            <owl:Class>
+              <owl:unionOf rdf:nodeID="n3-1" />
+            </owl:Class>
+          </owl:equivalentClass>
+        </owl:Class>
+        <rdf:Description rdf:nodeID="n3-1">
+          <rdf:first rdf:resource="#Student" />
+          <rdf:rest rdf:nodeID="n3-2" />
+        </rdf:Description>
+        <rdf:Description rdf:nodeID="n3-2">
+          <rdf:first rdf:resource="#Teacher" />
+          <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" />
+        </rdf:Description>
+      </rdf:RDF>
+    `;
+
+    const result = parseRdfXml(xml, resolver, context);
+    const subject = result.subjects["http://example.org/#StudentOrTeacher"];
+    expect(subject).toBeDefined();
+    
+    // Check that union class exists in equivalentClasses and has members
+    const unionClassId = subject.equivalentClasses[0];
+    expect(unionClassId).toBeDefined();
+
+    const unionCls = context.classMap.get(unionClassId);
+    expect(unionCls).toBeDefined();
+    expect(unionCls.type).toBe("owl:unionOf");
+    expect(unionCls.unionMembers).toBeDefined();
+    expect(unionCls.unionMembers).toContain("http://example.org/#Student");
+    expect(unionCls.unionMembers).toContain("http://example.org/#Teacher");
+    
+    // Intermediate list nodes should be cleaned up
+    expect(result.subjects["_:n3-1"]).toBeUndefined();
+    expect(result.subjects["_:n3-2"]).toBeUndefined();
+  });
+
+
+  test("Parses owl:oneOf standard rdf:first/rdf:rest lists", () => {
+    const xml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#"
+               xml:base="http://example.org/">
+        <owl:Class rdf:about="#MyEnum">
+          <owl:equivalentClass>
+            <owl:Class>
+              <owl:oneOf rdf:nodeID="n4-1" />
+            </owl:Class>
+          </owl:equivalentClass>
+        </owl:Class>
+        <rdf:Description rdf:nodeID="n4-1">
+          <rdf:first rdf:resource="#ValueA" />
+          <rdf:rest rdf:nodeID="n4-2" />
+        </rdf:Description>
+        <rdf:Description rdf:nodeID="n4-2">
+          <rdf:first rdf:resource="#ValueB" />
+          <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" />
+        </rdf:Description>
+      </rdf:RDF>
+    `;
+
+    const result = parseRdfXml(xml, resolver, context);
+    const subject = result.subjects["http://example.org/#MyEnum"];
+    expect(subject).toBeDefined();
+    
+    const enumClassId = subject.equivalentClasses[0];
+    expect(enumClassId).toBeDefined();
+
+    const enumCls = context.classMap.get(enumClassId);
+    expect(enumCls).toBeDefined();
+    expect(enumCls.type).toBe("owl:oneOf");
+    expect(enumCls.oneOfMembers).toBeDefined();
+    expect(enumCls.oneOfMembers).toContain("http://example.org/#ValueA");
+    expect(enumCls.oneOfMembers).toContain("http://example.org/#ValueB");
+    
+    // Intermediate list nodes should be cleaned up
+    expect(result.subjects["_:n4-1"]).toBeUndefined();
+    expect(result.subjects["_:n4-2"]).toBeUndefined();
+  });
+
+
   test("Parses flat blank node restrictions (via nodeID)", () => {
     const xml = `
       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
