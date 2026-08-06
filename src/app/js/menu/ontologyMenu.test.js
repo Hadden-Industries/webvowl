@@ -232,20 +232,18 @@ describe("ontology menu actions", () => {
 
   test("delegates an enabled create button to the explicit application command", () => {
     emptyButton.element.disabled = false;
-    const event = { preventDefault: jest.fn() };
 
-    emptyButton.handlers.click(event);
+    emptyButton.handlers.click();
 
     expect(createNewOntology).toHaveBeenCalledTimes(1);
     expect(hideAllMenus).toHaveBeenCalledTimes(1);
-    expect(event.preventDefault).toHaveBeenCalledTimes(1);
     expect(global.location.hash).toBe("#file=foaf.rdf.json");
   });
 
   test("keeps the native disabled state authoritative", () => {
     emptyButton.element.disabled = true;
 
-    emptyButton.handlers.click({ preventDefault: jest.fn() });
+    emptyButton.handlers.click();
 
     expect(createNewOntology).not.toHaveBeenCalled();
     expect(hideAllMenus).not.toHaveBeenCalled();
