@@ -13,6 +13,7 @@
     --bottom-gesture-buffer: 0px;
     --bottom-control-offset: calc(var(--safe-area-bottom) + var(--bottom-gesture-buffer));
     --bottom-bar-size: calc(var(--toolbar-control-size) + var(--bottom-control-offset));
+    --theme-color-accent: #d90;
     --visual-viewport-height: 100dvh;
     --visual-viewport-offset-top: 0px;
 }
@@ -322,7 +323,7 @@ a:hover {
 }
 
 #optionsArea a.highlighted {
-    background-color: #d90;
+    background-color: var(--theme-color-accent);
 }
 
 .popover-menu-list li.highlighted {
@@ -1393,7 +1394,7 @@ main {
     background-color: #34495E;
     color: white;
 
-    /* border-bottom: 1px solid #d90; */
+    /* border-bottom: 1px solid var(--theme-color-accent); */
     text-align: left;
     width: auto;
 }
@@ -1432,11 +1433,11 @@ main {
 }
 
 #leftSideBarCollapseButton:hover {
-    background-color: #d90;
+    background-color: var(--theme-color-accent);
 }
 
 #sidebarExpandButton:hover {
-    background-color: #d90;
+    background-color: var(--theme-color-accent);
 }
 
 .spanForCharSelection {
@@ -1857,7 +1858,7 @@ main {
 
 /* adding button pulse animation */
 .filterMenuButtonHighlight {
-    background-color: #d90;
+    background-color: var(--theme-color-accent);
 }
 
 @keyframes buttonAnimation {
@@ -1866,17 +1867,7 @@ main {
     }
 
     100% {
-        background-color: #d90;
-    }
-}
-
-@keyframes buttonAnimation {
-    0% {
-        background-color: unset;
-    }
-
-    100% {
-        background-color: #d90;
+        background-color: var(--theme-color-accent);
     }
 }
 
@@ -1886,7 +1877,7 @@ main {
     }
 
     100% {
-        background-color: #d90;
+        background-color: var(--theme-color-accent);
     }
 }
 
@@ -1896,7 +1887,17 @@ main {
     }
 
     100% {
-        background-color: #d90;
+        background-color: var(--theme-color-accent);
+    }
+}
+
+@keyframes buttonAnimation {
+    0% {
+        background-color: unset;
+    }
+
+    100% {
+        background-color: var(--theme-color-accent);
     }
 }
 
@@ -2119,12 +2120,14 @@ main {
 }
 
 /* Toolbar Divider separating Menu Drawers from Graph Action Buttons */
-.nav-separator {
-    width: 1px;
-    height: 22px;
-    background: rgb(255 255 255 / 15%);
-    margin: 0;
+#menuElementContainer > li.nav-separator {
+    width: 4px;
+    height: 24px;
+    background: rgb(255 255 255 / 25%);
+    border-radius: 2px;
+    margin: 0 6px;
     align-self: center;
+    flex-shrink: 0;
     list-style: none;
 }
 
@@ -2236,13 +2239,12 @@ main {
 
 /* Simulation Paused Warning Highlight */
 #pause-button.paused {
-    background: rgb(245 158 11 / 50%);
-    border-color: #f59e0b;
+    background: var(--theme-color-accent);
 }
 
 @media (hover: hover) and (pointer: fine) {
     #pause-button.paused:hover {
-        background: rgb(245 158 11 / 60%);
+        background: color-mix(in srgb, var(--theme-color-accent) 85%, #fff);
     }
 }
 
@@ -2341,7 +2343,7 @@ main {
 }
 
 .reloadCachedOntologyIcon:hover {
-    background: #d90;
+    background: var(--theme-color-accent);
     cursor: pointer;
 }
 
@@ -2375,7 +2377,7 @@ main {
     box-sizing: border-box;
     background: #1B252E;
 
-    /* background : #d90; */
+    /* background : var(--theme-color-accent); */
     color: #bdc3c7;
 
 }
@@ -2670,7 +2672,7 @@ body:has(.search-expanded) #scrollRightButton {
 }
 
 #zoomSlider button:not(:disabled):hover {
-    background-color: #d90;
+    background-color: var(--theme-color-accent);
     color: #fff;
 }
 
@@ -2771,7 +2773,7 @@ body:has(.search-expanded) #scrollRightButton {
 #menuElementContainer a.highlighted,
 #menuElementContainer .navButton.highlighted,
 #menuElementContainer button.highlighted {
-    background-color: #d90 !important;
+    background-color: var(--theme-color-accent) !important;
     color: #fff !important;
 }
 
@@ -3029,7 +3031,7 @@ a#locateSearchResult {
 }
 
 #locateSearchResult.highlighted:hover {
-    background-color: #d90;
+    background-color: var(--theme-color-accent);
     color: red;
 }
 
@@ -3176,7 +3178,7 @@ a#locateSearchResult {
     background-color: #34495E;
     color: white;
 
-    /* border-bottom: 1px solid #d90; */
+    /* border-bottom: 1px solid var(--theme-color-accent); */
 
     /* text-align: center; */
 
