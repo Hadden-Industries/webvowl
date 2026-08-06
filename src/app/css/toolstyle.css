@@ -13,6 +13,7 @@
     --bottom-gesture-buffer: 0px;
     --bottom-control-offset: calc(var(--safe-area-bottom) + var(--bottom-gesture-buffer));
     --bottom-bar-size: calc(var(--toolbar-control-size) + var(--bottom-control-offset));
+    --theme-color-accent: #d90;
     --visual-viewport-height: 100dvh;
     --visual-viewport-offset-top: 0px;
 }
@@ -2161,7 +2162,7 @@ li#c_search input.searchInputText {
   }
 
   100% {
-    background-color: #d90;
+    background-color: var(--theme-color-accent);
   }
 }
 
@@ -2171,7 +2172,7 @@ li#c_search input.searchInputText {
   }
 
   100% {
-    background-color: #d90;
+    background-color: var(--theme-color-accent);
   }
 }
 
@@ -2181,7 +2182,7 @@ li#c_search input.searchInputText {
   }
 
   100% {
-    background-color: #d90;
+    background-color: var(--theme-color-accent);
   }
 }
 
@@ -2191,7 +2192,7 @@ li#c_search input.searchInputText {
   }
 
   100% {
-    background-color: #d90;
+    background-color: var(--theme-color-accent);
   }
 }
 
@@ -2405,12 +2406,14 @@ li#c_search input.searchInputText {
 }
 
 /* Toolbar Divider separating Menu Drawers from Graph Action Buttons */
-.nav-separator {
-    width: 1px;
-    height: 22px;
-    background: rgb(255 255 255 / 15%);
-    margin: 0;
+#menuElementContainer > li.nav-separator {
+    width: 4px;
+    height: 24px;
+    background: rgb(255 255 255 / 25%);
+    border-radius: 2px;
+    margin: 0 6px;
     align-self: center;
+    flex-shrink: 0;
     list-style: none;
 }
 
@@ -2522,13 +2525,12 @@ li#c_search input.searchInputText {
 
 /* Simulation Paused Warning Highlight */
 #pause-button.paused {
-    background: rgb(245 158 11 / 50%);
-    border-color: #f59e0b;
+    background: var(--theme-color-accent);
 }
 
 @media (hover: hover) and (pointer: fine) {
     #pause-button.paused:hover {
-        background: rgb(245 158 11 / 60%);
+        background: color-mix(in srgb, var(--theme-color-accent) 85%, #fff);
     }
 }
 

@@ -99,12 +99,12 @@ describe("mobile toolbar styles", () => {
     );
 
     expect(pausedRule).not.toBeNull();
-    expect(pausedRule[1]).toContain("background: rgb(245 158 11 / 50%)");
-    expect(pausedRule[1]).toContain("border-color: #f59e0b");
+    expect(pausedRule[1]).toContain("background: var(--theme-color-accent)");
+    expect(pausedRule[1]).not.toContain("border-color");
     expect(pausedRule[1]).not.toMatch(/(?:^|\s)color:/);
     expect(pausedRule[1]).not.toContain("box-shadow");
     expect(pausedHoverRule).not.toBeNull();
-    expect(pausedHoverRule[1]).toContain("background: rgb(245 158 11 / 60%)");
+    expect(pausedHoverRule[1]).toContain("background: color-mix(in srgb, var(--theme-color-accent) 85%, #fff)");
   });
 
   test("reserves stable desktop space for the pause and resume label", () => {
