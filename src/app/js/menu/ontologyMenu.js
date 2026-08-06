@@ -352,17 +352,11 @@ function createOntologyMenu( graph ){
 
   function setupEmptyButton(){
     const emptyButton = d3.select("#empty");
-    emptyButton.on("click", function (event){
+    emptyButton.on("click", function (){
       if ( emptyButton.property("disabled") ) {
-        if ( event && typeof event.preventDefault === "function" ) {
-          event.preventDefault();
-        }
         return false;
       }
       loadingModule.createNewOntology();
-      if ( event && typeof event.preventDefault === "function" ) {
-        event.preventDefault();
-      }
       graph.options().navigationMenu().hideAllMenus();
     });
     graph.updateEditorModeDependentControls();

@@ -137,8 +137,7 @@ function createExportMenu( graph ){
   };
   
   let copyFeedbackTimer;
-  async function copyUrl(event){
-    event.preventDefault();
+  async function copyUrl(){
     const urlInputNode = d3.select("#exportedUrl").node();
     if ( !urlInputNode ) {return;}
 
