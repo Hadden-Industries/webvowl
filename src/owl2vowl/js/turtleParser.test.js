@@ -118,4 +118,21 @@ describe("turtleParser.js - serializeTriplesToRdfXml", () => {
     expect(xml).toContain('xmlns:ns0="http://custom-namespace.org/vocab#"');
     expect(xml).toContain('<ns0:hasCustomProp>custom value</ns0:hasCustomProp>');
   });
+
+  test("handles empty/default prefix mappings securely to prevent invalid QNames or xmlns attributes", () => {
+    const triples = [
+      {
+        subject: { type: "URI", value: "http://example.org/s" },
+        predicate: { type: "URI", value: "http://default-namespace.org/#hasDefaultProp" },
+        object: { type: "LITERAL", value: "default value" }
+      }
+    ];
+    const prefixes = { "": "http://default-namespace.org/#" }; // Empty prefix
+    
+    const xml = serializeTriplesToRdfXml(triples, prefixes, "http://example.org/ontology");
+    expect(xml).toContain('xmlns="http://default-namespace.org/#"'); // Correctly uses xmlns="..." instead of xmlns:="..."
+    expect(xml).not.toContain('xmlns:="http://default-namespace.org/#"');
+    expect(xml).toContain('<hasDefaultProp>default value</hasDefaultProp>'); // Naked tag without dangling colons
+    expect(xml).not.toContain('<:hasDefaultProp>');
+  });
 });

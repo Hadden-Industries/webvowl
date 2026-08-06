@@ -377,6 +377,38 @@ export class ManchesterParser {
     }
   }
 
+  parseLiteral() {
+    const tok = this.consumeToken();
+    let val = tok;
+    let datatype = null;
+    let lang = null;
+
+    if (tok.startsWith('"') || tok.startsWith("'")) {
+      val = tok.substring(1, tok.length - 1);
+    } else if (!isNaN(tok)) {
+      if (tok.includes('.')) {
+        datatype = 'xsd:decimal';
+      } else {
+        datatype = 'xsd:integer';
+      }
+    } else if (tok.toLowerCase() === 'true' || tok.toLowerCase() === 'false') {
+      datatype = 'xsd:boolean';
+    }
+
+    if (this.peekToken() === '^') {
+      this.consumeToken();
+      if (this.peekToken() === '^') {
+        this.consumeToken();
+      }
+      datatype = this.parseIRI();
+    } else if (this.peekToken() === '@') {
+      this.consumeToken();
+      lang = this.consumeToken();
+    }
+
+    return { type: 'Literal', value: val, datatype, lang };
+  }
+
   parseExpressionList() {
     const list = [];
     list.push(this.parseClassExpression());
@@ -458,12 +490,14 @@ export class ManchesterParser {
     }
     
     if (type === "value") {
-      filler = { type: 'Individual', iri: this.parseIRI() };
-    } else if (this.peekToken().toLowerCase() === "self") {
-      this.consumeToken();
-      filler = { type: 'Self' };
+      filler = this.parseSwrlArgument();
     } else {
-      filler = this.parseNonNary();
+      if (this.peekToken().toLowerCase() === "self") {
+        this.consumeToken();
+        filler = { type: 'Self' };
+      } else {
+        filler = this.parseNonNary();
+      }
     }
     
     return { type: 'Restriction', restrictionType: type, property: prop, filler, cardinality: card };
@@ -472,15 +506,20 @@ export class ManchesterParser {
   parseDatatypeFacets() {
     const facets = [];
     this.consumeToken('[');
-    while (this.peekToken() !== ']') {
-      const facetType = this.consumeToken(); // e.g. '>=', 'length'
+    while (this.peekToken() !== ']' && this.peekToken() !== '|EOF|') {
+      let facetType = this.consumeToken(); // e.g. '>', '<'
+      if ((facetType === '>' || facetType === '<') && this.peekToken() === '=') {
+        facetType += this.consumeToken(); // e.g. '>=', '<='
+      }
       const facetValue = this.parseLiteral();
       facets.push({ facetType, facetValue });
       if (this.peekToken() === ',') {
         this.consumeToken();
       }
     }
-    this.consumeToken(']');
+    if (this.peekToken() === ']') {
+      this.consumeToken(']');
+    }
     return { type: 'DatatypeRestrictions', facets };
   }
 
@@ -531,6 +570,9 @@ export class TriplesEmitter {
   getURI(iri) {
     if (iri.startsWith("<") && iri.endsWith(">")) {
       return { type: 'URI', value: iri.substring(1, iri.length - 1) };
+    }
+    if (iri.includes(":") && !iri.startsWith("http://") && !iri.startsWith("https://")) {
+      return { type: 'QNAME', value: iri };
     }
     return { type: 'URI', value: iri };
   }
@@ -598,7 +640,7 @@ export class TriplesEmitter {
             // These take a list in OWL 2
             for (const listExpr of item.expressions) {
               if (listExpr.type === 'PropertyChain') {
-                const chainList = listExpr.properties.map(p => this.getURI(p));
+                const chainList = listExpr.properties;
                 this.add(subject, predicate, this.emitList(chainList.map(u => ({ type: 'NamedIndividual', iri: u })))); // emitList expects AST nodes or will pass objects
               } else {
                 this.add(subject, predicate, this.emitList(item.expressions));
@@ -613,7 +655,11 @@ export class TriplesEmitter {
                 this.add(bnode, 'rdf:type', this.getURI('owl:NegativePropertyAssertion'));
                 this.add(bnode, 'owl:sourceIndividual', subject);
                 this.add(bnode, 'owl:assertionProperty', this.getURI(fact.property));
-                this.add(bnode, 'owl:targetIndividual', objNode); // Might be targetValue if literal, but targetIndividual works as placeholder
+                if (fact.value && fact.value.type === 'Literal') {
+                  this.add(bnode, 'owl:targetValue', objNode);
+                } else {
+                  this.add(bnode, 'owl:targetIndividual', objNode); // Simplified
+                }
               } else {
                 this.add(subject, fact.property, objNode);
               }
@@ -713,7 +759,7 @@ export class TriplesEmitter {
     }
     if (expr.type === 'Literal') {
       const dt = expr.datatype ? this.getURI(expr.datatype) : null;
-      return { type: 'LITERAL', value: expr.val, lang: expr.lang, datatype: dt };
+      return { type: 'LITERAL', value: expr.value, lang: expr.lang, datatype: dt };
     }
     if (expr.type === 'SwrlVariable') {
       return this.getURI('urn:swrl:var#' + expr.name);
@@ -781,7 +827,7 @@ export class TriplesEmitter {
     if (expr.type === 'OneOf') {
       const bnode = this.newBNode();
       this.add(bnode, 'rdf:type', this.getURI('owl:Class'));
-      const individuals = expr.individuals.map(iri => ({ type: 'Individual', iri }));
+      const individuals = expr.individuals.map(iri => ({ type: 'NamedIndividual', iri }));
       this.add(bnode, 'owl:oneOf', this.emitList(individuals));
       return bnode;
     }

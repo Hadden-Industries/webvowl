@@ -1,7 +1,84 @@
 import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
 import { NAMESPACES, ONTOLOGY_CATALOG } from "./constants.js";
-import { isTurtleFormat, parseTurtle, serializeTriplesToRdfXml } from "./turtleParser.js";
 import { resolveXmlEntities } from "./xmlUtils.js";
+import { isTurtleFormat, parseTurtle, serializeTriplesToRdfXml } from "./turtleParser.js";
+import { isOwlXmlFormat, convertOwlXmlToRdfXml } from "./owlXmlParser.js";
+import { isManchesterSyntaxFormat, convertManchesterSyntaxToRdfXml } from "./manchesterSyntaxParser.js";
+
+/**
+ * Attempts to parse an ontology string across multiple syntax formats 
+ * (Turtle, OWL/XML, Manchester Syntax) and convert it to RDF/XML.
+ * Emulates the Java OWLAPI fall-through parser selection logic.
+ * 
+ * @param {string} text - The ontology source string
+ * @returns {string} The converted RDF/XML string, or the original string if all converters fail (assuming it is native RDF/XML)
+ */
+export function convertToRdfXmlFallback(text) {
+  const parsers = [
+    {
+      name: "Manchester Syntax",
+      sniff: isManchesterSyntaxFormat,
+      parse: (t) => convertManchesterSyntaxToRdfXml(t, { strictMode: false })
+    },
+    {
+      name: "OWL/XML",
+      sniff: isOwlXmlFormat,
+      parse: (t) => convertOwlXmlToRdfXml(t)
+    },
+    {
+      name: "Turtle",
+      sniff: isTurtleFormat,
+      parse: (t) => {
+        const parsed = parseTurtle(t);
+        return serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
+      }
+    }
+  ];
+
+  // Prioritize parsers based on sniffing regexes. Matched formats (1) go first.
+  parsers.sort((a, b) => {
+    const aMatch = a.sniff(text) ? 1 : 0;
+    const bMatch = b.sniff(text) ? 1 : 0;
+    return bMatch - aMatch;
+  });
+
+  const domParser = new DOMParser({
+    onError: () => {}
+  });
+
+  for (const parserDef of parsers) {
+    const isPrimaryMatch = parserDef.sniff(text);
+    
+    // For Manchester Syntax, we enforce strict mode if it wasn't a sniff match, 
+    // to prevent relaxed mode from returning an empty ontology on garbage inputs (like RDF/XML files).
+    let convertedXml;
+    try {
+      if (parserDef.name === "Manchester Syntax" && !isPrimaryMatch) {
+        convertedXml = convertManchesterSyntaxToRdfXml(text, { strictMode: true });
+      } else {
+        convertedXml = parserDef.parse(text);
+      }
+      
+      // If the parser returned something that is literally just an empty ontology skeleton, and we didn't sniff it, reject it.
+      if (!isPrimaryMatch && convertedXml && convertedXml.includes("newOntology") && !text.includes("newOntology")) {
+         continue; // Reject relaxed mode empty output for non-matched files
+      }
+
+      // Validate that it produced structurally sound XML
+      const doc = domParser.parseFromString(convertedXml, "application/xml");
+      if (!doc.getElementsByTagName("parsererror")[0]) {
+        return convertedXml;
+      }
+    } catch (_err) {
+      // Failed to parse, fall through to the next parser in the list
+    }
+  }
+
+  // If all alternate format parsers fail, we assume it's native RDF/XML 
+  // and pass the original text through unmolested, letting the downstream RDF parser 
+  // handle it (and throw the final error if it truly is invalid).
+  return text;
+}
 
 /**
  * Resolves logical ontology import IRIs to dereferenceable physical URLs
@@ -60,15 +137,7 @@ export function resolveImportUrl(importUri) {
  */
 export function loadWithImports(initialXmlText, rootParserFn) {
   const resolvedText = resolveXmlEntities(initialXmlText);
-  let parsedInitialText = resolvedText;
-  if (isTurtleFormat(resolvedText)) {
-    try {
-      const parsed = parseTurtle(resolvedText);
-      parsedInitialText = serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
-    } catch (parseErr) {
-      return Promise.reject(new Error("Turtle parsing error: " + parseErr.message));
-    }
-  }
+  const parsedInitialText = convertToRdfXmlFallback(resolvedText);
 
   const parser = new DOMParser();
   let mainDoc;
@@ -186,15 +255,8 @@ export function loadWithImports(initialXmlText, rootParserFn) {
           })
           .then(xmlText => {
             const resolvedText = resolveXmlEntities(xmlText);
-            let parsedXmlText = resolvedText;
-            if (isTurtleFormat(resolvedText)) {
-              try {
-                const parsed = parseTurtle(resolvedText);
-                parsedXmlText = serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
-              } catch (parseErr) {
-                throw new Error(`Turtle parsing error inside imported ontology "${resolvedUrl}": ${parseErr.message}`, { cause: parseErr });
-              }
-            }
+            const parsedXmlText = convertToRdfXmlFallback(resolvedText);
+            
             const importedDoc = parser.parseFromString(parsedXmlText, "application/xml");
             const parserError = importedDoc.getElementsByTagName("parsererror")[0];
             if (parserError) {
