@@ -416,12 +416,32 @@ module.exports = function ( graph ){
     exportText.namespace = graph.options().data().namespace;
     if ( exportText.namespace === undefined ) {
       exportText.namespace = []; // just an empty namespace array
+    } else {
+      exportText.namespace.sort(function(a, b) {
+        return String(a.prefix || "").localeCompare(String(b.prefix || ""));
+      });
     }
+
+    function sortById(a, b) {
+      const aId = a.id ? (typeof a.id === "function" ? a.id() : a.id) : "";
+      const bId = b.id ? (typeof b.id === "function" ? b.id() : b.id) : "";
+      return String(aId).localeCompare(String(bId));
+    }
+
+    function sortByIriThenId(a, b) {
+      const aIri = a.iri ? (typeof a.iri === "function" ? a.iri() : a.iri) : "";
+      const bIri = b.iri ? (typeof b.iri === "function" ? b.iri() : b.iri) : "";
+      if (aIri !== bIri) {
+        return String(aIri || "").localeCompare(String(bIri || ""));
+      }
+      return sortById(a, b);
+    }
+    
     // we do have now the unfiltered data which needs to be transfered to class/classAttribute and property/propertyAttribute
     
     
     // var classAttributeString='classAttribute:[ \n';
-    const nodes = unfilteredData.nodes;
+    const nodes = (unfilteredData.nodes || []).slice().sort(sortByIriThenId);
     const nLen = nodes.length; // hope for compiler unroll
     const classObjects = [];
     const classAttributeObjects = [];
@@ -439,7 +459,7 @@ module.exports = function ( graph ){
       classAttr.label = nodes[i].label();
       
       if ( nodes[i].attributes().length > 0 ) {
-        classAttr.attributes = nodes[i].attributes();
+        classAttr.attributes = nodes[i].attributes().slice().sort();
       }
       if ( nodes[i].comment() ) {
         classAttr.comment = nodes[i].comment();
@@ -454,7 +474,7 @@ module.exports = function ( graph ){
       
       if ( nodes[i].individuals().length > 0 ) {
         const classIndividualElements = [];
-        const nIndividuals = nodes[i].individuals();
+        const nIndividuals = nodes[i].individuals().slice().sort(sortByIriThenId);
         for ( j = 0; j < nIndividuals.length; j++ ) {
           const indObj = {};
           indObj.iri = nIndividuals[j].iri();
@@ -477,7 +497,7 @@ module.exports = function ( graph ){
       let equalsForAttributes = undefined;
       if ( nodes[i].equivalents().length > 0 ) {
         equalsForAttributes = [];
-        const equals = nodes[i].equivalents();
+        const equals = nodes[i].equivalents().slice().sort(sortByIriThenId);
         for ( j = 0; j < equals.length; j++ ) {
           const eqObj = {};
           const eqAttr = {};
@@ -492,7 +512,7 @@ module.exports = function ( graph ){
           eqAttr.label = equals[j].label();
           
           if ( equals[j].attributes().length > 0 ) {
-            eqAttr.attributes = equals[j].attributes();
+            eqAttr.attributes = equals[j].attributes().slice().sort();
           }
           if ( equals[j].comment() ) {
             eqAttr.comment = equals[j].comment();
@@ -509,7 +529,7 @@ module.exports = function ( graph ){
           
           if ( equals[j].individuals().length > 0 ) {
             const e_classIndividualElements = [];
-            const e_nIndividuals = equals[i].individuals();
+            const e_nIndividuals = equals[i].individuals().slice().sort(sortByIriThenId);
             for ( k = 0; k < e_nIndividuals.length; k++ ) {
               const e_indObj = {};
               e_indObj.iri = e_nIndividuals[k].iri();
@@ -552,7 +572,7 @@ module.exports = function ( graph ){
     }
     
     /** -- properties -- **/
-    const properties = unfilteredData.properties;
+    const properties = (unfilteredData.properties || []).slice().sort(sortByIriThenId);
     const pLen = properties.length; // hope for compiler unroll
     const propertyObjects = [];
     const propertyAttributeObjects = [];
@@ -571,7 +591,7 @@ module.exports = function ( graph ){
       pAttr.label = properties[i].label();
       
       if ( properties[i].attributes().length > 0 ) {
-        pAttr.attributes = properties[i].attributes();
+        pAttr.attributes = properties[i].attributes().slice().sort();
       }
       if ( properties[i].comment() ) {
         pAttr.comment = properties[i].comment();
@@ -597,7 +617,7 @@ module.exports = function ( graph ){
       pAttr.range = properties[i].range().id();
       // sub properties;
       if ( properties[i].subproperties() ) {
-        const subProps = properties[i].subproperties();
+        const subProps = properties[i].subproperties().slice().sort(sortByIriThenId);
         const subPropsIdArray = [];
         for ( j = 0; j < subProps.length; j++ ) {
           if ( subProps[j].id )
@@ -608,7 +628,7 @@ module.exports = function ( graph ){
       
       // super properties
       if ( properties[i].superproperties() ) {
-        const superProps = properties[i].superproperties();
+        const superProps = properties[i].superproperties().slice().sort(sortByIriThenId);
         const superPropsIdArray = [];
         for ( j = 0; j < superProps.length; j++ ) {
           if ( superProps[j].id )
@@ -711,7 +731,9 @@ module.exports = function ( graph ){
     
     // Filter Settings
     const fMenu = graph.options().filterMenu();
-    const fContainer = fMenu.getCheckBoxContainer();
+    const fContainer = (fMenu.getCheckBoxContainer() || []).slice().sort(function(a, b) {
+      return String(a.checkbox.attr("id") || "").localeCompare(String(b.checkbox.attr("id") || ""));
+    });
     const cbCont = [];
     for ( i = 0; i < fContainer.length; i++ ) {
       cb_text = fContainer[i].checkbox.attr("id");
@@ -728,7 +750,9 @@ module.exports = function ( graph ){
     
     // Modes Settings
     const mMenu = graph.options().modeMenu();
-    const mContainer = mMenu.getCheckBoxContainer();
+    const mContainer = (mMenu.getCheckBoxContainer() || []).slice().sort(function(a, b) {
+      return String(a.attr("id") || "").localeCompare(String(b.attr("id") || ""));
+    });
     const cb_modes = [];
     for ( i = 0; i < mContainer.length; i++ ) {
       cb_text = mContainer[i].attr("id");
@@ -744,8 +768,6 @@ module.exports = function ( graph ){
     exportText.settings.modes.colorSwitchState = colorSwitchState;
     
     const exportObj = {};
-    // todo: [ ] find better way for ordering the objects
-    // hack for ordering of objects, so settings is after metrics
     exportObj._comment = exportText._comment;
     exportObj.header = exportText.header;
     exportObj.namespace = exportText.namespace;
@@ -756,7 +778,21 @@ module.exports = function ( graph ){
     exportObj.property = exportText.property;
     exportObj.propertyAttribute = exportText.propertyAttribute;
     
-    return exportObj;
+    function sortObjectKeys(obj) {
+      if (typeof obj !== "object" || obj === null) {
+        return obj;
+      }
+      if (Array.isArray(obj)) {
+        return obj.map(sortObjectKeys);
+      }
+      const sortedObj = {};
+      Object.keys(obj).sort().forEach(function(key) {
+        sortedObj[key] = sortObjectKeys(obj[key]);
+      });
+      return sortedObj;
+    }
+
+    return sortObjectKeys(exportObj);
   };
   
   function exportJson(){
