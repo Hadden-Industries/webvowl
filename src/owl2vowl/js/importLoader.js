@@ -5,6 +5,7 @@ import { parseTurtle, serializeTriplesToRdfXml } from "./turtleParser.js";
 import { isOwlXmlFormat, convertOwlXmlToRdfXml } from "./owlXmlParser.js";
 import { isManchesterSyntaxFormat, convertManchesterSyntaxToRdfXml } from "./manchesterSyntaxParser.js";
 import { parseFunctionalSyntax } from "./functionalSyntaxParser.js";
+import { parseDLSyntax, isDLSyntaxFormat } from "./dlSyntaxParser.js";
 
 /**
  * Attempts to parse an ontology string across multiple syntax formats 
@@ -67,10 +68,15 @@ export function convertToRdfXmlFallback(text) {
       }
     },
     {
-      // TODO: Implement DL Syntax parser (Java: DLSyntaxOWLParserFactory @HasPriority(15))
-      // Reference: owlapi/parsers/.../dlsyntax/parser/DLSyntaxOWLParserFactory.java
       name: "DL Syntax",
-      parse: (_t) => { throw new Error("DL Syntax parser not yet implemented"); }
+      parse: (t) => {
+        // Sniff guard to prevent DL Syntax from consuming non-DL input and throwing later,
+        // although DL Syntax does not have a relaxed mode, it is a best practice.
+        if (!isDLSyntaxFormat(t)) {
+          throw new Error("Not DL syntax");
+        }
+        return parseDLSyntax(t);
+      }
     },
     {
       // TODO: Implement KRSS2 parser (Java: KRSS2OWLParserFactory @HasPriority(16))
