@@ -525,4 +525,27 @@ describe("navigationMenu and popover event listeners", () => {
       expect(popover.style.getPropertyValue("--sheet-drag-y")).toBe("");
     });
   });
+
+  describe("Popover event containment", () => {
+    test("stops propagation of interaction events originating inside modern-popover", () => {
+      const mockGraph = {
+        options: () => ({
+          navigationMenu: () => ({ hideAllMenus: () => {} }),
+        }),
+      };
+
+      const navMenu = navigationMenuFactory(mockGraph);
+      navMenu.setup();
+
+      const popover = getOrCreateElement("m_select");
+      popover._classList.add("modern-popover");
+
+      const clickEvent = new CustomEvent("click", { bubbles: true, cancelable: true });
+      clickEvent.stopPropagation = jest.fn();
+
+      popover.dispatchEvent(clickEvent);
+
+      expect(clickEvent.stopPropagation).toHaveBeenCalled();
+    });
+  });
 });

@@ -288,6 +288,20 @@ module.exports = function ( graph ){
       }
     });
 
+    // Contain user interactions inside popovers so they don't propagate to background graph canvas
+    const popoverElements = (typeof document !== "undefined" && typeof document.querySelectorAll === "function") ? document.querySelectorAll(".modern-popover") : [];
+    const interactionEvents = ["click", "mousedown", "mouseup", "pointerdown", "pointerup", "touchstart", "touchend", "wheel"];
+    popoverElements.forEach(function (popover){
+      if ( !popover || typeof popover.addEventListener !== "function" ) {return;}
+      interactionEvents.forEach(function (eventType){
+        popover.addEventListener(eventType, function (event){
+          if ( event && typeof event.stopPropagation === "function" ) {
+            event.stopPropagation();
+          }
+        });
+      });
+    });
+
     setupMobileSheetDragDismiss();
   };
 
