@@ -1,3 +1,5 @@
+const compat = require("eslint-plugin-compat");
+
 const js = require("@eslint/js");
 const globals = require("globals");
 
@@ -13,6 +15,25 @@ module.exports = [
 
   // Base ESLint recommended rules
   js.configs.recommended,
+
+  // Base compat recommended rules
+  compat.configs["flat/recommended"],
+
+  {
+    settings: {
+      // Also analyse ECMAScript built-ins such as
+      // Array.prototype.at and Object.hasOwn.
+      // This remains marked experimental by the plugin.
+      lintAllEsApis: true,
+
+      // Declare APIs supplied by your own polyfills.
+      polyfills: [
+        "popover",
+        // "Promise",
+        // "ResizeObserver"
+      ]
+    }
+  },
 
   // Main source configuration - modern strict standards
   {
