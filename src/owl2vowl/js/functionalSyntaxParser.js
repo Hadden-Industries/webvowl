@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 export function isFunctionalSyntaxFormat(text) {
   // Check if it looks like OFN by searching for Ontology( or Prefix(
   return /^\s*(Prefix|Ontology)\s*\(/i.test(text);
@@ -214,11 +213,11 @@ class TriplesEmitter {
   }
 
   setOntologyIri(iri) { this.ontologyIri = iri; }
-  
+
   ensureClass(iri) {
     if (!this.classes[iri]) {this.classes[iri] = true;}
   }
-  
+
   ensureObjectProperty(iri) {
     if (!this.objectProperties[iri]) {this.objectProperties[iri] = true;}
   }
@@ -276,7 +275,7 @@ class TriplesEmitter {
       `  xml:base="${this.ontologyIri}">`,
       `  <owl:Ontology rdf:about="${this.ontologyIri}"/>`
     ];
-    
+
     // Group axioms by subject if it's an IRI, otherwise just dump them as subClassOf tags inside owl:Class
     const grouped = {};
     for (const ax of this.axioms) {
@@ -288,7 +287,7 @@ class TriplesEmitter {
         grouped[ax.a.iri].push(ax);
       }
     }
-    
+
     for (const iri of Object.keys(this.classes)) {
       if (!grouped[iri] || grouped[iri].length === 0) {
         lines.push(`  <owl:Class rdf:about="${iri}"/>`);
@@ -344,12 +343,6 @@ class TriplesEmitter {
     lines.push(`</rdf:RDF>`);
     return lines.join("\n");
   }
-}
-export function parseFunctionalSyntax(text) {
-  const lexer = new FunctionalLexer(text);
-  const stream = new TokenStream(lexer);
-  const parser = new FunctionalParser(stream);
-  return parser.parseDocument();
 }
 
 class FunctionalParser {
@@ -436,14 +429,14 @@ class FunctionalParser {
     this.stream.consume(TokenTypes.LPAREN);
     const iriToken = this.stream.consume();
     const iri = this.getIRI(iriToken);
-    
+
     if (entityType === "Class") {this.triples.addClass(iri);}
     else if (entityType === "ObjectProperty") {this.triples.addObjectProperty(iri);}
     else if (entityType === "DataProperty") {this.triples.addDataProperty(iri);}
     else if (entityType === "NamedIndividual") {this.triples.addNamedIndividual(iri);}
     else if (entityType === "Datatype") {this.triples.addDatatype(iri);}
     else if (entityType === "AnnotationProperty") {this.triples.addAnnotationProperty(iri);}
-    
+
     this.stream.consume(TokenTypes.RPAREN);
     this.stream.consume(TokenTypes.RPAREN);
   }
@@ -453,7 +446,7 @@ class FunctionalParser {
     if (token.type === TokenTypes.KEYWORD && token.value !== "owl:Thing" && token.value !== "owl:Nothing") {
       const kw = this.stream.consume(TokenTypes.KEYWORD).value;
       this.stream.consume(TokenTypes.LPAREN);
-      
+
       const expr = { type: kw };
       if (kw === "ObjectIntersectionOf" || kw === "ObjectUnionOf") {
         expr.classes = [];
@@ -513,6 +506,13 @@ class FunctionalParser {
     this.triples.addSubObjectPropertyOf(this.getIRI(subToken), this.getIRI(superToken));
     this.stream.consume(TokenTypes.RPAREN);
   }
+}
+
+export function parseFunctionalSyntax(text) {
+  const lexer = new FunctionalLexer(text);
+  const stream = new TokenStream(lexer);
+  const parser = new FunctionalParser(stream);
+  return parser.parseDocument();
 }
 
 
