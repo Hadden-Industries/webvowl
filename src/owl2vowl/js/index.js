@@ -5,7 +5,10 @@ import { VowlParserContext } from "./parserContext.js";
 import { parseRdfXml } from "./rdfParser.js";
 import { convertOntology } from "./ontologyConverter.js";
 import { exportToJson } from "./jsonExporter.js";
-import { loadWithImports as internalLoadWithImports, convertToRdfXmlFallback } from "./importLoader.js";
+import {
+  loadWithImports as internalLoadWithImports,
+  convertToRdfXmlFallback,
+} from "./importLoader.js";
 import { resolveXmlEntities } from "./xmlUtils.js";
 /**
  * Parses an RDF/XML, OWL/XML, Turtle, or Manchester Syntax ontology into VOWL-JSON.
@@ -29,7 +32,8 @@ export default async function owl2vowl(xmlString) {
     throw new Error("Invalid XML document");
   }
 
-  const baseAttr = rootEl.getAttribute("xml:base") || rootEl.getAttribute("base") || "";
+  const baseAttr =
+    rootEl.getAttribute("xml:base") || rootEl.getAttribute("base") || "";
   const resolver = new PerformanceIriResolver(baseAttr);
 
   const prefixList = {};
@@ -55,11 +59,15 @@ export default async function owl2vowl(xmlString) {
     description: {},
     labels: {},
     comments: {},
-    other: {}
+    other: {},
   };
 
   // Run the parser
-  const { prefixList: parsedPrefixList, subjects, languagesSet } = parseRdfXml(xmlText, resolver, context);
+  const {
+    prefixList: parsedPrefixList,
+    subjects,
+    languagesSet,
+  } = parseRdfXml(xmlText, resolver, context);
   Object.assign(header.prefixList, parsedPrefixList);
 
   // Run the conversion
@@ -82,4 +90,3 @@ export const catalog = ONTOLOGY_CATALOG;
 
 owl2vowl.loadWithImports = loadWithImports;
 owl2vowl.catalog = catalog;
-

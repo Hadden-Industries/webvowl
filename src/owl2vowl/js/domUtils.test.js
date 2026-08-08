@@ -1,5 +1,10 @@
 import { DOMParser } from "@xmldom/xmldom";
-import { getAttr, getAbout, findImmediateChildren, getElementsByLocalName } from "./domUtils.js";
+import {
+  getAttr,
+  getAbout,
+  findImmediateChildren,
+  getElementsByLocalName,
+} from "./domUtils.js";
 
 const parseXML = (xmlString) => {
   return new DOMParser().parseFromString(xmlString, "application/xml");
@@ -8,9 +13,13 @@ const parseXML = (xmlString) => {
 describe("domUtils.js unit tests", () => {
   describe("getAttr", () => {
     test("retrieves namespaced attribute", () => {
-      const doc = parseXML('<root xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" rdf:about="http://example.org/node"/>');
+      const doc = parseXML(
+        '<root xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" rdf:about="http://example.org/node"/>',
+      );
       const el = doc.documentElement;
-      expect(getAttr(el, "about", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")).toBe("http://example.org/node");
+      expect(
+        getAttr(el, "about", "http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
+      ).toBe("http://example.org/node");
     });
 
     test("retrieves standard attribute with fallback", () => {
@@ -20,7 +29,9 @@ describe("domUtils.js unit tests", () => {
     });
 
     test("retrieves prefixed attribute without namespace parameter", () => {
-      const doc = parseXML('<root xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" rdf:about="value2"/>');
+      const doc = parseXML(
+        '<root xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" rdf:about="value2"/>',
+      );
       const el = doc.documentElement;
       expect(getAttr(el, "about")).toBe("value2");
     });
@@ -75,7 +86,9 @@ describe("domUtils.js unit tests", () => {
     });
 
     test("returns null if neither is present", () => {
-      const doc = parseXML("<rdf:Description xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" />");
+      const doc = parseXML(
+        '<rdf:Description xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" />',
+      );
       const el = doc.documentElement;
       expect(getAbout(el)).toBeNull();
     });

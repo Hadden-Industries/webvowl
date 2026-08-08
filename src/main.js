@@ -11,7 +11,7 @@
  */
 
 // Import both library entry points (CJS, transformed by vite-plugin-commonjs)
- 
+
 const webvowl = require("./webvowl/js/entry");
 const app = require("./app/js/entry");
 

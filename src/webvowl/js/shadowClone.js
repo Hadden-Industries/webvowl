@@ -1,7 +1,7 @@
 const CenteringTextElement = require("./util/CenteringTextElement");
 const elementTools = require("./util/elementTools")();
 const math = require("./util/math")();
-module.exports = function ( graph ){
+module.exports = function (graph) {
   /** variable defs **/
   const ShadowClone = {};
   ShadowClone.nodeId = 10003;
@@ -16,24 +16,23 @@ module.exports = function ( graph ){
   ShadowClone.nodeElement = undefined;
   ShadowClone.pathElement = undefined;
   ShadowClone.typus = "shadowClone";
-  
-  
-  ShadowClone.type = function (){
+
+  ShadowClone.type = function () {
     return ShadowClone.typus;
   };
-  
+
   // TODO: We need the endPoint of the Link here!
-  ShadowClone.parentNode = function (){
+  ShadowClone.parentNode = function () {
     return ShadowClone.parent;
   };
-  
-  ShadowClone.setParentProperty = function ( parentProperty, inverted ){
+
+  ShadowClone.setParentProperty = function (parentProperty, inverted) {
     ShadowClone.invertedProperty = inverted;
     ShadowClone.parent = parentProperty;
     let renElment;
-    if ( inverted === true ) {
+    if (inverted === true) {
       renElment = parentProperty.inverse().labelObject();
-      if ( renElment.linkRangeIntersection && renElment.linkDomainIntersection ) {
+      if (renElment.linkRangeIntersection && renElment.linkDomainIntersection) {
         const iiP_range = renElment.linkDomainIntersection;
         const iiP_domain = renElment.linkRangeIntersection;
         ShadowClone.s_x = iiP_domain.x;
@@ -41,11 +40,10 @@ module.exports = function ( graph ){
         ShadowClone.e_x = iiP_range.x;
         ShadowClone.e_y = iiP_range.y;
       }
-    }
-    else {
+    } else {
       renElment = parentProperty.labelObject();
-      
-      if ( renElment.linkRangeIntersection && renElment.linkDomainIntersection ) {
+
+      if (renElment.linkRangeIntersection && renElment.linkDomainIntersection) {
         const iP_range = renElment.linkRangeIntersection;
         const iP_domain = renElment.linkDomainIntersection;
         ShadowClone.s_x = iP_domain.x;
@@ -53,13 +51,12 @@ module.exports = function ( graph ){
         ShadowClone.e_x = iP_range.x;
         ShadowClone.e_y = iP_range.y;
       }
-      
     }
-    
+
     ShadowClone.rootNodeLayer.remove();
-    ShadowClone.rootNodeLayer = ShadowClone.rootElement.append('g');
+    ShadowClone.rootNodeLayer = ShadowClone.rootElement.append("g");
     ShadowClone.rootNodeLayer.datum(parentProperty);
-    
+
     // ShadowClone.pathElement.remove();
     // ShadowClone.pathElement = ShadowClone.pathLayer.append('line');
     //
@@ -68,138 +65,163 @@ module.exports = function ( graph ){
     //     .attr("x2", ShadowClone.e_x)
     //     .attr("y2", ShadowClone.e_y);
     ShadowClone.pathElement.remove();
-    ShadowClone.pathElement = ShadowClone.pathLayer.append('line');
+    ShadowClone.pathElement = ShadowClone.pathLayer.append("line");
     ShadowClone.markerElement = ShadowClone.pathLayer.append("marker");
     ShadowClone.markerElement.attr("id", "shadowCloneMarker");
-    ShadowClone.pathElement.attr("x1", ShadowClone.e_x)
+    ShadowClone.pathElement
+      .attr("x1", ShadowClone.e_x)
       .attr("y1", ShadowClone.e_y)
       .attr("x2", ShadowClone.s_x)
       .attr("y2", ShadowClone.s_y);
     ShadowClone.pathElement.classed(parentProperty.linkType(), true);
-    
-    if ( parentProperty.markerElement() ) {
-      ShadowClone.markerElement.attr("viewBox", parentProperty.markerElement().attr("viewBox"))
+
+    if (parentProperty.markerElement()) {
+      ShadowClone.markerElement
+        .attr("viewBox", parentProperty.markerElement().attr("viewBox"))
         .attr("markerWidth", parentProperty.markerElement().attr("markerWidth"))
-        .attr("markerHeight", parentProperty.markerElement().attr("markerHeight"))
+        .attr(
+          "markerHeight",
+          parentProperty.markerElement().attr("markerHeight"),
+        )
         .attr("orient", parentProperty.markerElement().attr("orient"));
-      
+
       const markerPath = parentProperty.markerElement().select("path");
-      ShadowClone.markerElement.append("path")
+      ShadowClone.markerElement
+        .append("path")
         .attr("d", markerPath.attr("d"))
         .classed(parentProperty.markerType(), true);
-      
-      ShadowClone.pathElement.attr("marker-end", "url(#" + "shadowCloneMarker" + ")");
-      ShadowClone.markerElement.classed("hidden", !elementTools.isDatatypeProperty(parentProperty));
+
+      ShadowClone.pathElement.attr(
+        "marker-end",
+        "url(#" + "shadowCloneMarker" + ")",
+      );
+      ShadowClone.markerElement.classed(
+        "hidden",
+        !elementTools.isDatatypeProperty(parentProperty),
+      );
     }
-    const rect = ShadowClone.rootNodeLayer.append("rect")
+    const rect = ShadowClone.rootNodeLayer
+      .append("rect")
       .classed(parentProperty.styleClass(), true)
       .classed("property", true)
       .attr("x", -parentProperty.width() / 2)
       .attr("y", -parentProperty.height() / 2)
       .attr("width", parentProperty.width())
       .attr("height", parentProperty.height());
-    
-    if ( parentProperty.visualAttributes() ) {
+
+    if (parentProperty.visualAttributes()) {
       rect.classed(parentProperty.visualAttributes(), true);
     }
     rect.classed("datatype", false);
     let bgColor = parentProperty.backgroundColor();
-    
-    if ( parentProperty.attributes().indexOf("deprecated") > -1 ) {
+
+    if (parentProperty.attributes().indexOf("deprecated") > -1) {
       bgColor = undefined;
       rect.classed("deprecatedproperty", true);
     } else {
       rect.classed("deprecatedproperty", false);
     }
     rect.style("fill", bgColor);
-    
+
     // add Text;
     const equivalentsString = parentProperty.equivalentsString();
     const suffixForFollowingEquivalents = equivalentsString ? "," : "";
-    
-    
-    const textElement = new CenteringTextElement(ShadowClone.rootNodeLayer, bgColor);
-    textElement.addText(parentProperty.labelForCurrentLanguage(), "", suffixForFollowingEquivalents);
+
+    const textElement = new CenteringTextElement(
+      ShadowClone.rootNodeLayer,
+      bgColor,
+    );
+    textElement.addText(
+      parentProperty.labelForCurrentLanguage(),
+      "",
+      suffixForFollowingEquivalents,
+    );
     textElement.addEquivalents(equivalentsString);
     textElement.addSubText(parentProperty.indicationString());
-    
-    
+
     const cx = 0.5 * (ShadowClone.s_x + ShadowClone.e_x);
     const cy = 0.5 * (ShadowClone.s_y + ShadowClone.e_y);
-    ShadowClone.rootNodeLayer.attr("transform", "translate(" + cx + "," + cy + ")");
+    ShadowClone.rootNodeLayer.attr(
+      "transform",
+      "translate(" + cx + "," + cy + ")",
+    );
     ShadowClone.rootNodeLayer.classed("hidden", true);
     ShadowClone.pathElement.classed("hidden", true);
-    
-    
   };
-  
-  ShadowClone.hideClone = function ( val ){
-    if ( ShadowClone.rootNodeLayer ) {ShadowClone.rootNodeLayer.classed("hidden", val);}
-    if ( ShadowClone.pathElement ) {ShadowClone.pathElement.classed("hidden", val);}
+
+  ShadowClone.hideClone = function (val) {
+    if (ShadowClone.rootNodeLayer) {
+      ShadowClone.rootNodeLayer.classed("hidden", val);
+    }
+    if (ShadowClone.pathElement) {
+      ShadowClone.pathElement.classed("hidden", val);
+    }
   };
-  
-  ShadowClone.hideParentProperty = function ( val ){
-    
+
+  ShadowClone.hideParentProperty = function (val) {
     const labelObj = ShadowClone.parent.labelObject();
-    if ( labelObj ) {
-      if ( ShadowClone.parent.labelElement().attr("transform") === "translate(0,15)" ||
-        ShadowClone.parent.labelElement().attr("transform") === "translate(0,-15)" )
-        {ShadowClone.parent.inverse().hide(val);}
-      
-      
+    if (labelObj) {
+      if (
+        ShadowClone.parent.labelElement().attr("transform") ===
+          "translate(0,15)" ||
+        ShadowClone.parent.labelElement().attr("transform") ===
+          "translate(0,-15)"
+      ) {
+        ShadowClone.parent.inverse().hide(val);
+      }
     }
     ShadowClone.parent.hide(val);
-    
-    
   };
-  
+
   /** BASE HANDLING FUNCTIONS ------------------------------------------------- **/
-  ShadowClone.id = function ( index ){
-    if ( !arguments.length ) {
+  ShadowClone.id = function (index) {
+    if (!arguments.length) {
       return ShadowClone.nodeId;
     }
     ShadowClone.nodeId = index;
   };
-  
-  ShadowClone.svgPathLayer = function ( layer ){
-    ShadowClone.pathLayer = layer.append('g');
+
+  ShadowClone.svgPathLayer = function (layer) {
+    ShadowClone.pathLayer = layer.append("g");
   };
-  
-  ShadowClone.svgRoot = function ( root ){
-    if ( !arguments.length )
-      {return ShadowClone.rootElement;}
+
+  ShadowClone.svgRoot = function (root) {
+    if (!arguments.length) {
+      return ShadowClone.rootElement;
+    }
     ShadowClone.rootElement = root;
-    ShadowClone.rootNodeLayer = ShadowClone.rootElement.append('g');
-    
+    ShadowClone.rootNodeLayer = ShadowClone.rootElement.append("g");
   };
-  
+
   /** DRAWING FUNCTIONS ------------------------------------------------- **/
-  ShadowClone.drawClone = function (){
-    ShadowClone.pathElement = ShadowClone.pathLayer.append('line');
-    
-    ShadowClone.pathElement.attr("x1", 0)
+  ShadowClone.drawClone = function () {
+    ShadowClone.pathElement = ShadowClone.pathLayer.append("line");
+
+    ShadowClone.pathElement
+      .attr("x1", 0)
       .attr("y1", 0)
       .attr("x2", 0)
       .attr("y2", 0);
-    
   };
-  
-  
-  ShadowClone.updateElement = function (){
-    ShadowClone.pathElement.attr("x1", ShadowClone.e_x)
+
+  ShadowClone.updateElement = function () {
+    ShadowClone.pathElement
+      .attr("x1", ShadowClone.e_x)
       .attr("y1", ShadowClone.e_y)
       .attr("x2", ShadowClone.s_x)
       .attr("y2", ShadowClone.s_y);
-    
+
     const cx = 0.5 * (ShadowClone.s_x + ShadowClone.e_x);
     const cy = 0.5 * (ShadowClone.s_y + ShadowClone.e_y);
-    ShadowClone.rootNodeLayer.attr("transform", "translate(" + cx + "," + cy + ")");
+    ShadowClone.rootNodeLayer.attr(
+      "transform",
+      "translate(" + cx + "," + cy + ")",
+    );
   };
-  
-  ShadowClone.setInitialPosition = function (){
-    
+
+  ShadowClone.setInitialPosition = function () {
     const renElment = ShadowClone.parent.labelObject();
-    if ( renElment.linkRangeIntersection && renElment.linkDomainIntersection ) {
+    if (renElment.linkRangeIntersection && renElment.linkDomainIntersection) {
       const iP_range = renElment.linkRangeIntersection;
       const iP_domain = renElment.linkDomainIntersection;
       ShadowClone.e_x = iP_domain.x;
@@ -230,68 +252,60 @@ module.exports = function ( graph ){
     // ShadowClone.e_x=dex+nX*ShadowClone.parent.domain().actualRadius();
     // ShadowClone.e_y=dey+nY*ShadowClone.parent.domain().actualRadius();
     // ShadowClone.updateElement();
-    
   };
-  ShadowClone.setPositionDomain = function ( e_x, e_y ){
-    
+  ShadowClone.setPositionDomain = function (e_x, e_y) {
     const rex = ShadowClone.parent.range().x;
     const rey = ShadowClone.parent.range().y;
-    
-    
-    if ( elementTools.isDatatype(ShadowClone.parent.range()) === true ) {
-      const intersection = math.calculateIntersection({ x: e_x, y: e_y }, ShadowClone.parent.range(), 0);
+
+    if (elementTools.isDatatype(ShadowClone.parent.range()) === true) {
+      const intersection = math.calculateIntersection(
+        { x: e_x, y: e_y },
+        ShadowClone.parent.range(),
+        0,
+      );
       ShadowClone.s_x = intersection.x;
       ShadowClone.s_y = intersection.y;
     } else {
       const dir_X = rex - e_x;
       const dir_Y = rey - e_y;
-      
+
       const len = Math.sqrt(dir_X * dir_X + dir_Y * dir_Y);
-      
+
       const nX = dir_X / len;
       const nY = dir_Y / len;
       ShadowClone.s_x = rex - nX * ShadowClone.parent.range().actualRadius();
       ShadowClone.s_y = rey - nY * ShadowClone.parent.range().actualRadius();
-      
     }
-    
-    
+
     ShadowClone.e_x = e_x;
     ShadowClone.e_y = e_y;
     ShadowClone.updateElement();
   };
-  
-  ShadowClone.setPosition = function ( s_x, s_y ){
+
+  ShadowClone.setPosition = function (s_x, s_y) {
     ShadowClone.s_x = s_x;
     ShadowClone.s_y = s_y;
-    
+
     // add normalized dir;
-    
+
     const dex = ShadowClone.parent.domain().x;
     const dey = ShadowClone.parent.domain().y;
-    
+
     const dir_X = s_x - dex;
     const dir_Y = s_y - dey;
-    
+
     const len = Math.sqrt(dir_X * dir_X + dir_Y * dir_Y);
-    
+
     const nX = dir_X / len;
     const nY = dir_Y / len;
-    
-    
+
     ShadowClone.e_x = dex + nX * ShadowClone.parent.domain().actualRadius();
     ShadowClone.e_y = dey + nY * ShadowClone.parent.domain().actualRadius();
-    
-    
+
     ShadowClone.updateElement();
-    
-    
   };
-  
-  
+
   /** MOUSE HANDLING FUNCTIONS ------------------------------------------------- **/
-  
+
   return ShadowClone;
 };
-
-

@@ -11,8 +11,8 @@ describe("turtleParser.js - isTurtleFormat", () => {
   });
 
   test("rejects non-turtle format correctly", () => {
-    expect(isTurtleFormat("<rdf:RDF xmlns:rdf=\"...\">")).toBe(false);
-    expect(isTurtleFormat("{ \"json\": true }")).toBe(false);
+    expect(isTurtleFormat('<rdf:RDF xmlns:rdf="...">')).toBe(false);
+    expect(isTurtleFormat('{ "json": true }')).toBe(false);
     expect(isTurtleFormat("[ 1, 2, 3 ]")).toBe(false);
   });
 });
@@ -30,8 +30,11 @@ describe("turtleParser.js - parseTurtle", () => {
     expect(result.triples.length).toBe(1);
     expect(result.triples[0]).toEqual({
       subject: { type: "URI", value: "http://example.org/s" },
-      predicate: { type: "URI", value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" },
-      object: { type: "URI", value: "http://example.org/o" }
+      predicate: {
+        type: "URI",
+        value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      },
+      object: { type: "URI", value: "http://example.org/o" },
     });
   });
 
@@ -54,14 +57,17 @@ describe("turtleParser.js - parseTurtle", () => {
     expect(result.triples[1].object).toEqual({
       type: "LITERAL",
       value: "hello",
-      lang: "en"
+      lang: "en",
     });
 
     expect(result.triples[2].subject.value).toBe(bnodeId);
     expect(result.triples[2].object).toEqual({
       type: "LITERAL",
       value: "42",
-      datatype: { type: "URI", value: "http://www.w3.org/2001/XMLSchema#integer" }
+      datatype: {
+        type: "URI",
+        value: "http://www.w3.org/2001/XMLSchema#integer",
+      },
     });
   });
 
@@ -73,7 +79,9 @@ describe("turtleParser.js - parseTurtle", () => {
     const result = parseTurtle(ttl);
     // N3.js parses RDF collections recursively into blank nodes with first/rest predicates
     expect(result.triples.length).toBe(5);
-    const hasListTriple = result.triples.find(t => t.predicate.value === "http://example.org/list");
+    const hasListTriple = result.triples.find(
+      (t) => t.predicate.value === "http://example.org/list",
+    );
     expect(hasListTriple).toBeDefined();
     expect(hasListTriple.object.type).toBe("BNODE");
   });

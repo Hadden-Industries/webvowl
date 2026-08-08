@@ -1,9 +1,8 @@
 const elementTools = require("./elementTools")();
 
-module.exports = (function (){
-  
+module.exports = (function () {
   const tools = {};
-  
+
   /**
    * Filters the passed nodes and removes dangling properties.
    * @param nodes
@@ -11,49 +10,51 @@ module.exports = (function (){
    * @param shouldKeepNode function that returns true if the node should be kept
    * @returns {{nodes: Array, properties: Array}} the filtered nodes and properties
    */
-  tools.filterNodesAndTidy = function ( nodes, properties, shouldKeepNode ){
+  tools.filterNodesAndTidy = function (nodes, properties, shouldKeepNode) {
     const removedNodes = require("./set")(),
       cleanedNodes = [],
       cleanedProperties = [];
-    
-    nodes.forEach(function ( node ){
-      if ( shouldKeepNode(node) ) {
+
+    nodes.forEach(function (node) {
+      if (shouldKeepNode(node)) {
         cleanedNodes.push(node);
       } else {
         removedNodes.add(node);
       }
     });
-    
-    properties.forEach(function ( property ){
-      if ( propertyHasVisibleNodes(removedNodes, property) ) {
+
+    properties.forEach(function (property) {
+      if (propertyHasVisibleNodes(removedNodes, property)) {
         cleanedProperties.push(property);
-      } else if ( elementTools.isDatatypeProperty(property) ) {
+      } else if (elementTools.isDatatypeProperty(property)) {
         // Remove floating datatypes/literals, because they belong to their datatype property
         const index = cleanedNodes.indexOf(property.range());
-        if ( index >= 0 ) {
+        if (index >= 0) {
           cleanedNodes.splice(index, 1);
         }
       }
     });
-    
+
     return {
       nodes: cleanedNodes,
-      properties: cleanedProperties
+      properties: cleanedProperties,
     };
   };
-  
+
   /**
    * Returns true, if the domain and the range of this property have not been removed.
    * @param removedNodes
    * @param property
    * @returns {boolean} true if property isn't dangling
    */
-  function propertyHasVisibleNodes( removedNodes, property ){
-    return !removedNodes.has(property.domain()) && !removedNodes.has(property.range());
+  function propertyHasVisibleNodes(removedNodes, property) {
+    return (
+      !removedNodes.has(property.domain()) &&
+      !removedNodes.has(property.range())
+    );
   }
-  
-  
-  return function (){
+
+  return function () {
     return tools;
   };
 })();

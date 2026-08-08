@@ -1,57 +1,57 @@
 const PlainLink = require("./PlainLink");
 
-
 module.exports = BoxArrowLink;
 
-function BoxArrowLink( domain, range, property ){
+function BoxArrowLink(domain, range, property) {
   PlainLink.apply(this, arguments);
 }
 
 BoxArrowLink.prototype = Object.create(PlainLink.prototype);
 BoxArrowLink.prototype.constructor = BoxArrowLink;
 
-
-BoxArrowLink.prototype.draw = function ( linkGroup, markerContainer ){
+BoxArrowLink.prototype.draw = function (linkGroup, markerContainer) {
   const property = this.label().property();
   const inverse = this.label().inverse();
-  
+
   createPropertyMarker(markerContainer, property);
-  if ( inverse ) {
+  if (inverse) {
     createInverseMarker(markerContainer, inverse);
   }
-  
+
   PlainLink.prototype.draw.apply(this, arguments);
-  
+
   // attach the markers to the link
   linkGroup.attr("marker-start", "url(#" + property.markerId() + ")");
-  if ( inverse ) {
+  if (inverse) {
     linkGroup.attr("marker-end", "url(#" + inverse.markerId() + ")");
   }
 };
 
-
-function createPropertyMarker( markerContainer, inverse ){
+function createPropertyMarker(markerContainer, inverse) {
   const inverseMarker = appendBasicMarker(markerContainer, inverse);
   inverseMarker.attr("refX", -8);
-  inverseMarker.append("path")
+  inverseMarker
+    .append("path")
     .attr("d", "M0,-8L8,0L0,8L-8,0L0,-8L8,0")
     .classed(inverse.markerType(), true);
-  
+
   inverse.markerElement(inverseMarker);
 }
 
-function createInverseMarker( markerContainer, property ){
+function createInverseMarker(markerContainer, property) {
   const marker = appendBasicMarker(markerContainer, property);
   marker.attr("refX", 8);
-  marker.append("path")
+  marker
+    .append("path")
     .attr("d", "M0,-8L8,0L0,8L-8,0L0,-8L8,0")
     .classed(property.markerType(), true);
-  
+
   property.markerElement(marker);
 }
 
-function appendBasicMarker( markerContainer, property ){
-  return markerContainer.append("marker")
+function appendBasicMarker(markerContainer, property) {
+  return markerContainer
+    .append("marker")
     .datum(property)
     .attr("id", property.markerId())
     .attr("viewBox", "-10 -10 20 20")

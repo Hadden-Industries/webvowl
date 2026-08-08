@@ -6,7 +6,9 @@
  * @returns {string}
  */
 export function resolveXmlEntities(xmlString) {
-  if (!xmlString) {return xmlString;}
+  if (!xmlString) {
+    return xmlString;
+  }
 
   // Regex to match internal entity declarations
   const entityRegex = /<!ENTITY\s+([a-zA-Z0-9_-]+)\s+["']([^"']*)["']\s*>/g;

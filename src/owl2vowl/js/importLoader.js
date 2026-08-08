@@ -4,23 +4,26 @@ import { resolveXmlEntities } from "./xmlUtils.js";
 import { parseTurtle } from "./turtleParser.js";
 import { serializeTriplesToRdfXml } from "./rdfXmlSerializer.js";
 import { isOwlXmlFormat, convertOwlXmlToRdfXml } from "./owlXmlParser.js";
-import { isManchesterSyntaxFormat, convertManchesterSyntaxToRdfXml } from "./manchesterSyntaxParser.js";
+import {
+  isManchesterSyntaxFormat,
+  convertManchesterSyntaxToRdfXml,
+} from "./manchesterSyntaxParser.js";
 import { parseFunctionalSyntax } from "./functionalSyntaxParser.js";
 import { parseDLSyntax, isDLSyntaxFormat } from "./dlSyntaxParser.js";
 import { parseKRSS2Syntax, isKRSS2SyntaxFormat } from "./krss2SyntaxParser.js";
 import { parseJsonLd, isJsonLdFormat } from "./jsonLdParser.js";
 
 /**
- * Attempts to parse an ontology string across multiple syntax formats 
+ * Attempts to parse an ontology string across multiple syntax formats
  * (OWL/XML, Functional, Manchester, JSON-LD, Turtle, DL, KRSS2) and convert it to RDF/XML.
  * Emulates the Java OWLAPI fall-through parser selection logic.
- * 
+ *
  * @param {string} text - The ontology source string
  * @returns {Promise<string>} The converted RDF/XML string, or the original string if all converters fail (assuming it is native RDF/XML)
  */
 export async function convertToRdfXmlFallback(text) {
   const domParser = new DOMParser({
-    onError: () => {}
+    onError: () => {},
   });
 
   // Java OWLAPI priority order (HasPriorityComparator sorts ascending — lower = first):
@@ -32,7 +35,10 @@ export async function convertToRdfXmlFallback(text) {
   // Note: xmldom throws ParseError (not a parsererror element) on completely non-XML input.
   try {
     const nativeXmlDoc = domParser.parseFromString(text, "application/xml");
-    if (!nativeXmlDoc.getElementsByTagName("parsererror")[0] && !isOwlXmlFormat(nativeXmlDoc)) {
+    if (
+      !nativeXmlDoc.getElementsByTagName("parsererror")[0] &&
+      !isOwlXmlFormat(nativeXmlDoc)
+    ) {
       return text;
     }
   } catch (_xmlErr) {
@@ -49,11 +55,11 @@ export async function convertToRdfXmlFallback(text) {
           throw new Error("Not OWL/XML syntax");
         }
         return convertOwlXmlToRdfXml(t);
-      }
+      },
     },
     {
       name: "Functional Syntax",
-      parse: async (t) => parseFunctionalSyntax(t)
+      parse: async (t) => parseFunctionalSyntax(t),
     },
     {
       name: "Manchester Syntax",
@@ -66,7 +72,7 @@ export async function convertToRdfXmlFallback(text) {
           throw new Error("Not Manchester syntax");
         }
         return convertManchesterSyntaxToRdfXml(t, { strictMode: false });
-      }
+      },
     },
     {
       name: "JSON-LD",
@@ -75,14 +81,18 @@ export async function convertToRdfXmlFallback(text) {
           throw new Error("Not JSON-LD syntax");
         }
         return await parseJsonLd(t);
-      }
+      },
     },
     {
       name: "Turtle",
       parse: async (t) => {
         const parsed = parseTurtle(t);
-        return serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
-      }
+        return serializeTriplesToRdfXml(
+          parsed.triples,
+          parsed.prefixes,
+          parsed.baseIri,
+        );
+      },
     },
     {
       name: "DL Syntax",
@@ -93,7 +103,7 @@ export async function convertToRdfXmlFallback(text) {
           throw new Error("Not DL syntax");
         }
         return parseDLSyntax(t);
-      }
+      },
     },
     {
       name: "KRSS2",
@@ -102,14 +112,14 @@ export async function convertToRdfXmlFallback(text) {
           throw new Error("Not KRSS2 syntax");
         }
         return parseKRSS2Syntax(t);
-      }
-    }
+      },
+    },
   ];
 
   for (const parserDef of parsers) {
     try {
       const convertedXml = await parserDef.parse(text);
-      
+
       // Validate that it produced structurally sound XML
       const doc = domParser.parseFromString(convertedXml, "application/xml");
       if (!doc.getElementsByTagName("parsererror")[0]) {
@@ -132,14 +142,22 @@ export async function convertToRdfXmlFallback(text) {
  * @returns {string}
  */
 export function resolveImportUrl(importUri) {
-  if (!importUri) {return importUri;}
-  
+  if (!importUri) {
+    return importUri;
+  }
+
   // 1. Precise match
   if (ONTOLOGY_CATALOG[importUri]) {
     return ONTOLOGY_CATALOG[importUri];
   }
-  
-  const normalize = (uri) => uri ? uri.replace(/^https?:\/\//i, "").replace(/[#/]$/, "").toLowerCase() : "";
+
+  const normalize = (uri) =>
+    uri
+      ? uri
+          .replace(/^https?:\/\//i, "")
+          .replace(/[#/]$/, "")
+          .toLowerCase()
+      : "";
   const targetNorm = normalize(importUri);
 
   // 2. Normalized protocol/separator match
@@ -151,7 +169,9 @@ export function resolveImportUrl(importUri) {
 
   // 3. Filename/basename fallback match (e.g. "prov-o", "prov-o.rdf", "prov.owl")
   const getFilename = (str) => {
-    if (!str) { return ""; }
+    if (!str) {
+      return "";
+    }
     const clean = str.replace(/[#/]$/, "");
     const parts = clean.split("/");
     return parts[parts.length - 1].toLowerCase();
@@ -169,7 +189,7 @@ export function resolveImportUrl(importUri) {
       }
     }
   }
-  
+
   return importUri;
 }
 
@@ -194,7 +214,9 @@ export async function loadWithImports(initialXmlText, rootParserFn) {
 
   const parserError = mainDoc.getElementsByTagName("parsererror")[0];
   if (parserError) {
-    return Promise.reject(new Error("XML parsing error: " + parserError.textContent));
+    return Promise.reject(
+      new Error("XML parsing error: " + parserError.textContent),
+    );
   }
 
   const rootEl = mainDoc.documentElement;
@@ -203,33 +225,55 @@ export async function loadWithImports(initialXmlText, rootParserFn) {
   }
 
   const loadedUrls = new Set();
-  const normalizeUrl = (uri) => uri ? uri.replace(/^https?:\/\//i, "").replace(/[#/]$/, "").toLowerCase() : "";
+  const normalizeUrl = (uri) =>
+    uri
+      ? uri
+          .replace(/^https?:\/\//i, "")
+          .replace(/[#/]$/, "")
+          .toLowerCase()
+      : "";
 
   function isAlreadyLoaded(uri) {
-    if (!uri) { return true; }
-    if (loadedUrls.has(uri)) { return true; }
+    if (!uri) {
+      return true;
+    }
+    if (loadedUrls.has(uri)) {
+      return true;
+    }
     const norm = normalizeUrl(uri);
     return Boolean(norm && loadedUrls.has(norm));
   }
 
   function markLoaded(uri) {
-    if (!uri) { return; }
+    if (!uri) {
+      return;
+    }
     loadedUrls.add(uri);
     const norm = normalizeUrl(uri);
-    if (norm) { loadedUrls.add(norm); }
+    if (norm) {
+      loadedUrls.add(norm);
+    }
   }
-  
+
   function getAttr(el, name, ns) {
     if (ns) {
       const val = el.getAttributeNS(ns, name);
-      if (val !== null && val !== "") {return val;}
+      if (val !== null && val !== "") {
+        return val;
+      }
     }
-    return el.getAttribute(name) || el.getAttribute("rdf:" + name) || el.getAttribute("owl:" + name);
+    return (
+      el.getAttribute(name) ||
+      el.getAttribute("rdf:" + name) ||
+      el.getAttribute("owl:" + name)
+    );
   }
 
   function getImports(doc, docBase) {
     const imports = [];
-    const elements = doc.getElementsByTagNameNS ? doc.getElementsByTagNameNS("*", "imports") : doc.getElementsByTagName("owl:imports");
+    const elements = doc.getElementsByTagNameNS
+      ? doc.getElementsByTagNameNS("*", "imports")
+      : doc.getElementsByTagName("owl:imports");
     for (let i = 0; i < elements.length; i++) {
       let res = getAttr(elements[i], "resource", NAMESPACES.RDF);
       if (res) {
@@ -247,23 +291,40 @@ export async function loadWithImports(initialXmlText, rootParserFn) {
   }
 
   // Identify main ontology IRI to avoid self-imports
-  const ontologyEl = (mainDoc.getElementsByTagNameNS ? mainDoc.getElementsByTagNameNS("*", "Ontology") : mainDoc.getElementsByTagName("owl:Ontology"))[0];
+  const ontologyEl = (
+    mainDoc.getElementsByTagNameNS
+      ? mainDoc.getElementsByTagNameNS("*", "Ontology")
+      : mainDoc.getElementsByTagName("owl:Ontology")
+  )[0];
   if (ontologyEl) {
     const mainOntologyIri = getAttr(ontologyEl, "about", NAMESPACES.RDF) || "";
-    if (mainOntologyIri) {markLoaded(mainOntologyIri);}
+    if (mainOntologyIri) {
+      markLoaded(mainOntologyIri);
+    }
   }
-  const baseAttr = rootEl.getAttribute("xml:base") || rootEl.getAttribute("base") || "";
-  if (baseAttr) {markLoaded(baseAttr);}
+  const baseAttr =
+    rootEl.getAttribute("xml:base") || rootEl.getAttribute("base") || "";
+  if (baseAttr) {
+    markLoaded(baseAttr);
+  }
 
   function fetchAndMerge(doc, currentBase) {
     const docRoot = doc ? doc.documentElement : null;
-    const docBase = (docRoot && (docRoot.getAttribute("xml:base") || docRoot.getAttribute("base"))) || currentBase || baseAttr || "";
+    const docBase =
+      (docRoot &&
+        (docRoot.getAttribute("xml:base") || docRoot.getAttribute("base"))) ||
+      currentBase ||
+      baseAttr ||
+      "";
     const imports = getImports(doc, docBase);
     const promises = [];
-    
+
     for (const url of imports) {
       let resolvedUrl = resolveImportUrl(url);
-      const isHttpsPage = typeof window !== "undefined" && window.location && window.location.protocol === "https:";
+      const isHttpsPage =
+        typeof window !== "undefined" &&
+        window.location &&
+        window.location.protocol === "https:";
       let wasUpgraded = false;
       if (isHttpsPage && resolvedUrl.indexOf("http://") === 0) {
         resolvedUrl = "https://" + resolvedUrl.substring(7);
@@ -277,61 +338,92 @@ export async function loadWithImports(initialXmlText, rootParserFn) {
       markLoaded(url);
       markLoaded(resolvedUrl);
 
-      const menu = (typeof window !== "undefined" && window.WebVOWL && window.WebVOWL.ontologyMenu) ? window.WebVOWL.ontologyMenu : null;
+      const menu =
+        typeof window !== "undefined" &&
+        window.WebVOWL &&
+        window.WebVOWL.ontologyMenu
+          ? window.WebVOWL.ontologyMenu
+          : null;
       if (menu && menu.append_bulletPoint) {
         if (wasUpgraded) {
-          menu.append_bulletPoint(`Importing external ontology: ${url} (auto-upgraded HTTPS fetching: ${resolvedUrl}) ...`);
+          menu.append_bulletPoint(
+            `Importing external ontology: ${url} (auto-upgraded HTTPS fetching: ${resolvedUrl}) ...`,
+          );
         } else {
-          menu.append_bulletPoint(`Importing external ontology: ${url} (fetching: ${resolvedUrl}) ...`);
+          menu.append_bulletPoint(
+            `Importing external ontology: ${url} (fetching: ${resolvedUrl}) ...`,
+          );
         }
       }
-      
+
       promises.push(
         fetch(resolvedUrl, {
           headers: {
-            'Accept': 'application/rdf+xml, application/xml, text/xml, application/owl+xml, */*'
-          }
+            Accept:
+              "application/rdf+xml, application/xml, text/xml, application/owl+xml, */*",
+          },
         })
-          .then(response => {
+          .then((response) => {
             if (!response.ok) {
-              throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+              throw new Error(
+                `HTTP Error ${response.status}: ${response.statusText}`,
+              );
             }
             return response.text();
           })
-          .then(async xmlText => {
+          .then(async (xmlText) => {
             const resolvedText = resolveXmlEntities(xmlText);
             const parsedXmlText = await convertToRdfXmlFallback(resolvedText);
             const parser = new DOMParser({
-              onError: () => {}
+              onError: () => {},
             });
-            const importedDoc = parser.parseFromString(parsedXmlText, "application/xml");
-            const parserError = importedDoc.getElementsByTagName("parsererror")[0];
+            const importedDoc = parser.parseFromString(
+              parsedXmlText,
+              "application/xml",
+            );
+            const parserError =
+              importedDoc.getElementsByTagName("parsererror")[0];
             if (parserError) {
-              throw new Error(`XML/Turtle parsing error inside imported ontology "${resolvedUrl}": ${parserError.textContent}`);
+              throw new Error(
+                `XML/Turtle parsing error inside imported ontology "${resolvedUrl}": ${parserError.textContent}`,
+              );
             }
             const importedRoot = importedDoc.documentElement;
             if (!importedRoot) {
-              throw new Error(`The imported ontology "${resolvedUrl}" does not possess a valid root XML element.`);
+              throw new Error(
+                `The imported ontology "${resolvedUrl}" does not possess a valid root XML element.`,
+              );
             }
-            
+
             // Merge namespace attributes
             if (importedRoot.attributes) {
               for (let i = 0; i < importedRoot.attributes.length; i++) {
                 const attr = importedRoot.attributes[i];
-                if (attr.name.startsWith("xmlns:") && !rootEl.hasAttribute(attr.name)) {
+                if (
+                  attr.name.startsWith("xmlns:") &&
+                  !rootEl.hasAttribute(attr.name)
+                ) {
                   rootEl.setAttribute(attr.name, attr.value);
                 }
               }
             }
-            
+
             // Merge children, preserving original local base URI context (e.g. rdf:ID relative resolving)
-            const importedBase = importedRoot.getAttribute("xml:base") || importedRoot.getAttribute("base") || resolvedUrl;
+            const importedBase =
+              importedRoot.getAttribute("xml:base") ||
+              importedRoot.getAttribute("base") ||
+              resolvedUrl;
             if (importedBase) {
               markLoaded(importedBase);
             }
-            const importedOntologyEl = (importedDoc.getElementsByTagNameNS ? importedDoc.getElementsByTagNameNS("*", "Ontology") : importedDoc.getElementsByTagName("owl:Ontology"))[0];
+            const importedOntologyEl = (
+              importedDoc.getElementsByTagNameNS
+                ? importedDoc.getElementsByTagNameNS("*", "Ontology")
+                : importedDoc.getElementsByTagName("owl:Ontology")
+            )[0];
             if (importedOntologyEl) {
-              const importedOntologyIri = getAttr(importedOntologyEl, "about", NAMESPACES.RDF) || "";
+              const importedOntologyIri =
+                getAttr(importedOntologyEl, "about", NAMESPACES.RDF) || "";
               if (importedOntologyIri) {
                 markLoaded(importedOntologyIri);
               }
@@ -350,67 +442,94 @@ export async function loadWithImports(initialXmlText, rootParserFn) {
                 rootEl.appendChild(importedNode);
               }
             }
-            
+
             if (menu && menu.append_message_toLastBulletPoint) {
               menu.append_message_toLastBulletPoint("done");
             }
-            
+
             // Transitively resolve any nested imports declared in the merged file
             return fetchAndMerge(importedDoc);
           })
-          .catch(err => {
-            if (err.message.indexOf("HTTP Error") === 0 || 
-                err.message.indexOf("XML parsing error") === 0 || 
-                err.message.indexOf("The imported ontology") === 0) {
+          .catch((err) => {
+            if (
+              err.message.indexOf("HTTP Error") === 0 ||
+              err.message.indexOf("XML parsing error") === 0 ||
+              err.message.indexOf("The imported ontology") === 0
+            ) {
               if (menu && menu.append_message_toLastBulletPoint) {
-                menu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+                menu.append_message_toLastBulletPoint(
+                  "<span style='color:red;'>failed</span>",
+                );
               }
               throw err;
             }
 
-            const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+            const isOffline =
+              typeof navigator !== "undefined" && navigator.onLine === false;
 
             let checkPromise;
             if (isOffline) {
-              checkPromise = Promise.resolve("Network Connection Failure: Your browser reports that it is offline.");
-            } else if (typeof fetch !== 'undefined') {
-              checkPromise = fetch(resolvedUrl, { mode: 'no-cors' })
+              checkPromise = Promise.resolve(
+                "Network Connection Failure: Your browser reports that it is offline.",
+              );
+            } else if (typeof fetch !== "undefined") {
+              checkPromise = fetch(resolvedUrl, { mode: "no-cors" })
                 .then(function () {
-                  let corsMsg = "CORS Restriction: The remote server is online but blocks access from this origin.\n" +
-                         "The server hosting '" + resolvedUrl + "' does not return the required 'Access-Control-Allow-Origin' header.\n" +
-                         "To fix: Configure CORS headers on the host server, or register a local mapping: owl2vowl.catalog[\"" + url + "\"] = \"local_path\";";
+                  let corsMsg =
+                    "CORS Restriction: The remote server is online but blocks access from this origin.\n" +
+                    "The server hosting '" +
+                    resolvedUrl +
+                    "' does not return the required 'Access-Control-Allow-Origin' header.\n" +
+                    'To fix: Configure CORS headers on the host server, or register a local mapping: owl2vowl.catalog["' +
+                    url +
+                    '"] = "local_path";';
                   if (wasUpgraded) {
-                    corsMsg += "\nNote: The request was automatically upgraded to HTTPS ('" + resolvedUrl + "') to prevent secure context (Mixed Content) blocking, but the secure request failed with CORS.";
+                    corsMsg +=
+                      "\nNote: The request was automatically upgraded to HTTPS ('" +
+                      resolvedUrl +
+                      "') to prevent secure context (Mixed Content) blocking, but the secure request failed with CORS.";
                   }
                   return corsMsg;
                 })
                 .catch(function () {
-                  let unreachableMsg = "Host Unreachable / Network Error: Could not connect to the remote host at '" + resolvedUrl + "'.\n" +
-                         "Please verify that the host domain is correct, the remote server is online, and there are no active firewall blocks.";
+                  let unreachableMsg =
+                    "Host Unreachable / Network Error: Could not connect to the remote host at '" +
+                    resolvedUrl +
+                    "'.\n" +
+                    "Please verify that the host domain is correct, the remote server is online, and there are no active firewall blocks.";
                   if (wasUpgraded) {
-                    unreachableMsg += "\nNote: The request was automatically upgraded to HTTPS ('" + resolvedUrl + "') to prevent secure context (Mixed Content) blocking, but the secure host was unreachable.";
+                    unreachableMsg +=
+                      "\nNote: The request was automatically upgraded to HTTPS ('" +
+                      resolvedUrl +
+                      "') to prevent secure context (Mixed Content) blocking, but the secure host was unreachable.";
                   }
                   return unreachableMsg;
                 });
             } else {
-              checkPromise = Promise.resolve("Network Connection Failure / Fetch Error: " + err.message);
+              checkPromise = Promise.resolve(
+                "Network Connection Failure / Fetch Error: " + err.message,
+              );
             }
 
             return checkPromise.then(function (diagnosticMsg) {
-              const fullMsg = `Failed to load transitive import: "${url}" (fetching: "${resolvedUrl}").\n` + diagnosticMsg;
+              const fullMsg =
+                `Failed to load transitive import: "${url}" (fetching: "${resolvedUrl}").\n` +
+                diagnosticMsg;
               if (menu && menu.append_message_toLastBulletPoint) {
-                menu.append_message_toLastBulletPoint("<span style='color:red;'>failed</span>");
+                menu.append_message_toLastBulletPoint(
+                  "<span style='color:red;'>failed</span>",
+                );
               }
               throw new Error(fullMsg);
             });
-          })
+          }),
       );
     }
-    
+
     return Promise.all(promises).then(() => doc);
   }
 
-  return fetchAndMerge(mainDoc).then(finalDoc => {
+  return fetchAndMerge(mainDoc).then((finalDoc) => {
     const serializer = new XMLSerializer();
     const mergedXml = serializer.serializeToString(finalDoc);
     return rootParserFn(mergedXml);

@@ -7,16 +7,21 @@ function mapTerm(term) {
   }
   if (term.termType === "BlankNode") {
     // Strip leading '_:' if present so blank node IDs conform to XML NCName (e.g. 'b1')
-    const val = term.value.startsWith("_:") ? term.value.substring(2) : term.value;
+    const val = term.value.startsWith("_:")
+      ? term.value.substring(2)
+      : term.value;
     return { type: "BNODE", value: val };
   }
   if (term.termType === "Literal") {
     const mapped = { type: "LITERAL", value: term.value };
     if (term.language) {
       mapped.lang = term.language;
-    } else if (term.datatype && 
-               term.datatype.value !== "http://www.w3.org/2001/XMLSchema#string" && 
-               term.datatype.value !== "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString") {
+    } else if (
+      term.datatype &&
+      term.datatype.value !== "http://www.w3.org/2001/XMLSchema#string" &&
+      term.datatype.value !==
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+    ) {
       mapped.datatype = { type: "URI", value: term.datatype.value };
     }
     return mapped;
@@ -35,7 +40,7 @@ export function parseTurtle(ttlString) {
   const triples = [];
 
   const quads = parser.parse(ttlString);
-  quads.forEach(quad => {
+  quads.forEach((quad) => {
     const subj = mapTerm(quad.subject);
     const pred = mapTerm(quad.predicate);
     const obj = mapTerm(quad.object);
@@ -45,7 +50,7 @@ export function parseTurtle(ttlString) {
   const prefixes = {};
   if (parser._prefixes) {
     for (const [prefix, val] of Object.entries(parser._prefixes)) {
-      prefixes[prefix] = typeof val === "string" ? val : (val.value || "");
+      prefixes[prefix] = typeof val === "string" ? val : val.value || "";
     }
   }
 
@@ -64,10 +69,16 @@ export function isTurtleFormat(text) {
     return false;
   }
   const snippet = text.slice(0, MAX_SNIFF_BYTES).trim();
-  if (snippet.startsWith("<") || snippet.startsWith("{") || snippet.startsWith("[")) {
+  if (
+    snippet.startsWith("<") ||
+    snippet.startsWith("{") ||
+    snippet.startsWith("[")
+  ) {
     return false;
   }
-  return /^\s*(@prefix|@base|PREFIX|BASE|#)/i.test(snippet) || 
-         /;\s*$/m.test(snippet) || 
-         /\.\s*$/m.test(snippet);
+  return (
+    /^\s*(@prefix|@base|PREFIX|BASE|#)/i.test(snippet) ||
+    /;\s*$/m.test(snippet) ||
+    /\.\s*$/m.test(snippet)
+  );
 }

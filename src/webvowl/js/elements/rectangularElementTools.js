@@ -1,9 +1,9 @@
 const tools = {};
-module.exports = function (){
+module.exports = function () {
   return tools;
 };
 
-tools.distanceToBorder = function ( rect, dx, dy ){
+tools.distanceToBorder = function (rect, dx, dy) {
   const width = rect.width(),
     height = rect.height();
 
@@ -11,7 +11,7 @@ tools.distanceToBorder = function ( rect, dx, dy ){
   const m_link = Math.abs(dy / dx);
   const m_rect = height / width;
 
-  if ( m_link <= m_rect ) {
+  if (m_link <= m_rect) {
     const timesX = dx / (width / 2),
       rectY = dy / timesX;
     innerDistance = Math.sqrt(Math.pow(width / 2, 2) + Math.pow(rectY, 2));

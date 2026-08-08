@@ -22,7 +22,7 @@ describe("jsonExporter.js unit tests", () => {
       description: {},
       labels: {},
       comments: {},
-      other: {}
+      other: {},
     };
   });
 
@@ -38,7 +38,7 @@ describe("jsonExporter.js unit tests", () => {
       attributes: [],
       subClasses: [],
       superClasses: [],
-      individuals: []
+      individuals: [],
     });
 
     const result = exportToJson(resolver, context, header);
@@ -64,7 +64,7 @@ describe("jsonExporter.js unit tests", () => {
       attributes: [],
       subClasses: [],
       superClasses: [],
-      individuals: [{ iri: "http://example.org/john" }]
+      individuals: [{ iri: "http://example.org/john" }],
     });
 
     context.classMap.set("http://example.org/Organization", {
@@ -77,7 +77,7 @@ describe("jsonExporter.js unit tests", () => {
       attributes: [],
       subClasses: [],
       superClasses: [],
-      individuals: []
+      individuals: [],
     });
 
     // Add 1 property
@@ -93,7 +93,7 @@ describe("jsonExporter.js unit tests", () => {
       range: "1",
       superproperty: [],
       subproperty: [],
-      inverse: null
+      inverse: null,
     });
 
     const result = exportToJson(resolver, context, header);
@@ -116,7 +116,7 @@ describe("jsonExporter.js unit tests", () => {
       attributes: ["datatype"],
       subClasses: [],
       superClasses: [],
-      individuals: []
+      individuals: [],
     });
 
     // Floating/disconnected duplicate datatype class
@@ -130,7 +130,7 @@ describe("jsonExporter.js unit tests", () => {
       attributes: ["datatype"],
       subClasses: [],
       superClasses: [],
-      individuals: []
+      individuals: [],
     });
 
     // Add a property referencing 'integer-connected' but not 'integer-floating'
@@ -143,16 +143,16 @@ describe("jsonExporter.js unit tests", () => {
       comment: {},
       attributes: ["datatype"],
       domain: "3", // dummy domain id
-      range: "0",  // referencing connected integer datatype
+      range: "0", // referencing connected integer datatype
       superproperty: [],
       subproperty: [],
-      inverse: null
+      inverse: null,
     });
 
     const result = exportToJson(resolver, context, header);
 
     // Verify 'integer-connected' (ID 0) is in result but 'integer-floating' (ID 1) is skipped
-    const includedClasses = result.class.map(c => c.id);
+    const includedClasses = result.class.map((c) => c.id);
     expect(includedClasses).toContain("0"); // connected
     expect(includedClasses).not.toContain("1"); // floating duplicate
   });
@@ -167,7 +167,7 @@ describe("jsonExporter.js unit tests", () => {
       comment: {},
       attributes: [],
       subClasses: [],
-      superClasses: []
+      superClasses: [],
     });
 
     context.classMap.set("http://a-example.org/Class", {
@@ -179,7 +179,7 @@ describe("jsonExporter.js unit tests", () => {
       comment: {},
       attributes: [],
       subClasses: [],
-      superClasses: []
+      superClasses: [],
     });
 
     // Reserved namespace should be ignored
@@ -192,7 +192,7 @@ describe("jsonExporter.js unit tests", () => {
       comment: {},
       attributes: [],
       subClasses: [],
-      superClasses: []
+      superClasses: [],
     });
 
     const result = exportToJson(resolver, context, header);
@@ -200,7 +200,7 @@ describe("jsonExporter.js unit tests", () => {
     // Should only contain z-example and a-example, sorted alphabetically
     expect(result.header.baseIris).toEqual([
       "http://a-example.org",
-      "http://z-example.org"
+      "http://z-example.org",
     ]);
   });
 
@@ -215,7 +215,7 @@ describe("jsonExporter.js unit tests", () => {
       comment: {},
       attributes: [],
       subClasses: [],
-      superClasses: []
+      superClasses: [],
     });
     context.classMap.set("http://example.org/ClassB", {
       id: "c2",
@@ -226,7 +226,7 @@ describe("jsonExporter.js unit tests", () => {
       comment: {},
       attributes: [],
       subClasses: [],
-      superClasses: []
+      superClasses: [],
     });
 
     // Property to skip
@@ -243,7 +243,7 @@ describe("jsonExporter.js unit tests", () => {
       superproperty: [],
       subproperty: [],
       inverse: null,
-      skipExport: true
+      skipExport: true,
     });
 
     // Inferred property
@@ -259,7 +259,7 @@ describe("jsonExporter.js unit tests", () => {
       range: "c2",
       superproperty: [],
       subproperty: [],
-      inverse: null
+      inverse: null,
     });
 
     // Restriction that generates a restriction property
@@ -267,26 +267,36 @@ describe("jsonExporter.js unit tests", () => {
       domainIri: "http://example.org/ClassA",
       propertyIri: "http://example.org/inferredProp",
       rangeIri: "http://example.org/ClassB",
-      type: "owl:someValuesFrom"
+      type: "owl:someValuesFrom",
     });
 
     const result = exportToJson(resolver, context, header);
 
     // Verify skippedProp is NOT in exported properties
-    const exportedIds = result.property.map(p => p.id);
+    const exportedIds = result.property.map((p) => p.id);
     expect(exportedIds).not.toContain("p1");
-    const exportedAttrIds = result.propertyAttribute.map(p => p.id);
+    const exportedAttrIds = result.propertyAttribute.map((p) => p.id);
     expect(exportedAttrIds).not.toContain("p1");
 
     // Verify inferredProp is exported with inferred attribute
-    const infPropAttr = result.propertyAttribute.find(p => p.id === "p2");
+    const infPropAttr = result.propertyAttribute.find((p) => p.id === "p2");
     expect(infPropAttr).toBeDefined();
     expect(infPropAttr.attributes).toContain("inferred");
 
     // Verify generated restriction property is exported and has inferred attribute
-    const restProp = result.property.find(p => p.id !== "p2" && p.type === "owl:someValuesFrom" || p.id.startsWith("val_") || p.id === "3"); // context.nextId would assign ID 3
+    const restProp = result.property.find(
+      (p) =>
+        (p.id !== "p2" && p.type === "owl:someValuesFrom") ||
+        p.id.startsWith("val_") ||
+        p.id === "3",
+    ); // context.nextId would assign ID 3
     expect(restProp).toBeDefined();
-    const restPropAttr = result.propertyAttribute.find(p => p.id !== "p2" && (p.attributes.includes("someValuesFrom") || p.attributes.includes("allValuesFrom")));
+    const restPropAttr = result.propertyAttribute.find(
+      (p) =>
+        p.id !== "p2" &&
+        (p.attributes.includes("someValuesFrom") ||
+          p.attributes.includes("allValuesFrom")),
+    );
     expect(restPropAttr).toBeDefined();
     expect(restPropAttr.attributes).toContain("inferred");
     expect(restPropAttr.attributes).toContain("someValuesFrom");
@@ -302,7 +312,7 @@ describe("jsonExporter.js unit tests", () => {
       label: {},
       comment: {},
       attributes: ["anonymous", "union"],
-      unionMembers: ["c1", "c2"]
+      unionMembers: ["c1", "c2"],
     });
 
     context.classMap.set("_:disconnectedAnon", {
@@ -314,7 +324,7 @@ describe("jsonExporter.js unit tests", () => {
       comment: {},
       attributes: ["anonymous"],
       subClasses: [],
-      superClasses: []
+      superClasses: [],
     });
 
     // To make sure _:anonUnion is connected, add a subclassRelation or restriction pointing to it
@@ -327,17 +337,17 @@ describe("jsonExporter.js unit tests", () => {
       comment: {},
       attributes: [],
       subClasses: [],
-      superClasses: []
+      superClasses: [],
     });
 
     context.subclassRelations.push({
       subclassIri: "http://example.org/ClassParent",
-      superclassIri: "_:anonUnion"
+      superclassIri: "_:anonUnion",
     });
 
     const result = exportToJson(resolver, context, header);
 
-    const exportedIds = result.class.map(c => c.id);
+    const exportedIds = result.class.map((c) => c.id);
     // parentClassId and anonUnionId should be exported since they are connected
     expect(exportedIds).toContain("parentClassId");
     expect(exportedIds).toContain("anonUnionId");
@@ -348,7 +358,7 @@ describe("jsonExporter.js unit tests", () => {
 
   test("header.baseIris excludes blank node IRIs starting with _:", () => {
     header.baseIris = ["_:anon_1", "_:anon_2", "http://example.org"];
-    
+
     const result = exportToJson(resolver, context, header);
 
     expect(result.header.baseIris).toEqual(["http://example.org"]);
@@ -363,7 +373,7 @@ describe("jsonExporter.js unit tests", () => {
       baseIri: "http://xmlns.com/foaf/0.1/",
       label: { en: "Person" },
       attributes: [],
-      disjointWith: ["http://xmlns.com/foaf/0.1/Organization"]
+      disjointWith: ["http://xmlns.com/foaf/0.1/Organization"],
     });
 
     context.classMap.set("http://xmlns.com/foaf/0.1/Organization", {
@@ -373,42 +383,79 @@ describe("jsonExporter.js unit tests", () => {
       baseIri: "http://xmlns.com/foaf/0.1/",
       label: { en: "Organization" },
       attributes: [],
-      disjointWith: ["http://xmlns.com/foaf/0.1/Person"]
+      disjointWith: ["http://xmlns.com/foaf/0.1/Person"],
     });
 
     const result = exportToJson(resolver, context, header);
-    const disjointProps = result.property.filter(p => p.type === "owl:disjointWith");
+    const disjointProps = result.property.filter(
+      (p) => p.type === "owl:disjointWith",
+    );
 
     // Must emit exactly 1 owl:disjointWith property for the pair (Person, Organization)
     expect(disjointProps.length).toBe(1);
   });
 
   test("Deduplicates rdfs:SubClassOf property exports for duplicate subclass relations", () => {
-    context.classMap.set("http://example.org/Sub", { id: "1", type: "owl:Class", iri: "http://example.org/Sub" });
-    context.classMap.set("http://example.org/Super", { id: "2", type: "owl:Class", iri: "http://example.org/Super" });
+    context.classMap.set("http://example.org/Sub", {
+      id: "1",
+      type: "owl:Class",
+      iri: "http://example.org/Sub",
+    });
+    context.classMap.set("http://example.org/Super", {
+      id: "2",
+      type: "owl:Class",
+      iri: "http://example.org/Super",
+    });
 
     context.subclassRelations.push(
-      { subclassIri: "http://example.org/Sub", superclassIri: "http://example.org/Super" },
-      { subclassIri: "http://example.org/Sub", superclassIri: "http://example.org/Super" }
+      {
+        subclassIri: "http://example.org/Sub",
+        superclassIri: "http://example.org/Super",
+      },
+      {
+        subclassIri: "http://example.org/Sub",
+        superclassIri: "http://example.org/Super",
+      },
     );
 
     const result = exportToJson(resolver, context, header);
-    const subProps = result.property.filter(p => p.type === "rdfs:SubClassOf");
+    const subProps = result.property.filter(
+      (p) => p.type === "rdfs:SubClassOf",
+    );
     expect(subProps.length).toBe(1);
   });
 
   test("Deduplicates restriction property exports for duplicate restriction axioms", () => {
-    context.classMap.set("http://example.org/ClassA", { id: "1", type: "owl:Class", iri: "http://example.org/ClassA" });
-    context.classMap.set("http://example.org/ClassB", { id: "2", type: "owl:Class", iri: "http://example.org/ClassB" });
+    context.classMap.set("http://example.org/ClassA", {
+      id: "1",
+      type: "owl:Class",
+      iri: "http://example.org/ClassA",
+    });
+    context.classMap.set("http://example.org/ClassB", {
+      id: "2",
+      type: "owl:Class",
+      iri: "http://example.org/ClassB",
+    });
 
     context.parsedRestrictions.push(
-      { domainIri: "http://example.org/ClassA", propertyIri: "http://example.org/prop", rangeIri: "http://example.org/ClassB", type: "owl:someValuesFrom" },
-      { domainIri: "http://example.org/ClassA", propertyIri: "http://example.org/prop", rangeIri: "http://example.org/ClassB", type: "owl:someValuesFrom" }
+      {
+        domainIri: "http://example.org/ClassA",
+        propertyIri: "http://example.org/prop",
+        rangeIri: "http://example.org/ClassB",
+        type: "owl:someValuesFrom",
+      },
+      {
+        domainIri: "http://example.org/ClassA",
+        propertyIri: "http://example.org/prop",
+        rangeIri: "http://example.org/ClassB",
+        type: "owl:someValuesFrom",
+      },
     );
 
     const result = exportToJson(resolver, context, header);
-    const restProps = result.property.filter(p => p.type === "owl:someValuesFrom");
+    const restProps = result.property.filter(
+      (p) => p.type === "owl:someValuesFrom",
+    );
     expect(restProps.length).toBe(1);
   });
 });
-

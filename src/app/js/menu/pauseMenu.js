@@ -4,24 +4,23 @@
  * @param graph the associated webvowl graph
  * @returns {{}}
  */
-module.exports = function ( graph ){
-  
+module.exports = function (graph) {
   const pauseMenu = {};
   let pauseButton;
-  
-  
+
   /**
    * Adds the pause button to the website.
    */
-  pauseMenu.setup = function (){
+  pauseMenu.setup = function () {
     const menuEntry = d3.select("#pauseOption");
-    menuEntry.on("mouseover", function (){
+    menuEntry.on("mouseover", function () {
       const searchMenu = graph.options().searchMenu();
       searchMenu.hideSearchEntries();
     });
-    pauseButton = d3.select("#pause-button")
+    pauseButton = d3
+      .select("#pause-button")
       .datum({ paused: false })
-      .on("click", function ( d ){
+      .on("click", function (d) {
         graph.paused(!d.paused);
         d.paused = !d.paused;
         updatePauseButton();
@@ -30,38 +29,37 @@ module.exports = function ( graph ){
     // Set these properties the first time manually
     updatePauseButton();
   };
-  
-  pauseMenu.setPauseValue = function ( value ){
+
+  pauseMenu.setPauseValue = function (value) {
     pauseButton.datum().paused = value;
     graph.paused(value);
     pauseButton.classed("highlighted", value);
     updatePauseButton();
   };
-  
-  function updatePauseButton(){
+
+  function updatePauseButton() {
     updatePauseButtonClass();
     updatePauseButtonText();
   }
-  
-  function updatePauseButtonClass(){
-    pauseButton.classed("paused", function ( d ){
+
+  function updatePauseButtonClass() {
+    pauseButton.classed("paused", function (d) {
       return d.paused;
     });
   }
-  
-  function updatePauseButtonText(){
-    if ( pauseButton.datum().paused ) {
+
+  function updatePauseButtonText() {
+    if (pauseButton.datum().paused) {
       pauseButton.text("Resume");
     } else {
       pauseButton.text("Pause");
     }
   }
-  
-  pauseMenu.reset = function (){
+
+  pauseMenu.reset = function () {
     // resuming
     pauseMenu.setPauseValue(false);
   };
-  
-  
+
   return pauseMenu;
 };

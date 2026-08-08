@@ -2,13 +2,13 @@ import {
   ONTOLOGY_BASE_URL,
   NAMESPACES,
   ONTOLOGY_CATALOG,
-  IGNORED_PROPERTIES
+  IGNORED_PROPERTIES,
 } from "./constants.js";
 
 describe("NAMESPACES contract", () => {
   test("defines standard RDF, RDFS, OWL, and DC namespace URIs", () => {
     const requiredPrefixes = ["RDF", "RDFS", "OWL", "DC", "DCTERMS"];
-    
+
     for (const prefix of requiredPrefixes) {
       expect(NAMESPACES[prefix]).toBeDefined();
       expect(typeof NAMESPACES[prefix]).toBe("string");
@@ -30,10 +30,10 @@ describe("ONTOLOGY_CATALOG contract", () => {
 
   test("resolves known standard ontologies to host infrastructure", () => {
     expect(ONTOLOGY_CATALOG["http://purl.org/dc/elements/1.1"]).toBe(
-      `${ONTOLOGY_BASE_URL}external/dc.rdf`
+      `${ONTOLOGY_BASE_URL}external/dc.rdf`,
     );
     expect(ONTOLOGY_CATALOG["http://schema.org"]).toBe(
-      `${ONTOLOGY_BASE_URL}external/schemaorg.owl`
+      `${ONTOLOGY_BASE_URL}external/schemaorg.owl`,
     );
   });
 });
@@ -48,7 +48,7 @@ describe("IGNORED_PROPERTIES contract", () => {
       "http://www.w3.org/2002/07/owl#versionInfo",
       "http://www.w3.org/2002/07/owl#priorVersion",
       "http://www.w3.org/2002/07/owl#backwardCompatibleWith",
-      "http://www.w3.org/2002/07/owl#incompatibleWith"
+      "http://www.w3.org/2002/07/owl#incompatibleWith",
     ];
 
     for (const prop of expectedIgnored) {
@@ -57,8 +57,12 @@ describe("IGNORED_PROPERTIES contract", () => {
   });
 
   test("does not contain non-annotation domain predicates", () => {
-    expect(IGNORED_PROPERTIES.has("http://www.w3.org/2000/01/rdf-schema#subClassOf")).toBe(false);
-    expect(IGNORED_PROPERTIES.has("http://www.w3.org/2002/07/owl#equivalentClass")).toBe(false);
+    expect(
+      IGNORED_PROPERTIES.has("http://www.w3.org/2000/01/rdf-schema#subClassOf"),
+    ).toBe(false);
+    expect(
+      IGNORED_PROPERTIES.has("http://www.w3.org/2002/07/owl#equivalentClass"),
+    ).toBe(false);
   });
 });
 

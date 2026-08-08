@@ -35,7 +35,10 @@ describe("Collapsing of subclassOf properties", () => {
     subProperty.domain(subclass).range(superClass);
     subSubProperty.domain(subSubclass).range(subclass);
 
-    collapser.filter([superClass, subclass, subSubclass], [subProperty, subSubProperty]);
+    collapser.filter(
+      [superClass, subclass, subSubclass],
+      [subProperty, subSubProperty],
+    );
 
     expect(collapser.filteredNodes().length).toBe(1);
     expect(collapser.filteredNodes()[0]).toBeInstanceOf(OwlClass);

@@ -18,7 +18,7 @@ describe("export menu json deterministic export", () => {
     global.d3 = { svg: { line: () => lineGenerator } };
     global.webvowl = {
       util: { prefixTools: () => ({ updatePrefixModel: () => {} }) },
-      version: "2.0.0"
+      version: "2.0.0",
     };
   });
 
@@ -39,7 +39,7 @@ describe("export menu json deterministic export", () => {
       annotations: () => ({ b: ["val2"], a: ["val1"] }),
       description: () => "desc",
       individuals: () => [],
-      equivalents: () => []
+      equivalents: () => [],
     };
   }
 
@@ -61,7 +61,7 @@ describe("export menu json deterministic export", () => {
       range: () => ({ id: () => "rangeId" }),
       subproperties: () => [{ id: () => "sub2" }, { id: () => "sub1" }],
       superproperties: () => [{ id: () => "sup2" }, { id: () => "sup1" }],
-      inverse: () => undefined
+      inverse: () => undefined,
     };
   }
 
@@ -71,33 +71,36 @@ describe("export menu json deterministic export", () => {
         data: () => ({
           _comment: "Test",
           header: {},
-          namespace: [{ prefix: "b", iri: "http://b" }, { prefix: "a", iri: "http://a" }],
-          metrics: {}
+          namespace: [
+            { prefix: "b", iri: "http://b" },
+            { prefix: "a", iri: "http://a" },
+          ],
+          metrics: {},
         }),
         getGeneralMetaObject: () => ({}),
         filterMenu: () => ({
           getCheckBoxContainer: () => [
             { checkbox: { attr: () => "chk2", property: () => true } },
-            { checkbox: { attr: () => "chk1", property: () => false } }
+            { checkbox: { attr: () => "chk1", property: () => false } },
           ],
-          getDegreeSliderValue: () => 0
+          getDegreeSliderValue: () => 0,
         }),
         modeMenu: () => ({
           getCheckBoxContainer: () => [
             { attr: () => "mode2", property: () => true },
-            { attr: () => "mode1", property: () => false }
+            { attr: () => "mode1", property: () => false },
           ],
-          colorModeState: () => false
+          colorModeState: () => false,
         }),
         classDistance: () => 10,
-        datatypeDistance: () => 10
+        datatypeDistance: () => 10,
       }),
       getUnfilteredData: () => ({ nodes, properties }),
       graphNodeElements: () => ({ each: () => {} }),
       graphLabelElements: () => [],
       scaleFactor: () => 1,
       paused: () => false,
-      translation: () => [0, 0]
+      translation: () => [0, 0],
     };
   }
 
@@ -111,8 +114,14 @@ describe("export menu json deterministic export", () => {
     const propB = createMockProperty("p1", "http://propB");
 
     // Two graphs with elements in different orders
-    const graph1 = createMockGraph([nodeB, nodeA, nodeD, nodeC], [propB, propA]);
-    const graph2 = createMockGraph([nodeD, nodeC, nodeA, nodeB], [propA, propB]);
+    const graph1 = createMockGraph(
+      [nodeB, nodeA, nodeD, nodeC],
+      [propB, propA],
+    );
+    const graph2 = createMockGraph(
+      [nodeD, nodeC, nodeA, nodeB],
+      [propA, propB],
+    );
 
     const menu1 = exportMenuFactory(graph1);
     const menu2 = exportMenuFactory(graph2);
@@ -121,9 +130,9 @@ describe("export menu json deterministic export", () => {
     const json2 = JSON.stringify(menu2.createJSON_exportObject());
 
     expect(json1).toEqual(json2);
-    
+
     const obj = JSON.parse(json1);
-    
+
     // Verify sorting rules were applied
     // Namespaces sorted by prefix
     expect(obj.namespace[0].prefix).toBe("a");
@@ -134,7 +143,10 @@ describe("export menu json deterministic export", () => {
     expect(obj.class[2].id).toBe("id3"); // http://A
     expect(obj.class[3].id).toBe("id1"); // http://B
     // Attributes sorted
-    expect(obj.classAttribute[0].attributes).toEqual(["abstract", "deprecated"]);
+    expect(obj.classAttribute[0].attributes).toEqual([
+      "abstract",
+      "deprecated",
+    ]);
     // Subproperties sorted
     expect(obj.propertyAttribute[0].subproperty).toEqual(["sub1", "sub2"]);
     // Filter settings sorted

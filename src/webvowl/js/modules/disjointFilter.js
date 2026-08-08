@@ -1,7 +1,6 @@
 const OwlDisjointWith = require("../elements/properties/implementations/OwlDisjointWith");
 
-module.exports = function (){
-  
+module.exports = function () {
   const filter = {};
   let nodes;
   let properties;
@@ -9,56 +8,55 @@ module.exports = function (){
   let enabled = true;
   let filteredNodes;
   let filteredProperties;
-  
-  
+
   /**
    * If enabled, all disjoint with properties are filtered.
    * @param untouchedNodes
    * @param untouchedProperties
    */
-  filter.filter = function ( untouchedNodes, untouchedProperties ){
+  filter.filter = function (untouchedNodes, untouchedProperties) {
     nodes = untouchedNodes;
     properties = untouchedProperties;
-    
-    if ( this.enabled() ) {
+
+    if (this.enabled()) {
       removeDisjointWithProperties();
     }
-    
+
     filteredNodes = nodes;
     filteredProperties = properties;
   };
-  
-  function removeDisjointWithProperties(){
+
+  function removeDisjointWithProperties() {
     const cleanedProperties = [];
     let i, l, property;
-    
-    for ( i = 0, l = properties.length; i < l; i++ ) {
+
+    for (i = 0, l = properties.length; i < l; i++) {
       property = properties[i];
-      
-      if ( !(property instanceof OwlDisjointWith) ) {
+
+      if (!(property instanceof OwlDisjointWith)) {
         cleanedProperties.push(property);
       }
     }
-    
+
     properties = cleanedProperties;
   }
-  
-  filter.enabled = function ( p ){
-    if ( !arguments.length ) {return enabled;}
+
+  filter.enabled = function (p) {
+    if (!arguments.length) {
+      return enabled;
+    }
     enabled = p;
     return filter;
   };
-  
-  
+
   // Functions a filter must have
-  filter.filteredNodes = function (){
+  filter.filteredNodes = function () {
     return filteredNodes;
   };
-  
-  filter.filteredProperties = function (){
+
+  filter.filteredProperties = function () {
     return filteredProperties;
   };
-  
-  
+
   return filter;
 };

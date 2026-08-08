@@ -8,17 +8,19 @@ describe("Truncating of text", () => {
     global.d3 = {
       select: () => ({
         append: () => ({
-          attr: function () { return this; },
+          attr: function () {
+            return this;
+          },
           text: function (txt) {
             mockElement.offsetWidth = txt.length * 5;
             return this;
           },
-          remove: () => {}
-        })
-      })
+          remove: () => {},
+        }),
+      }),
     };
     global.document = {
-      getElementById: () => mockElement
+      getElementById: () => mockElement,
     };
 
     tools = textToolsFactory();

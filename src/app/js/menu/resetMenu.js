@@ -4,29 +4,27 @@
  * @param graph the associated webvowl graph
  * @returns {{}}
  */
-module.exports = function ( graph ){
-  
+module.exports = function (graph) {
   const resetMenu = {};
   const options = graph.graphOptions();
   let resettableModules;
   const untouchedOptions = webvowl.options();
-  
-  
+
   /**
    * Adds the reset button to the website.
    * @param _resettableModules modules that can be resetted
    */
-  resetMenu.setup = function ( _resettableModules ){
+  resetMenu.setup = function (_resettableModules) {
     resettableModules = _resettableModules;
     d3.select("#reset-button").on("click", resetGraph);
     const menuEntry = d3.select("#resetOption");
-    menuEntry.on("mouseover", function (){
+    menuEntry.on("mouseover", function () {
       const searchMenu = graph.options().searchMenu();
       searchMenu.hideSearchEntries();
     });
   };
-  
-  function resetGraph(){
+
+  function resetGraph() {
     graph.resetSearchHighlight();
     graph.options().searchMenu().clearText();
     options.classDistance(untouchedOptions.classDistance());
@@ -35,14 +33,13 @@ module.exports = function ( graph ){
     options.gravity(untouchedOptions.gravity());
     options.linkStrength(untouchedOptions.linkStrength());
     graph.reset();
-    
-    resettableModules.forEach(function ( module ){
+
+    resettableModules.forEach(function (module) {
       module.reset();
     });
-    
+
     graph.updateStyle();
   }
-  
-  
+
   return resetMenu;
 };

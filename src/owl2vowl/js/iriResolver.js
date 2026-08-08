@@ -20,23 +20,25 @@ export class PerformanceIriResolver {
 
   /**
    * Resolves raw schema fragments and relative IRIs into absolute IRIs.
-   * @param {string} iri 
+   * @param {string} iri
    * @param {string} [baseIri]
    * @returns {string}
    */
   resolve(iri, baseIri) {
     const activeBase = baseIri || this.#ontologyBaseIri;
-    if (!iri) {return activeBase;}
-    
+    if (!iri) {
+      return activeBase;
+    }
+
     const cacheKey = baseIri ? baseIri + "|" + iri : iri;
     if (this.#resolvedCache.has(cacheKey)) {
       return this.#resolvedCache.get(cacheKey);
     }
- 
+
     const colonIdx = iri.indexOf(":");
     const slashIdx = iri.indexOf("/");
     let resolved = iri;
- 
+
     // Is absolute IRI?
     if (!(colonIdx !== -1 && (slashIdx === -1 || colonIdx < slashIdx))) {
       if (activeBase) {
@@ -44,25 +46,32 @@ export class PerformanceIriResolver {
           resolved = activeBase;
         } else if (iri.startsWith("#")) {
           const baseHasHash = activeBase.endsWith("#");
-          resolved = baseHasHash ? activeBase + iri.substring(1) : activeBase + iri;
+          resolved = baseHasHash
+            ? activeBase + iri.substring(1)
+            : activeBase + iri;
         } else {
-          const baseEndsWithHashOrSlash = activeBase.endsWith("#") || activeBase.endsWith("/");
-          resolved = baseEndsWithHashOrSlash ? activeBase + iri : activeBase + "#" + iri;
+          const baseEndsWithHashOrSlash =
+            activeBase.endsWith("#") || activeBase.endsWith("/");
+          resolved = baseEndsWithHashOrSlash
+            ? activeBase + iri
+            : activeBase + "#" + iri;
         }
       }
     }
- 
+
     this.#resolvedCache.set(cacheKey, resolved);
     return resolved;
   }
 
   /**
    * Splits and extracts the local name segment of an IRI.
-   * @param {string} iri 
+   * @param {string} iri
    * @returns {string}
    */
   getLocalName(iri) {
-    if (!iri) {return "";}
+    if (!iri) {
+      return "";
+    }
     if (this.#localNameCache.has(iri)) {
       return this.#localNameCache.get(iri);
     }
@@ -82,11 +91,13 @@ export class PerformanceIriResolver {
 
   /**
    * Splits and extracts the base namespace segment of an IRI.
-   * @param {string} iri 
+   * @param {string} iri
    * @returns {string}
    */
   getBaseIri(iri) {
-    if (!iri) {return "";}
+    if (!iri) {
+      return "";
+    }
     if (this.#baseIriCache.has(iri)) {
       return this.#baseIriCache.get(iri);
     }

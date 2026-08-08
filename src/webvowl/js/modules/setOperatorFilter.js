@@ -1,7 +1,6 @@
 const SetOperatorNode = require("../elements/nodes/SetOperatorNode");
 
-module.exports = function (){
-  
+module.exports = function () {
   const filter = {};
   let nodes;
   let properties;
@@ -9,52 +8,55 @@ module.exports = function (){
   let filteredNodes;
   let filteredProperties;
   const filterTools = require("../util/filterTools")();
-  
-  
+
   /**
    * If enabled, all set operators including connected properties are filtered.
    * @param untouchedNodes
    * @param untouchedProperties
    */
-  filter.filter = function ( untouchedNodes, untouchedProperties ){
+  filter.filter = function (untouchedNodes, untouchedProperties) {
     nodes = untouchedNodes;
     properties = untouchedProperties;
-    
-    if ( this.enabled() ) {
+
+    if (this.enabled()) {
       removeSetOperators();
     }
-    
+
     filteredNodes = nodes;
     filteredProperties = properties;
   };
-  
-  function removeSetOperators(){
-    const filteredData = filterTools.filterNodesAndTidy(nodes, properties, isNoSetOperator);
-    
+
+  function removeSetOperators() {
+    const filteredData = filterTools.filterNodesAndTidy(
+      nodes,
+      properties,
+      isNoSetOperator,
+    );
+
     nodes = filteredData.nodes;
     properties = filteredData.properties;
   }
-  
-  function isNoSetOperator( node ){
+
+  function isNoSetOperator(node) {
     return !(node instanceof SetOperatorNode);
   }
-  
-  filter.enabled = function ( p ){
-    if ( !arguments.length ) {return enabled;}
+
+  filter.enabled = function (p) {
+    if (!arguments.length) {
+      return enabled;
+    }
     enabled = p;
     return filter;
   };
-  
-  
+
   // Functions a filter must have
-  filter.filteredNodes = function (){
+  filter.filteredNodes = function () {
     return filteredNodes;
   };
-  
-  filter.filteredProperties = function (){
+
+  filter.filteredProperties = function () {
     return filteredProperties;
   };
-  
-  
+
   return filter;
 };

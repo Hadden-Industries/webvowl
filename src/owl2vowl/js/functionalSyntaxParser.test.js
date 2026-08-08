@@ -15,13 +15,17 @@ describe("Functional Syntax Parser", () => {
 
       expect(result).toContain("<rdf:RDF");
       expect(result).toContain('xml:base="http://example.com/onto"');
-      expect(result).toContain('<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Ontology" />');
+      expect(result).toContain(
+        '<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Ontology" />',
+      );
       expect(result).toContain("</rdf:RDF>");
     });
 
     it("should reject invalid syntax gracefully", () => {
       const input = `NotAnOntology(<http://example.com/onto>)`;
-      expect(() => parseFunctionalSyntax(input)).toThrow(/Expected keyword Ontology/);
+      expect(() => parseFunctionalSyntax(input)).toThrow(
+        /Expected keyword Ontology/,
+      );
     });
   });
 
@@ -30,11 +34,13 @@ describe("Functional Syntax Parser", () => {
       const input = `Prefix(:=<http://example.com/default#>)
 Prefix(ex:=<http://example.com/ex#>)
 Ontology(ex:MyOntology)`;
-      
+
       const result = parseFunctionalSyntax(input);
       expect(result).toContain('xml:base="http://example.com/ex#MyOntology"');
       expect(result).toContain('rdf:about="http://example.com/ex#MyOntology"');
-      expect(result).toContain('<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Ontology" />');
+      expect(result).toContain(
+        '<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Ontology" />',
+      );
     });
   });
 
@@ -65,12 +71,24 @@ Ontology(
         return null;
       };
 
-      expect(findResource("http://example.com/default#Person")).toBe("http://www.w3.org/2002/07/owl#Class");
-      expect(findResource("http://example.com/default#hasChild")).toBe("http://www.w3.org/2002/07/owl#ObjectProperty");
-      expect(findResource("http://example.com/default#hasAge")).toBe("http://www.w3.org/2002/07/owl#DatatypeProperty");
-      expect(findResource("http://example.com/default#John")).toBe("http://www.w3.org/2002/07/owl#NamedIndividual");
-      expect(findResource("http://example.com/default#customType")).toBe("http://www.w3.org/2000/01/rdf-schema#Datatype");
-      expect(findResource("http://example.com/default#hasNote")).toBe("http://www.w3.org/2002/07/owl#AnnotationProperty");
+      expect(findResource("http://example.com/default#Person")).toBe(
+        "http://www.w3.org/2002/07/owl#Class",
+      );
+      expect(findResource("http://example.com/default#hasChild")).toBe(
+        "http://www.w3.org/2002/07/owl#ObjectProperty",
+      );
+      expect(findResource("http://example.com/default#hasAge")).toBe(
+        "http://www.w3.org/2002/07/owl#DatatypeProperty",
+      );
+      expect(findResource("http://example.com/default#John")).toBe(
+        "http://www.w3.org/2002/07/owl#NamedIndividual",
+      );
+      expect(findResource("http://example.com/default#customType")).toBe(
+        "http://www.w3.org/2000/01/rdf-schema#Datatype",
+      );
+      expect(findResource("http://example.com/default#hasNote")).toBe(
+        "http://www.w3.org/2002/07/owl#AnnotationProperty",
+      );
     });
   });
 
@@ -90,15 +108,21 @@ Ontology(
       const doc = parseToDom(input);
       const subClasses = doc.getElementsByTagName("rdfs:subClassOf");
       expect(subClasses.length).toBeGreaterThan(0);
-      expect(subClasses[0].getAttribute("rdf:resource")).toBe("http://example.com/default#Animal");
+      expect(subClasses[0].getAttribute("rdf:resource")).toBe(
+        "http://example.com/default#Animal",
+      );
 
       const equivs = doc.getElementsByTagName("owl:equivalentClass");
       expect(equivs.length).toBeGreaterThan(0);
-      expect(equivs[0].getAttribute("rdf:resource")).toBe("http://example.com/default#Canine");
+      expect(equivs[0].getAttribute("rdf:resource")).toBe(
+        "http://example.com/default#Canine",
+      );
 
       const subProps = doc.getElementsByTagName("rdfs:subPropertyOf");
       expect(subProps.length).toBeGreaterThan(0);
-      expect(subProps[0].getAttribute("rdf:resource")).toBe("http://example.com/default#hasParent");
+      expect(subProps[0].getAttribute("rdf:resource")).toBe(
+        "http://example.com/default#hasParent",
+      );
     });
   });
 
@@ -120,11 +144,15 @@ Ontology(
       const doc = parseToDom(input);
       const restrictions = doc.getElementsByTagName("owl:onProperty");
       expect(restrictions.length).toBeGreaterThan(0);
-      expect(restrictions[0].getAttribute("rdf:resource")).toBe("http://example.com/default#hasChild");
+      expect(restrictions[0].getAttribute("rdf:resource")).toBe(
+        "http://example.com/default#hasChild",
+      );
 
       const someValues = doc.getElementsByTagName("owl:someValuesFrom");
       expect(someValues.length).toBeGreaterThan(0);
-      expect(someValues[0].getAttribute("rdf:resource")).toBe("http://example.com/default#Person");
+      expect(someValues[0].getAttribute("rdf:resource")).toBe(
+        "http://example.com/default#Person",
+      );
     });
   });
 
@@ -152,7 +180,9 @@ EquivalentClasses(:A ObjectIntersectionOf(:B ObjectSomeValuesFrom(:p :B)))
       const doc = parseToDom(input);
       const subClasses = doc.getElementsByTagName("rdfs:subClassOf");
       expect(subClasses.length).toBeGreaterThan(0);
-      expect(subClasses[0].getAttribute("rdf:resource")).toBe("http://example.com/test#B");
+      expect(subClasses[0].getAttribute("rdf:resource")).toBe(
+        "http://example.com/test#B",
+      );
 
       const equivs = doc.getElementsByTagName("owl:equivalentClass");
       expect(equivs.length).toBeGreaterThan(0);

@@ -1,55 +1,73 @@
-
 function isIriExternal(iri, headerIri) {
-  if (!iri) {return false;}
-  if (iri === "http://www.w3.org/2000/01/rdf-schema#Literal" || iri === "http://www.w3.org/2002/07/owl#Thing") {
+  if (!iri) {
     return false;
   }
-  
-  if (iri.startsWith("http://www.w3.org/2002/07/owl#") || 
-      iri.startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#") || 
-      iri.startsWith("http://www.w3.org/2000/01/rdf-schema#")) {
+  if (
+    iri === "http://www.w3.org/2000/01/rdf-schema#Literal" ||
+    iri === "http://www.w3.org/2002/07/owl#Thing"
+  ) {
+    return false;
+  }
+
+  if (
+    iri.startsWith("http://www.w3.org/2002/07/owl#") ||
+    iri.startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#") ||
+    iri.startsWith("http://www.w3.org/2000/01/rdf-schema#")
+  ) {
     return true;
   }
-  
-  if (!headerIri) {return false;}
-  
+
+  if (!headerIri) {
+    return false;
+  }
+
   function removeTrailingHash(str) {
     return str.replace(/[#]$/, "");
   }
-  
+
   const trimmedElementIri = removeTrailingHash(iri);
   const trimmedOntologyIri = removeTrailingHash(headerIri);
-  
+
   if (trimmedElementIri === trimmedOntologyIri) {
     return false;
   }
-  
+
   if (trimmedElementIri.includes("#")) {
     const parts = trimmedElementIri.split("#");
     if (parts[0] === trimmedOntologyIri) {
       return false;
     }
   }
-  
+
   if (trimmedElementIri.includes("/") && !trimmedElementIri.endsWith("/")) {
     const lastSlashIndex = trimmedElementIri.lastIndexOf("/");
     const indexAfterSlash = lastSlashIndex + 1;
-    const elementNamespaceWithoutLastPart = trimmedElementIri.substring(0, indexAfterSlash);
-    
+    const elementNamespaceWithoutLastPart = trimmedElementIri.substring(
+      0,
+      indexAfterSlash,
+    );
+
     if (elementNamespaceWithoutLastPart === trimmedOntologyIri) {
       return false;
     }
   }
-  
+
   return true;
 }
 
 function shouldSkipDatatype(cls, connectedNodeIds, connectedDatatypeIris) {
-  if (cls.iri === "http://www.w3.org/2000/01/rdf-schema#Literal" && !connectedNodeIds.has(String(cls.id))) {
+  if (
+    cls.iri === "http://www.w3.org/2000/01/rdf-schema#Literal" &&
+    !connectedNodeIds.has(String(cls.id))
+  ) {
     return true;
   }
-  if (cls.type !== "rdfs:Datatype" && cls.type !== "rdfs:Literal") {return false;}
-  if (connectedNodeIds.has(String(cls.id))) {return false;}
+  if (cls.type !== "rdfs:Datatype" && cls.type !== "rdfs:Literal") {
+    return false;
+  }
+  if (connectedNodeIds.has(String(cls.id))) {
+    return false;
+  }
   if (cls.iri && connectedDatatypeIris.has(cls.iri)) {
     return true;
   }
@@ -59,21 +77,35 @@ function shouldSkipDatatype(cls, connectedNodeIds, connectedDatatypeIris) {
 function createVirtualDatatype(datatypeIri, resolver, context) {
   const cls = context.classMap.get(datatypeIri);
   const virtualId = context.nextId();
-  const label = cls && cls.label ? JSON.parse(JSON.stringify(cls.label)) : { "undefined": resolver.getLocalName(datatypeIri) };
+  const label =
+    cls && cls.label
+      ? JSON.parse(JSON.stringify(cls.label))
+      : { undefined: resolver.getLocalName(datatypeIri) };
   if (!label["undefined"]) {
     label["undefined"] = resolver.getLocalName(datatypeIri);
   }
   const virtualCls = {
     id: virtualId,
-    type: datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal" ? "rdfs:Literal" : "rdfs:Datatype",
+    type:
+      datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal"
+        ? "rdfs:Literal"
+        : "rdfs:Datatype",
     iri: datatypeIri,
-    baseIri: datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal" ? undefined : (cls ? cls.baseIri : resolver.getBaseIri(datatypeIri)),
+    baseIri:
+      datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal"
+        ? undefined
+        : cls
+          ? cls.baseIri
+          : resolver.getBaseIri(datatypeIri),
     label: label,
     comment: cls && cls.comment ? JSON.parse(JSON.stringify(cls.comment)) : {},
-    attributes: datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal" ? [] : ["datatype"],
+    attributes:
+      datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal"
+        ? []
+        : ["datatype"],
     subClasses: [],
     superClasses: [],
-    annotations: cls && cls.annotations ? cls.annotations : {}
+    annotations: cls && cls.annotations ? cls.annotations : {},
   };
   context.virtualDatatypes.push(virtualCls);
   return virtualId;
@@ -89,11 +121,13 @@ function createVirtualDatatype(datatypeIri, resolver, context) {
 export function exportToJson(resolver, context, header) {
   const subclassProperties = [];
   const exportedSubclassPairs = new Set();
-  context.subclassRelations.forEach(rel => {
-    if (rel.superclassIri === "http://www.w3.org/2002/07/owl#Thing") {return;}
+  context.subclassRelations.forEach((rel) => {
+    if (rel.superclassIri === "http://www.w3.org/2002/07/owl#Thing") {
+      return;
+    }
     const subCls = context.classMap.get(rel.subclassIri);
     const superCls = context.classMap.get(rel.superclassIri);
-    
+
     if (subCls && superCls && subCls.id !== superCls.id) {
       const pairKey = String(subCls.id) + ":" + String(superCls.id);
       if (!exportedSubclassPairs.has(pairKey)) {
@@ -107,8 +141,8 @@ export function exportToJson(resolver, context, header) {
             baseIri: "http://www.w3.org/2000/01/rdf-schema",
             domain: subCls.id,
             range: superCls.id,
-            attributes: ["transitive"]
-          }
+            attributes: ["transitive"],
+          },
         });
       }
     }
@@ -116,10 +150,10 @@ export function exportToJson(resolver, context, header) {
 
   const restrictionProperties = [];
   const exportedRestrictionKeys = new Set();
-  context.parsedRestrictions.forEach(rest => {
+  context.parsedRestrictions.forEach((rest) => {
     const subCls = context.classMap.get(rest.domainIri);
     const superCls = context.classMap.get(rest.rangeIri);
-    
+
     if (subCls && superCls) {
       const restKey = `${subCls.id}:${rest.propertyIri}:${superCls.id}:${rest.type}`;
       if (exportedRestrictionKeys.has(restKey)) {
@@ -138,24 +172,42 @@ export function exportToJson(resolver, context, header) {
       if (!attributes.includes("inferred")) {
         attributes.push("inferred");
       }
-      
+
       if (refProp && refProp.attributes) {
-        refProp.attributes.forEach(attr => {
-          if (!attributes.includes(attr)) {attributes.push(attr);}
+        refProp.attributes.forEach((attr) => {
+          if (!attributes.includes(attr)) {
+            attributes.push(attr);
+          }
         });
       }
 
       const refPropIri = refProp ? refProp.iri : rest.propertyIri;
-      const refPropBaseIri = refProp ? refProp.baseIri : resolver.getBaseIri(rest.propertyIri);
-      const refPropLabel = refProp && refProp.label ? refProp.label : { "undefined": resolver.getLocalName(rest.propertyIri) };
-      
+      const refPropBaseIri = refProp
+        ? refProp.baseIri
+        : resolver.getBaseIri(rest.propertyIri);
+      const refPropLabel =
+        refProp && refProp.label
+          ? refProp.label
+          : { undefined: resolver.getLocalName(rest.propertyIri) };
+
       let resolvedRangeId = superCls.id;
-      if (superCls.type === "rdfs:Datatype" || superCls.type === "rdfs:Literal" || rest.rangeIri === "http://www.w3.org/2000/01/rdf-schema#Literal") {
-        resolvedRangeId = createVirtualDatatype(rest.rangeIri, resolver, context);
+      if (
+        superCls.type === "rdfs:Datatype" ||
+        superCls.type === "rdfs:Literal" ||
+        rest.rangeIri === "http://www.w3.org/2000/01/rdf-schema#Literal"
+      ) {
+        resolvedRangeId = createVirtualDatatype(
+          rest.rangeIri,
+          resolver,
+          context,
+        );
       }
 
       const restProp = {
-        property: { id: propId, type: rest.type === "owl:hasValue" ? "owl:someValuesFrom" : rest.type },
+        property: {
+          id: propId,
+          type: rest.type === "owl:hasValue" ? "owl:someValuesFrom" : rest.type,
+        },
         attribute: {
           id: propId,
           iri: refPropIri,
@@ -163,33 +215,57 @@ export function exportToJson(resolver, context, header) {
           label: Object.assign({}, refPropLabel),
           domain: subCls.id,
           range: resolvedRangeId,
-          attributes: attributes
-        }
+          attributes: attributes,
+        },
       };
-      
-      if (refProp && refProp.comment && Object.keys(refProp.comment).length > 0) {restProp.attribute.comment = refProp.comment;}
-      if (refProp && refProp.annotations && Object.keys(refProp.annotations).length > 0) {restProp.attribute.annotations = refProp.annotations;}
-      
+
+      if (
+        refProp &&
+        refProp.comment &&
+        Object.keys(refProp.comment).length > 0
+      ) {
+        restProp.attribute.comment = refProp.comment;
+      }
+      if (
+        refProp &&
+        refProp.annotations &&
+        Object.keys(refProp.annotations).length > 0
+      ) {
+        restProp.attribute.annotations = refProp.annotations;
+      }
+
       restrictionProperties.push(restProp);
     }
   });
 
   const connectedNodeIds = new Set();
-  context.propertyMap.forEach(prop => {
-    if (prop.domain) {connectedNodeIds.add(String(prop.domain));}
-    if (prop.range) {connectedNodeIds.add(String(prop.range));}
+  context.propertyMap.forEach((prop) => {
+    if (prop.domain) {
+      connectedNodeIds.add(String(prop.domain));
+    }
+    if (prop.range) {
+      connectedNodeIds.add(String(prop.range));
+    }
   });
-  subclassProperties.forEach(subProp => {
-    if (subProp.attribute.domain) {connectedNodeIds.add(String(subProp.attribute.domain));}
-    if (subProp.attribute.range) {connectedNodeIds.add(String(subProp.attribute.range));}
+  subclassProperties.forEach((subProp) => {
+    if (subProp.attribute.domain) {
+      connectedNodeIds.add(String(subProp.attribute.domain));
+    }
+    if (subProp.attribute.range) {
+      connectedNodeIds.add(String(subProp.attribute.range));
+    }
   });
-  restrictionProperties.forEach(rp => {
-    if (rp.attribute.domain) {connectedNodeIds.add(String(rp.attribute.domain));}
-    if (rp.attribute.range) {connectedNodeIds.add(String(rp.attribute.range));}
+  restrictionProperties.forEach((rp) => {
+    if (rp.attribute.domain) {
+      connectedNodeIds.add(String(rp.attribute.domain));
+    }
+    if (rp.attribute.range) {
+      connectedNodeIds.add(String(rp.attribute.range));
+    }
   });
-  context.classMap.forEach(cls => {
+  context.classMap.forEach((cls) => {
     if (cls.disjointWith && cls.disjointWith.length > 0) {
-      cls.disjointWith.forEach(targetIri => {
+      cls.disjointWith.forEach((targetIri) => {
         const targetCls = context.classMap.get(targetIri);
         if (targetCls) {
           connectedNodeIds.add(String(cls.id));
@@ -200,14 +276,18 @@ export function exportToJson(resolver, context, header) {
   });
 
   const connectedDatatypeIris = new Set();
-  context.classMap.forEach(cls => {
+  context.classMap.forEach((cls) => {
     if (cls.type === "rdfs:Datatype" && connectedNodeIds.has(String(cls.id))) {
-      if (cls.iri) {connectedDatatypeIris.add(cls.iri);}
+      if (cls.iri) {
+        connectedDatatypeIris.add(cls.iri);
+      }
     }
   });
-  context.virtualDatatypes.forEach(cls => {
+  context.virtualDatatypes.forEach((cls) => {
     if (connectedNodeIds.has(String(cls.id))) {
-      if (cls.iri) {connectedDatatypeIris.add(cls.iri);}
+      if (cls.iri) {
+        connectedDatatypeIris.add(cls.iri);
+      }
     }
   });
 
@@ -217,10 +297,12 @@ export function exportToJson(resolver, context, header) {
   const exportedDisjointPairs = new Set();
 
   function exportClassNode(cls) {
-    if (shouldSkipDatatype(cls, connectedNodeIds, connectedDatatypeIris)) {return;}
-    
+    if (shouldSkipDatatype(cls, connectedNodeIds, connectedDatatypeIris)) {
+      return;
+    }
+
     const isAnonymous = !cls.iri || cls.iri.startsWith("_:");
-    
+
     if (isAnonymous && !connectedNodeIds.has(String(cls.id))) {
       return;
     }
@@ -236,27 +318,49 @@ export function exportToJson(resolver, context, header) {
       if (cls.annotations && Object.keys(cls.annotations).length > 0) {
         attr.annotations = cls.annotations;
       }
-      if (cls.comment && Object.keys(cls.comment).length > 0) {attr.comment = cls.comment;}
+      if (cls.comment && Object.keys(cls.comment).length > 0) {
+        attr.comment = cls.comment;
+      }
       if (cls.individuals && cls.individuals.length > 0) {
         attr.individuals = cls.individuals;
       }
     }
-    
-    if (cls.attributes && cls.attributes.length > 0) {attr.attributes = cls.attributes;}
-    if (cls.subClasses && cls.subClasses.length > 0) {attr.subClasses = cls.subClasses;}
-    if (cls.superClasses && cls.superClasses.length > 0) {attr.superClasses = cls.superClasses;}
-    if (cls.union) {attr.union = cls.union;}
-    if (cls.intersection && cls.intersection.length > 0) {attr.intersection = cls.intersection;}
-    if (cls.complement) {attr.complement = Array.isArray(cls.complement) ? cls.complement : [cls.complement];}
-    if (cls.disjointUnion && cls.disjointUnion.length > 0) {attr.disjointUnion = cls.disjointUnion;}
-    if (cls.equivalent && cls.equivalent.length > 0) {attr.equivalent = cls.equivalent;}
+
+    if (cls.attributes && cls.attributes.length > 0) {
+      attr.attributes = cls.attributes;
+    }
+    if (cls.subClasses && cls.subClasses.length > 0) {
+      attr.subClasses = cls.subClasses;
+    }
+    if (cls.superClasses && cls.superClasses.length > 0) {
+      attr.superClasses = cls.superClasses;
+    }
+    if (cls.union) {
+      attr.union = cls.union;
+    }
+    if (cls.intersection && cls.intersection.length > 0) {
+      attr.intersection = cls.intersection;
+    }
+    if (cls.complement) {
+      attr.complement = Array.isArray(cls.complement)
+        ? cls.complement
+        : [cls.complement];
+    }
+    if (cls.disjointUnion && cls.disjointUnion.length > 0) {
+      attr.disjointUnion = cls.disjointUnion;
+    }
+    if (cls.equivalent && cls.equivalent.length > 0) {
+      attr.equivalent = cls.equivalent;
+    }
     classAttributesArray.push(attr);
 
     if (cls.disjointWith && cls.disjointWith.length > 0) {
-      cls.disjointWith.forEach(targetIri => {
+      cls.disjointWith.forEach((targetIri) => {
         const targetCls = context.classMap.get(targetIri);
         if (targetCls) {
-          const pairKey = [String(cls.id), String(targetCls.id)].sort().join(":");
+          const pairKey = [String(cls.id), String(targetCls.id)]
+            .sort()
+            .join(":");
           if (!exportedDisjointPairs.has(pairKey)) {
             exportedDisjointPairs.add(pairKey);
             const propId = context.nextId();
@@ -266,8 +370,8 @@ export function exportToJson(resolver, context, header) {
                 id: propId,
                 domain: cls.id,
                 range: targetCls.id,
-                attributes: ["object", "anonymous"]
-              }
+                attributes: ["object", "anonymous"],
+              },
             });
           }
         }
@@ -280,9 +384,14 @@ export function exportToJson(resolver, context, header) {
     context.virtualThings.forEach(exportClassNode);
   }
 
-  context.virtualDatatypes.forEach(cls => {
-    if (shouldSkipDatatype(cls, connectedNodeIds, connectedDatatypeIris)) {return;}
-    if (isIriExternal(cls.iri, header.iri) && !cls.attributes.includes("external")) {
+  context.virtualDatatypes.forEach((cls) => {
+    if (shouldSkipDatatype(cls, connectedNodeIds, connectedDatatypeIris)) {
+      return;
+    }
+    if (
+      isIriExternal(cls.iri, header.iri) &&
+      !cls.attributes.includes("external")
+    ) {
       cls.attributes.push("external");
     }
     classesArray.push({ id: cls.id, type: cls.type });
@@ -290,8 +399,8 @@ export function exportToJson(resolver, context, header) {
       id: cls.id,
       iri: cls.iri,
       baseIri: cls.baseIri,
-      label: cls.label || { "undefined": "Datatype" },
-      attributes: cls.attributes
+      label: cls.label || { undefined: "Datatype" },
+      attributes: cls.attributes,
     };
     if (cls.annotations && Object.keys(cls.annotations).length > 0) {
       attr.annotations = cls.annotations;
@@ -305,33 +414,51 @@ export function exportToJson(resolver, context, header) {
   const propertiesArray = [];
   const propertyAttributesArray = [];
 
-  context.propertyMap.forEach(prop => {
-    if (prop.skipExport) {return;}
+  context.propertyMap.forEach((prop) => {
+    if (prop.skipExport) {
+      return;
+    }
 
     propertiesArray.push({ id: prop.id, type: prop.type });
     const attr = {
       id: prop.id,
       iri: prop.iri,
       baseIri: prop.baseIri,
-      label: prop.label || { "undefined": "Property" },
+      label: prop.label || { undefined: "Property" },
       domain: prop.domain,
       range: prop.range,
-      attributes: prop.attributes
+      attributes: prop.attributes,
     };
-    if (Object.keys(prop.comment).length > 0) {attr.comment = prop.comment;}
-    if (prop.annotations && Object.keys(prop.annotations).length > 0) {attr.annotations = prop.annotations;}
-    if (prop.superproperty.length > 0) {attr.superproperty = prop.superproperty;}
-    if (prop.subproperty.length > 0) {attr.subproperty = prop.subproperty;}
-    if (prop.inverse) {attr.inverse = prop.inverse;}
-    if (prop.minCardinality !== undefined) {attr.minCardinality = prop.minCardinality;}
-    if (prop.maxCardinality !== undefined) {attr.maxCardinality = prop.maxCardinality;}
-    if (prop.cardinality !== undefined) {attr.cardinality = prop.cardinality;}
+    if (Object.keys(prop.comment).length > 0) {
+      attr.comment = prop.comment;
+    }
+    if (prop.annotations && Object.keys(prop.annotations).length > 0) {
+      attr.annotations = prop.annotations;
+    }
+    if (prop.superproperty.length > 0) {
+      attr.superproperty = prop.superproperty;
+    }
+    if (prop.subproperty.length > 0) {
+      attr.subproperty = prop.subproperty;
+    }
+    if (prop.inverse) {
+      attr.inverse = prop.inverse;
+    }
+    if (prop.minCardinality !== undefined) {
+      attr.minCardinality = prop.minCardinality;
+    }
+    if (prop.maxCardinality !== undefined) {
+      attr.maxCardinality = prop.maxCardinality;
+    }
+    if (prop.cardinality !== undefined) {
+      attr.cardinality = prop.cardinality;
+    }
     if (prop.equivalentProperties && prop.equivalentProperties.length > 0) {
       attr.equivalent = [];
       if (!attr.attributes.includes("equivalent")) {
         attr.attributes.push("equivalent");
       }
-      prop.equivalentProperties.forEach(equivIri => {
+      prop.equivalentProperties.forEach((equivIri) => {
         const equivProp = context.propertyMap.get(equivIri);
         if (equivProp) {
           attr.equivalent.push(equivProp.id);
@@ -344,17 +471,17 @@ export function exportToJson(resolver, context, header) {
     propertyAttributesArray.push(attr);
   });
 
-  subclassProperties.forEach(subProp => {
+  subclassProperties.forEach((subProp) => {
     propertiesArray.push(subProp.property);
     propertyAttributesArray.push(subProp.attribute);
   });
 
-  disjointProperties.forEach(dp => {
+  disjointProperties.forEach((dp) => {
     propertiesArray.push(dp.property);
     propertyAttributesArray.push(dp.propertyAttribute);
   });
 
-  restrictionProperties.forEach(rp => {
+  restrictionProperties.forEach((rp) => {
     propertiesArray.push(rp.property);
     propertyAttributesArray.push(rp.attribute);
   });
@@ -366,37 +493,67 @@ export function exportToJson(resolver, context, header) {
     datatypePropertyCount: 0,
     propertyCount: propertiesArray.length,
     nodeCount: classesArray.length,
-    individualCount: 0
+    individualCount: 0,
   };
 
-  classesArray.forEach(c => {
-    if (c.type === "owl:Class") {metrics.classCount++;}
-    if (c.type === "rdfs:Datatype") {metrics.datatypeCount++;}
+  classesArray.forEach((c) => {
+    if (c.type === "owl:Class") {
+      metrics.classCount++;
+    }
+    if (c.type === "rdfs:Datatype") {
+      metrics.datatypeCount++;
+    }
   });
 
-  propertiesArray.forEach(p => {
-    if (p.type === "owl:objectProperty" || p.type === "owl:someValuesFrom" || p.type === "owl:allValuesFrom" || p.type === "owl:hasValue") {metrics.objectPropertyCount++;}
-    if (p.type === "owl:datatypeProperty") {metrics.datatypePropertyCount++;}
+  propertiesArray.forEach((p) => {
+    if (
+      p.type === "owl:objectProperty" ||
+      p.type === "owl:someValuesFrom" ||
+      p.type === "owl:allValuesFrom" ||
+      p.type === "owl:hasValue"
+    ) {
+      metrics.objectPropertyCount++;
+    }
+    if (p.type === "owl:datatypeProperty") {
+      metrics.datatypePropertyCount++;
+    }
   });
 
   let totalIndividualCount = 0;
-  context.classMap.forEach(cls => {
+  context.classMap.forEach((cls) => {
     if (cls.individuals) {
       totalIndividualCount += cls.individuals.length;
     }
   });
   metrics.individualCount = totalIndividualCount;
-  
+
   const usedNamespaces = new Set();
-  context.classMap.forEach(c => { if (c.iri) {usedNamespaces.add(resolver.getBaseIri(c.iri));} });
-  context.propertyMap.forEach(p => { if (p.iri) {usedNamespaces.add(resolver.getBaseIri(p.iri));} });
-  
-  const reserved = ["http://www.w3.org/2002/07/owl", "http://www.w3.org/1999/02/22-rdf-syntax-ns", "http://www.w3.org/2000/01/rdf-schema", "http://www.w3.org/2001/XMLSchema"];
-  usedNamespaces.forEach(ns => {
-    if (ns && !reserved.includes(ns) && !ns.startsWith("_:")) {header.baseIris.push(ns);}
+  context.classMap.forEach((c) => {
+    if (c.iri) {
+      usedNamespaces.add(resolver.getBaseIri(c.iri));
+    }
   });
-  
-  header.baseIris = Array.from(new Set(header.baseIris.filter(b => b && !b.startsWith("_:"))));
+  context.propertyMap.forEach((p) => {
+    if (p.iri) {
+      usedNamespaces.add(resolver.getBaseIri(p.iri));
+    }
+  });
+
+  const reserved = [
+    "http://www.w3.org/2002/07/owl",
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns",
+    "http://www.w3.org/2000/01/rdf-schema",
+    "http://www.w3.org/2001/XMLSchema",
+  ];
+  usedNamespaces.forEach((ns) => {
+    if (ns && !reserved.includes(ns) && !ns.startsWith("_:")) {
+      header.baseIris.push(ns);
+    }
+  });
+
+  header.baseIris = Array.from(
+    new Set(header.baseIris.filter((b) => b && !b.startsWith("_:"))),
+  );
   header.baseIris.sort();
 
   return {
@@ -407,6 +564,6 @@ export function exportToJson(resolver, context, header) {
     class: classesArray,
     classAttribute: classAttributesArray,
     property: propertiesArray,
-    propertyAttribute: propertyAttributesArray
+    propertyAttribute: propertyAttributesArray,
   };
 }

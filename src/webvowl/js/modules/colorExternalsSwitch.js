@@ -1,13 +1,12 @@
 const _ = require("lodash/core");
 
-module.exports = function (){
-  
+module.exports = function () {
   const DEFAULT_STATE = true;
   const COLOR_MODES = [
     { type: "same", range: [d3.rgb("#36C"), d3.rgb("#36C")] },
-    { type: "gradient", range: [d3.rgb("#36C"), d3.rgb("#EE2867")] } // taken from LD-VOWL
+    { type: "gradient", range: [d3.rgb("#36C"), d3.rgb("#EE2867")] }, // taken from LD-VOWL
   ];
-  
+
   const filter = {};
   let nodes;
   let properties;
@@ -15,104 +14,106 @@ module.exports = function (){
   let filteredNodes;
   let filteredProperties;
   let colorModeType = "same";
-  
-  
-  filter.filter = function ( untouchedNodes, untouchedProperties ){
+
+  filter.filter = function (untouchedNodes, untouchedProperties) {
     nodes = untouchedNodes;
     properties = untouchedProperties;
-    
+
     const externalElements = filterExternalElements(nodes.concat(properties));
-    
-    if ( enabled ) {
+
+    if (enabled) {
       setColorsForExternals(externalElements);
     } else {
       resetBackgroundColors(externalElements);
     }
-    
+
     filteredNodes = nodes;
     filteredProperties = properties;
   };
-  
-  function filterExternalElements( elements ){
-    return elements.filter(function ( element ){
-      if ( element.visualAttributes().indexOf("deprecated") >= 0 ) {
+
+  function filterExternalElements(elements) {
+    return elements.filter(function (element) {
+      if (element.visualAttributes().indexOf("deprecated") >= 0) {
         // deprecated is the only attribute which has preference over external
         return false;
       }
-      
+
       return element.attributes().indexOf("external") >= 0;
     });
   }
-  
-  function setColorsForExternals( elements ){
+
+  function setColorsForExternals(elements) {
     const iriMap = mapExternalsToBaseUri(elements);
     const entries = iriMap.entries();
-    
-    const colorScale = d3.scale.linear()
+
+    const colorScale = d3.scale
+      .linear()
       .domain([0, entries.length - 1])
       .range(_.find(COLOR_MODES, { type: colorModeType }).range)
       .interpolate(d3.interpolateHsl);
-    
-    for ( let i = 0; i < entries.length; i++ ) {
+
+    for (let i = 0; i < entries.length; i++) {
       const groupedElements = entries[i].value;
       setBackgroundColorForElements(groupedElements, colorScale(i));
     }
   }
-  
-  function mapExternalsToBaseUri( elements ){
+
+  function mapExternalsToBaseUri(elements) {
     const map = d3.map();
-    
-    elements.forEach(function ( element ){
+
+    elements.forEach(function (element) {
       const baseIri = element.baseIri();
-      
-      if ( !map.has(baseIri) ) {
+
+      if (!map.has(baseIri)) {
         map.set(baseIri, []);
       }
       map.get(baseIri).push(element);
     });
-    
+
     return map;
   }
-  
-  function setBackgroundColorForElements( elements, backgroundColor ){
-    elements.forEach(function ( element ){
+
+  function setBackgroundColorForElements(elements, backgroundColor) {
+    elements.forEach(function (element) {
       element.backgroundColor(backgroundColor);
     });
   }
-  
-  function resetBackgroundColors( elements ){
+
+  function resetBackgroundColors(elements) {
     console.warn("Resetting color");
-    elements.forEach(function ( element ){
+    elements.forEach(function (element) {
       element.backgroundColor(null);
     });
   }
-  
-  filter.colorModeType = function ( p ){
-    if ( !arguments.length ) {return colorModeType;}
+
+  filter.colorModeType = function (p) {
+    if (!arguments.length) {
+      return colorModeType;
+    }
     colorModeType = p;
     return filter;
   };
-  
-  filter.enabled = function ( p ){
-    if ( !arguments.length ) {return enabled;}
+
+  filter.enabled = function (p) {
+    if (!arguments.length) {
+      return enabled;
+    }
     enabled = p;
     return filter;
   };
-  
-  filter.reset = function (){
+
+  filter.reset = function () {
     enabled = DEFAULT_STATE;
   };
-  
-  
+
   // Functions a filter must have
-  filter.filteredNodes = function (){
+  filter.filteredNodes = function () {
     return filteredNodes;
   };
-  
-  filter.filteredProperties = function (){
+
+  filter.filteredProperties = function () {
     return filteredProperties;
   };
-  
-  
+
   return filter;
 };

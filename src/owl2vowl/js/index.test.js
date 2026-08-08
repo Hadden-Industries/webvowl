@@ -1,4 +1,11 @@
-import { describe, test, expect, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  test,
+  expect,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 import owl2vowl, { loadWithImports, catalog } from "./index.js";
 
 describe("index.js unit tests", () => {
@@ -37,9 +44,11 @@ describe("index.js unit tests", () => {
     expect(result.header.iri).toBe("http://example.org/ontology");
     expect(result.header.title.en).toBe("My Ontology");
 
-    const personNode = result.class.find(c => c.type === "owl:Class");
+    const personNode = result.class.find((c) => c.type === "owl:Class");
     expect(personNode).toBeDefined();
-    const personAttr = result.classAttribute.find(ca => ca.id === personNode.id);
+    const personAttr = result.classAttribute.find(
+      (ca) => ca.id === personNode.id,
+    );
     expect(personAttr.iri).toBe("http://example.org/ontology#Person");
     expect(personAttr.label.en).toBe("Person");
   });
@@ -65,9 +74,9 @@ describe("index.js unit tests", () => {
     expect(result.header.iri).toBe("http://example.org/ontology");
     expect(result.header.title.en).toBe("My Turtle Ontology");
 
-    const carNode = result.class.find(c => c.type === "owl:Class");
+    const carNode = result.class.find((c) => c.type === "owl:Class");
     expect(carNode).toBeDefined();
-    const carAttr = result.classAttribute.find(ca => ca.id === carNode.id);
+    const carAttr = result.classAttribute.find((ca) => ca.id === carNode.id);
     expect(carAttr.iri).toBe("http://example.org/ontology#Car");
     expect(carAttr.label.en).toBe("Car");
   });
@@ -100,7 +109,7 @@ describe("index.js unit tests", () => {
           ok: true,
           status: 200,
           statusText: "OK",
-          text: () => Promise.resolve(importedXml)
+          text: () => Promise.resolve(importedXml),
         });
       }
       return Promise.reject(new Error("Unexpected fetch url: " + url));
@@ -111,8 +120,8 @@ describe("index.js unit tests", () => {
     expect(result).toHaveProperty("_comment");
     expect(result.header.iri).toBe("http://example.org/main");
 
-    const specialClassNode = result.class.find(c => {
-      const attr = result.classAttribute.find(ca => ca.id === c.id);
+    const specialClassNode = result.class.find((c) => {
+      const attr = result.classAttribute.find((ca) => ca.id === c.id);
       return attr && attr.iri === "http://example.org/imported#SpecialClass";
     });
     expect(specialClassNode).toBeDefined();

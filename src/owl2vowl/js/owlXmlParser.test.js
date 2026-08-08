@@ -47,13 +47,27 @@ describe("owlXmlParser.js unit tests", () => {
     </Ontology>`;
 
     const rdfXml = convertOwlXmlToRdfXml(owlXml);
-    expect(rdfXml).toContain('<owl:Ontology rdf:about="http://blankdots.com/open/personasonto.owl">');
-    expect(rdfXml).toContain('<rdfs:comment xml:lang="en">PersonasOnto description.</rdfs:comment>');
-    expect(rdfXml).toContain('<owl:Class rdf:about="http://blankdots.com/open/personasonto.owl#Persona"/>');
-    expect(rdfXml).toContain('<owl:ObjectProperty rdf:about="http://blankdots.com/open/personasonto.owl#hasGoal"/>');
-    expect(rdfXml).toContain('<rdfs:subClassOf rdf:resource="http://blankdots.com/open/personasonto.owl#Agent"/>');
-    expect(rdfXml).toContain('<rdfs:domain rdf:resource="http://blankdots.com/open/personasonto.owl#Persona"/>');
-    expect(rdfXml).toContain('<rdfs:range rdf:resource="http://blankdots.com/open/personasonto.owl#Goal"/>');
+    expect(rdfXml).toContain(
+      '<owl:Ontology rdf:about="http://blankdots.com/open/personasonto.owl">',
+    );
+    expect(rdfXml).toContain(
+      '<rdfs:comment xml:lang="en">PersonasOnto description.</rdfs:comment>',
+    );
+    expect(rdfXml).toContain(
+      '<owl:Class rdf:about="http://blankdots.com/open/personasonto.owl#Persona"/>',
+    );
+    expect(rdfXml).toContain(
+      '<owl:ObjectProperty rdf:about="http://blankdots.com/open/personasonto.owl#hasGoal"/>',
+    );
+    expect(rdfXml).toContain(
+      '<rdfs:subClassOf rdf:resource="http://blankdots.com/open/personasonto.owl#Agent"/>',
+    );
+    expect(rdfXml).toContain(
+      '<rdfs:domain rdf:resource="http://blankdots.com/open/personasonto.owl#Persona"/>',
+    );
+    expect(rdfXml).toContain(
+      '<rdfs:range rdf:resource="http://blankdots.com/open/personasonto.owl#Goal"/>',
+    );
   });
 
   test("Properly resolves tags for default namespaces without double colons", () => {
@@ -68,9 +82,9 @@ describe("owlXmlParser.js unit tests", () => {
 
     const rdfXml = convertOwlXmlToRdfXml(owlXml);
     // Should emit standard naked tag for default namespaces, not <::hasChild>
-    expect(rdfXml).toContain('<hasChild>Timmy</hasChild>');
-    expect(rdfXml).not.toContain('<::hasChild>');
-    
+    expect(rdfXml).toContain("<hasChild>Timmy</hasChild>");
+    expect(rdfXml).not.toContain("<::hasChild>");
+
     // Should correctly emit xmlns="..." declaration
     expect(rdfXml).toContain('xmlns="http://example.com/test#"');
     expect(rdfXml).not.toContain('xmlns:=""');
