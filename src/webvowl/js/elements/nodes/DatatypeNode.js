@@ -1,12 +1,11 @@
 const RectangularNode = require("./RectangularNode");
 
-module.exports = (function (){
-  
-  const o = function ( graph ){
+module.exports = (function () {
+  const o = function (graph) {
     RectangularNode.apply(this, arguments);
   };
   o.prototype = Object.create(RectangularNode.prototype);
   o.prototype.constructor = o;
-  
+
   return o;
-}());
+})();

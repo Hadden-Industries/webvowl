@@ -1,13 +1,22 @@
 import fs from "node:fs";
 
-const stylesheet = fs.readFileSync(new URL("./toolstyle.css", import.meta.url), "utf8");
-const markup = fs.readFileSync(new URL("../../index.html", import.meta.url), "utf8");
-const mainJs = fs.readFileSync(new URL("../../main.js", import.meta.url), "utf8");
+const stylesheet = fs.readFileSync(
+  new URL("./toolstyle.css", import.meta.url),
+  "utf8",
+);
+const markup = fs.readFileSync(
+  new URL("../../index.html", import.meta.url),
+  "utf8",
+);
+const mainJs = fs.readFileSync(
+  new URL("../../main.js", import.meta.url),
+  "utf8",
+);
 
 describe("mobile toolbar styles", () => {
   test("hides only explicit navigation labels in compact mode", () => {
     const compactLabelRule = stylesheet.match(
-      /@media screen and \(width < 768px\) \{[\s\S]*?#menuElementContainer \.menuElementLabel\s*\{([^{}]+)\}/
+      /@media screen and \(width < 768px\) \{[\s\S]*?#menuElementContainer \.menuElementLabel\s*\{([^{}]+)\}/,
     );
 
     expect(compactLabelRule).not.toBeNull();
@@ -17,12 +26,16 @@ describe("mobile toolbar styles", () => {
 
   test("keeps the expanded search clear target at least 44px square", () => {
     const compactClearButtonRule = stylesheet.match(
-      /@media screen and \(width < 600px\) \{[\s\S]*?li#c_search\.search-expanded #search-clear-btn\s*\{([^{}]+)\}/
+      /@media screen and \(width < 600px\) \{[\s\S]*?li#c_search\.search-expanded #search-clear-btn\s*\{([^{}]+)\}/,
     );
 
     expect(compactClearButtonRule).not.toBeNull();
-    expect(compactClearButtonRule[1]).toContain("width: var(--toolbar-control-size) !important");
-    expect(compactClearButtonRule[1]).toContain("height: var(--toolbar-control-size) !important");
+    expect(compactClearButtonRule[1]).toContain(
+      "width: var(--toolbar-control-size) !important",
+    );
+    expect(compactClearButtonRule[1]).toContain(
+      "height: var(--toolbar-control-size) !important",
+    );
   });
 
   test("uses an explicit 8px gap between toolbar items", () => {
@@ -36,7 +49,7 @@ describe("mobile toolbar styles", () => {
   test("renders standard toolbar icons at 24px", () => {
     const menuRule = stylesheet.match(/#menuElementContainer\s*\{([^{}]+)\}/);
     const iconRule = stylesheet.match(
-      /#menuElementContainer \.menuElementSvgElement\s*\{([^{}]+)\}/
+      /#menuElementContainer \.menuElementSvgElement\s*\{([^{}]+)\}/,
     );
 
     expect(menuRule).not.toBeNull();
@@ -47,16 +60,22 @@ describe("mobile toolbar styles", () => {
   });
 
   test("keeps the default search clear target 44px square", () => {
-    const clearButtonRule = stylesheet.match(/#search-clear-btn\s*\{([^{}]+)\}/);
+    const clearButtonRule = stylesheet.match(
+      /#search-clear-btn\s*\{([^{}]+)\}/,
+    );
 
     expect(clearButtonRule).not.toBeNull();
-    expect(clearButtonRule[1]).toContain("width: var(--toolbar-control-size) !important");
-    expect(clearButtonRule[1]).toContain("height: var(--toolbar-control-size) !important");
+    expect(clearButtonRule[1]).toContain(
+      "width: var(--toolbar-control-size) !important",
+    );
+    expect(clearButtonRule[1]).toContain(
+      "height: var(--toolbar-control-size) !important",
+    );
   });
 
   test("keeps toolbar SVGs as direct button children without i wrappers", () => {
     const toolbarMarkup = markup.match(
-      /<ul id="menuElementContainer">([\s\S]*?)<\/ul>/
+      /<ul id="menuElementContainer">([\s\S]*?)<\/ul>/,
     );
 
     expect(toolbarMarkup).not.toBeNull();
@@ -66,24 +85,31 @@ describe("mobile toolbar styles", () => {
 
   test("wraps visible toolbar labels in stable styling hooks", () => {
     const toolbarMarkup = markup.match(
-      /<ul id="menuElementContainer">([\s\S]*?)<\/ul>/
+      /<ul id="menuElementContainer">([\s\S]*?)<\/ul>/,
     );
     const expectedLabels = [
-      "Ontology", "Export", "Filter", "Options", "Modes",
-      "Debug", "About", "Reset", "Pause"
+      "Ontology",
+      "Export",
+      "Filter",
+      "Options",
+      "Modes",
+      "Debug",
+      "About",
+      "Reset",
+      "Pause",
     ];
 
     expect(toolbarMarkup).not.toBeNull();
-    expectedLabels.forEach(label => {
+    expectedLabels.forEach((label) => {
       expect(toolbarMarkup[1]).toContain(
-        `<span class="menuElementLabel">${label}</span>`
+        `<span class="menuElementLabel">${label}</span>`,
       );
     });
   });
 
   test("renders both pause states statically in the toggle button", () => {
     expect(markup).toMatch(
-      /id="pause-button"[^>]*aria-pressed="false"[\s\S]*?class="pause-icon-path"[\s\S]*?class="resume-icon-path"[\s\S]*?<span class="menuElementLabel">Pause<\/span>/
+      /id="pause-button"[^>]*aria-pressed="false"[\s\S]*?class="pause-icon-path"[\s\S]*?class="resume-icon-path"[\s\S]*?<span class="menuElementLabel">Pause<\/span>/,
     );
   });
 
@@ -96,7 +122,7 @@ describe("mobile toolbar styles", () => {
   test("uses a clear paused background without redundant foreground or glow styles", () => {
     const pausedRule = stylesheet.match(/#pause-button\.paused\s*\{([^{}]+)\}/);
     const pausedHoverRule = stylesheet.match(
-      /@media \(hover: hover\) and \(pointer: fine\) \{\s*#pause-button\.paused:hover\s*\{([^{}]+)\}/
+      /@media \(hover: hover\) and \(pointer: fine\) \{\s*#pause-button\.paused:hover\s*\{([^{}]+)\}/,
     );
 
     expect(pausedRule).not.toBeNull();
@@ -105,23 +131,29 @@ describe("mobile toolbar styles", () => {
     expect(pausedRule[1]).not.toMatch(/(?:^|\s)color:/);
     expect(pausedRule[1]).not.toContain("box-shadow");
     expect(pausedHoverRule).not.toBeNull();
-    expect(pausedHoverRule[1]).toContain("background: color-mix(in srgb, var(--theme-color-accent) 85%, #fff)");
+    expect(pausedHoverRule[1]).toContain(
+      "background: color-mix(in srgb, var(--theme-color-accent) 85%, #fff)",
+    );
   });
 
   test("reserves stable desktop space for the pause and resume label", () => {
     const rootRule = stylesheet.match(/:root\s*\{([^{}]+)\}/);
     const desktopActionRule = stylesheet.match(
-      /@media screen and \(width >= 768px\) \{[\s\S]*?#c_pause,\s*#c_reset,\s*#pause-button,\s*#reset-button\s*\{([^{}]+)\}/
+      /@media screen and \(width >= 768px\) \{[\s\S]*?#c_pause,\s*#c_reset,\s*#pause-button,\s*#reset-button\s*\{([^{}]+)\}/,
     );
     const desktopLabelRule = stylesheet.match(
-      /@media screen and \(width >= 768px\) \{[\s\S]*?#pause-button \.menuElementLabel\s*\{([^{}]+)\}/
+      /@media screen and \(width >= 768px\) \{[\s\S]*?#pause-button \.menuElementLabel\s*\{([^{}]+)\}/,
     );
 
     expect(rootRule).not.toBeNull();
     expect(rootRule[1]).toContain("--action-pill-desktop-min-width: 112px");
     expect(desktopActionRule).not.toBeNull();
-    expect(desktopActionRule[1]).toContain("width: var(--action-pill-desktop-min-width)");
-    expect(desktopActionRule[1]).toContain("min-width: var(--action-pill-desktop-min-width)");
+    expect(desktopActionRule[1]).toContain(
+      "width: var(--action-pill-desktop-min-width)",
+    );
+    expect(desktopActionRule[1]).toContain(
+      "min-width: var(--action-pill-desktop-min-width)",
+    );
     expect(desktopLabelRule).not.toBeNull();
     expect(desktopLabelRule[1]).toContain("inline-size: 3.5rem");
     expect(desktopLabelRule[1]).toContain("text-align: left");
@@ -136,7 +168,9 @@ describe("browser support and polyfill loading", () => {
 
   test("index.html does not contain legacy browserCheck or CDN popover script", () => {
     expect(markup).not.toContain('id="browserCheck"');
-    expect(markup).not.toContain("https://cdn.jsdelivr.net/npm/@oddbird/popover-polyfill");
+    expect(markup).not.toContain(
+      "https://cdn.jsdelivr.net/npm/@oddbird/popover-polyfill",
+    );
   });
 
   test("index.html contains unsupported-browser fallback with script nomodule", () => {
@@ -149,15 +183,21 @@ describe("browser support and polyfill loading", () => {
 
 describe("SVG icon symbol reuse", () => {
   test("defines icon-arrow-clockwise symbol in index.html", () => {
-    expect(markup).toMatch(/<symbol\s+id="icon-arrow-clockwise"\s+viewBox="0 0 16 16"/);
+    expect(markup).toMatch(
+      /<symbol\s+id="icon-arrow-clockwise"\s+viewBox="0 0 16 16"/,
+    );
   });
 
   test("uses icon-arrow-clockwise by reference in #reloadCachedOntology button", () => {
-    expect(markup).toMatch(/<button\s+id="reloadCachedOntology"[\s\S]*?<use\s+href="#icon-arrow-clockwise">\s*<\/use>/);
+    expect(markup).toMatch(
+      /<button\s+id="reloadCachedOntology"[\s\S]*?<use\s+href="#icon-arrow-clockwise">\s*<\/use>/,
+    );
   });
 
   test("uses icon-arrow-clockwise by reference in #reset-button", () => {
-    expect(markup).toMatch(/<button[^>]*id="reset-button"[\s\S]*?<use\s+href="#icon-arrow-clockwise">\s*<\/use>/);
+    expect(markup).toMatch(
+      /<button[^>]*id="reset-button"[\s\S]*?<use\s+href="#icon-arrow-clockwise">\s*<\/use>/,
+    );
   });
 });
 
@@ -170,4 +210,3 @@ describe("reloadCachedOntology accessibility contrast", () => {
     expect(reloadRule[1]).toContain("background: #18202a");
   });
 });
-

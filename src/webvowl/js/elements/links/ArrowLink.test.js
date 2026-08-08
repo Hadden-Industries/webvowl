@@ -8,14 +8,14 @@ const ArrowLink = require("./ArrowLink");
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
-function createNode( cssClass ){
+function createNode(cssClass) {
   return {
     cssClassOfNode: () => cssClass,
-    equals: (other) => other === this
+    equals: (other) => other === this,
   };
 }
 
-function createProperty( overrides = {} ){
+function createProperty(overrides = {}) {
   return {
     inverse: () => null,
     linkGroup: jest.fn(),
@@ -23,16 +23,24 @@ function createProperty( overrides = {} ){
     markerElement: jest.fn(),
     markerId: () => "marker-property-1",
     markerType: () => "filled",
-    ...overrides
+    ...overrides,
   };
 }
 
-function drawLink( property ){
-  const document = new DOMImplementation().createDocument(SVG_NAMESPACE, "svg", null);
+function drawLink(property) {
+  const document = new DOMImplementation().createDocument(
+    SVG_NAMESPACE,
+    "svg",
+    null,
+  );
   const svg = d3.select(document.documentElement);
   const defs = svg.append("defs");
   const group = svg.append("g");
-  const link = new ArrowLink(createNode("domain"), createNode("range"), property);
+  const link = new ArrowLink(
+    createNode("domain"),
+    createNode("range"),
+    property,
+  );
 
   link.draw(group, defs);
 
@@ -57,13 +65,15 @@ describe("arrow links", () => {
   test("attach inverse-property markers to the start of the same rendered path", () => {
     const inverse = createProperty({
       markerId: () => "marker-property-inverse",
-      markerType: () => "white"
+      markerType: () => "white",
     });
     const property = createProperty({ inverse: () => inverse });
     const { defs, group, path } = drawLink(property);
     const markers = defs.node().getElementsByTagName("marker");
     const inverseMarker = d3.select(markers[1]);
-    const inversePath = d3.select(inverseMarker.node().getElementsByTagName("path")[0]);
+    const inversePath = d3.select(
+      inverseMarker.node().getElementsByTagName("path")[0],
+    );
 
     expect(path.attr("marker-start")).toBe("url(#marker-property-inverse)");
     expect(group.attr("marker-start")).toBeNull();

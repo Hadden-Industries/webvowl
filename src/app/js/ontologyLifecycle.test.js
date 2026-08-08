@@ -1,4 +1,8 @@
-const { capabilitiesFor, isModelAvailable, STATES } = require("./ontologyLifecycle");
+const {
+  capabilitiesFor,
+  isModelAvailable,
+  STATES,
+} = require("./ontologyLifecycle");
 
 describe("ontology lifecycle capabilities", () => {
   test.each([
@@ -6,8 +10,8 @@ describe("ontology lifecycle capabilities", () => {
     STATES.LOADING,
     STATES.MODEL_READY,
     STATES.RENDERING,
-    STATES.ERROR
-  ])("keeps graph controls disabled in %s", ( state ) => {
+    STATES.ERROR,
+  ])("keeps graph controls disabled in %s", (state) => {
     expect(capabilitiesFor(state).graphControls).toBe(false);
   });
 
@@ -17,25 +21,25 @@ describe("ontology lifecycle capabilities", () => {
 
   test.each([STATES.LOADING, STATES.MODEL_READY, STATES.RENDERING])(
     "prevents overlapping ontology loads and mode changes in %s",
-    ( state ) => {
+    (state) => {
       const capabilities = capabilitiesFor(state);
       expect(capabilities.ontologySource).toBe(false);
       expect(capabilities.editorMode).toBe(false);
-    }
+    },
   );
 
   test.each([STATES.IDLE, STATES.ERROR, STATES.READY])(
     "allows choosing an ontology source in %s",
-    ( state ) => {
+    (state) => {
       expect(capabilitiesFor(state).ontologySource).toBe(true);
-    }
+    },
   );
 
   test.each([STATES.MODEL_READY, STATES.RENDERING, STATES.READY])(
     "reports a parsed model as available in %s",
-    ( state ) => {
+    (state) => {
       expect(isModelAvailable(state)).toBe(true);
-    }
+    },
   );
 
   test("rejects unknown states", () => {

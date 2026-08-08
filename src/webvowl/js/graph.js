@@ -6,25 +6,40 @@ const elementTools = require("./util/elementTools")();
 const nodePrototypeMap = require("./elements/nodes/nodeMap")();
 const propertyPrototypeMap = require("./elements/properties/propertyMap")();
 
-function finiteNumber( value ){
-  if ( typeof value === "string" && value.trim() === "" ) {return undefined;}
-  if ( typeof value !== "number" && typeof value !== "string" ) {return undefined;}
+function finiteNumber(value) {
+  if (typeof value === "string" && value.trim() === "") {
+    return undefined;
+  }
+  if (typeof value !== "number" && typeof value !== "string") {
+    return undefined;
+  }
   const number = Number(value);
   return Number.isFinite(number) ? number : undefined;
 }
 
-function normalizeZoom( value, minimum, maximum ){
+function normalizeZoom(value, minimum, maximum) {
   const zoom = finiteNumber(value);
   const min = finiteNumber(minimum);
   const max = finiteNumber(maximum);
-  if ( zoom === undefined || zoom <= 0 ) {return undefined;}
-  if ( min !== undefined && zoom < min ) {return min;}
-  if ( max !== undefined && zoom > max ) {return max;}
+  if (zoom === undefined || zoom <= 0) {
+    return undefined;
+  }
+  if (min !== undefined && zoom < min) {
+    return min;
+  }
+  if (max !== undefined && zoom > max) {
+    return max;
+  }
   return zoom;
 }
 
-function normalizeTranslation( value ){
-  if ( !value || typeof value === "string" || typeof value.length !== "number" || value.length < 2 ) {
+function normalizeTranslation(value) {
+  if (
+    !value ||
+    typeof value === "string" ||
+    typeof value.length !== "number" ||
+    value.length < 2
+  ) {
     return undefined;
   }
   const x = finiteNumber(value[0]);
@@ -32,17 +47,29 @@ function normalizeTranslation( value ){
   return x === undefined || y === undefined ? undefined : [x, y];
 }
 
-function normalizeViewport( zoom, translation, minimum, maximum ){
+function normalizeViewport(zoom, translation, minimum, maximum) {
   const normalizedZoom = normalizeZoom(zoom, minimum, maximum);
   const normalizedTranslation = normalizeTranslation(translation);
-  if ( normalizedZoom === undefined || normalizedTranslation === undefined ) {return undefined;}
+  if (normalizedZoom === undefined || normalizedTranslation === undefined) {
+    return undefined;
+  }
   return { zoom: normalizedZoom, translation: normalizedTranslation };
 }
 
-function toSvgTransform( zoom, translation ){
+function toSvgTransform(zoom, translation) {
   const viewport = normalizeViewport(zoom, translation);
-  if ( !viewport ) {return undefined;}
-  return "translate(" + viewport.translation[0] + "," + viewport.translation[1] + ")scale(" + viewport.zoom + ")";
+  if (!viewport) {
+    return undefined;
+  }
+  return (
+    "translate(" +
+    viewport.translation[0] +
+    "," +
+    viewport.translation[1] +
+    ")scale(" +
+    viewport.zoom +
+    ")"
+  );
 }
 
 const viewportTransform = Object.freeze({
@@ -50,33 +77,46 @@ const viewportTransform = Object.freeze({
   normalizeTranslation,
   normalizeViewport,
   normalizeZoom,
-  toSvgTransform
+  toSvgTransform,
 });
 
-function measureViewportElement( element, fallbackWidth, fallbackHeight ){
+function measureViewportElement(element, fallbackWidth, fallbackHeight) {
   const normalizedFallbackWidth = finiteNumber(fallbackWidth);
   const normalizedFallbackHeight = finiteNumber(fallbackHeight);
   const fallback = {
     width: normalizedFallbackWidth > 0 ? normalizedFallbackWidth : 0,
-    height: normalizedFallbackHeight > 0 ? normalizedFallbackHeight : 0
+    height: normalizedFallbackHeight > 0 ? normalizedFallbackHeight : 0,
   };
-  if ( !element ) {return fallback;}
+  if (!element) {
+    return fallback;
+  }
 
-  const elementRect = typeof element.getBoundingClientRect === "function"
-    ? element.getBoundingClientRect()
-    : {};
+  const elementRect =
+    typeof element.getBoundingClientRect === "function"
+      ? element.getBoundingClientRect()
+      : {};
   const clientWidth = finiteNumber(element.clientWidth);
   const clientHeight = finiteNumber(element.clientHeight);
   const rectWidth = finiteNumber(elementRect.width);
   const rectHeight = finiteNumber(elementRect.height);
 
   return {
-    width: clientWidth > 0 ? clientWidth : (rectWidth > 0 ? rectWidth : fallback.width),
-    height: clientHeight > 0 ? clientHeight : (rectHeight > 0 ? rectHeight : fallback.height)
+    width:
+      clientWidth > 0
+        ? clientWidth
+        : rectWidth > 0
+          ? rectWidth
+          : fallback.width,
+    height:
+      clientHeight > 0
+        ? clientHeight
+        : rectHeight > 0
+          ? rectHeight
+          : fallback.height,
   };
 }
 
-function createGraph( graphContainerSelector ){
+function createGraph(graphContainerSelector) {
   const graph = {};
   const CARDINALITY_HDISTANCE = 20;
   const CARDINALITY_VDISTANCE = 10;
@@ -144,7 +184,7 @@ function createGraph( graphContainerSelector ){
   let editMode = options.initialConfig().editorMode === "true";
   const debugContainer = d3.select("#FPS_Statistics");
   let finishedLoadingSequence = false;
-    
+
   let ignoreOtherHoverEvents = false;
   let forceNotZooming = false;
   let now;
@@ -158,154 +198,195 @@ function createGraph( graphContainerSelector ){
   let zoom;
   //var prefixModule=require("./prefixRepresentationModule")(graph);
   function syncZoomState() {
-    const svgNode = graphContainer && graphContainer.node() ? graphContainer.node().parentNode : null;
+    const svgNode =
+      graphContainer && graphContainer.node()
+        ? graphContainer.node().parentNode
+        : null;
     if (svgNode) {
-      svgNode.__zoom = d3.zoomIdentity.translate(graphTranslation[0], graphTranslation[1]).scale(zoomFactor);
+      svgNode.__zoom = d3.zoomIdentity
+        .translate(graphTranslation[0], graphTranslation[1])
+        .scale(zoomFactor);
     }
   }
 
-  function updateViewportState( translation, scale, synchronize = true ){
+  function updateViewportState(translation, scale, synchronize = true) {
     const normalized = viewportTransform.normalizeViewport(
       scale,
       translation,
       options.minMagnification(),
-      options.maxMagnification()
+      options.maxMagnification(),
     );
-    if ( !normalized ) {return false;}
+    if (!normalized) {
+      return false;
+    }
     graphTranslation = normalized.translation;
     zoomFactor = normalized.zoom;
-    if ( synchronize ) {syncZoomState();}
+    if (synchronize) {
+      syncZoomState();
+    }
     return true;
   }
 
-  function viewportTransformString(){
-    return viewportTransform.toSvgTransform(zoomFactor, graphTranslation) || "translate(0,0)scale(1)";
+  function viewportTransformString() {
+    return (
+      viewportTransform.toSvgTransform(zoomFactor, graphTranslation) ||
+      "translate(0,0)scale(1)"
+    );
   }
   const NodePrototypeMap = createLowerCasePrototypeMap(nodePrototypeMap);
-  const PropertyPrototypeMap = createLowerCasePrototypeMap(propertyPrototypeMap);
+  const PropertyPrototypeMap =
+    createLowerCasePrototypeMap(propertyPrototypeMap);
   const classDragger = require("./classDragger")(graph);
   const rangeDragger = require("./rangeDragger")(graph);
   const domainDragger = require("./domainDragger")(graph);
   const shadowClone = require("./shadowClone")(graph);
-  
-  graph.math = function (){
+
+  graph.math = function () {
     return math;
   };
   /** --------------------------------------------------------- **/
   /** -- getter and setter definitions                       -- **/
   /** --------------------------------------------------------- **/
-  graph.isEditorMode = function (){
+  graph.isEditorMode = function () {
     return editMode;
   };
-  graph.getGlobalDOF = function (){
+  graph.getGlobalDOF = function () {
     return global_dof;
   };
-  graph.setGlobalDOF = function ( val ){
+  graph.setGlobalDOF = function (val) {
     global_dof = val;
   };
-  
-  graph.updateZoomSliderValueFromOutside = function (){
+
+  graph.updateZoomSliderValueFromOutside = function () {
     graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
   };
-  
-  graph.setDefaultZoom = function ( val ){
-    const normalized = viewportTransform.normalizeZoom(val, options.minMagnification(), options.maxMagnification());
-    if ( normalized === undefined ) {return false;}
+
+  graph.setDefaultZoom = function (val) {
+    const normalized = viewportTransform.normalizeZoom(
+      val,
+      options.minMagnification(),
+      options.maxMagnification(),
+    );
+    if (normalized === undefined) {
+      return false;
+    }
     defaultZoom = normalized;
     graph.reset();
     graph.options().zoomSlider().updateZoomSliderValue(defaultZoom);
     return true;
   };
-  graph.setTargetZoom = function ( val ){
-    const normalized = viewportTransform.normalizeZoom(val, options.minMagnification(), options.maxMagnification());
-    if ( normalized === undefined ) {return false;}
+  graph.setTargetZoom = function (val) {
+    const normalized = viewportTransform.normalizeZoom(
+      val,
+      options.minMagnification(),
+      options.maxMagnification(),
+    );
+    if (normalized === undefined) {
+      return false;
+    }
     defaultTargetZoom = normalized;
     return true;
   };
-  graph.graphOptions = function (){
+  graph.graphOptions = function () {
     return options;
   };
-  
-  graph.scaleFactor = function (){
+
+  graph.scaleFactor = function () {
     return zoomFactor;
   };
-  graph.translation = function (){
+  graph.translation = function () {
     return graphTranslation;
   };
-  
+
   // Returns the visible nodes
-  graph.graphNodeElements = function (){
+  graph.graphNodeElements = function () {
     return nodeElements;
   };
   // Returns the visible Label Nodes
-  graph.graphLabelElements = function (){
+  graph.graphLabelElements = function () {
     return labelNodes;
   };
-  
-  graph.graphLinkElements = function (){
+
+  graph.graphLinkElements = function () {
     return links;
   };
-  
-  graph.setSliderZoom = function ( val ){
-    const targetZoom = viewportTransform.normalizeZoom(val, options.minMagnification(), options.maxMagnification());
-    if ( targetZoom === undefined || !graphContainer ) {return false;}
+
+  graph.setSliderZoom = function (val) {
+    const targetZoom = viewportTransform.normalizeZoom(
+      val,
+      options.minMagnification(),
+      options.maxMagnification(),
+    );
+    if (targetZoom === undefined || !graphContainer) {
+      return false;
+    }
     const cx = 0.5 * graph.options().width();
     const cy = 0.5 * graph.options().height();
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
     const sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
     const eP = [cp.x, cp.y, graph.options().height() / targetZoom];
     const pos_intp = d3.interpolateZoom(sP, eP);
-    
-    graphContainer.attr("transform", transform(sP, cx, cy))
+
+    graphContainer
+      .attr("transform", transform(sP, cx, cy))
       .transition()
       .duration(1)
-      .attrTween("transform", function (){
-        return function ( t ){
+      .attrTween("transform", function () {
+        return function (t) {
           return transform(pos_intp(t), cx, cy);
         };
       })
-      .on("end", function (){
+      .on("end", function () {
         graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
         graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
       });
     return true;
   };
-  
-  
-  graph.setZoom = function ( value ){
-    const normalized = viewportTransform.normalizeZoom(value, options.minMagnification(), options.maxMagnification());
-    if ( normalized === undefined ) {return false;}
+
+  graph.setZoom = function (value) {
+    const normalized = viewportTransform.normalizeZoom(
+      value,
+      options.minMagnification(),
+      options.maxMagnification(),
+    );
+    if (normalized === undefined) {
+      return false;
+    }
     zoomFactor = normalized;
     syncZoomState();
     return true;
   };
-  
-  graph.setTranslation = function ( translation ){
+
+  graph.setTranslation = function (translation) {
     const normalized = viewportTransform.normalizeTranslation(translation);
-    if ( !normalized ) {return false;}
+    if (!normalized) {
+      return false;
+    }
     graphTranslation = normalized;
     syncZoomState();
     return true;
   };
 
-  graph.setViewportTransform = function ( scale, translation ){
+  graph.setViewportTransform = function (scale, translation) {
     return updateViewportState(translation, scale);
   };
-  
-  graph.options = function (){
+
+  graph.options = function () {
     return options;
   };
   // search functionality
-  graph.getUpdateDictionary = function (){
+  graph.getUpdateDictionary = function () {
     return parser.getDictionary();
   };
-  
-  graph.language = function ( newLanguage ){
-    if ( !arguments.length ) {return language;}
-    
+
+  graph.language = function (newLanguage) {
+    if (!arguments.length) {
+      return language;
+    }
+
     // Just update if the language changes
-    if ( language !== newLanguage ) {
+    if (language !== newLanguage) {
       language = newLanguage || "default";
       redrawContent();
       recalculatePositions();
@@ -314,66 +395,75 @@ function createGraph( graphContainerSelector ){
     }
     return graph;
   };
-  
-  
+
   /** --------------------------------------------------------- **/
   /** graph / rendering  related functions                      **/
   /** --------------------------------------------------------- **/
-  
+
   let lastExecutedElement = null;
   let lastExecutedTime = 0;
-  function executeModules( selectedElement, event, forced ){
+  function executeModules(selectedElement, event, forced) {
     const now = performance.now();
-    if ( lastExecutedElement === selectedElement && (now - lastExecutedTime) < 300 ) {
+    if (
+      lastExecutedElement === selectedElement &&
+      now - lastExecutedTime < 300
+    ) {
       return;
     }
     lastExecutedElement = selectedElement;
     lastExecutedTime = now;
-    
-    options.selectionModules().forEach(function ( module ){
+
+    options.selectionModules().forEach(function (module) {
       module.handle(event, selectedElement, forced);
     });
   }
-  
-  function isSolitaryLabel( d ){
-    if ( !d ) { return false; }
+
+  function isSolitaryLabel(d) {
+    if (!d) {
+      return false;
+    }
     let link;
-    if ( elementTools.isLabel(d) || elementTools.isProperty(d) ) {
+    if (elementTools.isLabel(d) || elementTools.isProperty(d)) {
       link = d.link();
     }
-    if ( link && typeof link.layers === "function" && link.layers() && link.layers().length === 1 && !link.loops() ) {
+    if (
+      link &&
+      typeof link.layers === "function" &&
+      link.layers() &&
+      link.layers().length === 1 &&
+      !link.loops()
+    ) {
       return true;
     }
     return false;
   }
 
   // Initializes the graph.
-  function initializeGraph(){
-    
+  function initializeGraph() {
     options.graphContainerSelector(graphContainerSelector);
     let moved = false;
-    force = d3.forceSimulation()
-      .on("tick", hiddenRecalculatePositions);
+    force = d3.forceSimulation().on("tick", hiddenRecalculatePositions);
     forceLink = d3.forceLink();
-    
-    dragBehaviour = d3.drag()
-      .subject(function ( d ){
+
+    dragBehaviour = d3
+      .drag()
+      .subject(function (d) {
         return d;
       })
-      .on("start", function ( event, d ){
-        if ( isSolitaryLabel(d) ) {
+      .on("start", function (event, d) {
+        if (isSolitaryLabel(d)) {
           return;
         }
         clearAllHover();
         event.sourceEvent.stopPropagation(); // Prevent panning
         graph.ignoreOtherHoverEvents(true);
-        if ( d.type && d.type() === "Class_dragger" ) {
+        if (d.type && d.type() === "Class_dragger") {
           classDragger.mouseButtonPressed = true;
           clearTimeout(delayedHider);
           classDragger.selectedViaTouch(true);
           d.parentNode().locked(true);
           draggingStarted = true;
-        } else if ( d.type && d.type() === "Range_dragger" ) {
+        } else if (d.type && d.type() === "Range_dragger") {
           graph.ignoreOtherHoverEvents(true);
           clearTimeout(delayedHider);
           frozenDomainForPropertyDragger = shadowClone.parentNode().domain();
@@ -393,9 +483,7 @@ function createGraph( graphContainerSelector ){
           rangeDragger.updateElement();
           rangeDragger.mouseButtonPressed = true;
           //  shadowClone.setPosition(d.x, d.y);
-          
-          
-        } else if ( d.type && d.type() === "Domain_dragger" ) {
+        } else if (d.type && d.type() === "Domain_dragger") {
           graph.ignoreOtherHoverEvents(true);
           clearTimeout(delayedHider);
           frozenDomainForPropertyDragger = shadowClone.parentNode().domain();
@@ -406,7 +494,7 @@ function createGraph( graphContainerSelector ){
           shadowClone.updateElement();
           deleteGroupElement.classed("hidden", true);
           addDataPropertyGroupElement.classed("hidden", true);
-          
+
           frozenDomainForPropertyDragger.frozen(true);
           frozenDomainForPropertyDragger.locked(true);
           frozenRangeForPropertyDragger.frozen(true);
@@ -415,80 +503,75 @@ function createGraph( graphContainerSelector ){
           domainDragger.mouseButtonPressed = true;
           rangeDragger.updateElement();
           rangeDragger.mouseButtonPressed = true;
-        }
-        else {
+        } else {
           d.locked(true);
           moved = false;
         }
       })
-      .on("drag", function ( event, d ){
-        if ( isSolitaryLabel(d) ) {
+      .on("drag", function (event, d) {
+        if (isSolitaryLabel(d)) {
           return;
         }
-        
-        if ( d.type && d.type() === "Class_dragger" ) {
+
+        if (d.type && d.type() === "Class_dragger") {
           clearTimeout(delayedHider);
           classDragger.setPosition(event.x, event.y);
-        } else if ( d.type && d.type() === "Range_dragger" ) {
+        } else if (d.type && d.type() === "Range_dragger") {
           clearTimeout(delayedHider);
           rangeDragger.setPosition(event.x, event.y);
           shadowClone.setPosition(event.x, event.y);
           domainDragger.updateElementViaRangeDragger(event.x, event.y);
-        }
-        else if ( d.type && d.type() === "Domain_dragger" ) {
+        } else if (d.type && d.type() === "Domain_dragger") {
           clearTimeout(delayedHider);
           domainDragger.setPosition(event.x, event.y);
           shadowClone.setPositionDomain(event.x, event.y);
           rangeDragger.updateElementViaDomainDragger(event.x, event.y);
-        }
-        
-        else {
+        } else {
           d.px = event.x;
           d.py = event.y;
           d.x = event.x;
           d.y = event.y;
           d.fx = event.x;
           d.fy = event.y;
-          if ( graph.paused() === false ) {
+          if (graph.paused() === false) {
             force.alpha(0.3).restart();
           } else {
             recalculatePositions();
           }
           updateHaloRadius();
           moved = true;
-          if ( d.renderType && d.renderType() === "round" ) {
+          if (d.renderType && d.renderType() === "round") {
             classDragger.setParentNode(d);
           }
-          
         }
       })
-      .on("end", function ( event, d ){
-        if ( isSolitaryLabel(d) ) {
+      .on("end", function (event, d) {
+        if (isSolitaryLabel(d)) {
           graph.ignoreOtherHoverEvents(false);
           return;
         }
         graph.ignoreOtherHoverEvents(false);
-        if ( moved === true ) {
+        if (moved === true) {
           clearAllHover();
         }
-        if ( d.type && d.type() === "Class_dragger" ) {
+        if (d.type && d.type() === "Class_dragger") {
           const nX = classDragger.x;
           const nY = classDragger.y;
           clearTimeout(delayedHider);
           classDragger.mouseButtonPressed = false;
           classDragger.selectedViaTouch(false);
           d.setParentNode(d.parentNode());
-          
+
           const draggerEndPos = [nX, nY];
           const targetNode = graph.getTargetNode(draggerEndPos);
-          if ( targetNode ) {
+          if (targetNode) {
             createNewObjectProperty(d.parentNode(), targetNode, draggerEndPos);
           }
-          if ( touchDevice === false ) {
+          if (touchDevice === false) {
             editElementHoverOut();
           }
           draggingStarted = false;
-        } else if ( d.type && d.type() === "Range_dragger" ) {
+        } else if (d.type && d.type() === "Range_dragger") {
           graph.ignoreOtherHoverEvents(false);
           frozenDomainForPropertyDragger.frozen(false);
           frozenDomainForPropertyDragger.locked(false);
@@ -503,21 +586,22 @@ function createGraph( graphContainerSelector ){
           const rY = rangeDragger.y;
           const rangeDraggerEndPos = [rX, rY];
           let targetRangeNode = graph.getTargetNode(rangeDraggerEndPos);
-          if ( elementTools.isDatatype(targetRangeNode) === true ) {
+          if (elementTools.isDatatype(targetRangeNode) === true) {
             targetRangeNode = null;
-            console.warn("---------------TARGET NODE IS A DATATYPE/ LITERAL ------------");
+            console.warn(
+              "---------------TARGET NODE IS A DATATYPE/ LITERAL ------------",
+            );
           }
-          
-          if ( targetRangeNode === null ) {
+
+          if (targetRangeNode === null) {
             d.reDrawEverthing();
             shadowClone.hideParentProperty(false);
-          }
-          else {
+          } else {
             d.updateRange(targetRangeNode);
             graph.update();
             shadowClone.hideParentProperty(false);
           }
-        } else if ( d.type && d.type() === "Domain_dragger" ) {
+        } else if (d.type && d.type() === "Domain_dragger") {
           graph.ignoreOtherHoverEvents(false);
           frozenDomainForPropertyDragger.frozen(false);
           frozenDomainForPropertyDragger.locked(false);
@@ -528,292 +612,363 @@ function createGraph( graphContainerSelector ){
           domainDragger.updateElement();
           rangeDragger.updateElement();
           shadowClone.hideClone(true);
-          
+
           const dX = domainDragger.x;
           const dY = domainDragger.y;
           const domainDraggerEndPos = [dX, dY];
           let targetDomainNode = graph.getTargetNode(domainDraggerEndPos);
-          if ( elementTools.isDatatype(targetDomainNode) === true ) {
+          if (elementTools.isDatatype(targetDomainNode) === true) {
             targetDomainNode = null;
-            console.warn("---------------TARGET NODE IS A DATATYPE/ LITERAL ------------");
+            console.warn(
+              "---------------TARGET NODE IS A DATATYPE/ LITERAL ------------",
+            );
           }
           shadowClone.hideClone(true);
-          if ( targetDomainNode === null ) {
+          if (targetDomainNode === null) {
             d.reDrawEverthing();
             shadowClone.hideParentProperty(false);
-          }
-          else {
+          } else {
             d.updateDomain(targetDomainNode);
             graph.update();
             shadowClone.hideParentProperty(false);
           }
-        }
-        
-        else {
+        } else {
           d.locked(false);
           const pnp = graph.options().pickAndPinModule();
-          if ( moved === true ) {
-            if ( pnp.enabled() === true ) {
-              if ( d.id ) { // node
+          if (moved === true) {
+            if (pnp.enabled() === true) {
+              if (d.id) {
+                // node
                 pnp.handle(event, d, true);
               }
-              if ( d.property ) {
+              if (d.property) {
                 pnp.handle(event, d.property(), true);
               }
             } else {
               d.fx = null;
               d.fy = null;
-              if ( d.property ) {
+              if (d.property) {
                 d.property().fx = null;
                 d.property().fy = null;
-                if ( d.property().inverse() ) {
+                if (d.property().inverse()) {
                   d.property().inverse().fx = null;
                   d.property().inverse().fy = null;
                 }
               }
             }
-          }
-          else if ( moved === false ) {
-            if ( d.id ) {
+          } else if (moved === false) {
+            if (d.id) {
               executeModules(d, event, true);
             }
           }
         }
       });
-    
+
     // Apply the zooming factor.
-    zoom = d3.zoom()
+    zoom = d3
+      .zoom()
       .scaleExtent([options.minMagnification(), options.maxMagnification()])
-      .on("start", function (){
+      .on("start", function () {
         clearAllHover();
       })
       .on("zoom", zoomed);
-    
+
     draggerObjectsArray.push(classDragger);
     draggerObjectsArray.push(rangeDragger);
     draggerObjectsArray.push(domainDragger);
     draggerObjectsArray.push(shadowClone);
     force.stop();
   }
-  
-  graph.lazyRefresh = function (){
+
+  graph.lazyRefresh = function () {
     redrawContent();
     recalculatePositions();
   };
-  
-  graph.adjustingGraphSize = function ( val ){
+
+  graph.adjustingGraphSize = function (val) {
     adjustingGraphSize = val;
   };
-  
-  graph.showReloadButtonAfterLayoutOptimization = function ( show ){
+
+  graph.showReloadButtonAfterLayoutOptimization = function (show) {
     showReloadButtonAfterLayoutOptimization = show;
   };
-  
-  
-  function hiddenRecalculatePositions(){
+
+  function hiddenRecalculatePositions() {
     finishedLoadingSequence = false;
-    if ( graph.options().loadingModule().successfullyLoadedOntology() === false ) {
+    if (
+      graph.options().loadingModule().successfullyLoadedOntology() === false
+    ) {
       force.stop();
       graph.updateProgressBarMode();
-      graph.options().loadingModule().showErrorDetailsMessage(hiddenRecalculatePositions);
-      if ( keepDetailsCollapsedOnLoading && adjustingGraphSize === false ) {
-        graph.options().loadingModule().collapseDetails("hiddenRecalculatePositions");
+      graph
+        .options()
+        .loadingModule()
+        .showErrorDetailsMessage(hiddenRecalculatePositions);
+      if (keepDetailsCollapsedOnLoading && adjustingGraphSize === false) {
+        graph
+          .options()
+          .loadingModule()
+          .collapseDetails("hiddenRecalculatePositions");
       }
       return;
     }
-    if ( updateRenderingDuringSimulation === false ) {
+    if (updateRenderingDuringSimulation === false) {
       const progress = Math.max(0, Math.min(1, 1.0 - force.alpha()));
       const percentValue = Math.min(100, Math.max(0, parseInt(200 * progress)));
       graph.options().loadingModule().setPercentValue(percentValue);
-      
-      if ( progress >= 0.5 ) {
+
+      if (progress >= 0.5) {
         updateRenderingDuringSimulation = true;
         // show graph container;
-        if ( graphContainer ) {
+        if (graphContainer) {
           graphContainer.classed("is-render-pending", false);
           graph.options().loadingModule().setPercentValue(100);
-          graph.options().ontologyMenu().append_message_toLastBulletPoint("done");
-          const reloadCachedOntologyBtn = document.getElementById("reloadCachedOntology");
-          if ( reloadCachedOntologyBtn ) {
-            reloadCachedOntologyBtn.classList.toggle("hidden", !showReloadButtonAfterLayoutOptimization);
+          graph
+            .options()
+            .ontologyMenu()
+            .append_message_toLastBulletPoint("done");
+          const reloadCachedOntologyBtn = document.getElementById(
+            "reloadCachedOntology",
+          );
+          if (reloadCachedOntologyBtn) {
+            reloadCachedOntologyBtn.classList.toggle(
+              "hidden",
+              !showReloadButtonAfterLayoutOptimization,
+            );
           }
         }
-        
-        if ( initialLoad ) {
-          if ( graph.paused() === false )
-            {force.alpha(0.3).restart();} // resume force
+
+        if (initialLoad) {
+          if (graph.paused() === false) {
+            force.alpha(0.3).restart();
+          } // resume force
           initialLoad = false;
-          
         }
-        
-        
+
         finishedLoadingSequence = true;
-        if ( showFPS === true ) {
+        if (showFPS === true) {
           force.on("tick", recalculatePositionsWithFPS);
           recalculatePositionsWithFPS();
-        }
-        else {
+        } else {
           force.on("tick", recalculatePositions);
           recalculatePositions();
         }
-        
-        if ( centerGraphViewOnLoad === true && force.nodes().length > 0 ) {
-          if ( force.nodes().length < 10 ) {graph.forceRelocationEvent(true);} // uses dynamic zoomer;
-          else {graph.forceRelocationEvent();}
+
+        if (centerGraphViewOnLoad === true && force.nodes().length > 0) {
+          if (force.nodes().length < 10) {
+            graph.forceRelocationEvent(true);
+          } // uses dynamic zoomer;
+          else {
+            graph.forceRelocationEvent();
+          }
           centerGraphViewOnLoad = false;
           // console.log("--------------------------------------")
         }
-        
-        
+
         graph.showEditorHintIfNeeded();
-        
-        if ( graph.options().loadingModule().missingImportsWarning() === false ) {
+
+        if (graph.options().loadingModule().missingImportsWarning() === false) {
           graph.options().loadingModule().hideLoadingIndicator();
-          graph.options().ontologyMenu().append_bulletPoint("Successfully loaded ontology");
+          graph
+            .options()
+            .ontologyMenu()
+            .append_bulletPoint("Successfully loaded ontology");
           graph.options().loadingModule().setSuccessful();
         } else {
           graph.options().loadingModule().showWarningDetailsMessage();
-          graph.options().ontologyMenu().append_bulletPoint("Loaded ontology with warnings");
+          graph
+            .options()
+            .ontologyMenu()
+            .append_bulletPoint("Loaded ontology with warnings");
         }
         graph.options().loadingModule().markReady();
       }
     }
   }
-  
-  graph.showEditorHintIfNeeded = function (){
-    if ( seenEditorHint === false && editMode === true ) {
+
+  graph.showEditorHintIfNeeded = function () {
+    if (seenEditorHint === false && editMode === true) {
       seenEditorHint = true;
       graph.options().warningModule().showEditorHint();
     }
   };
-  
-  graph.setForceTickFunctionWithFPS = function (){
+
+  graph.setForceTickFunctionWithFPS = function () {
     showFPS = true;
-    if ( force && finishedLoadingSequence === true ) {
+    if (force && finishedLoadingSequence === true) {
       force.on("tick", recalculatePositionsWithFPS);
     }
-    
   };
-  graph.setDefaultForceTickFunction = function (){
+  graph.setDefaultForceTickFunction = function () {
     showFPS = false;
-    if ( force && finishedLoadingSequence === true ) {
+    if (force && finishedLoadingSequence === true) {
       force.on("tick", recalculatePositions);
     }
   };
-  function recalculatePositionsWithFPS(){
+  function recalculatePositionsWithFPS() {
     // compute the fps
-    
+
     recalculatePositions();
     now = Date.now();
     const diff = now - then;
-    const fps = (1000 / (diff)).toFixed(2);
-    
-    debugContainer.node().innerHTML = "FPS: " + fps + "<br>" + "Nodes: " + force.nodes().length + "<br>" + "Links: " + forceLink.links().length;
+    const fps = (1000 / diff).toFixed(2);
+
+    debugContainer.node().innerHTML =
+      "FPS: " +
+      fps +
+      "<br>" +
+      "Nodes: " +
+      force.nodes().length +
+      "<br>" +
+      "Links: " +
+      forceLink.links().length;
     then = Date.now();
-    
   }
-  
-  function recalculatePositions(){
+
+  function recalculatePositions() {
     // Set node positions
-    
-    
+
     // add switch for edit mode to make this faster;
-    if ( !editMode ) {
-      nodeElements.attr("transform", function ( node ){
+    if (!editMode) {
+      nodeElements.attr("transform", function (node) {
         return "translate(" + node.x + "," + node.y + ")";
       });
-      
+
       // Set label group positions
-      labelGroupElements.attr("transform", function ( label ){
+      labelGroupElements.attr("transform", function (label) {
         let position;
-        
+
         // force centered positions on single-layered links
         const link = label.link();
-        if ( link.layers().length === 1 && !link.loops() ) {
-          const linkDomainIntersection = math.calculateIntersection(link.range(), link.domain(), 0);
-          const linkRangeIntersection = math.calculateIntersection(link.domain(), link.range(), 0);
-          position = math.calculateCenter(linkDomainIntersection, linkRangeIntersection);
+        if (link.layers().length === 1 && !link.loops()) {
+          const linkDomainIntersection = math.calculateIntersection(
+            link.range(),
+            link.domain(),
+            0,
+          );
+          const linkRangeIntersection = math.calculateIntersection(
+            link.domain(),
+            link.range(),
+            0,
+          );
+          position = math.calculateCenter(
+            linkDomainIntersection,
+            linkRangeIntersection,
+          );
           label.x = position.x;
           label.y = position.y;
         }
         return "translate(" + label.x + "," + label.y + ")";
       });
       // Set link paths and calculate additional information
-      linkPathElements.attr("d", function ( l ){
-        if ( l.isLoop() ) {
+      linkPathElements.attr("d", function (l) {
+        if (l.isLoop()) {
           return math.calculateLoopPath(l);
         }
         const curvePoint = l.label();
         const pathStart = math.calculateIntersection(curvePoint, l.domain(), 1);
         const pathEnd = math.calculateIntersection(curvePoint, l.range(), 1);
-        
+
         return math.calculateCurvePath([pathStart, curvePoint, pathEnd]);
       });
-      
+
       // Set cardinality positions
-      cardinalityElements.attr("transform", function ( property ){
-        
+      cardinalityElements.attr("transform", function (property) {
         const label = property.link().label(),
-          pos = math.calculateIntersection(label, property.range(), CARDINALITY_HDISTANCE),
-          normalV = math.calculateNormalVector(label, property.range(), CARDINALITY_VDISTANCE);
-        
-        return "translate(" + (pos.x + normalV.x) + "," + (pos.y + normalV.y) + ")";
+          pos = math.calculateIntersection(
+            label,
+            property.range(),
+            CARDINALITY_HDISTANCE,
+          ),
+          normalV = math.calculateNormalVector(
+            label,
+            property.range(),
+            CARDINALITY_VDISTANCE,
+          );
+
+        return (
+          "translate(" + (pos.x + normalV.x) + "," + (pos.y + normalV.y) + ")"
+        );
       });
-      
-      
+
       updateHaloRadius();
       return;
     }
-    
+
     // TODO: this is Editor redraw function // we need to make this faster!!
-    
-    
-    nodeElements.attr("transform", function ( node ){
+
+    nodeElements.attr("transform", function (node) {
       return "translate(" + node.x + "," + node.y + ")";
     });
-    
+
     // Set label group positions
-    labelGroupElements.attr("transform", function ( label ){
+    labelGroupElements.attr("transform", function (label) {
       let position;
-      
+
       // force centered positions on single-layered links
       const link = label.link();
-      if ( link.layers().length === 1 && !link.loops() ) {
-        const linkDomainIntersection = math.calculateIntersection(link.range(), link.domain(), 0);
-        const linkRangeIntersection = math.calculateIntersection(link.domain(), link.range(), 0);
-        position = math.calculateCenter(linkDomainIntersection, linkRangeIntersection);
+      if (link.layers().length === 1 && !link.loops()) {
+        const linkDomainIntersection = math.calculateIntersection(
+          link.range(),
+          link.domain(),
+          0,
+        );
+        const linkRangeIntersection = math.calculateIntersection(
+          link.domain(),
+          link.range(),
+          0,
+        );
+        position = math.calculateCenter(
+          linkDomainIntersection,
+          linkRangeIntersection,
+        );
         label.x = position.x;
         label.y = position.y;
         label.linkRangeIntersection = linkRangeIntersection;
         label.linkDomainIntersection = linkDomainIntersection;
-        if ( link.property().focused() === true || link.property() === hoveredPropertyElement ) {
+        if (
+          link.property().focused() === true ||
+          link.property() === hoveredPropertyElement
+        ) {
           rangeDragger.updateElement();
           domainDragger.updateElement();
           // shadowClone.setPosition(link.property().range().x,link.property().range().y);
           // shadowClone.setPositionDomain(link.property().domain().x,link.property().domain().y);
         }
       } else {
-        label.linkDomainIntersection = math.calculateIntersection(link.label(), link.domain(), 0);
-        label.linkRangeIntersection = math.calculateIntersection(link.label(), link.range(), 0);
-        if ( link.property().focused() === true || link.property() === hoveredPropertyElement ) {
+        label.linkDomainIntersection = math.calculateIntersection(
+          link.label(),
+          link.domain(),
+          0,
+        );
+        label.linkRangeIntersection = math.calculateIntersection(
+          link.label(),
+          link.range(),
+          0,
+        );
+        if (
+          link.property().focused() === true ||
+          link.property() === hoveredPropertyElement
+        ) {
           rangeDragger.updateElement();
           domainDragger.updateElement();
           // shadowClone.setPosition(link.property().range().x,link.property().range().y);
           // shadowClone.setPositionDomain(link.property().domain().x,link.property().domain().y);
         }
-        
       }
       return "translate(" + label.x + "," + label.y + ")";
     });
     // Set link paths and calculate additional information
-    linkPathElements.attr("d", function ( l ){
-      if ( l.isLoop() ) {
-        
+    linkPathElements.attr("d", function (l) {
+      if (l.isLoop()) {
         const ptrAr = math.getLoopPoints(l);
         l.label().linkRangeIntersection = ptrAr[1];
         l.label().linkDomainIntersection = ptrAr[0];
-        
-        if ( l.property().focused() === true || l.property() === hoveredPropertyElement ) {
+
+        if (
+          l.property().focused() === true ||
+          l.property() === hoveredPropertyElement
+        ) {
           rangeDragger.updateElement();
           domainDragger.updateElement();
         }
@@ -824,7 +979,10 @@ function createGraph( graphContainerSelector ){
       const pathEnd = math.calculateIntersection(curvePoint, l.range(), 1);
       l.linkRangeIntersection = pathStart;
       l.linkDomainIntersection = pathEnd;
-      if ( l.property().focused() === true || l.property() === hoveredPropertyElement ) {
+      if (
+        l.property().focused() === true ||
+        l.property() === hoveredPropertyElement
+      ) {
         domainDragger.updateElement();
         rangeDragger.updateElement();
         // shadowClone.setPosition(l.property().range().x,l.property().range().y);
@@ -832,34 +990,42 @@ function createGraph( graphContainerSelector ){
       }
       return math.calculateCurvePath([pathStart, curvePoint, pathEnd]);
     });
-    
+
     // Set cardinality positions
-    cardinalityElements.attr("transform", function ( property ){
-      
+    cardinalityElements.attr("transform", function (property) {
       const label = property.link().label(),
-        pos = math.calculateIntersection(label, property.range(), CARDINALITY_HDISTANCE),
-        normalV = math.calculateNormalVector(label, property.range(), CARDINALITY_VDISTANCE);
-      
-      return "translate(" + (pos.x + normalV.x) + "," + (pos.y + normalV.y) + ")";
+        pos = math.calculateIntersection(
+          label,
+          property.range(),
+          CARDINALITY_HDISTANCE,
+        ),
+        normalV = math.calculateNormalVector(
+          label,
+          property.range(),
+          CARDINALITY_VDISTANCE,
+        );
+
+      return (
+        "translate(" + (pos.x + normalV.x) + "," + (pos.y + normalV.y) + ")"
+      );
     });
-    
-    if ( hoveredNodeElement ) {
+
+    if (hoveredNodeElement) {
       setDeleteHoverElementPosition(hoveredNodeElement);
       setAddDataPropertyHoverElementPosition(hoveredNodeElement);
-      if ( draggingStarted === false ) {
+      if (draggingStarted === false) {
         classDragger.setParentNode(hoveredNodeElement);
       }
     }
-    if ( hoveredPropertyElement ) {
+    if (hoveredPropertyElement) {
       setDeleteHoverElementPositionProperty(hoveredPropertyElement);
     }
-    
+
     updateHaloRadius();
   }
-  
-  graph.updatePropertyDraggerElements = function ( property ){
-    if ( property.type() !== "owl:DatatypeProperty" ) {
-      
+
+  graph.updatePropertyDraggerElements = function (property) {
+    if (property.type() !== "owl:DatatypeProperty") {
       shadowClone.setParentProperty(property);
       rangeDragger.setParentProperty(property);
       rangeDragger.hideDragger(false);
@@ -867,122 +1033,135 @@ function createGraph( graphContainerSelector ){
       domainDragger.setParentProperty(property);
       domainDragger.hideDragger(false);
       domainDragger.addMouseEvents();
-      
-    }
-    else {
+    } else {
       rangeDragger.hideDragger(true);
       domainDragger.hideDragger(true);
       shadowClone.hideClone(true);
     }
   };
-  
-  function addClickEvents(){
-    nodeElements.on("click", function ( event, clickedNode ){
+
+  function addClickEvents() {
+    nodeElements.on("click", function (event, clickedNode) {
       executeModules(clickedNode, event);
-      
+
       // manual double clicker // helper for iphone 6 etc...
-      if ( touchDevice === true && doubletap(event) === true ) {
+      if (touchDevice === true && doubletap(event) === true) {
         event.stopPropagation();
-        if ( editMode === true ) {
+        if (editMode === true) {
           clickedNode.raiseDoubleClickEdit(defaultIriValue(clickedNode));
         }
       }
     });
-    
-    nodeElements.on("dblclick", function ( event, clickedNode ){
-      
+
+    nodeElements.on("dblclick", function (event, clickedNode) {
       event.stopPropagation();
-      if ( editMode === true ) {
+      if (editMode === true) {
         clickedNode.raiseDoubleClickEdit(defaultIriValue(clickedNode));
       }
     });
-    
-    labelGroupElements.selectAll(".label").on("click", function ( event, clickedProperty ){
-      executeModules(clickedProperty, event);
-      
-      // this is for enviroments that do not define dblClick function;
-      if ( touchDevice === true && doubletap(event) === true ) {
-        event.stopPropagation();
-        if ( editMode === true ) {
-          clickedProperty.raiseDoubleClickEdit(defaultIriValue(clickedProperty));
+
+    labelGroupElements
+      .selectAll(".label")
+      .on("click", function (event, clickedProperty) {
+        executeModules(clickedProperty, event);
+
+        // this is for enviroments that do not define dblClick function;
+        if (touchDevice === true && doubletap(event) === true) {
+          event.stopPropagation();
+          if (editMode === true) {
+            clickedProperty.raiseDoubleClickEdit(
+              defaultIriValue(clickedProperty),
+            );
+          }
         }
-      }
-      
-      // currently removed the selection of an element to invoke the dragger
-      // if (editMode===true && clickedProperty.editingTextElement!==true) {
-      //     return;
-      //      // We say that Datatype properties are not allowed to have domain range draggers
-      //      if (clickedProperty.focused() && clickedProperty.type() !== "owl:DatatypeProperty") {
-      //          shadowClone.setParentProperty(clickedProperty);
-      //          rangeDragger.setParentProperty(clickedProperty);
-      //          rangeDragger.hideDragger(false);
-      //          rangeDragger.addMouseEvents();
-      //          domainDragger.setParentProperty(clickedProperty);
-      //          domainDragger.hideDragger(false);
-      //          domainDragger.addMouseEvents();
-      //
-      //          if (clickedProperty.domain()===clickedProperty.range()){
-      //              clickedProperty.labelObject().increasedLoopAngle=true;
-      //              recalculatePositions();
-      //
-      //          }
-      //
-      //      } else if (clickedProperty.focused() && clickedProperty.type() === "owl:DatatypeProperty") {
-      //          shadowClone.setParentProperty(clickedProperty);
-      //          rangeDragger.setParentProperty(clickedProperty);
-      //          rangeDragger.hideDragger(true);
-      //          rangeDragger.addMouseEvents();
-      //          domainDragger.setParentProperty(clickedProperty);
-      //          domainDragger.hideDragger(false);
-      //          domainDragger.addMouseEvents();
-      //
-      //      }
-      //      else {
-      //          rangeDragger.hideDragger(true);
-      //          domainDragger.hideDragger(true);
-      //          if (clickedProperty.domain()===clickedProperty.range()){
-      //              clickedProperty.labelObject().increasedLoopAngle=false;
-      //              recalculatePositions();
-      //
-      //          }
-      //      }
-      //  }
-    });
-    labelGroupElements.selectAll(".label").on("dblclick", function ( event, clickedProperty ){
-      event.stopPropagation();
-      if ( editMode === true ) {
-        clickedProperty.raiseDoubleClickEdit(defaultIriValue(clickedProperty));
-      }
-      
-    });
+
+        // currently removed the selection of an element to invoke the dragger
+        // if (editMode===true && clickedProperty.editingTextElement!==true) {
+        //     return;
+        //      // We say that Datatype properties are not allowed to have domain range draggers
+        //      if (clickedProperty.focused() && clickedProperty.type() !== "owl:DatatypeProperty") {
+        //          shadowClone.setParentProperty(clickedProperty);
+        //          rangeDragger.setParentProperty(clickedProperty);
+        //          rangeDragger.hideDragger(false);
+        //          rangeDragger.addMouseEvents();
+        //          domainDragger.setParentProperty(clickedProperty);
+        //          domainDragger.hideDragger(false);
+        //          domainDragger.addMouseEvents();
+        //
+        //          if (clickedProperty.domain()===clickedProperty.range()){
+        //              clickedProperty.labelObject().increasedLoopAngle=true;
+        //              recalculatePositions();
+        //
+        //          }
+        //
+        //      } else if (clickedProperty.focused() && clickedProperty.type() === "owl:DatatypeProperty") {
+        //          shadowClone.setParentProperty(clickedProperty);
+        //          rangeDragger.setParentProperty(clickedProperty);
+        //          rangeDragger.hideDragger(true);
+        //          rangeDragger.addMouseEvents();
+        //          domainDragger.setParentProperty(clickedProperty);
+        //          domainDragger.hideDragger(false);
+        //          domainDragger.addMouseEvents();
+        //
+        //      }
+        //      else {
+        //          rangeDragger.hideDragger(true);
+        //          domainDragger.hideDragger(true);
+        //          if (clickedProperty.domain()===clickedProperty.range()){
+        //              clickedProperty.labelObject().increasedLoopAngle=false;
+        //              recalculatePositions();
+        //
+        //          }
+        //      }
+        //  }
+      });
+    labelGroupElements
+      .selectAll(".label")
+      .on("dblclick", function (event, clickedProperty) {
+        event.stopPropagation();
+        if (editMode === true) {
+          clickedProperty.raiseDoubleClickEdit(
+            defaultIriValue(clickedProperty),
+          );
+        }
+      });
   }
-  
-  function defaultIriValue( element ){
+
+  function defaultIriValue(element) {
     // get the iri of that element;
-    if ( graph.options().getGeneralMetaObject().iri ) {
-      const str2Compare = graph.options().getGeneralMetaObject().iri + element.id();
+    if (graph.options().getGeneralMetaObject().iri) {
+      const str2Compare =
+        graph.options().getGeneralMetaObject().iri + element.id();
       return element.iri() === str2Compare;
     }
     return false;
   }
-  
+
   /** Adjusts the containers current scale and position. */
-  function zoomed(event){
-    if ( forceNotZooming === true ) {
+  function zoomed(event) {
+    if (forceNotZooming === true) {
       syncZoomState();
       return;
     }
-    
-    
+
     let zoomEventByMWheel = false;
-    if ( event.sourceEvent ) {
-      if ( event.sourceEvent.deltaY ) {zoomEventByMWheel = true;}
+    if (event.sourceEvent) {
+      if (event.sourceEvent.deltaY) {
+        zoomEventByMWheel = true;
+      }
     }
-    if ( zoomEventByMWheel === false ) {
-      if ( transformAnimation === true ) {
+    if (zoomEventByMWheel === false) {
+      if (transformAnimation === true) {
         return;
       }
-      if ( !event.transform || !updateViewportState([event.transform.x, event.transform.y], event.transform.k, false) ) {
+      if (
+        !event.transform ||
+        !updateViewportState(
+          [event.transform.x, event.transform.y],
+          event.transform.k,
+          false,
+        )
+      ) {
         syncZoomState();
         return;
       }
@@ -992,47 +1171,66 @@ function createGraph( graphContainerSelector ){
       return;
     }
     /** animate the transition **/
-    if ( !event.transform || !updateViewportState([event.transform.x, event.transform.y], event.transform.k, false) ) {
+    if (
+      !event.transform ||
+      !updateViewportState(
+        [event.transform.x, event.transform.y],
+        event.transform.k,
+        false,
+      )
+    ) {
       syncZoomState();
       return;
     }
-    graphContainer.transition()
-      .tween("attr.translate", function (){
-        return function ( t ){
+    graphContainer
+      .transition()
+      .tween("attr.translate", function () {
+        return function (t) {
           transformAnimation = true;
-          const svgNode = graphContainer.node() ? graphContainer.node().parentNode : null;
+          const svgNode = graphContainer.node()
+            ? graphContainer.node().parentNode
+            : null;
           if (svgNode && svgNode.__zoom) {
-              updateViewportState([svgNode.__zoom.x, svgNode.__zoom.y], svgNode.__zoom.k, false);
+            updateViewportState(
+              [svgNode.__zoom.x, svgNode.__zoom.y],
+              svgNode.__zoom.k,
+              false,
+            );
           } else {
-              // fallback: parse from attribute
-              const transformAttr = graphContainer.attr("transform") || "";
-              const matchTranslate = transformAttr.match(/translate\(([^,)]+)[,\s]+([^)]+)\)/);
-              const matchScale = transformAttr.match(/scale\(([^)]+)\)/);
-              if (matchTranslate) {
-                  const parsedScale = matchScale ? parseFloat(matchScale[1]) : zoomFactor;
-                  updateViewportState(
-                    [parseFloat(matchTranslate[1]), parseFloat(matchTranslate[2])],
-                    parsedScale,
-                    false
-                  );
-              }
+            // fallback: parse from attribute
+            const transformAttr = graphContainer.attr("transform") || "";
+            const matchTranslate = transformAttr.match(
+              /translate\(([^,)]+)[,\s]+([^)]+)\)/,
+            );
+            const matchScale = transformAttr.match(/scale\(([^)]+)\)/);
+            if (matchTranslate) {
+              const parsedScale = matchScale
+                ? parseFloat(matchScale[1])
+                : zoomFactor;
+              updateViewportState(
+                [parseFloat(matchTranslate[1]), parseFloat(matchTranslate[2])],
+                parsedScale,
+                false,
+              );
+            }
           }
           updateHaloRadius();
           graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
         };
       })
-      .on("end", function (){
+      .on("end", function () {
         transformAnimation = false;
       })
       .attr("transform", viewportTransformString())
       .ease(d3.easeLinear)
       .duration(250);
-  }// end of zoomed function
-  
-  function redrawGraph(){
+  } // end of zoomed function
+
+  function redrawGraph() {
     remove();
-    
-    graphContainer = d3.selectAll(options.graphContainerSelector())
+
+    graphContainer = d3
+      .selectAll(options.graphContainerSelector())
       .append("svg")
       .classed("vowlGraph", true)
       .attr("width", options.width())
@@ -1040,138 +1238,152 @@ function createGraph( graphContainerSelector ){
       .call(zoom)
       .append("g");
     // add touch and double click functions
-    
+
     const svgGraph = d3.selectAll(".vowlGraph");
     svgGraph.on("mouseleave", clearAllHover);
     svgGraph.on("pointerleave", clearAllHover);
     originalD3_dblClickFunction = svgGraph.on("dblclick.zoom");
     originalD3_touchZoomFunction = svgGraph.on("touchstart.zoom");
-    if ( originalD3_touchZoomFunction ) {
+    if (originalD3_touchZoomFunction) {
       svgGraph.on("touchstart.zoom", touchzoomed);
     }
-    if ( editMode === true ) {
+    if (editMode === true) {
       svgGraph.on("dblclick.zoom", graph.modified_dblClickFunction);
-    }
-    else {
+    } else {
       svgGraph.on("dblclick.zoom", originalD3_dblClickFunction);
     }
-    
   }
-  
-  function generateEditElements(){
-    addDataPropertyGroupElement = editContainer.append('g')
+
+  function generateEditElements() {
+    addDataPropertyGroupElement = editContainer
+      .append("g")
       .classed("hidden-in-export", true)
       .classed("hidden", true)
       .classed("addDataPropertyElement", true)
       .attr("transform", "translate(" + 0 + "," + 0 + ")");
-    
-    
-    addDataPropertyGroupElement.append("circle")
-    // .classed("deleteElement", true)
+
+    addDataPropertyGroupElement
+      .append("circle")
+      // .classed("deleteElement", true)
       .attr("r", 12)
       .attr("cx", 0)
       .attr("cy", 0)
-      .append("title").text("Add Datatype Property");
-    
-    addDataPropertyGroupElement.append("line")
-    // .classed("deleteElementIcon ",true)
+      .append("title")
+      .text("Add Datatype Property");
+
+    addDataPropertyGroupElement
+      .append("line")
+      // .classed("deleteElementIcon ",true)
       .attr("x1", -8)
       .attr("y1", 0)
       .attr("x2", 8)
       .attr("y2", 0)
-      .append("title").text("Add Datatype Property");
-    
-    addDataPropertyGroupElement.append("line")
-    // .classed("deleteElementIcon",true)
+      .append("title")
+      .text("Add Datatype Property");
+
+    addDataPropertyGroupElement
+      .append("line")
+      // .classed("deleteElementIcon",true)
       .attr("x1", 0)
       .attr("y1", -8)
       .attr("x2", 0)
       .attr("y2", 8)
-      .append("title").text("Add Datatype Property");
-    
-    if ( graph.options().useAccuracyHelper() ) {
-      addDataPropertyGroupElement.append("circle")
+      .append("title")
+      .text("Add Datatype Property");
+
+    if (graph.options().useAccuracyHelper()) {
+      addDataPropertyGroupElement
+        .append("circle")
         .attr("r", 15)
         .attr("cx", -7)
         .attr("cy", 7)
         .classed("superHiddenElement", true)
         .classed("superOpacityElement", !graph.options().showDraggerObject());
     }
-    
-    
-    deleteGroupElement = editContainer.append('g')
+
+    deleteGroupElement = editContainer
+      .append("g")
       .classed("hidden-in-export", true)
       .classed("hidden", true)
       .classed("deleteParentElement", true)
       .attr("transform", "translate(" + 0 + "," + 0 + ")");
-    
-    deleteGroupElement.append("circle")
+
+    deleteGroupElement
+      .append("circle")
       .attr("r", 12)
       .attr("cx", 0)
       .attr("cy", 0)
-      .append("title").text("Delete This Node");
-    
+      .append("title")
+      .text("Delete This Node");
+
     const crossLen = 5;
-    deleteGroupElement.append("line")
+    deleteGroupElement
+      .append("line")
       .attr("x1", -crossLen)
       .attr("y1", -crossLen)
       .attr("x2", crossLen)
       .attr("y2", crossLen)
-      .append("title").text("Delete This Node");
-    
-    deleteGroupElement.append("line")
+      .append("title")
+      .text("Delete This Node");
+
+    deleteGroupElement
+      .append("line")
       .attr("x1", crossLen)
       .attr("y1", -crossLen)
       .attr("x2", -crossLen)
       .attr("y2", crossLen)
-      .append("title").text("Delete This Node");
-    
-    if ( graph.options().useAccuracyHelper() ) {
-      deleteGroupElement.append("circle")
+      .append("title")
+      .text("Delete This Node");
+
+    if (graph.options().useAccuracyHelper()) {
+      deleteGroupElement
+        .append("circle")
         .attr("r", 15)
         .attr("cx", 7)
         .attr("cy", -7)
         .classed("superHiddenElement", true)
         .classed("superOpacityElement", !graph.options().showDraggerObject());
     }
-    
-    
   }
-  
-  graph.getUnfilteredData = function (){
+
+  graph.getUnfilteredData = function () {
     return unfilteredData;
   };
-  
-  graph.getClassDataForTtlExport = function (){
+
+  graph.getClassDataForTtlExport = function () {
     const allNodes = unfilteredData.nodes;
     const nodeData = [];
-    for ( let i = 0; i < allNodes.length; i++ ) {
-      if ( allNodes[i].type() !== "rdfs:Literal" &&
+    for (let i = 0; i < allNodes.length; i++) {
+      if (
+        allNodes[i].type() !== "rdfs:Literal" &&
         allNodes[i].type() !== "rdfs:Datatype" &&
-        allNodes[i].type() !== "owl:Thing" ) {
+        allNodes[i].type() !== "owl:Thing"
+      ) {
         nodeData.push(allNodes[i]);
       }
     }
     return nodeData;
   };
-  
-  graph.getPropertyDataForTtlExport = function (){
+
+  graph.getPropertyDataForTtlExport = function () {
     const propertyData = [];
     const allProperties = unfilteredData.properties;
-    for ( let i = 0; i < allProperties.length; i++ ) {
+    for (let i = 0; i < allProperties.length; i++) {
       // currently using only the object properties
-      if ( allProperties[i].type() === "owl:ObjectProperty" ||
+      if (
+        allProperties[i].type() === "owl:ObjectProperty" ||
         allProperties[i].type() === "owl:DatatypeProperty" ||
         allProperties[i].type() === "owl:ObjectProperty"
-      
       ) {
         propertyData.push(allProperties[i]);
       } else {
-        if ( allProperties[i].type() === "rdfs:subClassOf" ) {
+        if (allProperties[i].type() === "rdfs:subClassOf") {
           allProperties[i].baseIri("http://www.w3.org/2000/01/rdf-schema#");
-          allProperties[i].iri("http://www.w3.org/2000/01/rdf-schema#subClassOf");
+          allProperties[i].iri(
+            "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          );
         }
-        if ( allProperties[i].type() === "owl:disjointWith" ) {
+        if (allProperties[i].type() === "owl:disjointWith") {
           allProperties[i].baseIri("http://www.w3.org/2002/07/owl#");
           allProperties[i].iri("http://www.w3.org/2002/07/owl#disjointWith");
         }
@@ -1179,72 +1391,78 @@ function createGraph( graphContainerSelector ){
     }
     return propertyData;
   };
-  
-  graph.getAxiomsForTtlExport = function (){
+
+  graph.getAxiomsForTtlExport = function () {
     const axioms = [];
     // TODO: Implement axiom extraction for TTL export
     return axioms;
   };
-  
-  
-  graph.getUnfilteredData = function (){
+
+  graph.getUnfilteredData = function () {
     return unfilteredData;
   };
-  
-  graph.getClassDataForTtlExport = function (){
+
+  graph.getClassDataForTtlExport = function () {
     const allNodes = unfilteredData.nodes;
     const nodeData = [];
-    for ( let i = 0; i < allNodes.length; i++ ) {
-      if ( allNodes[i].type() !== "rdfs:Literal" &&
+    for (let i = 0; i < allNodes.length; i++) {
+      if (
+        allNodes[i].type() !== "rdfs:Literal" &&
         allNodes[i].type() !== "rdfs:Datatype" &&
-        allNodes[i].type() !== "owl:Thing" ) {
+        allNodes[i].type() !== "owl:Thing"
+      ) {
         nodeData.push(allNodes[i]);
       }
     }
     return nodeData;
   };
-  
-  
-  function redrawContent(){
+
+  function redrawContent() {
     let markerContainer;
-    
-    if ( !graphContainer ) {
+
+    if (!graphContainer) {
       return;
     }
-    
+
     // Empty the graph container
     graphContainer.selectAll("*").remove();
-    
+
     // Last container -> elements of this container overlap others
     linkContainer = graphContainer.append("g").classed("linkContainer", true);
-    cardinalityContainer = graphContainer.append("g").classed("cardinalityContainer", true);
+    cardinalityContainer = graphContainer
+      .append("g")
+      .classed("cardinalityContainer", true);
     labelContainer = graphContainer.append("g").classed("labelContainer", true);
     nodeContainer = graphContainer.append("g").classed("nodeContainer", true);
-    
+
     // adding editing Elements
-    const draggerPathLayer = graphContainer.append("g").classed("linkContainer", true);
+    const draggerPathLayer = graphContainer
+      .append("g")
+      .classed("linkContainer", true);
     draggerLayer = graphContainer.append("g").classed("editContainer", true);
     editContainer = graphContainer.append("g").classed("editContainer", true);
-    
+
     draggerPathLayer.classed("hidden-in-export", true);
     editContainer.classed("hidden-in-export", true);
     draggerLayer.classed("hidden-in-export", true);
-    
+
     // Add an extra container for all markers
     markerContainer = linkContainer.append("defs");
-    const drElement = draggerLayer.selectAll(".node")
-      .data(draggerObjectsArray).enter()
+    const drElement = draggerLayer
+      .selectAll(".node")
+      .data(draggerObjectsArray)
+      .enter()
       .append("g")
       .classed("node", true)
       .classed("hidden-in-export", true)
-      .attr("id", function ( d ){
+      .attr("id", function (d) {
         return d.id();
       })
       .call(dragBehaviour);
-    drElement.each(function ( node ){
+    drElement.each(function (node) {
       node.svgRoot(d3.select(this));
       node.svgPathLayer(draggerPathLayer);
-      if ( node.type() === "shadowClone" ) {
+      if (node.type() === "shadowClone") {
         node.drawClone();
         node.hideClone(true);
       } else {
@@ -1253,102 +1471,120 @@ function createGraph( graphContainerSelector ){
       }
     });
     generateEditElements();
-    
-    
+
     // Add an extra container for all markers
     markerContainer = linkContainer.append("defs");
-    
+
     // Draw nodes
-    
-    if ( classNodes === undefined ) {classNodes = [];}
-    
-    nodeElements = nodeContainer.selectAll(".node")
-      .data(classNodes).enter()
+
+    if (classNodes === undefined) {
+      classNodes = [];
+    }
+
+    nodeElements = nodeContainer
+      .selectAll(".node")
+      .data(classNodes)
+      .enter()
       .append("g")
       .classed("node", true)
-      .attr("id", function ( d ){
+      .attr("id", function (d) {
         return d.id();
       })
       .call(dragBehaviour);
-    nodeElements.each(function ( node ){
+    nodeElements.each(function (node) {
       node.draw(d3.select(this));
     });
-    
-    
-    if ( labelNodes === undefined ) {labelNodes = [];}
-    
+
+    if (labelNodes === undefined) {
+      labelNodes = [];
+    }
+
     // Draw label groups (property + inverse)
-    labelGroupElements = labelContainer.selectAll(".labelGroup")
-      .data(labelNodes).enter()
+    labelGroupElements = labelContainer
+      .selectAll(".labelGroup")
+      .data(labelNodes)
+      .enter()
       .append("g")
       .classed("labelGroup", true)
       .call(dragBehaviour);
-    
-    labelGroupElements.each(function ( label ){
+
+    labelGroupElements.each(function (label) {
       const success = label.draw(d3.select(this));
       label.property().labelObject(label);
       // Remove empty groups without a label.
-      if ( !success ) {
+      if (!success) {
         d3.select(this).remove();
       }
     });
     // Place subclass label groups on the bottom of all labels
-    labelGroupElements.each(function ( label ){
+    labelGroupElements.each(function (label) {
       // the label might be hidden e.g. in compact notation
-      if ( !this.parentNode ) {
+      if (!this.parentNode) {
         return;
       }
-      
-      if ( elementTools.isRdfsSubClassOf(label.property()) ) {
+
+      if (elementTools.isRdfsSubClassOf(label.property())) {
         const parentNode = this.parentNode;
         parentNode.insertBefore(this, parentNode.firstChild);
       }
     });
-    if ( properties === undefined ) {properties = [];}
+    if (properties === undefined) {
+      properties = [];
+    }
     // Draw cardinality elements
-    cardinalityElements = cardinalityContainer.selectAll(".cardinality")
-      .data(properties).enter()
+    cardinalityElements = cardinalityContainer
+      .selectAll(".cardinality")
+      .data(properties)
+      .enter()
       .append("g")
       .classed("cardinality", true);
-    
-    cardinalityElements.each(function ( property ){
+
+    cardinalityElements.each(function (property) {
       const success = property.drawCardinality(d3.select(this));
-      
+
       // Remove empty groups without a label.
-      if ( !success ) {
+      if (!success) {
         d3.select(this).remove();
       }
     });
     // Draw links
-    if ( links === undefined ) {links = [];}
-    linkGroups = linkContainer.selectAll(".link")
-      .data(links).enter()
+    if (links === undefined) {
+      links = [];
+    }
+    linkGroups = linkContainer
+      .selectAll(".link")
+      .data(links)
+      .enter()
       .append("g")
       .classed("link", true);
-    
-    linkGroups.each(function ( link ){
+
+    linkGroups.each(function (link) {
       link.draw(d3.select(this), markerContainer);
     });
     linkPathElements = linkGroups.selectAll("path");
     // Select the path for direct access to receive a better performance
     addClickEvents();
   }
-  
-  function remove(){
-    if ( graphContainer ) {
+
+  function remove() {
+    if (graphContainer) {
       // Select the parent element because the graph container is a group (e.g. for zooming)
       d3.select(graphContainer.node().parentNode).remove();
     }
   }
-  
+
   initializeGraph(); // << call the initialization function
-  
-  graph.updateCanvasContainerSize = function (){
-    if ( graphContainer ) {
+
+  graph.updateCanvasContainerSize = function () {
+    if (graphContainer) {
       const svgElement = d3.selectAll(".vowlGraph");
       const svgNode = svgElement.node();
       const graphHost = svgNode ? svgNode.parentNode : null;
-      const measuredViewport = measureViewportElement(graphHost, options.width(), options.height());
+      const measuredViewport = measureViewportElement(
+        graphHost,
+        options.width(),
+        options.height(),
+      );
 
       options.width(measuredViewport.width);
       options.height(measuredViewport.height);
@@ -1360,46 +1596,49 @@ function createGraph( graphContainerSelector ){
 
     return {
       width: options.width(),
-      height: options.height()
+      height: options.height(),
     };
   };
-  
+
   // Loads all settings, removes the old graph (if it exists) and draws a new one.
-  graph.start = function (){
+  graph.start = function () {
     force.stop();
     loadGraphData(true);
     redrawGraph();
     graph.update(true);
-    
-    if ( graph.options().loadingModule().successfullyLoadedOntology() === false ) {
+
+    if (
+      graph.options().loadingModule().successfullyLoadedOntology() === false
+    ) {
       graph.options().loadingModule().setErrorMode();
     }
-    
   };
-  
+
   // Updates only the style of the graph.
-  graph.updateStyle = function (){
+  graph.updateStyle = function () {
     refreshGraphStyle();
-    if ( graph.options().loadingModule().successfullyLoadedOntology() === false || paused === true ) {
+    if (
+      graph.options().loadingModule().successfullyLoadedOntology() === false ||
+      paused === true
+    ) {
       force.stop();
     } else {
       force.alpha(1).restart();
     }
   };
-  
-  graph.reload = function (){
+
+  graph.reload = function () {
     loadGraphData();
     graph.update();
-    
   };
-  
-  graph.load = function (){
+
+  graph.load = function () {
     force.stop();
     loadGraphData();
     refreshGraphData();
-    for ( let i = 0; i < labelNodes.length; i++ ) {
+    for (let i = 0; i < labelNodes.length; i++) {
       const label = labelNodes[i];
-      if ( label.property().x && label.property().y ) {
+      if (label.property().x && label.property().y) {
         label.x = label.property().x;
         label.y = label.property().y;
         // also set the prev position of the label
@@ -1409,8 +1648,8 @@ function createGraph( graphContainerSelector ){
     }
     graph.update();
   };
-  
-  graph.fastUpdate = function (){
+
+  graph.fastUpdate = function () {
     // fast update function for editor calls;
     // -- experimental ;
     quick_refreshGraphData();
@@ -1420,56 +1659,55 @@ function createGraph( graphContainerSelector ){
     graph.updatePulseIds(nodeArrayForPulse);
     refreshGraphStyle();
     updateHaloStyles();
-    
   };
-  
-  graph.getNodeMapForSearch = function (){
+
+  graph.getNodeMapForSearch = function () {
     return nodeMap;
   };
-  function updateNodeMap(){
+  function updateNodeMap() {
     nodeMap = [];
     let node;
-    for ( let j = 0; j < force.nodes().length; j++ ) {
+    for (let j = 0; j < force.nodes().length; j++) {
       node = force.nodes()[j];
-      if ( node.id ) {
+      if (node.id) {
         nodeMap[node.id()] = j;
         // check for equivalents
         const eqs = node.equivalents();
-        if ( eqs.length > 0 ) {
-          for ( let e = 0; e < eqs.length; e++ ) {
+        if (eqs.length > 0) {
+          for (let e = 0; e < eqs.length; e++) {
             const eqObject = eqs[e];
             nodeMap[eqObject.id()] = j;
           }
         }
       }
-      if ( node.property ) {
+      if (node.property) {
         nodeMap[node.property().id()] = j;
         const inverse = node.inverse();
-        if ( inverse ) {
+        if (inverse) {
           nodeMap[inverse.id()] = j;
         }
       }
     }
   }
-  
-  function updateHaloStyles(){
+
+  function updateHaloStyles() {
     let haloElement;
     let halo;
     let node;
-    for ( let j = 0; j < force.nodes().length; j++ ) {
+    for (let j = 0; j < force.nodes().length; j++) {
       node = force.nodes()[j];
-      if ( node.id ) {
+      if (node.id) {
         haloElement = node.getHalos();
-        if ( haloElement ) {
+        if (haloElement) {
           halo = haloElement.selectAll(".searchResultA");
           halo.classed("searchResultA", false);
           halo.classed("searchResultB", true);
         }
       }
-      
-      if ( node.property ) {
+
+      if (node.property) {
         haloElement = node.property().getHalos();
-        if ( haloElement ) {
+        if (haloElement) {
           halo = haloElement.selectAll(".searchResultA");
           halo.classed("searchResultA", false);
           halo.classed("searchResultB", true);
@@ -1477,38 +1715,43 @@ function createGraph( graphContainerSelector ){
       }
     }
   }
-  
+
   // Updates the graphs displayed data and style.
-  graph.update = function ( init ){
+  graph.update = function (init) {
     clearAllHover();
-    const validOntology = graph.options().loadingModule().successfullyLoadedOntology();
-    if ( validOntology === false && (init && init === true) ) {
+    const validOntology = graph
+      .options()
+      .loadingModule()
+      .successfullyLoadedOntology();
+    if (validOntology === false && init && init === true) {
       graph.options().loadingModule().collapseDetails();
       return;
     }
-    if ( validOntology === false ) {
+    if (validOntology === false) {
       return;
     }
-    
+
     keepDetailsCollapsedOnLoading = false;
     refreshGraphData();
     // update node map
     updateNodeMap();
-    
+
     force.alpha(1).restart();
     redrawContent();
     graph.updatePulseIds(nodeArrayForPulse);
     refreshGraphStyle();
     updateHaloStyles();
   };
-  
-  graph.paused = function ( p ){
-    if ( !arguments.length ) {return paused;}
+
+  graph.paused = function (p) {
+    if (!arguments.length) {
+      return paused;
+    }
     paused = p;
     graph.updateStyle();
     return graph;
   };
-  graph.reset = function (){
+  graph.reset = function () {
     // window size
     const w = 0.5 * graph.options().width();
     const h = 0.5 * graph.options().height();
@@ -1517,271 +1760,293 @@ function createGraph( graphContainerSelector ){
     const ty = h - defaultZoom * h;
     updateViewportState([tx, ty], defaultZoom);
   };
-  
-  
-  graph.zoomOut = function (){
-    
+
+  graph.zoomOut = function () {
     const minMag = options.minMagnification(),
       maxMag = options.maxMagnification();
     const stepSize = (maxMag - minMag) / 10;
     let val = zoomFactor - stepSize;
-    if ( val < minMag ) {val = minMag;}
-    
+    if (val < minMag) {
+      val = minMag;
+    }
+
     const cx = 0.5 * graph.options().width();
     const cy = 0.5 * graph.options().height();
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
     const sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
     const eP = [cp.x, cp.y, graph.options().height() / val];
     const pos_intp = d3.interpolateZoom(sP, eP);
-    
-    graphContainer.attr("transform", transform(sP, cx, cy))
+
+    graphContainer
+      .attr("transform", transform(sP, cx, cy))
       .transition()
       .duration(250)
-      .attrTween("transform", function (){
-        return function ( t ){
+      .attrTween("transform", function () {
+        return function (t) {
           return transform(pos_intp(t), cx, cy);
         };
       })
-      .on("end", function (){
+      .on("end", function () {
         graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
         updateHaloRadius();
         options.zoomSlider().updateZoomSliderValue(zoomFactor);
       });
-    
   };
-  
-  graph.zoomIn = function (){
+
+  graph.zoomIn = function () {
     const minMag = options.minMagnification(),
       maxMag = options.maxMagnification();
     const stepSize = (maxMag - minMag) / 10;
     let val = zoomFactor + stepSize;
-    if ( val > maxMag ) {val = maxMag;}
+    if (val > maxMag) {
+      val = maxMag;
+    }
     const cx = 0.5 * graph.options().width();
     const cy = 0.5 * graph.options().height();
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
     const sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
     const eP = [cp.x, cp.y, graph.options().height() / val];
     const pos_intp = d3.interpolateZoom(sP, eP);
-    
-    graphContainer.attr("transform", transform(sP, cx, cy))
+
+    graphContainer
+      .attr("transform", transform(sP, cx, cy))
       .transition()
       .duration(250)
-      .attrTween("transform", function (){
-        return function ( t ){
+      .attrTween("transform", function () {
+        return function (t) {
           return transform(pos_intp(t), cx, cy);
         };
       })
-      .on("end", function (){
+      .on("end", function () {
         graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
         updateHaloRadius();
         options.zoomSlider().updateZoomSliderValue(zoomFactor);
       });
-    
-    
   };
-  
+
   /** --------------------------------------------------------- **/
   /** -- data related handling                               -- **/
   /** --------------------------------------------------------- **/
-  
+
   let cachedJsonOBJ = null;
-  graph.clearAllGraphData = function (){
-    if ( graph.graphNodeElements() && graph.graphNodeElements().length > 0 ) {
+  graph.clearAllGraphData = function () {
+    if (graph.graphNodeElements() && graph.graphNodeElements().length > 0) {
       cachedJsonOBJ = graph.options().exportMenu().createJSON_exportObject();
     } else {
       cachedJsonOBJ = null;
     }
     force.stop();
-    if ( unfilteredData ) {
+    if (unfilteredData) {
       unfilteredData.nodes = [];
       unfilteredData.properties = [];
     }
   };
-  graph.getCachedJsonObj = function (){
+  graph.getCachedJsonObj = function () {
     return cachedJsonOBJ;
   };
-  
+
   // removes data when data could not be loaded
-  graph.clearGraphData = function (){
+  graph.clearGraphData = function () {
     force.stop();
     const sidebar = graph.options().sidebar();
-    if ( sidebar )
-      {sidebar.clearOntologyInformation();}
-    if ( graphContainer )
-      {redrawGraph();}
+    if (sidebar) {
+      sidebar.clearOntologyInformation();
+    }
+    if (graphContainer) {
+      redrawGraph();
+    }
   };
-  
-  function generateDictionary( data ){
+
+  function generateDictionary(data) {
     let i;
     const originalDictionary = [];
     const nodes = data.nodes;
-    for ( i = 0; i < nodes.length; i++ ) {
+    for (i = 0; i < nodes.length; i++) {
       // check if node has a label
-      if ( nodes[i].labelForCurrentLanguage() !== undefined )
-        {originalDictionary.push(nodes[i]);}
+      if (nodes[i].labelForCurrentLanguage() !== undefined) {
+        originalDictionary.push(nodes[i]);
+      }
     }
     const props = data.properties;
-    for ( i = 0; i < props.length; i++ ) {
-      if ( props[i].labelForCurrentLanguage() !== undefined )
-        {originalDictionary.push(props[i]);}
+    for (i = 0; i < props.length; i++) {
+      if (props[i].labelForCurrentLanguage() !== undefined) {
+        originalDictionary.push(props[i]);
+      }
     }
     parser.setDictionary(originalDictionary);
-    
+
     const literFilter = graph.options().literalFilter();
     const idsToRemove = literFilter.removedNodes();
     const originalDict = parser.getDictionary();
     const newDict = [];
-    
+
     // go through the dictionary and remove the ids;
-    for ( i = 0; i < originalDict.length; i++ ) {
+    for (i = 0; i < originalDict.length; i++) {
       const dictElement = originalDict[i];
       let dictElementId;
-      if ( dictElement.property )
-        {dictElementId = dictElement.property().id();}
-      else
-        {dictElementId = dictElement.id();}
+      if (dictElement.property) {
+        dictElementId = dictElement.property().id();
+      } else {
+        dictElementId = dictElement.id();
+      }
       // compare against the removed ids;
       let addToDictionary = true;
-      for ( let j = 0; j < idsToRemove.length; j++ ) {
+      for (let j = 0; j < idsToRemove.length; j++) {
         const currentId = idsToRemove[j];
-        if ( currentId === dictElementId ) {
+        if (currentId === dictElementId) {
           addToDictionary = false;
         }
       }
-      if ( addToDictionary === true ) {
+      if (addToDictionary === true) {
         newDict.push(dictElement);
       }
     }
     // tell the parser that the dictionary is updated
     parser.setDictionary(newDict);
-    if ( graph.options().searchMenu() ) {
+    if (graph.options().searchMenu()) {
       graph.options().searchMenu().requestDictionaryUpdate();
     }
   }
-  
-  graph.updateProgressBarMode = function (){
+
+  graph.updateProgressBarMode = function () {
     const loadingModule = graph.options().loadingModule();
-    
+
     const state = loadingModule.getProgressBarMode();
-    switch ( state ) {
-      case  0:
+    switch (state) {
+      case 0:
         loadingModule.setErrorMode();
         break;
-      case  1:
+      case 1:
         loadingModule.setBusyMode();
         break;
-      case  2:
+      case 2:
         loadingModule.setPercentMode();
         break;
       default:
         loadingModule.setPercentMode();
     }
   };
-  
-  function loadGraphData( init ){
+
+  function loadGraphData(init) {
     // reset the locate button and previously selected locations and other variables
-    
+
     const loadingModule = graph.options().loadingModule();
     force.stop();
-    
+
     force.nodes([]);
     forceLink.links([]);
     force.force("link", forceLink);
     nodeArrayForPulse = [];
     pulseNodeIds = [];
     locationId = 0;
-    if ( options.searchMenu && options.searchMenu() && options.searchMenu().clearText ) {
+    if (
+      options.searchMenu &&
+      options.searchMenu() &&
+      options.searchMenu().clearText
+    ) {
       options.searchMenu().clearText();
     }
     graph.clearGraphData();
-    
-    if ( init ) {
+
+    if (init) {
       force.stop();
       return;
     }
-    
+
     seenEditorHint = false;
     parser.parse(options.data());
     unfilteredData = {
       nodes: parser.nodes(),
-      properties: parser.properties()
+      properties: parser.properties(),
     };
     // fixing class and property id counter for the editor
     eN = unfilteredData.nodes.length + 1;
     eP = unfilteredData.properties.length + 1;
-    
-    
+
     // using the ids of elements if to ensure that loaded elements will not get the same id;
-    for ( let p = 0; p < unfilteredData.properties.length; p++ ) {
+    for (let p = 0; p < unfilteredData.properties.length; p++) {
       const currentId = unfilteredData.properties[p].id();
-      if ( currentId.indexOf('objectProperty') !== -1 ) {
+      if (currentId.indexOf("objectProperty") !== -1) {
         // could be ours;
-        const idStr = currentId.split('objectProperty');
-        if ( idStr[0].length === 0 ) {
+        const idStr = currentId.split("objectProperty");
+        if (idStr[0].length === 0) {
           const idInt = parseInt(idStr[1]);
-          if ( eP < idInt ) {
+          if (eP < idInt) {
             eP = idInt + 1;
           }
         }
       }
     }
     // using the ids of elements if to ensure that loaded elements will not get the same id;
-    for ( let n = 0; n < unfilteredData.nodes.length; n++ ) {
+    for (let n = 0; n < unfilteredData.nodes.length; n++) {
       const currentId_Nodes = unfilteredData.nodes[n].id();
-      if ( currentId_Nodes.indexOf('Class') !== -1 ) {
+      if (currentId_Nodes.indexOf("Class") !== -1) {
         // could be ours;
-        const idStr_Nodes = currentId_Nodes.split('Class');
-        if ( idStr_Nodes[0].length === 0 ) {
+        const idStr_Nodes = currentId_Nodes.split("Class");
+        if (idStr_Nodes[0].length === 0) {
           const idInt_Nodes = parseInt(idStr_Nodes[1]);
-          if ( eN < idInt_Nodes ) {
+          if (eN < idInt_Nodes) {
             eN = idInt_Nodes + 1;
           }
         }
       }
     }
-    
+
     initialLoad = true;
-    
+
     // loading handler
     updateRenderingDuringSimulation = true;
-    const validOntology = graph.options().loadingModule().successfullyLoadedOntology();
-    if ( graphContainer && validOntology === true ) {
-      
+    const validOntology = graph
+      .options()
+      .loadingModule()
+      .successfullyLoadedOntology();
+    if (graphContainer && validOntology === true) {
       updateRenderingDuringSimulation = false;
       loadingModule.markRendering();
-      graph.options().ontologyMenu().append_bulletPoint("Generating visualization ... ");
+      graph
+        .options()
+        .ontologyMenu()
+        .append_bulletPoint("Generating visualization ... ");
       loadingModule.setPercentMode();
-      
-      if ( unfilteredData.nodes.length > 0 ) {
+
+      if (unfilteredData.nodes.length > 0) {
         graphContainer.classed("is-render-pending", true);
         force.on("tick", hiddenRecalculatePositions);
       } else {
         graphContainer.classed("is-render-pending", false);
-        if ( showFPS === true ) {
+        if (showFPS === true) {
           force.on("tick", recalculatePositionsWithFPS);
-        }
-        else {
+        } else {
           force.on("tick", recalculatePositions);
         }
         loadingModule.setPercentValue(100);
         graph.options().ontologyMenu().append_message_toLastBulletPoint("done");
-        if ( loadingModule.missingImportsWarning() === false ) {
+        if (loadingModule.missingImportsWarning() === false) {
           loadingModule.hideLoadingIndicator();
-          graph.options().ontologyMenu().append_bulletPoint("Successfully loaded ontology");
+          graph
+            .options()
+            .ontologyMenu()
+            .append_bulletPoint("Successfully loaded ontology");
           loadingModule.setSuccessful();
         } else {
           loadingModule.showWarningDetailsMessage();
-          graph.options().ontologyMenu().append_bulletPoint("Loaded ontology with warnings");
+          graph
+            .options()
+            .ontologyMenu()
+            .append_bulletPoint("Loaded ontology with warnings");
         }
         loadingModule.markReady();
       }
-      
+
       force.alpha(1).restart();
     } else {
       force.stop();
-      graph.options().ontologyMenu().append_bulletPoint("Failed to load ontology");
+      graph
+        .options()
+        .ontologyMenu()
+        .append_bulletPoint("Failed to load ontology");
       loadingModule.setErrorMode();
       loadingModule.markError();
     }
@@ -1790,41 +2055,55 @@ function createGraph( graphContainerSelector ){
     graph.options().clearMetaObject();
     graph.options().clearGeneralMetaObject();
     graph.options().editSidebar().clearMetaObjectValue();
-    if ( options.data() !== undefined ) {
+    if (options.data() !== undefined) {
       const header = options.data().header;
-      if ( header ) {
-        if ( header.iri ) {
+      if (header) {
+        if (header.iri) {
           graph.options().addOrUpdateGeneralObjectEntry("iri", header.iri);
         }
-        if ( header.title ) {
+        if (header.title) {
           graph.options().addOrUpdateGeneralObjectEntry("title", header.title);
         }
-        if ( header.author ) {
-          graph.options().addOrUpdateGeneralObjectEntry("author", header.author);
+        if (header.author) {
+          graph
+            .options()
+            .addOrUpdateGeneralObjectEntry("author", header.author);
         }
-        if ( header.version ) {
-          graph.options().addOrUpdateGeneralObjectEntry("version", header.version);
+        if (header.version) {
+          graph
+            .options()
+            .addOrUpdateGeneralObjectEntry("version", header.version);
         }
-        if ( header.description ) {
-          graph.options().addOrUpdateGeneralObjectEntry("description", header.description);
+        if (header.description) {
+          graph
+            .options()
+            .addOrUpdateGeneralObjectEntry("description", header.description);
         }
-        if ( header.prefixList ) {
+        if (header.prefixList) {
           const pL = header.prefixList;
-          for ( const pr in pL ) {
-            if ( Object.prototype.hasOwnProperty.call(pL, pr) ) {
+          for (const pr in pL) {
+            if (Object.prototype.hasOwnProperty.call(pL, pr)) {
               const val = pL[pr];
               graph.options().addPrefix(pr, val);
             }
           }
         }
         // get other metadata;
-        if ( header.other ) {
+        if (header.other) {
           const otherObjects = header.other;
-          for ( const name in otherObjects ) {
-            if ( Object.prototype.hasOwnProperty.call(otherObjects, name) ) {
+          for (const name in otherObjects) {
+            if (Object.prototype.hasOwnProperty.call(otherObjects, name)) {
               const otherObj = otherObjects[name];
-              if ( Object.prototype.hasOwnProperty.call(otherObj, "identifier") && Object.prototype.hasOwnProperty.call(otherObj, "value") ) {
-                graph.options().addOrUpdateMetaObjectEntry(otherObj.identfier, otherObj.value);
+              if (
+                Object.prototype.hasOwnProperty.call(otherObj, "identifier") &&
+                Object.prototype.hasOwnProperty.call(otherObj, "value")
+              ) {
+                graph
+                  .options()
+                  .addOrUpdateMetaObjectEntry(
+                    otherObj.identfier,
+                    otherObj.value,
+                  );
               }
             }
           }
@@ -1834,15 +2113,15 @@ function createGraph( graphContainerSelector ){
     // update more meta OBJECT
     // Initialize filters with data to replicate consecutive filtering
     let initializationData = _.clone(unfilteredData);
-    options.filterModules().forEach(function ( module ){
+    options.filterModules().forEach(function (module) {
       initializationData = filterFunction(module, initializationData, true);
     });
     // generate dictionary here ;
     generateDictionary(unfilteredData);
-    
+
     parser.parseSettings();
     centerGraphViewOnLoad = true;
-    if ( parser.settingsImportGraphZoomAndTranslation() === true ) {
+    if (parser.settingsImportGraphZoomAndTranslation() === true) {
       centerGraphViewOnLoad = false;
     }
     graph.options().searchMenu().requestDictionaryUpdate();
@@ -1850,45 +2129,52 @@ function createGraph( graphContainerSelector ){
     graph.options().editSidebar().updatePrefixUi();
     graph.options().editSidebar().updateElementWidth();
   }
-  
-  graph.handleOnLoadingError = function (){
+
+  graph.handleOnLoadingError = function () {
     force.stop();
     graph.clearGraphData();
-    graph.options().ontologyMenu().append_bulletPoint("Failed to load ontology");
+    graph
+      .options()
+      .ontologyMenu()
+      .append_bulletPoint("Failed to load ontology");
     graph.options().loadingModule().setErrorMode();
     graph.options().loadingModule().markError();
     graph.options().loadingModule().showErrorDetailsMessage();
-    if ( graph.options().resetMenu() ) { graph.options().resetMenu().setMenuMode(false); }
-    if ( graph.options().pausedMenu() ) { graph.options().pausedMenu().setMenuMode(false); }
+    if (graph.options().resetMenu()) {
+      graph.options().resetMenu().setMenuMode(false);
+    }
+    if (graph.options().pausedMenu()) {
+      graph.options().pausedMenu().setMenuMode(false);
+    }
   };
-  
-  function quick_refreshGraphData(){
+
+  function quick_refreshGraphData() {
     links = linkCreator.createLinks(properties);
-    labelNodes = links.map(function ( link ){
+    labelNodes = links.map(function (link) {
       return link.label();
     });
-    
+
     storeLinksOnNodes(classNodes, links);
     setForceLayoutData(classNodes, labelNodes, links);
   }
-  
+
   //Applies the data of the graph options object and parses it. The graph is not redrawn.
-  function refreshGraphData(){
+  function refreshGraphData() {
     const shouldExecuteEmptyFilter = options.literalFilter().enabled();
     graph.executeEmptyLiteralFilter();
     options.literalFilter().enabled(shouldExecuteEmptyFilter);
-    
+
     let preprocessedData = _.clone(unfilteredData);
-    
+
     // Filter the data
-    options.filterModules().forEach(function ( module ){
+    options.filterModules().forEach(function (module) {
       preprocessedData = filterFunction(module, preprocessedData);
     });
     options.focuserModule().handle(null, undefined, true);
     classNodes = preprocessedData.nodes;
     properties = preprocessedData.properties;
     links = linkCreator.createLinks(properties);
-    labelNodes = links.map(function ( link ){
+    labelNodes = links.map(function (link) {
       return link.label();
     });
     storeLinksOnNodes(classNodes, links);
@@ -1898,65 +2184,64 @@ function createGraph( graphContainerSelector ){
     //         classNodes[i].setRectangularRepresentation(graph.options().rectangularRepresentation());
     // }
   }
-  
-  function filterFunction( module, data, initializing ){
+
+  function filterFunction(module, data, initializing) {
     links = linkCreator.createLinks(data.properties);
     storeLinksOnNodes(data.nodes, links);
-    
-    if ( initializing ) {
-      if ( module.initialize ) {
+
+    if (initializing) {
+      if (module.initialize) {
         module.initialize(data.nodes, data.properties);
       }
     }
     module.filter(data.nodes, data.properties);
     return {
       nodes: module.filteredNodes(),
-      properties: module.filteredProperties()
+      properties: module.filteredProperties(),
     };
   }
-  
-  
+
   /** --------------------------------------------------------- **/
   /** -- force-layout related functions                      -- **/
   /** --------------------------------------------------------- **/
-  function storeLinksOnNodes( nodes, links ){
-    for ( let i = 0, nodesLength = nodes.length; i < nodesLength; i++ ) {
+  function storeLinksOnNodes(nodes, links) {
+    for (let i = 0, nodesLength = nodes.length; i < nodesLength; i++) {
       const node = nodes[i],
         connectedLinks = [];
-      
+
       // look for properties where this node is the domain or range
-      for ( let j = 0, linksLength = links.length; j < linksLength; j++ ) {
+      for (let j = 0, linksLength = links.length; j < linksLength; j++) {
         const link = links[j];
-        
-        if ( link.domain() === node || link.range() === node ) {
+
+        if (link.domain() === node || link.range() === node) {
           connectedLinks.push(link);
         }
       }
       node.links(connectedLinks);
     }
   }
-  
-  function setForceLayoutData( classNodes, labelNodes, links ){
+
+  function setForceLayoutData(classNodes, labelNodes, links) {
     let d3Links = [];
-    links.forEach(function ( link ){
+    links.forEach(function (link) {
       d3Links = d3Links.concat(link.linkParts());
     });
-    
+
     const d3Nodes = [].concat(classNodes).concat(labelNodes);
     setPositionOfOldLabelsOnNewLabels(force.nodes(), labelNodes);
-    
+
     force.nodes(d3Nodes);
     forceLink.links(d3Links);
     force.force("link", forceLink);
   }
-  
+
   // The label nodes are positioned randomly, because they are created from scratch if the data changes and lose
   // their position information. With this hack the position of old labels is copied to the new labels.
-  function setPositionOfOldLabelsOnNewLabels( oldLabelNodes, labelNodes ){
-    labelNodes.forEach(function ( labelNode ){
-      for ( let i = 0; i < oldLabelNodes.length; i++ ) {
+  function setPositionOfOldLabelsOnNewLabels(oldLabelNodes, labelNodes) {
+    labelNodes.forEach(function (labelNode) {
+      for (let i = 0; i < oldLabelNodes.length; i++) {
         const oldNode = oldLabelNodes[i];
-        if ( oldNode.equals(labelNode) ) {
+        if (oldNode.equals(labelNode)) {
           labelNode.x = oldNode.x;
           labelNode.y = oldNode.y;
           labelNode.px = oldNode.px;
@@ -1966,110 +2251,139 @@ function createGraph( graphContainerSelector ){
       }
     });
   }
-  
+
   // Applies all options that don't change the graph data.
-  function refreshGraphStyle(){
-    zoom = zoom.scaleExtent([options.minMagnification(), options.maxMagnification()]);
-    if ( graphContainer ) {
-      const svgNode = graphContainer.node() ? graphContainer.node().parentNode : null;
+  function refreshGraphStyle() {
+    zoom = zoom.scaleExtent([
+      options.minMagnification(),
+      options.maxMagnification(),
+    ]);
+    if (graphContainer) {
+      const svgNode = graphContainer.node()
+        ? graphContainer.node().parentNode
+        : null;
       if (svgNode) {
-          d3.select(svgNode).call(zoom.transform, d3.zoomIdentity.translate(graphTranslation[0], graphTranslation[1]).scale(zoomFactor));
+        d3.select(svgNode).call(
+          zoom.transform,
+          d3.zoomIdentity
+            .translate(graphTranslation[0], graphTranslation[1])
+            .scale(zoomFactor),
+        );
       }
     }
-    
-    force.force("charge", d3.forceManyBody().strength(function ( element ){
-      let charge = options.charge();
-      if ( elementTools.isLabel(element) ) {
-        charge *= 0.8;
-      }
-      return charge;
-    }))
-      .force("center", d3.forceCenter(options.width() / 2, options.height() / 2))
+
+    force
+      .force(
+        "charge",
+        d3.forceManyBody().strength(function (element) {
+          let charge = options.charge();
+          if (elementTools.isLabel(element)) {
+            charge *= 0.8;
+          }
+          return charge;
+        }),
+      )
+      .force(
+        "center",
+        d3.forceCenter(options.width() / 2, options.height() / 2),
+      )
       .force("x", d3.forceX(options.width() / 2).strength(options.gravity()))
       .force("y", d3.forceY(options.height() / 2).strength(options.gravity()));
 
     forceLink
       .distance(calculateLinkPartDistance)
       .strength(options.linkStrength()); // Flexibility of links
-    
-    force.nodes().forEach(function ( n ){
+
+    force.nodes().forEach(function (n) {
       n.frozen(paused);
     });
   }
-  
-  function calculateLinkPartDistance( linkPart ){
+
+  function calculateLinkPartDistance(linkPart) {
     const link = linkPart.link();
-    
-    if ( link.isLoop() ) {
+
+    if (link.isLoop()) {
       return options.loopDistance();
     }
-    
+
     // divide by 2 to receive the length for a single link part
     let linkPartDistance = getVisibleLinkDistance(link) / 2;
     linkPartDistance += linkPart.domain().actualRadius();
     linkPartDistance += linkPart.range().actualRadius();
     return linkPartDistance;
   }
-  
-  function getVisibleLinkDistance( link ){
-    if ( elementTools.isDatatype(link.domain()) || elementTools.isDatatype(link.range()) ) {
+
+  function getVisibleLinkDistance(link) {
+    if (
+      elementTools.isDatatype(link.domain()) ||
+      elementTools.isDatatype(link.range())
+    ) {
       return options.datatypeDistance();
     } else {
       return options.classDistance();
     }
   }
-  
+
   /** --------------------------------------------------------- **/
   /** -- animation functions for the nodes --                   **/
   /** --------------------------------------------------------- **/
-  
-  graph.animateDynamicLabelWidth = function (){
+
+  graph.animateDynamicLabelWidth = function () {
     const wantedWidth = options.dynamicLabelWidth();
     let i;
-    for ( i = 0; i < classNodes.length; i++ ) {
+    for (i = 0; i < classNodes.length; i++) {
       const nodeElement = classNodes[i];
-      if ( elementTools.isDatatype(nodeElement) ) {
+      if (elementTools.isDatatype(nodeElement)) {
         nodeElement.animateDynamicLabelWidth(wantedWidth);
       }
     }
-    for ( i = 0; i < properties.length; i++ ) {
+    for (i = 0; i < properties.length; i++) {
       properties[i].animateDynamicLabelWidth(wantedWidth);
     }
   };
-  
-  
+
   /** --------------------------------------------------------- **/
   /** -- halo and localization functions --                     **/
   /** --------------------------------------------------------- **/
-  function updateHaloRadius(){
-    if ( pulseNodeIds && pulseNodeIds.length > 0 ) {
+  function updateHaloRadius() {
+    if (pulseNodeIds && pulseNodeIds.length > 0) {
       const forceNodes = force.nodes();
-      for ( let i = 0; i < pulseNodeIds.length; i++ ) {
+      for (let i = 0; i < pulseNodeIds.length; i++) {
         const node = forceNodes[pulseNodeIds[i]];
-        if ( node ) {
-          if ( node.property ) {
+        if (node) {
+          if (node.property) {
             // match search strings with property label
-            if ( node.property().inverse ) {
-              const searchString = graph.options().searchMenu().getSearchString().toLowerCase();
-              const name = node.property().labelForCurrentLanguage().toLowerCase();
-              if ( name === searchString ) {computeDistanceToCenter(node);}
-              else {
+            if (node.property().inverse) {
+              const searchString = graph
+                .options()
+                .searchMenu()
+                .getSearchString()
+                .toLowerCase();
+              const name = node
+                .property()
+                .labelForCurrentLanguage()
+                .toLowerCase();
+              if (name === searchString) {
+                computeDistanceToCenter(node);
+              } else {
                 node.property().removeHalo();
-                if ( node.property().inverse() ) {
-                  if ( !node.property().inverse().getHalos() )
-                    {node.property().inverse().drawHalo();}
+                if (node.property().inverse()) {
+                  if (!node.property().inverse().getHalos()) {
+                    node.property().inverse().drawHalo();
+                  }
                   computeDistanceToCenter(node, true);
                 }
-                if ( node.property().equivalents() ) {
+                if (node.property().equivalents()) {
                   const eq = node.property().equivalents();
-                  for ( let e = 0; e < eq.length; e++ ) {
-                    if ( !eq[e].getHalos() )
-                      {eq[e].drawHalo();}
+                  for (let e = 0; e < eq.length; e++) {
+                    if (!eq[e].getHalos()) {
+                      eq[e].drawHalo();
+                    }
                   }
-                  if ( !node.property().getHalos() )
-                    {node.property().drawHalo();}
+                  if (!node.property().getHalos()) {
+                    node.property().drawHalo();
+                  }
                   computeDistanceToCenter(node, false);
-                  
                 }
               }
             }
@@ -2079,31 +2393,35 @@ function createGraph( graphContainerSelector ){
       }
     }
   }
-  
-  function getScreenCoords( x, y, translate, scale ){
+
+  function getScreenCoords(x, y, translate, scale) {
     const xn = translate[0] + x * scale;
     const yn = translate[1] + y * scale;
     return { x: xn, y: yn };
   }
-  
-  function getClickedScreenCoords( x, y, translate, scale ){
+
+  function getClickedScreenCoords(x, y, translate, scale) {
     const xn = (x - translate[0]) / scale;
     const yn = (y - translate[1]) / scale;
     return { x: xn, y: yn };
   }
-  
-  
-  function computeDistanceToCenter( node, inverse ){
+
+  function computeDistanceToCenter(node, inverse) {
     let container = node;
     const w = graph.options().width();
     const h = graph.options().height();
     let posXY = getScreenCoords(node.x, node.y, graphTranslation, zoomFactor);
-    
+
     let highlightOfInv = false;
-    
-    if ( inverse && inverse === true ) {
+
+    if (inverse && inverse === true) {
       highlightOfInv = true;
-      posXY = getScreenCoords(node.x, node.y + 20, graphTranslation, zoomFactor);
+      posXY = getScreenCoords(
+        node.x,
+        node.y + 20,
+        graphTranslation,
+        zoomFactor,
+      );
     }
     const x = posXY.x;
     const y = posXY.y;
@@ -2116,59 +2434,66 @@ function createGraph( graphContainerSelector ){
     let defaultRadius;
     const offset = 15;
     let radius;
-    
-    if ( node.property && highlightOfInv === true ) {
-      if ( node.property().inverse() ) {
+
+    if (node.property && highlightOfInv === true) {
+      if (node.property().inverse()) {
         rectHalo = node.property().inverse().getHalos().select("rect");
-        
       } else {
-        if ( node.property().getHalos() )
-          {rectHalo = node.property().getHalos().select("rect");}
-        else {
+        if (node.property().getHalos()) {
+          rectHalo = node.property().getHalos().select("rect");
+        } else {
           node.property().drawHalo();
           rectHalo = node.property().getHalos().select("rect");
         }
       }
       rectHalo.classed("hidden", true);
-      if ( node.property().inverse() ) {
-        if ( node.property().inverse().getHalos() ) {
+      if (node.property().inverse()) {
+        if (node.property().inverse().getHalos()) {
           roundHalo = node.property().inverse().getHalos().select("circle");
         }
       } else {
         roundHalo = node.property().getHalos().select("circle");
       }
-      if ( roundHalo.node() === null ) {
+      if (roundHalo.node() === null) {
         radius = node.property().inverse().width() + 15;
-        
-        roundHalo = node.property().inverse().getHalos().append("circle")
+
+        roundHalo = node
+          .property()
+          .inverse()
+          .getHalos()
+          .append("circle")
           .classed("searchResultB", true)
           .classed("searchResultA", false)
           .attr("r", radius + 15);
-        
       }
       halo = roundHalo; // swap the halo to be round
       nodeIsRect = true;
       container = node.property().inverse();
     }
-    
-    if ( node.id ) {
-      if ( !node.getHalos() ) {return;} // something went wrong before
+
+    if (node.id) {
+      if (!node.getHalos()) {
+        return;
+      } // something went wrong before
       halo = node.getHalos().select("rect");
-      if ( halo.node() === null ) {
+      if (halo.node() === null) {
         // this is a round node
         nodeIsRect = false;
         roundHalo = node.getHalos().select("circle");
         defaultRadius = node.actualRadius();
         roundHalo.attr("r", defaultRadius + offset);
         halo = roundHalo;
-      } else { // this is a rect node
+      } else {
+        // this is a rect node
         nodeIsRect = true;
         rectHalo = node.getHalos().select("rect");
         rectHalo.classed("hidden", true);
         roundHalo = node.getHalos().select("circle");
-        if ( roundHalo.node() === null ) {
+        if (roundHalo.node() === null) {
           radius = node.width();
-          roundHalo = node.getHalos().append("circle")
+          roundHalo = node
+            .getHalos()
+            .append("circle")
             .classed("searchResultB", true)
             .classed("searchResultA", false)
             .attr("r", radius + offset);
@@ -2176,51 +2501,55 @@ function createGraph( graphContainerSelector ){
         halo = roundHalo;
       }
     }
-    if ( node.property && !inverse ) {
-      if ( !node.property().getHalos() ) {return;} // something went wrong before
+    if (node.property && !inverse) {
+      if (!node.property().getHalos()) {
+        return;
+      } // something went wrong before
       rectHalo = node.property().getHalos().select("rect");
       rectHalo.classed("hidden", true);
-      
+
       roundHalo = node.property().getHalos().select("circle");
-      if ( roundHalo.node() === null ) {
+      if (roundHalo.node() === null) {
         radius = node.property().width();
-        
-        roundHalo = node.property().getHalos().append("circle")
+
+        roundHalo = node
+          .property()
+          .getHalos()
+          .append("circle")
           .classed("searchResultB", true)
           .classed("searchResultA", false)
           .attr("r", radius + 15);
-        
       }
       halo = roundHalo; // swap the halo to be round
       nodeIsRect = true;
       container = node.property();
     }
-    
-    if ( x < 0 || x > w || y < 0 || y > h ) {
+
+    if (x < 0 || x > w || y < 0 || y > h) {
       // node outside viewport;
       // check for quadrant and get the correct boarder point (intersection with viewport)
-      if ( x < 0 && y < 0 ) {
+      if (x < 0 && y < 0) {
         borderPoint_x = 0;
         borderPoint_y = 0;
-      } else if ( x > 0 && x < w && y < 0 ) {
+      } else if (x > 0 && x < w && y < 0) {
         borderPoint_x = x;
         borderPoint_y = 0;
-      } else if ( x > w && y < 0 ) {
+      } else if (x > w && y < 0) {
         borderPoint_x = w;
         borderPoint_y = 0;
-      } else if ( x > w && y > 0 && y < h ) {
+      } else if (x > w && y > 0 && y < h) {
         borderPoint_x = w;
         borderPoint_y = y;
-      } else if ( x > w && y > h ) {
+      } else if (x > w && y > h) {
         borderPoint_x = w;
         borderPoint_y = h;
-      } else if ( x > 0 && x < w && y > h ) {
+      } else if (x > 0 && x < w && y > h) {
         borderPoint_x = x;
         borderPoint_y = h;
-      } else if ( x < 0 && y > h ) {
+      } else if (x < 0 && y > h) {
         borderPoint_x = 0;
         borderPoint_y = h;
-      } else if ( x < 0 && y > 0 && y < h ) {
+      } else if (x < 0 && y > 0 && y < h) {
         borderPoint_x = 0;
         borderPoint_y = y;
       }
@@ -2233,314 +2562,395 @@ function createGraph( graphContainerSelector ){
       // compute in pixel coordinates length of difference vector
       const borderRadius_x = borderPoint_x - x;
       const borderRadius_y = borderPoint_y - y;
-      
-      let len = borderRadius_x * borderRadius_x + borderRadius_y * borderRadius_y;
+
+      let len =
+        borderRadius_x * borderRadius_x + borderRadius_y * borderRadius_y;
       len = Math.sqrt(len);
-      
+
       const normedX = borderRadius_x / len;
       const normedY = borderRadius_y / len;
-      
+
       len = len + 20; // add 20 px;
-      
+
       // re-normalized vector
       const newVectorX = normedX * len + x;
       const newVectorY = normedY * len + y;
       // compute world coordinates of this point
       const wX = (newVectorX - graphTranslation[0]) / zoomFactor;
       const wY = (newVectorY - graphTranslation[1]) / zoomFactor;
-      
+
       // compute distance in world coordinates
       const dx = wX - node.x;
       let dy = wY - node.y;
-      if ( highlightOfInv === true )
-        {dy = wY - node.y - 20;}
-      
-      if ( highlightOfInv === false && node.property && node.property().inverse() )
-        {dy = wY - node.y + 20;}
-      
+      if (highlightOfInv === true) {
+        dy = wY - node.y - 20;
+      }
+
+      if (
+        highlightOfInv === false &&
+        node.property &&
+        node.property().inverse()
+      ) {
+        dy = wY - node.y + 20;
+      }
+
       let newRadius = Math.sqrt(dx * dx + dy * dy);
       halo = container.getHalos().select("circle");
       // sanity checks and setting new halo radius
-      if ( !nodeIsRect ) {
+      if (!nodeIsRect) {
         defaultRadius = node.actualRadius() + offset;
-        if ( newRadius < defaultRadius ) {
+        if (newRadius < defaultRadius) {
           newRadius = defaultRadius;
         }
         halo.attr("r", newRadius);
       } else {
         defaultRadius = 0.5 * container.width();
-        if ( newRadius < defaultRadius )
-          {newRadius = defaultRadius;}
+        if (newRadius < defaultRadius) {
+          newRadius = defaultRadius;
+        }
         halo.attr("r", newRadius);
       }
-    } else { // node is in viewport , render original;
+    } else {
+      // node is in viewport , render original;
       // reset the halo to original radius
       defaultRadius = node.actualRadius() + 15;
-      if ( !nodeIsRect ) {
+      if (!nodeIsRect) {
         halo.attr("r", defaultRadius);
-      } else { // this is rectangular node render as such
+      } else {
+        // this is rectangular node render as such
         halo = container.getHalos().select("rect");
         halo.classed("hidden", false);
         //halo.classed("searchResultB", true);
         //halo.classed("searchResultA", false);
         const aCircHalo = container.getHalos().select("circle");
         aCircHalo.classed("hidden", true);
-        
+
         container.getHalos().select("rect").classed("hidden", false);
         container.getHalos().select("circle").classed("hidden", true);
       }
     }
   }
-  
-  function transform( p, cx, cy ){
+
+  function transform(p, cx, cy) {
     // one iteration step for the locate target animation
-    if ( !p || p.length < 3 || !Number.isFinite(p[0]) || !Number.isFinite(p[1]) ||
-      !Number.isFinite(p[2]) || p[2] <= 0 || !Number.isFinite(cx) || !Number.isFinite(cy) ) {
+    if (
+      !p ||
+      p.length < 3 ||
+      !Number.isFinite(p[0]) ||
+      !Number.isFinite(p[1]) ||
+      !Number.isFinite(p[2]) ||
+      p[2] <= 0 ||
+      !Number.isFinite(cx) ||
+      !Number.isFinite(cy)
+    ) {
       return viewportTransformString();
     }
     const nextZoom = viewportTransform.normalizeZoom(
       graph.options().height() / p[2],
       options.minMagnification(),
-      options.maxMagnification()
+      options.maxMagnification(),
     );
-    if ( nextZoom === undefined ) {return viewportTransformString();}
-    const nextTranslation = [(cx - p[0] * nextZoom), (cy - p[1] * nextZoom)];
-    if ( !updateViewportState(nextTranslation, nextZoom) ) {return viewportTransformString();}
+    if (nextZoom === undefined) {
+      return viewportTransformString();
+    }
+    const nextTranslation = [cx - p[0] * nextZoom, cy - p[1] * nextZoom];
+    if (!updateViewportState(nextTranslation, nextZoom)) {
+      return viewportTransformString();
+    }
     updateHaloRadius();
     graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
     return viewportTransformString();
   }
-  
-  graph.zoomToElementInGraph = function ( element ){
+
+  graph.zoomToElementInGraph = function (element) {
     targetLocationZoom(element);
   };
-  graph.updateHaloRadius = function ( element ){
+  graph.updateHaloRadius = function (element) {
     computeDistanceToCenter(element);
   };
-  
-  function targetLocationZoom( target ){
-    if ( !target || !Number.isFinite(target.x) || !Number.isFinite(target.y) || !graphContainer ) {return;}
+
+  function targetLocationZoom(target) {
+    if (
+      !target ||
+      !Number.isFinite(target.x) ||
+      !Number.isFinite(target.y) ||
+      !graphContainer
+    ) {
+      return;
+    }
     // store the original information
     const cx = 0.5 * graph.options().width();
     const cy = 0.5 * graph.options().height();
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
     const sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
-    
-    const zoomLevel = Math.max(defaultZoom + 0.5 * defaultZoom, defaultTargetZoom);
+
+    const zoomLevel = Math.max(
+      defaultZoom + 0.5 * defaultZoom,
+      defaultTargetZoom,
+    );
     const eP = [target.x, target.y, graph.options().height() / zoomLevel];
     const pos_intp = d3.interpolateZoom(sP, eP);
-    
+
     let lenAnimation = pos_intp.duration;
-    if ( lenAnimation > 2500 ) {
+    if (lenAnimation > 2500) {
       lenAnimation = 2500;
     }
-    
-    graphContainer.attr("transform", transform(sP, cx, cy))
+
+    graphContainer
+      .attr("transform", transform(sP, cx, cy))
       .transition()
       .duration(lenAnimation)
-      .attrTween("transform", function (){
-        return function ( t ){
+      .attrTween("transform", function () {
+        return function (t) {
           return transform(pos_intp(t), cx, cy);
         };
       })
-      .on("end", function (){
+      .on("end", function () {
         graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
         updateHaloRadius();
       });
   }
-  
-  function getWorldPosFromScreen( x, y, translate, scale ){
+
+  function getWorldPosFromScreen(x, y, translate, scale) {
     const normalizedScale = viewportTransform.normalizeZoom(scale);
-    const normalizedTranslation = viewportTransform.normalizeTranslation(translate);
-    if ( normalizedScale === undefined || !normalizedTranslation || !Number.isFinite(x) || !Number.isFinite(y) ) {
+    const normalizedTranslation =
+      viewportTransform.normalizeTranslation(translate);
+    if (
+      normalizedScale === undefined ||
+      !normalizedTranslation ||
+      !Number.isFinite(x) ||
+      !Number.isFinite(y)
+    ) {
       return { x: 0, y: 0 };
     }
     return {
       x: (x - normalizedTranslation[0]) / normalizedScale,
-      y: (y - normalizedTranslation[1]) / normalizedScale
+      y: (y - normalizedTranslation[1]) / normalizedScale,
     };
   }
-  
-  graph.locateSearchResult = function (){
-    if ( pulseNodeIds && pulseNodeIds.length > 0 ) {
+
+  graph.locateSearchResult = function () {
+    if (pulseNodeIds && pulseNodeIds.length > 0) {
       // move the center of the viewport to this location
-      if ( transformAnimation === true ) {return;} // << prevents incrementing the location id if we are in an animation
+      if (transformAnimation === true) {
+        return;
+      } // << prevents incrementing the location id if we are in an animation
       const node = force.nodes()[pulseNodeIds[locationId]];
       locationId++;
       locationId = locationId % pulseNodeIds.length;
-      if ( node.id ) {node.foreground();}
-      if ( node.property ) {node.property().foreground();}
-      
+      if (node.id) {
+        node.foreground();
+      }
+      if (node.property) {
+        node.property().foreground();
+      }
+
       targetLocationZoom(node);
     }
   };
-  
-  graph.resetSearchHighlight = function (){
+
+  graph.resetSearchHighlight = function () {
     // get all nodes (handle also already filtered nodes )
     pulseNodeIds = [];
     nodeArrayForPulse = [];
-    if ( !unfilteredData || !unfilteredData.nodes || !unfilteredData.properties ) {
+    if (
+      !unfilteredData ||
+      !unfilteredData.nodes ||
+      !unfilteredData.properties
+    ) {
       return;
     }
     // clear from stored nodes
     const nodes = unfilteredData.nodes;
     const props = unfilteredData.properties;
     let j;
-    for ( j = 0; j < nodes.length; j++ ) {
+    for (j = 0; j < nodes.length; j++) {
       const node = nodes[j];
-      if ( node && node.removeHalo )
-        {node.removeHalo();}
+      if (node && node.removeHalo) {
+        node.removeHalo();
+      }
     }
-    for ( j = 0; j < props.length; j++ ) {
+    for (j = 0; j < props.length; j++) {
       const prop = props[j];
-      if ( prop && prop.removeHalo )
-        {prop.removeHalo();}
+      if (prop && prop.removeHalo) {
+        prop.removeHalo();
+      }
     }
   };
-  
-  graph.updatePulseIds = function ( nodeIdArray ){
+
+  graph.updatePulseIds = function (nodeIdArray) {
     pulseNodeIds = [];
-    for ( let i = 0; i < nodeIdArray.length; i++ ) {
+    for (let i = 0; i < nodeIdArray.length; i++) {
       const selectedId = nodeIdArray[i];
       const forceId = nodeMap[selectedId];
-      if ( forceId !== undefined ) {
+      if (forceId !== undefined) {
         const le_node = force.nodes()[forceId];
-        if ( le_node.id ) {
-          if ( pulseNodeIds.indexOf(forceId) === -1 ) {
+        if (le_node.id) {
+          if (pulseNodeIds.indexOf(forceId) === -1) {
             pulseNodeIds.push(forceId);
           }
         }
-        if ( le_node.property ) {
-          if ( pulseNodeIds.indexOf(forceId) === -1 ) {
+        if (le_node.property) {
+          if (pulseNodeIds.indexOf(forceId) === -1) {
             pulseNodeIds.push(forceId);
           }
         }
       }
     }
     locationId = 0;
-    if ( options.searchMenu && options.searchMenu() && options.searchMenu().updateLocateButtonVisibility ) {
-      options.searchMenu().updateLocateButtonVisibility(pulseNodeIds.length > 0);
+    if (
+      options.searchMenu &&
+      options.searchMenu() &&
+      options.searchMenu().updateLocateButtonVisibility
+    ) {
+      options
+        .searchMenu()
+        .updateLocateButtonVisibility(pulseNodeIds.length > 0);
     }
   };
-  
-  graph.highLightNodes = function ( nodeIdArray ){
-    if ( !nodeIdArray || nodeIdArray.length === 0 || !unfilteredData || !unfilteredData.nodes || !unfilteredData.properties ) {
+
+  graph.highLightNodes = function (nodeIdArray) {
+    if (
+      !nodeIdArray ||
+      nodeIdArray.length === 0 ||
+      !unfilteredData ||
+      !unfilteredData.nodes ||
+      !unfilteredData.properties
+    ) {
       return; // nothing to highlight
     }
     pulseNodeIds = [];
     nodeArrayForPulse = nodeIdArray;
     const missedIds = [];
-    
+
     // identify the force id to highlight
-    for ( let i = 0; i < nodeIdArray.length; i++ ) {
+    for (let i = 0; i < nodeIdArray.length; i++) {
       const selectedId = nodeIdArray[i];
       const forceId = nodeMap[selectedId];
-      if ( forceId !== undefined ) {
+      if (forceId !== undefined) {
         const le_node = force.nodes()[forceId];
-        if ( le_node.id ) {
-          if ( pulseNodeIds.indexOf(forceId) === -1 ) {
+        if (le_node.id) {
+          if (pulseNodeIds.indexOf(forceId) === -1) {
             pulseNodeIds.push(forceId);
             le_node.foreground();
             le_node.drawHalo();
           }
         }
-        if ( le_node.property ) {
-          if ( pulseNodeIds.indexOf(forceId) === -1 ) {
+        if (le_node.property) {
+          if (pulseNodeIds.indexOf(forceId) === -1) {
             pulseNodeIds.push(forceId);
             le_node.property().foreground();
             le_node.property().drawHalo();
           }
         }
-      }
-      else {
+      } else {
         missedIds.push(selectedId);
       }
     }
     // store the highlight on the missed nodes;
     const s_nodes = unfilteredData.nodes;
     const s_props = unfilteredData.properties;
-    for ( let i = 0; i < missedIds.length; i++ ) {
+    for (let i = 0; i < missedIds.length; i++) {
       const missedId = missedIds[i];
       // search for this in the nodes;
-      for ( let n = 0; n < s_nodes.length; n++ ) {
+      for (let n = 0; n < s_nodes.length; n++) {
         const nodeId = s_nodes[n].id();
-        if ( nodeId === missedId ) {
+        if (nodeId === missedId) {
           s_nodes[n].drawHalo();
         }
       }
-      for ( let p = 0; p < s_props.length; p++ ) {
+      for (let p = 0; p < s_props.length; p++) {
         const propId = s_props[p].id();
-        if ( propId === missedId ) {
+        if (propId === missedId) {
           s_props[p].drawHalo();
         }
       }
     }
     locationId = 0;
-    if ( options.searchMenu && options.searchMenu() && options.searchMenu().updateLocateButtonVisibility ) {
-      options.searchMenu().updateLocateButtonVisibility(missedIds.length < nodeIdArray.length);
+    if (
+      options.searchMenu &&
+      options.searchMenu() &&
+      options.searchMenu().updateLocateButtonVisibility
+    ) {
+      options
+        .searchMenu()
+        .updateLocateButtonVisibility(missedIds.length < nodeIdArray.length);
     }
     updateHaloRadius();
   };
-  
-  graph.hideHalos = function (){
+
+  graph.hideHalos = function () {
     const haloElements = d3.selectAll(".searchResultA,.searchResultB");
     haloElements.classed("hidden", true);
     return haloElements;
   };
-  
-  function nodeInViewport( node, property ){
-    
+
+  function nodeInViewport(node, property) {
     const w = graph.options().width();
     const h = graph.options().height();
     const posXY = getScreenCoords(node.x, node.y, graphTranslation, zoomFactor);
     const x = posXY.x;
     const y = posXY.y;
-    
+
     const retVal = !(x < 0 || x > w || y < 0 || y > h);
     return retVal;
   }
-  
-  graph.getBoundingBoxForTex = function (){
+
+  graph.getBoundingBoxForTex = function () {
     const halos = graph.hideHalos();
     const bbox = graphContainer.node().getBoundingClientRect();
     halos.classed("hidden", false);
     const w = graph.options().width();
     const h = graph.options().height();
-    
+
     // get the graph coordinates
     const topLeft = getWorldPosFromScreen(0, 0, graphTranslation, zoomFactor);
     const botRight = getWorldPosFromScreen(w, h, graphTranslation, zoomFactor);
-    
-    
-    const t_topLeft = getWorldPosFromScreen(bbox.left, bbox.top, graphTranslation, zoomFactor);
-    const t_botRight = getWorldPosFromScreen(bbox.right, bbox.bottom, graphTranslation, zoomFactor);
-    
+
+    const t_topLeft = getWorldPosFromScreen(
+      bbox.left,
+      bbox.top,
+      graphTranslation,
+      zoomFactor,
+    );
+    const t_botRight = getWorldPosFromScreen(
+      bbox.right,
+      bbox.bottom,
+      graphTranslation,
+      zoomFactor,
+    );
+
     // tighten up the bounding box;
-    
+
     let tX = Math.max(t_topLeft.x, topLeft.x);
     let tY = Math.max(t_topLeft.y, topLeft.y);
-    
+
     let bX = Math.min(t_botRight.x, botRight.x);
     let bY = Math.min(t_botRight.y, botRight.y);
-    
-    
+
     // tighten further;
     const allForceNodes = force.nodes();
     const numNodes = allForceNodes.length;
     let bbx;
-    
-    
-    const contentBBox = { tx: 1000000000000, ty: 1000000000000, bx: -1000000000000, by: -1000000000000 };
-    
-    for ( let i = 0; i < numNodes; i++ ) {
+
+    const contentBBox = {
+      tx: 1000000000000,
+      ty: 1000000000000,
+      bx: -1000000000000,
+      by: -1000000000000,
+    };
+
+    for (let i = 0; i < numNodes; i++) {
       const node = allForceNodes[i];
-      if ( node ) {
-        if ( node.property ) {
-          if ( nodeInViewport(node, true) ) {
-            if ( node.property().labelElement() === undefined ) {continue;}
+      if (node) {
+        if (node.property) {
+          if (nodeInViewport(node, true)) {
+            if (node.property().labelElement() === undefined) {
+              continue;
+            }
             bbx = node.property().labelElement().node().getBoundingClientRect();
-            if ( bbx ) {
+            if (bbx) {
               contentBBox.tx = Math.min(contentBBox.tx, bbx.left);
               contentBBox.bx = Math.max(contentBBox.bx, bbx.right);
               contentBBox.ty = Math.min(contentBBox.ty, bbx.top);
@@ -2548,9 +2958,9 @@ function createGraph( graphContainerSelector ){
             }
           }
         } else {
-          if ( nodeInViewport(node, false) ) {
+          if (nodeInViewport(node, false)) {
             bbx = node.nodeElement().node().getBoundingClientRect();
-            if ( bbx ) {
+            if (bbx) {
               contentBBox.tx = Math.min(contentBBox.tx, bbx.left);
               contentBBox.bx = Math.max(contentBBox.bx, bbx.right);
               contentBBox.ty = Math.min(contentBBox.ty, bbx.top);
@@ -2560,147 +2970,193 @@ function createGraph( graphContainerSelector ){
         }
       }
     }
-    
-    const tt_topLeft = getWorldPosFromScreen(contentBBox.tx, contentBBox.ty, graphTranslation, zoomFactor);
-    const tt_botRight = getWorldPosFromScreen(contentBBox.bx, contentBBox.by, graphTranslation, zoomFactor);
-    
+
+    const tt_topLeft = getWorldPosFromScreen(
+      contentBBox.tx,
+      contentBBox.ty,
+      graphTranslation,
+      zoomFactor,
+    );
+    const tt_botRight = getWorldPosFromScreen(
+      contentBBox.bx,
+      contentBBox.by,
+      graphTranslation,
+      zoomFactor,
+    );
+
     tX = Math.max(tX, tt_topLeft.x);
     tY = Math.max(tY, tt_topLeft.y);
-    
+
     bX = Math.min(bX, tt_botRight.x);
     bY = Math.min(bY, tt_botRight.y);
     // y axis flip for tex
     return [tX, -tY, bX, -bY];
-    
   };
-  
-  const updateTargetElement = function (){
+
+  const updateTargetElement = function () {
     const bbox = graphContainer.node().getBoundingClientRect();
-    
-    
+
     // get the graph coordinates
     const bboxOffset = 50; // default radius of a node;
-    const topLeft = getWorldPosFromScreen(bbox.left, bbox.top, graphTranslation, zoomFactor);
-    const botRight = getWorldPosFromScreen(bbox.right, bbox.bottom, graphTranslation, zoomFactor);
-    
+    const topLeft = getWorldPosFromScreen(
+      bbox.left,
+      bbox.top,
+      graphTranslation,
+      zoomFactor,
+    );
+    const botRight = getWorldPosFromScreen(
+      bbox.right,
+      bbox.bottom,
+      graphTranslation,
+      zoomFactor,
+    );
+
     let w = graph.options().width();
-    if ( graph.options().leftSidebar().isSidebarVisible() === true )
-      {w -= 200;}
+    if (graph.options().leftSidebar().isSidebarVisible() === true) {
+      w -= 200;
+    }
     const h = graph.options().height();
     topLeft.x += bboxOffset;
     topLeft.y -= bboxOffset;
     botRight.x -= bboxOffset;
     botRight.y += bboxOffset;
-    
+
     const g_w = botRight.x - topLeft.x;
     const g_h = botRight.y - topLeft.y;
-    
+
     // endpoint position calculations
     const posX = 0.5 * (topLeft.x + botRight.x);
     const posY = 0.5 * (topLeft.y + botRight.y);
     let cx = 0.5 * w;
     const cy = 0.5 * h;
-    
-    if ( graph.options().leftSidebar().isSidebarVisible() === true )
-      {cx += 200;}
+
+    if (graph.options().leftSidebar().isSidebarVisible() === true) {
+      cx += 200;
+    }
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
-    
+
     // zoom factor calculations and fail safes;
     let newZoomFactor; // fail save if graph and window are squares
     //get the smaller one
     const a = w / g_w;
     const b = h / g_h;
-    if ( a < b ) {newZoomFactor = a;}
-    else      {newZoomFactor = b;}
-    
-    
+    if (a < b) {
+      newZoomFactor = a;
+    } else {
+      newZoomFactor = b;
+    }
+
     // fail saves
-    if ( newZoomFactor > zoom.scaleExtent()[1] ) {
+    if (newZoomFactor > zoom.scaleExtent()[1]) {
       newZoomFactor = zoom.scaleExtent()[1];
     }
-    if ( newZoomFactor < zoom.scaleExtent()[0] ) {
+    if (newZoomFactor < zoom.scaleExtent()[0]) {
       newZoomFactor = zoom.scaleExtent()[0];
     }
-    
+
     // apply Zooming
     const sP = [cp.x, cp.y, h / zoomFactor];
     const eP = [posX, posY, h / newZoomFactor];
-    
-    
+
     const pos_intp = d3.interpolateZoom(sP, eP);
     return [pos_intp, cx, cy];
-    
   };
-  
-  graph.forceRelocationEvent = function ( dynamic ){
-    if ( !graphContainer || !graphContainer.node() ) {return;}
+
+  graph.forceRelocationEvent = function (dynamic) {
+    if (!graphContainer || !graphContainer.node()) {
+      return;
+    }
     // we need to kill the halo to determine the bounding box;
     const halos = graph.hideHalos();
     const bbox = graphContainer.node().getBoundingClientRect();
     halos.classed("hidden", false);
-    
+
     // get the graph coordinates
     const bboxOffset = 50; // default radius of a node;
-    const topLeft = getWorldPosFromScreen(bbox.left, bbox.top, graphTranslation, zoomFactor);
-    const botRight = getWorldPosFromScreen(bbox.right, bbox.bottom, graphTranslation, zoomFactor);
-    
+    const topLeft = getWorldPosFromScreen(
+      bbox.left,
+      bbox.top,
+      graphTranslation,
+      zoomFactor,
+    );
+    const botRight = getWorldPosFromScreen(
+      bbox.right,
+      bbox.bottom,
+      graphTranslation,
+      zoomFactor,
+    );
+
     let w = graph.options().width();
-    if ( graph.options().leftSidebar().isSidebarVisible() === true )
-      {w -= 200;}
+    if (graph.options().leftSidebar().isSidebarVisible() === true) {
+      w -= 200;
+    }
     const h = graph.options().height();
     topLeft.x += bboxOffset;
     topLeft.y -= bboxOffset;
     botRight.x -= bboxOffset;
     botRight.y += bboxOffset;
-    
+
     const g_w = botRight.x - topLeft.x;
     const g_h = botRight.y - topLeft.y;
-    if ( !Number.isFinite(g_w) || !Number.isFinite(g_h) || g_w <= 0 || g_h <= 0 ||
-      !Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0 ) {return;}
-    
+    if (
+      !Number.isFinite(g_w) ||
+      !Number.isFinite(g_h) ||
+      g_w <= 0 ||
+      g_h <= 0 ||
+      !Number.isFinite(w) ||
+      !Number.isFinite(h) ||
+      w <= 0 ||
+      h <= 0
+    ) {
+      return;
+    }
+
     // endpoint position calculations
     const posX = 0.5 * (topLeft.x + botRight.x);
     const posY = 0.5 * (topLeft.y + botRight.y);
     let cx = 0.5 * w;
     const cy = 0.5 * h;
-    
-    if ( graph.options().leftSidebar().isSidebarVisible() === true )
-      {cx += 200;}
+
+    if (graph.options().leftSidebar().isSidebarVisible() === true) {
+      cx += 200;
+    }
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
-    
+
     // zoom factor calculations and fail safes;
     let newZoomFactor; // fail save if graph and window are squares
     //get the smaller one
     const a = w / g_w;
     const b = h / g_h;
-    if ( a < b ) {newZoomFactor = a;}
-    else      {newZoomFactor = b;}
-    
-    
+    if (a < b) {
+      newZoomFactor = a;
+    } else {
+      newZoomFactor = b;
+    }
+
     // fail saves
-    if ( newZoomFactor > zoom.scaleExtent()[1] ) {
+    if (newZoomFactor > zoom.scaleExtent()[1]) {
       newZoomFactor = zoom.scaleExtent()[1];
     }
-    if ( newZoomFactor < zoom.scaleExtent()[0] ) {
+    if (newZoomFactor < zoom.scaleExtent()[0]) {
       newZoomFactor = zoom.scaleExtent()[0];
     }
-    
+
     // apply Zooming
     const sP = [cp.x, cp.y, h / zoomFactor];
     const eP = [posX, posY, h / newZoomFactor];
-    
-    
+
     const pos_intp = d3.interpolateZoom(sP, eP);
     let lenAnimation = pos_intp.duration;
-    if ( lenAnimation > 2500 ) {
+    if (lenAnimation > 2500) {
       lenAnimation = 2500;
     }
-    graphContainer.attr("transform", transform(sP, cx, cy))
+    graphContainer
+      .attr("transform", transform(sP, cx, cy))
       .transition()
       .duration(lenAnimation)
-      .attrTween("transform", function (){
-        return function ( t ){
-          if ( dynamic ) {
+      .attrTween("transform", function () {
+        return function (t) {
+          if (dynamic) {
             const param = updateTargetElement();
             const nV = param[0](t);
             return transform(nV, cx, cy);
@@ -2708,105 +3164,104 @@ function createGraph( graphContainerSelector ){
           return transform(pos_intp(t), cx, cy);
         };
       })
-      .on("end", function (){
-        if ( dynamic ) {
+      .on("end", function () {
+        if (dynamic) {
           return;
         }
-        
+
         graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
         graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
-        
-        
       });
   };
-  
-  
-  graph.isADraggerActive = function (){
-    if ( classDragger.mouseButtonPressed === true ||
+
+  graph.isADraggerActive = function () {
+    if (
+      classDragger.mouseButtonPressed === true ||
       domainDragger.mouseButtonPressed === true ||
-      rangeDragger.mouseButtonPressed === true ) {
+      rangeDragger.mouseButtonPressed === true
+    ) {
       return true;
     }
     return false;
   };
-  
+
   /** --------------------------------------------------------- **/
   /** -- VOWL EDITOR  create/ edit /delete functions --         **/
   /** --------------------------------------------------------- **/
-  
-  graph.changeNodeType = function ( element ){
-    
+
+  graph.changeNodeType = function (element) {
     const typeString = d3.select("#typeEditor").node().value;
-    
-    if ( graph.classesSanityCheck(element, typeString) === false ) {
+
+    if (graph.classesSanityCheck(element, typeString) === false) {
       // call reselection to restore previous type selection
       graph.options().editSidebar().updateSelectionInformation(element);
       return;
     }
-    
+
     const prototype = NodePrototypeMap.get(typeString.toLowerCase());
     const aNode = new prototype(graph);
-    
+
     aNode.x = element.x;
     aNode.y = element.y;
     aNode.px = element.x;
     aNode.py = element.y;
     aNode.id(element.id());
     aNode.copyInformation(element);
-    
-    if ( typeString === "owl:Thing" ) {
+
+    if (typeString === "owl:Thing") {
       aNode.label("Thing");
-    }
-    else if ( elementTools.isDatatype(element) === false ) {
-      if ( element.backupLabel() !== undefined ) {
+    } else if (elementTools.isDatatype(element) === false) {
+      if (element.backupLabel() !== undefined) {
         aNode.label(element.backupLabel());
-      } else if ( aNode.backupLabel() !== undefined ) {
+      } else if (aNode.backupLabel() !== undefined) {
         aNode.label(aNode.backupLabel());
       } else {
         aNode.label("NewClass");
       }
     }
-    
-    if ( typeString === "rdfs:Datatype" ) {
-      if ( aNode.dType() === "undefined" )
-        {aNode.label("undefined");}
-      else {
+
+    if (typeString === "rdfs:Datatype") {
+      if (aNode.dType() === "undefined") {
+        aNode.label("undefined");
+      } else {
         const identifier = aNode.dType().split(":")[1];
         aNode.label(identifier);
       }
     }
     let i;
     // updates the property domain and range
-    for ( i = 0; i < unfilteredData.properties.length; i++ ) {
-      if ( unfilteredData.properties[i].domain() === element ) {
+    for (i = 0; i < unfilteredData.properties.length; i++) {
+      if (unfilteredData.properties[i].domain() === element) {
         //  unfilteredData.properties[i].toString();
         unfilteredData.properties[i].domain(aNode);
       }
-      if ( unfilteredData.properties[i].range() === element ) {
+      if (unfilteredData.properties[i].range() === element) {
         unfilteredData.properties[i].range(aNode);
         //  unfilteredData.properties[i].toString();
       }
     }
-    
+
     // update for fastUpdate:
-    for ( i = 0; i < properties.length; i++ ) {
-      if ( properties[i].domain() === element ) {
+    for (i = 0; i < properties.length; i++) {
+      if (properties[i].domain() === element) {
         //  unfilteredData.properties[i].toString();
         properties[i].domain(aNode);
       }
-      if ( properties[i].range() === element ) {
+      if (properties[i].range() === element) {
         properties[i].range(aNode);
         //  unfilteredData.properties[i].toString();
       }
     }
-    
+
     let remId = unfilteredData.nodes.indexOf(element);
-    if ( remId !== -1 )
-      {unfilteredData.nodes.splice(remId, 1);}
+    if (remId !== -1) {
+      unfilteredData.nodes.splice(remId, 1);
+    }
     remId = classNodes.indexOf(element);
-    if ( remId !== -1 )
-      {classNodes.splice(remId, 1);}
+    if (remId !== -1) {
+      classNodes.splice(remId, 1);
+    }
     // very important thing for selection!;
     addNewNodeElement(aNode);
     // handle focuser!
@@ -2814,40 +3269,54 @@ function createGraph( graphContainerSelector ){
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
   };
-  
-  
-  graph.changePropertyType = function ( element ){
+
+  graph.changePropertyType = function (element) {
     const typeString = d3.select("#typeEditor").node().value;
-    
+
     // create warning
-    if ( graph.sanityCheckProperty(element.domain(), element.range(), typeString) === false ) {return false;}
-    
+    if (
+      graph.sanityCheckProperty(
+        element.domain(),
+        element.range(),
+        typeString,
+      ) === false
+    ) {
+      return false;
+    }
+
     const propPrototype = PropertyPrototypeMap.get(typeString.toLowerCase());
     const aProp = new propPrototype(graph);
     aProp.copyInformation(element);
     aProp.id(element.id());
-    
+
     element.domain().removePropertyElement(element);
     element.range().removePropertyElement(element);
     aProp.domain(element.domain());
     aProp.range(element.range());
-    
-    if ( element.backupLabel() !== undefined ) {
+
+    if (element.backupLabel() !== undefined) {
       aProp.label(element.backupLabel());
     } else {
       aProp.label("newObjectProperty");
     }
-    
-    if ( aProp.type() === "rdfs:subClassOf" ) {
+
+    if (aProp.type() === "rdfs:subClassOf") {
       aProp.iri("http://www.w3.org/2000/01/rdf-schema#subClassOf");
     } else {
-      if ( element.iri() === "http://www.w3.org/2000/01/rdf-schema#subClassOf" )
-        {aProp.iri(graph.options().getGeneralMetaObjectProperty('iri') + aProp.id());}
-      
+      if (element.iri() === "http://www.w3.org/2000/01/rdf-schema#subClassOf") {
+        aProp.iri(
+          graph.options().getGeneralMetaObjectProperty("iri") + aProp.id(),
+        );
+      }
     }
-    
-    
-    if ( graph.propertyCheckExistenceChecker(aProp, element.domain(), element.range()) === false ) {
+
+    if (
+      graph.propertyCheckExistenceChecker(
+        aProp,
+        element.domain(),
+        element.range(),
+      ) === false
+    ) {
       graph.options().editSidebar().updateSelectionInformation(element);
       return;
     }
@@ -2855,88 +3324,96 @@ function createGraph( graphContainerSelector ){
     // var ontoIRI="http://someTest.de";
     // aProp.baseIri(ontoIRI);
     // aProp.iri(aProp.baseIri()+aProp.id());
-    
-    
+
     // add this to the data;
     unfilteredData.properties.push(aProp);
-    if ( properties.indexOf(aProp) === -1 )
-      {properties.push(aProp);}
+    if (properties.indexOf(aProp) === -1) {
+      properties.push(aProp);
+    }
     let remId = unfilteredData.properties.indexOf(element);
-    if ( remId !== -1 )
-      {unfilteredData.properties.splice(remId, 1);}
-    if ( properties.indexOf(aProp) === -1 )
-      {properties.push(aProp);}
+    if (remId !== -1) {
+      unfilteredData.properties.splice(remId, 1);
+    }
+    if (properties.indexOf(aProp) === -1) {
+      properties.push(aProp);
+    }
     remId = properties.indexOf(element);
-    if ( remId !== -1 )
-      {properties.splice(remId, 1);}
+    if (remId !== -1) {
+      properties.splice(remId, 1);
+    }
     graph.fastUpdate();
     aProp.domain().addProperty(aProp);
     aProp.range().addProperty(aProp);
-    if ( element.labelObject() && aProp.labelObject() ) {
+    if (element.labelObject() && aProp.labelObject()) {
       aProp.labelObject().x = element.labelObject().x;
       aProp.labelObject().px = element.labelObject().px;
       aProp.labelObject().y = element.labelObject().y;
       aProp.labelObject().py = element.labelObject().py;
     }
-    
+
     options.focuserModule().handle(null, aProp);
   };
-  
-  graph.removeEditElements = function (){
+
+  graph.removeEditElements = function () {
     // just added to be called form outside
     removeEditElements();
   };
-  
-  function removeEditElements(){
+
+  function removeEditElements() {
     rangeDragger.hideDragger(true);
     domainDragger.hideDragger(true);
     shadowClone.hideClone(true);
-    
+
     classDragger.hideDragger(true);
-    if ( addDataPropertyGroupElement )
-      {addDataPropertyGroupElement.classed("hidden", true);}
-    if ( deleteGroupElement )
-      {deleteGroupElement.classed("hidden", true);}
-    
-    
-    if ( hoveredNodeElement ) {
-      if ( hoveredNodeElement.pinned() === false ) {
+    if (addDataPropertyGroupElement) {
+      addDataPropertyGroupElement.classed("hidden", true);
+    }
+    if (deleteGroupElement) {
+      deleteGroupElement.classed("hidden", true);
+    }
+
+    if (hoveredNodeElement) {
+      if (hoveredNodeElement.pinned() === false) {
         hoveredNodeElement.locked(graph.paused());
         hoveredNodeElement.frozen(graph.paused());
       }
     }
-    if ( hoveredPropertyElement ) {
-      if ( hoveredPropertyElement.pinned() === false ) {
+    if (hoveredPropertyElement) {
+      if (hoveredPropertyElement.pinned() === false) {
         hoveredPropertyElement.locked(graph.paused());
         hoveredPropertyElement.frozen(graph.paused());
       }
     }
-    
-    
   }
-  
-  function updateEditorModeDependentControls(){
+
+  function updateEditorModeDependentControls() {
     const create_entry = d3.select("#empty");
     const create_container = d3.select("#emptyContainer");
     const emptyHint = d3.select("#empty-disabled-hint");
-    const createMessage = editMode ?
-      "Creates a new empty ontology" :
-      "Enable editing in Modes menu to be able to create a new ontology";
+    const createMessage = editMode
+      ? "Creates a new empty ontology"
+      : "Enable editing in Modes menu to be able to create a new ontology";
 
-    if ( create_entry.node() ) {
+    if (create_entry.node()) {
       create_entry
         .property("disabled", !editMode)
         .property("title", createMessage);
     }
-    if ( create_container.node() ) {create_container.property("title", createMessage);}
+    if (create_container.node()) {
+      create_container.property("title", createMessage);
+    }
 
     d3.select("#useAccuracyHelper")
       .classed("disabled", !editMode)
       .attr("aria-disabled", editMode ? null : "true");
-    const accuracyCheckbox = d3.select("#useAccuracyHelperConfigCheckbox").node();
-    if ( accuracyCheckbox ) {accuracyCheckbox.disabled = !editMode;}
+    const accuracyCheckbox = d3
+      .select("#useAccuracyHelperConfigCheckbox")
+      .node();
+    if (accuracyCheckbox) {
+      accuracyCheckbox.disabled = !editMode;
+    }
 
-    if ( emptyHint.node() ) {
+    if (emptyHint.node()) {
       emptyHint.text(createMessage);
       emptyHint.classed("hidden", editMode);
     }
@@ -2944,25 +3421,31 @@ function createGraph( graphContainerSelector ){
 
   graph.updateEditorModeDependentControls = updateEditorModeDependentControls;
 
-  graph.editorMode = function ( val ){
-    if ( !arguments.length ) {return editMode;}
+  graph.editorMode = function (val) {
+    if (!arguments.length) {
+      return editMode;
+    }
 
     const modeOfOpString = d3.select("#modeOfOperationString").node();
     editMode = Boolean(val);
     graph.options().setEditorModeForDefaultObject(editMode);
-    if ( editMode === false ) {
+    if (editMode === false) {
       seenEditorHint = false;
     }
     updateEditorModeDependentControls();
-    
+
     // adjust compact notation
     // selector = compactNotationOption;
     // box =ModuleCheckbox
-    const compactNotationContainer = d3.select("#compactnotationModuleCheckbox");
+    const compactNotationContainer = d3.select(
+      "#compactnotationModuleCheckbox",
+    );
     const compactNotationOption = d3.select("#compactNotationOption");
-    if ( compactNotationContainer.node() ) {
-      compactNotationOption.classed("disabled", editMode).attr("aria-disabled", editMode ? "true" : null);
-      if ( !editMode ) {
+    if (compactNotationContainer.node()) {
+      compactNotationOption
+        .classed("disabled", editMode)
+        .attr("aria-disabled", editMode ? "true" : null);
+      if (!editMode) {
         compactNotationContainer.node().title = "";
         compactNotationContainer.node().disabled = false;
         compactNotationOption.node().title = "";
@@ -2971,7 +3454,8 @@ function createGraph( graphContainerSelector ){
       } else {
         // if editor Mode
         //1) uncheck the element
-        compactNotationOption.node().title = "Compact notation can only be used in view mode";
+        compactNotationOption.node().title =
+          "Compact notation can only be used in view mode";
         compactNotationContainer.node().disabled = true;
         compactNotationContainer.node().checked = false;
         options.compactNotationModule().enabled(false);
@@ -2981,23 +3465,22 @@ function createGraph( graphContainerSelector ){
         graph.lazyRefresh();
       }
     }
-    
-    if ( modeOfOpString ) {
-      if ( touchDevice === true ) {
+
+    if (modeOfOpString) {
+      if (touchDevice === true) {
         modeOfOpString.innerHTML = "touch able device detected";
       } else {
         modeOfOpString.innerHTML = "point & click device detected";
       }
     }
     const svgGraph = d3.selectAll(".vowlGraph");
-    
-    if ( editMode === true ) {
+
+    if (editMode === true) {
       options.leftSidebar().hideCollapseButton(false);
       options.leftSidebar().showSidebar(1);
       graph.options().editSidebar().updatePrefixUi();
       graph.options().editSidebar().updateElementWidth();
       svgGraph.on("dblclick.zoom", graph.modified_dblClickFunction);
-      
     } else {
       svgGraph.on("dblclick.zoom", originalD3_dblClickFunction);
       options.leftSidebar().showSidebar(0);
@@ -3007,24 +3490,24 @@ function createGraph( graphContainerSelector ){
     }
     options.sidebar().updateShowedInformation();
     options.editSidebar().updateElementWidth();
-    
   };
-  
-  function createLowerCasePrototypeMap( prototypeMap ){
-    return new Map(Array.from(prototypeMap.values()).map(function ( Prototype ){
-      return [new Prototype().type().toLowerCase(), Prototype];
-    }));
+
+  function createLowerCasePrototypeMap(prototypeMap) {
+    return new Map(
+      Array.from(prototypeMap.values()).map(function (Prototype) {
+        return [new Prototype().type().toLowerCase(), Prototype];
+      }),
+    );
   }
-  
-  function createNewNodeAtPosition( pos ){
+
+  function createNewNodeAtPosition(pos) {
     const typeToCreate = d3.select("#defaultClass").node().title;
     const prototype = NodePrototypeMap.get(typeToCreate.toLowerCase());
     const aNode = new prototype(graph);
     let autoEditElement = false;
-    if ( typeToCreate === "owl:Thing" ) {
+    if (typeToCreate === "owl:Thing") {
       aNode.label("Thing");
-    }
-    else {
+    } else {
       aNode.label("NewClass");
       autoEditElement = true;
     }
@@ -3034,7 +3517,7 @@ function createGraph( graphContainerSelector ){
     aNode.py = aNode.y;
     aNode.id("Class" + eN++);
     // aNode.paused(true);
-    
+
     aNode.baseIri(d3.select("#iriEditor").node().value);
     aNode.iri(aNode.baseIri() + aNode.id());
     addNewNodeElement(aNode);
@@ -3043,165 +3526,269 @@ function createGraph( graphContainerSelector ){
     aNode.locked(graph.paused());
     aNode.enableEditing(autoEditElement);
   }
-  
-  
-  function addNewNodeElement( element ){
+
+  function addNewNodeElement(element) {
     unfilteredData.nodes.push(element);
-    if ( classNodes.indexOf(element) === -1 )
-      {classNodes.push(element);}
-    
+    if (classNodes.indexOf(element) === -1) {
+      classNodes.push(element);
+    }
+
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
     graph.fastUpdate();
   }
-  
-  graph.getTargetNode = function ( position ){
+
+  graph.getTargetNode = function (position) {
     const dx = position[0];
     const dy = position[1];
     let tN = null;
     let minDist = 1000000000000;
     // This is a bit OVERKILL for the computation of one node >> TODO: KD-TREE SEARCH
-    unfilteredData.nodes.forEach(function ( el ){
-      const cDist = Math.sqrt((el.x - dx) * (el.x - dx) + (el.y - dy) * (el.y - dy));
-      if ( cDist < minDist ) {
+    unfilteredData.nodes.forEach(function (el) {
+      const cDist = Math.sqrt(
+        (el.x - dx) * (el.x - dx) + (el.y - dy) * (el.y - dy),
+      );
+      if (cDist < minDist) {
         minDist = cDist;
         tN = el;
       }
     });
-    if ( hoveredNodeElement ) {
+    if (hoveredNodeElement) {
       const offsetDist = hoveredNodeElement.actualRadius() + 30;
-      if ( minDist > offsetDist ) {return null;}
-      if ( tN.renderType() === "rect" ) {return null;}
-      if ( tN === hoveredNodeElement && minDist <= hoveredNodeElement.actualRadius() ) {
+      if (minDist > offsetDist) {
+        return null;
+      }
+      if (tN.renderType() === "rect") {
+        return null;
+      }
+      if (
+        tN === hoveredNodeElement &&
+        minDist <= hoveredNodeElement.actualRadius()
+      ) {
         return tN;
-      } else if ( tN === hoveredNodeElement && minDist > hoveredNodeElement.actualRadius() ) {
+      } else if (
+        tN === hoveredNodeElement &&
+        minDist > hoveredNodeElement.actualRadius()
+      ) {
         return null;
       }
       return tN;
-    }
-    else {
-      
-      if ( minDist > (tN.actualRadius() + 30) )
-        {return null;}
-      else {return tN;}
-      
+    } else {
+      if (minDist > tN.actualRadius() + 30) {
+        return null;
+      } else {
+        return tN;
+      }
     }
   };
-  
-  graph.genericPropertySanityCheck = function ( domain, range, typeString, header, action ){
-    if ( domain === range && typeString === "rdfs:subClassOf" ) {
-      graph.options().warningModule().showWarning(header,
-        "rdfs:subClassOf can not be created as loops (domain == range)",
-        action, 1, false);
+
+  graph.genericPropertySanityCheck = function (
+    domain,
+    range,
+    typeString,
+    header,
+    action,
+  ) {
+    if (domain === range && typeString === "rdfs:subClassOf") {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          header,
+          "rdfs:subClassOf can not be created as loops (domain == range)",
+          action,
+          1,
+          false,
+        );
       return false;
     }
-    if ( domain === range && typeString === "owl:disjointWith" ) {
-      graph.options().warningModule().showWarning(header,
-        "owl:disjointWith  can not be created as loops (domain == range)",
-        action, 1, false);
+    if (domain === range && typeString === "owl:disjointWith") {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          header,
+          "owl:disjointWith  can not be created as loops (domain == range)",
+          action,
+          1,
+          false,
+        );
       return false;
     }
     // allProps[i].type()==="owl:allValuesFrom"  ||
     // allProps[i].type()==="owl:someValuesFrom"
-    if ( domain.type() === "owl:Thing" && typeString === "owl:allValuesFrom" ) {
-      graph.options().warningModule().showWarning(header,
-        "owl:allValuesFrom can not originate from owl:Thing",
-        action, 1, false);
+    if (domain.type() === "owl:Thing" && typeString === "owl:allValuesFrom") {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          header,
+          "owl:allValuesFrom can not originate from owl:Thing",
+          action,
+          1,
+          false,
+        );
       return false;
     }
-    if ( domain.type() === "owl:Thing" && typeString === "owl:someValuesFrom" ) {
-      graph.options().warningModule().showWarning(header,
-        "owl:someValuesFrom can not originate from owl:Thing",
-        action, 1, false);
+    if (domain.type() === "owl:Thing" && typeString === "owl:someValuesFrom") {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          header,
+          "owl:someValuesFrom can not originate from owl:Thing",
+          action,
+          1,
+          false,
+        );
       return false;
     }
-    
-    if ( range.type() === "owl:Thing" && typeString === "owl:allValuesFrom" ) {
-      graph.options().warningModule().showWarning(header,
-        "owl:allValuesFrom can not be connected to owl:Thing",
-        action, 1, false);
+
+    if (range.type() === "owl:Thing" && typeString === "owl:allValuesFrom") {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          header,
+          "owl:allValuesFrom can not be connected to owl:Thing",
+          action,
+          1,
+          false,
+        );
       return false;
     }
-    if ( range.type() === "owl:Thing" && typeString === "owl:someValuesFrom" ) {
-      graph.options().warningModule().showWarning(header,
-        "owl:someValuesFrom can not be connected to owl:Thing",
-        action, 1, false);
+    if (range.type() === "owl:Thing" && typeString === "owl:someValuesFrom") {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          header,
+          "owl:someValuesFrom can not be connected to owl:Thing",
+          action,
+          1,
+          false,
+        );
       return false;
     }
-    
+
     return true; // we can Change the domain or range
   };
-  
-  graph.checkIfIriClassAlreadyExist = function ( url ){
+
+  graph.checkIfIriClassAlreadyExist = function (url) {
     // search for a class node with this url
     const allNodes = unfilteredData.nodes;
-    for ( let i = 0; i < allNodes.length; i++ ) {
-      if ( elementTools.isDatatype(allNodes[i]) === true || allNodes[i].type() === "owl:Thing" )
-        {continue;}
-      
+    for (let i = 0; i < allNodes.length; i++) {
+      if (
+        elementTools.isDatatype(allNodes[i]) === true ||
+        allNodes[i].type() === "owl:Thing"
+      ) {
+        continue;
+      }
+
       // now we are a real class;
       //get class IRI
       const classIRI = allNodes[i].iri();
-      
+
       // this gives me the node for halo
-      if ( url === classIRI ) {
+      if (url === classIRI) {
         return allNodes[i];
       }
     }
     return false;
   };
-  
-  graph.classesSanityCheck = function ( classElement, targetType ){
+
+  graph.classesSanityCheck = function (classElement, targetType) {
     // this is added due to someValuesFrom properties
     // we should not be able to change a classElement to a owl:Thing
     // when it has a property attached to it that uses these restrictions
     //
-    
-    if ( targetType === "owl:Class" ) {return true;}
-    
-    else {
+
+    if (targetType === "owl:Class") {
+      return true;
+    } else {
       // collect all properties which have that one as a domain or range
       const allProps = unfilteredData.properties;
-      for ( let i = 0; i < allProps.length; i++ ) {
-        if ( allProps[i].range() === classElement || allProps[i].domain() === classElement ) {
+      for (let i = 0; i < allProps.length; i++) {
+        if (
+          allProps[i].range() === classElement ||
+          allProps[i].domain() === classElement
+        ) {
           // check for the type of that property
-          if ( allProps[i].type() === "owl:someValuesFrom" ) {
-            graph.options().warningModule().showWarning("Can not change class type",
-              "The element has a property that is of type owl:someValuesFrom",
-              "Element type not changed!", 1, true);
+          if (allProps[i].type() === "owl:someValuesFrom") {
+            graph
+              .options()
+              .warningModule()
+              .showWarning(
+                "Can not change class type",
+                "The element has a property that is of type owl:someValuesFrom",
+                "Element type not changed!",
+                1,
+                true,
+              );
             return false;
           }
-          if ( allProps[i].type() === "owl:allValuesFrom" ) {
-            graph.options().warningModule().showWarning("Can not change class type",
-              "The element has a property that is of type owl:allValuesFrom",
-              "Element type not changed!", 1, true);
+          if (allProps[i].type() === "owl:allValuesFrom") {
+            graph
+              .options()
+              .warningModule()
+              .showWarning(
+                "Can not change class type",
+                "The element has a property that is of type owl:allValuesFrom",
+                "Element type not changed!",
+                1,
+                true,
+              );
             return false;
           }
         }
       }
-      
-      
     }
     return true;
   };
-  
-  graph.propertyCheckExistenceChecker = function ( property, domain, range ){
+
+  graph.propertyCheckExistenceChecker = function (property, domain, range) {
     const allProps = unfilteredData.properties;
     let i;
-    if ( property.type() === "rdfs:subClassOf" || property.type() === "owl:disjointWith" ) {
-      
-      for ( i = 0; i < allProps.length; i++ ) {
-        if ( allProps[i] === property ) {continue;}
-        if ( allProps[i].domain() === domain && allProps[i].range() === range && allProps[i].type() === property.type() ) {
-          graph.options().warningModule().showWarning("Warning",
-            "This triple already exist!",
-            "Element not created!", 1, false);
+    if (
+      property.type() === "rdfs:subClassOf" ||
+      property.type() === "owl:disjointWith"
+    ) {
+      for (i = 0; i < allProps.length; i++) {
+        if (allProps[i] === property) {
+          continue;
+        }
+        if (
+          allProps[i].domain() === domain &&
+          allProps[i].range() === range &&
+          allProps[i].type() === property.type()
+        ) {
+          graph
+            .options()
+            .warningModule()
+            .showWarning(
+              "Warning",
+              "This triple already exist!",
+              "Element not created!",
+              1,
+              false,
+            );
           return false;
         }
-        if ( allProps[i].domain() === range && allProps[i].range() === domain && allProps[i].type() === property.type() ) {
-          graph.options().warningModule().showWarning("Warning",
-            "Inverse assignment already exist! ",
-            "Element not created!", 1, false);
+        if (
+          allProps[i].domain() === range &&
+          allProps[i].range() === domain &&
+          allProps[i].type() === property.type()
+        ) {
+          graph
+            .options()
+            .warningModule()
+            .showWarning(
+              "Warning",
+              "Inverse assignment already exist! ",
+              "Element not created!",
+              1,
+              false,
+            );
           return false;
         }
       }
@@ -3209,7 +3796,7 @@ function createGraph( graphContainerSelector ){
     }
     return true;
   };
-  
+
   // graph.checkForTripleDuplicate=function(property){
   //     var domain=property.domain();
   //     var range=property.range();
@@ -3228,78 +3815,142 @@ function createGraph( graphContainerSelector ){
   //     }
   //     return true;
   // };
-  
-  graph.sanityCheckProperty = function ( domain, range, typeString ){
-    
+
+  graph.sanityCheckProperty = function (domain, range, typeString) {
     // check for duplicate triple in the element;
-    
-    
-    if ( typeString === "owl:objectProperty" && graph.options().objectPropertyFilter().enabled() === true ) {
-      graph.options().warningModule().showWarning("Warning",
-        "Object properties are filtered out in the visualization!",
-        "Element not created!", 1, false);
+
+    if (
+      typeString === "owl:objectProperty" &&
+      graph.options().objectPropertyFilter().enabled() === true
+    ) {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          "Warning",
+          "Object properties are filtered out in the visualization!",
+          "Element not created!",
+          1,
+          false,
+        );
       return false;
     }
-    
-    if ( typeString === "owl:disjointWith" && graph.options().disjointPropertyFilter().enabled() === true ) {
-      graph.options().warningModule().showWarning("Warning",
-        "owl:disjointWith properties are filtered out in the visualization!",
-        "Element not created!", 1, false);
+
+    if (
+      typeString === "owl:disjointWith" &&
+      graph.options().disjointPropertyFilter().enabled() === true
+    ) {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          "Warning",
+          "owl:disjointWith properties are filtered out in the visualization!",
+          "Element not created!",
+          1,
+          false,
+        );
       return false;
     }
-    
-    
-    if ( domain === range && typeString === "rdfs:subClassOf" ) {
-      graph.options().warningModule().showWarning("Warning",
-        "rdfs:subClassOf can not be created as loops (domain == range)",
-        "Element not created!", 1, false);
+
+    if (domain === range && typeString === "rdfs:subClassOf") {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          "Warning",
+          "rdfs:subClassOf can not be created as loops (domain == range)",
+          "Element not created!",
+          1,
+          false,
+        );
       return false;
     }
-    if ( domain === range && typeString === "owl:disjointWith" ) {
-      graph.options().warningModule().showWarning("Warning",
-        "owl:disjointWith  can not be created as loops (domain == range)",
-        "Element not created!", 1, false);
+    if (domain === range && typeString === "owl:disjointWith") {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          "Warning",
+          "owl:disjointWith  can not be created as loops (domain == range)",
+          "Element not created!",
+          1,
+          false,
+        );
       return false;
     }
-    
-    if ( domain.type() === "owl:Thing" && typeString === "owl:someValuesFrom" ) {
-      graph.options().warningModule().showWarning("Warning",
-        "owl:someValuesFrom can not originate from owl:Thing",
-        "Element not created!", 1, false);
+
+    if (domain.type() === "owl:Thing" && typeString === "owl:someValuesFrom") {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          "Warning",
+          "owl:someValuesFrom can not originate from owl:Thing",
+          "Element not created!",
+          1,
+          false,
+        );
       return false;
     }
-    if ( domain.type() === "owl:Thing" && typeString === "owl:allValuesFrom" ) {
-      graph.options().warningModule().showWarning("Warning",
-        "owl:allValuesFrom can not originate from owl:Thing",
-        "Element not created!", 1, false);
+    if (domain.type() === "owl:Thing" && typeString === "owl:allValuesFrom") {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          "Warning",
+          "owl:allValuesFrom can not originate from owl:Thing",
+          "Element not created!",
+          1,
+          false,
+        );
       return false;
     }
-    
-    if ( range.type() === "owl:Thing" && typeString === "owl:allValuesFrom" ) {
-      graph.options().warningModule().showWarning("Warning",
-        "owl:allValuesFrom can not be connected to owl:Thing",
-        "Element not created!", 1, false);
+
+    if (range.type() === "owl:Thing" && typeString === "owl:allValuesFrom") {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          "Warning",
+          "owl:allValuesFrom can not be connected to owl:Thing",
+          "Element not created!",
+          1,
+          false,
+        );
       return false;
     }
-    if ( range.type() === "owl:Thing" && typeString === "owl:someValuesFrom" ) {
-      graph.options().warningModule().showWarning("Warning",
-        "owl:someValuesFrom can not be connected to owl:Thing",
-        "Element not created!", 1, false);
+    if (range.type() === "owl:Thing" && typeString === "owl:someValuesFrom") {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          "Warning",
+          "owl:someValuesFrom can not be connected to owl:Thing",
+          "Element not created!",
+          1,
+          false,
+        );
       return false;
     }
     return true; // we can create a property
   };
-  
-  function createNewObjectProperty( domain, range, draggerEndposition ){
+
+  function createNewObjectProperty(domain, range, draggerEndposition) {
     // check type of the property that we want to create;
-    
+
     const defaultPropertyName = d3.select("#defaultProperty").node().title;
-    
+
     // check if we are allow to create that property
-    if ( graph.sanityCheckProperty(domain, range, defaultPropertyName) === false ) {return false;}
-    
-    
-    const propPrototype = PropertyPrototypeMap.get(defaultPropertyName.toLowerCase());
+    if (
+      graph.sanityCheckProperty(domain, range, defaultPropertyName) === false
+    ) {
+      return false;
+    }
+
+    const propPrototype = PropertyPrototypeMap.get(
+      defaultPropertyName.toLowerCase(),
+    );
     const aProp = new propPrototype(graph);
     aProp.id("objectProperty" + eP++);
     aProp.domain(domain);
@@ -3307,93 +3958,98 @@ function createGraph( graphContainerSelector ){
     aProp.label("newObjectProperty");
     aProp.baseIri(d3.select("#iriEditor").node().value);
     aProp.iri(aProp.baseIri() + aProp.id());
-    
+
     // check for duplicate;
-    if ( graph.propertyCheckExistenceChecker(aProp, domain, range) === false ) {
+    if (graph.propertyCheckExistenceChecker(aProp, domain, range) === false) {
       // delete aProp;
       // hope for garbage collection here -.-
       return false;
     }
-    
+
     let autoEditElement = false;
-    
-    if ( defaultPropertyName === "owl:objectProperty" ) {
+
+    if (defaultPropertyName === "owl:objectProperty") {
       autoEditElement = true;
     }
     let pX = 0.49 * (domain.x + range.x);
     let pY = 0.49 * (domain.y + range.y);
-    
-    if ( domain === range ) {
+
+    if (domain === range) {
       // we use the dragger endposition to determine an angle to put the loop there;
       const dirD_x = draggerEndposition[0] - domain.x;
       const dirD_y = draggerEndposition[1] - domain.y;
-      
+
       // normalize;
       const len = Math.sqrt(dirD_x * dirD_x + dirD_y * dirD_y);
       // it should be very hard to set the position on the same sport but why not handling this
       let nx = dirD_x / len;
       let ny = dirD_y / len;
       // is Nan in javascript like in c len==len returns false when it is not a number?
-      if ( isNaN(len) ) {
+      if (isNaN(len)) {
         nx = 0;
         ny = -1;
       }
-      
+
       // get domain actual raidus
       const offset = 2 * domain.actualRadius() + 50;
       pX = domain.x + offset * nx;
       pY = domain.y + offset * ny;
     }
-    
+
     // add this property to domain and range;
     domain.addProperty(aProp);
     range.addProperty(aProp);
-    
-    
+
     // add this to the data;
     unfilteredData.properties.push(aProp);
-    if ( properties.indexOf(aProp) === -1 )
-      {properties.push(aProp);}
+    if (properties.indexOf(aProp) === -1) {
+      properties.push(aProp);
+    }
     graph.fastUpdate();
     aProp.labelObject().x = pX;
     aProp.labelObject().px = pX;
     aProp.labelObject().y = pY;
     aProp.labelObject().py = pY;
-    
+
     aProp.frozen(graph.paused());
     aProp.locked(graph.paused());
     domain.frozen(graph.paused());
     domain.locked(graph.paused());
     range.frozen(graph.paused());
     range.locked(graph.paused());
-    
-    
+
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
-    
+
     options.focuserModule().handle(null, aProp);
     graph.activateHoverElementsForProperties(true, aProp, false, touchDevice);
     aProp.labelObject().increasedLoopAngle = true;
     aProp.enableEditing(autoEditElement);
   }
-  
-  graph.createDataTypeProperty = function ( node ){
+
+  graph.createDataTypeProperty = function (node) {
     // random postion issues;
     clearTimeout(nodeFreezer);
     // tells user when element is filtered out
-    if ( graph.options().datatypeFilter().enabled() === true ) {
-      graph.options().warningModule().showWarning("Warning",
-        "Datatype properties are filtered out in the visualization!",
-        "Element not created!", 1, false);
+    if (graph.options().datatypeFilter().enabled() === true) {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          "Warning",
+          "Datatype properties are filtered out in the visualization!",
+          "Element not created!",
+          1,
+          false,
+        );
       return;
     }
-    
-    
+
     let aNode, prototype;
-    
+
     // create a default datatype Node >> HERE LITERAL;
     const defaultDatatypeName = d3.select("#defaultDatatype").node().title;
-    if ( defaultDatatypeName === "rdfs:Literal" ) {
+    if (defaultDatatypeName === "rdfs:Literal") {
       prototype = NodePrototypeMap.get("rdfs:literal");
       aNode = new prototype(graph);
       aNode.label("Literal");
@@ -3403,9 +4059,9 @@ function createGraph( graphContainerSelector ){
       prototype = NodePrototypeMap.get("rdfs:datatype");
       aNode = new prototype(graph);
       let identifier;
-      if ( defaultDatatypeName === "undefined" ) {
+      if (defaultDatatypeName === "undefined") {
         identifier = "undefined";
-        
+
         aNode.label(identifier);
         // TODO : HANDLER FOR UNDEFINED DATATYPES!!<<<>>>>>>>>>>>..
         aNode.iri("http://www.undefinedDatatype.org/#" + identifier);
@@ -3419,11 +4075,10 @@ function createGraph( graphContainerSelector ){
         aNode.baseIri("http://www.w3.org/2001/XMLSchema#");
       }
     }
-    
-    
+
     const nX = node.x - node.actualRadius() - 100;
     const nY = node.y + node.actualRadius() + 100;
-    
+
     aNode.x = nX;
     aNode.y = nY;
     aNode.px = aNode.x;
@@ -3431,107 +4086,133 @@ function createGraph( graphContainerSelector ){
     aNode.id("NodeId" + eN++);
     // add this property to the nodes;
     unfilteredData.nodes.push(aNode);
-    if ( classNodes.indexOf(aNode) === -1 )
-      {classNodes.push(aNode);}
-    
-    
+    if (classNodes.indexOf(aNode) === -1) {
+      classNodes.push(aNode);
+    }
+
     // add also the datatype Property to it
     const propPrototype = PropertyPrototypeMap.get("owl:datatypeproperty");
     const aProp = new propPrototype(graph);
     aProp.id("datatypeProperty" + eP++);
-    
+
     // create the connection
     aProp.domain(node);
     aProp.range(aNode);
     aProp.label("newDatatypeProperty");
-    
-    
+
     // TODO: change its base IRI to proper value
     const ontoIri = d3.select("#iriEditor").node().value;
     aProp.baseIri(ontoIri);
     aProp.iri(ontoIri + aProp.id());
     // add this to the data;
     unfilteredData.properties.push(aProp);
-    if ( properties.indexOf(aProp) === -1 )
-      {properties.push(aProp);}
+    if (properties.indexOf(aProp) === -1) {
+      properties.push(aProp);
+    }
     graph.fastUpdate();
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
-    
-    nodeFreezer = setTimeout(function (){
-      if ( node && node.frozen() === true && node.pinned() === false && graph.paused() === false ) {
+
+    nodeFreezer = setTimeout(function () {
+      if (
+        node &&
+        node.frozen() === true &&
+        node.pinned() === false &&
+        graph.paused() === false
+      ) {
         node.frozen(graph.paused());
         node.locked(graph.paused());
       }
     }, 1000);
     options.focuserModule().handle(null, undefined);
-    if ( node ) {
+    if (node) {
       node.frozen(true);
       node.locked(true);
     }
   };
-  
-  graph.removeNodesViaResponse = function ( nodesToRemove, propsToRemove ){
+
+  graph.removeNodesViaResponse = function (nodesToRemove, propsToRemove) {
     let i, remId;
     // splice them;
-    for ( i = 0; i < propsToRemove.length; i++ ) {
+    for (i = 0; i < propsToRemove.length; i++) {
       remId = unfilteredData.properties.indexOf(propsToRemove[i]);
-      if ( remId !== -1 )
-        {unfilteredData.properties.splice(remId, 1);}
+      if (remId !== -1) {
+        unfilteredData.properties.splice(remId, 1);
+      }
       remId = properties.indexOf(propsToRemove[i]);
-      if ( remId !== -1 )
-        {properties.splice(remId, 1);}
+      if (remId !== -1) {
+        properties.splice(remId, 1);
+      }
       propsToRemove[i] = null;
     }
-    for ( i = 0; i < nodesToRemove.length; i++ ) {
+    for (i = 0; i < nodesToRemove.length; i++) {
       remId = unfilteredData.nodes.indexOf(nodesToRemove[i]);
-      if ( remId !== -1 ) {
+      if (remId !== -1) {
         unfilteredData.nodes.splice(remId, 1);
       }
       remId = classNodes.indexOf(nodesToRemove[i]);
-      if ( remId !== -1 )
-        {classNodes.splice(remId, 1);}
+      if (remId !== -1) {
+        classNodes.splice(remId, 1);
+      }
       nodesToRemove[i] = null;
     }
     graph.fastUpdate();
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
     options.focuserModule().handle(null, undefined);
-    
   };
-  
-  graph.removeNodeViaEditor = function ( node ){
+
+  graph.removeNodeViaEditor = function (node) {
     const propsToRemove = [];
     const nodesToRemove = [];
     let datatypes = 0;
-    
+
     let remId;
-    
+
     nodesToRemove.push(node);
-    for ( let i = 0; i < unfilteredData.properties.length; i++ ) {
-      if ( unfilteredData.properties[i].domain() === node || unfilteredData.properties[i].range() === node ) {
+    for (let i = 0; i < unfilteredData.properties.length; i++) {
+      if (
+        unfilteredData.properties[i].domain() === node ||
+        unfilteredData.properties[i].range() === node
+      ) {
         propsToRemove.push(unfilteredData.properties[i]);
-        if ( unfilteredData.properties[i].type().toLocaleLowerCase() === "owl:datatypeproperty" &&
-          unfilteredData.properties[i].range() !== node ) {
+        if (
+          unfilteredData.properties[i].type().toLocaleLowerCase() ===
+            "owl:datatypeproperty" &&
+          unfilteredData.properties[i].range() !== node
+        ) {
           nodesToRemove.push(unfilteredData.properties[i].range());
           datatypes++;
         }
       }
     }
     const removedItems = propsToRemove.length + nodesToRemove.length;
-    if ( removedItems > 2 ) {
-      let text = "You are about to delete 1 class and " + propsToRemove.length + " properties";
-      if ( datatypes !== 0 ) {
-        text = "You are about to delete 1 class, " + datatypes + " datatypes  and " + propsToRemove.length + " properties";
+    if (removedItems > 2) {
+      let text =
+        "You are about to delete 1 class and " +
+        propsToRemove.length +
+        " properties";
+      if (datatypes !== 0) {
+        text =
+          "You are about to delete 1 class, " +
+          datatypes +
+          " datatypes  and " +
+          propsToRemove.length +
+          " properties";
       }
-      
-      
-      graph.options().warningModule().responseWarning(
-        "Removing elements",
-        text,
-        "Awaiting response!", graph.removeNodesViaResponse, [nodesToRemove, propsToRemove], false);
-      
-      
+
+      graph
+        .options()
+        .warningModule()
+        .responseWarning(
+          "Removing elements",
+          text,
+          "Awaiting response!",
+          graph.removeNodesViaResponse,
+          [nodesToRemove, propsToRemove],
+          false,
+        );
+
       //
       // if (confirm("Remove :\n"+propsToRemove.length + " properties\n"+nodesToRemove.length+" classes? ")===false){
       //     return;
@@ -3540,22 +4221,26 @@ function createGraph( graphContainerSelector ){
       // }
     } else {
       // splice them;
-      for ( let i = 0; i < propsToRemove.length; i++ ) {
+      for (let i = 0; i < propsToRemove.length; i++) {
         remId = unfilteredData.properties.indexOf(propsToRemove[i]);
-        if ( remId !== -1 )
-          {unfilteredData.properties.splice(remId, 1);}
+        if (remId !== -1) {
+          unfilteredData.properties.splice(remId, 1);
+        }
         remId = properties.indexOf(propsToRemove[i]);
-        if ( remId !== -1 )
-          {properties.splice(remId, 1);}
+        if (remId !== -1) {
+          properties.splice(remId, 1);
+        }
         propsToRemove[i] = null;
       }
-      for ( let i = 0; i < nodesToRemove.length; i++ ) {
+      for (let i = 0; i < nodesToRemove.length; i++) {
         remId = unfilteredData.nodes.indexOf(nodesToRemove[i]);
-        if ( remId !== -1 )
-          {unfilteredData.nodes.splice(remId, 1);}
+        if (remId !== -1) {
+          unfilteredData.nodes.splice(remId, 1);
+        }
         remId = classNodes.indexOf(nodesToRemove[i]);
-        if ( remId !== -1 )
-          {classNodes.splice(remId, 1);}
+        if (remId !== -1) {
+          classNodes.splice(remId, 1);
+        }
         nodesToRemove[i] = null;
       }
       graph.fastUpdate();
@@ -3564,119 +4249,137 @@ function createGraph( graphContainerSelector ){
       options.focuserModule().handle(null, undefined);
     }
   };
-  
-  graph.removePropertyViaEditor = function ( property ){
+
+  graph.removePropertyViaEditor = function (property) {
     property.domain().removePropertyElement(property);
     property.range().removePropertyElement(property);
     let remId;
-    
-    if ( property.type().toLocaleLowerCase() === "owl:datatypeproperty" ) {
+
+    if (property.type().toLocaleLowerCase() === "owl:datatypeproperty") {
       remId = unfilteredData.nodes.indexOf(property.range());
-      if ( remId !== -1 )
-        {unfilteredData.nodes.splice(remId, 1);}
+      if (remId !== -1) {
+        unfilteredData.nodes.splice(remId, 1);
+      }
       remId = classNodes.indexOf(property.range());
-      if ( remId !== -1 )
-        {classNodes.splice(remId, 1);}
+      if (remId !== -1) {
+        classNodes.splice(remId, 1);
+      }
     }
     remId = unfilteredData.properties.indexOf(property);
-    if ( remId !== -1 )
-      {unfilteredData.properties.splice(remId, 1);}
+    if (remId !== -1) {
+      unfilteredData.properties.splice(remId, 1);
+    }
     remId = properties.indexOf(property);
-    if ( remId !== -1 )
-      {properties.splice(remId, 1);}
-    if ( property.inverse() ) {
+    if (remId !== -1) {
+      properties.splice(remId, 1);
+    }
+    if (property.inverse()) {
       // so we have inverse
       property.inverse().inverse(0);
-      
     }
-    
-    
+
     hoveredPropertyElement = undefined;
     graph.fastUpdate();
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
     options.focuserModule().handle(null, undefined);
   };
-  
-  graph.executeColorExternalsModule = function (){
-    if ( unfilteredData ) {
-      options.colorExternalsModule().filter(unfilteredData.nodes, unfilteredData.properties);
+
+  graph.executeColorExternalsModule = function () {
+    if (unfilteredData) {
+      options
+        .colorExternalsModule()
+        .filter(unfilteredData.nodes, unfilteredData.properties);
     }
   };
-  
-  graph.executeCompactNotationModule = function (){
-    if ( unfilteredData ) {
-      options.compactNotationModule().filter(unfilteredData.nodes, unfilteredData.properties);
-    }
-    
-  };
-  
-  graph.executeNodeScalingModule = function (){
-    if ( unfilteredData ) {
-      options.nodeScalingModule().filter(unfilteredData.nodes, unfilteredData.properties);
+
+  graph.executeCompactNotationModule = function () {
+    if (unfilteredData) {
+      options
+        .compactNotationModule()
+        .filter(unfilteredData.nodes, unfilteredData.properties);
     }
   };
-  graph.executeEmptyLiteralFilter = function (){
-    
-    if ( unfilteredData && unfilteredData.nodes.length > 1 ) {
-      options.literalFilter().filter(unfilteredData.nodes, unfilteredData.properties);
+
+  graph.executeNodeScalingModule = function () {
+    if (unfilteredData) {
+      options
+        .nodeScalingModule()
+        .filter(unfilteredData.nodes, unfilteredData.properties);
+    }
+  };
+  graph.executeEmptyLiteralFilter = function () {
+    if (unfilteredData && unfilteredData.nodes.length > 1) {
+      options
+        .literalFilter()
+        .filter(unfilteredData.nodes, unfilteredData.properties);
       unfilteredData.nodes = options.literalFilter().filteredNodes();
       unfilteredData.properties = options.literalFilter().filteredProperties();
     }
-    
   };
-  
-  
+
   /** --------------------------------------------------------- **/
   /** -- animation functions for the nodes --                   **/
   /** --------------------------------------------------------- **/
-  
-  graph.animateDynamicLabelWidth = function (){
+
+  graph.animateDynamicLabelWidth = function () {
     const wantedWidth = options.dynamicLabelWidth();
     let i;
-    for ( i = 0; i < classNodes.length; i++ ) {
+    for (i = 0; i < classNodes.length; i++) {
       const nodeElement = classNodes[i];
-      if ( elementTools.isDatatype(nodeElement) ) {
+      if (elementTools.isDatatype(nodeElement)) {
         nodeElement.animateDynamicLabelWidth(wantedWidth);
       }
     }
-    for ( i = 0; i < properties.length; i++ ) {
+    for (i = 0; i < properties.length; i++) {
       properties[i].animateDynamicLabelWidth(wantedWidth);
     }
   };
-  
-  
+
   /** --------------------------------------------------------- **/
   /** -- Touch behaviour functions --                   **/
   /** --------------------------------------------------------- **/
-  
-  graph.setTouchDevice = function ( val ){
+
+  graph.setTouchDevice = function (val) {
     touchDevice = val;
   };
-  
-  graph.isTouchDevice = function (){
+
+  graph.isTouchDevice = function () {
     return touchDevice;
   };
-  
-  graph.modified_dblClickFunction = function (event){
-    
+
+  graph.modified_dblClickFunction = function (event) {
     event.stopPropagation();
     event.preventDefault();
     // get position where we want to add the node;
-    const grPos = getClickedScreenCoords(event.clientX, event.clientY, graph.translation(), graph.scaleFactor());
+    const grPos = getClickedScreenCoords(
+      event.clientX,
+      event.clientY,
+      graph.translation(),
+      graph.scaleFactor(),
+    );
     createNewNodeAtPosition(grPos);
   };
-  
-  function doubletap(event){
+
+  function doubletap(event) {
     const touch_time = event ? event.timeStamp : 0;
     let numTouchers = 1;
-    if ( event && event.touches && event.touches.length )
-      {numTouchers = event.touches.length;}
-    
-    if ( last_element_tap_time > 0 && (touch_time - last_element_tap_time < 300) && numTouchers === 1 ) {
-      if ( event.stopPropagation ) {event.stopPropagation();}
-      if ( editMode === true ) {
-        if ( event.preventDefault ) {event.preventDefault();}
+    if (event && event.touches && event.touches.length) {
+      numTouchers = event.touches.length;
+    }
+
+    if (
+      last_element_tap_time > 0 &&
+      touch_time - last_element_tap_time < 300 &&
+      numTouchers === 1
+    ) {
+      if (event.stopPropagation) {
+        event.stopPropagation();
+      }
+      if (editMode === true) {
+        if (event.preventDefault) {
+          event.preventDefault();
+        }
         last_element_tap_time = 0;
         return true;
       }
@@ -3684,79 +4387,95 @@ function createGraph( graphContainerSelector ){
     last_element_tap_time = touch_time;
     return false;
   }
-  
-  
-  function touchzoomed(event, d){
+
+  function touchzoomed(event, d) {
     forceNotZooming = true;
-    
+
     const touch_time = event ? event.timeStamp : 0;
-    const numTouches = (event && event.touches) ? event.touches.length : 0;
-    if ( last_canvas_touch_time > 0 && (touch_time - last_canvas_touch_time < 300) && numTouches === 1 ) {
-      if ( event.stopPropagation ) {event.stopPropagation();}
-      
-      if ( editMode === true ) {
-        if ( event.preventDefault ) {event.preventDefault();}
+    const numTouches = event && event.touches ? event.touches.length : 0;
+    if (
+      last_canvas_touch_time > 0 &&
+      touch_time - last_canvas_touch_time < 300 &&
+      numTouches === 1
+    ) {
+      if (event.stopPropagation) {
+        event.stopPropagation();
+      }
+
+      if (editMode === true) {
+        if (event.preventDefault) {
+          event.preventDefault();
+        }
         syncZoomState();
         graph.modified_dblTouchFunction(event);
-      }
-      else {
+      } else {
         forceNotZooming = false;
-        if ( originalD3_touchZoomFunction )
-          {originalD3_touchZoomFunction.call(this, event, d);}
+        if (originalD3_touchZoomFunction) {
+          originalD3_touchZoomFunction.call(this, event, d);
+        }
       }
       last_canvas_touch_time = 0;
       return;
     }
     forceNotZooming = false;
     last_canvas_touch_time = touch_time;
-    if ( originalD3_touchZoomFunction )
-      {originalD3_touchZoomFunction.call(this, event, d);}
+    if (originalD3_touchZoomFunction) {
+      originalD3_touchZoomFunction.call(this, event, d);
+    }
   }
-  
-  graph.modified_dblTouchFunction = function ( event ){
+
+  graph.modified_dblTouchFunction = function (event) {
     event.stopPropagation();
     event.preventDefault();
     let xy;
-    if ( editMode === true ) {
+    if (editMode === true) {
       xy = d3.pointers(event, d3.selectAll(".vowlGraph").node());
     }
-    const grPos = getClickedScreenCoords(xy[0][0], xy[0][1], graph.translation(), graph.scaleFactor());
+    const grPos = getClickedScreenCoords(
+      xy[0][0],
+      xy[0][1],
+      graph.translation(),
+      graph.scaleFactor(),
+    );
     createNewNodeAtPosition(grPos);
   };
-  
+
   /** --------------------------------------------------------- **/
   /** -- Hover and Selection functions, adding edit elements --  **/
   /** --------------------------------------------------------- **/
-  
-  graph.ignoreOtherHoverEvents = function ( val ){
-    if ( !arguments.length ) {
+
+  graph.ignoreOtherHoverEvents = function (val) {
+    if (!arguments.length) {
       return ignoreOtherHoverEvents;
+    } else {
+      ignoreOtherHoverEvents = val;
     }
-    else  {ignoreOtherHoverEvents = val;}
   };
 
-  function clearAllHover(){
-    d3.selectAll(".hovered, .hoveredForEditing, .indirect-highlighting, .classDraggerNodeHovered, .hovered-MathSymbol")
+  function clearAllHover() {
+    d3.selectAll(
+      ".hovered, .hoveredForEditing, .indirect-highlighting, .classDraggerNodeHovered, .hovered-MathSymbol",
+    )
       .classed("hovered", false)
       .classed("hoveredForEditing", false)
       .classed("indirect-highlighting", false)
       .classed("classDraggerNodeHovered", false)
       .classed("hovered-MathSymbol", false);
-    
-    if ( hoveredNodeElement ) {
-      if ( typeof hoveredNodeElement.setHoverHighlighting === "function" ) {
+
+    if (hoveredNodeElement) {
+      if (typeof hoveredNodeElement.setHoverHighlighting === "function") {
         hoveredNodeElement.setHoverHighlighting(false);
       }
-      if ( typeof hoveredNodeElement.mouseEntered === "function" ) {
+      if (typeof hoveredNodeElement.mouseEntered === "function") {
         hoveredNodeElement.mouseEntered(false);
       }
       hoveredNodeElement = undefined;
     }
-    if ( hoveredPropertyElement ) {
-      if ( typeof hoveredPropertyElement.setHighlighting === "function" ) {
+    if (hoveredPropertyElement) {
+      if (typeof hoveredPropertyElement.setHighlighting === "function") {
         hoveredPropertyElement.setHighlighting(false);
       }
-      if ( typeof hoveredPropertyElement.mouseEntered === "function" ) {
+      if (typeof hoveredPropertyElement.mouseEntered === "function") {
         hoveredPropertyElement.mouseEntered(false);
       }
       hoveredPropertyElement = undefined;
@@ -3764,138 +4483,185 @@ function createGraph( graphContainerSelector ){
   }
 
   graph.clearAllHover = clearAllHover;
-  
-  function delayedHiddingHoverElements( tbh ){
-    if ( tbh === true ) {return;}
-    if ( hoveredNodeElement ) {
-      if ( hoveredNodeElement.editingTextElement === true ) {return;}
-      delayedHider = setTimeout(function (){
+
+  function delayedHiddingHoverElements(tbh) {
+    if (tbh === true) {
+      return;
+    }
+    if (hoveredNodeElement) {
+      if (hoveredNodeElement.editingTextElement === true) {
+        return;
+      }
+      delayedHider = setTimeout(function () {
         deleteGroupElement.classed("hidden", true);
         addDataPropertyGroupElement.classed("hidden", true);
         classDragger.hideDragger(true);
-        if ( hoveredNodeElement && hoveredNodeElement.pinned() === false && graph.paused() === false && hoveredNodeElement.editingTextElement === false ) {
+        if (
+          hoveredNodeElement &&
+          hoveredNodeElement.pinned() === false &&
+          graph.paused() === false &&
+          hoveredNodeElement.editingTextElement === false
+        ) {
           hoveredNodeElement.frozen(false);
           hoveredNodeElement.locked(false);
         }
       }, 1000);
     }
-    if ( hoveredPropertyElement ) {
-      if ( hoveredPropertyElement.editingTextElement === true ) {return;}
-      delayedHider = setTimeout(function (){
+    if (hoveredPropertyElement) {
+      if (hoveredPropertyElement.editingTextElement === true) {
+        return;
+      }
+      delayedHider = setTimeout(function () {
         deleteGroupElement.classed("hidden", true);
         addDataPropertyGroupElement.classed("hidden", true);
         classDragger.hideDragger(true);
         rangeDragger.hideDragger(true);
         domainDragger.hideDragger(true);
         shadowClone.hideClone(true);
-        if ( hoveredPropertyElement && hoveredPropertyElement.focused() === true && graph.options().drawPropertyDraggerOnHover() === true ) {
+        if (
+          hoveredPropertyElement &&
+          hoveredPropertyElement.focused() === true &&
+          graph.options().drawPropertyDraggerOnHover() === true
+        ) {
           hoveredPropertyElement.labelObject().increasedLoopAngle = false;
           // lazy update
           recalculatePositions();
         }
-        
-        if ( hoveredPropertyElement && hoveredPropertyElement.pinned() === false && graph.paused() === false && hoveredPropertyElement.editingTextElement === false ) {
+
+        if (
+          hoveredPropertyElement &&
+          hoveredPropertyElement.pinned() === false &&
+          graph.paused() === false &&
+          hoveredPropertyElement.editingTextElement === false
+        ) {
           hoveredPropertyElement.frozen(false);
           hoveredPropertyElement.locked(false);
         }
       }, 1000);
     }
-    
   }
-  
-  
+
   // TODO : experimental code for updating dynamic label with and its hover element
-  graph.hideHoverPropertyElementsForAnimation = function (){
+  graph.hideHoverPropertyElementsForAnimation = function () {
     deleteGroupElement.classed("hidden", true);
   };
-  graph.showHoverElementsAfterAnimation = function ( property, inversed ){
+  graph.showHoverElementsAfterAnimation = function (property, inversed) {
     setDeleteHoverElementPositionProperty(property, inversed);
     deleteGroupElement.classed("hidden", false);
-    
   };
-  
-  function editElementHoverOnHidden(){
+
+  function editElementHoverOnHidden() {
     classDragger.nodeElement.classed("classDraggerNodeHovered", true);
     classDragger.nodeElement.classed("classDraggerNode", false);
     editElementHoverOn();
   }
-  
-  function editElementHoverOutHidden(){
+
+  function editElementHoverOutHidden() {
     classDragger.nodeElement.classed("classDraggerNodeHovered", false);
     classDragger.nodeElement.classed("classDraggerNode", true);
     editElementHoverOut();
   }
-  
-  function editElementHoverOn( touch ){
-    if ( touch === true ) {return;}
+
+  function editElementHoverOn(touch) {
+    if (touch === true) {
+      return;
+    }
     clearTimeout(delayedHider); // ignore touch behaviour
-    
   }
-  
-  graph.killDelayedTimer = function (){
+
+  graph.killDelayedTimer = function () {
     clearTimeout(delayedHider);
     clearTimeout(nodeFreezer);
   };
-  
-  
-  function editElementHoverOut( tbh ){
-    if ( hoveredNodeElement ) {
-      if ( graph.ignoreOtherHoverEvents() === true || tbh === true || hoveredNodeElement.editingTextElement === true ) {return;}
-      delayedHider = setTimeout(function (){
-        if ( graph.isADraggerActive() === true ) {return;}
+
+  function editElementHoverOut(tbh) {
+    if (hoveredNodeElement) {
+      if (
+        graph.ignoreOtherHoverEvents() === true ||
+        tbh === true ||
+        hoveredNodeElement.editingTextElement === true
+      ) {
+        return;
+      }
+      delayedHider = setTimeout(function () {
+        if (graph.isADraggerActive() === true) {
+          return;
+        }
         deleteGroupElement.classed("hidden", true);
         addDataPropertyGroupElement.classed("hidden", true);
         classDragger.hideDragger(true);
-        if ( hoveredNodeElement && hoveredNodeElement.pinned() === false && graph.paused() === false ) {
+        if (
+          hoveredNodeElement &&
+          hoveredNodeElement.pinned() === false &&
+          graph.paused() === false
+        ) {
           hoveredNodeElement.frozen(false);
           hoveredNodeElement.locked(false);
         }
-        
       }, 1000);
     }
-    if ( hoveredPropertyElement ) {
-      if ( graph.ignoreOtherHoverEvents() === true || tbh === true || hoveredPropertyElement.editingTextElement === true ) {return;}
-      delayedHider = setTimeout(function (){
-        if ( graph.isADraggerActive() === true ) {return;}
+    if (hoveredPropertyElement) {
+      if (
+        graph.ignoreOtherHoverEvents() === true ||
+        tbh === true ||
+        hoveredPropertyElement.editingTextElement === true
+      ) {
+        return;
+      }
+      delayedHider = setTimeout(function () {
+        if (graph.isADraggerActive() === true) {
+          return;
+        }
         deleteGroupElement.classed("hidden", true);
         addDataPropertyGroupElement.classed("hidden", true);
         classDragger.hideDragger(true);
-        if ( hoveredPropertyElement && hoveredPropertyElement.pinned() === false && graph.paused() === false ) {
+        if (
+          hoveredPropertyElement &&
+          hoveredPropertyElement.pinned() === false &&
+          graph.paused() === false
+        ) {
           hoveredPropertyElement.frozen(false);
           hoveredPropertyElement.locked(false);
         }
-        
       }, 1000);
     }
   }
-  
-  graph.activateHoverElementsForProperties = function ( val, property, inversed, touchBehaviour ){
-    if ( editMode === false ) {return;} // nothing to do;
-    
-    if ( touchBehaviour === undefined )
-      {touchBehaviour = false;}
-    
-    if ( val === true ) {
+
+  graph.activateHoverElementsForProperties = function (
+    val,
+    property,
+    inversed,
+    touchBehaviour,
+  ) {
+    if (editMode === false) {
+      return;
+    } // nothing to do;
+
+    if (touchBehaviour === undefined) {
+      touchBehaviour = false;
+    }
+
+    if (val === true) {
       clearTimeout(delayedHider);
-      if ( hoveredPropertyElement && hoveredPropertyElement !== property ) {
-        if ( hoveredPropertyElement.domain() === hoveredPropertyElement.range() ) {
+      if (hoveredPropertyElement && hoveredPropertyElement !== property) {
+        if (
+          hoveredPropertyElement.domain() === hoveredPropertyElement.range()
+        ) {
           hoveredPropertyElement.labelObject().increasedLoopAngle = false;
           recalculatePositions();
         }
-        if ( typeof hoveredPropertyElement.setHighlighting === "function" ) {
+        if (typeof hoveredPropertyElement.setHighlighting === "function") {
           hoveredPropertyElement.setHighlighting(false);
         }
-        if ( typeof hoveredPropertyElement.mouseEntered === "function" ) {
+        if (typeof hoveredPropertyElement.mouseEntered === "function") {
           hoveredPropertyElement.mouseEntered(false);
         }
       }
-      
+
       hoveredPropertyElement = property;
-      if ( graph.options().drawPropertyDraggerOnHover() === true ) {
-        
-        
-        if ( property.type() !== "owl:DatatypeProperty" ) {
-          if ( property.domain() === property.range() ) {
+      if (graph.options().drawPropertyDraggerOnHover() === true) {
+        if (property.type() !== "owl:DatatypeProperty") {
+          if (property.domain() === property.range()) {
             property.labelObject().increasedLoopAngle = true;
             recalculatePositions();
           }
@@ -3907,7 +4673,7 @@ function createGraph( graphContainerSelector ){
           domainDragger.setParentProperty(property, inversed);
           domainDragger.hideDragger(false);
           domainDragger.addMouseEvents();
-        } else if ( property.type() === "owl:DatatypeProperty" ) {
+        } else if (property.type() === "owl:DatatypeProperty") {
           shadowClone.setParentProperty(property, inversed);
           shadowClone.hideClone(true);
           rangeDragger.setParentProperty(property, inversed);
@@ -3917,21 +4683,25 @@ function createGraph( graphContainerSelector ){
           domainDragger.hideDragger(false);
           domainDragger.addMouseEvents();
         }
-      }
-      else { // hide when we dont want that option
-        if ( graph.options().drawPropertyDraggerOnHover() === true ) {
+      } else {
+        // hide when we dont want that option
+        if (graph.options().drawPropertyDraggerOnHover() === true) {
           rangeDragger.hideDragger(true);
           domainDragger.hideDragger(true);
           shadowClone.hideClone(true);
-          if ( property.domain() === property.range() ) {
+          if (property.domain() === property.range()) {
             property.labelObject().increasedLoopAngle = false;
             recalculatePositions();
           }
         }
       }
-      
-      if ( hoveredNodeElement ) {
-        if ( hoveredNodeElement && hoveredNodeElement.pinned() === false && graph.paused() === false ) {
+
+      if (hoveredNodeElement) {
+        if (
+          hoveredNodeElement &&
+          hoveredNodeElement.pinned() === false &&
+          graph.paused() === false
+        ) {
           hoveredNodeElement.frozen(false);
           hoveredNodeElement.locked(false);
         }
@@ -3939,8 +4709,8 @@ function createGraph( graphContainerSelector ){
       hoveredNodeElement = undefined;
       deleteGroupElement.classed("hidden", false);
       setDeleteHoverElementPositionProperty(property, inversed);
-      deleteGroupElement.selectAll("*").on("click", function (event){
-        if ( touchBehaviour && property.focused() === false ) {
+      deleteGroupElement.selectAll("*").on("click", function (event) {
+        if (touchBehaviour && property.focused() === false) {
           graph.options().focuserModule().handle(null, property);
           return;
         }
@@ -3953,39 +4723,56 @@ function createGraph( graphContainerSelector ){
       delayedHiddingHoverElements();
     }
   };
-  
-  graph.updateDraggerElements = function (){
-    
+
+  graph.updateDraggerElements = function () {
     // set opacity style for all elements
-    
-    rangeDragger.draggerObject.classed("superOpacityElement", !graph.options().showDraggerObject());
-    domainDragger.draggerObject.classed("superOpacityElement", !graph.options().showDraggerObject());
-    classDragger.draggerObject.classed("superOpacityElement", !graph.options().showDraggerObject());
-    
-    nodeContainer.selectAll(".superHiddenElement").classed("superOpacityElement", !graph.options().showDraggerObject());
-    labelContainer.selectAll(".superHiddenElement").classed("superOpacityElement", !graph.options().showDraggerObject());
-    
-    deleteGroupElement.selectAll(".superHiddenElement").classed("superOpacityElement", !graph.options().showDraggerObject());
-    addDataPropertyGroupElement.selectAll(".superHiddenElement").classed("superOpacityElement", !graph.options().showDraggerObject());
-    
-    
+
+    rangeDragger.draggerObject.classed(
+      "superOpacityElement",
+      !graph.options().showDraggerObject(),
+    );
+    domainDragger.draggerObject.classed(
+      "superOpacityElement",
+      !graph.options().showDraggerObject(),
+    );
+    classDragger.draggerObject.classed(
+      "superOpacityElement",
+      !graph.options().showDraggerObject(),
+    );
+
+    nodeContainer
+      .selectAll(".superHiddenElement")
+      .classed("superOpacityElement", !graph.options().showDraggerObject());
+    labelContainer
+      .selectAll(".superHiddenElement")
+      .classed("superOpacityElement", !graph.options().showDraggerObject());
+
+    deleteGroupElement
+      .selectAll(".superHiddenElement")
+      .classed("superOpacityElement", !graph.options().showDraggerObject());
+    addDataPropertyGroupElement
+      .selectAll(".superHiddenElement")
+      .classed("superOpacityElement", !graph.options().showDraggerObject());
   };
-  
-  function setAddDataPropertyHoverElementPosition( node ){
-    if ( node.renderType() === "round" ) {
+
+  function setAddDataPropertyHoverElementPosition(node) {
+    if (node.renderType() === "round") {
       const scale = 0.5 * Math.sqrt(2.0);
       const oX = scale * node.actualRadius();
       const oY = scale * node.actualRadius();
       const delX = node.x - oX;
       const delY = node.y + oY;
-      addDataPropertyGroupElement.attr("transform", "translate(" + delX + "," + delY + ")");
+      addDataPropertyGroupElement.attr(
+        "transform",
+        "translate(" + delX + "," + delY + ")",
+      );
     }
   }
-  
-  function setDeleteHoverElementPosition( node ){
+
+  function setDeleteHoverElementPosition(node) {
     let delX;
     let delY;
-    if ( node.renderType() === "round" ) {
+    if (node.renderType() === "round") {
       const scale = 0.5 * Math.sqrt(2.0);
       const oX = scale * node.actualRadius();
       const oY = scale * node.actualRadius();
@@ -3995,37 +4782,47 @@ function createGraph( graphContainerSelector ){
       delX = node.x + 0.5 * node.width() + 6;
       delY = node.y - 0.5 * node.height() - 6;
     }
-    deleteGroupElement.attr("transform", "translate(" + delX + "," + delY + ")");
+    deleteGroupElement.attr(
+      "transform",
+      "translate(" + delX + "," + delY + ")",
+    );
   }
-  
-  function setDeleteHoverElementPositionProperty( property, inversed ){
-    if ( property && property.labelElement() ) {
+
+  function setDeleteHoverElementPositionProperty(property, inversed) {
+    if (property && property.labelElement()) {
       const pos = [property.labelObject().x, property.labelObject().y];
       const widthElement = parseFloat(property.getShapeElement().attr("width"));
-      const heightElement = parseFloat(property.getShapeElement().attr("height"));
+      const heightElement = parseFloat(
+        property.getShapeElement().attr("height"),
+      );
       const delX = pos[0] + 0.5 * widthElement + 6;
       let delY = pos[1] - 0.5 * heightElement - 6;
       // this is the lower element
-      if ( property.labelElement().attr("transform") === "translate(0,15)" )
-        {delY += 15;}
+      if (property.labelElement().attr("transform") === "translate(0,15)") {
+        delY += 15;
+      }
       // this is upper element
-      if ( property.labelElement().attr("transform") === "translate(0,-15)" )
-        {delY -= 15;}
-      deleteGroupElement.attr("transform", "translate(" + delX + "," + delY + ")");
+      if (property.labelElement().attr("transform") === "translate(0,-15)") {
+        delY -= 15;
+      }
+      deleteGroupElement.attr(
+        "transform",
+        "translate(" + delX + "," + delY + ")",
+      );
     } else {
-      deleteGroupElement.classed("hidden", true);// hide when there is no property
+      deleteGroupElement.classed("hidden", true); // hide when there is no property
     }
-    
-    
   }
-  
-  graph.activateHoverElements = function ( val, node, touchBehaviour ){
-    if ( editMode === false ) {
+
+  graph.activateHoverElements = function (val, node, touchBehaviour) {
+    if (editMode === false) {
       return; // nothing to do;
     }
-    if ( touchBehaviour === undefined ) {touchBehaviour = false;}
-    if ( val === true ) {
-      if ( graph.options().drawPropertyDraggerOnHover() === true ) {
+    if (touchBehaviour === undefined) {
+      touchBehaviour = false;
+    }
+    if (val === true) {
+      if (graph.options().drawPropertyDraggerOnHover() === true) {
         rangeDragger.hideDragger(true);
         domainDragger.hideDragger(true);
         shadowClone.hideClone(true);
@@ -4033,28 +4830,28 @@ function createGraph( graphContainerSelector ){
       // make them visible
       clearTimeout(delayedHider);
       clearTimeout(nodeFreezer);
-      if ( hoveredPropertyElement ) {
-        if ( typeof hoveredPropertyElement.setHighlighting === "function" ) {
+      if (hoveredPropertyElement) {
+        if (typeof hoveredPropertyElement.setHighlighting === "function") {
           hoveredPropertyElement.setHighlighting(false);
         }
-        if ( typeof hoveredPropertyElement.mouseEntered === "function" ) {
+        if (typeof hoveredPropertyElement.mouseEntered === "function") {
           hoveredPropertyElement.mouseEntered(false);
         }
-        if ( hoveredPropertyElement.focused() === false ) {
+        if (hoveredPropertyElement.focused() === false) {
           hoveredPropertyElement.labelObject().increasedLoopAngle = false;
           recalculatePositions();
           // update the loopAngles;
         }
       }
       hoveredPropertyElement = undefined;
-      if ( hoveredNodeElement && hoveredNodeElement !== node ) {
-        if ( typeof hoveredNodeElement.setHoverHighlighting === "function" ) {
+      if (hoveredNodeElement && hoveredNodeElement !== node) {
+        if (typeof hoveredNodeElement.setHoverHighlighting === "function") {
           hoveredNodeElement.setHoverHighlighting(false);
         }
-        if ( typeof hoveredNodeElement.mouseEntered === "function" ) {
+        if (typeof hoveredNodeElement.mouseEntered === "function") {
           hoveredNodeElement.mouseEntered(false);
         }
-        if ( hoveredNodeElement.pinned() === false && graph.paused() === false ) {
+        if (hoveredNodeElement.pinned() === false && graph.paused() === false) {
           hoveredNodeElement.frozen(false);
           hoveredNodeElement.locked(false);
         }
@@ -4062,62 +4859,63 @@ function createGraph( graphContainerSelector ){
       hoveredNodeElement = node;
       deleteGroupElement.classed("hidden", false);
       setDeleteHoverElementPosition(node);
-      
-      
-      deleteGroupElement.selectAll("*").on("click", function (event){
-        if ( touchBehaviour && node.focused() === false ) {
-          graph.options().focuserModule().handle(null, node);
-          return;
-        }
-        graph.removeNodeViaEditor(node);
-        event.stopPropagation();
-      })
-        .on("mouseover", function (){
+
+      deleteGroupElement
+        .selectAll("*")
+        .on("click", function (event) {
+          if (touchBehaviour && node.focused() === false) {
+            graph.options().focuserModule().handle(null, node);
+            return;
+          }
+          graph.removeNodeViaEditor(node);
+          event.stopPropagation();
+        })
+        .on("mouseover", function () {
           editElementHoverOn(node, touchBehaviour);
         })
-        .on("mouseout", function (){
+        .on("mouseout", function () {
           editElementHoverOut(node, touchBehaviour);
         });
-      
+
       addDataPropertyGroupElement.classed("hidden", true);
-      classDragger.nodeElement.on("mouseover", editElementHoverOn)
+      classDragger.nodeElement
+        .on("mouseover", editElementHoverOn)
         .on("mouseout", editElementHoverOut);
-      classDragger.draggerObject.on("mouseover", editElementHoverOnHidden)
+      classDragger.draggerObject
+        .on("mouseover", editElementHoverOnHidden)
         .on("mouseout", editElementHoverOutHidden);
-      
+
       // add the dragger element;
-      if ( node.renderType() === "round" ) {
+      if (node.renderType() === "round") {
         classDragger.svgRoot(draggerLayer);
         classDragger.setParentNode(node);
         classDragger.hideDragger(false);
         addDataPropertyGroupElement.classed("hidden", false);
         setAddDataPropertyHoverElementPosition(node);
-        addDataPropertyGroupElement.selectAll("*").on("click", function (event){
-          if ( touchBehaviour && node.focused() === false ) {
-            graph.options().focuserModule().handle(null, node);
-            return;
-          }
-          graph.createDataTypeProperty(node);
-          event.stopPropagation();
-        })
-          .on("mouseover", function (){
+        addDataPropertyGroupElement
+          .selectAll("*")
+          .on("click", function (event) {
+            if (touchBehaviour && node.focused() === false) {
+              graph.options().focuserModule().handle(null, node);
+              return;
+            }
+            graph.createDataTypeProperty(node);
+            event.stopPropagation();
+          })
+          .on("mouseover", function () {
             editElementHoverOn(node, touchBehaviour);
           })
-          .on("mouseout", function (){
+          .on("mouseout", function () {
             editElementHoverOut(node, touchBehaviour);
           });
       } else {
         classDragger.hideDragger(true);
-        
       }
-      
     } else {
       delayedHiddingHoverElements(node, touchBehaviour);
-      
     }
   };
-  
-  
+
   return graph;
 }
 

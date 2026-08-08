@@ -1,14 +1,22 @@
 import { NAMESPACES, IGNORED_PROPERTIES } from "./constants.js";
 
 function isVowlId(str) {
-  if (typeof str !== "string") {return false;}
+  if (typeof str !== "string") {
+    return false;
+  }
   return /^\d+$/.test(str);
 }
 
 function isDatatypeIri(iri, resolver) {
-  if (!iri) {return false;}
-  if (iri === "http://www.w3.org/2000/01/rdf-schema#Literal") {return false;}
-  if (iri.startsWith("http://www.w3.org/2001/XMLSchema#")) {return true;}
+  if (!iri) {
+    return false;
+  }
+  if (iri === "http://www.w3.org/2000/01/rdf-schema#Literal") {
+    return false;
+  }
+  if (iri.startsWith("http://www.w3.org/2001/XMLSchema#")) {
+    return true;
+  }
   if (iri.startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#")) {
     const local = resolver.getLocalName(iri);
     return ["PlainLiteral", "XMLLiteral", "HTML", "langString"].includes(local);
@@ -21,75 +29,105 @@ function isDatatypeIri(iri, resolver) {
 }
 
 function isIriExternal(iri, headerIri) {
-  if (!iri) {return false;}
-  if (iri === "http://www.w3.org/2000/01/rdf-schema#Literal" || iri === "http://www.w3.org/2002/07/owl#Thing") {
+  if (!iri) {
     return false;
   }
-  
-  if (iri.startsWith("http://www.w3.org/2002/07/owl#") || 
-      iri.startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#") || 
-      iri.startsWith("http://www.w3.org/2000/01/rdf-schema#")) {
+  if (
+    iri === "http://www.w3.org/2000/01/rdf-schema#Literal" ||
+    iri === "http://www.w3.org/2002/07/owl#Thing"
+  ) {
+    return false;
+  }
+
+  if (
+    iri.startsWith("http://www.w3.org/2002/07/owl#") ||
+    iri.startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#") ||
+    iri.startsWith("http://www.w3.org/2000/01/rdf-schema#")
+  ) {
     return true;
   }
-  
-  if (!headerIri) {return false;}
-  
+
+  if (!headerIri) {
+    return false;
+  }
+
   function removeTrailingHash(str) {
     return str.replace(/[#]$/, "");
   }
-  
+
   const trimmedElementIri = removeTrailingHash(iri);
   const trimmedOntologyIri = removeTrailingHash(headerIri);
-  
+
   if (trimmedElementIri === trimmedOntologyIri) {
     return false;
   }
-  
+
   if (trimmedElementIri.includes("#")) {
     const parts = trimmedElementIri.split("#");
     if (parts[0] === trimmedOntologyIri) {
       return false;
     }
   }
-  
+
   if (trimmedElementIri.includes("/") && !trimmedElementIri.endsWith("/")) {
     const lastSlashIndex = trimmedElementIri.lastIndexOf("/");
     const indexAfterSlash = lastSlashIndex + 1;
-    const elementNamespaceWithoutLastPart = trimmedElementIri.substring(0, indexAfterSlash);
-    
+    const elementNamespaceWithoutLastPart = trimmedElementIri.substring(
+      0,
+      indexAfterSlash,
+    );
+
     if (elementNamespaceWithoutLastPart === trimmedOntologyIri) {
       return false;
     }
   }
-  
+
   return true;
 }
 
 function getClassId(ref, context) {
-  if (isVowlId(ref)) {return ref;}
+  if (isVowlId(ref)) {
+    return ref;
+  }
   let cls = context.classMap.get(ref);
-  if (!cls) {cls = context.classMap.get("http://www.w3.org/2002/07/owl#Thing");}
+  if (!cls) {
+    cls = context.classMap.get("http://www.w3.org/2002/07/owl#Thing");
+  }
   return cls ? cls.id : "0";
 }
 
 function createVirtualDatatype(datatypeIri, resolver, context) {
   const cls = context.classMap.get(datatypeIri);
   const virtualId = context.nextId();
-  const label = cls && cls.label ? JSON.parse(JSON.stringify(cls.label)) : { "undefined": resolver.getLocalName(datatypeIri) };
+  const label =
+    cls && cls.label
+      ? JSON.parse(JSON.stringify(cls.label))
+      : { undefined: resolver.getLocalName(datatypeIri) };
   if (!label["undefined"]) {
     label["undefined"] = resolver.getLocalName(datatypeIri);
   }
   const virtualCls = {
     id: virtualId,
-    type: datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal" ? "rdfs:Literal" : "rdfs:Datatype",
+    type:
+      datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal"
+        ? "rdfs:Literal"
+        : "rdfs:Datatype",
     iri: datatypeIri,
-    baseIri: datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal" ? undefined : (cls ? cls.baseIri : resolver.getBaseIri(datatypeIri)),
+    baseIri:
+      datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal"
+        ? undefined
+        : cls
+          ? cls.baseIri
+          : resolver.getBaseIri(datatypeIri),
     label: label,
     comment: cls && cls.comment ? JSON.parse(JSON.stringify(cls.comment)) : {},
-    attributes: datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal" ? [] : ["datatype"],
+    attributes:
+      datatypeIri === "http://www.w3.org/2000/01/rdf-schema#Literal"
+        ? []
+        : ["datatype"],
     subClasses: [],
     superClasses: [],
-    annotations: cls && cls.annotations ? cls.annotations : {}
+    annotations: cls && cls.annotations ? cls.annotations : {},
   };
   context.virtualDatatypes.push(virtualCls);
   return virtualId;
@@ -113,23 +151,27 @@ function ensureClassExists(iri, type = "owl:Class", resolver, context) {
     return cls;
   }
   const id = context.nextId();
-  
+
   const isAnonymous = type === "owl:unionOf";
   const attributes = [];
-  if (isAnonymous) {attributes.push("anonymous");}
-  if (type === "rdfs:Datatype") {attributes.push("datatype");}
+  if (isAnonymous) {
+    attributes.push("anonymous");
+  }
+  if (type === "rdfs:Datatype") {
+    attributes.push("datatype");
+  }
 
   const cls = {
     id: id,
     type: type === "owl:unionOf" ? "owl:unionOf" : type,
     iri: iri,
     baseIri: iri ? resolver.getBaseIri(iri) : null,
-    label: iri ? { "undefined": resolver.getLocalName(iri) } : {},
+    label: iri ? { undefined: resolver.getLocalName(iri) } : {},
     comment: {},
     attributes: attributes,
     subClasses: [],
     superClasses: [],
-    individuals: []
+    individuals: [],
   };
   if (iri) {
     context.classMap.set(iri, cls);
@@ -139,7 +181,12 @@ function ensureClassExists(iri, type = "owl:Class", resolver, context) {
   return cls;
 }
 
-function ensurePropertyExists(iri, type = "owl:objectProperty", resolver, context) {
+function ensurePropertyExists(
+  iri,
+  type = "owl:objectProperty",
+  resolver,
+  context,
+) {
   if (context.propertyMap.has(iri)) {
     return context.propertyMap.get(iri);
   }
@@ -152,14 +199,14 @@ function ensurePropertyExists(iri, type = "owl:objectProperty", resolver, contex
     type: type,
     iri: iri,
     baseIri: baseIri,
-    label: { "undefined": localName },
+    label: { undefined: localName },
     comment: {},
     attributes: attributes,
     domain: null,
     range: null,
     superproperty: [],
     subproperty: [],
-    inverse: null
+    inverse: null,
   };
   context.propertyMap.set(iri, prop);
   return prop;
@@ -173,14 +220,24 @@ function ensurePropertyExists(iri, type = "owl:objectProperty", resolver, contex
  * @param {VowlParserContext} context
  * @param {object} header
  */
-export function convertOntology(subjects, languagesSet, resolver, context, header) {
+export function convertOntology(
+  subjects,
+  languagesSet,
+  resolver,
+  context,
+  header,
+) {
   const inferredClasses = new Set();
 
   const isNonVisualSubject = (iri) => {
     const subject = subjects[iri];
-    if (!subject) {return false;}
+    if (!subject) {
+      return false;
+    }
     const types = subject.types;
-    if (!types) {return false;}
+    if (!types) {
+      return false;
+    }
     if (
       types.has(NAMESPACES.OWL + "Restriction") ||
       types.has(NAMESPACES.OWL + "Axiom") ||
@@ -193,7 +250,10 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     ) {
       return true;
     }
-    if (subject.annotations && subject.annotations["onProperty"] !== undefined) {
+    if (
+      subject.annotations &&
+      subject.annotations["onProperty"] !== undefined
+    ) {
       return true;
     }
     return false;
@@ -201,7 +261,9 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
   // Populate inferred classes from explicit declarations
   for (const iri of Object.keys(subjects)) {
-    if (isNonVisualSubject(iri)) {continue;}
+    if (isNonVisualSubject(iri)) {
+      continue;
+    }
     const subject = subjects[iri];
     for (const type of subject.types) {
       if (
@@ -216,28 +278,45 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
   // Infers class status from usage relationships
   for (const iri of Object.keys(subjects)) {
-    if (isNonVisualSubject(iri)) {continue;}
+    if (isNonVisualSubject(iri)) {
+      continue;
+    }
     const subject = subjects[iri];
 
     if (subject.superClasses.length > 0) {
       // Avoid inferring anonymous union/intersection classes whose members are all anonymous restrictions
       const isStructuralAnonUnion = (supIri) => {
         const supSubject = subjects[supIri];
-        return supIri.startsWith("_:") && supSubject && (
-          supSubject.unionOf || supSubject.intersectionOf
-        ) && (() => {
-          const members = supSubject.unionOf || supSubject.intersectionOf;
-          return Array.isArray(members) && members.length > 0 &&
-            members.every(m => m.startsWith("_:") && subjects[m] && (
-              subjects[m].types.has(NAMESPACES.OWL + "Restriction") ||
-              (subjects[m].annotations && subjects[m].annotations["onProperty"] !== undefined)
-            ));
-        })();
+        return (
+          supIri.startsWith("_:") &&
+          supSubject &&
+          (supSubject.unionOf || supSubject.intersectionOf) &&
+          (() => {
+            const members = supSubject.unionOf || supSubject.intersectionOf;
+            return (
+              Array.isArray(members) &&
+              members.length > 0 &&
+              members.every(
+                (m) =>
+                  m.startsWith("_:") &&
+                  subjects[m] &&
+                  (subjects[m].types.has(NAMESPACES.OWL + "Restriction") ||
+                    (subjects[m].annotations &&
+                      subjects[m].annotations["onProperty"] !== undefined)),
+              )
+            );
+          })()
+        );
       };
 
       inferredClasses.add(iri);
-      subject.superClasses.forEach(sup => {
-        if (sup && !isNonVisualSubject(sup) && !isVowlId(sup) && !isStructuralAnonUnion(sup)) {
+      subject.superClasses.forEach((sup) => {
+        if (
+          sup &&
+          !isNonVisualSubject(sup) &&
+          !isVowlId(sup) &&
+          !isStructuralAnonUnion(sup)
+        ) {
           inferredClasses.add(sup);
         }
       });
@@ -245,27 +324,42 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
     if (subject.equivalentClasses.length > 0) {
       inferredClasses.add(iri);
-      subject.equivalentClasses.forEach(eq => {
-        if (eq && !isNonVisualSubject(eq) && !isVowlId(eq)) {inferredClasses.add(eq);}
+      subject.equivalentClasses.forEach((eq) => {
+        if (eq && !isNonVisualSubject(eq) && !isVowlId(eq)) {
+          inferredClasses.add(eq);
+        }
       });
     }
 
     if (subject.disjointWith.length > 0) {
       inferredClasses.add(iri);
-      subject.disjointWith.forEach(dj => {
-        if (dj && !isNonVisualSubject(dj) && !isVowlId(dj)) {inferredClasses.add(dj);}
+      subject.disjointWith.forEach((dj) => {
+        if (dj && !isNonVisualSubject(dj) && !isVowlId(dj)) {
+          inferredClasses.add(dj);
+        }
       });
     }
   }
 
-  context.subclassRelations.forEach(rel => {
-    if (rel.subclassIri && !isNonVisualSubject(rel.subclassIri)) {inferredClasses.add(rel.subclassIri);}
-    if (rel.superclassIri && !isNonVisualSubject(rel.superclassIri)) {inferredClasses.add(rel.superclassIri);}
+  context.subclassRelations.forEach((rel) => {
+    if (rel.subclassIri && !isNonVisualSubject(rel.subclassIri)) {
+      inferredClasses.add(rel.subclassIri);
+    }
+    if (rel.superclassIri && !isNonVisualSubject(rel.superclassIri)) {
+      inferredClasses.add(rel.superclassIri);
+    }
   });
 
-  context.parsedRestrictions.forEach(rest => {
-    if (rest.domainIri && !isNonVisualSubject(rest.domainIri)) {inferredClasses.add(rest.domainIri);}
-    if (rest.type !== "owl:hasValue" && rest.rangeIri && !isDatatypeIri(rest.rangeIri, resolver) && !isNonVisualSubject(rest.rangeIri)) {
+  context.parsedRestrictions.forEach((rest) => {
+    if (rest.domainIri && !isNonVisualSubject(rest.domainIri)) {
+      inferredClasses.add(rest.domainIri);
+    }
+    if (
+      rest.type !== "owl:hasValue" &&
+      rest.rangeIri &&
+      !isDatatypeIri(rest.rangeIri, resolver) &&
+      !isNonVisualSubject(rest.rangeIri)
+    ) {
       inferredClasses.add(rest.rangeIri);
     }
   });
@@ -274,24 +368,35 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   for (const iri of Object.keys(subjects)) {
     const subject = subjects[iri];
     const types = Array.from(subject.types);
-    const isProperty = types.some(t =>
-      t === NAMESPACES.OWL + "ObjectProperty" ||
-      t === NAMESPACES.OWL + "DatatypeProperty" ||
-      t === NAMESPACES.OWL + "FunctionalProperty" ||
-      t === NAMESPACES.OWL + "TransitiveProperty" ||
-      t === NAMESPACES.OWL + "SymmetricProperty" ||
-      t === NAMESPACES.RDF + "Property"
+    const isProperty = types.some(
+      (t) =>
+        t === NAMESPACES.OWL + "ObjectProperty" ||
+        t === NAMESPACES.OWL + "DatatypeProperty" ||
+        t === NAMESPACES.OWL + "FunctionalProperty" ||
+        t === NAMESPACES.OWL + "TransitiveProperty" ||
+        t === NAMESPACES.OWL + "SymmetricProperty" ||
+        t === NAMESPACES.RDF + "Property",
     );
 
     if (isProperty) {
-      subject.domains.forEach(dom => {
-        if (dom && !isNonVisualSubject(dom) && !isVowlId(dom)) {inferredClasses.add(dom);}
+      subject.domains.forEach((dom) => {
+        if (dom && !isNonVisualSubject(dom) && !isVowlId(dom)) {
+          inferredClasses.add(dom);
+        }
       });
-      const isDatatypeProp = types.some(t => t === NAMESPACES.OWL + "DatatypeProperty") ||
-                             subject.ranges.some(r => isDatatypeIri(r, resolver));
+      const isDatatypeProp =
+        types.some((t) => t === NAMESPACES.OWL + "DatatypeProperty") ||
+        subject.ranges.some((r) => isDatatypeIri(r, resolver));
       if (!isDatatypeProp) {
-        subject.ranges.forEach(ran => {
-          if (ran && !isDatatypeIri(ran, resolver) && !isNonVisualSubject(ran) && !isVowlId(ran)) {inferredClasses.add(ran);}
+        subject.ranges.forEach((ran) => {
+          if (
+            ran &&
+            !isDatatypeIri(ran, resolver) &&
+            !isNonVisualSubject(ran) &&
+            !isVowlId(ran)
+          ) {
+            inferredClasses.add(ran);
+          }
         });
       }
     }
@@ -299,9 +404,11 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
   // Custom typing / Metaclass inference
   for (const iri of Object.keys(subjects)) {
-    if (isNonVisualSubject(iri)) {continue;}
+    if (isNonVisualSubject(iri)) {
+      continue;
+    }
     const subject = subjects[iri];
-    subject.types.forEach(t => {
+    subject.types.forEach((t) => {
       if (
         t &&
         !isNonVisualSubject(t) &&
@@ -323,8 +430,18 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   }
 
   // Pre-seed standard configurations
-  ensureClassExists("http://www.w3.org/2002/07/owl#Thing", "owl:Thing", resolver, context);
-  ensureClassExists("http://www.w3.org/2000/01/rdf-schema#Literal", "rdfs:Literal", resolver, context);
+  ensureClassExists(
+    "http://www.w3.org/2002/07/owl#Thing",
+    "owl:Thing",
+    resolver,
+    context,
+  );
+  ensureClassExists(
+    "http://www.w3.org/2000/01/rdf-schema#Literal",
+    "rdfs:Literal",
+    resolver,
+    context,
+  );
 
   // Identify main ontology header details
   let ontologySubject = null;
@@ -336,7 +453,9 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   }
 
   // Sort dyn-constructed regional languages alphabetically (with 'undefined' last)
-  const rawLanguages = Array.from(languagesSet).filter(l => l !== "undefined");
+  const rawLanguages = Array.from(languagesSet).filter(
+    (l) => l !== "undefined",
+  );
   rawLanguages.sort();
   const finalLanguages = [...rawLanguages];
   if (languagesSet.has("undefined") || languagesSet.size === 0) {
@@ -345,8 +464,10 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
   // Populate header properties
   header.languages = finalLanguages;
-  header.iri = ontologySubject ? ontologySubject.iri : "https://haddenindustries.com/ontology/newOntology/";
-  
+  header.iri = ontologySubject
+    ? ontologySubject.iri
+    : "https://haddenindustries.com/ontology/newOntology/";
+
   if (ontologySubject) {
     const annos = ontologySubject.annotations || {};
 
@@ -357,7 +478,7 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     header.title = {};
     const titles = annos["title"] || [];
     if (titles.length > 0) {
-      titles.forEach(t => {
+      titles.forEach((t) => {
         header.title[t.language || "undefined"] = t.value;
       });
     } else if (Object.keys(header.labels).length > 0) {
@@ -370,7 +491,7 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     // 4. Description from dc:description / description
     header.description = {};
     const descs = annos["description"] || [];
-    descs.forEach(d => {
+    descs.forEach((d) => {
       header.description[d.language || "undefined"] = d.value;
     });
 
@@ -381,7 +502,7 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     }
 
     const creators = annos["creator"] || [];
-    creators.forEach(c => {
+    creators.forEach((c) => {
       header.author.push(c.value);
     });
 
@@ -394,23 +515,25 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     }
     header.other = otherAnnos;
   } else {
-    header.title = { "en": "Ontology" };
+    header.title = { en: "Ontology" };
   }
 
   // Merge anonymous equivalent class expressions into their named subjects
   for (const iri in subjects) {
-    if (isNonVisualSubject(iri)) {continue;}
+    if (isNonVisualSubject(iri)) {
+      continue;
+    }
     const subject = subjects[iri];
-    
+
     if (subject.equivalentClasses && subject.equivalentClasses.length > 0) {
-      const anonEquivIris = subject.equivalentClasses.filter(eqIri => {
+      const anonEquivIris = subject.equivalentClasses.filter((eqIri) => {
         const eqSub = subjects[eqIri];
         return eqSub && eqIri.startsWith("_:");
       });
 
-      anonEquivIris.forEach(eqIri => {
+      anonEquivIris.forEach((eqIri) => {
         const eqSub = subjects[eqIri];
-        
+
         if (eqSub.unionOf && !subject.unionOf) {
           subject.unionOf = eqSub.unionOf;
         }
@@ -423,14 +546,16 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
         if (eqSub.disjointUnionOf && !subject.disjointUnionOf) {
           subject.disjointUnionOf = eqSub.disjointUnionOf;
         }
-        
+
         for (const [key, value] of Object.entries(eqSub.annotations)) {
           if (subject.annotations[key] === undefined) {
             subject.annotations[key] = value;
           }
         }
 
-        subject.equivalentClasses = subject.equivalentClasses.filter(x => x !== eqIri);
+        subject.equivalentClasses = subject.equivalentClasses.filter(
+          (x) => x !== eqIri,
+        );
         delete subjects[eqIri];
       });
     }
@@ -438,32 +563,50 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
   // Map Subjects to Classes, Properties & Named Individuals
   for (const iri in subjects) {
-    if (IGNORED_PROPERTIES.has(iri)) {continue;}
-    if (isNonVisualSubject(iri)) {continue;}
+    if (IGNORED_PROPERTIES.has(iri)) {
+      continue;
+    }
+    if (isNonVisualSubject(iri)) {
+      continue;
+    }
 
     const subject = subjects[iri];
-    if (ontologySubject && iri === ontologySubject.iri) {continue;}
+    if (ontologySubject && iri === ontologySubject.iri) {
+      continue;
+    }
 
     const types = Array.from(subject.types);
     const isClass = inferredClasses.has(iri);
-    const isDatatype = types.some(t => t === NAMESPACES.RDFS + "Datatype") || isDatatypeIri(iri, resolver);
+    const isDatatype =
+      types.some((t) => t === NAMESPACES.RDFS + "Datatype") ||
+      isDatatypeIri(iri, resolver);
 
-    const isAnnotationProperty = types.some(t => t === NAMESPACES.OWL + "AnnotationProperty");
-    const isProperty = !isAnnotationProperty && types.some(t =>
-      t === NAMESPACES.OWL + "ObjectProperty" ||
-      t === NAMESPACES.OWL + "DatatypeProperty" ||
-      t === NAMESPACES.OWL + "FunctionalProperty" ||
-      t === NAMESPACES.OWL + "TransitiveProperty" ||
-      t === NAMESPACES.OWL + "SymmetricProperty" ||
-      t === NAMESPACES.RDF + "Property"
+    const isAnnotationProperty = types.some(
+      (t) => t === NAMESPACES.OWL + "AnnotationProperty",
     );
+    const isProperty =
+      !isAnnotationProperty &&
+      types.some(
+        (t) =>
+          t === NAMESPACES.OWL + "ObjectProperty" ||
+          t === NAMESPACES.OWL + "DatatypeProperty" ||
+          t === NAMESPACES.OWL + "FunctionalProperty" ||
+          t === NAMESPACES.OWL + "TransitiveProperty" ||
+          t === NAMESPACES.OWL + "SymmetricProperty" ||
+          t === NAMESPACES.RDF + "Property",
+      );
 
-    const isExplicitNamedIndividual = types.some(t => t === NAMESPACES.OWL + "NamedIndividual");
-    const isIndividual = !isClass && !isDatatype && !isProperty && (
-      isExplicitNamedIndividual ||
-      types.some(t => inferredClasses.has(t) || t === NAMESPACES.OWL + "Thing")
+    const isExplicitNamedIndividual = types.some(
+      (t) => t === NAMESPACES.OWL + "NamedIndividual",
     );
-
+    const isIndividual =
+      !isClass &&
+      !isDatatype &&
+      !isProperty &&
+      (isExplicitNamedIndividual ||
+        types.some(
+          (t) => inferredClasses.has(t) || t === NAMESPACES.OWL + "Thing",
+        ));
 
     if (isClass && !isDatatype) {
       const cls = ensureClassExists(iri, "owl:Class", resolver, context);
@@ -474,69 +617,96 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
           cls.label["undefined"] = resolver.getLocalName(iri);
         }
       } else {
-        cls.label = { "undefined": resolver.getLocalName(iri) };
+        cls.label = { undefined: resolver.getLocalName(iri) };
       }
       cls.comment = subject.comments;
       cls.annotations = subject.annotations;
-      cls.disjointWith = Array.isArray(subject.disjointWith) ? Array.from(new Set(subject.disjointWith)) : [];
+      cls.disjointWith = Array.isArray(subject.disjointWith)
+        ? Array.from(new Set(subject.disjointWith))
+        : [];
 
-      if (types.some(t => t === NAMESPACES.OWL + "DeprecatedClass")) {
-        if (!cls.attributes.includes("deprecated")) {cls.attributes.push("deprecated");}
+      if (types.some((t) => t === NAMESPACES.OWL + "DeprecatedClass")) {
+        if (!cls.attributes.includes("deprecated")) {
+          cls.attributes.push("deprecated");
+        }
       }
 
       if (subject.unionOf) {
         cls.type = "owl:unionOf";
-        if (!cls.attributes.includes("union")) {cls.attributes.push("union");}
+        if (!cls.attributes.includes("union")) {
+          cls.attributes.push("union");
+        }
         cls.unionMembers = subject.unionOf;
       }
       if (subject.intersectionOf) {
         cls.type = "owl:intersectionOf";
-        if (!cls.attributes.includes("intersection")) {cls.attributes.push("intersection");}
+        if (!cls.attributes.includes("intersection")) {
+          cls.attributes.push("intersection");
+        }
         cls.intersectionMembers = subject.intersectionOf;
       }
       if (subject.complementOf) {
         cls.type = "owl:complementOf";
-        if (!cls.attributes.includes("complement")) {cls.attributes.push("complement");}
+        if (!cls.attributes.includes("complement")) {
+          cls.attributes.push("complement");
+        }
         cls.complementMember = subject.complementOf;
       }
       if (subject.disjointUnionOf) {
         cls.type = "owl:disjointUnionOf";
-        if (!cls.attributes.includes("disjointUnion")) {cls.attributes.push("disjointUnion");}
+        if (!cls.attributes.includes("disjointUnion")) {
+          cls.attributes.push("disjointUnion");
+        }
         cls.disjointUnionMembers = subject.disjointUnionOf;
       }
 
-      subject.superClasses.forEach(superIri => {
+      subject.superClasses.forEach((superIri) => {
         const superSubject = subjects[superIri];
-        const isRestriction = superSubject && (
-          superSubject.types.has(NAMESPACES.OWL + "Restriction") ||
-          (superSubject.annotations && superSubject.annotations["onProperty"] !== undefined)
-        );
+        const isRestriction =
+          superSubject &&
+          (superSubject.types.has(NAMESPACES.OWL + "Restriction") ||
+            (superSubject.annotations &&
+              superSubject.annotations["onProperty"] !== undefined));
         // Suppress anonymous union/intersection superclasses where ALL members are anonymous
         // restrictions — Java treats these as structural axioms, not visual union nodes
-        const isStructuralAnonymousUnion = superIri.startsWith("_:") && superSubject && (
-          superSubject.unionOf || superSubject.intersectionOf
-        ) && (() => {
-          const members = superSubject.unionOf || superSubject.intersectionOf;
-          return Array.isArray(members) && members.length > 0 &&
-            members.every(m => m.startsWith("_:") && subjects[m] && (
-              subjects[m].types.has(NAMESPACES.OWL + "Restriction") ||
-              (subjects[m].annotations && subjects[m].annotations["onProperty"] !== undefined)
-            ));
-        })();
+        const isStructuralAnonymousUnion =
+          superIri.startsWith("_:") &&
+          superSubject &&
+          (superSubject.unionOf || superSubject.intersectionOf) &&
+          (() => {
+            const members = superSubject.unionOf || superSubject.intersectionOf;
+            return (
+              Array.isArray(members) &&
+              members.length > 0 &&
+              members.every(
+                (m) =>
+                  m.startsWith("_:") &&
+                  subjects[m] &&
+                  (subjects[m].types.has(NAMESPACES.OWL + "Restriction") ||
+                    (subjects[m].annotations &&
+                      subjects[m].annotations["onProperty"] !== undefined)),
+              )
+            );
+          })();
         if (!isRestriction && !isStructuralAnonymousUnion) {
-          context.subclassRelations.push({ subclassIri: iri, superclassIri: superIri });
+          context.subclassRelations.push({
+            subclassIri: iri,
+            superclassIri: superIri,
+          });
         }
       });
     } else if (isDatatype) {
       const cls = ensureClassExists(iri, "rdfs:Datatype", resolver, context);
-      if (!cls.attributes.includes("datatype")) {cls.attributes.push("datatype");}
+      if (!cls.attributes.includes("datatype")) {
+        cls.attributes.push("datatype");
+      }
       if (Object.keys(subject.labels).length > 0) {
         cls.label = Object.assign({}, subject.labels);
         if (!cls.label["undefined"]) {
           cls.label["undefined"] = resolver.getLocalName(iri);
         }
       } else {
-        cls.label = { "undefined": resolver.getLocalName(iri) };
+        cls.label = { undefined: resolver.getLocalName(iri) };
       }
       cls.comment = subject.comments;
       cls.annotations = subject.annotations;
@@ -544,23 +714,52 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
       let type = "owl:objectProperty";
       const attributes = ["object"];
 
-      const isDTP = types.some(t => t === NAMESPACES.OWL + "DatatypeProperty") || 
-                    (subject.ranges && subject.ranges.some(r => isDatatypeIri(r, resolver)));
+      const isDTP =
+        types.some((t) => t === NAMESPACES.OWL + "DatatypeProperty") ||
+        (subject.ranges &&
+          subject.ranges.some((r) => isDatatypeIri(r, resolver)));
       if (isDTP) {
         type = "owl:datatypeProperty";
         attributes[0] = "datatype";
       }
 
-      if (types.some(t => t === NAMESPACES.OWL + "FunctionalProperty")) {attributes.push("functional");}
-      if (types.some(t => t === NAMESPACES.OWL + "InverseFunctionalProperty")) {attributes.push("inverse functional");}
-      if (types.some(t => t === NAMESPACES.OWL + "TransitiveProperty")) {attributes.push("transitive");}
-      if (types.some(t => t === NAMESPACES.OWL + "SymmetricProperty")) {attributes.push("symmetric");}
-      if (types.some(t => t === NAMESPACES.OWL + "AsymmetricProperty")) {attributes.push("asymmetric");}
-      if (types.some(t => t === NAMESPACES.OWL + "ReflexiveProperty")) {attributes.push("reflexive");}
-      if (types.some(t => t === NAMESPACES.OWL + "IrreflexiveProperty")) {attributes.push("irreflexive");}
-      if (types.some(t => t === NAMESPACES.OWL + "DeprecatedProperty" || t === NAMESPACES.OWL + "DeprecatedClass")) {attributes.push("deprecated");}
-      
-      const propLabel = Object.keys(subject.labels).length > 0 ? Object.assign({}, subject.labels) : { "undefined": resolver.getLocalName(iri) };
+      if (types.some((t) => t === NAMESPACES.OWL + "FunctionalProperty")) {
+        attributes.push("functional");
+      }
+      if (
+        types.some((t) => t === NAMESPACES.OWL + "InverseFunctionalProperty")
+      ) {
+        attributes.push("inverse functional");
+      }
+      if (types.some((t) => t === NAMESPACES.OWL + "TransitiveProperty")) {
+        attributes.push("transitive");
+      }
+      if (types.some((t) => t === NAMESPACES.OWL + "SymmetricProperty")) {
+        attributes.push("symmetric");
+      }
+      if (types.some((t) => t === NAMESPACES.OWL + "AsymmetricProperty")) {
+        attributes.push("asymmetric");
+      }
+      if (types.some((t) => t === NAMESPACES.OWL + "ReflexiveProperty")) {
+        attributes.push("reflexive");
+      }
+      if (types.some((t) => t === NAMESPACES.OWL + "IrreflexiveProperty")) {
+        attributes.push("irreflexive");
+      }
+      if (
+        types.some(
+          (t) =>
+            t === NAMESPACES.OWL + "DeprecatedProperty" ||
+            t === NAMESPACES.OWL + "DeprecatedClass",
+        )
+      ) {
+        attributes.push("deprecated");
+      }
+
+      const propLabel =
+        Object.keys(subject.labels).length > 0
+          ? Object.assign({}, subject.labels)
+          : { undefined: resolver.getLocalName(iri) };
       if (!propLabel["undefined"]) {
         propLabel["undefined"] = resolver.getLocalName(iri);
       }
@@ -597,11 +796,14 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
         subproperty: [],
         inverse: subject.inverses[0] || null,
         equivalentProperties: subject.equivalentProperties || [],
-        annotations: subject.annotations
+        annotations: subject.annotations,
       };
 
-      subject.superProperties.forEach(superIri => {
-        context.subpropertyRelations.push({ subpropIri: iri, superpropIri: superIri });
+      subject.superProperties.forEach((superIri) => {
+        context.subpropertyRelations.push({
+          subpropIri: iri,
+          superpropIri: superIri,
+        });
       });
 
       context.propertyMap.set(iri, prop);
@@ -616,22 +818,23 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
           finalLabels["undefined"] = localName;
         }
       } else {
-        finalLabels = { "undefined": localName };
+        finalLabels = { undefined: localName };
       }
 
       const indObj = {
         iri: individualIri,
         baseIri: resolver.getBaseIri(individualIri),
         labels: finalLabels,
-        comments: subject.comments || {}
+        comments: subject.comments || {},
       };
       if (subject.annotations && Object.keys(subject.annotations).length > 0) {
         indObj.annotations = subject.annotations;
       }
 
-      const classIris = types.filter(t => 
-        t !== NAMESPACES.OWL + "NamedIndividual" && 
-        (inferredClasses.has(t) || t === NAMESPACES.OWL + "Thing")
+      const classIris = types.filter(
+        (t) =>
+          t !== NAMESPACES.OWL + "NamedIndividual" &&
+          (inferredClasses.has(t) || t === NAMESPACES.OWL + "Thing"),
       );
 
       if (classIris.length === 0) {
@@ -640,42 +843,60 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
       context.parsedIndividuals.push({
         individual: indObj,
-        classIris: classIris
+        classIris: classIris,
       });
     }
   }
 
   // Step 0: Ensure restriction properties exist in propertyMap
-  context.parsedRestrictions.forEach(rest => {
+  context.parsedRestrictions.forEach((rest) => {
     if (rest.propertyIri) {
-      ensurePropertyExists(rest.propertyIri, "owl:objectProperty", resolver, context);
+      ensurePropertyExists(
+        rest.propertyIri,
+        "owl:objectProperty",
+        resolver,
+        context,
+      );
     }
   });
 
   const isStructuralAnonUnion = (supIri) => {
     const supSubject = subjects[supIri];
-    return supIri.startsWith("_:") && supSubject && (
-      supSubject.unionOf || supSubject.intersectionOf
-    ) && (() => {
-      const members = supSubject.unionOf || supSubject.intersectionOf;
-      return Array.isArray(members) && members.length > 0 &&
-        members.every(m => m.startsWith("_:") && subjects[m] && (
-          subjects[m].types.has(NAMESPACES.OWL + "Restriction") ||
-          (subjects[m].annotations && subjects[m].annotations["onProperty"] !== undefined)
-        ));
-    })();
+    return (
+      supIri.startsWith("_:") &&
+      supSubject &&
+      (supSubject.unionOf || supSubject.intersectionOf) &&
+      (() => {
+        const members = supSubject.unionOf || supSubject.intersectionOf;
+        return (
+          Array.isArray(members) &&
+          members.length > 0 &&
+          members.every(
+            (m) =>
+              m.startsWith("_:") &&
+              subjects[m] &&
+              (subjects[m].types.has(NAMESPACES.OWL + "Restriction") ||
+                (subjects[m].annotations &&
+                  subjects[m].annotations["onProperty"] !== undefined)),
+          )
+        );
+      })()
+    );
   };
 
-  context.subclassRelations = context.subclassRelations.filter(rel => {
-    return !isStructuralAnonUnion(rel.subclassIri) && !isStructuralAnonUnion(rel.superclassIri);
+  context.subclassRelations = context.subclassRelations.filter((rel) => {
+    return (
+      !isStructuralAnonUnion(rel.subclassIri) &&
+      !isStructuralAnonUnion(rel.superclassIri)
+    );
   });
 
-  context.subclassRelations.forEach(rel => {
+  context.subclassRelations.forEach((rel) => {
     ensureClassExists(rel.subclassIri, "owl:Class", resolver, context);
     ensureClassExists(rel.superclassIri, "owl:Class", resolver, context);
   });
 
-  context.parsedRestrictions.forEach(rest => {
+  context.parsedRestrictions.forEach((rest) => {
     ensureClassExists(rest.domainIri, "owl:Class", resolver, context);
     if (rest.type !== "owl:hasValue") {
       ensureClassExists(rest.rangeIri, "owl:Class", resolver, context);
@@ -684,19 +905,23 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
   for (const iri of Object.keys(subjects)) {
     const subject = subjects[iri];
-    subject.equivalentClasses.forEach(equivIri => {
+    subject.equivalentClasses.forEach((equivIri) => {
       ensureClassExists(equivIri, "owl:Class", resolver, context);
     });
   }
 
-  context.parsedIndividuals.forEach(item => {
-    item.classIris.forEach(clsIri => {
+  context.parsedIndividuals.forEach((item) => {
+    item.classIris.forEach((clsIri) => {
       ensureClassExists(clsIri, "owl:Class", resolver, context);
     });
   });
 
-  context.propertyMap.forEach(prop => {
-    if (prop.domain && typeof prop.domain === "string" && !isVowlId(prop.domain)) {
+  context.propertyMap.forEach((prop) => {
+    if (
+      prop.domain &&
+      typeof prop.domain === "string" &&
+      !isVowlId(prop.domain)
+    ) {
       ensureClassExists(prop.domain, "owl:Class", resolver, context);
     }
     if (prop.range && typeof prop.range === "string" && !isVowlId(prop.range)) {
@@ -708,21 +933,23 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     }
   });
 
-  context.classMap.forEach(cls => {
+  context.classMap.forEach((cls) => {
     if (cls.unionMembers) {
-      cls.unionMembers.forEach(memberIri => {
+      cls.unionMembers.forEach((memberIri) => {
         ensureClassExists(memberIri, "owl:Class", resolver, context);
       });
     }
   });
 
   // Map parsed individuals to their corresponding class instances arrays
-  context.parsedIndividuals.forEach(item => {
-    item.classIris.forEach(clsIri => {
+  context.parsedIndividuals.forEach((item) => {
+    item.classIris.forEach((clsIri) => {
       const cls = context.classMap.get(clsIri);
       if (cls) {
-        if (!cls.individuals) {cls.individuals = [];}
-        if (!cls.individuals.some(ind => ind.iri === item.individual.iri)) {
+        if (!cls.individuals) {
+          cls.individuals = [];
+        }
+        if (!cls.individuals.some((ind) => ind.iri === item.individual.iri)) {
           cls.individuals.push(item.individual);
         }
       }
@@ -730,34 +957,64 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   });
 
   // Step 2: Ensure subproperties exist in mapping
-  context.subpropertyRelations.forEach(rel => {
-    if (rel.superpropIri && IGNORED_PROPERTIES.has(rel.superpropIri)) {return;}
-    if (rel.subpropIri) {ensurePropertyExists(rel.subpropIri, "owl:objectProperty", resolver, context);}
-    if (rel.superpropIri) {ensurePropertyExists(rel.superpropIri, "owl:objectProperty", resolver, context);}
+  context.subpropertyRelations.forEach((rel) => {
+    if (rel.superpropIri && IGNORED_PROPERTIES.has(rel.superpropIri)) {
+      return;
+    }
+    if (rel.subpropIri) {
+      ensurePropertyExists(
+        rel.subpropIri,
+        "owl:objectProperty",
+        resolver,
+        context,
+      );
+    }
+    if (rel.superpropIri) {
+      ensurePropertyExists(
+        rel.superpropIri,
+        "owl:objectProperty",
+        resolver,
+        context,
+      );
+    }
   });
 
   const inversesToCreate = [];
   const equivalentsToCreate = [];
-  context.propertyMap.forEach(prop => {
-    if (prop.inverse && typeof prop.inverse === "string" && !isVowlId(prop.inverse)) {
+  context.propertyMap.forEach((prop) => {
+    if (
+      prop.inverse &&
+      typeof prop.inverse === "string" &&
+      !isVowlId(prop.inverse)
+    ) {
       inversesToCreate.push(prop.inverse);
     }
     if (prop.equivalentProperties) {
-      prop.equivalentProperties.forEach(equivIri => {
+      prop.equivalentProperties.forEach((equivIri) => {
         if (typeof equivIri === "string" && !isVowlId(equivIri)) {
           equivalentsToCreate.push(equivIri);
         }
       });
     }
   });
-  inversesToCreate.forEach(invIri => {
-    const prop = ensurePropertyExists(invIri, "owl:objectProperty", resolver, context);
+  inversesToCreate.forEach((invIri) => {
+    const prop = ensurePropertyExists(
+      invIri,
+      "owl:objectProperty",
+      resolver,
+      context,
+    );
     if (!subjects[invIri] && !prop.attributes.includes("inferred")) {
       prop.attributes.push("inferred");
     }
   });
-  equivalentsToCreate.forEach(equivIri => {
-    const prop = ensurePropertyExists(equivIri, "owl:objectProperty", resolver, context);
+  equivalentsToCreate.forEach((equivIri) => {
+    const prop = ensurePropertyExists(
+      equivIri,
+      "owl:objectProperty",
+      resolver,
+      context,
+    );
     if (!prop.attributes.includes("inferred")) {
       prop.attributes.push("inferred");
     }
@@ -765,13 +1022,21 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
   // Step 3: Resolve domains, ranges & inverses to numeric IDs
   // 3a. Resolve explicit domains and ranges
-  context.propertyMap.forEach(prop => {
-    if (prop.domain && typeof prop.domain === "string" && !isVowlId(prop.domain)) {
+  context.propertyMap.forEach((prop) => {
+    if (
+      prop.domain &&
+      typeof prop.domain === "string" &&
+      !isVowlId(prop.domain)
+    ) {
       prop.domain = getClassId(prop.domain, context);
     }
     if (prop.range && typeof prop.range === "string" && !isVowlId(prop.range)) {
       const cls = context.classMap.get(prop.range);
-      if (isDatatypeIri(prop.range, resolver) || (cls && cls.type === "rdfs:Datatype") || prop.range === "http://www.w3.org/2000/01/rdf-schema#Literal") {
+      if (
+        isDatatypeIri(prop.range, resolver) ||
+        (cls && cls.type === "rdfs:Datatype") ||
+        prop.range === "http://www.w3.org/2000/01/rdf-schema#Literal"
+      ) {
         prop.range = createVirtualDatatype(prop.range, resolver, context);
       } else {
         prop.range = getClassId(prop.range, context);
@@ -780,7 +1045,7 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   });
 
   // 3b. Fill domain/range from inverse properties
-  context.propertyMap.forEach(prop => {
+  context.propertyMap.forEach((prop) => {
     if (prop.inverse) {
       const invProp = context.propertyMap.get(prop.inverse);
       if (invProp) {
@@ -803,8 +1068,12 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   });
 
   // 3c. Resolve inverse IRI to ID
-  context.propertyMap.forEach(prop => {
-    if (prop.inverse && typeof prop.inverse === "string" && !isVowlId(prop.inverse)) {
+  context.propertyMap.forEach((prop) => {
+    if (
+      prop.inverse &&
+      typeof prop.inverse === "string" &&
+      !isVowlId(prop.inverse)
+    ) {
       const invProp = context.propertyMap.get(prop.inverse);
       if (invProp) {
         prop.inverse = invProp.id;
@@ -817,12 +1086,12 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
   // Collect all property IRIs referenced by restrictions
   const referencedProps = new Set();
-  context.parsedRestrictions.forEach(rest => {
+  context.parsedRestrictions.forEach((rest) => {
     referencedProps.add(rest.propertyIri);
   });
 
   // 3d. Default empty domain/range filling (ONLY for properties without inverses)
-  context.propertyMap.forEach(prop => {
+  context.propertyMap.forEach((prop) => {
     if (prop.inverse) {
       return;
     }
@@ -838,7 +1107,11 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
       if (prop.type === "owl:datatypeProperty") {
         prop.domain = getOrCreateFreeThing(resolver, context);
-        prop.range = createVirtualDatatype("http://www.w3.org/2000/01/rdf-schema#Literal", resolver, context);
+        prop.range = createVirtualDatatype(
+          "http://www.w3.org/2000/01/rdf-schema#Literal",
+          resolver,
+          context,
+        );
       } else {
         const freeThingId = getOrCreateFreeThing(resolver, context);
         prop.domain = freeThingId;
@@ -848,34 +1121,48 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
       prop.domain = getConnectedThingOrGenerate(prop.range, resolver, context);
     } else if (!hasRange) {
       if (prop.type === "owl:datatypeProperty") {
-        prop.range = createVirtualDatatype("http://www.w3.org/2000/01/rdf-schema#Literal", resolver, context);
+        prop.range = createVirtualDatatype(
+          "http://www.w3.org/2000/01/rdf-schema#Literal",
+          resolver,
+          context,
+        );
       } else {
-        prop.range = getConnectedThingOrGenerate(prop.domain, resolver, context);
+        prop.range = getConnectedThingOrGenerate(
+          prop.domain,
+          resolver,
+          context,
+        );
       }
     }
   });
 
   // Resolve union, intersection, complement & disjointUnion members to IDs
-  context.classMap.forEach(cls => {
+  context.classMap.forEach((cls) => {
     if (cls.unionMembers) {
-      cls.union = cls.unionMembers.map(memberIri => {
-        const memberCls = context.classMap.get(memberIri);
-        return memberCls ? memberCls.id : null;
-      }).filter(id => id !== null);
+      cls.union = cls.unionMembers
+        .map((memberIri) => {
+          const memberCls = context.classMap.get(memberIri);
+          return memberCls ? memberCls.id : null;
+        })
+        .filter((id) => id !== null);
       delete cls.unionMembers;
     }
     if (cls.intersectionMembers) {
-      cls.intersection = cls.intersectionMembers.map(memberIri => {
-        const memberCls = context.classMap.get(memberIri);
-        return memberCls ? memberCls.id : null;
-      }).filter(id => id !== null);
+      cls.intersection = cls.intersectionMembers
+        .map((memberIri) => {
+          const memberCls = context.classMap.get(memberIri);
+          return memberCls ? memberCls.id : null;
+        })
+        .filter((id) => id !== null);
       delete cls.intersectionMembers;
     }
     if (cls.disjointUnionMembers) {
-      cls.disjointUnion = cls.disjointUnionMembers.map(memberIri => {
-        const memberCls = context.classMap.get(memberIri);
-        return memberCls ? memberCls.id : null;
-      }).filter(id => id !== null);
+      cls.disjointUnion = cls.disjointUnionMembers
+        .map((memberIri) => {
+          const memberCls = context.classMap.get(memberIri);
+          return memberCls ? memberCls.id : null;
+        })
+        .filter((id) => id !== null);
       delete cls.disjointUnionMembers;
     }
     if (cls.complementMember) {
@@ -892,7 +1179,7 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     if (Object.prototype.hasOwnProperty.call(subjects, iri)) {
       const subject = subjects[iri];
       if (subject.hasKeys) {
-        subject.hasKeys.forEach(propIri => {
+        subject.hasKeys.forEach((propIri) => {
           const prop = context.propertyMap.get(propIri);
           if (prop) {
             if (!prop.attributes.includes("key")) {
@@ -905,16 +1192,26 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   }
 
   // Resolve equivalence to IDs
-  context.classMap.forEach(cls => {
+  context.classMap.forEach((cls) => {
     const subject = subjects[cls.iri];
-    if (subject && subject.equivalentClasses && subject.equivalentClasses.length > 0) {
-      const sorted = getSortedEquivalents(cls.iri, subject.equivalentClasses, header.iri, subjects, false);
+    if (
+      subject &&
+      subject.equivalentClasses &&
+      subject.equivalentClasses.length > 0
+    ) {
+      const sorted = getSortedEquivalents(
+        cls.iri,
+        subject.equivalentClasses,
+        header.iri,
+        subjects,
+        false,
+      );
       if (sorted.length > 0) {
         cls.equivalent = [];
         if (!cls.attributes.includes("equivalent")) {
           cls.attributes.push("equivalent");
         }
-        sorted.forEach(equivIri => {
+        sorted.forEach((equivIri) => {
           const equivCls = context.classMap.get(equivIri);
           if (equivCls) {
             cls.equivalent.push(equivCls.id);
@@ -928,10 +1225,20 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   });
 
   // Resolve equivalent properties
-  context.propertyMap.forEach(prop => {
+  context.propertyMap.forEach((prop) => {
     const subject = subjects[prop.iri];
-    if (subject && subject.equivalentProperties && subject.equivalentProperties.length > 0) {
-      const sorted = getSortedEquivalents(prop.iri, subject.equivalentProperties, header.iri, subjects, true);
+    if (
+      subject &&
+      subject.equivalentProperties &&
+      subject.equivalentProperties.length > 0
+    ) {
+      const sorted = getSortedEquivalents(
+        prop.iri,
+        subject.equivalentProperties,
+        header.iri,
+        subjects,
+        true,
+      );
       prop.equivalentProperties = sorted;
     } else {
       prop.equivalentProperties = [];
@@ -939,11 +1246,13 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   });
 
   // Step 4: Map Subclass Properties
-  context.subclassRelations.forEach(rel => {
-    if (rel.superclassIri === "http://www.w3.org/2002/07/owl#Thing") {return;}
+  context.subclassRelations.forEach((rel) => {
+    if (rel.superclassIri === "http://www.w3.org/2002/07/owl#Thing") {
+      return;
+    }
     const subCls = context.classMap.get(rel.subclassIri);
     const superCls = context.classMap.get(rel.superclassIri);
-    
+
     if (subCls && superCls) {
       if (!subCls.superClasses.includes(superCls.id)) {
         subCls.superClasses.push(superCls.id);
@@ -955,8 +1264,10 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   });
 
   // Step 5: Resolve subproperties
-  context.subpropertyRelations.forEach(rel => {
-    if (rel.superpropIri && IGNORED_PROPERTIES.has(rel.superpropIri)) {return;}
+  context.subpropertyRelations.forEach((rel) => {
+    if (rel.superpropIri && IGNORED_PROPERTIES.has(rel.superpropIri)) {
+      return;
+    }
     const subProp = context.propertyMap.get(rel.subpropIri);
     const superProp = context.propertyMap.get(rel.superpropIri);
     if (subProp && superProp && subProp.id !== superProp.id) {
@@ -970,25 +1281,33 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
   });
 
   // Resolve cardinalities onto VOWL properties
-  context.parsedCardinalities.forEach(card => {
+  context.parsedCardinalities.forEach((card) => {
     const prop = context.propertyMap.get(card.propertyIri);
     if (prop) {
-      if (card.minCardinality !== null) {prop.minCardinality = card.minCardinality;}
-      if (card.maxCardinality !== null) {prop.maxCardinality = card.maxCardinality;}
-      if (card.cardinality !== null) {prop.cardinality = card.cardinality;}
+      if (card.minCardinality !== null) {
+        prop.minCardinality = card.minCardinality;
+      }
+      if (card.maxCardinality !== null) {
+        prop.maxCardinality = card.maxCardinality;
+      }
+      if (card.cardinality !== null) {
+        prop.cardinality = card.cardinality;
+      }
     }
   });
 
   // Mark external elements
-  context.classMap.forEach(cls => {
+  context.classMap.forEach((cls) => {
     const isAnon = cls.type === "owl:unionOf";
     if (!isAnon && isIriExternal(cls.iri, header.iri)) {
-      if (!cls.attributes.includes("external")) {cls.attributes.push("external");}
+      if (!cls.attributes.includes("external")) {
+        cls.attributes.push("external");
+      }
     }
   });
 
   // Finalize class types according to VOWL attribute priority (mirrors Java's TypeSetter)
-  context.classMap.forEach(cls => {
+  context.classMap.forEach((cls) => {
     const attrs = cls.attributes;
     if (attrs.includes("intersection")) {
       cls.type = "owl:intersectionOf";
@@ -1005,7 +1324,7 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
     }
   });
 
-  context.propertyMap.forEach(prop => {
+  context.propertyMap.forEach((prop) => {
     if (isIriExternal(prop.iri, header.iri)) {
       if (!prop.attributes.includes("external")) {
         prop.attributes.push("external");
@@ -1016,12 +1335,16 @@ export function convertOntology(subjects, languagesSet, resolver, context, heade
 
 function getOrCreateFreeThing(resolver, context) {
   const allThings = [];
-  context.classMap.forEach(cls => {
-    if (cls.type === "owl:Thing") {allThings.push(cls);}
+  context.classMap.forEach((cls) => {
+    if (cls.type === "owl:Thing") {
+      allThings.push(cls);
+    }
   });
   if (context.virtualThings) {
-    context.virtualThings.forEach(cls => {
-      if (cls.type === "owl:Thing") {allThings.push(cls);}
+    context.virtualThings.forEach((cls) => {
+      if (cls.type === "owl:Thing") {
+        allThings.push(cls);
+      }
     });
   }
 
@@ -1037,14 +1360,16 @@ function getOrCreateFreeThing(resolver, context) {
     type: "owl:Thing",
     iri: "http://www.w3.org/2002/07/owl#Thing",
     baseIri: "http://www.w3.org/2002/07/owl#",
-    label: { "undefined": "Thing" },
+    label: { undefined: "Thing" },
     comment: {},
     attributes: [],
     subClasses: [],
     superClasses: [],
-    annotations: {}
+    annotations: {},
   };
-  if (!context.virtualThings) {context.virtualThings = [];}
+  if (!context.virtualThings) {
+    context.virtualThings = [];
+  }
   context.virtualThings.push(virtualCls);
   return virtualId;
 }
@@ -1073,22 +1398,32 @@ function isThingFree(thing, context) {
 
 function getClsOrVirtualNode(id, context) {
   let node = context.classMap.get(id);
-  if (node) {return node;}
-  const byId = Array.from(context.classMap.values()).find(n => n.id === id);
-  if (byId) {return byId;}
+  if (node) {
+    return node;
+  }
+  const byId = Array.from(context.classMap.values()).find((n) => n.id === id);
+  if (byId) {
+    return byId;
+  }
   if (context.virtualThings) {
-    node = context.virtualThings.find(n => n.id === id);
-    if (node) {return node;}
+    node = context.virtualThings.find((n) => n.id === id);
+    if (node) {
+      return node;
+    }
   }
   if (context.virtualDatatypes) {
-    node = context.virtualDatatypes.find(n => n.id === id);
-    if (node) {return node;}
+    node = context.virtualDatatypes.find((n) => n.id === id);
+    if (node) {
+      return node;
+    }
   }
   return null;
 }
 
 function isAllowedFreeConnection(type) {
-  return type === "rdfs:Datatype" || type === "rdfs:Literal" || type === "owl:Thing";
+  return (
+    type === "rdfs:Datatype" || type === "rdfs:Literal" || type === "owl:Thing"
+  );
 }
 
 function findEquivalentUnionClass(memberIris, context) {
@@ -1124,7 +1459,7 @@ function createImplicitUnionClass(memberIris, resolver, context) {
     subClasses: [],
     superClasses: [],
     unionMembers: memberIris,
-    annotations: {}
+    annotations: {},
   };
   context.classMap.set(virtualId, virtualCls);
   return virtualId;
@@ -1156,19 +1491,27 @@ function getConnectedThingOrGenerate(nodeId, resolver, context) {
     type: "owl:Thing",
     iri: "http://www.w3.org/2002/07/owl#Thing",
     baseIri: "http://www.w3.org/2002/07/owl#",
-    label: { "undefined": "Thing" },
+    label: { undefined: "Thing" },
     comment: {},
     attributes: [],
     subClasses: [],
     superClasses: [],
-    annotations: {}
+    annotations: {},
   };
-  if (!context.virtualThings) {context.virtualThings = [];}
+  if (!context.virtualThings) {
+    context.virtualThings = [];
+  }
   context.virtualThings.push(virtualCls);
   return virtualId;
 }
 
-function getSortedEquivalents(entityIri, equivalentIris, headerIri, subjects, isProperty = false) {
+function getSortedEquivalents(
+  entityIri,
+  equivalentIris,
+  headerIri,
+  subjects,
+  isProperty = false,
+) {
   const iriToSort = [...equivalentIris];
 
   if (isIriExternal(entityIri, headerIri)) {
@@ -1182,7 +1525,9 @@ function getSortedEquivalents(entityIri, equivalentIris, headerIri, subjects, is
   for (const iri of iriToSort) {
     const equivSubject = subjects[iri];
     if (equivSubject) {
-      const equivList = isProperty ? equivSubject.equivalentProperties : equivSubject.equivalentClasses;
+      const equivList = isProperty
+        ? equivSubject.equivalentProperties
+        : equivSubject.equivalentClasses;
       if (equivList && equivList.length > equivalentIris.length) {
         return [];
       }
@@ -1190,8 +1535,12 @@ function getSortedEquivalents(entityIri, equivalentIris, headerIri, subjects, is
   }
 
   iriToSort.sort((o1, o2) => {
-    if (o1 === headerIri) {return 1;}
-    if (o2 === headerIri) {return -1;}
+    if (o1 === headerIri) {
+      return 1;
+    }
+    if (o2 === headerIri) {
+      return -1;
+    }
     return 0;
   });
 

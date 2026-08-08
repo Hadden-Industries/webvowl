@@ -4,9 +4,7 @@ import * as path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { loadWithImports } from "../js/index.js";
-import {
-  ONTOLOGY_CATALOG,
-} from "../js/constants.js";
+import { ONTOLOGY_CATALOG } from "../js/constants.js";
 import { getLocalOntologyPath, LOCAL_ONTOLOGY_DIST_DIR } from "./helpers.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -32,12 +30,9 @@ const JAVA_FIXTURE_DIR = path.join(
   "java-reference-outputs",
 );
 
-
-
 const JAVA_MAX_BUFFER_BYTES = 10 * 1024 * 1024;
 const TEST_TIMEOUT_MS = 30_000;
-const RDFS_SUBCLASS_OF_IRI =
-  "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+const RDFS_SUBCLASS_OF_IRI = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const OWL_THING_IRI = "http://www.w3.org/2002/07/owl#Thing";
 const RDFS_LITERAL_IRI = "http://www.w3.org/2000/01/rdf-schema#Literal";
 const EMPTY_ONTOLOGY_XML =
@@ -56,17 +51,24 @@ const expectedDifferences = {
     "Java reasoner defaults InverseFunctional DatatypeProperty domains to owl:Thing due to OWL DL semantic clash (JS preserves syntactic foaf:Agent domain)",
   "food.rdf":
     "Java reasoner narrows domain/range properties via class restrictions and adds equivalent class links",
-  "BenchmarkOntology.ttl": "Java reasoner additions and JS parsing list differences",
-  "BenchmarkOntologyModule.ttl": "Java reasoner additions and JS parsing list differences",
-  "Drammar_NunnaryScene_Optimized_Rules.owl": "Java reasoner additions and JS parsing list differences",
-  "StackExchange.ttl": "Java reasoner additions and JS parsing list differences",
+  "BenchmarkOntology.ttl":
+    "Java reasoner additions and JS parsing list differences",
+  "BenchmarkOntologyModule.ttl":
+    "Java reasoner additions and JS parsing list differences",
+  "Drammar_NunnaryScene_Optimized_Rules.owl":
+    "Java reasoner additions and JS parsing list differences",
+  "StackExchange.ttl":
+    "Java reasoner additions and JS parsing list differences",
   "allvalues.ttl": "Java reasoner additions and JS parsing list differences",
   "dcmitype.rdf": "Java reasoner additions and JS parsing list differences",
-  "fullontobench.ttl": "Java reasoner additions and JS parsing list differences",
+  "fullontobench.ttl":
+    "Java reasoner additions and JS parsing list differences",
   "imarinetlo.owl": "Java reasoner additions and JS parsing list differences",
   "marinetlo.owl": "Java reasoner additions and JS parsing list differences",
-  "ontology_v3.3.rdf": "Java reasoner additions and JS parsing list differences",
-  "ontovibe_cardinalities.ttl": "Java reasoner additions and JS parsing list differences",
+  "ontology_v3.3.rdf":
+    "Java reasoner additions and JS parsing list differences",
+  "ontovibe_cardinalities.ttl":
+    "Java reasoner additions and JS parsing list differences",
   "protege-dc.owl": "Java reasoner additions and JS parsing list differences",
   "spatial.rdf": "Java reasoner additions and JS parsing list differences",
   "tagont.owl": "Java reasoner additions and JS parsing list differences",
@@ -93,8 +95,7 @@ const expectedDifferences = {
   "vann-vocab-20100607.rdf":
     "Java reasoner additions and minor annotation differences",
   "void.ttl": "Java reasoner additions and minor annotation differences",
-  "wgs84_pos.rdf":
-    "Java reasoner additions and minor annotation differences",
+  "wgs84_pos.rdf": "Java reasoner additions and minor annotation differences",
   "wine.rdf":
     "Minor differences in equivalent class links and implicit inverse property generation; class restrictions domain/range properties match 100%",
   // Versioned ontologies
@@ -104,13 +105,11 @@ const expectedDifferences = {
     "Java reasoner additions and minor annotation differences",
   "universal_reference-data_20260714":
     "Java reasoner additions and minor annotation differences",
-  "universal_core_20260714":
+  universal_core_20260714:
     "Java reasoner additions and minor annotation differences",
-  "universal_extended_20260714":
+  universal_extended_20260714:
     "Java reasoner additions and minor annotation differences",
 };
-
-
 
 function getFilePathKey(filePath) {
   const pathParts = filePath.split(/[\\/]+/).filter(Boolean);
@@ -162,8 +161,10 @@ function runJavaConverter(filePath) {
         "-Djdk.xml.totalEntitySizeLimit=1000000",
         "--add-opens",
         "java.base/java.lang=ALL-UNNAMED",
-        "-jar", JAVA_JAR,
-        "-file", filePath,
+        "-jar",
+        JAVA_JAR,
+        "-file",
+        filePath,
         "-echo",
       ],
       {
@@ -277,10 +278,7 @@ function parseVowlJson(json) {
   for (const propertyAttribute of propertyAttributes) {
     const isSubclassProperty = subclassPropertyIds.has(propertyAttribute.id);
 
-    if (
-      isSubclassProperty ||
-      propertyAttribute.iri === RDFS_SUBCLASS_OF_IRI
-    ) {
+    if (isSubclassProperty || propertyAttribute.iri === RDFS_SUBCLASS_OF_IRI) {
       const subclass =
         classIdToIri[propertyAttribute.domain] || propertyAttribute.domain;
       const superclass =
@@ -306,10 +304,7 @@ function parseVowlJson(json) {
   for (const propertyAttribute of propertyAttributes) {
     const isDisjointProperty = disjointPropertyIds.has(propertyAttribute.id);
 
-    if (
-      isDisjointProperty ||
-      propertyAttribute.type === "owl:disjointWith"
-    ) {
+    if (isDisjointProperty || propertyAttribute.type === "owl:disjointWith") {
       const firstClass =
         classIdToIri[propertyAttribute.domain] || propertyAttribute.domain;
       const secondClass =
@@ -323,8 +318,7 @@ function parseVowlJson(json) {
   }
 
   const uniqueDisjoints = [...new Set(disjoints)].sort();
-  const title =
-    json.header?.title?.en || json.header?.title?.undefined || "";
+  const title = json.header?.title?.en || json.header?.title?.undefined || "";
 
   return {
     ontologyIri: json.header ? json.header.iri : null,
@@ -374,7 +368,12 @@ function arrayDifference(left, right) {
   return left.filter((value) => !rightValues.has(value));
 }
 
-function referencesMatch(leftReference, rightReference, leftUnions, rightUnions) {
+function referencesMatch(
+  leftReference,
+  rightReference,
+  leftUnions,
+  rightUnions,
+) {
   if (leftReference === rightReference) {
     return true;
   }
@@ -389,8 +388,8 @@ function referencesMatch(leftReference, rightReference, leftUnions, rightUnions)
    */
   return Boolean(
     leftUnion &&
-      rightUnion &&
-      JSON.stringify(leftUnion) === JSON.stringify(rightUnion),
+    rightUnion &&
+    JSON.stringify(leftUnion) === JSON.stringify(rightUnion),
   );
 }
 
@@ -432,13 +431,7 @@ describe("OWL2VOWL Java-to-JavaScript differential tests", () => {
     .filter((file) => !excludedBaseFiles.has(path.basename(file)));
 
   const extraTargetFiles = [
-    path.join(
-      LOCAL_ONTOLOGY_DIST_DIR,
-      "iso",
-      "31073",
-      "ed-1",
-      "20260626",
-    ),
+    path.join(LOCAL_ONTOLOGY_DIST_DIR, "iso", "31073", "ed-1", "20260626"),
     path.join(
       LOCAL_ONTOLOGY_DIST_DIR,
       "iso-iec",
@@ -453,18 +446,8 @@ describe("OWL2VOWL Java-to-JavaScript differential tests", () => {
       "reference-data",
       "20260714",
     ),
-    path.join(
-      LOCAL_ONTOLOGY_DIST_DIR,
-      "universal",
-      "core",
-      "20260714",
-    ),
-    path.join(
-      LOCAL_ONTOLOGY_DIST_DIR,
-      "universal",
-      "extended",
-      "20260714",
-    ),
+    path.join(LOCAL_ONTOLOGY_DIST_DIR, "universal", "core", "20260714"),
+    path.join(LOCAL_ONTOLOGY_DIST_DIR, "universal", "extended", "20260714"),
   ];
 
   const targetFiles = [...new Set([...baseTargetFiles, ...extraTargetFiles])]
@@ -508,35 +491,25 @@ describe("OWL2VOWL Java-to-JavaScript differential tests", () => {
           expect(productOrServiceAttribute.attributes).toContain("union");
 
           expect(productOrServiceAttribute.label).toBeDefined();
-          expect(productOrServiceAttribute.label.en).toBe(
+          expect(productOrServiceAttribute.label.en).toBe("Product Or Service");
+
+          expect(productOrServiceAttribute.annotations).toBeDefined();
+          expect(productOrServiceAttribute.annotations.prefLabel).toBeDefined();
+          expect(productOrServiceAttribute.annotations.prefLabel[0].value).toBe(
             "Product Or Service",
           );
 
-          expect(productOrServiceAttribute.annotations).toBeDefined();
-          expect(
-            productOrServiceAttribute.annotations.prefLabel,
-          ).toBeDefined();
-          expect(
-            productOrServiceAttribute.annotations.prefLabel[0].value,
-          ).toBe("Product Or Service");
-
-          expect(
-            productOrServiceAttribute.annotations.creator,
-          ).toBeDefined();
+          expect(productOrServiceAttribute.annotations.creator).toBeDefined();
           expect(productOrServiceAttribute.annotations.creator[0].value).toBe(
             "https://orcid.org/0000-0001-8017-8797",
           );
 
-          expect(
-            productOrServiceAttribute.annotations.created,
-          ).toBeDefined();
+          expect(productOrServiceAttribute.annotations.created).toBeDefined();
           expect(productOrServiceAttribute.annotations.created[0].value).toBe(
             "2016-10-14T12:00:00Z",
           );
 
-          expect(
-            productOrServiceAttribute.annotations.modified,
-          ).toBeDefined();
+          expect(productOrServiceAttribute.annotations.modified).toBeDefined();
           expect(productOrServiceAttribute.annotations.modified[0].value).toBe(
             "2026-06-25T13:41:59Z",
           );
@@ -545,11 +518,8 @@ describe("OWL2VOWL Java-to-JavaScript differential tests", () => {
             productOrServiceAttribute.annotations.definition,
           ).toBeDefined();
           expect(
-            productOrServiceAttribute.annotations.definition.some(
-              ({ value }) =>
-                value.includes(
-                  "Output or outcome provided by an organisation",
-                ),
+            productOrServiceAttribute.annotations.definition.some(({ value }) =>
+              value.includes("Output or outcome provided by an organisation"),
             ),
           ).toBe(true);
 
@@ -575,7 +545,9 @@ describe("OWL2VOWL Java-to-JavaScript differential tests", () => {
           expect(jsParsed.classes.size).toBeGreaterThanOrEqual(
             javaParsed.classes.size - 5,
           );
-          expect(Object.keys(jsParsed.properties).length).toBeGreaterThanOrEqual(
+          expect(
+            Object.keys(jsParsed.properties).length,
+          ).toBeGreaterThanOrEqual(
             Object.keys(javaParsed.properties).length - 5,
           );
         }
@@ -648,9 +620,7 @@ describe("OWL2VOWL Java-to-JavaScript differential tests", () => {
           .filter(Boolean);
         const connectedDatatypeIris = new Set(
           datatypeAttributes
-            .filter(
-              ({ id, iri }) => connectedNodeIds.has(String(id)) && iri,
-            )
+            .filter(({ id, iri }) => connectedNodeIds.has(String(id)) && iri)
             .map(({ iri }) => iri),
         );
 
@@ -660,9 +630,9 @@ describe("OWL2VOWL Java-to-JavaScript differential tests", () => {
           );
 
           if (!isConnected && datatypeAttribute.iri) {
-            expect(
-              connectedDatatypeIris.has(datatypeAttribute.iri),
-            ).toBe(false);
+            expect(connectedDatatypeIris.has(datatypeAttribute.iri)).toBe(
+              false,
+            );
           }
         }
 
@@ -695,8 +665,7 @@ describe("OWL2VOWL Java-to-JavaScript differential tests", () => {
 
         // Check structural equivalence; documented differences remain permitted.
         const iriMatch = javaParsed.ontologyIri === jsParsed.ontologyIri;
-        const classesMatch =
-          javaParsed.classes.size === jsParsed.classes.size;
+        const classesMatch = javaParsed.classes.size === jsParsed.classes.size;
 
         const javaPropertyIris = Object.keys(javaParsed.properties).sort();
         const jsPropertyIris = Object.keys(jsParsed.properties).sort();
@@ -760,8 +729,7 @@ describe("OWL2VOWL Java-to-JavaScript differential tests", () => {
         );
         const classAnnotationsMatch = commonClasses.every(
           (iri) =>
-            javaParsed.classAnnotations[iri] ===
-            jsParsed.classAnnotations[iri],
+            javaParsed.classAnnotations[iri] === jsParsed.classAnnotations[iri],
         );
         const instancesMatch = commonClasses.every(
           (iri) =>

@@ -4,52 +4,49 @@
  * @returns {{}}
  */
 
-
-module.exports = function ( graph ){
-  
+module.exports = function (graph) {
   const DEFAULT_STATE = false;
-  
+
   const filter = {};
   let nodes;
   let properties;
   let enabled = DEFAULT_STATE;
   let filteredNodes;
   let filteredProperties;
-  
-  
+
   /**
    * If enabled, redundant details won't be drawn anymore.
    * @param untouchedNodes
    * @param untouchedProperties
    */
-  filter.filter = function ( untouchedNodes, untouchedProperties ){
+  filter.filter = function (untouchedNodes, untouchedProperties) {
     nodes = untouchedNodes;
     properties = untouchedProperties;
     graph.options().compactNotation(enabled);
     filteredNodes = nodes;
     filteredProperties = properties;
   };
-  
-  filter.enabled = function ( p ){
-    if ( !arguments.length ) {return enabled;}
+
+  filter.enabled = function (p) {
+    if (!arguments.length) {
+      return enabled;
+    }
     enabled = p;
     return filter;
   };
-  
-  filter.reset = function (){
+
+  filter.reset = function () {
     enabled = DEFAULT_STATE;
   };
-  
-  
+
   // Functions a filter must have
-  filter.filteredNodes = function (){
+  filter.filteredNodes = function () {
     return filteredNodes;
   };
-  
-  filter.filteredProperties = function (){
+
+  filter.filteredProperties = function () {
     return filteredProperties;
   };
-  
-  
+
   return filter;
 };

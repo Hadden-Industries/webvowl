@@ -4,8 +4,10 @@
  */
 const createExportSvgClone = require("./svgExportStyles");
 
-function downloadFile( content, mimeType, filename ){
-  const objectUrl = URL.createObjectURL(new Blob([content], { type: mimeType }));
+function downloadFile(content, mimeType, filename) {
+  const objectUrl = URL.createObjectURL(
+    new Blob([content], { type: mimeType }),
+  );
   const link = document.createElement("a");
   link.href = objectUrl;
   link.download = filename;
@@ -16,15 +18,19 @@ function downloadFile( content, mimeType, filename ){
     link.click();
   } finally {
     link.remove();
-    setTimeout(function (){
+    setTimeout(function () {
       URL.revokeObjectURL(objectUrl);
     }, 0);
   }
 }
 
-function legacyCopyInputValue( inputNode, documentNode ){
-  const popoverNode = inputNode.closest ? inputNode.closest(".modern-popover") : null;
-  const contentNode = inputNode.closest ? inputNode.closest(".popover-content") : null;
+function legacyCopyInputValue(inputNode, documentNode) {
+  const popoverNode = inputNode.closest
+    ? inputNode.closest(".modern-popover")
+    : null;
+  const contentNode = inputNode.closest
+    ? inputNode.closest(".popover-content")
+    : null;
   const previousFocus = documentNode.activeElement;
   const popoverScrollTop = popoverNode ? popoverNode.scrollTop : 0;
   const contentScrollTop = contentNode ? contentNode.scrollTop : 0;
@@ -33,21 +39,27 @@ function legacyCopyInputValue( inputNode, documentNode ){
   try {
     inputNode.focus({ preventScroll: true });
     inputNode.select();
-    copied = typeof documentNode.execCommand === "function" && documentNode.execCommand("copy");
+    copied =
+      typeof documentNode.execCommand === "function" &&
+      documentNode.execCommand("copy");
   } catch {
     copied = false;
   } finally {
-    if ( previousFocus && previousFocus !== inputNode && typeof previousFocus.focus === "function" ) {
+    if (
+      previousFocus &&
+      previousFocus !== inputNode &&
+      typeof previousFocus.focus === "function"
+    ) {
       try {
         previousFocus.focus({ preventScroll: true });
       } catch {
         previousFocus.focus();
       }
     }
-    if ( popoverNode ) {
+    if (popoverNode) {
       popoverNode.scrollTop = popoverScrollTop;
     }
-    if ( contentNode ) {
+    if (contentNode) {
       contentNode.scrollTop = contentScrollTop;
     }
   }
@@ -55,59 +67,56 @@ function legacyCopyInputValue( inputNode, documentNode ){
   return copied;
 }
 
-async function copyInputValue( inputNode, clipboardApi, documentNode ){
-  const resolvedClipboard = clipboardApi === undefined && typeof navigator !== "undefined" ? navigator.clipboard : clipboardApi;
+async function copyInputValue(inputNode, clipboardApi, documentNode) {
+  const resolvedClipboard =
+    clipboardApi === undefined && typeof navigator !== "undefined"
+      ? navigator.clipboard
+      : clipboardApi;
   const resolvedDocument = documentNode || document;
 
-  if ( resolvedClipboard && typeof resolvedClipboard.writeText === "function" ) {
+  if (resolvedClipboard && typeof resolvedClipboard.writeText === "function") {
     try {
       await resolvedClipboard.writeText(inputNode.value);
       return true;
-    } catch { /* use the synchronous fallback below */ }
+    } catch {
+      /* use the synchronous fallback below */
+    }
   }
 
   return legacyCopyInputValue(inputNode, resolvedDocument);
 }
 
-function createExportMenu( graph ){
-  
+function createExportMenu(graph) {
   const exportMenu = {};
   let exportFilename;
   let exportableJsonText;
-  
+
   const exportTTLModule = require("./exportTTLModule")(graph);
-  
-  
-  String.prototype.replaceAll = function ( search, replacement ){
+
+  String.prototype.replaceAll = function (search, replacement) {
     const target = this;
     return target.split(search).join(replacement);
   };
-  
-  
+
   /**
    * Adds the export button to the website.
    */
-  exportMenu.setup = function (){
-    d3.select("#exportSvg")
-      .on("click", exportSvg);
-    d3.select("#exportJson")
-      .on("click", exportJson);
-    
-    d3.select("#copyBt")
-      .on("click", copyUrl);
-    
-    d3.select("#exportTex")
-      .on("click", exportTex);
-    
-    d3.select("#exportTurtle")
-      .on("click", exportTurtle);
+  exportMenu.setup = function () {
+    d3.select("#exportSvg").on("click", exportSvg);
+    d3.select("#exportJson").on("click", exportJson);
+
+    d3.select("#copyBt").on("click", copyUrl);
+
+    d3.select("#exportTex").on("click", exportTex);
+
+    d3.select("#exportTurtle").on("click", exportTurtle);
   };
-  function exportTurtle(){
+  function exportTurtle() {
     const success = exportTTLModule.requestExport();
     const result = exportTTLModule.resultingTTL_Content();
     const ontoTitle = "NewOntology";
     console.warn("Exporter was successful: " + success);
-    if ( success ) {
+    if (success) {
       // console.warn("The result is : " + result);
       // var ontoTitle=graph.options().getGeneralMetaObjectProperty('title');
       // if (ontoTitle===undefined || ontoTitle.length===0)
@@ -116,10 +125,9 @@ function createExportMenu( graph ){
       // 	// language object -.-
       //    ontoTitle.replace(" ","_")
       // }
-      
+
       // TODO: show TEXT in warning module?
-      
-      
+
       downloadFile(result, "text/turtle;charset=utf-8", ontoTitle + ".ttl");
     } else {
       console.warn("ShowWarning!");
@@ -127,108 +135,157 @@ function createExportMenu( graph ){
       console.warn("Stay on the page! " + window.location.href);
     }
   }
-  
-  exportMenu.setFilename = function ( filename ){
+
+  exportMenu.setFilename = function (filename) {
     exportFilename = filename || "export";
   };
-  
-  exportMenu.setJsonText = function ( jsonText ){
+
+  exportMenu.setJsonText = function (jsonText) {
     exportableJsonText = jsonText;
   };
-  
+
   let copyFeedbackTimer;
-  async function copyUrl(){
+  async function copyUrl() {
     const urlInputNode = d3.select("#exportedUrl").node();
-    if ( !urlInputNode ) {return;}
+    if (!urlInputNode) {
+      return;
+    }
 
     const copied = await copyInputValue(urlInputNode);
     const copyButtonNode = d3.select("#copyBt");
     copyButtonNode.classed("copied", copied).classed("copy-failed", !copied);
-    copyButtonNode.select(".copy-text").text(copied ? "Copied!" : "Copy failed");
-    copyButtonNode.select(".copy-icon path").attr("d", copied ? "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" : "M18.3 5.71 12 12l-6.3-6.29-1.4 1.42L10.59 13.4 4.3 19.7l1.4 1.4 6.3-6.29 6.3 6.29 1.4-1.4-6.29-6.3 6.29-6.29z");
+    copyButtonNode
+      .select(".copy-text")
+      .text(copied ? "Copied!" : "Copy failed");
+    copyButtonNode
+      .select(".copy-icon path")
+      .attr(
+        "d",
+        copied
+          ? "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+          : "M18.3 5.71 12 12l-6.3-6.29-1.4 1.42L10.59 13.4 4.3 19.7l1.4 1.4 6.3-6.29 6.3 6.29 1.4-1.4-6.29-6.3 6.29-6.29z",
+      );
 
     clearTimeout(copyFeedbackTimer);
-    copyFeedbackTimer = setTimeout(function (){
+    copyFeedbackTimer = setTimeout(function () {
       copyButtonNode.classed("copied", false).classed("copy-failed", false);
       copyButtonNode.select(".copy-text").text("Copy URL");
-      copyButtonNode.select(".copy-icon path").attr("d", "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z");
+      copyButtonNode
+        .select(".copy-icon path")
+        .attr(
+          "d",
+          "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z",
+        );
     }, 2000);
   }
-  
-  function prepareOptionString( defOpts, currOpts ){
+
+  function prepareOptionString(defOpts, currOpts) {
     let setOptions = 0;
     let optsString = "opts=";
-    
-    for ( const name in defOpts ) {
+
+    for (const name in defOpts) {
       // define key and value ;
-      if ( Object.prototype.hasOwnProperty.call(defOpts, name) ) {// for travis warning
+      if (Object.prototype.hasOwnProperty.call(defOpts, name)) {
+        // for travis warning
         const def_value = defOpts[name];
         const cur_value = currOpts[name];
-        if ( def_value !== cur_value ) {
+        if (def_value !== cur_value) {
           optsString += name + "=" + cur_value + ";";
           setOptions++;
         }
       }
     }
     optsString += "";
-    if ( setOptions === 0 ) {
+    if (setOptions === 0) {
       return "";
     }
     return optsString;
   }
-  
-  exportMenu.exportAsUrl = function (){
+
+  exportMenu.exportAsUrl = function () {
     const currObj = {};
     currObj.sidebar = graph.options().sidebar().getSidebarVisibility();
-    
+
     // identify default value given by ontology;
     const defOntValue = graph.options().filterMenu().getDefaultDegreeValue();
     const currentValue = graph.options().filterMenu().getDegreeSliderValue();
-    if ( parseInt(defOntValue) === parseInt(currentValue) ) {
+    if (parseInt(defOntValue) === parseInt(currentValue)) {
       currObj.doc = -1;
     } else {
       currObj.doc = currentValue;
     }
-    
+
     currObj.cd = graph.options().classDistance();
     currObj.dd = graph.options().datatypeDistance();
-    if ( graph.editorMode() === true ) {
+    if (graph.editorMode() === true) {
       currObj.editorMode = "true";
     } else {
       currObj.editorMode = "false";
     }
-    currObj.filter_datatypes = String(graph.options().filterMenu().getCheckBoxValue("datatypeFilterCheckbox"));
-    currObj.filter_sco = String(graph.options().filterMenu().getCheckBoxValue("subclassFilterCheckbox"));
-    currObj.filter_disjoint = String(graph.options().filterMenu().getCheckBoxValue("disjointFilterCheckbox"));
-    currObj.filter_setOperator = String(graph.options().filterMenu().getCheckBoxValue("setoperatorFilterCheckbox"));
-    currObj.filter_objectProperties = String(graph.options().filterMenu().getCheckBoxValue("objectPropertyFilterCheckbox"));
+    currObj.filter_datatypes = String(
+      graph.options().filterMenu().getCheckBoxValue("datatypeFilterCheckbox"),
+    );
+    currObj.filter_sco = String(
+      graph.options().filterMenu().getCheckBoxValue("subclassFilterCheckbox"),
+    );
+    currObj.filter_disjoint = String(
+      graph.options().filterMenu().getCheckBoxValue("disjointFilterCheckbox"),
+    );
+    currObj.filter_setOperator = String(
+      graph
+        .options()
+        .filterMenu()
+        .getCheckBoxValue("setoperatorFilterCheckbox"),
+    );
+    currObj.filter_objectProperties = String(
+      graph
+        .options()
+        .filterMenu()
+        .getCheckBoxValue("objectPropertyFilterCheckbox"),
+    );
     currObj.mode_dynamic = String(graph.options().dynamicLabelWidth());
-    currObj.mode_scaling = String(graph.options().modeMenu().getCheckBoxValue("nodescalingModuleCheckbox"));
-    currObj.mode_compact = String(graph.options().modeMenu().getCheckBoxValue("compactnotationModuleCheckbox"));
-    currObj.mode_colorExt = String(graph.options().modeMenu().getCheckBoxValue("colorexternalsModuleCheckbox"));
-    currObj.mode_multiColor = String(graph.options().modeMenu().colorModeState());
-    currObj.mode_pnp = String(graph.options().modeMenu().getCheckBoxValue("pickandpinModuleCheckbox"));
+    currObj.mode_scaling = String(
+      graph.options().modeMenu().getCheckBoxValue("nodescalingModuleCheckbox"),
+    );
+    currObj.mode_compact = String(
+      graph
+        .options()
+        .modeMenu()
+        .getCheckBoxValue("compactnotationModuleCheckbox"),
+    );
+    currObj.mode_colorExt = String(
+      graph
+        .options()
+        .modeMenu()
+        .getCheckBoxValue("colorexternalsModuleCheckbox"),
+    );
+    currObj.mode_multiColor = String(
+      graph.options().modeMenu().colorModeState(),
+    );
+    currObj.mode_pnp = String(
+      graph.options().modeMenu().getCheckBoxValue("pickandpinModuleCheckbox"),
+    );
     currObj.debugFeatures = String(!graph.options().getHideDebugFeatures());
     currObj.rect = 0;
-    
+
     const defObj = graph.options().initialConfig();
     const optsString = prepareOptionString(defObj, currObj);
     let urlString = String(location);
     let htmlElement;
     // when everything is default then there is nothing to write
-    if ( optsString.length === 0 ) {
+    if (optsString.length === 0) {
       // building up parameter list;
-      
+
       // remove the all options form location
       const hashCode = location.hash;
       urlString = urlString.split(hashCode)[0];
-      
+
       const lPos = hashCode.lastIndexOf("#");
-      if ( lPos === -1 ) {
+      if (lPos === -1) {
         htmlElement = d3.select("#exportedUrl").node();
         htmlElement.value = String(location);
         htmlElement.title = String(location);
-        return;  // nothing to change in the location String
+        return; // nothing to change in the location String
       }
       const newURL = hashCode.slice(lPos, hashCode.length);
       htmlElement = d3.select("#exportedUrl").node();
@@ -236,17 +293,17 @@ function createExportMenu( graph ){
       htmlElement.title = urlString + newURL;
       return;
     }
-    
+
     // generate the options string;
     const numParameters = (urlString.match(/#/g) || []).length;
     let newUrlString;
-    if ( numParameters === undefined || numParameters === 0 ) {
+    if (numParameters === undefined || numParameters === 0) {
       newUrlString = urlString + "#" + optsString;
     }
-    if ( numParameters > 0 ) {
+    if (numParameters > 0) {
       const tokens = urlString.split("#");
       let i;
-      if ( tokens[1].indexOf("opts=") >= 0 ) {
+      if (tokens[1].indexOf("opts=") >= 0) {
         tokens[1] = optsString;
         newUrlString = tokens[0];
       } else {
@@ -254,8 +311,8 @@ function createExportMenu( graph ){
         newUrlString += optsString;
       }
       // append parameters
-      for ( i = 1; i < tokens.length; i++ ) {
-        if ( tokens[i].length > 0 ) {
+      for (i = 1; i < tokens.length; i++) {
+        if (tokens[i].length > 0) {
           newUrlString += "#" + tokens[i];
         }
       }
@@ -264,60 +321,73 @@ function createExportMenu( graph ){
     htmlElement = d3.select("#exportedUrl").node();
     htmlElement.value = newUrlString;
     htmlElement.title = newUrlString;
-    
   };
-  
-  function exportSvg(){
+
+  function exportSvg() {
     graph.options().navigationMenu().hideAllMenus();
-    const liveSvg = d3.select(graph.options().graphContainerSelector()).select("svg").node();
-    if ( !liveSvg ) {return;}
+    const liveSvg = d3
+      .select(graph.options().graphContainerSelector())
+      .select("svg")
+      .node();
+    if (!liveSvg) {
+      return;
+    }
 
     const exportedSvg = createExportSvgClone(liveSvg);
     let graphSvgCode = exportedSvg.outerHTML;
-    
+
     // Insert the reference to VOWL
-    graphSvgCode = "<!-- Created with WebVOWL (version " + webvowl.version + ")" +
-      ", http://vowl.visualdataweb.org -->\n" + graphSvgCode;
-    
-    downloadFile(graphSvgCode, "image/svg+xml;charset=utf-8", exportFilename + ".svg");
+    graphSvgCode =
+      "<!-- Created with WebVOWL (version " +
+      webvowl.version +
+      ")" +
+      ", http://vowl.visualdataweb.org -->\n" +
+      graphSvgCode;
+
+    downloadFile(
+      graphSvgCode,
+      "image/svg+xml;charset=utf-8",
+      exportFilename + ".svg",
+    );
   }
-  
-  exportMenu.createJSON_exportObject = function (){
+
+  exportMenu.createJSON_exportObject = function () {
     let i, j, k; // an index variable for the for-loops
-    
+
     /** get data for exporter **/
-      if (!graph.options().data()) {return {};} // return an empty json object
-      // extract onotology information;
+    if (!graph.options().data()) {
+      return {};
+    } // return an empty json object
+    // extract onotology information;
     const unfilteredData = graph.getUnfilteredData();
     const ontologyComment = graph.options().data()._comment;
     const metaObj = graph.options().getGeneralMetaObject();
     const header = graph.options().data().header;
-    
-    if ( metaObj.iri && metaObj.iri !== header.iri ) {
+
+    if (metaObj.iri && metaObj.iri !== header.iri) {
       header.iri = metaObj.iri;
     }
-    if ( metaObj.title && metaObj.title !== header.title ) {
+    if (metaObj.title && metaObj.title !== header.title) {
       header.title = metaObj.title;
     }
-    if ( metaObj.version && metaObj.version !== header.version ) {
+    if (metaObj.version && metaObj.version !== header.version) {
       header.version = metaObj.version;
     }
-    if ( metaObj.author && metaObj.author !== header.author ) {
+    if (metaObj.author && metaObj.author !== header.author) {
       header.author = metaObj.author;
     }
-    if ( metaObj.description && metaObj.description !== header.description ) {
+    if (metaObj.description && metaObj.description !== header.description) {
       header.description = metaObj.description;
     }
-    
-    
+
     const exportText = {};
     exportText._comment = ontologyComment;
     exportText.header = header;
     exportText.namespace = graph.options().data().namespace;
-    if ( exportText.namespace === undefined ) {
+    if (exportText.namespace === undefined) {
       exportText.namespace = []; // just an empty namespace array
     } else {
-      exportText.namespace.sort(function(a, b) {
+      exportText.namespace.sort(function (a, b) {
         return String(a.prefix || "").localeCompare(String(b.prefix || ""));
       });
     }
@@ -336,130 +406,134 @@ function createExportMenu( graph ){
       }
       return sortById(a, b);
     }
-    
+
     // we do have now the unfiltered data which needs to be transfered to class/classAttribute and property/propertyAttribute
-    
-    
+
     // var classAttributeString='classAttribute:[ \n';
     const nodes = (unfilteredData.nodes || []).slice().sort(sortByIriThenId);
     const nLen = nodes.length; // hope for compiler unroll
     const classObjects = [];
     const classAttributeObjects = [];
-    for ( i = 0; i < nLen; i++ ) {
+    for (i = 0; i < nLen; i++) {
       const classObj = {};
       const classAttr = {};
       classObj.id = nodes[i].id();
       classObj.type = nodes[i].type();
       classObjects.push(classObj);
-      
+
       // define the attributes object
       classAttr.id = nodes[i].id();
       classAttr.iri = nodes[i].iri();
       classAttr.baseIri = nodes[i].baseIri();
       classAttr.label = nodes[i].label();
-      
-      if ( nodes[i].attributes().length > 0 ) {
+
+      if (nodes[i].attributes().length > 0) {
         classAttr.attributes = nodes[i].attributes().slice().sort();
       }
-      if ( nodes[i].comment() ) {
+      if (nodes[i].comment()) {
         classAttr.comment = nodes[i].comment();
       }
-      if ( nodes[i].annotations() ) {
+      if (nodes[i].annotations()) {
         classAttr.annotations = nodes[i].annotations();
       }
-      if ( nodes[i].description() ) {
+      if (nodes[i].description()) {
         classAttr.description = nodes[i].description();
       }
-      
-      
-      if ( nodes[i].individuals().length > 0 ) {
+
+      if (nodes[i].individuals().length > 0) {
         const classIndividualElements = [];
-        const nIndividuals = nodes[i].individuals().slice().sort(sortByIriThenId);
-        for ( j = 0; j < nIndividuals.length; j++ ) {
+        const nIndividuals = nodes[i]
+          .individuals()
+          .slice()
+          .sort(sortByIriThenId);
+        for (j = 0; j < nIndividuals.length; j++) {
           const indObj = {};
           indObj.iri = nIndividuals[j].iri();
           indObj.baseIri = nIndividuals[j].baseIri();
           indObj.labels = nIndividuals[j].label();
-          if ( nIndividuals[j].annotations() ) {
+          if (nIndividuals[j].annotations()) {
             indObj.annotations = nIndividuals[j].annotations();
           }
-          if ( nIndividuals[j].description() ) {
+          if (nIndividuals[j].description()) {
             indObj.description = nIndividuals[j].description();
           }
-          if ( nIndividuals[j].comment() ) {
+          if (nIndividuals[j].comment()) {
             indObj.comment = nIndividuals[j].comment();
           }
           classIndividualElements.push(indObj);
         }
         classAttr.individuals = classIndividualElements;
       }
-      
+
       let equalsForAttributes = undefined;
-      if ( nodes[i].equivalents().length > 0 ) {
+      if (nodes[i].equivalents().length > 0) {
         equalsForAttributes = [];
         const equals = nodes[i].equivalents().slice().sort(sortByIriThenId);
-        for ( j = 0; j < equals.length; j++ ) {
+        for (j = 0; j < equals.length; j++) {
           const eqObj = {};
           const eqAttr = {};
           eqObj.id = equals[j].id();
           equalsForAttributes.push(equals[j].id());
           eqObj.type = equals[j].type();
           classObjects.push(eqObj);
-          
+
           eqAttr.id = equals[j].id();
           eqAttr.iri = equals[j].iri();
           eqAttr.baseIri = equals[j].baseIri();
           eqAttr.label = equals[j].label();
-          
-          if ( equals[j].attributes().length > 0 ) {
+
+          if (equals[j].attributes().length > 0) {
             eqAttr.attributes = equals[j].attributes().slice().sort();
           }
-          if ( equals[j].comment() ) {
+          if (equals[j].comment()) {
             eqAttr.comment = equals[j].comment();
           }
-          if ( equals[j].individuals().length > 0 ) {
+          if (equals[j].individuals().length > 0) {
             eqAttr.individuals = equals[j].individuals();
           }
-          if ( equals[j].annotations() ) {
+          if (equals[j].annotations()) {
             eqAttr.annotations = equals[j].annotations();
           }
-          if ( equals[j].description() ) {
+          if (equals[j].description()) {
             eqAttr.description = equals[j].description();
           }
-          
-          if ( equals[j].individuals().length > 0 ) {
+
+          if (equals[j].individuals().length > 0) {
             const e_classIndividualElements = [];
-            const e_nIndividuals = equals[i].individuals().slice().sort(sortByIriThenId);
-            for ( k = 0; k < e_nIndividuals.length; k++ ) {
+            const e_nIndividuals = equals[i]
+              .individuals()
+              .slice()
+              .sort(sortByIriThenId);
+            for (k = 0; k < e_nIndividuals.length; k++) {
               const e_indObj = {};
               e_indObj.iri = e_nIndividuals[k].iri();
               e_indObj.baseIri = e_nIndividuals[k].baseIri();
               e_indObj.labels = e_nIndividuals[k].label();
-              
-              if ( e_nIndividuals[k].annotations() ) {
+
+              if (e_nIndividuals[k].annotations()) {
                 e_indObj.annotations = e_nIndividuals[k].annotations();
               }
-              if ( e_nIndividuals[k].description() ) {
+              if (e_nIndividuals[k].description()) {
                 e_indObj.description = e_nIndividuals[k].description();
               }
-              if ( e_nIndividuals[k].comment() ) {
+              if (e_nIndividuals[k].comment()) {
                 e_indObj.comment = e_nIndividuals[k].comment();
               }
               e_classIndividualElements.push(e_indObj);
             }
             eqAttr.individuals = e_classIndividualElements;
           }
-          
+
           classAttributeObjects.push(eqAttr);
         }
       }
-      if ( equalsForAttributes && equalsForAttributes.length > 0 ) {
+      if (equalsForAttributes && equalsForAttributes.length > 0) {
         classAttr.equivalent = equalsForAttributes;
       }
-      
+
       // classAttr.subClasses=nodes[i].subClasses(); // not needed
       // classAttr.instances=nodes[i].instances();
-      
+
       //
       // .complement(element.complement)
       // .disjointUnion(element.disjointUnion)
@@ -470,172 +544,204 @@ function createExportMenu( graph ){
       // .union(element.union)
       classAttributeObjects.push(classAttr);
     }
-    
+
     /** -- properties -- **/
-    const properties = (unfilteredData.properties || []).slice().sort(sortByIriThenId);
+    const properties = (unfilteredData.properties || [])
+      .slice()
+      .sort(sortByIriThenId);
     const pLen = properties.length; // hope for compiler unroll
     const propertyObjects = [];
     const propertyAttributeObjects = [];
-    
-    for ( i = 0; i < pLen; i++ ) {
+
+    for (i = 0; i < pLen; i++) {
       const pObj = {};
       const pAttr = {};
       pObj.id = properties[i].id();
       pObj.type = properties[i].type();
       propertyObjects.push(pObj);
-      
+
       // // define the attributes object
       pAttr.id = properties[i].id();
       pAttr.iri = properties[i].iri();
       pAttr.baseIri = properties[i].baseIri();
       pAttr.label = properties[i].label();
-      
-      if ( properties[i].attributes().length > 0 ) {
+
+      if (properties[i].attributes().length > 0) {
         pAttr.attributes = properties[i].attributes().slice().sort();
       }
-      if ( properties[i].comment() ) {
+      if (properties[i].comment()) {
         pAttr.comment = properties[i].comment();
       }
-      
-      if ( properties[i].annotations() ) {
+
+      if (properties[i].annotations()) {
         pAttr.annotations = properties[i].annotations();
       }
-      if ( properties[i].maxCardinality() ) {
+      if (properties[i].maxCardinality()) {
         pAttr.maxCardinality = properties[i].maxCardinality();
       }
-      if ( properties[i].minCardinality() ) {
+      if (properties[i].minCardinality()) {
         pAttr.minCardinality = properties[i].minCardinality();
       }
-      if ( properties[i].cardinality() ) {
+      if (properties[i].cardinality()) {
         pAttr.cardinality = properties[i].cardinality();
       }
-      if ( properties[i].description() ) {
+      if (properties[i].description()) {
         pAttr.description = properties[i].description();
       }
-      
+
       pAttr.domain = properties[i].domain().id();
       pAttr.range = properties[i].range().id();
       // sub properties;
-      if ( properties[i].subproperties() ) {
-        const subProps = properties[i].subproperties().slice().sort(sortByIriThenId);
+      if (properties[i].subproperties()) {
+        const subProps = properties[i]
+          .subproperties()
+          .slice()
+          .sort(sortByIriThenId);
         const subPropsIdArray = [];
-        for ( j = 0; j < subProps.length; j++ ) {
-          if ( subProps[j].id )
-            {subPropsIdArray.push(subProps[j].id());}
+        for (j = 0; j < subProps.length; j++) {
+          if (subProps[j].id) {
+            subPropsIdArray.push(subProps[j].id());
+          }
         }
         pAttr.subproperty = subPropsIdArray;
       }
-      
+
       // super properties
-      if ( properties[i].superproperties() ) {
-        const superProps = properties[i].superproperties().slice().sort(sortByIriThenId);
+      if (properties[i].superproperties()) {
+        const superProps = properties[i]
+          .superproperties()
+          .slice()
+          .sort(sortByIriThenId);
         const superPropsIdArray = [];
-        for ( j = 0; j < superProps.length; j++ ) {
-          if ( superProps[j].id )
-            {superPropsIdArray.push(superProps[j].id());}
+        for (j = 0; j < superProps.length; j++) {
+          if (superProps[j].id) {
+            superPropsIdArray.push(superProps[j].id());
+          }
         }
         pAttr.superproperty = superPropsIdArray;
       }
-      
+
       // check for inverse element
-      if ( properties[i].inverse() ) {
-        if ( properties[i].inverse().id )
-          {pAttr.inverse = properties[i].inverse().id();}
+      if (properties[i].inverse()) {
+        if (properties[i].inverse().id) {
+          pAttr.inverse = properties[i].inverse().id();
+        }
       }
       propertyAttributeObjects.push(pAttr);
     }
-    
+
     exportText.class = classObjects;
     exportText.classAttribute = classAttributeObjects;
     exportText.property = propertyObjects;
     exportText.propertyAttribute = propertyAttributeObjects;
-    
-    
-    const nodeElements = graph.graphNodeElements();  // get visible nodes
+
+    const nodeElements = graph.graphNodeElements(); // get visible nodes
     const propElements = graph.graphLabelElements(); // get visible labels
     // var jsonObj = JSON.parse(exportableJsonText);	   // reparse the original input json
-    
+
     /** modify comment **/
     const comment = exportText._comment;
-    const additionalString = " [Additional Information added by WebVOWL Exporter Version: " + "@@WEBVOWL_VERSION" + "]";
+    const additionalString =
+      " [Additional Information added by WebVOWL Exporter Version: " +
+      "@@WEBVOWL_VERSION" +
+      "]";
     // adding new string to comment only if it does not exist
-    if ( comment.indexOf(additionalString) === -1 ) {
-      exportText._comment = comment + " [Additional Information added by WebVOWL Exporter Version: " + "@@WEBVOWL_VERSION" + "]";
+    if (comment.indexOf(additionalString) === -1) {
+      exportText._comment =
+        comment +
+        " [Additional Information added by WebVOWL Exporter Version: " +
+        "@@WEBVOWL_VERSION" +
+        "]";
     }
-    
+
     const classAttribute = exportText.classAttribute;
     const propAttribute = exportText.propertyAttribute;
     /**  remove previously stored variables **/
-    for ( i = 0; i < classAttribute.length; i++ ) {
+    for (i = 0; i < classAttribute.length; i++) {
       const classObj_del = classAttribute[i];
       delete classObj_del.pos;
       delete classObj_del.pinned;
     }
     let propertyObj;
-    for ( i = 0; i < propAttribute.length; i++ ) {
+    for (i = 0; i < propAttribute.length; i++) {
       propertyObj = propAttribute[i];
       delete propertyObj.pos;
       delete propertyObj.pinned;
     }
     /**  add new variables to jsonObj  **/
     // class attribute variables
-    nodeElements.each(function ( node ){
+    nodeElements.each(function (node) {
       const nodeId = node.id();
-      for ( i = 0; i < classAttribute.length; i++ ) {
+      for (i = 0; i < classAttribute.length; i++) {
         const classObj = classAttribute[i];
-        if ( classObj.id === nodeId ) {
+        if (classObj.id === nodeId) {
           // store relative positions
-          classObj.pos = [parseFloat(node.x.toFixed(2)), parseFloat(node.y.toFixed(2))];
-          if ( node.pinned() )
-            {classObj.pinned = true;}
+          classObj.pos = [
+            parseFloat(node.x.toFixed(2)),
+            parseFloat(node.y.toFixed(2)),
+          ];
+          if (node.pinned()) {
+            classObj.pinned = true;
+          }
           break;
         }
       }
     });
     // property attribute variables
-    for ( j = 0; j < propElements.length; j++ ) {
+    for (j = 0; j < propElements.length; j++) {
       const correspondingProp = propElements[j].property();
-      for ( i = 0; i < propAttribute.length; i++ ) {
+      for (i = 0; i < propAttribute.length; i++) {
         propertyObj = propAttribute[i];
-        if ( propertyObj.id === correspondingProp.id() ) {
-          propertyObj.pos = [parseFloat(propElements[j].x.toFixed(2)), parseFloat(propElements[j].y.toFixed(2))];
-          if ( propElements[j].pinned() )
-            {propertyObj.pinned = true;}
+        if (propertyObj.id === correspondingProp.id()) {
+          propertyObj.pos = [
+            parseFloat(propElements[j].x.toFixed(2)),
+            parseFloat(propElements[j].y.toFixed(2)),
+          ];
+          if (propElements[j].pinned()) {
+            propertyObj.pinned = true;
+          }
           break;
         }
       }
     }
     /** create the variable for settings and set their values **/
     exportText.settings = {};
-    
+
     // Global Settings
     const zoom = graph.scaleFactor();
     const paused = graph.paused();
-    const translation = [parseFloat(graph.translation()[0].toFixed(2)), parseFloat(graph.translation()[1].toFixed(2))];
+    const translation = [
+      parseFloat(graph.translation()[0].toFixed(2)),
+      parseFloat(graph.translation()[1].toFixed(2)),
+    ];
     exportText.settings.global = {};
     exportText.settings.global.zoom = Number(zoom.toFixed(2));
     exportText.settings.global.translation = translation;
     exportText.settings.global.paused = paused;
-    
+
     // shared variable declaration
     let cb_text;
     let isEnabled;
     let cb_obj;
-    
+
     // Gravity Settings
     const classDistance = graph.options().classDistance();
     const datatypeDistance = graph.options().datatypeDistance();
     exportText.settings.gravity = {};
     exportText.settings.gravity.classDistance = classDistance;
     exportText.settings.gravity.datatypeDistance = datatypeDistance;
-    
+
     // Filter Settings
     const fMenu = graph.options().filterMenu();
-    const fContainer = (fMenu.getCheckBoxContainer() || []).slice().sort(function(a, b) {
-      return String(a.checkbox.attr("id") || "").localeCompare(String(b.checkbox.attr("id") || ""));
-    });
+    const fContainer = (fMenu.getCheckBoxContainer() || [])
+      .slice()
+      .sort(function (a, b) {
+        return String(a.checkbox.attr("id") || "").localeCompare(
+          String(b.checkbox.attr("id") || ""),
+        );
+      });
     const cbCont = [];
-    for ( i = 0; i < fContainer.length; i++ ) {
+    for (i = 0; i < fContainer.length; i++) {
       cb_text = fContainer[i].checkbox.attr("id");
       isEnabled = fContainer[i].checkbox.property("checked");
       cb_obj = {};
@@ -647,14 +753,18 @@ function createExportMenu( graph ){
     exportText.settings.filter = {};
     exportText.settings.filter.checkBox = cbCont;
     exportText.settings.filter.degreeSliderValue = degreeSliderVal;
-    
+
     // Modes Settings
     const mMenu = graph.options().modeMenu();
-    const mContainer = (mMenu.getCheckBoxContainer() || []).slice().sort(function(a, b) {
-      return String(a.attr("id") || "").localeCompare(String(b.attr("id") || ""));
-    });
+    const mContainer = (mMenu.getCheckBoxContainer() || [])
+      .slice()
+      .sort(function (a, b) {
+        return String(a.attr("id") || "").localeCompare(
+          String(b.attr("id") || ""),
+        );
+      });
     const cb_modes = [];
-    for ( i = 0; i < mContainer.length; i++ ) {
+    for (i = 0; i < mContainer.length; i++) {
       cb_text = mContainer[i].attr("id");
       isEnabled = mContainer[i].property("checked");
       cb_obj = {};
@@ -666,7 +776,7 @@ function createExportMenu( graph ){
     exportText.settings.modes = {};
     exportText.settings.modes.checkBox = cb_modes;
     exportText.settings.modes.colorSwitchState = colorSwitchState;
-    
+
     const exportObj = {};
     exportObj._comment = exportText._comment;
     exportObj.header = exportText.header;
@@ -677,7 +787,7 @@ function createExportMenu( graph ){
     exportObj.classAttribute = exportText.classAttribute;
     exportObj.property = exportText.property;
     exportObj.propertyAttribute = exportText.propertyAttribute;
-    
+
     function sortObjectKeys(obj) {
       if (typeof obj !== "object" || obj === null) {
         return obj;
@@ -686,63 +796,81 @@ function createExportMenu( graph ){
         return obj.map(sortObjectKeys);
       }
       const sortedObj = {};
-      Object.keys(obj).sort().forEach(function(key) {
-        sortedObj[key] = sortObjectKeys(obj[key]);
-      });
+      Object.keys(obj)
+        .sort()
+        .forEach(function (key) {
+          sortedObj[key] = sortObjectKeys(obj[key]);
+        });
       return sortedObj;
     }
 
     return sortObjectKeys(exportObj);
   };
-  
-  function exportJson(){
+
+  function exportJson() {
     graph.options().navigationMenu().hideAllMenus();
     /**  check if there is data **/
-    if ( !exportableJsonText ) {
+    if (!exportableJsonText) {
       alert("No graph data available.");
       return;
     }
-    
+
     const exportObj = exportMenu.createJSON_exportObject();
-    
+
     // make a string again;
-    const exportText = JSON.stringify(exportObj, null, '  ');
+    const exportText = JSON.stringify(exportObj, null, "  ");
     let jsonExportFileName = exportFilename;
-    
-    if ( !jsonExportFileName.endsWith(".json") )
-      {jsonExportFileName += ".json";}
-    downloadFile(exportText, "application/json;charset=utf-8", jsonExportFileName);
+
+    if (!jsonExportFileName.endsWith(".json")) {
+      jsonExportFileName += ".json";
+    }
+    downloadFile(
+      exportText,
+      "application/json;charset=utf-8",
+      jsonExportFileName,
+    );
   }
-  
-  function exportTex(){
+
+  function exportTex() {
     const bbox = graph.getBoundingBoxForTex();
-    let comment = " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-    comment += " %        Generated with the experimental alpha version of the TeX exporter of WebVOWL (version 1.1.3) %%% \n";
-    comment += " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n";
-    comment += " %   The content can be used as import in other TeX documents. \n";
+    let comment =
+      " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    comment +=
+      " %        Generated with the experimental alpha version of the TeX exporter of WebVOWL (version 1.1.3) %%% \n";
+    comment +=
+      " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n";
+    comment +=
+      " %   The content can be used as import in other TeX documents. \n";
     comment += " %   Parent document has to use the following packages   \n";
     comment += " %   \\usepackage{tikz}  \n";
     comment += " %   \\usepackage{helvet}  \n";
-    comment += " %   \\usetikzlibrary{decorations.markings,decorations.shapes,decorations,arrows,automata,backgrounds,petri,shapes.geometric}  \n";
+    comment +=
+      " %   \\usetikzlibrary{decorations.markings,decorations.shapes,decorations,arrows,automata,backgrounds,petri,shapes.geometric}  \n";
     comment += " %   \\usepackage{xcolor}  \n\n";
-    comment += " %%%%%%%%%%%%%%% Example Parent Document %%%%%%%%%%%%%%%%%%%%%%%\n";
+    comment +=
+      " %%%%%%%%%%%%%%% Example Parent Document %%%%%%%%%%%%%%%%%%%%%%%\n";
     comment += " %\\documentclass{article} \n";
     comment += " %\\usepackage{tikz} \n";
     comment += " %\\usepackage{helvet} \n";
-    comment += " %\\usetikzlibrary{decorations.markings,decorations.shapes,decorations,arrows,automata,backgrounds,petri,shapes.geometric} \n";
+    comment +=
+      " %\\usetikzlibrary{decorations.markings,decorations.shapes,decorations,arrows,automata,backgrounds,petri,shapes.geometric} \n";
     comment += " %\\usepackage{xcolor} \n\n";
     comment += " %\\begin{document} \n";
     comment += " %\\section{Example} \n";
     comment += " %  This is an example. \n";
     comment += " %  \\begin{figure} \n";
-    comment += " %    \\input{<THIS_FILE_NAME>} % << tex file name for the graph \n";
-    comment += " %    \\caption{A generated graph with TKIZ using alpha version of the TeX exporter of WebVOWL (version 1.1.3) } \n";
+    comment +=
+      " %    \\input{<THIS_FILE_NAME>} % << tex file name for the graph \n";
+    comment +=
+      " %    \\caption{A generated graph with TKIZ using alpha version of the TeX exporter of WebVOWL (version 1.1.3) } \n";
     comment += " %  \\end{figure} \n";
     comment += " %\\end{document} \n";
-    comment += " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n";
-    
-    
-    let texString = comment + "\\definecolor{imageBGCOLOR}{HTML}{FFFFFF} \n" +
+    comment +=
+      " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n";
+
+    let texString =
+      comment +
+      "\\definecolor{imageBGCOLOR}{HTML}{FFFFFF} \n" +
       "\\definecolor{owlClassColor}{HTML}{AACCFF}\n" +
       "\\definecolor{owlObjectPropertyColor}{HTML}{AACCFF}\n" +
       "\\definecolor{owlExternalClassColor}{HTML}{AACCFF}\n" +
@@ -754,111 +882,127 @@ function createExportMenu( graph ){
       "\\definecolor{unionColor}{HTML}{6699cc}\n" +
       "\\begin{center} \n" +
       "\\resizebox{\\linewidth}{!}{\n" +
-      
       "\\begin{tikzpicture}[framed]\n" +
-      "\\clip (" + bbox[0] + "pt , " + bbox[1] + "pt ) rectangle (" + bbox[2] + "pt , " + bbox[3] + "pt);\n" +
+      "\\clip (" +
+      bbox[0] +
+      "pt , " +
+      bbox[1] +
+      "pt ) rectangle (" +
+      bbox[2] +
+      "pt , " +
+      bbox[3] +
+      "pt);\n" +
       "\\tikzstyle{dashed}=[dash pattern=on 4pt off 4pt] \n" +
       "\\tikzstyle{dotted}=[dash pattern=on 2pt off 2pt] \n" +
       "\\fontfamily{sans-serif}{\\fontsize{12}{12}\\selectfont}\n \n";
-    
-    
-    texString += "\\tikzset{triangleBlack/.style = {fill=black, draw=black, line width=1pt,scale=0.7,regular polygon, regular polygon sides=3} }\n";
-    texString += "\\tikzset{triangleWhite/.style = {fill=white, draw=black, line width=1pt,scale=0.7,regular polygon, regular polygon sides=3} }\n";
-    texString += "\\tikzset{triangleBlue/.style  = {fill=valuesFrom, draw=valuesFrom, line width=1pt,scale=0.7,regular polygon, regular polygon sides=3} }\n";
-    
-    texString += "\\tikzset{Diamond/.style = {fill=white, draw=black, line width=2pt,scale=1.2,regular polygon, regular polygon sides=4} }\n";
-    
-    
-    texString += "\\tikzset{Literal/.style={rectangle,align=center,\n" +
+
+    texString +=
+      "\\tikzset{triangleBlack/.style = {fill=black, draw=black, line width=1pt,scale=0.7,regular polygon, regular polygon sides=3} }\n";
+    texString +=
+      "\\tikzset{triangleWhite/.style = {fill=white, draw=black, line width=1pt,scale=0.7,regular polygon, regular polygon sides=3} }\n";
+    texString +=
+      "\\tikzset{triangleBlue/.style  = {fill=valuesFrom, draw=valuesFrom, line width=1pt,scale=0.7,regular polygon, regular polygon sides=3} }\n";
+
+    texString +=
+      "\\tikzset{Diamond/.style = {fill=white, draw=black, line width=2pt,scale=1.2,regular polygon, regular polygon sides=4} }\n";
+
+    texString +=
+      "\\tikzset{Literal/.style={rectangle,align=center,\n" +
       "font={\\fontsize{12pt}{12}\\selectfont \\sffamily },\n" +
       "black, draw=black, dashed, line width=1pt, fill=owlDatatypeColor, minimum width=80pt,\n" +
       "minimum height = 20pt}}\n\n";
-    
-    texString += "\\tikzset{Datatype/.style={rectangle,align=center,\n" +
+
+    texString +=
+      "\\tikzset{Datatype/.style={rectangle,align=center,\n" +
       "font={\\fontsize{12pt}{12}\\selectfont \\sffamily },\n" +
       "black, draw=black, line width=1pt, fill=owlDatatypeColor, minimum width=80pt,\n" +
       "minimum height = 20pt}}\n\n";
-    
-    
-    texString += "\\tikzset{owlClass/.style={circle, inner sep=0mm,align=center, \n" +
+
+    texString +=
+      "\\tikzset{owlClass/.style={circle, inner sep=0mm,align=center, \n" +
       "font={\\fontsize{12pt}{12}\\selectfont \\sffamily },\n" +
       "black, draw=black, line width=1pt, fill=owlClassColor, minimum size=101pt}}\n\n";
-    
-    texString += "\\tikzset{anonymousClass/.style={circle, inner sep=0mm,align=center, \n" +
+
+    texString +=
+      "\\tikzset{anonymousClass/.style={circle, inner sep=0mm,align=center, \n" +
       "font={\\fontsize{12pt}{12}\\selectfont \\sffamily },\n" +
       "black, dashed, draw=black, line width=1pt, fill=owlClassColor, minimum size=101pt}}\n\n";
-    
-    
-    texString += "\\tikzset{owlThing/.style={circle, inner sep=0mm,align=center,\n" +
+
+    texString +=
+      "\\tikzset{owlThing/.style={circle, inner sep=0mm,align=center,\n" +
       "font={\\fontsize{12pt}{12}\\selectfont \\sffamily },\n" +
       "black, dashed, draw=black, line width=1pt, fill=owlThingColor, minimum size=62pt}}\n\n";
-    
-    
-    texString += "\\tikzset{owlObjectProperty/.style={rectangle,align=center,\n" +
+
+    texString +=
+      "\\tikzset{owlObjectProperty/.style={rectangle,align=center,\n" +
       "inner sep=0mm,\n" +
       "font={\\fontsize{12pt}{12}\\selectfont \\sffamily },\n" +
       "fill=owlObjectPropertyColor, minimum width=80pt,\n" +
       "minimum height = 25pt}}\n\n";
-    
-    texString += "\\tikzset{rdfProperty/.style={rectangle,align=center,\n" +
+
+    texString +=
+      "\\tikzset{rdfProperty/.style={rectangle,align=center,\n" +
       "inner sep=0mm,\n" +
       "font={\\fontsize{12pt}{12}\\selectfont \\sffamily },\n" +
       "fill=rdfPropertyColor, minimum width=80pt,\n" +
       "minimum height = 25pt}}\n\n";
-    
-    
-    texString += "\\tikzset{owlDatatypeProperty/.style={rectangle,align=center,\n" +
+
+    texString +=
+      "\\tikzset{owlDatatypeProperty/.style={rectangle,align=center,\n" +
       "fill=owlDatatypePropertyColor, minimum width=80pt,\n" +
       "inner sep=0mm,\n" +
       "font={\\fontsize{12pt}{12}\\selectfont \\sffamily },\n" +
       "minimum height = 25pt}}\n\n";
-    
-    texString += "\\tikzset{rdfsSubClassOf/.style={rectangle,align=center,\n" +
+
+    texString +=
+      "\\tikzset{rdfsSubClassOf/.style={rectangle,align=center,\n" +
       "font={\\fontsize{12pt}{12}\\selectfont \\sffamily },\n" +
       "inner sep=0mm,\n" +
       "fill=imageBGCOLOR, minimum width=80pt,\n" +
       "minimum height = 25pt}}\n\n";
-    
-    texString += "\\tikzset{unionOf/.style={circle, inner sep=0mm,align=center,\n" +
+
+    texString +=
+      "\\tikzset{unionOf/.style={circle, inner sep=0mm,align=center,\n" +
       "font={\\fontsize{12pt}{12}\\selectfont \\sffamily },\n" +
       "black, draw=black, line width=1pt, fill=unionColor, minimum size=25pt}}\n\n";
-    
-    texString += "\\tikzset{disjointWith/.style={circle, inner sep=0mm,align=center,\n" +
+
+    texString +=
+      "\\tikzset{disjointWith/.style={circle, inner sep=0mm,align=center,\n" +
       "font={\\fontsize{12pt}{12}\\selectfont \\sffamily },\n" +
       "black, draw=black, line width=1pt, fill=unionColor, minimum size=20pt}}\n\n";
-    
-    
-    texString += "\\tikzset{owlEquivalentClass/.style={circle,align=center,\n" +
+
+    texString +=
+      "\\tikzset{owlEquivalentClass/.style={circle,align=center,\n" +
       "font={\\fontsize{12pt}{12}\\selectfont \\sffamily },\n" +
       "inner sep=0mm,\n" +
       "black, solid, draw=black, line width=3pt, fill=owlExternalClassColor, minimum size=101pt,\n" +
       "postaction = {draw,line width=1pt, white}}}\n\n";
-    
+
     // draw a bounding box;
-    
+
     // get bbox coordinates;
-    
-    
+
     graph.options().navigationMenu().hideAllMenus();
     /**  check if there is data **/
-    if ( !exportableJsonText ) {
+    if (!exportableJsonText) {
       alert("No graph data available.");
       return;
     }
-    
-    let i = 0, identifier;
-    
+
+    let i = 0,
+      identifier;
+
     /** get data for exporter **/
-    const nodeElements = graph.graphNodeElements();  // get visible nodes
+    const nodeElements = graph.graphNodeElements(); // get visible nodes
     const propElements = graph.graphLabelElements(); // get visible labels
     const links = graph.graphLinkElements();
-    
+
     // export only nodes;
     // draw Links;
-    for ( i = 0; i < links.length; i++ ) {
+    for (i = 0; i < links.length; i++) {
       const link = links[i];
       // console.warn("\n****************\nInverstigating Link for property "+link.property().labelForCurrentLanguage());
-      
+
       const prop = link.property();
       let dx, dy, px, py, rx, ry;
       let colorStr = "black";
@@ -874,42 +1018,44 @@ function createExportMenu( graph ){
       let len;
       let ahAngle;
 
-
       let arrowType = "triangleBlack";
       const linkWidth = ",line width=2pt";
-      if ( prop.linkType ) {
-        if ( prop.linkType() === "dotted" ) {
+      if (prop.linkType) {
+        if (prop.linkType() === "dotted") {
           //stroke-dasharray: 3;
           linkStyle = ", dotted ";
           arrowType = "triangleWhite";
         }
-        if ( prop.linkType() === "dashed" ) {
+        if (prop.linkType() === "dashed") {
           //stroke-dasharray: 3;
           linkStyle = ", dashed ";
         }
-        
-        if ( prop.linkType() === "values-from" ) {
+
+        if (prop.linkType() === "values-from") {
           colorStr = "valuesFrom";
         }
-        
       }
-      
+
       let startX, startY, endX, endY, normX, normY, lg;
-      
-      if ( link.layers().length === 1 && !link.loops() ) {
-        
-        linkDomainIntersection = graph.math().calculateIntersection(link.range(), link.domain(), 1);
-        linkRangeIntersection = graph.math().calculateIntersection(link.domain(), link.range(), 1);
-        center = graph.math().calculateCenter(linkDomainIntersection, linkRangeIntersection);
+
+      if (link.layers().length === 1 && !link.loops()) {
+        linkDomainIntersection = graph
+          .math()
+          .calculateIntersection(link.range(), link.domain(), 1);
+        linkRangeIntersection = graph
+          .math()
+          .calculateIntersection(link.domain(), link.range(), 1);
+        center = graph
+          .math()
+          .calculateCenter(linkDomainIntersection, linkRangeIntersection);
         dx = linkDomainIntersection.x;
         dy = -linkDomainIntersection.y;
         px = center.x;
         py = -center.y;
         rx = linkRangeIntersection.x;
         ry = -linkRangeIntersection.y;
-      }
-      else {
-        if ( link.isLoop() ) {
+      } else {
+        if (link.isLoop()) {
           isLoop = ", tension=3";
           controlPoints = graph.math().calculateLoopPoints(link);
           pathStart = controlPoints[0];
@@ -917,8 +1063,12 @@ function createExportMenu( graph ){
           pathEnd = controlPoints[2];
         } else {
           curvePoint = link.label();
-          pathStart = graph.math().calculateIntersection(curvePoint, link.domain(), 1);
-          pathEnd = graph.math().calculateIntersection(curvePoint, link.range(), 1);
+          pathStart = graph
+            .math()
+            .calculateIntersection(curvePoint, link.domain(), 1);
+          pathEnd = graph
+            .math()
+            .calculateIntersection(curvePoint, link.range(), 1);
         }
         dx = pathStart.x;
         dy = -pathStart.y;
@@ -927,33 +1077,53 @@ function createExportMenu( graph ){
         rx = pathEnd.x;
         ry = -pathEnd.y;
       }
-      
-      texString += "\\draw [" + colorStr + linkStyle + linkWidth + isLoop + "] plot [smooth] coordinates {(" +
-        dx + "pt, " + dy + "pt) (" + px + "pt, " + py + "pt)  (" + rx + "pt, " + ry + "pt)};\n";
-      
-      
-      if ( link.property().markerElement() === undefined ) {continue;}
-      
+
+      texString +=
+        "\\draw [" +
+        colorStr +
+        linkStyle +
+        linkWidth +
+        isLoop +
+        "] plot [smooth] coordinates {(" +
+        dx +
+        "pt, " +
+        dy +
+        "pt) (" +
+        px +
+        "pt, " +
+        py +
+        "pt)  (" +
+        rx +
+        "pt, " +
+        ry +
+        "pt)};\n";
+
+      if (link.property().markerElement() === undefined) {
+        continue;
+      }
+
       // add arrow head;
-      
-      
-      if ( link.property().type() === "owl:someValuesFrom" || link.property().type() === "owl:allValuesFrom" ) {
+
+      if (
+        link.property().type() === "owl:someValuesFrom" ||
+        link.property().type() === "owl:allValuesFrom"
+      ) {
         arrowType = "triangleBlue";
       }
-      
+
       lg = link.pathObj();
       const pathLen = Math.floor(lg.node().getTotalLength());
       let p1 = lg.node().getPointAtLength(pathLen - 4);
       let p2 = lg.node().getPointAtLength(pathLen);
       let markerCenter = lg.node().getPointAtLength(pathLen - 6);
-      
-      if ( link.property().type() === "setOperatorProperty" ) {
+
+      if (link.property().type() === "setOperatorProperty") {
         p1 = lg.node().getPointAtLength(4);
         p2 = lg.node().getPointAtLength(0);
         markerCenter = lg.node().getPointAtLength(8);
         arrowType = "Diamond";
       }
-      
+
       startX = p1.x;
       startY = p1.y;
       endX = p2.x;
@@ -963,49 +1133,80 @@ function createExportMenu( graph ){
       len = Math.sqrt(normX * normX + normY * normY);
       normX = normX / len;
       normY = normY / len;
-      
+
       ahAngle = -1.0 * Math.atan2(normY, normX) * (180 / Math.PI);
       ahAngle -= 90;
-      if ( link.property().type() === "setOperatorProperty" ) {
+      if (link.property().type() === "setOperatorProperty") {
         ahAngle -= 45;
       }
       // console.warn(link.property().labelForCurrentLanguage()+ ": "+normX+ " "+normY +"  "+ahAngle);
       rx = markerCenter.x;
       ry = markerCenter.y;
-      if ( link.layers().length === 1 && !link.loops() ) {
+      if (link.layers().length === 1 && !link.loops()) {
         // markerOffset=-1*m
         ry = -1 * ry;
-        texString += "\\node[" + arrowType + ", rotate=" + ahAngle + "] at (" + rx + "pt, " + ry + "pt)   (single_marker" + i + ") {};\n ";
+        texString +=
+          "\\node[" +
+          arrowType +
+          ", rotate=" +
+          ahAngle +
+          "] at (" +
+          rx +
+          "pt, " +
+          ry +
+          "pt)   (single_marker" +
+          i +
+          ") {};\n ";
       } else {
         ry = -1 * ry;
-        texString += "\\node[" + arrowType + ", rotate=" + ahAngle + "] at (" + rx + "pt, " + ry + "pt)   (marker" + i + ") {};\n ";
+        texString +=
+          "\\node[" +
+          arrowType +
+          ", rotate=" +
+          ahAngle +
+          "] at (" +
+          rx +
+          "pt, " +
+          ry +
+          "pt)   (marker" +
+          i +
+          ") {};\n ";
       }
-      
+
       // if   (link.isLoop()){
       //    rotAngle=-10+angle * (180 / Math.PI);
       // }
-      
+
       // add cardinality;
       let cardinalityText = link.property().generateCardinalityText();
-      if ( cardinalityText && cardinalityText.length > 0 ) {
+      if (cardinalityText && cardinalityText.length > 0) {
         const cardinalityCenter = lg.node().getPointAtLength(pathLen - 18);
-        const cx = cardinalityCenter.x - (10 * normY);
-        let cy = cardinalityCenter.y + (10 * normX); // using orthonormal y Coordinate
+        const cx = cardinalityCenter.x - 10 * normY;
+        let cy = cardinalityCenter.y + 10 * normX; // using orthonormal y Coordinate
         cy *= -1.0;
         const textColor = "black";
-        if ( cardinalityText.indexOf("A") > -1 ) {
+        if (cardinalityText.indexOf("A") > -1) {
           cardinalityText = "$\\forall$";
         }
-        if ( cardinalityText.indexOf("E") > -1 ) {
+        if (cardinalityText.indexOf("E") > -1) {
           cardinalityText = "$\\exists$";
         }
-        
-        
-        texString += "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily },text=" + textColor + "] at (" + cx + "pt, " + cy + "pt)   (cardinalityText" + i + ") {" + cardinalityText + "};\n ";
+
+        texString +=
+          "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily },text=" +
+          textColor +
+          "] at (" +
+          cx +
+          "pt, " +
+          cy +
+          "pt)   (cardinalityText" +
+          i +
+          ") {" +
+          cardinalityText +
+          "};\n ";
       }
-      
-      
-      if ( link.property().inverse() ) {
+
+      if (link.property().inverse()) {
         lg = link.pathObj();
         const p1_inv = lg.node().getPointAtLength(4);
         const p2_inv = lg.node().getPointAtLength(0);
@@ -1019,59 +1220,87 @@ function createExportMenu( graph ){
         len = Math.sqrt(normX * normX + normY * normY);
         normX = normX / len;
         normY = normY / len;
-        
+
         ahAngle = -1.0 * Math.atan2(normY, normX) * (180 / Math.PI);
         ahAngle -= 90;
         //   console.warn("INV>>\n "+link.property().inverse().labelForCurrentLanguage()+ ": "+normX+ " "+normY +"  "+ahAngle);
         rx = markerCenter_inv.x;
         ry = markerCenter_inv.y;
-        if ( link.layers().length === 1 && !link.loops() ) {
+        if (link.layers().length === 1 && !link.loops()) {
           // markerOffset=-1*m
           ry = -1 * ry;
-          texString += "\\node[" + arrowType + ", rotate=" + ahAngle + "] at (" + rx + "pt, " + ry + "pt)   (INV_single_marker" + i + ") {};\n ";
+          texString +=
+            "\\node[" +
+            arrowType +
+            ", rotate=" +
+            ahAngle +
+            "] at (" +
+            rx +
+            "pt, " +
+            ry +
+            "pt)   (INV_single_marker" +
+            i +
+            ") {};\n ";
         } else {
           ry = -1 * ry;
-          texString += "\\node[" + arrowType + ", rotate=" + ahAngle + "] at (" + rx + "pt, " + ry + "pt)   (INV_marker" + i + ") {};\n ";
+          texString +=
+            "\\node[" +
+            arrowType +
+            ", rotate=" +
+            ahAngle +
+            "] at (" +
+            rx +
+            "pt, " +
+            ry +
+            "pt)   (INV_marker" +
+            i +
+            ") {};\n ";
         }
       }
-      
-      
     }
-    
-    
-    nodeElements.each(function ( node ){
-      
+
+    nodeElements.each(function (node) {
       const px = node.x;
       const py = -node.y;
       let identifier = node.labelForCurrentLanguage();
       // console.warn("Writing : "+ identifier);
-      if ( identifier === undefined ) {identifier = "";}
+      if (identifier === undefined) {
+        identifier = "";
+      }
       let qType = "owlClass";
-      if ( node.type() === "owl:Thing" || node.type() === "owl:Nothing" )
-        {qType = "owlThing";}
-      
-      if ( node.type() === "owl:equivalentClass" ) {
+      if (node.type() === "owl:Thing" || node.type() === "owl:Nothing") {
+        qType = "owlThing";
+      }
+
+      if (node.type() === "owl:equivalentClass") {
         qType = "owlEquivalentClass";
       }
       let textColorStr = "";
-      if ( node.textBlock ) {
-        const txtColor = window.getComputedStyle(node.textBlock()._textBlock().node()).fill;
-        if ( txtColor === "rgb(0, 0, 0)" ) {
+      if (node.textBlock) {
+        const txtColor = window.getComputedStyle(
+          node.textBlock()._textBlock().node(),
+        ).fill;
+        if (txtColor === "rgb(0, 0, 0)") {
           textColorStr = ", text=black";
         }
-        if ( txtColor === "rgb(255, 255, 255)" ) {
+        if (txtColor === "rgb(255, 255, 255)") {
           textColorStr = ", text=white";
         }
-        
-        
+
         const tspans = node.textBlock()._textBlock().node().children;
-        if ( tspans[0] ) {
+        if (tspans[0]) {
           identifier = tspans[0].innerHTML;
-          if ( node.individuals() && node.individuals().length === parseInt(tspans[0].innerHTML) ) {
+          if (
+            node.individuals() &&
+            node.individuals().length === parseInt(tspans[0].innerHTML)
+          ) {
             identifier = "{\\color{gray} " + tspans[0].innerHTML + " }";
           }
-          for ( let t = 1; t < tspans.length; t++ ) {
-            if ( node.individuals() && node.individuals().length === parseInt(tspans[t].innerHTML) ) {
+          for (let t = 1; t < tspans.length; t++) {
+            if (
+              node.individuals() &&
+              node.individuals().length === parseInt(tspans[t].innerHTML)
+            ) {
               identifier += "\\\\ {\\color{gray} " + tspans[t].innerHTML + " }";
             } else {
               identifier += "\\\\ {\\small " + tspans[t].innerHTML + " }";
@@ -1079,209 +1308,494 @@ function createExportMenu( graph ){
           }
         }
       }
-      if ( node.type() === "rdfs:Literal" ) {
+      if (node.type() === "rdfs:Literal") {
         qType = "Literal";
       }
-      if ( node.type() === "rdfs:Datatype" ) {
+      if (node.type() === "rdfs:Datatype") {
         qType = "Datatype";
       }
-      if ( node.attributes().indexOf("anonymous") !== -1 ) {
+      if (node.attributes().indexOf("anonymous") !== -1) {
         qType = "anonymousClass";
       }
-      
-      
-      if ( node.type() === "owl:unionOf" || node.type() === "owl:complementOf" || node.type() === "owl:disjointUnionOf" || node.type() === "owl:intersectionOf" )
-        {qType = "owlClass";}
-      
+
+      if (
+        node.type() === "owl:unionOf" ||
+        node.type() === "owl:complementOf" ||
+        node.type() === "owl:disjointUnionOf" ||
+        node.type() === "owl:intersectionOf"
+      ) {
+        qType = "owlClass";
+      }
+
       let bgColorStr = "";
       let widthString;
-      
-      if ( node.type() === "rdfs:Literal" || node.type() === "rdfs:Datatype" ) {
+
+      if (node.type() === "rdfs:Literal" || node.type() === "rdfs:Datatype") {
         const width = node.width();
         widthString = ",minimum width=" + width + "pt";
-      }
-      else {
+      } else {
         widthString = ",minimum size=" + 2 * node.actualRadius() + "pt";
-        
       }
-      if ( node.backgroundColor() ) {
+      if (node.backgroundColor()) {
         let bgColor = node.backgroundColor();
         bgColor.toUpperCase();
         bgColor = bgColor.slice(1, bgColor.length);
-        texString += "\\definecolor{Node" + i + "_COLOR}{HTML}{" + bgColor + "} \n ";
+        texString +=
+          "\\definecolor{Node" + i + "_COLOR}{HTML}{" + bgColor + "} \n ";
         bgColorStr = ", fill=Node" + i + "_COLOR ";
       }
-      if ( node.attributes().indexOf("deprecated") > -1 ) {
+      if (node.attributes().indexOf("deprecated") > -1) {
         texString += "\\definecolor{Node" + i + "_COLOR}{HTML}{CCCCCC} \n ";
         bgColorStr = ", fill=Node" + i + "_COLOR ";
       }
-      
+
       const leftPos = px - 7;
       const rightPos = px + 7;
       const txtOffset = py + 20;
-      if ( node.type() !== "owl:unionOf" || node.type() !== "owl:disjointUnionOf" ) {
-        texString += "\\node[" + qType + " " + widthString + " " + bgColorStr + " " + textColorStr + "] at (" + px + "pt, " + py + "pt)   (Node" + i + ") {" + identifier.replaceAll("_", "\\_ ") + "};\n";
+      if (
+        node.type() !== "owl:unionOf" ||
+        node.type() !== "owl:disjointUnionOf"
+      ) {
+        texString +=
+          "\\node[" +
+          qType +
+          " " +
+          widthString +
+          " " +
+          bgColorStr +
+          " " +
+          textColorStr +
+          "] at (" +
+          px +
+          "pt, " +
+          py +
+          "pt)   (Node" +
+          i +
+          ") {" +
+          identifier.replaceAll("_", "\\_ ") +
+          "};\n";
       }
-      if ( node.type() === "owl:unionOf" ) {
+      if (node.type() === "owl:unionOf") {
         // add symbol to it;
-        texString += "\\node[" + qType + " " + widthString + " " + bgColorStr + " " + textColorStr + "] at (" + px + "pt, " + py + "pt)   (Node" + i + ") {};\n";
-        texString += "\\node[unionOf   , text=black] at (" + leftPos + "pt, " + py + "pt)   (SymbolNode" + i + ") {};\n";
-        texString += "\\node[unionOf   , text=black] at (" + rightPos + "pt, " + py + "pt)   (SymbolNode" + i + ") {};\n";
-        texString += "\\node[unionOf ,fill=none   , text=black] at (" + leftPos + "pt, " + py + "pt)   (SymbolNode" + i + ") {};\n";
-        texString += "\\node[text=black] at (" + px + "pt, " + py + "pt)  (unionText13) {$\\mathbf{\\cup}$};\n";
-        texString += "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily }" + textColorStr + "] at (" + px + "pt, " + txtOffset + "pt)   (Node_text" + i + ") {" + identifier.replaceAll("_", "\\_ ") + "};\n";
+        texString +=
+          "\\node[" +
+          qType +
+          " " +
+          widthString +
+          " " +
+          bgColorStr +
+          " " +
+          textColorStr +
+          "] at (" +
+          px +
+          "pt, " +
+          py +
+          "pt)   (Node" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[unionOf   , text=black] at (" +
+          leftPos +
+          "pt, " +
+          py +
+          "pt)   (SymbolNode" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[unionOf   , text=black] at (" +
+          rightPos +
+          "pt, " +
+          py +
+          "pt)   (SymbolNode" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[unionOf ,fill=none   , text=black] at (" +
+          leftPos +
+          "pt, " +
+          py +
+          "pt)   (SymbolNode" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[text=black] at (" +
+          px +
+          "pt, " +
+          py +
+          "pt)  (unionText13) {$\\mathbf{\\cup}$};\n";
+        texString +=
+          "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily }" +
+          textColorStr +
+          "] at (" +
+          px +
+          "pt, " +
+          txtOffset +
+          "pt)   (Node_text" +
+          i +
+          ") {" +
+          identifier.replaceAll("_", "\\_ ") +
+          "};\n";
       }
       // OWL DISJOINT UNION OF
-      if ( node.type() === "owl:disjointUnionOf" ) {
-        texString += "\\node[" + qType + " " + widthString + " " + bgColorStr + " " + textColorStr + "] at (" + px + "pt, " + py + "pt)   (Node" + i + ") {};\n";
-        texString += "\\node[unionOf   , text=black] at (" + leftPos + "pt, " + py + "pt)   (SymbolNode" + i + ") {};\n";
-        texString += "\\node[unionOf   , text=black] at (" + rightPos + "pt, " + py + "pt)   (SymbolNode" + i + ") {};\n";
-        texString += "\\node[unionOf ,fill=none   , text=black] at (" + leftPos + "pt, " + py + "pt)   (SymbolNode" + i + ") {};\n";
-        texString += "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily }" + textColorStr + "] at (" + px + "pt, " + py + "pt)  (disjointUnoinText" + i + ") {1};\n";
-        texString += "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily }" + textColorStr + "] at (" + px + "pt, " + txtOffset + "pt)   (Node_text" + i + ") {" + identifier.replaceAll("_", "\\_ ") + "};\n";
+      if (node.type() === "owl:disjointUnionOf") {
+        texString +=
+          "\\node[" +
+          qType +
+          " " +
+          widthString +
+          " " +
+          bgColorStr +
+          " " +
+          textColorStr +
+          "] at (" +
+          px +
+          "pt, " +
+          py +
+          "pt)   (Node" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[unionOf   , text=black] at (" +
+          leftPos +
+          "pt, " +
+          py +
+          "pt)   (SymbolNode" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[unionOf   , text=black] at (" +
+          rightPos +
+          "pt, " +
+          py +
+          "pt)   (SymbolNode" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[unionOf ,fill=none   , text=black] at (" +
+          leftPos +
+          "pt, " +
+          py +
+          "pt)   (SymbolNode" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily }" +
+          textColorStr +
+          "] at (" +
+          px +
+          "pt, " +
+          py +
+          "pt)  (disjointUnoinText" +
+          i +
+          ") {1};\n";
+        texString +=
+          "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily }" +
+          textColorStr +
+          "] at (" +
+          px +
+          "pt, " +
+          txtOffset +
+          "pt)   (Node_text" +
+          i +
+          ") {" +
+          identifier.replaceAll("_", "\\_ ") +
+          "};\n";
       }
       // OWL COMPLEMENT OF
-      if ( node.type() === "owl:complementOf" ) {
+      if (node.type() === "owl:complementOf") {
         // add symbol to it;
-        texString += "\\node[" + qType + " " + widthString + " " + bgColorStr + " " + textColorStr + "] at (" + px + "pt, " + py + "pt)   (Node" + i + ") {};\n";
-        texString += "\\node[unionOf   , text=black] at (" + px + "pt, " + py + "pt)   (SymbolNode" + i + ") {};\n";
-        texString += "\\node[font={\\fontsize{18pt}{18}\\selectfont \\sffamily }" + textColorStr + "] at (" + px + "pt, " + py + "pt)  (unionText13) {$\\neg$};\n";
-        texString += "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily }" + textColorStr + "] at (" + px + "pt, " + txtOffset + "pt)   (Node_text" + i + ") {" + identifier.replaceAll("_", "\\_ ") + "};\n";
+        texString +=
+          "\\node[" +
+          qType +
+          " " +
+          widthString +
+          " " +
+          bgColorStr +
+          " " +
+          textColorStr +
+          "] at (" +
+          px +
+          "pt, " +
+          py +
+          "pt)   (Node" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[unionOf   , text=black] at (" +
+          px +
+          "pt, " +
+          py +
+          "pt)   (SymbolNode" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[font={\\fontsize{18pt}{18}\\selectfont \\sffamily }" +
+          textColorStr +
+          "] at (" +
+          px +
+          "pt, " +
+          py +
+          "pt)  (unionText13) {$\\neg$};\n";
+        texString +=
+          "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily }" +
+          textColorStr +
+          "] at (" +
+          px +
+          "pt, " +
+          txtOffset +
+          "pt)   (Node_text" +
+          i +
+          ") {" +
+          identifier.replaceAll("_", "\\_ ") +
+          "};\n";
       }
       // OWL INTERSECTION OF
-      if ( node.type() === "owl:intersectionOf" ) {
-        texString += "\\node[" + qType + " " + widthString + " " + bgColorStr + " " + textColorStr + "] at (" + px + "pt, " + py + "pt)   (Node" + i + ") {};\n";
-        texString += "\\node[unionOf   , text=black] at (" + leftPos + "pt, " + py + "pt)   (SymbolNode" + i + ") {};\n";
-        texString += "\\node[unionOf   , text=black] at (" + rightPos + "pt, " + py + "pt)   (SymbolNode" + i + ") {};\n";
-        texString += "\\node[unionOf ,fill=none   , text=black] at (" + leftPos + "pt, " + py + "pt)   (SymbolNode" + i + ") {};\n";
-        
+      if (node.type() === "owl:intersectionOf") {
+        texString +=
+          "\\node[" +
+          qType +
+          " " +
+          widthString +
+          " " +
+          bgColorStr +
+          " " +
+          textColorStr +
+          "] at (" +
+          px +
+          "pt, " +
+          py +
+          "pt)   (Node" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[unionOf   , text=black] at (" +
+          leftPos +
+          "pt, " +
+          py +
+          "pt)   (SymbolNode" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[unionOf   , text=black] at (" +
+          rightPos +
+          "pt, " +
+          py +
+          "pt)   (SymbolNode" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[unionOf ,fill=none   , text=black] at (" +
+          leftPos +
+          "pt, " +
+          py +
+          "pt)   (SymbolNode" +
+          i +
+          ") {};\n";
+
         // add now the outer colors;
-        texString += "\\filldraw[even odd rule,fill=owlClassColor,line width=1pt] (" + leftPos + "pt, " + py + "pt) circle (12.5pt)  (" + rightPos + "pt, " + py + "pt) circle (12.5pt);\n ";
-        
+        texString +=
+          "\\filldraw[even odd rule,fill=owlClassColor,line width=1pt] (" +
+          leftPos +
+          "pt, " +
+          py +
+          "pt) circle (12.5pt)  (" +
+          rightPos +
+          "pt, " +
+          py +
+          "pt) circle (12.5pt);\n ";
+
         // add texts
-        texString += "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily }" + textColorStr + "] at (" + px + "pt, " + py + "pt)  (intersectionText" + i + ") {$\\cap$};\n";
-        texString += "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily }" + textColorStr + "] at (" + px + "pt, " + txtOffset + "pt)   (Node_text" + i + ") {" + identifier.replaceAll("_", "\\_ ") + "};\n";
-        
+        texString +=
+          "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily }" +
+          textColorStr +
+          "] at (" +
+          px +
+          "pt, " +
+          py +
+          "pt)  (intersectionText" +
+          i +
+          ") {$\\cap$};\n";
+        texString +=
+          "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily }" +
+          textColorStr +
+          "] at (" +
+          px +
+          "pt, " +
+          txtOffset +
+          "pt)   (Node_text" +
+          i +
+          ") {" +
+          identifier.replaceAll("_", "\\_ ") +
+          "};\n";
       }
-      
-      
+
       i++;
-      
     });
-    for ( i = 0; i < propElements.length; i++ ) {
+    for (i = 0; i < propElements.length; i++) {
       const correspondingProp = propElements[i].property();
       const p_px = propElements[i].x;
       const p_py = -propElements[i].y;
       identifier = correspondingProp.labelForCurrentLanguage();
-      if ( identifier === undefined ) {identifier = "";}
+      if (identifier === undefined) {
+        identifier = "";
+      }
       let textColorStr = "";
-      if ( correspondingProp.textBlock && correspondingProp.textBlock() ) {
-        const txtColor = window.getComputedStyle(correspondingProp.textBlock()._textBlock().node()).fill;
-        if ( txtColor === "rgb(0, 0, 0)" ) {
+      if (correspondingProp.textBlock && correspondingProp.textBlock()) {
+        const txtColor = window.getComputedStyle(
+          correspondingProp.textBlock()._textBlock().node(),
+        ).fill;
+        if (txtColor === "rgb(0, 0, 0)") {
           textColorStr = ", text=black";
         }
-        if ( txtColor === "rgb(255, 255, 255)" ) {
+        if (txtColor === "rgb(255, 255, 255)") {
           textColorStr = ", text=white";
         }
-        const tspans = correspondingProp.textBlock()._textBlock().node().children;
-        
+        const tspans = correspondingProp
+          .textBlock()
+          ._textBlock()
+          .node().children;
+
         // identifier=node.textBlock()._textBlock().text();
         // console.warn(tspans);
-        if ( tspans[0] ) {
+        if (tspans[0]) {
           identifier = tspans[0].innerHTML;
-          
-          for ( let t = 1; t < tspans.length; t++ ) {
+
+          for (let t = 1; t < tspans.length; t++) {
             const spanText = tspans[t].innerHTML;
-            if ( spanText.indexOf("(") > -1 ) {
+            if (spanText.indexOf("(") > -1) {
               identifier += "\\\\ {\\small " + tspans[t].innerHTML + " }";
-            }
-            else {
+            } else {
               identifier += "\\\\ " + tspans[t].innerHTML;
             }
           }
         }
-
       }
-      if ( correspondingProp.type() === "setOperatorProperty" ) {
+      if (correspondingProp.type() === "setOperatorProperty") {
         continue; // this property does not have a label
       }
       let qType = "owlObjectProperty";
-      if ( correspondingProp.type() === "owl:DatatypeProperty" ) {
+      if (correspondingProp.type() === "owl:DatatypeProperty") {
         qType = "owlDatatypeProperty";
       }
-      if ( correspondingProp.type() === "rdfs:subClassOf" ) {
+      if (correspondingProp.type() === "rdfs:subClassOf") {
         qType = "rdfsSubClassOf";
       }
-      if ( correspondingProp.type() === "rdf:Property" ) {
+      if (correspondingProp.type() === "rdf:Property") {
         qType = "rdfProperty";
       }
-      
-      
+
       let bgColorStr = "";
-      if ( correspondingProp.backgroundColor() ) {
+      if (correspondingProp.backgroundColor()) {
         // console.warn("Found backGround color");
         let bgColor = correspondingProp.backgroundColor();
         //console.warn(bgColor);
         bgColor.toUpperCase();
         bgColor = bgColor.slice(1, bgColor.length);
-        texString += "\\definecolor{property" + i + "_COLOR}{HTML}{" + bgColor + "} \n ";
+        texString +=
+          "\\definecolor{property" + i + "_COLOR}{HTML}{" + bgColor + "} \n ";
         bgColorStr = ", fill=property" + i + "_COLOR ";
       }
-      if ( correspondingProp.attributes().indexOf("deprecated") > -1 ) {
+      if (correspondingProp.attributes().indexOf("deprecated") > -1) {
         texString += "\\definecolor{property" + i + "_COLOR}{HTML}{CCCCCC} \n ";
         bgColorStr = ", fill=property" + i + "_COLOR ";
       }
-      
+
       const width = correspondingProp.textWidth();
       const widthString = ",minimum width=" + width + "pt";
-      
-      
+
       // OWL INTERSECTION OF
-      if ( correspondingProp.type() === "owl:disjointWith" ) {
+      if (correspondingProp.type() === "owl:disjointWith") {
         const leftPos = p_px - 12;
         const rightPos = p_px + 12;
         const txtOffset = p_py - 20;
-        texString += "\\node[" + qType + " " + widthString + " " + bgColorStr + " " + textColorStr + "] at (" + p_px + "pt, " + p_py + "pt)   (Node" + i + ") {};\n";
-        texString += "\\node[disjointWith , text=black] at (" + leftPos + "pt, " + p_py + "pt)   (SymbolNode" + i + ") {};\n";
-        texString += "\\node[disjointWith , text=black] at (" + rightPos + "pt, " + p_py + "pt)   (SymbolNode" + i + ") {};\n";
-        texString += "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily }" + textColorStr + "] at (" + p_px + "pt, " + txtOffset + "pt)   (Node_text" + i + ") {";
-        if ( graph.options().compactNotation() === false ) {
+        texString +=
+          "\\node[" +
+          qType +
+          " " +
+          widthString +
+          " " +
+          bgColorStr +
+          " " +
+          textColorStr +
+          "] at (" +
+          p_px +
+          "pt, " +
+          p_py +
+          "pt)   (Node" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[disjointWith , text=black] at (" +
+          leftPos +
+          "pt, " +
+          p_py +
+          "pt)   (SymbolNode" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[disjointWith , text=black] at (" +
+          rightPos +
+          "pt, " +
+          p_py +
+          "pt)   (SymbolNode" +
+          i +
+          ") {};\n";
+        texString +=
+          "\\node[font={\\fontsize{12pt}{12}\\selectfont \\sffamily }" +
+          textColorStr +
+          "] at (" +
+          p_px +
+          "pt, " +
+          txtOffset +
+          "pt)   (Node_text" +
+          i +
+          ") {";
+        if (graph.options().compactNotation() === false) {
           texString += "(disjoint)";
         }
         texString += "};\n";
         continue;
       }
-      
-      
-      if ( correspondingProp.inverse() ) {
+
+      if (correspondingProp.inverse()) {
         const inv_correspondingProp = correspondingProp.inverse();
         // create the rendering element for the inverse property;
         let inv_identifier = inv_correspondingProp.labelForCurrentLanguage();
-        if ( inv_identifier === undefined ) {inv_identifier = "";}
+        if (inv_identifier === undefined) {
+          inv_identifier = "";
+        }
         let inv_textColorStr = "";
         //console.warn(inv_correspondingProp);
         //console.warn(inv_correspondingProp.textBlock());
-        
-        if ( inv_correspondingProp.textBlock && inv_correspondingProp.textBlock() ) {
-          
-          const inv_txtColor = window.getComputedStyle(inv_correspondingProp.textBlock()._textBlock().node()).fill;
-          if ( inv_txtColor === "rgb(0, 0, 0)" ) {
+
+        if (
+          inv_correspondingProp.textBlock &&
+          inv_correspondingProp.textBlock()
+        ) {
+          const inv_txtColor = window.getComputedStyle(
+            inv_correspondingProp.textBlock()._textBlock().node(),
+          ).fill;
+          if (inv_txtColor === "rgb(0, 0, 0)") {
             inv_textColorStr = ", text=black";
           }
-          if ( inv_txtColor === "rgb(255, 255, 255)" ) {
+          if (inv_txtColor === "rgb(255, 255, 255)") {
             inv_textColorStr = ", text=white";
           }
-          const inv_tspans = inv_correspondingProp.textBlock()._textBlock().node().children;
-          
+          const inv_tspans = inv_correspondingProp
+            .textBlock()
+            ._textBlock()
+            .node().children;
+
           // identifier=node.textBlock()._textBlock().text();
           //  console.warn(inv_tspans);
-          if ( inv_tspans[0] ) {
+          if (inv_tspans[0]) {
             inv_identifier = inv_tspans[0].innerHTML;
-            
-            for ( let inv_t = 1; inv_t < inv_tspans.length; inv_t++ ) {
+
+            for (let inv_t = 1; inv_t < inv_tspans.length; inv_t++) {
               const ispanText = inv_tspans[inv_t].innerHTML;
-              if ( ispanText.indexOf("(") > -1 ) {
-                inv_identifier += "\\\\ {\\small " + inv_tspans[inv_t].innerHTML + " }";
+              if (ispanText.indexOf("(") > -1) {
+                inv_identifier +=
+                  "\\\\ {\\small " + inv_tspans[inv_t].innerHTML + " }";
               } else {
                 inv_identifier += "\\\\ " + inv_tspans[inv_t].innerHTML;
               }
@@ -1290,49 +1804,106 @@ function createExportMenu( graph ){
         }
         const inv_qType = "owlObjectProperty";
         let inv_bgColorStr = "";
-        
-        if ( inv_correspondingProp.backgroundColor() ) {
+
+        if (inv_correspondingProp.backgroundColor()) {
           //  console.warn("Found backGround color");
           let inv_bgColor = inv_correspondingProp.backgroundColor();
           //   console.warn(inv_bgColor);
           inv_bgColor.toUpperCase();
           inv_bgColor = inv_bgColor.slice(1, inv_bgColor.length);
-          texString += "\\definecolor{inv_property" + i + "_COLOR}{HTML}{" + inv_bgColor + "} \n ";
+          texString +=
+            "\\definecolor{inv_property" +
+            i +
+            "_COLOR}{HTML}{" +
+            inv_bgColor +
+            "} \n ";
           inv_bgColorStr = ", fill=inv_property" + i + "_COLOR ";
         }
-        if ( inv_correspondingProp.attributes().indexOf("deprecated") > -1 ) {
-          texString += "\\definecolor{inv_property" + i + "_COLOR}{HTML}{CCCCCC} \n ";
+        if (inv_correspondingProp.attributes().indexOf("deprecated") > -1) {
+          texString +=
+            "\\definecolor{inv_property" + i + "_COLOR}{HTML}{CCCCCC} \n ";
           inv_bgColorStr = ", fill=inv_property" + i + "_COLOR ";
         }
-        
+
         const inv_width = inv_correspondingProp.textWidth();
-        
+
         const pOY1 = p_py - 14;
         const pOY2 = p_py + 14;
         const inv_widthString = ",minimum width=" + inv_width + "pt";
         texString += "% Createing Inverse Property \n";
-        texString += "\\node[" + inv_qType + " " + inv_widthString + " " + inv_bgColorStr + " " + inv_textColorStr + "] at (" + p_px + "pt, " + pOY1 + "pt)   (property" + i + ") {" + inv_identifier.replaceAll("_", "\\_ ") + "};\n";
+        texString +=
+          "\\node[" +
+          inv_qType +
+          " " +
+          inv_widthString +
+          " " +
+          inv_bgColorStr +
+          " " +
+          inv_textColorStr +
+          "] at (" +
+          p_px +
+          "pt, " +
+          pOY1 +
+          "pt)   (property" +
+          i +
+          ") {" +
+          inv_identifier.replaceAll("_", "\\_ ") +
+          "};\n";
         texString += "% " + inv_qType + " vs " + qType + "\n";
         texString += "% " + inv_widthString + " vs " + widthString + "\n";
         texString += "% " + inv_bgColorStr + " vs " + bgColorStr + "\n";
         texString += "% " + inv_textColorStr + " vs " + textColorStr + "\n";
-        
-        texString += "\\node[" + qType + " " + widthString + " " + bgColorStr + " " + textColorStr + "] at (" + p_px + "pt, " + pOY2 + "pt)   (property" + i + ") {" + identifier.replaceAll("_", "\\_ ") + "};\n";
-        
+
+        texString +=
+          "\\node[" +
+          qType +
+          " " +
+          widthString +
+          " " +
+          bgColorStr +
+          " " +
+          textColorStr +
+          "] at (" +
+          p_px +
+          "pt, " +
+          pOY2 +
+          "pt)   (property" +
+          i +
+          ") {" +
+          identifier.replaceAll("_", "\\_ ") +
+          "};\n";
       } else {
-        texString += "\\node[" + qType + " " + widthString + " " + bgColorStr + " " + textColorStr + "] at (" + p_px + "pt, " + p_py + "pt)   (property" + i + ") {" + identifier.replaceAll("_", "\\_ ") + "};\n";
+        texString +=
+          "\\node[" +
+          qType +
+          " " +
+          widthString +
+          " " +
+          bgColorStr +
+          " " +
+          textColorStr +
+          "] at (" +
+          p_px +
+          "pt, " +
+          p_py +
+          "pt)   (property" +
+          i +
+          ") {" +
+          identifier.replaceAll("_", "\\_ ") +
+          "};\n";
       }
     }
-    
+
     texString += "\\end{tikzpicture}\n}\n \\end{center}\n";
-    
+
     //   console.warn("Tex Output\n"+ texString);
-    downloadFile(texString, "application/x-tex;charset=utf-8", exportFilename + ".tex");
-    
-    
+    downloadFile(
+      texString,
+      "application/x-tex;charset=utf-8",
+      exportFilename + ".tex",
+    );
   }
 
-  
   return exportMenu;
 }
 

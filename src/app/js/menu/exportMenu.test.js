@@ -1,4 +1,11 @@
-import { afterEach, beforeEach, describe, expect, jest, test } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  jest,
+  test,
+} from "@jest/globals";
 import exportMenuFactory from "./exportMenu.js";
 
 describe("export menu downloads", () => {
@@ -15,15 +22,15 @@ describe("export menu downloads", () => {
       download: "",
       hidden: false,
       href: "",
-      remove: jest.fn()
+      remove: jest.fn(),
     };
     global.document = {
       body: { appendChild: jest.fn() },
-      createElement: jest.fn(() => anchor)
+      createElement: jest.fn(() => anchor),
     };
     global.URL = {
       createObjectURL: jest.fn(() => "blob:webvowl-export"),
-      revokeObjectURL: jest.fn()
+      revokeObjectURL: jest.fn(),
     };
   });
 
@@ -37,7 +44,7 @@ describe("export menu downloads", () => {
     exportMenuFactory.downloadFile(
       "ontology content",
       "text/turtle;charset=utf-8",
-      "ontology.ttl"
+      "ontology.ttl",
     );
 
     expect(document.createElement).toHaveBeenCalledWith("a");
@@ -59,17 +66,19 @@ describe("export menu downloads", () => {
 });
 
 describe("export menu clipboard copying", () => {
-  function createLegacyCopyFixture( execCommandResult = true ) {
+  function createLegacyCopyFixture(execCommandResult = true) {
     const popover = { scrollTop: 12 };
     const content = { scrollTop: 34 };
     const previousFocus = { focus: jest.fn() };
     const documentNode = {
       activeElement: previousFocus,
-      execCommand: jest.fn(() => execCommandResult)
+      execCommand: jest.fn(() => execCommandResult),
     };
     const input = {
       value: "https://example.com/#ontology",
-      closest: jest.fn((selector) => selector === ".modern-popover" ? popover : content),
+      closest: jest.fn((selector) =>
+        selector === ".modern-popover" ? popover : content,
+      ),
       focus: jest.fn(() => {
         popover.scrollTop = 80;
         content.scrollTop = 90;
@@ -77,7 +86,7 @@ describe("export menu clipboard copying", () => {
       select: jest.fn(() => {
         popover.scrollTop = 100;
         content.scrollTop = 110;
-      })
+      }),
     };
 
     return { content, documentNode, input, popover, previousFocus };
@@ -87,12 +96,14 @@ describe("export menu clipboard copying", () => {
     const input = {
       value: "https://example.com/#ontology",
       focus: jest.fn(),
-      select: jest.fn()
+      select: jest.fn(),
     };
     const clipboard = { writeText: jest.fn(() => Promise.resolve()) };
     const documentNode = { execCommand: jest.fn() };
 
-    await expect(exportMenuFactory.copyInputValue(input, clipboard, documentNode)).resolves.toBe(true);
+    await expect(
+      exportMenuFactory.copyInputValue(input, clipboard, documentNode),
+    ).resolves.toBe(true);
 
     expect(clipboard.writeText).toHaveBeenCalledWith(input.value);
     expect(input.focus).not.toHaveBeenCalled();
@@ -102,14 +113,24 @@ describe("export menu clipboard copying", () => {
 
   test("falls back after Clipboard API rejection and restores focus and scroll positions", async () => {
     const fixture = createLegacyCopyFixture();
-    const clipboard = { writeText: jest.fn(() => Promise.reject(new Error("denied"))) };
+    const clipboard = {
+      writeText: jest.fn(() => Promise.reject(new Error("denied"))),
+    };
 
-    await expect(exportMenuFactory.copyInputValue(fixture.input, clipboard, fixture.documentNode)).resolves.toBe(true);
+    await expect(
+      exportMenuFactory.copyInputValue(
+        fixture.input,
+        clipboard,
+        fixture.documentNode,
+      ),
+    ).resolves.toBe(true);
 
     expect(fixture.input.focus).toHaveBeenCalledWith({ preventScroll: true });
     expect(fixture.input.select).toHaveBeenCalledTimes(1);
     expect(fixture.documentNode.execCommand).toHaveBeenCalledWith("copy");
-    expect(fixture.previousFocus.focus).toHaveBeenCalledWith({ preventScroll: true });
+    expect(fixture.previousFocus.focus).toHaveBeenCalledWith({
+      preventScroll: true,
+    });
     expect(fixture.popover.scrollTop).toBe(12);
     expect(fixture.content.scrollTop).toBe(34);
   });
@@ -117,7 +138,13 @@ describe("export menu clipboard copying", () => {
   test("reports failure when the legacy copy command is rejected", async () => {
     const fixture = createLegacyCopyFixture(false);
 
-    await expect(exportMenuFactory.copyInputValue(fixture.input, null, fixture.documentNode)).resolves.toBe(false);
+    await expect(
+      exportMenuFactory.copyInputValue(
+        fixture.input,
+        null,
+        fixture.documentNode,
+      ),
+    ).resolves.toBe(false);
 
     expect(fixture.popover.scrollTop).toBe(12);
     expect(fixture.content.scrollTop).toBe(34);
@@ -131,7 +158,7 @@ describe("export menu json deterministic export", () => {
     originalWebVowl = global.webvowl;
     global.webvowl = {
       util: { prefixTools: () => ({ updatePrefixModel: () => {} }) },
-      version: "2.0.0"
+      version: "2.0.0",
     };
   });
 
@@ -151,7 +178,7 @@ describe("export menu json deterministic export", () => {
       annotations: () => ({ b: ["val2"], a: ["val1"] }),
       description: () => "desc",
       individuals: () => [],
-      equivalents: () => []
+      equivalents: () => [],
     };
   }
 
@@ -173,7 +200,7 @@ describe("export menu json deterministic export", () => {
       range: () => ({ id: () => "rangeId" }),
       subproperties: () => [{ id: () => "sub2" }, { id: () => "sub1" }],
       superproperties: () => [{ id: () => "sup2" }, { id: () => "sup1" }],
-      inverse: () => undefined
+      inverse: () => undefined,
     };
   }
 
@@ -183,33 +210,36 @@ describe("export menu json deterministic export", () => {
         data: () => ({
           _comment: "Test",
           header: {},
-          namespace: [{ prefix: "b", iri: "http://b" }, { prefix: "a", iri: "http://a" }],
-          metrics: {}
+          namespace: [
+            { prefix: "b", iri: "http://b" },
+            { prefix: "a", iri: "http://a" },
+          ],
+          metrics: {},
         }),
         getGeneralMetaObject: () => ({}),
         filterMenu: () => ({
           getCheckBoxContainer: () => [
             { checkbox: { attr: () => "chk2", property: () => true } },
-            { checkbox: { attr: () => "chk1", property: () => false } }
+            { checkbox: { attr: () => "chk1", property: () => false } },
           ],
-          getDegreeSliderValue: () => 0
+          getDegreeSliderValue: () => 0,
         }),
         modeMenu: () => ({
           getCheckBoxContainer: () => [
             { attr: () => "mode2", property: () => true },
-            { attr: () => "mode1", property: () => false }
+            { attr: () => "mode1", property: () => false },
           ],
-          colorModeState: () => false
+          colorModeState: () => false,
         }),
         classDistance: () => 10,
-        datatypeDistance: () => 10
+        datatypeDistance: () => 10,
       }),
       getUnfilteredData: () => ({ nodes, properties }),
       graphNodeElements: () => ({ each: () => {} }),
       graphLabelElements: () => [],
       scaleFactor: () => 1,
       paused: () => false,
-      translation: () => [0, 0]
+      translation: () => [0, 0],
     };
   }
 
@@ -223,8 +253,14 @@ describe("export menu json deterministic export", () => {
     const propB = createMockProperty("p1", "http://propB");
 
     // Two graphs with elements in different orders
-    const graph1 = createMockGraph([nodeB, nodeA, nodeD, nodeC], [propB, propA]);
-    const graph2 = createMockGraph([nodeD, nodeC, nodeA, nodeB], [propA, propB]);
+    const graph1 = createMockGraph(
+      [nodeB, nodeA, nodeD, nodeC],
+      [propB, propA],
+    );
+    const graph2 = createMockGraph(
+      [nodeD, nodeC, nodeA, nodeB],
+      [propA, propB],
+    );
 
     const menu1 = exportMenuFactory(graph1);
     const menu2 = exportMenuFactory(graph2);
@@ -233,9 +269,9 @@ describe("export menu json deterministic export", () => {
     const json2 = JSON.stringify(menu2.createJSON_exportObject());
 
     expect(json1).toEqual(json2);
-    
+
     const obj = JSON.parse(json1);
-    
+
     // Verify sorting rules were applied
     // Namespaces sorted by prefix
     expect(obj.namespace[0].prefix).toBe("a");
@@ -246,7 +282,10 @@ describe("export menu json deterministic export", () => {
     expect(obj.class[2].id).toBe("id3"); // http://A
     expect(obj.class[3].id).toBe("id1"); // http://B
     // Attributes sorted
-    expect(obj.classAttribute[0].attributes).toEqual(["abstract", "deprecated"]);
+    expect(obj.classAttribute[0].attributes).toEqual([
+      "abstract",
+      "deprecated",
+    ]);
     // Subproperties sorted
     expect(obj.propertyAttribute[0].subproperty).toEqual(["sub1", "sub2"]);
     // Filter settings sorted

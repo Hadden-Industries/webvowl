@@ -14,10 +14,12 @@ nodes.push(require("./implementations/RdfsDatatype"));
 nodes.push(require("./implementations/RdfsLiteral"));
 nodes.push(require("./implementations/RdfsResource"));
 
-const map = new Map(nodes.map(function ( Prototype ){
-  return [new Prototype().type(), Prototype];
-}));
+const map = new Map(
+  nodes.map(function (Prototype) {
+    return [new Prototype().type(), Prototype];
+  }),
+);
 
-module.exports = function (){
+module.exports = function () {
   return map;
 };

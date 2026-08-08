@@ -78,13 +78,17 @@ describe("rdfParser.js unit tests", () => {
 
     const hasFriend = result.subjects["http://example.org/#hasFriend"];
     expect(hasFriend).toBeDefined();
-    expect(hasFriend.types.has("http://www.w3.org/2002/07/owl#ObjectProperty")).toBe(true);
+    expect(
+      hasFriend.types.has("http://www.w3.org/2002/07/owl#ObjectProperty"),
+    ).toBe(true);
     expect(hasFriend.domains).toContain("http://example.org/#Person");
     expect(hasFriend.ranges).toContain("http://example.org/#Person");
 
     const age = result.subjects["http://example.org/#age"];
     expect(age).toBeDefined();
-    expect(age.types.has("http://www.w3.org/2002/07/owl#DatatypeProperty")).toBe(true);
+    expect(
+      age.types.has("http://www.w3.org/2002/07/owl#DatatypeProperty"),
+    ).toBe(true);
     expect(age.domains).toContain("http://example.org/#Person");
     expect(age.ranges).toContain("http://www.w3.org/2001/XMLSchema#integer");
   });
@@ -119,7 +123,7 @@ describe("rdfParser.js unit tests", () => {
       domainIri: "http://example.org/#Student",
       propertyIri: "http://example.org/#enrolledIn",
       rangeIri: "http://example.org/#Course",
-      type: "owl:someValuesFrom"
+      type: "owl:someValuesFrom",
     });
 
     expect(context.parsedCardinalities.length).toBe(1);
@@ -127,7 +131,7 @@ describe("rdfParser.js unit tests", () => {
       propertyIri: "http://example.org/#enrolledIn",
       minCardinality: "1",
       maxCardinality: null,
-      cardinality: null
+      cardinality: null,
     });
   });
 
@@ -153,7 +157,7 @@ describe("rdfParser.js unit tests", () => {
     const result = parseRdfXml(xml, resolver, context);
     const subject = result.subjects["http://example.org/#StudentOrTeacher"];
     expect(subject).toBeDefined();
-    
+
     // Check that union class exists in equivalentClasses and has members
     const unionClassId = subject.equivalentClasses[0];
     expect(unionClassId).toBeDefined();
@@ -192,7 +196,7 @@ describe("rdfParser.js unit tests", () => {
     const result = parseRdfXml(xml, resolver, context);
     const subject = result.subjects["http://example.org/#StudentOrTeacher"];
     expect(subject).toBeDefined();
-    
+
     // Check that union class exists in equivalentClasses and has members
     const unionClassId = subject.equivalentClasses[0];
     expect(unionClassId).toBeDefined();
@@ -203,12 +207,11 @@ describe("rdfParser.js unit tests", () => {
     expect(unionCls.unionMembers).toBeDefined();
     expect(unionCls.unionMembers).toContain("http://example.org/#Student");
     expect(unionCls.unionMembers).toContain("http://example.org/#Teacher");
-    
+
     // Intermediate list nodes should be cleaned up
     expect(result.subjects["_:n3-1"]).toBeUndefined();
     expect(result.subjects["_:n3-2"]).toBeUndefined();
   });
-
 
   test("Parses owl:oneOf standard rdf:first/rdf:rest lists", () => {
     const xml = `
@@ -237,7 +240,7 @@ describe("rdfParser.js unit tests", () => {
     const result = parseRdfXml(xml, resolver, context);
     const subject = result.subjects["http://example.org/#MyEnum"];
     expect(subject).toBeDefined();
-    
+
     const enumClassId = subject.equivalentClasses[0];
     expect(enumClassId).toBeDefined();
 
@@ -247,12 +250,11 @@ describe("rdfParser.js unit tests", () => {
     expect(enumCls.oneOfMembers).toBeDefined();
     expect(enumCls.oneOfMembers).toContain("http://example.org/#ValueA");
     expect(enumCls.oneOfMembers).toContain("http://example.org/#ValueB");
-    
+
     // Intermediate list nodes should be cleaned up
     expect(result.subjects["_:n4-1"]).toBeUndefined();
     expect(result.subjects["_:n4-2"]).toBeUndefined();
   });
-
 
   test("Parses flat blank node restrictions (via nodeID)", () => {
     const xml = `
@@ -277,7 +279,7 @@ describe("rdfParser.js unit tests", () => {
       domainIri: "http://example.org/#Student",
       propertyIri: "http://example.org/#enrolledIn",
       rangeIri: "http://example.org/#Course",
-      type: "owl:someValuesFrom"
+      type: "owl:someValuesFrom",
     });
   });
 
@@ -394,14 +396,18 @@ describe("rdfParser.js unit tests", () => {
     const result = parseRdfXml(xml, resolver, context);
     const subject = result.subjects["http://example.org/#UnionClass"];
     expect(subject).toBeDefined();
-    
+
     // The union members must be the two anonymous restrictions, NOT the properties 'numericPosition' or 'nominalPosition'
     expect(subject.unionOf.length).toBe(2);
     expect(subject.unionOf[0]).toMatch(/^_:anon_/);
     expect(subject.unionOf[1]).toMatch(/^_:anon_/);
 
-    expect(subject.unionOf).not.toContain("http://example.org/#numericPosition");
-    expect(subject.unionOf).not.toContain("http://example.org/#nominalPosition");
+    expect(subject.unionOf).not.toContain(
+      "http://example.org/#numericPosition",
+    );
+    expect(subject.unionOf).not.toContain(
+      "http://example.org/#nominalPosition",
+    );
   });
 
   test("Resolves owl:onProperty declared with a nested typed element (not rdf:resource)", () => {
@@ -426,7 +432,8 @@ describe("rdfParser.js unit tests", () => {
     const result = parseRdfXml(xml, resolver, context);
 
     // The restriction blank node should have onProperty resolved to the age property IRI
-    const personSuperClasses = result.subjects["http://example.org/#Person"]?.superClasses || [];
+    const personSuperClasses =
+      result.subjects["http://example.org/#Person"]?.superClasses || [];
     expect(personSuperClasses.length).toBeGreaterThan(0);
     const restrictionIri = personSuperClasses[0];
     const restriction = result.subjects[restrictionIri];
@@ -437,7 +444,9 @@ describe("rdfParser.js unit tests", () => {
 
     // parsedRestrictions should contain the allValuesFrom entry with correct propertyIri
     expect(context.parsedRestrictions.length).toBeGreaterThan(0);
-    const restEntry = context.parsedRestrictions.find(r => r.propertyIri === "http://example.org/#age");
+    const restEntry = context.parsedRestrictions.find(
+      (r) => r.propertyIri === "http://example.org/#age",
+    );
     expect(restEntry).toBeDefined();
     expect(restEntry.type).toBe("owl:allValuesFrom");
     expect(restEntry.rangeIri).toBe("http://www.w3.org/2001/XMLSchema#integer");
@@ -488,8 +497,12 @@ describe("rdfParser.js unit tests", () => {
     expect(unionSubject.unionOf.length).toBe(2);
     expect(unionSubject.unionOf[0].startsWith("_:")).toBe(true);
     expect(unionSubject.unionOf[1].startsWith("_:")).toBe(true);
-    expect(unionSubject.unionOf).not.toContain("http://example.org/#numericPosition");
-    expect(unionSubject.unionOf).not.toContain("http://example.org/#nominalPosition");
+    expect(unionSubject.unionOf).not.toContain(
+      "http://example.org/#numericPosition",
+    );
+    expect(unionSubject.unionOf).not.toContain(
+      "http://example.org/#nominalPosition",
+    );
   });
 
   test("Parses XML property attributes on subject elements (e.g. rdfs:label, rdfs:comment, vs:term_status)", () => {
@@ -509,17 +522,24 @@ describe("rdfParser.js unit tests", () => {
     `;
 
     const result = parseRdfXml(xml, resolver, context);
-    const subject = result.subjects["http://xmlns.com/foaf/0.1/isPrimaryTopicOf"];
+    const subject =
+      result.subjects["http://xmlns.com/foaf/0.1/isPrimaryTopicOf"];
     expect(subject).toBeDefined();
 
     // Verify label extracted from XML attribute
     expect(subject.labels.undefined).toBe("is primary topic of");
     // Verify comment extracted from XML attribute
-    expect(subject.comments.undefined).toBe("A document that this thing is the primary topic of.");
+    expect(subject.comments.undefined).toBe(
+      "A document that this thing is the primary topic of.",
+    );
     // Verify vs:term_status extracted from XML attribute into annotations
     expect(subject.annotations.term_status).toBeDefined();
     expect(subject.annotations.term_status[0].value).toBe("stable");
     // Verify InverseFunctionalProperty type
-    expect(subject.types.has("http://www.w3.org/2002/07/owl#InverseFunctionalProperty")).toBe(true);
+    expect(
+      subject.types.has(
+        "http://www.w3.org/2002/07/owl#InverseFunctionalProperty",
+      ),
+    ).toBe(true);
   });
 });

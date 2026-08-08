@@ -1,22 +1,26 @@
 const drawTools = require("./drawTools")();
 
-function createSelection(){
+function createSelection() {
   const classes = {};
   const properties = {};
   const node = {
     style: {
-      setProperty: (name, value) => { properties[name] = value; },
-      removeProperty: (name) => { delete properties[name]; }
-    }
+      setProperty: (name, value) => {
+        properties[name] = value;
+      },
+      removeProperty: (name) => {
+        delete properties[name];
+      },
+    },
   };
   return {
     classes,
     properties,
     node: () => node,
-    classed: function (name, value){
+    classed: function (name, value) {
       classes[name] = value;
       return this;
-    }
+    },
   };
 }
 

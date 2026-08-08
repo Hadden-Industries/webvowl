@@ -7,15 +7,23 @@ const HTML_NAMESPACE = "http://www.w3.org/1999/xhtml";
 class MockElement {
   constructor(id, className, tagName = "div") {
     this.id = id || "";
-    this._classList = new Set(className ? className.split(/\s+/).filter(Boolean) : []);
+    this._classList = new Set(
+      className ? className.split(/\s+/).filter(Boolean) : [],
+    );
     this.tagName = tagName.toUpperCase();
     this.nodeName = this.tagName;
     this.listeners = {};
     const self = this;
     this.style = {
       _props: {},
-      setProperty: (k, v) => { self.style._props[k] = v; self.style[k] = v; },
-      removeProperty: (k) => { delete self.style._props[k]; delete self.style[k]; },
+      setProperty: (k, v) => {
+        self.style._props[k] = v;
+        self.style[k] = v;
+      },
+      removeProperty: (k) => {
+        delete self.style._props[k];
+        delete self.style[k];
+      },
       getPropertyValue: (k) => self.style._props[k] || "",
     };
     this.ownerDocument = global.document;
@@ -47,16 +55,24 @@ class MockElement {
       contains: (name) => self._classList.has(name),
       toggle: (name, force) => {
         if (force === undefined) {
-          if (self._classList.has(name)) { self._classList.delete(name); }
-          else { self._classList.add(name); }
-        } else if (force) { self._classList.add(name); }
-        else { self._classList.delete(name); }
+          if (self._classList.has(name)) {
+            self._classList.delete(name);
+          } else {
+            self._classList.add(name);
+          }
+        } else if (force) {
+          self._classList.add(name);
+        } else {
+          self._classList.delete(name);
+        }
       },
     };
   }
 
   addEventListener(type, fn) {
-    if (!this.listeners[type]) { this.listeners[type] = []; }
+    if (!this.listeners[type]) {
+      this.listeners[type] = [];
+    }
     this.listeners[type].push(fn);
   }
 
@@ -85,7 +101,9 @@ class MockElement {
   }
 
   getAttribute(name) {
-    if (name === "class") {return this.className;}
+    if (name === "class") {
+      return this.className;
+    }
     return this.attributes[name] || "";
   }
 
@@ -102,7 +120,14 @@ class MockElement {
   }
 
   getBoundingClientRect() {
-    return { top: 0, left: 0, width: 100, height: 100, bottom: 100, right: 100 };
+    return {
+      top: 0,
+      left: 0,
+      width: 100,
+      height: 100,
+      bottom: 100,
+      right: 100,
+    };
   }
 
   matches(selector) {
@@ -127,7 +152,10 @@ class MockElement {
   }
 
   querySelectorAll(selector) {
-    if (selector.includes(".sheet-handle") || selector.includes(".popover-header")) {
+    if (
+      selector.includes(".sheet-handle") ||
+      selector.includes(".popover-header")
+    ) {
       if (!this.children || this.children.length === 0) {
         const handle = new MockElement("", "sheet-handle");
         const header = new MockElement("", "popover-header");
@@ -240,23 +268,38 @@ describe("navigationMenu and popover event listeners", () => {
     const scrollLeftBtn = document.getElementById("scrollLeftButton");
     const navBtn = document.getElementById("locateSearchResult");
 
-    const touchEventRight = new CustomEvent("touchstart", { cancelable: true, bubbles: true });
+    const touchEventRight = new CustomEvent("touchstart", {
+      cancelable: true,
+      bubbles: true,
+    });
     scrollRightBtn.dispatchEvent(touchEventRight);
     expect(touchEventRight.defaultPrevented).toBe(true);
 
-    const contextEventRight = new CustomEvent("contextmenu", { cancelable: true, bubbles: true });
+    const contextEventRight = new CustomEvent("contextmenu", {
+      cancelable: true,
+      bubbles: true,
+    });
     scrollRightBtn.dispatchEvent(contextEventRight);
     expect(contextEventRight.defaultPrevented).toBe(true);
 
-    const touchEventLeft = new CustomEvent("touchstart", { cancelable: true, bubbles: true });
+    const touchEventLeft = new CustomEvent("touchstart", {
+      cancelable: true,
+      bubbles: true,
+    });
     scrollLeftBtn.dispatchEvent(touchEventLeft);
     expect(touchEventLeft.defaultPrevented).toBe(true);
 
-    const contextEventLeft = new CustomEvent("contextmenu", { cancelable: true, bubbles: true });
+    const contextEventLeft = new CustomEvent("contextmenu", {
+      cancelable: true,
+      bubbles: true,
+    });
     scrollLeftBtn.dispatchEvent(contextEventLeft);
     expect(contextEventLeft.defaultPrevented).toBe(true);
 
-    const contextEventNav = new CustomEvent("contextmenu", { cancelable: true, bubbles: true });
+    const contextEventNav = new CustomEvent("contextmenu", {
+      cancelable: true,
+      bubbles: true,
+    });
     navBtn.dispatchEvent(contextEventNav);
     expect(contextEventNav.defaultPrevented).toBe(true);
   });
@@ -314,13 +357,18 @@ describe("navigationMenu and popover event listeners", () => {
       popover._classList.add("modern-popover");
       popover.popoverState = "open";
 
-      const toggleEvent = new CustomEvent("toggle", { bubbles: true, newState: "open" });
+      const toggleEvent = new CustomEvent("toggle", {
+        bubbles: true,
+        newState: "open",
+      });
       popover.dispatchEvent(toggleEvent);
 
       const controller = getOrCreateElement("c_export");
       expect(controller.classList.contains("active-menu-item")).toBe(true);
       expect(exportAsUrlMock).toHaveBeenCalled();
-      expect(popover.style.getPropertyValue("--popover-inline-start")).toBe("16px");
+      expect(popover.style.getPropertyValue("--popover-inline-start")).toBe(
+        "16px",
+      );
     });
 
     test("removes active-menu-item when toggle closes popover", () => {
@@ -341,7 +389,10 @@ describe("navigationMenu and popover event listeners", () => {
       popover._classList.add("modern-popover");
       popover.popoverState = "closed";
 
-      const toggleEvent = new CustomEvent("toggle", { bubbles: true, newState: "closed" });
+      const toggleEvent = new CustomEvent("toggle", {
+        bubbles: true,
+        newState: "closed",
+      });
       popover.dispatchEvent(toggleEvent);
 
       expect(controller.classList.contains("active-menu-item")).toBe(false);
@@ -385,7 +436,9 @@ describe("navigationMenu and popover event listeners", () => {
 
       const popover = getOrCreateElement("m_select");
       popover.popoverState = "open";
-      const handles = popover.querySelectorAll(".sheet-handle, .popover-header");
+      const handles = popover.querySelectorAll(
+        ".sheet-handle, .popover-header",
+      );
       const handleNode = handles[0];
 
       const startEvent = new CustomEvent("touchstart", {
@@ -427,7 +480,9 @@ describe("navigationMenu and popover event listeners", () => {
 
       const popover = getOrCreateElement("m_select");
       popover.popoverState = "open";
-      const handles = popover.querySelectorAll(".sheet-handle, .popover-header");
+      const handles = popover.querySelectorAll(
+        ".sheet-handle, .popover-header",
+      );
       const handleNode = handles[0];
 
       const startEvent = new CustomEvent("touchstart", {
@@ -473,7 +528,9 @@ describe("navigationMenu and popover event listeners", () => {
 
       const popover = getOrCreateElement("m_select");
       popover.popoverState = "open";
-      const handles = popover.querySelectorAll(".sheet-handle, .popover-header");
+      const handles = popover.querySelectorAll(
+        ".sheet-handle, .popover-header",
+      );
       const handleNode = handles[0];
 
       const startEvent = new CustomEvent("touchstart", {
@@ -504,11 +561,14 @@ describe("navigationMenu and popover event listeners", () => {
 
       const popover = getOrCreateElement("m_select");
       popover.popoverState = "open";
-      const handles = popover.querySelectorAll(".sheet-handle, .popover-header");
+      const handles = popover.querySelectorAll(
+        ".sheet-handle, .popover-header",
+      );
       const handleNode = handles[1]; // popover-header
 
       const closeBtnTarget = new MockElement("", "popover-close-btn");
-      closeBtnTarget.closest = (sel) => (sel === ".popover-close-btn" ? closeBtnTarget : null);
+      closeBtnTarget.closest = (sel) =>
+        sel === ".popover-close-btn" ? closeBtnTarget : null;
 
       const startEvent = new CustomEvent("touchstart", {
         touches: [{ clientY: 100 }],
@@ -540,7 +600,10 @@ describe("navigationMenu and popover event listeners", () => {
       const popover = getOrCreateElement("m_select");
       popover._classList.add("modern-popover");
 
-      const clickEvent = new CustomEvent("click", { bubbles: true, cancelable: true });
+      const clickEvent = new CustomEvent("click", {
+        bubbles: true,
+        cancelable: true,
+      });
       clickEvent.stopPropagation = jest.fn();
 
       popover.dispatchEvent(clickEvent);

@@ -3,7 +3,6 @@ import "../css/vowl.css";
 const nodeMap = require("./elements/nodes/nodeMap")();
 const propertyMap = require("./elements/properties/propertyMap")();
 
-
 const webvowl = {};
 webvowl.graph = require("./graph");
 webvowl.options = require("./options");
@@ -30,21 +29,19 @@ webvowl.modules.setOperatorFilter = require("./modules/setOperatorFilter");
 webvowl.modules.statistics = require("./modules/statistics");
 webvowl.modules.subclassFilter = require("./modules/subclassFilter");
 
-
 webvowl.nodes = {};
-nodeMap.forEach(function ( value, key ){
+nodeMap.forEach(function (value, key) {
   mapEntryToIdentifier(webvowl.nodes, key, value);
 });
 
 webvowl.properties = {};
-propertyMap.forEach(function ( value, key ){
+propertyMap.forEach(function (value, key) {
   mapEntryToIdentifier(webvowl.properties, key, value);
 });
 
-function mapEntryToIdentifier( map, key, value ){
+function mapEntryToIdentifier(map, key, value) {
   const identifier = key.replace(":", "").toLowerCase();
   map[identifier] = value;
 }
-
 
 module.exports = webvowl;

@@ -6,120 +6,122 @@ module.exports = Label;
  * @param property the property; the inverse is inferred
  * @param link the link this label belongs to
  */
-function Label( property, link ){
-  this.link = function (){
+function Label(property, link) {
+  this.link = function () {
     return link;
   };
-  
-  this.property = function (){
+
+  this.property = function () {
     return property;
   };
-  
+
   Object.defineProperty(this, "x", {
-    get: function (){
+    get: function () {
       return property.x;
     },
-    set: function ( v ){
+    set: function (v) {
       property.x = v;
-    }
+    },
   });
   Object.defineProperty(this, "y", {
-    get: function (){
+    get: function () {
       return property.y;
     },
-    set: function ( v ){
+    set: function (v) {
       property.y = v;
-    }
+    },
   });
   Object.defineProperty(this, "px", {
-    get: function (){
+    get: function () {
       return property.px;
     },
-    set: function ( v ){
+    set: function (v) {
       property.px = v;
-    }
+    },
   });
   Object.defineProperty(this, "py", {
-    get: function (){
+    get: function () {
       return property.py;
     },
-    set: function ( v ){
+    set: function (v) {
       property.py = v;
-    }
+    },
   });
   Object.defineProperty(this, "vx", {
-    get: function (){
+    get: function () {
       return property.vx;
     },
-    set: function ( v ){
+    set: function (v) {
       property.vx = v;
-    }
+    },
   });
   Object.defineProperty(this, "vy", {
-    get: function (){
+    get: function () {
       return property.vy;
     },
-    set: function ( v ){
+    set: function (v) {
       property.vy = v;
-    }
+    },
   });
   // "Forward" the fixed value set on the property to avoid having to access this container
   Object.defineProperty(this, "fixed", {
-    get: function (){
-      const inverseFixed = property.inverse() ? property.inverse().fixed : false;
+    get: function () {
+      const inverseFixed = property.inverse()
+        ? property.inverse().fixed
+        : false;
       return property.fixed || inverseFixed;
     },
-    set: function ( v ){
+    set: function (v) {
       property.fixed = v;
-    }
+    },
   });
   Object.defineProperty(this, "fx", {
-    get: function (){
+    get: function () {
       return property.fx;
     },
-    set: function ( v ){
+    set: function (v) {
       property.fx = v;
-    }
+    },
   });
   Object.defineProperty(this, "fy", {
-    get: function (){
+    get: function () {
       return property.fy;
     },
-    set: function ( v ){
+    set: function (v) {
       property.fy = v;
-    }
+    },
   });
   this.frozen = property.frozen;
   this.locked = property.locked;
   this.pinned = property.pinned;
 }
 
-Label.prototype.actualRadius = function (){
+Label.prototype.actualRadius = function () {
   return this.property().actualRadius();
 };
 
-Label.prototype.draw = function ( container ){
+Label.prototype.draw = function (container) {
   return this.property().draw(container);
 };
 
-Label.prototype.inverse = function (){
+Label.prototype.inverse = function () {
   return this.property().inverse();
 };
 
-Label.prototype.equals = function ( other ){
-  if ( !other ) {
+Label.prototype.equals = function (other) {
+  if (!other) {
     return false;
   }
-  
+
   const instance = other instanceof Label;
   const equalProperty = this.property().equals(other.property());
-  
+
   let equalInverse = false;
-  if ( this.inverse() ) {
+  if (this.inverse()) {
     equalInverse = this.inverse().equals(other.inverse());
-  } else if ( !other.inverse() ) {
+  } else if (!other.inverse()) {
     equalInverse = true;
   }
-  
+
   return instance && equalProperty && equalInverse;
 };

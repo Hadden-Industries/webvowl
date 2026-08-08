@@ -7,16 +7,21 @@ function mapJsonLdTerm(term) {
     return { type: "URI", value: term.value };
   }
   if (term.termType === "BlankNode") {
-    const val = term.value.startsWith("_:") ? term.value.substring(2) : term.value;
+    const val = term.value.startsWith("_:")
+      ? term.value.substring(2)
+      : term.value;
     return { type: "BNODE", value: val };
   }
   if (term.termType === "Literal") {
     const lit = { type: "LITERAL", value: term.value };
     if (term.language) {
       lit.lang = term.language;
-    } else if (term.datatype && 
-               term.datatype.value !== "http://www.w3.org/2001/XMLSchema#string" && 
-               term.datatype.value !== "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString") {
+    } else if (
+      term.datatype &&
+      term.datatype.value !== "http://www.w3.org/2001/XMLSchema#string" &&
+      term.datatype.value !==
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+    ) {
       lit.datatype = { type: "URI", value: term.datatype.value };
     }
     return lit;
@@ -38,9 +43,11 @@ export function isJsonLdFormat(text) {
   const snippet = text.slice(0, MAX_SNIFF_BYTES).trim();
 
   // Tier 1: Fast non-JSON prefix rejection
-  if (snippet.startsWith("<") || 
-      snippet.startsWith("@prefix") || 
-      /^\s*(PREFIX|Ontology|Prefix:|\()/i.test(snippet)) {
+  if (
+    snippet.startsWith("<") ||
+    snippet.startsWith("@prefix") ||
+    /^\s*(PREFIX|Ontology|Prefix:|\()/i.test(snippet)
+  ) {
     return false;
   }
 
@@ -50,10 +57,12 @@ export function isJsonLdFormat(text) {
   }
 
   // Tier 3: Must contain characteristic JSON-LD keywords in the header snippet
-  if (!snippet.includes('"@context"') && 
-      !snippet.includes('"@graph"') && 
-      !snippet.includes('"@id"') && 
-      !snippet.includes('"@type"')) {
+  if (
+    !snippet.includes('"@context"') &&
+    !snippet.includes('"@graph"') &&
+    !snippet.includes('"@id"') &&
+    !snippet.includes('"@type"')
+  ) {
     return false;
   }
 
@@ -61,9 +70,18 @@ export function isJsonLdFormat(text) {
   try {
     const obj = JSON.parse(text);
     if (Array.isArray(obj)) {
-      return obj.some(item => typeof item === "object" && item !== null && ("@id" in item || "@type" in item || "@context" in item));
+      return obj.some(
+        (item) =>
+          typeof item === "object" &&
+          item !== null &&
+          ("@id" in item || "@type" in item || "@context" in item),
+      );
     }
-    return typeof obj === "object" && obj !== null && ("@context" in obj || "@graph" in obj || "@id" in obj || "@type" in obj);
+    return (
+      typeof obj === "object" &&
+      obj !== null &&
+      ("@context" in obj || "@graph" in obj || "@id" in obj || "@type" in obj)
+    );
   } catch {
     return false;
   }
@@ -77,14 +95,18 @@ export function isJsonLdFormat(text) {
 export async function parseJsonLd(input) {
   const doc = typeof input === "string" ? JSON.parse(input) : input;
   const dataset = await jsonld.toRDF(doc);
-  const triples = dataset.map(quad => ({
+  const triples = dataset.map((quad) => ({
     subject: mapJsonLdTerm(quad.subject),
     predicate: mapJsonLdTerm(quad.predicate),
-    object: mapJsonLdTerm(quad.object)
+    object: mapJsonLdTerm(quad.object),
   }));
 
   const prefixes = {};
-  if (doc["@context"] && typeof doc["@context"] === "object" && !Array.isArray(doc["@context"])) {
+  if (
+    doc["@context"] &&
+    typeof doc["@context"] === "object" &&
+    !Array.isArray(doc["@context"])
+  ) {
     for (const [key, val] of Object.entries(doc["@context"])) {
       if (typeof val === "string") {
         prefixes[key] = val;

@@ -6,8 +6,16 @@ describe("Parser Inverse Property Type Matching Unit Tests", () => {
   beforeEach(() => {
     mockGraph = {
       options: () => ({
-        filterMenu: () => ({ setCheckBoxValue: () => {}, setDegreeSliderValue: () => {}, updateSettings: () => {} }),
-        modeMenu: () => ({ setCheckBoxValue: () => {}, setColorSwitchState: () => {}, updateSettings: () => {} }),
+        filterMenu: () => ({
+          setCheckBoxValue: () => {},
+          setDegreeSliderValue: () => {},
+          updateSettings: () => {},
+        }),
+        modeMenu: () => ({
+          setCheckBoxValue: () => {},
+          setColorSwitchState: () => {},
+          updateSettings: () => {},
+        }),
         pausedMenu: () => ({ setPauseValue: () => {} }),
         gravityMenu: () => ({ reset: () => {} }),
         pickAndPinModule: () => ({ addPinnedElement: () => {} }),
@@ -24,17 +32,17 @@ describe("Parser Inverse Property Type Matching Unit Tests", () => {
     const ontologyData = {
       class: [
         { id: "1", type: "owl:Class" },
-        { id: "2", type: "owl:Class" }
+        { id: "2", type: "owl:Class" },
       ],
       classAttribute: [
-        { id: "1", iri: "http://example.org/ClassA", label: { "en": "ClassA" } },
-        { id: "2", iri: "http://example.org/ClassB", label: { "en": "ClassB" } }
+        { id: "1", iri: "http://example.org/ClassA", label: { en: "ClassA" } },
+        { id: "2", iri: "http://example.org/ClassB", label: { en: "ClassB" } },
       ],
       property: [
         { id: "70", type: "owl:ObjectProperty" },
         { id: "107", type: "owl:ObjectProperty" },
         { id: "169", type: "owl:someValuesFrom" },
-        { id: "170", type: "owl:someValuesFrom" }
+        { id: "170", type: "owl:someValuesFrom" },
       ],
       propertyAttribute: [
         {
@@ -42,39 +50,39 @@ describe("Parser Inverse Property Type Matching Unit Tests", () => {
           iri: "http://example.org/influences",
           domain: "1",
           range: "2",
-          inverse: "170"
+          inverse: "170",
         },
         {
           id: "107",
           iri: "http://example.org/influencedBy",
           domain: "2",
           range: "1",
-          inverse: "70"
+          inverse: "70",
         },
         {
           id: "169",
           iri: "http://example.org/influences",
           domain: "1",
-          range: "2"
+          range: "2",
         },
         {
           id: "170",
           iri: "http://example.org/influencedBy",
           domain: "2",
           range: "1",
-          inverse: "70"
-        }
-      ]
+          inverse: "70",
+        },
+      ],
     };
 
     const parser = createParser(mockGraph);
     parser.parse(ontologyData);
 
     const properties = parser.properties();
-    const p70 = properties.find(p => p.id() === "70");
-    const p107 = properties.find(p => p.id() === "107");
-    const p169 = properties.find(p => p.id() === "169");
-    const p170 = properties.find(p => p.id() === "170");
+    const p70 = properties.find((p) => p.id() === "70");
+    const p107 = properties.find((p) => p.id() === "107");
+    const p169 = properties.find((p) => p.id() === "169");
+    const p170 = properties.find((p) => p.id() === "170");
 
     // ObjectProperty pair
     expect(p70.inverse()).toBe(p107);
@@ -87,24 +95,26 @@ describe("Parser Inverse Property Type Matching Unit Tests", () => {
 });
 
 describe("Parser viewport settings", () => {
-  function createMockGraph(){
+  function createMockGraph() {
     return {
       options: () => ({
         filterMenu: () => ({ updateSettings: () => {} }),
         modeMenu: () => ({ updateSettings: () => {} }),
-        gravityMenu: () => ({ reset: () => {} })
+        gravityMenu: () => ({ reset: () => {} }),
       }),
       setViewportTransform: jest.fn(() => true),
       setZoom: jest.fn(() => true),
       setTranslation: jest.fn(() => true),
-      updateStyle: jest.fn()
+      updateStyle: jest.fn(),
     };
   }
 
   test("imports zoom and translation as one atomic viewport update", () => {
     const graph = createMockGraph();
     const parser = createParser(graph);
-    parser.parse({ settings: { global: { zoom: "0.38", translation: [10, 20] } } });
+    parser.parse({
+      settings: { global: { zoom: "0.38", translation: [10, 20] } },
+    });
 
     parser.parseSettings();
 
@@ -118,7 +128,9 @@ describe("Parser viewport settings", () => {
     const graph = createMockGraph();
     graph.setViewportTransform.mockReturnValue(false);
     const parser = createParser(graph);
-    parser.parse({ settings: { global: { zoom: "NaN", translation: [NaN, NaN] } } });
+    parser.parse({
+      settings: { global: { zoom: "NaN", translation: [NaN, NaN] } },
+    });
 
     parser.parseSettings();
 

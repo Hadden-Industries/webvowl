@@ -11,24 +11,36 @@ describe("Pick and Pin Module Unit Tests", () => {
     let nodePinned = false;
     mockNode = {
       pinned: (v) => {
-        if (v !== undefined) { nodePinned = v; }
+        if (v !== undefined) {
+          nodePinned = v;
+        }
         return nodePinned;
       },
-      drawPin: jest.fn(() => { nodePinned = true; }),
-      removePin: jest.fn(() => { nodePinned = false; }),
+      drawPin: jest.fn(() => {
+        nodePinned = true;
+      }),
+      removePin: jest.fn(() => {
+        nodePinned = false;
+      }),
     };
 
     let propPinned = false;
     mockProperty = {
       pinned: (v) => {
-        if (v !== undefined) { propPinned = v; }
+        if (v !== undefined) {
+          propPinned = v;
+        }
         return propPinned;
       },
       inverse: () => null,
       domain: () => ({ links: () => [1, 2] }),
       range: () => ({ links: () => [1, 2] }),
-      drawPin: jest.fn(() => { propPinned = true; }),
-      removePin: jest.fn(() => { propPinned = false; }),
+      drawPin: jest.fn(() => {
+        propPinned = true;
+      }),
+      removePin: jest.fn(() => {
+        propPinned = false;
+      }),
     };
   });
 

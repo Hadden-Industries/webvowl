@@ -12,7 +12,9 @@ describe("xmlUtils.js - resolveXmlEntities", () => {
       </rdf:RDF>
     `;
     const resolved = resolveXmlEntities(xml);
-    expect(resolved).toContain('rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"');
+    expect(resolved).toContain(
+      'rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"',
+    );
     expect(resolved).toContain('rdf:resource="http://example.org/wine#Merlot"');
   });
 
@@ -26,6 +28,8 @@ describe("xmlUtils.js - resolveXmlEntities", () => {
       </rdf:RDF>
     `;
     const resolved = resolveXmlEntities(xml);
-    expect(resolved).toContain('rdf:resource="http://example.org/ontology#Class"');
+    expect(resolved).toContain(
+      'rdf:resource="http://example.org/ontology#Class"',
+    );
   });
 });

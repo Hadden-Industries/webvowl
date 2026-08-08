@@ -12,8 +12,12 @@ class MockElement {
     this.nodeName = this.tagName;
     this.listeners = {};
     this.style = {
-      setProperty(name, value) { this[name] = value; },
-      getPropertyValue(name) { return this[name] || ""; }
+      setProperty(name, value) {
+        this[name] = value;
+      },
+      getPropertyValue(name) {
+        return this[name] || "";
+      },
     };
     this.ownerDocument = global.document;
     this.nodeType = 1;
@@ -26,29 +30,36 @@ class MockElement {
   }
 
   addEventListener(type, fn) {
-    if (!this.listeners[type]) { this.listeners[type] = []; }
+    if (!this.listeners[type]) {
+      this.listeners[type] = [];
+    }
     this.listeners[type].push(fn);
   }
 
   removeEventListener(type, fn) {
     if (this.listeners[type]) {
-      this.listeners[type] = this.listeners[type].filter(l => l !== fn);
+      this.listeners[type] = this.listeners[type].filter((l) => l !== fn);
     }
   }
 
   dispatchEvent(event) {
     const type = event.type;
     let prevented = false;
-    event.preventDefault = () => { prevented = true; event.defaultPrevented = true; };
+    event.preventDefault = () => {
+      prevented = true;
+      event.defaultPrevented = true;
+    };
     if (this.listeners[type]) {
-      this.listeners[type].forEach(fn => fn.call(this, event, this.__data__));
+      this.listeners[type].forEach((fn) => fn.call(this, event, this.__data__));
     }
     return !prevented;
   }
 
   setAttribute(name, value) {
     this.attributes[name] = String(value);
-    if (name === "id") { this.id = String(value); }
+    if (name === "id") {
+      this.id = String(value);
+    }
   }
 
   getAttribute(name) {
@@ -69,23 +80,31 @@ class MockElement {
     const self = this;
     return {
       add(cls) {
-        const set = new Set((self.className || "").split(/\s+/).filter(Boolean));
+        const set = new Set(
+          (self.className || "").split(/\s+/).filter(Boolean),
+        );
         set.add(cls);
         self.className = Array.from(set).join(" ");
       },
       remove(cls) {
-        const set = new Set((self.className || "").split(/\s+/).filter(Boolean));
+        const set = new Set(
+          (self.className || "").split(/\s+/).filter(Boolean),
+        );
         set.delete(cls);
         self.className = Array.from(set).join(" ");
       },
       contains(cls) {
         return (self.className || "").split(/\s+/).includes(cls);
-      }
+      },
     };
   }
 
   click() {
-    this.dispatchEvent({ type: "click", target: this, stopPropagation: () => {} });
+    this.dispatchEvent({
+      type: "click",
+      target: this,
+      stopPropagation: () => {},
+    });
   }
 
   appendChild(child) {
@@ -153,22 +172,27 @@ class MockDocument {
   }
 
   addEventListener(type, fn) {
-    if (!this.listeners[type]) { this.listeners[type] = []; }
+    if (!this.listeners[type]) {
+      this.listeners[type] = [];
+    }
     this.listeners[type].push(fn);
   }
 
   removeEventListener(type, fn) {
     if (this.listeners[type]) {
-      this.listeners[type] = this.listeners[type].filter(l => l !== fn);
+      this.listeners[type] = this.listeners[type].filter((l) => l !== fn);
     }
   }
 
   dispatchEvent(event) {
     const type = event.type;
     let prevented = false;
-    event.preventDefault = () => { prevented = true; event.defaultPrevented = true; };
+    event.preventDefault = () => {
+      prevented = true;
+      event.defaultPrevented = true;
+    };
     if (this.listeners[type]) {
-      this.listeners[type].forEach(fn => fn.call(this, event));
+      this.listeners[type].forEach((fn) => fn.call(this, event));
     }
     return !prevented;
   }
@@ -190,18 +214,44 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     global.window = {
       document: mockDoc,
       addEventListener: () => {},
-      removeEventListener: () => {}
+      removeEventListener: () => {},
     };
-    global.requestAnimationFrame = callback => { callback(); return 1; };
+    global.requestAnimationFrame = (callback) => {
+      callback();
+      return 1;
+    };
     global.cancelAnimationFrame = () => {};
 
     cSearch = new MockElement("c_search", "inner-addon left-addon", "li");
-    mobileToggleBtn = new MockElement("mobile-search-toggle-btn", "navButton mobileSearchToggleBtn", "button");
-    searchInput = new MockElement("search-input-text", "searchInputText", "input");
-    clearBtn = new MockElement("search-clear-btn", "searchClearBtn hidden", "button");
-    listbox = new MockElement("search-results-listbox", "search-combobox-popup hidden", "ul");
-    overlayLayer = new MockElement("applicationOverlayLayer", "application-overlay-layer");
-    const locateBtn = new MockElement("locateSearchResult", "navButton", "button");
+    mobileToggleBtn = new MockElement(
+      "mobile-search-toggle-btn",
+      "navButton mobileSearchToggleBtn",
+      "button",
+    );
+    searchInput = new MockElement(
+      "search-input-text",
+      "searchInputText",
+      "input",
+    );
+    clearBtn = new MockElement(
+      "search-clear-btn",
+      "searchClearBtn hidden",
+      "button",
+    );
+    listbox = new MockElement(
+      "search-results-listbox",
+      "search-combobox-popup hidden",
+      "ul",
+    );
+    overlayLayer = new MockElement(
+      "applicationOverlayLayer",
+      "application-overlay-layer",
+    );
+    const locateBtn = new MockElement(
+      "locateSearchResult",
+      "navButton",
+      "button",
+    );
 
     cSearch.appendChild(mobileToggleBtn);
     cSearch.appendChild(searchInput);
@@ -223,8 +273,8 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
           labelForCurrentLanguage: () => "Person",
           id: () => "1",
           equivalents: () => [],
-          equivalentsString: () => ""
-        }
+          equivalentsString: () => "",
+        },
       ],
       locateSearchResult: () => {},
       resetSearchHighlight: () => {},
@@ -233,7 +283,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
           mockGraph.searchMenu.updateLocateButtonVisibility(true);
         }
       },
-      getNodeMapForSearch: () => ({ "1": {} })
+      getNodeMapForSearch: () => ({ 1: {} }),
     };
   });
 
@@ -264,21 +314,39 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     global.window.visualViewport = {
       height: 420,
       offsetTop: 12,
-      addEventListener: (type, callback) => { listeners[type] = callback; }
+      addEventListener: (type, callback) => {
+        listeners[type] = callback;
+      },
     };
 
     const searchMenu = searchMenuFactory(mockGraph);
     searchMenu.setup();
 
-    expect(mockDoc.documentElement.style.getPropertyValue("--visual-viewport-height")).toBe("420px");
-    expect(mockDoc.documentElement.style.getPropertyValue("--visual-viewport-offset-top")).toBe("12px");
+    expect(
+      mockDoc.documentElement.style.getPropertyValue(
+        "--visual-viewport-height",
+      ),
+    ).toBe("420px");
+    expect(
+      mockDoc.documentElement.style.getPropertyValue(
+        "--visual-viewport-offset-top",
+      ),
+    ).toBe("12px");
 
     global.window.visualViewport.height = 360;
     global.window.visualViewport.offsetTop = 20;
     listeners.resize();
 
-    expect(mockDoc.documentElement.style.getPropertyValue("--visual-viewport-height")).toBe("360px");
-    expect(mockDoc.documentElement.style.getPropertyValue("--visual-viewport-offset-top")).toBe("20px");
+    expect(
+      mockDoc.documentElement.style.getPropertyValue(
+        "--visual-viewport-height",
+      ),
+    ).toBe("360px");
+    expect(
+      mockDoc.documentElement.style.getPropertyValue(
+        "--visual-viewport-offset-top",
+      ),
+    ).toBe("20px");
   });
 
   test("disables search and locate controls when no rendered ontology is available", () => {
@@ -332,7 +400,10 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     expect(listbox.classList.contains("hidden")).toBe(false);
     expect(cSearch.classList.contains("search-expanded")).toBe(true);
 
-    mockDoc.dispatchEvent({ type: "pointerdown", target: new MockElement("outside") });
+    mockDoc.dispatchEvent({
+      type: "pointerdown",
+      target: new MockElement("outside"),
+    });
     expect(listbox.classList.contains("hidden")).toBe(true);
     expect(cSearch.classList.contains("search-expanded")).toBe(false);
   });
@@ -341,11 +412,13 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     const searchMenu = searchMenuFactory(mockGraph);
     searchMenu.setup();
 
-    expect(() => searchInput.dispatchEvent({
-      type: "keyup",
-      key: "a",
-      target: searchInput
-    })).not.toThrow();
+    expect(() =>
+      searchInput.dispatchEvent({
+        type: "keyup",
+        key: "a",
+        target: searchInput,
+      }),
+    ).not.toThrow();
   });
 
   test("collapses mobile overlay and hides listbox on Escape key press", () => {
@@ -367,10 +440,16 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     searchInput.value = "Per";
     searchInput.dispatchEvent({ type: "input", target: searchInput });
 
-    searchInput.dispatchEvent({ type: "keydown", key: "ArrowDown", target: searchInput });
+    searchInput.dispatchEvent({
+      type: "keydown",
+      key: "ArrowDown",
+      target: searchInput,
+    });
 
     expect(listbox.children[0].getAttribute("aria-selected")).toBe("true");
-    expect(searchInput.getAttribute("aria-activedescendant")).toBe("search-option-0");
+    expect(searchInput.getAttribute("aria-activedescendant")).toBe(
+      "search-option-0",
+    );
   });
 
   test("selects the active search suggestion with Enter", () => {
@@ -379,9 +458,17 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     searchMenu.setup();
     searchInput.value = "Per";
     searchInput.dispatchEvent({ type: "input", target: searchInput });
-    searchInput.dispatchEvent({ type: "keydown", key: "ArrowDown", target: searchInput });
+    searchInput.dispatchEvent({
+      type: "keydown",
+      key: "ArrowDown",
+      target: searchInput,
+    });
 
-    searchInput.dispatchEvent({ type: "keydown", key: "Enter", target: searchInput });
+    searchInput.dispatchEvent({
+      type: "keydown",
+      key: "Enter",
+      target: searchInput,
+    });
 
     expect(searchInput.value).toBe("Person");
     expect(mockDoc.elements["locateSearchResult"].disabled).toBe(false);
@@ -390,7 +477,9 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
 
   test("synchronizes locate button title, aria-label, and disabled state on search result selection and clearing", () => {
     let locateCount = 0;
-    mockGraph.locateSearchResult = () => { locateCount++; };
+    mockGraph.locateSearchResult = () => {
+      locateCount++;
+    };
 
     const searchMenu = searchMenuFactory(mockGraph);
     mockGraph.searchMenu = searchMenu;
@@ -418,7 +507,11 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     mockOption.setAttribute("elementID", "0");
     listbox.appendChild(mockOption);
 
-    listbox.dispatchEvent({ type: "click", target: mockOption, stopPropagation: () => {} });
+    listbox.dispatchEvent({
+      type: "click",
+      target: mockOption,
+      stopPropagation: () => {},
+    });
 
     expect(locateBtn.disabled).toBe(false);
     expect(locateBtn.title).toBe("Locate search term");
@@ -451,7 +544,11 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     const mockOption = new MockElement("", "search-option", "li");
     mockOption.setAttribute("elementID", "0");
     listbox.appendChild(mockOption);
-    listbox.dispatchEvent({ type: "click", target: mockOption, stopPropagation: () => {} });
+    listbox.dispatchEvent({
+      type: "click",
+      target: mockOption,
+      stopPropagation: () => {},
+    });
 
     expect(locateBtn.classList.contains("highlighted")).toBe(true);
 
@@ -483,7 +580,11 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     const mockOption = new MockElement("", "search-option", "li");
     mockOption.setAttribute("elementID", "0");
     listbox.appendChild(mockOption);
-    listbox.dispatchEvent({ type: "click", target: mockOption, stopPropagation: () => {} });
+    listbox.dispatchEvent({
+      type: "click",
+      target: mockOption,
+      stopPropagation: () => {},
+    });
 
     expect(locateBtn.disabled).toBe(false);
     expect(locateBtn.classList.contains("highlighted")).toBe(true);

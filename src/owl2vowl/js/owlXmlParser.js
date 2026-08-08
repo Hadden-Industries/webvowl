@@ -8,7 +8,9 @@ import { NAMESPACES, MAX_SNIFF_BYTES } from "./constants.js";
  * @returns {boolean}
  */
 export function isOwlXmlFormat(xmlInput) {
-  if (!xmlInput) {return false;}
+  if (!xmlInput) {
+    return false;
+  }
 
   if (typeof xmlInput === "string") {
     const snippet = xmlInput.slice(0, MAX_SNIFF_BYTES).trim();
@@ -16,7 +18,7 @@ export function isOwlXmlFormat(xmlInput) {
       return false;
     }
     const parser = new DOMParser({
-      onError: () => {}
+      onError: () => {},
     });
     try {
       const doc = parser.parseFromString(xmlInput, "application/xml");
@@ -35,11 +37,19 @@ export function isOwlXmlFormat(xmlInput) {
 }
 
 function isRootOntologyNode(rootEl) {
-  if (!rootEl) {return false;}
+  if (!rootEl) {
+    return false;
+  }
   const local = rootEl.localName || rootEl.tagName;
-  if (local !== "Ontology") {return false;}
+  if (local !== "Ontology") {
+    return false;
+  }
   const ns = rootEl.namespaceURI || rootEl.getAttribute("xmlns") || "";
-  return ns === NAMESPACES.OWL || ns.includes("owl#") || rootEl.getElementsByTagName("Prefix").length > 0;
+  return (
+    ns === NAMESPACES.OWL ||
+    ns.includes("owl#") ||
+    rootEl.getElementsByTagName("Prefix").length > 0
+  );
 }
 
 /**
@@ -53,7 +63,7 @@ function isRootOntologyNode(rootEl) {
 export function convertOwlXmlToRdfXml(xmlString, resolver) {
   const resolvedXml = resolveXmlEntities(xmlString);
   const parser = new DOMParser({
-    onError: () => {}
+    onError: () => {},
   });
   const xmlDoc = parser.parseFromString(resolvedXml, "application/xml");
 
@@ -67,19 +77,26 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
     throw new Error("Invalid OWL/XML document: Root element is not <Ontology>");
   }
 
-  const ontologyIRIAttr = rootEl.getAttribute("ontologyIRI") || rootEl.getAttribute("IRI") || "";
-  const baseAttr = rootEl.getAttribute("xml:base") || rootEl.getAttribute("base") || ontologyIRIAttr;
-  const ontologyIri = ontologyIRIAttr || baseAttr || "http://haddenindustries.com/ontology/owlxml";
+  const ontologyIRIAttr =
+    rootEl.getAttribute("ontologyIRI") || rootEl.getAttribute("IRI") || "";
+  const baseAttr =
+    rootEl.getAttribute("xml:base") ||
+    rootEl.getAttribute("base") ||
+    ontologyIRIAttr;
+  const ontologyIri =
+    ontologyIRIAttr ||
+    baseAttr ||
+    "http://haddenindustries.com/ontology/owlxml";
 
   // Build prefix map from xmlns attributes and <Prefix> tags (OWLXMLPH.java:151)
   const prefixMap = {
-    "owl": NAMESPACES.OWL,
-    "rdf": NAMESPACES.RDF,
-    "rdfs": NAMESPACES.RDFS,
-    "xsd": NAMESPACES.XSD,
-    "dc": NAMESPACES.DC,
-    "dcterms": "http://purl.org/dc/terms/",
-    "foaf": "http://xmlns.com/foaf/0.1/"
+    owl: NAMESPACES.OWL,
+    rdf: NAMESPACES.RDF,
+    rdfs: NAMESPACES.RDFS,
+    xsd: NAMESPACES.XSD,
+    dc: NAMESPACES.DC,
+    dcterms: "http://purl.org/dc/terms/",
+    foaf: "http://xmlns.com/foaf/0.1/",
   };
 
   if (rootEl.attributes) {
@@ -108,10 +125,18 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
   }
 
   function resolveIri(rawIri) {
-    if (!rawIri) {return "";}
+    if (!rawIri) {
+      return "";
+    }
     const clean = rawIri.trim();
 
-    if (clean.includes(":") && !clean.startsWith("http://") && !clean.startsWith("https://") && !clean.startsWith("urn:") && !clean.startsWith("file://")) {
+    if (
+      clean.includes(":") &&
+      !clean.startsWith("http://") &&
+      !clean.startsWith("https://") &&
+      !clean.startsWith("urn:") &&
+      !clean.startsWith("file://")
+    ) {
       const parts = clean.split(":");
       const pfx = parts[0];
       const local = parts.slice(1).join(":");
@@ -125,7 +150,8 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
     }
 
     if (clean.startsWith(":")) {
-      const defaultNs = prefixMap[":"] || prefixMap[""] || prefixMap["owl"] || "";
+      const defaultNs =
+        prefixMap[":"] || prefixMap[""] || prefixMap["owl"] || "";
       return defaultNs + clean.substring(1);
     }
 
@@ -134,19 +160,30 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
     }
 
     if (clean.startsWith("#")) {
-      return baseAttr ? (baseAttr.endsWith("#") || baseAttr.endsWith("/") ? baseAttr + clean.substring(1) : baseAttr + clean) : clean;
+      return baseAttr
+        ? baseAttr.endsWith("#") || baseAttr.endsWith("/")
+          ? baseAttr + clean.substring(1)
+          : baseAttr + clean
+        : clean;
     }
 
     return clean;
   }
 
   function getIriFromEl(el) {
-    if (!el) {return "";}
+    if (!el) {
+      return "";
+    }
     const iriAttr = el.getAttribute("IRI") || el.getAttribute("iri");
-    if (iriAttr) {return resolveIri(iriAttr);}
+    if (iriAttr) {
+      return resolveIri(iriAttr);
+    }
 
-    const abbrAttr = el.getAttribute("abbreviatedIRI") || el.getAttribute("abbreviatedIri");
-    if (abbrAttr) {return resolveIri(abbrAttr);}
+    const abbrAttr =
+      el.getAttribute("abbreviatedIRI") || el.getAttribute("abbreviatedIri");
+    if (abbrAttr) {
+      return resolveIri(abbrAttr);
+    }
 
     for (const child of Array.from(el.childNodes)) {
       if (child.nodeType === 1) {
@@ -163,7 +200,9 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
   }
 
   function getLiteralFromEl(el) {
-    if (!el) {return null;}
+    if (!el) {
+      return null;
+    }
     let litEl = null;
     if (getLocalName(el) === "Literal") {
       litEl = el;
@@ -183,14 +222,20 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
     }
 
     const val = litEl.textContent || "";
-    const lang = litEl.getAttribute("xml:lang") || litEl.getAttribute("lang") || null;
-    const dtAttr = litEl.getAttribute("datatypeIRI") || litEl.getAttribute("datatypeIri") || null;
+    const lang =
+      litEl.getAttribute("xml:lang") || litEl.getAttribute("lang") || null;
+    const dtAttr =
+      litEl.getAttribute("datatypeIRI") ||
+      litEl.getAttribute("datatypeIri") ||
+      null;
     const datatype = dtAttr ? resolveIri(dtAttr) : null;
     return { val, lang, datatype };
   }
 
   function escapeXml(str) {
-    if (!str) {return "";}
+    if (!str) {
+      return "";
+    }
     return str
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -224,14 +269,17 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
   const rdfNodes = [];
 
   // 1. Process Ontology Header Annotations (<owl:Ontology>)
-  const versionIRIAttr = rootEl.getAttribute("versionIRI") || rootEl.getAttribute("versionIri");
+  const versionIRIAttr =
+    rootEl.getAttribute("versionIRI") || rootEl.getAttribute("versionIri");
   let ontologyHeaderRdf = `<owl:Ontology rdf:about="${escapeXml(ontologyIri)}">\n`;
   if (versionIRIAttr) {
     ontologyHeaderRdf += `  <owl:versionIRI rdf:resource="${escapeXml(resolveIri(versionIRIAttr))}"/>\n`;
   }
 
   for (const child of childNodes) {
-    if (child.nodeType !== 1) {continue;}
+    if (child.nodeType !== 1) {
+      continue;
+    }
     const name = getLocalName(child);
 
     if (name === "Import") {
@@ -258,24 +306,34 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
 
   // 2. Process Declarations & Axioms
   for (const child of childNodes) {
-    if (child.nodeType !== 1) {continue;}
+    if (child.nodeType !== 1) {
+      continue;
+    }
     const name = getLocalName(child);
 
     if (name === "Declaration") {
       for (const decChild of Array.from(child.childNodes)) {
-        if (decChild.nodeType !== 1) {continue;}
+        if (decChild.nodeType !== 1) {
+          continue;
+        }
         const decName = getLocalName(decChild);
         const iri = getIriFromEl(decChild);
-        if (!iri) {continue;}
+        if (!iri) {
+          continue;
+        }
 
         if (decName === "Class") {
           rdfNodes.push(`<owl:Class rdf:about="${escapeXml(iri)}"/>`);
         } else if (decName === "ObjectProperty") {
           rdfNodes.push(`<owl:ObjectProperty rdf:about="${escapeXml(iri)}"/>`);
         } else if (decName === "DataProperty") {
-          rdfNodes.push(`<owl:DatatypeProperty rdf:about="${escapeXml(iri)}"/>`);
+          rdfNodes.push(
+            `<owl:DatatypeProperty rdf:about="${escapeXml(iri)}"/>`,
+          );
         } else if (decName === "AnnotationProperty") {
-          rdfNodes.push(`<owl:AnnotationProperty rdf:about="${escapeXml(iri)}"/>`);
+          rdfNodes.push(
+            `<owl:AnnotationProperty rdf:about="${escapeXml(iri)}"/>`,
+          );
         } else if (decName === "NamedIndividual") {
           rdfNodes.push(`<owl:NamedIndividual rdf:about="${escapeXml(iri)}"/>`);
         } else if (decName === "Datatype") {
@@ -284,19 +342,35 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
       }
     } else if (name === "SubClassOf") {
       const classEls = findChildrenByLocalNames(child, [
-        "Class", "ObjectSomeValuesFrom", "ObjectAllValuesFrom", "ObjectHasValue",
-        "ObjectMinCardinality", "ObjectMaxCardinality", "ObjectExactCardinality",
-        "ObjectUnionOf", "ObjectIntersectionOf", "ObjectComplementOf"
+        "Class",
+        "ObjectSomeValuesFrom",
+        "ObjectAllValuesFrom",
+        "ObjectHasValue",
+        "ObjectMinCardinality",
+        "ObjectMaxCardinality",
+        "ObjectExactCardinality",
+        "ObjectUnionOf",
+        "ObjectIntersectionOf",
+        "ObjectComplementOf",
       ]);
       if (classEls.length >= 2) {
         const subIri = getIriFromEl(classEls[0]);
-        const superExprRdf = renderClassExpressionRdf(classEls[1], getIriFromEl, resolveIri, escapeXml);
+        const superExprRdf = renderClassExpressionRdf(
+          classEls[1],
+          getIriFromEl,
+          resolveIri,
+          escapeXml,
+        );
 
         if (subIri && superExprRdf) {
           if (superExprRdf.startsWith("rdf:resource=")) {
-            rdfNodes.push(`<owl:Class rdf:about="${escapeXml(subIri)}">\n  <rdfs:subClassOf ${superExprRdf}/>\n</owl:Class>`);
+            rdfNodes.push(
+              `<owl:Class rdf:about="${escapeXml(subIri)}">\n  <rdfs:subClassOf ${superExprRdf}/>\n</owl:Class>`,
+            );
           } else {
-            rdfNodes.push(`<owl:Class rdf:about="${escapeXml(subIri)}">\n  <rdfs:subClassOf>\n    ${superExprRdf}\n  </rdfs:subClassOf>\n</owl:Class>`);
+            rdfNodes.push(
+              `<owl:Class rdf:about="${escapeXml(subIri)}">\n  <rdfs:subClassOf>\n    ${superExprRdf}\n  </rdfs:subClassOf>\n</owl:Class>`,
+            );
           }
         }
       }
@@ -306,7 +380,9 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
         const subIri = getIriFromEl(propEls[0]);
         const superIri = getIriFromEl(propEls[1]);
         if (subIri && superIri) {
-          rdfNodes.push(`<owl:ObjectProperty rdf:about="${escapeXml(subIri)}">\n  <rdfs:subPropertyOf rdf:resource="${escapeXml(superIri)}"/>\n</owl:ObjectProperty>`);
+          rdfNodes.push(
+            `<owl:ObjectProperty rdf:about="${escapeXml(subIri)}">\n  <rdfs:subPropertyOf rdf:resource="${escapeXml(superIri)}"/>\n</owl:ObjectProperty>`,
+          );
         }
       }
     } else if (name === "SubDataPropertyOf") {
@@ -315,24 +391,38 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
         const subIri = getIriFromEl(propEls[0]);
         const superIri = getIriFromEl(propEls[1]);
         if (subIri && superIri) {
-          rdfNodes.push(`<owl:DatatypeProperty rdf:about="${escapeXml(subIri)}">\n  <rdfs:subPropertyOf rdf:resource="${escapeXml(superIri)}"/>\n</owl:DatatypeProperty>`);
+          rdfNodes.push(
+            `<owl:DatatypeProperty rdf:about="${escapeXml(subIri)}">\n  <rdfs:subPropertyOf rdf:resource="${escapeXml(superIri)}"/>\n</owl:DatatypeProperty>`,
+          );
         }
       }
     } else if (name === "ObjectPropertyDomain") {
       const propEl = findChildByLocalNames(child, ["ObjectProperty"]);
-      const classEl = findChildByLocalNames(child, ["Class", "ObjectUnionOf", "ObjectIntersectionOf"]);
+      const classEl = findChildByLocalNames(child, [
+        "Class",
+        "ObjectUnionOf",
+        "ObjectIntersectionOf",
+      ]);
       const propIri = propEl ? getIriFromEl(propEl) : null;
       const domIri = classEl ? getIriFromEl(classEl) : null;
       if (propIri && domIri) {
-        rdfNodes.push(`<owl:ObjectProperty rdf:about="${escapeXml(propIri)}">\n  <rdfs:domain rdf:resource="${escapeXml(domIri)}"/>\n</owl:ObjectProperty>`);
+        rdfNodes.push(
+          `<owl:ObjectProperty rdf:about="${escapeXml(propIri)}">\n  <rdfs:domain rdf:resource="${escapeXml(domIri)}"/>\n</owl:ObjectProperty>`,
+        );
       }
     } else if (name === "ObjectPropertyRange") {
       const propEl = findChildByLocalNames(child, ["ObjectProperty"]);
-      const classEl = findChildByLocalNames(child, ["Class", "ObjectUnionOf", "ObjectIntersectionOf"]);
+      const classEl = findChildByLocalNames(child, [
+        "Class",
+        "ObjectUnionOf",
+        "ObjectIntersectionOf",
+      ]);
       const propIri = propEl ? getIriFromEl(propEl) : null;
       const ranIri = classEl ? getIriFromEl(classEl) : null;
       if (propIri && ranIri) {
-        rdfNodes.push(`<owl:ObjectProperty rdf:about="${escapeXml(propIri)}">\n  <rdfs:range rdf:resource="${escapeXml(ranIri)}"/>\n</owl:ObjectProperty>`);
+        rdfNodes.push(
+          `<owl:ObjectProperty rdf:about="${escapeXml(propIri)}">\n  <rdfs:range rdf:resource="${escapeXml(ranIri)}"/>\n</owl:ObjectProperty>`,
+        );
       }
     } else if (name === "DataPropertyDomain") {
       const propEl = findChildByLocalNames(child, ["DataProperty"]);
@@ -340,7 +430,9 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
       const propIri = propEl ? getIriFromEl(propEl) : null;
       const domIri = classEl ? getIriFromEl(classEl) : null;
       if (propIri && domIri) {
-        rdfNodes.push(`<owl:DatatypeProperty rdf:about="${escapeXml(propIri)}">\n  <rdfs:domain rdf:resource="${escapeXml(domIri)}"/>\n</owl:DatatypeProperty>`);
+        rdfNodes.push(
+          `<owl:DatatypeProperty rdf:about="${escapeXml(propIri)}">\n  <rdfs:domain rdf:resource="${escapeXml(domIri)}"/>\n</owl:DatatypeProperty>`,
+        );
       }
     } else if (name === "DataPropertyRange") {
       const propEl = findChildByLocalNames(child, ["DataProperty"]);
@@ -348,7 +440,9 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
       const propIri = propEl ? getIriFromEl(propEl) : null;
       const ranIri = dtEl ? getIriFromEl(dtEl) : null;
       if (propIri && ranIri) {
-        rdfNodes.push(`<owl:DatatypeProperty rdf:about="${escapeXml(propIri)}">\n  <rdfs:range rdf:resource="${escapeXml(ranIri)}"/>\n</owl:DatatypeProperty>`);
+        rdfNodes.push(
+          `<owl:DatatypeProperty rdf:about="${escapeXml(propIri)}">\n  <rdfs:range rdf:resource="${escapeXml(ranIri)}"/>\n</owl:DatatypeProperty>`,
+        );
       }
     } else if (name === "InverseObjectProperties") {
       const propEls = findChildrenByLocalNames(child, ["ObjectProperty"]);
@@ -356,56 +450,74 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
         const p1 = getIriFromEl(propEls[0]);
         const p2 = getIriFromEl(propEls[1]);
         if (p1 && p2) {
-          rdfNodes.push(`<owl:ObjectProperty rdf:about="${escapeXml(p1)}">\n  <owl:inverseOf rdf:resource="${escapeXml(p2)}"/>\n</owl:ObjectProperty>`);
+          rdfNodes.push(
+            `<owl:ObjectProperty rdf:about="${escapeXml(p1)}">\n  <owl:inverseOf rdf:resource="${escapeXml(p2)}"/>\n</owl:ObjectProperty>`,
+          );
         }
       }
     } else if (name === "FunctionalObjectProperty") {
       const propEl = findChildByLocalNames(child, ["ObjectProperty"]);
       const pIri = propEl ? getIriFromEl(propEl) : null;
       if (pIri) {
-        rdfNodes.push(`<owl:ObjectProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>\n</owl:ObjectProperty>`);
+        rdfNodes.push(
+          `<owl:ObjectProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>\n</owl:ObjectProperty>`,
+        );
       }
     } else if (name === "InverseFunctionalObjectProperty") {
       const propEl = findChildByLocalNames(child, ["ObjectProperty"]);
       const pIri = propEl ? getIriFromEl(propEl) : null;
       if (pIri) {
-        rdfNodes.push(`<owl:ObjectProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#InverseFunctionalProperty"/>\n</owl:ObjectProperty>`);
+        rdfNodes.push(
+          `<owl:ObjectProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#InverseFunctionalProperty"/>\n</owl:ObjectProperty>`,
+        );
       }
     } else if (name === "TransitiveObjectProperty") {
       const propEl = findChildByLocalNames(child, ["ObjectProperty"]);
       const pIri = propEl ? getIriFromEl(propEl) : null;
       if (pIri) {
-        rdfNodes.push(`<owl:ObjectProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>\n</owl:ObjectProperty>`);
+        rdfNodes.push(
+          `<owl:ObjectProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>\n</owl:ObjectProperty>`,
+        );
       }
     } else if (name === "SymmetricObjectProperty") {
       const propEl = findChildByLocalNames(child, ["ObjectProperty"]);
       const pIri = propEl ? getIriFromEl(propEl) : null;
       if (pIri) {
-        rdfNodes.push(`<owl:ObjectProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>\n</owl:ObjectProperty>`);
+        rdfNodes.push(
+          `<owl:ObjectProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>\n</owl:ObjectProperty>`,
+        );
       }
     } else if (name === "AsymmetricObjectProperty") {
       const propEl = findChildByLocalNames(child, ["ObjectProperty"]);
       const pIri = propEl ? getIriFromEl(propEl) : null;
       if (pIri) {
-        rdfNodes.push(`<owl:ObjectProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AsymmetricProperty"/>\n</owl:ObjectProperty>`);
+        rdfNodes.push(
+          `<owl:ObjectProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AsymmetricProperty"/>\n</owl:ObjectProperty>`,
+        );
       }
     } else if (name === "ReflexiveObjectProperty") {
       const propEl = findChildByLocalNames(child, ["ObjectProperty"]);
       const pIri = propEl ? getIriFromEl(propEl) : null;
       if (pIri) {
-        rdfNodes.push(`<owl:ObjectProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ReflexiveProperty"/>\n</owl:ObjectProperty>`);
+        rdfNodes.push(
+          `<owl:ObjectProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ReflexiveProperty"/>\n</owl:ObjectProperty>`,
+        );
       }
     } else if (name === "IrreflexiveObjectProperty") {
       const propEl = findChildByLocalNames(child, ["ObjectProperty"]);
       const pIri = propEl ? getIriFromEl(propEl) : null;
       if (pIri) {
-        rdfNodes.push(`<owl:ObjectProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#IrreflexiveProperty"/>\n</owl:ObjectProperty>`);
+        rdfNodes.push(
+          `<owl:ObjectProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#IrreflexiveProperty"/>\n</owl:ObjectProperty>`,
+        );
       }
     } else if (name === "FunctionalDataProperty") {
       const propEl = findChildByLocalNames(child, ["DataProperty"]);
       const pIri = propEl ? getIriFromEl(propEl) : null;
       if (pIri) {
-        rdfNodes.push(`<owl:DatatypeProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>\n</owl:DatatypeProperty>`);
+        rdfNodes.push(
+          `<owl:DatatypeProperty rdf:about="${escapeXml(pIri)}">\n  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>\n</owl:DatatypeProperty>`,
+        );
       }
     } else if (name === "DisjointClasses") {
       const classEls = findChildrenByLocalNames(child, ["Class"]);
@@ -415,7 +527,9 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
             const c1 = getIriFromEl(classEls[i]);
             const c2 = getIriFromEl(classEls[j]);
             if (c1 && c2) {
-              rdfNodes.push(`<owl:Class rdf:about="${escapeXml(c1)}">\n  <owl:disjointWith rdf:resource="${escapeXml(c2)}"/>\n</owl:Class>`);
+              rdfNodes.push(
+                `<owl:Class rdf:about="${escapeXml(c1)}">\n  <owl:disjointWith rdf:resource="${escapeXml(c2)}"/>\n</owl:Class>`,
+              );
             }
           }
         }
@@ -428,7 +542,9 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
             const c1 = getIriFromEl(classEls[i]);
             const c2 = getIriFromEl(classEls[j]);
             if (c1 && c2) {
-              rdfNodes.push(`<owl:Class rdf:about="${escapeXml(c1)}">\n  <owl:equivalentClass rdf:resource="${escapeXml(c2)}"/>\n</owl:Class>`);
+              rdfNodes.push(
+                `<owl:Class rdf:about="${escapeXml(c1)}">\n  <owl:equivalentClass rdf:resource="${escapeXml(c2)}"/>\n</owl:Class>`,
+              );
             }
           }
         }
@@ -448,7 +564,9 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
         const tag = getPredXmlTag(propIri);
         const langAttr = lit.lang ? ` xml:lang="${escapeXml(lit.lang)}"` : "";
         if (tag) {
-          rdfNodes.push(`<rdf:Description rdf:about="${escapeXml(subjIri)}">\n  <${tag}${langAttr}>${escapeXml(lit.val)}</${tag}>\n</rdf:Description>`);
+          rdfNodes.push(
+            `<rdf:Description rdf:about="${escapeXml(subjIri)}">\n  <${tag}${langAttr}>${escapeXml(lit.val)}</${tag}>\n</rdf:Description>`,
+          );
         }
       }
     }
@@ -471,7 +589,11 @@ export function convertOwlXmlToRdfXml(xmlString, resolver) {
     nsAttrs += ` xml:base="${escapeXml(baseAttr)}"`;
   }
 
-  return `<?xml version="1.0"?>\n<rdf:RDF${nsAttrs}>\n` + rdfNodes.join("\n") + "\n</rdf:RDF>";
+  return (
+    `<?xml version="1.0"?>\n<rdf:RDF${nsAttrs}>\n` +
+    rdfNodes.join("\n") +
+    "\n</rdf:RDF>"
+  );
 }
 
 function getLocalName(el) {
@@ -504,23 +626,41 @@ function renderClassExpressionRdf(exprEl, getIriFromEl, resolveIri, escapeXml) {
     return iri ? `rdf:resource="${escapeXml(iri)}"` : null;
   }
 
-  if (name === "ObjectSomeValuesFrom" || name === "ObjectAllValuesFrom" || name === "ObjectHasValue") {
+  if (
+    name === "ObjectSomeValuesFrom" ||
+    name === "ObjectAllValuesFrom" ||
+    name === "ObjectHasValue"
+  ) {
     const propEl = findChildByLocalNames(exprEl, ["ObjectProperty"]);
     const classEl = findChildByLocalNames(exprEl, ["Class"]);
     const propIri = propEl ? getIriFromEl(propEl) : null;
     const classIri = classEl ? getIriFromEl(classEl) : null;
 
     if (propIri && classIri) {
-      const pred = name === "ObjectSomeValuesFrom" ? "someValuesFrom" : name === "ObjectAllValuesFrom" ? "allValuesFrom" : "hasValue";
+      const pred =
+        name === "ObjectSomeValuesFrom"
+          ? "someValuesFrom"
+          : name === "ObjectAllValuesFrom"
+            ? "allValuesFrom"
+            : "hasValue";
       return `<owl:Restriction>\n  <owl:onProperty rdf:resource="${escapeXml(propIri)}"/>\n  <owl:${pred} rdf:resource="${escapeXml(classIri)}"/>\n</owl:Restriction>`;
     }
   }
 
-  if (name === "ObjectMinCardinality" || name === "ObjectMaxCardinality" || name === "ObjectExactCardinality") {
+  if (
+    name === "ObjectMinCardinality" ||
+    name === "ObjectMaxCardinality" ||
+    name === "ObjectExactCardinality"
+  ) {
     const propEl = findChildByLocalNames(exprEl, ["ObjectProperty"]);
     const propIri = propEl ? getIriFromEl(propEl) : null;
     const cardVal = exprEl.getAttribute("cardinality") || "1";
-    const pred = name === "ObjectMinCardinality" ? "minCardinality" : name === "ObjectMaxCardinality" ? "maxCardinality" : "cardinality";
+    const pred =
+      name === "ObjectMinCardinality"
+        ? "minCardinality"
+        : name === "ObjectMaxCardinality"
+          ? "maxCardinality"
+          : "cardinality";
 
     if (propIri) {
       return `<owl:Restriction>\n  <owl:onProperty rdf:resource="${escapeXml(propIri)}"/>\n  <owl:${pred} rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">${escapeXml(cardVal)}</owl:${pred}>\n</owl:Restriction>`;

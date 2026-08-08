@@ -8,20 +8,24 @@ const BoxArrowLink = require("./BoxArrowLink");
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
-function createProperty(){
+function createProperty() {
   return {
     inverse: () => null,
     linkGroup: jest.fn(),
     linkType: () => "dashed",
     markerElement: jest.fn(),
     markerId: () => "marker-set-operator",
-    markerType: () => "white"
+    markerType: () => "white",
   };
 }
 
 describe("box-arrow links", () => {
   test("attach their marker directly to the rendered path", () => {
-    const document = new DOMImplementation().createDocument(SVG_NAMESPACE, "svg", null);
+    const document = new DOMImplementation().createDocument(
+      SVG_NAMESPACE,
+      "svg",
+      null,
+    );
     const svg = d3.select(document.documentElement);
     const defs = svg.append("defs");
     const group = svg.append("g");

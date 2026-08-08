@@ -2,25 +2,25 @@ import { describe, expect, test } from "@jest/globals";
 import sidebarFactory from "./sidebar.js";
 
 class MockSelection {
-  constructor( tag = "container", text = "" ) {
+  constructor(tag = "container", text = "") {
     this.attributes = {};
     this.children = [];
     this.tag = tag;
     this.textValue = text;
   }
 
-  append( tag ) {
+  append(tag) {
     const child = new MockSelection(tag);
     this.children.push(child);
     return child;
   }
 
-  attr( name, value ) {
+  attr(name, value) {
     this.attributes[name] = value;
     return this;
   }
 
-  text( value ) {
+  text(value) {
     this.textValue = value;
     return this;
   }
@@ -31,8 +31,8 @@ describe("sidebar ontology IRI links", () => {
     ["http://example.org/ontology", "http://example.org/ontology"],
     ["https://example.org/ontology", "https://example.org/ontology"],
     ["urn:isbn:9780141036144", "urn:isbn:9780141036144"],
-    ["  urn:example:ontology  ", "urn:example:ontology"]
-  ])("allows an explicitly supported IRI scheme for %p", ( iri, expected ) => {
+    ["  urn:example:ontology  ", "urn:example:ontology"],
+  ])("allows an explicitly supported IRI scheme for %p", (iri, expected) => {
     expect(sidebarFactory.navigableIri(iri)).toBe(expected);
   });
 
@@ -47,8 +47,8 @@ describe("sidebar ontology IRI links", () => {
     "",
     "   ",
     null,
-    undefined
-  ])("rejects unsupported or invalid IRI %p", ( iri ) => {
+    undefined,
+  ])("rejects unsupported or invalid IRI %p", (iri) => {
     expect(sidebarFactory.navigableIri(iri)).toBeUndefined();
   });
 
@@ -63,10 +63,10 @@ describe("sidebar ontology IRI links", () => {
       attributes: {
         href: "urn:example:ontology",
         target: "_blank",
-        title: "urn:example:ontology"
+        title: "urn:example:ontology",
       },
       tag: "a",
-      textValue: "urn:example:ontology"
+      textValue: "urn:example:ontology",
     });
     expect(container.children[0].attributes.rel).toBeUndefined();
   });
@@ -80,7 +80,7 @@ describe("sidebar ontology IRI links", () => {
     expect(container.children[0]).toMatchObject({
       attributes: {},
       tag: "span",
-      textValue: "javascript:alert(1)"
+      textValue: "javascript:alert(1)",
     });
   });
 });

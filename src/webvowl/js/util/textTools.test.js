@@ -19,9 +19,9 @@ describe("Truncating of text", () => {
             return this;
           },
           node: () => mockElement,
-          remove: () => {}
-        })
-      })
+          remove: () => {},
+        }),
+      }),
     };
 
     tools = textToolsFactory();

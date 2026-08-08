@@ -22,7 +22,7 @@ describe("ontologyConverter.js unit tests", () => {
       description: {},
       labels: {},
       comments: {},
-      other: {}
+      other: {},
     };
   });
 
@@ -42,7 +42,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/knows": {
         iri: "http://example.org/knows",
@@ -58,11 +58,14 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/john": {
         iri: "http://example.org/john",
-        types: new Set(["http://www.w3.org/2002/07/owl#NamedIndividual", "http://example.org/Person"]),
+        types: new Set([
+          "http://www.w3.org/2002/07/owl#NamedIndividual",
+          "http://example.org/Person",
+        ]),
         labels: { en: "John" },
         comments: {},
         domains: [],
@@ -74,8 +77,8 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
-      }
+        disjointWith: [],
+      },
     };
 
     const languagesSet = new Set(["en", "undefined"]);
@@ -115,8 +118,8 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
-      }
+        disjointWith: [],
+      },
     };
 
     convertOntology(subjects, new Set(), resolver, context, header);
@@ -146,7 +149,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: ["http://example.org/Pet"]
+        disjointWith: ["http://example.org/Pet"],
       },
       "http://example.org/Pet": {
         iri: "http://example.org/Pet",
@@ -162,7 +165,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/hasPet": {
         iri: "http://example.org/hasPet",
@@ -178,14 +181,14 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: ["http://example.org/petOf"],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
-      }
+        disjointWith: [],
+      },
     };
 
     // Setup a subclass relation in context
     context.subclassRelations.push({
       subclassIri: "http://example.org/Pet",
-      superclassIri: "http://example.org/Animal"
+      superclassIri: "http://example.org/Animal",
     });
 
     convertOntology(subjects, new Set(), resolver, context, header);
@@ -217,7 +220,7 @@ describe("ontologyConverter.js unit tests", () => {
       domainIri: "http://example.org/Student",
       propertyIri: "http://example.org/enrolledIn",
       rangeIri: "http://example.org/Course",
-      type: "owl:someValuesFrom"
+      type: "owl:someValuesFrom",
     });
 
     // Setup cardinality in context
@@ -225,7 +228,7 @@ describe("ontologyConverter.js unit tests", () => {
       propertyIri: "http://example.org/enrolledIn",
       minCardinality: "1",
       maxCardinality: "5",
-      cardinality: null
+      cardinality: null,
     });
 
     const subjects = {
@@ -243,7 +246,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/Course": {
         iri: "http://example.org/Course",
@@ -259,8 +262,8 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
-      }
+        disjointWith: [],
+      },
     };
 
     convertOntology(subjects, new Set(), resolver, context, header);
@@ -294,7 +297,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/Course": {
         iri: "http://example.org/Course",
@@ -310,7 +313,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/prop1": {
         iri: "http://example.org/prop1",
@@ -326,7 +329,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/prop2": {
         iri: "http://example.org/prop2",
@@ -342,8 +345,8 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
-      }
+        disjointWith: [],
+      },
     };
 
     convertOntology(subjects, new Set(), resolver, context, header);
@@ -383,7 +386,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/ClassB": {
         iri: "http://example.org/ClassB",
@@ -399,7 +402,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/propMulti": {
         iri: "http://example.org/propMulti",
@@ -415,8 +418,8 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
-      }
+        disjointWith: [],
+      },
     };
 
     convertOntology(subjects, new Set(), resolver, context, header);
@@ -463,7 +466,7 @@ describe("ontologyConverter.js unit tests", () => {
         equivalentClasses: [],
         equivalentProperties: [],
         disjointWith: [],
-        annotations: {}
+        annotations: {},
       },
       "http://example.org/ClassA": {
         iri: "http://example.org/ClassA",
@@ -479,7 +482,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: ["http://other.org/ClassB"],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://other.org/ClassB": {
         iri: "http://other.org/ClassB",
@@ -495,8 +498,8 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: ["http://example.org/ClassA"],
         equivalentProperties: [],
-        disjointWith: []
-      }
+        disjointWith: [],
+      },
     };
 
     convertOntology(subjects, new Set(), resolver, context, header);
@@ -532,10 +535,16 @@ describe("ontologyConverter.js unit tests", () => {
         equivalentClasses: [],
         equivalentProperties: [],
         disjointWith: [],
-        intersectionOf: ["http://example.org/ClassB", "http://example.org/ClassC"],
+        intersectionOf: [
+          "http://example.org/ClassB",
+          "http://example.org/ClassC",
+        ],
         complementOf: "http://example.org/ClassD",
-        disjointUnionOf: ["http://example.org/ClassB", "http://example.org/ClassC"],
-        hasKeys: ["http://example.org/propKey"]
+        disjointUnionOf: [
+          "http://example.org/ClassB",
+          "http://example.org/ClassC",
+        ],
+        hasKeys: ["http://example.org/propKey"],
       },
       "http://example.org/ClassB": {
         iri: "http://example.org/ClassB",
@@ -551,7 +560,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/ClassC": {
         iri: "http://example.org/ClassC",
@@ -567,7 +576,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/ClassD": {
         iri: "http://example.org/ClassD",
@@ -583,7 +592,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/propKey": {
         iri: "http://example.org/propKey",
@@ -599,8 +608,8 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
-      }
+        disjointWith: [],
+      },
     };
 
     convertOntology(subjects, new Set(), resolver, context, header);
@@ -641,7 +650,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/classB": {
         iri: "http://example.org/classB",
@@ -657,7 +666,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/propertyA": {
         iri: "http://example.org/propertyA",
@@ -673,7 +682,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/propertyB": {
         iri: "http://example.org/propertyB",
@@ -689,8 +698,8 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: ["http://example.org/propertyA"],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
-      }
+        disjointWith: [],
+      },
     };
 
     convertOntology(subjects, new Set(), resolver, context, header);
@@ -728,7 +737,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/ClassB": {
         iri: "http://example.org/ClassB",
@@ -744,7 +753,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/propA": {
         iri: "http://example.org/propA",
@@ -760,7 +769,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/propB": {
         iri: "http://example.org/propB",
@@ -776,8 +785,8 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
-      }
+        disjointWith: [],
+      },
     };
 
     convertOntology(subjects, new Set(), resolver, context, header);
@@ -807,7 +816,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: ["_:anon_1"],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "_:anon_1": {
         iri: "_:anon_1",
@@ -825,7 +834,7 @@ describe("ontologyConverter.js unit tests", () => {
         equivalentProperties: [],
         disjointWith: [],
         unionOf: ["http://example.org/Product", "http://example.org/Service"],
-        annotations: {}
+        annotations: {},
       },
       "http://example.org/Product": {
         iri: "http://example.org/Product",
@@ -841,7 +850,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/Service": {
         iri: "http://example.org/Service",
@@ -857,8 +866,8 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: [],
         equivalentProperties: [],
-        disjointWith: []
-      }
+        disjointWith: [],
+      },
     };
 
     convertOntology(subjects, new Set(), resolver, context, header);
@@ -891,7 +900,7 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: ["http://example.org/ClassY"],
         equivalentProperties: [],
-        disjointWith: []
+        disjointWith: [],
       },
       "http://example.org/ClassY": {
         iri: "http://example.org/ClassY",
@@ -907,8 +916,8 @@ describe("ontologyConverter.js unit tests", () => {
         inverses: [],
         equivalentClasses: ["http://example.org/ClassX"],
         equivalentProperties: [],
-        disjointWith: []
-      }
+        disjointWith: [],
+      },
     };
 
     convertOntology(subjects, new Set(), resolver, context, header);
@@ -929,26 +938,50 @@ describe("ontologyConverter.js unit tests", () => {
       domainIri: "http://example.org/GregorianMonth",
       propertyIri: "http://example.org/unitType",
       rangeIri: "http://example.org/unitMonth",
-      type: "owl:hasValue"
+      type: "owl:hasValue",
     });
 
     const subjects = {
       "http://example.org/GregorianMonth": {
         iri: "http://example.org/GregorianMonth",
         types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
-        labels: {}, comments: {}, domains: [], ranges: [], superClasses: [], subClasses: [], superProperties: [], subProperties: [], inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: []
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [],
       },
       "http://example.org/unitMonth": {
         iri: "http://example.org/unitMonth",
         types: new Set(["http://example.org/TemporalUnit"]),
-        labels: {}, comments: {}, domains: [], ranges: [], superClasses: [], subClasses: [], superProperties: [], subProperties: [], inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: []
-      }
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [],
+      },
     };
 
     convertOntology(subjects, new Set(), resolver, context, header);
 
     // GregorianMonth should exist as class
-    const monthClass = context.classMap.get("http://example.org/GregorianMonth");
+    const monthClass = context.classMap.get(
+      "http://example.org/GregorianMonth",
+    );
     expect(monthClass).toBeDefined();
 
     // unitMonth should NOT exist in the classMap
@@ -966,42 +999,92 @@ describe("ontologyConverter.js unit tests", () => {
       "http://example.org/TimePosition": {
         iri: "http://example.org/TimePosition",
         types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
-        labels: {}, comments: {}, domains: [], ranges: [],
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
         superClasses: [anonUnionIri],
-        subClasses: [], superProperties: [], subProperties: [], inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
-        unionOf: null, intersectionOf: null
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [],
+        unionOf: null,
+        intersectionOf: null,
       },
       [anonUnionIri]: {
         iri: anonUnionIri,
         types: new Set([]),
-        labels: {}, comments: {}, domains: [], ranges: [],
-        superClasses: [], subClasses: [], superProperties: [], subProperties: [], inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
-        unionOf: [anonRestr1, anonRestr2]
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [],
+        unionOf: [anonRestr1, anonRestr2],
       },
       [anonRestr1]: {
         iri: anonRestr1,
         types: new Set(["http://www.w3.org/2002/07/owl#Restriction"]),
-        labels: {}, comments: {}, domains: [], ranges: [],
-        superClasses: [], subClasses: [], superProperties: [], subProperties: [], inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
-        annotations: { onProperty: [{ value: "http://example.org/#numericPosition", type: "iri" }] }
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [],
+        annotations: {
+          onProperty: [
+            { value: "http://example.org/#numericPosition", type: "iri" },
+          ],
+        },
       },
       [anonRestr2]: {
         iri: anonRestr2,
         types: new Set(["http://www.w3.org/2002/07/owl#Restriction"]),
-        labels: {}, comments: {}, domains: [], ranges: [],
-        superClasses: [], subClasses: [], superProperties: [], subProperties: [], inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
-        annotations: { onProperty: [{ value: "http://example.org/#nominalPosition", type: "iri" }] }
-      }
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [],
+        annotations: {
+          onProperty: [
+            { value: "http://example.org/#nominalPosition", type: "iri" },
+          ],
+        },
+      },
     };
 
     convertOntology(subjects, new Set(), resolver, context, header);
 
-    const timePosClass = context.classMap.get("http://example.org/TimePosition");
+    const timePosClass = context.classMap.get(
+      "http://example.org/TimePosition",
+    );
     expect(timePosClass).toBeDefined();
 
     // No subclass relation should be created from TimePosition to the anonymous restriction-only union
     const subclassRelations = context.subclassRelations.filter(
-      r => r.subclassIri === "http://example.org/TimePosition"
+      (r) => r.subclassIri === "http://example.org/TimePosition",
     );
     expect(subclassRelations.length).toBe(0);
   });
@@ -1013,18 +1096,39 @@ describe("ontologyConverter.js unit tests", () => {
         types: new Set(["http://www.w3.org/2002/07/owl#Ontology"]),
         labels: { en: "GoodRelations Ontology" },
         comments: { en: "The GoodRelations ontology provides..." },
-        domains: [], ranges: [], superClasses: [], subClasses: [],
-        superProperties: [], subProperties: [], inverses: [],
-        equivalentClasses: [], equivalentProperties: [], disjointWith: [],
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [],
         annotations: {
-          title: [{ value: "The GoodRelations Vocabulary", language: "en", type: "label" }],
+          title: [
+            {
+              value: "The GoodRelations Vocabulary",
+              language: "en",
+              type: "label",
+            },
+          ],
           creator: [{ value: "Martin Hepp", language: "en", type: "label" }],
           versionInfo: [{ value: "V 1.0", language: "en", type: "label" }],
-          label: [{ value: "GoodRelations Ontology", language: "en", type: "label" }],
-          comment: [{ value: "The GoodRelations ontology provides...", language: "en", type: "label" }],
-          rights: [{ value: "CC-BY 3.0", language: "en", type: "label" }]
-        }
-      }
+          label: [
+            { value: "GoodRelations Ontology", language: "en", type: "label" },
+          ],
+          comment: [
+            {
+              value: "The GoodRelations ontology provides...",
+              language: "en",
+              type: "label",
+            },
+          ],
+          rights: [{ value: "CC-BY 3.0", language: "en", type: "label" }],
+        },
+      },
     };
 
     const languagesSet = new Set(["undefined", "en"]);
@@ -1035,7 +1139,9 @@ describe("ontologyConverter.js unit tests", () => {
     // Labels should be taken from rdfs:label
     expect(header.labels).toEqual({ en: "GoodRelations Ontology" });
     // Comments should be taken from rdfs:comment
-    expect(header.comments).toEqual({ en: "The GoodRelations ontology provides..." });
+    expect(header.comments).toEqual({
+      en: "The GoodRelations ontology provides...",
+    });
     // Author & Version
     expect(header.author).toEqual(["Martin Hepp"]);
     expect(header.version).toBe("V 1.0");
@@ -1056,34 +1162,59 @@ describe("ontologyConverter.js unit tests", () => {
     const subjects = {
       "http://xmlns.com/foaf/0.1/primaryTopic": {
         iri: "http://xmlns.com/foaf/0.1/primaryTopic",
-        types: new Set(["http://www.w3.org/2002/07/owl#ObjectProperty", "http://www.w3.org/2002/07/owl#FunctionalProperty"]),
+        types: new Set([
+          "http://www.w3.org/2002/07/owl#ObjectProperty",
+          "http://www.w3.org/2002/07/owl#FunctionalProperty",
+        ]),
         labels: { en: "primary topic" },
-        comments: {}, domains: ["http://xmlns.com/foaf/0.1/Document"], ranges: ["http://www.w3.org/2002/07/owl#Thing"],
-        superClasses: [], subClasses: [], superProperties: [], subProperties: [],
-        inverses: ["http://xmlns.com/foaf/0.1/isPrimaryTopicOf"], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
-        annotations: {}
+        comments: {},
+        domains: ["http://xmlns.com/foaf/0.1/Document"],
+        ranges: ["http://www.w3.org/2002/07/owl#Thing"],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: ["http://xmlns.com/foaf/0.1/isPrimaryTopicOf"],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [],
+        annotations: {},
       },
       "http://xmlns.com/foaf/0.1/isPrimaryTopicOf": {
         iri: "http://xmlns.com/foaf/0.1/isPrimaryTopicOf",
-        types: new Set(["http://www.w3.org/2002/07/owl#ObjectProperty", "http://www.w3.org/2002/07/owl#InverseFunctionalProperty"]),
+        types: new Set([
+          "http://www.w3.org/2002/07/owl#ObjectProperty",
+          "http://www.w3.org/2002/07/owl#InverseFunctionalProperty",
+        ]),
         labels: { en: "is primary topic of" },
         comments: { en: "A document that this thing is the primary topic of." },
-        domains: ["http://www.w3.org/2002/07/owl#Thing"], ranges: ["http://xmlns.com/foaf/0.1/Document"],
-        superClasses: [], subClasses: [], superProperties: [], subProperties: [],
-        inverses: ["http://xmlns.com/foaf/0.1/primaryTopic"], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
-        annotations: {}
-      }
+        domains: ["http://www.w3.org/2002/07/owl#Thing"],
+        ranges: ["http://xmlns.com/foaf/0.1/Document"],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: ["http://xmlns.com/foaf/0.1/primaryTopic"],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [],
+        annotations: {},
+      },
     };
 
     convertOntology(subjects, new Set(["en"]), resolver, context, header);
 
-    const isPrimaryTopicOf = context.propertyMap.get("http://xmlns.com/foaf/0.1/isPrimaryTopicOf");
+    const isPrimaryTopicOf = context.propertyMap.get(
+      "http://xmlns.com/foaf/0.1/isPrimaryTopicOf",
+    );
     expect(isPrimaryTopicOf).toBeDefined();
     expect(isPrimaryTopicOf.attributes).toContain("inverse functional");
     expect(isPrimaryTopicOf.attributes).not.toContain("inferred");
     expect(isPrimaryTopicOf.label.en).toBe("is primary topic of");
 
-    const primaryTopic = context.propertyMap.get("http://xmlns.com/foaf/0.1/primaryTopic");
+    const primaryTopic = context.propertyMap.get(
+      "http://xmlns.com/foaf/0.1/primaryTopic",
+    );
     expect(primaryTopic).toBeDefined();
     expect(primaryTopic.attributes).toContain("functional");
     expect(primaryTopic.attributes).not.toContain("inferred");
@@ -1094,48 +1225,99 @@ describe("ontologyConverter.js unit tests", () => {
       "http://example.org/ClassA": {
         iri: "http://example.org/ClassA",
         types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
-        labels: {}, comments: {}, domains: [], ranges: [],
-        superClasses: ["http://example.org/ClassB", "http://example.org/ClassB"],
-        subClasses: [], superProperties: [], subProperties: [],
-        inverses: [], equivalentClasses: [], equivalentProperties: [],
-        disjointWith: ["http://example.org/ClassB", "http://example.org/ClassB"],
-        annotations: {}
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [
+          "http://example.org/ClassB",
+          "http://example.org/ClassB",
+        ],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [
+          "http://example.org/ClassB",
+          "http://example.org/ClassB",
+        ],
+        annotations: {},
       },
       "http://example.org/ClassB": {
         iri: "http://example.org/ClassB",
         types: new Set(["http://www.w3.org/2002/07/owl#Class"]),
-        labels: {}, comments: {}, domains: [], ranges: [],
-        superClasses: [], subClasses: [], superProperties: [], subProperties: [],
-        inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
-        annotations: {}
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [],
+        annotations: {},
       },
       "http://example.org/propSub": {
         iri: "http://example.org/propSub",
         types: new Set(["http://www.w3.org/2002/07/owl#ObjectProperty"]),
-        labels: {}, comments: {}, domains: [], ranges: [],
-        superClasses: [], subClasses: [],
-        superProperties: ["http://example.org/propSuper"], subProperties: [],
-        inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
-        annotations: {}
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: ["http://example.org/propSuper"],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [],
+        annotations: {},
       },
       "http://example.org/propSuper": {
         iri: "http://example.org/propSuper",
         types: new Set(["http://example.org/owl#ObjectProperty"]),
-        labels: {}, comments: {}, domains: [], ranges: [],
-        superClasses: [], subClasses: [], superProperties: [], subProperties: [],
-        inverses: [], equivalentClasses: [], equivalentProperties: [], disjointWith: [],
-        annotations: {}
-      }
+        labels: {},
+        comments: {},
+        domains: [],
+        ranges: [],
+        superClasses: [],
+        subClasses: [],
+        superProperties: [],
+        subProperties: [],
+        inverses: [],
+        equivalentClasses: [],
+        equivalentProperties: [],
+        disjointWith: [],
+        annotations: {},
+      },
     };
 
     context.subclassRelations.push(
-      { subclassIri: "http://example.org/ClassA", superclassIri: "http://example.org/ClassB" },
-      { subclassIri: "http://example.org/ClassA", superclassIri: "http://example.org/ClassB" }
+      {
+        subclassIri: "http://example.org/ClassA",
+        superclassIri: "http://example.org/ClassB",
+      },
+      {
+        subclassIri: "http://example.org/ClassA",
+        superclassIri: "http://example.org/ClassB",
+      },
     );
 
     context.subpropertyRelations.push(
-      { subpropIri: "http://example.org/propSub", superpropIri: "http://example.org/propSuper" },
-      { subpropIri: "http://example.org/propSub", superpropIri: "http://example.org/propSuper" }
+      {
+        subpropIri: "http://example.org/propSub",
+        superpropIri: "http://example.org/propSuper",
+      },
+      {
+        subpropIri: "http://example.org/propSub",
+        superpropIri: "http://example.org/propSuper",
+      },
     );
 
     convertOntology(subjects, new Set(["en"]), resolver, context, header);

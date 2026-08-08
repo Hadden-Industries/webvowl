@@ -7,7 +7,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const WORKSPACE_PARENT = path.join(__dirname, "..", "..", "..", "..");
-export const LOCAL_ONTOLOGY_DIR = path.join(WORKSPACE_PARENT, "universal-ontology");
+export const LOCAL_ONTOLOGY_DIR = path.join(
+  WORKSPACE_PARENT,
+  "universal-ontology",
+);
 export const LOCAL_ONTOLOGY_DIST_DIR = path.join(LOCAL_ONTOLOGY_DIR, "dist");
 
 export function getLocalOntologyPath(requestUrl) {
@@ -23,17 +26,14 @@ export function getLocalOntologyPath(requestUrl) {
 
     return path.join(
       LOCAL_ONTOLOGY_DIST_DIR,
-      ...relativeUrlPath.split("/").filter(Boolean)
+      ...relativeUrlPath.split("/").filter(Boolean),
     );
   }
 
   const relativeOntologyPath = urlToResolve.replace(
     /^\.\.[\\/]ontology[\\/]/,
-    ""
+    "",
   );
 
-  return path.join(
-    LOCAL_ONTOLOGY_DIR,
-    relativeOntologyPath
-  );
+  return path.join(LOCAL_ONTOLOGY_DIR, relativeOntologyPath);
 }

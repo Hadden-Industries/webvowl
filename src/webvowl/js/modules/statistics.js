@@ -3,8 +3,7 @@ const OwlThing = require("../elements/nodes/implementations/OwlThing");
 const OwlNothing = require("../elements/nodes/implementations/OwlNothing");
 const elementTools = require("../util/elementTools")();
 
-module.exports = function (){
-  
+module.exports = function () {
   const statistics = {};
   let nodeCount;
   const occurencesOfClassAndDatatypeTypes = {};
@@ -18,25 +17,27 @@ module.exports = function (){
   let totalIndividualCount;
   let filteredNodes;
   let filteredProperties;
-  
-  
-  statistics.filter = function ( classesAndDatatypes, properties ){
+
+  statistics.filter = function (classesAndDatatypes, properties) {
     resetStoredData();
-    
+
     storeTotalCounts(classesAndDatatypes, properties);
     storeClassAndDatatypeCount(classesAndDatatypes);
     storePropertyCount(properties);
-    
-    storeOccurencesOfTypes(classesAndDatatypes, occurencesOfClassAndDatatypeTypes);
+
+    storeOccurencesOfTypes(
+      classesAndDatatypes,
+      occurencesOfClassAndDatatypeTypes,
+    );
     storeOccurencesOfTypes(properties, occurencesOfPropertyTypes);
-    
+
     storeTotalIndividualCount(classesAndDatatypes);
-    
+
     filteredNodes = classesAndDatatypes;
     filteredProperties = properties;
   };
-  
-  function resetStoredData(){
+
+  function resetStoredData() {
     nodeCount = 0;
     edgeCount = 0;
     classCount = 0;
@@ -46,93 +47,93 @@ module.exports = function (){
     propertyCount = 0;
     totalIndividualCount = 0;
   }
-  
-  function storeTotalCounts( classesAndDatatypes, properties ){
+
+  function storeTotalCounts(classesAndDatatypes, properties) {
     nodeCount = classesAndDatatypes.length;
-    
+
     const seenProperties = require("../util/set")();
     let i, l, property;
-    for ( i = 0, l = properties.length; i < l; i++ ) {
+    for (i = 0, l = properties.length; i < l; i++) {
       property = properties[i];
-      if ( !seenProperties.has(property) ) {
+      if (!seenProperties.has(property)) {
         edgeCount += 1;
       }
-      
+
       seenProperties.add(property);
-      if ( property.inverse() ) {
+      if (property.inverse()) {
         seenProperties.add(property.inverse());
       }
     }
   }
-  
-  function storeClassAndDatatypeCount( classesAndDatatypes ){
+
+  function storeClassAndDatatypeCount(classesAndDatatypes) {
     // Each datatype should be counted just a single time
     const datatypeSet = new Set();
     classCount = 0;
-    classesAndDatatypes.forEach(function ( node ){
-      if ( elementTools.isDatatype(node) ) {
+    classesAndDatatypes.forEach(function (node) {
+      if (elementTools.isDatatype(node)) {
         datatypeSet.add(node.defaultLabel());
-      } else if ( !(node instanceof SetOperatorNode) ) {
-        if ( !(node instanceof OwlThing) && !(node instanceof OwlNothing) ) {
+      } else if (!(node instanceof SetOperatorNode)) {
+        if (!(node instanceof OwlThing) && !(node instanceof OwlNothing)) {
           const adds = 1 + countElementArray(node.equivalents());
           classCount += adds;
         }
-      } else if ( node instanceof SetOperatorNode ) {
+      } else if (node instanceof SetOperatorNode) {
         classCount += 1;
       }
     });
-    
+
     // count things and nothings just a single time
     // classCount += hasThing ? 1 : 0;
     // classCount += hasNothing ? 1 : 0;
-    
+
     datatypeCount = datatypeSet.size;
   }
-  
-  function storePropertyCount( properties ){
-    for ( let i = 0, l = properties.length; i < l; i++ ) {
+
+  function storePropertyCount(properties) {
+    for (let i = 0, l = properties.length; i < l; i++) {
       const property = properties[i];
       let attr;
       let result = false;
-      if ( property.attributes ) {
+      if (property.attributes) {
         attr = property.attributes();
-        if ( attr && attr.indexOf("datatype") !== -1 ) {
+        if (attr && attr.indexOf("datatype") !== -1) {
           result = true;
         }
       }
-      if ( result === true ) {
+      if (result === true) {
         datatypePropertyCount += getExtendedPropertyCount(property);
-      } else if ( elementTools.isObjectProperty(property) ) {
+      } else if (elementTools.isObjectProperty(property)) {
         objectPropertyCount += getExtendedPropertyCount(property);
       }
     }
     propertyCount = objectPropertyCount + datatypePropertyCount;
   }
-  
-  function getExtendedPropertyCount( property ){
+
+  function getExtendedPropertyCount(property) {
     // count the property itself
     let count = 1;
-    
+
     // and count properties this property represents
     count += countElementArray(property.equivalents());
     count += countElementArray(property.redundantProperties());
-    
+
     return count;
   }
-  
-  function countElementArray( properties ){
-    if ( properties ) {
+
+  function countElementArray(properties) {
+    if (properties) {
       return properties.length;
     }
     return 0;
   }
-  
-  function storeOccurencesOfTypes( elements, storage ){
-    elements.forEach(function ( element ){
+
+  function storeOccurencesOfTypes(elements, storage) {
+    elements.forEach(function (element) {
       const type = element.type();
       let typeCount = storage[type];
-      
-      if ( typeof typeCount === "undefined" ) {
+
+      if (typeof typeCount === "undefined") {
         typeCount = 0;
       } else {
         typeCount += 1;
@@ -140,16 +141,16 @@ module.exports = function (){
       storage[type] = typeCount;
     });
   }
-  
-  function storeTotalIndividualCount( nodes ){
+
+  function storeTotalIndividualCount(nodes) {
     const sawIndividuals = {};
     let totalCount = 0;
-    for ( let i = 0, l = nodes.length; i < l; i++ ) {
+    for (let i = 0, l = nodes.length; i < l; i++) {
       const individuals = nodes[i].individuals();
-      
+
       let tempCount = 0;
-      for ( let iA = 0; iA < individuals.length; iA++ ) {
-        if ( sawIndividuals[individuals[iA].iri()] === undefined ) {
+      for (let iA = 0; iA < individuals.length; iA++) {
+        if (sawIndividuals[individuals[iA].iri()] === undefined) {
           sawIndividuals[individuals[iA].iri()] = 1; // this iri for that individual is now set to 1 >> seen it
           tempCount++;
         }
@@ -158,58 +159,55 @@ module.exports = function (){
     }
     totalIndividualCount = totalCount;
   }
-  
-  
-  statistics.nodeCount = function (){
+
+  statistics.nodeCount = function () {
     return nodeCount;
   };
-  
-  statistics.occurencesOfClassAndDatatypeTypes = function (){
+
+  statistics.occurencesOfClassAndDatatypeTypes = function () {
     return occurencesOfClassAndDatatypeTypes;
   };
-  
-  statistics.edgeCount = function (){
+
+  statistics.edgeCount = function () {
     return edgeCount;
   };
-  
-  statistics.occurencesOfPropertyTypes = function (){
+
+  statistics.occurencesOfPropertyTypes = function () {
     return occurencesOfPropertyTypes;
   };
-  
-  statistics.classCount = function (){
+
+  statistics.classCount = function () {
     return classCount;
   };
-  
-  statistics.datatypeCount = function (){
+
+  statistics.datatypeCount = function () {
     return datatypeCount;
   };
-  
-  statistics.datatypePropertyCount = function (){
+
+  statistics.datatypePropertyCount = function () {
     return datatypePropertyCount;
   };
-  
-  statistics.objectPropertyCount = function (){
+
+  statistics.objectPropertyCount = function () {
     return objectPropertyCount;
   };
-  
-  statistics.propertyCount = function (){
+
+  statistics.propertyCount = function () {
     return propertyCount;
   };
-  
-  statistics.totalIndividualCount = function (){
+
+  statistics.totalIndividualCount = function () {
     return totalIndividualCount;
   };
-  
-  
+
   // Functions a filter must have
-  statistics.filteredNodes = function (){
+  statistics.filteredNodes = function () {
     return filteredNodes;
   };
-  
-  statistics.filteredProperties = function (){
+
+  statistics.filteredProperties = function () {
     return filteredProperties;
   };
-  
-  
+
   return statistics;
 };

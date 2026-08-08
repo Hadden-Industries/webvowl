@@ -1,14 +1,16 @@
 const AbstractTextElement = require("./AbstractTextElement");
 
-function createTextSelection(){
+function createTextSelection() {
   const classes = {};
   const selection = {
     classes,
-    classed: function (name, value){
+    classed: function (name, value) {
       classes[name] = value;
       return selection;
     },
-    attr: function (){return selection;}
+    attr: function () {
+      return selection;
+    },
   };
   return selection;
 }

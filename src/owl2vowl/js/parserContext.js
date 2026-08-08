@@ -6,15 +6,15 @@ export class VowlParserContext {
   #idCounter = 0;
 
   constructor() {
-    this.classMap = new Map();     // IRI -> VOWL Class Node Object
-    this.propertyMap = new Map();  // IRI -> VOWL Property Edge Object
-    this.subclassRelations = [];   // Array of { subclassIri, superclassIri }
+    this.classMap = new Map(); // IRI -> VOWL Class Node Object
+    this.propertyMap = new Map(); // IRI -> VOWL Property Edge Object
+    this.subclassRelations = []; // Array of { subclassIri, superclassIri }
     this.subpropertyRelations = []; // Array of { subpropIri, superpropIri }
-    this.parsedRestrictions = [];  // Array of { domainIri, propertyIri, rangeIri, type }
+    this.parsedRestrictions = []; // Array of { domainIri, propertyIri, rangeIri, type }
     this.parsedCardinalities = []; // Array of { propertyIri, minCardinality, maxCardinality, cardinality }
-    this.virtualDatatypes = [];    // Visual-individualized Datatype representations
-    this.parsedIndividuals = [];   // List of parsed NamedIndividual models
-    this.virtualThings = [];       // Visual-individualized Thing representations
+    this.virtualDatatypes = []; // Visual-individualized Datatype representations
+    this.parsedIndividuals = []; // List of parsed NamedIndividual models
+    this.virtualThings = []; // Visual-individualized Thing representations
   }
 
   /**

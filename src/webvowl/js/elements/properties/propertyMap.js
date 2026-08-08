@@ -14,10 +14,12 @@ properties.push(require("./implementations/RdfProperty"));
 properties.push(require("./implementations/RdfsSubClassOf"));
 properties.push(require("./implementations/SetOperatorProperty"));
 
-const map = new Map(properties.map(function ( Prototype ){
-  return [new Prototype().type(), Prototype];
-}));
+const map = new Map(
+  properties.map(function (Prototype) {
+    return [new Prototype().type(), Prototype];
+  }),
+);
 
-module.exports = function (){
+module.exports = function () {
   return map;
 };

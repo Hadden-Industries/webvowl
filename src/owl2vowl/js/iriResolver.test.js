@@ -16,46 +16,74 @@ describe("PerformanceIriResolver", () => {
     });
 
     test("leaves absolute IRIs untouched", () => {
-      expect(resolver.resolve("http://another.org/test")).toBe("http://another.org/test");
-      expect(resolver.resolve("https://example.com/schema#Prop")).toBe("https://example.com/schema#Prop");
+      expect(resolver.resolve("http://another.org/test")).toBe(
+        "http://another.org/test",
+      );
+      expect(resolver.resolve("https://example.com/schema#Prop")).toBe(
+        "https://example.com/schema#Prop",
+      );
     });
 
     test("resolves fragment IRIs starting with #", () => {
       // Base without hash
-      expect(resolver.resolve("#Class1")).toBe("http://example.org/ontology#Class1");
-      
+      expect(resolver.resolve("#Class1")).toBe(
+        "http://example.org/ontology#Class1",
+      );
+
       // Base with hash
-      const hashResolver = new PerformanceIriResolver("http://example.org/ontology#");
-      expect(hashResolver.resolve("#Class1")).toBe("http://example.org/ontology#Class1");
+      const hashResolver = new PerformanceIriResolver(
+        "http://example.org/ontology#",
+      );
+      expect(hashResolver.resolve("#Class1")).toBe(
+        "http://example.org/ontology#Class1",
+      );
     });
 
     test("resolves relative IRIs with base endings", () => {
       // Base ending with slash
-      const slashResolver = new PerformanceIriResolver("http://example.org/ontology/");
-      expect(slashResolver.resolve("Class1")).toBe("http://example.org/ontology/Class1");
+      const slashResolver = new PerformanceIriResolver(
+        "http://example.org/ontology/",
+      );
+      expect(slashResolver.resolve("Class1")).toBe(
+        "http://example.org/ontology/Class1",
+      );
 
       // Base ending with hash
-      const hashResolver = new PerformanceIriResolver("http://example.org/ontology#");
-      expect(hashResolver.resolve("Class1")).toBe("http://example.org/ontology#Class1");
+      const hashResolver = new PerformanceIriResolver(
+        "http://example.org/ontology#",
+      );
+      expect(hashResolver.resolve("Class1")).toBe(
+        "http://example.org/ontology#Class1",
+      );
 
       // Base without ending
-      expect(resolver.resolve("Class1")).toBe("http://example.org/ontology#Class1");
+      expect(resolver.resolve("Class1")).toBe(
+        "http://example.org/ontology#Class1",
+      );
     });
 
     test("uses overridden baseIri when provided", () => {
       const customBase = "http://custom.com/";
-      expect(resolver.resolve("Prop", customBase)).toBe("http://custom.com/Prop");
-      expect(resolver.resolve("#Prop", customBase)).toBe("http://custom.com/#Prop"); // Wait, does customBase end with slash? yes. "#Prop" starts with #. activeBase = "http://custom.com/". activeBase.endsWith("#") is false. So activeBase + iri.substring(1) = "http://custom.com/#Prop". Yes!
+      expect(resolver.resolve("Prop", customBase)).toBe(
+        "http://custom.com/Prop",
+      );
+      expect(resolver.resolve("#Prop", customBase)).toBe(
+        "http://custom.com/#Prop",
+      ); // Wait, does customBase end with slash? yes. "#Prop" starts with #. activeBase = "http://custom.com/". activeBase.endsWith("#") is false. So activeBase + iri.substring(1) = "http://custom.com/#Prop". Yes!
     });
   });
 
   describe("getLocalName", () => {
     test("extracts local name from hash IRIs", () => {
-      expect(resolver.getLocalName("http://example.org#ClassName")).toBe("ClassName");
+      expect(resolver.getLocalName("http://example.org#ClassName")).toBe(
+        "ClassName",
+      );
     });
 
     test("extracts local name from slash IRIs", () => {
-      expect(resolver.getLocalName("http://example.org/ClassName")).toBe("ClassName");
+      expect(resolver.getLocalName("http://example.org/ClassName")).toBe(
+        "ClassName",
+      );
     });
 
     test("returns empty string or handles edge cases", () => {
@@ -67,11 +95,15 @@ describe("PerformanceIriResolver", () => {
 
   describe("getBaseIri", () => {
     test("extracts base namespace from hash IRIs", () => {
-      expect(resolver.getBaseIri("http://example.org#ClassName")).toBe("http://example.org");
+      expect(resolver.getBaseIri("http://example.org#ClassName")).toBe(
+        "http://example.org",
+      );
     });
 
     test("extracts base namespace from slash IRIs", () => {
-      expect(resolver.getBaseIri("http://example.org/ClassName")).toBe("http://example.org");
+      expect(resolver.getBaseIri("http://example.org/ClassName")).toBe(
+        "http://example.org",
+      );
     });
 
     test("returns empty string or handles edge cases", () => {
@@ -88,7 +120,7 @@ describe("PerformanceIriResolver", () => {
 
       try {
         const iri = "ClassName";
-        
+
         // --- 1. Test resolve cache ---
         setSpy.mockClear();
         getSpy.mockClear();
@@ -99,7 +131,7 @@ describe("PerformanceIriResolver", () => {
 
         const secondResolve = resolver.resolve(iri);
         expect(secondResolve).toBe("http://example.org/ontology#ClassName");
-        
+
         // Find if the set call was invoked for our cacheKey during the second resolve
         // In reality, it should not be called again
         const setCallsCountAfterFirst = setSpy.mock.calls.length;

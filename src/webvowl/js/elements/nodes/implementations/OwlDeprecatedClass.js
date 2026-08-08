@@ -1,10 +1,9 @@
 const RoundNode = require("../RoundNode");
 
-module.exports = (function (){
-  
-  const o = function ( graph ){
+module.exports = (function () {
+  const o = function (graph) {
     RoundNode.apply(this, arguments);
-    
+
     this.attributes(["deprecated"])
       .type("owl:DeprecatedClass")
       .styleClass("deprecated")
@@ -12,6 +11,6 @@ module.exports = (function (){
   };
   o.prototype = Object.create(RoundNode.prototype);
   o.prototype.constructor = o;
-  
+
   return o;
-}());
+})();

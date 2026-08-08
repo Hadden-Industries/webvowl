@@ -16,7 +16,7 @@ describe("jsonLdParser", () => {
     });
 
     it("should reject XML, Turtle, OFN, Manchester, and KRSS2 inputs without running JSON.parse", () => {
-      expect(isJsonLdFormat("<rdf:RDF xmlns:rdf=\"...\">")).toBe(false);
+      expect(isJsonLdFormat('<rdf:RDF xmlns:rdf="...">')).toBe(false);
       expect(isJsonLdFormat("@prefix ex: <http://example.org/> .")).toBe(false);
       expect(isJsonLdFormat("PREFIX ex: <http://example.org/>")).toBe(false);
       expect(isJsonLdFormat("Ontology(<http://example.com>)")).toBe(false);
@@ -33,14 +33,17 @@ describe("jsonLdParser", () => {
       const jsonLd1 = JSON.stringify({
         "@context": "http://schema.org",
         "@type": "Person",
-        name: "John Doe"
+        name: "John Doe",
       });
       expect(isJsonLdFormat(jsonLd1)).toBe(true);
 
       const jsonLd2 = JSON.stringify({
         "@graph": [
-          { "@id": "http://example.org/person1", "@type": "http://xmlns.com/foaf/0.1/Person" }
-        ]
+          {
+            "@id": "http://example.org/person1",
+            "@type": "http://xmlns.com/foaf/0.1/Person",
+          },
+        ],
       });
       expect(isJsonLdFormat(jsonLd2)).toBe(true);
     });
@@ -56,22 +59,22 @@ describe("jsonLdParser", () => {
     it("should parse a JSON-LD document into valid RDF/XML containing classes and properties", async () => {
       const jsonLd = JSON.stringify({
         "@context": {
-          "ex": "http://example.org/vocab#",
-          "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-          "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-          "owl": "http://www.w3.org/2002/07/owl#"
+          ex: "http://example.org/vocab#",
+          rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+          rdfs: "http://www.w3.org/2000/01/rdf-schema#",
+          owl: "http://www.w3.org/2002/07/owl#",
         },
         "@graph": [
           {
             "@id": "ex:Person",
-            "@type": "owl:Class"
+            "@type": "owl:Class",
           },
           {
             "@id": "ex:Student",
             "@type": "owl:Class",
-            "rdfs:subClassOf": { "@id": "ex:Person" }
-          }
-        ]
+            "rdfs:subClassOf": { "@id": "ex:Person" },
+          },
+        ],
       });
 
       const doc = await parseToDom(jsonLd);
@@ -80,17 +83,19 @@ describe("jsonLdParser", () => {
 
       const subClasses = doc.getElementsByTagName("rdfs:subClassOf");
       expect(subClasses.length).toBeGreaterThan(0);
-      expect(subClasses[0].getAttribute("rdf:resource")).toBe("http://example.org/vocab#Person");
+      expect(subClasses[0].getAttribute("rdf:resource")).toBe(
+        "http://example.org/vocab#Person",
+      );
     });
 
     it("should handle literals with language tags and blank nodes correctly", async () => {
       const jsonLd = JSON.stringify({
         "@context": {
-          "ex": "http://example.org/vocab#",
-          "rdfs": "http://www.w3.org/2000/01/rdf-schema#"
+          ex: "http://example.org/vocab#",
+          rdfs: "http://www.w3.org/2000/01/rdf-schema#",
         },
         "@id": "_:b1",
-        "rdfs:label": { "@value": "Person Label", "@language": "en" }
+        "rdfs:label": { "@value": "Person Label", "@language": "en" },
       });
 
       const doc = await parseToDom(jsonLd);

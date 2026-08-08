@@ -1,10 +1,9 @@
 /**
  * Contains reusable function for drawing nodes.
  */
-module.exports = (function (){
-  
+module.exports = (function () {
   const tools = {};
-  
+
   /**
    * Append a circular class node with the passed attributes.
    * @param parent the parent element to which the circle will be appended
@@ -14,46 +13,55 @@ module.exports = (function (){
    * @param [backgroundColor]
    * @returns {*}
    */
-  tools.appendCircularClass = function ( parent, radius, cssClasses, tooltip, backgroundColor ){
-    const circle = parent.append("circle")
+  tools.appendCircularClass = function (
+    parent,
+    radius,
+    cssClasses,
+    tooltip,
+    backgroundColor,
+  ) {
+    const circle = parent
+      .append("circle")
       .classed("class", true)
       .attr("r", radius);
-    
+
     addCssClasses(circle, cssClasses);
     addToolTip(circle, tooltip);
     addBackgroundColor(circle, backgroundColor);
-    
+
     return circle;
   };
-  
-  function addCssClasses( element, cssClasses ){
-    if ( cssClasses instanceof Array ) {
-      cssClasses.forEach(function ( cssClass ){
+
+  function addCssClasses(element, cssClasses) {
+    if (cssClasses instanceof Array) {
+      cssClasses.forEach(function (cssClass) {
         element.classed(cssClass, true);
       });
     }
   }
-  
-  function addToolTip( element, tooltip ){
-    if ( tooltip ) {
+
+  function addToolTip(element, tooltip) {
+    if (tooltip) {
       element.append("title").text(tooltip);
     }
   }
-  
-  function addBackgroundColor( element, backgroundColor ){
+
+  function addBackgroundColor(element, backgroundColor) {
     const node = element.node();
     const hasCustomFill = Boolean(backgroundColor);
     element.classed("has-custom-fill", hasCustomFill);
-    if ( !node || !node.style ) {return;}
-    if ( hasCustomFill && typeof node.style.setProperty === "function" ) {
+    if (!node || !node.style) {
+      return;
+    }
+    if (hasCustomFill && typeof node.style.setProperty === "function") {
       node.style.setProperty("--vowl-fill", backgroundColor);
-    } else if ( typeof node.style.removeProperty === "function" ) {
+    } else if (typeof node.style.removeProperty === "function") {
       node.style.removeProperty("--vowl-fill");
     }
   }
 
   tools.setBackgroundColor = addBackgroundColor;
-  
+
   /**
    * Appends a rectangular class node with the passed attributes.
    * @param parent the parent element to which the rectangle will be appended
@@ -64,148 +72,162 @@ module.exports = (function (){
    * @param [backgroundColor]
    * @returns {*}
    */
-  tools.appendRectangularClass = function ( parent, width, height, cssClasses, tooltip, backgroundColor ){
-    const rectangle = parent.append("rect")
+  tools.appendRectangularClass = function (
+    parent,
+    width,
+    height,
+    cssClasses,
+    tooltip,
+    backgroundColor,
+  ) {
+    const rectangle = parent
+      .append("rect")
       .classed("class", true)
       .attr("x", -width / 2)
       .attr("y", -height / 2)
       .attr("width", width)
       .attr("height", height);
-    
+
     addCssClasses(rectangle, cssClasses);
     addToolTip(rectangle, tooltip);
     addBackgroundColor(rectangle, backgroundColor);
-    
+
     return rectangle;
   };
-  
-  tools.drawPin = function ( container, dx, dy, onClick, accuraciesHelperFunction, useAccuracyHelper ){
+
+  tools.drawPin = function (
+    container,
+    dx,
+    dy,
+    onClick,
+    accuraciesHelperFunction,
+    useAccuracyHelper,
+  ) {
     const pinGroupElement = container
       .append("g")
       .classed("hidden-in-export", true)
       .attr("transform", "translate(" + dx + "," + dy + ")");
-    
-    const base = pinGroupElement.append("circle")
+
+    const base = pinGroupElement
+      .append("circle")
       .classed("class pin feature", true)
       .attr("r", 12)
-      .on("click", function (event){
-        if ( onClick ) {
+      .on("click", function (event) {
+        if (onClick) {
           onClick();
         }
         event.stopPropagation();
       });
-    
-    pinGroupElement.append("line")
+
+    pinGroupElement
+      .append("line")
       .attr("x1", 0)
       .attr("x2", 0)
       .attr("y1", 12)
       .attr("y2", 16);
-    
-    if ( useAccuracyHelper === true ) {
-      pinGroupElement.append("circle")
+
+    if (useAccuracyHelper === true) {
+      pinGroupElement
+        .append("circle")
         .attr("r", 15)
         .attr("cx", -7)
         .attr("cy", -7)
         .classed("superHiddenElement ", true)
         .classed("superOpacityElement", !accuraciesHelperFunction())
-        .on("click", function (event){
-          if ( onClick ) {
+        .on("click", function (event) {
+          if (onClick) {
             onClick();
           }
           event.stopPropagation();
         })
-        .on("mouseover", function (){
+        .on("mouseover", function () {
           base.classed("feature_hover", true);
         })
-        .on("mouseout", function (){
+        .on("mouseout", function () {
           base.classed("feature_hover", false);
-        })
-      ;
-      
+        });
     }
-    
-    
+
     return pinGroupElement;
   };
-  
-  tools.drawRectHalo = function ( node, width, height, offset ){
+
+  tools.drawRectHalo = function (node, width, height, offset) {
     let container;
-    if ( node.nodeElement )
-      {container = node.nodeElement();}
-    else
-      {container = node.labelElement();}
-    
-    if ( !container ) {
+    if (node.nodeElement) {
+      container = node.nodeElement();
+    } else {
+      container = node.labelElement();
+    }
+
+    if (!container) {
       // console.log("no container found");
       return;
     }
-    
+
     const haloGroupElement = container
       .append("g")
       .classed("hidden-in-export", true);
-    
-    haloGroupElement.append("rect")
+
+    haloGroupElement
+      .append("rect")
       .classed("searchResultA", true)
       .attr("x", (-width - offset) / 2)
       .attr("y", (-offset - height) / 2)
       .attr("width", width + offset)
       .attr("height", height + offset);
     haloGroupElement.attr("animationRunning", true);
-    
-    haloGroupElement.node().addEventListener("webkitAnimationEnd", function (){
+
+    haloGroupElement.node().addEventListener("webkitAnimationEnd", function () {
       const test = haloGroupElement.selectAll(".searchResultA");
-      test.classed("searchResultA", false)
-        .classed("searchResultB", true);
+      test.classed("searchResultA", false).classed("searchResultB", true);
       haloGroupElement.attr("animationRunning", false);
     });
-    haloGroupElement.node().addEventListener("animationend", function (){
+    haloGroupElement.node().addEventListener("animationend", function () {
       const test = haloGroupElement.selectAll(".searchResultA");
-      test.classed("searchResultA", false)
-        .classed("searchResultB", true);
+      test.classed("searchResultA", false).classed("searchResultB", true);
       haloGroupElement.attr("animationRunning", false);
     });
-    
-    
+
     return haloGroupElement;
-    
   };
-  tools.drawHalo = function ( container, radius ){
-    if ( container === undefined ) {
+  tools.drawHalo = function (container, radius) {
+    if (container === undefined) {
       return null;
       // there is no element to add the halo to;
       // this means the node was not rendered previously
     }
-    
+
     const haloGroupElement = container
       .append("g")
       .classed("hidden-in-export", true);
-    
-    
-    haloGroupElement.append("circle", ":first-child")
+
+    haloGroupElement
+      .append("circle", ":first-child")
       .classed("searchResultA", true)
       .attr("r", radius + 15);
     haloGroupElement.attr("animationRunning", true);
-    
-    
-    haloGroupElement.node().addEventListener("webkitAnimationEnd", function (){
+
+    haloGroupElement.node().addEventListener("webkitAnimationEnd", function () {
       const test = haloGroupElement.selectAll(".searchResultA");
-      test.classed("searchResultA", false)
+      test
+        .classed("searchResultA", false)
         .classed("searchResultB", true)
         .attr("animationRunning", false);
       haloGroupElement.attr("animationRunning", false);
     });
-    haloGroupElement.node().addEventListener("animationend", function (){
+    haloGroupElement.node().addEventListener("animationend", function () {
       const test = haloGroupElement.selectAll(".searchResultA");
-      test.classed("searchResultA", false)
+      test
+        .classed("searchResultA", false)
         .classed("searchResultB", true)
         .attr("animationRunning", false);
       haloGroupElement.attr("animationRunning", false);
     });
-    
+
     return haloGroupElement;
   };
-  
-  return function (){
+
+  return function () {
     // Encapsulate into function to maintain default.module.path()
     return tools;
   };

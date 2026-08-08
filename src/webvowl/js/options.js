@@ -1,4 +1,4 @@
-module.exports = function (){
+module.exports = function () {
   const options = {};
   let data,
     graphContainerSelector,
@@ -60,7 +60,7 @@ module.exports = function (){
   let hideDebugOptions = true;
   let nodeDegreeFilter;
   let debugMenu;
-    
+
   // Sourced from the W3C OWL 2 Specification (https://www.w3.org/TR/owl2-syntax/#Real_Numbers.2C_Decimal_Numbers.2C_and_Integers)
   const supportedDatatypes = [
     "rdfs:Literal",
@@ -85,61 +85,70 @@ module.exports = function (){
     "xsd:float",
     "xsd:string",
     "xsd:dateTime",
-    "undefined"
+    "undefined",
   ];
   const supportedClasses = ["owl:Thing", "owl:Class", "owl:DeprecatedClass"];
-  const supportedProperties = ["owl:objectProperty",
+  const supportedProperties = [
+    "owl:objectProperty",
     "rdfs:subClassOf",
     "owl:disjointWith",
     "owl:allValuesFrom",
-    "owl:someValuesFrom"
+    "owl:someValuesFrom",
   ];
   const prefixList = {
-    rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-    rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
-    owl: 'http://www.w3.org/2002/07/owl#',
-    xsd: 'http://www.w3.org/2001/XMLSchema#',
-    dc: 'http://purl.org/dc/elements/1.1/#',
-    xml: 'http://www.w3.org/XML/1998/namespace'
+    rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    rdfs: "http://www.w3.org/2000/01/rdf-schema#",
+    owl: "http://www.w3.org/2002/07/owl#",
+    xsd: "http://www.w3.org/2001/XMLSchema#",
+    dc: "http://purl.org/dc/elements/1.1/#",
+    xml: "http://www.w3.org/XML/1998/namespace",
   };
-  
-  options.clearMetaObject = function (){
+
+  options.clearMetaObject = function () {
     generalOntologyMetaData = {};
   };
-  options.clearGeneralMetaObject = function (){
+  options.clearGeneralMetaObject = function () {
     generalOntologyMetaData = {};
   };
-  
-  options.debugMenu = function ( val ){
-    if ( !arguments.length ) {return debugMenu;}
+
+  options.debugMenu = function (val) {
+    if (!arguments.length) {
+      return debugMenu;
+    }
     debugMenu = val;
   };
-  
-  options.getHideDebugFeatures = function (){
+
+  options.getHideDebugFeatures = function () {
     return hideDebugOptions;
   };
-  options.executeHiddenDebugFeatuers = function (){
+  options.executeHiddenDebugFeatuers = function () {
     hideDebugOptions = !hideDebugOptions;
     d3.selectAll(".debugOption").classed("hidden", hideDebugOptions);
-    if ( hideDebugOptions === false ) {
+    if (hideDebugOptions === false) {
       graphObject.setForceTickFunctionWithFPS();
-    }
-    else {
+    } else {
       graphObject.setDefaultForceTickFunction();
     }
-    if ( debugMenu ) {
+    if (debugMenu) {
       debugMenu.updateSettings();
     }
     options.setHideDebugFeaturesForDefaultObject(hideDebugOptions);
   };
-  
-  
-  options.addOrUpdateGeneralObjectEntry = function ( property, value ){
-    if ( Object.prototype.hasOwnProperty.call(generalOntologyMetaData, property) ) {
+
+  options.addOrUpdateGeneralObjectEntry = function (property, value) {
+    if (
+      Object.prototype.hasOwnProperty.call(generalOntologyMetaData, property)
+    ) {
       //console.log("Updating Property:"+ property);
-      if ( property === "iri" ) {
-        if ( validURL(value) === false ) {
-          warningModule.showWarning("Invalid Ontology IRI", "Input IRI does not represent an URL", "Restoring previous IRI for ontology", 1, false);
+      if (property === "iri") {
+        if (validURL(value) === false) {
+          warningModule.showWarning(
+            "Invalid Ontology IRI",
+            "Input IRI does not represent an URL",
+            "Restoring previous IRI for ontology",
+            1,
+            false,
+          );
           return false;
         }
       }
@@ -149,70 +158,90 @@ module.exports = function (){
     }
     return true;
   };
-  
-  options.getGeneralMetaObjectProperty = function ( property ){
-    if ( Object.prototype.hasOwnProperty.call(generalOntologyMetaData, property) ) {
+
+  options.getGeneralMetaObjectProperty = function (property) {
+    if (
+      Object.prototype.hasOwnProperty.call(generalOntologyMetaData, property)
+    ) {
       return generalOntologyMetaData[property];
     }
   };
-  
-  options.getGeneralMetaObject = function (){
+
+  options.getGeneralMetaObject = function () {
     return generalOntologyMetaData;
   };
-  
-  options.addOrUpdateMetaObjectEntry = function ( property, value ){
-    
-    if ( Object.prototype.hasOwnProperty.call(metadataObject, property) ) {
+
+  options.addOrUpdateMetaObjectEntry = function (property, value) {
+    if (Object.prototype.hasOwnProperty.call(metadataObject, property)) {
       metadataObject[property] = value;
     } else {
       metadataObject[property] = value;
     }
   };
-  
-  options.getMetaObjectProperty = function ( property ){
-    if ( Object.prototype.hasOwnProperty.call(metadataObject, property) ) {
+
+  options.getMetaObjectProperty = function (property) {
+    if (Object.prototype.hasOwnProperty.call(metadataObject, property)) {
       return metadataObject[property];
     }
   };
-  options.getMetaObject = function (){
+  options.getMetaObject = function () {
     return metadataObject;
   };
-  
-  
-  options.prefixList = function (){
+
+  options.prefixList = function () {
     return prefixList;
   };
-  options.addPrefix = function ( prefix, url ){
+  options.addPrefix = function (prefix, url) {
     prefixList[prefix] = url;
   };
-  
-  function validURL( str ){
-    const urlregex = /^(https?|ftp):\/\/([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(:[0-9]+)*(\/($|[a-zA-Z0-9.,?'\\+&%$#=~_-]+))*$/;
+
+  function validURL(str) {
+    const urlregex =
+      /^(https?|ftp):\/\/([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(:[0-9]+)*(\/($|[a-zA-Z0-9.,?'\\+&%$#=~_-]+))*$/;
     return urlregex.test(str);
   }
-  
-  options.updatePrefix = function ( oldPrefix, newPrefix, oldURL, newURL ){
-    if ( oldPrefix === newPrefix && oldURL === newURL ) {
+
+  options.updatePrefix = function (oldPrefix, newPrefix, oldURL, newURL) {
+    if (oldPrefix === newPrefix && oldURL === newURL) {
       //	console.log("Nothing to update");
       return true;
     }
-    if ( oldPrefix === newPrefix && oldURL !== newURL && validURL(newURL) === true ) {
+    if (
+      oldPrefix === newPrefix &&
+      oldURL !== newURL &&
+      validURL(newURL) === true
+    ) {
       //  console.log("Update URL");
       prefixList[oldPrefix] = newURL;
-    } else if ( oldPrefix === newPrefix && oldURL !== newURL && validURL(newURL) === false ) {
-      if ( validURL(newURL) === false ) {
-        warningModule.showWarning("Invalid Prefix IRI", "Input IRI does not represent an IRI", "You should enter a valid IRI in form of a URL", 1, false);
+    } else if (
+      oldPrefix === newPrefix &&
+      oldURL !== newURL &&
+      validURL(newURL) === false
+    ) {
+      if (validURL(newURL) === false) {
+        warningModule.showWarning(
+          "Invalid Prefix IRI",
+          "Input IRI does not represent an IRI",
+          "You should enter a valid IRI in form of a URL",
+          1,
+          false,
+        );
         return false;
       }
-      
+
       return false;
     }
-    if ( oldPrefix !== newPrefix && validURL(newURL) === true ) {
-      
+    if (oldPrefix !== newPrefix && validURL(newURL) === true) {
       // sanity check
-      if ( Object.prototype.hasOwnProperty.call(prefixList, newPrefix) ) {
+      if (Object.prototype.hasOwnProperty.call(prefixList, newPrefix)) {
         //  console.log("Already have this prefix!");
-        warningModule.showWarning("Prefix Already Exist", "Prefix: " + newPrefix + " is already defined", "You should use an other one", 1, false);
+        warningModule.showWarning(
+          "Prefix Already Exist",
+          "Prefix: " + newPrefix + " is already defined",
+          "You should use an other one",
+          1,
+          false,
+        );
         return false;
       }
       options.removePrefix(oldPrefix);
@@ -220,141 +249,180 @@ module.exports = function (){
       editSidebar.updateEditDeleteButtonIds(oldPrefix, newPrefix);
       return true;
     }
-    
+
     //	console.log("Is new URL ("+newURL+") valid?  >> "+validURL(newURL));
-    if ( validURL(newURL) === false ) {
-      warningModule.showWarning("Invalid Prefix IRI", "Input IRI does not represent an URL", "You should enter a valid URL", 1, false);
-      
+    if (validURL(newURL) === false) {
+      warningModule.showWarning(
+        "Invalid Prefix IRI",
+        "Input IRI does not represent an URL",
+        "You should enter a valid URL",
+        1,
+        false,
+      );
     }
     return false;
   };
-  
-  options.removePrefix = function ( prefix ){
+
+  options.removePrefix = function (prefix) {
     delete prefixList[prefix];
   };
-  
-  
-  options.supportedDatatypes = function (){
+
+  options.supportedDatatypes = function () {
     return supportedDatatypes;
   };
-  options.supportedClasses = function (){
+  options.supportedClasses = function () {
     return supportedClasses;
   };
-  options.supportedProperties = function (){
+  options.supportedProperties = function () {
     return supportedProperties;
   };
-  
-  options.datatypeFilter = function ( val ){
-    if ( !arguments.length ) {return datatypeFilter;}
+
+  options.datatypeFilter = function (val) {
+    if (!arguments.length) {
+      return datatypeFilter;
+    }
     datatypeFilter = val;
   };
-  
-  options.showDraggerObject = function ( val ){
-    if ( !arguments.length ) {
+
+  options.showDraggerObject = function (val) {
+    if (!arguments.length) {
       return showDraggerObject;
     }
     showDraggerObject = val;
   };
-  options.useAccuracyHelper = function ( val ){
-    if ( !arguments.length ) {
+  options.useAccuracyHelper = function (val) {
+    if (!arguments.length) {
       return useAccuracyHelper;
     }
     useAccuracyHelper = val;
   };
-  options.showAccuracyHelper = function ( val ){
-    if ( !arguments.length ) {
+  options.showAccuracyHelper = function (val) {
+    if (!arguments.length) {
       return options.showDraggerObject();
     }
     options.showDraggerObject(val);
   };
-  options.showRenderingStatistic = function ( val ){
-    if ( !arguments.length ) {
+  options.showRenderingStatistic = function (val) {
+    if (!arguments.length) {
       return showRenderingStatistic;
     }
     showRenderingStatistic = val;
   };
-  options.showInputModality = function ( val ){
-    if ( !arguments.length ) {
+  options.showInputModality = function (val) {
+    if (!arguments.length) {
       return showInputModality;
     }
     showInputModality = val;
   };
-  
-  options.drawPropertyDraggerOnHover = function ( val ){
-    if ( !arguments.length ) {return drawPropertyDraggerOnHover;}
+
+  options.drawPropertyDraggerOnHover = function (val) {
+    if (!arguments.length) {
+      return drawPropertyDraggerOnHover;
+    }
     drawPropertyDraggerOnHover = val;
   };
-  
-  options.warningModule = function ( val ){
-    if ( !arguments.length ) {return warningModule;}
+
+  options.warningModule = function (val) {
+    if (!arguments.length) {
+      return warningModule;
+    }
     warningModule = val;
   };
-  options.directInputModule = function ( val ){
-    if ( !arguments.length ) {return directInputModule;}
+  options.directInputModule = function (val) {
+    if (!arguments.length) {
+      return directInputModule;
+    }
     directInputModule = val;
   };
-  options.prefixModule = function ( val ){
-    if ( !arguments.length ) {return prefixModule;}
+  options.prefixModule = function (val) {
+    if (!arguments.length) {
+      return prefixModule;
+    }
     prefixModule = val;
   };
-  
-  options.focuserModule = function ( val ){
-    if ( !arguments.length ) {return focuserModule;}
+
+  options.focuserModule = function (val) {
+    if (!arguments.length) {
+      return focuserModule;
+    }
     focuserModule = val;
   };
-  options.colorExternalsModule = function ( val ){
-    if ( !arguments.length ) {return colorExternalsModule;}
+  options.colorExternalsModule = function (val) {
+    if (!arguments.length) {
+      return colorExternalsModule;
+    }
     colorExternalsModule = val;
   };
-  options.compactNotationModule = function ( val ){
-    if ( !arguments.length ) {return compactNotationModule;}
+  options.compactNotationModule = function (val) {
+    if (!arguments.length) {
+      return compactNotationModule;
+    }
     compactNotationModule = val;
   };
-  options.nodeScalingModule = function ( val ){
-    if ( !arguments.length ) {return nodeScalingModule;}
+  options.nodeScalingModule = function (val) {
+    if (!arguments.length) {
+      return nodeScalingModule;
+    }
     nodeScalingModule = val;
   };
-  
-  options.maxLabelWidth = function ( val ){
-    if ( !arguments.length ) {return maxLabelWidth;}
+
+  options.maxLabelWidth = function (val) {
+    if (!arguments.length) {
+      return maxLabelWidth;
+    }
     maxLabelWidth = val;
   };
-  options.objectPropertyFilter = function ( val ){
-    if ( !arguments.length ) {return objectPropertyFilter;}
+  options.objectPropertyFilter = function (val) {
+    if (!arguments.length) {
+      return objectPropertyFilter;
+    }
     objectPropertyFilter = val;
   };
-  options.disjointPropertyFilter = function ( val ){
-    if ( !arguments.length ) {return disjointPropertyFilter;}
+  options.disjointPropertyFilter = function (val) {
+    if (!arguments.length) {
+      return disjointPropertyFilter;
+    }
     disjointPropertyFilter = val;
   };
-  options.subclassFilter = function ( val ){
-    if ( !arguments.length ) {return subclassFilter;}
+  options.subclassFilter = function (val) {
+    if (!arguments.length) {
+      return subclassFilter;
+    }
     subclassFilter = val;
   };
-  options.setOperatorFilter = function ( val ){
-    if ( !arguments.length ) {return setOperatorFilter;}
+  options.setOperatorFilter = function (val) {
+    if (!arguments.length) {
+      return setOperatorFilter;
+    }
     setOperatorFilter = val;
   };
-  options.leftSidebar = function ( val ){
-    if ( !arguments.length ) {return leftSidebar;}
+  options.leftSidebar = function (val) {
+    if (!arguments.length) {
+      return leftSidebar;
+    }
     leftSidebar = val;
   };
-  options.editSidebar = function ( val ){
-    if ( !arguments.length ) {return editSidebar;}
+  options.editSidebar = function (val) {
+    if (!arguments.length) {
+      return editSidebar;
+    }
     editSidebar = val;
   };
-  
-  options.zoomSlider = function ( val ){
-    if ( !arguments.length ) {return zoomSlider;}
+
+  options.zoomSlider = function (val) {
+    if (!arguments.length) {
+      return zoomSlider;
+    }
     zoomSlider = val;
   };
-  
-  options.graphObject = function ( val ){
-    if ( !arguments.length ) {return graphObject;}
+
+  options.graphObject = function (val) {
+    if (!arguments.length) {
+      return graphObject;
+    }
     graphObject = val;
   };
-  
-  
+
   const defaultOptionsConfig = {};
   defaultOptionsConfig.sidebar = "1";
   defaultOptionsConfig.doc = -1;
@@ -373,9 +441,8 @@ module.exports = function (){
   defaultOptionsConfig.mode_multiColor = "false";
   defaultOptionsConfig.debugFeatures = "false";
   defaultOptionsConfig.rect = 0;
-  
-  
-  options.initialConfig = function (){
+
+  options.initialConfig = function () {
     const initCfg = {};
     initCfg.sidebar = "1";
     initCfg.doc = -1;
@@ -397,243 +464,322 @@ module.exports = function (){
     initCfg.rect = 0;
     return initCfg;
   };
-  
-  options.setEditorModeForDefaultObject = function ( val ){
+
+  options.setEditorModeForDefaultObject = function (val) {
     defaultOptionsConfig.editorMode = String(val);
   };
-  options.setHideDebugFeaturesForDefaultObject = function ( val ){
+  options.setHideDebugFeaturesForDefaultObject = function (val) {
     defaultOptionsConfig.debugFeatures = String(!val);
   };
-  
-  function updateConfigObject(){
+
+  function updateConfigObject() {
     defaultOptionsConfig.sidebar = options.sidebar().getSidebarVisibility();
     defaultOptionsConfig.cd = options.classDistance();
     defaultOptionsConfig.dd = options.datatypeDistance();
-    defaultOptionsConfig.filter_datatypes = String(options.filterMenu().getCheckBoxValue("datatypeFilterCheckbox"));
-    defaultOptionsConfig.filter_sco = String(options.filterMenu().getCheckBoxValue("subclassFilterCheckbox"));
-    defaultOptionsConfig.filter_disjoint = String(options.filterMenu().getCheckBoxValue("disjointFilterCheckbox"));
-    defaultOptionsConfig.filter_setOperator = String(options.filterMenu().getCheckBoxValue("setoperatorFilterCheckbox"));
-    defaultOptionsConfig.filter_objectProperties = String(options.filterMenu().getCheckBoxValue("objectPropertyFilterCheckbox"));
+    defaultOptionsConfig.filter_datatypes = String(
+      options.filterMenu().getCheckBoxValue("datatypeFilterCheckbox"),
+    );
+    defaultOptionsConfig.filter_sco = String(
+      options.filterMenu().getCheckBoxValue("subclassFilterCheckbox"),
+    );
+    defaultOptionsConfig.filter_disjoint = String(
+      options.filterMenu().getCheckBoxValue("disjointFilterCheckbox"),
+    );
+    defaultOptionsConfig.filter_setOperator = String(
+      options.filterMenu().getCheckBoxValue("setoperatorFilterCheckbox"),
+    );
+    defaultOptionsConfig.filter_objectProperties = String(
+      options.filterMenu().getCheckBoxValue("objectPropertyFilterCheckbox"),
+    );
     defaultOptionsConfig.mode_dynamic = String(options.dynamicLabelWidth());
-    defaultOptionsConfig.mode_scaling = String(options.modeMenu().getCheckBoxValue("nodescalingModuleCheckbox"));
-    defaultOptionsConfig.mode_compact = String(options.modeMenu().getCheckBoxValue("compactnotationModuleCheckbox"));
-    defaultOptionsConfig.mode_colorExt = String(options.modeMenu().getCheckBoxValue("colorexternalsModuleCheckbox"));
-    defaultOptionsConfig.mode_multiColor = String(options.modeMenu().colorModeState());
-    defaultOptionsConfig.mode_pnp = String(options.modeMenu().getCheckBoxValue("pickandpinModuleCheckbox"));
+    defaultOptionsConfig.mode_scaling = String(
+      options.modeMenu().getCheckBoxValue("nodescalingModuleCheckbox"),
+    );
+    defaultOptionsConfig.mode_compact = String(
+      options.modeMenu().getCheckBoxValue("compactnotationModuleCheckbox"),
+    );
+    defaultOptionsConfig.mode_colorExt = String(
+      options.modeMenu().getCheckBoxValue("colorexternalsModuleCheckbox"),
+    );
+    defaultOptionsConfig.mode_multiColor = String(
+      options.modeMenu().colorModeState(),
+    );
+    defaultOptionsConfig.mode_pnp = String(
+      options.modeMenu().getCheckBoxValue("pickandpinModuleCheckbox"),
+    );
     defaultOptionsConfig.rect = 0;
   }
-  
-  options.defaultConfig = function (){
+
+  options.defaultConfig = function () {
     updateConfigObject();
     return defaultOptionsConfig;
   };
-  
-  options.exportMenu = function ( val ){
-    if ( !arguments.length ) {return exportMenu;}
+
+  options.exportMenu = function (val) {
+    if (!arguments.length) {
+      return exportMenu;
+    }
     exportMenu = val;
   };
-  
-  options.rectangularRepresentation = function ( val ){
-    if ( !arguments.length ) {
+
+  options.rectangularRepresentation = function (val) {
+    if (!arguments.length) {
       return rectangularRep;
     } else {
       const intVal = parseInt(val);
-      if ( intVal === 0 ) {
+      if (intVal === 0) {
         rectangularRep = false;
       } else {
         rectangularRep = true;
       }
     }
   };
-  
-  options.dynamicLabelWidth = function ( val ){
-    if ( !arguments.length )
-      {return dynamicLabelWidth;}
-    else {
+
+  options.dynamicLabelWidth = function (val) {
+    if (!arguments.length) {
+      return dynamicLabelWidth;
+    } else {
       dynamicLabelWidth = val;
     }
   };
-  options.sidebar = function ( s ){
-    if ( !arguments.length ) {return sidebar;}
+  options.sidebar = function (s) {
+    if (!arguments.length) {
+      return sidebar;
+    }
     sidebar = s;
     return options;
-    
   };
-  
-  options.navigationMenu = function ( m ){
-    if ( !arguments.length ) {return navigationMenu;}
+
+  options.navigationMenu = function (m) {
+    if (!arguments.length) {
+      return navigationMenu;
+    }
     navigationMenu = m;
     return options;
-    
   };
-  
-  options.ontologyMenu = function ( m ){
-    if ( !arguments.length ) {return ontologyMenu;}
+
+  options.ontologyMenu = function (m) {
+    if (!arguments.length) {
+      return ontologyMenu;
+    }
     ontologyMenu = m;
     return options;
   };
-  
-  options.searchMenu = function ( m ){
-    if ( !arguments.length ) {return searchMenu;}
+
+  options.searchMenu = function (m) {
+    if (!arguments.length) {
+      return searchMenu;
+    }
     searchMenu = m;
     return options;
   };
-  
-  options.resetMenu = function ( m ){
-    if ( !arguments.length ) {return resetMenu;}
+
+  options.resetMenu = function (m) {
+    if (!arguments.length) {
+      return resetMenu;
+    }
     resetMenu = m;
     return options;
   };
-  
-  options.pausedMenu = function ( m ){
-    if ( !arguments.length ) {return pausedMenu;}
+
+  options.pausedMenu = function (m) {
+    if (!arguments.length) {
+      return pausedMenu;
+    }
     pausedMenu = m;
     return options;
   };
-  
-  options.pickAndPinModule = function ( m ){
-    if ( !arguments.length ) {return pickAndPinModule;}
+
+  options.pickAndPinModule = function (m) {
+    if (!arguments.length) {
+      return pickAndPinModule;
+    }
     pickAndPinModule = m;
     return options;
   };
-  
-  options.gravityMenu = function ( m ){
-    if ( !arguments.length ) {return gravityMenu;}
+
+  options.gravityMenu = function (m) {
+    if (!arguments.length) {
+      return gravityMenu;
+    }
     gravityMenu = m;
     return options;
   };
-  
-  options.filterMenu = function ( m ){
-    if ( !arguments.length ) {return filterMenu;}
+
+  options.filterMenu = function (m) {
+    if (!arguments.length) {
+      return filterMenu;
+    }
     filterMenu = m;
     return options;
   };
-  
-  options.modeMenu = function ( m ){
-    if ( !arguments.length ) {return modeMenu;}
+
+  options.modeMenu = function (m) {
+    if (!arguments.length) {
+      return modeMenu;
+    }
     modeMenu = m;
     return options;
   };
-  
-  options.charge = function ( p ){
-    if ( !arguments.length ) {return charge;}
+
+  options.charge = function (p) {
+    if (!arguments.length) {
+      return charge;
+    }
     charge = +p;
     return options;
   };
-  
-  options.classDistance = function ( p ){
-    if ( !arguments.length ) {return classDistance;}
+
+  options.classDistance = function (p) {
+    if (!arguments.length) {
+      return classDistance;
+    }
     classDistance = +p;
     return options;
   };
-  
-  options.compactNotation = function ( p ){
-    
-    if ( !arguments.length ) {return compactNotation;}
+
+  options.compactNotation = function (p) {
+    if (!arguments.length) {
+      return compactNotation;
+    }
     compactNotation = p;
     return options;
   };
-  
-  options.data = function ( p ){
-    if ( !arguments.length ) {return data;}
+
+  options.data = function (p) {
+    if (!arguments.length) {
+      return data;
+    }
     data = p;
     return options;
   };
-  
-  options.datatypeDistance = function ( p ){
-    if ( !arguments.length ) {return datatypeDistance;}
+
+  options.datatypeDistance = function (p) {
+    if (!arguments.length) {
+      return datatypeDistance;
+    }
     datatypeDistance = +p;
     return options;
   };
-  
-  options.filterModules = function ( p ){
-    if ( !arguments.length ) {return filterModules;}
+
+  options.filterModules = function (p) {
+    if (!arguments.length) {
+      return filterModules;
+    }
     filterModules = p;
     return options;
   };
-  
-  options.graphContainerSelector = function ( p ){
-    if ( !arguments.length ) {return graphContainerSelector;}
+
+  options.graphContainerSelector = function (p) {
+    if (!arguments.length) {
+      return graphContainerSelector;
+    }
     graphContainerSelector = p;
     return options;
   };
-  
-  options.gravity = function ( p ){
-    if ( !arguments.length ) {return gravity;}
+
+  options.gravity = function (p) {
+    if (!arguments.length) {
+      return gravity;
+    }
     gravity = +p;
     return options;
   };
-  
-  options.height = function ( p ){
-    if ( !arguments.length ) {return height;}
+
+  options.height = function (p) {
+    if (!arguments.length) {
+      return height;
+    }
     height = +p;
     return options;
   };
-  
-  options.linkStrength = function ( p ){
-    if ( !arguments.length ) {return linkStrength;}
+
+  options.linkStrength = function (p) {
+    if (!arguments.length) {
+      return linkStrength;
+    }
     linkStrength = +p;
     return options;
   };
-  
-  options.loopDistance = function ( p ){
-    if ( !arguments.length ) {return loopDistance;}
+
+  options.loopDistance = function (p) {
+    if (!arguments.length) {
+      return loopDistance;
+    }
     loopDistance = p;
     return options;
   };
-  
-  options.minMagnification = function ( p ){
-    if ( !arguments.length ) {return minMagnification;}
+
+  options.minMagnification = function (p) {
+    if (!arguments.length) {
+      return minMagnification;
+    }
     minMagnification = +p;
     return options;
   };
-  
-  options.maxMagnification = function ( p ){
-    if ( !arguments.length ) {return maxMagnification;}
+
+  options.maxMagnification = function (p) {
+    if (!arguments.length) {
+      return maxMagnification;
+    }
     maxMagnification = +p;
     return options;
   };
-  
-  options.scaleNodesByIndividuals = function ( p ){
-    if ( !arguments.length ) {return scaleNodesByIndividuals;}
+
+  options.scaleNodesByIndividuals = function (p) {
+    if (!arguments.length) {
+      return scaleNodesByIndividuals;
+    }
     scaleNodesByIndividuals = p;
     return options;
   };
-  
-  options.selectionModules = function ( p ){
-    if ( !arguments.length ) {return selectionModules;}
+
+  options.selectionModules = function (p) {
+    if (!arguments.length) {
+      return selectionModules;
+    }
     selectionModules = p;
     return options;
   };
-  
-  options.width = function ( p ){
-    if ( !arguments.length ) {return width;}
+
+  options.width = function (p) {
+    if (!arguments.length) {
+      return width;
+    }
     width = +p;
     return options;
   };
-  
-  options.literalFilter = function ( p ){
-    if ( !arguments.length ) {return literalFilter;}
+
+  options.literalFilter = function (p) {
+    if (!arguments.length) {
+      return literalFilter;
+    }
     literalFilter = p;
     return options;
   };
-  options.nodeDegreeFilter = function ( p ){
-    if ( !arguments.length ) {return nodeDegreeFilter;}
+  options.nodeDegreeFilter = function (p) {
+    if (!arguments.length) {
+      return nodeDegreeFilter;
+    }
     nodeDegreeFilter = p;
     return options;
   };
-  
-  options.loadingModule = function ( p ){
-    if ( !arguments.length ) {return loadingModule;}
+
+  options.loadingModule = function (p) {
+    if (!arguments.length) {
+      return loadingModule;
+    }
     loadingModule = p;
     return options;
   };
-  
+
   // define url loadable options;
   // update all set values in the default object
-  options.setOptionsFromURL = function ( opts, changeEditFlag ){
-    if ( opts.sidebar !== undefined ) {sidebar.showSidebar(parseInt(opts.sidebar), true);}
-    if ( opts.doc ) {
+  options.setOptionsFromURL = function (opts, changeEditFlag) {
+    if (opts.sidebar !== undefined) {
+      sidebar.showSidebar(parseInt(opts.sidebar), true);
+    }
+    if (opts.doc) {
       const asInt = parseInt(opts.doc);
       filterMenu.setDegreeSliderValue(asInt);
       graphObject.setGlobalDOF(asInt);
@@ -641,74 +787,93 @@ module.exports = function (){
       defaultOptionsConfig.doc = -1;
     }
     let settingFlag = false;
-    if ( opts.editorMode ) {
-      if ( opts.editorMode === "true" ) {settingFlag = true;}
+    if (opts.editorMode) {
+      if (opts.editorMode === "true") {
+        settingFlag = true;
+      }
       d3.select("#editorModeModuleCheckbox").node().checked = settingFlag;
-      
-      if ( changeEditFlag && changeEditFlag === true ) {
+
+      if (changeEditFlag && changeEditFlag === true) {
         graphObject.editorMode(settingFlag);
       }
-      
+
       // update config object
       defaultOptionsConfig.editorMode = opts.editorMode;
-      
     }
-    if ( opts.cd ) { // class distance
+    if (opts.cd) {
+      // class distance
       options.classDistance(opts.cd); // class distance
       defaultOptionsConfig.cd = opts.cd;
     }
-    if ( opts.dd ) { // data distance
+    if (opts.dd) {
+      // data distance
       options.datatypeDistance(opts.dd);
       defaultOptionsConfig.cd = opts.cd;
     }
-    if ( opts.cd || opts.dd ) {options.gravityMenu().reset();} // reset the values so the slider is updated;
-    
-    
+    if (opts.cd || opts.dd) {
+      options.gravityMenu().reset();
+    } // reset the values so the slider is updated;
+
     settingFlag = false;
-    if ( opts.filter_datatypes ) {
-      if ( opts.filter_datatypes === "true" ) {settingFlag = true;}
+    if (opts.filter_datatypes) {
+      if (opts.filter_datatypes === "true") {
+        settingFlag = true;
+      }
       filterMenu.setCheckBoxValue("datatypeFilterCheckbox", settingFlag);
       defaultOptionsConfig.filter_datatypes = opts.filter_datatypes;
     }
-    if ( opts.debugFeatures ) {
-      if ( opts.debugFeatures === "true" ) {settingFlag = true;}
+    if (opts.debugFeatures) {
+      if (opts.debugFeatures === "true") {
+        settingFlag = true;
+      }
       hideDebugOptions = settingFlag;
-      if ( options.getHideDebugFeatures() === false ) {
+      if (options.getHideDebugFeatures() === false) {
         options.executeHiddenDebugFeatuers();
       }
       defaultOptionsConfig.debugFeatures = opts.debugFeatures;
     }
-    
+
     settingFlag = false;
-    if ( opts.filter_objectProperties ) {
-      if ( opts.filter_objectProperties === "true" ) {settingFlag = true;}
+    if (opts.filter_objectProperties) {
+      if (opts.filter_objectProperties === "true") {
+        settingFlag = true;
+      }
       filterMenu.setCheckBoxValue("objectPropertyFilterCheckbox", settingFlag);
-      defaultOptionsConfig.filter_objectProperties = opts.filter_objectProperties;
+      defaultOptionsConfig.filter_objectProperties =
+        opts.filter_objectProperties;
     }
     settingFlag = false;
-    if ( opts.filter_sco ) {
-      if ( opts.filter_sco === "true" ) {settingFlag = true;}
+    if (opts.filter_sco) {
+      if (opts.filter_sco === "true") {
+        settingFlag = true;
+      }
       filterMenu.setCheckBoxValue("subclassFilterCheckbox", settingFlag);
       defaultOptionsConfig.filter_sco = opts.filter_sco;
     }
     settingFlag = false;
-    if ( opts.filter_disjoint ) {
-      if ( opts.filter_disjoint === "true" ) {settingFlag = true;}
+    if (opts.filter_disjoint) {
+      if (opts.filter_disjoint === "true") {
+        settingFlag = true;
+      }
       filterMenu.setCheckBoxValue("disjointFilterCheckbox", settingFlag);
       defaultOptionsConfig.filter_disjoint = opts.filter_disjoint;
     }
     settingFlag = false;
-    if ( opts.filter_setOperator ) {
-      if ( opts.filter_setOperator === "true" ) {settingFlag = true;}
+    if (opts.filter_setOperator) {
+      if (opts.filter_setOperator === "true") {
+        settingFlag = true;
+      }
       filterMenu.setCheckBoxValue("setoperatorFilterCheckbox", settingFlag);
       defaultOptionsConfig.filter_setOperator = opts.filter_setOperator;
     }
     filterMenu.updateSettings();
-    
+
     // modesMenu
     settingFlag = false;
-    if ( opts.mode_dynamic ) {
-      if ( opts.mode_dynamic === "true" ) {settingFlag = true;}
+    if (opts.mode_dynamic) {
+      if (opts.mode_dynamic === "true") {
+        settingFlag = true;
+      }
       modeMenu.setDynamicLabelWidth(settingFlag);
       dynamicLabelWidth = settingFlag;
       defaultOptionsConfig.mode_dynamic = opts.mode_dynamic;
@@ -718,44 +883,54 @@ module.exports = function (){
     // if (opts.mode_picnpin) {
     //     graph.options().filterMenu().setCheckBoxValue("pickandpin ModuleCheckbox", settingFlag);
     // }
-    
+
     settingFlag = false;
-    if ( opts.mode_pnp ) {
-      if ( opts.mode_pnp === "true" ) {settingFlag = true;}
+    if (opts.mode_pnp) {
+      if (opts.mode_pnp === "true") {
+        settingFlag = true;
+      }
       modeMenu.setCheckBoxValue("pickandpinModuleCheckbox", settingFlag);
       defaultOptionsConfig.mode_pnp = opts.mode_pnp;
     }
-    
+
     settingFlag = false;
-    if ( opts.mode_scaling ) {
-      if ( opts.mode_scaling === "true" ) {settingFlag = true;}
+    if (opts.mode_scaling) {
+      if (opts.mode_scaling === "true") {
+        settingFlag = true;
+      }
       modeMenu.setCheckBoxValue("nodescalingModuleCheckbox", settingFlag);
       defaultOptionsConfig.mode_scaling = opts.mode_scaling;
     }
-    
+
     settingFlag = false;
-    if ( opts.mode_compact ) {
-      if ( opts.mode_compact === "true" ) {settingFlag = true;}
+    if (opts.mode_compact) {
+      if (opts.mode_compact === "true") {
+        settingFlag = true;
+      }
       modeMenu.setCheckBoxValue("compactnotationModuleCheckbox", settingFlag);
       defaultOptionsConfig.mode_compact = opts.mode_compact;
     }
-    
+
     settingFlag = false;
-    if ( opts.mode_colorExt ) {
-      if ( opts.mode_colorExt === "true" ) {settingFlag = true;}
+    if (opts.mode_colorExt) {
+      if (opts.mode_colorExt === "true") {
+        settingFlag = true;
+      }
       modeMenu.setCheckBoxValue("colorexternalsModuleCheckbox", settingFlag);
       defaultOptionsConfig.mode_colorExt = opts.mode_colorExt;
     }
-    
+
     settingFlag = false;
-    if ( opts.mode_multiColor ) {
-      if ( opts.mode_multiColor === "true" ) {settingFlag = true;}
+    if (opts.mode_multiColor) {
+      if (opts.mode_multiColor === "true") {
+        settingFlag = true;
+      }
       modeMenu.setColorSwitchStateUsingURL(settingFlag);
       defaultOptionsConfig.mode_multiColor = opts.mode_multiColor;
     }
     modeMenu.updateSettingsUsingURL();
     options.rectangularRepresentation(opts.rect);
   };
-  
+
   return options;
 };

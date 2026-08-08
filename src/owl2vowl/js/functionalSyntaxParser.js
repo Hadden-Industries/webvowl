@@ -2,7 +2,9 @@ import { serializeTriplesToRdfXml } from "./rdfXmlSerializer.js";
 import { MAX_SNIFF_BYTES } from "./constants.js";
 
 export function isFunctionalSyntaxFormat(text) {
-  if (!text) { return false; }
+  if (!text) {
+    return false;
+  }
   // Check if it looks like OFN by searching for Ontology( or Prefix(
   const snippet = text.slice(0, MAX_SNIFF_BYTES);
   return /^\s*(Prefix|Ontology)\s*\(/i.test(snippet);
@@ -21,7 +23,7 @@ const TokenTypes = {
   LANG_TAG: "LANG_TAG",
   DATATYPE_MARKER: "DATATYPE_MARKER",
   INTEGER: "INTEGER",
-  EOF: "EOF"
+  EOF: "EOF",
 };
 
 class FunctionalLexer {
@@ -35,7 +37,14 @@ class FunctionalLexer {
   nextToken() {
     this.skipWhitespaceAndComments();
     if (this.pos >= this.text.length) {
-      return { type: TokenTypes.EOF, value: "EOF", startOffset: this.pos, endOffset: this.pos, line: this.line, column: this.col };
+      return {
+        type: TokenTypes.EOF,
+        value: "EOF",
+        startOffset: this.pos,
+        endOffset: this.pos,
+        line: this.line,
+        column: this.col,
+      };
     }
 
     const char = this.text[this.pos];
@@ -77,7 +86,9 @@ class FunctionalLexer {
     } else {
       const word = this.readWhile(/[a-zA-Z0-9_:-]/);
       if (!word) {
-        throw new Error(`Lexer error at line ${startLine}:${startCol}: Unexpected character '${char}'`);
+        throw new Error(
+          `Lexer error at line ${startLine}:${startCol}: Unexpected character '${char}'`,
+        );
       }
       if (/^[0-9]+$/.test(word)) {
         type = TokenTypes.INTEGER;
@@ -92,7 +103,12 @@ class FunctionalLexer {
     }
 
     return {
-      type, value, startOffset, endOffset: this.pos, line: startLine, column: startCol
+      type,
+      value,
+      startOffset,
+      endOffset: this.pos,
+      line: startLine,
+      column: startCol,
     };
   }
 
@@ -112,7 +128,9 @@ class FunctionalLexer {
       if (/\s/.test(char)) {
         this.advance();
       } else if (char === "#") {
-        while (this.pos < this.text.length && this.text[this.pos] !== "\n") {this.advance();}
+        while (this.pos < this.text.length && this.text[this.pos] !== "\n") {
+          this.advance();
+        }
       } else {
         break;
       }
@@ -126,7 +144,9 @@ class FunctionalLexer {
       result += this.text[this.pos];
       this.advance();
     }
-    if (this.pos < this.text.length) {this.advance();}
+    if (this.pos < this.text.length) {
+      this.advance();
+    }
     return result;
   }
 
@@ -139,7 +159,7 @@ class FunctionalLexer {
         this.advance();
         break;
       }
-      if (char === '\\') {
+      if (char === "\\") {
         this.advance();
         result += this.text[this.pos];
       } else {
@@ -180,7 +200,9 @@ class TokenStream {
   consume(expectedType) {
     const token = this.peek();
     if (expectedType && token.type !== expectedType) {
-      throw new Error(`Parse error at line ${token.line}:${token.column}: Expected ${expectedType}, got ${token.type} ('${token.value}')`);
+      throw new Error(
+        `Parse error at line ${token.line}:${token.column}: Expected ${expectedType}, got ${token.type} ('${token.value}')`,
+      );
     }
     this.buffer.shift();
     return token;
@@ -198,7 +220,9 @@ class TokenStream {
   consumeKeyword(kw) {
     const token = this.peek();
     if (token.type !== TokenTypes.KEYWORD || token.value !== kw) {
-      throw new Error(`Parse error at line ${token.line}:${token.column}: Expected keyword ${kw}, got ${token.type} ('${token.value}')`);
+      throw new Error(
+        `Parse error at line ${token.line}:${token.column}: Expected keyword ${kw}, got ${token.type} ('${token.value}')`,
+      );
     }
     this.buffer.shift();
     return token;
@@ -215,7 +239,11 @@ class TriplesEmitter {
 
   setOntologyIri(iri) {
     this.ontologyIri = iri;
-    this.addTriple(iri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#Ontology");
+    this.addTriple(
+      iri,
+      "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "http://www.w3.org/2002/07/owl#Ontology",
+    );
   }
 
   addPrefix(pfx, ns) {
@@ -229,89 +257,166 @@ class TriplesEmitter {
   }
 
   addTriple(subj, pred, obj) {
-    const sTerm = typeof subj === "string" ? { type: subj.startsWith("_:") ? "BNODE" : "URI", value: subj } : subj;
-    const pTerm = typeof pred === "string" ? { type: "IRI", value: pred } : pred;
-    const oTerm = typeof obj === "string" ? { type: obj.startsWith("_:") ? "BNODE" : "URI", value: obj } : obj;
+    const sTerm =
+      typeof subj === "string"
+        ? { type: subj.startsWith("_:") ? "BNODE" : "URI", value: subj }
+        : subj;
+    const pTerm =
+      typeof pred === "string" ? { type: "IRI", value: pred } : pred;
+    const oTerm =
+      typeof obj === "string"
+        ? { type: obj.startsWith("_:") ? "BNODE" : "URI", value: obj }
+        : obj;
     this.triples.push({ subject: sTerm, predicate: pTerm, object: oTerm });
   }
 
   addClass(iri) {
-    this.addTriple(iri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#Class");
+    this.addTriple(
+      iri,
+      "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "http://www.w3.org/2002/07/owl#Class",
+    );
   }
 
   addObjectProperty(iri) {
-    this.addTriple(iri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#ObjectProperty");
+    this.addTriple(
+      iri,
+      "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "http://www.w3.org/2002/07/owl#ObjectProperty",
+    );
   }
 
   addDataProperty(iri) {
-    this.addTriple(iri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#DatatypeProperty");
+    this.addTriple(
+      iri,
+      "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "http://www.w3.org/2002/07/owl#DatatypeProperty",
+    );
   }
 
   addNamedIndividual(iri) {
-    this.addTriple(iri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#NamedIndividual");
+    this.addTriple(
+      iri,
+      "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "http://www.w3.org/2002/07/owl#NamedIndividual",
+    );
   }
 
   addDatatype(iri) {
-    this.addTriple(iri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2000/01/rdf-schema#Datatype");
+    this.addTriple(
+      iri,
+      "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "http://www.w3.org/2000/01/rdf-schema#Datatype",
+    );
   }
 
   addAnnotationProperty(iri) {
-    this.addTriple(iri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#AnnotationProperty");
+    this.addTriple(
+      iri,
+      "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "http://www.w3.org/2002/07/owl#AnnotationProperty",
+    );
   }
 
   emitList(items) {
     if (!items || items.length === 0) {
-      return { type: "URI", value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" };
+      return {
+        type: "URI",
+        value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+      };
     }
     const headNode = this.newBNode();
     let current = headNode;
 
     for (let i = 0; i < items.length; i++) {
       const itemNode = this.emitExpression(items[i]);
-      this.addTriple(current, "http://www.w3.org/1999/02/22-rdf-syntax-ns#first", itemNode);
+      this.addTriple(
+        current,
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+        itemNode,
+      );
 
       if (i < items.length - 1) {
         const nextNode = this.newBNode();
-        this.addTriple(current, "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest", nextNode);
+        this.addTriple(
+          current,
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          nextNode,
+        );
         current = nextNode;
       } else {
-        this.addTriple(current, "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest", { type: "URI", value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" });
+        this.addTriple(
+          current,
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+          {
+            type: "URI",
+            value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+          },
+        );
       }
     }
     return headNode;
   }
 
   emitExpression(expr) {
-    if (!expr) { return null; }
+    if (!expr) {
+      return null;
+    }
     if (expr.type === "IRI") {
       return { type: "URI", value: expr.iri };
     }
     if (expr.type === "ObjectIntersectionOf" || expr.type === "ObjectUnionOf") {
       const bnode = this.newBNode();
-      this.addTriple(bnode, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#Class");
-      const tag = expr.type === "ObjectIntersectionOf"
-        ? "http://www.w3.org/2002/07/owl#intersectionOf"
-        : "http://www.w3.org/2002/07/owl#unionOf";
+      this.addTriple(
+        bnode,
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+        "http://www.w3.org/2002/07/owl#Class",
+      );
+      const tag =
+        expr.type === "ObjectIntersectionOf"
+          ? "http://www.w3.org/2002/07/owl#intersectionOf"
+          : "http://www.w3.org/2002/07/owl#unionOf";
       const listHead = this.emitList(expr.classes);
       this.addTriple(bnode, tag, listHead);
       return bnode;
     }
-    if (expr.type === "ObjectSomeValuesFrom" || expr.type === "ObjectAllValuesFrom") {
+    if (
+      expr.type === "ObjectSomeValuesFrom" ||
+      expr.type === "ObjectAllValuesFrom"
+    ) {
       const bnode = this.newBNode();
-      this.addTriple(bnode, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#Restriction");
-      this.addTriple(bnode, "http://www.w3.org/2002/07/owl#onProperty", { type: "URI", value: expr.property });
-      const tag = expr.type === "ObjectSomeValuesFrom"
-        ? "http://www.w3.org/2002/07/owl#someValuesFrom"
-        : "http://www.w3.org/2002/07/owl#allValuesFrom";
+      this.addTriple(
+        bnode,
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+        "http://www.w3.org/2002/07/owl#Restriction",
+      );
+      this.addTriple(bnode, "http://www.w3.org/2002/07/owl#onProperty", {
+        type: "URI",
+        value: expr.property,
+      });
+      const tag =
+        expr.type === "ObjectSomeValuesFrom"
+          ? "http://www.w3.org/2002/07/owl#someValuesFrom"
+          : "http://www.w3.org/2002/07/owl#allValuesFrom";
       const fillerNode = this.emitExpression(expr.filler);
       this.addTriple(bnode, tag, fillerNode);
       return bnode;
     }
     if (expr.type === "ObjectHasValue") {
       const bnode = this.newBNode();
-      this.addTriple(bnode, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#Restriction");
-      this.addTriple(bnode, "http://www.w3.org/2002/07/owl#onProperty", { type: "URI", value: expr.property });
-      this.addTriple(bnode, "http://www.w3.org/2002/07/owl#hasValue", { type: "URI", value: expr.individual });
+      this.addTriple(
+        bnode,
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+        "http://www.w3.org/2002/07/owl#Restriction",
+      );
+      this.addTriple(bnode, "http://www.w3.org/2002/07/owl#onProperty", {
+        type: "URI",
+        value: expr.property,
+      });
+      this.addTriple(bnode, "http://www.w3.org/2002/07/owl#hasValue", {
+        type: "URI",
+        value: expr.individual,
+      });
       return bnode;
     }
     return { type: "URI", value: "http://www.w3.org/2002/07/owl#Thing" };
@@ -320,21 +425,37 @@ class TriplesEmitter {
   addSubClassOf(subExpr, superExpr) {
     const subNode = this.emitExpression(subExpr);
     const superNode = this.emitExpression(superExpr);
-    this.addTriple(subNode, "http://www.w3.org/2000/01/rdf-schema#subClassOf", superNode);
+    this.addTriple(
+      subNode,
+      "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+      superNode,
+    );
   }
 
   addEquivalentClass(exprA, exprB) {
     const nodeA = this.emitExpression(exprA);
     const nodeB = this.emitExpression(exprB);
-    this.addTriple(nodeA, "http://www.w3.org/2002/07/owl#equivalentClass", nodeB);
+    this.addTriple(
+      nodeA,
+      "http://www.w3.org/2002/07/owl#equivalentClass",
+      nodeB,
+    );
   }
 
   addSubObjectPropertyOf(subIri, superIri) {
-    this.addTriple(subIri, "http://www.w3.org/2000/01/rdf-schema#subPropertyOf", superIri);
+    this.addTriple(
+      subIri,
+      "http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
+      superIri,
+    );
   }
 
   serialize() {
-    return serializeTriplesToRdfXml(this.triples, this.prefixes, this.ontologyIri);
+    return serializeTriplesToRdfXml(
+      this.triples,
+      this.prefixes,
+      this.ontologyIri,
+    );
   }
 }
 
@@ -347,7 +468,7 @@ class FunctionalParser {
       ["owl:", "http://www.w3.org/2002/07/owl#"],
       ["rdf:", "http://www.w3.org/1999/02/22-rdf-syntax-ns#"],
       ["rdfs:", "http://www.w3.org/2000/01/rdf-schema#"],
-      ["xsd:", "http://www.w3.org/2001/XMLSchema#"]
+      ["xsd:", "http://www.w3.org/2001/XMLSchema#"],
     ];
     for (const [pfx, ns] of defaults) {
       this.prefixMap.set(pfx, ns);
@@ -381,30 +502,51 @@ class FunctionalParser {
   }
 
   getIRI(token) {
-    if (token.type === TokenTypes.FULL_IRI) {return token.value;}
-    if (token.type === TokenTypes.PNAME_LN || token.type === TokenTypes.PNAME_NS) {
+    if (token.type === TokenTypes.FULL_IRI) {
+      return token.value;
+    }
+    if (
+      token.type === TokenTypes.PNAME_LN ||
+      token.type === TokenTypes.PNAME_NS
+    ) {
       const parts = token.value.split(":");
       const prefix = parts[0] + ":";
       const localName = parts[1] || "";
-      if (this.prefixMap.has(prefix)) {return this.prefixMap.get(prefix) + localName;}
-      throw new Error(`Parse error at line ${token.line}:${token.column}: Unresolved prefix '${prefix}'`);
+      if (this.prefixMap.has(prefix)) {
+        return this.prefixMap.get(prefix) + localName;
+      }
+      throw new Error(
+        `Parse error at line ${token.line}:${token.column}: Unresolved prefix '${prefix}'`,
+      );
     }
-    throw new Error(`Parse error at line ${token.line}:${token.column}: Expected IRI, got ${token.type} ('${token.value}')`);
+    throw new Error(
+      `Parse error at line ${token.line}:${token.column}: Expected IRI, got ${token.type} ('${token.value}')`,
+    );
   }
 
   parseOntology() {
     this.stream.consumeKeyword("Ontology");
     this.stream.consume(TokenTypes.LPAREN);
-    if (this.stream.match(TokenTypes.FULL_IRI) || this.stream.match(TokenTypes.PNAME_LN) || this.stream.match(TokenTypes.PNAME_NS)) {
+    if (
+      this.stream.match(TokenTypes.FULL_IRI) ||
+      this.stream.match(TokenTypes.PNAME_LN) ||
+      this.stream.match(TokenTypes.PNAME_NS)
+    ) {
       const iriToken = this.stream.consume();
       this.triples.setOntologyIri(this.getIRI(iriToken));
     }
     while (!this.stream.match(TokenTypes.RPAREN)) {
-      if (this.stream.matchKeyword("Declaration")) {this.parseDeclaration();}
-      else if (this.stream.matchKeyword("SubClassOf")) {this.parseSubClassOf();}
-      else if (this.stream.matchKeyword("EquivalentClasses")) {this.parseEquivalentClasses();}
-      else if (this.stream.matchKeyword("SubObjectPropertyOf")) {this.parseSubObjectPropertyOf();}
-      else {this.skipUnknownAxiom();}
+      if (this.stream.matchKeyword("Declaration")) {
+        this.parseDeclaration();
+      } else if (this.stream.matchKeyword("SubClassOf")) {
+        this.parseSubClassOf();
+      } else if (this.stream.matchKeyword("EquivalentClasses")) {
+        this.parseEquivalentClasses();
+      } else if (this.stream.matchKeyword("SubObjectPropertyOf")) {
+        this.parseSubObjectPropertyOf();
+      } else {
+        this.skipUnknownAxiom();
+      }
     }
     this.stream.consume(TokenTypes.RPAREN);
   }
@@ -415,9 +557,13 @@ class FunctionalParser {
     let depth = 1;
     while (depth > 0) {
       const t = this.stream.consume();
-      if (t.type === TokenTypes.LPAREN) {depth++;}
-      else if (t.type === TokenTypes.RPAREN) {depth--;}
-      else if (t.type === TokenTypes.EOF) {break;}
+      if (t.type === TokenTypes.LPAREN) {
+        depth++;
+      } else if (t.type === TokenTypes.RPAREN) {
+        depth--;
+      } else if (t.type === TokenTypes.EOF) {
+        break;
+      }
     }
   }
 
@@ -430,12 +576,19 @@ class FunctionalParser {
     const iriToken = this.stream.consume();
     const iri = this.getIRI(iriToken);
 
-    if (entityType === "Class") {this.triples.addClass(iri);}
-    else if (entityType === "ObjectProperty") {this.triples.addObjectProperty(iri);}
-    else if (entityType === "DataProperty") {this.triples.addDataProperty(iri);}
-    else if (entityType === "NamedIndividual") {this.triples.addNamedIndividual(iri);}
-    else if (entityType === "Datatype") {this.triples.addDatatype(iri);}
-    else if (entityType === "AnnotationProperty") {this.triples.addAnnotationProperty(iri);}
+    if (entityType === "Class") {
+      this.triples.addClass(iri);
+    } else if (entityType === "ObjectProperty") {
+      this.triples.addObjectProperty(iri);
+    } else if (entityType === "DataProperty") {
+      this.triples.addDataProperty(iri);
+    } else if (entityType === "NamedIndividual") {
+      this.triples.addNamedIndividual(iri);
+    } else if (entityType === "Datatype") {
+      this.triples.addDatatype(iri);
+    } else if (entityType === "AnnotationProperty") {
+      this.triples.addAnnotationProperty(iri);
+    }
 
     this.stream.consume(TokenTypes.RPAREN);
     this.stream.consume(TokenTypes.RPAREN);
@@ -443,15 +596,24 @@ class FunctionalParser {
 
   parseClassExpression() {
     const token = this.stream.peek();
-    if (token.type === TokenTypes.KEYWORD && token.value !== "owl:Thing" && token.value !== "owl:Nothing") {
+    if (
+      token.type === TokenTypes.KEYWORD &&
+      token.value !== "owl:Thing" &&
+      token.value !== "owl:Nothing"
+    ) {
       const kw = this.stream.consume(TokenTypes.KEYWORD).value;
       this.stream.consume(TokenTypes.LPAREN);
 
       const expr = { type: kw };
       if (kw === "ObjectIntersectionOf" || kw === "ObjectUnionOf") {
         expr.classes = [];
-        while (!this.stream.match(TokenTypes.RPAREN)) {expr.classes.push(this.parseClassExpression());}
-      } else if (kw === "ObjectSomeValuesFrom" || kw === "ObjectAllValuesFrom") {
+        while (!this.stream.match(TokenTypes.RPAREN)) {
+          expr.classes.push(this.parseClassExpression());
+        }
+      } else if (
+        kw === "ObjectSomeValuesFrom" ||
+        kw === "ObjectAllValuesFrom"
+      ) {
         expr.property = this.getIRI(this.stream.consume());
         expr.filler = this.parseClassExpression();
       } else if (kw === "ObjectHasValue") {
@@ -462,9 +624,13 @@ class FunctionalParser {
         let depth = 1;
         while (depth > 0) {
           const t = this.stream.consume();
-          if (t.type === TokenTypes.LPAREN) {depth++;}
-          else if (t.type === TokenTypes.RPAREN) {depth--;}
-          else if (t.type === TokenTypes.EOF) {break;}
+          if (t.type === TokenTypes.LPAREN) {
+            depth++;
+          } else if (t.type === TokenTypes.RPAREN) {
+            depth--;
+          } else if (t.type === TokenTypes.EOF) {
+            break;
+          }
         }
         return { type: "IRI", iri: "http://www.w3.org/2002/07/owl#Thing" };
       }
@@ -472,8 +638,12 @@ class FunctionalParser {
       return expr;
     } else {
       const t = this.stream.consume();
-      if (t.value === "owl:Thing") {return { type: "IRI", iri: "http://www.w3.org/2002/07/owl#Thing" };}
-      if (t.value === "owl:Nothing") {return { type: "IRI", iri: "http://www.w3.org/2002/07/owl#Nothing" };}
+      if (t.value === "owl:Thing") {
+        return { type: "IRI", iri: "http://www.w3.org/2002/07/owl#Thing" };
+      }
+      if (t.value === "owl:Nothing") {
+        return { type: "IRI", iri: "http://www.w3.org/2002/07/owl#Nothing" };
+      }
       return { type: "IRI", iri: this.getIRI(t) };
     }
   }
@@ -491,9 +661,11 @@ class FunctionalParser {
     this.stream.consumeKeyword("EquivalentClasses");
     this.stream.consume(TokenTypes.LPAREN);
     const classes = [];
-    while (!this.stream.match(TokenTypes.RPAREN)) {classes.push(this.parseClassExpression());}
+    while (!this.stream.match(TokenTypes.RPAREN)) {
+      classes.push(this.parseClassExpression());
+    }
     for (let i = 0; i < classes.length - 1; i++) {
-      this.triples.addEquivalentClass(classes[i], classes[i+1]);
+      this.triples.addEquivalentClass(classes[i], classes[i + 1]);
     }
     this.stream.consume(TokenTypes.RPAREN);
   }
@@ -503,7 +675,10 @@ class FunctionalParser {
     this.stream.consume(TokenTypes.LPAREN);
     const subToken = this.stream.consume();
     const superToken = this.stream.consume();
-    this.triples.addSubObjectPropertyOf(this.getIRI(subToken), this.getIRI(superToken));
+    this.triples.addSubObjectPropertyOf(
+      this.getIRI(subToken),
+      this.getIRI(superToken),
+    );
     this.stream.consume(TokenTypes.RPAREN);
   }
 }
@@ -514,5 +689,3 @@ export function parseFunctionalSyntax(text) {
   const parser = new FunctionalParser(stream);
   return parser.parseDocument();
 }
-
-
