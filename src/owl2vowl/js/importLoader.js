@@ -6,6 +6,7 @@ import { isOwlXmlFormat, convertOwlXmlToRdfXml } from "./owlXmlParser.js";
 import { isManchesterSyntaxFormat, convertManchesterSyntaxToRdfXml } from "./manchesterSyntaxParser.js";
 import { parseFunctionalSyntax } from "./functionalSyntaxParser.js";
 import { parseDLSyntax, isDLSyntaxFormat } from "./dlSyntaxParser.js";
+import { parseKRSS2Syntax, isKRSS2SyntaxFormat } from "./krss2SyntaxParser.js";
 
 /**
  * Attempts to parse an ontology string across multiple syntax formats 
@@ -79,10 +80,13 @@ export function convertToRdfXmlFallback(text) {
       }
     },
     {
-      // TODO: Implement KRSS2 parser (Java: KRSS2OWLParserFactory @HasPriority(16))
-      // Reference: owlapi/parsers/.../krss2/parser/KRSS2OWLParserFactory.java
       name: "KRSS2",
-      parse: (_t) => { throw new Error("KRSS2 parser not yet implemented"); }
+      parse: (t) => {
+        if (!isKRSS2SyntaxFormat(t)) {
+          throw new Error("Not KRSS2 syntax");
+        }
+        return parseKRSS2Syntax(t);
+      }
     }
   ];
 
