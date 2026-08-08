@@ -4,235 +4,273 @@
 
 /* -------- Text -------- */
 .text {
-    font-family: Helvetica, Arial, sans-serif;
-    font-size: 12px;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
 }
 
 .subtext {
-    font-size: 9px;
+  font-size: 9px;
 }
 
 .text.instance-count {
-    fill: #666;
+  fill: #666;
 }
 
 .text-on-light {
-    fill: #000;
+  fill: #000;
 }
 
 .text-on-dark {
-    fill: #fff;
+  fill: #fff;
 }
 
 .external + text .instance-count {
-    fill: #aaa;
+  fill: #aaa;
 }
 
 .cardinality {
-    font-size: 10px;
+  font-size: 10px;
 }
 
-.text, .embedded {
-    pointer-events: none;
+.text,
+.embedded {
+  pointer-events: none;
 }
 
 /* ------- Colors ------ */
-.class, .object, .disjoint, .objectproperty, .disjointwith, .equivalentproperty, .transitiveproperty, .functionalproperty, .inversefunctionalproperty, .symmetricproperty, .allvaluesfromproperty, .somevaluesfromproperty {
-    fill: #acf;
+.class,
+.object,
+.disjoint,
+.objectproperty,
+.disjointwith,
+.equivalentproperty,
+.transitiveproperty,
+.functionalproperty,
+.inversefunctionalproperty,
+.symmetricproperty,
+.allvaluesfromproperty,
+.somevaluesfromproperty {
+  fill: #acf;
 }
 
-.label .datatype, .datatypeproperty {
-    fill: #9c6;
+.label .datatype,
+.datatypeproperty {
+  fill: #9c6;
 }
 
-.rdf, .rdfproperty {
-    fill: #c9c;
+.rdf,
+.rdfproperty {
+  fill: #c9c;
 }
 
-.literal, .node .datatype {
-    fill: #fc3;
+.literal,
+.node .datatype {
+  fill: #fc3;
 }
 
-.deprecated, .deprecatedproperty {
-    fill: #ccc;
+.deprecated,
+.deprecatedproperty {
+  fill: #ccc;
 }
 
 .has-custom-fill {
-    fill: var(--vowl-fill);
+  fill: var(--vowl-fill);
 }
 
-.external, .externalproperty {
-    /* fill: #36c; */
+.external,
+.externalproperty {
+  /* fill: #36c; */
 }
 
-:where(#graph) path, .nofill {
-    fill: none;
+:where(#graph) path,
+.nofill {
+  fill: none;
 }
 
 marker path {
-    fill: #000;
+  fill: #000;
 
-    /* Safari and Chrome workaround for inheriting the style of its link.
+  /* Safari and Chrome workaround for inheriting the style of its link.
        Use any value that is larger than the length of the marker path. */
-    stroke-dasharray: 100;
+  stroke-dasharray: 100;
 }
 
-.class, :where(#graph) path, line, .fineline {
-    stroke: #000;
+.class,
+:where(#graph) path,
+line,
+.fineline {
+  stroke: #000;
 }
 
-.white, .subclass, .subclassproperty, .external + text {
-    fill: #fff;
+.white,
+.subclass,
+.subclassproperty,
+.external + text {
+  fill: #fff;
 }
 
-.class.hovered, .property.hovered, .cardinality.hovered, .cardinality.focused, .filled.hovered, .filled.focused, .values-from.filled.hovered {
-    fill: #f00 !important;
-    cursor: pointer;
+.class.hovered,
+.property.hovered,
+.cardinality.hovered,
+.cardinality.focused,
+.filled.hovered,
+.filled.focused,
+.values-from.filled.hovered {
+  cursor: pointer;
+  fill: #f00 !important;
 }
 
 .hoveredForEditing {
-    fill: #f00 !important;
-    cursor: pointer;
+  cursor: pointer;
+  fill: #f00 !important;
 }
 
 .feature {
-    fill: #f00;
-    cursor: pointer;
+  cursor: pointer;
+  fill: #f00;
 }
 
 @keyframes pulseAnimation {
-    0% {
-        transform: scale(1.5);
-        stroke-width: 3.33;
-    }
+  0% {
+    transform: scale(1.5);
+    stroke-width: 3.33;
+  }
 
-    50% {
-        stroke-width: 4;
-    }
+  50% {
+    stroke-width: 4;
+  }
 
-    100% {
-        transform: scale(1.0);
-        stroke-width: 5;
-    }
+  100% {
+    transform: scale(1);
+    stroke-width: 5;
+  }
 }
 
 @keyframes pulseAnimation {
-    0% {
-        transform: scale(1.5);
-        stroke-width: 3.33;
-    }
+  0% {
+    transform: scale(1.5);
+    stroke-width: 3.33;
+  }
 
-    50% {
-        stroke-width: 4;
-    }
+  50% {
+    stroke-width: 4;
+  }
 
-    100% {
-        transform: scale(1.0);
-        stroke-width: 5;
-    }
+  100% {
+    transform: scale(1);
+    stroke-width: 5;
+  }
 }
 
 @keyframes pulseAnimation {
-    0% {
-        transform: scale(1.5);
-        stroke-width: 3.33;
-    }
+  0% {
+    transform: scale(1.5);
+    stroke-width: 3.33;
+  }
 
-    50% {
-        stroke-width: 4;
-    }
+  50% {
+    stroke-width: 4;
+  }
 
-    100% {
-        transform: scale(1.0);
-        stroke-width: 5;
-    }
+  100% {
+    transform: scale(1);
+    stroke-width: 5;
+  }
 }
 
 @keyframes pulseAnimation {
-    0% {
-        transform: scale(1.5);
-        stroke-width: 3.33;
-    }
+  0% {
+    transform: scale(1.5);
+    stroke-width: 3.33;
+  }
 
-    50% {
-        stroke-width: 4;
-    }
+  50% {
+    stroke-width: 4;
+  }
 
-    100% {
-        transform: scale(1.0);
-        stroke-width: 5;
-    }
+  100% {
+    transform: scale(1);
+    stroke-width: 5;
+  }
 }
 
 .searchResultA {
-    fill: none;
-    stroke-width: 5;
-    stroke: #f00;
-    animation-name: pulseAnimation;
-    animation-duration: 0.8s;
-    transform: translateZ(0);
-    animation-iteration-count: 3;
-    animation-timing-function: linear;
+  transform: translateZ(0);
 
+  fill: none;
+  stroke: #f00;
+  stroke-width: 5;
+
+  animation-name: pulseAnimation;
+  animation-duration: 0.8s;
+  animation-timing-function: linear;
+  animation-iteration-count: 3;
 }
 
 /* a class for not animated search results (hovered over node) */
 .searchResultB {
-    fill: none;
-    stroke-width: 5;
-    stroke: #f00;
+  fill: none;
+  stroke: #f00;
+  stroke-width: 5;
 }
 
 .hovered-MathSymbol {
-    fill: none;
-    stroke: #f00 !important;
+  fill: none;
+  stroke: #f00 !important;
 }
 
-.focused, path.hovered {
-    stroke: #f00 !important;
+.focused,
+path.hovered {
+  stroke: #f00 !important;
 }
 
-.indirect-highlighting, .feature:hover {
-    fill: #f90;
-    cursor: pointer;
+.indirect-highlighting,
+.feature:hover {
+  cursor: pointer;
+  fill: #f90;
 }
 
 .feature_hover {
-    fill: #f90;
-    cursor: pointer;
+  cursor: pointer;
+  fill: #f90;
 }
 
 .values-from {
-    stroke: #69c;
+  stroke: #69c;
 }
 
-.symbol, .values-from.filled {
-    fill: #69c;
+.symbol,
+.values-from.filled {
+  fill: #69c;
 }
 
 /* ------- Strokes ------ */
-.class, path, line {
-    stroke-width: 2;
+.class,
+path,
+line {
+  stroke-width: 2;
 }
 
 .fineline {
-    stroke-width: 1;
+  stroke-width: 1;
 }
 
-.dashed, .anonymous {
-    stroke-dasharray: 8;
+.dashed,
+.anonymous {
+  stroke-dasharray: 8;
 }
 
 .dotted {
-    stroke-dasharray: 3;
+  stroke-dasharray: 3;
 }
 
-rect.focused, circle.focused {
-    stroke-width: 4px;
+rect.focused,
+circle.focused {
+  stroke-width: 4px;
 }
 
 .nostroke {
-    stroke: none;
+  stroke: none;
 }
 
 /* -----------------------------------------------------------------
@@ -240,76 +278,76 @@ rect.focused, circle.focused {
 ----------------------------------------------------------------- */
 
 .addDataPropertyElement {
-    fill: #9c6 !important;
-    cursor: pointer;
-    stroke-width: 2;
-    stroke: black;
+  cursor: pointer;
+  fill: #9c6 !important;
+  stroke: black;
+  stroke-width: 2;
 }
 
 .addDataPropertyElement:hover {
-    fill: #f90 !important;
-    cursor: pointer;
-    stroke-width: 2;
-    stroke: black;
+  cursor: pointer;
+  fill: #f90 !important;
+  stroke: black;
+  stroke-width: 2;
 }
 
 .superHiddenElement {
-    fill: rgb(255 153 0 / 40%);
-    cursor: pointer;
-    stroke-width: 0;
-    stroke: black;
+  cursor: pointer;
+  fill: rgb(255 153 0 / 40%);
+  stroke: black;
+  stroke-width: 0;
 
-    /* opacity:0; */
+  /* opacity:0; */
 }
 
 .superOpacityElement {
-    opacity: 0;
+  opacity: 0;
 }
 
 .deleteParentElement:hover {
-    fill: #f90;
-    cursor: pointer;
-    stroke-width: 2;
-    stroke: black;
+  cursor: pointer;
+  fill: #f90;
+  stroke: black;
+  stroke-width: 2;
 }
 
 .deleteParentElement {
-    fill: #f00;
-    cursor: pointer;
-    stroke-width: 2;
-    stroke: black;
+  cursor: pointer;
+  fill: #f00;
+  stroke: black;
+  stroke-width: 2;
 }
 
 .classNodeDragPath {
-    stroke: black;
-    stroke-width: 2px;
+  stroke: black;
+  stroke-width: 2px;
 }
 
 .classDraggerNodeHovered {
-    fill: #f90;
-    stroke: black;
-    stroke-width: 2px;
-    cursor: grab;
+  cursor: grab;
+  fill: #f90;
+  stroke: black;
+  stroke-width: 2px;
 }
 
 .classDraggerNode {
-    fill: #acf;
-    stroke: black;
-    stroke-width: 2px;
+  fill: #acf;
+  stroke: black;
+  stroke-width: 2px;
 }
 
 /* Shared off-screen probe used only for measuring rendered label widths. */
 .text-measurement-probe {
-    position: absolute;
-    float: left;
-    visibility: hidden;
-    white-space: nowrap;
+  position: absolute;
+  float: left;
+  white-space: nowrap;
+  visibility: hidden;
 }
 
 .vowlGraph .is-render-pending {
-    opacity: 0;
+  opacity: 0;
 }
 
 .is-dragging {
-    cursor: grabbing;
+  cursor: grabbing;
 }
