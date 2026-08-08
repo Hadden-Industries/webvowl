@@ -633,7 +633,10 @@ function createGraph( graphContainerSelector ){
           graphContainer.classed("is-render-pending", false);
           graph.options().loadingModule().setPercentValue(100);
           graph.options().ontologyMenu().append_message_toLastBulletPoint("done");
-          d3.select("#reloadCachedOntology").classed("hidden", !showReloadButtonAfterLayoutOptimization);
+          const reloadCachedOntologyBtn = document.getElementById("reloadCachedOntology");
+          if ( reloadCachedOntologyBtn ) {
+            reloadCachedOntologyBtn.classList.toggle("hidden", !showReloadButtonAfterLayoutOptimization);
+          }
         }
         
         if ( initialLoad ) {

@@ -119,11 +119,45 @@ html {
 }
 
 #reloadCachedOntology {
-    /* position : absolute; */
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    background: #18202a;
+    border: 1px solid #34495e;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 25%);
+    cursor: pointer;
+    transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-    /* top : 10px; */
+#reloadCachedOntology:hover:not(:disabled) {
+    background: #2c3e50;
+    border-color: var(--theme-color-accent, #d90);
+    color: #fff;
+}
 
-    /* right: 50px; */
+#reloadCachedOntology:focus-visible {
+    outline: 2px solid var(--theme-color-accent, #d90);
+    outline-offset: 2px;
+}
+
+#reloadCachedOntology:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background: #34495e;
+    color: #a0aec0;
+    border-color: #4a5568;
+    box-shadow: none;
+}
+
+#reloadCachedOntology.hidden {
+    display: none !important;
 }
 
 #additionalInformationContainer {
@@ -828,14 +862,6 @@ main {
     cursor: default !important;
 }
 
-#svgStringText {
-    fill: black;
-    font-size: 9px;
-}
-
-#svgStringText.svg-text-disabled {
-    fill: gray !important;
-}
 
 #o2vConverterContainer {
     margin-left: -25px;
@@ -1127,10 +1153,6 @@ main {
     margin-top: 5px;
 }
 
-#reloadCachedOntologyString {
-    font-style: italic;
-    font-size: 10px;
-}
 
 #drag_svg {
     position: absolute;
@@ -2344,43 +2366,10 @@ main {
 }
 
 .reloadCachedOntologyIcon {
-    height: 20px;
-    width: 108px;
-    display: block;
-    position: absolute;
-    top: 20px;
-    left: 3px;
-
-    /* background: #ecf0f1;; */
-    border: solid 1px black;
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-.reloadCachedOntologyIcon:disabled {
-    background: #f4f4f4;
-    cursor: auto;
-    border: solid 1px darkgray;
-
-}
-
-.reloadCachedOntologyIcon:hover {
-    background: var(--theme-color-accent);
-    cursor: pointer;
-}
-
-.disabledReloadElement {
-    cursor: auto;
-    background: #F4F4F4;
-    pointer-events: auto;
-    border: solid 1px darkgray;
-    color: #bbb;
-}
-
-.disabledReloadElement:hover {
-    cursor: auto;
-    background: #EEE;
-    pointer-events: auto;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    fill: currentcolor;
 }
 
 #menuElementContainer > li > input {

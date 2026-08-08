@@ -19,6 +19,12 @@
     <title>WebVOWL</title>
 </head>
 <body>
+    <svg xmlns="http://www.w3.org/2000/svg" class="hidden" aria-hidden="true">
+        <symbol id="icon-arrow-clockwise" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+        </symbol>
+    </svg>
 <main>
     <section id="canvasArea">
         <div id="unsupported-browser" hidden>
@@ -67,19 +73,12 @@
         </div>
 
         <div id="additionalInformationContainer">
-            <div id="reloadCachedOntology" class="hidden" title="">
-
-                <svg viewBox="38 -12.5 18 18" class="reloadCachedOntologyIcon btn_shadowed" id="reloadSvgIcon" aria-hidden="true">
-                    <g>
-                        <text id="svgStringText" dx="5px" dy="-1px">Reload ontology</text>
-                        <path class="reload-cached-ontology-path"
-                              d="m 42.277542,5.1367119 c -5.405,0 -10.444,1.577 -14.699,4.282 l -5.75,-5.75 0,16.1100001 16.11,0 -6.395,-6.395 c 3.18,-1.787 6.834,-2.82 10.734,-2.82 12.171,0 22.073,9.902 22.073,22.074 0,2.899 -0.577,5.664 -1.599,8.202 l 4.738,2.762 c 1.47,-3.363 2.288,-7.068 2.288,-10.964 0,-15.164 -12.337,-27.5010001 -27.5,-27.5010001 m 11.5,46.7460001 c -3.179,1.786 -6.826,2.827 -10.726,2.827 -12.171,0 -22.073,-9.902 -22.073,-22.073 0,-2.739 0.524,-5.35 1.439,-7.771 l -4.731,-2.851 c -1.375,3.271 -2.136,6.858 -2.136,10.622 0,15.164 12.336,27.5 27.5,27.5 5.406,0 10.434,-1.584 14.691,-4.289 l 5.758,5.759 0,-16.112 -16.111,0 6.389,6.388 z"
-                              transform="matrix(0.20,0,0,0.20,75,-10)">
-                        </path>
-                    </g>
+            <button id="reloadCachedOntology" type="button" class="hidden">
+                <svg class="bi bi-arrow-clockwise reloadCachedOntologyIcon" aria-hidden="true">
+                    <use href="#icon-arrow-clockwise"></use>
                 </svg>
-                <span id="reloadCachedOntologyString" class="noselect">Loaded cached ontology</span>
-            </div>
+                <span>Reload cached ontology</span>
+            </button>
 
             <div id="FPS_Statistics" class="hidden debugOption">FPS: 0<br>Nodes: 0<br>Links: 0</div>
             <span class="hidden debugOption" id="modeOfOperationString">mode of operation</span>
@@ -569,13 +568,8 @@
                 <!-- Direct Graph Execution Action Buttons -->
                 <li id="c_reset"><button type="button" class="navButton action-pill" id="reset-button" disabled title="Reset layout and filters">
                     <span class="reset-glow" aria-hidden="true"></span>
-                    <svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true">
-                            <g>
-                                <path
-                                      d="m 12,5 0,-4 5,5 -5,5 0,-4 c -3.31,0 -6,2.69 -6,6 0,3.31 2.69,6 6,6 3.31,0 6,-2.69 6,-6 l 2,0 c 0,4.42 -3.58,8 -8,8 C 7.58,21 4,17.42 4,13 4,8.58 7.58,5 12,5 Z"
-                                      transform="matrix(0.75,0,0,0.75,3.5,2.5)">
-                                </path>
-                            </g>
+                    <svg class="bi bi-arrow-clockwise menuElementSvgElement" aria-hidden="true">
+                        <use href="#icon-arrow-clockwise"></use>
                     </svg>
                     <span class="menuElementLabel">Reset</span></button></li>
                 <li id="c_pause"><button type="button" class="navButton action-pill" id="pause-button" disabled aria-pressed="false" title="Pause graph physics simulation"><svg viewBox="0 0 24 24" class="menuElementSvgElement" aria-hidden="true"><path class="pause-icon-path" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/><path class="resume-icon-path" d="M8 5v14l11-7z"/></svg><span class="menuElementLabel">Pause</span></button>

@@ -147,3 +147,27 @@ describe("browser support and polyfill loading", () => {
   });
 });
 
+describe("SVG icon symbol reuse", () => {
+  test("defines icon-arrow-clockwise symbol in index.html", () => {
+    expect(markup).toMatch(/<symbol\s+id="icon-arrow-clockwise"\s+viewBox="0 0 16 16"/);
+  });
+
+  test("uses icon-arrow-clockwise by reference in #reloadCachedOntology button", () => {
+    expect(markup).toMatch(/<button\s+id="reloadCachedOntology"[\s\S]*?<use\s+href="#icon-arrow-clockwise">\s*<\/use>/);
+  });
+
+  test("uses icon-arrow-clockwise by reference in #reset-button", () => {
+    expect(markup).toMatch(/<button[^>]*id="reset-button"[\s\S]*?<use\s+href="#icon-arrow-clockwise">\s*<\/use>/);
+  });
+});
+
+describe("reloadCachedOntology accessibility contrast", () => {
+  test("uses high-contrast solid surface styling over graph canvas", () => {
+    const reloadRule = stylesheet.match(/#reloadCachedOntology\s*\{([^{}]+)\}/);
+
+    expect(reloadRule).not.toBeNull();
+    expect(reloadRule[1]).toContain("color: #fff");
+    expect(reloadRule[1]).toContain("background: #18202a");
+  });
+});
+

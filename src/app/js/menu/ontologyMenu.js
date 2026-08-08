@@ -81,24 +81,28 @@ function createOntologyMenu( graph ){
     currentLoadedOntologyName = ontoName;
     if ( cachedConversions[ontoName] ) {
       const locStr = String(location.hash);
-      d3.select("#reloadSvgIcon").node().disabled = false;
-      graph.showReloadButtonAfterLayoutOptimization(true);
+      const reloadBtn = document.getElementById("reloadCachedOntology");
+      if ( reloadBtn ) {
+        reloadBtn.disabled = false;
+      }
+      if ( typeof graph.showReloadButtonAfterLayoutOptimization === "function" ) {
+        graph.showReloadButtonAfterLayoutOptimization(true);
+      }
       if ( locStr.indexOf("#file") > -1 ) {
-        d3.select("#reloadSvgIcon").node().disabled = true;
-        d3.select("#reloadCachedOntology").node().title = "reloading original version not possible, please reload the file";
-        d3.select("#reloadSvgIcon").classed("disabledReloadElement", true);
-        d3.select("#svgStringText").classed("svg-text-disabled", true);
-        d3.select("#svgStringText").classed("noselect", true);
+        if ( reloadBtn ) {
+          reloadBtn.disabled = true;
+          reloadBtn.title = "reloading original version not possible, please reload the file";
+        }
       }
       else {
-        d3.select("#reloadCachedOntology").node().title = "generate new visualization and overwrite cached ontology";
-        d3.select("#reloadSvgIcon").classed("disabledReloadElement", false);
-        d3.select("#svgStringText").classed("svg-text-disabled", false);
-        d3.select("#svgStringText").classed("noselect", true);
+        if ( reloadBtn ) {
+          reloadBtn.title = "generate new visualization and overwrite cached ontology";
+        }
       }
     } else {
-      graph.showReloadButtonAfterLayoutOptimization(false);
-
+      if ( typeof graph.showReloadButtonAfterLayoutOptimization === "function" ) {
+        graph.showReloadButtonAfterLayoutOptimization(false);
+      }
     }
     return cachedConversions[ontoName];
   };

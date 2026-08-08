@@ -324,15 +324,17 @@ module.exports = function (){
       debugMenu.updateSettings();
       
       // connect the reloadCachedVersionButton
-      d3.select("#reloadSvgIcon").on("click", function (){
-        if ( d3.select("#reloadSvgIcon").node().disabled === true ) {
-          graph.options().ontologyMenu().clearCachedVersion();
-          return;
-        }
-        d3.select("#reloadCachedOntology").classed("hidden", true);
-        graph.options().ontologyMenu().reloadCachedOntology();
-        
-      });
+      const reloadCachedOntologyBtn = document.getElementById("reloadCachedOntology");
+      if ( reloadCachedOntologyBtn ) {
+        reloadCachedOntologyBtn.addEventListener("click", function (){
+          if ( reloadCachedOntologyBtn.disabled ) {
+            graph.options().ontologyMenu().clearCachedVersion();
+            return;
+          }
+          reloadCachedOntologyBtn.classList.add("hidden");
+          graph.options().ontologyMenu().reloadCachedOntology();
+        });
+      }
       // add the initialized objects
       webvowl.opts = options;
       webvowl.gr = graph;
@@ -340,7 +342,10 @@ module.exports = function (){
   
   
   function loadOntologyFromText( jsonText, filename, alternativeFilename ){
-    d3.select("#reloadCachedOntology").classed("hidden", true);
+    const reloadCachedOntologyBtn = document.getElementById("reloadCachedOntology");
+    if ( reloadCachedOntologyBtn ) {
+      reloadCachedOntologyBtn.classList.add("hidden");
+    }
     pauseMenu.reset();
     graph.options().navigationMenu().hideAllMenus();
     
