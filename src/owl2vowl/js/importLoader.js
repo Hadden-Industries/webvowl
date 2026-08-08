@@ -1,7 +1,8 @@
 import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
 import { NAMESPACES, ONTOLOGY_CATALOG } from "./constants.js";
 import { resolveXmlEntities } from "./xmlUtils.js";
-import { parseTurtle, serializeTriplesToRdfXml } from "./turtleParser.js";
+import { parseTurtle } from "./turtleParser.js";
+import { serializeTriplesToRdfXml } from "./rdfXmlSerializer.js";
 import { isOwlXmlFormat, convertOwlXmlToRdfXml } from "./owlXmlParser.js";
 import { isManchesterSyntaxFormat, convertManchesterSyntaxToRdfXml } from "./manchesterSyntaxParser.js";
 import { parseFunctionalSyntax } from "./functionalSyntaxParser.js";

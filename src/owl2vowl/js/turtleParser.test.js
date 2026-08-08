@@ -1,5 +1,5 @@
 import { describe, test, expect } from "@jest/globals";
-import { isTurtleFormat, parseTurtle, serializeTriplesToRdfXml } from "./turtleParser.js";
+import { isTurtleFormat, parseTurtle } from "./turtleParser.js";
 
 describe("turtleParser.js - isTurtleFormat", () => {
   test("identifies turtle format correctly", () => {
@@ -76,63 +76,5 @@ describe("turtleParser.js - parseTurtle", () => {
     const hasListTriple = result.triples.find(t => t.predicate.value === "http://example.org/list");
     expect(hasListTriple).toBeDefined();
     expect(hasListTriple.object.type).toBe("BNODE");
-  });
-});
-
-describe("turtleParser.js - serializeTriplesToRdfXml", () => {
-  test("serializes triples back to valid RDF/XML string structure", () => {
-    const triples = [
-      {
-        subject: { type: "URI", value: "http://example.org/s" },
-        predicate: { type: "URI", value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" },
-        object: { type: "URI", value: "http://example.org/Class" }
-      },
-      {
-        subject: { type: "URI", value: "http://example.org/s" },
-        predicate: { type: "URI", value: "http://example.org/label" },
-        object: { type: "LITERAL", value: "test label", lang: "en" }
-      }
-    ];
-    const prefixes = { ex: "http://example.org/" };
-    const baseIri = "http://example.org/ontology";
-    
-    const xml = serializeTriplesToRdfXml(triples, prefixes, baseIri);
-    expect(xml).toContain("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-    expect(xml).toContain("<rdf:RDF");
-    expect(xml).toContain("xml:base=\"http://example.org/ontology\"");
-    expect(xml).toContain("xmlns:ex=\"http://example.org/\"");
-    expect(xml).toContain("<rdf:Description rdf:about=\"http://example.org/s\">");
-    expect(xml).toContain("<rdf:type rdf:resource=\"http://example.org/Class\" />");
-    expect(xml).toContain("xml:lang=\"en\">test label</ex:label>");
-  });
-
-  test("generates dynamic auto-prefixes for un-prefixed predicate namespaces", () => {
-    const triples = [
-      {
-        subject: { type: "URI", value: "http://example.org/s" },
-        predicate: { type: "URI", value: "http://custom-namespace.org/vocab#hasCustomProp" },
-        object: { type: "LITERAL", value: "custom value" }
-      }
-    ];
-    const xml = serializeTriplesToRdfXml(triples, {}, "http://example.org/");
-    expect(xml).toContain('xmlns:ns0="http://custom-namespace.org/vocab#"');
-    expect(xml).toContain('<ns0:hasCustomProp>custom value</ns0:hasCustomProp>');
-  });
-
-  test("handles empty/default prefix mappings securely to prevent invalid QNames or xmlns attributes", () => {
-    const triples = [
-      {
-        subject: { type: "URI", value: "http://example.org/s" },
-        predicate: { type: "URI", value: "http://default-namespace.org/#hasDefaultProp" },
-        object: { type: "LITERAL", value: "default value" }
-      }
-    ];
-    const prefixes = { "": "http://default-namespace.org/#" }; // Empty prefix
-    
-    const xml = serializeTriplesToRdfXml(triples, prefixes, "http://example.org/ontology");
-    expect(xml).toContain('xmlns="http://default-namespace.org/#"'); // Correctly uses xmlns="..." instead of xmlns:="..."
-    expect(xml).not.toContain('xmlns:="http://default-namespace.org/#"');
-    expect(xml).toContain('<hasDefaultProp>default value</hasDefaultProp>'); // Naked tag without dangling colons
-    expect(xml).not.toContain('<:hasDefaultProp>');
   });
 });
