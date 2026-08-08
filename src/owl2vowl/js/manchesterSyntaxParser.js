@@ -1,5 +1,5 @@
 import { resolveXmlEntities } from "./xmlUtils.js";
-import { serializeTriplesToRdfXml } from "./turtleParser.js";
+import { serializeTriplesToRdfXml } from "./rdfXmlSerializer.js";
 import { NAMESPACES } from "./constants.js";
 
 // -----------------------------------------------------------------------------

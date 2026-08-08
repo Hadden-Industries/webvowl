@@ -1,4 +1,4 @@
-import { serializeTriplesToRdfXml } from "./turtleParser.js";
+import { serializeTriplesToRdfXml } from "./rdfXmlSerializer.js";
 
 export function isDLSyntaxFormat(text) {
   if (!text) {return false;}

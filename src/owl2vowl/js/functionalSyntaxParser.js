@@ -1,4 +1,4 @@
-import { serializeTriplesToRdfXml } from "./turtleParser.js";
+import { serializeTriplesToRdfXml } from "./rdfXmlSerializer.js";
 
 export function isFunctionalSyntaxFormat(text) {
   // Check if it looks like OFN by searching for Ontology( or Prefix(
