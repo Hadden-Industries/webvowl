@@ -17,11 +17,11 @@
 }
 
 .text-on-light {
-    fill: #000;
+  fill: #000;
 }
 
 .text-on-dark {
-    fill: #fff;
+  fill: #fff;
 }
 
 .external + text .instance-count {
@@ -74,7 +74,7 @@
 }
 
 .has-custom-fill {
-    fill: var(--vowl-fill);
+  fill: var(--vowl-fill);
 }
 
 .external,
@@ -203,6 +203,14 @@ line,
   transform: translateZ(0);
   animation-iteration-count: 3;
   animation-timing-function: linear;
+  fill: none;
+  stroke: #f00;
+  stroke-width: 5;
+
+  animation-name: pulseAnimation;
+  animation-duration: 0.8s;
+  animation-timing-function: linear;
+  animation-iteration-count: 3;
 }
 
 /* a class for not animated search results (hovered over node) */
@@ -335,15 +343,15 @@ circle.focused {
 }
 /* Shared off-screen probe used only for measuring rendered label widths. */
 .text-measurement-probe {
-    position: absolute;
-    float: left;
-    visibility: hidden;
-    white-space: nowrap;
+  position: absolute;
+  float: left;
+  white-space: nowrap;
+  visibility: hidden;
 }
 .vowlGraph .is-render-pending {
-    opacity: 0;
+  opacity: 0;
 }
 
 .is-dragging {
-    cursor: grabbing;
+  cursor: grabbing;
 }
