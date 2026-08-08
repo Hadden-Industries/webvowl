@@ -1,3 +1,5 @@
+import { serializeTriplesToRdfXml } from "./turtleParser.js";
+
 export function isFunctionalSyntaxFormat(text) {
   // Check if it looks like OFN by searching for Ontology( or Prefix(
   return /^\s*(Prefix|Ontology)\s*\(/i.test(text);
@@ -203,145 +205,133 @@ class TokenStream {
 class TriplesEmitter {
   constructor() {
     this.ontologyIri = "http://example.com/ontology";
-    this.classes = {};
-    this.objectProperties = {};
-    this.dataProperties = {};
-    this.namedIndividuals = {};
-    this.datatypes = {};
-    this.annotationProperties = {};
-    this.axioms = [];
+    this.prefixes = {};
+    this.triples = [];
+    this.bnodeCounter = 0;
   }
 
-  setOntologyIri(iri) { this.ontologyIri = iri; }
-
-  ensureClass(iri) {
-    if (!this.classes[iri]) {this.classes[iri] = true;}
+  setOntologyIri(iri) {
+    this.ontologyIri = iri;
+    this.addTriple(iri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#Ontology");
   }
 
-  ensureObjectProperty(iri) {
-    if (!this.objectProperties[iri]) {this.objectProperties[iri] = true;}
+  addPrefix(pfx, ns) {
+    const cleanPfx = pfx.endsWith(":") ? pfx.slice(0, -1) : pfx;
+    this.prefixes[cleanPfx] = ns;
   }
 
-  addClass(iri) { this.ensureClass(iri); }
-  addObjectProperty(iri) { this.ensureObjectProperty(iri); }
-  addDataProperty(iri) { this.dataProperties[iri] = true; }
-  addNamedIndividual(iri) { this.namedIndividuals[iri] = true; }
-  addDatatype(iri) { this.datatypes[iri] = true; }
-  addAnnotationProperty(iri) { this.annotationProperties[iri] = true; }
+  newBNode() {
+    this.bnodeCounter++;
+    return { type: "BNODE", value: `fnode_${this.bnodeCounter}` };
+  }
+
+  addTriple(subj, pred, obj) {
+    const sTerm = typeof subj === "string" ? { type: subj.startsWith("_:") ? "BNODE" : "URI", value: subj } : subj;
+    const pTerm = typeof pred === "string" ? { type: "IRI", value: pred } : pred;
+    const oTerm = typeof obj === "string" ? { type: obj.startsWith("_:") ? "BNODE" : "URI", value: obj } : obj;
+    this.triples.push({ subject: sTerm, predicate: pTerm, object: oTerm });
+  }
+
+  addClass(iri) {
+    this.addTriple(iri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#Class");
+  }
+
+  addObjectProperty(iri) {
+    this.addTriple(iri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#ObjectProperty");
+  }
+
+  addDataProperty(iri) {
+    this.addTriple(iri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#DatatypeProperty");
+  }
+
+  addNamedIndividual(iri) {
+    this.addTriple(iri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#NamedIndividual");
+  }
+
+  addDatatype(iri) {
+    this.addTriple(iri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2000/01/rdf-schema#Datatype");
+  }
+
+  addAnnotationProperty(iri) {
+    this.addTriple(iri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#AnnotationProperty");
+  }
+
+  emitList(items) {
+    if (!items || items.length === 0) {
+      return { type: "URI", value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" };
+    }
+    const headNode = this.newBNode();
+    let current = headNode;
+
+    for (let i = 0; i < items.length; i++) {
+      const itemNode = this.emitExpression(items[i]);
+      this.addTriple(current, "http://www.w3.org/1999/02/22-rdf-syntax-ns#first", itemNode);
+
+      if (i < items.length - 1) {
+        const nextNode = this.newBNode();
+        this.addTriple(current, "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest", nextNode);
+        current = nextNode;
+      } else {
+        this.addTriple(current, "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest", { type: "URI", value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" });
+      }
+    }
+    return headNode;
+  }
+
+  emitExpression(expr) {
+    if (!expr) { return null; }
+    if (expr.type === "IRI") {
+      return { type: "URI", value: expr.iri };
+    }
+    if (expr.type === "ObjectIntersectionOf" || expr.type === "ObjectUnionOf") {
+      const bnode = this.newBNode();
+      this.addTriple(bnode, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#Class");
+      const tag = expr.type === "ObjectIntersectionOf"
+        ? "http://www.w3.org/2002/07/owl#intersectionOf"
+        : "http://www.w3.org/2002/07/owl#unionOf";
+      const listHead = this.emitList(expr.classes);
+      this.addTriple(bnode, tag, listHead);
+      return bnode;
+    }
+    if (expr.type === "ObjectSomeValuesFrom" || expr.type === "ObjectAllValuesFrom") {
+      const bnode = this.newBNode();
+      this.addTriple(bnode, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#Restriction");
+      this.addTriple(bnode, "http://www.w3.org/2002/07/owl#onProperty", { type: "URI", value: expr.property });
+      const tag = expr.type === "ObjectSomeValuesFrom"
+        ? "http://www.w3.org/2002/07/owl#someValuesFrom"
+        : "http://www.w3.org/2002/07/owl#allValuesFrom";
+      const fillerNode = this.emitExpression(expr.filler);
+      this.addTriple(bnode, tag, fillerNode);
+      return bnode;
+    }
+    if (expr.type === "ObjectHasValue") {
+      const bnode = this.newBNode();
+      this.addTriple(bnode, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.w3.org/2002/07/owl#Restriction");
+      this.addTriple(bnode, "http://www.w3.org/2002/07/owl#onProperty", { type: "URI", value: expr.property });
+      this.addTriple(bnode, "http://www.w3.org/2002/07/owl#hasValue", { type: "URI", value: expr.individual });
+      return bnode;
+    }
+    return { type: "URI", value: "http://www.w3.org/2002/07/owl#Thing" };
+  }
 
   addSubClassOf(subExpr, superExpr) {
-    this.axioms.push({ type: "SubClassOf", sub: subExpr, sup: superExpr });
+    const subNode = this.emitExpression(subExpr);
+    const superNode = this.emitExpression(superExpr);
+    this.addTriple(subNode, "http://www.w3.org/2000/01/rdf-schema#subClassOf", superNode);
   }
 
   addEquivalentClass(exprA, exprB) {
-    this.axioms.push({ type: "EquivalentClasses", a: exprA, b: exprB });
+    const nodeA = this.emitExpression(exprA);
+    const nodeB = this.emitExpression(exprB);
+    this.addTriple(nodeA, "http://www.w3.org/2002/07/owl#equivalentClass", nodeB);
   }
 
   addSubObjectPropertyOf(subIri, superIri) {
-    this.axioms.push({ type: "SubObjectPropertyOf", sub: subIri, sup: superIri });
-  }
-
-  renderClassExpression(expr, indent) {
-    if (expr.type === "IRI") {
-      return `<owl:Class rdf:about="${expr.iri}"/>`;
-    }
-    if (expr.type === "ObjectIntersectionOf" || expr.type === "ObjectUnionOf") {
-      const tag = expr.type === "ObjectIntersectionOf" ? "owl:intersectionOf" : "owl:unionOf";
-      const parts = expr.classes.map(c => this.renderClassExpression(c, indent + "      ")).join("\n");
-      return `<owl:Class>\n${indent}  <${tag} rdf:parseType="Collection">\n${parts}\n${indent}  </${tag}>\n${indent}</owl:Class>`;
-    }
-    if (expr.type === "ObjectSomeValuesFrom" || expr.type === "ObjectAllValuesFrom") {
-      const tag = expr.type === "ObjectSomeValuesFrom" ? "owl:someValuesFrom" : "owl:allValuesFrom";
-      if (expr.filler.type === "IRI") {
-        return `<owl:Restriction>\n${indent}  <owl:onProperty rdf:resource="${expr.property}"/>\n${indent}  <${tag} rdf:resource="${expr.filler.iri}"/>\n${indent}</owl:Restriction>`;
-      } else {
-        const filler = this.renderClassExpression(expr.filler, indent + "    ");
-        return `<owl:Restriction>\n${indent}  <owl:onProperty rdf:resource="${expr.property}"/>\n${indent}  <${tag}>\n${indent}    ${filler}\n${indent}  </${tag}>\n${indent}</owl:Restriction>`;
-      }
-    }
-    if (expr.type === "ObjectHasValue") {
-      return `<owl:Restriction>\n${indent}  <owl:onProperty rdf:resource="${expr.property}"/>\n${indent}  <owl:hasValue rdf:resource="${expr.individual}"/>\n${indent}</owl:Restriction>`;
-    }
-    return `<owl:Class rdf:about="http://www.w3.org/2002/07/owl#Thing"/>`;
+    this.addTriple(subIri, "http://www.w3.org/2000/01/rdf-schema#subPropertyOf", superIri);
   }
 
   serialize() {
-    const lines = [
-      `<?xml version="1.0" encoding="utf-8"?>`,
-      `<rdf:RDF`,
-      `  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"`,
-      `  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"`,
-      `  xmlns:owl="http://www.w3.org/2002/07/owl#"`,
-      `  xml:base="${this.ontologyIri}">`,
-      `  <owl:Ontology rdf:about="${this.ontologyIri}"/>`
-    ];
-
-    // Group axioms by subject if it's an IRI, otherwise just dump them as subClassOf tags inside owl:Class
-    const grouped = {};
-    for (const ax of this.axioms) {
-      if (ax.type === "SubClassOf" && ax.sub.type === "IRI") {
-        if (!grouped[ax.sub.iri]) {grouped[ax.sub.iri] = [];}
-        grouped[ax.sub.iri].push(ax);
-      } else if (ax.type === "EquivalentClasses" && ax.a.type === "IRI") {
-        if (!grouped[ax.a.iri]) {grouped[ax.a.iri] = [];}
-        grouped[ax.a.iri].push(ax);
-      }
-    }
-
-    for (const iri of Object.keys(this.classes)) {
-      if (!grouped[iri] || grouped[iri].length === 0) {
-        lines.push(`  <owl:Class rdf:about="${iri}"/>`);
-      } else {
-        lines.push(`  <owl:Class rdf:about="${iri}">`);
-        for (const ax of grouped[iri]) {
-          if (ax.type === "SubClassOf") {
-            const inner = this.renderClassExpression(ax.sup, "      ");
-            // If the super class is just an IRI, we can do rdf:resource
-            if (ax.sup.type === "IRI") {
-              lines.push(`    <rdfs:subClassOf rdf:resource="${ax.sup.iri}"/>`);
-            } else {
-              lines.push(`    <rdfs:subClassOf>\n      ${inner}\n    </rdfs:subClassOf>`);
-            }
-          } else if (ax.type === "EquivalentClasses") {
-            if (ax.b.type === "IRI") {
-              lines.push(`    <owl:equivalentClass rdf:resource="${ax.b.iri}"/>`);
-            } else {
-              const inner = this.renderClassExpression(ax.b, "      ");
-              lines.push(`    <owl:equivalentClass>\n      ${inner}\n    </owl:equivalentClass>`);
-            }
-          }
-        }
-        lines.push(`  </owl:Class>`);
-      }
-    }
-
-    const propGrouped = {};
-    for (const ax of this.axioms) {
-      if (ax.type === "SubObjectPropertyOf") {
-        if (!propGrouped[ax.sub]) {propGrouped[ax.sub] = [];}
-        propGrouped[ax.sub].push(ax.sup);
-      }
-    }
-
-    for (const iri of Object.keys(this.objectProperties)) {
-      if (!propGrouped[iri]) {
-        lines.push(`  <owl:ObjectProperty rdf:about="${iri}"/>`);
-      } else {
-        lines.push(`  <owl:ObjectProperty rdf:about="${iri}">`);
-        for (const sup of propGrouped[iri]) {
-          lines.push(`    <rdfs:subPropertyOf rdf:resource="${sup}"/>`);
-        }
-        lines.push(`  </owl:ObjectProperty>`);
-      }
-    }
-
-    for (const iri of Object.keys(this.dataProperties)) {lines.push(`  <owl:DatatypeProperty rdf:about="${iri}"/>`);}
-    for (const iri of Object.keys(this.namedIndividuals)) {lines.push(`  <owl:NamedIndividual rdf:about="${iri}"/>`);}
-    for (const iri of Object.keys(this.datatypes)) {lines.push(`  <rdfs:Datatype rdf:about="${iri}"/>`);}
-    for (const iri of Object.keys(this.annotationProperties)) {lines.push(`  <owl:AnnotationProperty rdf:about="${iri}"/>`);}
-
-    lines.push(`</rdf:RDF>`);
-    return lines.join("\n");
+    return serializeTriplesToRdfXml(this.triples, this.prefixes, this.ontologyIri);
   }
 }
 
@@ -350,10 +340,16 @@ class FunctionalParser {
     this.stream = stream;
     this.triples = new TriplesEmitter();
     this.prefixMap = new Map();
-    this.prefixMap.set("owl:", "http://www.w3.org/2002/07/owl#");
-    this.prefixMap.set("rdf:", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
-    this.prefixMap.set("rdfs:", "http://www.w3.org/2000/01/rdf-schema#");
-    this.prefixMap.set("xsd:", "http://www.w3.org/2001/XMLSchema#");
+    const defaults = [
+      ["owl:", "http://www.w3.org/2002/07/owl#"],
+      ["rdf:", "http://www.w3.org/1999/02/22-rdf-syntax-ns#"],
+      ["rdfs:", "http://www.w3.org/2000/01/rdf-schema#"],
+      ["xsd:", "http://www.w3.org/2001/XMLSchema#"]
+    ];
+    for (const [pfx, ns] of defaults) {
+      this.prefixMap.set(pfx, ns);
+      this.triples.addPrefix(pfx, ns);
+    }
   }
 
   parseDocument() {
@@ -377,6 +373,7 @@ class FunctionalParser {
     this.stream.consume(TokenTypes.EQUALS);
     const iriToken = this.stream.consume(TokenTypes.FULL_IRI);
     this.prefixMap.set(prefixName, iriToken.value);
+    this.triples.addPrefix(prefixName, iriToken.value);
     this.stream.consume(TokenTypes.RPAREN);
   }
 

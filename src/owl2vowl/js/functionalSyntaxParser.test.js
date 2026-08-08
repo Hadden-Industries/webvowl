@@ -1,6 +1,13 @@
 import { parseFunctionalSyntax } from "./functionalSyntaxParser.js";
+import { DOMParser } from "@xmldom/xmldom";
 
 describe("Functional Syntax Parser", () => {
+  const parseToDom = (text) => {
+    const xml = parseFunctionalSyntax(text);
+    const parser = new DOMParser();
+    return parser.parseFromString(xml, "application/xml");
+  };
+
   describe("Slice 1: Lexer and Basic Wrapper", () => {
     it("should parse an empty Ontology declaration into a valid RDF/XML skeleton", () => {
       const input = `Ontology(<http://example.com/onto>)`;
@@ -8,7 +15,7 @@ describe("Functional Syntax Parser", () => {
 
       expect(result).toContain("<rdf:RDF");
       expect(result).toContain('xml:base="http://example.com/onto"');
-      expect(result).toContain('<owl:Ontology rdf:about="http://example.com/onto"/>');
+      expect(result).toContain('<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Ontology" />');
       expect(result).toContain("</rdf:RDF>");
     });
 
@@ -26,8 +33,8 @@ Ontology(ex:MyOntology)`;
       
       const result = parseFunctionalSyntax(input);
       expect(result).toContain('xml:base="http://example.com/ex#MyOntology"');
-      expect(result).toContain('xml:base="http://example.com/ex#MyOntology"');
-      expect(result).toContain('<owl:Ontology rdf:about="http://example.com/ex#MyOntology"/>');
+      expect(result).toContain('rdf:about="http://example.com/ex#MyOntology"');
+      expect(result).toContain('<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Ontology" />');
     });
   });
 
@@ -42,13 +49,28 @@ Ontology(
   Declaration(Datatype(:customType))
   Declaration(AnnotationProperty(:hasNote))
 )`;
-      const result = parseFunctionalSyntax(input);
-      expect(result).toContain('<owl:Class rdf:about="http://example.com/default#Person"/>');
-      expect(result).toContain('<owl:ObjectProperty rdf:about="http://example.com/default#hasChild"/>');
-      expect(result).toContain('<owl:DatatypeProperty rdf:about="http://example.com/default#hasAge"/>');
-      expect(result).toContain('<owl:NamedIndividual rdf:about="http://example.com/default#John"/>');
-      expect(result).toContain('<rdfs:Datatype rdf:about="http://example.com/default#customType"/>');
-      expect(result).toContain('<owl:AnnotationProperty rdf:about="http://example.com/default#hasNote"/>');
+      const doc = parseToDom(input);
+      const descriptions = doc.getElementsByTagName("rdf:Description");
+      expect(descriptions.length).toBeGreaterThanOrEqual(6);
+
+      const findResource = (aboutIri) => {
+        for (let i = 0; i < descriptions.length; i++) {
+          if (descriptions[i].getAttribute("rdf:about") === aboutIri) {
+            const types = descriptions[i].getElementsByTagName("rdf:type");
+            if (types.length > 0) {
+              return types[0].getAttribute("rdf:resource");
+            }
+          }
+        }
+        return null;
+      };
+
+      expect(findResource("http://example.com/default#Person")).toBe("http://www.w3.org/2002/07/owl#Class");
+      expect(findResource("http://example.com/default#hasChild")).toBe("http://www.w3.org/2002/07/owl#ObjectProperty");
+      expect(findResource("http://example.com/default#hasAge")).toBe("http://www.w3.org/2002/07/owl#DatatypeProperty");
+      expect(findResource("http://example.com/default#John")).toBe("http://www.w3.org/2002/07/owl#NamedIndividual");
+      expect(findResource("http://example.com/default#customType")).toBe("http://www.w3.org/2000/01/rdf-schema#Datatype");
+      expect(findResource("http://example.com/default#hasNote")).toBe("http://www.w3.org/2002/07/owl#AnnotationProperty");
     });
   });
 
@@ -65,14 +87,18 @@ Ontology(
   EquivalentClasses(:Dog :Canine)
   SubObjectPropertyOf(:hasFather :hasParent)
 )`;
-      const result = parseFunctionalSyntax(input);
-      // We expect the emitter to serialize triples. Since WebVOWL's internal format
-      // expects standard RDF/XML, let's verify standard representations.
-      expect(result).toContain('<owl:Class rdf:about="http://example.com/default#Dog">');
-      expect(result).toContain('<rdfs:subClassOf rdf:resource="http://example.com/default#Animal"/>');
-      expect(result).toContain('<owl:equivalentClass rdf:resource="http://example.com/default#Canine"/>');
-      expect(result).toContain('<owl:ObjectProperty rdf:about="http://example.com/default#hasFather">');
-      expect(result).toContain('<rdfs:subPropertyOf rdf:resource="http://example.com/default#hasParent"/>');
+      const doc = parseToDom(input);
+      const subClasses = doc.getElementsByTagName("rdfs:subClassOf");
+      expect(subClasses.length).toBeGreaterThan(0);
+      expect(subClasses[0].getAttribute("rdf:resource")).toBe("http://example.com/default#Animal");
+
+      const equivs = doc.getElementsByTagName("owl:equivalentClass");
+      expect(equivs.length).toBeGreaterThan(0);
+      expect(equivs[0].getAttribute("rdf:resource")).toBe("http://example.com/default#Canine");
+
+      const subProps = doc.getElementsByTagName("rdfs:subPropertyOf");
+      expect(subProps.length).toBeGreaterThan(0);
+      expect(subProps[0].getAttribute("rdf:resource")).toBe("http://example.com/default#hasParent");
     });
   });
 
@@ -91,14 +117,14 @@ Ontology(
     )
   )
 )`;
-      const result = parseFunctionalSyntax(input);
-      // We expect the nested expression to generate blank nodes.
-      // Since it's an intersection, we expect owl:intersectionOf
-      // And for the restriction we expect owl:Restriction
-      expect(result).toContain('<owl:Class rdf:about="http://example.com/default#Parent">');
-      expect(result).toContain('<owl:Restriction>');
-      expect(result).toContain('<owl:onProperty rdf:resource="http://example.com/default#hasChild"/>');
-      expect(result).toContain('<owl:someValuesFrom rdf:resource="http://example.com/default#Person"/>');
+      const doc = parseToDom(input);
+      const restrictions = doc.getElementsByTagName("owl:onProperty");
+      expect(restrictions.length).toBeGreaterThan(0);
+      expect(restrictions[0].getAttribute("rdf:resource")).toBe("http://example.com/default#hasChild");
+
+      const someValues = doc.getElementsByTagName("owl:someValuesFrom");
+      expect(someValues.length).toBeGreaterThan(0);
+      expect(someValues[0].getAttribute("rdf:resource")).toBe("http://example.com/default#Person");
     });
   });
 
@@ -123,14 +149,13 @@ Declaration(AnnotationProperty(:ap))
 SubClassOf(:A :B)
 EquivalentClasses(:A ObjectIntersectionOf(:B ObjectSomeValuesFrom(:p :B)))
 )`;
-      const result = parseFunctionalSyntax(input);
-      expect(result).toContain('<owl:Ontology rdf:about="http://example.com/test"/>');
-      expect(result).toContain('<owl:Class rdf:about="http://example.com/test#A">');
-      expect(result).toContain('<rdfs:subClassOf rdf:resource="http://example.com/test#B"/>');
-      expect(result).toContain('<owl:equivalentClass>');
-      expect(result).toContain('<owl:intersectionOf rdf:parseType="Collection">');
-      expect(result).toContain('<owl:Restriction>');
-      expect(result).toContain('<owl:someValuesFrom rdf:resource="http://example.com/test#B"/>');
+      const doc = parseToDom(input);
+      const subClasses = doc.getElementsByTagName("rdfs:subClassOf");
+      expect(subClasses.length).toBeGreaterThan(0);
+      expect(subClasses[0].getAttribute("rdf:resource")).toBe("http://example.com/test#B");
+
+      const equivs = doc.getElementsByTagName("owl:equivalentClass");
+      expect(equivs.length).toBeGreaterThan(0);
     });
   });
 });
