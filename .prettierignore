@@ -1,0 +1,10 @@
+# Build and dependency directories
+deploy/
+node_modules/
+
+# Misc.
+__pycache__
+.agents/skills/
+.git/
+src/app/data/
+src/owl2vowl/test/fixtures/
