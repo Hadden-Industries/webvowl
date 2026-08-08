@@ -10,8 +10,12 @@
  *   - app/js/entry.js imports ../css/toolstyle.css
  */
 
+// Conditionally import Popover API polyfill for non-Baseline browsers
+if (!("popover" in HTMLElement.prototype)) {
+  await import("@oddbird/popover-polyfill");
+}
+
 // Import both library entry points (CJS, transformed by vite-plugin-commonjs)
- 
 const webvowl = require("./webvowl/js/entry");
 const app = require("./app/js/entry");
 

@@ -21,15 +21,19 @@
 <body>
 <main>
     <section id="canvasArea">
-        <div id="browserCheck" class="hidden">
-            WebVOWL does not work properly in Internet Explorer and Microsoft Edge.
-            Please use another browser, such as
-            <a href="https://www.firefox.com/">Mozilla Firefox</a>
-            or
-            <a href="https://www.google.com/chrome/">Google Chrome</a>,
-            to run WebVOWL.
-            <button id="killWarning" type="button">Hide warning</button>
+        <div id="unsupported-browser" hidden>
+            <h2>Browser Not Supported</h2>
+            <p>WebVOWL requires a modern browser with JavaScript module support.</p>
+            <p>Please upgrade or switch to a modern browser:
+                <a href="https://www.google.com/chrome/" target="_blank" rel="noopener noreferrer">Google Chrome</a>,
+                <a href="https://www.mozilla.org/firefox/" target="_blank" rel="noopener noreferrer">Mozilla Firefox</a>,
+                <a href="https://www.microsoft.com/edge" target="_blank" rel="noopener noreferrer">Microsoft Edge</a>, or
+                <a href="https://support.apple.com/downloads/safari" target="_blank" rel="noopener noreferrer">Apple Safari</a>.
+            </p>
         </div>
+        <script nomodule>
+            document.getElementById("unsupported-browser").hidden = false;
+        </script>
         <!-- build:process -->
         <div id="logo" class="noselect">
             <h2>WebVOWL
@@ -777,10 +781,5 @@
     </div>
 
 <script type="module" src="main.js"></script>
-<script type="module">
-  if (!("popover" in HTMLElement.prototype)) {
-    import("https://cdn.jsdelivr.net/npm/@oddbird/popover-polyfill@latest/dist/popover.min.js");
-  }
-</script>
 </body>
 </html>

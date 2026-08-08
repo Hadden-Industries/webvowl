@@ -222,25 +222,8 @@ module.exports = function (){
     leftSidebar.setup();
     editSidebar.setup();
     debugMenu.setup();
-    const agentVersion = getInternetExplorerVersion();
-    if ( agentVersion > 0 && agentVersion <= 11 ) {
-      console.warn("Agent version " + agentVersion);
-      console.warn("This agent is not supported");
-      d3.select("#browserCheck").classed("hidden", false);
-      d3.select("#killWarning").classed("hidden", true);
-      d3.select("#optionsArea").classed("hidden", true);
-      d3.select("#logo").classed("hidden", true);
-    } else {
-      d3.select("#logo").classed("hidden", false);
-      if ( agentVersion === 12 ) {
-        // allow Mircosoft Edge Browser but with warning
-        d3.select("#browserCheck").classed("hidden", false);
-        d3.select("#killWarning").classed("hidden", false);
-      } else {
-        d3.select("#browserCheck").classed("hidden", true);
-      }
-      
-      resetMenu.setup([gravityMenu, filterMenu, modeMenu, focuser, selectionDetailDisplayer, pauseMenu]);
+    d3.select("#logo").classed("hidden", false);
+    resetMenu.setup([gravityMenu, filterMenu, modeMenu, focuser, selectionDetailDisplayer, pauseMenu]);
       searchMenu.setup();
       navigationMenu.setup();
       zoomSlider.setup();
@@ -353,9 +336,7 @@ module.exports = function (){
       // add the initialized objects
       webvowl.opts = options;
       webvowl.gr = graph;
-      
-    }
-  };
+    };
   
   
   function loadOntologyFromText( jsonText, filename, alternativeFilename ){
@@ -466,9 +447,6 @@ module.exports = function (){
     loadingModule.checkForScreenSize();
     
     adjustSliderSize(viewport.height);
-    // update also the padding options of loading and the logo positions;
-    const warningDiv = d3.select("#browserCheck");
-    d3.select("#logo").classed("has-warning", warningDiv.classed("hidden") === false);
     
     navigationMenu.updateScrollButtonVisibility();
     
@@ -479,7 +457,6 @@ module.exports = function (){
     const hs = d3.select("#drag_msg").node().getBoundingClientRect().height;
     const ws = d3.select("#drag_msg").node().getBoundingClientRect().width;
     d3.select("#drag_icon_group").attr("transform", "translate ( " + 0.25 * ws + " " + 0.25 * hs + ")");
-    
   }
   
   function adjustSliderSize( fullHeight ){
@@ -511,39 +488,7 @@ module.exports = function (){
     }
   }
   
-  
-  function getInternetExplorerVersion(){
-    let ua,
-      re,
-      rv = -1;
-    
-    // check for edge
-    const isEdge = /(?:\b(MS)?IE\s+|\bTrident\/7\.0;.*\s+rv:|\bEdge\/)(\d+)/.test(navigator.userAgent);
-    if ( isEdge ) {
-      rv = parseInt("12");
-      return rv;
-    }
-    
-    const isIE11 = /Trident.*rv[ :]*11\./.test(navigator.userAgent);
-    if ( isIE11 ) {
-      rv = parseInt("11");
-      return rv;
-    }
-    if ( navigator.appName === "Microsoft Internet Explorer" ) {
-      ua = navigator.userAgent;
-      re = new RegExp("MSIE ([0-9]{1,}[\\.0-9]{0,})");
-      if ( re.exec(ua) !== null ) {
-        rv = parseFloat(RegExp.$1);
-      }
-    } else if ( navigator.appName === "Netscape" ) {
-      ua = navigator.userAgent;
-      re = new RegExp("Trident/.*rv:([0-9]{1,}[\\.0-9]{0,})");
-      if ( re.exec(ua) !== null ) {
-        rv = parseFloat(RegExp.$1);
-      }
-    }
-    return rv;
-  }
+
   
   return app;
 }

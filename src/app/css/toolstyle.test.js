@@ -2,6 +2,7 @@ import fs from "node:fs";
 
 const stylesheet = fs.readFileSync(new URL("./toolstyle.css", import.meta.url), "utf8");
 const markup = fs.readFileSync(new URL("../../index.html", import.meta.url), "utf8");
+const mainJs = fs.readFileSync(new URL("../../main.js", import.meta.url), "utf8");
 
 describe("mobile toolbar styles", () => {
   test("hides only explicit navigation labels in compact mode", () => {
@@ -126,3 +127,23 @@ describe("mobile toolbar styles", () => {
     expect(desktopLabelRule[1]).toContain("text-align: left");
   });
 });
+
+describe("browser support and polyfill loading", () => {
+  test("main.js conditionally imports @oddbird/popover-polyfill via Vite", () => {
+    expect(mainJs).toContain('if (!("popover" in HTMLElement.prototype))');
+    expect(mainJs).toContain('await import("@oddbird/popover-polyfill")');
+  });
+
+  test("index.html does not contain legacy browserCheck or CDN popover script", () => {
+    expect(markup).not.toContain('id="browserCheck"');
+    expect(markup).not.toContain("https://cdn.jsdelivr.net/npm/@oddbird/popover-polyfill");
+  });
+
+  test("index.html contains unsupported-browser fallback with script nomodule", () => {
+    expect(markup).toContain('id="unsupported-browser"');
+    expect(markup).toContain("<script nomodule>");
+    expect(markup).toContain("https://www.google.com/chrome/");
+    expect(markup).toContain("https://www.mozilla.org/firefox/");
+  });
+});
+

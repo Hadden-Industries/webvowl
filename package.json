@@ -8,6 +8,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@oddbird/popover-polyfill": "^0.7.1",
     "@rollup/plugin-replace": "^6.0.2",
     "@xmldom/xmldom": "^0.9.10",
     "archiver": "^8.0.0",

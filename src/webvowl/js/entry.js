@@ -1,10 +1,10 @@
 import "../css/vowl.css";
 
-var nodeMap = require("./elements/nodes/nodeMap")();
-var propertyMap = require("./elements/properties/propertyMap")();
+const nodeMap = require("./elements/nodes/nodeMap")();
+const propertyMap = require("./elements/properties/propertyMap")();
 
 
-var webvowl = {};
+const webvowl = {};
 webvowl.graph = require("./graph");
 webvowl.options = require("./options");
 webvowl.version = "@@WEBVOWL_VERSION";
@@ -42,7 +42,7 @@ propertyMap.forEach(function ( value, key ){
 });
 
 function mapEntryToIdentifier( map, key, value ){
-  var identifier = key.replace(":", "").toLowerCase();
+  const identifier = key.replace(":", "").toLowerCase();
   map[identifier] = value;
 }
 

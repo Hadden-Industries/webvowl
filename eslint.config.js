@@ -4,15 +4,6 @@ const js = require("@eslint/js");
 const globals = require("globals");
 
 module.exports = [
-  // Global ignores registry
-  {
-    ignores: [
-      "src/webvowl/js/entry.js",
-      "src/app/js/entry.js",
-      "src/app/js/browserWarning.js"
-    ]
-  },
-
   // Base ESLint recommended rules
   js.configs.recommended,
 
