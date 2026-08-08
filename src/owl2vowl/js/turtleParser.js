@@ -1,4 +1,5 @@
 import { Parser } from "n3";
+import { MAX_SNIFF_BYTES } from "./constants.js";
 
 function mapTerm(term) {
   if (term.termType === "NamedNode") {
@@ -59,11 +60,14 @@ export function parseTurtle(ttlString) {
  * @returns {boolean}
  */
 export function isTurtleFormat(text) {
-  const trimmed = text.trim();
-  if (trimmed.startsWith("<") || trimmed.startsWith("{") || trimmed.startsWith("[")) {
+  if (!text || typeof text !== "string") {
     return false;
   }
-  return /^\s*(@prefix|@base|PREFIX|BASE|#)/i.test(trimmed) || 
-         /;\s*$/m.test(trimmed) || 
-         /\.\s*$/m.test(trimmed);
+  const snippet = text.slice(0, MAX_SNIFF_BYTES).trim();
+  if (snippet.startsWith("<") || snippet.startsWith("{") || snippet.startsWith("[")) {
+    return false;
+  }
+  return /^\s*(@prefix|@base|PREFIX|BASE|#)/i.test(snippet) || 
+         /;\s*$/m.test(snippet) || 
+         /\.\s*$/m.test(snippet);
 }

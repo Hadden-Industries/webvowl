@@ -1,8 +1,11 @@
 import { serializeTriplesToRdfXml } from "./rdfXmlSerializer.js";
+import { MAX_SNIFF_BYTES } from "./constants.js";
 
 export function isFunctionalSyntaxFormat(text) {
+  if (!text) { return false; }
   // Check if it looks like OFN by searching for Ontology( or Prefix(
-  return /^\s*(Prefix|Ontology)\s*\(/i.test(text);
+  const snippet = text.slice(0, MAX_SNIFF_BYTES);
+  return /^\s*(Prefix|Ontology)\s*\(/i.test(snippet);
 }
 
 const TokenTypes = {

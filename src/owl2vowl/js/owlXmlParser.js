@@ -1,6 +1,6 @@
 import { DOMParser } from "@xmldom/xmldom";
 import { resolveXmlEntities } from "./xmlUtils.js";
-import { NAMESPACES } from "./constants.js";
+import { NAMESPACES, MAX_SNIFF_BYTES } from "./constants.js";
 
 /**
  * Detects if the given XML string or DOM document is in OWL 2 XML Serialization Syntax.
@@ -11,15 +11,15 @@ export function isOwlXmlFormat(xmlInput) {
   if (!xmlInput) {return false;}
 
   if (typeof xmlInput === "string") {
-    const trimmed = xmlInput.trim();
-    if (!trimmed.includes("<Ontology") && !trimmed.includes(":Ontology")) {
+    const snippet = xmlInput.slice(0, MAX_SNIFF_BYTES).trim();
+    if (!snippet.includes("<Ontology") && !snippet.includes(":Ontology")) {
       return false;
     }
     const parser = new DOMParser({
       onError: () => {}
     });
     try {
-      const doc = parser.parseFromString(trimmed, "application/xml");
+      const doc = parser.parseFromString(xmlInput, "application/xml");
       const root = doc.documentElement;
       return isRootOntologyNode(root);
     } catch {

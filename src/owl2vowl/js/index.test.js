@@ -16,7 +16,7 @@ describe("index.js unit tests", () => {
     expect(catalog["http://purl.org/dc/elements/1.1"]).toBeDefined();
   });
 
-  test("owl2vowl parses a basic RDF/XML document", () => {
+  test("owl2vowl parses a basic RDF/XML document", async () => {
     const xml = `
       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
                xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
@@ -31,7 +31,7 @@ describe("index.js unit tests", () => {
       </rdf:RDF>
     `;
 
-    const result = owl2vowl(xml);
+    const result = await owl2vowl(xml);
 
     expect(result).toHaveProperty("_comment");
     expect(result.header.iri).toBe("http://example.org/ontology");
@@ -44,7 +44,7 @@ describe("index.js unit tests", () => {
     expect(personAttr.label.en).toBe("Person");
   });
 
-  test("owl2vowl converts and parses a basic Turtle document", () => {
+  test("owl2vowl converts and parses a basic Turtle document", async () => {
     const turtle = `
       @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
       @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -59,7 +59,7 @@ describe("index.js unit tests", () => {
            rdfs:label "Car"@en .
     `;
 
-    const result = owl2vowl(turtle);
+    const result = await owl2vowl(turtle);
 
     expect(result).toHaveProperty("_comment");
     expect(result.header.iri).toBe("http://example.org/ontology");

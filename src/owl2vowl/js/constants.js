@@ -5,6 +5,8 @@ const ONTOLOGY_EXTERNAL_URL = `${ONTOLOGY_BASE_URL}external/`;
 const externalOntology = filename =>
   new URL(filename, ONTOLOGY_EXTERNAL_URL).href;
 
+export const MAX_SNIFF_BYTES = 8192;
+
 export const NAMESPACES = Object.freeze({
   RDF: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
   RDFS: "http://www.w3.org/2000/01/rdf-schema#",

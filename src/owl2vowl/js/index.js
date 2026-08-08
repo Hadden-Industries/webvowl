@@ -12,9 +12,9 @@ import { resolveXmlEntities } from "./xmlUtils.js";
  * @param {string} xmlString
  * @returns {object}
  */
-export default function owl2vowl(xmlString) {
+export default async function owl2vowl(xmlString) {
   let xmlText = resolveXmlEntities(xmlString);
-  xmlText = convertToRdfXmlFallback(xmlText);
+  xmlText = await convertToRdfXmlFallback(xmlText);
 
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xmlText, "application/xml");

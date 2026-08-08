@@ -204,12 +204,12 @@ describe("importLoader.js unit tests", () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
-  test("convertToRdfXmlFallback tries parsers sequentially and catches errors", () => {
+  test("convertToRdfXmlFallback tries parsers sequentially and catches errors", async () => {
     // OFN syntax
     const ofnInput = `Prefix(:=<http://example.com/default#>)
 Ontology(Declaration(Class(:Test)))`;
     
-    const result = convertToRdfXmlFallback(ofnInput);
+    const result = await convertToRdfXmlFallback(ofnInput);
     expect(result).toContain('rdf:about="http://example.com/default#Test"');
     expect(result).toContain('rdf:resource="http://www.w3.org/2002/07/owl#Class"');
   });
