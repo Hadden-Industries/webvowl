@@ -8,6 +8,9 @@
     "no-inline-style": ["error", {
       "allowVariables": true,
       "allowedProperties": []
+    }],
+    "require-sri": ["error", {
+      "target": "crossorigin"
     }]
   }
 }
