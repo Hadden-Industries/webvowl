@@ -1,9 +1,9 @@
 import "../css/vowl.css";
 
-var nodeMap = require("./elements/nodes/nodeMap")();
-var propertyMap = require("./elements/properties/propertyMap")();
+const nodeMap = require("./elements/nodes/nodeMap")();
+const propertyMap = require("./elements/properties/propertyMap")();
 
-var webvowl = {};
+const webvowl = {};
 webvowl.graph = require("./graph");
 webvowl.options = require("./options");
 webvowl.version = "@@WEBVOWL_VERSION";

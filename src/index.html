@@ -40,6 +40,9 @@
           WebVOWL.
           <label id="killWarning">Hide warning</label>
         </div>
+        <script nomodule>
+            document.getElementById("unsupported-browser").hidden = false;
+        </script>
         <!-- build:process -->
         <div id="logo" class="noselect">
           <h2>
@@ -911,9 +914,4 @@
     <script type="module" src="main.js"></script>
   </body>
             <label class="sr-only" for="directInputTextArea">Direct input JSON</label>
-<script type="module">
-  if (!("popover" in HTMLElement.prototype)) {
-    import("https://cdn.jsdelivr.net/npm/@oddbird/popover-polyfill@latest/dist/popover.min.js");
-  }
-</script>
 </html>
