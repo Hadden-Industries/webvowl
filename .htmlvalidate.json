@@ -1,6 +1,8 @@
 {
   "extends": [
-    "html-validate:recommended"
+    "html-validate:recommended",
+    "html-validate:document",
+    "html-validate:prettier"
   ],
   "rules": {
     "no-inline-style": ["error", {
