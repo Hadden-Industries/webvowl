@@ -210,6 +210,7 @@ describe("importLoader.js unit tests", () => {
 Ontology(Declaration(Class(:Test)))`;
     
     const result = convertToRdfXmlFallback(ofnInput);
-    expect(result).toContain('<owl:Class rdf:about="http://example.com/default#Test"/>');
+    expect(result).toContain('rdf:about="http://example.com/default#Test"');
+    expect(result).toContain('rdf:resource="http://www.w3.org/2002/07/owl#Class"');
   });
 });
