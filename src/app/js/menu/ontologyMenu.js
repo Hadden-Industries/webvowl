@@ -48,8 +48,13 @@ function normalizeOntologyUrl( value ){
     currentLoadedOntologyName = ontoName;
     if (cachedConversions[ontoName]) {
       const locStr = String(location.hash);
-      d3.select("#reloadSvgIcon").node().disabled = false;
-      graph.showReloadButtonAfterLayoutOptimization(true);
+      const reloadBtn = document.getElementById("reloadCachedOntology");
+      if ( reloadBtn ) {
+        reloadBtn.disabled = false;
+      }
+      if ( typeof graph.showReloadButtonAfterLayoutOptimization === "function" ) {
+        graph.showReloadButtonAfterLayoutOptimization(true);
+      }
       if (locStr.indexOf("#file") > -1) {
         d3.select("#reloadSvgIcon").node().disabled = true;
         d3.select("#reloadCachedOntology").node().title =

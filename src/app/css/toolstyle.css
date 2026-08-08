@@ -877,14 +877,6 @@ main {
     cursor: default !important;
 }
 
-#svgStringText {
-    fill: black;
-    font-size: 9px;
-}
-
-#svgStringText.svg-text-disabled {
-    fill: gray !important;
-}
 
 #o2vConverterContainer {
     margin-left: -25px;
@@ -1350,10 +1342,6 @@ main {
     left: 0;
 }
 
-#reloadCachedOntologyString {
-    font-style: italic;
-    font-size: 10px;
-}
 
 #drag_svg {
     position: absolute;

@@ -406,7 +406,10 @@ module.exports = function () {
   };
 
   function loadOntologyFromText(jsonText, filename, alternativeFilename) {
-    d3.select("#reloadCachedOntology").classed("hidden", true);
+    const reloadCachedOntologyBtn = document.getElementById("reloadCachedOntology");
+    if ( reloadCachedOntologyBtn ) {
+      reloadCachedOntologyBtn.classList.add("hidden");
+    }
     pauseMenu.reset();
     graph.options().navigationMenu().hideAllMenus();
 

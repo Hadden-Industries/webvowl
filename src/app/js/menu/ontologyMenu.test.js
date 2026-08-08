@@ -123,6 +123,9 @@ describe("ontology menu actions", () => {
 
     global.location = { hash: "#file=foaf.rdf.json" };
     global.window = {};
+    global.document = {
+      getElementById: ( id ) => selectionFor("#" + id).element
+    };
     global.d3 = {
       select: selectionFor,
       selectAll: selectionFor
@@ -140,7 +143,8 @@ describe("ontology menu actions", () => {
         loadingModule: () => loadingModule,
         navigationMenu: () => ({ hideAllMenus })
       }),
-      updateEditorModeDependentControls: jest.fn()
+      updateEditorModeDependentControls: jest.fn(),
+      showReloadButtonAfterLayoutOptimization: jest.fn()
     };
 
     ontologyMenu = ontologyMenuFactory(graph);
@@ -247,5 +251,22 @@ describe("ontology menu actions", () => {
 
     expect(createNewOntology).not.toHaveBeenCalled();
     expect(hideAllMenus).not.toHaveBeenCalled();
+  });
+
+  test("manages native disabled property and title on the reloadCachedOntology button", () => {
+    const reloadButton = selections.get("#reloadCachedOntology") || new MockSelection();
+    selections.set("#reloadCachedOntology", reloadButton);
+
+    ontologyMenu.setCachedOntology("testOnto", { data: 1 });
+
+    global.location.hash = "#iri=https://example.org/test.owl";
+    ontologyMenu.cachedOntology("testOnto");
+    expect(reloadButton.element.disabled).toBe(false);
+    expect(reloadButton.element.title).toContain("overwrite cached ontology");
+
+    global.location.hash = "#file=test.json";
+    ontologyMenu.cachedOntology("testOnto");
+    expect(reloadButton.element.disabled).toBe(true);
+    expect(reloadButton.element.title).toContain("reloading original version not possible");
   });
 });
