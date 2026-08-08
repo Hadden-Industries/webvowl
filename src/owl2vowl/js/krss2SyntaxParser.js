@@ -1,9 +1,11 @@
 import { serializeTriplesToRdfXml } from "./rdfXmlSerializer.js";
+import { MAX_SNIFF_BYTES } from "./constants.js";
 
 export function isKRSS2SyntaxFormat(text) {
   if (!text) { return false; }
   // Match characteristic KRSS2 keywords within the first few lines
-  return /^\s*\(\s*(define-primitive-concept|define-concept|define-primitive-role|define-role|implies|equivalent|disjoint|domain|range|instance-of|related)\b/i.test(text);
+  const snippet = text.slice(0, MAX_SNIFF_BYTES);
+  return /^\s*\(\s*(define-primitive-concept|define-concept|define-primitive-role|define-role|implies|equivalent|disjoint|domain|range|instance-of|related)\b/i.test(snippet);
 }
 
 export class KRSS2Lexer {

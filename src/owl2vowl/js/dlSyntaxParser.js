@@ -1,15 +1,16 @@
 import { serializeTriplesToRdfXml } from "./rdfXmlSerializer.js";
+import { MAX_SNIFF_BYTES } from "./constants.js";
 
 export function isDLSyntaxFormat(text) {
   if (!text) {return false;}
+  const snippet = text.slice(0, MAX_SNIFF_BYTES);
   // If it's clearly XML, Turtle, Functional, or Manchester, reject early.
-  // This is a fast negative check to prevent false positives.
-  if (/^\s*(<|@prefix|Prefix|Ontology)/i.test(text)) {return false;}
+  if (/^\s*(<|@prefix|Prefix|Ontology)/i.test(snippet)) {return false;}
   
-  // Look for characteristic DL syntax operators anywhere in the text
-  // Unicode math operators, LaTeX equivalents, and ASCII fallbacks
-  // We avoid 'sub' and 'not' to prevent false positives with other syntaxes
-  return /(⊑|≡|≠|⊓|⊔|∃|∀|\\sqsubseteq|\\equiv|\\not=|\\sqcap|\\sqcup|\\exists|\\forall|->|==|!=)/.test(text);
+  // Look for characteristic DL syntax operators in the header snippet.
+  // Unicode math operators, LaTeX equivalents, and ASCII fallbacks.
+  // We avoid 'sub' and 'not' to prevent false positives with other syntaxes.
+  return /(⊑|≡|≠|⊓|⊔|∃|∀|\\sqsubseteq|\\equiv|\\not=|\\sqcap|\\sqcup|\\exists|\\forall|->|==|!=)/.test(snippet);
 }
 
 const TokenTypes = {

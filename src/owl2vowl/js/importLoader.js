@@ -8,16 +8,17 @@ import { isManchesterSyntaxFormat, convertManchesterSyntaxToRdfXml } from "./man
 import { parseFunctionalSyntax } from "./functionalSyntaxParser.js";
 import { parseDLSyntax, isDLSyntaxFormat } from "./dlSyntaxParser.js";
 import { parseKRSS2Syntax, isKRSS2SyntaxFormat } from "./krss2SyntaxParser.js";
+import { parseJsonLd, isJsonLdFormat } from "./jsonLdParser.js";
 
 /**
  * Attempts to parse an ontology string across multiple syntax formats 
- * (OWL/XML, Functional, Turtle, Manchester Syntax) and convert it to RDF/XML.
+ * (OWL/XML, Functional, Manchester, JSON-LD, Turtle, DL, KRSS2) and convert it to RDF/XML.
  * Emulates the Java OWLAPI fall-through parser selection logic.
  * 
  * @param {string} text - The ontology source string
- * @returns {string} The converted RDF/XML string, or the original string if all converters fail (assuming it is native RDF/XML)
+ * @returns {Promise<string>} The converted RDF/XML string, or the original string if all converters fail (assuming it is native RDF/XML)
  */
-export function convertToRdfXmlFallback(text) {
+export async function convertToRdfXmlFallback(text) {
   const domParser = new DOMParser({
     onError: () => {}
   });
@@ -43,15 +44,20 @@ export function convertToRdfXmlFallback(text) {
   const parsers = [
     {
       name: "OWL/XML",
-      parse: (t) => convertOwlXmlToRdfXml(t)
+      parse: async (t) => {
+        if (!isOwlXmlFormat(t)) {
+          throw new Error("Not OWL/XML syntax");
+        }
+        return convertOwlXmlToRdfXml(t);
+      }
     },
     {
       name: "Functional Syntax",
-      parse: (t) => parseFunctionalSyntax(t)
+      parse: async (t) => parseFunctionalSyntax(t)
     },
     {
       name: "Manchester Syntax",
-      parse: (t) => {
+      parse: async (t) => {
         // Relaxed mode is very permissive — it accepts nearly anything and returns
         // a near-empty ontology skeleton without throwing. Only apply it when the
         // file is positively identified as Manchester syntax by the sniff check;
@@ -63,15 +69,24 @@ export function convertToRdfXmlFallback(text) {
       }
     },
     {
+      name: "JSON-LD",
+      parse: async (t) => {
+        if (!isJsonLdFormat(t)) {
+          throw new Error("Not JSON-LD syntax");
+        }
+        return await parseJsonLd(t);
+      }
+    },
+    {
       name: "Turtle",
-      parse: (t) => {
+      parse: async (t) => {
         const parsed = parseTurtle(t);
         return serializeTriplesToRdfXml(parsed.triples, parsed.prefixes, parsed.baseIri);
       }
     },
     {
       name: "DL Syntax",
-      parse: (t) => {
+      parse: async (t) => {
         // Sniff guard to prevent DL Syntax from consuming non-DL input and throwing later,
         // although DL Syntax does not have a relaxed mode, it is a best practice.
         if (!isDLSyntaxFormat(t)) {
@@ -82,7 +97,7 @@ export function convertToRdfXmlFallback(text) {
     },
     {
       name: "KRSS2",
-      parse: (t) => {
+      parse: async (t) => {
         if (!isKRSS2SyntaxFormat(t)) {
           throw new Error("Not KRSS2 syntax");
         }
@@ -93,7 +108,7 @@ export function convertToRdfXmlFallback(text) {
 
   for (const parserDef of parsers) {
     try {
-      const convertedXml = parserDef.parse(text);
+      const convertedXml = await parserDef.parse(text);
       
       // Validate that it produced structurally sound XML
       const doc = domParser.parseFromString(convertedXml, "application/xml");
@@ -165,9 +180,9 @@ export function resolveImportUrl(importUri) {
  * @param {function} rootParserFn
  * @returns {Promise<any>}
  */
-export function loadWithImports(initialXmlText, rootParserFn) {
+export async function loadWithImports(initialXmlText, rootParserFn) {
   const resolvedText = resolveXmlEntities(initialXmlText);
-  const parsedInitialText = convertToRdfXmlFallback(resolvedText);
+  const parsedInitialText = await convertToRdfXmlFallback(resolvedText);
 
   const parser = new DOMParser();
   let mainDoc;
@@ -283,9 +298,9 @@ export function loadWithImports(initialXmlText, rootParserFn) {
             }
             return response.text();
           })
-          .then(xmlText => {
+          .then(async xmlText => {
             const resolvedText = resolveXmlEntities(xmlText);
-            const parsedXmlText = convertToRdfXmlFallback(resolvedText);
+            const parsedXmlText = await convertToRdfXmlFallback(resolvedText);
             const parser = new DOMParser({
               onError: () => {}
             });

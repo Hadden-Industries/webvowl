@@ -1,6 +1,6 @@
 import { resolveXmlEntities } from "./xmlUtils.js";
 import { serializeTriplesToRdfXml } from "./rdfXmlSerializer.js";
-import { NAMESPACES } from "./constants.js";
+import { NAMESPACES, MAX_SNIFF_BYTES } from "./constants.js";
 
 // -----------------------------------------------------------------------------
 // Lexer
@@ -936,7 +936,8 @@ export class TriplesEmitter {
 
 export function isManchesterSyntaxFormat(text) {
   if (!text) {return false;}
-  return /^\s*(Prefix:|Ontology:|Class:|ObjectProperty:|DataProperty:|Individual:|AnnotationProperty:|Datatype:|Rule:|ValuePartition:)/i.test(text);
+  const snippet = text.slice(0, MAX_SNIFF_BYTES);
+  return /^\s*(Prefix:|Ontology:|Class:|ObjectProperty:|DataProperty:|Individual:|AnnotationProperty:|Datatype:|Rule:|ValuePartition:)/i.test(snippet);
 }
 
 export function convertManchesterSyntaxToRdfXml(text, options = { strictMode: false }) {
