@@ -11,6 +11,12 @@
         "allowVariables": true,
         "allowedProperties": []
       }
+    ],
+    "require-sri": [
+      "error",
+      {
+        "target": "crossorigin"
+      }
     ]
   }
 }
