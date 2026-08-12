@@ -723,7 +723,7 @@ module.exports = function (graph) {
               '    "baseIris": [\n' +
               '      "http://www.w3.org/2000/01/rdf-schema"\n' +
               "    ],\n" +
-              '    "iri": "http://visualdataweb.org/newOntology/",\n' +
+              '    "iri": "https://haddenindustries.com/ontology/new/",\n' +
               '    "title": {\n' +
               '      "en": "New ontology"\n' +
               "    },\n" +
