@@ -37,7 +37,6 @@ module.exports = function (graph) {
     const defaultLinkDistance = distanceFunction();
 
     const sliderContainer = document.querySelector(selector);
-    sliderContainer.__data__ = { distanceFunction: distanceFunction };
 
     const slider = sliderContainer
       .append("input")
@@ -62,7 +61,12 @@ module.exports = function (graph) {
       .text(distanceFunction());
 
     // Store slider for easier resetting
-    sliders.push(slider);
+    sliders.push({
+      reset: function () {
+        slider.value = defaultLinkDistance;
+        slider.dispatchEvent(new Event("input"));
+      }
+    });
 
     slider.addEventListener("focusout", function () {
       graph.updateStyle();
@@ -76,7 +80,6 @@ module.exports = function (graph) {
       graph.updateStyle();
     }
     slider.addEventListener("input", handleInput);
-    slider.__inputHandler = handleInput;
 
     // add wheel event to the slider
     slider.on("wheel", function () {
@@ -91,8 +94,7 @@ module.exports = function (graph) {
       const newSliderValue = oldVal + offset;
       if (newSliderValue !== oldVal && !isNaN(newSliderValue)) {
         slider.value = newSliderValue;
-        distanceFunction(newSliderValue);
-        slider.__inputHandler(); // << set text and update the graphStyles
+        slider.dispatchEvent(new Event("input"));
       }
       event.preventDefault();
     });
@@ -113,10 +115,8 @@ module.exports = function (graph) {
    * Resets the gravity sliders to their default.
    */
   gravityMenu.reset = function () {
-    sliders.forEach(function (slider) {
-      const distanceFunction = slider.__data__.distanceFunction;
-      slider.value = distanceFunction();
-      slider.__inputHandler();
+    sliders.forEach(function (s) {
+      s.reset();
     });
   };
 

@@ -125,8 +125,11 @@ module.exports = function (graph) {
     };
 
     configCheckbox.addEventListener("click", clickHandler);
-    configCheckbox.__clickHandler = clickHandler;
-    checkboxes.push(configCheckbox);
+    checkboxes.push({
+      id: configCheckbox.id,
+      element: configCheckbox,
+      update: clickHandler,
+    });
     configOptionContainer
       .append("label")
       .attr("for", identifier + "ConfigCheckbox")
@@ -137,9 +140,9 @@ module.exports = function (graph) {
 
   debugMenu.setCheckBoxValue = function (identifier, value) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].id;
-      if (cbdId === identifier) {
-        checkboxes[i].checked = value;
+      const item = checkboxes[i];
+      if (item.id === identifier) {
+        item.element.checked = value;
         break;
       }
     }
@@ -147,9 +150,9 @@ module.exports = function (graph) {
 
   debugMenu.getCheckBoxValue = function (id) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].id;
-      if (cbdId === id) {
-        return checkboxes[i].checked;
+      const item = checkboxes[i];
+      if (item.id === id) {
+        return item.element.checked;
       }
     }
   };
@@ -162,10 +165,8 @@ module.exports = function (graph) {
     });
 
     const silent = true;
-    checkboxes.forEach(function (checkbox) {
-      if (checkbox.__clickHandler) {
-        checkbox.__clickHandler(silent);
-      }
+    checkboxes.forEach(function (item) {
+      item.update(silent);
     });
     if (graph.editorMode() === false) {
       d3.select("#useAccuracyHelper").style("color", "#979797");
