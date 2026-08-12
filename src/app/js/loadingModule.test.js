@@ -163,12 +163,12 @@ describe("loading module remote fetch URLs", () => {
 });
 
 global.document = {
-  querySelector: jest.fn().mockReturnValue(new MockSelection())
+  querySelector: jest.fn().mockReturnValue(new MockSelection()),
 };
 global.window = {
   history: {
-    pushState: jest.fn()
-  }
+    pushState: jest.fn(),
+  },
 };
 describe("loading module create-new command", () => {
   let graph;

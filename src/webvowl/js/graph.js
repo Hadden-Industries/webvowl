@@ -36,7 +36,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
     height: clientHeight > 0 ? clientHeight : (rectHeight > 0 ? rectHeight : fallback.height)
   };
 }
-  const graph = {};
+  const graph = new EventTarget();
   const CARDINALITY_HDISTANCE = 20;
   const CARDINALITY_VDISTANCE = 10;
   const curveFunction = d3.svg
@@ -51,7 +51,6 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
   const options = require("./options")();
   const parser = require("./parser")(graph);
   const draggerObjectsArray = [];
-  const debugContainer = d3.select("#FPS_Statistics");
   let language = "default",
     paused = false,
     // Container for visual elements
@@ -172,7 +171,9 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
   };
 
   graph.updateZoomSliderValueFromOutside = function () {
-    graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
+    graph.dispatchEvent(
+      new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+    );
   };
 
   graph.setDefaultZoom = function (val) {
@@ -180,7 +181,9 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
     if ( normalized === undefined ) {return false;}
     defaultZoom = normalized;
     graph.reset();
-    graph.options().zoomSlider().updateZoomSliderValue(defaultZoom);
+    graph.dispatchEvent(
+      new CustomEvent("zoomchange", { detail: { value: defaultZoom } }),
+    );
     return true;
   };
   graph.setTargetZoom = function (val) {
@@ -236,7 +239,9 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
           "translate(" + graphTranslation + ")scale(" + zoomFactor + ")",
         );
         syncZoomState();
-        graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
+        graph.dispatchEvent(
+          new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+        );
       });
     return true;
   };
@@ -279,7 +284,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
       language = newLanguage || "default";
       redrawContent();
       recalculatePositions();
-      graph.options().searchMenu().requestDictionaryUpdate();
+      graph.dispatchEvent(new CustomEvent("dictionarychange"));
       graph.resetSearchHighlight();
     }
     return graph;
@@ -1036,7 +1041,9 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
         "translate(" + graphTranslation + ")scale(" + zoomFactor + ")",
       );
       updateHaloRadius();
-      graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
+      graph.dispatchEvent(
+        new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+      );
       return;
     }
     /** animate the transition **/
@@ -1054,7 +1061,9 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
           graphTranslation[1] = tr.translate[1];
           zoomFactor = tr.scale[0];
           updateHaloRadius();
-          graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
+          graph.dispatchEvent(
+            new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+          );
         };
       })
       .each("end", function () {
@@ -1961,7 +1970,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
     if (parser.settingsImportGraphZoomAndTranslation() === true) {
       centerGraphViewOnLoad = false;
     }
-    graph.options().searchMenu().requestDictionaryUpdate();
+    graph.dispatchEvent(new CustomEvent("dictionarychange"));
     graph.options().editSidebar().updateGeneralOntologyInfo();
     graph.options().editSidebar().updatePrefixUi();
     graph.options().editSidebar().updateElementWidth();
@@ -2295,7 +2304,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
         // this is a round node
         nodeIsRect = false;
         roundHalo = node.getHalos().select("circle");
-        defaultRadius = node.actualRadius();
+        defaultRadius = node.actualRadius() + offset;
         roundHalo.attr("r", defaultRadius + offset);
         halo = roundHalo;
       } else {
@@ -2451,7 +2460,9 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
     zoomFactor = graph.options().height() / p[2];
     graphTranslation = [cx - p[0] * zoomFactor, cy - p[1] * zoomFactor];
     updateHaloRadius();
-    graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
+    graph.dispatchEvent(
+      new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+    );
     return (
       "translate(" +
       graphTranslation[0] +
@@ -2943,7 +2954,9 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
           "translate(" + graphTranslation + ")scale(" + zoomFactor + ")",
         );
         syncZoomState();
-        graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
+        graph.dispatchEvent(
+          new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+        );
       });
   };
 
@@ -2962,9 +2975,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
   /** -- VOWL EDITOR  create/ edit /delete functions --         **/
   /** --------------------------------------------------------- **/
 
-  graph.changeNodeType = function (element) {
-    const typeString = d3.select("#typeEditor").node().value;
-
+  graph.changeNodeType = function (element, typeString) {
     if (graph.classesSanityCheck(element, typeString) === false) {
       // call reselection to restore previous type selection
       graph.options().editSidebar().updateSelectionInformation(element);
@@ -3043,9 +3054,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
     null;
   };
 
-  graph.changePropertyType = function (element) {
-    const typeString = d3.select("#typeEditor").node().value;
-
+  graph.changePropertyType = function (element, typeString) {
     // create warning
     if (
       graph.sanityCheckProperty(
@@ -3193,7 +3202,6 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
     if ( !arguments.length ) {return editMode;}
 
 
-    const modeOfOpString = d3.select("#modeOfOperationString").node();
     if (!arguments.length) {
       create_entry.node().checked = editMode;
       if (editMode === false) {
@@ -3221,6 +3229,9 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
     // }
     editMode = val;
     if ( val === false ) {
+    graph.dispatchEvent(
+      new CustomEvent("editorchange", { detail: { value: editMode } }),
+    );
       seenEditorHint = false;
     }
 
@@ -3282,13 +3293,6 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
       }
     }
 
-    if (modeOfOpString) {
-      if (touchDevice === true) {
-        modeOfOpString.innerHTML = "touch able device detected";
-      } else {
-        modeOfOpString.innerHTML = "point & click device detected";
-      }
-    }
     const svgGraph = d3.selectAll(".vowlGraph");
 
     if (editMode === true) {
@@ -3321,7 +3325,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
     const forceUpdate = true;
     // create a node of that id;
 
-    const typeToCreate = d3.select("#defaultClass").node().title;
+    const typeToCreate = graph.options().defaultClass();
     const prototype = NodePrototypeMap.get(typeToCreate.toLowerCase());
     const aNode = new prototype(graph);
     let autoEditElement = false;
@@ -3338,7 +3342,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
     aNode.id("Class" + eN++);
     // aNode.paused(true);
 
-    aNode.baseIri(d3.select("#iriEditor").node().value);
+    aNode.baseIri(graph.options().baseIri());
     aNode.iri(aNode.baseIri() + aNode.id());
     addNewNodeElement(aNode, forceUpdate);
     options.focuserModule().handle(null, aNode, true);
@@ -3759,7 +3763,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
   function createNewObjectProperty(domain, range, draggerEndposition) {
     // check type of the property that we want to create;
 
-    const defaultPropertyName = d3.select("#defaultProperty").node().title;
+    const defaultPropertyName = graph.options().defaultProperty();
 
     // check if we are allow to create that property
     if (
@@ -3776,7 +3780,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
     aProp.domain(domain);
     aProp.range(range);
     aProp.label("newObjectProperty");
-    aProp.baseIri(d3.select("#iriEditor").node().value);
+    aProp.baseIri(graph.options().baseIri());
     aProp.iri(aProp.baseIri() + aProp.id());
 
     // check for duplicate;
@@ -3868,7 +3872,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
     let aNode, prototype;
 
     // create a default datatype Node >> HERE LITERAL;
-    const defaultDatatypeName = d3.select("#defaultDatatype").node().title;
+    const defaultDatatypeName = graph.options().defaultDatatype();
     if (defaultDatatypeName === "rdfs:Literal") {
       prototype = NodePrototypeMap.get("rdfs:literal");
       aNode = new prototype(graph);
@@ -3921,7 +3925,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
     aProp.label("newDatatypeProperty");
 
     // TODO: change its base IRI to proper value
-    const ontoIri = d3.select("#iriEditor").node().value;
+    const ontoIri = graph.options().baseIri();
     aProp.baseIri(ontoIri);
     aProp.iri(ontoIri + aProp.id());
     // add this to the data;

@@ -746,7 +746,9 @@ module.exports = function (graph) {
           } else {
             // some error occurred
             ontologyMenu.append_bulletPoint("Failed to load: " + ontology);
-            if (error.status === 0) {
+            const errorStatus =
+              error.status !== undefined ? error.status : error.message || 0;
+            if (errorStatus === 0 || errorStatus === "Failed to fetch") {
               // assumption this is CORS error when running locally (error status == 0)
               ontologyMenu.append_message_toLastBulletPoint(
                 " <span style='color: red'>ERROR STATUS:</span> " +

@@ -114,7 +114,7 @@ module.exports = (function () {
       that.focused(!that.focused());
       that.nodeElement().select("rect").classed("focused", that.focused());
       graph.resetSearchHighlight();
-      graph.options().searchMenu().clearText();
+      graph.dispatchEvent(new CustomEvent("searchcleared"));
     };
 
     /**

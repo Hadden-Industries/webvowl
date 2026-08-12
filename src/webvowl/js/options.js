@@ -26,7 +26,6 @@ module.exports = function () {
     pausedMenu,
     pickAndPinModule,
     resetMenu,
-    searchMenu,
     ontologyMenu,
     sidebar,
     leftSidebar,
@@ -34,9 +33,10 @@ module.exports = function () {
     navigationMenu,
     exportMenu,
     graphObject,
-    zoomSlider,
     datatypeFilter,
-    focuserModule;
+    focuserModule,
+    searchMenu,
+    zoomSlider;
   let colorExternalsModule;
   let compactNotationModule;
   let nodeScalingModule;
@@ -329,6 +329,7 @@ module.exports = function () {
     }
     focuserModule = val;
   };
+
   options.colorExternalsModule = function (val) {
     if (!arguments.length) {
       return colorExternalsModule;
@@ -389,13 +390,6 @@ module.exports = function () {
     editSidebar = val;
   };
 
-  options.zoomSlider = function (val) {
-    if (!arguments.length) {
-      return zoomSlider;
-    }
-    zoomSlider = val;
-  };
-
   options.graphObject = function (val) {
     if (!arguments.length) {
       return graphObject;
@@ -450,6 +444,39 @@ module.exports = function () {
   };
   options.setHideDebugFeaturesForDefaultObject = function (val) {
     defaultOptionsConfig.debugFeatures = String(!val);
+  };
+
+  let defaultClass = "owl:Class";
+  let defaultProperty = "owl:objectProperty";
+  let defaultDatatype = "rdfs:Literal";
+  let baseIri = "http://www.w3.org/2002/07/owl#";
+
+  options.defaultClass = function (val) {
+    if (!arguments.length) {
+      return defaultClass;
+    }
+    defaultClass = val;
+  };
+  options.defaultProperty = function (val) {
+    if (!arguments.length) {
+      return defaultProperty;
+    }
+    defaultProperty = val;
+  };
+  options.defaultDatatype = function (val) {
+    if (!arguments.length) {
+      return defaultDatatype;
+    }
+    defaultDatatype = val;
+  };
+  options.baseIri = function (val) {
+    if (!arguments.length) {
+      if (generalOntologyMetaData && generalOntologyMetaData.iri) {
+        return generalOntologyMetaData.iri;
+      }
+      return baseIri;
+    }
+    baseIri = val;
   };
 
   function updateConfigObject() {
@@ -543,14 +570,6 @@ module.exports = function () {
       return ontologyMenu;
     }
     ontologyMenu = m;
-    return options;
-  };
-
-  options.searchMenu = function (m) {
-    if (!arguments.length) {
-      return searchMenu;
-    }
-    searchMenu = m;
     return options;
   };
 
@@ -750,6 +769,22 @@ module.exports = function () {
       return loadingModule;
     }
     loadingModule = p;
+    return options;
+  };
+
+  options.searchMenu = function (p) {
+    if (!arguments.length) {
+      return searchMenu;
+    }
+    searchMenu = p;
+    return options;
+  };
+
+  options.zoomSlider = function (p) {
+    if (!arguments.length) {
+      return zoomSlider;
+    }
+    zoomSlider = p;
     return options;
   };
 

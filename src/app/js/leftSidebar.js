@@ -63,12 +63,15 @@ module.exports = function (graph) {
     let elementDescription = "";
     if (identifier === "defaultClass") {
       elementDescription = "Class: ";
+      graph.options().defaultClass(element.innerHTML);
     }
     if (identifier === "defaultDatatype") {
       elementDescription = "Datatype: ";
+      graph.options().defaultDatatype(element.innerHTML);
     }
     if (identifier === "defaultProperty") {
       elementDescription = "Property: ";
+      graph.options().defaultProperty(element.innerHTML);
     }
 
     document.querySelector("#" + identifier).innerHTML =

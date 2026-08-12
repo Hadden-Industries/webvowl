@@ -86,7 +86,7 @@ module.exports = (function () {
         that.nodeElement().select("circle").classed("focused", that.focused());
       }
       graph.resetSearchHighlight();
-      graph.options().searchMenu().clearText();
+      graph.dispatchEvent(new CustomEvent("searchcleared"));
     };
 
     this.actualRadius = function () {

@@ -65,7 +65,7 @@ module.exports = function (graph) {
       reset: function () {
         slider.value = defaultLinkDistance;
         slider.dispatchEvent(new Event("input"));
-      }
+      },
     });
 
     slider.addEventListener("focusout", function () {

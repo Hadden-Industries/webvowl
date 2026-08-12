@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeEach, afterEach, jest } from "@jest/globals";
+import { describe, expect, test, jest } from "@jest/globals";
 import sidebarFactory from "./sidebar.js";
 
 class MockSelection {
@@ -30,11 +30,11 @@ class MockSelection {
 global.document = {
   createElement: (tag) => new MockElement(tag),
   querySelector: jest.fn().mockReturnValue(new MockElement()),
-  querySelectorAll: jest.fn().mockReturnValue([])
+  querySelectorAll: jest.fn().mockReturnValue([]),
 };
 global.window = {
   innerWidth: 1024,
-  event: null
+  event: null,
 };
 
 // Mock webvowl global structure which sidebar relies on
@@ -45,7 +45,6 @@ global.webvowl = {
   },
 };
 global.requestAnimationFrame = jest.fn((cb) => cb());
-
 
 describe("sidebar ontology IRI links", () => {
   test.each([

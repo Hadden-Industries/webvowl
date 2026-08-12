@@ -1570,15 +1570,16 @@ module.exports = function (graph) {
   }
 
   function elementTypeSelectionChanged(element) {
+    const typeString = document.querySelector("#typeEditor").value;
     if (elementTools.isNode(element)) {
-      if (graph.changeNodeType(element) === false) {
+      if (graph.changeNodeType(element, typeString) === false) {
         //restore old value
         editSidebar.updateSelectionInformation(element);
       }
     }
 
     if (elementTools.isProperty(element)) {
-      if (graph.changePropertyType(element) === false) {
+      if (graph.changePropertyType(element, typeString) === false) {
         //restore old value
         editSidebar.updateSelectionInformation(element);
       }

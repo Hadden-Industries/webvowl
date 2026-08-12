@@ -2,7 +2,7 @@ module.exports = function (graph) {
   const configMenu = {},
     checkboxes = [];
 
-  configMenu.setup = function () {
+  configMenu.setup = function (zoomSlider) {
     const menuEntry = d3.select("#m_modes");
     menuEntry.on("mouseover", function () {
       const searchMenu = graph.options().searchMenu();
@@ -13,7 +13,7 @@ module.exports = function (graph) {
       "showZoomSlider",
       "Zoom controls",
       "#zoomSliderOption",
-      graph.options().zoomSlider().showSlider,
+      zoomSlider.showSlider,
       0,
     );
     addLabelWidthSlider(

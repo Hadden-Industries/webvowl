@@ -237,6 +237,51 @@ module.exports = function () {
       graphResizeObserver.observe(graphHost);
     }
 
+    graph.addEventListener("zoomchange", (e) =>
+      zoomSlider.updateZoomSliderValue(e.detail.value),
+    );
+    graph.addEventListener("dictionarychange", () =>
+      searchMenu.requestDictionaryUpdate(),
+    );
+    graph.addEventListener("searchcleared", () => searchMenu.clearText());
+    graph.addEventListener("updatelocatebutton", (e) =>
+      searchMenu.updateLocateButtonVisibility(e.detail.visible),
+    );
+    graph.addEventListener("elementfocused", (e) =>
+      focuser.handle(e.detail.element),
+    );
+    graph.addEventListener("editorchange", (e) =>
+      modeMenu.syncEditorState(e.detail.value),
+    );
+    graph.addEventListener("fpsupdate", (e) => {
+      const debugContainer = document.querySelector("#FPS_Statistics");
+      if (debugContainer) {
+        debugContainer.innerHTML =
+          "FPS: " +
+          e.detail.fps +
+          "<br>" +
+          "Nodes: " +
+          e.detail.nodes +
+          "<br>" +
+          "Links: " +
+          e.detail.links;
+      }
+    });
+    graph.addEventListener("editor-element-keyup", (e) => {
+      if (e.detail.syncedIRI !== null) {
+        document.querySelector("#element_iriEditor").title = e.detail.syncedIRI;
+        document.querySelector("#element_iriEditor").value =
+          e.detail.prefixedIri || e.detail.syncedIRI;
+      }
+      document.querySelector("#element_labelEditor").value = e.detail.label;
+    });
+
+
+
+
+    options.pausedMenu(pauseMenu);
+    options.resetMenu(resetMenu);
+
     exportMenu.setup();
     gravityMenu.setup();
     filterMenu.setup(

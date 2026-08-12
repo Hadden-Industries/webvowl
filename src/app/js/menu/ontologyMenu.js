@@ -96,8 +96,6 @@ function normalizeOntologyUrl( value ){
     setupUploadButton();
     setupEmptyButton();
 
-
-
     setupUriListener();
     loadingModule.setOntologyMenu(ontologyMenu);
   };
@@ -283,6 +281,45 @@ function normalizeOntologyUrl( value ){
     });
   }
 
+  function updateEditorModeDependentControls(editMode) {
+    const create_entry = document.getElementById("empty");
+    const create_container = document.getElementById("emptyContainer");
+    const emptyHint = document.getElementById("empty-disabled-hint");
+    const createMessage = editMode
+      ? "Creates a new empty ontology"
+      : "Enable editing in Modes menu to be able to create a new ontology";
+
+    if (create_entry) {
+      create_entry.disabled = !editMode;
+      create_entry.title = createMessage;
+    }
+    if (create_container) {
+      create_container.title = createMessage;
+    }
+
+    const useAccuracyHelper = document.getElementById("useAccuracyHelper");
+    if (useAccuracyHelper) {
+      useAccuracyHelper.classList.toggle("disabled", !editMode);
+      if (editMode) {
+        useAccuracyHelper.removeAttribute("aria-disabled");
+      } else {
+        useAccuracyHelper.setAttribute("aria-disabled", "true");
+      }
+    }
+
+    const accuracyCheckbox = document.getElementById(
+      "useAccuracyHelperConfigCheckbox",
+    );
+    if (accuracyCheckbox) {
+      accuracyCheckbox.disabled = !editMode;
+    }
+
+    if (emptyHint) {
+      emptyHint.textContent = createMessage;
+      emptyHint.classList.toggle("hidden", editMode);
+    }
+  }
+
   function setupEmptyButton(){
     const emptyButton = d3.select("#empty");
     emptyButton.on("click", function (){
@@ -292,7 +329,6 @@ function normalizeOntologyUrl( value ){
       loadingModule.createNewOntology();
       graph.options().navigationMenu().hideAllMenus();
     });
-    graph.updateEditorModeDependentControls();
   }
 
   function setLoadingStatusInfo(message) {
