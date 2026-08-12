@@ -1,6 +1,6 @@
-const OwlClass = require("../elements/nodes/implementations/OwlClass");
-const RdfsSubClassOf = require("../elements/properties/implementations/RdfsSubClassOf");
-const ObjectProperty = require("../elements/properties/implementations/OwlObjectProperty");
+const OwlClass = require("../../../webvowl/js/elements/nodes/implementations/OwlClass");
+const RdfsSubClassOf = require("../../../webvowl/js/elements/properties/implementations/RdfsSubClassOf");
+const ObjectProperty = require("../../../webvowl/js/elements/properties/implementations/OwlObjectProperty");
 const subclassFilterFactory = require("./subclassFilter");
 const {
   installD3V3CollectionAdapter,

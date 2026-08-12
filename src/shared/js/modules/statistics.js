@@ -1,6 +1,6 @@
-const SetOperatorNode = require("../elements/nodes/SetOperatorNode");
-const OwlThing = require("../elements/nodes/implementations/OwlThing");
-const OwlNothing = require("../elements/nodes/implementations/OwlNothing");
+const SetOperatorNode = require("../../../webvowl/js/elements/nodes/SetOperatorNode");
+const OwlThing = require("../../../webvowl/js/elements/nodes/implementations/OwlThing");
+const OwlNothing = require("../../../webvowl/js/elements/nodes/implementations/OwlNothing");
 const elementTools = require("../util/elementTools")();
 
 module.exports = function () {

@@ -147,11 +147,11 @@ module.exports = function () {
           if (ev.dataTransfer.items.length === 1) {
             if (ev.dataTransfer.items[0].kind === "file") {
               const file = ev.dataTransfer.items[0].getAsFile();
-              graph.options().loadingModule().fromFileDrop(file.name, file);
+              loadingModule.fromFileDrop(file.name, file);
             }
           } else {
             //  >> WARNING not multiple file uploaded;
-            graph.options().warningModule().showMultiFileUploadWarning();
+            warningModule.showMultiFileUploadWarning();
           }
         }
       }
@@ -250,9 +250,115 @@ module.exports = function () {
     graph.addEventListener("elementfocused", (e) =>
       focuser.handle(e.detail.element),
     );
-    graph.addEventListener("editorchange", (e) =>
-      modeMenu.syncEditorState(e.detail.value),
-    );
+    graph.addEventListener("editorchange", (e) => {
+      const isEditMode = e.detail.value;
+      modeMenu.syncEditorState(isEditMode);
+      if (isEditMode) {
+        leftSidebar.hideCollapseButton(false);
+        leftSidebar.showSidebar(1);
+        editSidebar.updatePrefixUi();
+        editSidebar.updateElementWidth();
+      } else {
+        leftSidebar.showSidebar(0);
+        leftSidebar.hideCollapseButton(true);
+      }
+      sidebar.updateShowedInformation();
+      editSidebar.updateElementWidth();
+    });
+    graph.addEventListener("urloptions", (e) => {
+      const opts = e.detail.opts;
+      const changeEditFlag = e.detail.changeEditFlag;
+
+      if (opts.sidebar !== undefined) {
+        sidebar.showSidebar(parseInt(opts.sidebar), true);
+      }
+      if (opts.doc) {
+        const asInt = parseInt(opts.doc);
+        filterMenu.setDegreeSliderValue(asInt);
+        graph.options().setGlobalDOF(asInt);
+      }
+      let settingFlag;
+      if (opts.editorMode) {
+        settingFlag = opts.editorMode === "true";
+        const editorCheckbox = document.querySelector(
+          "#editorModeModuleCheckbox",
+        );
+        if (editorCheckbox) {
+          editorCheckbox.checked = settingFlag;
+        }
+        if (changeEditFlag) {
+          graph.editorMode(settingFlag);
+        }
+      }
+      if (opts.cd) {
+        graph.options().classDistance(opts.cd);
+      }
+      if (opts.dd) {
+        graph.options().datatypeDistance(opts.dd);
+      }
+
+      if (opts.filter_datatypes) {
+        settingFlag = opts.filter_datatypes === "true";
+        filterMenu.setCheckBoxValue("datatypeFilterCheckbox", settingFlag);
+      }
+      if (opts.debugFeatures) {
+        settingFlag = opts.debugFeatures === "true";
+        graph.options().setHideDebugFeatures(settingFlag);
+        if (graph.options().getHideDebugFeatures() === false) {
+          graph.options().executeHiddenDebugFeatures();
+        }
+      }
+
+      if (opts.filter_objectProperties) {
+        settingFlag = opts.filter_objectProperties === "true";
+        filterMenu.setCheckBoxValue(
+          "objectPropertyFilterCheckbox",
+          settingFlag,
+        );
+      }
+      if (opts.filter_sco) {
+        settingFlag = opts.filter_sco === "true";
+        filterMenu.setCheckBoxValue("subclassFilterCheckbox", settingFlag);
+      }
+      if (opts.filter_disjoint) {
+        settingFlag = opts.filter_disjoint === "true";
+        filterMenu.setCheckBoxValue("disjointFilterCheckbox", settingFlag);
+      }
+      if (opts.filter_setOperator) {
+        settingFlag = opts.filter_setOperator === "true";
+        filterMenu.setCheckBoxValue("setoperatorFilterCheckbox", settingFlag);
+      }
+      filterMenu.updateSettings();
+
+      if (opts.mode_dynamic) {
+        settingFlag = opts.mode_dynamic === "true";
+        modeMenu.setDynamicLabelWidth(settingFlag);
+        graph.options().dynamicLabelWidth(settingFlag);
+      }
+      if (opts.mode_pnp) {
+        settingFlag = opts.mode_pnp === "true";
+        modeMenu.setCheckBoxValue("pickandpinModuleCheckbox", settingFlag);
+      }
+      if (opts.mode_scaling) {
+        settingFlag = opts.mode_scaling === "true";
+        modeMenu.setCheckBoxValue("nodescalingModuleCheckbox", settingFlag);
+      }
+      if (opts.mode_compact) {
+        settingFlag = opts.mode_compact === "true";
+        modeMenu.setCheckBoxValue("compactnotationModuleCheckbox", settingFlag);
+      }
+      if (opts.mode_colorExt) {
+        settingFlag = opts.mode_colorExt === "true";
+        modeMenu.setCheckBoxValue("colorexternalsModuleCheckbox", settingFlag);
+      }
+      if (opts.mode_multiColor) {
+        settingFlag = opts.mode_multiColor === "true";
+        modeMenu.setColorSwitchStateUsingURL(settingFlag);
+      }
+      modeMenu.updateSettingsUsingURL();
+      graph.options().rectangularRepresentation(opts.rect);
+    });
+
     graph.addEventListener("fpsupdate", (e) => {
       const debugContainer = document.querySelector("#FPS_Statistics");
       if (debugContainer) {
@@ -455,11 +561,11 @@ module.exports = function () {
       // connect the reloadCachedVersionButton
       d3.select("#reloadSvgIcon").on("click", function () {
         if (d3.select("#reloadSvgIcon").node().disabled === true) {
-          graph.options().ontologyMenu().clearCachedVersion();
+          ontologyMenu.clearCachedVersion();
           return;
         }
         d3.select("#reloadCachedOntology").classed("hidden", true);
-        graph.options().ontologyMenu().reloadCachedOntology();
+        ontologyMenu.reloadCachedOntology();
       });
       // add the initialized objects
       webvowl.opts = options;
@@ -473,7 +579,7 @@ module.exports = function () {
       reloadCachedOntologyBtn.classList.add("hidden");
     }
     pauseMenu.reset();
-    graph.options().navigationMenu().hideAllMenus();
+    navigationMenu.hideAllMenus();
 
     if (
       (jsonText === undefined && filename === undefined) ||
@@ -536,7 +642,7 @@ module.exports = function () {
       exportMenu.setJsonText(jsonText);
       options.data(data);
       loadingModule.validJsonFile();
-      graph.options().loadingModule().setPercentMode();
+      loadingModule.setPercentMode();
       if (loadEmptyOntologyForEditing === true) {
         graph.editorMode(true);
       }

@@ -1,8 +1,8 @@
-const OwlClass = require("../elements/nodes/implementations/OwlClass");
-const OwlThing = require("../elements/nodes/implementations/OwlThing");
-const ObjectProperty = require("../elements/properties/implementations/OwlObjectProperty");
-const DatatypeProperty = require("../elements/properties/implementations/OwlDatatypeProperty");
-const Link = require("../elements/links/PlainLink");
+const OwlClass = require("../../../webvowl/js/elements/nodes/implementations/OwlClass");
+const OwlThing = require("../../../webvowl/js/elements/nodes/implementations/OwlThing");
+const ObjectProperty = require("../../../webvowl/js/elements/properties/implementations/OwlObjectProperty");
+const DatatypeProperty = require("../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty");
+const Link = require("../../../webvowl/js/elements/links/PlainLink");
 const objectPropertyFilterFactory = require("./objectPropertyFilter");
 
 describe("Filtering of object properties", () => {

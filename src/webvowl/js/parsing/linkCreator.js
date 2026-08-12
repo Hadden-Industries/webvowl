@@ -36,7 +36,7 @@ module.exports = (function () {
   function groupPropertiesToLinks(properties) {
     const links = [];
     let property;
-    const addedProperties = require("../util/set")();
+    const addedProperties = require("../../../shared/js/util/set")();
 
     for (let i = 0, l = properties.length; i < l; i++) {
       property = properties[i];

@@ -1,7 +1,7 @@
 const _ = require("lodash/core");
-const math = require("./util/math")();
+const math = require("../../shared/js/util/math")();
 const linkCreator = require("./parsing/linkCreator")();
-const elementTools = require("./util/elementTools")();
+const elementTools = require("../../shared/js/util/elementTools")();
 // add some maps for nodes and properties -- used for object generation
 const nodePrototypeMap = require("./elements/nodes/nodeMap")();
 const propertyPrototypeMap = require("./elements/properties/propertyMap")();
@@ -48,7 +48,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
       return d.y;
     })
     .interpolate("cardinal");
-  const options = require("./options")();
+  const options = require("../../shared/js/options")();
   const parser = require("./parser")(graph);
   const draggerObjectsArray = [];
   let language = "default",
@@ -1642,7 +1642,9 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
         );
         syncZoomState();
         updateHaloRadius();
-        options.zoomSlider().updateZoomSliderValue(zoomFactor);
+        graph.dispatchEvent(
+          new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+        );
       });
   };
 
@@ -1677,7 +1679,9 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
         );
         syncZoomState();
         updateHaloRadius();
-        options.zoomSlider().updateZoomSliderValue(zoomFactor);
+        graph.dispatchEvent(
+          new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+        );
       });
   };
 
@@ -3299,20 +3303,12 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
       options
         .leftSidebar()
         .showSidebar(options.leftSidebar().getSidebarVisibility(), true);
-      options.leftSidebar().hideCollapseButton(false);
-      options.leftSidebar().showSidebar(1);
-      graph.options().editSidebar().updatePrefixUi();
-      graph.options().editSidebar().updateElementWidth();
       svgGraph.on("dblclick.zoom", graph.modified_dblClickFunction);
     } else {
       svgGraph.on("dblclick.zoom", originalD3_dblClickFunction);
-      options.leftSidebar().showSidebar(0);
-      options.leftSidebar().hideCollapseButton(true);
       // hide hovered edit elements
       removeEditElements();
     }
-    options.sidebar().updateShowedInformation();
-    options.editSidebar().updateElementWidth();
   };
 
   function createLowerCasePrototypeMap(prototypeMap) {

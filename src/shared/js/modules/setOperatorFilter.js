@@ -1,4 +1,4 @@
-const SetOperatorNode = require("../elements/nodes/SetOperatorNode");
+const SetOperatorNode = require("../../../webvowl/js/elements/nodes/SetOperatorNode");
 
 module.exports = function () {
   const filter = {};

@@ -1,6 +1,6 @@
-const CenteringTextElement = require("./util/CenteringTextElement");
-const elementTools = require("./util/elementTools")();
-const math = require("./util/math")();
+const CenteringTextElement = require("../../shared/js/util/CenteringTextElement");
+const elementTools = require("../../shared/js/util/elementTools")();
+const math = require("../../shared/js/util/math")();
 const drawTools = require("./elements/drawTools")();
 module.exports = function (graph) {
   /** variable defs **/

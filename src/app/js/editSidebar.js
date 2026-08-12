@@ -618,6 +618,7 @@ module.exports = function (graph) {
           .updatePrefix(oldPrefix, newPrefix, oldPrefixURL, newPrefixURL) ===
         true
       ) {
+        editSidebar.updateEditDeleteButtonIds(oldPrefix, newPrefix);
         document.querySelector("#prefixInputFor_" + newPrefix).disabled = true;
         document.querySelector("#prefixURLFor_" + newPrefix).disabled = true;
         document.querySelector("#addPrefixButton").innerHTML = "Add Prefix";

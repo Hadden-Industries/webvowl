@@ -3,7 +3,7 @@
  */
 module.exports = (function () {
   const Base = function (graph) {
-    const languageTools = require("../util/languageTools")();
+    const languageTools = require("../../../shared/js/util/languageTools")();
     // Basic attributes
     let equivalents = [],
       id,

@@ -1,6 +1,6 @@
 const BaseNode = require("./BaseNode");
-const CenteringTextElement = require("../../util/CenteringTextElement");
-const textTools = require("../../util/textTools")();
+const CenteringTextElement = require("../../../../shared/js/util/CenteringTextElement");
+const textTools = require("../../../../shared/js/util/textTools")();
 const drawTools = require("../drawTools")();
 const rectangularElementTools = require("../rectangularElementTools")();
 

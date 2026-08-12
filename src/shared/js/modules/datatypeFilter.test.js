@@ -5,9 +5,9 @@ const {
 const restoreD3 = installD3V3CollectionAdapter();
 afterAll(restoreD3);
 
-const OwlClass = require("../elements/nodes/implementations/OwlClass");
-const RdfsDatatype = require("../elements/nodes/implementations/RdfsDatatype");
-const DatatypeProperty = require("../elements/properties/implementations/OwlDatatypeProperty");
+const OwlClass = require("../../../webvowl/js/elements/nodes/implementations/OwlClass");
+const RdfsDatatype = require("../../../webvowl/js/elements/nodes/implementations/RdfsDatatype");
+const DatatypeProperty = require("../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty");
 const datatypeFilterFactory = require("./datatypeFilter");
 
 describe("Collapsing of datatypes filter", () => {

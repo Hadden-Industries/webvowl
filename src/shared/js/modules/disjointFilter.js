@@ -1,4 +1,4 @@
-const OwlDisjointWith = require("../elements/properties/implementations/OwlDisjointWith");
+const OwlDisjointWith = require("../../../webvowl/js/elements/properties/implementations/OwlDisjointWith");
 
 module.exports = function () {
   const filter = {};
