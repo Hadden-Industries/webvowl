@@ -6,12 +6,11 @@ import {
   jest,
   test,
 } from "@jest/globals";
-/** @jest-environment jsdom */
 import loadingModuleFactory from "./loadingModule.js";
 
 class MockSelection {
-  classed() {
-    return this;
+  constructor() {
+    this.textContent = "";
   }
 
   attr() {
@@ -163,6 +162,14 @@ describe("loading module remote fetch URLs", () => {
   });
 });
 
+global.document = {
+  querySelector: jest.fn().mockReturnValue(new MockSelection())
+};
+global.window = {
+  history: {
+    pushState: jest.fn()
+  }
+};
 describe("loading module create-new command", () => {
   let graph;
   let loadingModule;

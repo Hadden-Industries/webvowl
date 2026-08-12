@@ -221,7 +221,7 @@ describe("ontology menu actions", () => {
     iriInput.handlers.change();
 
     expect(iriInput.element.value).toBe("https://example.org/ontology.owl");
-    expect(iriInput.attributes["aria-invalid"]).toBeNull();
+    expect(iriInput.attributes["aria-invalid"]).toBeUndefined();
     expect(iriHint.element.textContent).toBe("Enter an ontology URL");
   });
 
