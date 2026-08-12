@@ -27,10 +27,22 @@ module.exports = function (graph) {
 
   /** variable defs **/
   const loadingModule = {};
-  const menuContainer = d3.select("#loading-info");
-  const loadingInfoContainer = d3.select("#loadingInfo-container");
-  const detailsButton = d3.select("#show-loadingInfo-button");
-  const closeButton = d3.select("#loadingIndicator_closeButton");
+  const menuContainer =
+    typeof document !== "undefined"
+      ? document.querySelector("#loading-info")
+      : null;
+  const loadingInfoContainer =
+    typeof document !== "undefined"
+      ? document.querySelector("#loadingInfo-container")
+      : null;
+  const detailsButton =
+    typeof document !== "undefined"
+      ? document.querySelector("#show-loadingInfo-button")
+      : null;
+  const closeButton =
+    typeof document !== "undefined"
+      ? document.querySelector("#loadingIndicator_closeButton")
+      : null;
   let ontologyMenu;
   let ontologyIdentifierFromURL;
   let newOntologyCounter = 1;
@@ -42,26 +54,30 @@ module.exports = function (graph) {
       h = graph.options().height();
 
     if (w < 270) {
-      d3.select("#loading-info").classed("hidden", true);
+      document.querySelector("#loading-info").classList.add("hidden");
     } else {
       // check if it should be visible
       if (visibilityStatus === true) {
-        d3.select("#loading-info").classed("hidden", false);
+        document.querySelector("#loading-info").classList.remove("hidden");
       } else {
-        d3.select("#loading-info").classed("hidden", true);
+        document.querySelector("#loading-info").classList.add("hidden");
       }
     }
     if (h < 150) {
-      d3.select("#loadingInfo_msgBox").classed("hidden", true);
+      document.querySelector("#loadingInfo_msgBox").classList.add("hidden");
     } else {
-      d3.select("#loadingInfo_msgBox").classed("hidden", false);
+      document.querySelector("#loadingInfo_msgBox").classList.remove("hidden");
     }
     if (h < 80) {
-      d3.select("#progressBarContext").classed("hidden", true);
-      d3.select("#layoutLoadingProgressBarContainer").classed("compact", true);
+      document.querySelector("#progressBarContext").classList.add("hidden");
+      document
+        .querySelector("#layoutLoadingProgressBarContainer")
+        .classList.add("compact");
     } else {
-      d3.select("#progressBarContext").classed("hidden", false);
-      d3.select("#layoutLoadingProgressBarContainer").classed("compact", false);
+      document.querySelector("#progressBarContext").classList.remove("hidden");
+      document
+        .querySelector("#layoutLoadingProgressBarContainer")
+        .classList.remove("compact");
     }
   };
 
@@ -90,7 +106,9 @@ module.exports = function (graph) {
   }
 
   function setDisabled(selector, disabled) {
-    d3.selectAll(selector).property("disabled", disabled);
+    document.querySelectorAll(selector).forEach(function (el) {
+      el.disabled = disabled;
+    });
   }
 
   function applyControlAvailability() {
@@ -159,54 +177,64 @@ module.exports = function (graph) {
   loadingModule.showErrorDetailsMessage = function () {
     loadingModule.showLoadingIndicator();
     loadingModule.expandDetails();
-    d3.select("#loadingIndicator_closeButton").classed("hidden", true);
+    document
+      .querySelector("#loadingIndicator_closeButton")
+      .classList.add("hidden");
     loadingModule.scrollDownDetails();
   };
 
   loadingModule.showWarningDetailsMessage = function () {
-    d3.select("#currentLoadingStep").attr("class", "step-warning");
+    document.querySelector("#currentLoadingStep").className = "step-warning";
     loadingModule.showLoadingIndicator();
     loadingModule.expandDetails();
-    d3.select("#loadingIndicator_closeButton").classed("hidden", false);
+    document
+      .querySelector("#loadingIndicator_closeButton")
+      .classList.remove("hidden");
     loadingModule.scrollDownDetails();
   };
 
   loadingModule.scrollDownDetails = function () {
-    const scrollingElement = d3.select("#loadingInfo-container").node();
+    const scrollingElement = document.querySelector("#loadingInfo-container");
     scrollingElement.scrollTop = scrollingElement.scrollHeight;
   };
 
   loadingModule.hideLoadingIndicator = function () {
-    d3.select("#loading-info").classed("hidden", true);
+    document.querySelector("#loading-info").classList.add("hidden");
     visibilityStatus = false;
   };
 
   loadingModule.showLoadingIndicator = function () {
-    d3.select("#loading-info").classed("hidden", false);
+    document.querySelector("#loading-info").classList.remove("hidden");
     visibilityStatus = true;
   };
 
   /** -- SETUP -- **/
   loadingModule.setup = function () {
     // create connections for close and details button;
-    loadingInfoContainer.classed("hidden", !showLoadingDetails);
-    detailsButton.on("click", function () {
+    loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
+    detailsButton.addEventListener("click", function () {
       showLoadingDetails = !showLoadingDetails;
-      loadingInfoContainer.classed("hidden", !showLoadingDetails);
-      detailsButton.classed("accordion-trigger-active", showLoadingDetails);
+      loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
+      detailsButton.classList.toggle(
+        "accordion-trigger-active",
+        showLoadingDetails,
+      );
     });
 
-    closeButton.on("click", function () {
-      menuContainer.classed("hidden", true);
+    closeButton.addEventListener("click", function () {
+      menuContainer.classList.add("hidden");
     });
     loadingModule.setBusyMode();
     loadingModule.setState(ontologyLifecycle.STATES.IDLE);
   };
 
   loadingModule.updateSize = function () {
-    showLoadingDetails = !loadingInfoContainer.classed("hidden");
-    loadingInfoContainer.classed("hidden", !showLoadingDetails);
-    detailsButton.classed("accordion-trigger-active", showLoadingDetails);
+    showLoadingDetails = !loadingInfoContainer.classList.contains("hidden");
+    loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
+    detailsButton.classList.toggle(
+      "accordion-trigger-active",
+      showLoadingDetails,
+    );
   };
 
   loadingModule.getDetailsState = function () {
@@ -215,38 +243,44 @@ module.exports = function (graph) {
 
   loadingModule.expandDetails = function () {
     showLoadingDetails = true;
-    loadingInfoContainer.classed("hidden", !showLoadingDetails);
-    detailsButton.classed("accordion-trigger-active", showLoadingDetails);
+    loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
+    detailsButton.classList.toggle(
+      "accordion-trigger-active",
+      showLoadingDetails,
+    );
   };
 
   loadingModule.collapseDetails = function () {
     showLoadingDetails = false;
-    loadingInfoContainer.classed("hidden", !showLoadingDetails);
-    detailsButton.classed("accordion-trigger-active", showLoadingDetails);
+    loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
+    detailsButton.classList.toggle(
+      "accordion-trigger-active",
+      showLoadingDetails,
+    );
   };
 
   loadingModule.setBusyMode = function () {
-    d3.select("#currentLoadingStep").attr("class", "step-busy");
-    d3.select("#progressBarValue").attr("value", null);
-    d3.select("#progressBarLabel").text("");
+    document.querySelector("#currentLoadingStep").className = "step-busy";
+    document.querySelector("#progressBarValue").removeAttribute("value");
+    document.querySelector("#progressBarLabel").textContent = "";
     progressBarMode = PROGRESS_BAR_BUSY;
   };
 
   loadingModule.setSuccessful = function () {
-    d3.select("#currentLoadingStep").attr("class", "step-success");
+    document.querySelector("#currentLoadingStep").className = "step-success";
   };
 
   loadingModule.setErrorMode = function () {
-    d3.select("#currentLoadingStep").attr("class", "step-error");
-    d3.select("#progressBarValue").attr("value", 0);
-    d3.select("#progressBarLabel").text("");
+    document.querySelector("#currentLoadingStep").className = "step-error";
+    document.querySelector("#progressBarValue").setAttribute("value", 0);
+    document.querySelector("#progressBarLabel").textContent = "";
     progressBarMode = PROGRESS_BAR_ERROR;
   };
 
   loadingModule.setPercentMode = function () {
-    d3.select("#currentLoadingStep").attr("class", "step-busy");
-    d3.select("#progressBarValue").attr("value", 0);
-    d3.select("#progressBarLabel").text("0%");
+    document.querySelector("#currentLoadingStep").className = "step-busy";
+    document.querySelector("#progressBarValue").setAttribute("value", 0);
+    document.querySelector("#progressBarLabel").textContent = "0%";
     progressBarMode = PROGRESS_BAR_PERCENT;
   };
 
@@ -255,8 +289,9 @@ module.exports = function (graph) {
     const percent = Number.isFinite(numericValue)
       ? Math.max(0, Math.min(100, numericValue))
       : 0;
-    d3.select("#progressBarValue").attr("value", percent);
-    d3.select("#progressBarLabel").text(Math.round(percent) + "%");
+    document.querySelector("#progressBarValue").setAttribute("value", percent);
+    document.querySelector("#progressBarLabel").textContent =
+      Math.round(percent) + "%";
   };
 
   loadingModule.emptyGraphContentError = function () {
@@ -292,7 +327,9 @@ module.exports = function (graph) {
     loadingModule.showLoadingIndicator();
     loadingModule.collapseDetails();
     missingImportsWarning = false;
-    d3.select("#loadingIndicator_closeButton").classed("hidden", true);
+    document
+      .querySelector("#loadingIndicator_closeButton")
+      .classList.add("hidden");
     ontologyMenu.clearDetailInformation();
   };
 
@@ -312,7 +349,7 @@ module.exports = function (graph) {
     const loadingMethod = identifyOntologyLoadingMethod(
       ontologyIdentifierFromURL,
     );
-    d3.select("#progressBarLabel").text("");
+    document.querySelector("#progressBarLabel").textContent = "";
     switch (loadingMethod) {
       case 0:
         loadingModule.from_presetOntology(ontologyIdentifierFromURL);
@@ -353,7 +390,7 @@ module.exports = function (graph) {
     loadingModule.initializeLoader(true);
     ontologyIdentifierFromURL = ontologyIdentifier;
     window.history.pushState(null, "", route);
-    d3.select("#progressBarLabel").text("");
+    document.querySelector("#progressBarLabel").textContent = "";
     loadingModule.from_presetOntology(ontologyIdentifier);
     return ontologyIdentifier;
   };
@@ -497,7 +534,7 @@ module.exports = function (graph) {
   };
 
   loadingModule.fromFileDrop = function (fileName, file) {
-    d3.select("#progressBarLabel").text("");
+    document.querySelector("#progressBarLabel").textContent = "";
     loadingModule.initializeLoader(false);
 
     ontologyMenu.append_bulletPoint(
@@ -573,9 +610,8 @@ module.exports = function (graph) {
       ontologyMenu.append_bulletPoint(
         "Retrieving ontology from file: " + filename,
       );
-      const selectedFile = d3
-        .select("#file-converter-input")
-        .property("files")[0];
+      const selectedFile = document.querySelector("#file-converter-input")
+        .files[0];
       if (!selectedFile || (filename && filename !== selectedFile.name)) {
         ontologyMenu.append_message_toLastBulletPoint(
           'No cached version of "' + filename + '" was found.',
@@ -658,7 +694,7 @@ module.exports = function (graph) {
 
   loadingModule.loadFromOWL2VOWL = function (ontoContent, filename) {
     loadingModule.markLoading();
-    const old = d3.select("#bulletPoint_container").node().innerHTML;
+    const old = document.querySelector("#bulletPoint_container").innerHTML;
     if (old.indexOf("(with warnings)") !== -1) {
       missingImportsWarning = true;
     }

@@ -30,50 +30,47 @@ module.exports = function (graph) {
 
   function addDistanceSlider(selector, identifier, label, distanceFunction) {
     const defaultLinkDistance = distanceFunction();
-    const sliderContainer = d3
-      .select(selector)
-      .datum({ distanceFunction: distanceFunction });
+    const sliderContainer = document.querySelector(selector);
+    sliderContainer.__data__ = { distanceFunction: distanceFunction };
 
-    const sliderValueLabel = sliderContainer
-      .select("#" + identifier + "DistanceSliderValue")
-      .text(distanceFunction());
+    const sliderValueLabel = sliderContainer.querySelector("#" + identifier + "DistanceSliderValue");
+    sliderValueLabel.textContent = distanceFunction();
 
-    const slider = sliderContainer
-      .select("#" + identifier + "DistanceSlider")
-      .datum({ distanceFunction: distanceFunction })
-      .attr("value", distanceFunction());
+    const slider = sliderContainer.querySelector("#" + identifier + "DistanceSlider");
+    slider.__data__ = { distanceFunction: distanceFunction };
+    slider.setAttribute("value", distanceFunction());
 
     // Store slider for easier resetting
     sliders.push(slider);
 
-    slider.on("focusout", function () {
+    slider.addEventListener("focusout", function () {
       graph.updateStyle();
     });
 
-    slider.on("input", function () {
-      const distance = slider.property("value");
+    function handleInput() {
+      const distance = slider.value;
       distanceFunction(distance);
       adjustCharge(defaultLinkDistance);
-      sliderValueLabel.text(distance);
+      sliderValueLabel.textContent = distance;
       graph.updateStyle();
-    });
+    }
+    slider.addEventListener("input", handleInput);
+    slider.__inputHandler = handleInput;
 
     // add wheel event to the slider
-    slider.on("wheel", function (event) {
-      const wheelEvent = event;
-      let offset;
-      if (wheelEvent.deltaY < 0) {
+    slider.addEventListener("wheel", function (event) {
+      let offset = 0;
+      if (event.deltaY < 0) {
         offset = 10;
-      }
-      if (wheelEvent.deltaY > 0) {
+      } else if (event.deltaY > 0) {
         offset = -10;
       }
-      const oldVal = parseInt(slider.property("value"));
+      const oldVal = parseInt(slider.value, 10);
       const newSliderValue = oldVal + offset;
-      if (newSliderValue !== oldVal) {
-        slider.property("value", newSliderValue);
+      if (newSliderValue !== oldVal && !isNaN(newSliderValue)) {
+        slider.value = newSliderValue;
         distanceFunction(newSliderValue);
-        slider.on("input")(); // << set text and update the graphStyles
+        slider.__inputHandler(); // << set text and update the graphStyles
       }
       event.preventDefault();
     });
@@ -95,11 +92,9 @@ module.exports = function (graph) {
    */
   gravityMenu.reset = function () {
     sliders.forEach(function (slider) {
-      slider.property("value", function (d) {
-        // Simply reload the distance from the options
-        return d.distanceFunction();
-      });
-      slider.on("input")();
+      const distanceFunction = slider.__data__.distanceFunction;
+      slider.value = distanceFunction();
+      slider.__inputHandler();
     });
   };
 

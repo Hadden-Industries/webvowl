@@ -14,22 +14,18 @@ module.exports = function (graph) {
   let prefix_editMode = false;
 
   editSidebar.clearMetaObjectValue = function () {
-    d3.select("#titleEditor").node().value = "";
-    d3.select("#iriEditor").node().value = "";
-    d3.select("#versionEditor").node().value = "";
-    d3.select("#authorsEditor").node().value = "";
-    d3.select("#descriptionEditor").node().value = "";
+    document.querySelector("#titleEditor").value = "";
+    document.querySelector("#iriEditor").value = "";
+    document.querySelector("#versionEditor").value = "";
+    document.querySelector("#authorsEditor").value = "";
+    document.querySelector("#descriptionEditor").value = "";
     // todo add clear description;
   };
 
   editSidebar.updatePrefixUi = function () {
     editSidebar.updateElementWidth();
     const prefixListContainer = d3.select("#prefixURL_Container");
-    while (prefixListContainer.node().firstChild) {
-      prefixListContainer
-        .node()
-        .removeChild(prefixListContainer.node().firstChild);
-    }
+    prefixListContainer.selectAll("*").remove();
     setupPrefixList();
   };
 
@@ -39,16 +35,19 @@ module.exports = function (graph) {
     setupAddPrefixButton();
     setupSupportedDatatypes();
 
-    d3.select("#titleEditor")
-      .on("change", function () {
+    document
+      .querySelector("#titleEditor")
+      .addEventListener("change", function () {
         graph
           .options()
           .addOrUpdateGeneralObjectEntry(
             "title",
-            d3.select("#titleEditor").node().value,
+            document.querySelector("#titleEditor").value,
           );
-      })
-      .on("keydown", function (event) {
+      });
+    document
+      .querySelector("#titleEditor")
+      .addEventListener("keydown", function (event) {
         event.stopPropagation();
         if (event.key === "Enter") {
           event.preventDefault();
@@ -56,27 +55,30 @@ module.exports = function (graph) {
             .options()
             .addOrUpdateGeneralObjectEntry(
               "title",
-              d3.select("#titleEditor").node().value,
+              document.querySelector("#titleEditor").value,
             );
         }
       });
-    d3.select("#iriEditor")
-      .on("change", function () {
+    document
+      .querySelector("#iriEditor")
+      .addEventListener("change", function () {
         if (
           graph
             .options()
             .addOrUpdateGeneralObjectEntry(
               "iri",
-              d3.select("#iriEditor").node().value,
+              document.querySelector("#iriEditor").value,
             ) === false
         ) {
           // restore value
-          d3.select("#iriEditor").node().value = graph
+          document.querySelector("#iriEditor").value = graph
             .options()
             .getGeneralMetaObjectProperty("iri");
         }
-      })
-      .on("keydown", function (event) {
+      });
+    document
+      .querySelector("#iriEditor")
+      .addEventListener("keydown", function (event) {
         event.stopPropagation();
         if (event.key === "Enter") {
           event.preventDefault();
@@ -85,26 +87,29 @@ module.exports = function (graph) {
               .options()
               .addOrUpdateGeneralObjectEntry(
                 "iri",
-                d3.select("#iriEditor").node().value,
+                document.querySelector("#iriEditor").value,
               ) === false
           ) {
             // restore value
-            d3.select("#iriEditor").node().value = graph
+            document.querySelector("#iriEditor").value = graph
               .options()
               .getGeneralMetaObjectProperty("iri");
           }
         }
       });
-    d3.select("#versionEditor")
-      .on("change", function () {
+    document
+      .querySelector("#versionEditor")
+      .addEventListener("change", function () {
         graph
           .options()
           .addOrUpdateGeneralObjectEntry(
             "version",
-            d3.select("#versionEditor").node().value,
+            document.querySelector("#versionEditor").value,
           );
-      })
-      .on("keydown", function (event) {
+      });
+    document
+      .querySelector("#versionEditor")
+      .addEventListener("keydown", function (event) {
         event.stopPropagation();
         if (event.key === "Enter") {
           event.preventDefault();
@@ -112,20 +117,23 @@ module.exports = function (graph) {
             .options()
             .addOrUpdateGeneralObjectEntry(
               "version",
-              d3.select("#versionEditor").node().value,
+              document.querySelector("#versionEditor").value,
             );
         }
       });
-    d3.select("#authorsEditor")
-      .on("change", function () {
+    document
+      .querySelector("#authorsEditor")
+      .addEventListener("change", function () {
         graph
           .options()
           .addOrUpdateGeneralObjectEntry(
             "author",
-            d3.select("#authorsEditor").node().value,
+            document.querySelector("#authorsEditor").value,
           );
-      })
-      .on("keydown", function (event) {
+      });
+    document
+      .querySelector("#authorsEditor")
+      .addEventListener("keydown", function (event) {
         event.stopPropagation();
         if (event.key === "Enter") {
           event.preventDefault();
@@ -133,24 +141,28 @@ module.exports = function (graph) {
             .options()
             .addOrUpdateGeneralObjectEntry(
               "author",
-              d3.select("#authorsEditor").node().value,
+              document.querySelector("#authorsEditor").value,
             );
         }
       });
-    d3.select("#descriptionEditor").on("change", function () {
-      graph
-        .options()
-        .addOrUpdateGeneralObjectEntry(
-          "description",
-          d3.select("#descriptionEditor").node().value,
-        );
-    });
+    document
+      .querySelector("#descriptionEditor")
+      .addEventListener("change", function () {
+        graph
+          .options()
+          .addOrUpdateGeneralObjectEntry(
+            "description",
+            document.querySelector("#descriptionEditor").value,
+          );
+      });
 
     editSidebar.updateElementWidth();
   };
 
   function setupSupportedDatatypes() {
-    const datatypeEditorSelection = d3.select("#typeEditor_datatype").node();
+    const datatypeEditorSelection = document.querySelector(
+      "#typeEditor_datatype",
+    );
     const supportedDatatypes = graph
       .options()
       .supportedDatatypes()
@@ -163,34 +175,38 @@ module.exports = function (graph) {
   }
 
   function highlightDeleteButton(enable, name) {
-    const deletePath = d3.select("#del_pathFor_" + name);
-    const deleteRect = d3.select("#del_rectFor_" + name);
+    const deletePath = document.querySelector("#del_pathFor_" + name);
+    const deleteRect = document.querySelector("#del_rectFor_" + name);
 
     if (enable === false) {
-      deletePath.classed("delete-path-style", true);
-      deleteRect.classed("non-clickable", true).classed("clickable", false);
+      deletePath.classList.add("delete-path-style");
+      deleteRect.classList.add("non-clickable");
+      deleteRect.classList.remove("clickable");
     } else {
-      deletePath.classed("delete-path-style", true);
-      deleteRect.classed("clickable", true).classed("non-clickable", false);
+      deletePath.classList.add("delete-path-style");
+      deleteRect.classList.add("clickable");
+      deleteRect.classList.remove("non-clickable");
     }
   }
 
   function highlightEditButton(enable, name, fill) {
-    const editPath = d3.select("#pathFor_" + name);
-    const editRect = d3.select("#rectFor_" + name);
+    const editPath = document.querySelector("#pathFor_" + name);
+    const editRect = document.querySelector("#rectFor_" + name);
 
     if (enable === false) {
-      editPath.classed("edit-path-style", true);
-      editRect.classed("non-clickable", true).classed("clickable", false);
+      editPath.classList.add("edit-path-style");
+      editRect.classList.add("non-clickable");
+      editRect.classList.remove("clickable");
     } else {
-      editPath.classed("edit-path-style", true);
-      editRect.classed("clickable", true).classed("non-clickable", false);
+      editPath.classList.add("edit-path-style");
+      editRect.classList.add("clickable");
+      editRect.classList.remove("non-clickable");
     }
   }
 
   function setupAddPrefixButton() {
-    const btn = d3.select("#addPrefixButton");
-    btn.on("click", function () {
+    const btn = document.querySelector("#addPrefixButton");
+    btn.addEventListener("click", function () {
       // check if we are still in editMode?
       if (prefix_editMode === false) {
         // create new line entry;
@@ -305,10 +321,10 @@ module.exports = function (graph) {
         prefInput.node().focus();
         oldPrefix = name;
         oldPrefixURL = "";
-        d3.select("#addPrefixButton").node().innerHTML = "Save Prefix";
+        document.querySelector("#addPrefixButton").innerHTML = "Save Prefix";
       } else {
-        d3.select("#editButtonFor_emptyPrefixEntry").on("click")(
-          d3.select("#editButtonFor_emptyPrefixEntry").node(),
+        enablePrefixEdit(
+          document.querySelector("#editButtonFor_emptyPrefixEntry"),
         );
       }
     });
@@ -359,37 +375,41 @@ module.exports = function (graph) {
         editButton.selectAll("g").on("mouseover", function () {
           const sender = this;
           const enable = true;
-          const f_editPath = d3.select("#pathFor_" + sender.selectorName);
-          const f_editRect = d3.select("#rectFor_" + sender.selectorName);
+          const f_editPath = document.querySelector(
+            "#pathFor_" + sender.selectorName,
+          );
+          const f_editRect = document.querySelector(
+            "#rectFor_" + sender.selectorName,
+          );
 
           if (enable === false) {
-            f_editPath.classed("edit-path-style", true);
-            f_editRect
-              .classed("non-clickable", true)
-              .classed("clickable", false);
+            f_editPath.classList.add("edit-path-style");
+            f_editRect.classList.add("non-clickable");
+            f_editRect.classList.remove("clickable");
           } else {
-            f_editPath.classed("edit-path-style", true);
-            f_editRect
-              .classed("clickable", true)
-              .classed("non-clickable", false);
+            f_editPath.classList.add("edit-path-style");
+            f_editRect.classList.add("clickable");
+            f_editRect.classList.remove("non-clickable");
           }
         });
         editButton.selectAll("g").on("mouseout", function () {
           const sender = this;
           const enable = false;
-          const f_editPath = d3.select("#pathFor_" + sender.selectorName);
-          const f_editRect = d3.select("#rectFor_" + sender.selectorName);
+          const f_editPath = document.querySelector(
+            "#pathFor_" + sender.selectorName,
+          );
+          const f_editRect = document.querySelector(
+            "#rectFor_" + sender.selectorName,
+          );
 
           if (enable === false) {
-            f_editPath.classed("edit-path-style", true);
-            f_editRect
-              .classed("non-clickable", true)
-              .classed("clickable", false);
+            f_editPath.classList.add("edit-path-style");
+            f_editRect.classList.add("non-clickable");
+            f_editRect.classList.remove("clickable");
           } else {
-            f_editPath.classed("edit-path-style", true);
-            f_editRect
-              .classed("clickable", true)
-              .classed("non-clickable", false);
+            f_editPath.classList.add("edit-path-style");
+            f_editRect.classList.add("clickable");
+            f_editRect.classList.remove("non-clickable");
           }
         });
 
@@ -451,45 +471,41 @@ module.exports = function (graph) {
         deleteButton.selectAll("g").on("mouseover", function () {
           const selector = this;
           const enable = true;
-          const f_deletePath = d3.select(
+          const f_deletePath = document.querySelector(
             "#del_pathFor_" + selector.selectorName,
           );
-          const f_deleteRect = d3.select(
+          const f_deleteRect = document.querySelector(
             "#del_rectFor_" + selector.selectorName,
           );
 
           if (enable === false) {
-            f_deletePath.classed("delete-path-style", true);
-            f_deleteRect
-              .classed("non-clickable", true)
-              .classed("clickable", false);
+            f_deletePath.classList.add("delete-path-style");
+            f_deleteRect.classList.add("non-clickable");
+            f_deleteRect.classList.remove("clickable");
           } else {
-            f_deletePath.classed("delete-path-style", true);
-            f_deleteRect
-              .classed("clickable", true)
-              .classed("non-clickable", false);
+            f_deletePath.classList.add("delete-path-style");
+            f_deleteRect.classList.add("clickable");
+            f_deleteRect.classList.remove("non-clickable");
           }
         });
         deleteButton.selectAll("g").on("mouseout", function () {
           const selector = this;
           const enable = false;
-          const f_deletePath = d3.select(
+          const f_deletePath = document.querySelector(
             "#del_pathFor_" + selector.selectorName,
           );
-          const f_deleteRect = d3.select(
+          const f_deleteRect = document.querySelector(
             "#del_rectFor_" + selector.selectorName,
           );
 
           if (enable === false) {
-            f_deletePath.classed("delete-path-style", true);
-            f_deleteRect
-              .classed("non-clickable", true)
-              .classed("clickable", false);
+            f_deletePath.classList.add("delete-path-style");
+            f_deleteRect.classList.add("non-clickable");
+            f_deleteRect.classList.remove("clickable");
           } else {
-            f_deletePath.classed("delete-path-style", true);
-            f_deleteRect
-              .classed("clickable", true)
-              .classed("non-clickable", false);
+            f_deletePath.classList.add("delete-path-style");
+            f_deleteRect.classList.add("clickable");
+            f_deleteRect.classList.remove("non-clickable");
           }
         });
 
@@ -518,9 +534,9 @@ module.exports = function (graph) {
     if (this.disabled === true) {
       return;
     }
-    d3.select("#addPrefixButton").node().innerHTML = "Add Prefix";
+    document.querySelector("#addPrefixButton").innerHTML = "Add Prefix";
     const selector = this.id.split("_")[1];
-    d3.select("#prefixContainerFor_" + selector).remove();
+    document.querySelector("#prefixContainerFor_" + selector).remove();
     graph.options().removePrefix(selector);
     prefix_editMode = false; // <<TODO make some sanity checks
     prefixModule.updatePrefixModel();
@@ -537,36 +553,44 @@ module.exports = function (graph) {
     const selector = agent.id.split("_")[1];
     const stl = agent.elementStyle;
     if (stl === "edit") {
-      d3.select("#prefixInputFor_" + selector).node().disabled = false;
-      d3.select("#prefixURLFor_" + selector).node().disabled = false;
+      document.querySelector("#prefixInputFor_" + selector).disabled = false;
+      document.querySelector("#prefixURLFor_" + selector).disabled = false;
       // change the button content
       //  this.innerHTML = "\u2714";
       agent.elementStyle = "save";
-      oldPrefix = d3.select("#prefixInputFor_" + selector).node().value;
-      oldPrefixURL = d3.select("#prefixURLFor_" + selector).node().value;
+      oldPrefix = document.querySelector("#prefixInputFor_" + selector).value;
+      oldPrefixURL = document.querySelector("#prefixURLFor_" + selector).value;
       prefix_editMode = true;
-      if (d3.select("#containerFor_" + selector).node()) {
-        d3.select("#containerFor_" + selector).node().title =
+      if (document.querySelector("#containerFor_" + selector)) {
+        document.querySelector("#containerFor_" + selector).title =
           "Save new prefix and IRI";
       }
 
-      const editButton = d3.select(agent);
-      editButton.selectAll("g").on("mouseover", function () {
-        highlightEditButton(true, agent.selectorName, true);
-      });
-      editButton.selectAll("g").on("mouseout", function () {
-        highlightEditButton(false, agent.selectorName, true);
+      agent.querySelectorAll("g").forEach(function (g) {
+        g.addEventListener("mouseover", function () {
+          highlightEditButton(true, agent.selectorName, true);
+        });
+        g.addEventListener("mouseout", function () {
+          highlightEditButton(false, agent.selectorName, true);
+        });
       });
 
-      const editPath = d3.select("#pathFor_" + agent.selectorName);
-      editPath.attr("d", "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z");
-      editPath.attr("transform", "matrix(0.45,0,0,0.45,0,5)");
+      const editPath = document.querySelector("#pathFor_" + agent.selectorName);
+      editPath.setAttribute(
+        "d",
+        "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z",
+      );
+      editPath.setAttribute("transform", "matrix(0.45,0,0,0.45,0,5)");
 
       highlightEditButton(true, agent.selectorName, true);
     }
     if (stl === "save") {
-      const newPrefixURL = d3.select("#prefixURLFor_" + selector).node().value;
-      const newPrefix = d3.select("#prefixInputFor_" + selector).node().value;
+      const newPrefixURL = document.querySelector(
+        "#prefixURLFor_" + selector,
+      ).value;
+      const newPrefix = document.querySelector(
+        "#prefixInputFor_" + selector,
+      ).value;
 
       if (
         graph
@@ -574,11 +598,11 @@ module.exports = function (graph) {
           .updatePrefix(oldPrefix, newPrefix, oldPrefixURL, newPrefixURL) ===
         true
       ) {
-        d3.select("#prefixInputFor_" + newPrefix).node().disabled = true;
-        d3.select("#prefixURLFor_" + newPrefix).node().disabled = true;
-        d3.select("#addPrefixButton").node().innerHTML = "Add Prefix";
-        if (d3.select("#containerFor_" + selector).node()) {
-          d3.select("#containerFor_" + selector).node().title =
+        document.querySelector("#prefixInputFor_" + newPrefix).disabled = true;
+        document.querySelector("#prefixURLFor_" + newPrefix).disabled = true;
+        document.querySelector("#addPrefixButton").innerHTML = "Add Prefix";
+        if (document.querySelector("#containerFor_" + selector)) {
+          document.querySelector("#containerFor_" + selector).title =
             "Edit prefix and IRI";
         }
 
@@ -587,27 +611,32 @@ module.exports = function (graph) {
         agent.elementStyle = "edit";
         prefix_editMode = false;
         prefixModule.updatePrefixModel();
-        const saveButton = d3.select(agent);
-        saveButton.selectAll("g").on("mouseover", function () {
-          highlightEditButton(true, agent.selectorName, false);
-        });
-        saveButton.selectAll("g").on("mouseout", function () {
-          highlightEditButton(false, agent.selectorName, false);
+        agent.querySelectorAll("g").forEach(function (g) {
+          g.addEventListener("mouseover", function () {
+            highlightEditButton(true, agent.selectorName, false);
+          });
+          g.addEventListener("mouseout", function () {
+            highlightEditButton(false, agent.selectorName, false);
+          });
         });
 
-        const savePath = d3.select("#pathFor_" + agent.selectorName);
-        savePath.attr(
+        const savePath = document.querySelector(
+          "#pathFor_" + agent.selectorName,
+        );
+        savePath.setAttribute(
           "d",
           "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z",
         );
-        savePath.attr("transform", "matrix(-0.45,0,0,0.45,10,5)");
+        savePath.setAttribute("transform", "matrix(-0.45,0,0,0.45,10,5)");
         highlightEditButton(true, agent.selectorName, false);
       }
     }
   }
 
   function changeDatatypeType(element) {
-    const datatypeEditorSelection = d3.select("#typeEditor_datatype").node();
+    const datatypeEditorSelection = document.querySelector(
+      "#typeEditor_datatype",
+    );
     const givenName = datatypeEditorSelection.value;
     const prefix = givenName.includes(":") ? givenName.split(":")[0] : "";
     let identifier = givenName.includes(":")
@@ -622,12 +651,12 @@ module.exports = function (graph) {
     }
 
     if (datatypeEditorSelection.value !== "undefined") {
-      d3.select("#element_iriEditor").node().disabled = true;
-      d3.select("#element_labelEditor").node().disabled = true;
+      document.querySelector("#element_iriEditor").disabled = true;
+      document.querySelector("#element_labelEditor").disabled = true;
     } else {
       identifier = "undefined";
-      d3.select("#element_iriEditor").node().disabled = false;
-      d3.select("#element_labelEditor").node().disabled = false;
+      document.querySelector("#element_iriEditor").disabled = false;
+      document.querySelector("#element_labelEditor").disabled = false;
     }
     element.label(identifier);
     element.dType(givenName);
@@ -635,10 +664,10 @@ module.exports = function (graph) {
     element.baseIri(baseNs);
     element.redrawLabelText();
 
-    d3.select("#element_iriEditor").node().value =
-      prefixModule.getPrefixRepresentationForFullURI(element.iri());
-    d3.select("#element_iriEditor").node().title = element.iri();
-    d3.select("#element_labelEditor").node().value =
+    document.querySelector("#element_iriEditor").value =
+      element.title() || element.iri();
+    document.querySelector("#element_iriEditor").title = element.iri();
+    document.querySelector("#element_labelEditor").value =
       element.labelForCurrentLanguage();
   }
 
@@ -657,7 +686,7 @@ module.exports = function (graph) {
   }
 
   function getURLFROMPrefixedVersion(element) {
-    let url = d3.select("#element_iriEditor").node().value;
+    let url = document.querySelector("#element_iriEditor").value;
     const base = graph.options().getGeneralMetaObjectProperty("iri");
     if (validURL(url) === false) {
       // make better usability
@@ -686,7 +715,7 @@ module.exports = function (graph) {
                 1,
                 false,
               );
-            d3.select("#element_iriEditor").node().value = element.iri();
+            document.querySelector("#element_iriEditor").value = element.iri();
             return;
           }
           // check if url is not empty
@@ -703,7 +732,7 @@ module.exports = function (graph) {
                 false,
               );
             console.warn("NO INPUT PROVIDED");
-            d3.select("#element_iriEditor").node().value = element.iri();
+            document.querySelector("#element_iriEditor").value = element.iri();
             return;
           }
           url = basePref + name;
@@ -714,7 +743,7 @@ module.exports = function (graph) {
         if (url.length === 0) {
           //
           console.warn("NO INPUT PROVIDED");
-          d3.select("#element_iriEditor").node().value = element.iri();
+          document.querySelector("#element_iriEditor").value = element.iri();
           return;
         }
         // failed to identify anything useful
@@ -784,7 +813,11 @@ module.exports = function (graph) {
     //     graph.options().warningModule().showWarning("Already Seen This one ",
     //         "Input IRI For Element"+ element.labelForCurrentLanguage()+" already been set  ",
     //         "Restoring previous IRI for Element"+element.iri(),1,false);
-    //     d3.select("#element_iriEditor").node().value=graph.options().prefixModule().getPrefixRepresentationForFullURI(element.iri());
+    //     document.querySelector("#element_iriEditor").value =
+    graph
+      .options()
+      .prefixModule()
+      .getPrefixRepresentationForFullURI(element.iri());
     //     editSidebar.updateSelectionInformation(element);
     //     return;
     // }
@@ -811,7 +844,7 @@ module.exports = function (graph) {
     }
     // graph.options().focuserModule().handle(undefined);
 
-    d3.select("#element_iriEditor").node().value =
+    document.querySelector("#element_iriEditor").value =
       prefixModule.getPrefixRepresentationForFullURI(url);
     editSidebar.updateSelectionInformation(element);
   }
@@ -823,7 +856,7 @@ module.exports = function (graph) {
   }
 
   function changeLabelForElement(element) {
-    element.label(d3.select("#element_labelEditor").node().value);
+    element.label(document.querySelector("#element_labelEditor").value);
     element.redrawLabelText();
     if (graph.options().searchMenu()) {
       graph.options().searchMenu().requestDictionaryUpdate();
@@ -831,16 +864,16 @@ module.exports = function (graph) {
   }
 
   editSidebar.updateEditDeleteButtonIds = function (oldPrefix, newPrefix) {
-    d3.select("#prefixInputFor_" + oldPrefix).node().id =
+    document.querySelector("#prefixInputFor_" + oldPrefix).id =
       "prefixInputFor_" + newPrefix;
-    d3.select("#prefixURLFor_" + oldPrefix).node().id =
+    document.querySelector("#prefixURLFor_" + oldPrefix).id =
       "prefixURLFor_" + newPrefix;
-    d3.select("#deleteButtonFor_" + oldPrefix).node().id =
+    document.querySelector("#deleteButtonFor_" + oldPrefix).id =
       "deleteButtonFor_" + newPrefix;
-    d3.select("#editButtonFor_" + oldPrefix).node().id =
+    document.querySelector("#editButtonFor_" + oldPrefix).id =
       "editButtonFor_" + newPrefix;
 
-    d3.select("#prefixContainerFor_" + oldPrefix).node().id =
+    document.querySelector("#prefixContainerFor_" + oldPrefix).id =
       "prefixContainerFor_" + newPrefix;
   };
 
@@ -881,49 +914,60 @@ module.exports = function (graph) {
 
   editSidebar.updateSelectionInformation = function (element) {
     if (element === undefined) {
-      // show hint;
-      d3.select("#selectedElementProperties").classed("hidden", true);
-      d3.select("#selectedElementPropertiesEmptyHint").classed("hidden", false);
+      document
+        .querySelector("#selectedElementProperties")
+        .classList.add("hidden");
+      document
+        .querySelector("#selectedElementPropertiesEmptyHint")
+        .classList.remove("hidden");
       selectedElementForCharacteristics = null;
       editSidebar.updateElementWidth();
     } else {
-      d3.select("#selectedElementProperties").classed("hidden", false);
-      d3.select("#selectedElementPropertiesEmptyHint").classed("hidden", true);
-      d3.select("#typeEditForm_datatype").classed("hidden", true);
+      document
+        .querySelector("#selectedElementProperties")
+        .classList.remove("hidden");
+      document
+        .querySelector("#selectedElementPropertiesEmptyHint")
+        .classList.add("hidden");
+      document.querySelector("#typeEditForm_datatype").classList.add("hidden");
 
       // set the element IRI, and labels
-      d3.select("#element_iriEditor").node().value = element.iri();
-      d3.select("#element_labelEditor").node().value =
+      document.querySelector("#element_iriEditor").value = element.iri();
+      document.querySelector("#element_labelEditor").value =
         element.labelForCurrentLanguage();
-      d3.select("#element_iriEditor").node().title = element.iri();
+      document.querySelector("#element_iriEditor").title = element.iri();
 
-      d3.select("#element_iriEditor")
-        .on("change", function () {
+      document
+        .querySelector("#element_iriEditor")
+        .addEventListener("change", function () {
           const elementIRI = element.iri();
           const prefixed = graph
             .options()
             .prefixModule()
             .getPrefixRepresentationForFullURI(elementIRI);
-          if (prefixed === d3.select("#element_iriEditor").node().value) {
+          if (prefixed === document.querySelector("#element_iriEditor").value) {
             console.warn("Iri is identical, nothing has changed!");
             return;
           }
 
           changeIriForElement(element);
-        })
-        .on("keydown", function (event) {
+        });
+      document
+        .querySelector("#element_iriEditor")
+        .addEventListener("keydown", function (event) {
           event.stopPropagation();
           if (event.key === "Enter") {
             event.preventDefault();
             console.warn("IRI CHANGED Via ENTER pressed");
             changeIriForElement(element);
-            d3.select("#element_iriEditor").node().title = element.iri();
+            document.querySelector("#element_iriEditor").title = element.iri();
           }
         });
 
       const forceIRISync = defaultIriValue(element);
-      d3.select("#element_labelEditor")
-        .on("change", function () {
+      document
+        .querySelector("#element_labelEditor")
+        .addEventListener("change", function () {
           let sanityCheckResult;
           console.warn("Element changed Label");
           const url = getURLFROMPrefixedVersion(element);
@@ -981,8 +1025,10 @@ module.exports = function (graph) {
           }
           changeLabelForElement(element);
           editSidebar.updateSelectionInformation(element); // prevents that it will be changed if node is still active
-        })
-        .on("keydown", function (event) {
+        });
+      document
+        .querySelector("#element_labelEditor")
+        .addEventListener("keydown", function (event) {
           event.stopPropagation();
           if (event.key === "Enter") {
             event.preventDefault();
@@ -1044,84 +1090,94 @@ module.exports = function (graph) {
             }
             changeLabelForElement(element);
           }
-        })
-        .on("keyup", function () {
+        });
+      document
+        .querySelector("#element_labelEditor")
+        .addEventListener("keyup", function () {
           if (forceIRISync) {
-            const labelName = d3.select("#element_labelEditor").node().value;
+            const labelName = document.querySelector(
+              "#element_labelEditor",
+            ).value;
             const resourceName = labelName.replaceAll(" ", "_");
             const syncedIRI = element.baseIri() + resourceName;
 
             //element.iri(syncedIRI);
-            d3.select("#element_iriEditor").node().title = element.iri();
-            d3.select("#element_iriEditor").node().value =
+            document.querySelector("#element_iriEditor").title = element.iri();
+            document.querySelector("#element_iriEditor").value =
               prefixModule.getPrefixRepresentationForFullURI(syncedIRI);
           }
         });
       // check if we are allowed to change IRI OR LABEL
-      d3.select("#element_iriEditor").node().disabled = false;
-      d3.select("#element_labelEditor").node().disabled = false;
+      document.querySelector("#element_iriEditor").disabled = false;
+      document.querySelector("#element_labelEditor").disabled = false;
 
       if (element.type() === "rdfs:subClassOf") {
-        d3.select("#element_iriEditor").node().value =
+        document.querySelector("#element_iriEditor").value =
           "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-        d3.select("#element_iriEditor").node().title =
+        document.querySelector("#element_iriEditor").title =
           "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-        d3.select("#element_labelEditor").node().value = "Subclass of";
-        d3.select("#element_iriEditor").node().disabled = true;
-        d3.select("#element_labelEditor").node().disabled = true;
+        document.querySelector("#element_labelEditor").value = "Subclass of";
+        document.querySelector("#element_iriEditor").disabled = true;
+        document.querySelector("#element_labelEditor").disabled = true;
       }
       if (element.type() === "owl:Thing") {
-        d3.select("#element_iriEditor").node().value =
+        document.querySelector("#element_iriEditor").value =
           "http://www.w3.org/2002/07/owl#Thing";
-        d3.select("#element_iriEditor").node().title =
+        document.querySelector("#element_iriEditor").title =
           "http://www.w3.org/2002/07/owl#Thing";
-        d3.select("#element_labelEditor").node().value = "Thing";
-        d3.select("#element_iriEditor").node().disabled = true;
-        d3.select("#element_labelEditor").node().disabled = true;
+        document.querySelector("#element_labelEditor").value = "Thing";
+        document.querySelector("#element_iriEditor").disabled = true;
+        document.querySelector("#element_labelEditor").disabled = true;
       }
 
       if (element.type() === "owl:disjointWith") {
-        d3.select("#element_iriEditor").node().value =
+        document.querySelector("#element_iriEditor").value =
           "http://www.w3.org/2002/07/owl#disjointWith";
-        d3.select("#element_iriEditor").node().title =
+        document.querySelector("#element_iriEditor").title =
           "http://www.w3.org/2002/07/owl#disjointWith";
-        d3.select("#element_iriEditor").node().disabled = true;
-        d3.select("#element_labelEditor").node().disabled = true;
+        document.querySelector("#element_iriEditor").disabled = true;
+        document.querySelector("#element_labelEditor").disabled = true;
       }
 
       if (element.type() === "rdfs:Literal") {
-        d3.select("#element_iriEditor").node().value =
+        document.querySelector("#element_iriEditor").value =
           "http://www.w3.org/2000/01/rdf-schema#Literal";
-        d3.select("#element_iriEditor").node().title =
+        document.querySelector("#element_iriEditor").title =
           "http://www.w3.org/2000/01/rdf-schema#Literal";
-        d3.select("#element_iriEditor").node().disabled = true;
-        d3.select("#element_labelEditor").node().disabled = true;
+        document.querySelector("#element_iriEditor").disabled = true;
+        document.querySelector("#element_labelEditor").disabled = true;
         element.iri("http://www.w3.org/2000/01/rdf-schema#Literal");
       }
-      if (element.type() === "rdfs:Datatype") {
-        const datatypeEditorSelection = d3.select("#typeEditor_datatype");
-        d3.select("#typeEditForm_datatype").classed("hidden", false);
-        element.iri("http://www.w3.org/2000/01/rdf-schema#Datatype");
-        d3.select("#element_iriEditor").node().value =
-          "http://www.w3.org/2000/01/rdf-schema#Datatype";
-        d3.select("#element_iriEditor").node().title =
-          "http://www.w3.org/2000/01/rdf-schema#Datatype";
-        d3.select("#element_iriEditor").node().disabled = true;
-        d3.select("#element_labelEditor").node().disabled = true;
 
-        datatypeEditorSelection.node().value = element.dType();
-        if (datatypeEditorSelection.node().value === "undefined") {
-          d3.select("#element_iriEditor").node().disabled = true; // always prevent IRI modifications
-          d3.select("#element_labelEditor").node().disabled = false;
+      if (element.type() === "rdfs:Datatype") {
+        const datatypeEditorSelection = document.querySelector(
+          "#typeEditor_datatype",
+        );
+        document
+          .querySelector("#typeEditForm_datatype")
+          .classList.remove("hidden");
+        element.iri("http://www.w3.org/2000/01/rdf-schema#Datatype");
+
+        document.querySelector("#element_iriEditor").value =
+          "http://www.w3.org/2000/01/rdf-schema#Datatype";
+        document.querySelector("#element_iriEditor").title =
+          "http://www.w3.org/2000/01/rdf-schema#Datatype";
+        document.querySelector("#element_iriEditor").disabled = true;
+        document.querySelector("#element_labelEditor").disabled = true;
+
+        datatypeEditorSelection.value = element.dType();
+        if (datatypeEditorSelection.value === "undefined") {
+          document.querySelector("#element_iriEditor").disabled = true; // always prevent IRI modifications
+          document.querySelector("#element_labelEditor").disabled = false;
         }
         // reconnect the element
-        datatypeEditorSelection.on("change", function () {
+        datatypeEditorSelection.addEventListener("change", function () {
           changeDatatypeType(element);
         });
       }
 
       // add type selector
-      const typeEditorSelection = d3.select("#typeEditor").node();
+      const typeEditorSelection = document.querySelector("#typeEditor");
       const htmlCollection = typeEditorSelection.children;
       const numEntries = htmlCollection.length;
       let i;
@@ -1137,23 +1193,30 @@ module.exports = function (graph) {
       }
       // set the proper value in the selection
       typeEditorSelection.value = element.type();
-      d3.select("#typeEditor").on("change", function () {
-        elementTypeSelectionChanged(element);
-      });
+      document
+        .querySelector("#typeEditor")
+        .addEventListener("change", function () {
+          elementTypeSelectionChanged(element);
+        });
 
       // add characteristics selection
       const needChar = elementNeedsCharacteristics(element);
-      d3.select("#property_characteristics_Container").classed(
-        "hidden",
-        !needChar,
-      );
+      if (!needChar) {
+        document
+          .querySelector("#property_characteristics_Container")
+          .classList.add("hidden");
+      } else {
+        document
+          .querySelector("#property_characteristics_Container")
+          .classList.remove("hidden");
+      }
       if (needChar === true) {
         addElementsCharacteristics(element);
       }
-      const fullURI = d3.select("#element_iriEditor").node().value;
-      d3.select("#element_iriEditor").node().value =
+      const fullURI = document.querySelector("#element_iriEditor").value;
+      document.querySelector("#element_iriEditor").value =
         prefixModule.getPrefixRepresentationForFullURI(fullURI);
-      d3.select("#element_iriEditor").node().title = fullURI;
+      document.querySelector("#element_iriEditor").title = fullURI;
       editSidebar.updateElementWidth();
     }
   };
@@ -1166,37 +1229,35 @@ module.exports = function (graph) {
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "title")) {
       // title has language to it -.-
       if (typeof generalMetaObj.title === "object") {
-        d3.select("#titleEditor").node().value = languageTools.textInLanguage(
-          generalMetaObj.title,
-          preferredLanguage,
-        );
+        document.querySelector("#titleEditor").value =
+          languageTools.textInLanguage(generalMetaObj.title, preferredLanguage);
       } else {
-        d3.select("#titleEditor").node().value = generalMetaObj.title;
+        document.querySelector("#titleEditor").value = generalMetaObj.title;
       }
     }
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "iri")) {
-      d3.select("#iriEditor").node().value = generalMetaObj.iri;
+      document.querySelector("#iriEditor").value = generalMetaObj.iri;
     }
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "version")) {
-      d3.select("#versionEditor").node().value = generalMetaObj.version;
+      document.querySelector("#versionEditor").value = generalMetaObj.version;
     }
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "author")) {
-      d3.select("#authorsEditor").node().value = generalMetaObj.author;
+      document.querySelector("#authorsEditor").value = generalMetaObj.author;
     }
 
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "description")) {
       if (typeof generalMetaObj.description === "object") {
-        d3.select("#descriptionEditor").node().value =
+        document.querySelector("#descriptionEditor").value =
           languageTools.textInLanguage(
             generalMetaObj.description,
             preferredLanguage,
           );
       } else {
-        d3.select("#descriptionEditor").node().value =
+        document.querySelector("#descriptionEditor").value =
           generalMetaObj.description;
       }
     } else {
-      d3.select("#descriptionEditor").node().value = "No Description";
+      document.querySelector("#descriptionEditor").value = "No Description";
     }
   };
 
@@ -1207,48 +1268,48 @@ module.exports = function (graph) {
     selectedElementForCharacteristics = element;
     let i;
     // KILL old elements
-    const charSelectionNode = d3.select("#property_characteristics_Selection");
-    const htmlCollection = charSelectionNode.node().children;
-    if (htmlCollection) {
-      const numEntries = htmlCollection.length;
-      for (let q = 0; q < numEntries; q++) {
-        charSelectionNode.node().removeChild(htmlCollection[0]);
-      }
+    const charSelectionNode = document.querySelector(
+      "#property_characteristics_Selection",
+    );
+    while (charSelectionNode.firstChild) {
+      charSelectionNode.removeChild(charSelectionNode.firstChild);
     }
     // datatypes kind of ignored by the elementsNeedCharacteristics function
     // so we need to check if we are a node or not
     if (element.attributes().indexOf("external") > -1) {
       // add external span to the div;
-      const externalCharSpan = charSelectionNode.append("span");
-      externalCharSpan.classed("spanForCharSelection", true);
-      externalCharSpan.node().innerHTML = "external";
+      const externalCharSpan = document.createElement("span");
+      externalCharSpan.classList.add("spanForCharSelection");
+      externalCharSpan.innerHTML = "external";
+      charSelectionNode.appendChild(externalCharSpan);
     }
-    let filterContainer, filterCheckbox;
+    let filterContainer, filterCheckbox, filterLabel;
     if (elementTools.isNode(element) === true) {
       // add the deprecated characteristic;
       const arrayOfNodeChars = ["deprecated"];
       for (i = 0; i < arrayOfNodeChars.length; i++) {
-        filterContainer = charSelectionNode
-          .append("div")
-          .classed("checkboxContainer warning-row", true);
+        filterContainer = document.createElement("div");
+        filterContainer.classList.add("checkboxContainer", "warning-row");
 
-        filterCheckbox = filterContainer
-          .append("input")
-          .classed("filterCheckbox", true)
-          .attr("id", "CharacteristicsCheckbox" + i)
-          .attr("type", "checkbox")
-          .attr("characteristics", arrayOfNodeChars[i])
-          .property(
-            "checked",
-            getPresentAttribute(element, arrayOfNodeChars[i]),
-          );
+        filterCheckbox = document.createElement("input");
+        filterCheckbox.classList.add("filterCheckbox");
+        filterCheckbox.id = "CharacteristicsCheckbox" + i;
+        filterCheckbox.type = "checkbox";
+        filterCheckbox.setAttribute("characteristics", arrayOfNodeChars[i]);
+        filterCheckbox.checked = getPresentAttribute(
+          element,
+          arrayOfNodeChars[i],
+        );
 
-        filterContainer
-          .append("label")
-          .attr("for", "CharacteristicsCheckbox" + i)
-          .text(arrayOfNodeChars[i]);
+        filterLabel = document.createElement("label");
+        filterLabel.setAttribute("for", "CharacteristicsCheckbox" + i);
+        filterLabel.textContent = arrayOfNodeChars[i];
 
-        filterCheckbox.on("click", handleCheckBoxClick);
+        filterContainer.appendChild(filterCheckbox);
+        filterContainer.appendChild(filterLabel);
+        charSelectionNode.appendChild(filterContainer);
+
+        filterCheckbox.addEventListener("click", handleCheckBoxClick);
       }
     } else {
       // add the deprecated characteristic;
@@ -1262,27 +1323,28 @@ module.exports = function (graph) {
         arrayOfPropertyChars = ["deprecated", "functional"];
       }
       for (i = 0; i < arrayOfPropertyChars.length; i++) {
-        filterContainer = charSelectionNode
-          .append("div")
-          .classed("checkboxContainer warning-row", true);
+        filterContainer = document.createElement("div");
+        filterContainer.classList.add("checkboxContainer", "warning-row");
 
-        filterCheckbox = filterContainer
-          .append("input")
-          .classed("filterCheckbox", true)
-          .attr("id", "CharacteristicsCheckbox" + i)
-          .attr("type", "checkbox")
-          .attr("characteristics", arrayOfPropertyChars[i])
-          .property(
-            "checked",
-            getPresentAttribute(element, arrayOfPropertyChars[i]),
-          );
-        //
-        filterContainer
-          .append("label")
-          .attr("for", "CharacteristicsCheckbox" + i)
-          .text(arrayOfPropertyChars[i]);
+        filterCheckbox = document.createElement("input");
+        filterCheckbox.classList.add("filterCheckbox");
+        filterCheckbox.id = "CharacteristicsCheckbox" + i;
+        filterCheckbox.type = "checkbox";
+        filterCheckbox.setAttribute("characteristics", arrayOfPropertyChars[i]);
+        filterCheckbox.checked = getPresentAttribute(
+          element,
+          arrayOfPropertyChars[i],
+        );
 
-        filterCheckbox.on("click", handleCheckBoxClick);
+        filterLabel = document.createElement("label");
+        filterLabel.setAttribute("for", "CharacteristicsCheckbox" + i);
+        filterLabel.textContent = arrayOfPropertyChars[i];
+
+        filterContainer.appendChild(filterCheckbox);
+        filterContainer.appendChild(filterLabel);
+        charSelectionNode.appendChild(filterContainer);
+
+        filterCheckbox.addEventListener("click", handleCheckBoxClick);
       }
     }
   }
@@ -1446,42 +1508,42 @@ module.exports = function (graph) {
     // TODO : elements, otherwise the old approach will also randomly collapse other containers
 
     // adapted version of this example: http://www.normansblog.de/simple-jquery-accordion/
-    function collapseContainers(containers) {
-      containers.classed("hidden", true);
+    function collapseContainers(container) {
+      container.classList.add("hidden");
     }
 
-    function expandContainers(containers) {
-      containers.classed("hidden", false);
+    function expandContainers(container) {
+      container.classList.remove("hidden");
     }
 
-    const triggers = d3.selectAll(".accordion-trigger");
+    const triggers = document.querySelectorAll(".accordion-trigger");
 
-    triggers.attr("tabindex", "0").attr("role", "button");
-    triggers.on("keydown", function (event) {
-      const evt = event || window.event;
-      if (evt && (evt.key === "Enter" || evt.key === " ")) {
-        evt.preventDefault();
-        d3.select(this).node().click();
-      }
-    });
+    triggers.forEach(function (trigger) {
+      trigger.setAttribute("tabindex", "0");
+      trigger.setAttribute("role", "button");
+      trigger.addEventListener("keydown", function (event) {
+        const evt = event || window.event;
+        if (evt && (evt.key === "Enter" || evt.key === " ")) {
+          evt.preventDefault();
+          this.click();
+        }
+      });
 
-    triggers.on("click", function () {
-      const selectedTrigger = d3.select(this);
-      if (selectedTrigger.classed("accordion-trigger-active")) {
-        // Collapse the active (which is also the selected) trigger
-        collapseContainers(
-          d3.select(selectedTrigger.node().nextElementSibling),
-        );
-        selectedTrigger.classed("accordion-trigger-active", false);
-      } else {
-        // Collapse the other trigger ...
-        // collapseContainers(d3.selectAll(".accordion-trigger-active + div"));
+      trigger.addEventListener("click", function () {
+        if (this.classList.contains("accordion-trigger-active")) {
+          // Collapse the active (which is also the selected) trigger
+          collapseContainers(this.nextElementSibling);
+          this.classList.remove("accordion-trigger-active");
+        } else {
+          // Collapse the other trigger ...
+          // collapseContainers(document.querySelectorAll(".accordion-trigger-active + div"));
 
-        // ... and expand the selected one
-        expandContainers(d3.select(selectedTrigger.node().nextElementSibling));
-        selectedTrigger.classed("accordion-trigger-active", true);
-      }
-      editSidebar.updateElementWidth();
+          // ... and expand the selected one
+          expandContainers(this.nextElementSibling);
+          this.classList.add("accordion-trigger-active");
+        }
+        editSidebar.updateElementWidth();
+      });
     });
   }
 

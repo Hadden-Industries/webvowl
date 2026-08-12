@@ -61,12 +61,12 @@ module.exports = function () {
   let graphResizeObserver;
 
   function addFileDropEvents(selector) {
-    const node = d3.select(selector);
+    const node = document.querySelector(selector);
 
-    node.node().ondragover = function (e) {
+    node.ondragover = function (e) {
       e.preventDefault();
 
-      d3.select("#dragDropContainer").classed("hidden", false);
+      document.querySelector("#dragDropContainer").classList.remove("hidden");
       // get svg size
       const w = graph.options().width();
       const h = graph.options().height();
@@ -76,34 +76,41 @@ module.exports = function () {
       const cy = e.clientY;
 
       if (firstTime === false) {
-        const state = d3.select("#loading-info").classed("hidden");
+        const loadingInfo = document.querySelector("#loading-info");
+        const state = loadingInfo.classList.contains("hidden");
         wasMessageToShow = !state;
         firstTime = true;
-        d3.select("#loading-info").classed("hidden", true); // hide it so it does not conflict with drop event
-        const bb = d3.select("#drag_msg").node().getBoundingClientRect();
+        loadingInfo.classList.add("hidden"); // hide it so it does not conflict with drop event
+        const bb = document.querySelector("#drag_msg").getBoundingClientRect();
         const hs = bb.height;
         const ws = bb.width;
 
         let icon_scale = Math.min(hs, ws);
         icon_scale /= 100;
 
-        d3.select("#drag_icon_group").attr(
-          "transform",
-          "translate ( " + 0.25 * ws + " " + 0.25 * hs + ")",
-        );
-        d3.select("#drag_icon").attr(
-          "transform",
-          "matrix (" + icon_scale + ",0,0," + icon_scale + ",0,0)",
-        );
-        d3.select("#drag_icon_drop").attr(
-          "transform",
-          "matrix (" + icon_scale + ",0,0," + icon_scale + ",0,0)",
-        );
+        document
+          .querySelector("#drag_icon_group")
+          .setAttribute(
+            "transform",
+            "translate ( " + 0.25 * ws + " " + 0.25 * hs + ")",
+          );
+        document
+          .querySelector("#drag_icon")
+          .setAttribute(
+            "transform",
+            "matrix (" + icon_scale + ",0,0," + icon_scale + ",0,0)",
+          );
+        document
+          .querySelector("#drag_icon_drop")
+          .setAttribute(
+            "transform",
+            "matrix (" + icon_scale + ",0,0," + icon_scale + ",0,0)",
+          );
       }
 
       if (cx > 0.25 * w && cx < 0.75 * w && cy > 0.25 * h && cy < 0.75 * h) {
-        d3.select("#drag_msg_text").node().innerHTML = "Drop it here.";
-        d3.select("#drag_msg").classed("drag-over", true);
+        document.querySelector("#drag_msg_text").innerHTML = "Drop it here.";
+        document.querySelector("#drag_msg").classList.add("drag-over");
         executeFileDrop = true;
         // d3.select("#drag_svg").transition()
         //   .duration(100)
@@ -112,16 +119,16 @@ module.exports = function () {
         //   // .attr("-o-transform",      "rotate(90)")
         //   .attr("transform",         "rotate(90)");
 
-        d3.select("#drag_icon").classed("hidden", true);
-        d3.select("#drag_icon_drop").classed("hidden", false);
+        document.querySelector("#drag_icon").classList.add("hidden");
+        document.querySelector("#drag_icon_drop").classList.remove("hidden");
       } else {
-        d3.select("#drag_msg_text").node().innerHTML =
+        document.querySelector("#drag_msg_text").innerHTML =
           "Drag ontology file here.";
-        d3.select("#drag_msg").classed("drag-over", false);
+        document.querySelector("#drag_msg").classList.remove("drag-over");
         executeFileDrop = false;
 
-        d3.select("#drag_icon").classed("hidden", false);
-        d3.select("#drag_icon_drop").classed("hidden", true);
+        document.querySelector("#drag_icon").classList.remove("hidden");
+        document.querySelector("#drag_icon_drop").classList.add("hidden");
 
         // d3.select("#drag_svg").transition()
         //   .duration(100)
@@ -132,7 +139,7 @@ module.exports = function () {
         //
       }
     };
-    node.node().ondrop = function (ev) {
+    node.ondrop = function (ev) {
       ev.preventDefault();
       firstTime = false;
       if (executeFileDrop) {
@@ -148,10 +155,10 @@ module.exports = function () {
           }
         }
       }
-      d3.select("#dragDropContainer").classed("hidden", true);
+      document.querySelector("#dragDropContainer").classList.add("hidden");
     };
 
-    node.node().ondragleave = function (e) {
+    node.ondragleave = function (e) {
       const w = graph.options().width();
       const h = graph.options().height();
 
@@ -168,16 +175,20 @@ module.exports = function () {
       if (cy < 0.1 * h || cy > 0.9 * h) {
         hidden = true;
       }
-      d3.select("#dragDropContainer").classed("hidden", hidden);
+      document
+        .querySelector("#dragDropContainer")
+        .classList.toggle("hidden", hidden);
 
-      d3.select("#loading-info").classed("hidden", !wasMessageToShow); // show it again
+      document
+        .querySelector("#loading-info")
+        .classList.toggle("hidden", !wasMessageToShow); // show it again
       // check if it should be visible
       const should_show = graph
         .options()
         .loadingModule()
         .getMessageVisibilityStatus();
       if (should_show === false) {
-        d3.select("#loading-info").classed("hidden", true); // hide it
+        document.querySelector("#loading-info").classList.add("hidden"); // hide it
       }
     };
   }
@@ -218,9 +229,9 @@ module.exports = function () {
     options.filterModules().push(compactNotationSwitch);
     options.filterModules().push(colorExternalsSwitch);
 
-    d3.select(window).on("resize", scheduleSizeAdjustment);
+    window.addEventListener("resize", scheduleSizeAdjustment);
 
-    const graphHost = d3.select(GRAPH_SELECTOR).node();
+    const graphHost = document.querySelector(GRAPH_SELECTOR);
     if (
       !graphResizeObserver &&
       graphHost &&
@@ -252,7 +263,7 @@ module.exports = function () {
     leftSidebar.setup();
     editSidebar.setup();
     debugMenu.setup();
-    d3.select("#logo").classed("hidden", false);
+    document.querySelector("#logo").classList.remove("hidden");
     resetMenu.setup([
       gravityMenu,
       filterMenu,
@@ -316,12 +327,14 @@ module.exports = function () {
     }
 
     graph.setDefaultZoom(defZoom);
-    d3.selectAll(".debugOption").classed("hidden", hideDebugOptions);
+    document
+      .querySelectorAll(".debugOption")
+      .forEach((el) => el.classList.toggle("hidden", hideDebugOptions));
 
     // prevent backspace reloading event
-    const htmlBody = d3.select("body");
-    d3.select(document).on("keydown", function (event) {
-      if (event.key === "Backspace" && event.target === htmlBody.node()) {
+    const htmlBody = document.querySelector("body");
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Backspace" && event.target === htmlBody) {
         // we could add here an alert
         event.preventDefault();
       }
@@ -336,33 +349,38 @@ module.exports = function () {
         event.preventDefault();
       }
     });
-    if (d3.select("#maxLabelWidthSliderOption")) {
+    if (document.querySelector("#maxLabelWidthSliderOption")) {
       const setValue = !graph.options().dynamicLabelWidth();
-      d3.select("#maxLabelWidthSlider").node().disabled = setValue;
-      d3.select("#maxLabelWidthvalueLabel").classed(
-        "disabledLabelForSlider",
-        setValue,
-      );
-      d3.select("#maxLabelWidthDescriptionLabel").classed(
-        "disabledLabelForSlider",
-        setValue,
-      );
+      document.querySelector("#maxLabelWidthSlider").disabled = setValue;
+      document
+        .querySelector("#maxLabelWidthSliderValue")
+        .classList.toggle("disabledLabelForSlider", setValue);
+      document
+        .querySelector("#maxLabelWidthDescriptionLabel")
+        .classList.toggle("disabledLabelForSlider", setValue);
     }
 
-    d3.select("#blockGraphInteractions")
-      .on("click", function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      })
-      .on("dblclick", function (event) {
+    const blockGraphInteractions = document.querySelector(
+      "#blockGraphInteractions",
+    );
+    if (blockGraphInteractions) {
+      blockGraphInteractions.addEventListener("click", function (event) {
         event.preventDefault();
         event.stopPropagation();
       });
+      blockGraphInteractions.addEventListener("dblclick", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      });
+      blockGraphInteractions.draggable = false;
+    }
 
-    d3.select("#direct-text-input").on("click", function () {
-      directInputMod.setDirectInputMode();
-    });
-    d3.select("#blockGraphInteractions").node().draggable = false;
+    const directTextInput = document.querySelector("#direct-text-input");
+    if (directTextInput) {
+      directTextInput.addEventListener("click", function () {
+        directInputMod.setDirectInputMode();
+      });
+    }
     options.prefixModule(webvowl.util.prefixTools(graph));
     adjustSize();
     sidebar.updateOntologyInformation(undefined, statistics);
@@ -467,9 +485,9 @@ module.exports = function () {
       graph.updateZoomSliderValueFromOutside();
       adjustSize();
 
-      const flagOfCheckBox = d3
-        .select("#editorModeModuleCheckbox")
-        .node().checked;
+      const flagOfCheckBox = document.querySelector(
+        "#editorModeModuleCheckbox",
+      ).checked;
       graph.editorMode(flagOfCheckBox); // update gui
     }
   }
@@ -492,7 +510,7 @@ module.exports = function () {
 
     if (isTouchDevice() === true) {
       if (graph.isEditorMode() === true) {
-        d3.select("#modeOfOperationString").node().innerHTML =
+        document.querySelector("#modeOfOperationString").innerHTML =
           "touch able device detected";
       }
       graph.setTouchDevice(true);
@@ -503,7 +521,7 @@ module.exports = function () {
       }
     } else {
       if (graph.isEditorMode() === true) {
-        d3.select("#modeOfOperationString").node().innerHTML =
+        document.querySelector("#modeOfOperationString").innerHTML =
           "point & click device detected";
       }
       graph.setTouchDevice(false);
@@ -518,20 +536,25 @@ module.exports = function () {
     // adjust height of the leftSidebar element;
     editSidebar.updateElementWidth();
 
-    const hs = d3.select("#drag_msg").node().getBoundingClientRect().height;
-    const ws = d3.select("#drag_msg").node().getBoundingClientRect().width;
-    d3.select("#drag_icon_group").attr(
-      "transform",
-      "translate ( " + 0.25 * ws + " " + 0.25 * hs + ")",
-    );
+    const dragMsg = document.querySelector("#drag_msg");
+    if (dragMsg) {
+      const hs = dragMsg.getBoundingClientRect().height;
+      const ws = dragMsg.getBoundingClientRect().width;
+      document
+        .querySelector("#drag_icon_group")
+        .setAttribute(
+          "transform",
+          "translate ( " + 0.25 * ws + " " + 0.25 * hs + ")",
+        );
+    }
   }
 
   function adjustSliderSize(fullHeight) {
     const isSliderAllowed = options.zoomSlider().showSlider();
     if (fullHeight < 150 || !isSliderAllowed) {
-      d3.select("#zoomSlider").classed("hidden", true);
+      document.querySelector("#zoomSlider").classList.add("hidden");
     } else {
-      d3.select("#zoomSlider").classed("hidden", false);
+      document.querySelector("#zoomSlider").classList.remove("hidden");
     }
   }
 

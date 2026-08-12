@@ -6,10 +6,10 @@
  */
 module.exports = function (graph) {
   const navigationMenu = {};
-  const scrollContainer = d3.select("#menuElementContainer").node();
-  const menuContainer = d3.select("#menuContainer").node();
-  const leftButton = d3.select("#scrollLeftButton");
-  const rightButton = d3.select("#scrollRightButton");
+  const scrollContainer = document.querySelector("#menuElementContainer");
+  const menuContainer = document.querySelector("#menuContainer");
+  const leftButton = document.querySelector("#scrollLeftButton");
+  const rightButton = document.querySelector("#scrollRightButton");
   let currentlyVisibleMenu;
   let currentlyHoveredEntry;
   let t_scrollLeft;
@@ -113,7 +113,7 @@ module.exports = function (graph) {
     }
 
     // connect to mouseWheel
-    d3.select("#menuElementContainer").on("wheel", function (event) {
+    scrollContainer.addEventListener("wheel", function (event) {
       const wheelEvent = event;
       let offset;
       if (wheelEvent.deltaY < 0) {
@@ -128,73 +128,80 @@ module.exports = function (graph) {
     });
 
     // bind global release listeners
-    d3.select(window)
-      .on("mouseup.navScroll", clearAllTimers)
-      .on("touchend.navScroll", clearAllTimers);
-    d3.select(window).on("resize.navMenu", function () {
+    window.addEventListener("mouseup", clearAllTimers);
+    window.addEventListener("touchend", clearAllTimers);
+    window.addEventListener("resize", function () {
       navigationMenu.updateScrollButtonVisibility();
       updateMenuPosition();
     });
 
     // connect scrollIndicator Buttons;
-    d3.select("#scrollRightButton")
-      .on("mousedown", function () {
-        navigationMenu.hideAllMenus();
-        t_scrollRight = requestAnimationFrame(timed_scrollRight);
-      })
-      .on("touchstart", function (event) {
+    rightButton.addEventListener("mousedown", function () {
+      navigationMenu.hideAllMenus();
+      t_scrollRight = requestAnimationFrame(timed_scrollRight);
+    });
+    rightButton.addEventListener(
+      "touchstart",
+      function (event) {
         if (event && event.cancelable) {
           event.preventDefault();
         }
         navigationMenu.hideAllMenus();
         t_scrollRight = requestAnimationFrame(timed_scrollRight);
-      })
-      .on("contextmenu", function (event) {
-        if (event) {
-          event.preventDefault();
-        }
-      })
-      .on("click", function () {
-        scrollContainer.scrollLeft += 100;
-        navigationMenu.updateScrollButtonVisibility();
-      })
-      .on("mouseup", clearAllTimers)
-      .on("touchend", clearAllTimers)
-      .on("touchcancel", clearAllTimers);
-
-    d3.select("#scrollLeftButton")
-      .on("mousedown", function () {
-        navigationMenu.hideAllMenus();
-        t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
-      })
-      .on("touchstart", function (event) {
-        if (event && event.cancelable) {
-          event.preventDefault();
-        }
-        navigationMenu.hideAllMenus();
-        t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
-      })
-      .on("contextmenu", function (event) {
-        if (event) {
-          event.preventDefault();
-        }
-      })
-      .on("click", function () {
-        scrollContainer.scrollLeft -= 100;
-        navigationMenu.updateScrollButtonVisibility();
-      })
-      .on("mouseup", clearAllTimers)
-      .on("touchend", clearAllTimers)
-      .on("touchcancel", clearAllTimers);
-
-    d3.selectAll(".navButton").on("contextmenu", function (event) {
+      },
+      { passive: false },
+    );
+    rightButton.addEventListener("contextmenu", function (event) {
       if (event) {
         event.preventDefault();
       }
     });
+    rightButton.addEventListener("click", function () {
+      scrollContainer.scrollLeft += 100;
+      navigationMenu.updateScrollButtonVisibility();
+    });
+    rightButton.addEventListener("mouseup", clearAllTimers);
+    rightButton.addEventListener("touchend", clearAllTimers);
+    rightButton.addEventListener("touchcancel", clearAllTimers);
+
+    leftButton.addEventListener("mousedown", function () {
+      navigationMenu.hideAllMenus();
+      t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
+    });
+    leftButton.addEventListener(
+      "touchstart",
+      function (event) {
+        if (event && event.cancelable) {
+          event.preventDefault();
+        }
+        navigationMenu.hideAllMenus();
+        t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
+      },
+      { passive: false },
+    );
+    leftButton.addEventListener("contextmenu", function (event) {
+      if (event) {
+        event.preventDefault();
+      }
+    });
+    leftButton.addEventListener("click", function () {
+      scrollContainer.scrollLeft -= 100;
+      navigationMenu.updateScrollButtonVisibility();
+    });
+    leftButton.addEventListener("mouseup", clearAllTimers);
+    leftButton.addEventListener("touchend", clearAllTimers);
+    leftButton.addEventListener("touchcancel", clearAllTimers);
+
+    document.querySelectorAll(".navButton").forEach(function (btn) {
+      btn.addEventListener("contextmenu", function (event) {
+        if (event) {
+          event.preventDefault();
+        }
+      });
+    });
 
     // connect the scroll functionality;
-    d3.select("#menuElementContainer").on("scroll", function () {
+    scrollContainer.addEventListener("scroll", function () {
       navigationMenu.updateScrollButtonVisibility();
       navigationMenu.hideAllMenus();
     });
@@ -202,13 +209,13 @@ module.exports = function (graph) {
 
   function updateMenuPosition(controllerID) {
     if (controllerID) {
-      currentlyHoveredEntry = d3.select("#" + controllerID).node();
+      currentlyHoveredEntry = document.querySelector("#" + controllerID);
     }
-    if (!currentlyVisibleMenu || !currentlyVisibleMenu.node()) {
+    if (!currentlyVisibleMenu) {
       return;
     }
 
-    const menuNode = currentlyVisibleMenu.node();
+    const menuNode = currentlyVisibleMenu;
 
     // On mobile screen widths, clear desktop positioning so bottom-sheet rules govern.
     if (window.innerWidth <= 768) {
@@ -216,27 +223,22 @@ module.exports = function (graph) {
       return;
     }
 
-    const targetNode =
-      currentlyHoveredEntry && typeof currentlyHoveredEntry.node === "function"
-        ? currentlyHoveredEntry.node()
-        : currentlyHoveredEntry;
+    const targetNode = currentlyHoveredEntry;
 
     if (targetNode && typeof targetNode.getBoundingClientRect === "function") {
       const buttonRect = targetNode.getBoundingClientRect();
       let finalOffset = buttonRect.left;
 
       let maxRightBoundary = window.innerWidth - 16;
-      const detailArea = d3.select("#detailsArea");
-      if (detailArea.node() && !detailArea.classed("hidden")) {
-        const sidebarLeft = detailArea.node().getBoundingClientRect().left;
+      const detailArea = document.querySelector("#detailsArea");
+      if (detailArea && !detailArea.classList.contains("hidden")) {
+        const sidebarLeft = detailArea.getBoundingClientRect().left;
         if (sidebarLeft > 0) {
           maxRightBoundary = Math.min(maxRightBoundary, sidebarLeft - 16);
         }
       }
 
-      const elementWidth = currentlyVisibleMenu
-        .node()
-        .getBoundingClientRect().width;
+      const elementWidth = currentlyVisibleMenu.getBoundingClientRect().width;
       if (finalOffset + elementWidth > maxRightBoundary) {
         finalOffset = maxRightBoundary - elementWidth;
       }
@@ -249,10 +251,10 @@ module.exports = function (graph) {
   navigationMenu.updateMenuPosition = updateMenuPosition;
 
   navigationMenu.hideAllMenus = function () {
-    d3.selectAll(".modern-popover").each(function () {
+    document.querySelectorAll(".modern-popover").forEach(function (popover) {
       try {
-        if (this.matches(":popover-open")) {
-          this.hidePopover();
+        if (popover.matches(":popover-open")) {
+          popover.hidePopover();
         }
       } catch {
         /* ignore */
@@ -268,61 +270,85 @@ module.exports = function (graph) {
     const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
 
     if (maxScroll <= 2) {
-      leftButton.classed("hidden", true);
-      rightButton.classed("hidden", true);
+      leftButton.classList.add("hidden");
+      rightButton.classList.add("hidden");
       return;
     }
 
-    leftButton.classed("hidden", scrollLeft <= 2);
-    rightButton.classed("hidden", scrollLeft >= maxScroll - 2);
+    leftButton.classList.toggle("hidden", scrollLeft <= 2);
+    rightButton.classList.toggle("hidden", scrollLeft >= maxScroll - 2);
   };
 
   navigationMenu.setup = function () {
     setupControlsAndMenus();
     // Allow popover light-dismiss natively on click; avoid closing on hover across graph gap
-    d3.select("#graph").on("touchstart", function () {
-      navigationMenu.hideAllMenus();
-    });
-    d3.select("#generalDetails").on("touchstart", function () {
-      navigationMenu.hideAllMenus();
-    });
+    const graphElement = document.querySelector("#graph");
+    if (graphElement) {
+      graphElement.addEventListener(
+        "touchstart",
+        function () {
+          navigationMenu.hideAllMenus();
+        },
+        { passive: true },
+      );
+    }
+    const generalDetails = document.querySelector("#generalDetails");
+    if (generalDetails) {
+      generalDetails.addEventListener(
+        "touchstart",
+        function () {
+          navigationMenu.hideAllMenus();
+        },
+        { passive: true },
+      );
+    }
 
     // Sync active-menu-item class, positioning, and export state when popovers toggle
-    d3.selectAll(".modern-popover").on("toggle", function (event) {
-      const menuId = this.id;
-      const controllerIdx = m_select.indexOf(menuId);
-      const controllerId = controllerIdx > -1 ? c_select[controllerIdx] : null;
+    document.querySelectorAll(".modern-popover").forEach(function (popover) {
+      popover.addEventListener("toggle", function (event) {
+        const menuId = this.id;
+        const controllerIdx = m_select.indexOf(menuId);
+        const controllerId =
+          controllerIdx > -1 ? c_select[controllerIdx] : null;
 
-      const isOpen =
-        event && event.newState
-          ? event.newState === "open"
-          : this.matches(":popover-open");
+        const isOpen =
+          event && event.newState
+            ? event.newState === "open"
+            : this.matches(":popover-open");
 
-      // Reset drag classes and runtime positioning data when state changes.
-      d3.select(this)
-        .classed("dragging", false)
-        .classed("has-dragged", false)
-        .classed("snap-back", false)
-        .classed("sheet-dismissing", false);
-      clearSheetDragY(this);
+        // Reset drag classes and runtime positioning data when state changes.
+        this.classList.remove(
+          "dragging",
+          "has-dragged",
+          "snap-back",
+          "sheet-dismissing",
+        );
+        clearSheetDragY(this);
 
-      if (isOpen) {
-        if (controllerId && controllerId !== "c_search") {
-          d3.select("#" + controllerId).classed("active-menu-item", true);
+        if (isOpen) {
+          if (controllerId && controllerId !== "c_search") {
+            const ctrlEl = document.querySelector("#" + controllerId);
+            if (ctrlEl) {
+              ctrlEl.classList.add("active-menu-item");
+            }
+          }
+          currentlyVisibleMenu = document.querySelector("#" + menuId);
+          if (controllerId) {
+            currentlyHoveredEntry = document.querySelector("#" + controllerId);
+          }
+          if (menuId === "m_export") {
+            graph.options().exportMenu().exportAsUrl();
+          }
+          updateMenuPosition(controllerId);
+        } else {
+          if (controllerId && controllerId !== "c_search") {
+            const ctrlEl = document.querySelector("#" + controllerId);
+            if (ctrlEl) {
+              ctrlEl.classList.remove("active-menu-item");
+            }
+          }
         }
-        currentlyVisibleMenu = d3.select("#" + menuId);
-        if (controllerId) {
-          currentlyHoveredEntry = d3.select("#" + controllerId).node();
-        }
-        if (menuId === "m_export") {
-          graph.options().exportMenu().exportAsUrl();
-        }
-        updateMenuPosition(controllerId);
-      } else {
-        if (controllerId && controllerId !== "c_search") {
-          d3.select("#" + controllerId).classed("active-menu-item", false);
-        }
-      }
+      });
     });
 
     // Contain user interactions inside popovers so they don't propagate to background graph canvas
@@ -358,117 +384,117 @@ module.exports = function (graph) {
   };
 
   function setupMobileSheetDragDismiss() {
-    d3.selectAll(".modern-popover").each(function () {
-      const popoverNode = this;
-      if (!popoverNode.querySelectorAll) {
-        return;
-      }
-      const dragAreaNodes = popoverNode.querySelectorAll(
-        ".sheet-handle, .popover-header",
-      );
-
-      let startY = 0;
-      let startTime = 0;
-      let currentDy = 0;
-      let isDragging = false;
-
-      function onTouchStart(event) {
-        if (window.innerWidth > 768) {
+    document
+      .querySelectorAll(".modern-popover")
+      .forEach(function (popoverNode) {
+        if (!popoverNode.querySelectorAll) {
           return;
         }
-        // Don't start drag gesture if tapping close button
-        if (
-          event.target &&
-          typeof event.target.closest === "function" &&
-          event.target.closest(".popover-close-btn")
-        ) {
-          return;
-        }
-        if (event.touches && event.touches.length === 1) {
-          startY = event.touches[0].clientY;
-          startTime = Date.now();
-          currentDy = 0;
-          isDragging = true;
-          d3.select(popoverNode)
-            .classed("dragging", true)
-            .classed("has-dragged", true)
-            .classed("snap-back", false)
-            .classed("sheet-dismissing", false);
-        }
-      }
+        const dragAreaNodes = popoverNode.querySelectorAll(
+          ".sheet-handle, .popover-header",
+        );
 
-      function onTouchMove(event) {
-        if (!isDragging || window.innerWidth > 768) {
-          return;
-        }
-        if (event.touches && event.touches.length === 1) {
-          const currentY = event.touches[0].clientY;
-          let dy = currentY - startY;
+        let startY = 0;
+        let startTime = 0;
+        let currentDy = 0;
+        let isDragging = false;
 
-          // Clamp upward drag so full-width bottom sheet cannot be torn away from bottom of screen
-          if (dy < 0) {
-            dy = 0;
+        function onTouchStart(event) {
+          if (window.innerWidth > 768) {
+            return;
           }
-
-          currentDy = dy;
-          setSheetDragY(popoverNode, dy + "px");
-
-          if (event.cancelable) {
-            event.preventDefault();
+          // Don't start drag gesture if tapping close button
+          if (
+            event.target &&
+            typeof event.target.closest === "function" &&
+            event.target.closest(".popover-close-btn")
+          ) {
+            return;
+          }
+          if (event.touches && event.touches.length === 1) {
+            startY = event.touches[0].clientY;
+            startTime = Date.now();
+            currentDy = 0;
+            isDragging = true;
+            popoverNode.classList.add("dragging", "has-dragged");
+            popoverNode.classList.remove("snap-back", "sheet-dismissing");
           }
         }
-      }
 
-      function onTouchEnd() {
-        if (!isDragging) {
-          return;
-        }
-        isDragging = false;
-        const duration = Date.now() - startTime;
-        const velocity = currentDy / Math.max(1, duration);
+        function onTouchMove(event) {
+          if (!isDragging || window.innerWidth > 768) {
+            return;
+          }
+          if (event.touches && event.touches.length === 1) {
+            const currentY = event.touches[0].clientY;
+            let dy = currentY - startY;
 
-        d3.select(popoverNode).classed("dragging", false);
-
-        const dismissThreshold = 80;
-        const velocityThreshold = 0.3;
-
-        if (
-          currentDy >= dismissThreshold ||
-          (currentDy > 20 && velocity > velocityThreshold)
-        ) {
-          // Slide off-screen down and hide popover
-          d3.select(popoverNode).classed("sheet-dismissing", true);
-          setTimeout(function () {
-            try {
-              if (popoverNode.matches(":popover-open")) {
-                popoverNode.hidePopover();
-              }
-            } catch {
-              /* ignore */
+            // Clamp upward drag so full-width bottom sheet cannot be torn away from bottom of screen
+            if (dy < 0) {
+              dy = 0;
             }
-            clearSheetDragY(popoverNode);
-            d3.select(popoverNode).classed("sheet-dismissing", false);
-          }, 200);
-        } else {
-          // Snap back into place
-          d3.select(popoverNode).classed("snap-back", true);
-          setSheetDragY(popoverNode, "0px");
-          setTimeout(function () {
-            clearSheetDragY(popoverNode);
-            d3.select(popoverNode).classed("snap-back", false);
-          }, 250);
-        }
-      }
 
-      dragAreaNodes.forEach(function (node) {
-        if (node && typeof node.addEventListener === "function") {
-          node.addEventListener("touchstart", onTouchStart, { passive: true });
-          node.addEventListener("touchmove", onTouchMove, { passive: false });
-          node.addEventListener("touchend", onTouchEnd, { passive: true });
-          node.addEventListener("touchcancel", onTouchEnd, { passive: true });
+            currentDy = dy;
+            setSheetDragY(popoverNode, dy + "px");
+
+            if (event.cancelable) {
+              event.preventDefault();
+            }
+          }
         }
+
+        function onTouchEnd() {
+          if (!isDragging) {
+            return;
+          }
+          isDragging = false;
+          const duration = Date.now() - startTime;
+          const velocity = currentDy / Math.max(1, duration);
+
+          popoverNode.classList.remove("dragging");
+
+          const dismissThreshold = 80;
+          const velocityThreshold = 0.3;
+
+          if (
+            currentDy >= dismissThreshold ||
+            (currentDy > 20 && velocity > velocityThreshold)
+          ) {
+            // Slide off-screen down and hide popover
+            popoverNode.classList.add("sheet-dismissing");
+            setTimeout(function () {
+              try {
+                if (popoverNode.matches(":popover-open")) {
+                  popoverNode.hidePopover();
+                }
+              } catch {
+                /* ignore */
+              }
+              clearSheetDragY(popoverNode);
+              popoverNode.classList.remove("sheet-dismissing");
+            }, 200);
+          } else {
+            // Snap back into place
+            popoverNode.classList.add("snap-back");
+            setSheetDragY(popoverNode, "0px");
+            setTimeout(function () {
+              clearSheetDragY(popoverNode);
+              popoverNode.classList.remove("snap-back");
+            }, 250);
+          }
+        }
+
+        dragAreaNodes.forEach(function (node) {
+          if (node && typeof node.addEventListener === "function") {
+            node.addEventListener("touchstart", onTouchStart, {
+              passive: true,
+            });
+            node.addEventListener("touchmove", onTouchMove, { passive: false });
+            node.addEventListener("touchend", onTouchEnd, { passive: true });
+            node.addEventListener("touchcancel", onTouchEnd, { passive: true });
+          }
+        });
       });
-    });
   }
 
   return navigationMenu;

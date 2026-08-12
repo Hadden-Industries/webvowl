@@ -10,10 +10,15 @@ module.exports = function (graph) {
       graph.options().useAccuracyHelper,
       function (enabled, silent) {
         if (!enabled) {
-          d3.select("#showDraggerObject").classed("disabled", true);
-          d3.select("#showDraggerObjectConfigCheckbox").node().checked = false;
+          document
+            .querySelector("#showDraggerObject")
+            .classList.add("disabled");
+          document.querySelector("#showDraggerObjectConfigCheckbox").checked =
+            false;
         } else {
-          d3.select("#showDraggerObject").classed("disabled", false);
+          document
+            .querySelector("#showDraggerObject")
+            .classList.remove("disabled");
         }
 
         if (silent === true) {
@@ -43,9 +48,11 @@ module.exports = function (graph) {
       graph.options().showRenderingStatistic,
       function (enabled, silent) {
         if (graph.options().getHideDebugFeatures() === false) {
-          d3.select("#FPS_Statistics").classed("hidden", !enabled);
+          document
+            .querySelector("#FPS_Statistics")
+            .classList.toggle("hidden", !enabled);
         } else {
-          d3.select("#FPS_Statistics").classed("hidden", true);
+          document.querySelector("#FPS_Statistics").classList.add("hidden");
         }
       },
     );
@@ -56,9 +63,13 @@ module.exports = function (graph) {
       graph.options().showInputModality,
       function (enabled) {
         if (graph.options().getHideDebugFeatures() === false) {
-          d3.select("#modeOfOperationString").classed("hidden", !enabled);
+          document
+            .querySelector("#modeOfOperationString")
+            .classList.toggle("hidden", !enabled);
         } else {
-          d3.select("#modeOfOperationString").classed("hidden", true);
+          document
+            .querySelector("#modeOfOperationString")
+            .classList.add("hidden");
         }
       },
     );
@@ -71,13 +82,14 @@ module.exports = function (graph) {
     onChangeFunc,
     _callbackFunction,
   ) {
-    const configOptionContainer = d3.select(selector);
-    const configCheckbox = configOptionContainer
-      .select("#" + identifier + "ConfigCheckbox")
-      .property("checked", onChangeFunc());
+    const configOptionContainer = document.querySelector(selector);
+    const configCheckbox = configOptionContainer.querySelector(
+      "#" + identifier + "ConfigCheckbox",
+    );
+    configCheckbox.checked = onChangeFunc();
 
-    configCheckbox.on("click", function (arg1, arg2) {
-      const isEnabled = configCheckbox.property("checked");
+    const clickHandler = function (arg1, arg2) {
+      const isEnabled = configCheckbox.checked;
       onChangeFunc(isEnabled);
       const silent =
         typeof arg1 === "boolean"
@@ -86,7 +98,10 @@ module.exports = function (graph) {
             ? arg2
             : false;
       _callbackFunction(isEnabled, silent);
-    });
+    };
+
+    configCheckbox.addEventListener("click", clickHandler);
+    configCheckbox.__clickHandler = clickHandler;
     checkboxes.push(configCheckbox);
 
     return configCheckbox;
@@ -94,9 +109,9 @@ module.exports = function (graph) {
 
   debugMenu.setCheckBoxValue = function (identifier, value) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].attr("id");
+      const cbdId = checkboxes[i].id;
       if (cbdId === identifier) {
-        checkboxes[i].property("checked", value);
+        checkboxes[i].checked = value;
         break;
       }
     }
@@ -104,28 +119,31 @@ module.exports = function (graph) {
 
   debugMenu.getCheckBoxValue = function (id) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].attr("id");
+      const cbdId = checkboxes[i].id;
       if (cbdId === id) {
-        return checkboxes[i].property("checked");
+        return checkboxes[i].checked;
       }
     }
   };
 
   debugMenu.updateSettings = function () {
-    d3.selectAll(".debugOption").classed(
-      "hidden",
-      graph.options().getHideDebugFeatures(),
-    );
+    const debugOptions = document.querySelectorAll(".debugOption");
+    const hideDebug = graph.options().getHideDebugFeatures();
+    debugOptions.forEach(function (option) {
+      option.classList.toggle("hidden", hideDebug);
+    });
 
     const silent = true;
     checkboxes.forEach(function (checkbox) {
-      checkbox.on("click")(silent);
+      if (checkbox.__clickHandler) {
+        checkbox.__clickHandler(silent);
+      }
     });
     if (graph.editorMode() === false) {
-      d3.select("#useAccuracyHelper").classed("disabled", true);
-      d3.select("#showDraggerObject").classed("disabled", true);
+      document.querySelector("#useAccuracyHelper").classList.add("disabled");
+      document.querySelector("#showDraggerObject").classList.add("disabled");
     } else {
-      d3.select("#useAccuracyHelper").classed("disabled", false);
+      document.querySelector("#useAccuracyHelper").classList.remove("disabled");
     }
   };
 

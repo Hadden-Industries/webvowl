@@ -7,6 +7,51 @@ class MockSelection {
     this.handlers = {};
     this.classes = new Set();
     this.attributes = {};
+
+    this.element.addEventListener = (type, handler) => {
+      this.handlers[type] = handler;
+    };
+    
+    this.element.removeEventListener = (type, handler) => {
+      if (this.handlers[type] === handler) {
+        delete this.handlers[type];
+      }
+    };
+
+    this.element.dispatchEvent = (event) => {
+      const handler = this.handlers[event.type];
+      if (handler) {
+        handler.call(this.element, event);
+      }
+      return !event.defaultPrevented;
+    };
+
+    this.element.classList = {
+      add: (cls) => this.classes.add(cls),
+      remove: (cls) => this.classes.delete(cls),
+      contains: (cls) => this.classes.has(cls),
+      toggle: (cls, force) => {
+        const shouldAdd = force !== undefined ? force : !this.classes.has(cls);
+        if (shouldAdd) {
+          this.classes.add(cls);
+        } else {
+          this.classes.delete(cls);
+        }
+        return shouldAdd;
+      },
+    };
+
+    this.element.setAttribute = (name, value) => {
+      this.attributes[name] = value;
+    };
+
+    this.element.getAttribute = (name) => {
+      return this.attributes[name] || null;
+    };
+
+    this.element.removeAttribute = (name) => {
+      delete this.attributes[name];
+    };
   }
 
   on(type, handler) {
@@ -139,7 +184,9 @@ describe("ontology menu actions", () => {
     };
 
     global.location = { hash: "#file=foaf.rdf.json" };
-    global.window = {};
+    global.window = {
+      addEventListener: jest.fn(),
+    };
     global.document = {
       getElementById: (id) => selectionFor("#" + id).element,
     };

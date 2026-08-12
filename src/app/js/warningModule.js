@@ -10,21 +10,26 @@ module.exports = function (graph) {
   warningModule.addMessageBox = function () {
     // add a container;
     _messageId++;
-    const messageContainer = d3.select("#WarningErrorMessages").append("div");
-    messageContainer.node().id = "messageContainerId_" + _messageId;
+    const messageContainer = document.createElement("div");
+    document
+      .querySelector("#WarningErrorMessages")
+      .appendChild(messageContainer);
+    messageContainer.id = "messageContainerId_" + _messageId;
 
-    const messageContext = messageContainer.append("div");
-    messageContext.node().id = "messageContextId_" + _messageId;
-    messageContext.classed("warning-msg-context", true);
-    messageContainer.classed("warning-msg-container", true);
+    const messageContext = document.createElement("div");
+    messageContainer.appendChild(messageContext);
+    messageContext.id = "messageContextId_" + _messageId;
+    messageContext.classList.add("warning-msg-context");
+    messageContainer.classList.add("warning-msg-container");
     //save in array
     _messageContainers.push(messageContainer);
     _messageContext.push(messageContext);
 
     // add animation to the container
-    messageContainer
-      .node()
-      .addEventListener("animationend", _msgContainer_animationEnd);
+    messageContainer.addEventListener(
+      "animationend",
+      _msgContainer_animationEnd,
+    );
 
     // set visible flag that is used in end of animation
     _visibleStatus[_messageId] = true;
@@ -34,57 +39,65 @@ module.exports = function (graph) {
   function _msgContainer_animationEnd() {
     const containerId = this.id;
     const tokens = containerId.split("_")[1];
-    const mContainer = d3.select("#" + containerId);
+    const mContainer = document.querySelector("#" + containerId);
     // get number of children
-    mContainer.classed("hidden", !_visibleStatus[tokens]);
+    mContainer.classList.toggle("hidden", !_visibleStatus[tokens]);
     // clean up DOM
     if (!_visibleStatus[tokens]) {
       mContainer.remove();
       _messageContext[tokens] = null;
       _messageContainers[tokens] = null;
     }
-    // remove event listener
-    // c.node().removeEventListener("animationend",_msgContainer_animationEnd);
   }
 
   warningModule.createMessageContext = function (id) {
     const warningContainer = _messageContext[id];
     const moduleContainer = _messageContainers[id];
-    const generalHint = warningContainer.append("div");
-    generalHint.node().innerHTML = "";
+    const generalHint = document.createElement("div");
+    warningContainer.appendChild(generalHint);
+    generalHint.innerHTML = "";
     /** Editing mode activated. You can now modify an existing ontology or create a new one via the <em>ontology</em> menu. You can save any ontology using the <em>export</em> menu (and exporting it as TTL file).**/
-    generalHint.node().innerHTML +=
+    generalHint.innerHTML +=
       "Editing mode activated.<br>" +
       "You can now modify an existing ontology or create a new one via the <em>ontology</em> menu.<br>" +
       "You can save any ontology using the <em>export</em> menu (and exporting it as TTL file).";
 
-    generalHint.classed("warning-hint", true);
+    generalHint.classList.add("warning-hint");
 
-    const ul = warningContainer.append("ul");
-    ul.append("li").node().innerHTML =
+    const ul = document.createElement("ul");
+    warningContainer.appendChild(ul);
+    const li1 = document.createElement("li");
+    ul.appendChild(li1);
+    li1.innerHTML =
       "Create a class with <b>double click / tap</b> on empty canvas area.";
-    ul.append("li").node().innerHTML =
+    const li2 = document.createElement("li");
+    ul.appendChild(li2);
+    li2.innerHTML =
       "Edit names with <b>double click / tap</b> on element.</li>";
-    ul.append("li").node().innerHTML =
+    const li3 = document.createElement("li");
+    ul.appendChild(li3);
+    li3.innerHTML =
       "Selection of default constructors is provided in the left sidebar.";
-    ul.append("li").node().innerHTML =
+    const li4 = document.createElement("li");
+    ul.appendChild(li4);
+    li4.innerHTML =
       "Additional editing functionality is provided in the right sidebar.";
 
-    const gotItButton = warningContainer
-      .append("button")
-      .attr("type", "button");
-    gotItButton.node().id = "killWarningErrorMessages_" + id;
-    gotItButton.node().innerHTML = "Got It";
-    gotItButton.on("click", warningModule.closeMessage);
+    const gotItButton = document.createElement("button");
+    warningContainer.appendChild(gotItButton);
+    gotItButton.setAttribute("type", "button");
+    gotItButton.id = "killWarningErrorMessages_" + id;
+    gotItButton.innerHTML = "Got It";
+    gotItButton.addEventListener("click", warningModule.closeMessage);
 
-    moduleContainer.classed("hidden", false);
-    moduleContainer.classed("warn-expanded", true);
+    moduleContainer.classList.remove("hidden");
+    moduleContainer.classList.add("warn-expanded");
   };
 
   warningModule.showMessage = function (id) {
     const moduleContainer = _messageContainers[id];
-    moduleContainer.classed("hidden", false);
-    moduleContainer.classed("warn-expanded", true);
+    moduleContainer.classList.remove("hidden");
+    moduleContainer.classList.add("warn-expanded");
   };
 
   warningModule.closeMessage = function (id) {
@@ -104,15 +117,15 @@ module.exports = function (graph) {
     _visibleStatus[nId] = false;
     // get module;
     const moduleContainer = _messageContainers[nId];
-    moduleContainer.classed("warn-collapsed", true);
+    moduleContainer.classList.add("warn-collapsed");
 
     // find my id in the children
-    const pNode = moduleContainer.node().parentNode;
+    const pNode = moduleContainer.parentNode;
 
     const followingChildren = [];
     const pChild = pNode.children;
     const pChild_len = pChild.length;
-    const containerId = moduleContainer.node().id;
+    const containerId = moduleContainer.id;
     let found_me = false;
     for (let i = 0; i < pChild_len; i++) {
       if (found_me === true) {
@@ -125,16 +138,16 @@ module.exports = function (graph) {
     }
 
     for (let fc = 0; fc < followingChildren.length; fc++) {
-      const child = d3.select("#" + followingChildren[fc]);
-      child.classed("msg-collapsed", true);
-      child.node().addEventListener("animationend", _child_animationEnd);
+      const child = document.querySelector("#" + followingChildren[fc]);
+      child.classList.add("msg-collapsed");
+      child.addEventListener("animationend", _child_animationEnd);
     }
   };
 
   function _child_animationEnd() {
-    const c = d3.select(this);
-    c.classed("msg-collapsed", false);
-    c.node().removeEventListener("animationend", _child_animationEnd);
+    const c = this;
+    c.classList.remove("msg-collapsed");
+    c.removeEventListener("animationend", _child_animationEnd);
   }
 
   warningModule.showEditorHint = function () {
@@ -164,47 +177,58 @@ module.exports = function (graph) {
     const warningContainer = _messageContext[id];
     const moduleContainer = _messageContainers[id];
     _visibleStatus[id] = true;
-    d3.select("#blockGraphInteractions").classed("hidden", false);
+    document
+      .querySelector("#blockGraphInteractions")
+      .classList.remove("hidden");
 
     if (header.length > 0) {
-      const head = warningContainer.append("div");
-      head.classed("warning-row", true);
-      const titleHeader = head.append("div");
-      titleHeader.classed("warning-inline-flex warning-pr-3", true);
-      titleHeader.node().innerHTML = "<b>Warning:</b>";
-      const msgHeader = head.append("div");
-      msgHeader.classed("warning-msg-content", true);
-      msgHeader.node().innerHTML = header;
+      const head = document.createElement("div");
+      warningContainer.appendChild(head);
+      head.classList.add("warning-row");
+      const titleHeader = document.createElement("div");
+      head.appendChild(titleHeader);
+      titleHeader.classList.add("warning-inline-flex", "warning-pr-3");
+      titleHeader.innerHTML = "<b>Warning:</b>";
+      const msgHeader = document.createElement("div");
+      head.appendChild(msgHeader);
+      msgHeader.classList.add("warning-msg-content");
+      msgHeader.innerHTML = header;
     }
     if (reason.length > 0) {
-      const reasonContainer = warningContainer.append("div");
-      reasonContainer.classed("warning-row", true);
-      const reasonHeader = reasonContainer.append("div");
-      reasonHeader.classed("warning-inline-flex warning-pr-3", true);
-      reasonHeader.node().innerHTML = "<b>Reason:</b>";
-      const msgReason = reasonContainer.append("div");
-      msgReason.classed("warning-msg-content", true);
-      msgReason.node().innerHTML = reason;
+      const reasonContainer = document.createElement("div");
+      warningContainer.appendChild(reasonContainer);
+      reasonContainer.classList.add("warning-row");
+      const reasonHeader = document.createElement("div");
+      reasonContainer.appendChild(reasonHeader);
+      reasonHeader.classList.add("warning-inline-flex", "warning-pr-3");
+      reasonHeader.innerHTML = "<b>Reason:</b>";
+      const msgReason = document.createElement("div");
+      reasonContainer.appendChild(msgReason);
+      msgReason.classList.add("warning-msg-content");
+      msgReason.innerHTML = reason;
     }
     if (action.length > 0) {
-      const actionContainer = warningContainer.append("div");
-      actionContainer.classed("warning-row", true);
-      const actionHeader = actionContainer.append("div");
-      actionHeader.classed("warning-inline-flex warning-pr-8", true);
-      actionHeader.node().innerHTML = "<b>Action:</b>";
-      const msgAction = actionContainer.append("div");
-      msgAction.classed("warning-msg-content", true);
-      msgAction.node().innerHTML = action;
+      const actionContainer = document.createElement("div");
+      warningContainer.appendChild(actionContainer);
+      actionContainer.classList.add("warning-row");
+      const actionHeader = document.createElement("div");
+      actionContainer.appendChild(actionHeader);
+      actionHeader.classList.add("warning-inline-flex", "warning-pr-8");
+      actionHeader.innerHTML = "<b>Action:</b>";
+      const msgAction = document.createElement("div");
+      actionContainer.appendChild(msgAction);
+      msgAction.classList.add("warning-msg-content");
+      msgAction.innerHTML = action;
     }
 
-    const gotItButton = warningContainer
-      .append("button")
-      .attr("type", "button");
-    gotItButton.node().id = "killWarningErrorMessages_" + id;
-    gotItButton.node().innerHTML = "Continue";
-    gotItButton.on("click", function () {
+    const gotItButton = document.createElement("button");
+    warningContainer.appendChild(gotItButton);
+    gotItButton.setAttribute("type", "button");
+    gotItButton.id = "killWarningErrorMessages_" + id;
+    gotItButton.innerHTML = "Continue";
+    gotItButton.addEventListener("click", function () {
       warningModule.closeMessage(this.id);
-      d3.select("#blockGraphInteractions").classed("hidden", true);
+      document.querySelector("#blockGraphInteractions").classList.add("hidden");
       callback(
         parameterArray[0],
         parameterArray[1],
@@ -212,18 +236,23 @@ module.exports = function (graph) {
         parameterArray[3],
       );
     });
-    warningContainer.append("span").node().innerHTML = "|";
-    const cancelButton = warningContainer
-      .append("button")
-      .attr("type", "button");
-    cancelButton.node().id = "cancelButton_" + id;
-    cancelButton.node().innerHTML = "Cancel";
-    cancelButton.on("click", function () {
+
+    const spanNode = document.createElement("span");
+    warningContainer.appendChild(spanNode);
+    spanNode.innerHTML = "|";
+
+    const cancelButton = document.createElement("button");
+    warningContainer.appendChild(cancelButton);
+    cancelButton.setAttribute("type", "button");
+    cancelButton.id = "cancelButton_" + id;
+    cancelButton.innerHTML = "Cancel";
+    cancelButton.addEventListener("click", function () {
       warningModule.closeMessage(this.id);
-      d3.select("#blockGraphInteractions").classed("hidden", true);
+      document.querySelector("#blockGraphInteractions").classList.add("hidden");
     });
-    moduleContainer.classed("hidden", false);
-    moduleContainer.classed("warn-expanded", true);
+
+    moduleContainer.classList.remove("hidden");
+    moduleContainer.classList.add("warn-expanded");
   };
 
   warningModule.showMultiFileUploadWarning = function () {
@@ -232,22 +261,22 @@ module.exports = function (graph) {
     const moduleContainer = _messageContainers[id];
     _visibleStatus[id] = true;
 
-    const generalHint = warningContainer.append("div");
+    const generalHint = document.createElement("div");
+    warningContainer.appendChild(generalHint);
 
-    generalHint.node().innerHTML =
-      "Uploading multiple files is not supported.<br>";
+    generalHint.innerHTML = "Uploading multiple files is not supported.<br>";
 
-    generalHint.classed("warning-hint", true);
+    generalHint.classList.add("warning-hint");
 
-    const gotItButton = warningContainer
-      .append("button")
-      .attr("type", "button");
-    gotItButton.node().id = "killFilterMessages_" + id;
-    gotItButton.node().innerHTML = "Got It";
-    gotItButton.on("click", warningModule.closeMessage);
+    const gotItButton = document.createElement("button");
+    warningContainer.appendChild(gotItButton);
+    gotItButton.setAttribute("type", "button");
+    gotItButton.id = "killFilterMessages_" + id;
+    gotItButton.innerHTML = "Got It";
+    gotItButton.addEventListener("click", warningModule.closeMessage);
 
-    moduleContainer.classed("hidden", false);
-    moduleContainer.classed("warn-expanded", true);
+    moduleContainer.classList.remove("hidden");
+    moduleContainer.classList.add("warn-expanded");
   };
 
   warningModule.showWarning = function (
@@ -264,65 +293,86 @@ module.exports = function (graph) {
     _visibleStatus[id] = true;
 
     if (header.length > 0) {
-      const head = warningContainer.append("div");
-      head.classed("warning-row", true);
-      const titleHeader = head.append("div");
-      titleHeader.classed("warning-inline-flex warning-pr-3", true);
-      titleHeader.node().innerHTML = "<b>Warning:</b>";
-      const msgHeader = head.append("div");
-      msgHeader.classed("warning-msg-content", true);
-      msgHeader.node().innerHTML = header;
+      const head = document.createElement("div");
+      warningContainer.appendChild(head);
+      head.classList.add("warning-row");
+      const titleHeader = document.createElement("div");
+      head.appendChild(titleHeader);
+      titleHeader.classList.add("warning-inline-flex", "warning-pr-3");
+      titleHeader.innerHTML = "<b>Warning:</b>";
+      const msgHeader = document.createElement("div");
+      head.appendChild(msgHeader);
+      msgHeader.classList.add("warning-msg-content");
+      msgHeader.innerHTML = header;
     }
     if (reason.length > 0) {
-      const reasonContainer = warningContainer.append("div");
-      reasonContainer.classed("warning-row", true);
-      const reasonHeader = reasonContainer.append("div");
-      reasonHeader.classed("warning-inline-flex warning-pr-3", true);
-      reasonHeader.node().innerHTML = "<b>Reason:</b>";
-      const msgReason = reasonContainer.append("div");
-      msgReason.classed("warning-msg-content", true);
-      msgReason.node().innerHTML = reason;
+      const reasonContainer = document.createElement("div");
+      warningContainer.appendChild(reasonContainer);
+      reasonContainer.classList.add("warning-row");
+      const reasonHeader = document.createElement("div");
+      reasonContainer.appendChild(reasonHeader);
+      reasonHeader.classList.add("warning-inline-flex", "warning-pr-3");
+      reasonHeader.innerHTML = "<b>Reason:</b>";
+      const msgReason = document.createElement("div");
+      reasonContainer.appendChild(msgReason);
+      msgReason.classList.add("warning-msg-content");
+      msgReason.innerHTML = reason;
     }
     if (action.length > 0) {
-      const actionContainer = warningContainer.append("div");
-      actionContainer.classed("warning-row", true);
-      const actionHeader = actionContainer.append("div");
-      actionHeader.classed("warning-inline-flex warning-pr-8", true);
-      actionHeader.node().innerHTML = "<b>Action:</b>";
-      const msgAction = actionContainer.append("div");
-      msgAction.classed("warning-msg-content", true);
-      msgAction.node().innerHTML = action;
+      const actionContainer = document.createElement("div");
+      warningContainer.appendChild(actionContainer);
+      actionContainer.classList.add("warning-row");
+      const actionHeader = document.createElement("div");
+      actionContainer.appendChild(actionHeader);
+      actionHeader.classList.add("warning-inline-flex", "warning-pr-8");
+      actionHeader.innerHTML = "<b>Action:</b>";
+      const msgAction = document.createElement("div");
+      actionContainer.appendChild(msgAction);
+      msgAction.classList.add("warning-msg-content");
+      msgAction.innerHTML = action;
     }
 
     let gotItButton;
     if (type === 1) {
-      gotItButton = warningContainer.append("button").attr("type", "button");
-      gotItButton.node().id = "killWarningErrorMessages_" + id;
-      gotItButton.node().innerHTML = "Got It";
-      gotItButton.on("click", warningModule.closeMessage);
+      gotItButton = document.createElement("button");
+      warningContainer.appendChild(gotItButton);
+      gotItButton.setAttribute("type", "button");
+      gotItButton.id = "killWarningErrorMessages_" + id;
+      gotItButton.innerHTML = "Got It";
+      gotItButton.addEventListener("click", warningModule.closeMessage);
     }
 
     if (type === 2) {
-      gotItButton = warningContainer.append("button").attr("type", "button");
-      gotItButton.node().id = "killWarningErrorMessages_" + id;
-      gotItButton.node().innerHTML = "Got It";
-      gotItButton.on("click", warningModule.closeMessage);
-      warningContainer.append("span").node().innerHTML = "|";
-      const zoomToElementButton = warningContainer
-        .append("button")
-        .attr("type", "button");
-      zoomToElementButton.node().id = "zoomElementThing_" + id;
-      zoomToElementButton.node().innerHTML = "Zoom to element ";
-      zoomToElementButton.on("click", function () {
+      gotItButton = document.createElement("button");
+      warningContainer.appendChild(gotItButton);
+      gotItButton.setAttribute("type", "button");
+      gotItButton.id = "killWarningErrorMessages_" + id;
+      gotItButton.innerHTML = "Got It";
+      gotItButton.addEventListener("click", warningModule.closeMessage);
+
+      const spanNode1 = document.createElement("span");
+      warningContainer.appendChild(spanNode1);
+      spanNode1.innerHTML = "|";
+
+      const zoomToElementButton = document.createElement("button");
+      warningContainer.appendChild(zoomToElementButton);
+      zoomToElementButton.setAttribute("type", "button");
+      zoomToElementButton.id = "zoomElementThing_" + id;
+      zoomToElementButton.innerHTML = "Zoom to element ";
+      zoomToElementButton.addEventListener("click", function () {
         graph.zoomToElementInGraph(additionalOpts);
       });
-      warningContainer.append("span").node().innerHTML = "|";
-      const ShowElementButton = warningContainer
-        .append("button")
-        .attr("type", "button");
-      ShowElementButton.node().id = "showElementThing_" + id;
-      ShowElementButton.node().innerHTML = "Indicate element";
-      ShowElementButton.on("click", function () {
+
+      const spanNode2 = document.createElement("span");
+      warningContainer.appendChild(spanNode2);
+      spanNode2.innerHTML = "|";
+
+      const ShowElementButton = document.createElement("button");
+      warningContainer.appendChild(ShowElementButton);
+      ShowElementButton.setAttribute("type", "button");
+      ShowElementButton.id = "showElementThing_" + id;
+      ShowElementButton.innerHTML = "Indicate element";
+      ShowElementButton.addEventListener("click", function () {
         if (additionalOpts.halo() === false) {
           additionalOpts.drawHalo();
           graph.updatePulseIds([additionalOpts.id()]);
@@ -333,9 +383,8 @@ module.exports = function (graph) {
         }
       });
     }
-    moduleContainer.classed("hidden", false);
-    moduleContainer.classed("warn-expanded", true);
-    moduleContainer.classed("hidden", false);
+    moduleContainer.classList.remove("hidden");
+    moduleContainer.classList.add("warn-expanded");
   };
 
   return warningModule;

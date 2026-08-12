@@ -1976,34 +1976,6 @@ main {
   background-color: #3c3c3c;
 }
 
-#error-description-button {
-  cursor: pointer;
-
-  margin: 5px 0 0;
-
-  font-size: 12px;
-  color: #69c;
-  text-align: center;
-}
-
-#error-description-container {
-  box-sizing: border-box;
-  text-align: left;
-}
-
-#error-description-container pre {
-  overflow: auto;
-
-  max-width: 75vw;
-  max-height: calc(100svh - 125px);
-  margin: 0;
-  padding: 2px;
-
-  white-space: pre-wrap;
-
-  background-color: #34495e;
-}
-
 .spin {
   display: inline-block;
   animation: spin 2s infinite linear;

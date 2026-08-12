@@ -16,21 +16,23 @@ module.exports = function (graph) {
    */
   resetMenu.setup = function (_resettableModules) {
     resettableModules = _resettableModules;
-    d3.select("#reset-button").on("click", resetGraph);
+    document
+      .getElementById("reset-button")
+      .addEventListener("click", resetGraph);
   };
 
   let resetFlashTimer;
   function resetGraph() {
-    const resetButton = d3.select("#reset-button");
+    const resetButton = document.getElementById("reset-button");
 
     // 1. Apply visual feedback SYNCHRONOUSLY before any async work.
     //    will-change: transform on #reset-button and will-change: opacity
     //    on .reset-glow are ALWAYS set in CSS, so their compositor layers
     //    are pre-established — no creation delay at click time.
     clearTimeout(resetFlashTimer);
-    resetButton.classed("flash-out", false).classed("flash-active", false);
-    const _reflow = resetButton.node().offsetWidth; // eslint-disable-line no-unused-vars
-    resetButton.classed("flash-active", true);
+    resetButton.classList.remove("flash-out", "flash-active");
+    const _reflow = resetButton.offsetWidth; // eslint-disable-line no-unused-vars
+    resetButton.classList.add("flash-active");
 
     // 2. DOUBLE requestAnimationFrame: guarantees TWO full paint+commit
     //    cycles complete before the heavy work starts.
@@ -59,16 +61,17 @@ module.exports = function (graph) {
 
         // Trigger glow fade-out via CSS transition — runs on the compositor
         // layer of .reset-glow independently of any remaining main-thread work.
-        resetButton.classed("flash-active", false).classed("flash-out", true);
+        resetButton.classList.remove("flash-active");
+        resetButton.classList.add("flash-out");
         resetFlashTimer = setTimeout(function () {
-          resetButton.classed("flash-out", false);
+          resetButton.classList.remove("flash-out");
         }, 700);
       });
     });
   }
 
   resetMenu.setMenuMode = function (enabled) {
-    d3.select("#reset-button").property("disabled", !enabled);
+    document.getElementById("reset-button").disabled = !enabled;
   };
 
   return resetMenu;

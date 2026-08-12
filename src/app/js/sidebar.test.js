@@ -1,3 +1,4 @@
+/** @jest-environment jsdom */
 import { describe, expect, test } from "@jest/globals";
 import sidebarFactory from "./sidebar.js";
 

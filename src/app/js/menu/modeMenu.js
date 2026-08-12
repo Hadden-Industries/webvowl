@@ -16,14 +16,14 @@ module.exports = function (graph) {
   // getter and setter for the state of color modes
   modeMenu.colorModeState = function (s) {
     if (!arguments.length) {
-      return colorModeSwitch.datum().active;
+      return colorModeSwitch.__data__.active;
     }
-    colorModeSwitch.datum().active = s;
+    colorModeSwitch.__data__.active = s;
     return modeMenu;
   };
 
   modeMenu.setDynamicLabelWidth = function (val) {
-    dynamicLabelWidthCheckBox.property("checked", val);
+    dynamicLabelWidthCheckBox.checked = val;
   };
   // getter for checkboxes
   modeMenu.getCheckBoxContainer = function () {
@@ -88,23 +88,22 @@ module.exports = function (graph) {
     onChangeFunc,
     updateLvl,
   ) {
-    const moduleOptionContainer = d3.select(selector);
-    const moduleCheckbox = moduleOptionContainer
-      .select("#" + identifier + "ModuleCheckbox")
-      .property("checked", onChangeFunc());
+    const moduleOptionContainer = document.querySelector(selector);
+    const moduleCheckbox = moduleOptionContainer.querySelector(
+      "#" + identifier + "ModuleCheckbox",
+    );
+    moduleCheckbox.checked = onChangeFunc();
 
-    moduleCheckbox.on("click", function (d) {
-      const isEnabled = moduleCheckbox.property("checked");
+    moduleCheckbox.addEventListener("click", function () {
+      const isEnabled = moduleCheckbox.checked;
       onChangeFunc(isEnabled);
-      d3.select("#maxLabelWidthSlider").node().disabled = !isEnabled;
-      d3.select("#maxLabelWidthvalueLabel").classed(
-        "disabledLabelForSlider",
-        !isEnabled,
-      );
-      d3.select("#maxLabelWidthDescriptionLabel").classed(
-        "disabledLabelForSlider",
-        !isEnabled,
-      );
+      document.querySelector("#maxLabelWidthSlider").disabled = !isEnabled;
+      document
+        .querySelector("#maxLabelWidthSliderValue")
+        .classList.toggle("disabledLabelForSlider", !isEnabled);
+      document
+        .querySelector("#maxLabelWidthDescriptionLabel")
+        .classList.toggle("disabledLabelForSlider", !isEnabled);
 
       if (updateLvl > 0) {
         graph.animateDynamicLabelWidth();
@@ -116,13 +115,14 @@ module.exports = function (graph) {
   }
 
   function addCheckBox(identifier, modeName, selector, onChangeFunc) {
-    const moduleOptionContainer = d3.select(selector);
-    const moduleCheckbox = moduleOptionContainer
-      .select("#" + identifier + "ModuleCheckbox")
-      .property("checked", onChangeFunc());
+    const moduleOptionContainer = document.querySelector(selector);
+    const moduleCheckbox = moduleOptionContainer.querySelector(
+      "#" + identifier + "ModuleCheckbox",
+    );
+    moduleCheckbox.checked = onChangeFunc();
 
-    moduleCheckbox.on("click", function (d) {
-      const isEnabled = moduleCheckbox.property("checked");
+    moduleCheckbox.addEventListener("click", function () {
+      const isEnabled = moduleCheckbox.checked;
       onChangeFunc(isEnabled);
       if (isEnabled === true) {
         graph.showEditorHintIfNeeded();
@@ -137,17 +137,21 @@ module.exports = function (graph) {
     selector,
     updateGraphOnClick,
   ) {
-    const moduleOptionContainer = d3.select(selector);
-    const moduleCheckbox = moduleOptionContainer
-      .select("#" + identifier + "ModuleCheckbox")
-      .datum({ module: module, defaultState: module.enabled() })
-      .property("checked", module.enabled());
+    const moduleOptionContainer = document.querySelector(selector);
+    const moduleCheckbox = moduleOptionContainer.querySelector(
+      "#" + identifier + "ModuleCheckbox",
+    );
+    moduleCheckbox.__data__ = {
+      module: module,
+      defaultState: module.enabled(),
+    };
+    moduleCheckbox.checked = module.enabled();
 
     // Store for easier resetting all modes
     checkboxes.push(moduleCheckbox);
 
-    moduleCheckbox.on("click", function (arg1, arg2) {
-      const isEnabled = moduleCheckbox.property("checked");
+    const clickHandler = function (arg1, arg2) {
+      const isEnabled = moduleCheckbox.checked;
       module.enabled(isEnabled);
       const silent =
         typeof arg1 === "boolean"
@@ -161,19 +165,20 @@ module.exports = function (graph) {
         graph.executeNodeScalingModule();
         graph.lazyRefresh();
       }
-    });
+    };
+    moduleCheckbox.addEventListener("click", clickHandler);
+    moduleCheckbox.__clickHandler__ = clickHandler;
 
     return moduleOptionContainer;
   }
 
   function addExternalModeSelection(container, colorExternalsMode) {
-    const button = container
-      .select(".color-mode-switch")
-      .datum({ active: false });
+    const button = container.querySelector(".color-mode-switch");
+    button.__data__ = { active: false };
     applyColorModeSwitchState(button, colorExternalsMode);
 
-    button.on("click", function (arg1, arg2) {
-      const data = button.datum();
+    const clickHandler = function (arg1, arg2) {
+      const data = button.__data__;
       data.active = !data.active;
       applyColorModeSwitchState(button, colorExternalsMode);
       const silent =
@@ -186,16 +191,19 @@ module.exports = function (graph) {
         graph.executeColorExternalsModule();
         graph.lazyRefresh();
       }
-    });
+    };
+    button.addEventListener("click", clickHandler);
+    button.__clickHandler__ = clickHandler;
 
     return button;
   }
 
   function applyColorModeSwitchState(element, colorExternalsMode) {
-    const isActive = element.datum().active;
+    const isActive = element.__data__.active;
     const activeColorMode = getColorModeByState(isActive);
 
-    element.classed("active", isActive).text(activeColorMode.text);
+    element.classList.toggle("active", isActive);
+    element.textContent = activeColorMode.text;
 
     if (colorExternalsMode) {
       colorExternalsMode.colorModeType(activeColorMode.type);
@@ -211,22 +219,22 @@ module.exports = function (graph) {
    */
   modeMenu.reset = function () {
     checkboxes.forEach(function (checkbox) {
-      const defaultState = checkbox.datum().defaultState,
-        isChecked = checkbox.property("checked");
+      const defaultState = checkbox.__data__.defaultState,
+        isChecked = checkbox.checked;
 
       if (isChecked !== defaultState) {
-        checkbox.property("checked", defaultState);
+        checkbox.checked = defaultState;
         // Call onclick event handlers programmatically
-        checkbox.on("click")(checkbox.datum());
+        checkbox.__clickHandler__(checkbox.__data__);
       }
 
       // Reset the module that is connected with the checkbox
-      checkbox.datum().module.reset();
+      checkbox.__data__.module.reset();
     });
 
     // set the switch to active and simulate disabling
-    colorModeSwitch.datum().active = true;
-    colorModeSwitch.on("click")();
+    colorModeSwitch.__data__.active = true;
+    colorModeSwitch.__clickHandler__();
   };
 
   /** importer functions **/
@@ -234,19 +242,19 @@ module.exports = function (graph) {
   // no update of the gui settings, these are updated in updateSettings
   modeMenu.setCheckBoxValue = function (id, checked) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].attr("id");
+      const cbdId = checkboxes[i].id;
 
       if (cbdId === id) {
-        checkboxes[i].property("checked", checked);
+        checkboxes[i].checked = checked;
         break;
       }
     }
   };
   modeMenu.getCheckBoxValue = function (id) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].attr("id");
+      const cbdId = checkboxes[i].id;
       if (cbdId === id) {
-        return checkboxes[i].property("checked");
+        return checkboxes[i].checked;
       }
     }
   };
@@ -258,23 +266,23 @@ module.exports = function (graph) {
   modeMenu.setColorSwitchStateUsingURL = function (state) {
     // need the !state because we simulate later a click
     modeMenu.colorModeState(!state);
-    colorModeSwitch.on("click")(true);
+    colorModeSwitch.__clickHandler__(true);
   };
 
   modeMenu.updateSettingsUsingURL = function () {
     const silent = true;
     checkboxes.forEach(function (checkbox) {
-      checkbox.on("click")(checkbox.datum(), silent);
+      checkbox.__clickHandler__(checkbox.__data__, silent);
     });
   };
 
   modeMenu.updateSettings = function () {
     const silent = true;
     checkboxes.forEach(function (checkbox) {
-      checkbox.on("click")(checkbox.datum(), silent);
+      checkbox.__clickHandler__(checkbox.__data__, silent);
     });
     // this simulates onclick and inverts its state
-    colorModeSwitch.on("click")(silent);
+    colorModeSwitch.__clickHandler__(silent);
   };
   return modeMenu;
 };

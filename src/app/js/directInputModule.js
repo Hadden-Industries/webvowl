@@ -7,13 +7,13 @@ if (!owl2vowl.loadWithImports && owl2vowlModule.loadWithImports) {
 module.exports = function (graph) {
   /** variable defs **/
   const directInputModule = {};
-  const inputContainer = d3.select("#DirectInputContent");
-  const textArea = d3.select("#directInputTextArea");
+  const inputContainer = document.querySelector("#DirectInputContent");
+  const textArea = document.querySelector("#directInputTextArea");
   let visibleContainer = false;
 
   // connect upload and close button;
   directInputModule.handleDirectUpload = function () {
-    const text = textArea.node().value;
+    const text = textArea.value;
     const loadingModule = graph.options().loadingModule();
     loadingModule.initializeLoader();
     let jsonOBJ;
@@ -34,15 +34,15 @@ module.exports = function (graph) {
           })
           .catch(function (error2) {
             console.warn("Error " + error2);
-            d3.select("#Error_onLoad").classed("hidden", false);
-            d3.select("#Error_onLoad").node().innerHTML =
+            document.querySelector("#Error_onLoad").classList.remove("hidden");
+            document.querySelector("#Error_onLoad").innerHTML =
               "Failed to convert the input! " + error2.message;
             graph.handleOnLoadingError();
           });
       } catch (error2) {
         console.warn("Error " + error2);
-        d3.select("#Error_onLoad").classed("hidden", false);
-        d3.select("#Error_onLoad").node().innerHTML =
+        document.querySelector("#Error_onLoad").classList.remove("hidden");
+        document.querySelector("#Error_onLoad").innerHTML =
           "Failed to convert the input! " + error2.message;
         graph.handleOnLoadingError();
       }
@@ -63,18 +63,16 @@ module.exports = function (graph) {
     }
     // update visibility;
     directInputModule.updateLayout();
-    d3.select("#Error_onLoad").classed("hidden", true);
-    inputContainer.classed("hidden", !visibleContainer);
+    document.querySelector("#Error_onLoad").classList.add("hidden");
+    inputContainer.classList.toggle("hidden", !visibleContainer);
   };
 
-  d3.select("#directUploadBtn").on(
-    "click",
-    directInputModule.handleDirectUpload,
-  );
-  d3.select("#close_directUploadBtn").on(
-    "click",
-    directInputModule.handleCloseButton,
-  );
+  document
+    .querySelector("#directUploadBtn")
+    .addEventListener("click", directInputModule.handleDirectUpload);
+  document
+    .querySelector("#close_directUploadBtn")
+    .addEventListener("click", directInputModule.handleCloseButton);
 
   return directInputModule;
 };

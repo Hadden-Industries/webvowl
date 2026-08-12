@@ -19,26 +19,26 @@ module.exports = function (graph) {
   };
 
   function addLabelWidthSlider(selector, identifier, label, onChangeFunction) {
-    const sliderContainer = d3.select(selector);
-    const sliderValueLabel = sliderContainer
-      .select("#" + identifier + "SliderValue")
-      .text(onChangeFunction());
-    const slider = sliderContainer
-      .select("#" + identifier + "Slider")
-      .attr("value", onChangeFunction());
+    const sliderContainer = document.querySelector(selector);
+    const sliderValueLabel = sliderContainer.querySelector(
+      "#" + identifier + "SliderValue",
+    );
+    sliderValueLabel.textContent = onChangeFunction();
+    const slider = sliderContainer.querySelector("#" + identifier + "Slider");
+    slider.setAttribute("value", onChangeFunction());
 
-    slider.on("input", function () {
-      const value = slider.property("value");
+    slider.addEventListener("input", function () {
+      const value = slider.value;
       onChangeFunction(value);
-      sliderValueLabel.text(value);
+      sliderValueLabel.textContent = value;
       if (graph.options().dynamicLabelWidth() === true) {
         graph.animateDynamicLabelWidth();
       }
     });
 
     // add wheel event to the slider
-    slider.on("wheel", function (event) {
-      if (slider.node().disabled === true) {
+    slider.addEventListener("wheel", function (event) {
+      if (slider.disabled === true) {
         return;
       }
       const wheelEvent = event;
@@ -49,12 +49,12 @@ module.exports = function (graph) {
       if (wheelEvent.deltaY > 0) {
         offset = -10;
       }
-      const oldVal = parseInt(slider.property("value"));
+      const oldVal = parseInt(slider.value);
       const newSliderValue = oldVal + offset;
       if (newSliderValue !== oldVal) {
-        slider.property("value", newSliderValue);
+        slider.value = newSliderValue;
         onChangeFunction(newSliderValue);
-        slider.on("input")(); // << set text and update the graphStyles
+        slider.dispatchEvent(new Event("input")); // << set text and update the graphStyles
       }
       event.preventDefault();
     });
@@ -67,13 +67,14 @@ module.exports = function (graph) {
     onChangeFunc,
     updateLvl,
   ) {
-    const configOptionContainer = d3.select(selector);
-    const configCheckbox = configOptionContainer
-      .select("#" + identifier + "ConfigCheckbox")
-      .property("checked", onChangeFunc());
+    const configOptionContainer = document.querySelector(selector);
+    const configCheckbox = configOptionContainer.querySelector(
+      "#" + identifier + "ConfigCheckbox",
+    );
+    configCheckbox.checked = onChangeFunc();
 
-    configCheckbox.on("click", function (arg1, arg2) {
-      const isEnabled = configCheckbox.property("checked");
+    const clickHandler = function (arg1, arg2) {
+      const isEnabled = configCheckbox.checked;
       onChangeFunc(isEnabled);
       const silent =
         typeof arg1 === "boolean"
@@ -95,17 +96,20 @@ module.exports = function (graph) {
           graph.updateDraggerElements();
         }
       }
-    });
+    };
+
+    configCheckbox.addEventListener("click", clickHandler);
+    configCheckbox.__clickHandler = clickHandler;
     checkboxes.push(configCheckbox);
   }
 
   configMenu.setCheckBoxValue = function (identifier, value) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].attr("id");
+      const cbdId = checkboxes[i].id;
       if (cbdId === identifier) {
-        checkboxes[i].property("checked", value);
-        if (checkboxes[i].on("click")) {
-          checkboxes[i].on("click")();
+        checkboxes[i].checked = value;
+        if (checkboxes[i].__clickHandler) {
+          checkboxes[i].__clickHandler();
         }
         break;
       }
@@ -114,9 +118,9 @@ module.exports = function (graph) {
 
   configMenu.getCheckBoxValue = function (id) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].attr("id");
+      const cbdId = checkboxes[i].id;
       if (cbdId === id) {
-        return checkboxes[i].property("checked");
+        return checkboxes[i].checked;
       }
     }
   };
@@ -124,7 +128,9 @@ module.exports = function (graph) {
   configMenu.updateSettings = function () {
     const silent = true;
     checkboxes.forEach(function (checkbox) {
-      checkbox.on("click")(silent);
+      if (checkbox.__clickHandler) {
+        checkbox.__clickHandler(silent);
+      }
     });
   };
 
