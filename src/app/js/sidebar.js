@@ -1129,14 +1129,14 @@ function createSidebar(graph) {
 
     collapseButton.addEventListener("click", function () {
       hideNavMenus();
-        const settingValue = parseInt(sidebar.getSidebarVisibility());
-        if (settingValue === 1) {
-          sidebar.showSidebar(0);
-        } else {
-          sidebar.showSidebar(1);
-        }
-      });
-      
+      const settingValue = parseInt(sidebar.getSidebarVisibility());
+      if (settingValue === 1) {
+        sidebar.showSidebar(0);
+      } else {
+        sidebar.showSidebar(1);
+      }
+    });
+
     collapseButton.addEventListener("contextmenu", function (event) {
       if (event) {
         event.preventDefault();

@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeEach, afterEach, jest } from "@jest/globals";
+import { describe, expect, test, jest } from "@jest/globals";
 import sidebarFactory from "./sidebar.js";
 
 class MockElement {
@@ -10,18 +10,25 @@ class MockElement {
     this._classList = new Set();
     this.listeners = {};
   }
-  setAttribute(name, val) { this.attributes[name] = val; }
-  appendChild(child) { this.children.push(child); }
+  setAttribute(name, val) {
+    this.attributes[name] = val;
+  }
+  appendChild(child) {
+    this.children.push(child);
+  }
   addEventListener(type, fn) {
-    if (!this.listeners[type]) this.listeners[type] = [];
+    if (!this.listeners[type]) {
+      this.listeners[type] = [];
+    }
     this.listeners[type].push(fn);
   }
   get classList() {
     return {
       add: (c) => this._classList.add(c),
       remove: (c) => this._classList.delete(c),
-      toggle: (c, state) => state ? this._classList.add(c) : this._classList.delete(c),
-      contains: (c) => this._classList.has(c)
+      toggle: (c, state) =>
+        state ? this._classList.add(c) : this._classList.delete(c),
+      contains: (c) => this._classList.has(c),
     };
   }
 }
@@ -29,11 +36,11 @@ class MockElement {
 global.document = {
   createElement: (tag) => new MockElement(tag),
   querySelector: jest.fn().mockReturnValue(new MockElement()),
-  querySelectorAll: jest.fn().mockReturnValue([])
+  querySelectorAll: jest.fn().mockReturnValue([]),
 };
 global.window = {
   innerWidth: 1024,
-  event: null
+  event: null,
 };
 
 // Mock webvowl global structure which sidebar relies on
@@ -44,7 +51,6 @@ global.webvowl = {
   },
 };
 global.requestAnimationFrame = jest.fn((cb) => cb());
-
 
 describe("sidebar ontology IRI links", () => {
   test.each([

@@ -2,12 +2,12 @@ module.exports = function (graph) {
   const configMenu = {},
     checkboxes = [];
 
-  configMenu.setup = function () {
+  configMenu.setup = function (zoomSlider) {
     addCheckBox(
       "showZoomSlider",
       "Zoom controls",
       "#zoomSliderOption",
-      graph.options().zoomSlider().showSlider,
+      zoomSlider.showSlider,
       0,
     );
     addLabelWidthSlider(

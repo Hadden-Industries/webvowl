@@ -117,7 +117,7 @@ function measureViewportElement(element, fallbackWidth, fallbackHeight) {
 }
 
 function createGraph(graphContainerSelector) {
-  const graph = {};
+  const graph = new EventTarget();
   const CARDINALITY_HDISTANCE = 20;
   const CARDINALITY_VDISTANCE = 10;
   const options = require("./options")();
@@ -182,7 +182,6 @@ function createGraph(graphContainerSelector) {
   let eP = 0; // id for new properties
   let eN = 0; // id for new Nodes
   let editMode = options.initialConfig().editorMode === "true";
-  const debugContainer = d3.select("#FPS_Statistics");
   let finishedLoadingSequence = false;
 
   let ignoreOtherHoverEvents = false;
@@ -258,7 +257,9 @@ function createGraph(graphContainerSelector) {
   };
 
   graph.updateZoomSliderValueFromOutside = function () {
-    graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
+    graph.dispatchEvent(
+      new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+    );
   };
 
   graph.setDefaultZoom = function (val) {
@@ -272,7 +273,9 @@ function createGraph(graphContainerSelector) {
     }
     defaultZoom = normalized;
     graph.reset();
-    graph.options().zoomSlider().updateZoomSliderValue(defaultZoom);
+    graph.dispatchEvent(
+      new CustomEvent("zoomchange", { detail: { value: defaultZoom } }),
+    );
     return true;
   };
   graph.setTargetZoom = function (val) {
@@ -339,7 +342,9 @@ function createGraph(graphContainerSelector) {
       .on("end", function () {
         graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
-        graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
+        graph.dispatchEvent(
+          new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+        );
       });
     return true;
   };
@@ -390,7 +395,7 @@ function createGraph(graphContainerSelector) {
       language = newLanguage || "default";
       redrawContent();
       recalculatePositions();
-      graph.options().searchMenu().requestDictionaryUpdate();
+      graph.dispatchEvent(new CustomEvent("dictionarychange"));
       graph.resetSearchHighlight();
     }
     return graph;
@@ -813,15 +818,15 @@ function createGraph(graphContainerSelector) {
     const diff = now - then;
     const fps = (1000 / diff).toFixed(2);
 
-    debugContainer.node().innerHTML =
-      "FPS: " +
-      fps +
-      "<br>" +
-      "Nodes: " +
-      force.nodes().length +
-      "<br>" +
-      "Links: " +
-      forceLink.links().length;
+    graph.dispatchEvent(
+      new CustomEvent("fpsupdate", {
+        detail: {
+          fps: fps,
+          nodes: force.nodes().length,
+          links: forceLink.links().length,
+        },
+      }),
+    );
     then = Date.now();
   }
 
@@ -1167,7 +1172,9 @@ function createGraph(graphContainerSelector) {
       }
       graphContainer.attr("transform", viewportTransformString());
       updateHaloRadius();
-      graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
+      graph.dispatchEvent(
+        new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+      );
       return;
     }
     /** animate the transition **/
@@ -1215,7 +1222,9 @@ function createGraph(graphContainerSelector) {
             }
           }
           updateHaloRadius();
-          graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
+          graph.dispatchEvent(
+            new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+          );
         };
       })
       .on("end", function () {
@@ -1905,9 +1914,7 @@ function createGraph(graphContainerSelector) {
     }
     // tell the parser that the dictionary is updated
     parser.setDictionary(newDict);
-    if (graph.options().searchMenu()) {
-      graph.options().searchMenu().requestDictionaryUpdate();
-    }
+    graph.dispatchEvent(new CustomEvent("dictionarychange"));
   }
 
   graph.updateProgressBarMode = function () {
@@ -1941,13 +1948,7 @@ function createGraph(graphContainerSelector) {
     nodeArrayForPulse = [];
     pulseNodeIds = [];
     locationId = 0;
-    if (
-      options.searchMenu &&
-      options.searchMenu() &&
-      options.searchMenu().clearText
-    ) {
-      options.searchMenu().clearText();
-    }
+
     graph.clearGraphData();
 
     if (init) {
@@ -2124,7 +2125,7 @@ function createGraph(graphContainerSelector) {
     if (parser.settingsImportGraphZoomAndTranslation() === true) {
       centerGraphViewOnLoad = false;
     }
-    graph.options().searchMenu().requestDictionaryUpdate();
+    graph.dispatchEvent(new CustomEvent("dictionarychange"));
     graph.options().editSidebar().updateGeneralOntologyInfo();
     graph.options().editSidebar().updatePrefixUi();
     graph.options().editSidebar().updateElementWidth();
@@ -2480,7 +2481,7 @@ function createGraph(graphContainerSelector) {
         // this is a round node
         nodeIsRect = false;
         roundHalo = node.getHalos().select("circle");
-        defaultRadius = node.actualRadius();
+        defaultRadius = node.actualRadius() + offset;
         roundHalo.attr("r", defaultRadius + offset);
         halo = roundHalo;
       } else {
@@ -2658,7 +2659,9 @@ function createGraph(graphContainerSelector) {
       return viewportTransformString();
     }
     updateHaloRadius();
-    graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
+    graph.dispatchEvent(
+      new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+    );
     return viewportTransformString();
   }
 
@@ -2799,15 +2802,11 @@ function createGraph(graphContainerSelector) {
       }
     }
     locationId = 0;
-    if (
-      options.searchMenu &&
-      options.searchMenu() &&
-      options.searchMenu().updateLocateButtonVisibility
-    ) {
-      options
-        .searchMenu()
-        .updateLocateButtonVisibility(pulseNodeIds.length > 0);
-    }
+    graph.dispatchEvent(
+      new CustomEvent("updatelocatebutton", {
+        detail: { visible: pulseNodeIds.length > 0 },
+      }),
+    );
   };
 
   graph.highLightNodes = function (nodeIdArray) {
@@ -2868,15 +2867,11 @@ function createGraph(graphContainerSelector) {
       }
     }
     locationId = 0;
-    if (
-      options.searchMenu &&
-      options.searchMenu() &&
-      options.searchMenu().updateLocateButtonVisibility
-    ) {
-      options
-        .searchMenu()
-        .updateLocateButtonVisibility(missedIds.length < nodeIdArray.length);
-    }
+    graph.dispatchEvent(
+      new CustomEvent("updatelocatebutton", {
+        detail: { visible: missedIds.length < nodeIdArray.length },
+      }),
+    );
     updateHaloRadius();
   };
 
@@ -3171,7 +3166,9 @@ function createGraph(graphContainerSelector) {
 
         graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
-        graph.options().zoomSlider().updateZoomSliderValue(zoomFactor);
+        graph.dispatchEvent(
+          new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+        );
       });
   };
 
@@ -3190,9 +3187,7 @@ function createGraph(graphContainerSelector) {
   /** -- VOWL EDITOR  create/ edit /delete functions --         **/
   /** --------------------------------------------------------- **/
 
-  graph.changeNodeType = function (element) {
-    const typeString = d3.select("#typeEditor").node().value;
-
+  graph.changeNodeType = function (element, typeString) {
     if (graph.classesSanityCheck(element, typeString) === false) {
       // call reselection to restore previous type selection
       graph.options().editSidebar().updateSelectionInformation(element);
@@ -3270,9 +3265,7 @@ function createGraph(graphContainerSelector) {
     graph.getUpdateDictionary();
   };
 
-  graph.changePropertyType = function (element) {
-    const typeString = d3.select("#typeEditor").node().value;
-
+  graph.changePropertyType = function (element, typeString) {
     // create warning
     if (
       graph.sanityCheckProperty(
@@ -3386,93 +3379,25 @@ function createGraph(graphContainerSelector) {
     }
   }
 
-  function updateEditorModeDependentControls() {
-    const create_entry = d3.select("#empty");
-    const create_container = d3.select("#emptyContainer");
-    const emptyHint = d3.select("#empty-disabled-hint");
-    const createMessage = editMode
-      ? "Creates a new empty ontology"
-      : "Enable editing in Modes menu to be able to create a new ontology";
-
-    if (create_entry.node()) {
-      create_entry
-        .property("disabled", !editMode)
-        .property("title", createMessage);
-    }
-    if (create_container.node()) {
-      create_container.property("title", createMessage);
-    }
-
-    d3.select("#useAccuracyHelper")
-      .classed("disabled", !editMode)
-      .attr("aria-disabled", editMode ? null : "true");
-    const accuracyCheckbox = d3
-      .select("#useAccuracyHelperConfigCheckbox")
-      .node();
-    if (accuracyCheckbox) {
-      accuracyCheckbox.disabled = !editMode;
-    }
-
-    if (emptyHint.node()) {
-      emptyHint.text(createMessage);
-      emptyHint.classed("hidden", editMode);
-    }
-  }
-
-  graph.updateEditorModeDependentControls = updateEditorModeDependentControls;
-
   graph.editorMode = function (val) {
     if (!arguments.length) {
       return editMode;
     }
 
-    const modeOfOpString = d3.select("#modeOfOperationString").node();
     editMode = Boolean(val);
+    graph.dispatchEvent(
+      new CustomEvent("editorchange", { detail: { value: editMode } }),
+    );
     graph.options().setEditorModeForDefaultObject(editMode);
     if (editMode === false) {
       seenEditorHint = false;
-    }
-    updateEditorModeDependentControls();
-
-    // adjust compact notation
-    // selector = compactNotationOption;
-    // box =ModuleCheckbox
-    const compactNotationContainer = d3.select(
-      "#compactnotationModuleCheckbox",
-    );
-    const compactNotationOption = d3.select("#compactNotationOption");
-    if (compactNotationContainer.node()) {
-      compactNotationOption
-        .classed("disabled", editMode)
-        .attr("aria-disabled", editMode ? "true" : null);
-      if (!editMode) {
-        compactNotationContainer.node().title = "";
-        compactNotationContainer.node().disabled = false;
-        compactNotationOption.node().title = "";
-        options.literalFilter().enabled(true);
-        graph.update();
-      } else {
-        // if editor Mode
-        //1) uncheck the element
-        compactNotationOption.node().title =
-          "Compact notation can only be used in view mode";
-        compactNotationContainer.node().disabled = true;
-        compactNotationContainer.node().checked = false;
-        options.compactNotationModule().enabled(false);
-        options.literalFilter().enabled(false);
-        graph.executeCompactNotationModule();
-        graph.executeEmptyLiteralFilter();
-        graph.lazyRefresh();
-      }
+      options.compactNotationModule().enabled(false);
+      options.literalFilter().enabled(false);
+      graph.executeCompactNotationModule();
+      graph.executeEmptyLiteralFilter();
+      graph.lazyRefresh();
     }
 
-    if (modeOfOpString) {
-      if (touchDevice === true) {
-        modeOfOpString.innerHTML = "touch able device detected";
-      } else {
-        modeOfOpString.innerHTML = "point & click device detected";
-      }
-    }
     const svgGraph = d3.selectAll(".vowlGraph");
 
     if (editMode === true) {
@@ -3501,7 +3426,7 @@ function createGraph(graphContainerSelector) {
   }
 
   function createNewNodeAtPosition(pos) {
-    const typeToCreate = d3.select("#defaultClass").node().title;
+    const typeToCreate = graph.options().defaultClass();
     const prototype = NodePrototypeMap.get(typeToCreate.toLowerCase());
     const aNode = new prototype(graph);
     let autoEditElement = false;
@@ -3518,7 +3443,7 @@ function createGraph(graphContainerSelector) {
     aNode.id("Class" + eN++);
     // aNode.paused(true);
 
-    aNode.baseIri(d3.select("#iriEditor").node().value);
+    aNode.baseIri(graph.options().baseIri());
     aNode.iri(aNode.baseIri() + aNode.id());
     addNewNodeElement(aNode);
     options.focuserModule().handle(null, aNode, true);
@@ -3939,7 +3864,7 @@ function createGraph(graphContainerSelector) {
   function createNewObjectProperty(domain, range, draggerEndposition) {
     // check type of the property that we want to create;
 
-    const defaultPropertyName = d3.select("#defaultProperty").node().title;
+    const defaultPropertyName = graph.options().defaultProperty();
 
     // check if we are allow to create that property
     if (
@@ -3956,7 +3881,7 @@ function createGraph(graphContainerSelector) {
     aProp.domain(domain);
     aProp.range(range);
     aProp.label("newObjectProperty");
-    aProp.baseIri(d3.select("#iriEditor").node().value);
+    aProp.baseIri(graph.options().baseIri());
     aProp.iri(aProp.baseIri() + aProp.id());
 
     // check for duplicate;
@@ -4048,7 +3973,7 @@ function createGraph(graphContainerSelector) {
     let aNode, prototype;
 
     // create a default datatype Node >> HERE LITERAL;
-    const defaultDatatypeName = d3.select("#defaultDatatype").node().title;
+    const defaultDatatypeName = graph.options().defaultDatatype();
     if (defaultDatatypeName === "rdfs:Literal") {
       prototype = NodePrototypeMap.get("rdfs:literal");
       aNode = new prototype(graph);
@@ -4101,7 +4026,7 @@ function createGraph(graphContainerSelector) {
     aProp.label("newDatatypeProperty");
 
     // TODO: change its base IRI to proper value
-    const ontoIri = d3.select("#iriEditor").node().value;
+    const ontoIri = graph.options().baseIri();
     aProp.baseIri(ontoIri);
     aProp.iri(ontoIri + aProp.id());
     // add this to the data;

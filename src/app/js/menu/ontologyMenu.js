@@ -127,8 +127,6 @@ function createOntologyMenu(graph) {
     setupUploadButton();
     setupEmptyButton();
 
-
-
     setupUriListener();
     loadingModule.setOntologyMenu(ontologyMenu);
   };
@@ -368,16 +366,60 @@ function createOntologyMenu(graph) {
     });
   }
 
+  function updateEditorModeDependentControls(editMode) {
+    const create_entry = document.getElementById("empty");
+    const create_container = document.getElementById("emptyContainer");
+    const emptyHint = document.getElementById("empty-disabled-hint");
+    const createMessage = editMode
+      ? "Creates a new empty ontology"
+      : "Enable editing in Modes menu to be able to create a new ontology";
+
+    if (create_entry) {
+      create_entry.disabled = !editMode;
+      create_entry.title = createMessage;
+    }
+    if (create_container) {
+      create_container.title = createMessage;
+    }
+
+    const useAccuracyHelper = document.getElementById("useAccuracyHelper");
+    if (useAccuracyHelper) {
+      useAccuracyHelper.classList.toggle("disabled", !editMode);
+      if (editMode) {
+        useAccuracyHelper.removeAttribute("aria-disabled");
+      } else {
+        useAccuracyHelper.setAttribute("aria-disabled", "true");
+      }
+    }
+
+    const accuracyCheckbox = document.getElementById(
+      "useAccuracyHelperConfigCheckbox",
+    );
+    if (accuracyCheckbox) {
+      accuracyCheckbox.disabled = !editMode;
+    }
+
+    if (emptyHint) {
+      emptyHint.textContent = createMessage;
+      emptyHint.classList.toggle("hidden", editMode);
+    }
+  }
+
   function setupEmptyButton() {
     const emptyButton = document.getElementById("empty");
-    emptyButton.addEventListener("click", function () {
-      if (emptyButton.disabled) {
-        return false;
-      }
-      loadingModule.createNewOntology();
-      graph.options().navigationMenu().hideAllMenus();
+    if (emptyButton) {
+      emptyButton.addEventListener("click", function () {
+        if (emptyButton.disabled) {
+          return false;
+        }
+        loadingModule.createNewOntology();
+        graph.options().navigationMenu().hideAllMenus();
+      });
+    }
+    updateEditorModeDependentControls(graph.editorMode());
+    graph.addEventListener("editorchange", function (event) {
+      updateEditorModeDependentControls(event.detail.value);
     });
-    graph.updateEditorModeDependentControls();
   }
 
   function appendLoadingStatusText(container, message) {

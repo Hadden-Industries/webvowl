@@ -788,13 +788,15 @@ module.exports = function (graph) {
           } else {
             // some error occurred
             ontologyMenu.append_bulletPoint("Failed to load: " + ontology);
-            if (error.status === 0) {
+            const errorStatus =
+              error.status !== undefined ? error.status : error.message || 0;
+            if (errorStatus === 0 || errorStatus === "Failed to fetch") {
               // assumption this is CORS error when running locally (error status == 0)
               ontologyMenu.append_message_toLastBulletPoint(" ERROR STATUS:", {
                 tone: "error",
               });
               ontologyMenu.append_message_toLastBulletPoint(
-                " " + error.status,
+                " " + errorStatus,
                 {},
               );
               if (window.location.toString().startsWith("file:/")) {
@@ -824,7 +826,7 @@ module.exports = function (graph) {
                 tone: "error",
               });
               ontologyMenu.append_message_toLastBulletPoint(
-                " " + error.status,
+                " " + errorStatus,
                 {},
               );
             }

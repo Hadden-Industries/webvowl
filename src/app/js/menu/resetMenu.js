@@ -45,7 +45,7 @@ module.exports = function (graph) {
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         graph.resetSearchHighlight();
-        graph.options().searchMenu().clearText();
+        graph.dispatchEvent(new CustomEvent("searchcleared"));
         options.classDistance(untouchedOptions.classDistance());
         options.datatypeDistance(untouchedOptions.datatypeDistance());
         options.charge(untouchedOptions.charge());

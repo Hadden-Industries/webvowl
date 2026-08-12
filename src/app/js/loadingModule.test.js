@@ -5,13 +5,27 @@ class MockSelection {
   constructor() {
     this.textContent = "";
   }
-  classed() { return this; }
-  attr() { return this; }
-  property() { return this; }
-  append() { return new MockSelection(); }
-  text() { return this; }
-  style() { return this; }
-  on() { return this; }
+  classed() {
+    return this;
+  }
+  attr() {
+    return this;
+  }
+  property() {
+    return this;
+  }
+  append() {
+    return new MockSelection();
+  }
+  text() {
+    return this;
+  }
+  style() {
+    return this;
+  }
+  on() {
+    return this;
+  }
   remove() {}
   node() {
     return { innerHTML: "", scrollHeight: 0, scrollTop: 0 };
@@ -19,12 +33,12 @@ class MockSelection {
 }
 
 global.document = {
-  querySelector: jest.fn().mockReturnValue(new MockSelection())
+  querySelector: jest.fn().mockReturnValue(new MockSelection()),
 };
 global.window = {
   history: {
-    pushState: jest.fn()
-  }
+    pushState: jest.fn(),
+  },
 };
 describe("loading module create-new command", () => {
   let graph;

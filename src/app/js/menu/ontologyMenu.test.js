@@ -11,7 +11,7 @@ class MockSelection {
     this.element.addEventListener = (type, handler) => {
       this.handlers[type] = handler;
     };
-    
+
     this.element.removeEventListener = (type, handler) => {
       if (this.handlers[type] === handler) {
         delete this.handlers[type];
@@ -207,7 +207,8 @@ describe("ontology menu actions", () => {
         loadingModule: () => loadingModule,
         navigationMenu: () => ({ hideAllMenus }),
       }),
-      updateEditorModeDependentControls: jest.fn(),
+      editorMode: jest.fn().mockReturnValue(false),
+      addEventListener: jest.fn(),
       showReloadButtonAfterLayoutOptimization: jest.fn(),
     };
 

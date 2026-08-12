@@ -50,6 +50,11 @@ module.exports = (function () {
     let redundantProperties = [];
 
     this.existingPropertyIRI = function (url) {
+      // Emit an event that the app could respond to, though this is a synchronous return value.
+      // For now, we leave the direct call intact, but emit the event for future async migration.
+      graph.dispatchEvent(
+        new CustomEvent("urlcheckrequested", { detail: { url: url } }),
+      );
       return graph.options().editSidebar().checkForExistingURL(url);
     };
 
@@ -232,7 +237,7 @@ module.exports = (function () {
       that.focused(!that.focused());
       labelElement.select("rect").classed("focused", that.focused());
       graph.resetSearchHighlight();
-      graph.options().searchMenu().clearText();
+      graph.dispatchEvent(new CustomEvent("searchcleared"));
     };
     this.getShapeElement = function () {
       return shapeElement;
@@ -886,8 +891,12 @@ module.exports = (function () {
         that.labelElement().selectAll(".foreignelements").remove();
       }
       backupFullIri = undefined;
-      graph.options().focuserModule().handle(undefined);
-      graph.options().focuserModule().handle(that);
+      graph.dispatchEvent(
+        new CustomEvent("elementfocused", { detail: { element: undefined } }),
+      );
+      graph.dispatchEvent(
+        new CustomEvent("elementfocused", { detail: { element: that } }),
+      );
       that.editingTextElement = true;
       ignoreLocalHoverEvents = true;
       that.labelElement().selectAll("rect").classed("hoveredForEditing", true);
@@ -965,20 +974,30 @@ module.exports = (function () {
           }
         })
         .on("keyup", function (event) {
+          let syncedIRI = null;
           if (forceIRISync) {
             const labelName = editText.node().value;
             const resourceName = labelName.replaceAll(" ", "_");
-            const syncedIRI = that.baseIri() + resourceName;
+            syncedIRI = that.baseIri() + resourceName;
             backupFullIri = syncedIRI;
-
-            d3.select("#element_iriEditor").node().title = syncedIRI;
-            d3.select("#element_iriEditor").node().value = graph
+          }
+          let prefixedIri = null;
+          if (forceIRISync) {
+            prefixedIri = graph
               .options()
               .prefixModule()
               .getPrefixRepresentationForFullURI(syncedIRI);
           }
-          d3.select("#element_labelEditor").node().value =
-            editText.node().value;
+          graph.dispatchEvent(
+            new CustomEvent("editor-element-keyup", {
+              detail: {
+                element: that,
+                label: editText.node().value,
+                syncedIRI: forceIRISync ? syncedIRI : null,
+                prefixedIri: prefixedIri,
+              },
+            }),
+          );
         })
         .on("blur", function (event) {
           that.editingTextElement = false;
@@ -993,8 +1012,8 @@ module.exports = (function () {
           that.label(newLabel);
           that.backupLabel(newLabel);
           that.redrawLabelText();
-          if (graph.options().searchMenu()) {
-            graph.options().searchMenu().requestDictionaryUpdate();
+          if (graph !== undefined) {
+            graph.dispatchEvent(new CustomEvent("dictionarychange"));
           }
           updateHoverElements(true);
           graph.showHoverElementsAfterAnimation(that, false);
@@ -1032,8 +1051,14 @@ module.exports = (function () {
             }
             that.iri(backupFullIri);
           }
-          graph.options().focuserModule().handle(undefined);
-          graph.options().focuserModule().handle(that);
+          graph.dispatchEvent(
+            new CustomEvent("elementfocused", {
+              detail: { element: undefined },
+            }),
+          );
+          graph.dispatchEvent(
+            new CustomEvent("elementfocused", { detail: { element: that } }),
+          );
           graph.updatePropertyDraggerElements(that);
         }); // add a foreiner element to this thing;
     };

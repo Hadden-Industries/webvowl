@@ -124,8 +124,12 @@ module.exports = (function () {
       }
 
       backupFullIri = undefined;
-      graph.options().focuserModule().handle(undefined);
-      graph.options().focuserModule().handle(that);
+      graph.dispatchEvent(
+        new CustomEvent("elementfocused", { detail: { element: undefined } }),
+      );
+      graph.dispatchEvent(
+        new CustomEvent("elementfocused", { detail: { element: that } }),
+      );
       // add again the editing elements to that one
       if (graph.isTouchDevice() === true) {
         graph.activateHoverElements(true, that, true);
@@ -186,20 +190,30 @@ module.exports = (function () {
           }
         })
         .on("keyup", function (event) {
+          let syncedIRI = null;
           if (forceIRISync) {
             const labelName = editText.node().value;
             const resourceName = labelName.replaceAll(" ", "_");
-            const syncedIRI = that.baseIri() + resourceName;
+            syncedIRI = that.baseIri() + resourceName;
             backupFullIri = syncedIRI;
-
-            d3.select("#element_iriEditor").node().title = syncedIRI;
-            d3.select("#element_iriEditor").node().value = graph
+          }
+          let prefixedIri = null;
+          if (forceIRISync) {
+            prefixedIri = graph
               .options()
               .prefixModule()
               .getPrefixRepresentationForFullURI(syncedIRI);
           }
-          d3.select("#element_labelEditor").node().value =
-            editText.node().value;
+          graph.dispatchEvent(
+            new CustomEvent("editor-element-keyup", {
+              detail: {
+                element: that,
+                label: editText.node().value,
+                syncedIRI: forceIRISync ? syncedIRI : null,
+                prefixedIri: prefixedIri,
+              },
+            }),
+          );
         })
         .on("blur", function (event) {
           that.editingTextElement = false;
@@ -214,8 +228,8 @@ module.exports = (function () {
           that.label(newLabel);
           that.backupLabel(newLabel);
           that.redrawLabelText();
-          if (graph.options().searchMenu()) {
-            graph.options().searchMenu().requestDictionaryUpdate();
+          if (graph !== undefined) {
+            graph.dispatchEvent(new CustomEvent("dictionarychange"));
           }
           that.frozen(graph.paused());
           that.locked(graph.paused());
@@ -246,8 +260,14 @@ module.exports = (function () {
             }
           }
           if (graph.isADraggerActive() === false) {
-            graph.options().focuserModule().handle(undefined);
-            graph.options().focuserModule().handle(that);
+            graph.dispatchEvent(
+              new CustomEvent("elementfocused", {
+                detail: { element: undefined },
+              }),
+            );
+            graph.dispatchEvent(
+              new CustomEvent("elementfocused", { detail: { element: that } }),
+            );
           }
         }); // add a foreiner element to this thing;
     };

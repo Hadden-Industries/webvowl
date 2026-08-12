@@ -32,10 +32,14 @@ module.exports = function (graph) {
     const defaultLinkDistance = distanceFunction();
     const sliderContainer = document.querySelector(selector);
 
-    const sliderValueLabel = sliderContainer.querySelector("#" + identifier + "DistanceSliderValue");
+    const sliderValueLabel = sliderContainer.querySelector(
+      "#" + identifier + "DistanceSliderValue",
+    );
     sliderValueLabel.textContent = defaultLinkDistance;
 
-    const slider = sliderContainer.querySelector("#" + identifier + "DistanceSlider");
+    const slider = sliderContainer.querySelector(
+      "#" + identifier + "DistanceSlider",
+    );
     slider.setAttribute("value", defaultLinkDistance);
 
     // Store slider for easier resetting
@@ -43,7 +47,7 @@ module.exports = function (graph) {
       reset: function () {
         slider.value = defaultLinkDistance;
         slider.dispatchEvent(new Event("input"));
-      }
+      },
     });
 
     slider.addEventListener("focusout", function () {

@@ -293,5 +293,73 @@ module.exports = function (graph) {
     // this simulates onclick and inverts its state
     colorModeSwitch.update(silent);
   };
+
+  modeMenu.syncEditorState = function (editMode) {
+    const editorCheckbox = document.querySelector("#editorModeModuleCheckbox");
+    if (editorCheckbox) {
+      editorCheckbox.checked = editMode;
+    }
+
+    const create_entry = document.querySelector("#empty");
+    const create_container = document.querySelector("#emptyContainer");
+    const emptyHint = document.querySelector("#empty-disabled-hint");
+    const createMessage = editMode
+      ? "Creates a new empty ontology"
+      : "Enable editing in Modes menu to be able to create a new ontology";
+
+    if (create_entry) {
+      create_entry.disabled = !editMode;
+      create_entry.title = createMessage;
+    }
+    if (create_container) {
+      create_container.title = createMessage;
+    }
+
+    const accuracyHelper = document.querySelector("#useAccuracyHelper");
+    if (accuracyHelper) {
+      if (!editMode) {
+        accuracyHelper.classList.add("disabled");
+        accuracyHelper.setAttribute("aria-disabled", "true");
+      } else {
+        accuracyHelper.classList.remove("disabled");
+        accuracyHelper.removeAttribute("aria-disabled");
+      }
+    }
+    const accuracyCheckbox = document.querySelector(
+      "#useAccuracyHelperConfigCheckbox",
+    );
+    if (accuracyCheckbox) {
+      accuracyCheckbox.disabled = !editMode;
+    }
+
+    if (emptyHint) {
+      emptyHint.textContent = createMessage;
+      if (editMode) {
+        emptyHint.classList.add("hidden");
+      } else {
+        emptyHint.classList.remove("hidden");
+      }
+    }
+
+    const compactNotationContainer = document.querySelector(
+      "#compactnotationModuleCheckbox",
+    );
+    const compactNotationOption = document.querySelector(
+      "#compactNotationOption",
+    );
+    if (compactNotationContainer) {
+      if (editMode) {
+        compactNotationOption.classList.add("disabled");
+        compactNotationOption.setAttribute("aria-disabled", "true");
+      } else {
+        compactNotationOption.classList.remove("disabled");
+        compactNotationOption.removeAttribute("aria-disabled");
+        compactNotationContainer.title = "";
+        compactNotationContainer.disabled = false;
+        compactNotationOption.title = "";
+      }
+    }
+  };
+
   return modeMenu;
 };
