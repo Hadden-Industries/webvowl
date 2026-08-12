@@ -1,25 +1,31 @@
-/** @jest-environment jsdom */
 import { beforeEach, describe, expect, jest, test } from "@jest/globals";
 import loadingModuleFactory from "./loadingModule.js";
 
 class MockSelection {
-  classed() {
-    return this;
+  constructor() {
+    this.textContent = "";
   }
-  attr() {
-    return this;
-  }
-  property() {
-    return this;
-  }
-  text() {
-    return this;
-  }
+  classed() { return this; }
+  attr() { return this; }
+  property() { return this; }
+  append() { return new MockSelection(); }
+  text() { return this; }
+  style() { return this; }
+  on() { return this; }
+  remove() {}
   node() {
     return { innerHTML: "", scrollHeight: 0, scrollTop: 0 };
   }
 }
 
+global.document = {
+  querySelector: jest.fn().mockReturnValue(new MockSelection())
+};
+global.window = {
+  history: {
+    pushState: jest.fn()
+  }
+};
 describe("loading module create-new command", () => {
   let graph;
   let loadingModule;
