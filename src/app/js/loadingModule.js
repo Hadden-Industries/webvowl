@@ -886,12 +886,19 @@ module.exports = function (graph) {
     const optString = "opts=";
 
     function loadDefaultConfig() {
-      graph.options().setOptionsFromURL(graph.options().defaultConfig(), false);
+      graph.dispatchEvent(
+        new CustomEvent("urloptions", {
+          detail: {
+            opts: graph.options().initialConfig(),
+            changeEditFlag: false,
+          },
+        }),
+      );
     }
 
     function loadCustomConfig(opts) {
       let changeEditingFlag = false;
-      const defObj = graph.options().defaultConfig();
+      const defObj = graph.options().initialConfig();
       for (let i = 0; i < opts.length; i++) {
         const keyVal = opts[i].split("=");
         if (keyVal[0] === "editorMode") {
@@ -899,7 +906,11 @@ module.exports = function (graph) {
         }
         defObj[keyVal[0]] = keyVal[1];
       }
-      graph.options().setOptionsFromURL(defObj, changeEditingFlag);
+      graph.dispatchEvent(
+        new CustomEvent("urloptions", {
+          detail: { opts: defObj, changeEditFlag: changeEditingFlag },
+        }),
+      );
     }
 
     function identifyOptions(paramArray) {

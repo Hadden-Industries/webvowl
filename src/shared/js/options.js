@@ -19,24 +19,9 @@ module.exports = function () {
     // some filters
     literalFilter,
     // menus
-    gravityMenu,
-    filterMenu,
-    loadingModule,
-    modeMenu,
-    pausedMenu,
-    pickAndPinModule,
-    resetMenu,
-    ontologyMenu,
-    sidebar,
-    leftSidebar,
-    editSidebar,
-    navigationMenu,
-    exportMenu,
     graphObject,
     datatypeFilter,
-    focuserModule,
-    searchMenu,
-    zoomSlider;
+    focuserModule;
   let colorExternalsModule;
   let compactNotationModule;
   let nodeScalingModule;
@@ -60,6 +45,21 @@ module.exports = function () {
   let hideDebugOptions = true;
   let nodeDegreeFilter;
   let debugMenu;
+  let searchMenu;
+  let exportMenu;
+  let gravityMenu;
+  let filterMenu;
+  let modeMenu;
+  let pauseMenu;
+  let resetMenu;
+  let ontologyMenu;
+  let navigationMenu;
+  let zoomSlider;
+  let sidebar;
+  let leftSidebar;
+  let editSidebar;
+  let loadingModule;
+  let pickAndPinModule;
 
   // Sourced from the W3C OWL 2 Specification (https://www.w3.org/TR/owl2-syntax/#Real_Numbers.2C_Decimal_Numbers.2C_and_Integers)
   const supportedDatatypes = [
@@ -121,7 +121,7 @@ module.exports = function () {
   options.getHideDebugFeatures = function () {
     return hideDebugOptions;
   };
-  options.executeHiddenDebugFeatuers = function () {
+  options.executeHiddenDebugFeatures = function () {
     hideDebugOptions = !hideDebugOptions;
     d3.selectAll(".debugOption").classed("hidden", hideDebugOptions);
     if (hideDebugOptions === false) {
@@ -246,7 +246,7 @@ module.exports = function () {
       }
       options.removePrefix(oldPrefix);
       options.addPrefix(newPrefix, newURL);
-      editSidebar.updateEditDeleteButtonIds(oldPrefix, newPrefix);
+
       return true;
     }
 
@@ -313,6 +313,13 @@ module.exports = function () {
       return showInputModality;
     }
     showInputModality = val;
+  };
+
+  options.graphObject = function (val) {
+    if (!arguments.length) {
+      return graphObject;
+    }
+    graphObject = val;
   };
 
   options.drawPropertyDraggerOnHover = function (val) {
@@ -398,7 +405,6 @@ module.exports = function () {
     setOperatorFilter = val;
   };
 
-
   const defaultOptionsConfig = {};
   defaultOptionsConfig.sidebar = "1";
   defaultOptionsConfig.doc = -1;
@@ -481,15 +487,6 @@ module.exports = function () {
     baseIri = val;
   };
 
-
-
-  options.exportMenu = function (val) {
-    if (!arguments.length) {
-      return exportMenu;
-    }
-    exportMenu = val;
-  };
-
   options.rectangularRepresentation = function (val) {
     if (!arguments.length) {
       return rectangularRep;
@@ -510,7 +507,6 @@ module.exports = function () {
       dynamicLabelWidth = val;
     }
   };
-
 
   options.charge = function (p) {
     if (!arguments.length) {
@@ -655,9 +651,107 @@ module.exports = function () {
     return options;
   };
 
+  options.searchMenu = function (val) {
+    if (!arguments.length) {
+      return searchMenu;
+    }
+    searchMenu = val;
+  };
+  options.exportMenu = function (val) {
+    if (!arguments.length) {
+      return exportMenu;
+    }
+    exportMenu = val;
+  };
+  options.gravityMenu = function (val) {
+    if (!arguments.length) {
+      return gravityMenu;
+    }
+    gravityMenu = val;
+  };
+  options.filterMenu = function (val) {
+    if (!arguments.length) {
+      return filterMenu;
+    }
+    filterMenu = val;
+  };
+  options.modeMenu = function (val) {
+    if (!arguments.length) {
+      return modeMenu;
+    }
+    modeMenu = val;
+  };
+  options.pausedMenu = function (val) {
+    if (!arguments.length) {
+      return pauseMenu;
+    }
+    pauseMenu = val;
+  };
+  options.resetMenu = function (val) {
+    if (!arguments.length) {
+      return resetMenu;
+    }
+    resetMenu = val;
+  };
+  options.ontologyMenu = function (val) {
+    if (!arguments.length) {
+      return ontologyMenu;
+    }
+    ontologyMenu = val;
+  };
+  options.navigationMenu = function (val) {
+    if (!arguments.length) {
+      return navigationMenu;
+    }
+    navigationMenu = val;
+  };
+  options.zoomSlider = function (val) {
+    if (!arguments.length) {
+      return zoomSlider;
+    }
+    zoomSlider = val;
+  };
+  options.sidebar = function (val) {
+    if (!arguments.length) {
+      return sidebar;
+    }
+    sidebar = val;
+  };
+  options.leftSidebar = function (val) {
+    if (!arguments.length) {
+      return leftSidebar;
+    }
+    leftSidebar = val;
+  };
+  options.editSidebar = function (val) {
+    if (!arguments.length) {
+      return editSidebar;
+    }
+    editSidebar = val;
+  };
+  options.loadingModule = function (val) {
+    if (!arguments.length) {
+      return loadingModule;
+    }
+    loadingModule = val;
+  };
+  options.pickAndPinModule = function (val) {
+    if (!arguments.length) {
+      return pickAndPinModule;
+    }
+    pickAndPinModule = val;
+  };
 
-
-
+  options.setHideDebugFeatures = function (val) {
+    hideDebugOptions = val;
+  };
+  let globalDOF = -1;
+  options.setGlobalDOF = function (val) {
+    if (!arguments.length) {
+      return globalDOF;
+    }
+    globalDOF = val;
+  };
 
   return options;
 };

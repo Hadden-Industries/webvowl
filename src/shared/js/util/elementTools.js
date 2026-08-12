@@ -1,11 +1,11 @@
-const BaseProperty = require("../elements/properties/BaseProperty");
-const BaseNode = require("../elements/nodes/BaseNode");
-const DatatypeNode = require("../elements/nodes/DatatypeNode");
-const Thing = require("../elements/nodes/implementations/OwlThing");
-const ObjectProperty = require("../elements/properties/implementations/OwlObjectProperty");
-const DatatypeProperty = require("../elements/properties/implementations/OwlDatatypeProperty");
-const RdfsSubClassOf = require("../elements/properties/implementations/RdfsSubClassOf");
-const Label = require("../elements/links/Label");
+const BaseProperty = require("../../../webvowl/js/elements/properties/BaseProperty");
+const BaseNode = require("../../../webvowl/js/elements/nodes/BaseNode");
+const DatatypeNode = require("../../../webvowl/js/elements/nodes/DatatypeNode");
+const Thing = require("../../../webvowl/js/elements/nodes/implementations/OwlThing");
+const ObjectProperty = require("../../../webvowl/js/elements/properties/implementations/OwlObjectProperty");
+const DatatypeProperty = require("../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty");
+const RdfsSubClassOf = require("../../../webvowl/js/elements/properties/implementations/RdfsSubClassOf");
+const Label = require("../../../webvowl/js/elements/links/Label");
 
 const tools = {};
 module.exports = function () {

@@ -25,7 +25,7 @@ module.exports = (function () {
       styleClass,
       visible = true,
       backupLabel;
-    const languageTools = require("../util/languageTools")();
+    const languageTools = require("../../../shared/js/util/languageTools")();
 
     this.backupLabel = function (label) {
       if (!arguments.length) {

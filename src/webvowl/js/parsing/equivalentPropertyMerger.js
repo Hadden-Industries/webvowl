@@ -1,6 +1,6 @@
 const OwlThing = require("../elements/nodes/implementations/OwlThing");
 const RdfsLiteral = require("../elements/nodes/implementations/RdfsLiteral");
-const elementTools = require("../util/elementTools")();
+const elementTools = require("../../../shared/js/util/elementTools")();
 
 const equivalentPropertyMerger = {};
 module.exports = function () {
