@@ -25,7 +25,7 @@ const app = require("./app/js/entry");
 //   webvowl = <exports>            (from entry "webvowl")
 //   webvowl.app = <exports>        (from entry "webvowl.app" with dotted name)
 // The HTML initialization script expects webvowl.app() to be callable.
-window.webvowl = webvowl;
+// Global reference for debugging or legacy reasons removed as part of UI decoupling
 webvowl.app = app;
 const application = webvowl.app();
 

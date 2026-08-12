@@ -312,11 +312,13 @@ async function copyInputValue( inputNode, clipboardApi, documentNode ){
       .node().parentNode.innerHTML;
 
     // Insert the reference to VOWL
+    const version = require("../../../shared/js/util/constants")()
+      .WEBVOWL_VERSION;
     graphSvgCode =
       "<!-- Created with WebVOWL (version " +
-      webvowl.version +
+      version +
       ")" +
-      ", http://vowl.visualdataweb.org -->\n" +
+      ", https://github.com/Hadden-Industries/webvowl -->\n" +
       graphSvgCode;
 
     const escapedGraphSvgCode = escapeUnicodeCharacters(graphSvgCode);

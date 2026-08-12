@@ -39,8 +39,8 @@ function renderOntologyIri( element, iri ){
  */
 module.exports = function (graph) {
   const sidebar = {};
-  const languageTools = webvowl.util.languageTools();
-  const elementTools = webvowl.util.elementTools();
+  const languageTools = require("../../shared/js/util/languageTools")();
+  const elementTools = require("../../shared/js/util/elementTools")();
   // Required for reloading when the language changes
   let ontologyInfo;
   let visibleSidebar = 1;
@@ -229,14 +229,18 @@ module.exports = function (graph) {
 
     // Put the default and unset label on top of the selection labels
     languages.sort(function (a, b) {
-      if (a === webvowl.util.constants().LANG_IRIBASED) {
+      if (a === require("../../shared/js/util/constants")().LANG_IRIBASED) {
         return -1;
-      } else if (b === webvowl.util.constants().LANG_IRIBASED) {
+      } else if (
+        b === require("../../shared/js/util/constants")().LANG_IRIBASED
+      ) {
         return 1;
       }
-      if (a === webvowl.util.constants().LANG_UNDEFINED) {
+      if (a === require("../../shared/js/util/constants")().LANG_UNDEFINED) {
         return -1;
-      } else if (b === webvowl.util.constants().LANG_UNDEFINED) {
+      } else if (
+        b === require("../../shared/js/util/constants")().LANG_UNDEFINED
+      ) {
         return 1;
       }
       return a.localeCompare(b);
@@ -501,8 +505,9 @@ module.exports = function (graph) {
     const universalEntries = [];
     const languageEntries = [];
 
-    const langUndefined = webvowl.util.constants().LANG_UNDEFINED;
-    const langIri = webvowl.util.constants().LANG_IRIBASED;
+    const langUndefined = require("../../shared/js/util/constants")()
+      .LANG_UNDEFINED;
+    const langIri = require("../../shared/js/util/constants")().LANG_IRIBASED;
 
     for ( let i = 0; i < items.length; i++ ) {
       const item = items[i];

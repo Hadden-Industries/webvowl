@@ -4,9 +4,9 @@ String.prototype.replaceAll = function (search, replacement) {
 };
 module.exports = function () {
   const app = {},
-    graph = webvowl.graph(),
+    graph = require("../../webvowl/js/graph")(),
     options = graph.graphOptions(),
-    languageTools = webvowl.util.languageTools(),
+    languageTools = require("../../shared/js/util/languageTools")(),
     GRAPH_SELECTOR = "#graph",
     // Modules for the webvowl app
     exportMenu = require("./menu/exportMenu")(graph),
@@ -28,28 +28,37 @@ module.exports = function () {
     warningModule = require("./warningModule")(graph),
     directInputMod = require("./directInputModule")(graph),
     // Graph modules
-    colorExternalsSwitch = webvowl.modules.colorExternalsSwitch(graph),
-    compactNotationSwitch = webvowl.modules.compactNotationSwitch(graph),
-    datatypeFilter = webvowl.modules.datatypeFilter(),
-    disjointFilter = webvowl.modules.disjointFilter(),
-    focuser = webvowl.modules.focuser(graph),
-    emptyLiteralFilter = webvowl.modules.emptyLiteralFilter(),
-    nodeDegreeFilter = webvowl.modules.nodeDegreeFilter(filterMenu),
-    nodeScalingSwitch = webvowl.modules.nodeScalingSwitch(graph),
-    objectPropertyFilter = webvowl.modules.objectPropertyFilter(),
-    pickAndPin = webvowl.modules.pickAndPin(),
-    selectionDetailDisplayer = webvowl.modules.selectionDetailsDisplayer(
-      sidebar.updateSelectionInformation,
+    colorExternalsSwitch =
+      require("../../shared/js/modules/colorExternalsSwitch")(graph),
+    compactNotationSwitch =
+      require("../../shared/js/modules/compactNotationSwitch")(graph),
+    datatypeFilter = require("../../shared/js/modules/datatypeFilter")(),
+    disjointFilter = require("../../shared/js/modules/disjointFilter")(),
+    focuser = require("../../shared/js/modules/focuser")(graph),
+    emptyLiteralFilter =
+      require("../../shared/js/modules/emptyLiteralFilter")(),
+    nodeDegreeFilter = require("../../shared/js/modules/nodeDegreeFilter")(
+      filterMenu,
     ),
-    statistics = webvowl.modules.statistics(),
-    subclassFilter = webvowl.modules.subclassFilter(),
-    setOperatorFilter = webvowl.modules.setOperatorFilter();
+    nodeScalingSwitch = require("../../shared/js/modules/nodeScalingSwitch")(
+      graph,
+    ),
+    objectPropertyFilter =
+      require("../../shared/js/modules/objectPropertyFilter")(),
+    pickAndPin = require("../../shared/js/modules/pickAndPin")(),
+    selectionDetailDisplayer =
+      require("../../shared/js/modules/selectionDetailsDisplayer")(
+        sidebar.updateSelectionInformation,
+      ),
+    statistics = require("../../shared/js/modules/statistics")(),
+    subclassFilter = require("../../shared/js/modules/subclassFilter")(),
+    setOperatorFilter = require("../../shared/js/modules/setOperatorFilter")();
 
   app.getOptions = function () {
-    return webvowl.opts;
+    return options;
   };
   app.getGraph = function () {
-    return webvowl.gr;
+    return graph;
   };
   // app.afterInitializationCallback=undefined;
 
