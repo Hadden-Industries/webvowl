@@ -99,18 +99,19 @@ module.exports = function (graph) {
     };
 
     configCheckbox.addEventListener("click", clickHandler);
-    configCheckbox.__clickHandler = clickHandler;
-    checkboxes.push(configCheckbox);
+    checkboxes.push({
+      id: configCheckbox.id,
+      element: configCheckbox,
+      update: clickHandler,
+    });
   }
 
   configMenu.setCheckBoxValue = function (identifier, value) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].id;
-      if (cbdId === identifier) {
-        checkboxes[i].checked = value;
-        if (checkboxes[i].__clickHandler) {
-          checkboxes[i].__clickHandler();
-        }
+      const item = checkboxes[i];
+      if (item.id === identifier) {
+        item.element.checked = value;
+        item.update();
         break;
       }
     }
@@ -118,19 +119,17 @@ module.exports = function (graph) {
 
   configMenu.getCheckBoxValue = function (id) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].id;
-      if (cbdId === id) {
-        return checkboxes[i].checked;
+      const item = checkboxes[i];
+      if (item.id === id) {
+        return item.element.checked;
       }
     }
   };
 
   configMenu.updateSettings = function () {
     const silent = true;
-    checkboxes.forEach(function (checkbox) {
-      if (checkbox.__clickHandler) {
-        checkbox.__clickHandler(silent);
-      }
+    checkboxes.forEach(function (item) {
+      item.update(silent);
     });
   };
 
