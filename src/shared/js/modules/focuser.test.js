@@ -1,3 +1,9 @@
+jest.mock("../util/elementTools", () => {
+  return () => ({
+    isProperty: (elem) => elem && elem.isProperty === true,
+  });
+});
+
 const focuserFactory = require("./focuser");
 
 describe("Focuser Module Unit Tests", () => {
@@ -6,14 +12,6 @@ describe("Focuser Module Unit Tests", () => {
   let updateSelectionInformationMock;
 
   beforeEach(() => {
-    global.webvowl = {
-      util: {
-        elementTools: () => ({
-          isProperty: (elem) => elem && elem.isProperty === true,
-        }),
-      },
-    };
-
     updateSelectionInformationMock = jest.fn();
     graphMock = {
       options: () => ({

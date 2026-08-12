@@ -5,10 +5,11 @@
  */
 module.exports = function (graph) {
   const editSidebar = {},
-    languageTools = webvowl.util.languageTools(),
-    elementTools = webvowl.util.elementTools();
+    languageTools = require("../../shared/js/util/languageTools")(),
+    elementTools = require("../../shared/js/util/elementTools")();
 
-  const prefixModule = webvowl.util.prefixTools(graph);
+  const prefixModule =
+    require("../../shared/js/util/prefixRepresentationModule")(graph);
   let selectedElementForCharacteristics;
   let oldPrefix, oldPrefixURL;
   let prefix_editMode = false;

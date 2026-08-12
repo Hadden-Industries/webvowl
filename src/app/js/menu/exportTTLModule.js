@@ -9,7 +9,8 @@ module.exports = function (graph) {
   let currentProperties;
   let Map_ID2Node = {};
   let Map_ID2Prop = {};
-  const prefixModule = webvowl.util.prefixTools(graph);
+  const prefixModule =
+    require("../../../shared/js/util/prefixRepresentationModule")(graph);
 
   exportTTLModule.requestExport = function () {
     prefixModule.updatePrefixModel();

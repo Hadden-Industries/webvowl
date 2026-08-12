@@ -6,7 +6,7 @@ const propertyMap = require("./elements/properties/propertyMap")();
 const webvowl = {};
 webvowl.graph = require("./graph");
 webvowl.options = require("../../shared/js/options");
-webvowl.version = "@@WEBVOWL_VERSION";
+webvowl.version = require("../../shared/js/util/constants")().WEBVOWL_VERSION;
 
 webvowl.util = {};
 webvowl.util.constants = require("../../shared/js/util/constants");

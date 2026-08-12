@@ -8,7 +8,7 @@ module.exports = function (graph) {
   const resetMenu = {};
   const options = graph.graphOptions();
   let resettableModules;
-  const untouchedOptions = webvowl.options();
+  const untouchedOptions = require("../../../shared/js/options")();
 
   /**
    * Adds the reset button to the website.
