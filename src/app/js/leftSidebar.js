@@ -5,11 +5,11 @@
  */
 module.exports = function (graph) {
   const leftSidebar = {};
-  const collapseButton = d3.select("#leftSideBarCollapseButton");
+  const collapseButton = document.querySelector("#leftSideBarCollapseButton");
   let visibleSidebar = 0;
   let backupVisibility = 0;
-  const sideBarContent = d3.select("#leftSideBarContent");
-  const sideBarContainer = d3.select("#containerForLeftSideBar");
+  const sideBarContent = document.querySelector("#leftSideBarContent");
+  const sideBarContainer = document.querySelector("#containerForLeftSideBar");
   const defaultClassSelectionContainers = [];
   const defaultDatatypeSelectionContainers = [];
   const defaultPropertySelectionContainers = [];
@@ -45,18 +45,18 @@ module.exports = function (graph) {
   };
 
   leftSidebar.hideCollapseButton = function (val) {
-    sideBarContainer.classed("hidden", val);
-    collapseButton.classed("hidden", val);
+    sideBarContainer.classList.toggle("hidden", val);
+    collapseButton.classList.toggle("hidden", val);
   };
 
   function unselectAllElements(container) {
     for (let i = 0; i < container.length; i++) {
-      container[i].classed("defaultSelected", false);
+      container[i].classList.remove("defaultSelected");
     }
   }
 
   function selectThisDefaultElement(element) {
-    d3.select(element).classed("defaultSelected", true);
+    element.classList.add("defaultSelected");
   }
 
   function updateDefaultNameInAccordion(element, identifier) {
@@ -71,9 +71,9 @@ module.exports = function (graph) {
       elementDescription = "Property: ";
     }
 
-    d3.select("#" + identifier).node().innerHTML =
+    document.querySelector("#" + identifier).innerHTML =
       elementDescription + element.innerHTML;
-    d3.select("#" + identifier).node().title = element.innerHTML;
+    document.querySelector("#" + identifier).title = element.innerHTML;
   }
 
   function classSelectorFunction() {
@@ -96,9 +96,9 @@ module.exports = function (graph) {
 
   function setupSelectionContainers() {
     let aClassSelectionContainer;
-    const classContainer = d3.select("#classContainer");
-    const datatypeContainer = d3.select("#datatypeContainer");
-    const propertyContainer = d3.select("#propertyContainer");
+    const classContainer = document.querySelector("#classContainer");
+    const datatypeContainer = document.querySelector("#datatypeContainer");
+    const propertyContainer = document.querySelector("#propertyContainer");
     // create the supported elements
 
     const defaultClass = "owl:Class";
@@ -119,50 +119,57 @@ module.exports = function (graph) {
       aClassSelectionContainer.node().innerHTML = supportedClasses[i];
 
       if (supportedClasses[i] === defaultClass) {
-        selectThisDefaultElement(aClassSelectionContainer.node());
+        selectThisDefaultElement(aClassSelectionContainer);
       }
-      aClassSelectionContainer.on("click", classSelectorFunction);
+      aClassSelectionContainer.addEventListener("click", classSelectorFunction);
       defaultClassSelectionContainers.push(aClassSelectionContainer);
     }
 
     for (i = 0; i < supportedDatatypes.length; i++) {
-      const aDTSelectionContainer = datatypeContainer.append("div");
-      aDTSelectionContainer.classed("containerForDefaultSelection", true);
-      aDTSelectionContainer.classed("noselect", true);
-      aDTSelectionContainer.node().id =
-        "selectedDatatype" + supportedDatatypes[i];
-      aDTSelectionContainer.node().innerHTML = supportedDatatypes[i];
+      const aDTSelectionContainer = document.createElement("div");
+      datatypeContainer.appendChild(aDTSelectionContainer);
+      aDTSelectionContainer.classList.add("containerForDefaultSelection");
+      aDTSelectionContainer.classList.add("noselect");
+      aDTSelectionContainer.id = "selectedDatatype" + supportedDatatypes[i];
+      aDTSelectionContainer.innerHTML = supportedDatatypes[i];
 
       if (supportedDatatypes[i] === defaultDatatype) {
-        selectThisDefaultElement(aDTSelectionContainer.node());
+        selectThisDefaultElement(aDTSelectionContainer);
       }
-      aDTSelectionContainer.on("click", datatypeSelectorFunction);
+      aDTSelectionContainer.addEventListener("click", datatypeSelectorFunction);
       defaultDatatypeSelectionContainers.push(aDTSelectionContainer);
     }
     for (i = 0; i < supportedProperties.length; i++) {
-      const aPropSelectionContainer = propertyContainer.append("div");
-      aPropSelectionContainer.classed("containerForDefaultSelection", true);
-      aPropSelectionContainer.classed("noselect", true);
-      aPropSelectionContainer.node().id =
-        "selectedClass" + supportedProperties[i];
-      aPropSelectionContainer.node().innerHTML = supportedProperties[i];
-      aPropSelectionContainer.on("click", propertySelectorFunction);
+      const aPropSelectionContainer = document.createElement("div");
+      propertyContainer.appendChild(aPropSelectionContainer);
+      aPropSelectionContainer.classList.add("containerForDefaultSelection");
+      aPropSelectionContainer.classList.add("noselect");
+      aPropSelectionContainer.id = "selectedClass" + supportedProperties[i];
+      aPropSelectionContainer.innerHTML = supportedProperties[i];
+      aPropSelectionContainer.addEventListener(
+        "click",
+        propertySelectorFunction,
+      );
       if (supportedProperties[i] === defaultProperty) {
-        selectThisDefaultElement(aPropSelectionContainer.node());
+        selectThisDefaultElement(aPropSelectionContainer);
       }
       defaultPropertySelectionContainers.push(aPropSelectionContainer);
     }
   }
 
   function setupCollapsing() {
-    // adapted version of this example: http://www.normansblog.de/simple-jquery-accordion/
-    function collapseContainers(containers) {
-      containers.classed("hidden", true);
-    }
+    const triggers = document.querySelectorAll(".accordion-trigger");
 
-    function expandContainers(containers) {
-      containers.classed("hidden", false);
-    }
+    triggers.forEach(function (trigger) {
+      trigger.setAttribute("tabindex", "0");
+      trigger.setAttribute("role", "button");
+      trigger.addEventListener("keydown", function (event) {
+        const evt = event || window.event;
+        if (evt && (evt.key === "Enter" || evt.key === " ")) {
+          evt.preventDefault();
+          this.click();
+        }
+      });
 
     const triggers = d3.selectAll(".accordion-trigger");
 
@@ -224,7 +231,7 @@ module.exports = function (graph) {
   };
 
   leftSidebar.showSidebar = function (val, init) {
-    const collapseButton = d3.select("#leftSideBarCollapseButton");
+    const collapseButton = document.querySelector("#leftSideBarCollapseButton");
     
     if (init === true) {
       visibleSidebar = backupVisibility === 0;
@@ -256,7 +263,7 @@ module.exports = function (graph) {
 
     const isVisible = (val === 1);
     visibleSidebar = isVisible;
-    collapseButton.node().innerHTML = isVisible ? "<" : ">";
+    collapseButton.innerHTML = isVisible ? "<" : ">";
 
     if (val === 1) {
       visibleSidebar = true;
@@ -265,6 +272,10 @@ module.exports = function (graph) {
       sideBarContainer.style("-webkit-animation-name", "l_sbExpandAnimation");
       sideBarContainer.style("-webkit-animation-duration", "0.5s");
       // prepare the animation;
+
+    document
+      .querySelector("#WarningErrorMessages")
+      .classList.toggle("aligned-to-left-sidebar", isVisible);
 
       d3.select("#WarningErrorMessages").style(
         "-webkit-animation-name",
@@ -295,7 +306,7 @@ module.exports = function (graph) {
   };
 
   leftSidebar.getSidebarVisibility = function () {
-    const isHidden = sideBarContent.classed("hidden");
+    const isHidden = sideBarContent.classList.contains("hidden");
     if (isHidden === false) {
       return String(1);
     }

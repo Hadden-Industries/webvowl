@@ -51,10 +51,10 @@ module.exports = function (graph) {
       .attr("id", identifier + "valueLabel")
       .text(onChangeFunction());
 
-    slider.on("input", function () {
-      const value = slider.property("value");
+    slider.addEventListener("input", function () {
+      const value = slider.value;
       onChangeFunction(value);
-      sliderValueLabel.text(value);
+      sliderValueLabel.textContent = value;
       if (graph.options().dynamicLabelWidth() === true) {
         graph.animateDynamicLabelWidth();
       }
@@ -73,12 +73,12 @@ module.exports = function (graph) {
       if (wheelEvent.deltaY > 0) {
         offset = -10;
       }
-      const oldVal = parseInt(slider.property("value"));
+      const oldVal = parseInt(slider.value);
       const newSliderValue = oldVal + offset;
       if (newSliderValue !== oldVal) {
-        slider.property("value", newSliderValue);
+        slider.value = newSliderValue;
         onChangeFunction(newSliderValue);
-        slider.on("input")(); // << set text and update the graphStyles
+        slider.dispatchEvent(new Event("input")); // << set text and update the graphStyles
       }
       event.preventDefault();
     });
@@ -120,7 +120,10 @@ module.exports = function (graph) {
           graph.updateDraggerElements();
         }
       }
-    });
+    };
+
+    configCheckbox.addEventListener("click", clickHandler);
+    configCheckbox.__clickHandler = clickHandler;
     checkboxes.push(configCheckbox);
     configOptionContainer
       .append("label")
@@ -130,7 +133,7 @@ module.exports = function (graph) {
 
   configMenu.setCheckBoxValue = function (identifier, value) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].attr("id");
+      const cbdId = checkboxes[i].id;
       if (cbdId === identifier) {
         checkboxes[i].property("checked", value);
         if ( checkboxes[i].on("click") ) {
@@ -143,9 +146,9 @@ module.exports = function (graph) {
 
   configMenu.getCheckBoxValue = function (id) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].attr("id");
+      const cbdId = checkboxes[i].id;
       if (cbdId === id) {
-        return checkboxes[i].property("checked");
+        return checkboxes[i].checked;
       }
     }
   };
@@ -153,7 +156,9 @@ module.exports = function (graph) {
   configMenu.updateSettings = function () {
     const silent = true;
     checkboxes.forEach(function (checkbox) {
-      checkbox.on("click")(silent);
+      if (checkbox.__clickHandler) {
+        checkbox.__clickHandler(silent);
+      }
     });
   };
 

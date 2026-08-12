@@ -21,8 +21,8 @@ module.exports = function (graph) {
 
   let results = [];
   let resultID = [];
-  const c_locate = d3.select("#locateSearchResult");
-  const listbox = d3.select("#search-results-listbox");
+  const c_locate = document.getElementById("locateSearchResult");
+  const listbox = document.getElementById("search-results-listbox");
 
   String.prototype.beginsWith = function (string) {
     return this.indexOf(string) === 0;
@@ -113,23 +113,32 @@ module.exports = function (graph) {
       if ( typeof c_locate.node().disabled !== "undefined" ) {
         c_locate.node().disabled = !effectiveEnabled;
       }
+      c_locate.disabled = !effectiveEnabled;
       const titleText = effectiveEnabled ? "Locate search term" : "Nothing to locate";
-      c_locate.node().title = titleText;
-      c_locate.attr("aria-label", titleText);
+      c_locate.title = titleText;
+      c_locate.setAttribute("aria-label", titleText);
     }
   }
 
   function expandMobileSearch(){
-    d3.select("#c_search").classed("search-expanded", true);
-    d3.select("#scrollLeftButton").classed("hidden-by-search", true);
-    d3.select("#scrollRightButton").classed("hidden-by-search", true);
+    document.getElementById("c_search").classList.add("search-expanded");
+    document
+      .getElementById("scrollLeftButton")
+      .classList.add("hidden-by-search");
+    document
+      .getElementById("scrollRightButton")
+      .classList.add("hidden-by-search");
     updateClearButtonVisibility();
   }
 
   function collapseMobileSearch(){
-    d3.select("#c_search").classed("search-expanded", false);
-    d3.select("#scrollLeftButton").classed("hidden-by-search", false);
-    d3.select("#scrollRightButton").classed("hidden-by-search", false);
+    document.getElementById("c_search").classList.remove("search-expanded");
+    document
+      .getElementById("scrollLeftButton")
+      .classList.remove("hidden-by-search");
+    document
+      .getElementById("scrollRightButton")
+      .classList.remove("hidden-by-search");
   }
 
   function updateVisualViewportMetrics(){
@@ -153,7 +162,7 @@ module.exports = function (graph) {
 
   function portalSearchResults(){
     const overlayLayer = document.getElementById("applicationOverlayLayer");
-    const listboxNode = listbox.node();
+    const listboxNode = listbox;
     if ( overlayLayer && listboxNode && listboxNode.parentNode !== overlayLayer ) {
       overlayLayer.appendChild(listboxNode);
     }
@@ -166,7 +175,7 @@ module.exports = function (graph) {
 
     setLocateButtonState(false);
 
-    searchLineEdit = d3.select("#search-input-text");
+    searchLineEdit = document.getElementById("search-input-text");
 
     searchLineEdit.on("input", userInput);
     searchLineEdit.on("keydown", userNavigation);
@@ -174,7 +183,7 @@ module.exports = function (graph) {
       updateSelectionStatusFlags();
       searchMenu.showSearchEntries();
     });
-    searchLineEdit.on("focus", hoverSearchEntryView);
+    searchLineEdit.addEventListener("focus", hoverSearchEntryView);
 
     c_locate.on("click", function () {
       graph.locateSearchResult();
@@ -192,10 +201,9 @@ module.exports = function (graph) {
       collapseMobileSearch();
     };
 
-    d3.select(document)
-      .on("click.searchCombobox", dismissSearchOnOutsideTap)
-      .on("pointerdown.searchCombobox", dismissSearchOnOutsideTap)
-      .on("touchstart.searchCombobox", dismissSearchOnOutsideTap);
+    document.addEventListener("click", dismissSearchOnOutsideTap);
+    document.addEventListener("pointerdown", dismissSearchOnOutsideTap);
+    document.addEventListener("touchstart", dismissSearchOnOutsideTap);
 
     listbox.on("click", function (event){
       let target = event && event.target;
@@ -207,8 +215,19 @@ module.exports = function (graph) {
         if ( elementId !== null && elementId !== undefined ) {
           selectSearchResult(parseInt(elementId, 10), event);
         }
-      }
-    });
+        if (
+          target &&
+          target.classList &&
+          target.classList.contains("search-option") &&
+          !target.classList.contains("search-entry-disabled")
+        ) {
+          const elementId = target.getAttribute("elementID");
+          if (elementId !== null && elementId !== undefined) {
+            selectSearchResult(parseInt(elementId, 10), event);
+          }
+        }
+      });
+    }
 
     if ( window.visualViewport ) {
       const handleVisualViewportChange = function (){
@@ -260,7 +279,7 @@ module.exports = function (graph) {
   }
 
   function updateSelectionStatusFlags() {
-    if (searchLineEdit.node().value.length === 0) {
+    if (searchLineEdit.value.length === 0) {
       createSearchEntries();
       return;
     }
@@ -279,7 +298,10 @@ module.exports = function (graph) {
       return;
     }
 
-    const htmlCollection = listbox.node().children;
+    if (!listbox) {
+      return;
+    }
+    const htmlCollection = listbox.children;
     const numEntries = htmlCollection.length;
 
     let move = 0;
@@ -297,7 +319,7 @@ module.exports = function (graph) {
         selectSearchResult(parseInt(elementId, 10), event);
         searchMenu.hideSearchEntries();
       } else if (numEntries === 0) {
-        inputText = searchLineEdit.node().value;
+        inputText = searchLineEdit.value;
         let clearedText = inputText.replace(/%20/g, " ");
         while (clearedText.beginsWith(" ")) {
           clearedText = clearedText.substr(1, clearedText.length);
@@ -311,7 +333,7 @@ module.exports = function (graph) {
         if (valid) {
           const ontM = graph.options().ontologyMenu();
           ontM.setIriText(iri);
-          searchLineEdit.node().value = "";
+          searchLineEdit.value = "";
         } else {
           console.warn(iri + " is not a valid URL!");
         }
@@ -346,7 +368,7 @@ module.exports = function (graph) {
   }
 
   searchMenu.getSearchString = function () {
-    return searchLineEdit.node().value;
+    return searchLineEdit.value;
   };
 
   function clearSearchEntries() {
@@ -360,7 +382,7 @@ module.exports = function (graph) {
   }
 
   function createSearchEntries() {
-    inputText = searchLineEdit.node().value;
+    inputText = searchLineEdit.value;
     let i;
     const lc_text = inputText.toLowerCase();
     let token;
@@ -429,6 +451,9 @@ module.exports = function (graph) {
   }
 
   function createDropDownElements() {
+    if (!listbox) {
+      return;
+    }
     const copyRes = [];
     let i;
     for ( i = 0; i < results.length; i++ ) {
@@ -524,20 +549,19 @@ module.exports = function (graph) {
         }
       }
 
-      const searchEntryNode = d3.select(testEntry);
       if (eLen === 1 || allSame === true) {
         if (nodeMap[entries[0]] === undefined) {
-          searchEntryNode.classed("search-entry-disabled", true);
+          testEntry.classList.add("search-entry-disabled");
           testEntry.title = newResults[i] + "\nElement is filtered out.";
           testEntry.onclick = function () {};
         }
       } else {
         if (visible < 1) {
-          searchEntryNode.classed("search-entry-disabled", true);
+          testEntry.classList.add("search-entry-disabled");
           testEntry.onclick = function () {};
           testEntry.title = newResults[i] + "\nAll elements are filtered out.";
         } else {
-          searchEntryNode.classed("search-entry-disabled", false);
+          testEntry.classList.remove("search-entry-disabled");
         }
         if (visible < eLen && visible > 1) {
           testEntry.title =
@@ -551,7 +575,7 @@ module.exports = function (graph) {
       }
 
       testEntry.innerHTML = "<span>" + matchHtml + "</span>" + badgeHtml;
-      listbox.node().appendChild(testEntry);
+      listbox.appendChild(testEntry);
     }
   }
 
@@ -581,7 +605,7 @@ module.exports = function (graph) {
       console.warn("dictionary is empty");
       return;
     }
-    inputText = searchLineEdit.node().value;
+    inputText = searchLineEdit.value;
     updateClearButtonVisibility();
 
     clearSearchEntries();
@@ -662,9 +686,9 @@ module.exports = function (graph) {
 
   searchMenu.setMenuMode = function ( enabled ){
     menuEnabled = Boolean(enabled);
-    d3.select("#search-input-text").property("disabled", !menuEnabled);
-    d3.select("#mobile-search-toggle-btn").property("disabled", !menuEnabled);
-    d3.select("#search-clear-btn").property("disabled", !menuEnabled);
+    document.getElementById("search-input-text").disabled = !menuEnabled;
+    document.getElementById("mobile-search-toggle-btn").disabled = !menuEnabled;
+    document.getElementById("search-clear-btn").disabled = !menuEnabled;
     setLocateButtonState(locateAvailable);
     if ( !menuEnabled ) {
       searchMenu.hideSearchEntries();

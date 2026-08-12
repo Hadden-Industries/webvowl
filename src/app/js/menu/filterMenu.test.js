@@ -48,6 +48,16 @@ class MockElement {
       add: (...names) => { names.forEach((n) => self._classList.add(n)); },
       remove: (...names) => { names.forEach((n) => self._classList.delete(n)); },
       contains: (name) => self._classList.has(name),
+      toggle: (name, force) => {
+        const shouldAdd =
+          force !== undefined ? force : !self._classList.has(name);
+        if (shouldAdd) {
+          self._classList.add(name);
+        } else {
+          self._classList.delete(name);
+        }
+        return shouldAdd;
+      },
     };
   }
 

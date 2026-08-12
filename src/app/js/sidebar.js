@@ -15,18 +15,19 @@ function navigableIri( value ){
 
 function appendIriLabel( element, name, iri ){
   const href = navigableIri(iri);
-  const tag = element.append(href ? "a" : "span");
+  const tag = document.createElement(href ? "a" : "span");
+  element.appendChild(tag);
 
   if ( href ) {
     tag.attr("href", href)
       .attr("title", href)
       .attr("target", "_blank");
   }
-  tag.text(name);
+  tag.textContent = name;
 }
 
 function renderOntologyIri( element, iri ){
-  element.text("");
+  element.textContent = "";
   const label = typeof iri === "string" && iri.trim() ? iri.trim() : "not given";
   appendIriLabel(element, label, iri);
 }
@@ -55,39 +56,45 @@ module.exports = function (graph) {
 
   function setupCollapsing() {
     // adapted version of this example: http://www.normansblog.de/simple-jquery-accordion/
-    function collapseContainers(containers) {
-      containers.classed("hidden", true);
-    }
-
-    function expandContainers(containers) {
-      containers.classed("hidden", false);
-    }
-
-    const triggers = d3.selectAll(".accordion-trigger");
+    const triggers = document.querySelectorAll(".accordion-trigger");
 
     // Collapse all inactive triggers on startup
-    collapseContainers(
-      d3.selectAll(".accordion-trigger:not(.accordion-trigger-active) + div"),
-    );
+    document
+      .querySelectorAll(
+        ".accordion-trigger:not(.accordion-trigger-active) + div",
+      )
+      .forEach(function (el) {
+        el.classList.add("hidden");
+      });
 
-    triggers.on("click", function () {
-      const selectedTrigger = d3.select(this),
-        activeTriggers = d3.selectAll(".accordion-trigger-active");
-
-      if (selectedTrigger.classed("accordion-trigger-active")) {
-        // Collapse the active (which is also the selected) trigger
-        collapseContainers(
-          d3.select(selectedTrigger.node().nextElementSibling),
+      trigger.addEventListener("click", function () {
+        const activeTriggers = document.querySelectorAll(
+          ".accordion-trigger-active",
         );
-        selectedTrigger.classed("accordion-trigger-active", false);
-      } else {
-        // Collapse the other trigger ...
-        collapseContainers(d3.selectAll(".accordion-trigger-active + div"));
-        activeTriggers.classed("accordion-trigger-active", false);
-        // ... and expand the selected one
-        expandContainers(d3.select(selectedTrigger.node().nextElementSibling));
-        selectedTrigger.classed("accordion-trigger-active", true);
-      }
+
+        if (this.classList.contains("accordion-trigger-active")) {
+          // Collapse the active (which is also the selected) trigger
+          if (this.nextElementSibling) {
+            this.nextElementSibling.classList.add("hidden");
+          }
+          this.classList.remove("accordion-trigger-active");
+        } else {
+          // Collapse the other trigger ...
+          document
+            .querySelectorAll(".accordion-trigger-active + div")
+            .forEach(function (el) {
+              el.classList.add("hidden");
+            });
+          activeTriggers.forEach(function (el) {
+            el.classList.remove("accordion-trigger-active");
+          });
+          // ... and expand the selected one
+          if (this.nextElementSibling) {
+            this.nextElementSibling.classList.remove("hidden");
+          }
+          this.classList.add("accordion-trigger-active");
+        }
+      });
     });
   }
 
@@ -110,12 +117,12 @@ module.exports = function (graph) {
     d3.select("#edgeCount").text("0");
 
     // clear selectedNode info
-    const isTriggerActive = d3
-      .select("#selection-details-trigger")
-      .classed("accordion-trigger-active");
+    const isTriggerActive = document
+      .querySelector("#selection-details-trigger")
+      .classList.contains("accordion-trigger-active");
     if (isTriggerActive) {
       // close accordion
-      d3.select("#selection-details-trigger").node().click();
+      document.querySelector("#selection-details-trigger").click();
     }
     showSelectionAdvice();
   };
@@ -300,50 +307,49 @@ module.exports = function (graph) {
     const authors = ontologyInfo.author;
     if (typeof authors === "string") {
       // Stay compatible with author info as strings after change in january 2015
-      d3.select("#authors").text(authors);
+      document.querySelector("#authors").textContent = authors;
     } else if (authors instanceof Array) {
-      d3.select("#authors").text(authors.join(", "));
+      document.querySelector("#authors").textContent = authors.join(", ");
     } else {
-      d3.select("#authors").text("--");
+      document.querySelector("#authors").textContent = "--";
     }
 
     const description = languageTools.textInLanguage(
       ontologyInfo.description,
       graph.language(),
     );
-    d3.select("#description").text(description || "No description available.");
+    document.querySelector("#description").textContent =
+      description || "No description available.";
   }
 
   function displayGraphStatistics(deliveredMetrics, statistics) {
     // Metrics are optional and may be undefined
     deliveredMetrics = deliveredMetrics || {};
 
-    d3.select("#classCount").text(
-      deliveredMetrics.classCount || statistics.classCount(),
-    );
-    d3.select("#objectPropertyCount").text(
-      deliveredMetrics.objectPropertyCount || statistics.objectPropertyCount(),
-    );
-    d3.select("#datatypePropertyCount").text(
+    document.querySelector("#classCount").textContent =
+      deliveredMetrics.classCount || statistics.classCount();
+    document.querySelector("#objectPropertyCount").textContent =
+      deliveredMetrics.objectPropertyCount || statistics.objectPropertyCount();
+    document.querySelector("#datatypePropertyCount").textContent =
       deliveredMetrics.datatypePropertyCount ||
-        statistics.datatypePropertyCount(),
-    );
-    d3.select("#individualCount").text(
+      statistics.datatypePropertyCount();
+    document.querySelector("#individualCount").textContent =
       deliveredMetrics.totalIndividualCount ||
-        statistics.totalIndividualCount(),
-    );
-    d3.select("#nodeCount").text(statistics.nodeCount());
-    d3.select("#edgeCount").text(statistics.edgeCount());
+      statistics.totalIndividualCount();
+    document.querySelector("#nodeCount").textContent = statistics.nodeCount();
+    document.querySelector("#edgeCount").textContent = statistics.edgeCount();
   }
 
   function displayMetadata(metadata) {
-    const container = d3.select("#ontology-metadata");
-    container.selectAll("*").remove();
+    const container = document.querySelector("#ontology-metadata");
+    container.innerHTML = "";
 
     listAnnotations(container, metadata);
 
-    if (container.selectAll(".annotation").size() <= 0) {
-      container.append("p").text("No annotations available.");
+    if (container.querySelectorAll(".annotation").length <= 0) {
+      const p = document.createElement("p");
+      p.textContent = "No annotations available.";
+      container.appendChild(p);
     }
   }
 
@@ -588,7 +594,6 @@ module.exports = function (graph) {
         predicateIri = d.predicateNs + rawLocal;
         localName = rawLocal;
       } else if ( d.identifier && d.identifier.indexOf(":") !== -1 ) {
-        // identifier is already a CURIE — resolve using well-known prefixes
         var WELL_KNOWN = {
           "rdf":     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
           "rdfs":    "http://www.w3.org/2000/01/rdf-schema#",
@@ -608,9 +613,9 @@ module.exports = function (graph) {
       
       if ( predicateIri && localName ) {
         appendIriLabel(p, localName, predicateIri);
-        p.node().appendChild(document.createTextNode(": "));
+        p.appendChild(document.createTextNode(": "));
       } else {
-        p.node().appendChild(document.createTextNode(d.identifier + ": "));
+        p.appendChild(document.createTextNode(d.identifier + ": "));
       }
       
 
@@ -618,7 +623,7 @@ module.exports = function (graph) {
       if ( d.type === "iri" ) {
         appendIriLabel(valueSpan, d.value, d.value);
       } else {
-        valueSpan.text(d.value);
+        valueSpan.textContent = d.value;
       }
     });
   }
@@ -635,11 +640,11 @@ module.exports = function (graph) {
       return;
     }
 
-    const isTriggerActive = d3
-      .select("#selection-details-trigger")
-      .classed("accordion-trigger-active");
+    const isTriggerActive = document
+      .querySelector("#selection-details-trigger")
+      .classList.contains("accordion-trigger-active");
     if (selectedElement && !isTriggerActive) {
-      d3.select("#selection-details-trigger").node().click();
+      document.querySelector("#selection-details-trigger").click();
     } else if (!selectedElement && isTriggerActive) {
       showSelectionAdvice();
       return;
@@ -661,87 +666,103 @@ module.exports = function (graph) {
     showProperties,
     showAdvice,
   ) {
-    d3.select("#classSelectionInformation").classed("hidden", !showClasses);
-    d3.select("#propertySelectionInformation").classed(
-      "hidden",
-      !showProperties,
-    );
-    d3.select("#noSelectionInformation").classed("hidden", !showAdvice);
+    document
+      .querySelector("#classSelectionInformation")
+      .classList.toggle("hidden", !showClasses);
+    document
+      .querySelector("#propertySelectionInformation")
+      .classList.toggle("hidden", !showProperties);
+    document
+      .querySelector("#noSelectionInformation")
+      .classList.toggle("hidden", !showAdvice);
   }
 
   function displayPropertyInformation(property) {
     showPropertyInformations();
 
     setIriLabel(
-      d3.select("#propname"),
+      document.querySelector("#propname"),
       property.labelForCurrentLanguage(),
       property.iri(),
     );
-    d3.select("#typeProp").text(property.type());
+
+    document.querySelector("#typeProp").textContent = property.type();
 
     if (property.inverse() !== undefined) {
-      d3.select("#inverse").classed("hidden", false);
+      document.querySelector("#inverse").classList.remove("hidden");
       setIriLabel(
-        d3.select("#inverse span"),
+        document.querySelector("#inverse span"),
         property.inverse().labelForCurrentLanguage(),
         property.inverse().iri(),
       );
     } else {
-      d3.select("#inverse").classed("hidden", true);
+      document.querySelector("#inverse").classList.add("hidden");
     }
 
-    const equivalentIriSpan = d3.select("#propEquivUri");
+    const equivalentIriSpan = document.querySelector("#propEquivUri");
     listNodeArray(equivalentIriSpan, property.equivalents());
 
-    listNodeArray(d3.select("#subproperties"), property.subproperties());
-    listNodeArray(d3.select("#superproperties"), property.superproperties());
+    listNodeArray(
+      document.querySelector("#subproperties"),
+      property.subproperties(),
+    );
+    listNodeArray(
+      document.querySelector("#superproperties"),
+      property.superproperties(),
+    );
 
     if (property.minCardinality() !== undefined) {
-      d3.select("#infoCardinality").classed("hidden", true);
-      d3.select("#minCardinality").classed("hidden", false);
-      d3.select("#minCardinality span").text(property.minCardinality());
-      d3.select("#maxCardinality").classed("hidden", false);
+      document.querySelector("#infoCardinality").classList.add("hidden");
+      document.querySelector("#minCardinality").classList.remove("hidden");
+      document.querySelector("#minCardinality span").textContent =
+        property.minCardinality();
+      document.querySelector("#maxCardinality").classList.remove("hidden");
 
       if (property.maxCardinality() !== undefined) {
-        d3.select("#maxCardinality span").text(property.maxCardinality());
+        document.querySelector("#maxCardinality span").textContent =
+          property.maxCardinality();
       } else {
-        d3.select("#maxCardinality span").text("*");
+        document.querySelector("#maxCardinality span").textContent = "*";
       }
     } else if (property.cardinality() !== undefined) {
-      d3.select("#minCardinality").classed("hidden", true);
-      d3.select("#maxCardinality").classed("hidden", true);
-      d3.select("#infoCardinality").classed("hidden", false);
-      d3.select("#infoCardinality span").text(property.cardinality());
+      document.querySelector("#minCardinality").classList.add("hidden");
+      document.querySelector("#maxCardinality").classList.add("hidden");
+      document.querySelector("#infoCardinality").classList.remove("hidden");
+      document.querySelector("#infoCardinality span").textContent =
+        property.cardinality();
     } else {
-      d3.select("#infoCardinality").classed("hidden", true);
-      d3.select("#minCardinality").classed("hidden", true);
-      d3.select("#maxCardinality").classed("hidden", true);
+      document.querySelector("#infoCardinality").classList.add("hidden");
+      document.querySelector("#minCardinality").classList.add("hidden");
+      document.querySelector("#maxCardinality").classList.add("hidden");
     }
 
     setIriLabel(
-      d3.select("#domain"),
+      document.querySelector("#domain"),
       property.domain().labelForCurrentLanguage(),
       property.domain().iri(),
     );
     setIriLabel(
-      d3.select("#range"),
+      document.querySelector("#range"),
       property.range().labelForCurrentLanguage(),
       property.range().iri(),
     );
 
-    displayAttributes(property.attributes(), d3.select("#propAttributes"));
+    displayAttributes(
+      property.attributes(),
+      document.querySelector("#propAttributes"),
+    );
 
     setTextAndVisibility(
-      d3.select("#propDescription"),
+      document.querySelector("#propDescription"),
       property.descriptionForCurrentLanguage(),
     );
     setTextAndVisibility(
-      d3.select("#propComment"),
+      document.querySelector("#propComment"),
       property.commentForCurrentLanguage(),
     );
 
     listAnnotations(
-      d3.select("#propertySelectionInformation"),
+      document.querySelector("#propertySelectionInformation"),
       property.annotations(),
     );
     
@@ -766,14 +787,14 @@ module.exports = function (graph) {
   }
 
   function setIriLabel(element, name, iri) {
-    const parent = d3.select(element.node().parentNode);
+    const parent = element.parentNode;
 
     if (name) {
-      element.selectAll("*").remove();
+      element.innerHTML = "";
       appendIriLabel(element, name, iri);
-      parent.classed("hidden", false);
+      parent.classList.remove("hidden");
     } else {
-      parent.classed("hidden", true);
+      parent.classList.add("hidden");
     }
   }
 
@@ -793,7 +814,7 @@ module.exports = function (graph) {
   }
 
   function displayAttributes(attributes, textSpan) {
-    const spanParent = d3.select(textSpan.node().parentNode);
+    const spanParent = textSpan.parentNode;
 
     if (attributes && attributes.length > 0) {
       // Remove redundant redundant attributes for sidebar
@@ -803,11 +824,11 @@ module.exports = function (graph) {
     }
 
     if (attributes && attributes.length > 0) {
-      textSpan.text(attributes.join(", "));
+      textSpan.textContent = attributes.join(", ");
 
-      spanParent.classed("hidden", false);
+      spanParent.classList.remove("hidden");
     } else {
-      spanParent.classed("hidden", true);
+      spanParent.classList.add("hidden");
     }
   }
 
@@ -821,25 +842,31 @@ module.exports = function (graph) {
   function displayNodeInformation(node) {
     showClassInformations();
 
-    setIriLabel(d3.select("#name"), node.labelForCurrentLanguage(), node.iri());
+    setIriLabel(
+      document.querySelector("#name"),
+      node.labelForCurrentLanguage(),
+      node.iri(),
+    );
 
     /* Equivalent stuff. */
-    const equivalentIriSpan = d3.select("#classEquivUri");
+    const equivalentIriSpan = document.querySelector("#classEquivUri");
     listNodeArray(equivalentIriSpan, node.equivalents());
 
-    d3.select("#typeNode").text(node.type());
-    listNodeArray(d3.select("#individuals"), node.individuals());
+    document.querySelector("#typeNode").textContent = node.type();
+    listNodeArray(document.querySelector("#individuals"), node.individuals());
 
     /* Disjoint stuff. */
-    const disjointNodes = d3.select("#disjointNodes");
-    const disjointNodesParent = d3.select(disjointNodes.node().parentNode);
+    const disjointNodes = document.querySelector("#disjointNodes");
+    const disjointNodesParent = disjointNodes.parentNode;
 
     if (node.disjointWith() !== undefined) {
-      disjointNodes.selectAll("*").remove();
+      disjointNodes.innerHTML = "";
 
       node.disjointWith().forEach(function (element, index) {
         if (index > 0) {
-          disjointNodes.append("span").text(", ");
+          const s = document.createElement("span");
+          s.textContent = ", ";
+          disjointNodes.appendChild(s);
         }
         appendIriLabel(
           disjointNodes,
@@ -848,24 +875,27 @@ module.exports = function (graph) {
         );
       });
 
-      disjointNodesParent.classed("hidden", false);
+      disjointNodesParent.classList.remove("hidden");
     } else {
-      disjointNodesParent.classed("hidden", true);
+      disjointNodesParent.classList.add("hidden");
     }
 
-    displayAttributes(node.attributes(), d3.select("#classAttributes"));
+    displayAttributes(
+      node.attributes(),
+      document.querySelector("#classAttributes"),
+    );
 
     setTextAndVisibility(
-      d3.select("#nodeDescription"),
+      document.querySelector("#nodeDescription"),
       node.descriptionForCurrentLanguage(),
     );
     setTextAndVisibility(
-      d3.select("#nodeComment"),
+      document.querySelector("#nodeComment"),
       node.commentForCurrentLanguage(),
     );
 
     listAnnotations(
-      d3.select("#classSelectionInformation"),
+      document.querySelector("#classSelectionInformation"),
       node.annotations(),
     );
     
@@ -890,13 +920,15 @@ module.exports = function (graph) {
   }
 
   function listNodeArray(textSpan, nodes) {
-    const spanParent = d3.select(textSpan.node().parentNode);
+    const spanParent = textSpan.parentNode;
 
     if (nodes && nodes.length) {
-      textSpan.selectAll("*").remove();
+      textSpan.innerHTML = "";
       nodes.forEach(function (element, index) {
         if (index > 0) {
-          textSpan.append("span").text(", ");
+          const s = document.createElement("span");
+          s.textContent = ", ";
+          textSpan.appendChild(s);
         }
         appendIriLabel(
           textSpan,
@@ -905,19 +937,19 @@ module.exports = function (graph) {
         );
       });
 
-      spanParent.classed("hidden", false);
+      spanParent.classList.remove("hidden");
     } else {
-      spanParent.classed("hidden", true);
+      spanParent.classList.add("hidden");
     }
   }
 
   function setTextAndVisibility(label, value) {
-    const parentNode = d3.select(label.node().parentNode);
+    const parentNode = label.parentNode;
     const hasValue = !!value;
     if (value) {
-      label.text(value);
+      label.textContent = value;
     }
-    parentNode.classed("hidden", !hasValue);
+    parentNode.classList.toggle("hidden", !hasValue);
   }
 
   /** Collapsible Sidebar functions; **/
@@ -961,7 +993,7 @@ module.exports = function (graph) {
     var isMobileOrTablet = window.innerWidth <= 1024;
 
     if ( init === true ) {
-      d3.select("body").classed("no-transition", true);
+      document.querySelector("body").classList.add("no-transition");
     }
 
     if (val === 1) {
@@ -1055,7 +1087,7 @@ module.exports = function (graph) {
   };
 
   sidebar.getSidebarVisibility = function () {
-    const isHidden = detailArea.classed("hidden");
+    const isHidden = detailArea.classList.contains("hidden");
     if (isHidden === false) {
       return String(1);
     }
@@ -1066,7 +1098,7 @@ module.exports = function (graph) {
 
   sidebar.initSideBarAnimation = function () {
     graphArea.node().addEventListener("animationend", function () {
-      detailArea.classed("hidden", !visibleSidebar);
+      detailArea.classList.toggle("hidden", !visibleSidebar);
       graph.updateCanvasContainerSize();
       updateNavMenuScrollButtons();
     });
@@ -1090,6 +1122,12 @@ module.exports = function (graph) {
           event.preventDefault();
         }
       });
+      
+    collapseButton.addEventListener("contextmenu", function (event) {
+      if (event) {
+        event.preventDefault();
+      }
+    });
 
     if ( window.innerWidth <= 1024 ) {
       sidebar.showSidebar(0, true);
@@ -1098,8 +1136,12 @@ module.exports = function (graph) {
 
   sidebar.updateShowedInformation = function () {
     const editMode = graph.editorMode();
-    d3.select("#generalDetails").classed("hidden", editMode);
-    d3.select("#generalDetailsEdit").classed("hidden", !editMode);
+    document
+      .querySelector("#generalDetails")
+      .classList.toggle("hidden", editMode);
+    document
+      .querySelector("#generalDetailsEdit")
+      .classList.toggle("hidden", !editMode);
 
     // store the meta information in graph.options()
 
@@ -1117,12 +1159,12 @@ module.exports = function (graph) {
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "title")) {
       // title has language to it -.-
       if (typeof generalMetaObj.title === "object") {
-        d3.select("#title").node().value = languageTools.textInLanguage(
+        document.querySelector("#title").value = languageTools.textInLanguage(
           generalMetaObj.title,
           preferredLanguage,
         );
       } else {
-        d3.select("#title").node().innerHTML = generalMetaObj.title;
+        document.querySelector("#title").innerHTML = generalMetaObj.title;
       }
     }
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "iri")) {
@@ -1132,21 +1174,22 @@ module.exports = function (graph) {
       d3.select("#about").node().href = generalMetaObj.iri;
     }
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "version")) {
-      d3.select("#version").node().innerHTML = generalMetaObj.version;
+      document.querySelector("#version").innerHTML = generalMetaObj.version;
     }
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "author")) {
-      d3.select("#authors").node().innerHTML = generalMetaObj.author;
+      document.querySelector("#authors").innerHTML = generalMetaObj.author;
     }
     // this could also be an object >>
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "description")) {
       if (typeof generalMetaObj.description === "object") {
-        d3.select("#description").node().innerHTML =
+        document.querySelector("#description").innerHTML =
           languageTools.textInLanguage(
             generalMetaObj.description,
             preferredLanguage,
           );
       } else {
-        d3.select("#description").node().innerHTML = generalMetaObj.description;
+        document.querySelector("#description").innerHTML =
+          generalMetaObj.description;
       }
     }
   };

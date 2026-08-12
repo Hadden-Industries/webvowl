@@ -202,6 +202,16 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     listbox = new MockElement("search-results-listbox", "search-combobox-popup hidden", "ul");
     overlayLayer = new MockElement("applicationOverlayLayer", "application-overlay-layer");
     const locateBtn = new MockElement("locateSearchResult", "navButton", "button");
+    const scrollLeft = new MockElement(
+      "scrollLeftButton",
+      "navButton hidden",
+      "button",
+    );
+    const scrollRight = new MockElement(
+      "scrollRightButton",
+      "navButton hidden",
+      "button",
+    );
 
     cSearch.appendChild(mobileToggleBtn);
     cSearch.appendChild(searchInput);
@@ -215,6 +225,8 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     mockDoc.elements["search-results-listbox"] = listbox;
     mockDoc.elements["applicationOverlayLayer"] = overlayLayer;
     mockDoc.elements["locateSearchResult"] = locateBtn;
+    mockDoc.elements["scrollLeftButton"] = scrollLeft;
+    mockDoc.elements["scrollRightButton"] = scrollRight;
 
     global.d3 = d3;
     mockGraph = {

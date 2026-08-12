@@ -13,8 +13,8 @@ function normalizeOntologyUrl( value ){
     }
   }
   const ontologyMenu = {};
-  const loadingInfo = d3.select("#loading-info");
-  const loadingProgress = d3.select("#loading-progress");
+  const loadingInfo = document.getElementById("loading-info");
+  const loadingProgress = document.getElementById("loading-progress");
   let stopTimer = false;
   const loadingError = false;
   let loadingStatusTimer;
@@ -96,23 +96,7 @@ function normalizeOntologyUrl( value ){
     setupUploadButton();
     setupEmptyButton();
 
-    const descriptionButton = d3
-      .select("#error-description-button")
-      .datum({ open: false });
-    descriptionButton.on("click", function (data) {
-      const errorContainer = d3.select("#error-description-container");
-      const errorDetailsButton = d3.select(this);
 
-      // toggle the state
-      data.open = !data.open;
-      const descriptionVisible = data.open;
-      if (descriptionVisible) {
-        errorDetailsButton.text("Hide error details");
-      } else {
-        errorDetailsButton.text("Show error details");
-      }
-      errorContainer.classed("hidden", !descriptionVisible);
-    });
 
     setupUriListener();
     loadingModule.setOntologyMenu(ontologyMenu);
@@ -164,8 +148,8 @@ function normalizeOntologyUrl( value ){
   };
 
   ontologyMenu.clearDetailInformation = function () {
-    const bpContainer = d3.select("#bulletPoint_container");
-    const htmlCollection = bpContainer.node().children;
+    const bpContainer = document.getElementById("bulletPoint_container");
+    const htmlCollection = bpContainer.children;
     const numEntries = htmlCollection.length;
 
     for (let i = 0; i < numEntries; i++) {
@@ -177,8 +161,9 @@ function normalizeOntologyUrl( value ){
     append_message(msg, options);
   };
   function append_message(msg) {
-    const bpContainer = d3.select("#bulletPoint_container");
-    const div = bpContainer.append("div");
+    const bpContainer = document.getElementById("bulletPoint_container");
+    const div = document.createElement("div");
+    bpContainer.appendChild(div);
     appendStructuredMessage(div, msg, options);
     loadingModule.scrollDownDetails();
   }
@@ -193,8 +178,8 @@ function normalizeOntologyUrl( value ){
     append_bulletPoint(msg);
   };
   function append_message_toLastBulletPoint(msg) {
-    const bpContainer = d3.select("#bulletPoint_container");
-    const htmlCollection = bpContainer.node().getElementsByTagName("LI");
+    const bpContainer = document.getElementById("bulletPoint_container");
+    const htmlCollection = bpContainer.getElementsByTagName("LI");
     const lastItem = htmlCollection.length - 1;
     if (lastItem >= 0) {
       appendStructuredMessage(d3.select(htmlCollection[lastItem]), msg, options);
@@ -203,10 +188,11 @@ function normalizeOntologyUrl( value ){
   }
 
   function append_bulletPoint(msg) {
-    const bp_container = d3.select("#bulletPoint_container");
-    const bp = bp_container.append("li");
-    bp.text(msg);
-    d3.select("#currentLoadingStep").text(msg);
+    const bp_container = document.getElementById("bulletPoint_container");
+    const bp = document.createElement("li");
+    bp.textContent = msg;
+    bp_container.appendChild(bp);
+    document.getElementById("currentLoadingStep").textContent = msg;
     loadingModule.scrollDownDetails();
   }
 
@@ -251,6 +237,12 @@ function normalizeOntologyUrl( value ){
         iriConverterInput.on("input")();
       }
       event.preventDefault();
+
+        const routeKey = result.isJson ? "url=" : "iri=";
+        location.hash = routeKey + encodeURIComponent(result.normalizedUrl);
+        iriConverterInput.value = "";
+        validationWasShown = false;
+        updateConverterState();
       return false;
     });
 
@@ -258,26 +250,26 @@ function normalizeOntologyUrl( value ){
   }
 
   function setupUploadButton() {
-    const input = d3.select("#file-converter-input"),
-      inputLabel = d3.select("#file-converter-label"),
-      uploadButton = d3.select("#file-converter-button");
+    const input = document.getElementById("file-converter-input"),
+      inputLabel = document.getElementById("file-converter-label"),
+      uploadButton = document.getElementById("file-converter-button");
 
-    input.on("change", function () {
-      const selectedFiles = input.property("files");
+    input.addEventListener("change", function () {
+      const selectedFiles = input.files;
       if (selectedFiles.length <= 0) {
-        inputLabel.text("Select ontology file");
-        uploadButton.property("disabled", true);
+        inputLabel.textContent = "Select ontology file";
+        uploadButton.disabled = true;
       } else {
-        inputLabel.text(selectedFiles[0].name);
-        uploadButton.property("disabled", false);
-        uploadButton.node().click();
+        inputLabel.textContent = selectedFiles[0].name;
+        uploadButton.disabled = false;
+        uploadButton.click();
         // close menu;
         graph.options().navigationMenu().hideAllMenus();
       }
     });
 
-    uploadButton.on("click", function () {
-      const selectedFile = input.property("files")[0];
+    uploadButton.addEventListener("click", function () {
+      const selectedFile = input.files[0];
       if (!selectedFile) {
         return false;
       }
@@ -305,12 +297,16 @@ function normalizeOntologyUrl( value ){
 
   function setLoadingStatusInfo(message) {
     // check if there is a owl2vowl li item;
-    let o2vConverterContainer = d3.select("#o2vConverterContainer");
-    if (!o2vConverterContainer.node()) {
-      const bp_container = d3.select("#bulletPoint_container");
-      const div = bp_container.append("div");
-      o2vConverterContainer = div.append("ul");
-      o2vConverterContainer.attr("id", "o2vConverterContainer");
+    let o2vConverterContainer = document.getElementById(
+      "o2vConverterContainer",
+    );
+    if (!o2vConverterContainer) {
+      const bp_container = document.getElementById("bulletPoint_container");
+      const div = document.createElement("div");
+      bp_container.appendChild(div);
+      o2vConverterContainer = document.createElement("ul");
+      o2vConverterContainer.setAttribute("id", "o2vConverterContainer");
+      div.appendChild(o2vConverterContainer);
     }
     // clear o2vConverterContainer;
     const htmlCollection = o2vConverterContainer.node().children;
@@ -727,13 +723,21 @@ function normalizeOntologyUrl( value ){
   };
 
   function displayLoadingIndicators() {
-    d3.select("#layoutLoadingProgressBarContainer").classed("hidden", false);
-    loadingInfo.classed("hidden", false);
-    loadingProgress.classed("hidden", false);
+    document
+      .getElementById("layoutLoadingProgressBarContainer")
+      .classList.remove("hidden");
+    if (loadingInfo) {
+      loadingInfo.classList.remove("hidden");
+    }
+    if (loadingProgress) {
+      loadingProgress.classList.remove("hidden");
+    }
   }
 
   function hideLoadingInformations() {
-    loadingInfo.classed("hidden", true);
+    if (loadingInfo) {
+      loadingInfo.classList.add("hidden");
+    }
   }
 
   return ontologyMenu;

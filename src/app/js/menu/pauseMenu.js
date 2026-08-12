@@ -30,7 +30,7 @@ module.exports = function (graph) {
   };
 
   pauseMenu.setPauseValue = function (value) {
-    pauseButton.datum().paused = value;
+    pauseButton.datum.paused = value;
     graph.paused(value);
     updatePauseButton();
   };
@@ -63,7 +63,7 @@ module.exports = function (graph) {
   };
 
   pauseMenu.setMenuMode = function ( enabled ){
-    d3.select("#pause-button").property("disabled", !enabled);
+    document.getElementById("pause-button").disabled = !enabled;
   };
 
   return pauseMenu;

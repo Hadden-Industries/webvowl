@@ -6,6 +6,7 @@ import {
   jest,
   test,
 } from "@jest/globals";
+/** @jest-environment jsdom */
 import loadingModuleFactory from "./loadingModule.js";
 
 class MockSelection {

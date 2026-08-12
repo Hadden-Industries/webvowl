@@ -112,14 +112,14 @@ module.exports = function (graph) {
       var fraction = (rect.bottom - touchY) / rect.height;
       fraction = Math.max(0, Math.min(1, fraction));
       var newZoom = minMag + fraction * (maxMag - minMag);
-      slider.node().value = newZoom;
+      slider.value = newZoom;
       zoomSlider.zooming();
       if ( event.cancelable ) event.preventDefault();
     }
 
-    d3.select("#zoomSliderParagraph")
-      .on("touchstart", handleContainerTouch)
-      .on("touchmove", handleContainerTouch);
+    const sliderParagraph = document.getElementById("zoomSliderParagraph");
+    sliderParagraph.addEventListener("touchstart", handleContainerTouch);
+    sliderParagraph.addEventListener("touchmove", handleContainerTouch);
 
     d3.select("#zoomOutButton")
       .on("mousedown", function () {
@@ -177,7 +177,12 @@ module.exports = function (graph) {
     }
     updateZoomButtonStates(graph.scaleFactor());
       if ( !controlsEnabled ) {return;}
-    d3.select("#zoomSlider").classed("hidden", !val);
+    const sliderContainer = document.getElementById("zoomSlider");
+    if (val) {
+      sliderContainer.classList.remove("hidden");
+    } else {
+      sliderContainer.classList.add("hidden");
+    }
     showSlider = val;
     if ( graph.options().sidebar && graph.options().sidebar() ) {
       graph.options().sidebar().updateDockedControlsPosition();
@@ -187,18 +192,18 @@ module.exports = function (graph) {
   zoomSlider.zooming = function () {
     if ( !controlsEnabled ) {return;}
     graph.options().navigationMenu().hideAllMenus();
-    const zoomValue = slider.property("value");
-    slider.attr("value", zoomValue);
-    slider.attr("aria-valuetext", zoomPercentage(zoomValue));
+    const zoomValue = slider.value;
+    slider.setAttribute("value", zoomValue);
+    slider.setAttribute("aria-valuetext", zoomPercentage(zoomValue));
     updateZoomButtonStates(zoomValue);
     graph.setSliderZoom(zoomValue);
   };
 
   zoomSlider.updateZoomSliderValue = function (val) {
     if (slider) {
-      slider.attr("value", val);
-      slider.property("value", val);
-      slider.attr("aria-valuetext", zoomPercentage(val));
+      slider.setAttribute("value", val);
+      slider.value = val;
+      slider.setAttribute("aria-valuetext", zoomPercentage(val));
       updateZoomButtonStates(val);
     }
   };
@@ -206,7 +211,7 @@ module.exports = function (graph) {
   zoomSlider.setMenuMode = function ( enabled ){
     controlsEnabled = Boolean(enabled);
     if ( !controlsEnabled ) {stopContinuousZoom();}
-    d3.select("#centerGraphButton").property("disabled", !controlsEnabled);
+    document.getElementById("centerGraphButton").disabled = !controlsEnabled;
     if ( slider ) {slider.property("disabled", !controlsEnabled);}
     updateZoomButtonStates(graph.scaleFactor());
   };

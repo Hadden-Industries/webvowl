@@ -6,10 +6,10 @@
  */
 module.exports = function (graph) {
   const navigationMenu = {};
-  const scrollContainer = d3.select("#menuElementContainer").node();
-  const menuContainer = d3.select("#menuContainer").node();
-  const leftButton = d3.select("#scrollLeftButton");
-  const rightButton = d3.select("#scrollRightButton");
+  const scrollContainer = document.querySelector("#menuElementContainer");
+  const menuContainer = document.querySelector("#menuContainer");
+  const leftButton = document.querySelector("#scrollLeftButton");
+  const rightButton = document.querySelector("#scrollRightButton");
   let scrolLeftValue;
   let scrollMax = 0;
   let currentlyVisibleMenu;
@@ -167,9 +167,24 @@ module.exports = function (graph) {
         event.preventDefault();
       }
     });
+    leftButton.addEventListener("click", function () {
+      scrollContainer.scrollLeft -= 100;
+      navigationMenu.updateScrollButtonVisibility();
+    });
+    leftButton.addEventListener("mouseup", clearAllTimers);
+    leftButton.addEventListener("touchend", clearAllTimers);
+    leftButton.addEventListener("touchcancel", clearAllTimers);
+
+    document.querySelectorAll(".navButton").forEach(function (btn) {
+      btn.addEventListener("contextmenu", function (event) {
+        if (event) {
+          event.preventDefault();
+        }
+      });
+    });
 
     // connect the scroll functionality;
-    d3.select("#menuElementContainer").on("scroll", function () {
+    scrollContainer.addEventListener("scroll", function () {
       navigationMenu.updateScrollButtonVisibility();
       navigationMenu.hideAllMenus();
     });
@@ -259,9 +274,7 @@ module.exports = function (graph) {
       const totalOffset = leftOffset - scrollOffset;
       let finalOffset = Math.max(0, totalOffset);
       const fullContainer_width = scrollContainer.getBoundingClientRect().width;
-      const elementWidth = currentlyVisibleMenu
-        .node()
-        .getBoundingClientRect().width;
+      const elementWidth = currentlyVisibleMenu.getBoundingClientRect().width;
       // make priority > first check if we are right
       if (finalOffset + elementWidth > fullContainer_width) {
         finalOffset = fullContainer_width - elementWidth;
@@ -295,8 +308,8 @@ module.exports = function (graph) {
   navigationMenu.updateScrollButtonVisibility = function () {
     scrollMax = scrollContainer.scrollWidth - scrollContainer.clientWidth - 2;
     if (scrollContainer.scrollLeft === 0) {
-      leftButton.classed("hidden", true);
-      rightButton.classed("hidden", true);
+      leftButton.classList.add("hidden");
+      rightButton.classList.add("hidden");
       return;
     }
 
@@ -415,20 +428,21 @@ module.exports = function (graph) {
             event.preventDefault();
           }
         }
-      }
 
       function onTouchEnd(){
         if ( !isDragging ) {
           return;
         }
-        isDragging = false;
-        const duration = Date.now() - startTime;
-        const velocity = currentDy / Math.max(1, duration);
 
-        d3.select(popoverNode).classed("dragging", false);
+        function onTouchEnd() {
+          if (!isDragging) {
+            return;
+          }
+          isDragging = false;
+          const duration = Date.now() - startTime;
+          const velocity = currentDy / Math.max(1, duration);
 
-        const dismissThreshold = 80;
-        const velocityThreshold = 0.3;
+          popoverNode.classList.remove("dragging");
 
         if ( currentDy >= dismissThreshold || (currentDy > 20 && velocity > velocityThreshold) ) {
           // Slide off-screen down and hide popover
@@ -451,7 +465,6 @@ module.exports = function (graph) {
             d3.select(popoverNode).classed("snap-back", false);
           }, 250);
         }
-      }
 
       dragAreaNodes.forEach(function (node){
         if ( node && typeof node.addEventListener === "function" ) {
@@ -461,7 +474,6 @@ module.exports = function (graph) {
           node.addEventListener("touchcancel", onTouchEnd, { passive: true });
         }
       });
-    });
   }
 
   return navigationMenu;

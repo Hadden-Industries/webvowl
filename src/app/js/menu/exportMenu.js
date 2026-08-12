@@ -71,7 +71,7 @@ async function copyInputValue( inputNode, clipboardApi, documentNode ){
     exportSvgButton = d3.select("#exportSvg").on("click", exportSvg);
     exportJsonButton = d3.select("#exportJson").on("click", exportJson);
 
-    d3.select("#copyBt").on("click", copyUrl);
+    document.querySelector("#copyBt").addEventListener("click", copyUrl);
 
     exportTexButton = d3.select("#exportTex").on("click", exportTex);
 
@@ -129,19 +129,23 @@ async function copyInputValue( inputNode, clipboardApi, documentNode ){
   function copyUrl() {
   let copyFeedbackTimer;
     event.preventDefault();
-    const urlInputNode = d3.select("#exportedUrl").node();
+    const urlInputNode = document.querySelector("#exportedUrl");
     if ( !urlInputNode ) {return;}
 
     const copied = await copyInputValue(urlInputNode);
-    const copyButtonNode = d3.select("#copyBt");
-    copyButtonNode.classed("copied", copied).classed("copy-failed", !copied);
+    const copyButtonNode = document.querySelector("#copyBt");
+    copyButtonNode.classList.toggle("copied", copied);
+    copyButtonNode.classList.toggle("copy-failed", !copied);
+    copyButtonNode.querySelector(".copy-text").textContent = copied
+      ? "Copied!"
+      : "Copy failed";
     copyButtonNode.select(".copy-text").text(copied ? "Copied!" : "Copy failed");
     copyButtonNode.select(".copy-icon path").attr("d", copied ? "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" : "M18.3 5.71 12 12l-6.3-6.29-1.4 1.42L10.59 13.4 4.3 19.7l1.4 1.4 6.3-6.29 6.3 6.29 1.4-1.4-6.29-6.3 6.29-6.29z");
 
     clearTimeout(copyFeedbackTimer);
     copyFeedbackTimer = setTimeout(function (){
-      copyButtonNode.classed("copied", false).classed("copy-failed", false);
-      copyButtonNode.select(".copy-text").text("Copy URL");
+      copyButtonNode.classList.remove("copied", "copy-failed");
+      copyButtonNode.querySelector(".copy-text").textContent = "Copy URL";
       copyButtonNode.select(".copy-icon path").attr("d", "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z");
     }, 2000);
   }
@@ -249,13 +253,13 @@ async function copyInputValue( inputNode, clipboardApi, documentNode ){
 
       const lPos = hashCode.lastIndexOf("#");
       if (lPos === -1) {
-        htmlElement = d3.select("#exportedUrl").node();
+        htmlElement = document.querySelector("#exportedUrl");
         htmlElement.value = String(location);
         htmlElement.title = String(location);
         return; // nothing to change in the location String
       }
       const newURL = hashCode.slice(lPos, hashCode.length);
-      htmlElement = d3.select("#exportedUrl").node();
+      htmlElement = document.querySelector("#exportedUrl");
       htmlElement.value = urlString + newURL;
       htmlElement.title = urlString + newURL;
       return;
@@ -285,7 +289,7 @@ async function copyInputValue( inputNode, clipboardApi, documentNode ){
       }
     }
     // building up parameter list;
-    htmlElement = d3.select("#exportedUrl").node();
+    htmlElement = document.querySelector("#exportedUrl");
     htmlElement.value = newUrlString;
     htmlElement.title = newUrlString;
   };
