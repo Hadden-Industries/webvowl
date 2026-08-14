@@ -16,6 +16,7 @@ webvowl*.zip
 
 # Local Agent Skills
 .agents/skills/
+.claude/skills/
 
 # NetBeans files
 **/nbproject/**
