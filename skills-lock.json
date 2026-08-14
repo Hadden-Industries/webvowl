@@ -121,6 +121,13 @@
       "skillPath": "skills/logic-review/SKILL.md",
       "computedHash": "5edf4f514ca3daa5ce2722256c7ebd408cb7c509a5f3d460612f8e1a828db7cd"
     },
+    "modern-web-guidance": {
+      "source": "GoogleChrome/modern-web-guidance",
+      "ref": "main",
+      "sourceType": "github",
+      "skillPath": "skills/modern-web-guidance/SKILL.md",
+      "computedHash": "6e8841de6cb76fedb94c71008924c3bdc46db0c54111049329e789e0e478d282"
+    },
     "review-animations": {
       "source": "emilkowalski/skills",
       "ref": "main",
