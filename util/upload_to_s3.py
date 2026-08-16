@@ -25,10 +25,10 @@ def main():
     cmd = [
         sys.executable,
         str(upload_script),
+        str(local_dir),
         "--region", region,
         "--bucket", bucket,
         "--prefix", prefix,
-        "--local-dir", str(local_dir),
         "--wait-for-cloudfront"
     ]
 
