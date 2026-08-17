@@ -18,5 +18,18 @@ webvowl*.zip
 .agents/skills/
 .claude/skills/
 
+# Local development environment
+*.pyc
+.env
+.venv/
+__pycache__/
+
+# Managed by "set_up_mcp_servers.py"
+.agent-tools/
+.agents/mcp_config.json
+.claude/settings.local.json
+.codex/config.toml
+.mcp.json
+
 # NetBeans files
 **/nbproject/**
