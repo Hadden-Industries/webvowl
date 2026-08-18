@@ -4,9 +4,9 @@
 
 - Migration: Phase 7 - early development-app integration.
 - Baseline revision: `7590c17` (the repository-owner Phase 6 checkpoint).
-- Completion revision: the Phase 7 checkpoint commit containing this record;
-  the repository owner requested an uncommitted review pause before assigning
-  its commit ID.
+- Completion revision: `27dba50` (the Phase 7 checkpoint), corrected by
+  `9733cc9`, which retracted the false performance regression recorded as
+  `M7-008`.
 - Implementation dates: 13 August 2026 (builder, adapter, development route,
   differential, architecture, and browser evidence) and 18 August 2026
   (differential-harness corrections, provenance, capability, conformance,
@@ -254,5 +254,5 @@ performance or browser blocker remains.
 - Resource-budget or regression-threshold changes: none; every paired signal is
   within the unchanged 20% threshold and no baseline was re-anchored.
 - Unresolved blockers: none.
-- Next migration: Phase 8, blocked until the repository owner creates the
-  requested Phase 7 checkpoint commit and explicitly says to proceed.
+- Next migration: Phase 8, blocked until the repository owner explicitly says
+  to proceed.

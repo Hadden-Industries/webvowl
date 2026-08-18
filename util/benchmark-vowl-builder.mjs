@@ -11,6 +11,10 @@ import { OWLManager } from "../src/owlapi-js/manager/index.js";
 import { loadWithOwlapi } from "../src/owl2vowl/js/owlapiAdapter.js";
 import { VOWLBuilder } from "../src/owl2vowl/js/vowlBuilder.js";
 
+import { assertQuiescentMachine } from "./benchmarkEnvironment.mjs";
+
+await assertQuiescentMachine();
+
 const require = createRequire(import.meta.url);
 const {
   GENERATOR_VERSION,
