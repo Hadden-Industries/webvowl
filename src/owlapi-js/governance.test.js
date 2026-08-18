@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -451,6 +452,35 @@ describe("owlapi-js governance artifacts", () => {
           path,
         }).toEqual({ exists: true, path });
       }
+    }
+  });
+
+  it("pins the recovered VOWL 2 specification and verifies its hashes", () => {
+    const manifest = readJson("../../docs/owlapi-js/conformance/suites.json");
+    const suite = manifest.suites.find(({ id }) => id === "vowl-2");
+    const directory = new URL(
+      `../../${suite.manifestArtifact}/`,
+      import.meta.url,
+    );
+    const sums = readFileSync(new URL("SHA256SUMS", directory), "utf8");
+
+    expect(suite.documentVersion).toBe("2.0");
+    expect(suite.documentDate).toBe("2014-04-07");
+    expect(suite.revision).toBe("61abca1ad6aeb5108be7f06e9590c702d4013e7a");
+
+    const entries = sums
+      .split("\n")
+      .filter(Boolean)
+      .map((line) => line.split(/ \*?\.\//u));
+    expect(entries.length).toBeGreaterThan(0);
+    for (const [expected, relativePath] of entries) {
+      const actual = createHash("sha256")
+        .update(readFileSync(new URL(relativePath, directory)))
+        .digest("hex");
+      expect({ path: relativePath, sha256: actual }).toEqual({
+        path: relativePath,
+        sha256: expected,
+      });
     }
   });
 
