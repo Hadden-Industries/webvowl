@@ -8,7 +8,7 @@ import process from "node:process";
 
 import { StringDocumentSource } from "../src/owlapi-js/io/index.js";
 import { OWLManager } from "../src/owlapi-js/manager/index.js";
-import { loadWithOwlapi } from "../src/owl2vowl/js/owlapiAdapter.js";
+import owl2vowl from "../src/owl2vowl/js/index.js";
 import { VOWLBuilder } from "../src/owl2vowl/js/vowlBuilder.js";
 
 import { assertQuiescentMachine } from "./benchmarkEnvironment.mjs";
@@ -77,7 +77,7 @@ const buildLargeOntology = async () => {
 };
 
 const loadLargeRdfXml = async () => {
-  const result = await loadWithOwlapi(largeRdfXmlText, {
+  const result = await owl2vowl(largeRdfXmlText, {
     fileName: "generated-rdfxml-large.rdf",
   });
   if (result.class.length !== LARGE_COUNT) {
@@ -86,7 +86,7 @@ const loadLargeRdfXml = async () => {
 };
 
 const firstUse = await sample(async () => {
-  const result = await loadWithOwlapi(firstUseText, {
+  const result = await owl2vowl(firstUseText, {
     fileName: "first-use.rdf",
   });
   if (result.class.length !== 100) {

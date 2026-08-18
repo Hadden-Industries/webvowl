@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 
-import { loadWithOwlapi } from "../js/owlapiAdapter.js";
+import owl2vowl from "../js/index.js";
 
 const require = createRequire(import.meta.url);
 const createWebVowlParser = require("../../webvowl/js/parser.js");
@@ -28,13 +28,7 @@ describe("VOWLBuilder WebVOWL consumer contract", () => {
       ),
       "utf8",
     );
-    const result = await loadWithOwlapi(text, {
-      configuration: {
-        missingImportHandling: "diagnostic",
-        remoteImports: false,
-      },
-      fileName,
-    });
+    const result = await owl2vowl(text, { fileName });
     const parser = createWebVowlParser(graphStub());
 
     expect(() => parser.parse(result)).not.toThrow();

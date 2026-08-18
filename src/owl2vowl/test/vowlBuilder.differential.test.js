@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 
-import { loadWithImports } from "../js/index.js";
-import { loadWithOwlapi } from "../js/owlapiAdapter.js";
+import { loadWithImports } from "./legacyPipeline.js";
+import owl2vowl from "../js/index.js";
 import {
   canonicalVowlSnapshot,
   governedDifferenceCount,
@@ -39,7 +39,7 @@ const loadStructuralFixture = async (fileName) => {
     ),
     "utf8",
   );
-  return loadWithOwlapi(text, { configuration, fileName });
+  return owl2vowl(text, { configuration, fileName });
 };
 
 describe("VOWLBuilder exact semantic differential", () => {
@@ -94,7 +94,7 @@ describe("VOWLBuilder exact semantic differential", () => {
     </rdf:RDF>`;
 
     const legacyResult = await loadWithImports(rdfXml);
-    const structuralResult = await loadWithOwlapi(rdfXml, {
+    const structuralResult = await owl2vowl(rdfXml, {
       fileName: "phase7-parity.rdf",
     });
 
@@ -122,7 +122,7 @@ describe("VOWLBuilder exact semantic differential", () => {
     </rdf:RDF>`;
 
     const legacyResult = await loadWithImports(rdfXml);
-    const structuralResult = await loadWithOwlapi(rdfXml, {
+    const structuralResult = await owl2vowl(rdfXml, {
       fileName: "phase7-restriction.rdf",
     });
     const inferredEdges = (vowl) =>

@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { loadWithImports } from "../js/index.js";
+import { loadWithImports } from "./legacyPipeline.js";
 import { ONTOLOGY_CATALOG } from "../js/constants.js";
 import { getLocalOntologyPath, LOCAL_ONTOLOGY_DIST_DIR } from "./helpers.js";
 

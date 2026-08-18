@@ -478,8 +478,11 @@ module.exports = function (graph) {
               "Converting remote ontology client-side...",
             );
             const xmlText = responseText;
+            // RFC 3986 section 5.1.3: the IRI a document was retrieved from is
+            // its base. Passing it lets relative references resolve against the
+            // real namespace instead of falling back to a synthetic base.
             owl2vowl
-              .loadWithImports(xmlText)
+              .loadWithImports(xmlText, { documentIRI: filename })
               .then(function (vowlJson) {
                 parseOntologyContent(JSON.stringify(vowlJson));
                 ontologyMenu.append_message_toLastBulletPoint("done");
@@ -558,8 +561,10 @@ module.exports = function (graph) {
         try {
           const xmlText = reader.result;
           ontologyMenu.append_bulletPoint("Converting ontology client-side...");
+          // An uploaded file has no retrieval IRI, so no base is supplied and
+          // the synthetic one applies. The name is passed for diagnostics only.
           owl2vowl
-            .loadWithImports(xmlText)
+            .loadWithImports(xmlText, { fileName })
             .then(function (vowlJson) {
               ontologyIdentifierFromURL = fileName;
               parseOntologyContent(JSON.stringify(vowlJson));
@@ -646,8 +651,9 @@ module.exports = function (graph) {
             ontologyMenu.append_bulletPoint(
               "Converting ontology client-side...",
             );
+            // A dropped or selected file has no retrieval IRI either.
             owl2vowl
-              .loadWithImports(xmlText)
+              .loadWithImports(xmlText, { fileName: filename })
               .then(function (vowlJson) {
                 ontologyIdentifierFromURL = filename;
                 parseOntologyContent(JSON.stringify(vowlJson));
