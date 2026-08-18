@@ -267,7 +267,8 @@ exceptions.
   manager selection, RDF/XML, shared RDF-to-OWL reconstruction, and the builder.
 
 Every measurement below was taken on an otherwise idle machine, with no other
-benchmark, test run, or file-scanning work in progress. See finding `M7-008`.
+benchmark, test run, or file-scanning work in progress, as ADR 0003 and
+section 20.6 now require. See finding `M7-008`.
 
 | Signal                                      | Input                            | Accepted wall time (ms) | Accepted peak heap delta (bytes) |
 | ------------------------------------------- | -------------------------------- | ----------------------: | -------------------------------: |
