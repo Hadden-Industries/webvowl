@@ -15,6 +15,44 @@ const RESERVED_BASE_IRIS = new Set([
 const compareText = (left, right) => left.localeCompare(right);
 const ignoredAxiom = () => undefined;
 
+const SKIPPED_RESTRICTIONS = new Set([
+  OWLObjectKind.DATA_HAS_VALUE,
+  OWLObjectKind.DATA_ONE_OF,
+  OWLObjectKind.OBJECT_HAS_SELF,
+  OWLObjectKind.OBJECT_HAS_VALUE,
+  OWLObjectKind.OBJECT_ONE_OF,
+]);
+
+const ANONYMOUS_CLASS_EXPRESSIONS = new Map([
+  [
+    OWLObjectKind.OBJECT_UNION_OF,
+    {
+      attribute: "union",
+      field: "union",
+      operands: (expression) => expression.operands,
+      type: "owl:unionOf",
+    },
+  ],
+  [
+    OWLObjectKind.OBJECT_INTERSECTION_OF,
+    {
+      attribute: "intersection",
+      field: "intersection",
+      operands: (expression) => expression.operands,
+      type: "owl:intersectionOf",
+    },
+  ],
+  [
+    OWLObjectKind.OBJECT_COMPLEMENT_OF,
+    {
+      attribute: "complement",
+      field: "complement",
+      operands: (expression) => [expression.operand],
+      type: "owl:complementOf",
+    },
+  ],
+]);
+
 const sortByIri = (values) =>
   [...values].sort((left, right) =>
     compareText(left.iri.value, right.iri.value),
@@ -225,20 +263,60 @@ class BuildState {
     );
   }
 
-  classExpressionRecord(expression) {
-    if (expression.kind !== OWLObjectKind.CLASS) {
-      throw new TypeError(
-        `VOWL class-expression mapping is not implemented for ${expression.kind}`,
-      );
+  // An anonymous class expression becomes its own VOWL node, exactly as the
+  // pinned OWL2VOWL oracle renders it: no IRI, an `anonymous` attribute
+  // alongside the set-operator name, and member ids rather than member IRIs.
+  // Records are keyed by structural key so one expression yields one node
+  // however many positions reference it.
+  ensureAnonymousClass(expression, mapping) {
+    const key = expression.structuralKey();
+    const existing = this.#classRecords.get(key);
+    if (existing) {
+      return existing;
     }
-    return this.ensureClass(expression);
+
+    const id = this.nextId();
+    const record = {
+      attribute: {
+        attributes: [mapping.attribute, "anonymous"],
+        id,
+        instances: 0,
+      },
+      node: { id, type: mapping.type },
+    };
+    this.#classRecords.set(key, record);
+    record.attribute[mapping.field] = mapping
+      .operands(expression)
+      .map((operand) => this.classExpressionRecord(operand).node.id);
+    return record;
+  }
+
+  classExpressionRecord(expression) {
+    if (expression.kind === OWLObjectKind.CLASS) {
+      return this.ensureClass(expression);
+    }
+
+    const mapping = ANONYMOUS_CLASS_EXPRESSIONS.get(expression.kind);
+    if (mapping) {
+      return this.ensureAnonymousClass(expression, mapping);
+    }
+
+    // Restrictions and enumerations have no VOWL node representation: the
+    // pinned oracle emits `owl:someValuesFrom` and `owl:allValuesFrom` only as
+    // edge types, and never emits `owl:hasValue` or an enumeration node in any
+    // of its 44 reference outputs. In a node position they are therefore not
+    // visualisable, and collapse to `owl:Thing`, which is already the default
+    // this builder uses for an unspecified domain or range. The restriction
+    // itself is still drawn as an edge wherever `addRestriction` applies.
+    return this.ensureClass(OWL_THING_IRI);
   }
 
   dataRangeRecord(range) {
+    // A constructed data range such as an enumeration has no VOWL node of its
+    // own; the oracle emits only `rdfs:Datatype` nodes. It therefore collapses
+    // to `rdfs:Literal`, the builder's default range for a data property.
     if (range.kind !== OWLObjectKind.DATATYPE) {
-      throw new TypeError(
-        `VOWL data-range mapping is not implemented for ${range.kind}`,
-      );
+      return this.ensureClass(RDFS_LITERAL_IRI, OWLObjectKind.DATATYPE);
     }
     return this.ensureClass(range, OWLObjectKind.DATATYPE);
   }
@@ -375,7 +453,14 @@ class BuildState {
   }
 
   addSubclass(subClass, superClass) {
-    if (superClass.kind !== OWLObjectKind.CLASS) {
+    // A set expression in superclass position, such as `A subClassOf (B or C)`,
+    // is not a restriction: it has its own anonymous VOWL node, so it takes an
+    // ordinary subclass edge to that node. Only genuine restrictions are drawn
+    // as restriction edges.
+    if (
+      superClass.kind !== OWLObjectKind.CLASS &&
+      !ANONYMOUS_CLASS_EXPRESSIONS.has(superClass.kind)
+    ) {
       this.addRestriction(subClass, superClass);
       return;
     }
@@ -411,7 +496,7 @@ class BuildState {
         range: rangeId,
         type,
       });
-      if (!property.restrictions.includes(relation)) {
+      if (relation && !property.restrictions.includes(relation)) {
         property.restrictions.push(relation);
       }
       return;
@@ -439,7 +524,7 @@ class BuildState {
           range: rangeId,
           type,
         });
-        if (!property.restrictions.includes(relation)) {
+        if (relation && !property.restrictions.includes(relation)) {
           property.restrictions.push(relation);
         }
       }
@@ -485,10 +570,22 @@ class BuildState {
         range: rangeId,
         type: cardinality.data ? "owl:datatypeProperty" : "owl:objectProperty",
       });
+      if (!record) {
+        return;
+      }
       record.attribute[cardinality.attribute] = String(restriction.cardinality);
       if (!property.restrictions.includes(record)) {
         property.restrictions.push(record);
       }
+      return;
+    }
+
+    // VOWL draws quantified and cardinality restrictions as edges. Value
+    // restrictions and enumerations have no edge form: the oracle emits no
+    // `owl:hasValue` or enumeration type anywhere in its 44 reference outputs,
+    // so the restriction contributes no visual element and is skipped rather
+    // than rejected. The axiom that carried it is still processed.
+    if (SKIPPED_RESTRICTIONS.has(restriction.kind)) {
       return;
     }
 

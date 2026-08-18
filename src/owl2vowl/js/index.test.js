@@ -8,7 +8,32 @@ import {
 } from "@jest/globals";
 import owl2vowl, { loadWithImports, catalog } from "./index.js";
 
-describe("index.js unit tests", () => {
+const RDF_XML = `
+  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+           xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+           xmlns:owl="http://www.w3.org/2002/07/owl#">
+    <owl:Ontology rdf:about="http://example.org/ontology">
+      <rdfs:label xml:lang="en">My Ontology</rdfs:label>
+    </owl:Ontology>
+    <owl:Class rdf:about="http://example.org/ontology#Person">
+      <rdfs:label xml:lang="en">Person</rdfs:label>
+    </owl:Class>
+  </rdf:RDF>
+`;
+
+const TURTLE = `
+  @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+  @prefix owl: <http://www.w3.org/2002/07/owl#> .
+  @prefix : <http://example.org/ontology#> .
+
+  <http://example.org/ontology> a owl:Ontology ;
+                                rdfs:label "My Turtle Ontology"@en .
+
+  :Car a owl:Class ;
+       rdfs:label "Car"@en .
+`;
+
+describe("production owl2vowl entry point", () => {
   let originalFetch;
 
   beforeEach(() => {
@@ -23,107 +48,232 @@ describe("index.js unit tests", () => {
     expect(catalog["http://purl.org/dc/elements/1.1"]).toBeDefined();
   });
 
-  test("owl2vowl parses a basic RDF/XML document", async () => {
-    const xml = `
+  test("builds RDF/XML through the structural owlapi-js path", async () => {
+    const result = await owl2vowl(RDF_XML);
+
+    expect(result._comment).toBe("Created with owlapi-js VOWLBuilder");
+    expect(result.header.iri).toBe("http://example.org/ontology");
+    expect(result.header.labels.en).toBe("My Ontology");
+
+    const personAttribute = result.classAttribute.find(
+      ({ iri }) => iri === "http://example.org/ontology#Person",
+    );
+    expect(personAttribute.label.en).toBe("Person");
+  });
+
+  test("rejects a legacy-only syntax instead of falling back", async () => {
+    await expect(owl2vowl(TURTLE)).rejects.toMatchObject({
+      code: "UNPARSABLE_ONTOLOGY",
+    });
+  });
+
+  test.each([
+    {
+      fileName: "ontology.ofn",
+      text: `Prefix(:=<https://example.com/phase8#>)
+        Ontology(<https://example.com/phase8> Declaration(Class(:Person)))`,
+    },
+    {
+      fileName: "ontology.omn",
+      text: `Prefix: : <https://example.com/phase8#>
+        Ontology: <https://example.com/phase8>
+        Class: :Person`,
+    },
+    {
+      fileName: "ontology.owx",
+      text: `<Ontology xmlns="http://www.w3.org/2002/07/owl#"
+        ontologyIRI="https://example.com/phase8">
+        <Prefix name="" IRI="https://example.com/phase8#"/>
+        <Declaration><Class abbreviatedIRI=":Person"/></Declaration>
+      </Ontology>`,
+    },
+    {
+      fileName: "ontology.rdf",
+      text: `<rdf:RDF
+        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xmlns:owl="http://www.w3.org/2002/07/owl#">
+        <owl:Ontology rdf:about="https://example.com/phase8"/>
+        <owl:Class rdf:about="https://example.com/phase8#Person"/>
+      </rdf:RDF>`,
+    },
+  ])(
+    "advertises $fileName from the production path",
+    async ({ fileName, text }) => {
+      const result = await owl2vowl(text, { fileName });
+
+      expect(result.header.iri).toBe("https://example.com/phase8");
+      expect(result.classAttribute).toContainEqual(
+        expect.objectContaining({ iri: "https://example.com/phase8#Person" }),
+      );
+      expect(result.diagnostics).toEqual([]);
+    },
+  );
+
+  // RFC 3986 section 5.1 establishes a base URI from xml:base, then from the
+  // retrieval IRI, and only then from an application default. A pasted or
+  // uploaded document has no retrieval IRI, so relative references such as
+  // rdf:about="" cannot resolve and the whole document is rejected. The
+  // application default is the last resort in that hierarchy, and the reserved
+  // .invalid TLD makes the substituted authority obviously non-retrievable.
+  test("supplies a synthetic base when the caller gives no document IRI", async () => {
+    const relativeDocument = `
       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-               xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-               xmlns:owl="http://www.w3.org/2002/07/owl#"
-               xml:base="http://example.org/ontology#">
-        <owl:Ontology rdf:about="http://example.org/ontology">
-          <rdfs:label xml:lang="en">My Ontology</rdfs:label>
-        </owl:Ontology>
-        <owl:Class rdf:about="http://example.org/ontology#Person">
-          <rdfs:label xml:lang="en">Person</rdfs:label>
-        </owl:Class>
+               xmlns:owl="http://www.w3.org/2002/07/owl#">
+        <owl:Ontology rdf:about="http://example.org/vocab/"/>
+        <owl:Class rdf:about="http://example.org/vocab/Work"/>
+        <owl:NamedIndividual rdf:about="">
+          <rdf:type rdf:resource="http://example.org/vocab/Work"/>
+        </owl:NamedIndividual>
       </rdf:RDF>
     `;
 
-    const result = await owl2vowl(xml);
+    const result = await owl2vowl(relativeDocument, { fileName: "vocab.rdf" });
 
-    expect(result).toHaveProperty("_comment");
-    expect(result.header.iri).toBe("http://example.org/ontology");
-    expect(result.header.title.en).toBe("My Ontology");
-
-    const personNode = result.class.find((c) => c.type === "owl:Class");
-    expect(personNode).toBeDefined();
-    const personAttr = result.classAttribute.find(
-      (ca) => ca.id === personNode.id,
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        baseIRI: "https://webvowl.invalid/",
+        code: "RDF_SYNTHETIC_BASE_IRI",
+        severity: "warning",
+      }),
     );
-    expect(personAttr.iri).toBe("http://example.org/ontology#Person");
-    expect(personAttr.label.en).toBe("Person");
   });
 
-  test("owl2vowl converts and parses a basic Turtle document", async () => {
-    const turtle = `
-      @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-      @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-      @prefix owl: <http://www.w3.org/2002/07/owl#> .
-      @prefix : <http://example.org/ontology#> .
-      @base <http://example.org/ontology#> .
-
-      <http://example.org/ontology> a owl:Ontology ;
-                                    rdfs:label "My Turtle Ontology"@en .
-
-      :Car a owl:Class ;
-           rdfs:label "Car"@en .
+  test("prefers a caller-supplied document IRI over the synthetic base", async () => {
+    const relativeDocument = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#">
+        <owl:Ontology rdf:about="http://example.org/vocab/"/>
+        <owl:Class rdf:about="http://example.org/vocab/Work"/>
+        <owl:NamedIndividual rdf:about="">
+          <rdf:type rdf:resource="http://example.org/vocab/Work"/>
+        </owl:NamedIndividual>
+      </rdf:RDF>
     `;
 
-    const result = await owl2vowl(turtle);
+    const result = await owl2vowl(relativeDocument, {
+      documentIRI: "http://example.org/vocab/source.rdf",
+      fileName: "vocab.rdf",
+    });
 
-    expect(result).toHaveProperty("_comment");
-    expect(result.header.iri).toBe("http://example.org/ontology");
-    expect(result.header.title.en).toBe("My Turtle Ontology");
-
-    const carNode = result.class.find((c) => c.type === "owl:Class");
-    expect(carNode).toBeDefined();
-    const carAttr = result.classAttribute.find((ca) => ca.id === carNode.id);
-    expect(carAttr.iri).toBe("http://example.org/ontology#Car");
-    expect(carAttr.label.en).toBe("Car");
+    expect(result.diagnostics).not.toContainEqual(
+      expect.objectContaining({ code: "RDF_SYNTHETIC_BASE_IRI" }),
+    );
   });
 
-  test("loadWithImports loads imports and parses integrated ontology", async () => {
+  test("rejects malformed RDF/XML without publishing a partial result", async () => {
+    await expect(
+      owl2vowl(
+        '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description>',
+        { fileName: "malformed.rdf" },
+      ),
+    ).rejects.toMatchObject({ code: "XML_PARSE_ERROR" });
+  });
+
+  test("preserves compatible RDF-to-OWL warnings on the production result", async () => {
+    const owlFullDocument = `<rdf:RDF
+      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+      xmlns:owl="http://www.w3.org/2002/07/owl#">
+      <owl:Ontology rdf:about="https://example.com/phase8"/>
+      <owl:DatatypeProperty rdf:about="https://example.com/phase8#legacy"/>
+      <owl:Class rdf:nodeID="legacyRange">
+        <owl:unionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="https://example.com/phase8#LegacyBoolean"/>
+        </owl:unionOf>
+      </owl:Class>
+      <rdf:Description rdf:about="https://example.com/phase8#legacy">
+        <rdfs:range rdf:nodeID="legacyRange"/>
+      </rdf:Description>
+    </rdf:RDF>`;
+
+    const result = await owl2vowl(owlFullDocument, {
+      fileName: "compatible.rdf",
+    });
+
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "RDF_OWL_FULL_DATA_PROPERTY_RANGE_AS_CLASS",
+        severity: "warning",
+      }),
+    );
+  });
+
+  test("surfaces resource failures before a VOWL result exists", async () => {
+    await expect(
+      owl2vowl(RDF_XML, {
+        configuration: { maxInputBytes: 1 },
+        fileName: "ontology.rdf",
+      }),
+    ).rejects.toMatchObject({
+      code: "RESOURCE_LIMIT_EXCEEDED",
+      resource: "maxInputBytes",
+    });
+  });
+
+  test("fails explicitly when an import closure yields a legacy-only syntax", async () => {
     const mainXml = `
       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#">
+        <owl:Ontology rdf:about="http://example.org/main">
+          <owl:imports rdf:resource="http://example.org/turtle-ontology"/>
+        </owl:Ontology>
+      </rdf:RDF>
+    `;
+
+    global.fetch = jest.fn(async () => ({
+      headers: { get: () => "text/turtle" },
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      text: async () => TURTLE,
+    }));
+
+    await expect(loadWithImports(mainXml)).rejects.toMatchObject({
+      code: "UNPARSABLE_ONTOLOGY",
+    });
+  });
+
+  test("resolves an import closure through the structural path", async () => {
+    const importedXml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
                xmlns:owl="http://www.w3.org/2002/07/owl#"
-               xml:base="http://example.org/main#">
+               xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+        <owl:Ontology rdf:about="http://example.org/imported-ontology"/>
+        <owl:Class rdf:about="http://example.org/imported#SpecialClass">
+          <rdfs:label xml:lang="en">Special</rdfs:label>
+        </owl:Class>
+      </rdf:RDF>
+    `;
+    const mainXml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#">
         <owl:Ontology rdf:about="http://example.org/main">
           <owl:imports rdf:resource="http://example.org/imported-ontology"/>
         </owl:Ontology>
       </rdf:RDF>
     `;
 
-    const importedXml = `
-      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-               xmlns:owl="http://www.w3.org/2002/07/owl#"
-               xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-               xml:base="http://example.org/imported#">
-        <owl:Class rdf:about="http://example.org/imported#SpecialClass">
-          <rdfs:label xml:lang="en">Special</rdfs:label>
-        </owl:Class>
-      </rdf:RDF>
-    `;
-
-    global.fetch = jest.fn((url) => {
-      if (url === "http://example.org/imported-ontology") {
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          statusText: "OK",
-          text: () => Promise.resolve(importedXml),
-        });
+    global.fetch = jest.fn(async (url) => {
+      if (url !== "http://example.org/imported-ontology") {
+        throw new Error("Unexpected fetch url: " + url);
       }
-      return Promise.reject(new Error("Unexpected fetch url: " + url));
+      return {
+        headers: { get: () => "application/rdf+xml" },
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        text: async () => importedXml,
+      };
     });
 
     const result = await loadWithImports(mainXml);
 
-    expect(result).toHaveProperty("_comment");
+    expect(result._comment).toBe("Created with owlapi-js VOWLBuilder");
     expect(result.header.iri).toBe("http://example.org/main");
-
-    const specialClassNode = result.class.find((c) => {
-      const attr = result.classAttribute.find((ca) => ca.id === c.id);
-      return attr && attr.iri === "http://example.org/imported#SpecialClass";
-    });
-    expect(specialClassNode).toBeDefined();
+    expect(result.classAttribute).toContainEqual(
+      expect.objectContaining({
+        iri: "http://example.org/imported#SpecialClass",
+      }),
+    );
   });
 });

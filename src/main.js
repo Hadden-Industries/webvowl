@@ -24,14 +24,6 @@ window.webvowl = webvowl;
 webvowl.app = app;
 const application = webvowl.app();
 
-if (import.meta.env.DEV) {
-  const integrationModule =
-    await import("./app/js/owlapiDevelopmentIntegration.js");
-  const installOwlapiDevelopmentIntegration =
-    integrationModule.default || integrationModule;
-  installOwlapiDevelopmentIntegration({ application, target: window });
-}
-
 // Initialize the application on page load.
 // Replaces the inline <script>window.onload = webvowl.app().initialize;</script> from index.html.
 window.onload = function () {
