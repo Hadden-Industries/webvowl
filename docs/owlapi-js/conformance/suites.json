@@ -57,6 +57,29 @@
       "runner": "src/owlapi-js/parser/owlxml/owlXml.conformance.test.js"
     },
     {
+      "id": "vowl-2",
+      "specifications": [
+        "VOWL: Visual Notation for OWL Ontologies, Specification of Version 2.0"
+      ],
+      "authors": ["Stefan Negru", "Steffen Lohmann", "Florian Haag"],
+      "documentVersion": "2.0",
+      "documentDate": "2014-04-07",
+      "canonicalVersionIri": "http://purl.org/vowl/spec/v2/",
+      "canonicalLatestIri": "http://purl.org/vowl/spec/",
+      "upstream": "https://github.com/neon12345/WebVOWL",
+      "revision": "61abca1ad6aeb5108be7f06e9590c702d4013e7a",
+      "retrievedOn": "2026-08-18",
+      "manifestArtifact": "docs/owlapi-js/conformance/upstream/vowl-2",
+      "hashManifest": "docs/owlapi-js/conformance/upstream/vowl-2/SHA256SUMS",
+      "primaryFile": "index.orig",
+      "provenance": "Third-party recovery of the original specification site, added by the unmerged draft pull request VisualDataWeb/WebVOWL#210. Content identity is corroborated by the document's own title, version, date and PURL identifiers, and by the authors' May 2014 publication announcement. Byte identity with the 2014 origin server is NOT established. index.orig preserves the original absolute hyperlinks; index.html is the recoverer's copy with dead links rewritten to '#'. Their tag-stripped text is identical, so the difference is link rewriting only.",
+      "applicable": [
+        "VOWL visual notation",
+        "OWL construct visualization scope"
+      ],
+      "authorityScope": "Normative for which OWL constructs VOWL depicts and how. NOT normative for the VOWL-JSON serialization, which the VOWL article names as a format used by WebVOWL rather than a specified artifact."
+    },
+    {
       "id": "owlapi-reference",
       "specifications": ["selected OWLAPI 5 behavioral compatibility"],
       "upstream": "C:/Users/maksy/GitHub/owlcs/owlapi",
