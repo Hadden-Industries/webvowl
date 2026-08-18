@@ -1,9 +1,10 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import owl2vowl from "../js/index.js";
+import owl2vowl, { loadWithImports } from "../js/index.js";
 import { ONTOLOGY_CATALOG } from "../js/constants.js";
 import { getLocalOntologyPath, LOCAL_ONTOLOGY_DIST_DIR } from "./helpers.js";
+import { installLocalOntologyFetch } from "./vowlDifferential.js";
 
 // The pinned OWL2VOWL oracle converted every one of these documents
 // successfully; its outputs are committed under
@@ -52,7 +53,34 @@ const isTurtle = (file) => path.extname(file).toLowerCase() === ".ttl";
 const advertisedFiles = targetFiles.filter((file) => !isTurtle(file));
 const deferredSyntaxFiles = targetFiles.filter(isTurtle);
 
+// Both public entries are gated. `owl2vowl` converts a single document;
+// `loadWithImports` additionally resolves the import closure and is what
+// `src/app/js/loadingModule.js` calls for every document a user opens. Gating
+// only the first left the application's own path untested, which is how two
+// documents came to fail through the UI while this suite stayed green.
+//
+// These two documents are RDF/XML, but their import closures reach
+// `http://www.w3.org/ns/time/gregorian`, which the corpus serves as Turtle.
+// Turtle arrives in Phase 9, so the closure-resolving entry must refuse them
+// while the single-document entry still succeeds.
+const hasTurtleImportClosure = (file) =>
+  file.includes("universal") &&
+  (file.endsWith("core\\20260714") ||
+    file.endsWith("core/20260714") ||
+    file.endsWith("extended\\20260714") ||
+    file.endsWith("extended/20260714"));
+
 describe("production entry real-corpus acceptance", () => {
+  let restoreFetch;
+
+  beforeAll(() => {
+    restoreFetch = installLocalOntologyFetch();
+  });
+
+  afterAll(() => {
+    restoreFetch();
+  });
+
   test("the corpus is present", () => {
     expect(advertisedFiles.length).toBeGreaterThan(0);
   });
@@ -65,6 +93,33 @@ describe("production entry real-corpus acceptance", () => {
       async () => {
         const text = fs.readFileSync(file, "utf8");
         const result = await owl2vowl(text, { fileName: name });
+
+        expect(Array.isArray(result.class)).toBe(true);
+        expect(Array.isArray(result.classAttribute)).toBe(true);
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    if (hasTurtleImportClosure(file)) {
+      test(
+        `rejects ${name} through the import-resolving entry because its closure is Turtle`,
+        async () => {
+          const text = fs.readFileSync(file, "utf8");
+
+          await expect(
+            loadWithImports(text, { fileName: name }),
+          ).rejects.toMatchObject({ code: "UNPARSABLE_ONTOLOGY" });
+        },
+        TEST_TIMEOUT_MS,
+      );
+      continue;
+    }
+
+    test(
+      `loads ${name} through the import-resolving entry`,
+      async () => {
+        const text = fs.readFileSync(file, "utf8");
+        const result = await loadWithImports(text, { fileName: name });
 
         expect(Array.isArray(result.class)).toBe(true);
         expect(Array.isArray(result.classAttribute)).toBe(true);

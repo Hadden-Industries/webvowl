@@ -151,6 +151,12 @@ export function loadWithImports(text, options = {}) {
   return build(text, {
     ...options,
     configuration: {
+      // An unreachable import must not abort the whole document. Ontologies on
+      // the open web routinely import documents that are offline, moved or
+      // unmirrored, and the pinned OWL2VOWL oracle renders them anyway. Throwing
+      // here would turn an ordinary web condition into a blank screen for the
+      // one entry point the application actually calls.
+      missingImportHandling: "diagnostic",
       parsingMode: PRODUCTION_PARSING_MODE,
       remoteImports: true,
       ...options.configuration,

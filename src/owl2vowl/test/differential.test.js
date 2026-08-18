@@ -1,3 +1,18 @@
+// RETAINED FOR CHARACTERIZATION - NOT PART OF `npm test`.
+//
+// This suite compares the *legacy* pipeline against the pinned Java OWL2VOWL
+// oracle. After the Phase 8 cutover that pipeline is no longer what WebVOWL
+// ships, so section 18.8's requirement to compare Java output against WebVOWL
+// output "through new architecture" is met by the production differential, not
+// by this file. `npm test` gates deployment and must therefore not run it.
+//
+// It is kept, and kept green, for one reason: its `expectedDifferences`
+// register is the historical record of how the legacy JavaScript pipeline
+// differed from the oracle. That baseline is what makes it possible to say a
+// difference in the production differential is *new* rather than pre-existing.
+//
+// Run it with `npm run test:legacy`. The exclusion lives in the `jest` section
+// of `package.json` and is guarded by `src/testRunnerScope.architecture.test.js`.
 import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -6,6 +21,12 @@ import { fileURLToPath } from "node:url";
 import { loadWithImports } from "./legacyPipeline.js";
 import { ONTOLOGY_CATALOG } from "../js/constants.js";
 import { getLocalOntologyPath, LOCAL_ONTOLOGY_DIST_DIR } from "./helpers.js";
+import {
+  compareVowlSemantics,
+  getFilePathKey,
+  parseVowlJson,
+  readJavaReferenceOutput,
+} from "./vowlDifferential.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,19 +41,8 @@ const JAVA_JAR = path.join(
   "OWL2VOWL-0.3.7-shaded.jar",
 );
 
-const JAVA_FIXTURE_DIR = path.join(
-  WORKSPACE_PARENT,
-  "webvowl",
-  "src",
-  "owl2vowl",
-  "test",
-  "fixtures",
-  "java-reference-outputs",
-);
-
 const JAVA_MAX_BUFFER_BYTES = 10 * 1024 * 1024;
 const TEST_TIMEOUT_MS = 30_000;
-const RDFS_SUBCLASS_OF_IRI = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const OWL_THING_IRI = "http://www.w3.org/2002/07/owl#Thing";
 const RDFS_LITERAL_IRI = "http://www.w3.org/2000/01/rdf-schema#Literal";
 const EMPTY_ONTOLOGY_XML =
@@ -111,24 +121,6 @@ const expectedDifferences = {
     "Java reasoner additions and minor annotation differences",
 };
 
-function getFilePathKey(filePath) {
-  const pathParts = filePath.split(/[\\/]+/).filter(Boolean);
-  const fileName = pathParts.at(-1);
-
-  // Files with an extension use the complete filename unchanged.
-  if (path.extname(fileName) !== "") {
-    return fileName;
-  }
-
-  const distIndex = pathParts.lastIndexOf("dist");
-
-  if (distIndex === -1) {
-    throw new Error(`Path does not contain a "dist" directory: ${filePath}`);
-  }
-
-  return pathParts.slice(distIndex + 1).join("_");
-}
-
 function throwFriendlyTestError(message) {
   const error = new Error(message);
 
@@ -139,12 +131,10 @@ function throwFriendlyTestError(message) {
 }
 
 function runJavaConverter(filePath) {
-  const outputFileName = `${getFilePathKey(filePath)}.java.json`;
-  const materialisedOutputPath = path.join(JAVA_FIXTURE_DIR, outputFileName);
-
   // Use the existing materialised Java output whenever available.
-  if (fs.existsSync(materialisedOutputPath)) {
-    return JSON.parse(fs.readFileSync(materialisedOutputPath, "utf8"));
+  const materialisedOutput = readJavaReferenceOutput(filePath);
+  if (materialisedOutput) {
+    return materialisedOutput;
   }
 
   try {
@@ -187,153 +177,6 @@ function runJavaConverter(filePath) {
   }
 }
 
-function normalizeAnnotations(annotations) {
-  if (!annotations) {
-    return "";
-  }
-
-  const normalized = Object.fromEntries(
-    Object.keys(annotations)
-      .sort()
-      .map((key) => [
-        key,
-        annotations[key]
-          .map(({ value, type, language, identifier }) => ({
-            value,
-            type,
-            language: language || "undefined",
-            identifier,
-          }))
-          .sort((left, right) =>
-            `${left.language}-${left.value}`.localeCompare(
-              `${right.language}-${right.value}`,
-            ),
-          ),
-      ]),
-  );
-
-  return JSON.stringify(normalized);
-}
-
-function parseVowlJson(json) {
-  if (!json) {
-    return null;
-  }
-
-  const classAttributes = json.classAttribute ?? [];
-  const propertyAttributes = json.propertyAttribute ?? [];
-  const rawProperties = json.property ?? [];
-
-  const classIdToIri = Object.fromEntries(
-    classAttributes.map(({ id, iri }) => [id, iri]),
-  );
-  const subclassPropertyIds = new Set(
-    rawProperties
-      .filter(({ type }) => type === "rdfs:SubClassOf")
-      .map(({ id }) => id),
-  );
-  const disjointPropertyIds = new Set(
-    rawProperties
-      .filter(({ type }) => type === "owl:disjointWith")
-      .map(({ id }) => id),
-  );
-
-  const classes = new Set();
-  const classAnnotations = {};
-  const classInstances = {};
-  for (const classAttribute of classAttributes) {
-    if (classAttribute.iri) {
-      classes.add(classAttribute.iri);
-      classAnnotations[classAttribute.iri] = normalizeAnnotations(
-        classAttribute.annotations,
-      );
-      classInstances[classAttribute.iri] = classAttribute.instances || 0;
-    }
-  }
-
-  const properties = {};
-  const propertyAnnotations = {};
-  for (const propertyAttribute of propertyAttributes) {
-    if (
-      propertyAttribute.iri &&
-      propertyAttribute.iri !== RDFS_SUBCLASS_OF_IRI
-    ) {
-      properties[propertyAttribute.iri] = {
-        domain:
-          classIdToIri[propertyAttribute.domain] ||
-          propertyAttribute.domain ||
-          null,
-        range:
-          classIdToIri[propertyAttribute.range] ||
-          propertyAttribute.range ||
-          null,
-      };
-      propertyAnnotations[propertyAttribute.iri] = normalizeAnnotations(
-        propertyAttribute.annotations,
-      );
-    }
-  }
-
-  const subclasses = [];
-  for (const propertyAttribute of propertyAttributes) {
-    const isSubclassProperty = subclassPropertyIds.has(propertyAttribute.id);
-
-    if (isSubclassProperty || propertyAttribute.iri === RDFS_SUBCLASS_OF_IRI) {
-      const subclass =
-        classIdToIri[propertyAttribute.domain] || propertyAttribute.domain;
-      const superclass =
-        classIdToIri[propertyAttribute.range] || propertyAttribute.range;
-
-      if (subclass && superclass) {
-        subclasses.push(`${subclass} -> ${superclass}`);
-      }
-    }
-  }
-  subclasses.sort();
-
-  const unions = {};
-  for (const classAttribute of classAttributes) {
-    if (classAttribute.union) {
-      unions[classAttribute.iri || classAttribute.id] = classAttribute.union
-        .map((memberId) => classIdToIri[memberId] || memberId)
-        .sort();
-    }
-  }
-
-  const disjoints = [];
-  for (const propertyAttribute of propertyAttributes) {
-    const isDisjointProperty = disjointPropertyIds.has(propertyAttribute.id);
-
-    if (isDisjointProperty || propertyAttribute.type === "owl:disjointWith") {
-      const firstClass =
-        classIdToIri[propertyAttribute.domain] || propertyAttribute.domain;
-      const secondClass =
-        classIdToIri[propertyAttribute.range] || propertyAttribute.range;
-
-      if (firstClass && secondClass) {
-        const [lowerIri, higherIri] = [firstClass, secondClass].sort();
-        disjoints.push(`${lowerIri} <-> ${higherIri}`);
-      }
-    }
-  }
-
-  const uniqueDisjoints = [...new Set(disjoints)].sort();
-  const title = json.header?.title?.en || json.header?.title?.undefined || "";
-
-  return {
-    ontologyIri: json.header ? json.header.iri : null,
-    title,
-    classes,
-    classAnnotations,
-    classInstances,
-    properties,
-    propertyAnnotations,
-    subclasses,
-    unions,
-    disjoints: uniqueDisjoints,
-  };
-}
-
 function createTextResponse(textContent) {
   return {
     ok: true,
@@ -361,36 +204,6 @@ function getRequestUrl(input) {
   }
 
   return input.url;
-}
-
-function arrayDifference(left, right) {
-  const rightValues = new Set(right);
-  return left.filter((value) => !rightValues.has(value));
-}
-
-function referencesMatch(
-  leftReference,
-  rightReference,
-  leftUnions,
-  rightUnions,
-) {
-  if (leftReference === rightReference) {
-    return true;
-  }
-
-  const leftUnion = leftUnions[leftReference];
-  const rightUnion = rightUnions[rightReference];
-
-  /*
-   * Anonymous union nodes can receive different generated identifiers in the
-   * two converters. Their sorted member lists are therefore the stable value
-   * to compare, rather than the converter-specific node identifiers.
-   */
-  return Boolean(
-    leftUnion &&
-    rightUnion &&
-    JSON.stringify(leftUnion) === JSON.stringify(rightUnion),
-  );
 }
 
 describe("OWL2VOWL Java-to-JavaScript differential tests", () => {
@@ -664,107 +477,12 @@ describe("OWL2VOWL Java-to-JavaScript differential tests", () => {
         }
 
         // Check structural equivalence; documented differences remain permitted.
-        const iriMatch = javaParsed.ontologyIri === jsParsed.ontologyIri;
-        const classesMatch = javaParsed.classes.size === jsParsed.classes.size;
-
-        const javaPropertyIris = Object.keys(javaParsed.properties).sort();
-        const jsPropertyIris = Object.keys(jsParsed.properties).sort();
-        const missingProperties = javaPropertyIris.filter(
-          (iri) => !Object.hasOwn(jsParsed.properties, iri),
+        const { isExactMatch, failedChecks } = compareVowlSemantics(
+          javaParsed,
+          jsParsed,
         );
-        const extraProperties = jsPropertyIris.filter(
-          (iri) => !Object.hasOwn(javaParsed.properties, iri),
-        );
-        const commonPropertyIris = javaPropertyIris.filter((iri) =>
-          Object.hasOwn(jsParsed.properties, iri),
-        );
-        const propertyStructuresMatch = commonPropertyIris.every((iri) => {
-          const javaProperty = javaParsed.properties[iri];
-          const jsProperty = jsParsed.properties[iri];
-
-          return (
-            referencesMatch(
-              javaProperty.domain,
-              jsProperty.domain,
-              javaParsed.unions,
-              jsParsed.unions,
-            ) &&
-            referencesMatch(
-              javaProperty.range,
-              jsProperty.range,
-              javaParsed.unions,
-              jsParsed.unions,
-            )
-          );
-        });
-        const propertiesMatch =
-          missingProperties.length === 0 &&
-          extraProperties.length === 0 &&
-          propertyStructuresMatch;
-
-        const missingSubclasses = arrayDifference(
-          javaParsed.subclasses,
-          jsParsed.subclasses,
-        );
-        const extraSubclasses = arrayDifference(
-          jsParsed.subclasses,
-          javaParsed.subclasses,
-        );
-        const subclassesMatch =
-          missingSubclasses.length === 0 && extraSubclasses.length === 0;
-
-        const missingDisjoints = arrayDifference(
-          javaParsed.disjoints,
-          jsParsed.disjoints,
-        );
-        const extraDisjoints = arrayDifference(
-          jsParsed.disjoints,
-          javaParsed.disjoints,
-        );
-        const disjointsMatch =
-          missingDisjoints.length === 0 && extraDisjoints.length === 0;
-
-        const commonClasses = [...javaParsed.classes].filter((iri) =>
-          jsParsed.classes.has(iri),
-        );
-        const classAnnotationsMatch = commonClasses.every(
-          (iri) =>
-            javaParsed.classAnnotations[iri] === jsParsed.classAnnotations[iri],
-        );
-        const instancesMatch = commonClasses.every(
-          (iri) =>
-            javaParsed.classInstances[iri] === jsParsed.classInstances[iri],
-        );
-        const propertyAnnotationsMatch = commonPropertyIris.every(
-          (iri) =>
-            javaParsed.propertyAnnotations[iri] ===
-            jsParsed.propertyAnnotations[iri],
-        );
-        const annotationsMatch =
-          classAnnotationsMatch && propertyAnnotationsMatch;
-
-        const isExactMatch =
-          iriMatch &&
-          classesMatch &&
-          propertiesMatch &&
-          subclassesMatch &&
-          annotationsMatch &&
-          instancesMatch &&
-          disjointsMatch;
 
         if (!isExactMatch) {
-          const failedChecks = Object.entries({
-            iri: iriMatch,
-            classes: classesMatch,
-            props: propertiesMatch,
-            subclasses: subclassesMatch,
-            annotations: annotationsMatch,
-            instances: instancesMatch,
-            disjoints: disjointsMatch,
-          })
-            .filter(([, matches]) => !matches)
-            .map(([name]) => name);
-
           process.stderr.write(
             `[DIAGNOSTIC] File ${keyName}: failed ${failedChecks.join(", ")}\n`,
           );

@@ -233,6 +233,41 @@ describe("production owl2vowl entry point", () => {
     });
   });
 
+  // An import that cannot be fetched is ordinary on the open web: the document
+  // may be offline, moved, or simply not mirrored. The pinned OWL2VOWL oracle
+  // renders such ontologies rather than refusing them, and the retained legacy
+  // pipeline did too, so aborting the whole load would be a visible regression
+  // for anyone opening `spatial.rdf` or `ontology_v3.3.rdf`.
+  //
+  // `owl2vowl` already defaults to diagnostic handling. `loadWithImports` is the
+  // entry `src/app/js/loadingModule.js` actually calls, so it needs the same
+  // default or the application gets the stricter behaviour.
+  test("renders the ontology when an import cannot be fetched", async () => {
+    const mainXml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#">
+        <owl:Ontology rdf:about="http://example.org/main">
+          <owl:imports rdf:resource="http://example.org/unreachable"/>
+        </owl:Ontology>
+        <owl:Class rdf:about="http://example.org/main#Local"/>
+      </rdf:RDF>
+    `;
+
+    global.fetch = jest.fn(async () => ({
+      ok: false,
+      status: 404,
+      statusText: "Not Found",
+      text: async () => "",
+    }));
+
+    const result = await loadWithImports(mainXml);
+
+    expect(result.header.iri).toBe("http://example.org/main");
+    expect(result.classAttribute).toContainEqual(
+      expect.objectContaining({ iri: "http://example.org/main#Local" }),
+    );
+  });
+
   test("resolves an import closure through the structural path", async () => {
     const importedXml = `
       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
