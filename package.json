@@ -42,6 +42,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest",
+    "test:legacy": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest --testPathIgnorePatterns=/node_modules/ --testPathPatterns=\"owl2vowl/test/differential\\.test\\.js$\"",
     "lint": "npm run lint:html && npm run lint:css && npm run lint:js",
     "lint:css": "stylelint \"src/**/*.css\"",
     "lint:html": "html-validate src/index.html",
@@ -56,7 +57,11 @@
   "license": "AGPL-3.0-only",
   "private": true,
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "owl2vowl/test/differential\\.test\\.js$"
+    ]
   },
   "browserslist": [
     "baseline widely available"
