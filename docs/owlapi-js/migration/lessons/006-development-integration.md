@@ -56,7 +56,7 @@ development app without changing the production default.
 | Provenance and governance   | Every new module has a disposition; every recorded reuse boundary resolves on the current branch                          | `src/owlapi-js/governance.test.js`                                   |
 | Repository verification     | 10/37 Phase 7 focused suites and 94/1,218 repository suites/tests passed; lint, format and production build green         | complete Jest run; `npm run lint`; `npm run build`                   |
 | Production isolation        | The production bundle contains no development route, adapter or builder marker                                            | `npm run build` followed by inspection of `deploy/js/*.js`           |
-| Performance                 | Three new VOWL signals accepted; one pre-existing RDF/XML signal recorded as an open regression                           | `docs/owlapi-js/performance/baseline.md`                             |
+| Performance                 | Three new VOWL signals accepted; both paired RDF/XML signals within the unchanged 20% threshold                           | `docs/owlapi-js/performance/baseline.md`                             |
 
 ## Findings and dispositions
 
@@ -69,7 +69,7 @@ development app without changing the production default.
 | `M7-005` | `TESTING`, `CROSS_CUTTING`                   | `TEST_OR_FITNESS_UPDATE` | One canonicalizer shared between a foreign-oracle comparison and a same-format comparison silently weakens the same-format gate.                                    |
 | `M7-006` | `TESTING`                                    | `TEST_OR_FITNESS_UPDATE` | A governed-difference gate whose caller asserts zero differences cannot accept the exceptions its own manifest exists to express.                                   |
 | `M7-007` | `PROVENANCE`, `TESTING`, `CROSS_CUTTING`     | `TEST_OR_FITNESS_UPDATE` | Commit-bounded provenance selectors are invalidated by branch rewriting, and a format-only check on a revision string cannot detect it.                             |
-| `M7-008` | `PERFORMANCE`, `CROSS_CUTTING`               | `LOCAL_PHASE_FOLLOW_UP`  | The RDF/XML end-to-end signal is 85.75% above its accepted Phase 6 baseline; the regression predates Phase 7 and is deferred to Phase 8 by owner decision.          |
+| `M7-008` | `PERFORMANCE`, `TESTING`, `CROSS_CUTTING`    | `PLAYBOOK_UPDATE`        | A benchmark run concurrently with other work reported a false 85.75% regression; a tight run-to-run spread is not evidence that a measurement is uncontaminated.    |
 | `M7-009` | `TESTING`, `PROVENANCE`, `CROSS_CUTTING`     | `PLAYBOOK_UPDATE`        | The Java oracle writes a different VOWL attribute dialect from WebVOWL; dialect differences must be declared, not deleted inside a comparison helper.               |
 
 ### `M7-001` through `M7-004` - the builder was gated, not asserted
@@ -145,26 +145,41 @@ suite. Because this repository's pipelines include a shallow Travis clone and a
 Docker context that excludes `.git`, the check degrades only when it can prove
 history is unavailable, and the proof itself is asserted.
 
-### `M7-008` - an open regression that Phase 7 did not cause
+### `M7-008` - a false regression caused by measuring under load
 
-Remeasuring the pre-existing RDF/XML signals on this runtime, as `M6-011`
-requires, showed `generated-rdfxml-large.end-to-end` at 3,425.74 ms against an
-accepted 1,844.23 ms baseline: 85.75% above a 20% threshold, across five runs
-spanning 3,389 ms to 3,493 ms.
+The first paired remeasurement reported `generated-rdfxml-large.end-to-end` at
+3,425.74 ms against an accepted 1,844.23 ms baseline, 85.75% above a 20%
+threshold. It was recorded as an open regression, deferred to Phase 8 by owner
+decision, and committed in that form.
 
-Phase 7's contribution was isolated at approximately 68 ms by bypassing the new
-import-closure construction and repeating the benchmark. The syntax seam moved
-only 5.72%, so the loss is after the canonical RDF/JS boundary, and peak heap
-fell by 12.97% while wall time rose, which is consistent with a changed
-structure or an added traversal rather than machine variance.
+It was not a regression. The benchmark had been launched in the background
+while the same session ran repeated full-text scans over a 44 MB file. Repeated
+on an idle machine, the same command on the same revision, runtime, machine and
+lockfile produced 1,809.97 ms, which is 1.86% **below** the accepted baseline.
+The VOWL signals measured in that same window were inflated identically:
+`owlapi-to-vowl` fell from 3,539.46 ms to 1,947.63 ms once remeasured cleanly.
 
-Section 20.6 forbids re-baselining a threshold because a regression made it
-fail, so the accepted Phase 6 figure stands and the discrepancy is recorded as
-an open regression in `docs/owlapi-js/performance/baseline.md`. The repository
-owner decided on 18 August 2026 that this finding does not block the Phase 7
-checkpoint, since Phase 7 neither caused nor materially contributes to it, and
-assigned the investigation to Phase 8, which rewires production onto this exact
-path.
+Three reasoning errors turned contaminated data into a recorded finding. A
+run-to-run spread of 3,389 ms to 3,493 ms was read as evidence of a stable,
+trustworthy signal, when it only showed that the interference was sustained
+across all five runs. The syntax seam moved less than the end-to-end signal, so
+the loss was localized after the RDF/JS boundary, when in fact the longer
+operation simply had more wall-clock exposure to the same contention. A
+falling peak heap alongside rising wall time was read as a structural change,
+when it was ordinary allocation-timing variance under memory pressure.
+
+The corrective checks were cheap and would have prevented the finding
+altogether. A single isolated end-to-end load took 1,724 ms, immediately
+contradicting the 3,426 ms figure. Wall time scaled linearly across 12,500,
+25,000 and 50,000 axioms, which ruled out the algorithmic regression the heap
+observation had suggested. The three accepted signals are also mutually
+consistent: `owlapi-to-vowl` minus `end-to-end` is approximately 138 ms, which
+matches the independently measured `builder-only` signal.
+
+The playbook now requires benchmark runs to be serialized against all other
+work, and requires an independent arithmetic or scaling cross-check before any
+threshold breach is recorded as a finding. No baseline was re-anchored at any
+point, so section 20.6 was never engaged.
 
 ### `M7-009` - the oracle speaks a different dialect
 
@@ -199,26 +214,27 @@ and development route are the pieces intended to disappear.
 
 Phase 8 must additionally:
 
-1. resolve `M7-008` before accepting cutover performance evidence, because the
-   production path becomes exactly the measured path;
-2. prove by static architecture test and bundle inspection that the production
+1. prove by static architecture test and bundle inspection that the production
    graph cannot reach the legacy parsers, `ontologyConverter.js` or
    `jsonExporter.js`;
-3. keep the legacy files unmoved for characterization; and
-4. fail explicitly with canonical unsupported-format diagnostics for any
+2. keep the legacy files unmoved for characterization; and
+3. fail explicitly with canonical unsupported-format diagnostics for any
    legacy-only syntax, including one discovered in an import closure.
+
+Phase 8 inherits no performance debt. The production path it adopts measures
+1.86% below its accepted baseline, and VOWL construction adds approximately
+138 ms over 50,000 classes.
 
 ## Unresolved questions
 
-`M7-008` is the single open item. It is classified `LOCAL_PHASE_FOLLOW_UP`,
-which section 17.4 requires to be completed before gate closure; it is instead
-carried into Phase 8 by an explicit repository-owner decision recorded above.
-The Phase 7 gate therefore closes with one deferred follow-up rather than zero,
-and this deviation is stated here rather than absorbed into a softer
-classification.
+None. `M7-008` was originally recorded as an open performance regression
+deferred to Phase 8; remeasurement on an idle machine showed the regression did
+not exist, and the finding was rewritten as the measurement-hygiene lesson
+above. Its disposition changed from `LOCAL_PHASE_FOLLOW_UP` to
+`PLAYBOOK_UPDATE`, and the playbook was updated before gate closure.
 
-No other conformance, differential, architecture, provenance, security,
-resource or browser blocker remains.
+No conformance, differential, architecture, provenance, security, resource,
+performance or browser blocker remains.
 
 ## Mechanically reviewable completion summary
 
@@ -226,17 +242,17 @@ resource or browser blocker remains.
 - Lesson record: `docs/owlapi-js/migration/lessons/006-development-integration.md`.
 - Finding IDs: `M7-001` through `M7-009`; every finding has exactly one primary
   disposition.
-- Playbook changed: yes; the oracle-dialect and comparison-target rules are
-  institutionalized and the next-migration section advances to Phase 8.
+- Playbook changed: yes; the oracle-dialect, comparison-target and
+  benchmark-isolation rules are institutionalized and the next-migration
+  section advances to Phase 8.
 - Executable protections added: VOWL canonicalizer unit tests including the
   `inferred` preservation and dialect-pinning cases, a restriction-parity test
   against the retained converter, a manifest-derived governed-difference count,
   a reuse-boundary revision resolvability gate, a conformance runner and
   harness existence check, and provenance records for the three new modules.
 - Normative-change proposals: none.
-- Resource-budget or regression-threshold changes: none; the failing
-  `generated-rdfxml-large.end-to-end` threshold is retained unchanged and the
-  regression is recorded against it.
-- Unresolved blockers: `M7-008`, deferred to Phase 8 by owner decision.
+- Resource-budget or regression-threshold changes: none; every paired signal is
+  within the unchanged 20% threshold and no baseline was re-anchored.
+- Unresolved blockers: none.
 - Next migration: Phase 8, blocked until the repository owner creates the
   requested Phase 7 checkpoint commit and explicitly says to proceed.

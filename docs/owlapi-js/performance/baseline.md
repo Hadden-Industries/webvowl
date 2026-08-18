@@ -266,11 +266,14 @@ exceptions.
   completion. First use separately measures the development adapter through
   manager selection, RDF/XML, shared RDF-to-OWL reconstruction, and the builder.
 
-| Signal                                    | Input                             | Accepted wall time (ms) | Accepted peak heap delta (bytes) |
-| ----------------------------------------- | --------------------------------- | ----------------------: | -------------------------------: |
-| VOWL development-route first use          | 5,448 bytes / 100 declarations    |                   39.09 |                        8,901,328 |
-| `generated-vowl-classes-large.builder-only` | 1,388,974 bytes / 50,000 classes |                  129.55 |                       69,256,616 |
-| `generated-rdfxml-large.owlapi-to-vowl`   | 2,789,048 bytes / 50,000 classes  |                3,539.46 |                      340,096,248 |
+Every measurement below was taken on an otherwise idle machine, with no other
+benchmark, test run, or file-scanning work in progress. See finding `M7-008`.
+
+| Signal                                      | Input                            | Accepted wall time (ms) | Accepted peak heap delta (bytes) |
+| ------------------------------------------- | -------------------------------- | ----------------------: | -------------------------------: |
+| VOWL development-route first use            | 5,448 bytes / 100 declarations   |                   40.10 |                        8,902,104 |
+| `generated-vowl-classes-large.builder-only` | 1,388,974 bytes / 50,000 classes |                  138.95 |                       68,991,864 |
+| `generated-rdfxml-large.owlapi-to-vowl`     | 2,789,048 bytes / 50,000 classes |                1,947.63 |                      341,643,480 |
 
 The builder-only signal starts from an already-loaded `OWLOntology` and ends at
 the VOWL-JSON-compatible result. The `owlapi-to-vowl` signal is the complete
@@ -284,31 +287,16 @@ before any comparison, as finding `M6-011` requires.
 
 | Existing signal                        | Accepted Phase 6 wall / heap delta | Paired Phase 7 wall / heap delta | Wall change | Heap-delta change |
 | -------------------------------------- | ---------------------------------: | -------------------------------: | ----------: | ----------------: |
-| `generated-rdfxml-large.syntax-to-rdf` |      306.15 ms / 92,747,760 bytes  |    323.66 ms / 92,858,312 bytes  |      +5.72% |            +0.12% |
-| `generated-rdfxml-large.end-to-end`    |    1,844.23 ms / 341,045,176 bytes |  3,425.74 ms / 296,818,888 bytes |     +85.75% |           -12.97% |
+| `generated-rdfxml-large.syntax-to-rdf` |     306.15 ms / 92,747,760 bytes   |   334.48 ms / 92,750,176 bytes   |      +9.25% |            +0.00% |
+| `generated-rdfxml-large.end-to-end`    |   1,844.23 ms / 341,045,176 bytes  | 1,809.97 ms / 341,473,632 bytes  |      -1.86% |            +0.13% |
 
-The `syntax-to-rdf` change is within the unchanged 20% release threshold. The
-`end-to-end` change is not, and is recorded here as an accepted open regression
-rather than a re-baselined threshold, because section 20.6 forbids updating a
-baseline merely because a regression made the old threshold fail.
+Both paired changes remain within the unchanged 20% release threshold. No
+resource ceiling or regression threshold changed, and no baseline was
+re-anchored.
 
-The regression is not attributable to Phase 7. It was isolated by temporarily
-bypassing the new import-closure construction in
-`loadOntologyGraphFromOntologyDocument` and repeating the same benchmark:
-
-| Configuration                        | `end-to-end` median wall time |
-| ------------------------------------ | ----------------------------: |
-| Phase 7 working tree                 |                    3,425.74 ms |
-| Phase 7 closure construction bypassed |                    3,357.99 ms |
-| Attributable Phase 7 cost            |             approximately 68 ms |
-
-Three observations locate the defect ahead of the Phase 8 investigation. The
-syntax seam moved only 5.72%, so the loss is after the canonical RDF/JS
-boundary rather than in RDF/XML parsing. Peak heap fell by 12.97% while wall
-time rose, which is consistent with a changed structure or an added traversal
-rather than machine variance. The five measured runs spanned 3,389 ms to
-3,493 ms, so the signal is stable and not a sampling artifact.
-
-Phase 7 therefore accepts its own three new signals and records
-`generated-rdfxml-large.end-to-end` as finding `M7-008`, owned by the Phase 8
-cutover, which rewires the production entry point onto exactly this path.
+The three accepted signals are mutually consistent, which is the arithmetic
+check that the numbers are sound: `owlapi-to-vowl` minus the paired
+`end-to-end` signal is approximately 138 ms, matching the independently
+measured `builder-only` signal of 138.95 ms. VOWL construction over 50,000
+classes is therefore time-cheap relative to ingestion and adds no measurable
+peak heap, because the structural ontology already dominates.
