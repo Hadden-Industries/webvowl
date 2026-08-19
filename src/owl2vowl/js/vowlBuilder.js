@@ -1,7 +1,11 @@
 import { dispatchAxiom, OWLObjectKind } from "../../owlapi-js/model/index.js";
 
-const OWL_THING_IRI = "http://www.w3.org/2002/07/owl#Thing";
-const RDFS_LITERAL_IRI = "http://www.w3.org/2000/01/rdf-schema#Literal";
+const OWL_NAMESPACE = "http://www.w3.org/2002/07/owl#";
+const RDF_NAMESPACE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+const RDFS_NAMESPACE = "http://www.w3.org/2000/01/rdf-schema#";
+const XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema#";
+const OWL_THING_IRI = `${OWL_NAMESPACE}Thing`;
+const RDFS_LITERAL_IRI = `${RDFS_NAMESPACE}Literal`;
 const RDFS_LABEL_IRI = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_COMMENT_IRI = "http://www.w3.org/2000/01/rdf-schema#comment";
 const RDFS_SUBCLASS_OF_IRI = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
@@ -12,7 +16,17 @@ const RESERVED_BASE_IRIS = new Set([
   "http://www.w3.org/2002/07/owl",
 ]);
 
-const compareText = (left, right) => left.localeCompare(right);
+// Code-point comparison, deliberately not `localeCompare`. Canonical ordering
+// decides what reaches the output - sorted base IRIs and languages, and the
+// order declarations and axioms are processed, which in turn decides which value
+// wins where only one can be kept. Locale collation depends on the runtime's
+// default locale and ICU build, so it would make that output a function of the
+// machine rather than of the ontology. It also weights `#` and `-` as
+// punctuation, which reverses the PROV namespaces against code-point order.
+//
+// Locale collation remains correct for lists presented to a human; this is
+// canonical data ordering, which is a different job.
+const compareText = (left, right) => (left < right ? -1 : left > right ? 1 : 0);
 const ignoredAxiom = () => undefined;
 
 const SKIPPED_RESTRICTIONS = new Set([
@@ -71,6 +85,18 @@ const localName = (iri) => {
   return decodeURIComponent(iri.slice(separator + 1)) || iri;
 };
 
+// The namespace half of `localName`, so that the two concatenate back into the
+// property IRI. Empty when the IRI has no local part to split off, in which case
+// `localName` returns the whole IRI and there is nothing to prefix.
+const namespaceIri = (iri) => {
+  const separator = Math.max(
+    iri.lastIndexOf("#"),
+    iri.lastIndexOf("/"),
+    iri.lastIndexOf(":"),
+  );
+  return iri.slice(separator + 1) ? iri.slice(0, separator + 1) : "";
+};
+
 const baseIri = (iri) => {
   const withoutTrailingSeparator = iri.replace(/[#/]$/u, "");
   const hashIndex = withoutTrailingSeparator.lastIndexOf("#");
@@ -94,42 +120,132 @@ const classType = (iri, kind) => {
 const languageKey = (literal) => literal.language || "undefined";
 
 const annotationItem = (annotation) => {
-  const identifier = annotation.property.iri.value;
+  // The local name, not the full IRI: VOWL-JSON groups annotations under the
+  // property's local name, and the pinned OWL2VOWL oracle repeats that same
+  // name here, so `identifier` always equals the key it sits under.
+  const identifier = localName(annotation.property.iri.value);
+  // A local name cannot distinguish two annotation properties from different
+  // namespaces, and VOWL-JSON groups both under it. `predicateNs` carries the
+  // rest of the IRI so nothing is lost, and `src/app/js/sidebar.js` uses it to
+  // hyperlink the predicate. The oracle has no such field, but the corpus
+  // differential compares only {value, type, language, identifier}, so adding
+  // one costs nothing in parity terms.
+  const predicateNs = namespaceIri(annotation.property.iri.value);
   if (annotation.value.kind === OWLObjectKind.LITERAL) {
     return {
       identifier,
       language: languageKey(annotation.value),
+      predicateNs,
       type: "label",
       value: annotation.value.lexicalForm,
     };
   }
   if (annotation.value.kind === OWLObjectKind.IRI) {
-    return { identifier, type: "iri", value: annotation.value.value };
+    return {
+      identifier,
+      predicateNs,
+      type: "iri",
+      value: annotation.value.value,
+    };
   }
   return {
     identifier,
+    predicateNs,
     type: "iri",
     value: `_:${annotation.value.nodeID}`,
   };
 };
 
+// A document may state two values for one language - two `rdfs:label`s tagged
+// `@en`, say. VOWL-JSON holds a single value per language, so one has to be
+// dropped, and the rule for which must not be a by-product of the order axioms
+// happen to be visited. Keeping the code-point-smaller value makes the outcome
+// a total function of the values themselves, so it holds however the ontology
+// was serialised and whatever the traversal order turns out to be.
 const setLocalizedValue = (target, literal) => {
   const language = languageKey(literal);
-  if (!Object.hasOwn(target, language)) {
-    target[language] = literal.lexicalForm;
+  const value = literal.lexicalForm;
+  if (!Object.hasOwn(target, language) || value < target[language]) {
+    target[language] = value;
   }
 };
 
+// What the pinned OWL2VOWL oracle serialises when a document declares no
+// ontology header, and therefore what WebVOWL v1.1.7 showed in its sidebar.
+// VOWL-JSON has no specification, so the oracle's rendering is the contract.
+const MISSING_ONTOLOGY_IRI = "No IRI set";
+
+// `owl:Thing` and `rdfs:Literal` are introduced by VOWL rather than read from
+// the ontology, so how they are labelled is a presentation convention. The
+// oracle is entirely consistent about it - across the 46 reference outputs
+// `owl:Thing` appears 340 times and `rdfs:Literal` 510 times, each with exactly
+// one label shape - and the two shapes differ from one another, which is why
+// they are pinned here rather than derived from a rule.
+const BUILT_IN_NODE_LABELS = Object.freeze({
+  "http://www.w3.org/2000/01/rdf-schema#Literal": {
+    "IRI-based": "Literal",
+    undefined: "Literal",
+  },
+  "http://www.w3.org/2002/07/owl#Thing": { undefined: "Thing" },
+});
+
+// The OWL 2 datatype map (OWL 2 Structural Specification, section 4). The
+// specification states that `Declaration( Datatype( I ) )` for each IRI I in the
+// map is automatically included in every ontology, so a member of the map is
+// part of every ontology by definition and cannot be external to one. That is
+// the authority for exempting these, rather than the oracle's observed silence.
+//
+// A datatype outside this map is user-defined and belongs to some ontology, so
+// it stays subject to the ordinary test.
+const OWL2_DATATYPE_MAP = new Set([
+  `${RDF_NAMESPACE}PlainLiteral`,
+  `${RDF_NAMESPACE}XMLLiteral`,
+  RDFS_LITERAL_IRI,
+  `${OWL_NAMESPACE}rational`,
+  `${OWL_NAMESPACE}real`,
+  ...[
+    "anyURI",
+    "base64Binary",
+    "boolean",
+    "byte",
+    "dateTime",
+    "dateTimeStamp",
+    "decimal",
+    "double",
+    "float",
+    "hexBinary",
+    "int",
+    "integer",
+    "language",
+    "long",
+    "Name",
+    "NCName",
+    "negativeInteger",
+    "NMTOKEN",
+    "nonNegativeInteger",
+    "nonPositiveInteger",
+    "normalizedString",
+    "positiveInteger",
+    "short",
+    "string",
+    "token",
+    "unsignedByte",
+    "unsignedInt",
+    "unsignedLong",
+    "unsignedShort",
+  ].map((name) => `${XSD_NAMESPACE}${name}`),
+]);
+
+// An entity belongs to the ontology being displayed when its base IRI *is* the
+// ontology's, not when it merely sits somewhere beneath it. A prefix test counts
+// every deeper path as local, so `…unito.it/drammar/2012/4/drammar.owl#Emotion`
+// would count as belonging to `http://www.cadmos.cirma.unito.it` despite being a
+// different document.
 const isExternalEntityIri = (iri, ontologyIri) => {
-  if (!ontologyIri || iri === OWL_THING_IRI || iri === RDFS_LITERAL_IRI) {
+  if (iri === OWL_THING_IRI || OWL2_DATATYPE_MAP.has(iri)) {
     return false;
   }
-  const normalized = ontologyIri.replace(/[#/]$/u, "");
-  return !(
-    iri === normalized ||
-    iri.startsWith(`${normalized}#`) ||
-    iri.startsWith(`${normalized}/`)
-  );
+  return baseIri(iri) !== (ontologyIri ?? "").replace(/[#/]$/u, "");
 };
 
 class BuildState {
@@ -187,7 +303,7 @@ class BuildState {
       id,
       instances: 0,
       iri,
-      label: { "IRI-based": localName(iri) },
+      label: BUILT_IN_NODE_LABELS[iri] ?? { "IRI-based": localName(iri) },
     };
     if (type === "rdfs:Datatype") {
       attribute.attributes = ["datatype"];
@@ -380,6 +496,20 @@ class BuildState {
     if (!record.attribute.attributes.includes(attribute)) {
       record.attribute.attributes.push(attribute);
     }
+  }
+
+  // A characteristic that only exists for object properties must not be drawn on
+  // a property that ADR 0005 resolved to data. Such a property reaches here only
+  // in compatible mode, where the axiom-level reuse recovery re-admits the
+  // object-property reading so the axiom can be constructed; that recovery is
+  // deliberate, but it must not undo the category decision. The pinned oracle
+  // renders `foaf:mbox_sha1sum` as a plain datatype property for this reason.
+  addObjectPropertyCharacteristic(property, attribute) {
+    const record = this.propertyRecord(property);
+    if (record.attribute.attributes.includes("datatype")) {
+      return;
+    }
+    this.addPropertyAttribute(property, attribute);
   }
 
   addEquivalentProperties(properties) {
@@ -734,20 +864,21 @@ class BuildState {
       [OWLObjectKind.INVERSE_OBJECT_PROPERTIES_AXIOM]: ({ properties }) =>
         this.addInverse(properties[0], properties[1]),
       [OWLObjectKind.FUNCTIONAL_OBJECT_PROPERTY_AXIOM]: ({ property }) =>
-        this.addPropertyAttribute(property, "functional"),
+        this.addObjectPropertyCharacteristic(property, "functional"),
       [OWLObjectKind.INVERSE_FUNCTIONAL_OBJECT_PROPERTY_AXIOM]: ({
         property,
-      }) => this.addPropertyAttribute(property, "inverse functional"),
+      }) =>
+        this.addObjectPropertyCharacteristic(property, "inverse functional"),
       [OWLObjectKind.REFLEXIVE_OBJECT_PROPERTY_AXIOM]: ({ property }) =>
-        this.addPropertyAttribute(property, "reflexive"),
+        this.addObjectPropertyCharacteristic(property, "reflexive"),
       [OWLObjectKind.IRREFLEXIVE_OBJECT_PROPERTY_AXIOM]: ({ property }) =>
-        this.addPropertyAttribute(property, "irreflexive"),
+        this.addObjectPropertyCharacteristic(property, "irreflexive"),
       [OWLObjectKind.SYMMETRIC_OBJECT_PROPERTY_AXIOM]: ({ property }) =>
-        this.addPropertyAttribute(property, "symmetric"),
+        this.addObjectPropertyCharacteristic(property, "symmetric"),
       [OWLObjectKind.ASYMMETRIC_OBJECT_PROPERTY_AXIOM]: ({ property }) =>
-        this.addPropertyAttribute(property, "asymmetric"),
+        this.addObjectPropertyCharacteristic(property, "asymmetric"),
       [OWLObjectKind.TRANSITIVE_OBJECT_PROPERTY_AXIOM]: ({ property }) =>
-        this.addPropertyAttribute(property, "transitive"),
+        this.addObjectPropertyCharacteristic(property, "transitive"),
       [OWLObjectKind.SUB_DATA_PROPERTY_AXIOM]: ({
         subProperty,
         superProperty,
@@ -862,7 +993,11 @@ class BuildState {
         if (axiom.value.kind === OWLObjectKind.LITERAL) {
           const attribute = record.attribute || record;
           const field = record.attribute ? "label" : "labels";
-          attribute[field] = {};
+          // Merge rather than replace. Assigning a fresh object here discarded
+          // both the `IRI-based` label seeded when the entity was created and
+          // any language already recorded, so a class labelled in English and
+          // German kept only whichever axiom happened to be visited last.
+          attribute[field] ||= {};
           setLocalizedValue(attribute[field], axiom.value);
         }
         continue;
@@ -948,7 +1083,12 @@ class BuildState {
 
     return {
       _comment: "Created with owlapi-js VOWLBuilder",
-      header: this.header,
+      // The placeholder is applied here rather than on `this.header`, because
+      // `isExternalEntityIri` reads the header IRI as a prefix to compare
+      // against and treats an empty value as "cannot judge". A truthy
+      // placeholder in that comparison would mark every entity in a headerless
+      // document external.
+      header: { ...this.header, iri: this.header.iri || MISSING_ONTOLOGY_IRI },
       metrics: {
         classCount: classNodes.filter(({ type }) => type === "owl:Class")
           .length,
@@ -1020,15 +1160,21 @@ export class VOWLBuilder {
     )) {
       state.ensureClass(datatype, OWLObjectKind.DATATYPE);
     }
-    for (const property of sortByIri(
-      signatureValues("getObjectPropertiesInSignature"),
-    )) {
-      state.ensureProperty(property, "owl:objectProperty");
-    }
+    // Data properties first, deliberately. `ensureProperty` keeps the record it
+    // created first, so this ordering is what enforces ADR 0005's fixed
+    // precedence - data > object > annotation - for an IRI that appears in more
+    // than one property signature. That only happens in compatible mode, where
+    // the axiom-level reuse recovery re-admits a punned IRI into the
+    // object-property signature after the translator resolved it to data.
     for (const property of sortByIri(
       signatureValues("getDataPropertiesInSignature"),
     )) {
       state.ensureProperty(property, "owl:datatypeProperty");
+    }
+    for (const property of sortByIri(
+      signatureValues("getObjectPropertiesInSignature"),
+    )) {
+      state.ensureProperty(property, "owl:objectProperty");
     }
     state.applyOntologyAnnotations();
     state.applyAxioms();

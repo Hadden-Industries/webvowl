@@ -1,4 +1,7 @@
-const compareText = (left, right) => left.localeCompare(right);
+// Code-point comparison, not `localeCompare`: a canonical snapshot must be
+// identical on every machine, and locale collation varies with the runtime's
+// default locale and ICU build.
+const compareText = (left, right) => (left < right ? -1 : left > right ? 1 : 0);
 
 const stableObject = (entries) =>
   Object.fromEntries(

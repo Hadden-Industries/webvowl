@@ -130,6 +130,51 @@ export function installLocalOntologyFetch() {
   };
 }
 
+// A label is a language-keyed map, so ordering is irrelevant but content is not.
+const normalizeLabel = (label) =>
+  label
+    ? JSON.stringify(
+        Object.fromEntries(
+          Object.keys(label)
+            .sort()
+            .map((key) => [key, label[key]]),
+        ),
+      )
+    : "";
+
+// The pinned oracle writes a different attribute dialect from WebVOWL's own
+// VOWL-JSON. It spells the restriction markers `someValues`/`allValues` where
+// WebVOWL writes `someValuesFrom`/`allValuesFrom`, and it never writes the
+// `inferred` marker WebVOWL puts on links it derived rather than found
+// asserted. `object`, `datatype` and `anonymous` are written by both and are
+// already carried by the compared node type.
+//
+// These terms are suppressed here for the same reason `vowlSemanticSnapshot.js`
+// suppresses them under `JAVA_OWL2VOWL_DIALECT`: comparing them against the
+// oracle measures a dialect difference rather than a semantic one. Suppression
+// is valid only against the Java oracle - a WebVOWL-to-WebVOWL comparison must
+// still see them, because `inferred` has no other carrier.
+const JAVA_DIALECT_ATTRIBUTES = new Set([
+  "allValues",
+  "allValuesFrom",
+  "anonymous",
+  "datatype",
+  "inferred",
+  "object",
+  "someValues",
+  "someValuesFrom",
+]);
+
+// Visual markers are a set, not a sequence: `["external", "equivalent"]` and
+// `["equivalent", "external"]` draw the same node.
+const normalizeAttributes = (attributes) =>
+  attributes
+    ? [...attributes]
+        .filter((attribute) => !JAVA_DIALECT_ATTRIBUTES.has(attribute))
+        .sort()
+        .join(",")
+    : "";
+
 export function normalizeAnnotations(annotations) {
   if (!annotations) {
     return "";
@@ -147,11 +192,14 @@ export function normalizeAnnotations(annotations) {
             language: language || "undefined",
             identifier,
           }))
-          .sort((left, right) =>
-            `${left.language}-${left.value}`.localeCompare(
-              `${right.language}-${right.value}`,
-            ),
-          ),
+          // Code-point comparison, not `localeCompare`: this canonicalises both
+          // sides of the differential, so locale collation would make the
+          // comparison depend on the machine it runs on.
+          .sort((left, right) => {
+            const leftKey = `${left.language}-${left.value}`;
+            const rightKey = `${right.language}-${right.value}`;
+            return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
+          }),
       ]),
   );
 
@@ -181,9 +229,22 @@ export function parseVowlJson(json) {
       .map(({ id }) => id),
   );
 
+  // Node type is carried on `class`/`property` and keyed by id, while the IRI
+  // lives on the matching attribute. Joining them lets a type difference be
+  // reported against the entity a reader can actually identify.
+  const classNodeTypes = Object.fromEntries(
+    (json.class ?? []).map(({ id, type }) => [id, type]),
+  );
+  const propertyNodeTypes = Object.fromEntries(
+    rawProperties.map(({ id, type }) => [id, type]),
+  );
+
   const classes = new Set();
   const classAnnotations = {};
   const classInstances = {};
+  const classLabels = {};
+  const classTypes = {};
+  const classEntityAttributes = {};
   for (const classAttribute of classAttributes) {
     if (classAttribute.iri) {
       classes.add(classAttribute.iri);
@@ -191,16 +252,32 @@ export function parseVowlJson(json) {
         classAttribute.annotations,
       );
       classInstances[classAttribute.iri] = classAttribute.instances || 0;
+      classLabels[classAttribute.iri] = normalizeLabel(classAttribute.label);
+      classTypes[classAttribute.iri] = classNodeTypes[classAttribute.id] ?? "";
+      classEntityAttributes[classAttribute.iri] = normalizeAttributes(
+        classAttribute.attributes,
+      );
     }
   }
 
   const properties = {};
   const propertyAnnotations = {};
+  const propertyLabels = {};
+  const propertyTypes = {};
+  const propertyEntityAttributes = {};
   for (const propertyAttribute of propertyAttributes) {
     if (
       propertyAttribute.iri &&
       propertyAttribute.iri !== RDFS_SUBCLASS_OF_IRI
     ) {
+      propertyLabels[propertyAttribute.iri] = normalizeLabel(
+        propertyAttribute.label,
+      );
+      propertyTypes[propertyAttribute.iri] =
+        propertyNodeTypes[propertyAttribute.id] ?? "";
+      propertyEntityAttributes[propertyAttribute.iri] = normalizeAttributes(
+        propertyAttribute.attributes,
+      );
       properties[propertyAttribute.iri] = {
         domain:
           classIdToIri[propertyAttribute.domain] ||
@@ -269,8 +346,14 @@ export function parseVowlJson(json) {
     classes,
     classAnnotations,
     classInstances,
+    classLabels,
+    classTypes,
+    classEntityAttributes,
     properties,
     propertyAnnotations,
+    propertyLabels,
+    propertyTypes,
+    propertyEntityAttributes,
     subclasses,
     unions,
     disjoints: uniqueDisjoints,
@@ -391,6 +474,52 @@ export function compareVowlSemantics(reference, candidate) {
     propertyAnnotationMismatches.length === 0;
   const instancesMatch = instanceMismatches.length === 0;
 
+  // The user-visible tier: what an entity is called, what shape it is drawn as,
+  // and which visual markers it carries. Compared only over entities both sides
+  // share, so a missing entity is reported once as a class or property
+  // difference rather than again under every derived dimension.
+  const mismatchesOver = (keys, referenceMap, candidateMap) =>
+    keys.filter((key) => referenceMap[key] !== candidateMap[key]);
+
+  const classLabelMismatches = mismatchesOver(
+    commonClasses,
+    reference.classLabels,
+    candidate.classLabels,
+  );
+  const propertyLabelMismatches = mismatchesOver(
+    commonPropertyIris,
+    reference.propertyLabels,
+    candidate.propertyLabels,
+  );
+  const classTypeMismatches = mismatchesOver(
+    commonClasses,
+    reference.classTypes,
+    candidate.classTypes,
+  );
+  const propertyTypeMismatches = mismatchesOver(
+    commonPropertyIris,
+    reference.propertyTypes,
+    candidate.propertyTypes,
+  );
+  const classAttributeMismatches = mismatchesOver(
+    commonClasses,
+    reference.classEntityAttributes,
+    candidate.classEntityAttributes,
+  );
+  const propertyAttributeMismatches = mismatchesOver(
+    commonPropertyIris,
+    reference.propertyEntityAttributes,
+    candidate.propertyEntityAttributes,
+  );
+
+  const labelsMatch =
+    classLabelMismatches.length === 0 && propertyLabelMismatches.length === 0;
+  const typesMatch =
+    classTypeMismatches.length === 0 && propertyTypeMismatches.length === 0;
+  const attributesMatch =
+    classAttributeMismatches.length === 0 &&
+    propertyAttributeMismatches.length === 0;
+
   const checks = {
     iri: iriMatch,
     classes: classesMatch,
@@ -399,6 +528,9 @@ export function compareVowlSemantics(reference, candidate) {
     annotations: annotationsMatch,
     instances: instancesMatch,
     disjoints: disjointsMatch,
+    labels: labelsMatch,
+    types: typesMatch,
+    attributes: attributesMatch,
   };
 
   return {
@@ -434,6 +566,18 @@ export function compareVowlSemantics(reference, candidate) {
         properties: propertyAnnotationMismatches,
       },
       instances: instanceMismatches,
+      labels: {
+        classes: classLabelMismatches,
+        properties: propertyLabelMismatches,
+      },
+      types: {
+        classes: classTypeMismatches,
+        properties: propertyTypeMismatches,
+      },
+      attributes: {
+        classes: classAttributeMismatches,
+        properties: propertyAttributeMismatches,
+      },
     },
   };
 }

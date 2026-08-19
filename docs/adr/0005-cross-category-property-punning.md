@@ -2,10 +2,15 @@
 
 | Metadata       | Value                                                                    |
 | -------------- | -------------------------------------------------------------------------- |
-| **Status**     | Accepted                                                                 |
+| **Status**     | Accepted, amended 2026-08-19                                             |
 | **Date**       | 2026-08-18                                                               |
 | **Decider**    | Repository owner                                                         |
 | **Amends**     | `docs/owlapi-js/implementation-plan.md` §8 (shared RDF-to-OWL contract)   |
+
+> **Amendment, 2026-08-19.** The fixed precedence below is demoted to a
+> fallback. Resolution now consults evidence stated about the property before
+> consulting the table. See "Amendment: resolve by evidence" at the end of this
+> record for the reasoning and the revised algorithm.
 
 ## Context
 
@@ -140,5 +145,82 @@ conflict in `bibo.rdf.xml` or `imarinetlo.owl`. The claim is that no ontology's
 | -------------------------- | ------------------------------------------------------------- |
 | Mode-aware resolution      | `src/owlapi-js/rdf/rdfToOwlTranslator.js`                   |
 | Behavioural tests          | `src/owlapi-js/rdf/propertyCategoryPunning.test.js`         |
+| Evidence-based resolution  | `src/owlapi-js/rdf/propertyCategoryEvidence.test.js`        |
 | Corpus acceptance          | `src/owl2vowl/test/productionCorpus.test.js`                |
 | Phase 8 finding            | `docs/owlapi-js/migration/lessons/007-production-cutover.md` |
+
+## Amendment: resolve by evidence
+
+### Why the fixed precedence was insufficient
+
+The precedence above reproduced the oracle on `foaf.rdf` but not on `sioc.rdf`,
+and the corpus shows why neither rule is principled.
+
+The oracle resolves by **first-declared category in document order**. That is
+disqualified regardless of what it produces: RDF is an unordered graph, and
+`<owl:ObjectProperty rdf:about="X">` is only syntactic sugar for the triple
+`X rdf:type owl:ObjectProperty`, with no privileged status over an `rdf:type`
+appearing later. Two serialisations of the same ontology may emit those triples
+in either order, so a first-declared rule answers differently for the same
+ontology depending on its encoding. A resolution rule must be a function of the
+ontology, not of how it was written down. The likely origin is that a streaming
+parser sees triples in arrival order and taking the first is cheap; that
+explains the behaviour without justifying it.
+
+The evidence also shows the oracle's rule producing worse output. Every punned
+property in the pinned corpus declares `rdfs:range rdfs:Literal`. The oracle
+honours that on FOAF, rendering a datatype property, but discards it on SIOC,
+rendering an object property whose range edge points at `owl:Thing` — output
+that contradicts the document it was given.
+
+The fixed precedence `data > object > annotation` reaches the right answer on
+this corpus, but only because every case happens to have a literal range. Invert
+the case — a property declared in both categories whose range is a *class* — and
+the precedence forces "data" and the class range is replaced by `rdfs:Literal`.
+That is the same failure as the oracle's, mirrored. Both rules discard the
+author's most direct statement about what the property relates.
+
+### Revised algorithm
+
+1. **Direct evidence about the property.** `rdfs:range` decides: a datatype,
+   `rdfs:Literal`, or an XML Schema datatype implies a data property; a class
+   implies an object property. Where a range and a characteristic disagree, the
+   **range wins**, being the author's most direct statement of what the property
+   relates rather than a statement about its algebra.
+2. **Inferred evidence by bounded propagation.** Follow `rdfs:subPropertyOf` and
+   `owl:equivalentProperty` to a property declared in exactly one category,
+   breadth-first with a visited set. `prov.owl` needs this: `wasRevisionOf` and
+   `specializationOf` declare no range at all but do carry such edges.
+3. **The fixed precedence, as a diagnosed fallback**, when the ontology offers
+   nothing.
+
+**Bounded means bounded.** Step 2 is syntactic traversal of two named relations,
+not DL reasoning. The distinction is load-bearing: the corpus register already
+treats reasoner-derived axioms as an expected difference class, so letting
+"inferred" grow into entailment closure would change what the engine is.
+
+### Scope
+
+Compatible-mode recovery resolves **per document**. The import closure is
+best-effort — an unreachable import is a diagnostic, not a failure — so
+consulting it would make the rendering depend on what the network returned,
+reintroducing by another route the environment-dependence that document order
+was rejected for. It would also mean a remote edit could silently flip a local
+rendering, leaving an author unable to reason about their own file.
+
+Strict-mode conformance keeps the specification's scope, where OWL 2's typing
+constraints are stated over the axiom closure. Conformance and recovery are
+different questions and take different scopes.
+
+### Consequences of the amendment
+
+- Every punned property in the pinned corpus still resolves to a data property,
+  now because each declares a literal range rather than because a table said so.
+- `sioc.rdf` remains a difference from the oracle and is recorded as governed:
+  the oracle discards a declared `rdfs:Literal` range and draws the edge to
+  `owl:Thing`; we keep the range the author stated.
+- The diagnostic gains an `evidence` field — `range`, `characteristic`,
+  `inferred` or `precedence` — so a reader can tell a reasoned resolution from a
+  defaulted one. `RDF_PROPERTY_CATEGORY_PUNNING_UNEVIDENCED` now marks only the
+  case where the fallback fired without a data category, rather than every
+  object/annotation pair.
