@@ -20,7 +20,11 @@ describe("VOWLBuilder", () => {
         comments: {},
         description: {},
         imports: [],
-        iri: "",
+        // An anonymous ontology serialises its IRI the way the pinned OWL2VOWL
+        // oracle does, which is what WebVOWL v1.1.7 displayed. See
+        // `vowlBuilder.header.test.js` for the evidence and for the reason the
+        // placeholder must not reach the external-entity comparison.
+        iri: "No IRI set",
         labels: {},
         languages: [],
         other: {},
@@ -196,10 +200,13 @@ describe("VOWLBuilder", () => {
       title: { en: "Structural visualization" },
       version: "1.0",
     });
+    // `identifier` carries the annotation property's local name, matching the
+    // pinned oracle and therefore the key each item is grouped under. See
+    // `vowlBuilder.annotations.test.js`.
     expect(result.header.other).toMatchObject({
       creator: [
         {
-          identifier: creatorIri,
+          identifier: "creator",
           language: "undefined",
           type: "label",
           value: "Ada Builder",
@@ -207,7 +214,7 @@ describe("VOWLBuilder", () => {
       ],
       title: [
         {
-          identifier: titleIri,
+          identifier: "title",
           language: "en",
           type: "label",
           value: "Structural visualization",
@@ -215,7 +222,7 @@ describe("VOWLBuilder", () => {
       ],
       versionInfo: [
         {
-          identifier: versionIri,
+          identifier: "versionInfo",
           language: "undefined",
           type: "label",
           value: "1.0",
@@ -226,7 +233,7 @@ describe("VOWLBuilder", () => {
       annotations: {
         source: [
           {
-            identifier: sourceIri,
+            identifier: "source",
             language: "en",
             type: "label",
             value: "specification",
@@ -236,7 +243,13 @@ describe("VOWLBuilder", () => {
       comment: { en: "A person" },
       label: { en: "Person" },
     });
-    expect(knowsAttribute.label).toEqual({ undefined: "knows" });
+    // The `IRI-based` label seeded at entity creation survives alongside the
+    // asserted `rdfs:label`, which is the shape the pinned oracle emits. It was
+    // previously discarded because applying a label replaced the whole map.
+    expect(knowsAttribute.label).toEqual({
+      "IRI-based": "knows",
+      undefined: "knows",
+    });
   });
 
   it("maps subclass, domain, range, subproperty, and inverse relations", () => {
@@ -658,8 +671,11 @@ describe("VOWLBuilder", () => {
         annotations: {
           source: [
             {
-              identifier: source.iri.value,
+              identifier: "source",
               language: "en",
+              // Carries the namespace half of the property IRI, so a shared
+              // local name stays unambiguous and the sidebar can hyperlink it.
+              predicateNs: "https://example.com/phase7#",
               type: "label",
               value: "project-owned",
             },
@@ -669,7 +685,7 @@ describe("VOWLBuilder", () => {
         comment: { en: "A test person" },
         description: { undefined: "Phase 7 fixture" },
         iri: alice.iri.value,
-        labels: { en: "Alice" },
+        labels: { "IRI-based": "alice", en: "Alice" },
       },
     ]);
     expect(result.metrics.individualCount).toBe(1);

@@ -395,10 +395,16 @@ describe("owlapi-js governance artifacts", () => {
         .find(({ path }) => path === "src/owlapi-js/rdf/rdfToOwlTranslator.js")
         ?.laterPhaseChanges?.map(({ phase }) => phase),
     ).toContain(6);
+    // Plan section 22.2.1: the project has two reference implementations, and a
+    // research record must pin the revision of the one it actually inspected.
+    // `reference` names the manifest block; its absence means OWLAPI, which is
+    // what every record predating that section assumed implicitly.
     for (const research of manifest.compatibilityResearch) {
-      expect(research.sourceRevision).toBe(manifest.referenceOwlapi.revision);
+      const reference = manifest[research.reference ?? "referenceOwlapi"];
+      expect(reference).toBeDefined();
+      expect(research.sourceRevision).toBe(reference.revision);
       expect(research.implementationSourcesInspected.length).toBeGreaterThan(0);
-      expect(research.productionUse).toMatch(/No implementation text/);
+      expect(research.productionUse).toMatch(/No implementation text|None\./);
       expect(research.evidence).toBeTruthy();
     }
   });
