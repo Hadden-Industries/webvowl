@@ -89,6 +89,23 @@ describe("VOWLBuilder anonymous class expressions", () => {
       buildWith(factory.getOWLSubClassOfAxiom(owlClass("Thing"), restriction)),
     ).not.toThrow();
   });
+
+  it("does not turn an unvisualisable subclass expression into owl:Thing", () => {
+    const restriction = factory.getOWLObjectSomeValuesFrom(
+      factory.getOWLObjectProperty(iri("relatesTo")),
+      owlClass("Range"),
+    );
+    const result = buildWith(
+      factory.getOWLSubClassOfAxiom(restriction, owlClass("Target")),
+    );
+
+    expect(
+      result.propertyAttribute.filter(
+        ({ iri: propertyIri }) =>
+          propertyIri === "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+      ),
+    ).toEqual([]);
+  });
 });
 
 // VOWL 2 draws a cardinality as a number near the end of the property's arrow,

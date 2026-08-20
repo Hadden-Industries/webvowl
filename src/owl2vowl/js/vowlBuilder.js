@@ -891,6 +891,13 @@ class BuildState {
   }
 
   addSubclass(subClass, superClass) {
+    // A restriction or enumeration in subclass position has no VOWL node to
+    // draw the edge from. `classExpressionRecord` uses `owl:Thing` only as a
+    // domain/range fallback; using that fallback here would fabricate the GCI
+    // `owl:Thing subClassOf superClass`.
+    if (!hasVowlNode(subClass)) {
+      return;
+    }
     // A set expression in superclass position, such as `A subClassOf (B or C)`,
     // is not a restriction: it has its own anonymous VOWL node, so it takes an
     // ordinary subclass edge to that node. Only genuine restrictions are drawn

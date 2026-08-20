@@ -44,31 +44,14 @@ const targetFiles = [...new Set([...baseTargetFiles, ...extraTargetFiles])]
   .filter((file) => fs.existsSync(file))
   .sort();
 
-// Phase 8 advertises Functional Syntax, Manchester Syntax, OWL/XML and RDF/XML
-// only. Turtle arrives in Phase 9, so a `.ttl` document must fail explicitly
-// here rather than load; asserting that keeps the unsupported-format contract
-// honest and stops this gate from silently demanding Phase 9 work.
-const isTurtle = (file) => path.extname(file).toLowerCase() === ".ttl";
-
-const advertisedFiles = targetFiles.filter((file) => !isTurtle(file));
-const deferredSyntaxFiles = targetFiles.filter(isTurtle);
-
 // Both public entries are gated. `owl2vowl` converts a single document;
 // `loadWithImports` additionally resolves the import closure and is what
 // `src/app/js/loadingModule.js` calls for every document a user opens. Gating
 // only the first left the application's own path untested, which is how two
 // documents came to fail through the UI while this suite stayed green.
-//
-// These two documents are RDF/XML, but their import closures reach
-// `http://www.w3.org/ns/time/gregorian`, which the corpus serves as Turtle.
-// Turtle arrives in Phase 9, so the closure-resolving entry must refuse them
-// while the single-document entry still succeeds.
-const hasTurtleImportClosure = (file) =>
-  file.includes("universal") &&
-  (file.endsWith("core\\20260714") ||
-    file.endsWith("core/20260714") ||
-    file.endsWith("extended\\20260714") ||
-    file.endsWith("extended/20260714"));
+// Phase 9 adds Turtle to that same production contract, both for top-level
+// documents and for Turtle resources reached from another syntax's import
+// closure.
 
 describe("production entry real-corpus acceptance", () => {
   let restoreFetch;
@@ -82,10 +65,14 @@ describe("production entry real-corpus acceptance", () => {
   });
 
   test("the corpus is present", () => {
-    expect(advertisedFiles.length).toBeGreaterThan(0);
+    expect(targetFiles.length).toBeGreaterThan(0);
+    expect(
+      targetFiles.filter((file) => path.extname(file).toLowerCase() === ".ttl")
+        .length,
+    ).toBeGreaterThan(0);
   });
 
-  for (const file of advertisedFiles) {
+  for (const file of targetFiles) {
     const name = path.basename(file);
 
     test(
@@ -100,21 +87,6 @@ describe("production entry real-corpus acceptance", () => {
       TEST_TIMEOUT_MS,
     );
 
-    if (hasTurtleImportClosure(file)) {
-      test(
-        `rejects ${name} through the import-resolving entry because its closure is Turtle`,
-        async () => {
-          const text = fs.readFileSync(file, "utf8");
-
-          await expect(
-            loadWithImports(text, { fileName: name }),
-          ).rejects.toMatchObject({ code: "UNPARSABLE_ONTOLOGY" });
-        },
-        TEST_TIMEOUT_MS,
-      );
-      continue;
-    }
-
     test(
       `loads ${name} through the import-resolving entry`,
       async () => {
@@ -123,22 +95,6 @@ describe("production entry real-corpus acceptance", () => {
 
         expect(Array.isArray(result.class)).toBe(true);
         expect(Array.isArray(result.classAttribute)).toBe(true);
-      },
-      TEST_TIMEOUT_MS,
-    );
-  }
-
-  for (const file of deferredSyntaxFiles) {
-    const name = path.basename(file);
-
-    test(
-      `rejects ${name} because Turtle arrives in Phase 9`,
-      async () => {
-        const text = fs.readFileSync(file, "utf8");
-
-        await expect(owl2vowl(text, { fileName: name })).rejects.toMatchObject({
-          code: "UNPARSABLE_ONTOLOGY",
-        });
       },
       TEST_TIMEOUT_MS,
     );

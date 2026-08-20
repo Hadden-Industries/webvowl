@@ -61,10 +61,17 @@ describe("production owl2vowl entry point", () => {
     expect(personAttribute.label.en).toBe("Person");
   });
 
-  test("rejects a legacy-only syntax instead of falling back", async () => {
-    await expect(owl2vowl(TURTLE)).rejects.toMatchObject({
-      code: "UNPARSABLE_ONTOLOGY",
-    });
+  test("builds Turtle through the structural owlapi-js path", async () => {
+    const result = await owl2vowl(TURTLE);
+
+    expect(result._comment).toBe("Created with owlapi-js VOWLBuilder");
+    expect(result.header.iri).toBe("http://example.org/ontology");
+    expect(result.header.labels.en).toBe("My Turtle Ontology");
+
+    const carAttribute = result.classAttribute.find(
+      ({ iri }) => iri === "http://example.org/ontology#Car",
+    );
+    expect(carAttribute.label.en).toBe("Car");
   });
 
   test.each([
@@ -210,7 +217,7 @@ describe("production owl2vowl entry point", () => {
     });
   });
 
-  test("fails explicitly when an import closure yields a legacy-only syntax", async () => {
+  test("loads Turtle encountered inside an import closure", async () => {
     const mainXml = `
       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
                xmlns:owl="http://www.w3.org/2002/07/owl#">
@@ -228,9 +235,17 @@ describe("production owl2vowl entry point", () => {
       text: async () => TURTLE,
     }));
 
-    await expect(loadWithImports(mainXml)).rejects.toMatchObject({
-      code: "UNPARSABLE_ONTOLOGY",
-    });
+    const result = await loadWithImports(mainXml);
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://example.org/turtle-ontology",
+      expect.objectContaining({ redirect: "error" }),
+    );
+    expect(
+      result.classAttribute.some(
+        ({ iri }) => iri === "http://example.org/ontology#Car",
+      ),
+    ).toBe(true);
   });
 
   // An import that cannot be fetched is ordinary on the open web: the document

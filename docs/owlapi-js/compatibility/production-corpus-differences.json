@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "comparison": "pinned OWL2VOWL 0.3.7 reference output against the owlapi-js production entry",
   "entryPoint": "loadWithImports, the entry src/app/js/loadingModule.js calls",
-  "scope": "the non-Turtle corpus; Turtle arrives in Phase 9",
+  "scope": "the supported production corpus, including Turtle; documents whose pinned Java run used a demonstrably different import closure are excluded by the differential harness",
   "dimensions": [
     "iri",
     "classes",
@@ -18,6 +18,34 @@
   "policy": "The oracle is the default contract, because upstream WebVOWL v1.1.7 delegated to it and transparency is defined against what users saw there. A difference therefore needs positive justification. The standing exception is a specification: where the oracle contradicts one, owlapi-js follows the specification and the divergence is recorded here rather than copied.",
   "granularity": "Justifications are per dimension, not per document. A document commonly differs for several unrelated reasons, and one entry covering all of them would let an unanalysed difference pass as governed simply because a different difference in the same document had been explained. Every dimension a document differs on needs its own justification, and a justification for a dimension that no longer differs is stale and fails the gate.",
   "documents": {
+    "BenchmarkOntologyModule.ttl": {
+      "attributes": {
+        "summary": "The xsd:date datatype is marked external because it is not in the OWL 2 datatype map.",
+        "justification": "The sole difference is `xsd:date`, which owlapi-js marks `external` and the oracle leaves unmarked. VOWL 2 permits an external marker when an element's base IRI differs from the visualized ontology's. OWL 2's datatype map is the repository's rule for the narrower built-in exemption, and that map contains `xsd:dateTime` and `xsd:dateTimeStamp` but not `xsd:date`. The same controlled difference is recorded in full for six excluded XML Schema datatypes under `time.rdf`.",
+        "authority": "VOWL 2 specification, General Guidelines: External Elements; W3C OWL 2 Structural Specification section 4, the OWL 2 datatype map",
+        "oracleIsIncorrect": true
+      }
+    },
+    "allvalues.ttl": {
+      "classes": {
+        "summary": "rdfs:Literal remains visible as the default range of a declared datatype property after an unvisualisable reverse GCI is rejected.",
+        "justification": "The extra class is `rdfs:Literal`. The document declares `dataSomeValuesFromProperty_RL` as a datatype property without a domain or range, so VOWL 2's missing-range rule gives its ordinary property arrow the generic literal node. Its only additional use is on the left of `SubClassOf`: `(dataSomeValuesFromProperty_RL some xsd:dateTime) SubClassOf DataSomeValuesFrom_RL`. That axiom does not license the converse edge the oracle draws from `DataSomeValuesFrom_RL` to `xsd:dateTime`. Once that fabricated converse is refused, the declared property's default range is the only faithful visualization and requires the `rdfs:Literal` node.",
+        "authority": "W3C OWL 2 Structural Specification, semantics and argument order of SubClassOf; VOWL 2 specification, General Guidelines: Missing Domain and/or Range Information",
+        "oracleIsIncorrect": true
+      },
+      "props": {
+        "summary": "The oracle reverses two generalized subclass axioms; owlapi-js keeps the declared properties with their unspecified endpoints.",
+        "justification": "The two differences are `dataSomeValuesFromProperty_RL` and `objectSomeValuesFromProperty_RL`. In each case the restriction is the subclass expression and a named class is the superclass. The oracle draws the property from that named superclass to the restriction filler, which is the visualization of the converse axiom and is not entailed. owlapi-js does not turn an unvisualisable restriction in subclass position into `owl:Thing` or reverse the axiom; it therefore draws only each explicitly declared property's ordinary arrow, with VOWL's generic endpoint for its missing domain and range. ADR 0006 keeps quantified-restriction edges for the representable direction `NamedClass SubClassOf restriction`; it does not authorize reversing a GCI whose restriction is on the left.",
+        "authority": "W3C OWL 2 Structural Specification, semantics and argument order of SubClassOf; VOWL 2 specification, General Guidelines: Missing Domain and/or Range Information; ADR 0006",
+        "oracleIsIncorrect": true
+      },
+      "types": {
+        "summary": "The same reverse-GCI disagreement leaves the entries as their declared property types instead of mislabelling them owl:someValuesFrom.",
+        "justification": "The document explicitly declares one object property and one datatype property. The oracle replaces those visible entries with restriction edges typed `owl:someValuesFrom` by reversing the two generalized subclass axioms described under `props`. owlapi-js retains the declared categories. This dimension has no independent cause; resolving `props` in the oracle's favour would resolve it too, but would also assert the converse of each OWL axiom.",
+        "authority": "W3C OWL 2 Structural Specification, declarations and SubClassOf semantics; ADR 0006",
+        "oracleIsIncorrect": true
+      }
+    },
     "bibo.rdf.xml": {
       "attributes": {
         "summary": "Eight PRISM properties carry the `equivalent` marker the oracle never emits.",
@@ -54,6 +82,70 @@
         "oracleIsIncorrect": true
       }
     },
+    "full_ontobench_test.ttl": {
+      "classes": {
+        "summary": "An explicitly declared owl:Nothing and the xsd:byte filler of qualified cardinalities remain visible.",
+        "justification": "The document explicitly declares `owl:Nothing` as a class and uses `xsd:byte`, an OWL 2 built-in datatype, as the filler of qualified cardinality restrictions. owlapi-js preserves both named terms. The oracle omits `owl:Nothing` and, because it drops the qualified-cardinality edges described under `props`, has no visual element that can retain `xsd:byte`. Omitting either loses a named term the ontology uses; retaining `xsd:byte` does not make it external because it is a member of OWL 2's datatype map.",
+        "authority": "W3C OWL 2 Structural Specification sections 3 and 4; VOWL 2 specification, visual notation for classes, datatypes and cardinalities",
+        "oracleIsIncorrect": true
+      },
+      "props": {
+        "summary": "Qualified cardinalities, reverse GCIs and intersected multiple domains/ranges are preserved instead of being dropped, reversed or changed to unions.",
+        "justification": "The eleven structural differences have three bounded causes. Eight are qualified cardinality restrictions whose restricted class or datatype differs from the property's declared domain or range; VOWL 2 Table 6 requires the cardinality figure, and ADR 0006 keeps a separate labelled arrow when it cannot merge onto the declared arrow. Two are the reverse-GCI pattern documented under `allvalues.ttl`; the oracle draws the converse of `(restriction) SubClassOf NamedClass`, while owlapi-js refuses that reversal and keeps the declared property's generic endpoints. The last is `propertyChainProperty_SingleStep`, which states two domains and two ranges. Several OWL domain or range axioms are conjunctive, so owlapi-js draws intersections. The oracle draws unions, which changes the ontology from 'both' to 'either'.",
+        "authority": "VOWL 2 specification, Table 6; ADR 0006; W3C OWL 2 Structural Specification, SubClassOf semantics and the conjunctive reading of multiple property domain/range axioms",
+        "oracleIsIncorrect": true
+      },
+      "subclasses": {
+        "summary": "Four named classes stay distinct from the anonymous set expressions they are related to by SubClassOf.",
+        "justification": "The document uses `SubClassOf` between `ObjectUnionOf`, `ObjectIntersectionOf_QL`, `ObjectComplementOf` or `ObjectUnionOf_RL` and an anonymous union, intersection or complement. owlapi-js preserves both expressions and the directed subclass edge. The oracle instead retypes the named class itself as `owl:unionOf`, `owl:intersectionOf` or `owl:complementOf`, which is the effect of an equivalence and is stronger than the stated axiom. The difference is therefore structural fidelity, not Turtle ordering or blank-node identity.",
+        "authority": "W3C OWL 2 Structural Specification, distinction between SubClassOf and EquivalentClasses; VOWL 2 specification, set-operation nodes",
+        "oracleIsIncorrect": true
+      },
+      "types": {
+        "summary": "Node types follow the preserved subclass and restriction structures rather than the oracle's collapsed or reversed structures.",
+        "justification": "Four class-type differences are the consequence described under `subclasses`: owlapi-js keeps each named entity an `owl:Class`, while the oracle retypes it as the anonymous set constructor. The property-type differences are consequences of the `props` causes: the retained qualified-cardinality arrows add another entry of the declared property type, while the two rejected reverse GCIs do not replace declared properties with `owl:someValuesFrom`. No property is reclassified independently of those edge-shape decisions.",
+        "authority": "W3C OWL 2 Structural Specification, entity declarations, class expressions and SubClassOf; VOWL 2 Table 6; ADR 0006",
+        "oracleIsIncorrect": true
+      },
+      "attributes": {
+        "summary": "Named classes are not marked as anonymous set constructors, and six declared equivalent properties retain their equivalence marker.",
+        "justification": "Four class-marker differences follow directly from `subclasses`: the oracle attaches `union`, `intersection` or `complement` to the named class it collapsed with an anonymous expression, while owlapi-js leaves the marker on the separate anonymous node. Six property differences are the standing equivalence case already documented under `foaf.rdf`: the ontology states three equivalent data-property pairs and three equivalent object-property pairs; owlapi-js retains the `equivalent` marker consumed by WebVOWL's merger, while the oracle discards it.",
+        "authority": "W3C OWL 2 Structural Specification, distinction between SubClassOf and EquivalentClasses; VOWL 2 requirement that equivalent elements be represented by one visual element",
+        "oracleIsIncorrect": true
+      }
+    },
+    "fullontobench.ttl": {
+      "classes": {
+        "summary": "The same explicit owl:Nothing and xsd:byte filler as the current OntoViBe fixture remain visible.",
+        "justification": "This is the older-namespace serialization of the benchmark covered by `full_ontobench_test.ttl`. It contains the same explicit `owl:Nothing` declaration and uses `xsd:byte` in the same qualified-cardinality patterns. The controlled difference and its reasoning are identical to that entry.",
+        "authority": "W3C OWL 2 Structural Specification sections 3 and 4; VOWL 2 specification, visual notation for classes, datatypes and cardinalities",
+        "oracleIsIncorrect": true
+      },
+      "props": {
+        "summary": "The older benchmark exhibits the same qualified-cardinality, reverse-GCI and multiple-domain/range differences.",
+        "justification": "Apart from its ontology namespace, this fixture contains the same eleven structures detailed under `full_ontobench_test.ttl`: qualified cardinalities retained under ADR 0006, two reverse generalized subclass axioms not inverted, and two domains/ranges represented conjunctively rather than as the oracle's unions. The reasoning and verdict are identical.",
+        "authority": "VOWL 2 specification, Table 6; ADR 0006; W3C OWL 2 Structural Specification, SubClassOf semantics and the conjunctive reading of multiple property domain/range axioms",
+        "oracleIsIncorrect": true
+      },
+      "subclasses": {
+        "summary": "Named classes stay distinct from anonymous set expressions in the older benchmark too.",
+        "justification": "The same four directed `SubClassOf` structures described under `full_ontobench_test.ttl` occur under the older namespace. owlapi-js preserves the named class, anonymous expression and edge; the oracle collapses the two as though the document stated equivalence.",
+        "authority": "W3C OWL 2 Structural Specification, distinction between SubClassOf and EquivalentClasses; VOWL 2 specification, set-operation nodes",
+        "oracleIsIncorrect": true
+      },
+      "types": {
+        "summary": "The node-type differences are consequences of preserving the same class-expression and restriction structures.",
+        "justification": "This dimension has the same causes as `full_ontobench_test.ttl`: four named classes remain `owl:Class`, retained qualified-cardinality arrows carry the declared property type, and reverse GCIs do not replace declared properties with `owl:someValuesFrom` edges.",
+        "authority": "W3C OWL 2 Structural Specification, entity declarations, class expressions and SubClassOf; VOWL 2 Table 6; ADR 0006",
+        "oracleIsIncorrect": true
+      },
+      "attributes": {
+        "summary": "The same set-expression and equivalent-property markers are preserved under the older namespace.",
+        "justification": "The four class markers and six equivalent-property markers are exactly the older-namespace counterparts of those documented under `full_ontobench_test.ttl`. Anonymous-expression markers remain on anonymous nodes, and WebVOWL's merger retains the stated property equivalences.",
+        "authority": "W3C OWL 2 Structural Specification, distinction between SubClassOf and EquivalentClasses; VOWL 2 requirement that equivalent elements be represented by one visual element",
+        "oracleIsIncorrect": true
+      }
+    },
     "goodrelations.owl": {
       "props": {
         "summary": "Two properties take a union domain in which the author explicitly names owl:Thing; the oracle drops that member and we keep it.",
@@ -87,6 +179,20 @@
         "summary": "The oracle draws owl:Thing for two properties that declare rdfs:domain gn:Feature, and draws nothing for skos:altLabel, which the document names as a super-property.",
         "justification": "Two sub-causes.\n\nFirst, `gn:alternateName` and `gn:officialName` each declare `rdfs:domain gn:Feature` - `alternateName` at line 175 of the document. The oracle draws both from `owl:Thing`; owlapi-js draws them from `Feature`. VOWL 2 permits the `owl:Thing` node only where no domain or range axiom is defined for the property, or where the author names `owl:Thing` explicitly, and neither holds. This is the same oracle behaviour recorded under `foaf.rdf`, `org.rdf` and `imarinetlo.owl`.\n\nSecond, the extra property `skos:altLabel`. The document states `gn:alternateName rdfs:subPropertyOf skos:altLabel` and declares `gn:alternateName` an `owl:DatatypeProperty`. Nothing in the document declares `skos:altLabel`, and it is not one of OWL 2's built-in annotation properties. ADR 0005 scopes compatible-mode category recovery per document, deliberately, so that a rendering does not depend on what the import closure returned; within that scope the only reading that lets `SubDataPropertyOf` be constructed is a data property, and owlapi-js draws it marked `external`, which VOWL 2 allows for an element whose base IRI differs from the visualized ontology's. The oracle draws nothing for it.\n\nThe contrast with `skos:prefLabel` is deliberate rather than accidental, and worth stating because the two look alike in the source. The document also states `gn:officialName rdfs:subPropertyOf skos:prefLabel`, and no node appears for `skos:prefLabel`. The difference is that the document *uses* `skos:prefLabel` as an annotation on its concepts, so the undeclared-annotation recovery declares it an annotation property, and the sub-property triple then crosses the annotation category and is refused under ADR 0005 decision 7, recorded as `RDF_CROSS_CATEGORY_SUBPROPERTY`. `skos:altLabel` is never used that way anywhere in the document, so no annotation reading is available for it. Both outcomes are functions of the graph rather than of statement order.",
         "authority": "VOWL 2 specification, Table 5 (rdfs:domain and rdfs:range), General Guidelines: Visualization of owl:Thing, General Guidelines: External Elements; ADR 0005, scope of compatible-mode recovery and decision 7",
+        "oracleIsIncorrect": true
+      }
+    },
+    "ontovibe_cardinalities.ttl": {
+      "props": {
+        "summary": "Fourteen qualified-cardinality restrictions retain labelled arrows that the oracle omits.",
+        "justification": "Each differing property has a declared domain/range arrow and a qualified cardinality applied on another class or through an inverse expression, so the restricted-class arrow cannot merge with the declared one. VOWL 2 Table 6 requires cardinality to be shown as a figure on a property arrow. ADR 0006 therefore keeps a separately labelled arrow when the restricted class differs, while merging the figure when the endpoints coincide. The oracle emits only the declared arrows and loses all fourteen restrictions.",
+        "authority": "VOWL 2 specification, Table 6; ADR 0006, cardinality labels and deterministic merge policy",
+        "oracleIsIncorrect": true
+      },
+      "types": {
+        "summary": "The repeated object-property type is the projection consequence of retaining each qualified-cardinality arrow.",
+        "justification": "No entity changes category: all fourteen IRIs remain object properties. The differential collects every edge under an IRI, so owlapi-js's declared arrow plus its qualified-cardinality arrow yields two `owl:objectProperty` entries where the oracle has one. This dimension has no cause independent of `props` and disappears only by dropping the cardinality information.",
+        "authority": "VOWL 2 specification, Table 6; ADR 0006",
         "oracleIsIncorrect": true
       }
     },
