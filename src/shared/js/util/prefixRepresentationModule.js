@@ -1,21 +1,101 @@
-module.exports = function (graph) {
+module.exports = function prefixRepresentationModule(graph) {
   /** variable defs **/
   const prefixRepresentationModule = {};
 
   let currentPrefixModel;
 
   prefixRepresentationModule.updatePrefixModel = function () {
-    currentPrefixModel = graph.options().prefixList();
+    if (graph && typeof graph.options === "function") {
+      currentPrefixModel = graph.options().prefixList();
+    }
   };
+
+  /**
+   * Validates whether a given string is a well-formed absolute URL/URI
+   * (supporting HTTP, HTTPS, and FTP protocols).
+   *
+   * Replaces legacy regex that used a hardcoded TLD whitelist with standard WHATWG
+   * URL parsing to support all modern TLDs (e.g. .tech, .online, .cloud, .md),
+   * IPv4/IPv6 addresses, localhost, and custom ports.
+   *
+   * @param {string} str - Candidate URL string to validate.
+   * @returns {boolean} True if the string is a valid absolute HTTP/HTTPS/FTP URL.
+   */
+  function validURL(str) {
+    if (!str || typeof str !== "string") {
+      return false;
+    }
+
+    // Fast check: CURIEs / Prefixed QNames (such as "owl:Thing", "foaf:Person", ":MyClass")
+    // contain colons without a protocol scheme ("http://", etc.) and should NOT be parsed as URLs.
+    if (
+      /^([a-zA-Z0-9_.-]*):([a-zA-Z0-9_.~%!$&'()*+,;=-]*)$/.test(str) &&
+      !/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(str)
+    ) {
+      return false;
+    }
+
+    try {
+      if (typeof URL.canParse === "function") {
+        if (!URL.canParse(str)) {
+          return false;
+        }
+      }
+      const parsed = new URL(str);
+      return (
+        parsed.protocol === "http:" ||
+        parsed.protocol === "https:" ||
+        parsed.protocol === "ftp:"
+      );
+    } catch {
+      return false;
+    }
+  }
 
   prefixRepresentationModule.validURL = function (url) {
     return validURL(url);
   };
-  function validURL(str) {
-    const urlregex =
-      /^(https?|ftp):\/\/([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(:[0-9]+)*(\/($|[a-zA-Z0-9.,?'\\+&%$#=~_-]+))*$/;
-    return urlregex.test(str);
-  }
+
+  /**
+   * Checks whether an IRI representation is formatted as a prefixed name (CURIE / QName)
+   * such as "rdfs:label", "owl:Thing", or ":OntologyClass".
+   *
+   * @param {string} iri - The IRI representation string to test.
+   * @returns {boolean} True if the string is a valid prefixed name.
+   */
+  prefixRepresentationModule.isPrefixedRepresentation = function (iri) {
+    if (!iri || typeof iri !== "string") {
+      return false;
+    }
+    // If it's a valid absolute URL (e.g. "https://example.tech/ontology#Item"), it is not a CURIE
+    if (validURL(iri)) {
+      return false;
+    }
+    // Match optional prefix name + ":" + local name
+    return /^([a-zA-Z0-9_.-]*):([a-zA-Z0-9_.~%!$&'()*+,;=-]*)$/.test(iri);
+  };
+
+  /**
+   * Formats an IRI for Turtle (TTL) serialization syntax:
+   * - Prefixed names (CURIEs like "owl:Thing", ":MyClass") remain unbracketed.
+   * - Un-prefixed absolute IRIs are enclosed in angle brackets (e.g. "<https://example.tech/ns#Item>").
+   *
+   * @param {string} iri - The IRI string (prefixed or absolute) to format.
+   * @returns {string} The Turtle-safe representation.
+   */
+  prefixRepresentationModule.formatForTTL = function (iri) {
+    if (!iri || typeof iri !== "string") {
+      return "";
+    }
+    if (prefixRepresentationModule.isPrefixedRepresentation(iri)) {
+      return iri;
+    }
+    // If already enclosed in angle brackets, return as-is
+    if (iri.startsWith("<") && iri.endsWith(">")) {
+      return iri;
+    }
+    return "<" + iri + ">";
+  };
 
   function splitURLIntoBaseAndResource(fullURL) {
     let splitedURL = { base: "", resource: "" };
