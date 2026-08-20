@@ -234,10 +234,14 @@ export default defineConfig(({ mode }) => {
             }
             return "[name].[ext]";
           },
-          manualChunks(id) {
-            if (id.includes("node_modules")) {
-              return "vendor";
-            }
+          codeSplitting: {
+            groups: [
+              {
+                name: "vendor",
+                test: /node_modules[\\/]/u,
+                entriesAware: true
+              }
+            ]
           }
         }
       }
