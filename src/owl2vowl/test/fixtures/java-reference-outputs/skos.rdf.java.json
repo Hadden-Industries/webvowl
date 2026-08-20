@@ -8,7 +8,6 @@
       "rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
       "skos" : "http://www.w3.org/2004/02/skos/core#",
       "xsd" : "http://www.w3.org/2001/XMLSchema#",
-      "" : "http://www.w3.org/2004/02/skos/core#",
       "dct" : "http://purl.org/dc/terms/",
       "xml" : "http://www.w3.org/XML/1998/namespace",
       "rdfs" : "http://www.w3.org/2000/01/rdf-schema#"
@@ -36,17 +35,17 @@
       "contributor" : [ {
         "identifier" : "contributor",
         "language" : "undefined",
-        "value" : "Dave Beckett",
-        "type" : "label"
-      }, {
-        "identifier" : "contributor",
-        "language" : "undefined",
         "value" : "Participants in W3C's Semantic Web Deployment Working Group.",
         "type" : "label"
       }, {
         "identifier" : "contributor",
         "language" : "undefined",
         "value" : "Nikki Rogers",
+        "type" : "label"
+      }, {
+        "identifier" : "contributor",
+        "language" : "undefined",
+        "value" : "Dave Beckett",
         "type" : "label"
       } ],
       "title" : [ {
@@ -118,7 +117,7 @@
   }, {
     "instances" : 0,
     "union" : [ "16", "1" ],
-    "attributes" : [ "union", "anonymous" ],
+    "attributes" : [ "anonymous", "union" ],
     "id" : "15"
   }, {
     "iri" : "http://www.w3.org/2002/07/owl#Thing",
@@ -188,16 +187,16 @@
         "value" : "A set of concepts, optionally including statements about semantic relationships between those concepts.",
         "type" : "label"
       } ],
-      "scopeNote" : [ {
-        "identifier" : "scopeNote",
-        "language" : "en",
-        "value" : "A concept scheme may be defined to include concepts from different sources.",
-        "type" : "label"
-      } ],
       "example" : [ {
         "identifier" : "example",
         "language" : "en",
         "value" : "Thesauri, classification schemes, subject heading lists, taxonomies, 'folksonomies', and other types of controlled vocabulary are all examples of concept schemes. Concept schemes are also embedded in glossaries and terminologies.",
+        "type" : "label"
+      } ],
+      "scopeNote" : [ {
+        "identifier" : "scopeNote",
+        "language" : "en",
+        "value" : "A concept scheme may be defined to include concepts from different sources.",
         "type" : "label"
       } ]
     },
@@ -433,7 +432,7 @@
   }, {
     "range" : "1",
     "domain" : "8",
-    "attributes" : [ "object", "anonymous" ],
+    "attributes" : [ "anonymous", "object" ],
     "id" : "14"
   }, {
     "iri" : "http://www.w3.org/2004/02/skos/core#broadMatch",
@@ -465,10 +464,11 @@
   }, {
     "range" : "16",
     "domain" : "22",
-    "attributes" : [ "object", "anonymous" ],
+    "attributes" : [ "anonymous", "object" ],
     "id" : "21"
   }, {
     "iri" : "http://www.w3.org/2004/02/skos/core#narrower",
+    "inverse" : "19",
     "baseIri" : "http://www.w3.org/2004/02/skos/core",
     "range" : "11",
     "annotations" : {
@@ -566,12 +566,12 @@
   }, {
     "range" : "8",
     "domain" : "16",
-    "attributes" : [ "object", "anonymous" ],
+    "attributes" : [ "anonymous", "object" ],
     "id" : "25"
   }, {
     "range" : "1",
     "domain" : "16",
-    "attributes" : [ "object", "anonymous" ],
+    "attributes" : [ "anonymous", "object" ],
     "id" : "26"
   }, {
     "iri" : "http://www.w3.org/2004/02/skos/core#topConceptOf",
@@ -601,7 +601,6 @@
     "id" : "9"
   }, {
     "iri" : "http://www.w3.org/2004/02/skos/core#broader",
-    "inverse" : "23",
     "baseIri" : "http://www.w3.org/2004/02/skos/core",
     "range" : "11",
     "annotations" : {
@@ -802,7 +801,7 @@
       "scopeNote" : [ {
         "identifier" : "scopeNote",
         "language" : "en",
-        "value" : "By convention, skos:notation is used with a typed literal in the object position of the triple",
+        "value" : "By convention, skos:notation is used with a typed literal in the object position of the triple.",
         "type" : "label"
       } ]
     },

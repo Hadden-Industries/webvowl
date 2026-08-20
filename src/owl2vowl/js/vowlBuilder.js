@@ -1,4 +1,13 @@
-import { dispatchAxiom, OWLObjectKind } from "../../owlapi-js/model/index.js";
+import {
+  dispatchAxiom,
+  OWLDataFactory,
+  OWLObjectKind,
+} from "../../owlapi-js/model/index.js";
+
+// Used only to express a conjunction the ontology already asserts, when a
+// property carries more than one domain or range axiom. Nothing about VOWL
+// travels back into the model this way.
+const owlFactory = new OWLDataFactory();
 
 const OWL_NAMESPACE = "http://www.w3.org/2002/07/owl#";
 const RDF_NAMESPACE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
@@ -8,6 +17,8 @@ const OWL_THING_IRI = `${OWL_NAMESPACE}Thing`;
 const RDFS_LITERAL_IRI = `${RDFS_NAMESPACE}Literal`;
 const RDFS_LABEL_IRI = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_COMMENT_IRI = "http://www.w3.org/2000/01/rdf-schema#comment";
+const OWL_DEPRECATED_IRI = `${OWL_NAMESPACE}deprecated`;
+const SKOS_PREF_LABEL_IRI = "http://www.w3.org/2004/02/skos/core#prefLabel";
 const RDFS_SUBCLASS_OF_IRI = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const RESERVED_BASE_IRIS = new Set([
   "http://www.w3.org/1999/02/22-rdf-syntax-ns",
@@ -29,6 +40,27 @@ const RESERVED_BASE_IRIS = new Set([
 const compareText = (left, right) => (left < right ? -1 : left > right ? 1 : 0);
 const ignoredAxiom = () => undefined;
 
+// The VOWL-JSON fields that carry a cardinality figure on a property edge. An
+// edge holding one of these was drawn for a cardinality restriction rather than
+// for a relationship of its own.
+const CARDINALITY_FIELDS = ["cardinality", "maxCardinality", "minCardinality"];
+
+// VOWL 2's splitting rules, Table 3. The generic elements carry no domain
+// information of their own yet attract a great many links, so drawing each once
+// turns it into a hub that dominates the layout and suggests an importance it
+// does not have. `rdfs:Datatype` and `rdfs:Literal` are therefore drawn once for
+// every property linked to them, and `owl:Thing` once for every class - however
+// many links that class contributes - with each link connected to exactly one
+// representation.
+const DATATYPE_NODE_TYPES = new Set(["rdfs:Datatype", "rdfs:Literal"]);
+const SPLIT_BY_PROPERTY = "property";
+const SPLIT_BY_CLASS = "class";
+const SPLIT_RULES = new Map([
+  ["owl:Thing", SPLIT_BY_CLASS],
+  ["rdfs:Datatype", SPLIT_BY_PROPERTY],
+  ["rdfs:Literal", SPLIT_BY_PROPERTY],
+]);
+
 const SKIPPED_RESTRICTIONS = new Set([
   OWLObjectKind.DATA_HAS_VALUE,
   OWLObjectKind.DATA_ONE_OF,
@@ -42,6 +74,9 @@ const ANONYMOUS_CLASS_EXPRESSIONS = new Map([
     OWLObjectKind.OBJECT_UNION_OF,
     {
       attribute: "union",
+      // The union of one class is that class, so a collection left with a
+      // single drawable member is drawn as the member itself.
+      collapsesToSingleMember: true,
       field: "union",
       operands: (expression) => expression.operands,
       type: "owl:unionOf",
@@ -51,6 +86,7 @@ const ANONYMOUS_CLASS_EXPRESSIONS = new Map([
     OWLObjectKind.OBJECT_INTERSECTION_OF,
     {
       attribute: "intersection",
+      collapsesToSingleMember: true,
       field: "intersection",
       operands: (expression) => expression.operands,
       type: "owl:intersectionOf",
@@ -66,6 +102,19 @@ const ANONYMOUS_CLASS_EXPRESSIONS = new Map([
     },
   ],
 ]);
+
+// Whether a class expression has a VOWL node of its own. A named class does, and
+// so do the anonymous set constructors above; a restriction or an enumeration
+// does not, which is why `classExpressionRecord` collapses those to `owl:Thing`
+// when one turns up where a node is required.
+//
+// That collapse is a sound default for an unspecified domain or range, but it
+// must not be used to give an edge somewhere to point: an edge to `owl:Thing`
+// says every value is anything at all, which is vacuous and is not what the
+// ontology stated.
+const hasVowlNode = (expression) =>
+  expression.kind === OWLObjectKind.CLASS ||
+  ANONYMOUS_CLASS_EXPRESSIONS.has(expression.kind);
 
 const sortByIri = (values) =>
   [...values].sort((left, right) =>
@@ -156,16 +205,60 @@ const annotationItem = (annotation) => {
   };
 };
 
+// The annotations an `owl:Axiom` reification carries, shaped exactly like an
+// entity's own `annotations` map so that the structure nests to any depth and a
+// reader needs one rule rather than two.
+//
+// Ordered on what the annotations are - property IRI, then value - rather than
+// on the order they were read, so the same ontology serialised differently
+// produces the same output. Returns nothing where there are none, so an
+// annotation the axiom does not describe carries no empty container.
+const nestedAnnotations = (annotations) => {
+  if (!annotations?.length) {
+    return undefined;
+  }
+  const order = (annotation) =>
+    `${annotation.property.iri.value} ${
+      annotation.value.lexicalForm ?? annotation.value.value ?? ""
+    }`;
+  const nested = {};
+  for (const annotation of [...annotations].sort((left, right) =>
+    compareText(order(left), order(right)),
+  )) {
+    const key = localName(annotation.property.iri.value);
+    nested[key] ||= [];
+    nested[key].push(annotationItem(annotation));
+  }
+  return nested;
+};
+
 // A document may state two values for one language - two `rdfs:label`s tagged
 // `@en`, say. VOWL-JSON holds a single value per language, so one has to be
 // dropped, and the rule for which must not be a by-product of the order axioms
 // happen to be visited. Keeping the code-point-smaller value makes the outcome
 // a total function of the values themselves, so it holds however the ontology
 // was serialised and whatever the traversal order turns out to be.
-const setLocalizedValue = (target, literal) => {
+// `preferred` is the value the document itself ranks first for each language,
+// taken from `skos:prefLabel`. Code-point order is a sound tie-break but an
+// arbitrary one, and where the author has said which label they prefer,
+// discarding that to apply it is losing information that is right there in the
+// document: on `iso-iec_11179_-3_ed-4_20260714` it picks "DEC" over "Data
+// Element Concept". The ranking decides where it exists and code-point order
+// decides everywhere else, so the outcome is still a total function of the
+// values and never of the order they arrived in.
+const setLocalizedValue = (target, literal, preferred) => {
   const language = languageKey(literal);
   const value = literal.lexicalForm;
-  if (!Object.hasOwn(target, language) || value < target[language]) {
+  const current = target[language];
+  const preferredValue = preferred?.[language];
+  if (current === undefined || value === preferredValue) {
+    target[language] = value;
+    return;
+  }
+  if (current === preferredValue) {
+    return;
+  }
+  if (value < current) {
     target[language] = value;
   }
 };
@@ -384,7 +477,7 @@ class BuildState {
   // alongside the set-operator name, and member ids rather than member IRIs.
   // Records are keyed by structural key so one expression yields one node
   // however many positions reference it.
-  ensureAnonymousClass(expression, mapping) {
+  ensureAnonymousClass(expression, mapping, operands) {
     const key = expression.structuralKey();
     const existing = this.#classRecords.get(key);
     if (existing) {
@@ -401,9 +494,9 @@ class BuildState {
       node: { id, type: mapping.type },
     };
     this.#classRecords.set(key, record);
-    record.attribute[mapping.field] = mapping
-      .operands(expression)
-      .map((operand) => this.classExpressionRecord(operand).node.id);
+    record.attribute[mapping.field] = (
+      operands ?? mapping.operands(expression)
+    ).map((operand) => this.classExpressionRecord(operand).node.id);
     return record;
   }
 
@@ -414,7 +507,20 @@ class BuildState {
 
     const mapping = ANONYMOUS_CLASS_EXPRESSIONS.get(expression.kind);
     if (mapping) {
-      return this.ensureAnonymousClass(expression, mapping);
+      // A member with no VOWL node contributes nothing to draw, and collapsing
+      // it to `owl:Thing` would change what the expression means: a union
+      // containing the top concept is the top concept. `time.rdf` states
+      // `TimePosition subClassOf (=1 numericPosition or =1 nominalPosition)`,
+      // which became a union of two `owl:Thing` nodes and so a vacuous subclass
+      // edge to the top concept - the very edge VOWL 2 advises against drawing.
+      const drawable = mapping.operands(expression).filter(hasVowlNode);
+      if (drawable.length === 0) {
+        return this.ensureClass(OWL_THING_IRI);
+      }
+      if (drawable.length === 1 && mapping.collapsesToSingleMember) {
+        return this.classExpressionRecord(drawable[0]);
+      }
+      return this.ensureAnonymousClass(expression, mapping, drawable);
     }
 
     // Restrictions and enumerations have no VOWL node representation: the
@@ -437,31 +543,45 @@ class BuildState {
     return this.ensureClass(range, OWLObjectKind.DATATYPE);
   }
 
+  // OWL 2 reads several domain axioms for one property as a conjunction: every
+  // one of them holds, so the property's domain is their intersection. Keeping
+  // only the axiom processed last would discard the rest while still drawing a
+  // class node for each, which is how `imarinetlo:name` - ten `rdfs:domain`
+  // axioms - left four class nodes behind that no edge touched.
+  //
+  // The expressions are collected here and joined in
+  // `applyIntersectedEndpoints`, once every axiom has been seen. Joining them
+  // as they arrive would leave a two-member intersection, then a three-member
+  // one, and so on, each an orphan node of its own.
+  rememberEndpoint(record, side, expression) {
+    record.endpointExpressions ??= { domain: [], range: [] };
+    record.endpointExpressions[side].push(expression);
+  }
+
   setObjectPropertyDomain(property, domain) {
     const record = this.propertyRecord(property);
     const classId = this.classExpressionRecord(domain).node.id;
-    if (property.kind === OWLObjectKind.OBJECT_INVERSE_OF) {
-      record.attribute.range = classId;
-    } else {
-      record.attribute.domain = classId;
-    }
+    const side =
+      property.kind === OWLObjectKind.OBJECT_INVERSE_OF ? "range" : "domain";
+    record.attribute[side] = classId;
+    this.rememberEndpoint(record, side, domain);
     record.explicitDomain = true;
   }
 
   setObjectPropertyRange(property, range) {
     const record = this.propertyRecord(property);
     const classId = this.classExpressionRecord(range).node.id;
-    if (property.kind === OWLObjectKind.OBJECT_INVERSE_OF) {
-      record.attribute.domain = classId;
-    } else {
-      record.attribute.range = classId;
-    }
+    const side =
+      property.kind === OWLObjectKind.OBJECT_INVERSE_OF ? "domain" : "range";
+    record.attribute[side] = classId;
+    this.rememberEndpoint(record, side, range);
     record.explicitRange = true;
   }
 
   setDataPropertyDomain(property, domain) {
     const record = this.propertyRecord(property);
     record.attribute.domain = this.classExpressionRecord(domain).node.id;
+    this.rememberEndpoint(record, "domain", domain);
     record.explicitDomain = true;
   }
 
@@ -489,6 +609,72 @@ class BuildState {
     const secondRecord = this.propertyRecord(second);
     firstRecord.attribute.inverse = secondRecord.node.id;
     secondRecord.attribute.inverse = firstRecord.node.id;
+  }
+
+  // Joins the endpoints collected by `rememberEndpoint`. A property that states
+  // one domain keeps that class as its domain, so the ordinary case is
+  // untouched; one that states several gets an `owl:intersectionOf` node whose
+  // members are all of them. Restating the same class changes nothing, because
+  // the expressions are deduplicated by structural key first.
+  //
+  // Data property ranges are deliberately excluded: they are datatypes, VOWL
+  // has no datatype intersection node, and `dataRangeRecord` already collapses
+  // a constructed data range to `rdfs:Literal`.
+  applyIntersectedEndpoints() {
+    for (const record of this.#propertyRecords.values()) {
+      const stated = record.endpointExpressions;
+      if (!stated) {
+        continue;
+      }
+      for (const side of ["domain", "range"]) {
+        const distinct = new Map(
+          stated[side].map((expression) => [
+            expression.structuralKey(),
+            expression,
+          ]),
+        );
+        if (distinct.size < 2) {
+          continue;
+        }
+        record.attribute[side] = this.classExpressionRecord(
+          owlFactory.getOWLObjectIntersectionOf(
+            sortStructurally(distinct.values()),
+          ),
+        ).node.id;
+      }
+    }
+  }
+
+  // VOWL 2 draws an inverse pair as one line between two classes with
+  // arrowheads at both ends, labelled with the property and its inverse
+  // counterpart. A single line between two classes means the pair shares its
+  // endpoints, so a property stating no domain or range of its own takes them
+  // from its inverse, crossed over.
+  //
+  // Run after every axiom has been applied, so it cannot matter whether the
+  // inverse axiom or the domain and range were read first. Only endpoints the
+  // author actually stated are read, and only gaps are filled, so no value
+  // written here is ever read by another step of the same pass.
+  applyInverseEndpoints() {
+    const byId = new Map(
+      [...this.#propertyRecords.values()].map((record) => [
+        record.node.id,
+        record,
+      ]),
+    );
+
+    for (const property of this.#propertyRecords.values()) {
+      const inverse = byId.get(property.attribute.inverse);
+      if (!inverse) {
+        continue;
+      }
+      if (!property.explicitDomain && inverse.explicitRange) {
+        property.attribute.domain = inverse.attribute.range;
+      }
+      if (!property.explicitRange && inverse.explicitDomain) {
+        property.attribute.range = inverse.attribute.domain;
+      }
+    }
   }
 
   addPropertyAttribute(property, attribute) {
@@ -548,6 +734,19 @@ class BuildState {
       return;
     }
     const classRecord = this.classExpressionRecord(classExpression);
+
+    // `instances` and `individuals` count different things. `individuals` holds
+    // the ordinary members of a class; `instances` counts only those members
+    // whose IRI is *also* a class, which is the class-and-individual punning
+    // OWL 2 permits. The pinned oracle keeps them strictly apart - it renders
+    // `MonthOfYear` with `instances: 1` beside eleven `individuals` - so
+    // `instances` is never the length of `individuals`.
+    if (this.#classRecords.has(individualRecord.iri)) {
+      classRecord.attribute.instances += 1;
+      this.#usedIndividualIris.add(individualRecord.iri);
+      return;
+    }
+
     classRecord.attribute.individuals ||= [];
     if (
       !classRecord.attribute.individuals.some(
@@ -555,8 +754,6 @@ class BuildState {
       )
     ) {
       classRecord.attribute.individuals.push(individualRecord);
-      classRecord.attribute.instances =
-        classRecord.attribute.individuals.length;
       this.#usedIndividualIris.add(individualRecord.iri);
     }
   }
@@ -582,6 +779,117 @@ class BuildState {
     return record;
   }
 
+  // One arrow can carry only one number, but an ontology may restrict the same
+  // property on several classes. The weaker bound is kept - the smallest
+  // minimum, the largest maximum - so the figure shown is implied by every
+  // restriction stated rather than overstating any one of them. Choosing by
+  // value rather than by arrival also keeps the result independent of the order
+  // the axioms were read in.
+  //
+  // An exact cardinality is both bounds at once, so a disagreement between two
+  // exact figures has no weaker reading; the smaller is kept for determinism.
+  labelPropertyCardinality(attribute, field, value) {
+    const existing = attribute[field];
+    if (existing === undefined) {
+      attribute[field] = String(value);
+      return;
+    }
+    const previous = Number(existing);
+    attribute[field] =
+      field === "maxCardinality"
+        ? String(Math.max(previous, value))
+        : String(Math.min(previous, value));
+  }
+
+  // Multiplies the generic nodes per VOWL 2's splitting rules and rewires each
+  // link to its own representation, returning the copies that were made. The
+  // renderer implements none of this, so it falls to whatever produces the
+  // VOWL-JSON; the pinned oracle does it, emitting 371 generic node instances
+  // for `schemaorg.owl` where one node each would give two.
+  //
+  // Links are grouped by what they are - the property's IRI, or the class at
+  // the far end - never by the order the edges happened to be built, so the same
+  // ontology always splits into the same shape. The lowest-sorting group keeps
+  // the original node so that a single group is left untouched.
+  splitGenericNodes(properties) {
+    const recordsById = new Map(
+      [...this.#classRecords.values()].map((record) => [
+        String(record.node.id),
+        record,
+      ]),
+    );
+    const linksByNode = new Map();
+    for (const record of properties) {
+      for (const end of ["domain", "range"]) {
+        const id = String(record.attribute[end]);
+        if (!recordsById.has(id)) {
+          continue;
+        }
+        if (!linksByNode.has(id)) {
+          linksByNode.set(id, []);
+        }
+        linksByNode.get(id).push({ end, record });
+      }
+    }
+
+    const copies = [];
+    for (const [id, links] of linksByNode) {
+      const rule = SPLIT_RULES.get(recordsById.get(id).node.type);
+      if (!rule) {
+        continue;
+      }
+      const groups = new Map();
+      const add = (key, link) => {
+        if (!groups.has(key)) {
+          groups.set(key, []);
+        }
+        groups.get(key).push(link);
+      };
+
+      if (rule === SPLIT_BY_PROPERTY) {
+        for (const link of links) {
+          add(String(link.record.attribute.iri ?? ""), link);
+        }
+      } else {
+        // Split by class means exactly that: a representation per *class*
+        // linked to. A link whose far end is a datatype or `rdfs:Literal`
+        // creates none of its own - the rule counts classes - so it joins the
+        // lowest-sorting class group instead, keeping every link on exactly one
+        // representation. Where nothing links to a class at all, that leaves a
+        // single group and no split.
+        const farEnd = (link) =>
+          String(
+            link.record.attribute[link.end === "domain" ? "range" : "domain"],
+          );
+        const isClassEnd = (id) => {
+          const record = recordsById.get(id);
+          return Boolean(record) && !DATATYPE_NODE_TYPES.has(record.node.type);
+        };
+        const classKeys = [
+          ...new Set(links.map(farEnd).filter(isClassEnd)),
+        ].sort(compareText);
+        const fallback = classKeys[0] ?? "";
+        for (const link of links) {
+          const id = farEnd(link);
+          add(isClassEnd(id) ? id : fallback, link);
+        }
+      }
+
+      for (const key of [...groups.keys()].sort(compareText).slice(1)) {
+        const copyId = this.nextId();
+        const source = recordsById.get(id);
+        copies.push({
+          attribute: { ...source.attribute, id: copyId },
+          node: { id: copyId, type: source.node.type },
+        });
+        for (const link of groups.get(key)) {
+          link.record.attribute[link.end] = copyId;
+        }
+      }
+    }
+    return copies;
+  }
+
   addSubclass(subClass, superClass) {
     // A set expression in superclass position, such as `A subClassOf (B or C)`,
     // is not a restriction: it has its own anonymous VOWL node, so it takes an
@@ -594,11 +902,25 @@ class BuildState {
       this.addRestriction(subClass, superClass);
       return;
     }
+    // Every class is a subclass of `owl:Thing` by definition, so an edge saying
+    // so carries no information and would tie every node in the graph to one
+    // point. VOWL draws none: across the 46 pinned reference outputs there are
+    // 2358 subclass edges and not one points at `owl:Thing`, and the retained
+    // legacy exporter skips them explicitly for the same reason.
+    //
+    // Tested on the resolved node rather than on the expression, because a set
+    // expression whose members all lack a node resolves to `owl:Thing` too. In
+    // `time.rdf` that is a union of two cardinality restrictions, which says
+    // nothing about the subclass at all.
+    const superRecord = this.classExpressionRecord(superClass);
+    if (superRecord.node.type === "owl:Thing") {
+      return;
+    }
     this.addRelation({
       attributes: ["transitive"],
       domain: this.classExpressionRecord(subClass).node.id,
       iri: RDFS_SUBCLASS_OF_IRI,
-      range: this.classExpressionRecord(superClass).node.id,
+      range: superRecord.node.id,
       type: "rdfs:SubClassOf",
     });
   }
@@ -616,6 +938,16 @@ class BuildState {
       ],
     ]);
     if (objectRestrictionTypes.has(restriction.kind)) {
+      // A named class, and only a named class. A restriction or an enumeration
+      // has no node for the edge to point at, and collapsing it to `owl:Thing`
+      // would say all values are anything at all. A union or intersection does
+      // have a node, but the oracle still draws no edge to one: across all 46
+      // reference outputs its 298 restriction edges have no anonymous endpoint.
+      // VOWL 2 governs nothing about restriction edges, so ADR 0006 leaves their
+      // shape to the oracle.
+      if (restriction.filler.kind !== OWLObjectKind.CLASS) {
+        return;
+      }
       const [type, attribute] = objectRestrictionTypes.get(restriction.kind);
       const property = this.propertyRecord(restriction.property);
       const rangeId = this.classExpressionRecord(restriction.filler).node.id;
@@ -689,6 +1021,40 @@ class BuildState {
     ]);
     if (cardinalityKinds.has(restriction.kind)) {
       const cardinality = cardinalityKinds.get(restriction.kind);
+      // The same vacuity rule as the quantified restrictions above: an edge to
+      // `owl:Thing` would say the restriction ranges over everything, which is
+      // not what a filler with no node of its own states. Only a data range
+      // legitimately collapses, to `rdfs:Literal`, which is a real node.
+      if (!cardinality.data && !hasVowlNode(restriction.filler)) {
+        return;
+      }
+      // VOWL 2 draws a cardinality as a number near the end of the property's
+      // arrow, in the manner of UML multiplicity, and gives a property exactly
+      // one arrow from its domain to its range. An `owl:Thing` filler names no
+      // target - OWL 2 makes the class expression optional and identical to
+      // `owl:Thing` when omitted - so there is nothing for an edge to point at,
+      // and the specification's rule on `owl:Thing` permits its node only where
+      // a property has no domain or range axiom, or where the author named it.
+      // Drawing one anyway is what put every restricted subclass of `food.rdf`
+      // on an edge to `owl:Thing`.
+      //
+      // The data side is the same rule with the same reasoning: VOWL 2
+      // substitutes `rdfs:Literal` as the range of a datatype property that has
+      // none defined, so an `rdfs:Literal` filler names no target either, and a
+      // constructed data range has no node of its own to point at.
+      const namesNoTarget = cardinality.data
+        ? restriction.filler.kind !== OWLObjectKind.DATATYPE ||
+          restriction.filler.iri.value === RDFS_LITERAL_IRI
+        : restriction.filler.kind === OWLObjectKind.CLASS &&
+          restriction.filler.iri.value === OWL_THING_IRI;
+      if (namesNoTarget) {
+        this.labelPropertyCardinality(
+          this.propertyRecord(restriction.property).attribute,
+          cardinality.attribute,
+          restriction.cardinality,
+        );
+        return;
+      }
       const property = this.propertyRecord(restriction.property);
       const rangeId = cardinality.data
         ? this.dataRangeRecord(restriction.filler).node.id
@@ -969,10 +1335,62 @@ class BuildState {
     }
   }
 
+  // Records an annotation assertion as an item under the entity's `annotations`
+  // map, carrying whatever the axiom itself annotated it with.
+  //
+  // `onlyWhenAnnotated` is for the assertions that already have a home of their
+  // own - a label, a comment, a description. Those land in their dedicated
+  // fields and are not repeated here, except when the axiom carries annotations,
+  // which would otherwise have no item to attach to and would be dropped. A
+  // plain label therefore keeps exactly the shape it always had.
+  addAnnotationItem(
+    record,
+    axiom,
+    axiomAnnotations,
+    onlyWhenAnnotated = false,
+  ) {
+    if (onlyWhenAnnotated && !axiomAnnotations) {
+      return;
+    }
+    const attribute = record.attribute || record;
+    const key = localName(axiom.property.iri.value);
+    attribute.annotations ||= {};
+    attribute.annotations[key] ||= [];
+    const item = annotationItem({
+      property: axiom.property,
+      value: axiom.value,
+    });
+    if (axiomAnnotations) {
+      item.annotations = axiomAnnotations;
+    }
+    attribute.annotations[key].push(item);
+  }
+
   applyEntityAnnotations() {
     const assertions = this.ontologies.flatMap((ontology) => [
       ...ontology.getAxiomsByType(OWLObjectKind.ANNOTATION_ASSERTION_AXIOM),
     ]);
+    // Collected before anything is applied, because an `rdfs:label` may be read
+    // before the `skos:prefLabel` that ranks it and the answer must not depend
+    // on which came first.
+    const preferredLabels = new Map();
+    for (const axiom of assertions) {
+      if (
+        axiom.property.iri.value !== SKOS_PREF_LABEL_IRI ||
+        axiom.subject.kind !== OWLObjectKind.IRI ||
+        axiom.value.kind !== OWLObjectKind.LITERAL
+      ) {
+        continue;
+      }
+      if (!preferredLabels.has(axiom.subject.value)) {
+        preferredLabels.set(axiom.subject.value, {});
+      }
+      // SKOS allows one preferred label per language; a document stating two
+      // is malformed, so the code-point rule settles it and the result stays
+      // independent of order.
+      setLocalizedValue(preferredLabels.get(axiom.subject.value), axiom.value);
+    }
+
     for (const axiom of sortStructurally(assertions)) {
       if (axiom.subject.kind !== OWLObjectKind.IRI) {
         continue;
@@ -984,6 +1402,22 @@ class BuildState {
       if (!record) {
         continue;
       }
+
+      // An `owl:Axiom` reification annotates the assertion, not the entity, and
+      // OWL 2 keeps those apart: `dcterms:source` on a definition records where
+      // the wording came from, not that the class has a source. Promoting it to
+      // the entity asserts something the ontology does not say, and leaves it
+      // indistinguishable from a source the entity genuinely has - which also
+      // discards the very disambiguation `owl:annotatedTarget` exists to
+      // provide, and double-counts a value the entity already states.
+      //
+      // The pinned oracle promotes them. ADR 0004 assigns the VOWL-JSON
+      // serialization to the implementation, but that authority covers the
+      // shape of the output, not what the ontology means, so the misattribution
+      // is not ours to reproduce. The annotation carries its own `annotations`
+      // map instead, exactly as an entity does: self-similar, recursive, and
+      // unable to collide with the item's own fields.
+      const axiomAnnotations = nestedAnnotations(axiom.annotations);
 
       const propertyIri = axiom.property.iri.value;
       if (axiom.value.kind === OWLObjectKind.LITERAL) {
@@ -998,8 +1432,13 @@ class BuildState {
           // any language already recorded, so a class labelled in English and
           // German kept only whichever axiom happened to be visited last.
           attribute[field] ||= {};
-          setLocalizedValue(attribute[field], axiom.value);
+          setLocalizedValue(
+            attribute[field],
+            axiom.value,
+            preferredLabels.get(axiom.subject.value),
+          );
         }
+        this.addAnnotationItem(record, axiom, axiomAnnotations, true);
         continue;
       }
       if (propertyIri === RDFS_COMMENT_IRI) {
@@ -1007,6 +1446,26 @@ class BuildState {
           const attribute = record.attribute || record;
           attribute.comment ||= {};
           setLocalizedValue(attribute.comment, axiom.value);
+        }
+        this.addAnnotationItem(record, axiom, axiomAnnotations, true);
+        continue;
+      }
+      // VOWL 2 draws a deprecated class or property with the indication
+      // "deprecated". OWL 2 states deprecation with the built-in annotation
+      // property `owl:deprecated` carrying boolean true, and the RDF translator
+      // normalises the OWL 1 `owl:DeprecatedClass` and `owl:DeprecatedProperty`
+      // types into that same assertion, so recognising it here covers both
+      // spellings. `owl:deprecated false` says the opposite and draws nothing.
+      if (propertyIri === OWL_DEPRECATED_IRI) {
+        if (
+          axiom.value.kind === OWLObjectKind.LITERAL &&
+          axiom.value.lexicalForm === "true"
+        ) {
+          const attribute = record.attribute || record;
+          attribute.attributes ||= [];
+          if (!attribute.attributes.includes("deprecated")) {
+            attribute.attributes.push("deprecated");
+          }
         }
         continue;
       }
@@ -1016,13 +1475,10 @@ class BuildState {
       if (key === "description" && axiom.value.kind === OWLObjectKind.LITERAL) {
         attribute.description ||= {};
         setLocalizedValue(attribute.description, axiom.value);
+        this.addAnnotationItem(record, axiom, axiomAnnotations, true);
         continue;
       }
-      attribute.annotations ||= {};
-      attribute.annotations[key] ||= [];
-      attribute.annotations[key].push(
-        annotationItem({ property: axiom.property, value: axiom.value }),
-      );
+      this.addAnnotationItem(record, axiom, axiomAnnotations);
     }
   }
 
@@ -1050,18 +1506,93 @@ class BuildState {
         property.explicitDomain ||
         property.explicitRange,
     );
-    const properties = [...visibleBaseProperties, ...this.#relations];
+    // VOWL 2 draws a cardinality as a number near the end of the property's
+    // arrow, so a cardinality restriction contributes a label rather than an
+    // edge of its own. Where the restricted class and the filler are already
+    // the property's domain and range, the edge it would add is the edge that
+    // is already there, so the figures move onto it and the duplicate goes.
+    //
+    // Confined to cardinality on purpose. A quantified restriction has no
+    // representation in VOWL 2 at all, so the edge drawn for it is an extension
+    // whose shape no specification governs, and the pinned oracle draws it
+    // separately even when the endpoints coincide. Following the specification
+    // where it speaks and the oracle where it is silent puts the two cases on
+    // opposite sides of this line.
+    //
+    // `inferred` is not carried across, because the surviving edge is declared
+    // whatever else also supports it. The merged markers are sorted so the
+    // result does not depend on the order the relations were built in.
+    //
+    // Keyed on the property and the class it runs from, not on where it ends.
+    // VOWL 2 gives a property one arrow and puts the figure near its end, and
+    // Table 6 covers only the unqualified forms - the class a qualified
+    // cardinality names has no representation in the notation at all. So a
+    // cardinality restricting a class labels that class's arrow whatever filler
+    // it names, and only a restriction on some *other* class is a different
+    // arrow needing one of its own.
+    const arrowKey = ({ attribute }) =>
+      `${attribute.iri ?? ""}|${attribute.domain}`;
+    const baseByEdge = new Map(
+      visibleBaseProperties.map((property) => [arrowKey(property), property]),
+    );
+    const merged = new Set();
+    const unmergedRelations = this.#relations.filter((relation) => {
+      const carriedCardinalities = CARDINALITY_FIELDS.filter(
+        (field) => relation.attribute[field] !== undefined,
+      );
+      if (carriedCardinalities.length === 0) {
+        return true;
+      }
+      const base = baseByEdge.get(arrowKey(relation));
+      if (!base) {
+        return true;
+      }
+      for (const field of carriedCardinalities) {
+        this.labelPropertyCardinality(
+          base.attribute,
+          field,
+          Number(relation.attribute[field]),
+        );
+      }
+      for (const attribute of relation.attribute.attributes) {
+        if (
+          attribute !== "inferred" &&
+          !base.attribute.attributes.includes(attribute)
+        ) {
+          base.attribute.attributes.push(attribute);
+        }
+      }
+      merged.add(base);
+      return false;
+    });
+    for (const base of merged) {
+      base.attribute.attributes.sort(compareText);
+    }
+    const properties = [...visibleBaseProperties, ...unmergedRelations];
+    const splitCopies = this.splitGenericNodes(properties);
     const connectedClassIds = new Set(
       properties.flatMap(({ attribute }) => [
         String(attribute.domain),
         String(attribute.range),
       ]),
     );
-    const classes = [...this.#classRecords.values()].filter(
-      ({ attribute, node }) =>
-        node.type !== "rdfs:Datatype" ||
-        connectedClassIds.has(node.id) ||
-        this.#declaredEntityIris.has(attribute.iri),
+    // VOWL 2's splitting rules make the generic elements exist only in relation
+    // to what links to them: a datatype or `rdfs:Literal` is drawn once for
+    // every property it is linked to, and `owl:Thing` once for every class, so
+    // an element nothing links to is drawn zero times. Being declared puts a
+    // datatype in the ontology's signature, not in the visualisation -
+    // `marinetlo.owl` declares `xsd:date` and never uses it.
+    //
+    // Named classes are not subject to this. An isolated class is still a class
+    // and is still drawn; the rule names the generic elements only.
+    const GENERIC_NODE_TYPES = new Set([
+      "owl:Thing",
+      "rdfs:Datatype",
+      "rdfs:Literal",
+    ]);
+    const classes = [...this.#classRecords.values(), ...splitCopies].filter(
+      ({ node }) =>
+        !GENERIC_NODE_TYPES.has(node.type) || connectedClassIds.has(node.id),
     );
     const classNodes = classes.map(({ node }) => node);
     const propertyNodes = properties.map(({ node }) => node);
@@ -1178,6 +1709,8 @@ export class VOWLBuilder {
     }
     state.applyOntologyAnnotations();
     state.applyAxioms();
+    state.applyIntersectedEndpoints();
+    state.applyInverseEndpoints();
     state.applyEntityAnnotations();
     return state.result();
   }

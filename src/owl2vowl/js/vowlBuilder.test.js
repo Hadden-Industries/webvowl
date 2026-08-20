@@ -60,9 +60,21 @@ describe("VOWLBuilder", () => {
     const source = factory.getOWLAnnotationProperty(iri("source"));
     const alice = factory.getOWLNamedIndividual(iri("alice"));
     const ontology = new OWLOntology({
-      axioms: [person, code, knows, age, source, alice].map((entity) =>
-        factory.getOWLDeclarationAxiom(entity),
-      ),
+      axioms: [
+        ...[person, code, knows, age, source, alice].map((entity) =>
+          factory.getOWLDeclarationAxiom(entity),
+        ),
+        // VOWL 2's splitting rules draw a datatype once for every property that
+        // links to it, so a datatype nothing links to is drawn zero times. This
+        // assertion is about which node type a datatype maps to rather than
+        // about orphans, so the datatype is given the link that puts it in the
+        // graph at all. It gets a property of its own so that `age` keeps its
+        // unspecified range, which is what puts `rdfs:Literal` in the graph.
+        factory.getOWLDataPropertyRangeAxiom(
+          factory.getOWLDataProperty(iri("codeOf")),
+          code,
+        ),
+      ],
       ontologyID: factory.getOWLOntologyID(
         IRI.create("https://example.com/phase7"),
       ),
@@ -103,26 +115,43 @@ describe("VOWLBuilder", () => {
     expect(
       classByIri.get("http://www.w3.org/2000/01/rdf-schema#Literal"),
     ).toBeDefined();
-    expect(propertyByIri.get(knows.iri.value)).toMatchObject({
-      attributes: ["object"],
-      domain: classByIri.get("http://www.w3.org/2002/07/owl#Thing").id,
-      range: classByIri.get("http://www.w3.org/2002/07/owl#Thing").id,
-    });
-    expect(propertyByIri.get(age.iri.value)).toMatchObject({
-      attributes: ["datatype"],
-      domain: classByIri.get("http://www.w3.org/2002/07/owl#Thing").id,
-      range: classByIri.get("http://www.w3.org/2000/01/rdf-schema#Literal").id,
-    });
+    // Resolved through the endpoint's own identifier rather than by looking a
+    // node up from its IRI. VOWL 2's splitting rules multiply the generic nodes,
+    // so `owl:Thing` is several nodes here and an IRI no longer names one.
+    const classIriById = new Map(
+      result.classAttribute.map((attribute) => [attribute.id, attribute.iri]),
+    );
+    const endpointsOf = (entity) => {
+      const edge = propertyByIri.get(entity.iri.value);
+      return [classIriById.get(edge.domain), classIriById.get(edge.range)];
+    };
+
+    expect(propertyByIri.get(knows.iri.value).attributes).toEqual(["object"]);
+    expect(endpointsOf(knows)).toEqual([
+      "http://www.w3.org/2002/07/owl#Thing",
+      "http://www.w3.org/2002/07/owl#Thing",
+    ]);
+    expect(propertyByIri.get(age.iri.value).attributes).toEqual(["datatype"]);
+    expect(endpointsOf(age)).toEqual([
+      "http://www.w3.org/2002/07/owl#Thing",
+      "http://www.w3.org/2000/01/rdf-schema#Literal",
+    ]);
     expect(classByIri.has(source.iri.value)).toBe(false);
     expect(classByIri.has(alice.iri.value)).toBe(false);
+    // Two datatype properties: `age`, whose range is unspecified and therefore
+    // `rdfs:Literal`, and `codeOf`, which exists to give the declared datatype
+    // the link the splitting rules require before it is drawn at all.
     expect(result.metrics).toMatchObject({
       classCount: 1,
       datatypeCount: 1,
-      datatypePropertyCount: 1,
+      datatypePropertyCount: 2,
       individualCount: 0,
+      // `owl:Thing` splits by class, and here it is linked to no class but
+      // itself: `age` and `codeOf` reach datatypes, which the rule does not
+      // count. So it stays a single node and the total is unchanged.
       nodeCount: 4,
       objectPropertyCount: 1,
-      propertyCount: 2,
+      propertyCount: 3,
     });
   });
 
@@ -665,7 +694,10 @@ describe("VOWLBuilder", () => {
       ({ iri: value }) => value === person.iri.value,
     );
 
-    expect(personAttribute.instances).toBe(1);
+    // `instances` counts only members whose IRI is also a class, which this
+    // individual's is not. It is not the length of `individuals`. See
+    // `vowlBuilder.instances.test.js`.
+    expect(personAttribute.instances).toBe(0);
     expect(personAttribute.individuals).toEqual([
       {
         annotations: {
