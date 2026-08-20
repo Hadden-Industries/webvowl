@@ -85,7 +85,16 @@ export class WebVowlImportResolver {
 
     const deadline = requestDeadline(signal, config.timeoutMs);
     try {
-      const response = await this.#fetch(normalized.value, {
+      // Called detached from `this`, deliberately. `fetch` is a method of the
+      // global object and browsers brand-check its receiver: WebIDL substitutes
+      // the global for an undefined receiver, which is what a bare call gives,
+      // but rejects anything else with "Failed to execute 'fetch' on 'Window':
+      // Illegal invocation". `this.#fetch(...)` would hand it the resolver.
+      //
+      // Node's `fetch` performs no such check, so this failed in every browser
+      // while the whole suite stayed green.
+      const fetchImpl = this.#fetch;
+      const response = await fetchImpl(normalized.value, {
         credentials: "omit",
         redirect: config.maxRedirects === 0 ? "error" : "follow",
         signal: deadline.signal,

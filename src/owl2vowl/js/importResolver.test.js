@@ -114,4 +114,55 @@ describe("WebVowlImportResolver", () => {
       jest.useRealTimers();
     }
   });
+
+  // `fetch` is a method of the global, and browsers brand-check its receiver:
+  // WebIDL replaces an undefined receiver with the global object, but rejects
+  // any other object with "Failed to execute 'fetch' on 'Window': Illegal
+  // invocation". Storing the function on the resolver and calling it as
+  // `this.#fetch(...)` therefore passes the resolver as the receiver and fails
+  // in every browser.
+  //
+  // Node's `fetch` performs no such check, so the whole suite passed while the
+  // application could not resolve a single import. That is why the receiver is
+  // asserted directly here rather than inferred from a successful call.
+  describe("the receiver it calls fetch with", () => {
+    const okResponse = () => ({
+      headers: { get: () => null },
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      text: async () => "<rdf:RDF/>",
+    });
+    const documentIri = IRI.create("https://example.com/imported.rdf");
+
+    it("is never the resolver itself", async () => {
+      let receiver = "never called";
+      const resolver = new WebVowlImportResolver({
+        fetchImpl: function recordReceiver() {
+          receiver = this;
+          return okResponse();
+        },
+      });
+
+      await resolver.load(documentIri);
+
+      expect(receiver).not.toBe(resolver);
+    });
+
+    it("is accepted by a fetch that brand-checks it as a browser does", async () => {
+      const browserLikeFetch = function brandCheckedFetch() {
+        if (this !== undefined && this !== globalThis) {
+          throw new TypeError(
+            "Failed to execute 'fetch' on 'Window': Illegal invocation",
+          );
+        }
+        return okResponse();
+      };
+      const resolver = new WebVowlImportResolver({
+        fetchImpl: browserLikeFetch,
+      });
+
+      await expect(resolver.load(documentIri)).resolves.toBeDefined();
+    });
+  });
 });
