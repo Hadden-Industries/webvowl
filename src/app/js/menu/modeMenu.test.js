@@ -160,4 +160,50 @@ describe("mode menu bug fixes", () => {
       maxLabelWidthDescriptionLabel._classList.has("disabledLabelForSlider"),
     ).toBe(false);
   });
+
+  test("modeMenu setup handles missing optional DOM containers gracefully", () => {
+    global.document = {
+      querySelector: (selector) => null,
+    };
+
+    expect(() => {
+      modeMenu.setup(pickAndPin, nodeScaling, compactNotation, colorExternals);
+      modeMenu.setDynamicLabelWidth(true);
+      modeMenu.reset();
+    }).not.toThrow();
+  });
+
+  test("mode checkbox click handler triggers module updates on native click event but skips on silent: true", () => {
+    modeMenu.setup(pickAndPin, nodeScaling, compactNotation, colorExternals);
+
+    const pickAndPinCheckbox = pickAndPinContainer.children.find(
+      (c) => c.id === "pickandpinModuleCheckbox",
+    );
+    expect(pickAndPinCheckbox).toBeDefined();
+
+    mockGraph.executeColorExternalsModule = jest.fn();
+    mockGraph.executeCompactNotationModule = jest.fn();
+    mockGraph.executeNodeScalingModule = jest.fn();
+    mockGraph.lazyRefresh = jest.fn();
+
+    // Node scaling checkbox
+    const nodeScalingCheckbox = nodeScalingContainer.children.find(
+      (c) => c.id === "nodescalingModuleCheckbox",
+    );
+    nodeScalingCheckbox.checked = true;
+
+    // Simulate native click (arg1 is MouseEvent)
+    nodeScalingCheckbox.listeners["click"][0]({ type: "click" });
+
+    expect(nodeScaling.enabled).toHaveBeenCalledWith(true);
+    expect(mockGraph.lazyRefresh).toHaveBeenCalledTimes(1);
+
+    // Silent programmatic call
+    mockGraph.lazyRefresh.mockClear();
+    nodeScalingCheckbox.checked = false;
+    nodeScalingCheckbox.listeners["click"][0](true); // silent = true
+
+    expect(nodeScaling.enabled).toHaveBeenCalledWith(false);
+    expect(mockGraph.lazyRefresh).not.toHaveBeenCalled();
+  });
 });

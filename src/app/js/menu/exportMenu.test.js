@@ -87,15 +87,15 @@ describe("export menu json deterministic export", () => {
         getGeneralMetaObject: () => ({}),
         filterMenu: () => ({
           getCheckBoxContainer: () => [
-            { checkbox: { attr: () => "chk2", property: () => true } },
-            { checkbox: { attr: () => "chk1", property: () => false } },
+            { checkbox: { checked: true, id: "chk2" } },
+            { checkbox: { checked: false, id: "chk1" } },
           ],
           getDegreeSliderValue: () => 0,
         }),
         modeMenu: () => ({
           getCheckBoxContainer: () => [
-            { attr: () => "mode2", property: () => true },
-            { attr: () => "mode1", property: () => false },
+            { element: { checked: true }, id: "mode2" },
+            { element: { checked: false }, id: "mode1" },
           ],
           colorModeState: () => false,
         }),
@@ -158,6 +158,143 @@ describe("export menu json deterministic export", () => {
     expect(obj.propertyAttribute[0].subproperty).toEqual(["sub1", "sub2"]);
     // Filter settings sorted
     expect(obj.settings.filter.checkBox[0].id).toBe("chk1");
+  });
+
+  test("exports JSON with native DOM checkbox objects from filterMenu and modeMenu", () => {
+    const nodeA = createMockNode("id1", "http://A");
+    const propA = createMockProperty("p1", "http://propA");
+
+    const graph = {
+      options: () => ({
+        data: () => ({
+          _comment: "Test",
+          header: {},
+          namespace: [],
+          metrics: {},
+        }),
+        getGeneralMetaObject: () => ({}),
+        filterMenu: () => ({
+          getCheckBoxContainer: () => [
+            { checkbox: { id: "datatypeFilterCheckbox", checked: true } },
+            { checkbox: { id: "subclassFilterCheckbox", checked: false } },
+          ],
+          getDegreeSliderValue: () => 2,
+        }),
+        modeMenu: () => ({
+          getCheckBoxContainer: () => [
+            {
+              id: "nodescalingModuleCheckbox",
+              element: { id: "nodescalingModuleCheckbox", checked: true },
+            },
+            {
+              id: "compactnotationModuleCheckbox",
+              element: { id: "compactnotationModuleCheckbox", checked: false },
+            },
+          ],
+          colorModeState: () => false,
+        }),
+        classDistance: () => 10,
+        datatypeDistance: () => 10,
+      }),
+      getUnfilteredData: () => ({ nodes: [nodeA], properties: [propA] }),
+      graphNodeElements: () => ({ each: () => {} }),
+      graphLabelElements: () => [],
+      scaleFactor: () => 1,
+      paused: () => false,
+      translation: () => [0, 0],
+    };
+
+    const menu = exportMenuFactory(graph);
+    const exportObj = menu.createJSON_exportObject();
+
+    expect(exportObj.settings.filter.checkBox).toEqual([
+      { checked: true, id: "datatypeFilterCheckbox" },
+      { checked: false, id: "subclassFilterCheckbox" },
+    ]);
+    expect(exportObj.settings.filter.degreeSliderValue).toBe(2);
+    expect(exportObj.settings.modes.checkBox).toEqual([
+      { checked: false, id: "compactnotationModuleCheckbox" },
+      { checked: true, id: "nodescalingModuleCheckbox" },
+    ]);
+  });
+
+  test("exported settings can be round-tripped into filterMenu and modeMenu setCheckBoxValue targets", () => {
+    const nodeA = createMockNode("id1", "http://A");
+    const propA = createMockProperty("p1", "http://propA");
+
+    const sourceGraph = {
+      options: () => ({
+        data: () => ({
+          _comment: "Test",
+          header: {},
+          namespace: [],
+          metrics: {},
+        }),
+        getGeneralMetaObject: () => ({}),
+        filterMenu: () => ({
+          getCheckBoxContainer: () => [
+            { checkbox: { checked: true, id: "datatypeFilterCheckbox" } },
+            { checkbox: { checked: false, id: "subclassFilterCheckbox" } },
+            { checkbox: { checked: true, id: "disjointFilterCheckbox" } },
+          ],
+          getDegreeSliderValue: () => 3,
+        }),
+        modeMenu: () => ({
+          getCheckBoxContainer: () => [
+            {
+              element: { checked: true },
+              id: "nodescalingModuleCheckbox",
+            },
+            {
+              element: { checked: false },
+              id: "compactnotationModuleCheckbox",
+            },
+            {
+              element: { checked: true },
+              id: "pickandpinModuleCheckbox",
+            },
+          ],
+          colorModeState: () => true,
+        }),
+        classDistance: () => 200,
+        datatypeDistance: () => 120,
+      }),
+      getUnfilteredData: () => ({ nodes: [nodeA], properties: [propA] }),
+      graphNodeElements: () => ({ each: () => {} }),
+      graphLabelElements: () => [],
+      scaleFactor: () => 1.5,
+      paused: () => true,
+      translation: () => [100, 200],
+    };
+
+    const menu = exportMenuFactory(sourceGraph);
+    const exportedJson = menu.createJSON_exportObject();
+
+    // Target state receivers
+    const targetFilterState = {};
+    const targetModeState = {};
+
+    exportedJson.settings.filter.checkBox.forEach((item) => {
+      targetFilterState[item.id] = item.checked;
+    });
+    exportedJson.settings.modes.checkBox.forEach((item) => {
+      targetModeState[item.id] = item.checked;
+    });
+
+    expect(targetFilterState).toEqual({
+      datatypeFilterCheckbox: true,
+      disjointFilterCheckbox: true,
+      subclassFilterCheckbox: false,
+    });
+    expect(targetModeState).toEqual({
+      compactnotationModuleCheckbox: false,
+      nodescalingModuleCheckbox: true,
+      pickandpinModuleCheckbox: true,
+    });
+    expect(exportedJson.settings.gravity.classDistance).toBe(200);
+    expect(exportedJson.settings.gravity.datatypeDistance).toBe(120);
+    expect(exportedJson.settings.global.zoom).toBe(1.5);
+    expect(exportedJson.settings.global.paused).toBe(true);
   });
 });
 

@@ -914,14 +914,14 @@ async function copyInputValue( inputNode, clipboardApi, documentNode ){
     const fContainer = (fMenu.getCheckBoxContainer() || [])
       .slice()
       .sort(function (a, b) {
-        return String(a.checkbox.attr("id") || "").localeCompare(
-          String(b.checkbox.attr("id") || ""),
+        return String(a.checkbox.id || "").localeCompare(
+          String(b.checkbox.id || ""),
         );
       });
     const cbCont = [];
     for (i = 0; i < fContainer.length; i++) {
-      cb_text = fContainer[i].checkbox.attr("id");
-      isEnabled = fContainer[i].checkbox.property("checked");
+      cb_text = fContainer[i].checkbox.id;
+      isEnabled = fContainer[i].checkbox.checked;
       cb_obj = {};
       cb_obj.id = cb_text;
       cb_obj.checked = isEnabled;
@@ -937,14 +937,12 @@ async function copyInputValue( inputNode, clipboardApi, documentNode ){
     const mContainer = (mMenu.getCheckBoxContainer() || [])
       .slice()
       .sort(function (a, b) {
-        return String(a.attr("id") || "").localeCompare(
-          String(b.attr("id") || ""),
-        );
+        return String(a.id || "").localeCompare(String(b.id || ""));
       });
     const cb_modes = [];
     for (i = 0; i < mContainer.length; i++) {
-      cb_text = mContainer[i].attr("id");
-      isEnabled = mContainer[i].property("checked");
+      cb_text = mContainer[i].id;
+      isEnabled = mContainer[i].element.checked;
       cb_obj = {};
       cb_obj.id = cb_text;
       cb_obj.checked = isEnabled;

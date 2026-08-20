@@ -508,4 +508,18 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     expect(locateBtn.classList.contains("highlighted")).toBe(false);
     expect(locateBtn.title).toBe("Nothing to locate");
   });
+
+  test("requestDictionaryUpdate completely removes all items from listbox", () => {
+    const searchMenu = searchMenuFactory(mockGraph);
+    searchMenu.setup();
+
+    for (let i = 0; i < 10; i++) {
+      const opt = new MockElement("opt_" + i, "search-option", "li");
+      listbox.appendChild(opt);
+    }
+    expect(listbox.children.length).toBe(10);
+
+    searchMenu.requestDictionaryUpdate();
+    expect(listbox.children.length).toBe(0);
+  });
 });
