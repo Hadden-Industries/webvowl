@@ -148,8 +148,17 @@ describe("filterMenu degree slider highlight clearing", () => {
       body: new MockElement("body"),
       documentElement: { namespaceURI: HTML_NAMESPACE },
       defaultView: null,
-      getElementById: (id) => getOrCreateElement(id),
-      querySelector: (selector) => getOrCreateElement(selector),
+      getElementById: (id) => {
+        const cleanId = id.startsWith("#") ? id.slice(1) : id;
+        return elementMap[cleanId] || null;
+      },
+      querySelector: (selector) => {
+        const cleanId = selector.startsWith("#") ? selector.slice(1) : selector;
+        if (cleanId === "c_filter button") {
+          return elementMap.filterBtn || elementMap["c_filter button"] || null;
+        }
+        return elementMap[cleanId] || null;
+      },
       querySelectorAll: () => [],
       createElement: (tag) => {
         const el = new MockElement("", "", tag);
@@ -325,5 +334,111 @@ describe("filterMenu degree slider highlight clearing", () => {
     sliderNode.dispatchEvent(inputEvent);
 
     expect(hintNode.classList.contains("hidden")).toBe(true);
+  });
+
+  test("highlightForDegreeSlider gracefully handles missing degree-of-collapsing-hint element", () => {
+    const mockGraph = {
+      update: jest.fn(),
+      options: () => ({
+        searchMenu: () => ({ hideSearchEntries: jest.fn() }),
+      }),
+    };
+
+    const filterMenu = filterMenuFactory(mockGraph);
+    const mockFilter = { enabled: () => false };
+    const mockNodeDegreeFilter = {
+      setMaxDegreeSetter: jest.fn(),
+      setDegreeGetter: jest.fn(),
+      setDegreeSetter: jest.fn(),
+    };
+
+    getOrCreateElement("nodeDegreeFilteringOption", "", "li").appendChild(
+      getOrCreateElement("nodeDegreeDistanceSlider", "", "input"),
+    );
+    getOrCreateElement("nodeDegreeFilteringOption", "", "li").appendChild(
+      getOrCreateElement("nodeDegreeSliderValue", "", "span"),
+    );
+    getOrCreateElement("c_filter", "", "div").appendChild(
+      getOrCreateElement("filterBtn", "", "button"),
+    );
+
+    // Explicitly ensure degree-of-collapsing-hint is null/absent in document
+    delete elementMap["degree-of-collapsing-hint"];
+
+    filterMenu.setup(
+      mockFilter,
+      mockFilter,
+      mockFilter,
+      mockFilter,
+      mockFilter,
+      mockNodeDegreeFilter,
+    );
+
+    expect(() => {
+      filterMenu.highlightForDegreeSlider(true);
+      filterMenu.highlightForDegreeSlider(false);
+    }).not.toThrow();
+  });
+
+  test("filter checkbox click handler triggers graph update on native MouseEvent but skips on silent: true", () => {
+    const mockGraph = {
+      update: jest.fn(),
+      options: () => ({
+        searchMenu: () => ({ hideSearchEntries: jest.fn() }),
+      }),
+    };
+
+    let filterEnabled = false;
+    const mockFilter = {
+      enabled: (val) => {
+        if (val !== undefined) {
+          filterEnabled = val;
+        }
+        return filterEnabled;
+      },
+    };
+    const mockNodeDegreeFilter = {
+      setMaxDegreeSetter: jest.fn(),
+      setDegreeGetter: jest.fn(),
+      setDegreeSetter: jest.fn(),
+    };
+
+    const datatypeContainer = getOrCreateElement(
+      "datatypeFilteringOption",
+      "",
+      "li",
+    );
+    const datatypeCheckbox = getOrCreateElement(
+      "datatypeFilterCheckbox",
+      "",
+      "input",
+    );
+    datatypeContainer.appendChild(datatypeCheckbox);
+
+    const filterMenu = filterMenuFactory(mockGraph);
+    filterMenu.setup(
+      mockFilter,
+      mockFilter,
+      mockFilter,
+      mockFilter,
+      mockFilter,
+      mockNodeDegreeFilter,
+    );
+
+    // Native mouse click event (arg1 is event object, not boolean)
+    datatypeCheckbox.checked = true;
+    const clickEvent = new CustomEvent("click");
+    datatypeCheckbox.dispatchEvent(clickEvent);
+
+    expect(mockFilter.enabled()).toBe(true);
+    expect(mockGraph.update).toHaveBeenCalledTimes(1);
+
+    // Programmatic silent call
+    mockGraph.update.mockClear();
+    datatypeCheckbox.checked = false;
+    datatypeCheckbox.__onclick(true); // silent = true
+
+    expect(mockFilter.enabled()).toBe(false);
+    expect(mockGraph.update).not.toHaveBeenCalled();
   });
 });

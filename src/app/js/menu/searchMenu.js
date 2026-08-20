@@ -31,10 +31,8 @@ module.exports = function (graph) {
   searchMenu.requestDictionaryUpdate = function () {
     dictionaryUpdateRequired = true;
     if (listbox) {
-      const htmlCollection = listbox.children;
-      const numEntries = htmlCollection.length;
-      for (let i = 0; i < numEntries; i++) {
-        htmlCollection[0].remove();
+      while (listbox.children.length > 0) {
+        listbox.children[0].remove();
       }
     }
     if (searchLineEdit) {
