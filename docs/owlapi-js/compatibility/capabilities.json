@@ -327,7 +327,7 @@
       "id": "webvowl.production-cutover",
       "category": "integration",
       "status": "REQUIRED_V1",
-      "progress": "IN_PROGRESS",
+      "progress": "COMPLETE",
       "phase": 8
     },
     {

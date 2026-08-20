@@ -38,19 +38,20 @@ adds `VOWLBuilder`, the WebVOWL import resolver, and an explicitly
 development-only invocation seam, with exact Java and legacy differential
 evidence.
 
-Phase 8 performs the production cutover and is still open. WebVOWL ingests
-ontologies only through `owlapi-js`, the development seam is removed, and there
-is no runtime legacy fallback. The legacy parsers, `ontologyConverter.js` and
-`jsonExporter.js` remain unmoved for characterization and are proven
-unreachable from production by `src/productionGraph.architecture.test.js` and
-by bundle inspection. All 44 advertised corpus documents load through the
-production entry. The phase does not close until the corpus differential
-required by sections 17.15 and 18.8 runs the production path rather than the
-retained legacy pipeline.
+Phase 8 performed the production cutover and closed at `817e9ca`. WebVOWL
+ingests ontologies only through `owlapi-js`, the development seam is removed,
+and there is no runtime legacy fallback. The legacy parsers,
+`ontologyConverter.js` and `jsonExporter.js` remain unmoved for
+characterization and are proven unreachable from production by
+`src/productionGraph.architecture.test.js` and by bundle inspection. All 44
+advertised corpus documents load through the production entry, and the corpus
+differential required by sections 17.15 and 18.8 now runs that entry rather
+than the retained legacy pipeline, with every remaining difference justified
+per dimension in `compatibility/production-corpus-differences.json`.
 
 ADR 0002 prioritizes the shared RDF-to-OWL foundation, RDF/XML, early
 development-app integration, production cutover, and strict Turtle before the
-remaining parser programme. The current phase table and blocker are recorded in
+remaining parser programme. The current phase table is recorded in
 `migration/migration-status.md`. No next phase begins until the preceding phase
 passes its gate, receives its requested Git checkpoint, and the repository
 owner explicitly instructs the implementation to proceed.
