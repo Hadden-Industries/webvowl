@@ -3,7 +3,7 @@
  * @param graph the graph that belongs to these controls
  * @returns {{}}
  */
-module.exports = function (graph) {
+module.exports = function createEditSidebar(graph) {
   const editSidebar = {},
     languageTools = require("../../shared/js/util/languageTools")(),
     elementTools = require("../../shared/js/util/elementTools")();
@@ -684,8 +684,7 @@ module.exports = function (graph) {
     element.baseIri(baseNs);
     element.redrawLabelText();
 
-    document.querySelector("#element_iriEditor").value =
-      element.title() || element.iri();
+    document.querySelector("#element_iriEditor").value = element.iri();
     document.querySelector("#element_iriEditor").title = element.iri();
     document.querySelector("#element_labelEditor").value =
       element.labelForCurrentLanguage();
@@ -705,13 +704,18 @@ module.exports = function (graph) {
     return false;
   }
 
+  /**
+   * Resolves user input from the IRI editor into an absolute IRI:
+   * - If input is already a valid absolute URL (including modern TLDs/localhost), returns it as-is.
+   * - If input is a prefixed CURIE ("prefix:name" or ":name"), expands it using registered prefixes or ontology base IRI.
+   * - If prefix is invalid/unknown or input is empty, triggers a warning and returns undefined.
+   *
+   * @param {Object} element - The currently selected graph element.
+   * @returns {string|undefined} The resolved absolute IRI string, or undefined on error.
+   */
   function getURLFROMPrefixedVersion(element) {
     let url = document.querySelector("#element_iriEditor").value;
     const base = graph.options().getGeneralMetaObjectProperty("iri");
-    if (validURL(url) === false) {
-      // make better usability
-      // try to split element;
-      const tokens = url.split(":");
 
       //console.log("try to split the input into prefix:name")
       console.warn("Tokens");
@@ -740,42 +744,64 @@ module.exports = function (graph) {
           }
           // check if url is not empty
 
-          if (name.length === 0) {
-            graph
-              .options()
-              .warningModule()
-              .showWarning(
-                "Invalid Element IRI",
-                "Input IRI is EMPTY",
-                "Restoring previous IRI for Element" + element.iri(),
-                1,
-                false,
-              );
-            console.warn("NO INPUT PROVIDED");
-            document.querySelector("#element_iriEditor").value = element.iri();
-            return;
-          }
-          url = basePref + name;
-        } else {
-          url = base + name;
-        }
-      } else {
-        if (url.length === 0) {
-          //
-          console.warn("NO INPUT PROVIDED");
-          document.querySelector("#element_iriEditor").value = element.iri();
-          return;
-        }
-        // failed to identify anything useful
-        console.warn("Tryig to use the input!");
-        url = base + url;
+    // If already a valid absolute URL, accept it directly without mangling
+    if (prefixModule.validURL(url) === true) {
+      return url;
+    }
+
+    // Attempt CURIE / prefix expansion
+    const tokens = url.split(":");
+    if (tokens.length === 2) {
+      const pr = tokens[0];
+      const name = tokens[1];
+
+      if (name.length === 0) {
+        graph
+          .options()
+          .warningModule()
+          .showWarning(
+            "Invalid Element IRI",
+            "Input IRI is EMPTY",
+            "Restoring previous IRI for Element: " + element.iri(),
+            1,
+            false,
+          );
+        document.querySelector("#element_iriEditor").value = element.iri();
+        return undefined;
       }
+
+      if (pr.length > 0) {
+        const basePref = graph.options().prefixList()[pr];
+        if (basePref === undefined) {
+          graph
+            .options()
+            .warningModule()
+            .showWarning(
+              "Invalid Element IRI",
+              "Could not resolve prefix '" + pr + "'",
+              "Restoring previous IRI for Element: " + element.iri(),
+              1,
+              false,
+            );
+          document.querySelector("#element_iriEditor").value = element.iri();
+          return undefined;
+        }
+        url = basePref + name;
+      } else {
+        url = base + name;
+      }
+    } else {
+      // Append input string to ontology base IRI
+      url = base + url;
     }
     return url;
   }
 
   function changeIriForElement(element) {
     const url = getURLFROMPrefixedVersion(element);
+    if (!url) {
+      return;
+    }
     const base = graph.options().getGeneralMetaObjectProperty("iri");
     let sanityCheckResult;
     if (elementTools.isNode(element)) {
@@ -783,7 +809,7 @@ module.exports = function (graph) {
       if (sanityCheckResult === false) {
         element.iri(url);
       } else {
-        // throw warnign
+        // throw warning
         graph
           .options()
           .warningModule()
@@ -867,12 +893,6 @@ module.exports = function (graph) {
     document.querySelector("#element_iriEditor").value =
       prefixModule.getPrefixRepresentationForFullURI(url);
     editSidebar.updateSelectionInformation(element);
-  }
-
-  function validURL(str) {
-    const urlregex =
-      /^(https?|ftp):\/\/([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(:[0-9]+)*(\/($|[a-zA-Z0-9.,?'\\+&%$#=~_-]+))*$/;
-    return urlregex.test(str);
   }
 
   function changeLabelForElement(element) {
@@ -1172,12 +1192,9 @@ module.exports = function (graph) {
         document
           .querySelector("#typeEditForm_datatype")
           .classList.remove("hidden");
-        element.iri("http://www.w3.org/2000/01/rdf-schema#Datatype");
 
-        document.querySelector("#element_iriEditor").value =
-          "http://www.w3.org/2000/01/rdf-schema#Datatype";
-        document.querySelector("#element_iriEditor").title =
-          "http://www.w3.org/2000/01/rdf-schema#Datatype";
+        document.querySelector("#element_iriEditor").value = element.iri();
+        document.querySelector("#element_iriEditor").title = element.iri();
         document.querySelector("#element_iriEditor").disabled = true;
         document.querySelector("#element_labelEditor").disabled = true;
 

@@ -1,4 +1,6 @@
-module.exports = function () {
+const prefixRepresentationModule = require("./util/prefixRepresentationModule");
+
+module.exports = function createOptions() {
   const options = {};
   let data,
     graphContainerSelector,
@@ -34,7 +36,7 @@ module.exports = function () {
   let disjointPropertyFilter;
   let rectangularRep = false;
   let warningModule;
-  let prefixModule;
+  let prefixModule = prefixRepresentationModule({ options: () => options });
   let drawPropertyDraggerOnHover = true;
   let showDraggerObject = false;
   let directInputModule;
@@ -118,12 +120,10 @@ module.exports = function () {
   };
 
   options.addOrUpdateGeneralObjectEntry = function (property, value) {
-    if (
-      Object.prototype.hasOwnProperty.call(generalOntologyMetaData, property)
-    ) {
-      //console.log("Updating Property:"+ property);
-      if (property === "iri") {
-        if (validURL(value) === false) {
+    // If updating the ontology IRI, ensure it is a valid absolute URL/URI
+    if (property === "iri") {
+      if (prefixModule.validURL(value) === false) {
+        if (warningModule && typeof warningModule.showWarning === "function") {
           warningModule.showWarning(
             "Invalid Ontology IRI",
             "Input IRI does not represent an URL",
@@ -131,13 +131,11 @@ module.exports = function () {
             1,
             false,
           );
-          return false;
         }
+        return false;
       }
-      generalOntologyMetaData[property] = value;
-    } else {
-      generalOntologyMetaData[property] = value;
     }
+    generalOntologyMetaData[property] = value;
     return true;
   };
 
@@ -177,30 +175,24 @@ module.exports = function () {
     prefixList[prefix] = url;
   };
 
-  function validURL(str) {
-    const urlregex =
-      /^(https?|ftp):\/\/([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(:[0-9]+)*(\/($|[a-zA-Z0-9.,?'\\+&%$#=~_-]+))*$/;
-    return urlregex.test(str);
-  }
-
   options.updatePrefix = function (oldPrefix, newPrefix, oldURL, newURL) {
     if (oldPrefix === newPrefix && oldURL === newURL) {
-      //	console.log("Nothing to update");
+      // Nothing to update
       return true;
     }
     if (
       oldPrefix === newPrefix &&
       oldURL !== newURL &&
-      validURL(newURL) === true
+      prefixModule.validURL(newURL) === true
     ) {
-      //  console.log("Update URL");
       prefixList[oldPrefix] = newURL;
+      return true;
     } else if (
       oldPrefix === newPrefix &&
       oldURL !== newURL &&
-      validURL(newURL) === false
+      prefixModule.validURL(newURL) === false
     ) {
-      if (validURL(newURL) === false) {
+      if (warningModule && typeof warningModule.showWarning === "function") {
         warningModule.showWarning(
           "Invalid Prefix IRI",
           "Input IRI does not represent an IRI",
@@ -208,22 +200,21 @@ module.exports = function () {
           1,
           false,
         );
-        return false;
       }
-
       return false;
     }
-    if (oldPrefix !== newPrefix && validURL(newURL) === true) {
-      // sanity check
+    if (oldPrefix !== newPrefix && prefixModule.validURL(newURL) === true) {
+      // Check if new prefix name already exists
       if (Object.prototype.hasOwnProperty.call(prefixList, newPrefix)) {
-        //  console.log("Already have this prefix!");
-        warningModule.showWarning(
-          "Prefix Already Exist",
-          "Prefix: " + newPrefix + " is already defined",
-          "You should use an other one",
-          1,
-          false,
-        );
+        if (warningModule && typeof warningModule.showWarning === "function") {
+          warningModule.showWarning(
+            "Prefix Already Exist",
+            "Prefix: " + newPrefix + " is already defined",
+            "You should use an other one",
+            1,
+            false,
+          );
+        }
         return false;
       }
       options.removePrefix(oldPrefix);
@@ -232,15 +223,16 @@ module.exports = function () {
       return true;
     }
 
-    //	console.log("Is new URL ("+newURL+") valid?  >> "+validURL(newURL));
-    if (validURL(newURL) === false) {
-      warningModule.showWarning(
-        "Invalid Prefix IRI",
-        "Input IRI does not represent an URL",
-        "You should enter a valid URL",
-        1,
-        false,
-      );
+    if (prefixModule.validURL(newURL) === false) {
+      if (warningModule && typeof warningModule.showWarning === "function") {
+        warningModule.showWarning(
+          "Invalid Prefix IRI",
+          "Input IRI does not represent an URL",
+          "You should enter a valid URL",
+          1,
+          false,
+        );
+      }
     }
     return false;
   };
