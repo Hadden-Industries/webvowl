@@ -68,3 +68,9 @@ inlines the styles - otherwise the exported SVG will not look the same as the di
 
 The tool which creates the code that inlines the styles can be found in the util directory. Please
 follow the instructions in its [README](util/VowlCssToD3RuleConverter/README.md) file.
+
+## License
+
+Copyright © 2014-2026 Vincent Link, Steffen Lohmann, Eduard Marbach, Stefan Negru, Vitalis Wiens, Maksym Shostak
+
+This project is licensed under the GNU Affero General Public License version 3 only (`AGPL-3.0-only`). See [LICENSE](LICENSE) for the full license text.
