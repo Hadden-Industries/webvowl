@@ -12,8 +12,8 @@ Baseline revision: `5301d6c0b9e69c048f6ab079ea1103790bc70b85`
 |     5 | Canonical RDF ingestion and shared RDF-to-OWL reconstruction       | Complete    | PASS: 7/363 focused; 77/970 full; 312/312 W3C RDF documents   |
 |     6 | RDF/XML and first-real-adapter hardening                           | Complete    | PASS: 6/201 focused; 84/1178 full; 166/166 W3C RDF/XML        |
 |     7 | Early development-app integration                                  | Complete    | PASS: 10/37 focused; 94/1218 full; lint/format/build green    |
-|     8 | Production WebVOWL cutover                                         | Gate met    | PASS: 116/1439 full; 33/33 differential; lint/format/build green |
-|     9 | Private N3.js adapter foundation and strict Turtle                 | Not started | blocked by Phase 8 cutover gate                               |
+|     8 | Production WebVOWL cutover                                         | Complete    | PASS: 116/1439 full; 33/33 differential; lint/format/build green |
+|     9 | Private N3.js adapter foundation and strict Turtle                 | Not started | awaiting the repository owner's go-ahead                      |
 |    10 | DL Syntax                                                          | Not started | blocked by Phase 9 learning gate                              |
 |    11 | KRSS family                                                        | Not started | blocked by Phase 10 learning gate                             |
 |    12 | N-Triples                                                          | Not started | blocked by Phase 11 learning gate                             |
@@ -24,8 +24,9 @@ Baseline revision: `5301d6c0b9e69c048f6ab079ea1103790bc70b85`
 |    17 | Physical legacy deletion                                           | Not started | blocked by Phase 16 and retained-reference audit              |
 |    18 | Package/release                                                    | Not started | blocked by all prior gates                                    |
 
-Active ingestion migration: Phase 8 passes its gate and awaits the repository
-owner's checkpoint commit. The WIP lock remains held until then.
+Active ingestion migration: none. Phase 8 closed at `817e9ca`, so the
+one-migration-at-a-time WIP lock is free but unclaimed; Phase 9 takes it when
+the repository owner says to begin.
 
 The structural cutover itself is in place. WebVOWL ingests ontologies only
 through `owlapi-js`, the production graph reaches no retained legacy parser,

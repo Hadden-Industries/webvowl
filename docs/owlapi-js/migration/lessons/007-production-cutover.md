@@ -5,16 +5,16 @@
 - Migration: Phase 8 - production WebVOWL cutover.
 - Baseline revision: `27dba50` (the repository-owner Phase 7 checkpoint),
   corrected by `9733cc9`.
-- Completion revision: none recorded here. The gate that was outstanding is now
-  met; the phase awaits the repository owner's checkpoint commit.
+- Completion revision: `817e9ca`, the repository-owner-approved Phase 8
+  checkpoint.
 - Implementation date: 18 August 2026, revised 19 and 20 August 2026.
 - Next migration: Phase 9 - private N3.js adapter foundation and strict Turtle.
 
 This record was written during the phase rather than at its close, so that the
 findings were recorded while the evidence was fresh. The blocking gate it
 described has since been met, and the section that described it has been
-rewritten to say how. The record still stops short of claiming closure: a
-revision number is what closes a phase, and there is not one yet.
+rewritten to say how. It became a closure record only when `817e9ca` gave the
+phase a revision to close on.
 
 ## Implemented scope
 
