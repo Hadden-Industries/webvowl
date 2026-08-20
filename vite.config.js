@@ -171,6 +171,45 @@ function d3InjectScriptPlugin() {
 }
 
 /**
+ * Verifies that production builds copy the external D3 runtime byte-for-byte.
+ */
+function d3CopyVerificationPlugin(mode) {
+  let outputDirectory;
+
+  return {
+    name: "d3-copy-verification",
+    apply: "build",
+    configResolved(config) {
+      outputDirectory = resolve(config.root, config.build.outDir);
+    },
+    closeBundle() {
+      if (mode !== "production") return;
+
+      const sourcePath = resolve(__dirname, "node_modules/d3/dist/d3.min.js");
+      const outputPath = resolve(outputDirectory, "js/d3.min.js");
+      const displayPath = relative(__dirname, outputPath).replace(/\\/g, "/");
+
+      if (!existsSync(outputPath)) {
+        throw new Error(`[webvowl-build] Missing ${displayPath}`);
+      }
+
+      const source = readFileSync(sourcePath);
+      const output = readFileSync(outputPath);
+
+      if (!source.equals(output)) {
+        throw new Error(
+          `[webvowl-build] ${displayPath} differs from node_modules/d3/dist/d3.min.js`
+        );
+      }
+
+      console.log(
+        `[webvowl-build] Verified ${displayPath} (${output.byteLength} bytes)`
+      );
+    }
+  };
+}
+
+/**
  * HTML-Validate linter integration plugin for src/index.html.
  */
 function htmlValidatePlugin(mode) {
@@ -282,6 +321,7 @@ export default defineConfig(({ mode }) => {
           }
         ]
       }),
+      d3CopyVerificationPlugin(mode),
       // ESLint integration during dev and build
       eslintPlugin({
         lintOnStart: true,
