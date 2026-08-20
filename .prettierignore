@@ -8,3 +8,4 @@ __pycache__
 .git/
 src/app/data/
 src/owl2vowl/test/fixtures/
+*.py
