@@ -98,9 +98,24 @@ describe("VOWLBuilder exact semantic differential", () => {
       fileName: "phase7-parity.rdf",
     });
 
-    expect(canonicalVowlSnapshot(structuralResult)).toEqual(
-      canonicalVowlSnapshot(legacyResult),
+    // One governed divergence, and the rest must still match exactly. `knows`
+    // states both a domain and a range, so nothing links to `owl:Thing` here.
+    // VOWL 2 rules its node out twice over: its splitting rule draws it once for
+    // every class it is linked to, which is none, and its guideline on
+    // visualising `owl:Thing` allows the node only where a property has no
+    // domain or range axiom, or where the author named it. The retained legacy
+    // converter emits it anyway, which is a gap in that reimplementation rather
+    // than intended behaviour, so the node is removed from its snapshot before
+    // the comparison instead of being reproduced.
+    const legacySnapshot = canonicalVowlSnapshot(legacyResult);
+    const linked = new Set(
+      legacySnapshot.properties.flatMap(({ domain, range }) => [domain, range]),
     );
+    legacySnapshot.classes = legacySnapshot.classes.filter(
+      ({ iri, type }) => type !== "owl:Thing" || linked.has(iri),
+    );
+
+    expect(canonicalVowlSnapshot(structuralResult)).toEqual(legacySnapshot);
   });
 
   test("marks a restriction-derived edge inferred exactly as the legacy converter does", async () => {

@@ -100,11 +100,30 @@ const exactLocalOntologyPath = (requestUrl) => {
 // document: substituting an empty ontology would silently change what is being
 // compared, and the production entry already treats a missing import as a
 // diagnostic rather than a failure.
-export function installLocalOntologyFetch() {
+//
+// `unavailableImports` withholds named IRIs. A differential is only meaningful
+// when both sides convert the same ontology, and the pinned reference outputs
+// were produced by running the jar against local files, so any import that run
+// could not fetch is absent from the fixture. Where this project's catalog
+// resolves such an IRI the two closures diverge, and the difference then says
+// nothing about either engine. Withholding it here reproduces the conditions the
+// reference run actually had. Production import resolution is untouched.
+export function installLocalOntologyFetch({ unavailableImports = [] } = {}) {
   const originalFetch = globalThis.fetch;
+  // `WebVowlImportResolver` maps an import IRI through the catalog before
+  // fetching, so the request never carries the IRI the document declared.
+  // Withholding therefore has to name both forms.
+  const withheld = new Set(
+    unavailableImports.flatMap((iri) =>
+      ONTOLOGY_CATALOG[iri] ? [iri, ONTOLOGY_CATALOG[iri]] : [iri],
+    ),
+  );
 
   globalThis.fetch = async (input) => {
-    const filePath = exactLocalOntologyPath(getRequestUrl(input));
+    const requestUrl = getRequestUrl(input);
+    const filePath = withheld.has(requestUrl)
+      ? null
+      : exactLocalOntologyPath(requestUrl);
 
     if (filePath && fs.existsSync(filePath)) {
       return {
@@ -273,12 +292,22 @@ export function parseVowlJson(json) {
       propertyLabels[propertyAttribute.iri] = normalizeLabel(
         propertyAttribute.label,
       );
-      propertyTypes[propertyAttribute.iri] =
-        propertyNodeTypes[propertyAttribute.id] ?? "";
+      // The entries under one IRI genuinely differ here - a restriction edge is
+      // typed `owl:allValuesFrom` where the property itself is typed
+      // `owl:objectProperty` - so keeping only the last would decide the verdict
+      // on serialisation order. Every type is collected and canonicalised below.
+      (propertyTypes[propertyAttribute.iri] ??= []).push(
+        propertyNodeTypes[propertyAttribute.id] ?? "",
+      );
       propertyEntityAttributes[propertyAttribute.iri] = normalizeAttributes(
         propertyAttribute.attributes,
       );
-      properties[propertyAttribute.iri] = {
+      // One IRI can appear many times: once for the declared property and once
+      // more for every restriction edge drawn with it. Keeping only the last
+      // would make the verdict depend on serialisation order, so every edge is
+      // kept and the comparison is made over the whole collection.
+      properties[propertyAttribute.iri] ??= [];
+      properties[propertyAttribute.iri].push({
         domain:
           classIdToIri[propertyAttribute.domain] ||
           propertyAttribute.domain ||
@@ -287,11 +316,17 @@ export function parseVowlJson(json) {
           classIdToIri[propertyAttribute.range] ||
           propertyAttribute.range ||
           null,
-      };
+      });
       propertyAnnotations[propertyAttribute.iri] = normalizeAnnotations(
         propertyAttribute.annotations,
       );
     }
+  }
+
+  // Sorted so the set of types an IRI carries is compared, never the order they
+  // were serialised in.
+  for (const iri of Object.keys(propertyTypes)) {
+    propertyTypes[iri] = propertyTypes[iri].sort().join("|");
   }
 
   const subclasses = [];
@@ -409,24 +444,42 @@ export function compareVowlSemantics(reference, candidate) {
   const commonPropertyIris = referencePropertyIris.filter((iri) =>
     Object.hasOwn(candidate.properties, iri),
   );
-  const structureMismatches = commonPropertyIris.filter((iri) => {
-    const referenceProperty = reference.properties[iri];
-    const candidateProperty = candidate.properties[iri];
-
-    return !(
-      referencesMatch(
-        referenceProperty.domain,
-        candidateProperty.domain,
-        reference.unions,
-        candidate.unions,
-      ) &&
-      referencesMatch(
-        referenceProperty.range,
-        candidateProperty.range,
-        reference.unions,
-        candidate.unions,
-      )
+  // Both collections must be drawn edge for edge. An entry is matched against
+  // an unused entry on the other side rather than by position, so ordering
+  // cannot decide the verdict, while an edge one engine draws and the other
+  // does not still counts as a difference.
+  const edgesMatch = (referenceEdge, candidateEdge) =>
+    referencesMatch(
+      referenceEdge.domain,
+      candidateEdge.domain,
+      reference.unions,
+      candidate.unions,
+    ) &&
+    referencesMatch(
+      referenceEdge.range,
+      candidateEdge.range,
+      reference.unions,
+      candidate.unions,
     );
+
+  const structureMismatches = commonPropertyIris.filter((iri) => {
+    const referenceEdges = reference.properties[iri];
+    const candidateEdges = candidate.properties[iri];
+    if (referenceEdges.length !== candidateEdges.length) {
+      return true;
+    }
+
+    const unmatched = [...candidateEdges];
+    for (const referenceEdge of referenceEdges) {
+      const index = unmatched.findIndex((candidateEdge) =>
+        edgesMatch(referenceEdge, candidateEdge),
+      );
+      if (index === -1) {
+        return true;
+      }
+      unmatched.splice(index, 1);
+    }
+    return false;
   });
   const propertiesMatch =
     missingProperties.length === 0 &&

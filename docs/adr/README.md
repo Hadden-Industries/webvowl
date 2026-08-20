@@ -7,3 +7,5 @@
 | [0003](0003-quiescent-benchmark-environment.md)                    | Require a quiescent benchmark environment          | Accepted |
 | [0004](0004-vowl-specification-as-correctness-authority.md)        | VOWL specification as correctness authority        | Proposed |
 | [0005](0005-cross-category-property-punning.md)                    | Cross-category property punning resolution         | Accepted |
+| [0006](0006-restriction-edges-as-a-documented-departure.md)        | Restriction edges as a documented departure        | Accepted |
+| [0007](0007-axiom-annotations-nest-on-the-annotation.md)           | Axiom annotations nest on the annotation           | Accepted |

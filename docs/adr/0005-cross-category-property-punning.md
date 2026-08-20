@@ -1,16 +1,22 @@
 # ADR 0005: Resolve cross-category property punning deterministically in compatible mode
 
-| Metadata       | Value                                                                    |
-| -------------- | -------------------------------------------------------------------------- |
-| **Status**     | Accepted, amended 2026-08-19                                             |
-| **Date**       | 2026-08-18                                                               |
-| **Decider**    | Repository owner                                                         |
-| **Amends**     | `docs/owlapi-js/implementation-plan.md` §8 (shared RDF-to-OWL contract)   |
+| Metadata    | Value                                                                   |
+| ----------- | ----------------------------------------------------------------------- |
+| **Status**  | Accepted, amended twice on 2026-08-19                                   |
+| **Date**    | 2026-08-18                                                              |
+| **Decider** | Repository owner                                                        |
+| **Amends**  | `docs/owlapi-js/implementation-plan.md` §8 (shared RDF-to-OWL contract) |
 
 > **Amendment, 2026-08-19.** The fixed precedence below is demoted to a
 > fallback. Resolution now consults evidence stated about the property before
 > consulting the table. See "Amendment: resolve by evidence" at the end of this
 > record for the reasoning and the revised algorithm.
+
+> **Second amendment, 2026-08-19.** The `object ↔ annotation` pair has now been
+> exercised by a corpus ontology, which is the event the Rationale said would
+> announce itself. A sub-property triple crossing the annotation category is no
+> longer reconstructed in compatible mode. See "Amendment: refuse a sub-property
+> triple that crosses the annotation category" at the end of this record.
 
 ## Context
 
@@ -26,12 +32,12 @@ as finding `M6-008` requires. Nothing indicates the difference was intended.
 The consequence is that four real ontologies in the pinned corpus cannot be
 loaded at all:
 
-| Ontology          | Conflict           | IRI                       |
-| ----------------- | ------------------ | ------------------------- |
-| `foaf.rdf`        | data ↔ object      | `foaf:mbox_sha1sum`       |
-| `sioc.rdf`        | data ↔ object      | `sioc:delivered_at`       |
-| `bibo.rdf.xml`    | annotation ↔ data  | `dcterms:description`     |
-| `imarinetlo.owl`  | annotation ↔ data  | `assignedName`            |
+| Ontology         | Conflict          | IRI                   |
+| ---------------- | ----------------- | --------------------- |
+| `foaf.rdf`       | data ↔ object     | `foaf:mbox_sha1sum`   |
+| `sioc.rdf`       | data ↔ object     | `sioc:delivered_at`   |
+| `bibo.rdf.xml`   | annotation ↔ data | `dcterms:description` |
+| `imarinetlo.owl` | annotation ↔ data | `assignedName`        |
 
 The migration's acceptance bar is that replacing the Java engine is transparent
 to users of upstream WebVOWL v1.1.7, which performs no parsing of its own and
@@ -42,7 +48,7 @@ therefore a regression against the stated goal, not a stricter reading of it.
 Two constraints bound any recovery.
 
 OWL 2 DL genuinely forbids this. The OWL 2 Structural Specification's typing
-constraints state that "no IRI *I* is declared in *Ax* to be both object and
+constraints state that "no IRI _I_ is declared in _Ax_ to be both object and
 data, object and annotation, or data and annotation property". Strict mode must
 continue to reject these documents; only compatible mode, which explicitly does
 not claim OWL 2 DL conformance, may recover.
@@ -83,11 +89,11 @@ about, and it would produce silently wrong axioms rather than an error.
 The precedence order is derived from observed target behaviour, one pair at a
 time, rather than chosen for symmetry.
 
-| Pair                  | Evidence                                                                                                                                                   | Winner |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
-| data ↔ object         | The live WebVOWL v1.1.7 service, the pinned OWL2VOWL 0.3.7 oracle, and the retained legacy JavaScript pipeline all render `foaf:mbox_sha1sum` as `owl:datatypeProperty`; the legacy pipeline also renders `sioc:delivered_at` that way | data   |
-| annotation ↔ data     | The pinned oracle renders `dcterms:description` and `assignedName` as data properties, on the exact fixture bytes used by the differential suite            | data   |
-| object ↔ annotation   | **None.** No corpus ontology exercises this pair                                                                                                            | object |
+| Pair                | Evidence                                                                                                                                                                                                                               | Winner |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| data ↔ object       | The live WebVOWL v1.1.7 service, the pinned OWL2VOWL 0.3.7 oracle, and the retained legacy JavaScript pipeline all render `foaf:mbox_sha1sum` as `owl:datatypeProperty`; the legacy pipeline also renders `sioc:delivered_at` that way | data   |
+| annotation ↔ data   | The pinned oracle renders `dcterms:description` and `assignedName` as data properties, on the exact fixture bytes used by the differential suite                                                                                       | data   |
+| object ↔ annotation | **None.** No corpus ontology exercises this pair                                                                                                                                                                                       | object |
 
 The third row is a determinism choice, not a finding, which is why it carries
 its own diagnostic code. The first real occurrence announces itself instead of
@@ -141,13 +147,14 @@ conflict in `bibo.rdf.xml` or `imarinetlo.owl`. The claim is that no ontology's
 
 ## Implementation map
 
-| Change                     | Location                                                    |
-| -------------------------- | ------------------------------------------------------------- |
-| Mode-aware resolution      | `src/owlapi-js/rdf/rdfToOwlTranslator.js`                   |
-| Behavioural tests          | `src/owlapi-js/rdf/propertyCategoryPunning.test.js`         |
-| Evidence-based resolution  | `src/owlapi-js/rdf/propertyCategoryEvidence.test.js`        |
-| Corpus acceptance          | `src/owl2vowl/test/productionCorpus.test.js`                |
-| Phase 8 finding            | `docs/owlapi-js/migration/lessons/007-production-cutover.md` |
+| Change                    | Location                                                     |
+| ------------------------- | ------------------------------------------------------------ |
+| Mode-aware resolution     | `src/owlapi-js/rdf/rdfToOwlTranslator.js`                    |
+| Behavioural tests         | `src/owlapi-js/rdf/propertyCategoryPunning.test.js`          |
+| Evidence-based resolution | `src/owlapi-js/rdf/propertyCategoryEvidence.test.js`         |
+| Annotation-crossing rule  | `src/owlapi-js/rdf/crossCategorySubProperty.test.js`         |
+| Corpus acceptance         | `src/owl2vowl/test/productionCorpus.test.js`                 |
+| Phase 8 finding           | `docs/owlapi-js/migration/lessons/007-production-cutover.md` |
 
 ## Amendment: resolve by evidence
 
@@ -175,7 +182,7 @@ that contradicts the document it was given.
 
 The fixed precedence `data > object > annotation` reaches the right answer on
 this corpus, but only because every case happens to have a literal range. Invert
-the case — a property declared in both categories whose range is a *class* — and
+the case — a property declared in both categories whose range is a _class_ — and
 the precedence forces "data" and the class range is replaced by `rdfs:Literal`.
 That is the same failure as the oracle's, mirrored. Both rules discard the
 author's most direct statement about what the property relates.
@@ -224,3 +231,91 @@ different questions and take different scopes.
   defaulted one. `RDF_PROPERTY_CATEGORY_PUNNING_UNEVIDENCED` now marks only the
   case where the fallback fired without a data category, rather than every
   object/annotation pair.
+
+## Amendment: refuse a sub-property triple that crosses the annotation category
+
+_2026-08-19._
+
+### The occurrence this record was waiting for
+
+The Rationale above marked the `object ↔ annotation` pair **unevidenced** and
+said that "the first real occurrence announces itself instead of allowing an
+unevidenced guess to harden into an assumption". `schemaorg.owl` is that
+occurrence, found while closing the production corpus differential.
+
+The document declares `schema:name` an `owl:ObjectProperty` and states
+`schema:name rdfs:subPropertyOf rdfs:label`. It declares no annotation property
+at all, and uses `rdfs:label` 5016 times to label its entities.
+
+The axiom-level reuse recovery treated the sub-property triple as a request for
+an object property expression on `rdfs:label` and supplied one. The consequence
+was visible in the rendering: `rdfs:label` appeared as an object property node
+of its own, with `owl:Thing` at both ends and an `external` marker, which the
+pinned oracle does not draw.
+
+### Why neither existing resolution is available
+
+The typing constraints quoted in the Context forbid one IRI being both an object
+and an annotation property. `rdfs:label` is an annotation property in OWL 2's
+built-in vocabulary rather than by declaration, so `AP(rdfs:label)` holds before
+any triple is read and no document can move it. Defining `OPE(rdfs:label)`
+alongside it is exactly the pairing the constraint rules out.
+
+Applying the precedence table instead would resolve the pair to `object` and
+remove `rdfs:label` from the annotation set, which is worse than the defect it
+would replace: all 5016 annotations in `schemaorg.owl` would stop being
+annotation assertions. That outcome is the clearest possible evidence that the
+unevidenced guess was wrong for this pair, which is what recording it as
+unevidenced was for.
+
+Resolving the other way is not available either. Reading `schema:name` as an
+annotation property would discard a declaration the document actually makes, and
+decision 5 above keeps declaration axioms.
+
+So there is no single category to resolve to. What cannot be parsed is the
+**triple**, not either end of it: each of the three sub-property patterns
+constrains both ends to one category, so a triple whose ends sit in different
+categories matches none of them.
+
+### Decision
+
+7. In compatible mode an `rdfs:subPropertyOf` triple whose subject and object
+   resolve to different property categories, **where one of those categories is
+   `annotation`**, **MUST NOT** be reconstructed. The triple is consumed and
+   recorded with the diagnostic code `RDF_CROSS_CATEGORY_SUBPROPERTY`, naming
+   both ends. Declarations are untouched, consistent with decision 5.
+8. The `data ↔ object` axiom-level reuse is **unchanged**. That pair is
+   evidenced — the oracle renders `foaf:mbox_sha1sum` and `sioc:delivered_at`,
+   and FOAF needs the reuse to load at all — so it keeps the recovery it has.
+   The rule added here is deliberately narrower than the typing constraints,
+   which forbid all three pairs, because only the annotation crossings are
+   both unevidenced and observed to damage the rendering.
+9. Strict mode is **unchanged**. The strict property accessors already reject
+   these documents with `OWL_SYNTAX_ERROR`, and they say more precisely why than
+   the end-of-parsing unconsumed-triple check would, so the rule is not applied
+   in strict mode at all.
+
+### Consequences of the second amendment
+
+- `schemaorg.owl` matches the pinned oracle on every dimension it was failing
+  for this reason; `rdfs:label` is no longer drawn as a property node and its
+  5016 annotation assertions are unaffected.
+- The previously recorded `attributes` difference for `schemaorg.owl` was
+  withdrawn from the corpus register when this was investigated. It was never
+  observable: it described `datatype` against `object`, and the differential
+  comparator suppresses both as Java dialect markers before comparing.
+- Two existing expectations changed, both in the direction of the constraint.
+  `preserves annotation precedence when OWL Full reuses an annotation property`
+  now asserts that no `SubObjectPropertyOf` axiom is built, so precedence is
+  preserved for the sub-property axiom as well as for the assertion.
+
+### Verification obligations
+
+- A built-in annotation property used as the super-property of a declared object
+  property **MUST NOT** produce a `SubObjectPropertyOf` axiom, and the declared
+  category of the sub-property **MUST** survive.
+- The same **MUST** hold for an annotation property the document declares
+  itself, so the rule does not depend on the built-in vocabulary.
+- A sub-property triple whose ends share a category **MUST** still produce its
+  axiom, and the `data ↔ object` reuse **MUST** continue to produce both axioms.
+- Strict mode **MUST** continue to reject with `OWL_SYNTAX_ERROR`.
