@@ -7,7 +7,7 @@ ARG NODE_IMAGE=22-alpine
 FROM node:${NODE_IMAGE} AS builder
 
 WORKDIR /build
-COPY package.json vite.config.js ./
+COPY package.json vite.config.mjs ./
 COPY index.html ./
 COPY eslint.config.js ./
 COPY .htmlvalidate.json ./
