@@ -1,5 +1,6 @@
 import { defineConfig, normalizePath } from "vite";
-import { resolve, relative } from "node:path";
+import { dirname, resolve, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 import { readFileSync, existsSync, rmSync, statSync, utimesSync, readdirSync } from "node:fs";
 import commonjs from "vite-plugin-commonjs";
 import replace from "@rollup/plugin-replace";
@@ -8,7 +9,8 @@ import eslintPlugin from "vite-plugin-eslint2";
 import stylelint from "vite-plugin-stylelint";
 import { HtmlValidate, FileSystemConfigLoader, formatterFactory } from "html-validate";
 
-const pkg = JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf-8"));
+const configDir = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(resolve(configDir, "package.json"), "utf-8"));
 
 /**
  * Custom Vite plugin that handles HTML template processing and post-build cleanup.
@@ -46,7 +48,7 @@ function webvowlBuildPlugin(mode) {
       // Post-build cleanup actions only run in production
       if (mode !== "production") return;
 
-      const deployDir = resolve(__dirname, "deploy");
+      const deployDir = resolve(configDir, "deploy");
       if (!existsSync(deployDir)) return;
 
       // 1. Remove non-prod data files
@@ -74,7 +76,7 @@ function webvowlBuildPlugin(mode) {
             removeMapFiles(fullPath);
           } else if (entry.isFile() && entry.name.endsWith(".map")) {
             rmSync(fullPath, { force: true });
-            const relPath = relative(__dirname, fullPath).replace(/\\/g, "/");
+            const relPath = relative(configDir, fullPath).replace(/\\/g, "/");
             console.log(`[webvowl-build] Removed ${relPath} (production release)`);
           }
         }
@@ -96,7 +98,7 @@ function mtimePreservePlugin() {
 
     buildStart() {
       fileCache.clear();
-      const outDir = resolve(__dirname, "deploy");
+      const outDir = resolve(configDir, "deploy");
       if (!existsSync(outDir)) return;
 
       const scan = (dir) => {
@@ -185,9 +187,9 @@ function d3CopyVerificationPlugin(mode) {
     closeBundle() {
       if (mode !== "production") return;
 
-      const sourcePath = resolve(__dirname, "node_modules/d3/dist/d3.min.js");
+      const sourcePath = resolve(configDir, "node_modules/d3/dist/d3.min.js");
       const outputPath = resolve(outputDirectory, "js/d3.min.js");
-      const displayPath = relative(__dirname, outputPath).replace(/\\/g, "/");
+      const displayPath = relative(configDir, outputPath).replace(/\\/g, "/");
 
       if (!existsSync(outputPath)) {
         throw new Error(`[webvowl-build] Missing ${displayPath}`);
@@ -220,7 +222,7 @@ function htmlValidatePlugin(mode) {
       const htmlvalidate = new HtmlValidate(loader);
       const report = await htmlvalidate.validateString(
         html,
-        ctx.filename || resolve(__dirname, "src/index.html")
+        ctx.filename || resolve(configDir, "src/index.html")
       );
 
       if (!report.valid) {
@@ -248,7 +250,7 @@ export default defineConfig(({ mode }) => {
     publicDir: false,
 
     build: {
-      outDir: resolve(__dirname, "deploy"),
+      outDir: resolve(configDir, "deploy"),
       emptyOutDir: false,
       target: "es2022",
       minify: isProd,
@@ -295,13 +297,13 @@ export default defineConfig(({ mode }) => {
       replace({
         "@@WEBVOWL_VERSION": pkg.version,
         preventAssignment: true,
-        include: [resolve(__dirname, "src/**/*.js")]
+        include: [resolve(configDir, "src/**/*.js")]
       }),
       // Copy static assets to deploy/
       viteStaticCopy({
         targets: [
           {
-            src: normalizePath(resolve(__dirname, "node_modules/d3/dist/d3.min.js")),
+            src: normalizePath(resolve(configDir, "node_modules/d3/dist/d3.min.js")),
             dest: "js",
             rename: { stripBase: true }
           },
@@ -313,7 +315,7 @@ export default defineConfig(({ mode }) => {
           { src: "favicon.ico", dest: "." },
           { src: "favicon.svg", dest: "." },
           {
-            src: normalizePath(resolve(__dirname, "LICENSE")),
+            src: normalizePath(resolve(configDir, "LICENSE")),
             // Bypasses the '.' collapse bug
             // as per http://gemini.google.com/app/793f7f5228862e6b
             dest: "deploy",
@@ -325,12 +327,12 @@ export default defineConfig(({ mode }) => {
       // ESLint integration during dev and build
       eslintPlugin({
         lintOnStart: true,
-        include: [resolve(__dirname, "src/**/*.js")]
+        include: [resolve(configDir, "src/**/*.js")]
       }),
       // Stylelint integration during dev and build for CSS files
       stylelint({
         lintOnStart: true,
-        include: [resolve(__dirname, "src/**/*.css")]
+        include: [resolve(configDir, "src/**/*.css")]
       }),
       htmlValidatePlugin(mode),
       webvowlBuildPlugin(mode)
