@@ -66,6 +66,7 @@ describe("default test run scope", () => {
 
     expect(differentialSuites.sort()).toEqual([
       "src/owl2vowl/test/vowlBuilder.differential.test.js",
+      "src/owlapi-js/parser/dl/dlSyntax.differential.test.js",
       "src/owlapi-js/parser/functional/functionalSyntax.differential.test.js",
       "src/owlapi-js/parser/manchester/manchesterSyntax.differential.test.js",
       "src/owlapi-js/parser/owlxml/owlXml.differential.test.js",
