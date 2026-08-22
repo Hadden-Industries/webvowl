@@ -17,7 +17,7 @@ const LIST_TIMEOUT_MS = 120_000;
 // The exclusion is easy to get wrong in three specific ways, and each assertion
 // below guards one of them:
 //
-//   - six sibling suites also carry "differential" in their name, so a loose
+//   - many sibling suites also carry "differential" in their name, so a loose
 //     pattern silently disables real gates;
 //   - `testPathIgnorePatterns` replaces jest's default rather than extending it,
 //     so dropping `/node_modules/` re-exposes dependency tests;
@@ -77,6 +77,7 @@ describe("default test run scope", () => {
       "src/owlapi-js/parser/rdfxml/rdfXml.differential.test.js",
       "src/owlapi-js/parser/trig/trig.differential.test.js",
       "src/owlapi-js/parser/turtle/turtle.differential.test.js",
+      "src/owlapi-js/rdf/owlToRdfTranslator.differential.test.js",
       "src/owlapi-js/rdf/rdfToOwlTranslator.differential.test.js",
     ]);
   });
