@@ -9,3 +9,4 @@
 | [0005](0005-cross-category-property-punning.md)                    | Cross-category property punning resolution         | Accepted |
 | [0006](0006-restriction-edges-as-a-documented-departure.md)        | Restriction edges as a documented departure        | Accepted |
 | [0007](0007-axiom-annotations-nest-on-the-annotation.md)           | Axiom annotations nest on the annotation           | Accepted |
+| [0008](0008-promote-original-krss1-into-v1.md)                     | Promote original KRSS/KRSS1 into v1                | Accepted |
