@@ -1,6 +1,5 @@
 import { readFileSync } from "node:fs";
 
-import { loadWithImports } from "./legacyPipeline.js";
 import owl2vowl from "../js/index.js";
 import {
   canonicalVowlSnapshot,
@@ -78,76 +77,5 @@ describe("VOWLBuilder exact semantic differential", () => {
     });
 
     expect(differences).toHaveLength(governedDifferenceCount(manifest, scope));
-  });
-
-  test("matches the retained legacy converter on its exact shared subset", async () => {
-    const rdfXml = `<rdf:RDF
-      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-      xmlns:owl="http://www.w3.org/2002/07/owl#">
-      <owl:Ontology rdf:about="https://example.com/phase7-parity"/>
-      <owl:Class rdf:about="https://example.com/phase7-parity#Person"/>
-      <owl:ObjectProperty rdf:about="https://example.com/phase7-parity#knows">
-        <rdfs:domain rdf:resource="https://example.com/phase7-parity#Person"/>
-        <rdfs:range rdf:resource="https://example.com/phase7-parity#Person"/>
-      </owl:ObjectProperty>
-    </rdf:RDF>`;
-
-    const legacyResult = await loadWithImports(rdfXml);
-    const structuralResult = await owl2vowl(rdfXml, {
-      fileName: "phase7-parity.rdf",
-    });
-
-    // One governed divergence, and the rest must still match exactly. `knows`
-    // states both a domain and a range, so nothing links to `owl:Thing` here.
-    // VOWL 2 rules its node out twice over: its splitting rule draws it once for
-    // every class it is linked to, which is none, and its guideline on
-    // visualising `owl:Thing` allows the node only where a property has no
-    // domain or range axiom, or where the author named it. The retained legacy
-    // converter emits it anyway, which is a gap in that reimplementation rather
-    // than intended behaviour, so the node is removed from its snapshot before
-    // the comparison instead of being reproduced.
-    const legacySnapshot = canonicalVowlSnapshot(legacyResult);
-    const linked = new Set(
-      legacySnapshot.properties.flatMap(({ domain, range }) => [domain, range]),
-    );
-    legacySnapshot.classes = legacySnapshot.classes.filter(
-      ({ iri, type }) => type !== "owl:Thing" || linked.has(iri),
-    );
-
-    expect(canonicalVowlSnapshot(structuralResult)).toEqual(legacySnapshot);
-  });
-
-  test("marks a restriction-derived edge inferred exactly as the legacy converter does", async () => {
-    const rdfXml = `<rdf:RDF
-      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-      xmlns:owl="http://www.w3.org/2002/07/owl#">
-      <owl:Ontology rdf:about="https://example.com/phase7-restriction"/>
-      <owl:Class rdf:about="https://example.com/phase7-restriction#Person"/>
-      <owl:ObjectProperty rdf:about="https://example.com/phase7-restriction#knows"/>
-      <owl:Class rdf:about="https://example.com/phase7-restriction#Parent">
-        <rdfs:subClassOf>
-          <owl:Restriction>
-            <owl:onProperty rdf:resource="https://example.com/phase7-restriction#knows"/>
-            <owl:someValuesFrom rdf:resource="https://example.com/phase7-restriction#Person"/>
-          </owl:Restriction>
-        </rdfs:subClassOf>
-      </owl:Class>
-    </rdf:RDF>`;
-
-    const legacyResult = await loadWithImports(rdfXml);
-    const structuralResult = await owl2vowl(rdfXml, {
-      fileName: "phase7-restriction.rdf",
-    });
-    const inferredEdges = (vowl) =>
-      canonicalVowlSnapshot(vowl)
-        .properties.filter(({ type }) => type === "owl:someValuesFrom")
-        .map(({ attributes }) => attributes);
-
-    expect(inferredEdges(structuralResult)).not.toEqual([]);
-    expect(inferredEdges(structuralResult)).toEqual(
-      inferredEdges(legacyResult),
-    );
   });
 });

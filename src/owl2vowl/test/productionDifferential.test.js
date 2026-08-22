@@ -15,9 +15,8 @@ import {
 // Section 18.8 defines the corpus differential as Java OWL2VOWL reference output
 // compared against WebVOWL output "through new architecture", and section 17.15
 // makes production differential acceptance a Phase 8 gate. This suite is that
-// gate. The retained `differential.test.js` measures the pipeline the cutover
-// replaced and is kept only as the historical baseline.
-//
+// gate and remains the executable comparison after Phase 18 retired the
+// pre-cutover JavaScript pipeline.
 // The entry point under test is `loadWithImports`, because that is what
 // `src/app/js/loadingModule.js` calls for every document a user opens. Testing
 // the plain entry instead would gate a path the application does not take.

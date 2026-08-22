@@ -74,7 +74,7 @@ describe("VOWL annotation identifiers", () => {
   // field the oracle defines: the corpus differential projects each annotation
   // onto {value, type, language, identifier}, so an added field costs nothing in
   // parity terms. `src/app/js/sidebar.js` already reads it to hyperlink an
-  // annotation predicate, and the legacy `rdfParser.js` used to supply it, so
+  // annotation predicate, and the pre-cutover RDF parser supplied it, so
   // emitting it here also restores a feature the cutover silently dropped.
   it.each([
     ["http://www.w3.org/2000/01/rdf-schema#isDefinedBy", "isDefinedBy"],

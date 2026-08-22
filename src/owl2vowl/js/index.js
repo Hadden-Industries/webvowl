@@ -13,9 +13,8 @@ import { VOWLBuilder } from "./vowlBuilder.js";
 // structural OWLOntology, and VOWLBuilder converts that model into the
 // VOWL-JSON structures the application renders. Section 17.15 forbids a runtime
 // legacy fallback, so a syntax this path does not implement fails with the
-// canonical unsupported-format diagnostics rather than being routed to the
-// retained legacy parsers. Those modules remain on disk for characterization
-// only and must stay unreachable from here.
+// canonical unsupported-format diagnostics. Phase 18 physically retired the
+// alternate parser/converter stack after its reference work was complete.
 
 const loaderConfiguration = (configuration) =>
   configuration instanceof OWLOntologyLoaderConfiguration
