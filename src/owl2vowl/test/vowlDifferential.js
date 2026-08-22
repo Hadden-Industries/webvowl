@@ -4,15 +4,9 @@ import * as path from "node:path";
 import { ONTOLOGY_BASE_URL, ONTOLOGY_CATALOG } from "../js/constants.js";
 import { LOCAL_ONTOLOGY_DIST_DIR } from "./helpers.js";
 
-// The semantic projection and comparison shared by the two corpus differential
-// suites: the retained legacy characterization suite and the production suite
-// that gates Phase 8.
-//
-// Both must measure the same things in the same way, or "the production path
-// differs from the oracle here" cannot be compared against "the legacy path
-// differed from the oracle here", and the historical register stops being a
-// usable baseline. Extracting the logic rather than copying it is what keeps
-// that comparison meaningful.
+// The semantic projection and comparison used by the production corpus
+// differential. It remains separate from the fixture-specific exact snapshot
+// so real-corpus differences can be governed one semantic dimension at a time.
 //
 // This is deliberately a different mechanism from `vowlSemanticSnapshot.js`.
 // That module asserts exact equality and is used for focused fixtures where
@@ -73,11 +67,9 @@ function getRequestUrl(input) {
 }
 
 // Resolves exactly as `src/owl2vowl/js/importResolver.js` does: a catalog hit,
-// otherwise the IRI unchanged. It deliberately does NOT use the legacy
-// `resolveImportUrl`, whose basename fallback maps any IRI ending in "spatial"
-// onto `spatial.rdf`. That heuristic belongs to the retained pipeline, and
-// borrowing it here fabricated a same-ontology-ID collision that the production
-// resolver cannot produce - the harness was inventing the defect it reported.
+// otherwise the IRI unchanged. The retired loader's basename fallback mapped
+// any IRI ending in "spatial" onto `spatial.rdf`; using that heuristic here
+// fabricated a same-ontology-ID collision that production could not produce.
 const exactLocalOntologyPath = (requestUrl) => {
   const mapped = ONTOLOGY_CATALOG[requestUrl] ?? requestUrl;
 

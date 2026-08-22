@@ -17,7 +17,7 @@ const PUNNED = "http://xmlns.com/foaf/0.1/mbox_sha1sum";
 // ADR 0005 resolves an IRI declared in more than one property category to a
 // single category by the fixed precedence data > object > annotation, and names
 // `foaf:mbox_sha1sum` as the motivating case: the live WebVOWL v1.1.7 service,
-// the pinned OWL2VOWL 0.3.7 oracle and the retained legacy pipeline all render
+// the pinned OWL2VOWL 0.3.7 oracle and the pre-cutover legacy pipeline all render
 // it as a datatype property.
 //
 // The translator resolves the declaration correctly, but FOAF also asserts

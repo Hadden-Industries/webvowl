@@ -49,20 +49,14 @@ const reachableModules = (entryPath) => {
 };
 
 describe("VOWLBuilder architecture", () => {
-  test("its complete local import graph cannot reach concrete syntax or legacy conversion", () => {
+  test("its complete local import graph remains independent of concrete syntax", () => {
     const reachable = reachableModules(BUILDER_PATH).map((filePath) =>
       path.relative(SRC_PATH, filePath).replaceAll("\\", "/"),
     );
     const forbidden = reachable.filter(
       (filePath) =>
         filePath.startsWith("owlapi-js/parser/") ||
-        filePath.startsWith("owlapi-js/rdf/") ||
-        [
-          "owl2vowl/js/importLoader.js",
-          "owl2vowl/js/jsonExporter.js",
-          "owl2vowl/js/ontologyConverter.js",
-          "owl2vowl/js/rdfParser.js",
-        ].includes(filePath),
+        filePath.startsWith("owlapi-js/rdf/"),
     );
 
     expect(forbidden).toEqual([]);

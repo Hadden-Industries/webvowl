@@ -250,7 +250,7 @@ describe("production owl2vowl entry point", () => {
 
   // An import that cannot be fetched is ordinary on the open web: the document
   // may be offline, moved, or simply not mirrored. The pinned OWL2VOWL oracle
-  // renders such ontologies rather than refusing them, and the retained legacy
+  // renders such ontologies rather than refusing them, and the pre-cutover legacy
   // pipeline did too, so aborting the whole load would be a visible regression
   // for anyone opening `spatial.rdf` or `ontology_v3.3.rdf`.
   //

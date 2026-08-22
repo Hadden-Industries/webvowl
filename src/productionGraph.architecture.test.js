@@ -14,10 +14,10 @@ const SPECIFIER_PATTERNS = [
   /\brequire\s*\(\s*["']([^"']+)["']\s*\)/gu,
 ];
 
-// Section 17.15: after the cutover the production graph must not reach the
-// retained legacy ingestion pipeline. These modules stay on disk for
-// characterization and reference only.
-const FORBIDDEN_MODULES = [
+// Phase 8 made these modules unreachable; Phase 18 additionally removes them.
+// Retaining the production-graph list means both boundaries are checked if an
+// obsolete path is ever reintroduced.
+const RETIRED_PRODUCTION_MODULES = [
   "owl2vowl/js/dlSyntaxParser.js",
   "owl2vowl/js/functionalSyntaxParser.js",
   "owl2vowl/js/importLoader.js",
@@ -34,6 +34,46 @@ const FORBIDDEN_MODULES = [
   "owl2vowl/js/turtleParser.js",
 ];
 
+// Phase 18 removes both the legacy implementation and the tests that exercised
+// it as a second ingestion stack. Keeping the inventory explicit makes an
+// accidental resurrection fail with the exact path that crossed the boundary.
+const RETIRED_LEGACY_FILES = [
+  "owl2vowl/js/dlSyntaxParser.js",
+  "owl2vowl/js/dlSyntaxParser.test.js",
+  "owl2vowl/js/domUtils.js",
+  "owl2vowl/js/domUtils.test.js",
+  "owl2vowl/js/functionalSyntaxParser.js",
+  "owl2vowl/js/functionalSyntaxParser.test.js",
+  "owl2vowl/js/importLoader.js",
+  "owl2vowl/js/importLoader.test.js",
+  "owl2vowl/js/iriResolver.js",
+  "owl2vowl/js/iriResolver.test.js",
+  "owl2vowl/js/jsonExporter.js",
+  "owl2vowl/js/jsonExporter.test.js",
+  "owl2vowl/js/jsonLdParser.js",
+  "owl2vowl/js/jsonLdParser.test.js",
+  "owl2vowl/js/krss2SyntaxParser.js",
+  "owl2vowl/js/krss2SyntaxParser.test.js",
+  "owl2vowl/js/manchesterSyntaxParser.js",
+  "owl2vowl/js/manchesterSyntaxParser.test.js",
+  "owl2vowl/js/ontologyConverter.js",
+  "owl2vowl/js/ontologyConverter.test.js",
+  "owl2vowl/js/owlXmlParser.js",
+  "owl2vowl/js/owlXmlParser.test.js",
+  "owl2vowl/js/parserContext.js",
+  "owl2vowl/js/parserContext.test.js",
+  "owl2vowl/js/rdfParser.js",
+  "owl2vowl/js/rdfParser.test.js",
+  "owl2vowl/js/rdfXmlSerializer.js",
+  "owl2vowl/js/rdfXmlSerializer.test.js",
+  "owl2vowl/js/turtleParser.js",
+  "owl2vowl/js/turtleParser.test.js",
+  "owl2vowl/js/xmlUtils.js",
+  "owl2vowl/js/xmlUtils.test.js",
+  "owl2vowl/test/differential.test.js",
+  "owl2vowl/test/legacyPipeline.js",
+];
+
 const resolveSpecifier = (fromFile, specifier) => {
   const resolved = path.resolve(path.dirname(fromFile), specifier);
   const candidates = [
@@ -46,7 +86,7 @@ const resolveSpecifier = (fromFile, specifier) => {
 
 // Only whole-line comments are removed. Stripping every `//` would corrupt the
 // many namespace IRIs that appear inside string literals, and a commented-out
-// legacy import must not count as production-reachable.
+// retired import must not count as production-reachable.
 const withoutCommentedLines = (source) =>
   source
     .split("\n")
@@ -96,11 +136,21 @@ const reachableModules = (entryPath) => {
 };
 
 describe("production import graph", () => {
-  it("cannot reach the retained legacy ingestion pipeline", () => {
+  it("does not contain physically retired legacy ingestion artifacts", () => {
+    const present = RETIRED_LEGACY_FILES.filter((filePath) =>
+      existsSync(path.join(SRC_PATH, filePath)),
+    );
+
+    expect(present).toEqual([]);
+  });
+
+  it("cannot reach a retired legacy ingestion module", () => {
     const reachable = reachableModules(ENTRY_PATH);
 
     expect(
-      reachable.filter((filePath) => FORBIDDEN_MODULES.includes(filePath)),
+      reachable.filter((filePath) =>
+        RETIRED_PRODUCTION_MODULES.includes(filePath),
+      ),
     ).toEqual([]);
   });
 
