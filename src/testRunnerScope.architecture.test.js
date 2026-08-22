@@ -74,6 +74,7 @@ describe("default test run scope", () => {
       "src/owlapi-js/parser/ntriples/nTriples.differential.test.js",
       "src/owlapi-js/parser/owlxml/owlXml.differential.test.js",
       "src/owlapi-js/parser/rdfxml/rdfXml.differential.test.js",
+      "src/owlapi-js/parser/trig/trig.differential.test.js",
       "src/owlapi-js/parser/turtle/turtle.differential.test.js",
       "src/owlapi-js/rdf/rdfToOwlTranslator.differential.test.js",
     ]);
