@@ -69,6 +69,7 @@ describe("default test run scope", () => {
       "src/owlapi-js/parser/dl/dlSyntax.differential.test.js",
       "src/owlapi-js/parser/functional/functionalSyntax.differential.test.js",
       "src/owlapi-js/parser/jsonld/jsonLd.differential.test.js",
+      "src/owlapi-js/parser/krss1/krss1Syntax.differential.test.js",
       "src/owlapi-js/parser/krss2/krss2Syntax.differential.test.js",
       "src/owlapi-js/parser/manchester/manchesterSyntax.differential.test.js",
       "src/owlapi-js/parser/nquads/nQuads.differential.test.js",
