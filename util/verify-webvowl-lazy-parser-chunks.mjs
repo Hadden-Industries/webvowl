@@ -162,8 +162,8 @@ const lazyN3ClosureFiles = [...lazyN3Closure].map(displayPath).sort();
 
 console.log(
   [
-    `PASS: N3.js is absent from ${initialClosure.size} initial chunk(s) and present only behind the Turtle lazy boundary.`,
+    `PASS: N3.js is absent from ${initialClosure.size} initial chunk(s) and present only behind the RDF-syntax lazy boundary.`,
     `Initial closure: ${initialMetrics.minifiedBytes} minified bytes / ${initialMetrics.gzipBytes} gzip bytes (${initialFiles.join(", ")}).`,
-    `Lazy Turtle closure: ${lazyN3Metrics.minifiedBytes} minified bytes / ${lazyN3Metrics.gzipBytes} gzip bytes (${lazyN3ClosureFiles.join(", ")}).`,
+    `Lazy RDF-syntax closure: ${lazyN3Metrics.minifiedBytes} minified bytes / ${lazyN3Metrics.gzipBytes} gzip bytes (${lazyN3ClosureFiles.join(", ")}).`,
   ].join("\n"),
 );
