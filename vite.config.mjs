@@ -270,9 +270,16 @@ export default defineConfig(({ mode }) => {
           entryFileNames: "js/[name].js",
           chunkFileNames: "js/[name].js",
           assetFileNames: (assetInfo) => {
-            if (assetInfo.names?.[0]?.endsWith(".css")) {
+            const assetName = assetInfo.names?.[0] ?? "";
+
+            if (assetName.endsWith(".css")) {
               return "css/[name].[ext]";
             }
+
+            if (assetName.endsWith(".woff2")) {
+              return "fonts/[name].[ext]";
+            }
+
             return "[name].[ext]";
           },
           codeSplitting: {

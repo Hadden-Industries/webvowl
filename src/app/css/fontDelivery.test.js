@@ -79,6 +79,10 @@ describe("production font delivery", () => {
     expect(openSansRules.join("\n")).not.toContain("url(data:");
 
     fontReferences.forEach((fontReference) => {
+      expect(fontReference).toMatch(
+        /^\.\.\/fonts\/open-sans-[a-z-]+-400-normal\.woff2$/,
+      );
+
       const fontPath = path.resolve(
         path.dirname(openSansCssFile),
         decodeURIComponent(fontReference),
