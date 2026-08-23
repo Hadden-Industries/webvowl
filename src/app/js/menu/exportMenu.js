@@ -86,6 +86,21 @@ async function copyInputValue(inputNode, clipboardApi, documentNode) {
   return legacyCopyInputValue(inputNode, resolvedDocument);
 }
 
+function nextCopyFeedback(copied, successfulCopyCount = 0) {
+  if (!copied) {
+    return { successfulCopyCount: 0, text: "Copy failed" };
+  }
+
+  const nextSuccessfulCopyCount = successfulCopyCount + 1;
+  return {
+    successfulCopyCount: nextSuccessfulCopyCount,
+    text:
+      nextSuccessfulCopyCount === 1
+        ? "Copied!"
+        : `Copied ×${nextSuccessfulCopyCount}`,
+  };
+}
+
 function createExportMenu(graph) {
   const exportMenu = {};
   let exportFilename;
@@ -147,6 +162,7 @@ function createExportMenu(graph) {
   };
 
   let copyFeedbackTimer;
+  let successfulCopyCount = 0;
   async function copyUrl() {
     const urlInputNode = document.querySelector("#exportedUrl");
     if (!urlInputNode) {
@@ -155,11 +171,11 @@ function createExportMenu(graph) {
 
     const copied = await copyInputValue(urlInputNode);
     const copyButtonNode = document.querySelector("#copyBt");
+    const feedback = nextCopyFeedback(copied, successfulCopyCount);
+    successfulCopyCount = feedback.successfulCopyCount;
     copyButtonNode.classList.toggle("copied", copied);
     copyButtonNode.classList.toggle("copy-failed", !copied);
-    copyButtonNode.querySelector(".copy-text").textContent = copied
-      ? "Copied!"
-      : "Copy failed";
+    copyButtonNode.querySelector(".copy-text").textContent = feedback.text;
     copyButtonNode
       .querySelector(".copy-icon path")
       .setAttribute(
@@ -171,6 +187,7 @@ function createExportMenu(graph) {
 
     clearTimeout(copyFeedbackTimer);
     copyFeedbackTimer = setTimeout(function () {
+      successfulCopyCount = 0;
       copyButtonNode.classList.remove("copied", "copy-failed");
       copyButtonNode.querySelector(".copy-text").textContent = "Copy URL";
       copyButtonNode
@@ -1913,5 +1930,6 @@ function createExportMenu(graph) {
 createExportMenu.downloadFile = downloadFile;
 createExportMenu.copyInputValue = copyInputValue;
 createExportMenu.legacyCopyInputValue = legacyCopyInputValue;
+createExportMenu.nextCopyFeedback = nextCopyFeedback;
 
 module.exports = createExportMenu;

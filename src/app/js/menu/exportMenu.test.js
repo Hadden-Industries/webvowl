@@ -111,6 +111,24 @@ describe("export menu clipboard copying", () => {
     expect(documentNode.execCommand).not.toHaveBeenCalled();
   });
 
+  test("gives every repeated successful copy distinct visible feedback", () => {
+    const firstCopy = exportMenuFactory.nextCopyFeedback(true, 0);
+    const secondCopy = exportMenuFactory.nextCopyFeedback(
+      true,
+      firstCopy.successfulCopyCount,
+    );
+    const thirdCopy = exportMenuFactory.nextCopyFeedback(
+      true,
+      secondCopy.successfulCopyCount,
+    );
+
+    expect([firstCopy.text, secondCopy.text, thirdCopy.text]).toEqual([
+      "Copied!",
+      "Copied ×2",
+      "Copied ×3",
+    ]);
+  });
+
   test("falls back after Clipboard API rejection and restores focus and scroll positions", async () => {
     const fixture = createLegacyCopyFixture();
     const clipboard = {

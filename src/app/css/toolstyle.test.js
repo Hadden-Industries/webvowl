@@ -14,6 +14,53 @@ const mainJs = fs.readFileSync(
 );
 
 describe("mobile toolbar styles", () => {
+  test("positions mobile popovers above the complete bottom navigation surface", () => {
+    const mobilePopoverRule = stylesheet.match(
+      /@media screen and \(width <= 768px\) \{[\s\S]*?\.modern-popover\s*\{([^{}]+)\}/,
+    );
+
+    expect(mobilePopoverRule).not.toBeNull();
+    expect(mobilePopoverRule[1]).toContain(
+      "inset: auto 0 var(--bottom-bar-size) !important",
+    );
+  });
+
+  test("removes the desktop hover bridge from the mobile toolbar edge", () => {
+    const mobileHoverBridgeRule = stylesheet.match(
+      /@media screen and \(width <= 768px\) \{[\s\S]*?\.modern-popover::after\s*\{([^{}]+)\}/,
+    );
+
+    expect(mobileHoverBridgeRule).not.toBeNull();
+    expect(mobileHoverBridgeRule[1]).toContain("display: none");
+  });
+
+  test("keeps text fields selectable inside no-selection menu surfaces", () => {
+    const popoverTextFieldRule = stylesheet.match(
+      /#iri-converter-input,\s*#exportedUrl\s*\{([^{}]+)\}/,
+    );
+    const searchFieldRule = stylesheet.match(
+      /li#c_search input\.searchInputText\s*\{([^{}]+)\}/,
+    );
+
+    expect(popoverTextFieldRule).not.toBeNull();
+    expect(popoverTextFieldRule[1]).toContain("user-select: text");
+    expect(popoverTextFieldRule[1]).toContain("-webkit-touch-callout: default");
+
+    expect(searchFieldRule).not.toBeNull();
+    expect(searchFieldRule[1]).toContain("user-select: text");
+    expect(searchFieldRule[1]).toContain("-webkit-touch-callout: default");
+    expect(searchFieldRule[1]).not.toContain("-webkit-touch-callout: none");
+  });
+
+  test("prevents focus zoom on mobile menu text fields", () => {
+    const mobileTextFieldRule = stylesheet.match(
+      /@media screen and \(width <= 768px\) \{[\s\S]*?#iri-converter-input,\s*#exportedUrl,\s*li#c_search input#search-input-text\s*\{([^{}]+)\}/,
+    );
+
+    expect(mobileTextFieldRule).not.toBeNull();
+    expect(mobileTextFieldRule[1]).toContain("font-size: 16px !important");
+  });
+
   test("hides only explicit navigation labels in compact mode", () => {
     const compactLabelRule = stylesheet.match(
       /@media screen and \(width < 768px\) \{[\s\S]*?#menuElementContainer \.menuElementLabel\s*\{([^{}]+)\}/,
