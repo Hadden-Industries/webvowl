@@ -52,6 +52,21 @@ async function copyInputValue( inputNode, clipboardApi, documentNode ){
   }
 
   return legacyCopyInputValue(inputNode, resolvedDocument);
+function nextCopyFeedback(copied, successfulCopyCount = 0) {
+  if (!copied) {
+    return { successfulCopyCount: 0, text: "Copy failed" };
+  }
+
+  const nextSuccessfulCopyCount = successfulCopyCount + 1;
+  return {
+    successfulCopyCount: nextSuccessfulCopyCount,
+    text:
+      nextSuccessfulCopyCount === 1
+        ? "Copied!"
+        : `Copied ×${nextSuccessfulCopyCount}`,
+  };
+}
+
   const exportMenu = {};
   let exportFilename;
 
@@ -128,22 +143,24 @@ async function copyInputValue( inputNode, clipboardApi, documentNode ){
 
   function copyUrl() {
   let copyFeedbackTimer;
+  let successfulCopyCount = 0;
     event.preventDefault();
     const urlInputNode = document.querySelector("#exportedUrl");
     if ( !urlInputNode ) {return;}
 
     const copied = await copyInputValue(urlInputNode);
     const copyButtonNode = document.querySelector("#copyBt");
+    const feedback = nextCopyFeedback(copied, successfulCopyCount);
+    successfulCopyCount = feedback.successfulCopyCount;
     copyButtonNode.classList.toggle("copied", copied);
     copyButtonNode.classList.toggle("copy-failed", !copied);
-    copyButtonNode.querySelector(".copy-text").textContent = copied
-      ? "Copied!"
-      : "Copy failed";
+    copyButtonNode.querySelector(".copy-text").textContent = feedback.text;
     copyButtonNode.select(".copy-text").text(copied ? "Copied!" : "Copy failed");
     copyButtonNode.select(".copy-icon path").attr("d", copied ? "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" : "M18.3 5.71 12 12l-6.3-6.29-1.4 1.42L10.59 13.4 4.3 19.7l1.4 1.4 6.3-6.29 6.3 6.29 1.4-1.4-6.29-6.3 6.29-6.29z");
 
     clearTimeout(copyFeedbackTimer);
     copyFeedbackTimer = setTimeout(function (){
+      successfulCopyCount = 0;
       copyButtonNode.classList.remove("copied", "copy-failed");
       copyButtonNode.querySelector(".copy-text").textContent = "Copy URL";
       copyButtonNode.select(".copy-icon path").attr("d", "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z");
@@ -2143,5 +2160,6 @@ async function copyInputValue( inputNode, clipboardApi, documentNode ){
 createExportMenu.downloadFile = downloadFile;
 createExportMenu.copyInputValue = copyInputValue;
 createExportMenu.legacyCopyInputValue = legacyCopyInputValue;
+createExportMenu.nextCopyFeedback = nextCopyFeedback;
 
 module.exports = createExportMenu;

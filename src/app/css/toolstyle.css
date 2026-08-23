@@ -2357,6 +2357,13 @@ li#c_search input.searchInputText {
   width: 100px;
 }
 
+#iri-converter-input,
+#exportedUrl {
+  user-select: text;
+
+  -webkit-touch-callout: default;
+}
+
 #m_select {
   max-width: 300px;
   width: 300px;
@@ -3077,6 +3084,8 @@ p#zoomSliderParagraph:hover {
   height: 17px;
   pointer-events: none;
     -webkit-touch-callout: none;
+  user-select: text;
+
 }
 
 #mobile-search-toggle-btn {
@@ -4314,7 +4323,7 @@ a#locateSearchResult {
     will-change: transform;
 
     z-index: 99999 !important;
-    inset: auto 0 0 !important;
+    inset: auto 0 var(--bottom-bar-size) !important;
     transform: translateY(var(--sheet-drag-y, 0));
 
     width: 100% !important;
@@ -4325,6 +4334,16 @@ a#locateSearchResult {
     border-radius: 20px 20px 0 0 !important;
 
     animation: sheetSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .modern-popover::after {
+    display: none;
+  }
+
+  #iri-converter-input,
+  #exportedUrl,
+  li#c_search input#search-input-text {
+    font-size: 16px !important;
   }
 
   .modern-popover.has-dragged {

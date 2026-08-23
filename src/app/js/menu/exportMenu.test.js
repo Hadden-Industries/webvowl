@@ -8,6 +8,24 @@ import {
 } from "@jest/globals";
 import exportMenuFactory from "./exportMenu.js";
 
+  });
+
+  test("gives every repeated successful copy distinct visible feedback", () => {
+    const firstCopy = exportMenuFactory.nextCopyFeedback(true, 0);
+    const secondCopy = exportMenuFactory.nextCopyFeedback(
+      true,
+      firstCopy.successfulCopyCount,
+    );
+    const thirdCopy = exportMenuFactory.nextCopyFeedback(
+      true,
+      secondCopy.successfulCopyCount,
+    );
+
+    expect([firstCopy.text, secondCopy.text, thirdCopy.text]).toEqual([
+      "Copied!",
+      "Copied ×2",
+      "Copied ×3",
+    ]);
 describe("export menu json deterministic export", () => {
   let originalD3;
   let originalWebVowl;
