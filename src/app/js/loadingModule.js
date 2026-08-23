@@ -1,6 +1,7 @@
 const owl2vowlModule = require("../../owl2vowl/js/index.js");
 const owl2vowl = owl2vowlModule.default || owl2vowlModule;
 const ontologyLifecycle = require("./ontologyLifecycle");
+const resolveFetchUrl = require("../../shared/js/util/resolveFetchUrl");
 if (!owl2vowl.loadWithImports && owl2vowlModule.loadWithImports) {
   owl2vowl.loadWithImports = owl2vowlModule.loadWithImports;
 }
@@ -403,6 +404,7 @@ module.exports = function (graph) {
 
   loadingModule.from_JSON_URL = function (fileName) {
     const filename = decodeURIComponent(fileName.slice("url=".length));
+    const requestUrl = resolveFetchUrl(filename);
     ontologyIdentifierFromURL = filename;
 
     if (ontologyMenu.cachedOntology(filename)) {
@@ -415,7 +417,7 @@ module.exports = function (graph) {
       ontologyMenu.append_message(
         "Retrieving ontology from JSON URL " + filename,
       );
-      fetch(filename, { headers: { Accept: "application/json" } })
+      fetch(requestUrl, { headers: { Accept: "application/json" } })
         .then(function (response) {
           if (!response.ok) {
             throw response;
@@ -453,6 +455,7 @@ module.exports = function (graph) {
 
   loadingModule.from_IRI_URL = function (fileName) {
     const filename = decodeURIComponent(fileName.slice("iri=".length));
+    const requestUrl = resolveFetchUrl(filename);
     ontologyIdentifierFromURL = filename;
 
     if (ontologyMenu.cachedOntology(filename)) {
@@ -465,7 +468,7 @@ module.exports = function (graph) {
       ontologyMenu.append_bulletPoint(
         "Retrieving ontology from IRI: " + filename,
       );
-      fetch(filename)
+      fetch(requestUrl)
         .then(function (response) {
           if (!response.ok) {
             throw response;
@@ -482,7 +485,7 @@ module.exports = function (graph) {
             // its base. Passing it lets relative references resolve against the
             // real namespace instead of falling back to a synthetic base.
             owl2vowl
-              .loadWithImports(xmlText, { documentIRI: filename })
+              .loadWithImports(xmlText, { documentIRI: requestUrl })
               .then(function (vowlJson) {
                 parseOntologyContent(JSON.stringify(vowlJson));
                 ontologyMenu.append_message_toLastBulletPoint("done");

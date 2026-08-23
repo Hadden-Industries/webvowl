@@ -6,6 +6,7 @@ import {
   UnloadableImportError,
 } from "../../owlapi-js/io/index.js";
 import { IRI } from "../../owlapi-js/model/index.js";
+import resolveFetchUrl from "../../shared/js/util/resolveFetchUrl.js";
 
 const textBytes = (text) => new TextEncoder().encode(text).byteLength;
 
@@ -46,40 +47,50 @@ const fileNameFromUrl = (url) => {
 };
 
 export class WebVowlImportResolver {
+  #baseUrl;
   #catalog;
   #fetch;
 
-  constructor({ catalog = {}, fetchImpl = globalThis.fetch } = {}) {
+  constructor({
+    baseUrl = globalThis.location?.href,
+    catalog = {},
+    fetchImpl = globalThis.fetch,
+  } = {}) {
     if (!catalog || typeof catalog !== "object" || Array.isArray(catalog)) {
       throw new TypeError("catalog must be an IRI mapping object");
     }
     if (typeof fetchImpl !== "function") {
       throw new TypeError("fetchImpl must be a function");
     }
+    this.#baseUrl = baseUrl;
     this.#catalog = Object.freeze({ ...catalog });
     this.#fetch = fetchImpl;
   }
 
   getDocumentIRI(importIri) {
     const normalized = IRI.create(importIri);
-    return IRI.create(this.#catalog[normalized.value] || normalized.value);
+    const mapped = this.#catalog[normalized.value] || normalized.value;
+    return IRI.create(resolveFetchUrl(mapped, this.#baseUrl));
   }
 
   async load(documentIri, { config = {}, signal } = {}) {
     const normalized = IRI.create(documentIri);
+    const requestUrl = resolveFetchUrl(normalized.value, this.#baseUrl);
+    const requestIri =
+      requestUrl === normalized.value ? normalized : IRI.create(requestUrl);
     let url;
     try {
-      url = new URL(normalized.value);
+      url = new URL(requestIri.value);
     } catch (cause) {
       throw new SecurityPolicyError("Import IRI is not an absolute URL", {
         cause,
-        documentIRI: normalized,
+        documentIRI: requestIri,
       });
     }
     if (url.protocol !== "http:" && url.protocol !== "https:") {
       throw new SecurityPolicyError(
         "WebVOWL import loading permits only HTTP and HTTPS URLs",
-        { documentIRI: normalized },
+        { documentIRI: requestIri },
       );
     }
 
@@ -94,7 +105,7 @@ export class WebVowlImportResolver {
       // Node's `fetch` performs no such check, so this failed in every browser
       // while the whole suite stayed green.
       const fetchImpl = this.#fetch;
-      const response = await fetchImpl(normalized.value, {
+      const response = await fetchImpl(requestIri.value, {
         credentials: "omit",
         redirect: config.maxRedirects === 0 ? "error" : "follow",
         signal: deadline.signal,
@@ -103,7 +114,7 @@ export class WebVowlImportResolver {
         const ErrorType =
           response?.status === 404 ? MissingImportError : UnloadableImportError;
         throw new ErrorType("The imported ontology request failed", {
-          documentIRI: normalized,
+          documentIRI: requestIri,
           status: response?.status,
           statusText: response?.statusText,
         });
@@ -132,7 +143,7 @@ export class WebVowlImportResolver {
 
       return new StringDocumentSource(text, {
         contentType: response.headers?.get?.("content-type") || undefined,
-        documentIRI: normalized,
+        documentIRI: requestIri,
         fileName: fileNameFromUrl(url),
       });
     } catch (cause) {
