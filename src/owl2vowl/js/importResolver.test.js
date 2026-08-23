@@ -9,6 +9,49 @@ import {
 import { WebVowlImportResolver } from "./importResolver.js";
 
 describe("WebVowlImportResolver", () => {
+  it("derives the HTTP import fetch scheme from the WebVOWL base", async () => {
+    const response = () => ({
+      headers: { get: () => null },
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      text: async () => "<rdf:RDF/>",
+    });
+    const secureFetch = jest.fn(async () => response());
+    const insecureFetch = jest.fn(async () => response());
+    const insecureDocumentIri = IRI.create("http://example.com/imported.rdf");
+    const secureResolver = new WebVowlImportResolver({
+      baseUrl: "https://webvowl.example/viewer",
+      fetchImpl: secureFetch,
+    });
+    const insecureResolver = new WebVowlImportResolver({
+      baseUrl: "http://webvowl.example/viewer",
+      fetchImpl: insecureFetch,
+    });
+
+    expect(secureResolver.getDocumentIRI(insecureDocumentIri).value).toBe(
+      "https://example.com/imported.rdf",
+    );
+    const secureSource = await secureResolver.load(insecureDocumentIri);
+    expect(secureFetch.mock.calls[0][0]).toBe(
+      "https://example.com/imported.rdf",
+    );
+    expect(secureSource.getDocumentIRI().value).toBe(
+      "https://example.com/imported.rdf",
+    );
+
+    expect(insecureResolver.getDocumentIRI(insecureDocumentIri).value).toBe(
+      "http://example.com/imported.rdf",
+    );
+    const insecureSource = await insecureResolver.load(insecureDocumentIri);
+    expect(insecureFetch.mock.calls[0][0]).toBe(
+      "http://example.com/imported.rdf",
+    );
+    expect(insecureSource.getDocumentIRI().value).toBe(
+      "http://example.com/imported.rdf",
+    );
+  });
+
   it("maps catalog IRIs and loads bounded documents through controlled fetch", async () => {
     const fetchImpl = jest.fn(async () => ({
       headers: {
