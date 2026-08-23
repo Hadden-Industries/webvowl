@@ -312,6 +312,11 @@ export default defineConfig(({ mode }) => {
             dest: "data",
             rename: { stripBase: true }
           },
+          {
+            src: "app/fonts/open-sans/OFL.txt",
+            dest: "licenses/open-sans",
+            rename: { stripBase: true }
+          },
           { src: "favicon.ico", dest: "." },
           { src: "favicon.svg", dest: "." },
           {
