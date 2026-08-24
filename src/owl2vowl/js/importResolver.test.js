@@ -158,6 +158,36 @@ describe("WebVowlImportResolver", () => {
     }
   });
 
+  describe("fetch rejections", () => {
+    const documentIri = IRI.create("https://example.com/imported.rdf");
+
+    it("preserves a caller abort reason that is a TypeError", async () => {
+      const abortReason = new TypeError("cancelled by caller");
+      const controller = new AbortController();
+      const resolver = new WebVowlImportResolver({
+        fetchImpl: async (_url, { signal }) => {
+          controller.abort(abortReason);
+          throw signal.reason;
+        },
+      });
+
+      await expect(
+        resolver.load(documentIri, { signal: controller.signal }),
+      ).rejects.toBe(abortReason);
+    });
+
+    it("preserves non-Fetch loader defects", async () => {
+      const loaderDefect = new Error("fixture loader defect");
+      const resolver = new WebVowlImportResolver({
+        fetchImpl: async () => {
+          throw loaderDefect;
+        },
+      });
+
+      await expect(resolver.load(documentIri)).rejects.toBe(loaderDefect);
+    });
+  });
+
   // `fetch` is a method of the global, and browsers brand-check its receiver:
   // WebIDL replaces an undefined receiver with the global object, but rejects
   // any other object with "Failed to execute 'fetch' on 'Window': Illegal

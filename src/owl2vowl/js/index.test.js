@@ -283,6 +283,35 @@ describe("production owl2vowl entry point", () => {
     );
   });
 
+  test("renders an uploaded ontology when Fetch reports a network error", async () => {
+    const mainXml = `
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+               xmlns:owl="http://www.w3.org/2002/07/owl#">
+        <owl:Ontology rdf:about="http://example.org/main">
+          <owl:imports rdf:resource="prov-o#"/>
+        </owl:Ontology>
+        <owl:Class rdf:about="http://example.org/main#Local"/>
+      </rdf:RDF>
+    `;
+
+    global.fetch = jest.fn(async () => {
+      throw new TypeError("Failed to fetch");
+    });
+
+    const result = await loadWithImports(mainXml, { fileName: "prov.owl" });
+
+    expect(result.header.iri).toBe("http://example.org/main");
+    expect(result.classAttribute).toContainEqual(
+      expect.objectContaining({ iri: "http://example.org/main#Local" }),
+    );
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "MISSING_IMPORT",
+        severity: "warning",
+      }),
+    );
+  });
+
   test("resolves an import closure through the structural path", async () => {
     const importedXml = `
       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"

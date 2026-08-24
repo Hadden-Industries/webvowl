@@ -105,11 +105,22 @@ export class WebVowlImportResolver {
       // Node's `fetch` performs no such check, so this failed in every browser
       // while the whole suite stayed green.
       const fetchImpl = this.#fetch;
-      const response = await fetchImpl(requestIri.value, {
-        credentials: "omit",
-        redirect: config.maxRedirects === 0 ? "error" : "follow",
-        signal: deadline.signal,
-      });
+      let response;
+      try {
+        response = await fetchImpl(requestIri.value, {
+          credentials: "omit",
+          redirect: config.maxRedirects === 0 ? "error" : "follow",
+          signal: deadline.signal,
+        });
+      } catch (cause) {
+        if (deadline.signal?.aborted || !(cause instanceof TypeError)) {
+          throw cause;
+        }
+        throw new MissingImportError(
+          "The imported ontology could not be fetched",
+          { cause, documentIRI: requestIri },
+        );
+      }
       if (!response?.ok) {
         const ErrorType =
           response?.status === 404 ? MissingImportError : UnloadableImportError;
