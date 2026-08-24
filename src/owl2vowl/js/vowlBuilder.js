@@ -1510,6 +1510,7 @@ class BuildState {
     const visibleBaseProperties = [...this.#propertyRecords.values()].filter(
       (property) =>
         property.restrictions.length === 0 ||
+        property.attribute.inverse !== undefined ||
         property.explicitDomain ||
         property.explicitRange,
     );

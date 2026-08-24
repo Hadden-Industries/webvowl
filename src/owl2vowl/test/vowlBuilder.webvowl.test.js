@@ -48,4 +48,40 @@ describe("VOWLBuilder WebVOWL consumer contract", () => {
       ]),
     );
   });
+
+  test("preserves an inverse pair when one property also has a quantified restriction", async () => {
+    const result = await owl2vowl(
+      `Prefix(:=<urn:test#>)
+       Ontology(<urn:test>
+         InverseObjectProperties(:producesWine :hasMaker)
+         SubClassOf(:Wine ObjectAllValuesFrom(:hasMaker :Winery))
+       )`,
+      { fileName: "inverse-restriction.ofn" },
+    );
+    const parser = createWebVowlParser(graphStub());
+
+    parser.parse(result);
+
+    const hasMakerProperties = parser
+      .properties()
+      .filter((property) => property.iri() === "urn:test#hasMaker");
+    const hasMaker = hasMakerProperties.find(
+      (property) => property.type() === "owl:ObjectProperty",
+    );
+    const producesWine = parser
+      .properties()
+      .find((property) => property.iri() === "urn:test#producesWine");
+
+    expect({
+      hasMakerInverseIri: hasMaker?.inverse()?.iri(),
+      hasMakerTypes: hasMakerProperties
+        .map((property) => property.type())
+        .sort(),
+      producesWineInverseIri: producesWine?.inverse()?.iri(),
+    }).toEqual({
+      hasMakerInverseIri: "urn:test#producesWine",
+      hasMakerTypes: ["owl:ObjectProperty", "owl:allValuesFrom"],
+      producesWineInverseIri: "urn:test#hasMaker",
+    });
+  });
 });

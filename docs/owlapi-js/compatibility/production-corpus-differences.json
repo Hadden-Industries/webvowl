@@ -82,6 +82,20 @@
         "oracleIsIncorrect": true
       }
     },
+    "food.rdf": {
+      "props": {
+        "summary": "The imported Wine `hasMaker` object property remains as the resolvable endpoint of the asserted `producesWine owl:inverseOf hasMaker` relationship.",
+        "justification": "The Food ontology imports Wine. The oracle emits `producesWine` with an `inverse` identifier for the declared `hasMaker` object property, but omits that property record after also using `hasMaker` in an `owl:allValuesFrom` restriction. The resulting identifier is dangling, so WebVOWL warns and discards the asserted inverse relationship. owlapi-js retains the base `hasMaker` property alongside the separate restriction edge: both inverse endpoints resolve, and the quantified restriction remains represented under ADR 0006.",
+        "authority": "VOWL 2 specification, Table 6 (owl:inverseOf); ADR 0006",
+        "oracleIsIncorrect": true
+      },
+      "types": {
+        "summary": "Retaining the imported inverse endpoint adds the declared `owl:ObjectProperty` entry alongside the separate `owl:allValuesFrom` restriction edge.",
+        "justification": "This is the type-level consequence of the `props` correction. `hasMaker` must remain an object-property entry so `producesWine` can name it as its inverse, while ADR 0006 independently keeps the quantified-restriction edge. The oracle retains only the restriction entry and leaves `producesWine` pointing to a missing identifier.",
+        "authority": "VOWL 2 specification, Table 6 (owl:inverseOf); ADR 0006",
+        "oracleIsIncorrect": true
+      }
+    },
     "full_ontobench_test.ttl": {
       "classes": {
         "summary": "An explicitly declared owl:Nothing and the xsd:byte filler of qualified cardinalities remain visible.",
@@ -255,6 +269,20 @@
         "summary": "Six XML Schema datatypes are marked external because OWL 2 does not include them among its own datatypes; the oracle exempts all of XML Schema.",
         "justification": "The only differences are on `xsd:date`, `xsd:duration`, `xsd:gDay`, `xsd:gMonth`, `xsd:gYear` and `xsd:gYearMonth`, which owlapi-js marks `external` and the oracle marks not at all.\n\nVOWL 2 says an element whose base IRI differs from the visualized ontology's may be marked external, and these plainly differ from the OWL Time namespace. What decides whether they are nevertheless exempt is OWL 2's datatype map in section 4 of the Structural Specification, which this repository adopted as the rule for what counts as built in. That map admits `xsd:dateTime` and `xsd:dateTimeStamp` but none of these six: they are XML Schema datatypes OWL 2 deliberately excludes, so they are foreign vocabulary and are marked as such.\n\nThe same difference is recorded for `xsd:time` under `goodrelations.owl`. The oracle appears to treat the whole XML Schema namespace as built in, which is a wider exemption than OWL 2 grants.",
         "authority": "VOWL 2 specification, General Guidelines: External Elements; W3C OWL 2 Structural Specification section 4, the OWL 2 datatype map",
+        "oracleIsIncorrect": true
+      }
+    },
+    "wine.rdf": {
+      "props": {
+        "summary": "The declared `hasMaker` object property remains as the resolvable endpoint of the asserted `producesWine owl:inverseOf hasMaker` relationship.",
+        "justification": "The oracle emits `producesWine` with an `inverse` identifier for the declared `hasMaker` object property, but omits that property record after also using `hasMaker` in an `owl:allValuesFrom` restriction. The resulting identifier is dangling, so WebVOWL warns and discards the asserted inverse relationship. owlapi-js retains the base `hasMaker` property alongside the separate restriction edge: both inverse endpoints resolve, and the quantified restriction remains represented under ADR 0006.",
+        "authority": "VOWL 2 specification, Table 6 (owl:inverseOf); ADR 0006",
+        "oracleIsIncorrect": true
+      },
+      "types": {
+        "summary": "Retaining the inverse endpoint adds the declared `owl:ObjectProperty` entry alongside the separate `owl:allValuesFrom` restriction edge.",
+        "justification": "This is the type-level consequence of the `props` correction. `hasMaker` must remain an object-property entry so `producesWine` can name it as its inverse, while ADR 0006 independently keeps the quantified-restriction edge. The oracle retains only the restriction entry and leaves `producesWine` pointing to a missing identifier.",
+        "authority": "VOWL 2 specification, Table 6 (owl:inverseOf); ADR 0006",
         "oracleIsIncorrect": true
       }
     },
