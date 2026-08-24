@@ -42,22 +42,17 @@ module.exports = (function () {
     );
   }
 
-  math.calculateCurvePath = function (points, tension = DEFAULT_CURVE_TENSION) {
-    if (!Array.isArray(points) || points.length !== 3) {
-      throw new TypeError("A three-point curve requires exactly three points");
-    }
-    if (
-      !points.every(
-        (value) =>
-          value && Number.isFinite(value.x) && Number.isFinite(value.y),
-      )
-    ) {
-      throw new TypeError("Curve points require finite x and y coordinates");
-    }
-    if (!Number.isFinite(tension)) {
-      throw new TypeError("Curve tension must be finite");
-    }
+  function hasThreeCurvePoints(points) {
+    return Array.isArray(points) && points.length === 3;
+  }
 
+  function hasFiniteCurveCoordinates(points) {
+    return points.every(
+      (value) => value && Number.isFinite(value.x) && Number.isFinite(value.y),
+    );
+  }
+
+  function buildCurvePath(points, tension) {
     const [start, middle, end] = points;
     const tangentScale = (1 - tension) / 3;
     const tangent = {
@@ -97,6 +92,35 @@ module.exports = (function () {
       " " +
       formatCurvePoint(end)
     );
+  }
+
+  math.calculateCurvePath = function (points, tension = DEFAULT_CURVE_TENSION) {
+    if (!hasThreeCurvePoints(points)) {
+      throw new TypeError("A three-point curve requires exactly three points");
+    }
+    if (!hasFiniteCurveCoordinates(points)) {
+      throw new TypeError("Curve points require finite x and y coordinates");
+    }
+    if (!Number.isFinite(tension)) {
+      throw new TypeError("Curve tension must be finite");
+    }
+
+    return buildCurvePath(points, tension);
+  };
+
+  math.tryCalculateCurvePath = function (
+    points,
+    tension = DEFAULT_CURVE_TENSION,
+  ) {
+    if (
+      !hasThreeCurvePoints(points) ||
+      !hasFiniteCurveCoordinates(points) ||
+      !Number.isFinite(tension)
+    ) {
+      return undefined;
+    }
+
+    return buildCurvePath(points, tension);
   };
 
   /**
