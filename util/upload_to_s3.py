@@ -29,7 +29,7 @@ def main():
         "--region", region,
         "--bucket", bucket,
         "--prefix", prefix,
-        "--wait-for-cloudfront"
+        "--invalidate-cloudfront"
     ]
 
     try:
