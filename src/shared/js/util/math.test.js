@@ -54,6 +54,26 @@ describe("three-point property curves", () => {
     expect(path).not.toMatch(/e[+-]?\d/i);
   });
 
+  test("builds finite curves through the non-throwing rendering API", () => {
+    expect(
+      math.tryCalculateCurvePath([
+        { x: 0, y: 0 },
+        { x: 50, y: 100 },
+        { x: 100, y: 0 },
+      ]),
+    ).toBe("M0,0 Q40,100 50,100 Q60,100 100,0");
+  });
+
+  test("declines non-finite curve coordinates without throwing", () => {
+    expect(
+      math.tryCalculateCurvePath([
+        { x: 0, y: 0 },
+        { x: Number.NaN, y: 10 },
+        { x: 20, y: 20 },
+      ]),
+    ).toBeUndefined();
+  });
+
   test("reject non-finite curve coordinates", () => {
     expect(() => math.calculateCurvePath([
       { x: 0, y: 0 },

@@ -15,6 +15,63 @@ function finiteNumber( value ){
 module.exports = function (graphContainerSelector) {
 
 function measureViewportElement( element, fallbackWidth, fallbackHeight ){
+function isFinitePoint(point) {
+  return Boolean(point && Number.isFinite(point.x) && Number.isFinite(point.y));
+}
+
+const svgRenderingGuard = Object.freeze({
+  isFinitePoint,
+  setTransform(element, point, offset) {
+    if (!isFinitePoint(point) || (offset && !isFinitePoint(offset))) {
+      return false;
+    }
+
+    const offsetX = offset ? offset.x : 0;
+    const offsetY = offset ? offset.y : 0;
+    const x = point.x + offsetX;
+    const y = point.y + offsetY;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      return false;
+    }
+
+    element.setAttribute("transform", "translate(" + x + "," + y + ")");
+    return true;
+  },
+  setCurvePath(element, points, tension) {
+    const path = math.tryCalculateCurvePath(points, tension);
+    if (path === undefined) {
+      return false;
+    }
+
+    element.setAttribute("d", path);
+    return true;
+  },
+});
+
+function createInvalidGeometryReporter(target) {
+  let episodeActive = false;
+
+  return function (skippedUpdates) {
+    if (skippedUpdates === 0) {
+      episodeActive = false;
+      return;
+    }
+    if (episodeActive) {
+      return;
+    }
+
+    episodeActive = true;
+    target.dispatchEvent(
+      new CustomEvent("renderingwarning", {
+        detail: {
+          code: "NON_FINITE_GEOMETRY",
+          skippedUpdates,
+        },
+      }),
+    );
+  };
+}
+
   const normalizedFallbackWidth = finiteNumber(fallbackWidth);
   const normalizedFallbackHeight = finiteNumber(fallbackHeight);
   const fallback = {
@@ -37,6 +94,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
   };
 }
   const graph = new EventTarget();
+  const reportInvalidGeometry = createInvalidGeometryReporter(graph);
   const CARDINALITY_HDISTANCE = 20;
   const CARDINALITY_VDISTANCE = 10;
   const curveFunction = d3.svg
@@ -700,21 +758,32 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
   }
 
   function recalculatePositions() {
+    let skippedUpdates = 0;
+
     // Set node positions
 
     // add switch for edit mode to make this faster;
     if (!editMode) {
-      nodeElements.attr("transform", function (node) {
-        return "translate(" + node.x + "," + node.y + ")";
+      nodeElements.each(function (node) {
+        if (!svgRenderingGuard.setTransform(this, node)) {
+          skippedUpdates++;
+        }
       });
 
       // Set label group positions
-      labelGroupElements.attr("transform", function (label) {
+      labelGroupElements.each(function (label) {
         let position;
 
         // force centered positions on single-layered links
         const link = label.link();
         if (link.layers().length === 1 && !link.loops()) {
+          if (
+            !svgRenderingGuard.isFinitePoint(link.domain()) ||
+            !svgRenderingGuard.isFinitePoint(link.range())
+          ) {
+            skippedUpdates++;
+            return;
+          }
           const linkDomainIntersection = math.calculateIntersection(
             link.range(),
             link.domain(),
@@ -729,59 +798,116 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
             linkDomainIntersection,
             linkRangeIntersection,
           );
+          if (!svgRenderingGuard.isFinitePoint(position)) {
+            skippedUpdates++;
+            return;
+          }
           label.x = position.x;
           label.y = position.y;
         }
-        return "translate(" + label.x + "," + label.y + ")";
+        if (!svgRenderingGuard.setTransform(this, label)) {
+          skippedUpdates++;
+        }
       });
       // Set link paths and calculate additional information
-      linkPathElements.attr("d", function (l) {
-        if (l.isLoop()) {
-          return math.calculateLoopPath(l);
-        }
+      linkPathElements.each(function (l) {
         const curvePoint = l.label();
+        if (l.isLoop()) {
+          if (
+            !svgRenderingGuard.isFinitePoint(l.domain()) ||
+            !svgRenderingGuard.isFinitePoint(curvePoint)
+          ) {
+            skippedUpdates++;
+            return;
+          }
+          const loopPoints = math.getLoopPoints(l);
+          if (
+            !svgRenderingGuard.setCurvePath(
+              this,
+              [loopPoints[0], curvePoint, loopPoints[1]],
+              -1,
+            )
+          ) {
+            skippedUpdates++;
+          }
+          return;
+        }
+        if (
+          !svgRenderingGuard.isFinitePoint(curvePoint) ||
+          !svgRenderingGuard.isFinitePoint(l.domain()) ||
+          !svgRenderingGuard.isFinitePoint(l.range())
+        ) {
+          skippedUpdates++;
+          return;
+        }
         const pathStart = math.calculateIntersection(curvePoint, l.domain(), 1);
         const pathEnd = math.calculateIntersection(curvePoint, l.range(), 1);
 
-        return math.calculateCurvePath([pathStart, curvePoint, pathEnd]);
+        if (
+          !svgRenderingGuard.setCurvePath(this, [
+            pathStart,
+            curvePoint,
+            pathEnd,
+          ])
+        ) {
+          skippedUpdates++;
+        }
       });
 
       // Set cardinality positions
-      cardinalityElements.attr("transform", function (property) {
+      cardinalityElements.each(function (property) {
         const label = property.link().label(),
-          pos = math.calculateIntersection(
+          range = property.range();
+        if (
+          !svgRenderingGuard.isFinitePoint(label) ||
+          !svgRenderingGuard.isFinitePoint(range)
+        ) {
+          skippedUpdates++;
+          return;
+        }
+        const pos = math.calculateIntersection(
             label,
-            property.range(),
+            range,
             CARDINALITY_HDISTANCE,
           ),
           normalV = math.calculateNormalVector(
             label,
-            property.range(),
+            range,
             CARDINALITY_VDISTANCE,
           );
 
-        return (
-          "translate(" + (pos.x + normalV.x) + "," + (pos.y + normalV.y) + ")"
-        );
+        if (!svgRenderingGuard.setTransform(this, pos, normalV)) {
+          skippedUpdates++;
+        }
       });
 
+      reportInvalidGeometry(skippedUpdates);
       updateHaloRadius();
       return;
     }
 
     // TODO: this is Editor redraw function // we need to make this faster!!
 
-    nodeElements.attr("transform", function (node) {
-      return "translate(" + node.x + "," + node.y + ")";
+    nodeElements.each(function (node) {
+      if (!svgRenderingGuard.setTransform(this, node)) {
+        skippedUpdates++;
+      }
     });
 
     // Set label group positions
-    labelGroupElements.attr("transform", function (label) {
+    labelGroupElements.each(function (label) {
       let position;
 
       // force centered positions on single-layered links
       const link = label.link();
       if (link.layers().length === 1 && !link.loops()) {
+        if (
+          !svgRenderingGuard.isFinitePoint(link.domain()) ||
+          !svgRenderingGuard.isFinitePoint(link.range())
+        ) {
+          skippedUpdates++;
+          return;
+        }
         const linkDomainIntersection = math.calculateIntersection(
           link.range(),
           link.domain(),
@@ -796,26 +922,32 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
           linkDomainIntersection,
           linkRangeIntersection,
         );
+        if (
+          !svgRenderingGuard.isFinitePoint(linkDomainIntersection) ||
+          !svgRenderingGuard.isFinitePoint(linkRangeIntersection) ||
+          !svgRenderingGuard.isFinitePoint(position)
+        ) {
+          skippedUpdates++;
+          return;
+        }
         label.x = position.x;
         label.y = position.y;
         label.linkRangeIntersection = linkRangeIntersection;
         label.linkDomainIntersection = linkDomainIntersection;
+      } else {
         if (
           link.property().focused() === true ||
           hoveredPropertyElement !== undefined
         ) {
-          rangeDragger.updateElement();
-          domainDragger.updateElement();
-          // shadowClone.setPosition(link.property().range().x,link.property().range().y);
-          // shadowClone.setPositionDomain(link.property().domain().x,link.property().domain().y);
+          skippedUpdates++;
+          return;
         }
-      } else {
-        label.linkDomainIntersection = math.calculateIntersection(
+        const linkDomainIntersection = math.calculateIntersection(
           link.label(),
           link.domain(),
           0,
         );
-        label.linkRangeIntersection = math.calculateIntersection(
+        const linkRangeIntersection = math.calculateIntersection(
           link.label(),
           link.range(),
           0,
@@ -824,18 +956,47 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
           link.property().focused() === true ||
           hoveredPropertyElement !== undefined
         ) {
-          rangeDragger.updateElement();
-          domainDragger.updateElement();
-          // shadowClone.setPosition(link.property().range().x,link.property().range().y);
-          // shadowClone.setPositionDomain(link.property().domain().x,link.property().domain().y);
+          skippedUpdates++;
+          return;
         }
+        label.linkDomainIntersection = linkDomainIntersection;
+        label.linkRangeIntersection = linkRangeIntersection;
       }
-      return "translate(" + label.x + "," + label.y + ")";
+      if (
+        link.property().focused() === true ||
+        link.property() === hoveredPropertyElement
+      ) {
+        rangeDragger.updateElement();
+        domainDragger.updateElement();
+        // shadowClone.setPosition(link.property().range().x,link.property().range().y);
+        // shadowClone.setPositionDomain(link.property().domain().x,link.property().domain().y);
+      }
+      if (!svgRenderingGuard.setTransform(this, label)) {
+        skippedUpdates++;
+      }
     });
     // Set link paths and calculate additional information
-    linkPathElements.attr("d", function (l) {
+    linkPathElements.each(function (l) {
+      const curvePoint = l.label();
       if (l.isLoop()) {
+        if (
+          !svgRenderingGuard.isFinitePoint(l.domain()) ||
+          !svgRenderingGuard.isFinitePoint(curvePoint)
+        ) {
+          skippedUpdates++;
+          return;
+        }
         const ptrAr = math.getLoopPoints(l);
+        if (
+          !svgRenderingGuard.setCurvePath(
+            this,
+            [ptrAr[0], curvePoint, ptrAr[1]],
+            -1,
+          )
+        ) {
+          skippedUpdates++;
+          return;
+        }
         l.label().linkRangeIntersection = ptrAr[1];
         l.label().linkDomainIntersection = ptrAr[0];
 
@@ -846,11 +1007,24 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
           rangeDragger.updateElement();
           domainDragger.updateElement();
         }
-        return math.calculateLoopPath(l);
+        return;
       }
-      const curvePoint = l.label();
+      if (
+        !svgRenderingGuard.isFinitePoint(curvePoint) ||
+        !svgRenderingGuard.isFinitePoint(l.domain()) ||
+        !svgRenderingGuard.isFinitePoint(l.range())
+      ) {
+        skippedUpdates++;
+        return;
+      }
       const pathStart = math.calculateIntersection(curvePoint, l.domain(), 1);
       const pathEnd = math.calculateIntersection(curvePoint, l.range(), 1);
+      if (
+        !svgRenderingGuard.setCurvePath(this, [pathStart, curvePoint, pathEnd])
+      ) {
+        skippedUpdates++;
+        return;
+      }
       l.linkRangeIntersection = pathStart;
       l.linkDomainIntersection = pathEnd;
       if (
@@ -862,26 +1036,33 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
         // shadowClone.setPosition(l.property().range().x,l.property().range().y);
         // shadowClone.setPositionDomain(l.property().domain().x,l.property().domain().y);
       }
-      return math.calculateCurvePath([pathStart, curvePoint, pathEnd]);
     });
 
     // Set cardinality positions
-    cardinalityElements.attr("transform", function (property) {
+    cardinalityElements.each(function (property) {
       const label = property.link().label(),
-        pos = math.calculateIntersection(
+        range = property.range();
+      if (
+        !svgRenderingGuard.isFinitePoint(label) ||
+        !svgRenderingGuard.isFinitePoint(range)
+      ) {
+        skippedUpdates++;
+        return;
+      }
+      const pos = math.calculateIntersection(
           label,
-          property.range(),
+          range,
           CARDINALITY_HDISTANCE,
         ),
         normalV = math.calculateNormalVector(
           label,
-          property.range(),
+          range,
           CARDINALITY_VDISTANCE,
         );
 
-      return (
-        "translate(" + (pos.x + normalV.x) + "," + (pos.y + normalV.y) + ")"
-      );
+      if (!svgRenderingGuard.setTransform(this, pos, normalV)) {
+        skippedUpdates++;
+      }
     });
 
     if (hoveredNodeElement) {
@@ -895,6 +1076,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
       setDeleteHoverElementPositionProperty(hoveredPropertyElement);
     }
 
+    reportInvalidGeometry(skippedUpdates);
     updateHaloRadius();
   }
 
@@ -4720,5 +4902,7 @@ function measureViewportElement( element, fallbackWidth, fallbackHeight ){
 
 createGraph.viewportTransform = viewportTransform;
 createGraph.measureViewportElement = measureViewportElement;
+createGraph.svgRenderingGuard = svgRenderingGuard;
+createGraph.createInvalidGeometryReporter = createInvalidGeometryReporter;
 
 module.exports = createGraph;

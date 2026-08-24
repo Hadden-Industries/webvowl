@@ -13,6 +13,42 @@ module.exports = (function () {
         return d.y;
       })
       .curve(d3.curveCardinal.tension(-1));
+  function hasFiniteCurveCoordinates(points) {
+    return points.every(
+      (value) => value && Number.isFinite(value.x) && Number.isFinite(value.y),
+    );
+  }
+
+  function buildCurvePath(points, tension) {
+  }
+
+  math.calculateCurvePath = function (points, tension = DEFAULT_CURVE_TENSION) {
+    if (!hasThreeCurvePoints(points)) {
+      throw new TypeError("A three-point curve requires exactly three points");
+    }
+    if (!hasFiniteCurveCoordinates(points)) {
+      throw new TypeError("Curve points require finite x and y coordinates");
+    }
+    if (!Number.isFinite(tension)) {
+      throw new TypeError("Curve tension must be finite");
+    }
+
+    return buildCurvePath(points, tension);
+  };
+
+  math.tryCalculateCurvePath = function (
+    points,
+    tension = DEFAULT_CURVE_TENSION,
+  ) {
+    if (
+      !hasThreeCurvePoints(points) ||
+      !hasFiniteCurveCoordinates(points) ||
+      !Number.isFinite(tension)
+    ) {
+      return undefined;
+    }
+
+    return buildCurvePath(points, tension);
 
   /**
    * Calculates the normal vector of the path between the two nodes.
