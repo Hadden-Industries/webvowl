@@ -13,7 +13,9 @@ module.exports = (function () {
   tools.filterNodesAndTidy = function (nodes, properties, shouldKeepNode) {
     const removedNodes = require("./set")(),
       cleanedNodes = [],
-      cleanedProperties = [];
+      cleanedProperties = [],
+      referencedNodes = new Set(),
+      datatypeRangeCandidates = new Set();
 
     nodes.forEach(function (node) {
       if (shouldKeepNode(node)) {
@@ -26,12 +28,25 @@ module.exports = (function () {
     properties.forEach(function (property) {
       if (propertyHasVisibleNodes(removedNodes, property)) {
         cleanedProperties.push(property);
+        referencedNodes.add(property.domain());
+        referencedNodes.add(property.range());
       } else if (elementTools.isDatatypeProperty(property)) {
-        // Remove floating datatypes/literals, because they belong to their datatype property
-        const index = cleanedNodes.indexOf(property.range());
-        if (index >= 0) {
-          cleanedNodes.splice(index, 1);
+        const range = property.range();
+        if (elementTools.isDatatype(range)) {
+          datatypeRangeCandidates.add(range);
         }
+      }
+    });
+
+    // Remove only datatypes/literals that no surviving property references.
+    datatypeRangeCandidates.forEach(function (range) {
+      if (referencedNodes.has(range)) {
+        return;
+      }
+
+      const index = cleanedNodes.indexOf(range);
+      if (index >= 0) {
+        cleanedNodes.splice(index, 1);
       }
     });
 
