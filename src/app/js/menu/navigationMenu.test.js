@@ -107,6 +107,10 @@ class MockElement {
     return this.attributes[name] || "";
   }
 
+  removeAttribute(name) {
+    delete this.attributes[name];
+  }
+
   appendChild(child) {
     this.children.push(child);
     child.parentNode = this;
@@ -151,6 +155,20 @@ class MockElement {
     this.popoverState = "closed";
   }
 
+  focus(options) {
+    this.focusOptions = options;
+    if (this.ownerDocument) {
+      this.ownerDocument.activeElement = this;
+    }
+  }
+
+  contains(node) {
+    if (node === this) {
+      return true;
+    }
+    return this.children.some((child) => child.contains(node));
+  }
+
   querySelectorAll(selector) {
     if (
       selector.includes(".sheet-handle") ||
@@ -187,6 +205,18 @@ class MockCustomEvent {
   }
 }
 
+/**
+ * These lightweight DOM doubles test WebVOWL's side of the Popover API
+ * contract; Jest cannot reproduce WebKit's native focus-controller loop. The
+ * regression signal is therefore structural and behavioral: standalone touch
+ * setup must remove the declarative trigger, call `showPopover` with no source,
+ * maintain the accessibility state that the trigger previously supplied, and
+ * restore focus without overriding a subsequent light-dismiss target.
+ *
+ * Desktop remains the control case. If setup mutates its `popovertarget` or
+ * invokes the Popover API itself, the desktop test fails before a browser can
+ * silently lose native focus management.
+ */
 describe("navigationMenu and popover event listeners", () => {
   let elementMap;
 
@@ -209,6 +239,15 @@ describe("navigationMenu and popover event listeners", () => {
       getElementById: (id) => getOrCreateElement(id),
       querySelector: (selector) => getOrCreateElement(selector),
       querySelectorAll: (selector) => {
+        if (selector === ".navButton[popovertarget]") {
+          // Model toolbar openers only. Popover close buttons also carry a
+          // `popovertarget`, but lack `.navButton` and must retain their native
+          // hide action in standalone mode.
+          return [
+            getOrCreateElement("selectMenuButton"),
+            getOrCreateElement("exportMenuButton"),
+          ];
+        }
         if (selector === ".navButton") {
           return [
             getOrCreateElement("locateSearchResult"),
@@ -226,6 +265,8 @@ describe("navigationMenu and popover event listeners", () => {
       createElement: (tag) => new MockElement("", "", tag),
       createElementNS: (ns, tag) => new MockElement("", "", tag),
     };
+    global.document.body.ownerDocument = global.document;
+    global.document.activeElement = global.document.body;
 
     global.window = {
       addEventListener: () => {},
@@ -247,6 +288,15 @@ describe("navigationMenu and popover event listeners", () => {
       getOrCreateElement("m_select"),
       getOrCreateElement("m_export"),
     ];
+
+    getOrCreateElement("selectMenuButton").setAttribute(
+      "popovertarget",
+      "m_select",
+    );
+    getOrCreateElement("exportMenuButton").setAttribute(
+      "popovertarget",
+      "m_export",
+    );
 
     global.d3 = d3;
     global.requestAnimationFrame = (fn) => setTimeout(fn, 16);
@@ -337,6 +387,109 @@ describe("navigationMenu and popover event listeners", () => {
     navMenu.updateScrollButtonVisibility();
     expect(leftButton.classList.contains("hidden")).toBe(true);
     expect(rightButton.classList.contains("hidden")).toBe(true);
+  });
+
+  describe("standalone touch popover focus workaround", () => {
+    test("opens without an invoker source and maintains expanded state", () => {
+      global.window.matchMedia = jest.fn(() => ({ matches: true }));
+      const mockGraph = {
+        options: () => ({
+          navigationMenu: () => ({ hideAllMenus: () => {} }),
+          exportMenu: () => ({ exportAsUrl: jest.fn() }),
+        }),
+      };
+      const popover = getOrCreateElement("m_export");
+      const nativeShowPopover = popover.showPopover.bind(popover);
+      popover.showPopover = jest.fn(nativeShowPopover);
+
+      navigationMenuFactory(mockGraph).setup();
+
+      const opener = getOrCreateElement("exportMenuButton");
+      opener.dispatchEvent(new CustomEvent("click", { cancelable: true }));
+
+      expect(window.matchMedia).toHaveBeenCalledWith(
+        "(display-mode: standalone) and (hover: none) and (pointer: coarse)",
+      );
+      expect(opener.getAttribute("popovertarget")).toBe("");
+      expect(opener.getAttribute("aria-controls")).toBe("m_export");
+      // This zero-argument assertion is the core regression guard. Passing the
+      // opener as `source` would make it WebKit's focus-navigation scope owner
+      // and restore the condition that can freeze the installed iOS app.
+      expect(popover.showPopover).toHaveBeenCalledWith();
+
+      popover.dispatchEvent(new CustomEvent("toggle", { newState: "open" }));
+      expect(opener.getAttribute("aria-expanded")).toBe("true");
+    });
+
+    test("restores focus to the opener when a focused popover closes", () => {
+      global.window.matchMedia = jest.fn(() => ({ matches: true }));
+      const mockGraph = {
+        options: () => ({
+          navigationMenu: () => ({ hideAllMenus: () => {} }),
+          exportMenu: () => ({ exportAsUrl: jest.fn() }),
+        }),
+      };
+      const popover = getOrCreateElement("m_export");
+      const input = new MockElement("exportedUrl", "", "input");
+      input.ownerDocument = global.document;
+      popover.appendChild(input);
+
+      navigationMenuFactory(mockGraph).setup();
+
+      const opener = getOrCreateElement("exportMenuButton");
+      opener.dispatchEvent(new CustomEvent("click", { cancelable: true }));
+      global.document.activeElement = input;
+      popover.popoverState = "closed";
+      popover.dispatchEvent(new CustomEvent("toggle", { newState: "closed" }));
+
+      expect(opener.getAttribute("aria-expanded")).toBe("false");
+      expect(global.document.activeElement).toBe(opener);
+      expect(opener.focusOptions).toEqual({ preventScroll: true });
+    });
+
+    test("does not steal focus from an external control after light dismiss", () => {
+      global.window.matchMedia = jest.fn(() => ({ matches: true }));
+      const mockGraph = {
+        options: () => ({
+          navigationMenu: () => ({ hideAllMenus: () => {} }),
+          exportMenu: () => ({ exportAsUrl: jest.fn() }),
+        }),
+      };
+      const popover = getOrCreateElement("m_export");
+      const externalControl = getOrCreateElement("sidebarExpandButton");
+
+      navigationMenuFactory(mockGraph).setup();
+
+      const opener = getOrCreateElement("exportMenuButton");
+      opener.dispatchEvent(new CustomEvent("click", { cancelable: true }));
+      global.document.activeElement = externalControl;
+      popover.popoverState = "closed";
+      popover.dispatchEvent(new CustomEvent("toggle", { newState: "closed" }));
+
+      // `toggle` is queued. By the time it runs, a light-dismiss target may
+      // already own focus; restoration must not undo that later interaction.
+      expect(global.document.activeElement).toBe(externalControl);
+      expect(opener.focusOptions).toBeUndefined();
+    });
+
+    test("leaves declarative popover invocation untouched on desktop", () => {
+      const mockGraph = {
+        options: () => ({
+          navigationMenu: () => ({ hideAllMenus: () => {} }),
+        }),
+      };
+      const popover = getOrCreateElement("m_export");
+      popover.showPopover = jest.fn(popover.showPopover.bind(popover));
+
+      navigationMenuFactory(mockGraph).setup();
+
+      const opener = getOrCreateElement("exportMenuButton");
+      opener.dispatchEvent(new CustomEvent("click", { cancelable: true }));
+
+      expect(opener.getAttribute("popovertarget")).toBe("m_export");
+      expect(opener.getAttribute("aria-controls")).toBe("");
+      expect(popover.showPopover).not.toHaveBeenCalled();
+    });
   });
 
   describe("Popover toggle event synchronization", () => {

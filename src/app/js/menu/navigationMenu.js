@@ -17,6 +17,115 @@ module.exports = function (graph) {
   let c_select = [];
   let m_select = [];
 
+  /**
+   * Installed iOS apps need a narrowly scoped exception to declarative
+   * popover invocation. WebKit bug 286146 (a duplicate of 285811) documents
+   * an infinite focus-navigation loop when a form control is focused inside
+   * some invoker-owned popovers:
+   * https://bugs.webkit.org/show_bug.cgi?id=286146
+   *
+   * A button with `popovertarget` becomes the popover's trigger. That trigger
+   * owns a separate focus-navigation scope while the popover is showing. The
+   * workaround below opens the same native popover without a trigger, avoiding
+   * the faulty scope while retaining top-layer rendering and light-dismiss.
+   * These variables retain the opener information that the browser would
+   * otherwise own so ARIA state and safe focus restoration can be maintained.
+   */
+  const standalonePopoverOpeners = new Map();
+  let activeStandalonePopoverOpener;
+
+  function needsStandalonePopoverFocusWorkaround() {
+    try {
+      // `display-mode` limits the workaround to installed/home-screen apps;
+      // the input-capability checks exclude desktop Safari and hybrid devices
+      // whose primary interaction still provides hover and a fine pointer.
+      return window.matchMedia(
+        "(display-mode: standalone) and (hover: none) and (pointer: coarse)",
+      ).matches;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Restore only the focus behavior lost when `popovertarget` is removed.
+   *
+   * A close button, Escape, or swipe dismissal can leave focus inside the
+   * closing popover (or on `body` after WebKit clears it), in which case the
+   * opener is the appropriate destination. Light-dismiss can instead be
+   * caused by activating another control. The queued `toggle` event may run
+   * after that control receives focus, so unconditional restoration would
+   * steal focus and make the newly activated control appear unresponsive.
+   */
+  function restoreStandalonePopoverFocus(popoverNode, openerNode) {
+    if (!openerNode || activeStandalonePopoverOpener !== openerNode) {
+      return;
+    }
+
+    const activeElement = document.activeElement;
+    const focusStayedInPopover =
+      activeElement &&
+      typeof popoverNode.contains === "function" &&
+      popoverNode.contains(activeElement);
+    if (activeElement !== document.body && !focusStayedInPopover) {
+      return;
+    }
+
+    try {
+      openerNode.focus({ preventScroll: true });
+    } catch {
+      openerNode.focus();
+    }
+  }
+
+  function setupStandalonePopoverFocusWorkaround() {
+    if (!needsStandalonePopoverFocusWorkaround()) {
+      return;
+    }
+
+    document
+      .querySelectorAll(".navButton[popovertarget]")
+      .forEach(function (openerNode) {
+        const popoverId = openerNode.getAttribute("popovertarget");
+        const popoverNode = document.getElementById(popoverId);
+        if (!popoverId || !popoverNode) {
+          return;
+        }
+
+        // Removing the attribute before activation prevents the browser from
+        // installing `openerNode` as the native popover trigger. Do not replace
+        // the zero-argument `showPopover()` call below with
+        // `showPopover({ source: openerNode })` or an equivalent invoker API:
+        // supplying a source would recreate the focus scope this code avoids.
+        // Because declarative accessibility state is also removed, the toggle
+        // listener below synchronizes `aria-expanded` explicitly.
+        openerNode.removeAttribute("popovertarget");
+        openerNode.setAttribute("aria-controls", popoverId);
+        openerNode.setAttribute("aria-expanded", "false");
+        openerNode.addEventListener("click", function () {
+          try {
+            if (popoverNode.matches(":popover-open")) {
+              popoverNode.hidePopover();
+              return;
+            }
+
+            navigationMenu.hideAllMenus();
+            standalonePopoverOpeners.set(popoverNode, openerNode);
+            activeStandalonePopoverOpener = openerNode;
+            popoverNode.showPopover();
+          } catch {
+            // A light-dismiss or competing opener can change top-layer state
+            // between click dispatch and the Popover API call. Leave the
+            // button collapsed and discard stale restoration state if so.
+            standalonePopoverOpeners.delete(popoverNode);
+            if (activeStandalonePopoverOpener === openerNode) {
+              activeStandalonePopoverOpener = undefined;
+            }
+          }
+        });
+      });
+  }
+
   function setPopoverInlineStart(node, value) {
     if (!node || !node.style || typeof node.style.setProperty !== "function") {
       return;
@@ -281,6 +390,7 @@ module.exports = function (graph) {
 
   navigationMenu.setup = function () {
     setupControlsAndMenus();
+    setupStandalonePopoverFocusWorkaround();
     // Allow popover light-dismiss natively on click; avoid closing on hover across graph gap
     const graphElement = document.querySelector("#graph");
     if (graphElement) {
@@ -315,6 +425,16 @@ module.exports = function (graph) {
           event && event.newState
             ? event.newState === "open"
             : this.matches(":popover-open");
+        const standaloneOpener = standalonePopoverOpeners.get(this);
+        if (standaloneOpener) {
+          // Native `popovertarget` normally exposes this relationship. The
+          // standalone workaround removed that attribute, so mirror the real
+          // toggle state rather than predicting it in the click handler.
+          standaloneOpener.setAttribute(
+            "aria-expanded",
+            isOpen ? "true" : "false",
+          );
+        }
 
         // Reset drag classes and runtime positioning data when state changes.
         this.classList.remove(
@@ -345,6 +465,13 @@ module.exports = function (graph) {
             const ctrlEl = document.querySelector("#" + controllerId);
             if (ctrlEl) {
               ctrlEl.classList.remove("active-menu-item");
+            }
+          }
+          if (standaloneOpener) {
+            restoreStandalonePopoverFocus(this, standaloneOpener);
+            standalonePopoverOpeners.delete(this);
+            if (activeStandalonePopoverOpener === standaloneOpener) {
+              activeStandalonePopoverOpener = undefined;
             }
           }
         }
