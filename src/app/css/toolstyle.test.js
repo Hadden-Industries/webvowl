@@ -26,6 +26,10 @@ describe("mobile toolbar styles", () => {
   });
 
   test("keeps text fields selectable inside no-selection menu surfaces", () => {
+    // The popover fields inherit from `.modern-popover.noselect`, whereas the
+    // toolbar search field has its own selectable rule. Assert both contracts:
+    // the prefixed declaration protects iOS WebKit, the standard declaration
+    // protects other engines, and the callout restores long-press selection.
     const popoverTextFieldRule = stylesheet.match(
       /#iri-converter-input,\s*#exportedUrl\s*\{([^{}]+)\}/,
     );
@@ -34,6 +38,7 @@ describe("mobile toolbar styles", () => {
     );
 
     expect(popoverTextFieldRule).not.toBeNull();
+    expect(popoverTextFieldRule[1]).toContain("-webkit-user-select: text");
     expect(popoverTextFieldRule[1]).toContain("user-select: text");
     expect(popoverTextFieldRule[1]).toContain("-webkit-touch-callout: default");
 

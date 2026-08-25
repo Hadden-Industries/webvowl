@@ -2359,8 +2359,19 @@ li#c_search input.searchInputText {
 
 #iri-converter-input,
 #exportedUrl {
+  /*
+   * Both fields are descendants of `.modern-popover.noselect`, whose
+   * `user-select: none` and disabled touch callout are appropriate for menu
+   * chrome but must not make form text unselectable. iOS WebKit can consult
+   * the prefixed selection property independently of the standard property,
+   * so keep both declarations in this order. This rule only makes selection
+   * eligible; navigationMenu.js separately avoids the iOS popover focus hang.
+   */
+  /* stylelint-disable-next-line property-no-vendor-prefix -- Required for iOS WebKit selection. */
+  -webkit-user-select: text;
   user-select: text;
 
+  /* Restore the native long-press selection/copy affordance suppressed by `.noselect`. */
   -webkit-touch-callout: default;
 }
 
