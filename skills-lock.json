@@ -53,7 +53,7 @@
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/committing-to-git/SKILL.md",
-      "computedHash": "d85545b77e0389728a2f3ad689e8e08a9ec5b9ace3ad301973d37934f50f2071"
+      "computedHash": "35a57350515ca39dfc60a4ed9ca732149cb0cf19b3eacae5339d758d6ab65f41"
     },
     "diagnosing-bugs": {
       "source": "mattpocock/skills",
