@@ -2,8 +2,8 @@
 
 > **Status:** Deferred architecture and implementation blueprint; no implementation begins until the predecessor Phase 20 completion gate is evidenced.<br>
 > **Research baseline:** 25 August 2026.<br>
-> **Predecessor:** [`docs/owlapi-js/implementation-plan.md`](../owlapi-js/implementation-plan.md), especially §17.27, “Phase 20 — stabilize and publish `owlapi@1.0.1`.”<br>
-> **Related post-1.0 programme:** [`docs/owlapi-js/post-1.0-capability-implementation-plan.md`](../owlapi-js/post-1.0-capability-implementation-plan.md). This cache does not absorb that programme’s imports-closure query, merger, mutation, or storage responsibilities.<br>
+> **Predecessor:** [`docs/owlapi-js/implementation-plan.md`](../owlapi-js/implementation-plan.md), especially §17.27, “Phase 20 — qualify and publish production-recommended `owlapi@0.1.0`.”<br>
+> **Related ontology-lifecycle programme:** [`docs/owlapi-js/ontology-lifecycle-capability-implementation-plan.md`](../owlapi-js/ontology-lifecycle-capability-implementation-plan.md). This cache does not absorb that programme’s imports-closure query, merger, mutation, or storage responsibilities.<br>
 > **Execution rule:** Implement each cache phase in order, preserve the RED → GREEN → REFACTOR discipline for observable changes, and stop at every configuration, deployment, publication, commit, and push approval gate.<br>
 > **Goal:** Allow WebVOWL to resolve an ontology document or any document in its import closure when a browser cannot retrieve the source because of CORS or mixed-content policy, while serving every subsequent successful resolution from a validated, content-addressed, transparently reported CloudFront/S3 cache.<br>
 > **Architecture:** Keep ordinary reads on a CloudFront → private S3 data plane. Invoke a small CloudFront → Lambda Function URL → DynamoDB/SQS control plane only for a previously unknown or refresh-due source document. Validate the exact stored representation with the same public `owlapi` npm package and loader profile used by WebVOWL before publishing any catalog mapping.<br>
@@ -16,7 +16,7 @@
 
 This plan makes the following decisions deliberately and treats them as implementation constraints rather than suggestions:
 
-1. **Start only after Phase 20.** The current in-repository `src/owlapi-js/` tree is not an implementation target. At the starting checkpoint, WebVOWL must already consume the exact accepted stable registry artefact through public `owlapi` entry points only.
+1. **Start only after Phase 20.** The current in-repository `src/owlapi-js/` tree is not an implementation target. At the starting checkpoint, WebVOWL must already consume the exact accepted production registry artefact through public `owlapi` entry points only.
 2. **Use the installed `owlapi` package in both runtimes.** WebVOWL uses it to parse user-requested documents and imports; the materialization worker uses the same exact package coordinate and validation profile to decide whether bytes are eligible for publication.
 3. **Keep network policy outside `owlapi`.** `owlapi` remains free of ambient networking. WebVOWL supplies its application-owned document loader. The Lambda worker supplies a separately controlled, SSRF-resistant representation retriever.
 4. **Materialize documents, not collapsed closures.** The service stores one validated ontology document per artifact. WebVOWL and `owlapi` continue to traverse the import graph. This service enables closure resolution but does not merge, flatten, rewrite, or publish a closure as one ontology.
@@ -58,23 +58,29 @@ Cache Phase 0 may inspect and record evidence, but no production or test impleme
 
 The implementer must verify the completion evidence required by §17.27.6 of the predecessor plan:
 
-- npm `latest` resolves to the accepted stable cutover coordinate—normally `owlapi@1.0.1`, or only the exact corrective/contingency patch recorded by Phase 20;
+- npm `latest` resolves to the accepted production cutover coordinate—normally `owlapi@0.1.0`, or only the exact corrective/contingency patch recorded by Phase 20;
 - the registry tarball, source tag, provenance, integrity, SBOM, release evidence, and immutable GitHub release agree;
 - WebVOWL declares that exact registry coordinate and resolves it through its committed lockfile;
 - WebVOWL has no maintained package copy, workspace/local/Git dependency, resolver alias, or source-tree fallback;
 - imports use only approved public specifiers such as `owlapi`, `owlapi/apibinding`, `owlapi/model`, `owlapi/io`, and `owlapi/formats`; and
 - all Phase 20 WebVOWL tests, development build, production build, production ontology corpus, and import-aware workloads pass.
 
-The normal coordinate is written as `1.0.1` in the predecessor plan, but this plan must read the recorded Phase 20 stable cutover coordinate rather than assuming that the extraordinary contingency branches did not run.
+The normal coordinate is `0.1.0`, but this plan must read the recorded Phase 20 production cutover coordinate rather than assuming that the extraordinary contingency branches did not run.
 
-### 2.2 Relationship to `owlapi@1.4.0`
+### 2.2 Relationship to the expected `owlapi@0.2.0` lifecycle programme
 
-The post-1.0 capability plan targets `owlapi@1.4.0` because the unrelated historical npm coordinates `1.1.0` through `1.3.0` cannot be reused. This cache does **not** require the closure-query, merger, mutation, or storer slice in that release. Therefore:
+The ontology-lifecycle capability plan normally targets `owlapi@0.2.0`, or the next available zero-minor if an intervening incompatible correction consumes that coordinate. This cache does **not** require the closure-query, merger, mutation, or storer slice in that release. Therefore:
 
-- the cache may start after Phase 20 even if the `1.4.0` programme has not started;
-- if WebVOWL has already accepted a later stable `owlapi` release when Cache Phase 0 begins, both WebVOWL and the Lambda validator use that exact accepted coordinate;
+- the cache may start after Phase 20 even if the lifecycle programme has not started;
+- if WebVOWL has already accepted a later production `owlapi` release when Cache Phase 0 begins, both WebVOWL and the Lambda validator use that exact accepted coordinate;
 - the Lambda deployment must never lag on a parser version that WebVOWL no longer uses; and
-- if the accepted public document-loader/source contract cannot preserve the source document IRI while retrieving bytes from an artifact IRI, implementation stops. The missing general capability is proposed through the canonical `owlapi` post-1.0 API process and published before WebVOWL integration. No private or deep import is an acceptable workaround.
+- if the accepted public document-loader/source contract cannot preserve the source document IRI while retrieving bytes from an artifact IRI, implementation stops. The missing general capability is proposed through the canonical `owlapi` public-surface and zero-major release process and published before WebVOWL integration. No private or deep import is an acceptable workaround.
+
+This cache plan accepts an exact already-published `owlapi` coordinate; it does
+not itself allocate or require a new package version. If it discovers a genuine
+package defect or missing general capability, that work follows a separately
+approved package change and the then-current zero-major version policy before
+cache integration resumes.
 
 ### 2.3 Package boundary invariants
 
@@ -144,7 +150,7 @@ Commit steps later in this plan are proposed review checkpoints. Repository poli
 - A general-purpose anonymous CORS proxy that returns arbitrary upstream bytes.
 - HTML, images, scripts, archives, SPARQL endpoints, authenticated resources, cookies, or user-supplied request headers.
 - Ontology consistency checking, satisfiability, entailment, reasoner execution, OWL profile classification as an acceptance gate, or a requirement for an explicit `owl:Ontology` declaration.
-- Server-side import traversal, closure collapse, `OWLOntologyMerger`, storage through the post-1.0 storer APIs, or a universal-ontology publication workflow.
+- Server-side import traversal, closure collapse, `OWLOntologyMerger`, storage through the ontology-lifecycle storer APIs, or a universal-ontology publication workflow.
 - Automatic alias creation from a parsed ontology IRI, version IRI, namespace, redirect target, `owl:sameAs`, or HTTP canonical link.
 - Remote JSON-LD context retrieval or XML external-entity retrieval during validation.
 - User accounts, API keys, per-user quotas, billing, or a paid service tier.
@@ -301,7 +307,7 @@ WebVOWL UI / owl2vowl composition root
 
 The architecture uses four intentional seams:
 
-1. **`owlapi` document-loader interface** — stable package seam. WebVOWL supplies one object implementing `load(documentIRI, { config, signal })`. The cache policy is hidden behind that small interface.
+1. **`owlapi` document-loader interface** — accepted public package seam. WebVOWL supplies one object implementing `load(documentIRI, { config, signal })`. The cache policy is hidden behind that small interface.
 2. **Materialization HTTP contract** — browser/control-plane seam. It exposes only submission/status/error/redirect semantics, not DynamoDB state or worker internals.
 3. **Registry interface** — API/worker/catalog seam. Conditional state transitions, leases, negative-cache rules, and catalog eligibility are implemented in one cohesive module.
 4. **Catalog projection contract** — control-plane/data-plane seam. DynamoDB state becomes immutable OASIS generations and one short-lived stable root.
@@ -662,7 +668,7 @@ ontology/catalogs/seed/v1/catalog-v001.xml
 ontology/catalogs/dynamic/sha256/{catalogGenerationSha256}/catalog-v001.xml
 ```
 
-No extension is appended to an artifact digest. `.owl`, `.rdf`, `.ttl`, and `.jsonld` are syntax hints, not stable truth, and the stable public `owlapi` manager may accept content despite an absent or misleading source suffix.
+No extension is appended to an artifact digest. `.owl`, `.rdf`, `.ttl`, and `.jsonld` are syntax hints, not stable truth, and the accepted public `owlapi` manager may accept content despite an absent or misleading source suffix.
 
 ### 10.3 Artifact write contract
 
@@ -820,7 +826,7 @@ At build and deployment time, `verifyOwlapiRuntimeParity` must fail unless:
 - neither uses a local/workspace/Git/alias/deep path;
 - the worker bundle contains that coordinate once;
 - both runtime smoke tests report the same package version and profile ID; and
-- representative accepted/rejected fixture digests produce the same outcome and stable public error code in browser and Node.js 24.
+- representative accepted/rejected fixture digests produce the same outcome and accepted public error code in browser and Node.js 24.
 
 The comparison is semantic, not an assumption that two lockfile text snippets happen to look alike.
 
@@ -830,11 +836,11 @@ The service stores representation bytes after HTTP content-coding removal. It re
 
 The validator and browser reader both use streaming UTF-8 decoding equivalent to Fetch `Response.text()` for the supported initial contract. The worker hashes/stores bytes, not the resulting JavaScript string. This preserves content addressing and makes the browser parse the same representation it validated.
 
-If the seed corpus demonstrates a required valid non-UTF-8 source that the stable public `StringDocumentSource` cannot represent faithfully, the cache implementation pauses. A general byte/document-source capability must be added to `owlapi` through its post-1.0 public-surface process; the worker must not invent a private decoder path or silently transcode a source with changed semantics.
+If the seed corpus demonstrates a required valid non-UTF-8 source that the accepted public `StringDocumentSource` cannot represent faithfully, the cache implementation pauses. A general byte/document-source capability must be added to `owlapi` through its public-surface and zero-major release process; the worker must not invent a private decoder path or silently transcode a source with changed semantics.
 
 ### 11.5 Parsed metadata
 
-After successful validation, the worker may read only stable public ontology methods to record:
+After successful validation, the worker may read only accepted public ontology methods to record:
 
 - ontology IRI and version IRI, when declared;
 - import-declaration count;
@@ -1514,7 +1520,7 @@ const configuration = OWLOntologyLoaderConfiguration.defaults()
   .withRemoteJsonLdContexts(false);
 ```
 
-The exact import locations and copying method names come from the accepted stable API. A public-registry consumer test owns this example. Do not make the loader an `OWLOntologyIRIMapper`: it must receive the original requested document IRI, consult the catalog internally, retrieve a different artifact IRI, and return a source whose `documentIRI` remains original. Mapping at the manager level would otherwise risk making the content-addressed artifact IRI the base for relative IRIs.
+The exact import locations and copying method names come from the accepted public API. A public-registry consumer test owns this example. Do not make the loader an `OWLOntologyIRIMapper`: it must receive the original requested document IRI, consult the catalog internally, retrieve a different artifact IRI, and return a source whose `documentIRI` remains original. Mapping at the manager level would otherwise risk making the content-addressed artifact IRI the base for relative IRIs.
 
 ### 17.5 Progress and user-visible diagnostics
 
@@ -1676,11 +1682,11 @@ Lambda/Functions/DisableCloudFrontOnCostLimit.js
 No `owlapi` source change is expected. Cache Phase 0 records:
 
 - exact installed coordinate and tarball integrity;
-- stable public loader/source/config/error methods used by browser and worker;
+- accepted public loader/source/config/error methods used by browser and worker;
 - installed-package Node/browser fixtures proving source-document-IRI preservation; and
 - the validation-profile configuration.
 
-If that proof fails, open a separately scoped additive capability in the canonical package repository, update its Public API Surface Registry/capability evidence, publish it under the then-current post-1.0 release policy, and make both consumers accept the registry artefact. This cache plan does not prescribe a speculative package version and never edits a copy inside WebVOWL.
+If that proof fails, open a separately scoped capability in the canonical package repository, update its Public API Surface Registry/capability evidence, publish it under the then-current zero-major release policy, and make both consumers accept the registry artefact. This cache plan does not prescribe a speculative package version and never edits a copy inside WebVOWL.
 
 ---
 
@@ -1814,7 +1820,7 @@ npm run build
 
 **Completion gate**
 
-The exact stable package is a real third-party-style dependency; the source/retrieval IRI test passes through public exports; all current gates are green. Otherwise this cache programme is blocked at the package seam.
+The exact accepted package is a real third-party-style dependency; the source/retrieval IRI test passes through public exports; all current gates are green. Otherwise this cache programme is blocked at the package seam.
 
 **Suggested commit checkpoint:** `docs: record validated ontology cache execution baseline`
 
@@ -2552,7 +2558,7 @@ npm run build
 
 **Completion gate**
 
-The loader is a deep application module behind the stable `owlapi` seam, with one deterministic precedence/error policy and no duplicate mapping/fetch logic.
+The loader is a deep application module behind the accepted public `owlapi` seam, with one deterministic precedence/error policy and no duplicate mapping/fetch logic.
 
 **Suggested commit checkpoint:** `feat: add cache-aware ontology document loader`
 
@@ -2794,7 +2800,7 @@ Every §23 definition-of-done condition has dated evidence, the operator handoff
 ### 21.1 Rollout order
 
 ```text
-Phase 20 stable package proof
+Phase 20 production package proof
   → contracts/security/domain tests
   → private regional resources
   → dark CloudFront behaviours + WAF COUNT + logs
@@ -2935,7 +2941,7 @@ This programme is complete only when all of the following are true:
 ### 24.1 Local architecture/package sources
 
 - [`docs/owlapi-js/implementation-plan.md`](../owlapi-js/implementation-plan.md)
-- [`docs/owlapi-js/post-1.0-capability-implementation-plan.md`](../owlapi-js/post-1.0-capability-implementation-plan.md)
+- [`docs/owlapi-js/ontology-lifecycle-capability-implementation-plan.md`](../owlapi-js/ontology-lifecycle-capability-implementation-plan.md)
 - Current WebVOWL `src/owl2vowl/js/constants.js`, `importResolver.js`, `index.js`, `src/app/js/loadingModule.js`, and `src/shared/js/util/resolveFetchUrl.js` as migration evidence only.
 - Current `amazon-aws/app.py`, `infrastructure/stack.py`, `CloudFront/Functions/RewriteOntologyURI.js`, and `Lambda/Functions/DisableCloudFrontOnCostLimit.js` as deployment evidence only.
 
