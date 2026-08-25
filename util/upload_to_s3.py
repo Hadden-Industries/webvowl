@@ -29,7 +29,8 @@ def main():
         "--region", region,
         "--bucket", bucket,
         "--prefix", prefix,
-        "--invalidate-cloudfront"
+        "--invalidate-cloudfront",
+        "--delete"
     ]
 
     try:
