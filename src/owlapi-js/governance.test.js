@@ -607,7 +607,9 @@ describe("owlapi-js governance artifacts", () => {
       return;
     }
     for (const revision of revisions) {
-      if (isAncestorOfHead(revision)) continue;
+      if (isAncestorOfHead(revision)) {
+        continue;
+      }
 
       const reconstructed = reconstructionByOriginal.get(revision);
       expect(reconstructed).toBeDefined();

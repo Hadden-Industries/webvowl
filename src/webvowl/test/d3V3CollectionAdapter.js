@@ -49,8 +49,11 @@ function installD3V3CollectionAdapter() {
   globalThis.d3 = { ...previousD3, map: createMap, set: createSet };
 
   return () => {
-    if (previousD3 === undefined) delete globalThis.d3;
-    else globalThis.d3 = previousD3;
+    if (previousD3 === undefined) {
+      delete globalThis.d3;
+    } else {
+      globalThis.d3 = previousD3;
+    }
   };
 }
 
