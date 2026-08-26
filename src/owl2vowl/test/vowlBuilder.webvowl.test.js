@@ -4,6 +4,12 @@ import { readFileSync } from "node:fs";
 import owl2vowl from "../js/index.js";
 
 const require = createRequire(import.meta.url);
+const {
+  installD3V3CollectionAdapter,
+} = require("../../webvowl/test/d3V3CollectionAdapter.js");
+const restoreD3 = installD3V3CollectionAdapter();
+afterAll(restoreD3);
+
 const createWebVowlParser = require("../../webvowl/js/parser.js");
 
 const graphStub = () => ({

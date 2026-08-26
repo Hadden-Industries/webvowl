@@ -2,33 +2,19 @@ const OwlClass = require("../elements/nodes/implementations/OwlClass");
 const RdfsSubClassOf = require("../elements/properties/implementations/RdfsSubClassOf");
 const ObjectProperty = require("../elements/properties/implementations/OwlObjectProperty");
 const subclassFilterFactory = require("./subclassFilter");
+const {
+  installD3V3CollectionAdapter,
+} = require("../../test/d3V3CollectionAdapter");
+
+const restoreD3 = installD3V3CollectionAdapter();
+afterAll(restoreD3);
 
 describe("Collapsing of subclassOf properties", () => {
   let collapser;
-  let originalD3;
 
   beforeEach(() => {
-    originalD3 = global.d3;
-    // Reconstructed main retains WebVOWL's D3 v3-backed set adapter; provide
-    // only that legacy contract so this unit test remains transport-neutral.
-    global.d3 = {
-      set: (values) => {
-        const members = new Set((values ?? []).map(String));
-        return {
-          add: (value) => members.add(String(value)),
-          empty: () => members.size === 0,
-          has: (value) => members.has(String(value)),
-          remove: (value) => members.delete(String(value)),
-          size: () => members.size,
-        };
-      },
-    };
     collapser = subclassFilterFactory();
     collapser.enabled(true);
-  });
-
-  afterEach(() => {
-    global.d3 = originalD3;
   });
 
   test("should remove subclasses and their properties", () => {

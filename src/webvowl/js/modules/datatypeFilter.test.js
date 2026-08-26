@@ -1,3 +1,10 @@
+const {
+  installD3V3CollectionAdapter,
+} = require("../../test/d3V3CollectionAdapter");
+
+const restoreD3 = installD3V3CollectionAdapter();
+afterAll(restoreD3);
+
 const OwlClass = require("../elements/nodes/implementations/OwlClass");
 const RdfsDatatype = require("../elements/nodes/implementations/RdfsDatatype");
 const DatatypeProperty = require("../elements/properties/implementations/OwlDatatypeProperty");

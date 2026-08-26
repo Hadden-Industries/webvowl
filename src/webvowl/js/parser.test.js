@@ -1,3 +1,10 @@
+const {
+  installD3V3CollectionAdapter,
+} = require("../test/d3V3CollectionAdapter");
+
+const restoreD3 = installD3V3CollectionAdapter();
+afterAll(restoreD3);
+
 const createParser = require("./parser");
 
 describe("Parser Inverse Property Type Matching Unit Tests", () => {
