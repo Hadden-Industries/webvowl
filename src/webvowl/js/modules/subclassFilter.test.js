@@ -5,10 +5,30 @@ const subclassFilterFactory = require("./subclassFilter");
 
 describe("Collapsing of subclassOf properties", () => {
   let collapser;
+  let originalD3;
 
   beforeEach(() => {
+    originalD3 = global.d3;
+    // Reconstructed main retains WebVOWL's D3 v3-backed set adapter; provide
+    // only that legacy contract so this unit test remains transport-neutral.
+    global.d3 = {
+      set: (values) => {
+        const members = new Set((values ?? []).map(String));
+        return {
+          add: (value) => members.add(String(value)),
+          empty: () => members.size === 0,
+          has: (value) => members.has(String(value)),
+          remove: (value) => members.delete(String(value)),
+          size: () => members.size,
+        };
+      },
+    };
     collapser = subclassFilterFactory();
     collapser.enabled(true);
+  });
+
+  afterEach(() => {
+    global.d3 = originalD3;
   });
 
   test("should remove subclasses and their properties", () => {
