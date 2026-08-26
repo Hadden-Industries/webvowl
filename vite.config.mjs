@@ -1,7 +1,16 @@
 import { defineConfig, normalizePath } from "vite";
 import { dirname, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { readFileSync, existsSync, rmSync, statSync, utimesSync, readdirSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  utimesSync
+} from "node:fs";
 import commonjs from "vite-plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 import { viteStaticCopy } from "vite-plugin-static-copy";
@@ -184,12 +193,18 @@ function d3CopyVerificationPlugin(mode) {
     configResolved(config) {
       outputDirectory = resolve(config.root, config.build.outDir);
     },
-    closeBundle() {
-      if (mode !== "production") return;
-
+    writeBundle() {
       const sourcePath = resolve(configDir, "node_modules/d3/dist/d3.min.js");
       const outputPath = resolve(outputDirectory, "js/d3.min.js");
       const displayPath = relative(configDir, outputPath).replace(/\\/g, "/");
+
+      // Own copying and verification in one ordered hook. Separate closeBundle
+      // hooks may run concurrently, which previously made a clean build depend
+      // on whether deploy/js/d3.min.js happened to exist from an earlier build.
+      mkdirSync(dirname(outputPath), { recursive: true });
+      copyFileSync(sourcePath, outputPath);
+
+      if (mode !== "production") return;
 
       if (!existsSync(outputPath)) {
         throw new Error(`[webvowl-build] Missing ${displayPath}`);
@@ -303,17 +318,11 @@ export default defineConfig(({ mode }) => {
       viteStaticCopy({
         targets: [
           {
-            src: normalizePath(resolve(configDir, "node_modules/d3/dist/d3.min.js")),
-            dest: "js",
-            rename: { stripBase: true }
-          },
-          {
             src: "app/data/*",
             dest: "data",
             rename: { stripBase: true }
           },
           { src: "favicon.ico", dest: "." },
-          { src: "favicon.svg", dest: "." },
           {
             src: normalizePath(resolve(configDir, "LICENSE")),
             // Bypasses the '.' collapse bug
