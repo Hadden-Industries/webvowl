@@ -58,6 +58,14 @@ const isAncestorOfHead = (revision) => {
   }
 };
 
+const gitObjectAtRevision = (revision, repositoryPath) => {
+  try {
+    return git("rev-parse", `${revision}:${repositoryPath}`);
+  } catch {
+    return undefined;
+  }
+};
+
 const listProductionModules = (directory, prefix) =>
   readdirSync(directory, { withFileTypes: true })
     .flatMap((entry) => {
@@ -562,10 +570,26 @@ describe("owlapi-js governance artifacts", () => {
     );
   });
 
-  it("resolves every recorded reuse-boundary revision on the current branch", () => {
+  it("resolves every reuse boundary through retained or reconstructed history", () => {
     const manifest = readJson(
       "../../docs/owlapi-js/provenance/provenance.json",
     );
+    const reconstruction = readJson(
+      "../../docs/owlapi-js/provenance/history-reconstruction/phase19A/reuse-boundary-lineage.json",
+    );
+    const reconstructionByOriginal = new Map(
+      reconstruction.records.map((record) => [
+        record.originalCommitOid,
+        record,
+      ]),
+    );
+    expect(reconstruction.schemaVersion).toBe(1);
+    expect(reconstruction.sourceTipOid).toMatch(/^[0-9a-f]{40}$/);
+    expect(reconstruction.reconstructedReplayTipOid).toMatch(/^[0-9a-f]{40}$/);
+    expect(isAncestorOfHead(reconstruction.reconstructedReplayTipOid)).toBe(
+      true,
+    );
+    expect(reconstructionByOriginal.size).toBe(reconstruction.records.length);
     const revisions = [
       ...new Set(
         manifest.items.flatMap((item) =>
@@ -583,12 +607,30 @@ describe("owlapi-js governance artifacts", () => {
       return;
     }
     for (const revision of revisions) {
-      expect({ onCurrentBranch: isAncestorOfHead(revision), revision }).toEqual(
-        {
-          onCurrentBranch: true,
-          revision,
-        },
-      );
+      if (isAncestorOfHead(revision)) continue;
+
+      const reconstructed = reconstructionByOriginal.get(revision);
+      expect(reconstructed).toBeDefined();
+      expect(reconstructed.reconstructedCommitOid).toMatch(/^[0-9a-f]{40}$/);
+      expect(isAncestorOfHead(reconstructed.reconstructedCommitOid)).toBe(true);
+      expect(reconstructed.governedPaths.length).toBeGreaterThan(0);
+      for (const repositoryPath of reconstructed.governedPaths) {
+        const originalObject = gitObjectAtRevision(revision, repositoryPath);
+        const mappedObject = gitObjectAtRevision(
+          reconstructed.reconstructedCommitOid,
+          repositoryPath,
+        );
+        expect(originalObject).toMatch(/^[0-9a-f]{40}$/);
+        expect({
+          mapped: mappedObject,
+          original: originalObject,
+          repositoryPath,
+        }).toEqual({
+          mapped: originalObject,
+          original: originalObject,
+          repositoryPath,
+        });
+      }
     }
   });
 

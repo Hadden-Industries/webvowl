@@ -56,9 +56,9 @@
     },
     "currentDisposition": "An item's top-level disposition is authoritative for the current working revision; revisionDispositions records the approved boundary-specific history.",
     "reanchoring": {
-      "reason": "The migration branch was rebased after the boundaries were first recorded, which orphaned the original commits: they remained reachable as objects but were no longer ancestors of any branch, so the AT_REVISION and AFTER_REVISION selectors could not be evaluated.",
-      "verification": "Each replacement was confirmed by comparing the Git blob hash of the governed path at the original and replacement commits; both pairs were byte-identical.",
-      "gate": "src/owlapi-js/governance.test.js asserts that every recorded reuse-boundary revision is an ancestor of HEAD, so a future rebase fails the suite instead of silently invalidating these selectors.",
+      "reason": "The migration branch was rebased after the boundaries were first recorded, which orphaned the original commits: they remained reachable as objects but were no longer ancestors of any branch, so the AT_REVISION and AFTER_REVISION selectors could not be evaluated. Phase 19A later reconstructed the maintained histories deliberately, with an immutable original-to-signed-commit lineage record rather than pretending that rewritten commit IDs were unchanged.",
+      "verification": "Each replacement is confirmed by comparing the Git blob hash of every governed path at the original and mapped reconstructed commits; the path snapshots must remain byte-identical.",
+      "gate": "src/owlapi-js/governance.test.js requires every recorded reuse-boundary revision either to remain an ancestor of HEAD or to resolve through the Phase 19A lineage record to an ancestor whose governed path blobs are byte-identical.",
       "history": [
         {
           "originalRevision": "383325bfb7747f4e1eb25f2cc7872787f7c2ac83",
