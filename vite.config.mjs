@@ -335,6 +335,7 @@ export default defineConfig(({ mode }) => {
             rename: { stripBase: true }
           },
           { src: "favicon.ico", dest: "." },
+          { src: "favicon.svg", dest: "." },
           {
             src: normalizePath(resolve(configDir, "LICENSE")),
             // Bypasses the '.' collapse bug
