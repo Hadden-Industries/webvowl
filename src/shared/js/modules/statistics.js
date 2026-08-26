@@ -52,9 +52,7 @@ module.exports = function () {
     nodeCount = classesAndDatatypes.length;
 
     const seenProperties = require("../util/set")();
-    let i;
-    let l;
-    let property;
+    let i, l, property;
     for (i = 0, l = properties.length; i < l; i++) {
       property = properties[i];
       if (!seenProperties.has(property)) {
@@ -70,17 +68,13 @@ module.exports = function () {
 
   function storeClassAndDatatypeCount(classesAndDatatypes) {
     // Each datatype should be counted just a single time
-    const datatypeSet = d3.set();
+    const datatypeSet = new Set();
     classCount = 0;
     classesAndDatatypes.forEach(function (node) {
       if (elementTools.isDatatype(node)) {
         datatypeSet.add(node.defaultLabel());
       } else if (!(node instanceof SetOperatorNode)) {
-        if (node instanceof OwlThing) {
-          // Counted through the existing class-count policy below.
-        } else if (node instanceof OwlNothing) {
-          // Counted through the existing class-count policy below.
-        } else {
+        if (!(node instanceof OwlThing) && !(node instanceof OwlNothing)) {
           const adds = 1 + countElementArray(node.equivalents());
           classCount += adds;
         }
@@ -97,10 +91,9 @@ module.exports = function () {
   }
 
   function storePropertyCount(properties) {
-    let attr;
     for (let i = 0, l = properties.length; i < l; i++) {
       const property = properties[i];
-
+      let attr;
       let result = false;
       if (property.attributes) {
         attr = property.attributes();

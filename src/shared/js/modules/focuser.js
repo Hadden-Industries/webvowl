@@ -2,9 +2,9 @@ module.exports = function (graph) {
   const focuser = {};
   let focusedElement;
   const elementTools = require("../util/elementTools")();
-  focuser.handle = function (selectedElement, forced) {
+  focuser.handle = function (event, selectedElement, forced) {
     // Don't display details on a drag event, which will be prevented
-    if (d3.event && d3.event.defaultPrevented && forced === undefined) {
+    if (event && event.defaultPrevented && !forced) {
       return;
     }
 
@@ -22,7 +22,11 @@ module.exports = function (graph) {
       graph.options().editSidebar().updateSelectionInformation(focusedElement);
       if (elementTools.isProperty(selectedElement) === true) {
         let inversed = false;
-        if (selectedElement.inverse()) {
+        if (
+          selectedElement.inverse() &&
+          selectedElement.labelElement() &&
+          selectedElement.labelElement().attr("transform") === "translate(0,15)"
+        ) {
           inversed = true;
         }
         graph.activateHoverElementsForProperties(

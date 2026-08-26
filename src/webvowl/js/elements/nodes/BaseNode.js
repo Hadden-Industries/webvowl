@@ -109,7 +109,7 @@ module.exports = (function () {
       that.raiseDoubleClickEdit(true);
     };
 
-    this.raiseDoubleClickEdit = function (forceIRISync) {
+    this.raiseDoubleClickEdit = function (forceIRISync, event) {
       d3.selectAll(".foreignelements").remove();
       if (
         nodeElement === undefined ||
@@ -145,7 +145,7 @@ module.exports = (function () {
         .attr("y", -12)
         .attr("height", 30)
         .attr("class", "foreignelements")
-        .on("dragstart", function () {
+        .on("dragstart", function (event) {
           return false;
         }) // remove drag operations of text element)
         .attr("width", that.textWidth() - 2);
@@ -156,20 +156,10 @@ module.exports = (function () {
         .attr("id", that.id())
         .attr("align", "center")
         .attr("contentEditable", "true")
-        .on("dragstart", function () {
+        .on("dragstart", function (event) {
           return false;
         }); // remove drag operations of text element)
 
-      const bgColor = "#f00";
-      const txtWidth = that.textWidth() - 2;
-      editText.style({
-        align: "center",
-        color: "black",
-        width: txtWidth + "px",
-        height: "15px",
-        "background-color": bgColor,
-        "border-bottom": "2px solid black",
-      });
       const txtNode = editText.node();
       txtNode.value = that.labelForCurrentLanguage();
       txtNode.focus();
@@ -180,26 +170,26 @@ module.exports = (function () {
       event && event.stopPropagation();
       // ignoreNodeHoverEvent=true;
       // // add some events that relate to this object
-      editText.on("click", function () {
-        d3.event.stopPropagation();
+      editText.on("click", function (event) {
+        event.stopPropagation();
       });
       // // remove hover Events for now;
-      editText.on("mouseout", function () {
-        d3.event.stopPropagation();
+      editText.on("mouseout", function (event) {
+        event.stopPropagation();
       });
       editText
-        .on("mousedown", function () {
-          d3.event.stopPropagation();
+        .on("mousedown", function (event) {
+          event.stopPropagation();
         })
-        .on("keydown", function () {
-          d3.event.stopPropagation();
-          if (d3.event.keyCode === 13) {
+        .on("keydown", function (event) {
+          event.stopPropagation();
+          if (event.key === "Enter") {
             this.blur();
             that.frozen(false); // << releases the not after selection
             that.locked(false);
           }
         })
-        .on("keyup", function () {
+        .on("keyup", function (event) {
           let syncedIRI = null;
           if (forceIRISync) {
             const labelName = editText.node().value;
@@ -225,7 +215,7 @@ module.exports = (function () {
             }),
           );
         })
-        .on("blur", function () {
+        .on("blur", function (event) {
           that.editingTextElement = false;
           ignoreLocalHoverEvents = false;
           that
@@ -238,8 +228,8 @@ module.exports = (function () {
           that.label(newLabel);
           that.backupLabel(newLabel);
           that.redrawLabelText();
-          if ( graph.options().searchMenu() ) {
-            graph.options().searchMenu().requestDictionaryUpdate();
+          if (graph !== undefined) {
+            graph.dispatchEvent(new CustomEvent("dictionarychange"));
           }
           that.frozen(graph.paused());
           that.locked(graph.paused());
@@ -388,7 +378,6 @@ module.exports = (function () {
 
       that
         .nodeElement()
-        .selectAll("*")
         .on("mouseover", onMouseOver)
         .on("mouseout", onMouseOut);
     };
@@ -412,47 +401,68 @@ module.exports = (function () {
     };
 
     this.foreground = function () {
-      const selectedNode = that.nodeElement() ? that.nodeElement().node() : null,
+      const selectedNode = that.nodeElement()
+          ? that.nodeElement().node()
+          : null,
         nodeContainer = selectedNode ? selectedNode.parentNode : null;
       // check if the halo is present and an animation is running
-      if (that.animationProcess() === false) {
+      if (
+        nodeContainer &&
+        nodeContainer.lastChild !== selectedNode &&
+        that.animationProcess() === false
+      ) {
         // Append hovered element as last child to the container list.
         nodeContainer.appendChild(selectedNode);
       }
     };
 
-    function onMouseOver() {
-      if (that.mouseEntered() || ignoreLocalHoverEvents === true) {
+    function onMouseOver(event) {
+      if (
+        that.mouseEntered() ||
+        ignoreLocalHoverEvents === true ||
+        graph.ignoreOtherHoverEvents() === true
+      ) {
         return;
       }
 
-      const selectedNode = that.nodeElement() ? that.nodeElement().node() : null,
+      const selectedNode = that.nodeElement()
+          ? that.nodeElement().node()
+          : null,
         nodeContainer = selectedNode ? selectedNode.parentNode : null;
 
-      // Append hovered element as last child to the container list.
-      if (that.animationProcess() === false) {
+      // Append hovered element as last child to the container list if not already last.
+      if (
+        nodeContainer &&
+        nodeContainer.lastChild !== selectedNode &&
+        that.animationProcess() === false
+      ) {
         nodeContainer.appendChild(selectedNode);
       }
       if (graph.isTouchDevice() === false) {
         that.setHoverHighlighting(true);
         that.mouseEntered(true);
-        if (
-          graph.editorMode() === true &&
-          graph.ignoreOtherHoverEvents() === false
-        ) {
+        if (graph.editorMode() === true) {
           graph.activateHoverElements(true, that);
         }
       } else {
-        if (
-          graph.editorMode() === true &&
-          graph.ignoreOtherHoverEvents() === false
-        ) {
+        if (graph.editorMode() === true) {
           graph.activateHoverElements(true, that, true);
         }
       }
     }
 
-    function onMouseOut() {
+    function onMouseOut(event) {
+      const selectedNode = that.nodeElement()
+        ? that.nodeElement().node()
+        : null;
+      if (
+        event &&
+        event.relatedTarget &&
+        selectedNode &&
+        selectedNode.contains(event.relatedTarget)
+      ) {
+        return;
+      }
       that.setHoverHighlighting(false);
       that.mouseEntered(false);
       if (

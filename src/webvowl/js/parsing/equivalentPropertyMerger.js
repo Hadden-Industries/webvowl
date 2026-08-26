@@ -18,8 +18,8 @@ equivalentPropertyMerger.merge = function (
   nodeMap,
   graph,
 ) {
-  const totalNodeIdsToHide = d3.set();
-  const processedPropertyIds = d3.set();
+  const totalNodeIdsToHide = new Set();
+  const processedPropertyIds = new Set();
   const mergeNodes = [];
 
   for (let i = 0; i < properties.length; i++) {
@@ -64,15 +64,15 @@ function createIdToPropertyMapper(propertyMap) {
 
 function findMergeNode(propertyWithEquivalents, nodeMap) {
   const typeMap = mapPropertiesRangesToType(propertyWithEquivalents, nodeMap);
-  const typeSet = d3.set(typeMap.keys());
+  const typeSet = new Set(typeMap.keys());
 
   // default types are the fallback values and should be ignored for the type determination
   typeSet.delete(OBJECT_PROPERTY_DEFAULT_RANGE_TYPE);
   typeSet.delete(DATA_PROPERTY_DEFAULT_RANGE_TYPE);
 
   // exactly one type to chose from -> take the node of this type as range
-  if (typeSet.size() === 1) {
-    const type = typeSet.values()[0];
+  if (typeSet.size === 1) {
+    const type = Array.from(typeSet)[0];
     const ranges = typeMap.get(type);
 
     if (ranges.length === 1) {
@@ -82,7 +82,7 @@ function findMergeNode(propertyWithEquivalents, nodeMap) {
 }
 
 function mapPropertiesRangesToType(properties, nodeMap) {
-  const typeMap = d3.map();
+  const typeMap = new Map();
 
   properties.forEach(function (property) {
     if (property === undefined) //@ WORKAROUND

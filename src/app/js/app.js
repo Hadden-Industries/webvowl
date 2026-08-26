@@ -65,14 +65,14 @@ module.exports = function () {
   let executeFileDrop = false;
   let wasMessageToShow = false;
   let firstTime = false;
-
-  function addFileDropEvents(selector) {
+  let initialTouchZoomHandled = false;
   let resizeAnimationFrame;
   let graphResizeObserver;
+
+  function addFileDropEvents(selector) {
     const node = document.querySelector(selector);
 
     node.ondragover = function (e) {
-  var initialTouchZoomHandled = false;
       e.preventDefault();
 
       document.querySelector("#dragDropContainer").classList.remove("hidden");
@@ -241,7 +241,11 @@ module.exports = function () {
     window.addEventListener("resize", scheduleSizeAdjustment);
 
     const graphHost = document.querySelector(GRAPH_SELECTOR);
-    if ( !graphResizeObserver && graphHost && typeof ResizeObserver !== "undefined" ) {
+    if (
+      !graphResizeObserver &&
+      graphHost &&
+      typeof ResizeObserver !== "undefined"
+    ) {
       graphResizeObserver = new ResizeObserver(scheduleSizeAdjustment);
       graphResizeObserver.observe(graphHost);
     }
@@ -391,9 +395,9 @@ module.exports = function () {
       document.querySelector("#element_labelEditor").value = e.detail.label;
     });
 
-
-
-
+    options.searchMenu(searchMenu);
+    options.focuserModule(focuser);
+    options.zoomSlider(zoomSlider);
     options.pausedMenu(pauseMenu);
     options.resetMenu(resetMenu);
 
@@ -419,139 +423,110 @@ module.exports = function () {
     leftSidebar.setup();
     editSidebar.setup();
     debugMenu.setup();
-    const agentVersion = getInternetExplorerVersion();
-    if (agentVersion > 0 && agentVersion <= 11) {
-      console.warn("Agent version " + agentVersion);
-      console.warn("This agent is not supported");
-      d3.select("#browserCheck").classed("hidden", false);
-      d3.select("#killWarning").classed("hidden", true);
-      d3.select("#optionsArea").classed("hidden", true);
-      d3.select("#logo").classed("hidden", true);
-    } else {
-      d3.select("#logo").classed("hidden", false);
-      if (agentVersion === 12) {
-        // allow Mircosoft Edge Browser but with warning
-        d3.select("#browserCheck").classed("hidden", false);
-        d3.select("#killWarning").classed("hidden", false);
-      } else {
-        d3.select("#browserCheck").classed("hidden", true);
+    document.querySelector("#logo").classList.remove("hidden");
+    resetMenu.setup([
+      gravityMenu,
+      filterMenu,
+      modeMenu,
+      focuser,
+      selectionDetailDisplayer,
+      pauseMenu,
+    ]);
+    searchMenu.setup();
+    navigationMenu.setup();
+    zoomSlider.setup();
+
+    // give the options the pointer to the some menus for import and export
+    options.literalFilter(emptyLiteralFilter);
+    options.nodeDegreeFilter(nodeDegreeFilter);
+    options.loadingModule(loadingModule);
+    options.filterMenu(filterMenu);
+    options.modeMenu(modeMenu);
+    options.gravityMenu(gravityMenu);
+    options.pausedMenu(pauseMenu);
+    options.pickAndPinModule(pickAndPin);
+    options.resetMenu(resetMenu);
+
+    options.ontologyMenu(ontologyMenu);
+    options.navigationMenu(navigationMenu);
+    options.sidebar(sidebar);
+    options.leftSidebar(leftSidebar);
+    options.editSidebar(editSidebar);
+    options.exportMenu(exportMenu);
+    options.graphObject(graph);
+
+    options.warningModule(warningModule);
+    options.directInputModule(directInputMod);
+    options.datatypeFilter(datatypeFilter);
+    options.objectPropertyFilter(objectPropertyFilter);
+    options.subclassFilter(subclassFilter);
+    options.setOperatorFilter(setOperatorFilter);
+    options.disjointPropertyFilter(disjointFilter);
+
+    options.colorExternalsModule(colorExternalsSwitch);
+    options.compactNotationModule(compactNotationSwitch);
+    options.nodeScalingModule(nodeScalingSwitch);
+
+    ontologyMenu.setup(loadOntologyFromText);
+    configMenu.setup(zoomSlider);
+    loadingModule.refreshControlAvailability();
+
+    leftSidebar.showSidebar(0);
+    leftSidebar.hideCollapseButton(true);
+
+    graph.start();
+
+    adjustSize();
+    const w = graph.options().width();
+    const h = graph.options().height();
+    const defZoom = Math.min(w, h) / 1000;
+
+    const hideDebugOptions = true;
+    if (hideDebugOptions === false) {
+      graph.setForceTickFunctionWithFPS();
+    }
+
+    graph.setDefaultZoom(defZoom);
+    document
+      .querySelectorAll(".debugOption")
+      .forEach((el) => el.classList.toggle("hidden", hideDebugOptions));
+
+    // prevent backspace reloading event
+    const htmlBody = document.querySelector("body");
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Backspace" && event.target === htmlBody) {
+        // we could add here an alert
+        event.preventDefault();
       }
-
-      resetMenu.setup([
-        gravityMenu,
-        filterMenu,
-        modeMenu,
-        focuser,
-        selectionDetailDisplayer,
-        pauseMenu,
-      ]);
-      searchMenu.setup();
-      navigationMenu.setup();
-      zoomSlider.setup();
-
-      // give the options the pointer to the some menus for import and export
-      options.literalFilter(emptyLiteralFilter);
-      options.nodeDegreeFilter(nodeDegreeFilter);
-      options.loadingModule(loadingModule);
-      options.filterMenu(filterMenu);
-      options.modeMenu(modeMenu);
-      options.gravityMenu(gravityMenu);
-      options.pausedMenu(pauseMenu);
-      options.pickAndPinModule(pickAndPin);
-      options.resetMenu(resetMenu);
-      options.searchMenu(searchMenu);
-      options.ontologyMenu(ontologyMenu);
-      options.navigationMenu(navigationMenu);
-      options.sidebar(sidebar);
-      options.leftSidebar(leftSidebar);
-      options.editSidebar(editSidebar);
-      options.exportMenu(exportMenu);
-      options.graphObject(graph);
-      options.zoomSlider(zoomSlider);
-      options.warningModule(warningModule);
-      options.directInputModule(directInputMod);
-      options.datatypeFilter(datatypeFilter);
-      options.objectPropertyFilter(objectPropertyFilter);
-      options.subclassFilter(subclassFilter);
-      options.setOperatorFilter(setOperatorFilter);
-      options.disjointPropertyFilter(disjointFilter);
-      options.focuserModule(focuser);
-      options.colorExternalsModule(colorExternalsSwitch);
-      options.compactNotationModule(compactNotationSwitch);
-      options.nodeScalingModule(nodeScalingSwitch);
-
-      ontologyMenu.setup(loadOntologyFromText);
-      configMenu.setup();
-      loadingModule.refreshControlAvailability();
-
-      leftSidebar.showSidebar(0);
-      leftSidebar.hideCollapseButton(true);
-
-      graph.start();
-
-      const modeOp = d3.select("#modeOfOperationString");
-      modeOp.style("font-size", "0.6em");
-      modeOp.style("font-style", "italic");
-
-      adjustSize();
-
-      const w = graph.options().width();
-      const h = graph.options().height();
-      const defZoom = Math.min(w, h) / 1000;
-
-      const hideDebugOptions = true;
-      if (hideDebugOptions === false) {
-        graph.setForceTickFunctionWithFPS();
+      // using ctrl+Shift+d as debug option
+      if (
+        event.ctrlKey &&
+        event.shiftKey &&
+        event.key &&
+        event.key.toLowerCase() === "d"
+      ) {
+        graph.options().executeHiddenDebugFeatuers();
+        event.preventDefault();
       }
+    });
+    if (document.querySelector("#maxLabelWidthSliderOption")) {
+      const setValue = !graph.options().dynamicLabelWidth();
+      document.querySelector("#maxLabelWidthSlider").disabled = setValue;
+      document
+        .querySelector("#maxLabelWidthSliderValue")
+        .classList.toggle("disabledLabelForSlider", setValue);
+      document
+        .querySelector("#maxLabelWidthDescriptionLabel")
+        .classList.toggle("disabledLabelForSlider", setValue);
+    }
 
-      graph.setDefaultZoom(defZoom);
-      d3.selectAll(".debugOption").classed("hidden", hideDebugOptions);
-
-      // prevent backspace reloading event
-      const htmlBody = d3.select("body");
-      d3.select(document).on("keydown", function (e) {
-        if (d3.event.keyCode === 8 && d3.event.target === htmlBody.node()) {
-          // we could add here an alert
-          event.preventDefault();
-        }
-        // using ctrl+Shift+d as debug option
-        if (d3.event.ctrlKey && d3.event.shiftKey && d3.event.keyCode === 68) {
-          graph.options().executeHiddenDebugFeatuers();
-          event.preventDefault();
-        }
-      });
-      if (d3.select("#maxLabelWidthSliderOption")) {
-        const setValue = !graph.options().dynamicLabelWidth();
-        d3.select("#maxLabelWidthSlider").node().disabled = setValue;
-        d3.select("#maxLabelWidthvalueLabel").classed(
-          "disabledLabelForSlider",
-          setValue,
-        );
-        d3.select("#maxLabelWidthDescriptionLabel").classed(
-          "disabledLabelForSlider",
-          setValue,
-        );
-      }
-
-      d3.select("#blockGraphInteractions")
-        .style("position", "absolute")
-        .style("top", "0")
-        .style("background-color", "#bdbdbd")
-        .style("opacity", "0.5")
-        .style("pointer-events", "auto")
-        .style("width", graph.options().width() + "px")
-        .style("height", graph.options().height() + "px")
-        .on("click", function () {
-          d3.event.preventDefault();
-          d3.event.stopPropagation();
-        })
-        .on("dblclick", function () {
-          d3.event.preventDefault();
-          d3.event.stopPropagation();
-        });
-
-      d3.select("#direct-text-input").on("click", function () {
-        directInputMod.setDirectInputMode();
+    const blockGraphInteractions = document.querySelector(
+      "#blockGraphInteractions",
+    );
+    if (blockGraphInteractions) {
+      blockGraphInteractions.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
       });
       blockGraphInteractions.addEventListener("dblclick", function (event) {
         event.preventDefault();
@@ -559,32 +534,44 @@ module.exports = function () {
       });
       blockGraphInteractions.draggable = false;
     }
-      d3.select("#blockGraphInteractions").node().draggable = false;
-      options.prefixModule(webvowl.util.prefixTools(graph));
-      adjustSize();
-      sidebar.updateOntologyInformation(undefined, statistics);
-      loadingModule.parseUrlAndLoadOntology(); // loads automatically the ontology provided by the parameters
-      options.debugMenu(debugMenu);
-      debugMenu.updateSettings();
 
-      // connect the reloadCachedVersionButton
-      d3.select("#reloadSvgIcon").on("click", function () {
-        if (d3.select("#reloadSvgIcon").node().disabled === true) {
+    const directTextInput = document.querySelector("#direct-text-input");
+    if (directTextInput) {
+      directTextInput.addEventListener("click", function () {
+        directInputMod.setDirectInputMode();
+      });
+    }
+    options.prefixModule(
+      require("../../shared/js/util/prefixRepresentationModule")(graph),
+    );
+    adjustSize();
+    sidebar.updateOntologyInformation(undefined, statistics);
+    loadingModule.parseUrlAndLoadOntology(); // loads automatically the ontology provided by the parameters
+    options.debugMenu(debugMenu);
+    debugMenu.updateSettings();
+
+    // connect the reloadCachedVersionButton
+    const reloadCachedOntologyBtn = document.getElementById(
+      "reloadCachedOntology",
+    );
+    if (reloadCachedOntologyBtn) {
+      reloadCachedOntologyBtn.addEventListener("click", function () {
+        if (reloadCachedOntologyBtn.disabled) {
           ontologyMenu.clearCachedVersion();
           return;
         }
-        d3.select("#reloadCachedOntology").classed("hidden", true);
+        reloadCachedOntologyBtn.classList.add("hidden");
         ontologyMenu.reloadCachedOntology();
       });
-      // add the initialized objects
-      webvowl.opts = options;
-      webvowl.gr = graph;
     }
+    // add the initialized objects
   };
 
   function loadOntologyFromText(jsonText, filename, alternativeFilename) {
-    const reloadCachedOntologyBtn = document.getElementById("reloadCachedOntology");
-    if ( reloadCachedOntologyBtn ) {
+    const reloadCachedOntologyBtn = document.getElementById(
+      "reloadCachedOntology",
+    );
+    if (reloadCachedOntologyBtn) {
       reloadCachedOntologyBtn.classList.add("hidden");
     }
     pauseMenu.reset();
@@ -635,9 +622,6 @@ module.exports = function () {
     let loadEmptyOntologyForEditing = false;
     if (location.hash.indexOf("#new_ontology") !== -1) {
       loadEmptyOntologyForEditing = true;
-      newOntologyCounter++;
-      d3.select("#empty").node().href =
-        "#opts=editorMode=true;#new_ontology" + newOntologyCounter;
     }
     if (
       classCount === 0 &&
@@ -668,47 +652,19 @@ module.exports = function () {
     }
   }
 
-  function adjustSize() {
-    const graphContainer = d3.select(GRAPH_SELECTOR);
-    const svg = graphContainer.select("svg");
-    let height = window.innerHeight - 40;
-    let width = window.innerWidth - window.innerWidth * 0.22;
-
-    if (sidebar.getSidebarVisibility() === "0") {
-    var isMobileOrTablet = window.innerWidth <= 1024;
-      height = window.innerHeight - 40;
-      width = window.innerWidth;
-    }
-
-  function scheduleSizeAdjustment(){
-    if ( resizeAnimationFrame !== undefined ) {
+  function scheduleSizeAdjustment() {
+    if (resizeAnimationFrame !== undefined) {
       cancelAnimationFrame(resizeAnimationFrame);
     }
-    resizeAnimationFrame = requestAnimationFrame(function (){
+    resizeAnimationFrame = requestAnimationFrame(function () {
       resizeAnimationFrame = undefined;
       adjustSize();
     });
   }
 
+  function adjustSize() {
     directInputMod.updateLayout();
-    d3.select("#blockGraphInteractions").style(
-      "width",
-      window.innerWidth + "px",
-    );
-    d3.select("#blockGraphInteractions").style(
-      "height",
-      window.innerHeight + "px",
-    );
-
-    d3.select("#WarningErrorMessagesContainer").style("width", width + "px");
-    d3.select("#WarningErrorMessagesContainer").style("height", height + "px");
-
-    d3.select("#WarningErrorMessages").style("max-height", height - 12 + "px");
-
-    graphContainer.style("height", height + "px");
-    svg.attr("width", width).attr("height", height);
-
-    options.width(width).height(height);
+    const viewport = graph.updateCanvasContainerSize();
 
     graph.updateStyle();
 
@@ -718,7 +674,8 @@ module.exports = function () {
           "touch able device detected";
       }
       graph.setTouchDevice(true);
-      if ( !initialTouchZoomHandled && isMultiTouchZoomDevice() ) {
+
+      if (!initialTouchZoomHandled && isMultiTouchZoomDevice()) {
         initialTouchZoomHandled = true;
         configMenu.setCheckBoxValue("showZoomSliderConfigCheckbox", false);
       }
@@ -730,38 +687,11 @@ module.exports = function () {
       graph.setTouchDevice(false);
     }
 
-    d3.select("#loadingInfo-container").style(
-      "height",
-      0.5 * (height - 80) + "px",
-    );
     loadingModule.checkForScreenSize();
 
     adjustSliderSize(viewport.height);
-    // update also the padding options of loading and the logo positions;
-    const warningDiv = d3.select("#browserCheck");
-    if (warningDiv.classed("hidden") === false) {
-      const offset = 10 + warningDiv.node().getBoundingClientRect().height;
-      d3.select("#logo").style("padding", offset + "px 10px");
-    } else {
-      // remove the dynamic padding from the logo element;
-      d3.select("#logo").style("padding", "10px");
-    }
 
-    // scrollbar tests;
-    const element = d3.select("#menuElementContainer").node();
-    const maxScrollLeft = element.scrollWidth - element.clientWidth;
-    const leftButton = d3.select("#scrollLeftButton");
-    const rightButton = d3.select("#scrollRightButton");
-    if (maxScrollLeft > 0) {
-      // show both and then check how far is bar;
-      rightButton.classed("hidden", false);
-      leftButton.classed("hidden", false);
-      navigationMenu.updateScrollButtonVisibility();
-    } else {
-      // hide both;
-      rightButton.classed("hidden", true);
-      leftButton.classed("hidden", true);
-    }
+    navigationMenu.updateScrollButtonVisibility();
 
     // adjust height of the leftSidebar element;
     editSidebar.updateElementWidth();
@@ -779,90 +709,37 @@ module.exports = function () {
     }
   }
 
-  function adjustSliderSize() {
-    // TODO: refactor and put this into the slider it self
-    const height = window.innerHeight - 40;
-    const fullHeight = height;
-    const zoomOutPos = height - 30;
-    const sliderHeight = 150;
-
-    // assuming DOM elements are generated in the index.html
-    // todo: refactor for independent usage of graph and app
-    if (fullHeight < 150) {
+  function adjustSliderSize(fullHeight) {
+    const isSliderAllowed = zoomSlider.showSlider();
+    if (fullHeight < 150 || !isSliderAllowed) {
       document.querySelector("#zoomSlider").classList.add("hidden");
     } else {
       document.querySelector("#zoomSlider").classList.remove("hidden");
     }
-    d3.select("#zoomSliderParagraph").classed("hidden", false);
-    d3.select("#zoomOutButton").classed("hidden", false);
-    d3.select("#zoomInButton").classed("hidden", false);
-    d3.select("#centerGraphButton").classed("hidden", false);
-
-    let zoomInPos = zoomOutPos - 20;
-    let centerPos = zoomInPos - 20;
-    if (fullHeight < 280) {
-      // hide the slider button;
-      d3.select("#zoomSliderParagraph").classed("hidden", true); //var sliderPos=zoomOutPos-sliderHeight;
-      d3.select("#zoomOutButton").style("top", zoomOutPos + "px");
-      d3.select("#zoomInButton").style("top", zoomInPos + "px");
-      d3.select("#centerGraphButton").style("top", centerPos + "px");
-      return;
-    }
-
-    const sliderPos = zoomOutPos - sliderHeight;
-    zoomInPos = sliderPos - 20;
-    centerPos = zoomInPos - 20;
-    d3.select("#zoomSliderParagraph").classed("hidden", false);
-    d3.select("#zoomOutButton").style("top", zoomOutPos + "px");
-    d3.select("#zoomInButton").style("top", zoomInPos + "px");
-    d3.select("#centerGraphButton").style("top", centerPos + "px");
-    d3.select("#zoomSliderParagraph").style("top", sliderPos + "px");
   }
 
   function isTouchDevice() {
     try {
-      return ('ontouchstart' in window) || 
-             (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || 
-             (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints > 0);
-    } catch (_e) {
+      return (
+        "ontouchstart" in window ||
+        (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
+        (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints > 0)
+      );
+    } catch (_err) {
       return false;
     }
   }
 
-  function getInternetExplorerVersion() {
-    let ua,
-      re,
-      rv = -1;
-
-    // check for edge
-    const isEdge =
-      /(?:\b(MS)?IE\s+|\bTrident\/7\.0;.*\s+rv:|\bEdge\/)(\d+)/.test(
-        navigator.userAgent,
+  function isMultiTouchZoomDevice() {
+    try {
+      return (
+        "ontouchstart" in window ||
+        (navigator.maxTouchPoints && navigator.maxTouchPoints >= 2) ||
+        (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints >= 2)
       );
-    if (isEdge) {
-      rv = parseInt("12");
-      return rv;
+    } catch (_err) {
+      return false;
     }
-
-    const isIE11 = /Trident.*rv[ :]*11\./.test(navigator.userAgent);
-    if (isIE11) {
-      rv = parseInt("11");
-      return rv;
-    }
-    if (navigator.appName === "Microsoft Internet Explorer") {
-      ua = navigator.userAgent;
-      re = new RegExp("MSIE ([0-9]{1,}[\\.0-9]{0,})");
-      if (re.exec(ua) !== null) {
-        rv = parseFloat(RegExp.$1);
-      }
-    } else if (navigator.appName === "Netscape") {
-      ua = navigator.userAgent;
-      re = new RegExp("Trident/.*rv:([0-9]{1,}[\\.0-9]{0,})");
-      if (re.exec(ua) !== null) {
-        rv = parseFloat(RegExp.$1);
-      }
-    }
-    return rv;
   }
 
   return app;

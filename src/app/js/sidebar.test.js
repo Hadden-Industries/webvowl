@@ -1,29 +1,35 @@
 import { describe, expect, test, jest } from "@jest/globals";
 import sidebarFactory from "./sidebar.js";
 
-class MockSelection {
-  constructor( tag = "container", text = "" ) {
+class MockElement {
+  constructor(tag = "div") {
+    this.tag = tag;
     this.attributes = {};
     this.children = [];
     this.textContent = "";
     this._classList = new Set();
     this.listeners = {};
   }
-
-  append( tag ) {
-    const child = new MockSelection(tag);
+  setAttribute(name, val) {
+    this.attributes[name] = val;
+  }
+  appendChild(child) {
     this.children.push(child);
-    return child;
   }
-
-  attr( name, value ) {
-    this.attributes[name] = value;
-    return this;
+  addEventListener(type, fn) {
+    if (!this.listeners[type]) {
+      this.listeners[type] = [];
+    }
+    this.listeners[type].push(fn);
   }
-
-  text( value ) {
-    this.textValue = value;
-    return this;
+  get classList() {
+    return {
+      add: (c) => this._classList.add(c),
+      remove: (c) => this._classList.delete(c),
+      toggle: (c, state) =>
+        state ? this._classList.add(c) : this._classList.delete(c),
+      contains: (c) => this._classList.has(c),
+    };
   }
 }
 
@@ -51,8 +57,8 @@ describe("sidebar ontology IRI links", () => {
     ["http://example.org/ontology", "http://example.org/ontology"],
     ["https://example.org/ontology", "https://example.org/ontology"],
     ["urn:isbn:9780141036144", "urn:isbn:9780141036144"],
-    ["  urn:example:ontology  ", "urn:example:ontology"]
-  ])("allows an explicitly supported IRI scheme for %p", ( iri, expected ) => {
+    ["  urn:example:ontology  ", "urn:example:ontology"],
+  ])("allows an explicitly supported IRI scheme for %p", (iri, expected) => {
     expect(sidebarFactory.navigableIri(iri)).toBe(expected);
   });
 
@@ -67,8 +73,8 @@ describe("sidebar ontology IRI links", () => {
     "",
     "   ",
     null,
-    undefined
-  ])("rejects unsupported or invalid IRI %p", ( iri ) => {
+    undefined,
+  ])("rejects unsupported or invalid IRI %p", (iri) => {
     expect(sidebarFactory.navigableIri(iri)).toBeUndefined();
   });
 
@@ -84,10 +90,10 @@ describe("sidebar ontology IRI links", () => {
       attributes: {
         href: "urn:example:ontology",
         target: "_blank",
-        title: "urn:example:ontology"
+        title: "urn:example:ontology",
       },
       tag: "a",
-      textValue: "urn:example:ontology"
+      textContent: "urn:example:ontology",
     });
     expect(container.children[0].attributes.rel).toBeUndefined();
   });
@@ -102,7 +108,7 @@ describe("sidebar ontology IRI links", () => {
     expect(container.children[0]).toMatchObject({
       attributes: {},
       tag: "span",
-      textValue: "javascript:alert(1)"
+      textContent: "javascript:alert(1)",
     });
   });
 });

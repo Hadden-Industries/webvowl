@@ -3,16 +3,49 @@
  * used for WebVOWL.
  */
 module.exports = (function () {
-  const math = {},
-    loopFunction = d3.svg
-      .line()
-      .x(function (d) {
-        return d.x;
-      })
-      .y(function (d) {
-        return d.y;
-      })
-      .curve(d3.curveCardinal.tension(-1));
+  const DEFAULT_CURVE_TENSION = 0.7;
+  const TANGENT_EPSILON_SQUARED = 1e-12;
+  const math = {};
+
+  function formatCurveNumber(value) {
+    const rounded = Math.round(value * 1e12) / 1e12;
+    return Object.is(rounded, -0) ? 0 : rounded;
+  }
+
+  function formatCurvePoint(value) {
+    return formatCurveNumber(value.x) + "," + formatCurveNumber(value.y);
+  }
+
+  function squaredDistance(first, second) {
+    const dx = second.x - first.x;
+    const dy = second.y - first.y;
+    return dx * dx + dy * dy;
+  }
+
+  function controlsFor(middle, tangent) {
+    return {
+      first: {
+        x: middle.x - tangent.x,
+        y: middle.y - tangent.y,
+      },
+      final: {
+        x: middle.x + tangent.x,
+        y: middle.y + tangent.y,
+      },
+    };
+  }
+
+  function usableControls(start, end, controls) {
+    return (
+      squaredDistance(start, controls.first) > TANGENT_EPSILON_SQUARED &&
+      squaredDistance(controls.final, end) > TANGENT_EPSILON_SQUARED
+    );
+  }
+
+  function hasThreeCurvePoints(points) {
+    return Array.isArray(points) && points.length === 3;
+  }
+
   function hasFiniteCurveCoordinates(points) {
     return points.every(
       (value) => value && Number.isFinite(value.x) && Number.isFinite(value.y),
@@ -20,6 +53,45 @@ module.exports = (function () {
   }
 
   function buildCurvePath(points, tension) {
+    const [start, middle, end] = points;
+    const tangentScale = (1 - tension) / 3;
+    const tangent = {
+      x: (end.x - start.x) * tangentScale,
+      y: (end.y - start.y) * tangentScale,
+    };
+    let controls = controlsFor(middle, tangent);
+
+    for (
+      let attempt = 0;
+      attempt < 8 && !usableControls(start, end, controls);
+      attempt++
+    ) {
+      tangent.x *= 0.5;
+      tangent.y *= 0.5;
+      controls = controlsFor(middle, tangent);
+    }
+
+    if (!usableControls(start, end, controls)) {
+      const chord = { x: end.x - start.x, y: end.y - start.y };
+      const fallback =
+        squaredDistance(start, end) > TANGENT_EPSILON_SQUARED
+          ? { x: chord.x / 6, y: chord.y / 6 }
+          : { x: 1, y: 0 };
+      controls = controlsFor(middle, fallback);
+    }
+
+    return (
+      "M" +
+      formatCurvePoint(start) +
+      " Q" +
+      formatCurvePoint(controls.first) +
+      " " +
+      formatCurvePoint(middle) +
+      " Q" +
+      formatCurvePoint(controls.final) +
+      " " +
+      formatCurvePoint(end)
+    );
   }
 
   math.calculateCurvePath = function (points, tension = DEFAULT_CURVE_TENSION) {
@@ -49,6 +121,7 @@ module.exports = (function () {
     }
 
     return buildCurvePath(points, tension);
+  };
 
   /**
    * Calculates the normal vector of the path between the two nodes.

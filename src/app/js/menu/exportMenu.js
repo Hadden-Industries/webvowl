@@ -4,12 +4,33 @@
  */
 const createExportSvgClone = require("./svgExportStyles");
 
-module.exports = function (graph) {
+function downloadFile(content, mimeType, filename) {
+  const objectUrl = URL.createObjectURL(
+    new Blob([content], { type: mimeType }),
+  );
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = filename;
+  link.hidden = true;
+  document.body.appendChild(link);
+
+  try {
+    link.click();
+  } finally {
+    link.remove();
+    setTimeout(function () {
+      URL.revokeObjectURL(objectUrl);
+    }, 0);
+  }
 }
 
-function legacyCopyInputValue( inputNode, documentNode ){
-  const popoverNode = inputNode.closest ? inputNode.closest(".modern-popover") : null;
-  const contentNode = inputNode.closest ? inputNode.closest(".popover-content") : null;
+function legacyCopyInputValue(inputNode, documentNode) {
+  const popoverNode = inputNode.closest
+    ? inputNode.closest(".modern-popover")
+    : null;
+  const contentNode = inputNode.closest
+    ? inputNode.closest(".popover-content")
+    : null;
   const previousFocus = documentNode.activeElement;
   const popoverScrollTop = popoverNode ? popoverNode.scrollTop : 0;
   const contentScrollTop = contentNode ? contentNode.scrollTop : 0;
@@ -18,21 +39,27 @@ function legacyCopyInputValue( inputNode, documentNode ){
   try {
     inputNode.focus({ preventScroll: true });
     inputNode.select();
-    copied = typeof documentNode.execCommand === "function" && documentNode.execCommand("copy");
+    copied =
+      typeof documentNode.execCommand === "function" &&
+      documentNode.execCommand("copy");
   } catch {
     copied = false;
   } finally {
-    if ( previousFocus && previousFocus !== inputNode && typeof previousFocus.focus === "function" ) {
+    if (
+      previousFocus &&
+      previousFocus !== inputNode &&
+      typeof previousFocus.focus === "function"
+    ) {
       try {
         previousFocus.focus({ preventScroll: true });
       } catch {
         previousFocus.focus();
       }
     }
-    if ( popoverNode ) {
+    if (popoverNode) {
       popoverNode.scrollTop = popoverScrollTop;
     }
-    if ( contentNode ) {
+    if (contentNode) {
       contentNode.scrollTop = contentScrollTop;
     }
   }
@@ -40,18 +67,25 @@ function legacyCopyInputValue( inputNode, documentNode ){
   return copied;
 }
 
-async function copyInputValue( inputNode, clipboardApi, documentNode ){
-  const resolvedClipboard = clipboardApi === undefined && typeof navigator !== "undefined" ? navigator.clipboard : clipboardApi;
+async function copyInputValue(inputNode, clipboardApi, documentNode) {
+  const resolvedClipboard =
+    clipboardApi === undefined && typeof navigator !== "undefined"
+      ? navigator.clipboard
+      : clipboardApi;
   const resolvedDocument = documentNode || document;
 
-  if ( resolvedClipboard && typeof resolvedClipboard.writeText === "function" ) {
+  if (resolvedClipboard && typeof resolvedClipboard.writeText === "function") {
     try {
       await resolvedClipboard.writeText(inputNode.value);
       return true;
-    } catch { /* use the synchronous fallback below */ }
+    } catch {
+      /* use the synchronous fallback below */
+    }
   }
 
   return legacyCopyInputValue(inputNode, resolvedDocument);
+}
+
 function nextCopyFeedback(copied, successfulCopyCount = 0) {
   if (!copied) {
     return { successfulCopyCount: 0, text: "Copy failed" };
@@ -67,9 +101,9 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
   };
 }
 
+function createExportMenu(graph) {
   const exportMenu = {};
   let exportFilename;
-
   let exportableJsonText;
 
   const exportTTLModule = require("./exportTTLModule")(graph);
@@ -83,21 +117,16 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
    * Adds the export button to the website.
    */
   exportMenu.setup = function () {
-    exportSvgButton = d3.select("#exportSvg").on("click", exportSvg);
-    exportJsonButton = d3.select("#exportJson").on("click", exportJson);
+    document.querySelector("#exportSvg").addEventListener("click", exportSvg);
+    document.querySelector("#exportJson").addEventListener("click", exportJson);
 
     document.querySelector("#copyBt").addEventListener("click", copyUrl);
 
-    exportTexButton = d3.select("#exportTex").on("click", exportTex);
+    document.querySelector("#exportTex").addEventListener("click", exportTex);
 
-    exportTurtleButton = d3.select("#exportTurtle").on("click", exportTurtle);
-
-    const menuEntry = d3.select("#m_export");
-    menuEntry.on("mouseover", function () {
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-      exportMenu.exportAsUrl();
-    });
+    document
+      .querySelector("#exportTurtle")
+      .addEventListener("click", exportTurtle);
   };
   function exportTurtle() {
     const success = exportTTLModule.requestExport();
@@ -105,7 +134,7 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
     const ontoTitle = "NewOntology";
     console.warn("Exporter was successful: " + success);
     if (success) {
-      // console.log("The result is : " + result);
+      // console.warn("The result is : " + result);
       // var ontoTitle=graph.options().getGeneralMetaObjectProperty('title');
       // if (ontoTitle===undefined || ontoTitle.length===0)
       // 	ontoTitle="NewOntology";
@@ -116,16 +145,7 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
 
       // TODO: show TEXT in warning module?
 
-      // // write the data
-      const dataURI =
-        "data:text/json;charset=utf-8," + encodeURIComponent(result);
-
-      exportTurtleButton
-        .attr("href", dataURI)
-        .attr("download", ontoTitle + ".ttl");
-
-      // okay restore old href?
-      //  exportTurtleButton.attr("href", oldHref);
+      downloadFile(result, "text/turtle;charset=utf-8", ontoTitle + ".ttl");
     } else {
       console.warn("ShowWarning!");
       graph.options().warningModule().showExporterWarning();
@@ -141,12 +161,13 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
     exportableJsonText = jsonText;
   };
 
-  function copyUrl() {
   let copyFeedbackTimer;
   let successfulCopyCount = 0;
-    event.preventDefault();
+  async function copyUrl() {
     const urlInputNode = document.querySelector("#exportedUrl");
-    if ( !urlInputNode ) {return;}
+    if (!urlInputNode) {
+      return;
+    }
 
     const copied = await copyInputValue(urlInputNode);
     const copyButtonNode = document.querySelector("#copyBt");
@@ -155,15 +176,26 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
     copyButtonNode.classList.toggle("copied", copied);
     copyButtonNode.classList.toggle("copy-failed", !copied);
     copyButtonNode.querySelector(".copy-text").textContent = feedback.text;
-    copyButtonNode.select(".copy-text").text(copied ? "Copied!" : "Copy failed");
-    copyButtonNode.select(".copy-icon path").attr("d", copied ? "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" : "M18.3 5.71 12 12l-6.3-6.29-1.4 1.42L10.59 13.4 4.3 19.7l1.4 1.4 6.3-6.29 6.3 6.29 1.4-1.4-6.29-6.3 6.29-6.29z");
+    copyButtonNode
+      .querySelector(".copy-icon path")
+      .setAttribute(
+        "d",
+        copied
+          ? "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+          : "M18.3 5.71 12 12l-6.3-6.29-1.4 1.42L10.59 13.4 4.3 19.7l1.4 1.4 6.3-6.29 6.3 6.29 1.4-1.4-6.29-6.3 6.29-6.29z",
+      );
 
     clearTimeout(copyFeedbackTimer);
-    copyFeedbackTimer = setTimeout(function (){
+    copyFeedbackTimer = setTimeout(function () {
       successfulCopyCount = 0;
       copyButtonNode.classList.remove("copied", "copy-failed");
       copyButtonNode.querySelector(".copy-text").textContent = "Copy URL";
-      copyButtonNode.select(".copy-icon path").attr("d", "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z");
+      copyButtonNode
+        .querySelector(".copy-icon path")
+        .setAttribute(
+          "d",
+          "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z",
+        );
     }, 2000);
   }
 
@@ -313,20 +345,16 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
 
   function exportSvg() {
     graph.options().navigationMenu().hideAllMenus();
-    // Get the d3js SVG element
-    const graphSvg = d3
-      .select(graph.options().graphContainerSelector())
-      .select("svg");
-    let graphSvgCode;
+    const graphContainer = document.querySelector(
+      graph.options().graphContainerSelector(),
+    );
+    const liveSvg = graphContainer ? graphContainer.querySelector("svg") : null;
+    if (!liveSvg) {
+      return;
+    }
 
-    // inline the styles, so that the exported svg code contains the css rules
-    inlineVowlStyles();
-    hideNonExportableElements();
-
-    graphSvgCode = graphSvg
-      .attr("version", 1.1)
-      .attr("xmlns", "http://www.w3.org/2000/svg")
-      .node().parentNode.innerHTML;
+    const exportedSvg = createExportSvgClone(liveSvg);
+    let graphSvgCode = exportedSvg.outerHTML;
 
     // Insert the reference to VOWL
     const version = require("../../../shared/js/util/constants")()
@@ -338,212 +366,11 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
       ", https://github.com/Hadden-Industries/webvowl -->\n" +
       graphSvgCode;
 
-    const escapedGraphSvgCode = escapeUnicodeCharacters(graphSvgCode);
-    //btoa(); Creates a base-64 encoded ASCII string from a "string" of binary data.
-    const dataURI = "data:image/svg+xml;base64," + btoa(escapedGraphSvgCode);
-
-    exportSvgButton
-      .attr("href", dataURI)
-      .attr("download", exportFilename + ".svg");
-
-    // remove graphic styles for interaction to go back to normal
-    showNonExportableElements();
-    graph.lazyRefresh();
-  }
-
-  function escapeUnicodeCharacters(text) {
-    const textSnippets = [];
-    let i;
-    const textLength = text.length;
-    let character;
-    let charCode;
-
-    for (i = 0; i < textLength; i++) {
-      character = text.charAt(i);
-      charCode = character.charCodeAt(0);
-
-      if (charCode < 128) {
-        textSnippets.push(character);
-      } else {
-        textSnippets.push("&#" + charCode + ";");
-      }
-    }
-
-    return textSnippets.join("");
-  }
-
-  function inlineVowlStyles() {
-    setStyleSensitively(".text", [
-      { name: "font-family", value: "Helvetica, Arial, sans-serif" },
-      {
-        name: "font-size",
-        value: "12px",
-      },
-    ]);
-    setStyleSensitively(".subtext", [{ name: "font-size", value: "9px" }]);
-    setStyleSensitively(".text.instance-count", [
-      { name: "fill", value: "#666" },
-    ]);
-    setStyleSensitively(".external + text .instance-count", [
-      { name: "fill", value: "#aaa" },
-    ]);
-    setStyleSensitively(".cardinality", [{ name: "font-size", value: "10px" }]);
-    setStyleSensitively(".text, .embedded", [
-      { name: "pointer-events", value: "none" },
-    ]);
-    setStyleSensitively(
-      ".class, .object, .disjoint, .objectproperty, .disjointwith, .equivalentproperty, .transitiveproperty, .functionalproperty, .inversefunctionalproperty, .symmetricproperty, .allvaluesfromproperty, .somevaluesfromproperty",
-      [
-        {
-          name: "fill",
-          value: "#acf",
-        },
-      ],
+    downloadFile(
+      graphSvgCode,
+      "image/svg+xml;charset=utf-8",
+      exportFilename + ".svg",
     );
-    setStyleSensitively(".label .datatype, .datatypeproperty", [
-      { name: "fill", value: "#9c6" },
-    ]);
-    setStyleSensitively(".rdf, .rdfproperty", [
-      { name: "fill", value: "#c9c" },
-    ]);
-    setStyleSensitively(".literal, .node .datatype", [
-      { name: "fill", value: "#fc3" },
-    ]);
-    setStyleSensitively(".deprecated, .deprecatedproperty", [
-      { name: "fill", value: "#ccc" },
-    ]);
-    setStyleSensitively(".external, .externalproperty", [
-      { name: "fill", value: "#36c" },
-    ]);
-    setStyleSensitively("path, .nofill", [{ name: "fill", value: "none" }]);
-    setStyleSensitively("marker path", [{ name: "fill", value: "#000" }]);
-    setStyleSensitively(".class, path, line, .fineline", [
-      { name: "stroke", value: "#000" },
-    ]);
-    setStyleSensitively(
-      ".white, .subclass, .subclassproperty, .external + text",
-      [{ name: "fill", value: "#fff" }],
-    );
-    setStyleSensitively(
-      ".class.hovered, .property.hovered, .cardinality.hovered, .cardinality.focused, circle.pin, .filled.hovered, .filled.focused",
-      [
-        {
-          name: "fill",
-          value: "#f00",
-        },
-        { name: "cursor", value: "pointer" },
-      ],
-    );
-    setStyleSensitively(".focused, path.hovered", [
-      { name: "stroke", value: "#f00" },
-    ]);
-    setStyleSensitively(".indirect-highlighting, .feature:hover", [
-      { name: "fill", value: "#f90" },
-    ]);
-    setStyleSensitively(".values-from", [{ name: "stroke", value: "#69c" }]);
-    setStyleSensitively(".symbol, .values-from.filled", [
-      { name: "fill", value: "#69c" },
-    ]);
-    setStyleSensitively(".class, path, line", [
-      { name: "stroke-width", value: "2" },
-    ]);
-    setStyleSensitively(".fineline", [{ name: "stroke-width", value: "1" }]);
-    setStyleSensitively(".dashed, .anonymous", [
-      { name: "stroke-dasharray", value: "8" },
-    ]);
-    setStyleSensitively(".dotted", [{ name: "stroke-dasharray", value: "3" }]);
-    setStyleSensitively("rect.focused, circle.focused", [
-      { name: "stroke-width", value: "4px" },
-    ]);
-    setStyleSensitively(".nostroke", [{ name: "stroke", value: "none" }]);
-    setStyleSensitively("marker path", [
-      { name: "stroke-dasharray", value: "100" },
-    ]);
-  }
-
-  function setStyleSensitively(selector, styles) {
-    const elements = d3.selectAll(selector);
-    if (elements.empty()) {
-      return;
-    }
-
-    styles.forEach(function (style) {
-      elements.each(function () {
-        const element = d3.select(this);
-        if (!shouldntChangeInlineCss(element, style.name)) {
-          element.style(style.name, style.value);
-        }
-      });
-    });
-  }
-
-  function shouldntChangeInlineCss(element, style) {
-    return style === "fill" && hasBackgroundColorSet(element);
-  }
-
-  function hasBackgroundColorSet(element) {
-    const data = element.datum();
-    if (data === undefined) {
-      return false;
-    }
-    return data.backgroundColor && !!data.backgroundColor();
-  }
-
-  /**
-   * For example the pin of the pick&pin module should be invisible in the exported graphic.
-   */
-  function hideNonExportableElements() {
-    d3.selectAll(".hidden-in-export").classed("hidden", true);
-  }
-
-  function removeVowlInlineStyles() {
-    d3.selectAll(
-      ".text, .subtext, .text.instance-count, .external + text .instance-count, .cardinality, .text, .embedded, .class, .object, .disjoint, .objectproperty, .disjointwith, .equivalentproperty, .transitiveproperty, .functionalproperty, .inversefunctionalproperty, .symmetricproperty, .allvaluesfromproperty, .somevaluesfromproperty, .label .datatype, .datatypeproperty, .rdf, .rdfproperty, .literal, .node .datatype, .deprecated, .deprecatedproperty, .external, .externalproperty, path, .nofill, .symbol, .values-from.filled, marker path, .class, path, line, .fineline, .white, .subclass, .subclassproperty, .external + text, .class.hovered, .property.hovered, .cardinality.hovered, .cardinality.focused, circle.pin, .filled.hovered, .filled.focused, .focused, path.hovered, .indirect-highlighting, .feature:hover, .values-from, .class, path, line, .fineline, .dashed, .anonymous, .dotted, rect.focused, circle.focused, .nostroke, marker path",
-    ).each(function () {
-      const element = d3.select(this);
-
-      const inlineStyles = element.node().style;
-      for (const styleName in inlineStyles) {
-        if (Object.prototype.hasOwnProperty.call(inlineStyles, styleName)) {
-          if (shouldntChangeInlineCss(element, styleName)) {
-            continue;
-          }
-          element.style(styleName, null);
-        }
-      }
-
-      if (
-        element.datum &&
-        element.datum() !== undefined &&
-        element.datum().type
-      ) {
-        if (element.datum().type() === "rdfs:subClassOf") {
-          element.style("fill", null);
-        }
-      }
-    });
-
-    // repair svg icons in the menu;
-    const scrollContainer = d3.select("#menuElementContainer").node();
-    const controlElements = scrollContainer.children;
-    const numEntries = controlElements.length;
-
-    for (let i = 0; i < numEntries; i++) {
-      const currentMenu = controlElements[i].id;
-      d3.select("#" + currentMenu)
-        .select("path")
-        .style("stroke-width", "0");
-      d3.select("#" + currentMenu)
-        .select("path")
-        .style("fill", "#fff");
-    }
-
-    d3.select("#magnifyingGlass").style("stroke-width", "0");
-    d3.select("#magnifyingGlass").style("fill", "#666");
-  }
-
-  function showNonExportableElements() {
-    d3.selectAll(".hidden-in-export").classed("hidden", false);
   }
 
   exportMenu.createJSON_exportObject = function () {
@@ -1012,62 +839,19 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
 
     // make a string again;
     const exportText = JSON.stringify(exportObj, null, "  ");
-    // write the data
-    const dataURI =
-      "data:text/json;charset=utf-8," + encodeURIComponent(exportText);
     let jsonExportFileName = exportFilename;
 
     if (!jsonExportFileName.endsWith(".json")) {
       jsonExportFileName += ".json";
     }
-    exportJsonButton.attr("href", dataURI).attr("download", jsonExportFileName);
+    downloadFile(
+      exportText,
+      "application/json;charset=utf-8",
+      jsonExportFileName,
+    );
   }
 
-  d3.svg
-    .line()
-    .x(function (d) {
-      return d.x;
-    })
-    .y(function (d) {
-      return d.y;
-    })
-    .interpolate("cardinal");
-  d3.svg
-    .line()
-    .x(function (d) {
-      return d.x;
-    })
-    .y(function (d) {
-      return d.y;
-    })
-    .curve(d3.curveCardinal.tension(-1));
-
   function exportTex() {
-    let ahAngle,
-      center,
-      controlPoints,
-      curvePoint,
-      dx,
-      dy,
-      endX,
-      endY,
-      len,
-      lg,
-      linkDomainIntersection,
-      linkRangeIntersection,
-      normX,
-      normY,
-      pathEnd,
-      pathLen,
-      pathStart,
-      px,
-      py,
-      rx,
-      ry,
-      startX,
-      startY;
-    graph.scaleFactor();
-    graph.translation();
     const bbox = graph.getBoundingBoxForTex();
     let comment =
       " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
@@ -1237,16 +1021,22 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
     // draw Links;
     for (i = 0; i < links.length; i++) {
       const link = links[i];
-      // console.log("\n****************\nInverstigating Link for property "+link.property().labelForCurrentLanguage());
+      // console.warn("\n****************\nInverstigating Link for property "+link.property().labelForCurrentLanguage());
 
       const prop = link.property();
-
+      let dx, dy, px, py, rx, ry;
       let colorStr = "black";
-
+      let linkDomainIntersection;
+      let linkRangeIntersection;
+      let center;
       let linkStyle = "";
       let isLoop = "";
-
-      7;
+      let curvePoint;
+      let pathStart;
+      let pathEnd;
+      let controlPoints;
+      let len;
+      let ahAngle;
 
       let arrowType = "triangleBlack";
       const linkWidth = ",line width=2pt";
@@ -1266,6 +1056,8 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
         }
       }
 
+      let startX, startY, endX, endY, normX, normY, lg;
+
       if (link.layers().length === 1 && !link.loops()) {
         linkDomainIntersection = graph
           .math()
@@ -1282,23 +1074,6 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
         py = -center.y;
         rx = linkRangeIntersection.x;
         ry = -linkRangeIntersection.y;
-
-        linkDomainIntersection;
-        center;
-        linkRangeIntersection;
-
-        let nx = rx - px;
-        let ny = ry - py;
-
-        // normalize ;
-        len = Math.sqrt(nx * nx + ny * ny);
-
-        nx = nx / len;
-        ny = ny / len;
-
-        Math.atan2(ny, nx) * (180 / Math.PI);
-        nx;
-        ny;
       } else {
         if (link.isLoop()) {
           isLoop = ", tension=3";
@@ -1357,7 +1132,7 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
       }
 
       lg = link.pathObj();
-      pathLen = Math.floor(lg.node().getTotalLength());
+      const pathLen = Math.floor(lg.node().getTotalLength());
       let p1 = lg.node().getPointAtLength(pathLen - 4);
       let p2 = lg.node().getPointAtLength(pathLen);
       let markerCenter = lg.node().getPointAtLength(pathLen - 6);
@@ -1384,7 +1159,7 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
       if (link.property().type() === "setOperatorProperty") {
         ahAngle -= 45;
       }
-      // console.log(link.property().labelForCurrentLanguage()+ ": "+normX+ " "+normY +"  "+ahAngle);
+      // console.warn(link.property().labelForCurrentLanguage()+ ": "+normX+ " "+normY +"  "+ahAngle);
       rx = markerCenter.x;
       ry = markerCenter.y;
       if (link.layers().length === 1 && !link.loops()) {
@@ -1453,7 +1228,6 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
 
       if (link.property().inverse()) {
         lg = link.pathObj();
-        Math.floor(lg.node().getTotalLength());
         const p1_inv = lg.node().getPointAtLength(4);
         const p2_inv = lg.node().getPointAtLength(0);
         const markerCenter_inv = lg.node().getPointAtLength(6);
@@ -1469,7 +1243,7 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
 
         ahAngle = -1.0 * Math.atan2(normY, normX) * (180 / Math.PI);
         ahAngle -= 90;
-        //   console.log("INV>>\n "+link.property().inverse().labelForCurrentLanguage()+ ": "+normX+ " "+normY +"  "+ahAngle);
+        //   console.warn("INV>>\n "+link.property().inverse().labelForCurrentLanguage()+ ": "+normX+ " "+normY +"  "+ahAngle);
         rx = markerCenter_inv.x;
         ry = markerCenter_inv.y;
         if (link.layers().length === 1 && !link.loops()) {
@@ -1506,10 +1280,10 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
     }
 
     nodeElements.each(function (node) {
-      px = node.x;
-      py = -node.y;
-      identifier = node.labelForCurrentLanguage();
-      // console.log("Writing : "+ identifier);
+      const px = node.x;
+      const py = -node.y;
+      let identifier = node.labelForCurrentLanguage();
+      // console.warn("Writing : "+ identifier);
       if (identifier === undefined) {
         identifier = "";
       }
@@ -1523,7 +1297,9 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
       }
       let textColorStr = "";
       if (node.textBlock) {
-        const txtColor = window.getComputedStyle(node.textBlock()._textBlock().node()).fill;
+        const txtColor = window.getComputedStyle(
+          node.textBlock()._textBlock().node(),
+        ).fill;
         if (txtColor === "rgb(0, 0, 0)") {
           textColorStr = ", text=black";
         }
@@ -1885,11 +1661,9 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
       }
       let textColorStr = "";
       if (correspondingProp.textBlock && correspondingProp.textBlock()) {
-        const txtColor = correspondingProp
-          .textBlock()
-          ._textBlock()
-          .style("fill");
-        //  console.log("PropertyTextColor="+txtColor);
+        const txtColor = window.getComputedStyle(
+          correspondingProp.textBlock()._textBlock().node(),
+        ).fill;
         if (txtColor === "rgb(0, 0, 0)") {
           textColorStr = ", text=black";
         }
@@ -1902,7 +1676,7 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
           .node().children;
 
         // identifier=node.textBlock()._textBlock().text();
-        // console.log(tspans);
+        // console.warn(tspans);
         if (tspans[0]) {
           identifier = tspans[0].innerHTML;
 
@@ -1914,8 +1688,6 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
               identifier += "\\\\ " + tspans[t].innerHTML;
             }
           }
-        } else {
-          // Intentionally ignored.
         }
       }
       if (correspondingProp.type() === "setOperatorProperty") {
@@ -1934,9 +1706,9 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
 
       let bgColorStr = "";
       if (correspondingProp.backgroundColor()) {
-        // console.log("Found backGround color");
+        // console.warn("Found backGround color");
         let bgColor = correspondingProp.backgroundColor();
-        //console.log(bgColor);
+        //console.warn(bgColor);
         bgColor.toUpperCase();
         bgColor = bgColor.slice(1, bgColor.length);
         texString +=
@@ -2013,18 +1785,16 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
           inv_identifier = "";
         }
         let inv_textColorStr = "";
-        //console.log(inv_correspondingProp);
-        //console.log(inv_correspondingProp.textBlock());
+        //console.warn(inv_correspondingProp);
+        //console.warn(inv_correspondingProp.textBlock());
 
         if (
           inv_correspondingProp.textBlock &&
           inv_correspondingProp.textBlock()
         ) {
-          const inv_txtColor = inv_correspondingProp
-            .textBlock()
-            ._textBlock()
-            .style("fill");
-          //  console.log("PropertyTextColor="+inv_txtColor);
+          const inv_txtColor = window.getComputedStyle(
+            inv_correspondingProp.textBlock()._textBlock().node(),
+          ).fill;
           if (inv_txtColor === "rgb(0, 0, 0)") {
             inv_textColorStr = ", text=black";
           }
@@ -2037,7 +1807,7 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
             .node().children;
 
           // identifier=node.textBlock()._textBlock().text();
-          //  console.log(inv_tspans);
+          //  console.warn(inv_tspans);
           if (inv_tspans[0]) {
             inv_identifier = inv_tspans[0].innerHTML;
 
@@ -2056,9 +1826,9 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
         let inv_bgColorStr = "";
 
         if (inv_correspondingProp.backgroundColor()) {
-          //  console.log("Found backGround color");
+          //  console.warn("Found backGround color");
           let inv_bgColor = inv_correspondingProp.backgroundColor();
-          //   console.log(inv_bgColor);
+          //   console.warn(inv_bgColor);
           inv_bgColor.toUpperCase();
           inv_bgColor = inv_bgColor.slice(1, inv_bgColor.length);
           texString +=
@@ -2146,12 +1916,12 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
 
     texString += "\\end{tikzpicture}\n}\n \\end{center}\n";
 
-    //   console.log("Tex Output\n"+ texString);
-    const dataURI =
-      "data:text/json;charset=utf-8," + encodeURIComponent(texString);
-    exportTexButton
-      .attr("href", dataURI)
-      .attr("download", exportFilename + ".tex");
+    //   console.warn("Tex Output\n"+ texString);
+    downloadFile(
+      texString,
+      "application/x-tex;charset=utf-8",
+      exportFilename + ".tex",
+    );
   }
 
   return exportMenu;

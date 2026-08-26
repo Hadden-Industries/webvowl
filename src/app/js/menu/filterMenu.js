@@ -66,15 +66,6 @@ module.exports = function (graph) {
   ) {
     menuControl = getMenuControl();
     nodeDegreeContainer = getNodeDegreeContainer();
-    // TODO: is this here really necessarry? << new menu visualization style?
-    menuControl.on("mouseover", function () {
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-    });
-    menuControl.on("mouseleave", function () {
-      filterMenu.highlightForDegreeSlider(false);
-    });
-
     addFilterItem(
       datatypeFilter,
       "datatype",
@@ -116,23 +107,17 @@ module.exports = function (graph) {
     pluralNameOfFilteredItems,
     selector,
   ) {
-    const filterContainer = d3
-      .select(selector)
-      .append("div")
-      .classed("checkboxContainer", true);
-
-    const filterCheckbox = filterContainer
-      .append("input")
-      .classed("filterCheckbox", true)
-      .attr("id", identifier + "FilterCheckbox")
-      .attr("type", "checkbox")
-      .property("checked", filter.enabled());
+    const filterContainer = document.querySelector(selector);
     if (!filterContainer) {
       return;
     }
+    const filterCheckbox = filterContainer.querySelector(
+      "#" + identifier + "FilterCheckbox",
+    );
     if (!filterCheckbox) {
       return;
     }
+    filterCheckbox.checked = filter.enabled();
 
     // Store for easier resetting
     checkboxData.push({
@@ -140,12 +125,17 @@ module.exports = function (graph) {
       defaultState: filter.enabled(),
     });
 
-    filterCheckbox.on("click", function (silent) {
+    const onClickHandler = function (arg1, arg2) {
       // There might be no parameters passed because of a manual
       // invocation when resetting the filters
       const isEnabled = filterCheckbox.checked;
       filter.enabled(isEnabled);
-      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
+      const silent =
+        typeof arg1 === "boolean"
+          ? arg1
+          : typeof arg2 === "boolean"
+            ? arg2
+            : false;
       if (silent !== true) {
         // updating graph when silent is false or the parameter is not given.
         graph.update();
@@ -153,11 +143,6 @@ module.exports = function (graph) {
     };
     filterCheckbox.addEventListener("click", onClickHandler);
     filterCheckbox.__onclick = onClickHandler;
-
-    filterContainer
-      .append("label")
-      .attr("for", identifier + "FilterCheckbox")
-      .text(pluralNameOfFilteredItems);
   }
 
   function addNodeDegreeFilter(nodeDegreeFilter, container) {
@@ -183,35 +168,18 @@ module.exports = function (graph) {
       setSliderValue(degreeSlider, value);
     });
 
-    const sliderContainer = container
-      .append("div")
-      .classed("distanceSliderContainer", true);
-
-    degreeSlider = sliderContainer
-      .append("input")
-      .attr("id", "nodeDegreeDistanceSlider")
-      .attr("type", "range")
-      .attr("min", 0)
-      .attr("step", 1);
-
-    sliderContainer
-      .append("label")
-      .classed("description", true)
-      .attr("for", "nodeDegreeDistanceSlider")
-      .text("Degree of collapsing");
-
-    const sliderValueLabel = sliderContainer
-      .append("label")
-      .classed("value", true)
-      .attr("for", "nodeDegreeDistanceSlider")
-      .text(0);
-
-    degreeSlider.on("change", function (silent) {
-      if (silent !== true) {
-      const degree = degreeSlider.property("value");
-      if ( parseInt(degree, 10) === 0 ) {
+    const onChangeHandler = function (arg1, arg2) {
+      const degree = degreeSlider.value;
+      if (parseInt(degree, 10) === 0) {
         filterMenu.highlightForDegreeSlider(false);
       }
+      const silent =
+        typeof arg1 === "boolean"
+          ? arg1
+          : typeof arg2 === "boolean"
+            ? arg2
+            : false;
+      if (silent !== true) {
         graph.update();
         graphDegreeLevel = degree;
       }
@@ -224,7 +192,7 @@ module.exports = function (graph) {
       if (sliderValueLabel) {
         sliderValueLabel.textContent = degree;
       }
-      if ( parseInt(degree, 10) === 0 ) {
+      if (parseInt(degree, 10) === 0) {
         filterMenu.highlightForDegreeSlider(false);
       }
     };
@@ -240,11 +208,11 @@ module.exports = function (graph) {
     });
   }
 
-  function handleWheelEvent() {
-    const wheelEvent = d3.event;
+  function handleWheelEvent(event) {
     if (!degreeSlider) {
       return;
     }
+    const wheelEvent = event;
 
     let offset;
     if (wheelEvent.deltaY < 0) {
@@ -329,7 +297,6 @@ module.exports = function (graph) {
   };
 
   filterMenu.highlightForDegreeSlider = function (enable) {
-    let timer;
     if (!arguments.length) {
       enable = true;
     }
@@ -351,7 +318,7 @@ module.exports = function (graph) {
     // pulse button handling
     if (ctrl.classList.contains("buttonPulse") === true && enable === true) {
       ctrl.classList.remove("buttonPulse");
-      timer = setTimeout(function () {
+      const timer = setTimeout(function () {
         ctrl.classList.toggle("buttonPulse", enable);
         clearTimeout(timer);
         // after the time is done, remove the pulse but stay highlighted

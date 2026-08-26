@@ -11,10 +11,6 @@ module.exports = function (graph) {
   const textArea = document.querySelector("#directInputTextArea");
   let visibleContainer = false;
 
-  inputContainer.style("border", "1px solid black");
-  inputContainer.style("padding", "5px");
-  inputContainer.style("background", "#fff");
-
   // connect upload and close button;
   directInputModule.handleDirectUpload = function () {
     const text = textArea.value;
@@ -25,7 +21,7 @@ module.exports = function (graph) {
       jsonOBJ = JSON.parse(text);
       loadingModule.directInput(text);
       // close if successful
-      if (jsonOBJ.class.length > 0) {
+      if (Array.isArray(jsonOBJ.class) && jsonOBJ.class.length > 0) {
         directInputModule.setDirectInputMode(false);
       }
     } catch (_e) {
@@ -33,10 +29,7 @@ module.exports = function (graph) {
         owl2vowl
           .loadWithImports(text)
           .then(function (vowlJson) {
-            graph
-              .options()
-              .loadingModule()
-              .directInput(JSON.stringify(vowlJson));
+            loadingModule.directInput(JSON.stringify(vowlJson));
             directInputModule.setDirectInputMode(false);
           })
           .catch(function (error2) {
@@ -60,8 +53,7 @@ module.exports = function (graph) {
     directInputModule.setDirectInputMode(false);
   };
 
-  directInputModule.updateLayout = function () {
-  };
+  directInputModule.updateLayout = function () {};
 
   directInputModule.setDirectInputMode = function (val) {
     if (!val) {

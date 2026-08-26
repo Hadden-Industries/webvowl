@@ -79,7 +79,8 @@ module.exports = (function () {
 
       // check for sub names;
       const indicatorText = that.indicationString();
-      const indicatorWidth = textTools.measureTextWidth(indicatorText, "subtext") + 20;
+      const indicatorWidth =
+        textTools.measureTextWidth(indicatorText, "subtext") + 20;
       if (indicatorWidth > myWidth) {
         myWidth = indicatorWidth;
       }
@@ -90,26 +91,6 @@ module.exports = (function () {
     this.textWidth = function () {
       return that.width();
     };
-    function measureTextWidth(text, textStyle) {
-      // Set a default value
-      if (!textStyle) {
-        textStyle = "text";
-      }
-      const d = d3
-          .select("body")
-          .append("div")
-          .attr("class", textStyle)
-          .attr("id", "width-test") // tag this element to identify it
-          .attr(
-            "style",
-            "position:absolute; float:left; white-space:nowrap; visibility:hidden;",
-          )
-          .text(text),
-        w = document.getElementById("width-test").offsetWidth;
-      d.remove();
-      return w;
-    }
-
     this.toggleFocus = function () {
       that.focused(!that.focused());
       that.nodeElement().select("rect").classed("focused", that.focused());
@@ -258,7 +239,7 @@ module.exports = (function () {
         shapeElement
           .transition()
           .tween("attr", function () {})
-          .ease("linear")
+          .ease(d3.easeLinear)
           .duration(100)
           .attr({
             x: -labelWidth / 2,
@@ -266,7 +247,7 @@ module.exports = (function () {
             width: labelWidth,
             height: height,
           })
-          .each("end", function () {
+          .on("end", function () {
             that.updateTextElement();
           });
       } else {
@@ -275,7 +256,7 @@ module.exports = (function () {
         shapeElement
           .transition()
           .tween("attr", function () {})
-          .ease("linear")
+          .ease(d3.easeLinear)
           .duration(100)
           .attr({
             x: -labelWidth / 2,
@@ -294,7 +275,7 @@ module.exports = (function () {
           .transition()
           .tween("attr.translate", function () {})
           .attr("transform", "translate(" + dx + "," + dy + ")")
-          .ease("linear")
+          .ease(d3.easeLinear)
           .duration(100);
       }
     };

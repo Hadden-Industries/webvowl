@@ -19,15 +19,10 @@ module.exports = function (graph) {
     document
       .getElementById("reset-button")
       .addEventListener("click", resetGraph);
-    const menuEntry = d3.select("#resetOption");
-    menuEntry.on("mouseover", function () {
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-    });
   };
 
-  function resetGraph() {
   let resetFlashTimer;
+  function resetGraph() {
     const resetButton = document.getElementById("reset-button");
 
     // 1. Apply visual feedback SYNCHRONOUSLY before any async work.
@@ -39,23 +34,43 @@ module.exports = function (graph) {
     const _reflow = resetButton.offsetWidth; // eslint-disable-line no-unused-vars
     resetButton.classList.add("flash-active");
 
-    graph.resetSearchHighlight();
-    graph.options().searchMenu().clearText();
-    options.classDistance(untouchedOptions.classDistance());
-    options.datatypeDistance(untouchedOptions.datatypeDistance());
-    options.charge(untouchedOptions.charge());
-    options.gravity(untouchedOptions.gravity());
-    options.linkStrength(untouchedOptions.linkStrength());
-    graph.reset();
+    // 2. DOUBLE requestAnimationFrame: guarantees TWO full paint+commit
+    //    cycles complete before the heavy work starts.
+    //
+    //    Frame N   (after click event):  classes set → browser paints
+    //    Frame N+1 (first rAF):          scale frame 1 painted & committed
+    //    Frame N+2 (second rAF):         graph.reset() runs — compositor
+    //                                    now has N+1's committed state and
+    //                                    can animate independently.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        graph.resetSearchHighlight();
+        graph.dispatchEvent(new CustomEvent("searchcleared"));
+        options.classDistance(untouchedOptions.classDistance());
+        options.datatypeDistance(untouchedOptions.datatypeDistance());
+        options.charge(untouchedOptions.charge());
+        options.gravity(untouchedOptions.gravity());
+        options.linkStrength(untouchedOptions.linkStrength());
+        graph.reset();
 
-    resettableModules.forEach(function (module) {
-      module.reset();
+        resettableModules.forEach(function (module) {
+          module.reset();
+        });
+
+        graph.updateStyle();
+
+        // Trigger glow fade-out via CSS transition — runs on the compositor
+        // layer of .reset-glow independently of any remaining main-thread work.
+        resetButton.classList.remove("flash-active");
+        resetButton.classList.add("flash-out");
+        resetFlashTimer = setTimeout(function () {
+          resetButton.classList.remove("flash-out");
+        }, 700);
+      });
     });
-
-    graph.updateStyle();
   }
 
-  resetMenu.setMenuMode = function ( enabled ){
+  resetMenu.setMenuMode = function (enabled) {
     document.getElementById("reset-button").disabled = !enabled;
   };
 

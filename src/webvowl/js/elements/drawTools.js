@@ -47,8 +47,16 @@ module.exports = (function () {
   }
 
   function addBackgroundColor(element, backgroundColor) {
-    if (backgroundColor) {
-      element.style("fill", backgroundColor);
+    const node = element.node();
+    const hasCustomFill = Boolean(backgroundColor);
+    element.classed("has-custom-fill", hasCustomFill);
+    if (!node || !node.style) {
+      return;
+    }
+    if (hasCustomFill && typeof node.style.setProperty === "function") {
+      node.style.setProperty("--vowl-fill", backgroundColor);
+    } else if (typeof node.style.removeProperty === "function") {
+      node.style.removeProperty("--vowl-fill");
     }
   }
 
@@ -104,7 +112,7 @@ module.exports = (function () {
       .append("circle")
       .classed("class pin feature", true)
       .attr("r", 12)
-      .on("click", function () {
+      .on("click", function (event) {
         if (onClick) {
           onClick();
         }
@@ -126,7 +134,7 @@ module.exports = (function () {
         .attr("cy", -7)
         .classed("superHiddenElement ", true)
         .classed("superOpacityElement", !accuraciesHelperFunction())
-        .on("click", function () {
+        .on("click", function (event) {
           if (onClick) {
             onClick();
           }

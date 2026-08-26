@@ -3,12 +3,6 @@ module.exports = function (graph) {
     checkboxes = [];
 
   configMenu.setup = function (zoomSlider) {
-    const menuEntry = d3.select("#m_modes");
-    menuEntry.on("mouseover", function () {
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-    });
-
     addCheckBox(
       "showZoomSlider",
       "Zoom controls",
@@ -25,31 +19,13 @@ module.exports = function (graph) {
   };
 
   function addLabelWidthSlider(selector, identifier, label, onChangeFunction) {
-    const sliderContainer = d3
-      .select(selector)
-      .append("div")
-      .classed("distanceSliderContainer", true);
-
-    const slider = sliderContainer
-      .append("input")
-      .attr("id", identifier + "Slider")
-      .attr("type", "range")
-      .attr("min", 20)
-      .attr("max", 600)
-      .attr("value", onChangeFunction())
-      .attr("step", 10);
-    sliderContainer
-      .append("label")
-      .classed("description", true)
-      .attr("for", identifier + "Slider")
-      .attr("id", identifier + "DescriptionLabel")
-      .text(label);
-    const sliderValueLabel = sliderContainer
-      .append("label")
-      .classed("value", true)
-      .attr("for", identifier + "Slider")
-      .attr("id", identifier + "valueLabel")
-      .text(onChangeFunction());
+    const sliderContainer = document.querySelector(selector);
+    const sliderValueLabel = sliderContainer.querySelector(
+      "#" + identifier + "SliderValue",
+    );
+    sliderValueLabel.textContent = onChangeFunction();
+    const slider = sliderContainer.querySelector("#" + identifier + "Slider");
+    slider.setAttribute("value", onChangeFunction());
 
     slider.addEventListener("input", function () {
       const value = slider.value;
@@ -61,11 +37,11 @@ module.exports = function (graph) {
     });
 
     // add wheel event to the slider
-    slider.on("wheel", function () {
-      if (slider.node().disabled === true) {
+    slider.addEventListener("wheel", function (event) {
+      if (slider.disabled === true) {
         return;
       }
-      const wheelEvent = d3.event;
+      const wheelEvent = event;
       let offset;
       if (wheelEvent.deltaY < 0) {
         offset = 10;
@@ -91,21 +67,21 @@ module.exports = function (graph) {
     onChangeFunc,
     updateLvl,
   ) {
-    const configOptionContainer = d3
-      .select(selector)
-      .append("div")
-      .classed("checkboxContainer", true);
-    const configCheckbox = configOptionContainer
-      .append("input")
-      .classed("moduleCheckbox", true)
-      .attr("id", identifier + "ConfigCheckbox")
-      .attr("type", "checkbox")
-      .property("checked", onChangeFunc());
+    const configOptionContainer = document.querySelector(selector);
+    const configCheckbox = configOptionContainer.querySelector(
+      "#" + identifier + "ConfigCheckbox",
+    );
+    configCheckbox.checked = onChangeFunc();
 
-    configCheckbox.on("click", function (silent) {
-      const isEnabled = configCheckbox.property("checked");
+    const clickHandler = function (arg1, arg2) {
+      const isEnabled = configCheckbox.checked;
       onChangeFunc(isEnabled);
-      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
+      const silent =
+        typeof arg1 === "boolean"
+          ? arg1
+          : typeof arg2 === "boolean"
+            ? arg2
+            : false;
       if (silent !== true) {
         // updating graph when silent is false or the parameter is not given.
         if (updateLvl === 1) {
@@ -128,20 +104,14 @@ module.exports = function (graph) {
       element: configCheckbox,
       update: clickHandler,
     });
-    configOptionContainer
-      .append("label")
-      .attr("for", identifier + "ConfigCheckbox")
-      .text(modeName);
   }
 
   configMenu.setCheckBoxValue = function (identifier, value) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].id;
-      if (cbdId === identifier) {
-        checkboxes[i].property("checked", value);
-        if ( checkboxes[i].on("click") ) {
-          checkboxes[i].on("click")();
-        }
+      const item = checkboxes[i];
+      if (item.id === identifier) {
+        item.element.checked = value;
+        item.update();
         break;
       }
     }

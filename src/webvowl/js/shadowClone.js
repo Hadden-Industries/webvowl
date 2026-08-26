@@ -307,5 +307,6 @@ module.exports = function (graph) {
   };
 
   /** MOUSE HANDLING FUNCTIONS ------------------------------------------------- **/
+
   return ShadowClone;
 };

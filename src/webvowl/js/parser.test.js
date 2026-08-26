@@ -1,10 +1,3 @@
-const {
-  installD3V3CollectionAdapter,
-} = require("../test/d3V3CollectionAdapter");
-
-const restoreD3 = installD3V3CollectionAdapter();
-afterAll(restoreD3);
-
 const createParser = require("./parser");
 
 describe("Parser Inverse Property Type Matching Unit Tests", () => {
@@ -102,24 +95,26 @@ describe("Parser Inverse Property Type Matching Unit Tests", () => {
 });
 
 describe("Parser viewport settings", () => {
-  function createMockGraph(){
+  function createMockGraph() {
     return {
       options: () => ({
         filterMenu: () => ({ updateSettings: () => {} }),
         modeMenu: () => ({ updateSettings: () => {} }),
-        gravityMenu: () => ({ reset: () => {} })
+        gravityMenu: () => ({ reset: () => {} }),
       }),
       setViewportTransform: jest.fn(() => true),
       setZoom: jest.fn(() => true),
       setTranslation: jest.fn(() => true),
-      updateStyle: jest.fn()
+      updateStyle: jest.fn(),
     };
   }
 
   test("imports zoom and translation as one atomic viewport update", () => {
     const graph = createMockGraph();
     const parser = createParser(graph);
-    parser.parse({ settings: { global: { zoom: "0.38", translation: [10, 20] } } });
+    parser.parse({
+      settings: { global: { zoom: "0.38", translation: [10, 20] } },
+    });
 
     parser.parseSettings();
 
@@ -133,7 +128,9 @@ describe("Parser viewport settings", () => {
     const graph = createMockGraph();
     graph.setViewportTransform.mockReturnValue(false);
     const parser = createParser(graph);
-    parser.parse({ settings: { global: { zoom: "NaN", translation: [NaN, NaN] } } });
+    parser.parse({
+      settings: { global: { zoom: "NaN", translation: [NaN, NaN] } },
+    });
 
     parser.parseSettings();
 

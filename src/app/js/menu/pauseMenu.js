@@ -12,19 +12,14 @@ module.exports = function (graph) {
    * Adds the pause button to the website.
    */
   pauseMenu.setup = function () {
-    const menuEntry = d3.select("#pauseOption");
-    menuEntry.on("mouseover", function () {
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
+    pauseButton = document.getElementById("pause-button");
+    pauseButton.datum = { paused: false };
+    pauseButton.addEventListener("click", function () {
+      const d = pauseButton.datum;
+      graph.paused(!d.paused);
+      d.paused = !d.paused;
+      updatePauseButton();
     });
-    pauseButton = d3
-      .select("#pause-button")
-      .datum({ paused: false })
-      .on("click", function (d) {
-        graph.paused(!d.paused);
-        d.paused = !d.paused;
-        updatePauseButton();
-      });
     // Set these properties the first time manually
     updatePauseButton();
   };
@@ -36,25 +31,22 @@ module.exports = function (graph) {
   };
 
   function updatePauseButton() {
-    updatePauseButtonClass();
-    updatePauseButtonText();
-  }
-
-  function updatePauseButtonClass() {
-    pauseButton.classed("paused", function (d) {
-      return d.paused;
-    });
-  }
-
-  function updatePauseButtonText() {
-    if (pauseButton.datum().paused) {
-  const pauseIconSvg = '<g><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></g>';
-  const playIconSvg = '<g><path d="M8 5v14l11-7z"/></g>';
-
-      pauseButton.text("Resume");
+    const isPaused = pauseButton.datum.paused;
+    if (isPaused) {
+      pauseButton.classList.add("paused");
     } else {
-      pauseButton.text("Pause");
+      pauseButton.classList.remove("paused");
     }
+    pauseButton.setAttribute("aria-pressed", isPaused ? "true" : "false");
+    pauseButton.setAttribute(
+      "title",
+      isPaused
+        ? "Resume graph physics simulation"
+        : "Pause graph physics simulation",
+    );
+    pauseButton.querySelector(".menuElementLabel").textContent = isPaused
+      ? "Resume"
+      : "Pause";
   }
 
   pauseMenu.reset = function () {
@@ -62,7 +54,7 @@ module.exports = function (graph) {
     pauseMenu.setPauseValue(false);
   };
 
-  pauseMenu.setMenuMode = function ( enabled ){
+  pauseMenu.setMenuMode = function (enabled) {
     document.getElementById("pause-button").disabled = !enabled;
   };
 

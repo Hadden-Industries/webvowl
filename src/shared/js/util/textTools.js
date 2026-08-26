@@ -10,12 +10,7 @@ function measureTextWidth(text, textStyle) {
   const d = d3
       .select("body")
       .append("div")
-      .attr("class", textStyle)
-      .attr("id", "width-test") // tag this element to identify it
-      .attr(
-        "style",
-        "position:absolute; float:left; white-space:nowrap; visibility:hidden;",
-      )
+      .attr("class", textStyle + " text-measurement-probe")
       .text(text),
     w = d.node().offsetWidth;
   d.remove();

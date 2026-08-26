@@ -2,12 +2,6 @@ const OwlClass = require("../../../webvowl/js/elements/nodes/implementations/Owl
 const RdfsSubClassOf = require("../../../webvowl/js/elements/properties/implementations/RdfsSubClassOf");
 const ObjectProperty = require("../../../webvowl/js/elements/properties/implementations/OwlObjectProperty");
 const subclassFilterFactory = require("./subclassFilter");
-const {
-  installD3V3CollectionAdapter,
-} = require("../../test/d3V3CollectionAdapter");
-
-const restoreD3 = installD3V3CollectionAdapter();
-afterAll(restoreD3);
 
 describe("Collapsing of subclassOf properties", () => {
   let collapser;

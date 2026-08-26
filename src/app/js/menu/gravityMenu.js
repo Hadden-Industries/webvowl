@@ -14,11 +14,6 @@ module.exports = function (graph) {
    * Adds the gravity sliders to the website.
    */
   gravityMenu.setup = function () {
-    const menuEntry = d3.select("#m_gravity");
-    menuEntry.on("mouseover", function () {
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-    });
     addDistanceSlider(
       "#classSliderOption",
       "class",
@@ -35,30 +30,17 @@ module.exports = function (graph) {
 
   function addDistanceSlider(selector, identifier, label, distanceFunction) {
     const defaultLinkDistance = distanceFunction();
-
     const sliderContainer = document.querySelector(selector);
 
-    const slider = sliderContainer
-      .append("input")
-      .datum({ distanceFunction: distanceFunction })
-      .attr("id", identifier + "DistanceSlider")
-      .attr("type", "range")
-      .attr("min", 10)
-      .attr("max", 600)
-      .attr("value", distanceFunction())
-      .attr("step", 10);
+    const sliderValueLabel = sliderContainer.querySelector(
+      "#" + identifier + "DistanceSliderValue",
+    );
+    sliderValueLabel.textContent = defaultLinkDistance;
 
-    sliderContainer
-      .append("label")
-      .classed("description", true)
-      .attr("for", identifier + "DistanceSlider")
-      .text(label);
-
-    const sliderValueLabel = sliderContainer
-      .append("label")
-      .classed("value", true)
-      .attr("for", identifier + "DistanceSlider")
-      .text(distanceFunction());
+    const slider = sliderContainer.querySelector(
+      "#" + identifier + "DistanceSlider",
+    );
+    slider.setAttribute("value", defaultLinkDistance);
 
     // Store slider for easier resetting
     sliders.push({
@@ -82,10 +64,9 @@ module.exports = function (graph) {
     slider.addEventListener("input", handleInput);
 
     // add wheel event to the slider
-    slider.on("wheel", function () {
-      const wheelEvent = d3.event;
-      let offset;
-      if (wheelEvent.deltaY < 0) {
+    slider.addEventListener("wheel", function (event) {
+      let offset = 0;
+      if (event.deltaY < 0) {
         offset = 10;
       } else if (event.deltaY > 0) {
         offset = -10;

@@ -479,7 +479,7 @@ module.exports = function exportTTLModule(graph) {
     resultingTTLContent +=
       "#################################################################\r\n";
     resultingTTLContent +=
-      "###  Generated with the experimental alpha version of the TTL exporter of WebVOWL (version 1.1.7) " +
+      "###  Generated with the experimental alpha version of the TTL exporter of WebVOWL (version 2.0.0) " +
       " http://visualdataweb.de/webvowl/   ###\r\n";
     resultingTTLContent +=
       "#################################################################\r\n\r\n";

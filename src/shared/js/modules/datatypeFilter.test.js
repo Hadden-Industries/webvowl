@@ -1,10 +1,3 @@
-const {
-  installD3V3CollectionAdapter,
-} = require("../../test/d3V3CollectionAdapter");
-
-const restoreD3 = installD3V3CollectionAdapter();
-afterAll(restoreD3);
-
 const OwlClass = require("../../../webvowl/js/elements/nodes/implementations/OwlClass");
 const RdfsDatatype = require("../../../webvowl/js/elements/nodes/implementations/RdfsDatatype");
 const DatatypeProperty = require("../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty");

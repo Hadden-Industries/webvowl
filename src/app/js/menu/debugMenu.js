@@ -3,31 +3,7 @@ module.exports = function (graph) {
     checkboxes = [];
 
   debugMenu.setup = function () {
-    const menuEntry = d3.select("#debugMenuHref");
-
-    menuEntry.on("mouseover", function () {
-      if (hoverFlag === false) {
-        const searchMenu = graph.options().searchMenu();
-        searchMenu.hideSearchEntries();
-        specialCbx.on("click")(true);
-        if (graph.editorMode() === false) {
-          d3.select("#useAccuracyHelper").style("color", "#979797");
-          d3.select("#useAccuracyHelper").style("pointer-events", "none");
-
-          // regardless the state on which useAccuracyHelper is , we are not in editing mode -> disable it
-          d3.select("#showDraggerObject").style("color", "#979797");
-          d3.select("#showDraggerObject").style("pointer-events", "none");
-        } else {
-          d3.select("#useAccuracyHelper").classed("disabled", false);
-        }
-        hoverFlag = true;
-      }
-    });
-    menuEntry.on("mouseout", function () {
-      hoverFlag = false;
-    });
-
-    specialCbx = addCheckBox(
+    addCheckBox(
       "useAccuracyHelper",
       "Use accuracy helper",
       "#useAccuracyHelper",
@@ -106,21 +82,21 @@ module.exports = function (graph) {
     onChangeFunc,
     _callbackFunction,
   ) {
-    const configOptionContainer = d3
-      .select(selector)
-      .append("div")
-      .classed("checkboxContainer", true);
-    const configCheckbox = configOptionContainer
-      .append("input")
-      .classed("moduleCheckbox", true)
-      .attr("id", identifier + "ConfigCheckbox")
-      .attr("type", "checkbox")
-      .property("checked", onChangeFunc());
+    const configOptionContainer = document.querySelector(selector);
+    const configCheckbox = configOptionContainer.querySelector(
+      "#" + identifier + "ConfigCheckbox",
+    );
+    configCheckbox.checked = onChangeFunc();
 
-    configCheckbox.on("click", function (silent) {
-      const isEnabled = configCheckbox.property("checked");
+    const clickHandler = function (arg1, arg2) {
+      const isEnabled = configCheckbox.checked;
       onChangeFunc(isEnabled);
-      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
+      const silent =
+        typeof arg1 === "boolean"
+          ? arg1
+          : typeof arg2 === "boolean"
+            ? arg2
+            : false;
       _callbackFunction(isEnabled, silent);
     };
 
@@ -130,10 +106,6 @@ module.exports = function (graph) {
       element: configCheckbox,
       update: clickHandler,
     });
-    configOptionContainer
-      .append("label")
-      .attr("for", identifier + "ConfigCheckbox")
-      .text(modeName);
 
     return configCheckbox;
   }
@@ -169,15 +141,10 @@ module.exports = function (graph) {
       item.update(silent);
     });
     if (graph.editorMode() === false) {
-      d3.select("#useAccuracyHelper").style("color", "#979797");
-      d3.select("#useAccuracyHelper").style("pointer-events", "none");
-
-      // regardless the state on which useAccuracyHelper is , we are not in editing mode -> disable it
-      d3.select("#showDraggerObject").style("color", "#979797");
-      d3.select("#showDraggerObject").style("pointer-events", "none");
+      document.querySelector("#useAccuracyHelper").classList.add("disabled");
+      document.querySelector("#showDraggerObject").classList.add("disabled");
     } else {
-      d3.select("#useAccuracyHelper").style("color", "#2980b9");
-      d3.select("#useAccuracyHelper").style("pointer-events", "auto");
+      document.querySelector("#useAccuracyHelper").classList.remove("disabled");
     }
   };
 

@@ -7,7 +7,6 @@ module.exports = function (graph) {
   const leftSidebar = {};
   const collapseButton = document.querySelector("#leftSideBarCollapseButton");
   let visibleSidebar = 0;
-  let backupVisibility = 0;
   const sideBarContent = document.querySelector("#leftSideBarContent");
   const sideBarContainer = document.querySelector("#containerForLeftSideBar");
   const defaultClassSelectionContainers = [];
@@ -17,31 +16,23 @@ module.exports = function (graph) {
   leftSidebar.setup = function () {
     setupCollapsing();
 
-    collapseButton.on("click", function () {
+    collapseButton.addEventListener("click", function () {
       graph.options().navigationMenu().hideAllMenus();
       const settingValue = parseInt(leftSidebar.getSidebarVisibility());
-      backupVisibility = settingValue;
       if (settingValue === 0) {
         leftSidebar.showSidebar(1);
       } else {
         leftSidebar.showSidebar(0);
       }
-    })
-      .on("contextmenu", function (event){
-        if ( event ) {
-          event.preventDefault();
-        }
-      });
+    });
+
+    collapseButton.addEventListener("contextmenu", function (event) {
+      if (event) {
+        event.preventDefault();
+      }
+    });
 
     setupSelectionContainers();
-    d3.select("#WarningErrorMessages")
-      .node()
-      .addEventListener("animationend", function () {
-        d3.select("#WarningErrorMessages").style(
-          "-webkit-animation-name",
-          "none",
-        );
-      });
   };
 
   leftSidebar.hideCollapseButton = function (val) {
@@ -98,7 +89,6 @@ module.exports = function (graph) {
   }
 
   function setupSelectionContainers() {
-    let aClassSelectionContainer;
     const classContainer = document.querySelector("#classContainer");
     const datatypeContainer = document.querySelector("#datatypeContainer");
     const propertyContainer = document.querySelector("#propertyContainer");
@@ -114,12 +104,12 @@ module.exports = function (graph) {
     let i;
 
     for (i = 0; i < supportedClasses.length; i++) {
-      aClassSelectionContainer = classContainer.append("div");
-      aClassSelectionContainer.classed("containerForDefaultSelection", true);
-      aClassSelectionContainer.classed("noselect", true);
-      aClassSelectionContainer.node().id =
-        "selectedClass" + supportedClasses[i];
-      aClassSelectionContainer.node().innerHTML = supportedClasses[i];
+      const aClassSelectionContainer = document.createElement("div");
+      classContainer.appendChild(aClassSelectionContainer);
+      aClassSelectionContainer.classList.add("containerForDefaultSelection");
+      aClassSelectionContainer.classList.add("noselect");
+      aClassSelectionContainer.id = "selectedClass" + supportedClasses[i];
+      aClassSelectionContainer.innerHTML = supportedClasses[i];
 
       if (supportedClasses[i] === defaultClass) {
         selectThisDefaultElement(aClassSelectionContainer);
@@ -174,33 +164,17 @@ module.exports = function (graph) {
         }
       });
 
-    const triggers = d3.selectAll(".accordion-trigger");
-
-    triggers.attr("tabindex", "0").attr("role", "button");
-    triggers.on("keydown", function (event){
-      var evt = event || window.event;
-      if ( evt && (evt.key === "Enter" || evt.key === " ") ) {
-        evt.preventDefault();
-        d3.select(this).node().click();
-      }
-    });
-
-    triggers.on("click", function () {
-      const selectedTrigger = d3.select(this);
-      if (selectedTrigger.classed("accordion-trigger-active")) {
-        // Collapse the active (which is also the selected) trigger
-        collapseContainers(
-          d3.select(selectedTrigger.node().nextElementSibling),
-        );
-        selectedTrigger.classed("accordion-trigger-active", false);
-      } else {
-        // Collapse the other trigger ...
-        // collapseContainers(d3.selectAll(".accordion-trigger-active + div"));
-        // activeTriggers.classed("accordion-trigger-active", false);
-        // ... and expand the selected one
-        expandContainers(d3.select(selectedTrigger.node().nextElementSibling));
-        selectedTrigger.classed("accordion-trigger-active", true);
-      }
+      trigger.addEventListener("click", function () {
+        if (this.classList.contains("accordion-trigger-active")) {
+          // Collapse the active
+          this.nextElementSibling.classList.add("hidden");
+          this.classList.remove("accordion-trigger-active");
+        } else {
+          // expand the selected one
+          this.nextElementSibling.classList.remove("hidden");
+          this.classList.add("accordion-trigger-active");
+        }
+      });
     });
   }
 
@@ -213,98 +187,36 @@ module.exports = function (graph) {
     leftSidebar.showSidebar(parseInt(vis), init);
   };
 
-  leftSidebar.initSideBarAnimation = function () {
-    sideBarContainer.node().addEventListener("animationend", function () {
-      sideBarContent.classed("hidden", !visibleSidebar);
-      if (visibleSidebar === true) {
-        sideBarContainer.style("width", "200px");
-        sideBarContent.classed("hidden", false);
-        d3.select("#leftSideBarCollapseButton").style("left", "200px");
-        d3.select("#leftSideBarCollapseButton").classed("hidden", false);
-        d3.select("#WarningErrorMessages").style("left", "100px");
-      } else {
-        sideBarContainer.style("width", "0px");
-        d3.select("#leftSideBarCollapseButton").style("left", "0px");
-        d3.select("#WarningErrorMessages").style("left", "0px");
-        d3.select("#leftSideBarCollapseButton").classed("hidden", false);
-      }
-      graph.updateCanvasContainerSize();
-      graph.options().navigationMenu().updateScrollButtonVisibility();
-    });
-  };
-
   leftSidebar.showSidebar = function (val, init) {
     const collapseButton = document.querySelector("#leftSideBarCollapseButton");
-    
-    if (init === true) {
-      visibleSidebar = backupVisibility === 0;
-      sideBarContent.classed("hidden", !visibleSidebar);
-      sideBarContainer.style("-webkit-animation-name", "none");
-      d3.select("#WarningErrorMessages").style(
-        "-webkit-animation-name",
-        "none",
-      );
-      if (visibleSidebar === true) {
-        sideBarContainer.style("width", "200px");
-        sideBarContent.classed("hidden", false);
-        d3.select("#leftSideBarCollapseButton").style("left", "200px");
-        d3.select("#leftSideBarCollapseButton").classed("hidden", false);
-        d3.select("#WarningErrorMessages").style("left", "100px");
-        collapseButton.node().innerHTML = "<";
-      } else {
-        sideBarContainer.style("width", "0px");
-        d3.select("#WarningErrorMessages").style("left", "0px");
-        d3.select("#leftSideBarCollapseButton").style("left", "0px");
-        d3.select("#leftSideBarCollapseButton").classed("hidden", false);
-        collapseButton.node().innerHTML = ">";
-      }
 
-      graph.updateCanvasContainerSize();
-      graph.options().navigationMenu().updateScrollButtonVisibility();
-      return;
+    if (init === true) {
+      document.body.classList.add("no-transition");
     }
 
-    const isVisible = (val === 1);
+    const isVisible = val === 1;
     visibleSidebar = isVisible;
     collapseButton.innerHTML = isVisible ? "<" : ">";
 
-    if (val === 1) {
-      visibleSidebar = true;
-      collapseButton.node().innerHTML = "<";
-      // call expand animation;
-      sideBarContainer.style("-webkit-animation-name", "l_sbExpandAnimation");
-      sideBarContainer.style("-webkit-animation-duration", "0.5s");
-      // prepare the animation;
+    sideBarContent.classList.toggle("hidden", !isVisible);
+    sideBarContainer.classList.toggle("sidebar-visible", isVisible);
+    collapseButton.classList.toggle("aligned-to-left-sidebar", isVisible);
+    collapseButton.classList.toggle(
+      "hidden",
+      sideBarContainer.classList.contains("hidden"),
+    );
 
     document
       .querySelector("#WarningErrorMessages")
       .classList.toggle("aligned-to-left-sidebar", isVisible);
 
-      d3.select("#WarningErrorMessages").style(
-        "-webkit-animation-name",
-        "warn_ExpandLeftBarAnimation",
-      );
-      d3.select("#WarningErrorMessages").style(
-        "-webkit-animation-duration",
-        "0.5s",
-      );
-    }
-    if (val === 0) {
-      visibleSidebar = false;
-      sideBarContent.classed("hidden", true);
-      collapseButton.node().innerHTML = ">";
-      // call collapse animation
-      sideBarContainer.style("-webkit-animation-name", "l_sbCollapseAnimation");
-      sideBarContainer.style("-webkit-animation-duration", "0.5s");
-      d3.select("#WarningErrorMessages").style(
-        "-webkit-animation-name",
-        "warn_CollapseLeftBarAnimation",
-      );
-      d3.select("#WarningErrorMessages").style(
-        "-webkit-animation-duration",
-        "0.5s",
-      );
-      d3.select("#WarningErrorMessages").style("left", "0");
+    graph.updateCanvasContainerSize();
+    graph.options().navigationMenu().updateScrollButtonVisibility();
+
+    if (init === true) {
+      requestAnimationFrame(function () {
+        document.body.classList.remove("no-transition");
+      });
     }
   };
 

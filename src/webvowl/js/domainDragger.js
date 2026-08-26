@@ -398,6 +398,7 @@ module.exports = function (graph) {
     Domain_dragger.x = x;
     Domain_dragger.y = y;
   };
+
   Domain_dragger.setAdditionalClassForClass_dragger = function (name, val) {
     // console.log("Class_dragger should sett the class here")
     // Class_dragger.nodeElement.classed(name,val);

@@ -1,30 +1,47 @@
-const { afterEach, beforeEach, describe, expect, test } = require("@jest/globals");
+const {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} = require("@jest/globals");
 const d3 = require("d3");
 const zoomSliderFactory = require("./zoomSlider");
 
 const HTML_NAMESPACE = "http://www.w3.org/1999/xhtml";
 const originalGlobals = new Map(
-  ["CustomEvent", "document", "window", "d3", "performance", "requestAnimationFrame", "cancelAnimationFrame"]
-    .map((name) => [name, Object.getOwnPropertyDescriptor(global, name)])
+  [
+    "CustomEvent",
+    "document",
+    "window",
+    "d3",
+    "performance",
+    "requestAnimationFrame",
+    "cancelAnimationFrame",
+  ].map((name) => [name, Object.getOwnPropertyDescriptor(global, name)]),
 );
 
 class MockEventTarget {
-  constructor(){
+  constructor() {
     this.listeners = {};
   }
 
-  addEventListener(type, fn){
-    if ( !this.listeners[type] ) {this.listeners[type] = [];}
+  addEventListener(type, fn) {
+    if (!this.listeners[type]) {
+      this.listeners[type] = [];
+    }
     this.listeners[type].push(fn);
   }
 
-  removeEventListener(type, fn){
-    if ( this.listeners[type] ) {
-      this.listeners[type] = this.listeners[type].filter((listener) => listener !== fn);
+  removeEventListener(type, fn) {
+    if (this.listeners[type]) {
+      this.listeners[type] = this.listeners[type].filter(
+        (listener) => listener !== fn,
+      );
     }
   }
 
-  dispatchEvent(event){
+  dispatchEvent(event) {
     event.target = this;
     const handlers = (this.listeners[event.type] || []).slice();
     handlers.forEach((handler) => handler.call(this, event, this.__data__));
@@ -33,7 +50,7 @@ class MockEventTarget {
 }
 
 class MockElement extends MockEventTarget {
-  constructor(id, className, tagName = "div"){
+  constructor(id, className, tagName = "div") {
     super();
     this.id = id || "";
     this.className = className || "";
@@ -48,46 +65,54 @@ class MockElement extends MockEventTarget {
     this.namespaceURI = HTML_NAMESPACE;
   }
 
-  setAttribute(name, value){
+  setAttribute(name, value) {
     this.attributes[name] = value;
   }
 
-  getAttribute(name){
+  getAttribute(name) {
     return this.attributes[name] || "";
   }
 
-  appendChild(child){
+  appendChild(child) {
     this.children.push(child);
     child.parentNode = this;
     return child;
   }
 
-  insertBefore(child){
+  insertBefore(child) {
     this.children.push(child);
     child.parentNode = this;
     return child;
   }
 
-  setPointerCapture(pointerId){
+  setPointerCapture(pointerId) {
     this.capturedPointers.add(pointerId);
   }
 
-  getBoundingClientRect(){
-    return { top: 0, left: 0, width: 100, height: 100, bottom: 100, right: 100 };
+  getBoundingClientRect() {
+    return {
+      top: 0,
+      left: 0,
+      width: 100,
+      height: 100,
+      bottom: 100,
+      right: 100,
+    };
   }
 }
 
 class MockEvent {
-  constructor(type, options = {}){
+  constructor(type, options = {}) {
     this.type = type;
-    this.cancelable = options.cancelable !== undefined ? options.cancelable : true;
+    this.cancelable =
+      options.cancelable !== undefined ? options.cancelable : true;
     this.bubbles = options.bubbles || false;
     this.defaultPrevented = false;
     Object.assign(this, options);
   }
 
-  preventDefault(){
-    if ( this.cancelable ) {
+  preventDefault() {
+    if (this.cancelable) {
       this.defaultPrevented = true;
     }
   }
@@ -99,31 +124,31 @@ describe("zoomSlider input handling", () => {
   let currentTime;
   let nextFrameId;
 
-  function restoreGlobal(name){
+  function restoreGlobal(name) {
     const descriptor = originalGlobals.get(name);
-    if ( descriptor ) {
+    if (descriptor) {
       Object.defineProperty(global, name, descriptor);
     } else {
       delete global[name];
     }
   }
 
-  function getOrCreateElement(idKey){
+  function getOrCreateElement(idKey) {
     const cleanId = idKey.startsWith("#") ? idKey.slice(1) : idKey;
-    if ( !elementMap[cleanId] ) {
+    if (!elementMap[cleanId]) {
       elementMap[cleanId] = new MockElement(cleanId);
     }
     return elementMap[cleanId];
   }
 
-  function runAnimationFrame(timestamp){
+  function runAnimationFrame(timestamp) {
     currentTime = timestamp;
     const callbacks = Array.from(frameCallbacks.values());
     frameCallbacks.clear();
     callbacks.forEach((callback) => callback(timestamp));
   }
 
-  function pointerEvent(type, options = {}){
+  function pointerEvent(type, options = {}) {
     return new MockEvent(type, {
       pointerId: 1,
       pointerType: "mouse",
@@ -134,11 +159,11 @@ describe("zoomSlider input handling", () => {
     });
   }
 
-  function keyEvent(type, key, options = {}){
+  function keyEvent(type, key, options = {}) {
     return new MockEvent(type, { key, repeat: false, detail: 0, ...options });
   }
 
-  function mountZoomSlider(options = {}){
+  function mountZoomSlider(options = {}) {
     const minMagnification = options.minMagnification || 0.1;
     const maxMagnification = options.maxMagnification || 4;
     let scale = options.scale || 1;
@@ -161,7 +186,11 @@ describe("zoomSlider input handling", () => {
     };
 
     const zoomParagraph = getOrCreateElement("zoomSliderParagraph");
-    const zoomSliderElement = getOrCreateElement("zoomSliderElement", "", "input");
+    const zoomSliderElement = getOrCreateElement(
+      "zoomSliderElement",
+      "",
+      "input",
+    );
     zoomSliderElement.setAttribute("aria-label", "Zoom level");
     zoomSliderElement.setAttribute("aria-orientation", "vertical");
     zoomSliderElement.setAttribute("title", "Zoom level");
@@ -225,23 +254,31 @@ describe("zoomSlider input handling", () => {
     originalGlobals.forEach((descriptor, name) => restoreGlobal(name));
   });
 
-  test.each(["mouse", "touch", "pen"])("supports %s press-and-hold", (pointerType) => {
-    const { setSliderZoom, zoomInButton } = mountZoomSlider();
-    const pointerDown = pointerEvent("pointerdown", { pointerId: 7, pointerType });
+  test.each(["mouse", "touch", "pen"])(
+    "supports %s press-and-hold",
+    (pointerType) => {
+      const { setSliderZoom, zoomInButton } = mountZoomSlider();
+      const pointerDown = pointerEvent("pointerdown", {
+        pointerId: 7,
+        pointerType,
+      });
 
-    zoomInButton.dispatchEvent(pointerDown);
+      zoomInButton.dispatchEvent(pointerDown);
 
-    expect(zoomInButton.capturedPointers.has(7)).toBe(true);
-    expect(setSliderZoom).toHaveBeenCalledTimes(1);
-    expect(frameCallbacks.size).toBe(1);
+      expect(zoomInButton.capturedPointers.has(7)).toBe(true);
+      expect(setSliderZoom).toHaveBeenCalledTimes(1);
+      expect(frameCallbacks.size).toBe(1);
 
-    runAnimationFrame(1000 / 60);
-    expect(setSliderZoom).toHaveBeenCalledTimes(2);
+      runAnimationFrame(1000 / 60);
+      expect(setSliderZoom).toHaveBeenCalledTimes(2);
 
-    window.dispatchEvent(pointerEvent("pointerup", { pointerId: 7, pointerType }));
-    expect(frameCallbacks.size).toBe(0);
-    expect(cancelAnimationFrame).toHaveBeenCalledTimes(1);
-  });
+      window.dispatchEvent(
+        pointerEvent("pointerup", { pointerId: 7, pointerType }),
+      );
+      expect(frameCallbacks.size).toBe(0);
+      expect(cancelAnimationFrame).toHaveBeenCalledTimes(1);
+    },
+  );
 
   test("a quick pointer activation applies one step without a duplicate click step", () => {
     const { getScale, setSliderZoom, zoomInButton } = mountZoomSlider();
@@ -260,10 +297,14 @@ describe("zoomSlider input handling", () => {
     ["lostpointercapture", "button"],
   ])("%s on the %s stops an active pointer hold", (eventType, targetName) => {
     const { zoomOutButton } = mountZoomSlider();
-    zoomOutButton.dispatchEvent(pointerEvent("pointerdown", { pointerId: 9, pointerType: "pen" }));
+    zoomOutButton.dispatchEvent(
+      pointerEvent("pointerdown", { pointerId: 9, pointerType: "pen" }),
+    );
 
     const target = targetName === "window" ? window : zoomOutButton;
-    target.dispatchEvent(pointerEvent(eventType, { pointerId: 9, pointerType: "pen" }));
+    target.dispatchEvent(
+      pointerEvent(eventType, { pointerId: 9, pointerType: "pen" }),
+    );
 
     expect(frameCallbacks.size).toBe(0);
     expect(cancelAnimationFrame).toHaveBeenCalledTimes(1);
@@ -273,18 +314,24 @@ describe("zoomSlider input handling", () => {
     const { setSliderZoom, zoomInButton, zoomOutButton } = mountZoomSlider();
 
     zoomInButton.dispatchEvent(pointerEvent("pointerdown", { button: 2 }));
-    zoomInButton.dispatchEvent(pointerEvent("pointerdown", { isPrimary: false }));
+    zoomInButton.dispatchEvent(
+      pointerEvent("pointerdown", { isPrimary: false }),
+    );
     expect(setSliderZoom).not.toHaveBeenCalled();
 
     zoomInButton.dispatchEvent(pointerEvent("pointerdown", { pointerId: 1 }));
     zoomInButton.dispatchEvent(pointerEvent("pointerdown", { pointerId: 1 }));
-    zoomOutButton.dispatchEvent(pointerEvent("pointerdown", { pointerId: 2, pointerType: "touch" }));
+    zoomOutButton.dispatchEvent(
+      pointerEvent("pointerdown", { pointerId: 2, pointerType: "touch" }),
+    );
     zoomOutButton.dispatchEvent(new MockEvent("click", { detail: 0 }));
 
     expect(setSliderZoom).toHaveBeenCalledTimes(1);
     expect(requestAnimationFrame).toHaveBeenCalledTimes(1);
 
-    window.dispatchEvent(pointerEvent("pointerup", { pointerId: 2, pointerType: "touch" }));
+    window.dispatchEvent(
+      pointerEvent("pointerup", { pointerId: 2, pointerType: "touch" }),
+    );
     expect(frameCallbacks.size).toBe(1);
     window.dispatchEvent(pointerEvent("pointerup", { pointerId: 1 }));
     expect(frameCallbacks.size).toBe(0);
@@ -327,7 +374,8 @@ describe("zoomSlider input handling", () => {
   });
 
   test("disables every zoom control until graph interactions are enabled", () => {
-    const { zoomSlider, zoomSliderElement, zoomInButton, zoomOutButton } = mountZoomSlider();
+    const { zoomSlider, zoomSliderElement, zoomInButton, zoomOutButton } =
+      mountZoomSlider();
     const centerButton = document.getElementById("centerGraphButton");
 
     zoomSlider.setMenuMode(false);
@@ -345,65 +393,80 @@ describe("zoomSlider input handling", () => {
     expect(zoomOutButton.disabled).toBe(false);
   });
 
-  test.each(["blur", "visibilitychange"])("%s stops the active interaction", (eventType) => {
-    const { zoomInButton } = mountZoomSlider();
-    zoomInButton.dispatchEvent(pointerEvent("pointerdown"));
+  test.each(["blur", "visibilitychange"])(
+    "%s stops the active interaction",
+    (eventType) => {
+      const { zoomInButton } = mountZoomSlider();
+      zoomInButton.dispatchEvent(pointerEvent("pointerdown"));
 
-    if ( eventType === "visibilitychange" ) {
-      document.hidden = true;
-      document.dispatchEvent(new MockEvent(eventType));
-    } else {
-      window.dispatchEvent(new MockEvent(eventType));
-    }
+      if (eventType === "visibilitychange") {
+        document.hidden = true;
+        document.dispatchEvent(new MockEvent(eventType));
+      } else {
+        window.dispatchEvent(new MockEvent(eventType));
+      }
 
-    expect(frameCallbacks.size).toBe(0);
-    expect(cancelAnimationFrame).toHaveBeenCalledTimes(1);
-  });
+      expect(frameCallbacks.size).toBe(0);
+      expect(cancelAnimationFrame).toHaveBeenCalledTimes(1);
+    },
+  );
 
-  test.each([60, 120])("uses elapsed time for consistent zooming at %i Hz", (refreshRate) => {
-    const { getScale, zoomInButton } = mountZoomSlider();
-    zoomInButton.dispatchEvent(pointerEvent("pointerdown"));
+  test.each([60, 120])(
+    "uses elapsed time for consistent zooming at %i Hz",
+    (refreshRate) => {
+      const { getScale, zoomInButton } = mountZoomSlider();
+      zoomInButton.dispatchEvent(pointerEvent("pointerdown"));
 
-    for ( let frame = 1; frame <= refreshRate; frame += 1 ) {
-      runAnimationFrame(frame * 1000 / refreshRate);
-    }
+      for (let frame = 1; frame <= refreshRate; frame += 1) {
+        runAnimationFrame((frame * 1000) / refreshRate);
+      }
 
-    expect(getScale()).toBeCloseTo(Math.pow(1.02, 61), 10);
-    window.dispatchEvent(pointerEvent("pointerup"));
-  });
+      expect(getScale()).toBeCloseTo(Math.pow(1.02, 61), 10);
+      window.dispatchEvent(pointerEvent("pointerup"));
+    },
+  );
 
   test.each([
     ["zoom in", "zoomInButton", 3.99, 4],
     ["zoom out", "zoomOutButton", 0.101, 0.1],
-  ])("stops scheduling at the %s boundary", (label, buttonName, scale, expected) => {
-    const mounted = mountZoomSlider({ scale });
-    mounted[buttonName].dispatchEvent(pointerEvent("pointerdown"));
+  ])(
+    "stops scheduling at the %s boundary",
+    (label, buttonName, scale, expected) => {
+      const mounted = mountZoomSlider({ scale });
+      mounted[buttonName].dispatchEvent(pointerEvent("pointerdown"));
 
-    expect(mounted.getScale()).toBe(expected);
-    expect(frameCallbacks.size).toBe(0);
-    expect(requestAnimationFrame).not.toHaveBeenCalled();
-  });
+      expect(mounted.getScale()).toBe(expected);
+      expect(frameCallbacks.size).toBe(0);
+      expect(requestAnimationFrame).not.toHaveBeenCalled();
+    },
+  );
 
   test.each([
     ["zoom in", "zoomInButton", 4],
     ["zoom out", "zoomOutButton", 0.1],
-  ])("exposes %s as unavailable at its boundary", (label, buttonName, scale) => {
-    const mounted = mountZoomSlider({ scale });
-    const button = mounted[buttonName];
+  ])(
+    "exposes %s as unavailable at its boundary",
+    (label, buttonName, scale) => {
+      const mounted = mountZoomSlider({ scale });
+      const button = mounted[buttonName];
 
-    expect(button.disabled).toBe(true);
-    button.dispatchEvent(new MockEvent("click", { detail: 0 }));
-    expect(mounted.setSliderZoom).not.toHaveBeenCalled();
-  });
+      expect(button.disabled).toBe(true);
+      button.dispatchEvent(new MockEvent("click", { detail: 0 }));
+      expect(mounted.setSliderZoom).not.toHaveBeenCalled();
+    },
+  );
 
   test("retains context-menu prevention and center-graph behavior", () => {
-    const { forceRelocationEvent, zoomInButton, zoomOutButton } = mountZoomSlider();
+    const { forceRelocationEvent, zoomInButton, zoomOutButton } =
+      mountZoomSlider();
     const zoomInContext = new MockEvent("contextmenu");
     const zoomOutContext = new MockEvent("contextmenu");
 
     zoomInButton.dispatchEvent(zoomInContext);
     zoomOutButton.dispatchEvent(zoomOutContext);
-    document.getElementById("centerGraphButton").dispatchEvent(new MockEvent("click", { detail: 1 }));
+    document
+      .getElementById("centerGraphButton")
+      .dispatchEvent(new MockEvent("click", { detail: 1 }));
 
     expect(zoomInContext.defaultPrevented).toBe(true);
     expect(zoomOutContext.defaultPrevented).toBe(true);

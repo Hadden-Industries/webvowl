@@ -10,7 +10,8 @@ describe("Truncating of text", () => {
     global.d3 = {
       select: () => ({
         append: () => ({
-          attr: function () {
+          attr: function (name, value) {
+            attributes[name] = value;
             return this;
           },
           text: function (txt) {
@@ -21,9 +22,6 @@ describe("Truncating of text", () => {
           remove: () => {},
         }),
       }),
-    };
-    global.document = {
-      getElementById: () => mockElement,
     };
 
     tools = textToolsFactory();

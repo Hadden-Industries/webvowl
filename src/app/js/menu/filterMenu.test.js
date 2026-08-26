@@ -7,15 +7,23 @@ const HTML_NAMESPACE = "http://www.w3.org/1999/xhtml";
 class MockElement {
   constructor(id, className, tagName = "div") {
     this.id = id || "";
-    this._classList = new Set(className ? className.split(/\s+/).filter(Boolean) : []);
+    this._classList = new Set(
+      className ? className.split(/\s+/).filter(Boolean) : [],
+    );
     this.tagName = tagName.toUpperCase();
     this.nodeName = this.tagName;
     this.listeners = {};
     const self = this;
     this.style = {
       _props: {},
-      setProperty: (k, v) => { self.style._props[k] = v; self.style[k] = v; },
-      removeProperty: (k) => { delete self.style._props[k]; delete self.style[k]; },
+      setProperty: (k, v) => {
+        self.style._props[k] = v;
+        self.style[k] = v;
+      },
+      removeProperty: (k) => {
+        delete self.style._props[k];
+        delete self.style[k];
+      },
       getPropertyValue: (k) => self.style._props[k] || "",
     };
     this.ownerDocument = global.document;
@@ -45,8 +53,12 @@ class MockElement {
   get classList() {
     const self = this;
     return {
-      add: (...names) => { names.forEach((n) => self._classList.add(n)); },
-      remove: (...names) => { names.forEach((n) => self._classList.delete(n)); },
+      add: (...names) => {
+        names.forEach((n) => self._classList.add(n));
+      },
+      remove: (...names) => {
+        names.forEach((n) => self._classList.delete(n));
+      },
       contains: (name) => self._classList.has(name),
       toggle: (name, force) => {
         const shouldAdd =
@@ -62,7 +74,9 @@ class MockElement {
   }
 
   addEventListener(type, fn) {
-    if (!this.listeners[type]) { this.listeners[type] = []; }
+    if (!this.listeners[type]) {
+      this.listeners[type] = [];
+    }
     this.listeners[type].push(fn);
   }
 
@@ -73,7 +87,9 @@ class MockElement {
   }
 
   dispatchEvent(evt) {
-    if (!evt.target) { evt.target = this; }
+    if (!evt.target) {
+      evt.target = this;
+    }
     const handlers = (this.listeners[evt.type] || []).slice();
     for (const h of handlers) {
       h.call(this, evt, this.__data__);
@@ -83,11 +99,15 @@ class MockElement {
 
   setAttribute(name, val) {
     this.attributes[name] = val;
-    if (name === "class") { this.className = val; }
+    if (name === "class") {
+      this.className = val;
+    }
   }
 
   getAttribute(name) {
-    if (name === "class") { return this.className; }
+    if (name === "class") {
+      return this.className;
+    }
     return this.attributes[name] || "";
   }
 
@@ -183,9 +203,21 @@ describe("filterMenu degree slider highlight clearing", () => {
 
     const setupFilterItem = (id, identifier) => {
       const container = getOrCreateElement(id, "toggleOption", "li");
-      const wrapper = getOrCreateElement(id + "_wrapper", "checkboxContainer", "div");
-      const input = getOrCreateElement(identifier + "FilterCheckbox", "filterCheckbox", "input");
-      const label = getOrCreateElement(identifier + "FilterCheckbox_label", "", "label");
+      const wrapper = getOrCreateElement(
+        id + "_wrapper",
+        "checkboxContainer",
+        "div",
+      );
+      const input = getOrCreateElement(
+        identifier + "FilterCheckbox",
+        "filterCheckbox",
+        "input",
+      );
+      const label = getOrCreateElement(
+        identifier + "FilterCheckbox_label",
+        "",
+        "label",
+      );
       wrapper.appendChild(input);
       wrapper.appendChild(label);
       container.appendChild(wrapper);
@@ -197,13 +229,36 @@ describe("filterMenu degree slider highlight clearing", () => {
     setupFilterItem("disjointFilteringOption", "disjoint");
     setupFilterItem("setOperatorFilteringOption", "setOperator");
 
-    const nodeDegreeContainer = getOrCreateElement("nodeDegreeFilteringOption", "", "li");
-    nodeDegreeContainer.appendChild(getOrCreateElement("nodeDegreeDistanceSlider", "", "input"));
-    nodeDegreeContainer.appendChild(getOrCreateElement("nodeDegreeSliderValue", "", "span"));
-    nodeDegreeContainer.appendChild(getOrCreateElement("degree-of-collapsing-hint", "degree-of-collapsing-hint hidden", "span"));
-    getOrCreateElement("c_filter", "", "div").appendChild(getOrCreateElement("filterBtn", "", "button"));
+    const nodeDegreeContainer = getOrCreateElement(
+      "nodeDegreeFilteringOption",
+      "",
+      "li",
+    );
+    nodeDegreeContainer.appendChild(
+      getOrCreateElement("nodeDegreeDistanceSlider", "", "input"),
+    );
+    nodeDegreeContainer.appendChild(
+      getOrCreateElement("nodeDegreeSliderValue", "", "span"),
+    );
+    nodeDegreeContainer.appendChild(
+      getOrCreateElement(
+        "degree-of-collapsing-hint",
+        "degree-of-collapsing-hint hidden",
+        "span",
+      ),
+    );
+    getOrCreateElement("c_filter", "", "div").appendChild(
+      getOrCreateElement("filterBtn", "", "button"),
+    );
 
-    filterMenu.setup(mockFilter, mockFilter, mockFilter, mockFilter, mockFilter, mockNodeDegreeFilter);
+    filterMenu.setup(
+      mockFilter,
+      mockFilter,
+      mockFilter,
+      mockFilter,
+      mockFilter,
+      mockNodeDegreeFilter,
+    );
 
     // Simulate loader auto-collapse highlighting
     filterMenu.highlightForDegreeSlider(true);
@@ -235,15 +290,38 @@ describe("filterMenu degree slider highlight clearing", () => {
       setDegreeSetter: jest.fn(),
     };
 
-    const hintNode = getOrCreateElement("degree-of-collapsing-hint", "degree-of-collapsing-hint hidden", "span");
-    const sliderNode = getOrCreateElement("nodeDegreeDistanceSlider", "", "input");
-    const nodeDegreeContainer = getOrCreateElement("nodeDegreeFilteringOption", "", "li");
+    const hintNode = getOrCreateElement(
+      "degree-of-collapsing-hint",
+      "degree-of-collapsing-hint hidden",
+      "span",
+    );
+    const sliderNode = getOrCreateElement(
+      "nodeDegreeDistanceSlider",
+      "",
+      "input",
+    );
+    const nodeDegreeContainer = getOrCreateElement(
+      "nodeDegreeFilteringOption",
+      "",
+      "li",
+    );
     nodeDegreeContainer.appendChild(sliderNode);
-    nodeDegreeContainer.appendChild(getOrCreateElement("nodeDegreeSliderValue", "", "span"));
+    nodeDegreeContainer.appendChild(
+      getOrCreateElement("nodeDegreeSliderValue", "", "span"),
+    );
     nodeDegreeContainer.appendChild(hintNode);
-    getOrCreateElement("c_filter", "", "div").appendChild(getOrCreateElement("filterBtn", "", "button"));
+    getOrCreateElement("c_filter", "", "div").appendChild(
+      getOrCreateElement("filterBtn", "", "button"),
+    );
 
-    filterMenu.setup(mockFilter, mockFilter, mockFilter, mockFilter, mockFilter, mockNodeDegreeFilter);
+    filterMenu.setup(
+      mockFilter,
+      mockFilter,
+      mockFilter,
+      mockFilter,
+      mockFilter,
+      mockNodeDegreeFilter,
+    );
 
     // Simulate loader auto-collapse highlighting
     filterMenu.highlightForDegreeSlider(true);

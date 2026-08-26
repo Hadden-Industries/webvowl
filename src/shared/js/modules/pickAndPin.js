@@ -14,13 +14,13 @@ module.exports = function () {
     }
   };
 
-  pap.handle = function (selection, forced) {
+  pap.handle = function (event, selection, forced) {
     if (!enabled) {
       return;
     }
 
     if (!forced) {
-      if (wasNotDragged()) {
+      if (wasNotDragged(event)) {
         return;
       }
     }
@@ -38,8 +38,8 @@ module.exports = function () {
     }
   };
 
-  function wasNotDragged() {
-    return !d3.event.defaultPrevented;
+  function wasNotDragged(event) {
+    return event && !event.defaultPrevented;
   }
 
   function hasNoParallelProperties(property) {

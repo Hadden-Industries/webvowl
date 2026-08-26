@@ -48,11 +48,6 @@ module.exports = function (graph) {
     compactNotation,
     colorExternals,
   ) {
-    const menuEntry = d3.select("#m_modes");
-    menuEntry.on("mouseover", function () {
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-    });
     addCheckBoxD(
       "labelWidth",
       "Dynamic label width",
@@ -98,23 +93,17 @@ module.exports = function (graph) {
     onChangeFunc,
     updateLvl,
   ) {
-    const moduleOptionContainer = d3
-      .select(selector)
-      .append("div")
-      .classed("checkboxContainer", true);
-
-    const moduleCheckbox = moduleOptionContainer
-      .append("input")
-      .classed("moduleCheckbox", true)
-      .attr("id", identifier + "ModuleCheckbox")
-      .attr("type", "checkbox")
-      .property("checked", onChangeFunc());
+    const moduleOptionContainer = document.querySelector(selector);
     if (!moduleOptionContainer) {
       return;
     }
+    const moduleCheckbox = moduleOptionContainer.querySelector(
+      "#" + identifier + "ModuleCheckbox",
+    );
     if (!moduleCheckbox) {
       return;
     }
+    moduleCheckbox.checked = onChangeFunc();
 
     moduleCheckbox.addEventListener("click", function () {
       const isEnabled = moduleCheckbox.checked;
@@ -139,38 +128,22 @@ module.exports = function (graph) {
         // graph.lazyRefresh();
       }
     });
-    moduleOptionContainer
-      .append("label")
-      .attr("for", identifier + "ModuleCheckbox")
-      .text(modeName);
-    if (identifier === "editorMode") {
-      moduleOptionContainer
-        .append("label")
-        .attr("class", "experimental-label")
-        .text("(experimental)");
-    }
 
     dynamicLabelWidthCheckBox = moduleCheckbox;
   }
 
   function addCheckBox(identifier, modeName, selector, onChangeFunc) {
-    const moduleOptionContainer = d3
-      .select(selector)
-      .append("div")
-      .classed("checkboxContainer", true);
-
-    const moduleCheckbox = moduleOptionContainer
-      .append("input")
-      .classed("moduleCheckbox", true)
-      .attr("id", identifier + "ModuleCheckbox")
-      .attr("type", "checkbox")
-      .property("checked", onChangeFunc());
+    const moduleOptionContainer = document.querySelector(selector);
     if (!moduleOptionContainer) {
       return;
     }
+    const moduleCheckbox = moduleOptionContainer.querySelector(
+      "#" + identifier + "ModuleCheckbox",
+    );
     if (!moduleCheckbox) {
       return;
     }
+    moduleCheckbox.checked = onChangeFunc();
 
     moduleCheckbox.addEventListener("click", function () {
       const isEnabled = moduleCheckbox.checked;
@@ -179,16 +152,6 @@ module.exports = function (graph) {
         graph.showEditorHintIfNeeded();
       }
     });
-    moduleOptionContainer
-      .append("label")
-      .attr("for", identifier + "ModuleCheckbox")
-      .text(modeName);
-    if (identifier === "editorMode") {
-      moduleOptionContainer
-        .append("label")
-        .attr("class", "experimental-label")
-        .text(" (experimental)");
-    }
   }
 
   function addModeItem(
@@ -198,22 +161,18 @@ module.exports = function (graph) {
     selector,
     updateGraphOnClick,
   ) {
-    const moduleOptionContainer = d3
-      .select(selector)
-      .append("div")
-      .classed("checkboxContainer", true)
-      .datum({ module: module, defaultState: module.enabled() });
-
-    const moduleCheckbox = moduleOptionContainer
-      .append("input")
-      .datum({ module: module, defaultState: module.enabled() })
-      .property("checked", module.enabled());
+    const moduleOptionContainer = document.querySelector(selector);
     if (!moduleOptionContainer) {
       return null;
     }
+    const moduleCheckbox = moduleOptionContainer.querySelector(
+      "#" + identifier + "ModuleCheckbox",
+    );
     if (!moduleCheckbox) {
       return moduleOptionContainer;
     }
+    const defaultState = module.enabled();
+    moduleCheckbox.checked = defaultState;
 
     // Store for easier resetting all modes
     checkboxes.push({
@@ -224,10 +183,15 @@ module.exports = function (graph) {
       update: null,
     });
 
-    moduleCheckbox.on("click", function (d, silent) {
-      const isEnabled = moduleCheckbox.property("checked");
+    const clickHandler = function (arg1, arg2) {
+      const isEnabled = moduleCheckbox.checked;
       module.enabled(isEnabled);
-      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
+      const silent =
+        typeof arg1 === "boolean"
+          ? arg1
+          : typeof arg2 === "boolean"
+            ? arg2
+            : false;
       if (updateGraphOnClick && silent !== true) {
         graph.executeColorExternalsModule();
         graph.executeCompactNotationModule();
@@ -237,11 +201,6 @@ module.exports = function (graph) {
     };
     moduleCheckbox.addEventListener("click", clickHandler);
     checkboxes[checkboxes.length - 1].update = clickHandler;
-
-    moduleOptionContainer
-      .append("label")
-      .attr("for", identifier + "ModuleCheckbox")
-      .text(modeName);
 
     return moduleOptionContainer;
   }
@@ -257,11 +216,7 @@ module.exports = function (graph) {
         update: function () {},
       };
     }
-    const button = container
-      .append("button")
-      .datum({ active: false })
-      .classed("color-mode-switch", true);
-    applyColorModeSwitchState(button, colorExternalsMode);
+    const button = container.querySelector(".color-mode-switch");
     if (!button) {
       return {
         element: null,
@@ -272,12 +227,18 @@ module.exports = function (graph) {
         update: function () {},
       };
     }
+    let isActive = false;
+    applyColorModeSwitchState(button, colorExternalsMode, isActive);
 
-    button.on("click", function (silent) {
-      const data = button.datum();
-      data.active = !data.active;
-      applyColorModeSwitchState(button, colorExternalsMode);
-      var silent = (typeof arg1 === "boolean") ? arg1 : (typeof arg2 === "boolean" ? arg2 : false);
+    const clickHandler = function (arg1, arg2) {
+      isActive = !isActive;
+      applyColorModeSwitchState(button, colorExternalsMode, isActive);
+      const silent =
+        typeof arg1 === "boolean"
+          ? arg1
+          : typeof arg2 === "boolean"
+            ? arg2
+            : false;
       if (colorExternalsMode.enabled() && silent !== true) {
         graph.executeColorExternalsModule();
         graph.lazyRefresh();

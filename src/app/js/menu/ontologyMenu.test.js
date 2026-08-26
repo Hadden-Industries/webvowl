@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, jest, test } from "@jest/globals";
 import ontologyMenuFactory from "./ontologyMenu.js";
 
 class MockSelection {
-  constructor( node = {} ) {
+  constructor(node = {}) {
     this.element = node;
     this.handlers = {};
     this.classes = new Set();
@@ -54,38 +54,51 @@ class MockSelection {
     };
   }
 
-  on( type, handler ) {
-    if ( arguments.length === 1 ) {return this.handlers[type];}
+  on(type, handler) {
+    if (arguments.length === 1) {
+      return this.handlers[type];
+    }
     this.handlers[type] = handler;
     return this;
   }
 
-  datum( value ) {
+  datum(value) {
     this.element.__data__ = value;
     return this;
   }
 
-  property( name, value ) {
-    if ( arguments.length === 1 ) {return this.element[name];}
+  property(name, value) {
+    if (arguments.length === 1) {
+      return this.element[name];
+    }
     this.element[name] = value;
     return this;
   }
 
-  classed( name, value ) {
-    if ( arguments.length === 1 ) {return this.classes.has(name);}
-    if ( value ) {this.classes.add(name);}
-    else {this.classes.delete(name);}
+  classed(name, value) {
+    if (arguments.length === 1) {
+      return this.classes.has(name);
+    }
+    if (value) {
+      this.classes.add(name);
+    } else {
+      this.classes.delete(name);
+    }
     return this;
   }
 
-  attr( name, value ) {
-    if ( arguments.length === 1 ) {return this.attributes[name] ?? null;}
+  attr(name, value) {
+    if (arguments.length === 1) {
+      return this.attributes[name] ?? null;
+    }
     this.attributes[name] = value;
     return this;
   }
 
-  text( value ) {
-    if ( arguments.length === 0 ) {return this.element.textContent;}
+  text(value) {
+    if (arguments.length === 0) {
+      return this.element.textContent;
+    }
     this.element.textContent = value;
     return this;
   }
@@ -102,7 +115,7 @@ describe("ontology URL normalization", () => {
     expect(normalize("example.org/ontology.owl")).toMatchObject({
       valid: true,
       normalizedUrl: "https://example.org/ontology.owl",
-      wasNormalized: true
+      wasNormalized: true,
     });
   });
 
@@ -110,29 +123,31 @@ describe("ontology URL normalization", () => {
     expect(normalize("HTTP://example.org/ontology.owl")).toMatchObject({
       valid: true,
       normalizedUrl: "https://example.org/ontology.owl",
-      wasNormalized: true
+      wasNormalized: true,
     });
   });
 
   test("accepts a host and port without mistaking the host for a scheme", () => {
     expect(normalize("localhost:5173/ontology.owl")).toMatchObject({
       valid: true,
-      normalizedUrl: "https://localhost:5173/ontology.owl"
+      normalizedUrl: "https://localhost:5173/ontology.owl",
     });
   });
 
   test("uses the parsed pathname to identify JSON URLs", () => {
-    expect(normalize("example.org/ontology.json?download=1#latest")).toMatchObject({
+    expect(
+      normalize("example.org/ontology.json?download=1#latest"),
+    ).toMatchObject({
       valid: true,
       normalizedUrl: "https://example.org/ontology.json?download=1#latest",
-      isJson: true
+      isJson: true,
     });
   });
 
   test("preserves encoded URL components", () => {
     expect(normalize("https://example.org/my%20ontology.owl")).toMatchObject({
       valid: true,
-      normalizedUrl: "https://example.org/my%20ontology.owl"
+      normalizedUrl: "https://example.org/my%20ontology.owl",
     });
   });
 
@@ -142,8 +157,8 @@ describe("ontology URL normalization", () => {
     "ftp://example.org/ontology.owl",
     "urn:example:ontology",
     "https://not%20a%20host/ontology.owl",
-    "https://user:secret@example.org/ontology.owl"
-  ])("rejects an unusable ontology URL: %s", ( value ) => {
+    "https://user:secret@example.org/ontology.owl",
+  ])("rejects an unusable ontology URL: %s", (value) => {
     expect(normalize(value).valid).toBe(false);
   });
 });
@@ -161,8 +176,10 @@ describe("ontology menu actions", () => {
 
   beforeEach(() => {
     selections = new Map();
-    const selectionFor = ( key ) => {
-      if ( !selections.has(key) ) {selections.set(key, new MockSelection());}
+    const selectionFor = (key) => {
+      if (!selections.has(key)) {
+        selections.set(key, new MockSelection());
+      }
       return selections.get(key);
     };
 
@@ -171,11 +188,11 @@ describe("ontology menu actions", () => {
       addEventListener: jest.fn(),
     };
     global.document = {
-      getElementById: ( id ) => selectionFor("#" + id).element
+      getElementById: (id) => selectionFor("#" + id).element,
     };
     global.d3 = {
       select: selectionFor,
-      selectAll: selectionFor
+      selectAll: selectionFor,
     };
 
     createNewOntology = jest.fn();
@@ -183,16 +200,16 @@ describe("ontology menu actions", () => {
     const loadingModule = {
       createNewOntology,
       setOntologyMenu: jest.fn(),
-      parseUrlAndLoadOntology: jest.fn()
+      parseUrlAndLoadOntology: jest.fn(),
     };
     const graph = {
       options: () => ({
         loadingModule: () => loadingModule,
-        navigationMenu: () => ({ hideAllMenus })
+        navigationMenu: () => ({ hideAllMenus }),
       }),
       editorMode: jest.fn().mockReturnValue(false),
       addEventListener: jest.fn(),
-      showReloadButtonAfterLayoutOptimization: jest.fn()
+      showReloadButtonAfterLayoutOptimization: jest.fn(),
     };
 
     ontologyMenu = ontologyMenuFactory(graph);
@@ -261,12 +278,16 @@ describe("ontology menu actions", () => {
 
   test("routes a normalized URL safely through the location hash", () => {
     const event = { preventDefault: jest.fn() };
-    iriInput.element.value = "http://example.org/ontology.json?download=1#latest";
+    iriInput.element.value =
+      "http://example.org/ontology.json?download=1#latest";
 
     iriForm.handlers.submit(event);
 
     expect(global.location.hash).toBe(
-      "url=" + encodeURIComponent("https://example.org/ontology.json?download=1#latest")
+      "url=" +
+        encodeURIComponent(
+          "https://example.org/ontology.json?download=1#latest",
+        ),
     );
     expect(iriInput.element.value).toBe("");
     expect(iriButton.element.disabled).toBe(true);
@@ -278,7 +299,7 @@ describe("ontology menu actions", () => {
 
     ontologyMenu.setIriText("example.org/ontology.owl");
     expect(global.location.hash).toBe(
-      "iri=" + encodeURIComponent("https://example.org/ontology.owl")
+      "iri=" + encodeURIComponent("https://example.org/ontology.owl"),
     );
   });
 
@@ -302,7 +323,8 @@ describe("ontology menu actions", () => {
   });
 
   test("manages native disabled property and title on the reloadCachedOntology button", () => {
-    const reloadButton = selections.get("#reloadCachedOntology") || new MockSelection();
+    const reloadButton =
+      selections.get("#reloadCachedOntology") || new MockSelection();
     selections.set("#reloadCachedOntology", reloadButton);
 
     ontologyMenu.setCachedOntology("testOnto", { data: 1 });
@@ -315,6 +337,8 @@ describe("ontology menu actions", () => {
     global.location.hash = "#file=test.json";
     ontologyMenu.cachedOntology("testOnto");
     expect(reloadButton.element.disabled).toBe(true);
-    expect(reloadButton.element.title).toContain("reloading original version not possible");
+    expect(reloadButton.element.title).toContain(
+      "reloading original version not possible",
+    );
   });
 });

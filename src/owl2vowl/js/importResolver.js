@@ -6,7 +6,7 @@ import {
   UnloadableImportError,
 } from "../../owlapi-js/io/index.js";
 import { IRI } from "../../owlapi-js/model/index.js";
-import resolveFetchUrl from "../../webvowl/js/util/resolveFetchUrl.js";
+import resolveFetchUrl from "../../shared/js/util/resolveFetchUrl.js";
 
 const textBytes = (text) => new TextEncoder().encode(text).byteLength;
 

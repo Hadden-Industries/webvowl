@@ -44,10 +44,12 @@ module.exports = function () {
 
   function setColorsForExternals(elements) {
     const iriMap = mapExternalsToBaseUri(elements);
-    const entries = iriMap.entries();
+    const entries = Array.from(iriMap.entries()).map(function (e) {
+      return { key: e[0], value: e[1] };
+    });
 
-    const colorScale = d3.scale
-      .linear()
+    const colorScale = d3
+      .scaleLinear()
       .domain([0, entries.length - 1])
       .range(_.find(COLOR_MODES, { type: colorModeType }).range)
       .interpolate(d3.interpolateHsl);
@@ -59,7 +61,7 @@ module.exports = function () {
   }
 
   function mapExternalsToBaseUri(elements) {
-    const map = d3.map();
+    const map = new Map();
 
     elements.forEach(function (element) {
       const baseIri = element.baseIri();

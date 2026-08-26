@@ -45,11 +45,13 @@ module.exports = function createEditSidebar(graph) {
             "title",
             document.querySelector("#titleEditor").value,
           );
-      })
-      .on("keydown", function () {
-        d3.event.stopPropagation();
-        if (d3.event.keyCode === 13) {
-          d3.event.preventDefault();
+      });
+    document
+      .querySelector("#titleEditor")
+      .addEventListener("keydown", function (event) {
+        event.stopPropagation();
+        if (event.key === "Enter") {
+          event.preventDefault();
           graph
             .options()
             .addOrUpdateGeneralObjectEntry(
@@ -74,11 +76,13 @@ module.exports = function createEditSidebar(graph) {
             .options()
             .getGeneralMetaObjectProperty("iri");
         }
-      })
-      .on("keydown", function () {
-        d3.event.stopPropagation();
-        if (d3.event.keyCode === 13) {
-          d3.event.preventDefault();
+      });
+    document
+      .querySelector("#iriEditor")
+      .addEventListener("keydown", function (event) {
+        event.stopPropagation();
+        if (event.key === "Enter") {
+          event.preventDefault();
           if (
             graph
               .options()
@@ -103,11 +107,13 @@ module.exports = function createEditSidebar(graph) {
             "version",
             document.querySelector("#versionEditor").value,
           );
-      })
-      .on("keydown", function () {
-        d3.event.stopPropagation();
-        if (d3.event.keyCode === 13) {
-          d3.event.preventDefault();
+      });
+    document
+      .querySelector("#versionEditor")
+      .addEventListener("keydown", function (event) {
+        event.stopPropagation();
+        if (event.key === "Enter") {
+          event.preventDefault();
           graph
             .options()
             .addOrUpdateGeneralObjectEntry(
@@ -125,11 +131,13 @@ module.exports = function createEditSidebar(graph) {
             "author",
             document.querySelector("#authorsEditor").value,
           );
-      })
-      .on("keydown", function () {
-        d3.event.stopPropagation();
-        if (d3.event.keyCode === 13) {
-          d3.event.preventDefault();
+      });
+    document
+      .querySelector("#authorsEditor")
+      .addEventListener("keydown", function (event) {
+        event.stopPropagation();
+        if (event.key === "Enter") {
+          event.preventDefault();
           graph
             .options()
             .addOrUpdateGeneralObjectEntry(
@@ -156,13 +164,10 @@ module.exports = function createEditSidebar(graph) {
     const datatypeEditorSelection = document.querySelector(
       "#typeEditor_datatype",
     );
-    const supportedDatatypes = [
-      "undefined",
-      "xsd:boolean",
-      "xsd:double",
-      "xsd:integer",
-      "xsd:string",
-    ];
+    const supportedDatatypes = graph
+      .options()
+      .supportedDatatypes()
+      .filter((d) => d !== "rdfs:Literal");
     for (let i = 0; i < supportedDatatypes.length; i++) {
       const optB = document.createElement("option");
       optB.innerHTML = supportedDatatypes[i];
@@ -190,21 +195,13 @@ module.exports = function createEditSidebar(graph) {
     const editRect = document.querySelector("#rectFor_" + name);
 
     if (enable === false) {
-      if (fill) {
-        editPath.node().style = "fill: #fff; stroke : #fff; stroke-width : 1px";
-      } else {
-        editPath.node().style = " stroke : #fff; stroke-width : 1px";
-      }
-
-      editRect.style("cursor", "auto");
+      editPath.classList.add("edit-path-style");
+      editRect.classList.add("non-clickable");
+      editRect.classList.remove("clickable");
     } else {
-      if (fill) {
-        editPath.node().style =
-          "fill: #ff972d; stroke : #ff972d; stroke-width : 1px";
-      } else {
-        editPath.node().style = "stroke : #ff972d; stroke-width : 1px";
-      }
-      editRect.style("cursor", "pointer");
+      editPath.classList.add("edit-path-style");
+      editRect.classList.add("clickable");
+      editRect.classList.remove("non-clickable");
     }
   }
 
@@ -297,7 +294,7 @@ module.exports = function createEditSidebar(graph) {
         deletePath.node().selectorName = name;
         deleteRect.node().selectorName = name;
 
-        deletePath.style("stroke", "#f00");
+        deletePath.classed("delete-path-style", true);
         deleteRect.attr("width", "10px");
         deleteRect.attr("height", "14px");
         deleteRect.classed("delete-rect-style", true);
@@ -370,9 +367,7 @@ module.exports = function createEditSidebar(graph) {
         editPath.node().selectorName = name;
         editRect.node().selectorName = name;
 
-        editPath.classed("editPrefixIcon");
-        editPath.style("stroke", "#fff");
-        editPath.style("stroke-width", "1px");
+        editPath.classed("editPrefixIcon edit-path-style", true);
         editRect.attr("width", "14px");
         editRect.attr("height", "14px");
         editRect.classed("edit-rect-style", true);
@@ -389,22 +384,13 @@ module.exports = function createEditSidebar(graph) {
           );
 
           if (enable === false) {
-            if (fill) {
-              f_editPath.node().style =
-                "fill: #fff; stroke : #fff; stroke-width : 1px";
-            } else {
-              f_editPath.node().style = " stroke : #fff; stroke-width : 1px";
-            }
-
-            f_editRect.style("cursor", "auto");
+            f_editPath.classList.add("edit-path-style");
+            f_editRect.classList.add("non-clickable");
+            f_editRect.classList.remove("clickable");
           } else {
-            if (fill) {
-              f_editPath.node().style =
-                "fill: #ff972d; stroke : #ff972d; stroke-width : 1px";
-            } else {
-              f_editPath.node().style = "stroke : #ff972d; stroke-width : 1px";
-            }
-            f_editRect.style("cursor", "pointer");
+            f_editPath.classList.add("edit-path-style");
+            f_editRect.classList.add("clickable");
+            f_editRect.classList.remove("non-clickable");
           }
         });
         editButton.selectAll("g").on("mouseout", function () {
@@ -418,22 +404,13 @@ module.exports = function createEditSidebar(graph) {
           );
 
           if (enable === false) {
-            if (fill) {
-              f_editPath.node().style =
-                "fill: #fff; stroke : #fff; stroke-width : 1px";
-            } else {
-              f_editPath.node().style = " stroke : #fff; stroke-width : 1px";
-            }
-
-            f_editRect.style("cursor", "auto");
+            f_editPath.classList.add("edit-path-style");
+            f_editRect.classList.add("non-clickable");
+            f_editRect.classList.remove("clickable");
           } else {
-            if (fill) {
-              f_editPath.node().style =
-                "fill: #ff972d; stroke : #ff972d; stroke-width : 1px";
-            } else {
-              f_editPath.node().style = "stroke : #ff972d; stroke-width : 1px";
-            }
-            f_editRect.style("cursor", "pointer");
+            f_editPath.classList.add("edit-path-style");
+            f_editRect.classList.add("clickable");
+            f_editRect.classList.remove("non-clickable");
           }
         });
 
@@ -480,7 +457,7 @@ module.exports = function createEditSidebar(graph) {
         deletePath.node().selectorName = name;
         deleteRect.node().selectorName = name;
 
-        deletePath.style("stroke", "#f00");
+        deletePath.classed("delete-path-style", true);
         deleteRect.attr("width", "10px");
         deleteRect.attr("height", "14px");
         deleteRect.classed("delete-rect-style", true);
@@ -503,11 +480,13 @@ module.exports = function createEditSidebar(graph) {
           );
 
           if (enable === false) {
-            f_deletePath.classed("delete-path-style", true);
-            f_deleteRect.classed("non-clickable", true).classed("clickable", false);
+            f_deletePath.classList.add("delete-path-style");
+            f_deleteRect.classList.add("non-clickable");
+            f_deleteRect.classList.remove("clickable");
           } else {
-            f_deletePath.classed("delete-path-style", true);
-            f_deleteRect.classed("clickable", true).classed("non-clickable", false);
+            f_deletePath.classList.add("delete-path-style");
+            f_deleteRect.classList.add("clickable");
+            f_deleteRect.classList.remove("non-clickable");
           }
         });
         deleteButton.selectAll("g").on("mouseout", function () {
@@ -521,11 +500,13 @@ module.exports = function createEditSidebar(graph) {
           );
 
           if (enable === false) {
-            f_deletePath.classed("delete-path-style", true);
-            f_deleteRect.classed("non-clickable", true).classed("clickable", false);
+            f_deletePath.classList.add("delete-path-style");
+            f_deleteRect.classList.add("non-clickable");
+            f_deleteRect.classList.remove("clickable");
           } else {
-            f_deletePath.classed("delete-path-style", true);
-            f_deleteRect.classed("clickable", true).classed("non-clickable", false);
+            f_deletePath.classList.add("delete-path-style");
+            f_deleteRect.classList.add("clickable");
+            f_deleteRect.classList.remove("non-clickable");
           }
         });
 
@@ -564,11 +545,10 @@ module.exports = function createEditSidebar(graph) {
 
   function enablePrefixEdit(item) {
     let agent = this;
-    if (item) {
+    if (item && !(item instanceof Event) && item.id) {
       agent = item;
     }
-
-    if (agent.disabled === true) {
+    if (!agent || agent.disabled === true || !agent.id) {
       return;
     }
     const selector = agent.id.split("_")[1];
@@ -661,16 +641,18 @@ module.exports = function createEditSidebar(graph) {
     );
     const givenName = datatypeEditorSelection.value;
     const prefix = givenName.includes(":") ? givenName.split(":")[0] : "";
-    let identifier = givenName.includes(":") ? givenName.split(":")[1] : givenName;
+    let identifier = givenName.includes(":")
+      ? givenName.split(":")[1]
+      : givenName;
 
-    if (datatypeEditorSelection.value !== "undefined") {
     let baseNs = "http://www.w3.org/2001/XMLSchema#";
-    if ( prefix === "owl" ) {
+    if (prefix === "owl") {
       baseNs = "http://www.w3.org/2002/07/owl#";
-    } else if ( prefix === "rdfs" ) {
+    } else if (prefix === "rdfs") {
       baseNs = "http://www.w3.org/2000/01/rdf-schema#";
     }
 
+    if (datatypeEditorSelection.value !== "undefined") {
       document.querySelector("#element_iriEditor").disabled = true;
       document.querySelector("#element_labelEditor").disabled = true;
     } else {
@@ -717,32 +699,20 @@ module.exports = function createEditSidebar(graph) {
     let url = document.querySelector("#element_iriEditor").value;
     const base = graph.options().getGeneralMetaObjectProperty("iri");
 
-      //console.log("try to split the input into prefix:name")
-      console.warn("Tokens");
-      console.warn(tokens);
-      console.warn("---------------");
-      // TODO MORE VALIDATION TESTS
-      if (tokens.length === 2) {
-        const pr = tokens[0];
-        const name = tokens[1];
-        if (pr.length > 0) {
-          const basePref = graph.options().prefixList()[pr];
-          if (basePref === undefined) {
-            console.warn("ERROR __________________");
-            graph
-              .options()
-              .warningModule()
-              .showWarning(
-                "Invalid Element IRI",
-                "Could not resolve prefix '" + basePref + "'",
-                "Restoring previous IRI for Element" + element.iri(),
-                1,
-                false,
-              );
-            document.querySelector("#element_iriEditor").value = element.iri();
-            return;
-          }
-          // check if url is not empty
+    if (!url || url.trim().length === 0) {
+      graph
+        .options()
+        .warningModule()
+        .showWarning(
+          "Invalid Element IRI",
+          "Input IRI is EMPTY",
+          "Restoring previous IRI for Element: " + element.iri(),
+          1,
+          false,
+        );
+      document.querySelector("#element_iriEditor").value = element.iri();
+      return undefined;
+    }
 
     // If already a valid absolute URL, accept it directly without mangling
     if (prefixModule.validURL(url) === true) {
@@ -855,7 +825,7 @@ module.exports = function createEditSidebar(graph) {
     }
 
     // if (element.existingPropertyIRI(url)===true){
-    //     console.log("I Have seen this Particular URL already "+url);
+    //     console.warn("I Have seen this Particular URL already "+url);
     //     graph.options().warningModule().showWarning("Already Seen This one ",
     //         "Input IRI For Element"+ element.labelForCurrentLanguage()+" already been set  ",
     //         "Restoring previous IRI for Element"+element.iri(),1,false);
@@ -898,9 +868,7 @@ module.exports = function createEditSidebar(graph) {
   function changeLabelForElement(element) {
     element.label(document.querySelector("#element_labelEditor").value);
     element.redrawLabelText();
-    if ( graph.options().searchMenu() ) {
-      graph.options().searchMenu().requestDictionaryUpdate();
-    }
+    graph.dispatchEvent(new CustomEvent("dictionarychange"));
   }
 
   editSidebar.updateEditDeleteButtonIds = function (oldPrefix, newPrefix) {
@@ -991,11 +959,13 @@ module.exports = function createEditSidebar(graph) {
           }
 
           changeIriForElement(element);
-        })
-        .on("keydown", function () {
-          d3.event.stopPropagation();
-          if (d3.event.keyCode === 13) {
-            d3.event.preventDefault();
+        });
+      document
+        .querySelector("#element_iriEditor")
+        .addEventListener("keydown", function (event) {
+          event.stopPropagation();
+          if (event.key === "Enter") {
+            event.preventDefault();
             console.warn("IRI CHANGED Via ENTER pressed");
             changeIriForElement(element);
             document.querySelector("#element_iriEditor").title = element.iri();
@@ -1063,11 +1033,13 @@ module.exports = function createEditSidebar(graph) {
           }
           changeLabelForElement(element);
           editSidebar.updateSelectionInformation(element); // prevents that it will be changed if node is still active
-        })
-        .on("keydown", function () {
-          d3.event.stopPropagation();
-          if (d3.event.keyCode === 13) {
-            d3.event.preventDefault();
+        });
+      document
+        .querySelector("#element_labelEditor")
+        .addEventListener("keydown", function (event) {
+          event.stopPropagation();
+          if (event.key === "Enter") {
+            event.preventDefault();
             let sanityCheckResult;
             console.warn("Element changed Label");
             const url = getURLFROMPrefixedVersion(element);
@@ -1294,100 +1266,7 @@ module.exports = function createEditSidebar(graph) {
     }
   };
 
-  editSidebar.updateElementWidth = function () {
-    const height = window.innerHeight - 40;
-    const lsb_offset =
-      d3.select("#logo").node().getBoundingClientRect().height + 5;
-    const lsb_height = height - lsb_offset;
-    d3.select("#containerForLeftSideBar").style("top", lsb_offset + "px");
-    d3.select("#leftSideBarCollapseButton").style("top", lsb_offset + "px");
-    d3.select("#containerForLeftSideBar").style("height", lsb_height + "px");
-
-    let div_width = d3
-      .select("#generalDetailsEdit")
-      .node()
-      .getBoundingClientRect().width;
-    div_width += 10;
-
-    const title_labelWidth =
-      d3.select("#titleEditor-label").node().getBoundingClientRect().width + 20;
-    const iri_labelWidth =
-      d3.select("#iriEditor-label").node().getBoundingClientRect().width + 20;
-    const version_labelWidth =
-      d3.select("#versionEditor-label").node().getBoundingClientRect().width +
-      20;
-    const author_labelWidth =
-      d3.select("#authorsEditor-label").node().getBoundingClientRect().width +
-      20;
-    //find max width;
-    let maxW = 0;
-    maxW = Math.max(maxW, title_labelWidth);
-    maxW = Math.max(maxW, iri_labelWidth);
-    maxW = Math.max(maxW, version_labelWidth);
-    maxW = Math.max(maxW, author_labelWidth);
-
-    const meta_inputWidth = div_width - maxW - 10;
-
-    d3.select("#titleEditor").style("width", meta_inputWidth + "px");
-    d3.select("#iriEditor").style("width", meta_inputWidth + "px");
-    d3.select("#versionEditor").style("width", meta_inputWidth + "px");
-    d3.select("#authorsEditor").style("width", meta_inputWidth + "px");
-
-    const elementIri_width =
-      d3.select("#element_iriEditor-label").node().getBoundingClientRect()
-        .width + 20;
-    const elementLabel_width =
-      d3.select("#element_labelEditor-label").node().getBoundingClientRect()
-        .width + 20;
-    const elementType_width =
-      d3.select("#typeEditor-label").node().getBoundingClientRect().width + 20;
-    const elementDType_width =
-      d3.select("#typeEditor_datatype-label").node().getBoundingClientRect()
-        .width + 20;
-
-    maxW = 0;
-    maxW = Math.max(maxW, elementIri_width);
-    maxW = Math.max(maxW, elementLabel_width);
-    maxW = Math.max(maxW, elementType_width);
-    maxW = Math.max(maxW, elementDType_width);
-    const selectedElement_inputWidth = div_width - maxW - 10;
-
-    d3.select("#element_iriEditor").style(
-      "width",
-      selectedElement_inputWidth + "px",
-    );
-    d3.select("#element_labelEditor").style(
-      "width",
-      selectedElement_inputWidth + "px",
-    );
-    d3.select("#typeEditor").style(
-      "width",
-      selectedElement_inputWidth + 4 + "px",
-    );
-    d3.select("#typeEditor_datatype").style(
-      "width",
-      selectedElement_inputWidth + 4 + "px",
-    );
-
-    // update prefix Element width;
-    const containerWidth = d3
-      .select("#containerForPrefixURL")
-      .node()
-      .getBoundingClientRect().width;
-    if (containerWidth !== 0) {
-      const inputs = d3.selectAll(".prefixInput");
-      if (inputs.node()) {
-        const prefixWidth = d3
-          .selectAll(".prefixInput")
-          .node()
-          .getBoundingClientRect().width;
-        d3.selectAll(".prefixURL").style(
-          "width",
-          containerWidth - prefixWidth - 45 + "px",
-        );
-      }
-    }
-  };
+  editSidebar.updateElementWidth = function () {};
 
   function addElementsCharacteristics(element) {
     // save selected element for checkbox handler
@@ -1426,7 +1305,7 @@ module.exports = function createEditSidebar(graph) {
           element,
           arrayOfNodeChars[i],
         );
-        //
+
         filterLabel = document.createElement("label");
         filterLabel.setAttribute("for", "CharacteristicsCheckbox" + i);
         filterLabel.textContent = arrayOfNodeChars[i];
@@ -1452,21 +1331,15 @@ module.exports = function createEditSidebar(graph) {
         filterContainer = document.createElement("div");
         filterContainer.classList.add("checkboxContainer", "warning-row");
 
-        filterCheckbox = filterContainer
-          .append("input")
-          .classed("filterCheckbox", true)
-          .attr("id", "CharacteristicsCheckbox" + i)
-          .attr("type", "checkbox")
-          .attr("characteristics", arrayOfPropertyChars[i])
-          .property(
-            "checked",
-            getPresentAttribute(element, arrayOfPropertyChars[i]),
-          );
-        
-        filterContainer
-          .append("label")
-          .attr("for", "CharacteristicsCheckbox" + i)
-          .text(arrayOfPropertyChars[i]);
+        filterCheckbox = document.createElement("input");
+        filterCheckbox.classList.add("filterCheckbox");
+        filterCheckbox.id = "CharacteristicsCheckbox" + i;
+        filterCheckbox.type = "checkbox";
+        filterCheckbox.setAttribute("characteristics", arrayOfPropertyChars[i]);
+        filterCheckbox.checked = getPresentAttribute(
+          element,
+          arrayOfPropertyChars[i],
+        );
 
         filterLabel = document.createElement("label");
         filterLabel.setAttribute("for", "CharacteristicsCheckbox" + i);
@@ -1651,14 +1524,16 @@ module.exports = function createEditSidebar(graph) {
 
     const triggers = document.querySelectorAll(".accordion-trigger");
 
-    triggers.attr("tabindex", "0").attr("role", "button");
-    triggers.on("keydown", function (event){
-      var evt = event || window.event;
-      if ( evt && (evt.key === "Enter" || evt.key === " ") ) {
-        evt.preventDefault();
-        d3.select(this).node().click();
-      }
-    });
+    triggers.forEach(function (trigger) {
+      trigger.setAttribute("tabindex", "0");
+      trigger.setAttribute("role", "button");
+      trigger.addEventListener("keydown", function (event) {
+        const evt = event || window.event;
+        if (evt && (evt.key === "Enter" || evt.key === " ")) {
+          evt.preventDefault();
+          this.click();
+        }
+      });
 
       trigger.addEventListener("click", function () {
         if (this.classList.contains("accordion-trigger-active")) {

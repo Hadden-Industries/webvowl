@@ -33,7 +33,9 @@ describe("Focuser Module Unit Tests", () => {
     const propertyMock = {
       isProperty: true,
       focused: () => focused,
-      toggleFocus: () => { focused = !focused; },
+      toggleFocus: () => {
+        focused = !focused;
+      },
       inverse: () => ({}),
       labelElement: () => ({
         attr: (attrName) => (attrName === "transform" ? "translate(0,15)" : ""),
@@ -47,7 +49,7 @@ describe("Focuser Module Unit Tests", () => {
       true,
       propertyMock,
       true,
-      false
+      false,
     );
   });
 
@@ -56,10 +58,13 @@ describe("Focuser Module Unit Tests", () => {
     const propertyMock = {
       isProperty: true,
       focused: () => focused,
-      toggleFocus: () => { focused = !focused; },
+      toggleFocus: () => {
+        focused = !focused;
+      },
       inverse: () => ({}),
       labelElement: () => ({
-        attr: (attrName) => (attrName === "transform" ? "translate(0,-15)" : ""),
+        attr: (attrName) =>
+          attrName === "transform" ? "translate(0,-15)" : "",
       }),
     };
 
@@ -69,7 +74,7 @@ describe("Focuser Module Unit Tests", () => {
       true,
       propertyMock,
       false,
-      false
+      false,
     );
   });
 });

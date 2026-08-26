@@ -1,21 +1,27 @@
-import { describe, test, expect } from "@jest/globals";
-
 const { describe, test, expect } = require("@jest/globals");
 
 function getBrowserLanguages(nav) {
-  var browserLangs = [];
+  const browserLangs = [];
   if (Array.isArray(nav.languages)) {
-    for (var i = 0; i < nav.languages.length; i++) {
-      var l = nav.languages[i];
+    for (let i = 0; i < nav.languages.length; i++) {
+      const l = nav.languages[i];
       if (l && typeof l === "string" && browserLangs.indexOf(l) === -1) {
         browserLangs.push(l);
       }
     }
   }
-  if (nav.language && typeof nav.language === "string" && browserLangs.indexOf(nav.language) === -1) {
+  if (
+    nav.language &&
+    typeof nav.language === "string" &&
+    browserLangs.indexOf(nav.language) === -1
+  ) {
     browserLangs.push(nav.language);
   }
-  if (nav.userLanguage && typeof nav.userLanguage === "string" && browserLangs.indexOf(nav.userLanguage) === -1) {
+  if (
+    nav.userLanguage &&
+    typeof nav.userLanguage === "string" &&
+    browserLangs.indexOf(nav.userLanguage) === -1
+  ) {
     browserLangs.push(nav.userLanguage);
   }
   return browserLangs;
@@ -26,26 +32,35 @@ function findBestMatchingLanguage(languages, mockNav) {
     return null;
   }
 
-  var browserLangs = getBrowserLanguages(mockNav || (typeof navigator !== "undefined" ? navigator : {}));
+  const browserLangs = getBrowserLanguages(
+    mockNav || (typeof navigator !== "undefined" ? navigator : {}),
+  );
 
   // 1. Try exact matches with browser languages (case-insensitive)
-  for (var i = 0; i < browserLangs.length; i++) {
-    var bLang = browserLangs[i].toLowerCase();
-    for (var j = 0; j < languages.length; j++) {
-      if (typeof languages[j] === "string" && languages[j].toLowerCase() === bLang) {
+  for (let i = 0; i < browserLangs.length; i++) {
+    const bLang = browserLangs[i].toLowerCase();
+    for (let j = 0; j < languages.length; j++) {
+      if (
+        typeof languages[j] === "string" &&
+        languages[j].toLowerCase() === bLang
+      ) {
         return languages[j];
       }
     }
   }
 
   // 2. Try primary language tag matches (e.g., "de-DE" matches "de", or "de" matches "de-DE")
-  for (var k = 0; k < browserLangs.length; k++) {
-    if (typeof browserLangs[k] !== "string") continue;
-    var primaryBLang = browserLangs[k].split("-")[0].toLowerCase();
-    for (var m = 0; m < languages.length; m++) {
-      if (typeof languages[m] !== "string") continue;
-      var langLower = languages[m].toLowerCase();
-      var primaryLang = langLower.split("-")[0];
+  for (let k = 0; k < browserLangs.length; k++) {
+    if (typeof browserLangs[k] !== "string") {
+      continue;
+    }
+    const primaryBLang = browserLangs[k].split("-")[0].toLowerCase();
+    for (let m = 0; m < languages.length; m++) {
+      if (typeof languages[m] !== "string") {
+        continue;
+      }
+      const langLower = languages[m].toLowerCase();
+      const primaryLang = langLower.split("-")[0];
       if (langLower === primaryBLang || primaryLang === primaryBLang) {
         return languages[m];
       }
@@ -53,9 +68,9 @@ function findBestMatchingLanguage(languages, mockNav) {
   }
 
   // 3. Fallback: English ("en" or "en-*")
-  for (var n = 0; n < languages.length; n++) {
+  for (let n = 0; n < languages.length; n++) {
     if (typeof languages[n] === "string") {
-      var lLower = languages[n].toLowerCase();
+      const lLower = languages[n].toLowerCase();
       if (lLower === "en" || lLower.split("-")[0] === "en") {
         return languages[n];
       }
@@ -76,13 +91,13 @@ function findBestMatchingLanguage(languages, mockNav) {
   return languages[0];
 }
 
-function isLanguageMatch( entryLang, preferredLang ){
-  if ( !entryLang || !preferredLang ) {
+function isLanguageMatch(entryLang, preferredLang) {
+  if (!entryLang || !preferredLang) {
     return false;
   }
   const e = String(entryLang).toLowerCase().trim();
   const p = String(preferredLang).toLowerCase().trim();
-  if ( e === p ) {
+  if (e === p) {
     return true;
   }
   const eBase = e.split("-")[0];
@@ -90,41 +105,41 @@ function isLanguageMatch( entryLang, preferredLang ){
   return eBase.length > 0 && eBase === pBase;
 }
 
-function filterAnnotationItems( items, preferredLanguage ){
-  if ( !items || items.length === 0 ) {
+function filterAnnotationItems(items, preferredLanguage) {
+  if (!items || items.length === 0) {
     return [];
   }
 
   const universalEntries = [];
   const languageEntries = [];
 
-  for ( let i = 0; i < items.length; i++ ) {
+  for (let i = 0; i < items.length; i++) {
     const item = items[i];
     const lang = item.language;
-    if ( item.type === "iri" || !lang || lang === "undefined" || lang === "id" ) {
+    if (item.type === "iri" || !lang || lang === "undefined" || lang === "id") {
       universalEntries.push(item);
     } else {
       languageEntries.push(item);
     }
   }
 
-  if ( languageEntries.length === 0 ) {
+  if (languageEntries.length === 0) {
     return universalEntries;
   }
 
-  if ( preferredLanguage ) {
-    const preferredMatches = languageEntries.filter(function ( item ){
+  if (preferredLanguage) {
+    const preferredMatches = languageEntries.filter(function (item) {
       return isLanguageMatch(item.language, preferredLanguage);
     });
-    if ( preferredMatches.length > 0 ) {
+    if (preferredMatches.length > 0) {
       return universalEntries.concat(preferredMatches);
     }
   }
 
-  const englishMatches = languageEntries.filter(function ( item ){
+  const englishMatches = languageEntries.filter(function (item) {
     return isLanguageMatch(item.language, "en");
   });
-  if ( englishMatches.length > 0 ) {
+  if (englishMatches.length > 0) {
     return universalEntries.concat(englishMatches);
   }
 
@@ -179,15 +194,17 @@ describe("selection details annotation attribute language filtering", () => {
     {
       identifier: "editorialNote",
       language: "en",
-      value: "Feature at risk - added in 2017 revision, and not yet widely used.",
-      type: "label"
+      value:
+        "Feature at risk - added in 2017 revision, and not yet widely used.",
+      type: "label",
     },
     {
       identifier: "editorialNote",
       language: "es",
-      value: "Característica en riesgo - añadida en la revisión de 2017, y no utilizada todavía de forma amplia.",
-      type: "label"
-    }
+      value:
+        "Característica en riesgo - añadida en la revisión de 2017, y no utilizada todavía de forma amplia.",
+      type: "label",
+    },
   ];
 
   test("filters annotation items keeping only matching language 'en'", () => {
@@ -212,8 +229,13 @@ describe("selection details annotation attribute language filtering", () => {
 
   test("retains universal/IRI/undefined annotations alongside language-specific annotations", () => {
     const mixedAnnotations = [
-      { identifier: "isDefinedBy", language: "undefined", value: "http://example.org/ont", type: "iri" },
-      ...sampleEditorialNotes
+      {
+        identifier: "isDefinedBy",
+        language: "undefined",
+        value: "http://example.org/ont",
+        type: "iri",
+      },
+      ...sampleEditorialNotes,
     ];
     const filtered = filterAnnotationItems(mixedAnnotations, "en");
     expect(filtered).toHaveLength(2);

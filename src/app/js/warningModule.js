@@ -4,34 +4,8 @@ module.exports = function (graph) {
   const _messageContainers = [];
   const _messageContext = [];
   const _visibleStatus = [];
-  const superContainer = d3.select("#WarningErrorMessages");
 
   let _messageId = -1;
-  superContainer.style("display", "inline-block");
-  const cssStyleIndex = 0;
-  const styleSelectorIndex = 2;
-
-  // helper for standalone webvowl in chrome
-  function createCSSSelector(name, rules) {
-    const style = document.createElement("style");
-    style.type = "text/css";
-    document.getElementsByTagName("head")[0].appendChild(style);
-    if (!(style.sheet || {}).insertRule) {
-      (style.styleSheet || style.sheet).addRule(name, rules);
-    } else {
-      style.sheet.insertRule(name + "{" + rules + "}", 0);
-    }
-  }
-
-  function findCSS_Index() {
-    createCSSSelector(
-      "@keyframes msg_CollapseAnimation",
-      " 0% { top: 0; } 100% { top: -400px;}",
-    );
-    console.warn(document.styleSheets);
-  }
-
-  findCSS_Index();
 
   warningModule.addMessageBox = function () {
     // add a container;
@@ -88,9 +62,7 @@ module.exports = function (graph) {
       "You can now modify an existing ontology or create a new one via the <em>ontology</em> menu.<br>" +
       "You can save any ontology using the <em>export</em> menu (and exporting it as TTL file).";
 
-    generalHint.style("padding", "5px");
-    generalHint.style("line-height", "1.2em");
-    generalHint.style("font-size", "1.2em");
+    generalHint.classList.add("warning-hint");
 
     const ul = document.createElement("ul");
     warningContainer.appendChild(ul);
@@ -111,10 +83,12 @@ module.exports = function (graph) {
     li4.innerHTML =
       "Additional editing functionality is provided in the right sidebar.";
 
-    const gotItButton = warningContainer.append("label");
-    gotItButton.node().id = "killWarningErrorMessages_" + id;
-    gotItButton.node().innerHTML = "Got It";
-    gotItButton.on("click", warningModule.closeMessage);
+    const gotItButton = document.createElement("button");
+    warningContainer.appendChild(gotItButton);
+    gotItButton.setAttribute("type", "button");
+    gotItButton.id = "killWarningErrorMessages_" + id;
+    gotItButton.innerHTML = "Got It";
+    gotItButton.addEventListener("click", warningModule.closeMessage);
 
     moduleContainer.classList.remove("hidden");
     moduleContainer.classList.add("warn-expanded");
@@ -128,19 +102,21 @@ module.exports = function (graph) {
 
   warningModule.closeMessage = function (id) {
     let nId;
-    if (id === undefined) {
-      const givenId = this.id;
-      nId = givenId.split("_")[1];
+    let targetId = typeof id === "string" ? id : this && this.id ? this.id : "";
+    if (typeof id === "number") {
+      targetId = String(id);
+    }
+    if (targetId && targetId.indexOf("_") !== -1) {
+      nId = targetId.split("_")[1];
     } else {
       nId = targetId;
     }
-    if (id && id.indexOf("_") !== -1) {
-      nId = id.split("_")[1];
+    if (!nId || !_messageContainers[nId]) {
+      return;
     }
     _visibleStatus[nId] = false;
     // get module;
     const moduleContainer = _messageContainers[nId];
-    const m_height = moduleContainer.node().getBoundingClientRect().height;
     moduleContainer.classList.add("warn-collapsed");
 
     // find my id in the children
@@ -162,20 +138,9 @@ module.exports = function (graph) {
     }
 
     for (let fc = 0; fc < followingChildren.length; fc++) {
-      const child = d3.select("#" + followingChildren[fc]);
-      // get the document style and overwrite it;
-      const superCss =
-        document.styleSheets[styleSelectorIndex].cssRules[cssStyleIndex];
-      // remove the existing 0% and 100% rules
-      superCss.deleteRule("0%");
-      superCss.deleteRule("100%");
-
-      superCss.appendRule("0%   {top: 0;}");
-      superCss.appendRule("100% {top: -" + m_height + "px;");
-
-      child.style("-webkit-animation-name", "msg_CollapseAnimation");
-      child.style("-webkit-animation-duration", "0.5s");
-      child.node().addEventListener("animationend", _child_animationEnd);
+      const child = document.querySelector("#" + followingChildren[fc]);
+      child.classList.add("msg-collapsed");
+      child.addEventListener("animationend", _child_animationEnd);
     }
   };
 
@@ -184,16 +149,6 @@ module.exports = function (graph) {
     c.classList.remove("msg-collapsed");
     c.removeEventListener("animationend", _child_animationEnd);
   }
-
-  warningModule.closeFilterHint = function () {
-    if (_messageContainers[_filterHintId]) {
-      _messageContainers[_filterHintId].classed("hidden", true);
-      _messageContainers[_filterHintId].remove();
-      _messageContainers[_filterHintId] = null;
-      _messageContext[_filterHintId] = null;
-      _visibleStatus[_filterHintId] = false;
-    }
-  };
 
   warningModule.showEditorHint = function () {
     const id = warningModule.addMessageBox();
@@ -222,36 +177,35 @@ module.exports = function (graph) {
     const warningContainer = _messageContext[id];
     const moduleContainer = _messageContainers[id];
     _visibleStatus[id] = true;
-    const graphWidth = 0.5 * graph.options().width();
     document
       .querySelector("#blockGraphInteractions")
       .classList.remove("hidden");
 
     if (header.length > 0) {
-      const head = warningContainer.append("div");
-      head.classed("warning-row", true);
-      const titleHeader = head.append("div");
-      titleHeader.classed("warning-inline-flex warning-pr-3", true);
-      titleHeader.node().innerHTML = "<b>Warning:</b>";
-      const msgHeader = head.append("div");
-      // some classes
-      msgHeader.style("display", "inline-flex");
-      msgHeader.style("max-width", graphWidth + "px");
-
-      msgHeader.node().innerHTML = header;
+      const head = document.createElement("div");
+      warningContainer.appendChild(head);
+      head.classList.add("warning-row");
+      const titleHeader = document.createElement("div");
+      head.appendChild(titleHeader);
+      titleHeader.classList.add("warning-inline-flex", "warning-pr-3");
+      titleHeader.innerHTML = "<b>Warning:</b>";
+      const msgHeader = document.createElement("div");
+      head.appendChild(msgHeader);
+      msgHeader.classList.add("warning-msg-content");
+      msgHeader.innerHTML = header;
     }
     if (reason.length > 0) {
-      const reasonContainer = warningContainer.append("div");
-      reasonContainer.classed("warning-row", true);
-      const reasonHeader = reasonContainer.append("div");
-      // some classes
-      reasonHeader.style("display", "inline-flex");
-      reasonHeader.style("padding-right", "3px");
-
-      reasonHeader.node().innerHTML = "<b>Reason:</b>";
-      const msgReason = reasonContainer.append("div");
-      msgReason.classed("warning-msg-content", true);
-      msgReason.node().innerHTML = reason;
+      const reasonContainer = document.createElement("div");
+      warningContainer.appendChild(reasonContainer);
+      reasonContainer.classList.add("warning-row");
+      const reasonHeader = document.createElement("div");
+      reasonContainer.appendChild(reasonHeader);
+      reasonHeader.classList.add("warning-inline-flex", "warning-pr-3");
+      reasonHeader.innerHTML = "<b>Reason:</b>";
+      const msgReason = document.createElement("div");
+      reasonContainer.appendChild(msgReason);
+      msgReason.classList.add("warning-msg-content");
+      msgReason.innerHTML = reason;
     }
     if (action.length > 0) {
       const actionContainer = document.createElement("div");
@@ -267,10 +221,12 @@ module.exports = function (graph) {
       msgAction.innerHTML = action;
     }
 
-    const gotItButton = warningContainer.append("label");
-    gotItButton.node().id = "killWarningErrorMessages_" + id;
-    gotItButton.node().innerHTML = "Continue";
-    gotItButton.on("click", function () {
+    const gotItButton = document.createElement("button");
+    warningContainer.appendChild(gotItButton);
+    gotItButton.setAttribute("type", "button");
+    gotItButton.id = "killWarningErrorMessages_" + id;
+    gotItButton.innerHTML = "Continue";
+    gotItButton.addEventListener("click", function () {
       warningModule.closeMessage(this.id);
       document.querySelector("#blockGraphInteractions").classList.add("hidden");
       callback(
@@ -280,43 +236,23 @@ module.exports = function (graph) {
         parameterArray[3],
       );
     });
-    warningContainer.append("span").node().innerHTML = "|";
-    const cancelButton = warningContainer.append("label");
-    cancelButton.node().id = "cancelButton_" + id;
-    cancelButton.node().innerHTML = "Cancel";
-    cancelButton.on("click", function () {
+
+    const spanNode = document.createElement("span");
+    warningContainer.appendChild(spanNode);
+    spanNode.innerHTML = "|";
+
+    const cancelButton = document.createElement("button");
+    warningContainer.appendChild(cancelButton);
+    cancelButton.setAttribute("type", "button");
+    cancelButton.id = "cancelButton_" + id;
+    cancelButton.innerHTML = "Cancel";
+    cancelButton.addEventListener("click", function () {
       warningModule.closeMessage(this.id);
       document.querySelector("#blockGraphInteractions").classList.add("hidden");
     });
 
     moduleContainer.classList.remove("hidden");
     moduleContainer.classList.add("warn-expanded");
-  };
-
-  warningModule.showFilterHint = function () {
-    const id = warningModule.addMessageBox();
-    const warningContainer = _messageContext[id];
-    const moduleContainer = _messageContainers[id];
-    _visibleStatus[id] = true;
-
-    _filterHintId = id;
-    const generalHint = warningContainer.append("div");
-    /** Editing mode activated. You can now modify an existing ontology or create a new one via the <em>ontology</em> menu. You can save any ontology using the <em>export</em> menu (and exporting it as TTL file).**/
-    generalHint.node().innerHTML =
-      "Collapsing filter activated.<br>" +
-      "The number of visualized elements has been automatically reduced.<br>" +
-      "Use the degree of collapsing slider in the <em>filter</em> menu to adjust the visualization.<br><br>" +
-      "<em>Note:</em> A performance decrease could be experienced with a growing amount of visual elements in the graph.";
-
-    generalHint.classList.add("warning-hint");
-
-    const gotItButton = warningContainer.append("label");
-    gotItButton.node().id = "killFilterMessages_" + id;
-    gotItButton.node().innerHTML = "Got It";
-    gotItButton.on("click", warningModule.closeMessage);
-
-    moduleContainer.classed("hidden", false);
-    moduleContainer.classed("warn-expanded", true);
   };
 
   warningModule.showMultiFileUploadWarning = function () {
@@ -332,10 +268,12 @@ module.exports = function (graph) {
 
     generalHint.classList.add("warning-hint");
 
-    const gotItButton = warningContainer.append("label");
-    gotItButton.node().id = "killFilterMessages_" + id;
-    gotItButton.node().innerHTML = "Got It";
-    gotItButton.on("click", warningModule.closeMessage);
+    const gotItButton = document.createElement("button");
+    warningContainer.appendChild(gotItButton);
+    gotItButton.setAttribute("type", "button");
+    gotItButton.id = "killFilterMessages_" + id;
+    gotItButton.innerHTML = "Got It";
+    gotItButton.addEventListener("click", warningModule.closeMessage);
 
     moduleContainer.classList.remove("hidden");
     moduleContainer.classList.add("warn-expanded");
@@ -353,33 +291,32 @@ module.exports = function (graph) {
     const warningContainer = _messageContext[id];
     const moduleContainer = _messageContainers[id];
     _visibleStatus[id] = true;
-    const graphWidth = 0.5 * graph.options().width();
 
     if (header.length > 0) {
-      const head = warningContainer.append("div");
-      head.classed("warning-row", true);
-      const titleHeader = head.append("div");
-      titleHeader.classed("warning-inline-flex warning-pr-3", true);
-      titleHeader.node().innerHTML = "<b>Warning:</b>";
-      const msgHeader = head.append("div");
-      // some classes
-      msgHeader.style("display", "inline-flex");
-      msgHeader.style("max-width", graphWidth + "px");
-
-      msgHeader.node().innerHTML = header;
+      const head = document.createElement("div");
+      warningContainer.appendChild(head);
+      head.classList.add("warning-row");
+      const titleHeader = document.createElement("div");
+      head.appendChild(titleHeader);
+      titleHeader.classList.add("warning-inline-flex", "warning-pr-3");
+      titleHeader.innerHTML = "<b>Warning:</b>";
+      const msgHeader = document.createElement("div");
+      head.appendChild(msgHeader);
+      msgHeader.classList.add("warning-msg-content");
+      msgHeader.innerHTML = header;
     }
     if (reason.length > 0) {
-      const reasonContainer = warningContainer.append("div");
-      reasonContainer.classed("warning-row", true);
-      const reasonHeader = reasonContainer.append("div");
-      // some classes
-      reasonHeader.style("display", "inline-flex");
-      reasonHeader.style("padding-right", "3px");
-
-      reasonHeader.node().innerHTML = "<b>Reason:</b>";
-      const msgReason = reasonContainer.append("div");
-      msgReason.classed("warning-msg-content", true);
-      msgReason.node().innerHTML = reason;
+      const reasonContainer = document.createElement("div");
+      warningContainer.appendChild(reasonContainer);
+      reasonContainer.classList.add("warning-row");
+      const reasonHeader = document.createElement("div");
+      reasonContainer.appendChild(reasonHeader);
+      reasonHeader.classList.add("warning-inline-flex", "warning-pr-3");
+      reasonHeader.innerHTML = "<b>Reason:</b>";
+      const msgReason = document.createElement("div");
+      reasonContainer.appendChild(msgReason);
+      msgReason.classList.add("warning-msg-content");
+      msgReason.innerHTML = reason;
     }
     if (action.length > 0) {
       const actionContainer = document.createElement("div");
@@ -406,22 +343,36 @@ module.exports = function (graph) {
     }
 
     if (type === 2) {
-      gotItButton = warningContainer.append("button").attr("type", "button");
-      gotItButton.node().id = "killWarningErrorMessages_" + id;
-      gotItButton.node().innerHTML = "Got It";
-      gotItButton.on("click", warningModule.closeMessage);
-      warningContainer.append("span").node().innerHTML = "|";
-      const zoomToElementButton = warningContainer.append("label");
-      zoomToElementButton.node().id = "zoomElementThing_" + id;
-      zoomToElementButton.node().innerHTML = "Zoom to element ";
-      zoomToElementButton.on("click", function () {
+      gotItButton = document.createElement("button");
+      warningContainer.appendChild(gotItButton);
+      gotItButton.setAttribute("type", "button");
+      gotItButton.id = "killWarningErrorMessages_" + id;
+      gotItButton.innerHTML = "Got It";
+      gotItButton.addEventListener("click", warningModule.closeMessage);
+
+      const spanNode1 = document.createElement("span");
+      warningContainer.appendChild(spanNode1);
+      spanNode1.innerHTML = "|";
+
+      const zoomToElementButton = document.createElement("button");
+      warningContainer.appendChild(zoomToElementButton);
+      zoomToElementButton.setAttribute("type", "button");
+      zoomToElementButton.id = "zoomElementThing_" + id;
+      zoomToElementButton.innerHTML = "Zoom to element ";
+      zoomToElementButton.addEventListener("click", function () {
         graph.zoomToElementInGraph(additionalOpts);
       });
-      warningContainer.append("span").node().innerHTML = "|";
-      const ShowElementButton = warningContainer.append("label");
-      ShowElementButton.node().id = "showElementThing_" + id;
-      ShowElementButton.node().innerHTML = "Indicate element";
-      ShowElementButton.on("click", function () {
+
+      const spanNode2 = document.createElement("span");
+      warningContainer.appendChild(spanNode2);
+      spanNode2.innerHTML = "|";
+
+      const ShowElementButton = document.createElement("button");
+      warningContainer.appendChild(ShowElementButton);
+      ShowElementButton.setAttribute("type", "button");
+      ShowElementButton.id = "showElementThing_" + id;
+      ShowElementButton.innerHTML = "Indicate element";
+      ShowElementButton.addEventListener("click", function () {
         if (additionalOpts.halo() === false) {
           additionalOpts.drawHalo();
           graph.updatePulseIds([additionalOpts.id()]);

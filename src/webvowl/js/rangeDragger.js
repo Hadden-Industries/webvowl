@@ -105,7 +105,6 @@ module.exports = function (graph) {
   Range_dragger.setParentProperty = function (parentProperty, inversed) {
     Range_dragger.parent = parentProperty;
     let iP;
-
     Range_dragger.isLoopProperty = false;
     if (parentProperty.domain() === parentProperty.range()) {
       Range_dragger.isLoopProperty = true;
@@ -180,25 +179,6 @@ module.exports = function (graph) {
     //     {"x": 0, "y": 0}
     // ];
 
-    [
-      { x: -40, y: 0 }, // start
-      { x: -20, y: -10 },
-      { x: 20, y: -50 },
-      { x: -10, y: 0 }, // center
-      { x: 20, y: 50 },
-      { x: -20, y: 10 },
-      { x: -40, y: 0 },
-    ];
-
-    d3.svg
-      .line()
-      .x(function (d) {
-        return d.x;
-      })
-      .y(function (d) {
-        return d.y;
-      })
-      .curve(d3.curveBasisClosed);
     const pathData = "M 61,40 C 41,15 41,-15 61,-40 L 1,0 Z";
 
     Range_dragger.nodeElement = Range_dragger.rootNodeLayer
@@ -427,6 +407,7 @@ module.exports = function (graph) {
     Range_dragger.x = x;
     Range_dragger.y = y;
   };
+
   Range_dragger.setAdditionalClassForClass_dragger = function (name, val) {};
   return Range_dragger;
 };

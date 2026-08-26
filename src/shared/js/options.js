@@ -63,12 +63,30 @@ module.exports = function createOptions() {
   let loadingModule;
   let pickAndPinModule;
 
+  // Sourced from the W3C OWL 2 Specification (https://www.w3.org/TR/owl2-syntax/#Real_Numbers.2C_Decimal_Numbers.2C_and_Integers)
   const supportedDatatypes = [
     "rdfs:Literal",
+    "owl:real",
+    "owl:rational",
+    "xsd:decimal",
+    "xsd:integer",
+    "xsd:nonNegativeInteger",
+    "xsd:nonPositiveInteger",
+    "xsd:positiveInteger",
+    "xsd:negativeInteger",
+    "xsd:long",
+    "xsd:int",
+    "xsd:short",
+    "xsd:byte",
+    "xsd:unsignedLong",
+    "xsd:unsignedInt",
+    "xsd:unsignedShort",
+    "xsd:unsignedByte",
     "xsd:boolean",
     "xsd:double",
-    "xsd:integer",
+    "xsd:float",
     "xsd:string",
+    "xsd:dateTime",
     "undefined",
   ];
   const supportedClasses = ["owl:Thing", "owl:Class", "owl:DeprecatedClass"];
@@ -341,8 +359,10 @@ module.exports = function createOptions() {
     }
     compactNotationModule = val;
   };
-  options.nodeScalingModule = function ( val ){
-    if ( !arguments.length ) {return nodeScalingModule;}
+  options.nodeScalingModule = function (val) {
+    if (!arguments.length) {
+      return nodeScalingModule;
+    }
     nodeScalingModule = val;
   };
 

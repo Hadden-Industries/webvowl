@@ -82,7 +82,7 @@
   /* fill: #36c; */
 }
 
-path,
+:where(#graph) path,
 .nofill {
   fill: none;
 }
@@ -96,7 +96,7 @@ marker path {
 }
 
 .class,
-path,
+:where(#graph) path,
 line,
 .fineline {
   stroke: #000;
@@ -116,18 +116,18 @@ line,
 .filled.hovered,
 .filled.focused,
 .values-from.filled.hovered {
-  fill: #f00 !important;
   cursor: pointer;
+  fill: #f00 !important;
 }
 
 .hoveredForEditing {
-  fill: #f00 !important;
   cursor: pointer;
+  fill: #f00 !important;
 }
 
 .feature {
-  fill: #f00;
   cursor: pointer;
+  fill: #f00;
 }
 
 @keyframes pulseAnimation {
@@ -195,14 +195,8 @@ line,
 }
 
 .searchResultA {
-  fill: none;
-  stroke-width: 5;
-  stroke: #f00;
-  animation-name: pulseAnimation;
-  animation-duration: 0.8s;
   transform: translateZ(0);
-  animation-iteration-count: 3;
-  animation-timing-function: linear;
+
   fill: none;
   stroke: #f00;
   stroke-width: 5;
@@ -216,8 +210,8 @@ line,
 /* a class for not animated search results (hovered over node) */
 .searchResultB {
   fill: none;
-  stroke-width: 5;
   stroke: #f00;
+  stroke-width: 5;
 }
 
 .hovered-MathSymbol {
@@ -232,13 +226,13 @@ path.hovered {
 
 .indirect-highlighting,
 .feature:hover {
-  fill: #f90;
   cursor: pointer;
+  fill: #f90;
 }
 
 .feature_hover {
-  fill: #f90;
   cursor: pointer;
+  fill: #f90;
 }
 
 .values-from {
@@ -284,24 +278,24 @@ circle.focused {
 ----------------------------------------------------------------- */
 
 .addDataPropertyElement {
-  fill: #9c6 !important;
   cursor: pointer;
-  stroke-width: 2;
+  fill: #9c6 !important;
   stroke: black;
+  stroke-width: 2;
 }
 
 .addDataPropertyElement:hover {
-  fill: #f90 !important;
   cursor: pointer;
-  stroke-width: 2;
+  fill: #f90 !important;
   stroke: black;
+  stroke-width: 2;
 }
 
 .superHiddenElement {
-  fill: rgb(255 153 0 / 40%);
   cursor: pointer;
-  stroke-width: 0;
+  fill: rgb(255 153 0 / 40%);
   stroke: black;
+  stroke-width: 0;
 
   /* opacity:0; */
 }
@@ -311,17 +305,17 @@ circle.focused {
 }
 
 .deleteParentElement:hover {
-  fill: #f90;
   cursor: pointer;
-  stroke-width: 2;
+  fill: #f90;
   stroke: black;
+  stroke-width: 2;
 }
 
 .deleteParentElement {
-  fill: #f00;
   cursor: pointer;
-  stroke-width: 2;
+  fill: #f00;
   stroke: black;
+  stroke-width: 2;
 }
 
 .classNodeDragPath {
@@ -330,10 +324,10 @@ circle.focused {
 }
 
 .classDraggerNodeHovered {
+  cursor: grab;
   fill: #f90;
   stroke: black;
   stroke-width: 2px;
-  cursor: pointer;
 }
 
 .classDraggerNode {
@@ -341,6 +335,7 @@ circle.focused {
   stroke: black;
   stroke-width: 2px;
 }
+
 /* Shared off-screen probe used only for measuring rendered label widths. */
 .text-measurement-probe {
   position: absolute;
@@ -348,6 +343,7 @@ circle.focused {
   white-space: nowrap;
   visibility: hidden;
 }
+
 .vowlGraph .is-render-pending {
   opacity: 0;
 }
