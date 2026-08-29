@@ -11,6 +11,8 @@ WebVOWL will expose a small set of WebMCP tools as an optional browser capabilit
 
 `WebVowlController` is an ownership cutover, not a compatibility shim over the current callbacks, menu handlers, or remote-loading functions. When a capability moves behind the controller, every production caller moves with it and the replaced orchestration is deleted in the same change. The design permits a thin WebMCP protocol adapter and ordinary dependency injection; it does not permit forwarding aliases, old/new runtime switching, duplicate loading or export paths, or legacy transport fallbacks.
 
+Every new module, interface, adapter, operation, request, result, field, event, error, and identifier will use one semantically correct and precise domain name. The implementation will distinguish ontology documents, parsed VOWL models, rendered graphs, visualization views, and SVG artifacts rather than hiding those differences behind generic or legacy vocabulary.
+
 The first release will optimize for interactive, human-visible work in an open WebVOWL page. It will not add ontology editing, a reasoning engine, unattended batch rendering, a remote MCP server, or a server-side artifact store. Those are separate product decisions that can build on `WebVowlController` later.
 
 ## Context
@@ -60,7 +62,7 @@ The following valuable jobs require new capabilities beyond the first WebMCP int
 
 The primary acceptance scenario is:
 
-> Open WebVOWL, load a supplied ontology IRI, use English labels, hide datatype nodes, focus on Person and Organization, let the layout settle, export SVG, and report import warnings.
+> Open WebVOWL, load a supplied ontology document IRI, use English labels, hide datatype nodes, focus on Person and Organization, let the layout settle, export SVG, and report import warnings.
 
 The browser agent composes the request internally:
 
@@ -83,6 +85,7 @@ The user issues one natural-language request. WebVOWL will not expose a polling-
 7. Give the existing UI, tests, WebMCP adapter, and future non-agent callers one small, durable, agent-neutral interface over asynchronous application behavior.
 8. Preserve current behavior in browsers and embeddings that do not support WebMCP.
 9. Replace legacy orchestration at each controller seam without compatibility shims, forwarding aliases, or parallel production paths.
+10. Give every new program object and public field a semantically correct, semantically precise, domain-aligned name that follows one modern naming convention.
 
 ## Non-goals
 
@@ -96,6 +99,7 @@ The user issues one natural-language request. WebVOWL will not expose a polling-
 - Refactoring unrelated graph, parser, or menu behavior.
 - Requiring a new server, dependency, build system, or deployment mode.
 - Retaining callback aliases, wrapper APIs, duplicate loaders/exporters, or protocol-dependent legacy routes after their controller-owned replacements exist.
+- Preserving a vague, misleading, or obsolete name merely to reduce the size of a cutover.
 
 ## Design principles
 
@@ -108,6 +112,33 @@ WebMCP registration will be feature-detected. If the browser does not expose `do
 `WebVowlController` will hide asynchronous sequencing, application state, cancellation, layout settlement, export preparation, and normalized errors behind a small interface. Callers should not need to understand loading callbacks, D3 force lifecycle details, menu state, or SVG serialization internals.
 
 “Agent-neutral” is an interface constraint: the controller will not import WebMCP code, use tool names, accept WebMCP request objects, return protocol envelopes, or assume that its caller is an agent. It will accept WebVOWL domain requests and return WebVOWL domain results. The normal UI and the WebMCP adapter will cross the same seam, and tests will exercise the same interface rather than reaching through it to private implementation details.
+
+### Semantically precise domain vocabulary
+
+Naming is part of the architecture contract, not a cleanup preference. “Every new object” includes modules, interfaces, adapters, factories, functions, methods, parameters, request and result objects, schema properties, state fields, events, errors, constants, DOM identifiers, tool names, and artifact metadata. Each name must identify the represented concept and, where relevant, its role, lifecycle, state, or unit without requiring the reader to inspect its implementation.
+
+The controlled vocabulary is:
+
+| Term | Precise meaning | Must not be conflated with |
+|---|---|---|
+| Ontology document | Serialized OWL-family source text or bytes together with document provenance and syntax | Parsed VOWL model or rendered graph |
+| Ontology document IRI | HTTP(S) document location used to retrieve an ontology document | The ontology IRI asserted inside OWL semantics |
+| VOWL JSON document | Serialized JSON representation accepted or produced at an external/file boundary | An already parsed JavaScript object |
+| VOWL model | Validated in-memory object parsed from a VOWL JSON document or produced by OWL-to-VOWL conversion | Source text, graph runtime objects, or SVG markup |
+| Rendered graph | WebVOWL graph runtime state derived from a VOWL model | The ontology's asserted semantics or the current view settings |
+| Visualization view | Reversible language, filter, focus, layout, and viewport choices applied to the rendered graph | The graph data itself |
+| SVG artifact | Serialized SVG bytes plus verified metadata and a page-owned download lifecycle | A durable remote file or conversation attachment |
+| Artifact handle | Opaque page-local correlation identifier for an SVG artifact | An object URL, filesystem path, or durable URL |
+| Controller-domain request/result | Agent-neutral WebVOWL operation contract | WebMCP tool schema or protocol envelope |
+| WebMCP tool request/result | External protocol representation owned by the WebMCP adapter | Controller state or internal VOWL/graph objects |
+
+One concept will have one canonical term, and one term will not be overloaded for different concepts. Unqualified names such as `data`, `info`, `item`, `object`, `thing`, `helper`, `util`, `manager`, `handler`, `process`, `value`, or `result` are unacceptable when a domain noun and role can state the meaning. A conventional role word such as `Controller`, `Adapter`, or `Result` is permitted only when its owning concept and interface make that role specific; `WebVowlController`, for example, denotes the application-level orchestration module, not a UI event handler.
+
+Operations use domain verbs that describe their observable effect. Boolean state fields use a positive predicate such as `isFocusable`, `isRetryable`, or `hasEnded`; imperative request flags may use a positive verb such as `includeNeighborhood`. Quantities encode their unit or measure when it is not inherent in the type, such as `settleTimeoutMs`, `maxInlineOntologyBytes`, `maxToolNameCharacters`, `byteLength`, `widthPx`, and `heightPx`. Lifecycle-sensitive names identify the lifetime they belong to, such as `loadGeneration`, `pageLocalArtifactId`, or `objectUrl`.
+
+Official prose uses `WebVOWL`, `WebMCP`, `OWL`, `VOWL`, `IRI`, and `SVG`. JavaScript identifiers treat initialisms as words consistently: `WebVowlController`, `webMcpAdapter`, `createSvgArtifactService`, and `documentIri`. External WebMCP tool names retain their required snake_case spelling. WebMCP vocabulary stays in the adapter; controller and application names stay in the WebVOWL domain.
+
+The names fixed by this design and plan must be reviewed before implementation, not copied mechanically. If a planned name proves semantically inaccurate, the implementation must correct the defining contract and every in-repository caller in the same change. It must not retain the rejected name as an alias or shim.
 
 ### No compatibility shims or parallel orchestration
 
@@ -141,7 +172,7 @@ Agent operations will update the live page. View changes must use existing WebVO
 
 Tool inputs will be narrow and validated at runtime. Tool results will contain identifiers, counts, normalized state, warnings, and artifact metadata rather than unbounded ontology text or serialized SVG.
 
-The initial shared limits are a 2,048-character URL, 1 MiB of inline ontology text, 25 search matches, 10 warnings, and 256 characters for each ontology-derived display string. Tool names will stay within 30 characters, tool descriptions within 500 characters, and parameter descriptions within 150 characters. Tool results will target at most 1,500 serialized characters and will set `truncated: true` when bounded collections or strings are omitted. Browser evaluation may lower these limits, but raising them requires review of responsiveness and agent-context impact.
+The initial shared limits are a 2,048-character URL, 1 MiB of inline ontology text, 25 search matches, 10 warnings, and 256 characters for each ontology-derived display string. Tool names will stay within 30 characters, tool descriptions within 500 characters, and parameter descriptions within 150 characters. Tool results will target at most 1,500 serialized characters and will set `isTruncated: true` when bounded collections or strings are omitted. Browser evaluation may lower these limits, but raising them requires review of responsiveness and agent-context impact.
 
 ## Alternatives considered
 
@@ -164,7 +195,7 @@ The design builds on current behavior rather than proposing a parallel applicati
 | Existing seam | What is reusable | Gap the implementation plan must address |
 |---|---|---|
 | `src/app/js/app.js` | `app.getOptions()`, `app.getGraph()`, and the current rendering body inside `loadOntologyFromText` connect application options, parsed data, and `graph.load()` | Loading is callback-oriented; the rendering behavior must be extracted as a real controller dependency and `loadOntologyFromText` removed rather than wrapped |
-| `src/app/js/loadingModule.js` and `src/app/js/menu/ontologyMenu.js` | Existing user workflows cover VOWL JSON URLs, ontology IRIs, direct text, file selection, drops, cached data, presets, and conversion responses | Remote paths use `d3.xhr` and results converge through forwarding callbacks; all callers must move to one bounded controller source contract before those legacy entry points are deleted |
+| `src/app/js/loadingModule.js` and `src/app/js/menu/ontologyMenu.js` | Existing user workflows cover VOWL JSON URLs, ontology document IRIs, direct text, file selection, drops, cached data, presets, and conversion responses | Remote paths use `d3.xhr` and results converge through forwarding callbacks; all callers must move to one bounded controller source contract before those legacy entry points are deleted |
 | `src/owl2vowl/js/index.js` | `loadWithImports(text, options)` already provides an asynchronous parser/import foundation and structured diagnostics | Root-load and UI orchestration must expose its completion, warnings, and cancellation consistently |
 | `src/owl2vowl/js/importResolver.js` and `src/owlapi-js/io/loaderConfiguration.js` | Imports already restrict schemes to HTTP(S), omit credentials, apply redirect policy, cap a remote document at 32 MiB, and default to a 30-second timeout | The canonical controller path must reuse these controls and add a bounded import count or depth if none exists |
 | `src/webvowl/js/graph.js` | Canonical unfiltered data, graph loading, updates, filtering hooks, focus, zoom, and D3 force behavior already exist | `finishedLoadingSequence` becomes true after a progress threshold above `0.49` and the force can resume; that milestone is not a settled-layout contract |
@@ -193,11 +224,11 @@ Agent-neutral WebVowlController ─► loader / parser / graph / exporter
 `WebVowlController` is the durable application seam. It will be constructed from explicit WebVOWL dependencies and will provide the following conceptual interface. Exact JavaScript types and file placement will be fixed in the implementation plan after repository-level test and module conventions are mapped.
 
 ```js
-loadOntology(request, { signal }) -> Promise<LoadResult>
+loadOntology(request, { signal }) -> Promise<OntologyLoadResult>
 getOntologySummary(request?) -> OntologySummary
-findOntologyElements(request) -> ElementSearchResult
-setVisualizationView(request) -> Promise<ViewResult>
-exportVisualization(request, { signal }) -> Promise<ExportResult>
+findOntologyElements(request) -> OntologyElementSearchResult
+setVisualizationView(request) -> Promise<VisualizationViewResult>
+exportVisualization(request, { signal }) -> Promise<SvgExportResult>
 getState() -> WebVowlControllerState
 ```
 
@@ -246,11 +277,11 @@ The tool set will begin with five non-overlapping tools.
 
 | Tool | Classification | Responsibility | Bounded result |
 |---|---|---|---|
-| `load_ontology` | Stateful | Load an ontology from an HTTP(S) IRI, a VOWL JSON URL, or explicitly supplied text | Generation, source, status, counts, import summary, warnings |
+| `load_ontology` | Stateful | Load an ontology from an HTTP(S) ontology document IRI, a VOWL JSON URL, or explicitly supplied ontology text | Load generation, source provenance, status, counts, import summary, warnings |
 | `get_ontology_summary` | Read-only | Describe the current ontology and active view | Counts, namespaces, imports, languages, selected settings, warnings |
 | `find_ontology_elements` | Read-only | Search canonical element labels and IRIs with type and result limits | Stable element references, labels, IRIs, kinds, bounded neighborhood facts |
 | `set_visualization_view` | Stateful and reversible | Apply supported language, filter, focus, layout, and viewport options | Normalized applied view and affected-element counts |
-| `export_visualization` | Stateful artifact creation | Settle the current graph and produce an SVG download | Artifact identifier, filename, MIME type, byte length, source provenance, warnings |
+| `export_visualization` | Stateful artifact creation | Settle the current graph and produce an SVG download | Page-local artifact identifier, filename, media type, byte length, source provenance, warnings |
 
 The tool descriptions and parameter descriptions will remain concise. A generic command tool and one-tool-per-button design are explicitly rejected because they would make tool selection ambiguous and expose internal UI structure as a public interface.
 
@@ -262,15 +293,15 @@ An element reference will prefer the pair of VOWL element kind and ontology IRI 
 
 ### Source handling
 
-`load_ontology` will use a discriminated source value rather than ambiguous combinations of URL and text fields:
+`load_ontology` will use a discriminated source request with a concept-specific field in each branch rather than an overloaded `value` property or ambiguous URL/text combinations:
 
 ```js
-{ kind: "ontology-iri", value: "https://example.org/model.owl" }
-{ kind: "vowl-json-url", value: "https://example.org/model.json" }
-{ kind: "ontology-text", value: "...", format: "turtle" }
+{ kind: "ontology-document-iri", documentIri: "https://example.org/model.owl" }
+{ kind: "vowl-json-url", url: "https://example.org/model.json" }
+{ kind: "ontology-text", text: "...", format: "turtle" }
 ```
 
-The ordinary application also needs a first-class controller-domain source for VOWL JSON already obtained through a file, cache, or converter response. That source is named `vowl-json`, accepts an already parsed JSON object plus provenance, and is not exposed as a WebMCP input. It is a genuine application source kind, not an alias for a retired serialized-text callback; parsing occurs exactly once at the source boundary. Preset paths are resolved to absolute URLs and use `vowl-json-url`; file, cache, and converter objects use `vowl-json` directly.
+The ordinary application also needs a first-class controller-domain source for a VOWL model already parsed from a file or cache or produced by a converter. That source is named `vowl-model`, accepts a validated in-memory `model` plus provenance, and is not exposed as a WebMCP input. Calling it `vowl-json` would incorrectly name an in-memory model after its serialization format. It is a genuine application source kind, not an alias for a retired serialized-text callback; JSON parsing occurs exactly once at the source boundary. Preset paths are resolved to absolute URLs and use `vowl-json-url`; file, cache, and converter models use `vowl-model` directly.
 
 Local filesystem paths will not be accepted. A file the user loaded through the existing file picker can still be summarized, searched, restyled, and exported after it becomes the active ontology.
 
@@ -302,20 +333,23 @@ A successful bounded result has this shape conceptually:
 ```json
 {
   "status": "ready",
-  "artifactId": "export-42",
+  "pageLocalArtifactId": "export-42",
   "filename": "person-organization.svg",
-  "mimeType": "image/svg+xml",
+  "mediaType": "image/svg+xml",
   "byteLength": 184392,
-  "sha256": "9d8b2f5fa6e2162e73320a149b31a7e9f9a44c2b7a6a5f91de1d9ff823e7488b",
-  "sourceIri": "https://example.org/ontology.owl",
-  "viewRecipeId": "view-17",
-  "layout": { "status": "settled", "width": 1200, "height": 800 },
+  "sha256Hex": "9d8b2f5fa6e2162e73320a149b31a7e9f9a44c2b7a6a5f91de1d9ff823e7488b",
+  "source": {
+    "kind": "ontology-document-iri",
+    "identity": "https://example.org/ontology.owl"
+  },
+  "pageLocalViewRecipeId": "view-17",
+  "layout": { "status": "settled", "widthPx": 1200, "heightPx": 800 },
   "warnings": [],
-  "truncated": false
+  "isTruncated": false
 }
 ```
 
-`artifactId` and `viewRecipeId` are page-local opaque handles, not permanent URLs. The view recipe records the active source identity, source hash when available, language, filters, focused stable element references, viewport dimensions, and layout outcome. The recipe is embedded in the SVG's `<metadata>` and exposed in the page's artifact details; the opaque identifier correlates those representations. It records how the current artifact was produced without claiming byte-for-byte reproducibility.
+`pageLocalArtifactId` and `pageLocalViewRecipeId` are page-local opaque handles, not permanent URLs. The view recipe records the active source identity, source hash when available, language, filters, focused stable element references, viewport dimensions, and layout outcome. The recipe is embedded in the SVG's `<metadata>` and exposed in the page's artifact details; the opaque identifier correlates those representations. It records how the current artifact was produced without claiming byte-for-byte reproducibility.
 
 ## Artifact delivery
 
@@ -381,6 +415,8 @@ Implementation will follow test-driven development across four layers:
 3. **Application integration and architecture tests:** representative ontology text and URLs through parser, graph loading, view changes, and SVG generation, plus guards proving replaced callbacks, forwarding aliases, duplicate remote loaders, and the base64 SVG route are absent.
 4. **Browser evaluation:** supported Chromium/WebMCP environments, the normal no-WebMCP path, top-level registration, visible state changes, downloads, console errors, and client-specific attachment behavior.
 
+Every layer also reviews the names it introduces against the controlled vocabulary. Contract tests assert exact externally observable tool, request, result, error, and metadata field names; architecture review checks that WebMCP terms do not leak into controller modules. Semantic precision remains a reviewer judgment and will not be reduced to an unreliable word blacklist.
+
 The evaluation corpus will include small and large ontologies, imports, malformed input, unsupported sources, CORS and network failures, superseded loads, missing labels, large search result sets, layout timeout, and repeated exports.
 
 Browser evaluation will use 15–20 job-oriented prompts rather than testing only isolated tool calls. It will record task completion without manual clicking, correctness of the source and applied view, warning accuracy, time to a usable graph and artifact, successful user retrieval of the SVG, result size, stale-load safety, and whether the agent makes unsupported semantic claims. Client-specific file attachment will be reported separately from page-side export success.
@@ -395,6 +431,7 @@ Release acceptance requires:
 - Exported SVG opens independently and matches the visible view.
 - Users retain a visible manual download even when the agent cannot attach the file.
 - Unsupported browsers receive no WebMCP errors or degraded controls.
+- New identifiers and structured objects use the controlled vocabulary consistently, encode units and lifetimes where required, and do not conflate an ontology document, VOWL model, rendered graph, visualization view, or SVG artifact.
 
 ## Delivery sequence
 
@@ -405,7 +442,7 @@ Release acceptance requires:
 5. Cut SVG export over as one vertical slice: introduce settlement and Blob artifacts, migrate the manual UI, then delete the private base64/data-URI route.
 6. Add the thin imperative WebMCP protocol adapter and its contract tests after controller-owned application paths are canonical.
 7. Run browser evaluations and refine schemas, descriptions, limits, and diagnostics.
-8. Document availability, privacy, embedding constraints, the no-shims invariant, and the client-specific artifact handoff.
+8. Audit the complete feature vocabulary, correct imprecise names at their defining contracts without aliases, and document availability, privacy, embedding constraints, the no-shims invariant, and the client-specific artifact handoff.
 
 Each step must leave the ordinary application working. Intermediate commits may introduce tested domain modules before their cutover, but they must not connect a second production route or preserve a forwarding shim. A production cutover and deletion of the path it replaces belong to the same commit. Any required build, package, lockfile, test-runner, CI, deployment, or other configuration change requires separate explicit approval before it is made.
 
@@ -441,6 +478,7 @@ The implementation plan must reference these assessment decisions so product rat
 | A12 | Success is measured by complete user jobs, not merely successful tool callbacks | Testing and evaluation | Include the 15–20 prompt evaluation matrix and record task, latency, retrieval, and semantic-claim outcomes |
 | A13 | Quality analysis, comparison, editing, remote artifacts, and unattended rendering are separate designs | Non-goals; User jobs; Deferred extensions | Do not smuggle these capabilities or infrastructure into the initial plan |
 | A14 | Controller integration uses no compatibility shims, forwarding aliases, duplicate production paths, or legacy runtime fallbacks | Decision summary; No compatibility shims or parallel orchestration; Delivery sequence | Make each production cutover atomic, delete replaced paths in the same change, and add absence/architecture tests |
+| A15 | Every new object and identifier uses semantically correct, semantically precise, modern domain naming | Decision summary; Goals; Semantically precise domain vocabulary; Testing and evaluation | Apply the controlled vocabulary globally, test exact public names, review every task's new names, and complete a final semantic-vocabulary audit without aliases |
 
 ## References
 
