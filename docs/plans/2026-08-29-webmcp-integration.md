@@ -4,7 +4,7 @@
 
 **Goal:** Add an optional WebMCP surface that lets a browser agent load, inspect, restyle, settle, and export the live WebVOWL graph while the normal interface uses the same agent-neutral application controller.
 
-**Architecture:** Introduce one deep, promise-based `WebVowlController` over source loading, canonical ontology inspection, view application, layout settlement, and browser-local SVG artifacts. Keep WebMCP in a thin top-level adapter that validates five bounded tools and delegates to that controller. Compose both at the application boundary so no parser, graph, exporter, or controller module knows about WebMCP.
+**Architecture:** Introduce one deep, promise-based `WebVowlController` that owns source loading, canonical ontology inspection, view application, layout settlement, and browser-local SVG artifacts. Cut the ordinary UI over to those operations and delete the orchestration they replace; the controller must not wrap or forward to legacy callbacks. Keep WebMCP in a thin top-level protocol adapter that validates five bounded tools and delegates to the same controller.
 
 **Tech Stack:** Existing CommonJS application modules, native ESM OWL ingestion modules, D3 v3 graph runtime, browser `AbortController`, Fetch, Web Crypto, `Blob`, object URLs, imperative `document.modelContext`, Jest 30, ESLint, Prettier, HTML Validate, Stylelint, Vite 8, and Chromium browser evaluation. No new package or configuration is required.
 
@@ -18,6 +18,8 @@
 - Do not add a WebMCP package, schema validator, DOM test environment, download library, hash library, or fetch library. Use the current browser and repository capabilities with dependency injection for Node tests.
 - Follow RED → GREEN → REFACTOR for every observable behavior. Run the named failing test before implementation, make the smallest production change that passes it, and rerun the focused suite after refactoring.
 - The controller is agent-neutral by construction: nothing under `src/app/js/controller/` may import `src/app/js/webmcp/`, mention tool names, accept protocol envelopes, access `document.modelContext`, or assume an agent caller. `src/owl2vowl/` and `src/webvowl/` remain equally protocol-neutral.
+- No compatibility shims are permitted. Do not add forwarding aliases, deprecated signatures, `setController` bridges, click simulation, old/new runtime selection, duplicate production loaders/exporters, or legacy transport fallbacks. Each capability cutover must migrate every in-repository caller and delete its replaced orchestration in the same commit.
+- The permitted `webMcpAdapter` is an external protocol adapter, not a shim over an old WebVOWL API. WebMCP feature detection only controls tool registration; it must never select a different application implementation.
 - WebMCP remains progressive enhancement. An absent API, a non-top-level page, or failed registration must leave every existing UI path operational and produce no uncaught page error.
 - All ontology-derived strings are untrusted data. Bound them before returning them, never interpolate them as HTML, and never interpret them as instructions.
 - Keep remote retrieval on the canonical `WebVowlImportResolver` policy: HTTP(S) only, omitted credentials, bounded redirects, a 32 MiB remote-document ceiling, a 30-second default timeout, cancellation, 256 imported documents, and 32 import levels. Do not create a second fetch policy.
@@ -28,7 +30,7 @@
 
 ## 1. Fixed contracts and dependency direction
 
-These contracts turn the approved design into implementation decisions. A later task may refine internal names only when tests demonstrate a real conflict; it must not widen the public tool surface or invert a dependency.
+These contracts turn the approved design into implementation decisions. A later task may refine an internal name only when tests demonstrate a real conflict; it must not widen the public tool surface, invert a dependency, or preserve an obsolete name as an alias.
 
 ### 1.1 Module map
 
@@ -116,18 +118,18 @@ Expected failures use `WebVowlError` with one of the approved codes: `NO_ONTOLOG
 
 ### 1.4 Exact domain requests
 
-The WebMCP adapter exposes only the first three source variants. `vowl-json-text` is an internal compatibility variant for the existing preset, cached, file, and direct-input UI paths.
+The WebMCP adapter exposes only the first three source variants. `vowl-json` is a first-class controller-domain source for an already parsed VOWL JSON object obtained from a file, cache, or converter response; it is not exposed through WebMCP and is not an alias for a retired callback. Serialized JSON must be parsed exactly once at the UI/source boundary before this request is constructed.
 
 ```js
 { source: { kind: "ontology-iri", value: "https://example.org/model.owl" } }
 { source: { kind: "vowl-json-url", value: "https://example.org/model.json" } }
 { source: { kind: "ontology-text", value: "@prefix : <urn:x:> .", format: "turtle" } }
-{ source: { kind: "vowl-json-text", value: "{\"header\":{}}", displayName: "cached.json" } }
+{ source: { kind: "vowl-json", value: { header: {} }, displayName: "cached.json" } }
 ```
 
 Accepted ontology-text format keys are exactly `functional`, `manchester`, `owlxml`, `dl`, `krss1`, `krss2`, `rdfxml`, `turtle`, `trig`, `ntriples`, `nquads`, and `jsonld`, matching `OWLDocumentFormats` in `src/owlapi-js/io/document.js`.
 
-The WebMCP `ontology-text` branch requires `format`. The agent-neutral controller also accepts trusted UI calls with `format` omitted and a `displayName` present so the existing parser can detect an uploaded file from its name and content; this compatibility allowance is not advertised as an agent input.
+The WebMCP `ontology-text` branch requires `format`. The controller-domain request for a user-selected file may instead supply `displayName` and omit `format`, allowing the canonical parser to detect syntax from the actual file name and content. This is a first-class file-source contract, not a second parser route, and it is not advertised as an agent input.
 
 Element references are independent of SVG markup and array positions:
 
@@ -241,15 +243,15 @@ The adapter returns `{ ok: true, result }` or `{ ok: false, error }`. Per-tool p
 - Read and reuse `src/owl2vowl/js/importResolver.js`
 - Read and reuse `src/owlapi-js/io/loaderConfiguration.js`
 
-- [ ] Write failing tests for all four controller source variants: remote ontology IRI, remote VOWL JSON, inline ontology text, and internal VOWL JSON text.
+- [ ] Write failing tests for all four controller source variants: remote ontology IRI, remote VOWL JSON, ontology text/file content, and a first-class VOWL JSON value.
 - [ ] Add failing cases for a relative remote URL, `file:`, `javascript:`, credentials in a URL, a URL longer than 2,048 characters, inline UTF-8 content over 1 MiB, an unknown format key, malformed VOWL JSON, malformed ontology text, a fetch/CORS `TypeError`, HTTP failure, caller cancellation, and parser/import diagnostics.
 - [ ] Verify the remote-fetch fake receives `credentials: "omit"`, the caller signal, the canonical timeout, and the canonical remote byte ceiling through `WebVowlImportResolver`; do not duplicate its Fetch implementation.
 - [ ] Verify parser calls receive the root document IRI, response content type, filename, linked signal, and the existing `maxImportCount: 256` and `maxImportDepth: 32` defaults. Because those budgets already exist, add no competing limit.
 - [ ] Run `npm test -- src/app/js/controller/ontologySourceLoader.test.js --runInBand` and confirm RED.
 - [ ] Implement `createOntologySourceLoader({ createResolver, loadWithImports, digestText })`. Production defaults must resolve to `WebVowlImportResolver`, `owl2vowl.loadWithImports`, `TextEncoder`, and `crypto.subtle.digest("SHA-256", bytes)`; tests inject deterministic substitutes.
-- [ ] For `ontology-iri`, fetch the root through `WebVowlImportResolver.load`, then pass the returned text and document metadata to `loadWithImports`. For `vowl-json-url`, use the same resolver and parse the returned JSON without calling OWL conversion. For `ontology-text`, map the exact format key to its `OWLDocumentFormats` primary media type. For `vowl-json-text`, parse and validate the internal VOWL shape.
+- [ ] For `ontology-iri`, fetch the root through `WebVowlImportResolver.load`, then pass the returned text and document metadata to `loadWithImports`. For `vowl-json-url`, use the same resolver and parse the returned JSON without calling OWL conversion. For `ontology-text`, map an explicit format key to its `OWLDocumentFormats` primary media type or pass the real file name to the same canonical detector. For `vowl-json`, require an object, clone and validate it, and reject a serialized string rather than recreating an old callback signature.
 - [ ] Return an internal record containing `data`, `serializedVowlJson`, bounded diagnostics, source identity, source SHA-256, and structural counts. Do not expose full source text through the later adapter.
-- [ ] If Web Crypto is unavailable on a legacy non-WebMCP page, keep a valid load usable, omit the source hash, and add a bounded `SOURCE_HASH_UNAVAILABLE` warning. Hashing failure must never cause a second network fetch.
+- [ ] Source hashing is an optional metadata step on the same load path. If Web Crypto is unavailable, keep the parsed load usable, omit the source hash, and add a bounded `SOURCE_HASH_UNAVAILABLE` warning; do not invoke a different loader, fetch again, or add a hashing polyfill.
 - [ ] Map security/resource-policy failures to `SOURCE_REJECTED`, caller abort to `LOAD_ABORTED`, transport/CORS failures to `FETCH_FAILED`, syntax/VOWL failures to `PARSE_FAILED`, and a root-invalidating import failure to `IMPORT_FAILED`. Missing imports that leave the root renderable remain warnings.
 - [ ] Rerun the focused suite plus `npm test -- src/owl2vowl/js/importResolver.test.js src/owlapi-js/manager/owlOntologyManager.test.js --runInBand`.
 - [ ] Review `git diff --check`, then request approval for `feat(controller): Add canonical ontology source loading`.
@@ -317,15 +319,15 @@ The adapter returns `{ ok: true, result }` or `{ ok: false, error }`. Per-tool p
 - [ ] Add failing metadata tests proving the compact view recipe is inserted through an SVG `<metadata>` element using `textContent`, not HTML concatenation. Include source kind and identity, source SHA-256 when available, generation, language, filters, focused references, viewport dimensions, WebVOWL version, and layout outcome.
 - [ ] Write failing artifact-service tests for UTF-8 `Blob` creation with MIME type `image/svg+xml`, SHA-256 over the exact serialized bytes, monotonic page-local `artifactId` and `viewRecipeId`, normalized filename, byte length, matching metadata, and a download href passed only to the injected page publisher.
 - [ ] Add lifecycle tests proving replacement revokes the previous object URL only after the replacement is published, `dispose()` revokes the current URL, repeated disposal is safe, and no URL is represented as durable.
-- [ ] Add a compatibility test for a legacy browser without `URL.createObjectURL`: the artifact service may publish an SVG data URI with a bounded compatibility warning. The service and controller must not branch on whether the caller is a human or agent; WebMCP-capable target browsers must take the Blob/object-URL/checksum path.
+- [ ] Add failing tests for missing `Blob`, `URL.createObjectURL`, and Web Crypto. Each must produce the normal bounded `EXPORT_FAILED` outcome and visible UI error when connected; do not add a data URI, polyfill, shim, or caller-dependent branch.
 - [ ] Run `npm test -- src/app/js/menu/svgSerializer.test.js src/app/js/controller/svgArtifactService.test.js src/app/js/menu/exportMenu.test.js --runInBand` and confirm RED.
 - [ ] Move SVG-specific style inlining, export hiding, serialization, Unicode handling, and restoration from `exportMenu.js` into `createSvgSerializer({ graph, d3, documentObject, version })`. Serialize with `XMLSerializer` and a cloned SVG after temporary live styling; never send SVG source through a controller or tool result.
 - [ ] Implement `createSvgArtifactService({ serializeSvg, cryptoObject, BlobCtor, urlApi, publishArtifact })`. `create({ filename, recipe })` returns metadata only; `publishArtifact({ metadata, downloadHref })` is the sole recipient of the page-local href, and `dispose()` owns cleanup.
-- [ ] Keep the existing manual export handler using the extracted serializer during this task so every checkpoint remains usable. The handler is routed through the controller in Task 9.
+- [ ] Keep the current manual handler as the sole connected production export path during this preparatory extraction; let it use the extracted serializer, but do not connect the new artifact service beside it. Task 9 atomically connects the controller/Blob path and deletes the private handler plus base64 transport in the same commit.
 - [ ] Rerun the focused tests, `npm run lint:js`, and `npm run format:check`.
 - [ ] Review the restoration paths manually, then request approval for `refactor(export): Extract SVG artifact services`.
 
-**Acceptance:** One reusable serializer produces valid UTF-8 SVG, one service owns Blob/checksum/URL lifecycle, and the ordinary export remains functional before controller wiring.
+**Acceptance:** The focused modules are tested, the ordinary export remains functional, and there is still exactly one connected production export route; no compatibility layer or fallback has been added.
 
 ### Task 7: Add a reversible WebVOWL view adapter
 
@@ -371,6 +373,7 @@ The adapter returns `{ ok: true, result }` or `{ ok: false, error }`. Per-tool p
 - [ ] Add failing method tests for `NO_ONTOLOGY`, summary/search delegation, reference resolution before view application, view normalization, background layout observation, and a view change returning the state to `relaxing`.
 - [ ] Add export orchestration tests for strict settlement, explicit best-effort settlement, prior pause `false`, prior pause `true`, font rejection, serialization rejection, final-paint rejection, abort, matching recipe/artifact metadata, and pause restoration in every path.
 - [ ] Assert controller exports and errors never contain source text, VOWL JSON, SVG text, graph objects, object URLs, stack traces, or protocol fields.
+- [ ] Assert the controller dependency graph contains no import or injected port named after `loadOntologyFromText`, `parseOntologyContent`, `from_JSON_URL`, `from_IRI_URL`, `loadFromOWL2VOWL`, `exportSvg`, or a generic legacy callback. The controller must orchestrate focused domain dependencies directly.
 - [ ] Run `npm test -- src/app/js/controller/webVowlController.test.js --runInBand` and confirm RED.
 - [ ] Implement the factory and public interface in §1.2. Each load owns an internal `AbortController`; link it with the caller signal; abort and dispose the previous generation before incrementing.
 - [ ] Have `ontologySourceLoader.load` report `parsing` through a generation-checked phase callback. Check generation and signal immediately before `renderOntology` and again after its initial-paint promise resolves.
@@ -383,43 +386,53 @@ The adapter returns `{ ok: true, result }` or `{ ok: false, error }`. Per-tool p
 
 **Acceptance:** Loading, inspection, view changes, settlement, and export are available through one protocol-independent promise API with generation safety and normalized outcomes.
 
-### Task 9: Route the ordinary UI through the controller
+### Task 9: Atomically cut the ordinary UI over to the controller
 
 **Files:**
 
 - Modify `src/app/js/app.js`
 - Modify `src/app/js/loadingModule.js`
 - Modify `src/app/js/loadingModule.test.js`
+- Modify `src/app/js/directInputModule.js`
+- Create `src/app/js/directInputModule.test.js`
+- Modify `src/app/js/menu/ontologyMenu.js`
+- Create `src/app/js/menu/ontologyMenu.test.js`
 - Modify `src/app/js/menu/exportMenu.js`
 - Modify `src/app/js/menu/exportMenu.test.js`
 - Modify `src/index.html`
 - Modify `src/main.js`
 
 - [ ] Add failing loading-module tests showing JSON URL and ontology IRI requests call `controller.loadOntology` with the exact discriminated sources and receive cancellation/error results without using `d3.xhr`.
-- [ ] Add failing tests showing dropped/uploaded non-JSON files use `ontology-text`, dropped/uploaded `.json` files use internal `vowl-json-text`, cached/preset/direct VOWL JSON eventually uses internal `vowl-json-text`, and every path keeps its existing display name and loading messages.
+- [ ] Add failing tests showing dropped/uploaded non-JSON files use `ontology-text`, dropped/uploaded `.json` files and cached/converter values use `vowl-json`, and presets resolve to an absolute `vowl-json-url`. Every path must preserve its source provenance, display name, and loading presentation.
+- [ ] Add failing direct-input tests showing a valid VOWL JSON object uses `vowl-json`, all other supplied ontology text uses `ontology-text` through the canonical source loader, and `directInputModule.js` no longer imports or calls `owl2vowl` itself.
+- [ ] Add failing ontology-menu tests showing converter responses call `controller.loadOntology({ source: { kind: "vowl-json", value, displayName } })` directly and no longer forward through `loadingModule.loadFromOWL2VOWL` or a stored `loadOntologyFromText` callback.
 - [ ] Add failing export-menu tests showing a user click prevents premature navigation, calls `controller.exportVisualization`, observes the existing `#exportSvg` href/download attributes published by the artifact service, updates a visible status, and triggers one programmatic download when ready. Add error and double-click/supersession cases.
-- [ ] Run `npm test -- src/app/js/loadingModule.test.js src/app/js/menu/exportMenu.test.js --runInBand` and confirm RED.
-- [ ] In `app.js`, extract the current successful half of `loadOntologyFromText` into an injected renderer `renderVowlJson({ data, serializedVowlJson, displayName })`. Preserve editor-mode handling, cache behavior, options assignment, `graph.load()`, sidebar/statistics updates, export filename, zoom, and sizing. Return a promise that resolves after two animation frames.
-- [ ] Construct source loader, inspector, view adapter, layout settler, SVG artifact service, and `WebVowlController` only after graph options and menu modules exist, but before `loadingModule.parseUrlAndLoadOntology()` can initiate a load.
-- [ ] Add `loadingModule.setController(controller)` and route user entry points as follows:
+- [ ] Run `npm test -- src/app/js/loadingModule.test.js src/app/js/directInputModule.test.js src/app/js/menu/ontologyMenu.test.js src/app/js/menu/exportMenu.test.js --runInBand` and confirm RED.
+- [ ] In `app.js`, extract the rendering body from `loadOntologyFromText` into the controller dependency `renderVowlJson({ data, serializedVowlJson, displayName })`. Preserve editor-mode handling, cache behavior, options assignment, `graph.load()`, sidebar/statistics updates, export filename, zoom, and sizing. Return a promise that resolves after two animation frames, then delete `loadOntologyFromText`; do not leave a forwarding function with its signature.
+- [ ] Construct source loader, inspector, view adapter, layout settler, SVG artifact service, and `WebVowlController` only after graph options and menu modules exist, but before the new `loadingModule.loadFromLocation()` dispatcher can initiate a load.
+- [ ] Inject the completed controller once through `loadingModule.setup({ controller })`, `directInputModule.setup({ controller })`, `ontologyMenu.setup({ controller })`, and `exportMenu.setup({ controller })`. Refactor construction order as necessary; do not add a mutable `setController` bridge or retain the old setup signatures.
+- [ ] Replace the legacy loading entry points with `loadingModule.loadFromLocation({ storeCache })` for location-driven sources and `loadingModule.loadDroppedFile(file)` for drops; selected-file handling remains a private helper. Migrate every in-repository call site, then delete `parseUrlAndLoadOntology`, `parseOntologyContent`, `from_JSON_URL`, `from_IRI_URL`, `fromFileDrop`, `from_FileUpload`, `from_presetOntology`, `directInput`, `loadFromOWL2VOWL`, `ontologyMenu.getLoadingFunction`, and the old public names rather than retaining aliases.
+- [ ] Parse serialized VOWL JSON exactly once at file, converter-response, or direct-input boundaries. Change the ontology cache to retain the validated VOWL JSON object plus provenance, migrate every cache reader/writer in the same change, and do not keep a string-valued cache adapter for the old callback contract.
 
-  | Existing entry point | Controller path |
+  | User source | Canonical controller source |
   | --- | --- |
-  | `from_JSON_URL` | `vowl-json-url` |
-  | `from_IRI_URL` | `ontology-iri` |
-  | non-JSON file/drop | `ontology-text` with filename-derived format hint only when it maps to an approved key |
-  | JSON file/drop, cache, preset result, direct VOWL JSON | `vowl-json-text` |
+  | absolute JSON URL | `vowl-json-url` |
+  | ontology IRI | `ontology-iri` |
+  | non-JSON file/drop or non-JSON direct input | `ontology-text` with the real display name and optional format |
+  | JSON file/drop, cache, converter response, or parsed direct VOWL JSON | `vowl-json` |
+  | preset static JSON | resolve against `document.baseURI`, then `vowl-json-url` |
 
-- [ ] Keep preset static-file retrieval in its current UI loader, then delegate its returned content to the controller. Remove duplicate OWL conversion and top-level remote `d3.xhr` paths only after the controller tests pass.
+- [ ] Delete the top-level remote `d3.xhr` loaders when the controller route is connected. Converter-service requests in `ontologyMenu.js` may keep their own transport because they are a distinct server operation, but their successful VOWL JSON result must enter the controller directly rather than a compatibility forwarding chain.
 - [ ] Present state and bounded errors through the existing loading/ontology menus. Use text APIs for ontology-derived values; do not append untrusted text as HTML.
-- [ ] Change the export-menu SVG handler to call `controller.exportVisualization`. Add one initially hidden `<li id="exportArtifactStatus" aria-live="polite"></li>` under the existing SVG export entry; use the existing `hidden` utility class so no CSS change is required. The link remains a visible manual download after preparation.
+- [ ] Replace the private SVG handler with a controller call. In the same change, delete the old inline orchestration, Unicode-to-base64 conversion, `btoa`, and `data:image/svg+xml;base64` construction. Add one initially hidden `<li id="exportArtifactStatus" aria-live="polite"></li>` under the existing SVG export entry; use the existing `hidden` utility class so no CSS change is required. The Blob/object URL link remains the sole visible manual download.
 - [ ] Add `app.getController()` for embedding hosts and tests, plus idempotent `app.dispose()` for generation cancellation and artifact cleanup. Have `main.js` call `application.dispose()` once on `pagehide`.
 - [ ] Ensure local file paths never enter controller results and the browser never attempts to interpret a local path supplied through WebMCP.
+- [ ] Add a source-absence test that fails if `loadOntologyFromText`, `parseUrlAndLoadOntology`, `parseOntologyContent`, `from_JSON_URL`, `from_IRI_URL`, `fromFileDrop`, `from_FileUpload`, `from_presetOntology`, `loadingModule.directInput`, `loadFromOWL2VOWL`, `getLoadingFunction`, `setController`, the private `exportSvg`, `btoa`, or the SVG base64 data-URI prefix remains under `src/app/js/` after cutover.
 - [ ] Rerun the focused tests, all existing app/menu tests, `npm run lint`, `npm run format:check`, and `npm run build`.
 - [ ] Manually test the normal interface in a browser with `document.modelContext` absent before continuing to WebMCP registration.
-- [ ] Request approval for `refactor(app): Route UI operations through controller`.
+- [ ] Request approval for `refactor(app): Cut UI over to controller`.
 
-**Acceptance:** Preset, URL, IRI, file, drop, cached, direct-input, and manual SVG flows remain usable, now sharing the same controller operations later exposed to WebMCP.
+**Acceptance:** Preset, URL, IRI, file, drop, cached, converter, direct-input, and manual SVG flows remain usable through the controller, while every replaced callback, forwarding entry point, duplicate remote loader, and base64 export path is absent.
 
 ### Task 10: Define and bound the five tool contracts
 
@@ -483,6 +496,7 @@ await documentObject.modelContext.registerTool(
 - [ ] Assert the five tools remain registered for the adapter lifetime even when controller state is `idle`; state-dependent operations must return `NO_ONTOLOGY`, not churn registrations.
 - [ ] Assert aborting the lifecycle signal unregisters all definitions, cancels pending registration where supported, and does not abort an independently active controller operation except through page disposal.
 - [ ] Write an architecture test that walks static CommonJS/ESM imports and fails if any controller, graph, parser, loader, inspector, layout, or exporter module imports `src/app/js/webmcp/`. Also fail if `modelContext`, `registerTool`, or tool names appear outside `src/app/js/webmcp/` and the explicit `app.js` composition import.
+- [ ] Extend that architecture test with the no-shims allowlist: production application code must contain one controller factory, one source loader, one SVG artifact service, and one WebMCP adapter; it must contain no legacy callback-name alias, caller-dependent implementation switch, duplicate remote-source transport, or alternate SVG transport.
 - [ ] Run `npm test -- src/app/js/webmcp/webMcpAdapter.test.js src/app/js/webmcp/webMcpArchitecture.test.js --runInBand` and confirm RED.
 - [ ] Implement `registerWebMcpTools({ controller, documentObject, windowObject })`, returning `{ available, reason, ready, dispose }`. The reasons are `available`, `unsupported`, `not-top-level`, or `registration-failed`; they are local diagnostics, not ontology data.
 - [ ] Feature-detect before reading the API. Require `windowObject.top === windowObject`; do not inspect or proxy iframe documents.
@@ -531,7 +545,7 @@ await documentObject.modelContext.registerTool(
 - [ ] Verify `document.modelContext.getTools()` when the client exposes it and compare the returned names, schemas, and annotations to the contract tests.
 - [ ] For the flagship prompt, compare the visible language/filter/focus state to the tool result, download the SVG, open it independently, verify its dimensions and `<metadata>`, and independently recompute SHA-256 over the file bytes.
 - [ ] Run a no-WebMCP session and a non-top-level iframe session separately. Record page-side export success separately from whether a particular client can attach the download to its conversation.
-- [ ] Update `README.md` with an “Optional WebMCP integration” section covering supported jobs, experimental availability, top-level requirement, visible/reversible changes, privacy, accepted sources, browser-local artifact lifetime, manual download, no guaranteed chat attachment, and unsupported-browser behavior. Link the design and evaluation document.
+- [ ] Update `README.md` with an “Optional WebMCP integration” section covering supported jobs, experimental availability, top-level requirement, visible/reversible changes, privacy, accepted sources, browser-local artifact lifetime, manual download, no guaranteed chat attachment, unsupported-browser behavior, and the fact that WebMCP and the UI use the same controller with no legacy fallback implementation. Link the design and evaluation document.
 - [ ] If production enablement requires an origin-trial token, Permissions Policy, CSP, hosting header, deployment setting, or other configuration, stop after local evaluation and request explicit approval for the exact smallest change. Do not include such a change in an otherwise approved source commit.
 - [ ] Run `npm test -- --runInBand`, `npm run lint`, `npm run format:check`, and `npm run build` after documentation and fixture changes.
 - [ ] Request approval for `docs(webmcp): Add usage and evaluation evidence`.
@@ -546,14 +560,15 @@ await documentObject.modelContext.registerTool(
 - [ ] Run `npm run lint`, `npm run format:check`, and `npm run build` individually and retain their passing summaries.
 - [ ] Run `git diff --check` and inspect the complete feature diff against the approved design base.
 - [ ] Run `rg -n "wait_for_layout|create_visualization" src docs`; matches may occur only in the design/plan explanation of rejected interfaces, never in source tool definitions.
-- [ ] Run `rg -n "data:image/svg\+xml;base64" src/app/js`; confirm the modern Blob path is canonical and any remaining data URI is the documented manual compatibility fallback only.
+- [ ] Run `rg -n "loadOntologyFromText|parseUrlAndLoadOntology|parseOntologyContent|from_JSON_URL|from_IRI_URL|fromFileDrop|from_FileUpload|from_presetOntology|loadFromOWL2VOWL|getLoadingFunction|setController|data:image/svg\+xml;base64|btoa" src/app/js`; it must return no matches after the controller cutover.
 - [ ] Run `rg -n "modelContext|registerTool" src`; confirm the architecture allowlist from Task 11.
+- [ ] Inspect production call graphs and prove there is exactly one remote ontology/VOWL JSON load route, one SVG artifact route, and one application controller. Reject a forwarding wrapper even if the retired name itself has changed.
 - [ ] Verify no full ontology text, VOWL JSON, SVG source, object URL, credentials, stack trace, or parser response body appears in any tool-result fixture.
 - [ ] Verify all page-created object URLs are revoked on replacement or disposal and all event/abort/frame listeners have cleanup tests.
 - [ ] Verify the ordinary UI acceptance paths: preset, JSON URL, ontology IRI, file, drop, cached reload, direct input, filters, language, pause, and manual SVG download.
 - [ ] Verify the flagship source → visible graph → view → settle → SVG path and the broader orientation, investigation, task-view, diagnostics, teaching, and provenance jobs all have test or evaluation evidence.
 - [ ] Confirm the diff contains no package, lockfile, build, lint, test, CI, deployment, hosting, environment, or repository-policy changes.
-- [ ] Confirm no ontology editing, reasoning, SPARQL, linting, comparison, server upload, remote MCP, headless rendering, persistent artifact store, deterministic-coordinate work, generic command tool, or iframe-discovery workaround entered the diff.
+- [ ] Confirm no compatibility shim, deprecated alias, duplicate production route, runtime legacy switch, ontology editing, reasoning, SPARQL, linting, comparison, server upload, remote MCP, headless rendering, persistent artifact store, deterministic-coordinate work, generic command tool, or iframe-discovery workaround entered the diff.
 - [ ] Prepare one final signed integration checkpoint only if uncommitted implementation changes remain. Use the `committing-to-git` skill and request approval for the exact staged snapshot and message. Do not push without a separate user request.
 
 **Acceptance:** Every automated gate, browser job, security boundary, architecture rule, and non-goal has current evidence, and the branch remains isolated and ready for review.
@@ -652,7 +667,7 @@ Do not expose exception names, raw network messages, URLs containing credentials
 | A3 — source-to-relaxed-SVG flagship | Generation-safe load, view adapter, settlement, Blob export, flagship browser prompt | 3, 5–9, 12 |
 | A4 — broader user jobs | Summary/search/neighborhood behavior and the orientation, investigation, diagnostics, teaching, and provenance prompt set | 4, 7, 10, 12 |
 | A5 — exactly five bounded tools | Exact schemas, annotations, runtime validation, projection ceiling, rejected-tool guard | 10, 11, 13 |
-| A6 — reuse existing seams safely | `app.js`, `loadingModule.js`, `owl2vowl`, import resolver, graph, sidebar, and export migration are named explicitly | 3, 5–9 |
+| A6 — reuse existing seams safely | `app.js`, loading/direct-input/ontology menus, `owl2vowl`, import resolver, graph, sidebar, and export migration are named explicitly | 3, 5–9 |
 | A7 — UI-ready differs from settled | Force snapshot, stability thresholds, force end, timeout, best effort, freeze, paint, restoration | 5, 8, 12 |
 | A8 — visual stability, not exact bytes | No seed/coordinate task; layout recipe records outcome without a reproducibility claim | 5, 6, 8, 13 |
 | A9 — page-local artifact metadata | Blob, checksum, opaque IDs, visible link/status, URL revocation, attachment recorded separately | 6, 8, 9, 12 |
@@ -660,12 +675,14 @@ Do not expose exception names, raw network messages, URLs containing credentials
 | A11 — current top-level imperative clients | Imperative API shape, lifecycle abort, non-top-level refusal, embedding documentation | 11, 12 |
 | A12 — measure complete jobs | Twenty-prompt matrix, latency/result/retrieval/claim fields, independent SVG verification | 12, 13 |
 | A13 — deferred capabilities stay separate | Global constraints, five-tool guard, final forbidden-scope audit | 10, 13 |
+| A14 — no compatibility shims or parallel production paths | Controller dependency guard, atomic UI/loading/export cutover, retired-name absence test, single-route final audit | 6, 8, 9, 11, 13 |
 
 The original conversation’s complete product reasoning has an implementation home:
 
 - “Load a specific source, make a graph, let it relax, export SVG, and send it back” is Tasks 3, 5–9, and the flagship prompt. Page-side download is guaranteed; conversation attachment is measured and reported separately.
 - “Help users do their jobs better more broadly” is represented by the summary, search, one-hop structural facts, task-specific views, diagnostics, teaching, and provenance work in Tasks 4, 7, 10, and 12.
 - “Agent-neutral controller” is the central dependency and delivery sequence in Tasks 2–9, with an automated architecture boundary in Task 11.
+- “No shims” is enforced as a controller ownership rule: Tasks 6 and 8 prepare real modules, Task 9 migrates all production callers and deletes replaced paths atomically, and Tasks 11 and 13 prevent aliases or parallel implementations from returning.
 - “Do not disturb other implementation branches” is enforced by the isolated-worktree preflight, clean-status checks, configuration gates, narrow staging, approval per commit, and no-push rule.
 
 ---
@@ -681,7 +698,8 @@ This plan is complete only when all of the following are true:
 - Summary and search use canonical ontology data, return stable references, and make no semantic claims from visual proximity.
 - View changes remain visible, reversible, and synchronized with existing controls.
 - Strict export waits for the agreed stability contract; best-effort output occurs only when explicitly requested.
-- In every WebMCP-capable target, SVG is a valid local Blob with matching visible download, metadata, byte length, and SHA-256, and obsolete object URLs are revoked. A legacy manual-export fallback is acceptable only with its explicit compatibility warning.
+- SVG export has one production implementation: a valid local Blob with matching visible download, metadata, byte length, and SHA-256; obsolete object URLs are revoked, and missing required browser primitives produce `EXPORT_FAILED` rather than a legacy transport fallback.
 - Tool results never contain ontology source, VOWL JSON, SVG source, download URLs, credentials, stack traces, or unbounded derived content.
 - The twenty-prompt evaluation and full automated verification pass or record an explicitly accepted client limitation.
 - No deferred product capability, new dependency, configuration change, external upload, branch mutation, or push has been introduced without its own approval.
+- No controller method forwards to a retired callback, and no compatibility shim, alias, duplicate loader/exporter, or old/new runtime switch remains.

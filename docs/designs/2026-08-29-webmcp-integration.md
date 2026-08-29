@@ -9,6 +9,8 @@
 
 WebVOWL will expose a small set of WebMCP tools as an optional browser capability. The tools will delegate to an agent-neutral, promise-based `WebVowlController` module that owns loading, inspection, view changes, layout settlement, and export. The normal WebVOWL interface will use the same controller and will remain complete and usable when WebMCP is absent.
 
+`WebVowlController` is an ownership cutover, not a compatibility shim over the current callbacks, menu handlers, or remote-loading functions. When a capability moves behind the controller, every production caller moves with it and the replaced orchestration is deleted in the same change. The design permits a thin WebMCP protocol adapter and ordinary dependency injection; it does not permit forwarding aliases, old/new runtime switching, duplicate loading or export paths, or legacy transport fallbacks.
+
 The first release will optimize for interactive, human-visible work in an open WebVOWL page. It will not add ontology editing, a reasoning engine, unattended batch rendering, a remote MCP server, or a server-side artifact store. Those are separate product decisions that can build on `WebVowlController` later.
 
 ## Context
@@ -19,7 +21,7 @@ WebMCP lets the live page advertise structured tools with JSON-schema inputs and
 
 The architectural pattern also has a direct client-side precedent: OpenAI's Runme case study exposes an existing browser application's capabilities through WebMCP without first adding an application server. WebVOWL can obtain the same leverage while keeping its ontology-specific behavior in an agent-neutral controller.
 
-## Platform snapshot and compatibility assumptions
+## Platform snapshot and runtime assumptions
 
 This design records the platform state as of 2026-08-29 so that temporary ecosystem constraints are not mistaken for permanent WebVOWL architecture:
 
@@ -80,6 +82,7 @@ The user issues one natural-language request. WebVOWL will not expose a polling-
 6. Keep ontology content in the browser unless the user explicitly chooses a future server-backed workflow.
 7. Give the existing UI, tests, WebMCP adapter, and future non-agent callers one small, durable, agent-neutral interface over asynchronous application behavior.
 8. Preserve current behavior in browsers and embeddings that do not support WebMCP.
+9. Replace legacy orchestration at each controller seam without compatibility shims, forwarding aliases, or parallel production paths.
 
 ## Non-goals
 
@@ -92,6 +95,7 @@ The user issues one natural-language request. WebVOWL will not expose a polling-
 - Sending full ontology documents, graph models, or SVG source through tool results.
 - Refactoring unrelated graph, parser, or menu behavior.
 - Requiring a new server, dependency, build system, or deployment mode.
+- Retaining callback aliases, wrapper APIs, duplicate loaders/exporters, or protocol-dependent legacy routes after their controller-owned replacements exist.
 
 ## Design principles
 
@@ -104,6 +108,30 @@ WebMCP registration will be feature-detected. If the browser does not expose `do
 `WebVowlController` will hide asynchronous sequencing, application state, cancellation, layout settlement, export preparation, and normalized errors behind a small interface. Callers should not need to understand loading callbacks, D3 force lifecycle details, menu state, or SVG serialization internals.
 
 “Agent-neutral” is an interface constraint: the controller will not import WebMCP code, use tool names, accept WebMCP request objects, return protocol envelopes, or assume that its caller is an agent. It will accept WebVOWL domain requests and return WebVOWL domain results. The normal UI and the WebMCP adapter will cross the same seam, and tests will exercise the same interface rather than reaching through it to private implementation details.
+
+### No compatibility shims or parallel orchestration
+
+The controller must own the capabilities it exposes. It must not be a façade that forwards to legacy loading callbacks, invokes old menu operations, or selects between old and new implementations according to caller, browser, or WebMCP availability.
+
+For each migrated capability, one vertical cutover will:
+
+1. Extract the real domain behavior behind a controller dependency or focused application service.
+2. Move every ordinary UI caller and the WebMCP adapter to the controller-owned operation.
+3. Delete the replaced callback, forwarding method, duplicate request path, and obsolete serialization or transport code in that same change.
+4. Add architecture and absence tests that fail if the retired route or a forwarding alias returns.
+
+The following are explicitly prohibited:
+
+- a `WebVowlController` method whose implementation merely calls `loadOntologyFromText`, `parseOntologyContent`, `from_JSON_URL`, `from_IRI_URL`, `loadFromOWL2VOWL`, or the private SVG click handler;
+- a `setController` bridge, deprecated alias, compatibility wrapper, or old-signature adapter retained to avoid migrating an in-repository caller;
+- both `d3.xhr` and `WebVowlImportResolver` production routes for the same remote source kind;
+- both base64/data-URI and Blob/object-URL production routes for SVG export;
+- switching to a legacy implementation when WebMCP is absent or when a required controller dependency fails; and
+- leaving dead legacy orchestration in place for a later cleanup phase.
+
+The thin `webMcpAdapter` is not a compatibility shim: it is the sole protocol boundary from the external WebMCP contract to the agent-neutral controller. Feature detection is also not a shim: it determines whether tools are registered, while the ordinary UI continues to call the same controller in either case. Test doubles injected through explicit constructor dependencies are permitted because they do not create an alternative production path.
+
+If a baseline browser lacks a required browser primitive such as `Blob`, object URLs, Web Crypto, or `AbortController`, the operation will fail explicitly through the normal bounded error and visible UI presentation. The implementation will not revive a retired data URI, XHR, callback, or other legacy route as a runtime fallback.
 
 ### Visible, reversible collaboration
 
@@ -135,12 +163,12 @@ The design builds on current behavior rather than proposing a parallel applicati
 
 | Existing seam | What is reusable | Gap the implementation plan must address |
 |---|---|---|
-| `src/app/js/app.js` | `app.getOptions()`, `app.getGraph()`, and the existing `loadOntologyFromText` path connect application options, parsed data, and `graph.load()` | Loading is callback-oriented and does not return one cancellable promise for a specific generation |
-| `src/app/js/loadingModule.js` | Existing entry points cover VOWL JSON URLs, ontology IRIs, direct text, file selection, and drop workflows | Top-level remote paths use `d3.xhr`; controller-driven loads need one bounded, cancellable completion contract without breaking UI entry points |
+| `src/app/js/app.js` | `app.getOptions()`, `app.getGraph()`, and the current rendering body inside `loadOntologyFromText` connect application options, parsed data, and `graph.load()` | Loading is callback-oriented; the rendering behavior must be extracted as a real controller dependency and `loadOntologyFromText` removed rather than wrapped |
+| `src/app/js/loadingModule.js` and `src/app/js/menu/ontologyMenu.js` | Existing user workflows cover VOWL JSON URLs, ontology IRIs, direct text, file selection, drops, cached data, presets, and conversion responses | Remote paths use `d3.xhr` and results converge through forwarding callbacks; all callers must move to one bounded controller source contract before those legacy entry points are deleted |
 | `src/owl2vowl/js/index.js` | `loadWithImports(text, options)` already provides an asynchronous parser/import foundation and structured diagnostics | Root-load and UI orchestration must expose its completion, warnings, and cancellation consistently |
 | `src/owl2vowl/js/importResolver.js` and `src/owlapi-js/io/loaderConfiguration.js` | Imports already restrict schemes to HTTP(S), omit credentials, apply redirect policy, cap a remote document at 32 MiB, and default to a 30-second timeout | The canonical controller path must reuse these controls and add a bounded import count or depth if none exists |
 | `src/webvowl/js/graph.js` | Canonical unfiltered data, graph loading, updates, filtering hooks, focus, zoom, and D3 force behavior already exist | `finishedLoadingSequence` becomes true after a progress threshold above `0.49` and the force can resume; that milestone is not a settled-layout contract |
-| `src/app/js/menu/exportMenu.js` | Existing SVG export hides non-exportable elements, inlines VOWL styles, adds metadata, serializes SVG, and restores interactive styling | `exportSvg` is private, serializes the current instant, emits a base64 data URI, and returns no SVG, `Blob`, promise, artifact metadata, or layout guarantee |
+| `src/app/js/menu/exportMenu.js` | Existing SVG export hides non-exportable elements, inlines VOWL styles, adds metadata, serializes SVG, and restores interactive styling | The behavior must move to the controller-owned artifact service; the private `exportSvg` and base64 data-URI route are then deleted rather than retained as a fallback |
 
 The implementation will extract reusable behavior rather than have `WebVowlController` invoke controls or duplicate menu code. Existing file upload remains a human UI capability; once a file is loaded, the controller can summarize, search, restyle, and export the active ontology even though WebMCP does not accept a local filesystem path.
 
@@ -193,7 +221,7 @@ idle → loading → parsing → rendering → relaxing → ready
 
 Cancellation returns the controller to the most recent valid state. It is not reported as an unexpected application failure.
 
-Existing UI callbacks will be migrated incrementally to call `WebVowlController`; the controller will not simulate clicks or manipulate menu controls to perform work. UI-specific presentation remains in the UI, while the controller owns application operations and structured outcomes. This direction of dependency is what keeps the seam useful when WebMCP is disabled or replaced.
+Existing UI capabilities will move behind `WebVowlController` as complete vertical cutovers. A cutover may be delivered one capability at a time, but no completed slice may leave a legacy production path or forwarding shim beside the controller path. The controller will not simulate clicks or manipulate menu controls to perform work. UI-specific presentation remains in the UI, while the controller owns application operations and structured outcomes. This direction of dependency is what keeps the seam useful when WebMCP is disabled or replaced.
 
 ### WebMCP adapter
 
@@ -241,6 +269,8 @@ An element reference will prefer the pair of VOWL element kind and ontology IRI 
 { kind: "vowl-json-url", value: "https://example.org/model.json" }
 { kind: "ontology-text", value: "...", format: "turtle" }
 ```
+
+The ordinary application also needs a first-class controller-domain source for VOWL JSON already obtained through a file, cache, or converter response. That source is named `vowl-json`, accepts an already parsed JSON object plus provenance, and is not exposed as a WebMCP input. It is a genuine application source kind, not an alias for a retired serialized-text callback; parsing occurs exactly once at the source boundary. Preset paths are resolved to absolute URLs and use `vowl-json-url`; file, cache, and converter objects use `vowl-json` directly.
 
 Local filesystem paths will not be accepted. A file the user loaded through the existing file picker can still be summarized, searched, restyled, and exported after it becomes the active ontology.
 
@@ -348,7 +378,7 @@ Implementation will follow test-driven development across four layers:
 
 1. **Controller tests:** agent-neutral interface behavior, state transitions, generation supersession, cancellation, normalization, bounded results, layout timeout, pause restoration, and export metadata.
 2. **Adapter contract tests:** exact tool registration, schemas, annotations, request validation, error mapping, and cleanup using a fake `document.modelContext`.
-3. **Application integration tests:** representative ontology text and URLs through parser, graph loading, view changes, and SVG generation.
+3. **Application integration and architecture tests:** representative ontology text and URLs through parser, graph loading, view changes, and SVG generation, plus guards proving replaced callbacks, forwarding aliases, duplicate remote loaders, and the base64 SVG route are absent.
 4. **Browser evaluation:** supported Chromium/WebMCP environments, the normal no-WebMCP path, top-level registration, visible state changes, downloads, console errors, and client-specific attachment behavior.
 
 The evaluation corpus will include small and large ontologies, imports, malformed input, unsupported sources, CORS and network failures, superseded loads, missing labels, large search result sets, layout timeout, and repeated exports.
@@ -358,6 +388,7 @@ Browser evaluation will use 15–20 job-oriented prompts rather than testing onl
 Release acceptance requires:
 
 - Existing non-WebMCP behavior remains functional.
+- The ordinary UI and WebMCP use the same controller operations; no compatibility shim or retired production path remains.
 - Each registered tool completes representative user jobs without DOM guessing.
 - Cancellation and superseded loads cannot corrupt the active graph.
 - No tool emits unbounded ontology or SVG content.
@@ -367,15 +398,16 @@ Release acceptance requires:
 
 ## Delivery sequence
 
-1. Establish the agent-neutral `WebVowlController` and state model around existing loading behavior.
-2. Route summary and bounded search through canonical graph data.
-3. Move view application behind the `WebVowlController` interface while preserving existing controls.
-4. Extract SVG serialization from the menu click handler and add a testable settlement contract.
-5. Add the thin imperative WebMCP adapter and its contract tests.
-6. Run browser evaluations and refine schemas, descriptions, limits, and diagnostics.
-7. Document availability, privacy, embedding constraints, and the client-specific artifact handoff.
+1. Establish the agent-neutral `WebVowlController` and state model with new domain contracts, not wrappers around current callback signatures.
+2. Cut loading and rendering over as one vertical slice: migrate every UI caller, then delete the replaced callbacks, `d3.xhr` remote routes, and forwarding entry points.
+3. Route summary and bounded search through canonical graph data.
+4. Move view application behind the `WebVowlController` interface while preserving existing controls and without retaining click-simulation or old-signature aliases.
+5. Cut SVG export over as one vertical slice: introduce settlement and Blob artifacts, migrate the manual UI, then delete the private base64/data-URI route.
+6. Add the thin imperative WebMCP protocol adapter and its contract tests after controller-owned application paths are canonical.
+7. Run browser evaluations and refine schemas, descriptions, limits, and diagnostics.
+8. Document availability, privacy, embedding constraints, the no-shims invariant, and the client-specific artifact handoff.
 
-Each step must leave the ordinary application working. Any required build, package, lockfile, test-runner, CI, deployment, or other configuration change requires separate explicit approval before it is made.
+Each step must leave the ordinary application working. Intermediate commits may introduce tested domain modules before their cutover, but they must not connect a second production route or preserve a forwarding shim. A production cutover and deletion of the path it replaces belong to the same commit. Any required build, package, lockfile, test-runner, CI, deployment, or other configuration change requires separate explicit approval before it is made.
 
 ## Deferred extensions
 
@@ -396,11 +428,11 @@ The implementation plan must reference these assessment decisions so product rat
 | ID | Assessment decision | Design location | Plan obligation |
 |---|---|---|---|
 | A1 | WebMCP is an optional live-page enhancement, not WebVOWL's backend or required runtime | Context; Platform snapshot; Progressive enhancement | Include unsupported-browser and lifecycle tests |
-| A2 | The durable investment is an agent-neutral `WebVowlController`; WebMCP is a thin adapter | Decision summary; Design principles; Architecture | Establish and test the controller before registering tools |
+| A2 | The durable investment is an agent-neutral `WebVowlController`; WebMCP is a thin adapter | Decision summary; Design principles; Architecture | Establish and test the controller before registering tools; prove it owns behavior rather than forwarding to legacy callbacks |
 | A3 | Ontology-to-relaxed-SVG is the flagship workflow, composed from visible operations | Flagship workflow; Layout settlement; Artifact delivery | Include an end-to-end acceptance task from source through download |
 | A4 | Broader value includes orientation, investigation, task-specific views, diagnostics, teaching, and provenance | User jobs and product value | Map supported jobs to summary, search, view, and export tests |
 | A5 | The initial interface contains five bounded, non-overlapping tools | Initial tool interface | Define exact schemas, annotations, limits, and error mappings; do not add polling or generic command tools |
-| A6 | Existing loading, parser/import, graph, and export behavior is reused through a new completion seam | Existing WebVOWL seams and gaps | Name exact source files, integration points, and safe migration steps |
+| A6 | Existing loading, parser/import, graph, and export behavior is reused through a new completion seam | Existing WebVOWL seams and gaps | Name exact source files, integration points, atomic cutovers, and deletion of replaced orchestration |
 | A7 | UI-ready is not layout-settled; export owns a bounded settlement contract | Layout settlement and SVG export | Add force-end/stability, timeout, best-current-state, and pause-restoration tests |
 | A8 | Visually settled output is required; exact byte reproducibility is not promised initially | Layout settlement and SVG export; Deferred extensions | Keep layout seeds and stored coordinates out of initial tasks |
 | A9 | WebMCP returns compact metadata and a page-local artifact handle, not full SVG or a guaranteed chat attachment | Artifact delivery | Test Blob lifecycle, visible download, checksum/metadata agreement, and client handoff separately |
@@ -408,6 +440,7 @@ The implementation plan must reference these assessment decisions so product rat
 | A11 | Current clients require top-level imperative registration and do not make iframe tools portable | Platform snapshot; WebMCP adapter | Test registration/cleanup in the top-level page and document embedding limitations |
 | A12 | Success is measured by complete user jobs, not merely successful tool callbacks | Testing and evaluation | Include the 15–20 prompt evaluation matrix and record task, latency, retrieval, and semantic-claim outcomes |
 | A13 | Quality analysis, comparison, editing, remote artifacts, and unattended rendering are separate designs | Non-goals; User jobs; Deferred extensions | Do not smuggle these capabilities or infrastructure into the initial plan |
+| A14 | Controller integration uses no compatibility shims, forwarding aliases, duplicate production paths, or legacy runtime fallbacks | Decision summary; No compatibility shims or parallel orchestration; Delivery sequence | Make each production cutover atomic, delete replaced paths in the same change, and add absence/architecture tests |
 
 ## References
 
