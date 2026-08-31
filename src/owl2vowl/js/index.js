@@ -1,15 +1,12 @@
-import {
-  OWLOntologyLoaderConfiguration,
-  StringDocumentSource,
-} from "../../owlapi-js/io/index.js";
-import { OWLManager } from "../../owlapi-js/manager/index.js";
-import { IRI } from "../../owlapi-js/model/index.js";
+import { OWLManager } from "owlapi/apibinding";
+import { StringDocumentSource } from "owlapi/io";
+import { IRI, OWLOntologyLoaderConfiguration } from "owlapi/model";
 
 import { ONTOLOGY_CATALOG } from "./constants.js";
 import { WebVowlImportResolver } from "./importResolver.js";
 import { VOWLBuilder } from "./vowlBuilder.js";
 
-// The production ingestion path: owlapi-js parses the document into a
+// The production ingestion path: owlapi parses the document into a
 // structural OWLOntology, and VOWLBuilder converts that model into the
 // VOWL-JSON structures the application renders. Section 17.15 forbids a runtime
 // legacy fallback, so a syntax this path does not implement fails with the

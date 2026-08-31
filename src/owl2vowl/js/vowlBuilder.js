@@ -1,8 +1,4 @@
-import {
-  dispatchAxiom,
-  OWLDataFactory,
-  OWLObjectKind,
-} from "../../owlapi-js/model/index.js";
+import { dispatchAxiom, OWLDataFactory, OWLObjectKind } from "owlapi/model";
 
 // Used only to express a conjunction the ontology already asserts, when a
 // property carries more than one domain or range axiom. Nothing about VOWL
@@ -1621,7 +1617,7 @@ class BuildState {
     });
 
     return {
-      _comment: "Created with owlapi-js VOWLBuilder",
+      _comment: "Created with owlapi VOWLBuilder",
       // The placeholder is applied here rather than on `this.header`, because
       // `isExternalEntityIri` reads the header IRI as a prefix to compare
       // against and treats an empty value as "cannot judge". A truthy

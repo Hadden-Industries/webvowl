@@ -6,7 +6,12 @@ import { gzipSync } from "node:zlib";
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const javascriptDirectory = resolve(repositoryRoot, "deploy/js");
 const entryPath = resolve(javascriptDirectory, "index.js");
-const n3ImplementationMarker = '"./N3Lexer"';
+// N3 2.3.0's ESM and browser builds both retain this distinctive parser
+// diagnostic after bundling and minification. The former CommonJS module-path
+// marker disappeared when the installed owlapi package made Vite select N3's
+// ESM entry point.
+const n3ImplementationMarker =
+  "Detected illegal (directional) languaged-tagged string with explicit datatype";
 const jsonLdImplementationMarker = "Maximum number of @context URLs exceeded.";
 const utf8Encoder = new TextEncoder();
 

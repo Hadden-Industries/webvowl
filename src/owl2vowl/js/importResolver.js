@@ -4,8 +4,8 @@ import {
   SecurityPolicyError,
   StringDocumentSource,
   UnloadableImportError,
-} from "../../owlapi-js/io/index.js";
-import { IRI } from "../../owlapi-js/model/index.js";
+} from "owlapi/io";
+import { IRI } from "owlapi/model";
 import resolveFetchUrl from "../../shared/js/util/resolveFetchUrl.js";
 
 const textBytes = (text) => new TextEncoder().encode(text).byteLength;

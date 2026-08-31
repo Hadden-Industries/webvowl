@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import owl2vowl from "../js/index.js";
 import {
   canonicalVowlSnapshot,
-  governedDifferenceCount,
   JAVA_OWL2VOWL_DIALECT,
   verifyGovernedDifferences,
 } from "./vowlSemanticSnapshot.js";
@@ -18,12 +17,9 @@ const JAVA_FIXTURE_URL = new URL(
   "./fixtures/java-reference-outputs/phase5-structural.rdf.java.json",
   import.meta.url,
 );
-const EXPECTED_DIFFERENCES_URL = new URL(
-  "../../../docs/owlapi-js/compatibility/expected-differences.json",
-  import.meta.url,
-);
 const PHASE5_FIXTURE_PATH =
-  "util/owlapi-reference/fixtures/rdf/phase5-structural.rdf";
+  "src/owl2vowl/test/fixtures/ontology-syntax/phase5-structural.rdf";
+const VOWL_DIFFERENCE_MANIFEST = Object.freeze({ rules: Object.freeze([]) });
 
 const configuration = {
   missingImportHandling: "diagnostic",
@@ -32,10 +28,7 @@ const configuration = {
 
 const loadStructuralFixture = async (fileName) => {
   const text = readFileSync(
-    new URL(
-      `../../../util/owlapi-reference/fixtures/rdf/${fileName}`,
-      import.meta.url,
-    ),
+    new URL(`./fixtures/ontology-syntax/${fileName}`, import.meta.url),
     "utf8",
   );
   return owl2vowl(text, { configuration, fileName });
@@ -57,8 +50,6 @@ describe("VOWLBuilder exact semantic differential", () => {
   test("matches the pinned Java OWL2VOWL semantic snapshot exactly", async () => {
     const result = await loadStructuralFixture("phase5-structural.rdf");
     const javaResult = JSON.parse(readFileSync(JAVA_FIXTURE_URL, "utf8"));
-    const manifest = JSON.parse(readFileSync(EXPECTED_DIFFERENCES_URL, "utf8"));
-
     const scope = {
       artifactType: "VOWL semantic snapshot",
       capability: "webvowl.vowl-builder",
@@ -69,13 +60,13 @@ describe("VOWLBuilder exact semantic differential", () => {
       candidate: canonicalVowlSnapshot(result, {
         dialect: JAVA_OWL2VOWL_DIALECT,
       }),
-      manifest,
+      manifest: VOWL_DIFFERENCE_MANIFEST,
       reference: canonicalVowlSnapshot(javaResult, {
         dialect: JAVA_OWL2VOWL_DIALECT,
       }),
       scope,
     });
 
-    expect(differences).toHaveLength(governedDifferenceCount(manifest, scope));
+    expect(differences).toHaveLength(0);
   });
 });

@@ -48,10 +48,10 @@ describe("production owl2vowl entry point", () => {
     expect(catalog["http://purl.org/dc/elements/1.1"]).toBeDefined();
   });
 
-  test("builds RDF/XML through the structural owlapi-js path", async () => {
+  test("builds RDF/XML through the structural owlapi path", async () => {
     const result = await owl2vowl(RDF_XML);
 
-    expect(result._comment).toBe("Created with owlapi-js VOWLBuilder");
+    expect(result._comment).toBe("Created with owlapi VOWLBuilder");
     expect(result.header.iri).toBe("http://example.org/ontology");
     expect(result.header.labels.en).toBe("My Ontology");
 
@@ -61,10 +61,10 @@ describe("production owl2vowl entry point", () => {
     expect(personAttribute.label.en).toBe("Person");
   });
 
-  test("builds Turtle through the structural owlapi-js path", async () => {
+  test("builds Turtle through the structural owlapi path", async () => {
     const result = await owl2vowl(TURTLE);
 
-    expect(result._comment).toBe("Created with owlapi-js VOWLBuilder");
+    expect(result._comment).toBe("Created with owlapi VOWLBuilder");
     expect(result.header.iri).toBe("http://example.org/ontology");
     expect(result.header.labels.en).toBe("My Turtle Ontology");
 
@@ -347,7 +347,7 @@ describe("production owl2vowl entry point", () => {
 
     const result = await loadWithImports(mainXml);
 
-    expect(result._comment).toBe("Created with owlapi-js VOWLBuilder");
+    expect(result._comment).toBe("Created with owlapi VOWLBuilder");
     expect(result.header.iri).toBe("http://example.org/main");
     expect(result.classAttribute).toContainEqual(
       expect.objectContaining({

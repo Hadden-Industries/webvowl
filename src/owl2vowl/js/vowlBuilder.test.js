@@ -1,10 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
-import {
-  IRI,
-  OWLDataFactory,
-  OWLOntology,
-} from "../../owlapi-js/model/index.js";
+import { IRI, OWLDataFactory, OWLOntology } from "owlapi/model";
 
 import { VOWLBuilder } from "./vowlBuilder.js";
 
@@ -13,7 +9,7 @@ describe("VOWLBuilder", () => {
     const result = new VOWLBuilder().build(new OWLOntology());
 
     expect(result).toEqual({
-      _comment: "Created with owlapi-js VOWLBuilder",
+      _comment: "Created with owlapi VOWLBuilder",
       header: {
         author: [],
         baseIris: [],

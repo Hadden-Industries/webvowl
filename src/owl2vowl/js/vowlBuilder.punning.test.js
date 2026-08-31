@@ -1,12 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
-import {
-  IRI,
-  OWLDataFactory,
-  OWLOntology,
-} from "../../owlapi-js/model/index.js";
-
-import { createOntologyID } from "../../owlapi-js/model/structural.js";
+import { IRI, OWLDataFactory, OWLOntology } from "owlapi/model";
 
 import { VOWLBuilder } from "./vowlBuilder.js";
 
@@ -36,7 +30,9 @@ const build = (...axioms) => {
   const result = new VOWLBuilder().build(
     new OWLOntology({
       axioms,
-      ontologyID: createOntologyID(IRI.create("http://xmlns.com/foaf/0.1")),
+      ontologyID: factory.getOWLOntologyID(
+        IRI.create("http://xmlns.com/foaf/0.1"),
+      ),
     }),
   );
   const attribute = result.propertyAttribute.find(({ iri: i }) => i === PUNNED);

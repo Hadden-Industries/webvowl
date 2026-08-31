@@ -27,7 +27,7 @@ import {
 
 const TEST_TIMEOUT_MS = 60_000;
 const REGISTER_URL = new URL(
-  "../../../docs/owlapi-js/compatibility/production-corpus-differences.json",
+  "../../../docs/owl2vowl/compatibility/production-corpus-differences.json",
   import.meta.url,
 );
 
@@ -197,7 +197,7 @@ const describeDifference = (keyName, failedChecks, detail) => {
   lines.push(
     "",
     "Every dimension must be justified separately. Add to",
-    "docs/owlapi-js/compatibility/production-corpus-differences.json under",
+    "docs/owl2vowl/compatibility/production-corpus-differences.json under",
     `documents["${keyName}"]:`,
     ...failedChecks.flatMap((name) => [
       `  "${name}": {`,

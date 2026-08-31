@@ -2,13 +2,13 @@
 
 > **Status:** Deferred architecture and implementation blueprint; no implementation begins until the predecessor Phase 20 completion gate is evidenced.<br>
 > **Research baseline:** 25 August 2026.<br>
-> **Predecessor:** [`docs/owlapi-js/implementation-plan.md`](../owlapi-js/implementation-plan.md), especially §17.27, “Phase 20 — qualify and publish production-recommended `owlapi@0.1.0`.”<br>
-> **Related ontology-lifecycle programme:** [`docs/owlapi-js/ontology-lifecycle-capability-implementation-plan.md`](../owlapi-js/ontology-lifecycle-capability-implementation-plan.md). This cache does not absorb that programme’s imports-closure query, merger, mutation, or storage responsibilities.<br>
+> **Predecessor:** [Canonical standalone `owlapi` implementation plan](https://github.com/Hadden-Industries/owlapi/blob/main/docs/implementation-plan.md), especially §17.27, “Phase 20 — qualify and publish production-recommended `owlapi@0.1.0`.”<br>
+> **Related ontology-lifecycle programme:** [Standalone `owlapi` ontology-lifecycle capability plan](https://github.com/Hadden-Industries/owlapi/blob/main/docs/ontology-lifecycle-capability-implementation-plan.md). This cache does not absorb that programme’s imports-closure query, merger, mutation, or storage responsibilities.<br>
 > **Execution rule:** Implement each cache phase in order, preserve the RED → GREEN → REFACTOR discipline for observable changes, and stop at every configuration, deployment, publication, commit, and push approval gate.<br>
 > **Goal:** Allow WebVOWL to resolve an ontology document or any document in its import closure when a browser cannot retrieve the source because of CORS or mixed-content policy, while serving every subsequent successful resolution from a validated, content-addressed, transparently reported CloudFront/S3 cache.<br>
 > **Architecture:** Keep ordinary reads on a CloudFront → private S3 data plane. Invoke a small CloudFront → Lambda Function URL → DynamoDB/SQS control plane only for a previously unknown or refresh-due source document. Validate the exact stored representation with the same public `owlapi` npm package and loader profile used by WebVOWL before publishing any catalog mapping.<br>
 > **Technology:** Native ESM JavaScript, the public `owlapi` npm package, browser Fetch/Web Crypto/AbortSignal, OASIS XML Catalogs 1.1, AWS CDK v2 in Python, CloudFront pay-as-you-go, private S3, Lambda Function URLs protected by CloudFront origin access control, Lambda on Node.js 24, DynamoDB on-demand capacity, SQS Standard, AWS WAF, CloudFront standard logging v2, CloudWatch, Athena, and Route 53 under the existing account-owned configuration.<br>
-> **Spec:** The normative architecture, contracts, and acceptance criteria are contained in this document. The two linked `owlapi` plans remain authoritative for the package boundary and release lineage.
+> **Spec:** The normative architecture, contracts, and acceptance criteria are contained in this document. The two linked standalone `owlapi` plans remain authoritative for the package boundary and release lineage.
 
 ---
 
@@ -16,7 +16,7 @@
 
 This plan makes the following decisions deliberately and treats them as implementation constraints rather than suggestions:
 
-1. **Start only after Phase 20.** The current in-repository `src/owlapi-js/` tree is not an implementation target. At the starting checkpoint, WebVOWL must already consume the exact accepted production registry artefact through public `owlapi` entry points only.
+1. **Start only after Phase 20.** The retired WebVOWL-local `src/owlapi-js/` tree is not an implementation target and must remain absent. Its Phase 19D1 removal does not relax this programme's start gate: at the starting checkpoint, WebVOWL must already consume the exact accepted production registry artefact through public `owlapi` entry points only.
 2. **Use the installed `owlapi` package in both runtimes.** WebVOWL uses it to parse user-requested documents and imports; the materialization worker uses the same exact package coordinate and validation profile to decide whether bytes are eligible for publication.
 3. **Keep network policy outside `owlapi`.** `owlapi` remains free of ambient networking. WebVOWL supplies its application-owned document loader. The Lambda worker supplies a separately controlled, SSRF-resistant representation retriever.
 4. **Materialize documents, not collapsed closures.** The service stores one validated ontology document per artifact. WebVOWL and `owlapi` continue to traverse the import graph. This service enables closure resolution but does not merge, flatten, rewrite, or publish a closure as one ontology.
@@ -223,10 +223,10 @@ The implementation starts from the post-Phase-20 tree, not today’s tree. These
 | --- | --- | --- |
 | `src/owl2vowl/js/constants.js` | Defines `ONTOLOGY_BASE_URL` and the static `ONTOLOGY_CATALOG`. | Export seed entries into the curated seed manifest, remove the runtime mapping object after parity evidence, and retain only semantically named stable endpoint configuration if still needed. |
 | `src/owl2vowl/js/importResolver.js` | Combines static IRI mapping, browser fetch, limits, and `StringDocumentSource` creation. | Replace with the deeper `WebVowlOntologyDocumentLoader`; do not retain a second mapper/fetch path. |
-| `src/owl2vowl/js/index.js` | Creates the ontology manager, injects the current resolver as both mapper and loader, and calls the internal package tree. | Use only installed `owlapi` exports and inject one application-owned loader through the accepted manager option. |
+| `src/owl2vowl/js/index.js` | Creates the ontology manager, injects the current resolver as both mapper and loader, and calls installed public `owlapi` exports. | Continue to use only installed `owlapi` exports and inject one application-owned loader through the accepted manager option. |
 | `src/app/js/loadingModule.js` | Fetches a top-level IRI independently, then passes text into `owl2vowl.loadWithImports`. | Route top-level ontology-document retrieval through the same loader used for imports so CORS fallback and document-IRI preservation cannot diverge. JSON/VOWL-JSON loading remains separate. |
 | `src/shared/js/util/resolveFetchUrl.js` | Upgrades an HTTP retrieval target to HTTPS when WebVOWL itself is on HTTPS. | Retain its behaviour for unrelated JSON paths or replace ontology use with the more precise `selectBrowserRetrievalIri` owned by the loader module. |
-| `src/owlapi-js/**` | Current staging implementation. | Gone as a maintained WebVOWL package tree after Phase 20. This plan must not add, edit, import, or test against it. |
+| Retired `src/owlapi-js/**` | Historical staging implementation removed by the Phase 19D1 pre-registry consumer cutover. | Keep it absent. This plan must not add, edit, import, restore, or test against it. |
 | `amazon-aws/infrastructure/stack.py` | Owns the current distribution, imported/static origin behaviour, static bucket, a whole-distribution cost cutoff, and unrelated account resources. | Preserve deployed identities; add cohesive validated-cache stacks/constructs and the narrow distribution behaviours without replacing the existing distribution, certificate, DNS records, or static bucket. |
 | `amazon-aws/CloudFront/Functions/RewriteOntologyURI.js` | Rewrites extensionless requests under the broad `ontology/*` behaviour. | Leave existing behaviour unchanged. More-specific catalog/artifact/API behaviours must not associate this rewrite function. |
 | `amazon-aws/Lambda/Functions/DisableCloudFrontOnCostLimit.js` | Can disable the entire distribution after the configured ceiling. | Do not use it as the cache feature kill switch. Reconcile it in the cost-control migration so a cache budget event cannot take down the website or existing ontology artifacts. |
@@ -1614,7 +1614,9 @@ src/owl2vowl/js/importResolver.js
 src/owl2vowl/js/importResolver.test.js
 ```
 
-`src/owlapi-js/**` is not listed: Phase 20 owns its extraction/removal. This plan never modifies it.
+`src/owlapi-js/**` is not listed because Phase 19D1 already removed the
+WebVOWL-local package tree. This plan never modifies or restores it, and its
+absence does not change the Phase 20 registry-backed starting gate.
 
 ### 18.2 `amazon-aws` repository
 
@@ -2940,8 +2942,8 @@ This programme is complete only when all of the following are true:
 
 ### 24.1 Local architecture/package sources
 
-- [`docs/owlapi-js/implementation-plan.md`](../owlapi-js/implementation-plan.md)
-- [`docs/owlapi-js/ontology-lifecycle-capability-implementation-plan.md`](../owlapi-js/ontology-lifecycle-capability-implementation-plan.md)
+- [Canonical standalone `owlapi` implementation plan](https://github.com/Hadden-Industries/owlapi/blob/main/docs/implementation-plan.md)
+- [Standalone `owlapi` ontology-lifecycle capability plan](https://github.com/Hadden-Industries/owlapi/blob/main/docs/ontology-lifecycle-capability-implementation-plan.md)
 - Current WebVOWL `src/owl2vowl/js/constants.js`, `importResolver.js`, `index.js`, `src/app/js/loadingModule.js`, and `src/shared/js/util/resolveFetchUrl.js` as migration evidence only.
 - Current `amazon-aws/app.py`, `infrastructure/stack.py`, `CloudFront/Functions/RewriteOntologyURI.js`, and `Lambda/Functions/DisableCloudFrontOnCostLimit.js` as deployment evidence only.
 

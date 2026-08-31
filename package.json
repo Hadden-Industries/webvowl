@@ -2,14 +2,10 @@
   "name": "webvowl",
   "version": "2.0.0",
   "dependencies": {
-    "@rdfjs/data-model": "2.1.2",
-    "@rdfjs/dataset": "2.0.3",
     "@xmldom/xmldom": "0.9.12",
     "d3": "^7.9.0",
-    "jsonld": "9.0.0",
     "lodash": "^4.18.1",
-    "n3": "2.3.0",
-    "rdfxml-streaming-parser": "3.3.0"
+    "owlapi": "git+https://github.com/Hadden-Industries/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
