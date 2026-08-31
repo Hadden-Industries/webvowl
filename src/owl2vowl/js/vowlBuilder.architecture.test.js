@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { AXIOM_KINDS, OWLObjectKind } from "../../owlapi-js/model/index.js";
+import { AXIOM_KINDS, OWLObjectKind } from "owlapi/model";
 
 const BUILDER_PATH = fileURLToPath(
   new URL("./vowlBuilder.js", import.meta.url),

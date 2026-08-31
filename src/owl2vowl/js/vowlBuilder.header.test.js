@@ -1,11 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
-import {
-  IRI,
-  OWLDataFactory,
-  OWLOntology,
-} from "../../owlapi-js/model/index.js";
-import { createOntologyID } from "../../owlapi-js/model/structural.js";
+import { IRI, OWLDataFactory, OWLOntology } from "owlapi/model";
 
 import { VOWLBuilder } from "./vowlBuilder.js";
 
@@ -32,8 +27,8 @@ const buildWithOntologyIri = (ontologyIRI) =>
         ),
       ],
       ontologyID: ontologyIRI
-        ? createOntologyID(iri(ontologyIRI))
-        : createOntologyID(undefined),
+        ? factory.getOWLOntologyID(iri(ontologyIRI))
+        : factory.getOWLOntologyID(undefined),
     }),
   );
 

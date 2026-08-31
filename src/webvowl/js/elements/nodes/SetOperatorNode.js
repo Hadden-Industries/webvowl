@@ -1,4 +1,4 @@
-const AbsoluteTextElement = require("../../util/AbsoluteTextElement");
+const AbsoluteTextElement = require("../../../../shared/js/util/AbsoluteTextElement");
 const BoxArrowLink = require("../links/BoxArrowLink");
 const RoundNode = require("./RoundNode");
 const drawTools = require("../drawTools")();

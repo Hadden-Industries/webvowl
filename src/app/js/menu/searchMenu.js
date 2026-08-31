@@ -15,12 +15,14 @@ module.exports = function (graph) {
   let dictionaryUpdateRequired = true;
   let labelDictionary;
   let inputText;
-  let viewStatusOfSearchEntries = false;
+  let menuEnabled = true;
+  let locateAvailable = false;
+  let visualViewportAnimationFrame;
 
   let results = [];
   let resultID = [];
-  const c_locate = d3.select("#locateSearchResult");
-  const m_search = d3.select("#m_search"); // << dropdown container;
+  const c_locate = document.getElementById("locateSearchResult");
+  const listbox = document.getElementById("search-results-listbox");
 
   String.prototype.beginsWith = function (string) {
     return this.indexOf(string) === 0;
@@ -28,14 +30,14 @@ module.exports = function (graph) {
 
   searchMenu.requestDictionaryUpdate = function () {
     dictionaryUpdateRequired = true;
-    // clear possible pre searched entries
-    const htmlCollection = m_search.node().children;
-    const numEntries = htmlCollection.length;
-
-    for (let i = 0; i < numEntries; i++) {
-      htmlCollection[0].remove();
+    if (listbox) {
+      while (listbox.children.length > 0) {
+        listbox.children[0].remove();
+      }
     }
-    searchLineEdit.node().value = "";
+    if (searchLineEdit) {
+      searchLineEdit.value = "";
+    }
   };
 
   function updateSearchDictionary() {
@@ -100,22 +102,211 @@ module.exports = function (graph) {
     }
   }
 
+  function setLocateButtonState(enabled) {
+    const hasSearchText =
+      searchLineEdit && searchLineEdit.value.trim().length > 0;
+    locateAvailable = Boolean(enabled) && hasSearchText;
+    const effectiveEnabled = menuEnabled && locateAvailable;
+    if (c_locate) {
+      if (effectiveEnabled) {
+        c_locate.classList.add("highlighted");
+      } else {
+        c_locate.classList.remove("highlighted");
+      }
+      c_locate.disabled = !effectiveEnabled;
+      const titleText = effectiveEnabled
+        ? "Locate search term"
+        : "Nothing to locate";
+      c_locate.title = titleText;
+      c_locate.setAttribute("aria-label", titleText);
+    }
+  }
+
+  function expandMobileSearch() {
+    document.getElementById("c_search").classList.add("search-expanded");
+    document
+      .getElementById("scrollLeftButton")
+      .classList.add("hidden-by-search");
+    document
+      .getElementById("scrollRightButton")
+      .classList.add("hidden-by-search");
+    updateClearButtonVisibility();
+  }
+
+  function collapseMobileSearch() {
+    document.getElementById("c_search").classList.remove("search-expanded");
+    document
+      .getElementById("scrollLeftButton")
+      .classList.remove("hidden-by-search");
+    document
+      .getElementById("scrollRightButton")
+      .classList.remove("hidden-by-search");
+  }
+
+  function updateVisualViewportMetrics() {
+    if (
+      !window.visualViewport ||
+      !document.documentElement ||
+      !document.documentElement.style
+    ) {
+      return;
+    }
+
+    const updateMetrics = function () {
+      visualViewportAnimationFrame = undefined;
+      document.documentElement.style.setProperty(
+        "--visual-viewport-height",
+        window.visualViewport.height + "px",
+      );
+      document.documentElement.style.setProperty(
+        "--visual-viewport-offset-top",
+        window.visualViewport.offsetTop + "px",
+      );
+    };
+
+    if (
+      visualViewportAnimationFrame !== undefined &&
+      typeof cancelAnimationFrame === "function"
+    ) {
+      cancelAnimationFrame(visualViewportAnimationFrame);
+    }
+    if (typeof requestAnimationFrame === "function") {
+      visualViewportAnimationFrame = requestAnimationFrame(updateMetrics);
+    } else {
+      updateMetrics();
+    }
+  }
+
+  function portalSearchResults() {
+    const overlayLayer = document.getElementById("applicationOverlayLayer");
+    const listboxNode = listbox;
+    if (
+      overlayLayer &&
+      listboxNode &&
+      listboxNode.parentNode !== overlayLayer
+    ) {
+      overlayLayer.appendChild(listboxNode);
+    }
+  }
+
   searchMenu.setup = function () {
     // clear dictionary;
     dictionary = [];
-    searchLineEdit = d3.select("#search-input-text");
-    searchLineEdit.on("input", userInput);
-    searchLineEdit.on("keydown", userNavigation);
-    searchLineEdit.on("click", toggleSearchEntryView);
-    searchLineEdit.on("mouseover", hoverSearchEntryView);
 
-    c_locate.on("click", function () {
-      graph.locateSearchResult();
+    portalSearchResults();
+
+    setLocateButtonState(false);
+
+    searchLineEdit = document.getElementById("search-input-text");
+
+    searchLineEdit.addEventListener("input", userInput);
+    searchLineEdit.addEventListener("keydown", userNavigation);
+    searchLineEdit.addEventListener("click", function () {
+      updateSelectionStatusFlags();
+      searchMenu.showSearchEntries();
+    });
+    searchLineEdit.addEventListener("focus", hoverSearchEntryView);
+
+    const mobileToggleBtn = document.getElementById("mobile-search-toggle-btn");
+    mobileToggleBtn.addEventListener("click", function (event) {
+      if (!menuEnabled) {
+        return;
+      }
+      if (event) {
+        event.stopPropagation();
+      }
+      expandMobileSearch();
+      if (searchLineEdit) {
+        searchLineEdit.focus();
+      }
+      updateSelectionStatusFlags();
+      searchMenu.showSearchEntries();
     });
 
-    c_locate.on("mouseover", function () {
+    const clearBtn = document.getElementById("search-clear-btn");
+    clearBtn.addEventListener("click", function (event) {
+      if (!menuEnabled) {
+        return;
+      }
+      if (event) {
+        event.stopPropagation();
+      }
+      searchMenu.clearText();
+      if (searchLineEdit) {
+        searchLineEdit.focus();
+      }
+    });
+
+    if (c_locate) {
+      c_locate.addEventListener("click", function () {
+        if (c_locate.classList.contains("highlighted")) {
+          graph.locateSearchResult();
+        }
+      });
+    }
+
+    // Light dismiss: Close search listbox & mobile overlay when tapping outside c_search or search-results-listbox
+    const dismissSearchOnOutsideTap = function (event) {
+      const cSearchNode = document.getElementById("c_search");
+      const listboxNode = listbox;
+      const cLocateNode = document.getElementById("c_locate");
+      if (event && event.target) {
+        if (cSearchNode && cSearchNode.contains(event.target)) {
+          return;
+        }
+        if (listboxNode && listboxNode.contains(event.target)) {
+          return;
+        }
+        if (cLocateNode && cLocateNode.contains(event.target)) {
+          return;
+        }
+      }
       searchMenu.hideSearchEntries();
-    });
+      collapseMobileSearch();
+    };
+
+    document.addEventListener("click", dismissSearchOnOutsideTap);
+    document.addEventListener("pointerdown", dismissSearchOnOutsideTap);
+    document.addEventListener("touchstart", dismissSearchOnOutsideTap);
+
+    if (listbox) {
+      listbox.addEventListener("click", function (event) {
+        let target = event && event.target;
+        while (target && target !== this && target.tagName !== "LI") {
+          target = target.parentElement;
+        }
+        if (
+          target &&
+          target.classList &&
+          target.classList.contains("search-option") &&
+          !target.classList.contains("search-entry-disabled")
+        ) {
+          const elementId = target.getAttribute("elementID");
+          if (elementId !== null && elementId !== undefined) {
+            selectSearchResult(parseInt(elementId, 10), event);
+          }
+        }
+      });
+    }
+
+    if (window.visualViewport) {
+      const handleVisualViewportChange = function () {
+        updateVisualViewportMetrics();
+        if (listbox && !listbox.classList.contains("hidden")) {
+          searchMenu.showSearchEntries();
+        }
+      };
+
+      updateVisualViewportMetrics();
+      window.visualViewport.addEventListener(
+        "resize",
+        handleVisualViewportChange,
+      );
+      window.visualViewport.addEventListener(
+        "scroll",
+        handleVisualViewportChange,
+      );
+    }
   };
 
   function hoverSearchEntryView() {
@@ -123,22 +314,25 @@ module.exports = function (graph) {
     searchMenu.showSearchEntries();
   }
 
-  function toggleSearchEntryView() {
-    if (viewStatusOfSearchEntries) {
-      searchMenu.hideSearchEntries();
-    } else {
-      searchMenu.showSearchEntries();
-    }
-  }
-
   searchMenu.hideSearchEntries = function () {
-    m_search.style("display", "none");
-    viewStatusOfSearchEntries = false;
+    if (listbox) {
+      listbox.classList.add("hidden");
+    }
+    if (searchLineEdit) {
+      searchLineEdit.setAttribute("aria-expanded", "false");
+      searchLineEdit.removeAttribute("aria-activedescendant");
+    }
   };
 
   searchMenu.showSearchEntries = function () {
-    m_search.style("display", "block");
-    viewStatusOfSearchEntries = true;
+    if (listbox && listbox.children.length > 0) {
+      listbox.classList.remove("hidden");
+      if (searchLineEdit) {
+        searchLineEdit.setAttribute("aria-expanded", "true");
+      }
+    } else {
+      searchMenu.hideSearchEntries();
+    }
   };
 
   function ValidURL(str) {
@@ -148,103 +342,123 @@ module.exports = function (graph) {
   }
 
   function updateSelectionStatusFlags() {
-    if (searchLineEdit.node().value.length === 0) {
+    if (searchLineEdit.value.length === 0) {
       createSearchEntries();
       return;
     }
     handleAutoCompletion();
   }
 
-  function userNavigation() {
+  function userNavigation(event) {
     if (dictionaryUpdateRequired) {
       updateSearchDictionary();
     }
 
-    const htmlCollection = m_search.node().children;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      searchMenu.hideSearchEntries();
+      collapseMobileSearch();
+      return;
+    }
+
+    if (!listbox) {
+      return;
+    }
+    const htmlCollection = listbox.children;
     const numEntries = htmlCollection.length;
 
     let move = 0;
     let i;
     let selectedEntry = -1;
     for (i = 0; i < numEntries; i++) {
-      const atr = htmlCollection[i].getAttribute("class");
-      if (atr === "dbEntrySelected") {
+      if (
+        htmlCollection[i].getAttribute("aria-selected") === "true" ||
+        htmlCollection[i].classList.contains("selected")
+      ) {
         selectedEntry = i;
       }
     }
-    if (d3.event.keyCode === 13) {
+
+    if (event.key === "Enter") {
+      event.preventDefault();
       if (selectedEntry >= 0 && selectedEntry < numEntries) {
-        // simulate onClick event
-        htmlCollection[selectedEntry].onclick();
+        const elementId =
+          htmlCollection[selectedEntry].getAttribute("elementID");
+        selectSearchResult(parseInt(elementId, 10), event);
         searchMenu.hideSearchEntries();
       } else if (numEntries === 0) {
-        inputText = searchLineEdit.node().value;
-        // check if input text ends or begins with with space
-        // remove first spaces
+        inputText = searchLineEdit.value;
         let clearedText = inputText.replace(/%20/g, " ");
         while (clearedText.beginsWith(" ")) {
           clearedText = clearedText.substr(1, clearedText.length);
         }
-        // remove ending spaces
         while (clearedText.endsWith(" ")) {
           clearedText = clearedText.substr(0, clearedText.length - 1);
         }
         const iri = clearedText.replace(/ /g, "%20");
 
         const valid = ValidURL(iri);
-        // validate url:
         if (valid) {
           const ontM = graph.options().ontologyMenu();
           ontM.setIriText(iri);
-          searchLineEdit.node().value = "";
+          searchLineEdit.value = "";
         } else {
           console.warn(iri + " is not a valid URL!");
         }
       }
+      return;
     }
-    if (d3.event.keyCode === 38) {
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
       move = -1;
       searchMenu.showSearchEntries();
     }
-    if (d3.event.keyCode === 40) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
       move = +1;
       searchMenu.showSearchEntries();
     }
 
     const newSelection = selectedEntry + move;
-    if (newSelection !== selectedEntry) {
-      if (newSelection < 0 && selectedEntry <= 0) {
-        htmlCollection[0].setAttribute("class", "dbEntrySelected");
+    if (newSelection !== selectedEntry && numEntries > 0) {
+      let targetIdx = newSelection;
+      if (targetIdx < 0) {
+        targetIdx = numEntries - 1;
+      } else if (targetIdx >= numEntries) {
+        targetIdx = 0;
       }
 
-      if (newSelection >= numEntries) {
-        htmlCollection[selectedEntry].setAttribute("class", "dbEntrySelected");
+      for (i = 0; i < numEntries; i++) {
+        htmlCollection[i].setAttribute("aria-selected", "false");
+        htmlCollection[i].classList.remove("selected");
       }
-      if (newSelection >= 0 && newSelection < numEntries) {
-        htmlCollection[newSelection].setAttribute("class", "dbEntrySelected");
-        if (selectedEntry >= 0) {
-          htmlCollection[selectedEntry].setAttribute("class", "dbEntry");
-        }
-      }
+
+      const activeOpt = htmlCollection[targetIdx];
+      activeOpt.setAttribute("aria-selected", "true");
+      activeOpt.classList.add("selected");
+      searchLineEdit.setAttribute("aria-activedescendant", activeOpt.id);
     }
   }
 
   searchMenu.getSearchString = function () {
-    return searchLineEdit.node().value;
+    return searchLineEdit.value;
   };
 
   function clearSearchEntries() {
-    const htmlCollection = m_search.node().children;
-    const numEntries = htmlCollection.length;
-    for (let i = 0; i < numEntries; i++) {
-      htmlCollection[0].remove();
+    if (listbox) {
+      const htmlCollection = listbox.children;
+      const numEntries = htmlCollection.length;
+      for (let i = 0; i < numEntries; i++) {
+        htmlCollection[0].remove();
+      }
     }
     results = [];
     resultID = [];
   }
 
   function createSearchEntries() {
-    inputText = searchLineEdit.node().value;
+    inputText = searchLineEdit.value;
     let i;
     const lc_text = inputText.toLowerCase();
     let token;
@@ -252,8 +466,6 @@ module.exports = function (graph) {
     for (i = 0; i < dictionary.length; i++) {
       const tokenElement = dictionary[i];
       if (tokenElement === undefined) {
-        //@WORKAROUND : nodes with undefined labels are skipped
-        //@FIX: these nodes are now not added to the dictionary
         continue;
       }
       token = dictionary[i].toLowerCase();
@@ -264,109 +476,69 @@ module.exports = function (graph) {
     }
   }
 
-  function measureTextWidth(text, textStyle) {
-    // Set a default value
-    if (!textStyle) {
-      textStyle = "text";
+  function highlightQueryMatch(fullText, query) {
+    if (!query) {
+      return fullText;
     }
-    const d = d3
-        .select("body")
-        .append("div")
-        .attr("class", textStyle)
-        .attr("id", "width-test") // tag this element to identify it
-        .attr(
-          "style",
-          "position:absolute; float:left; white-space:nowrap; visibility:hidden;",
-        )
-        .text(text),
-      w = document.getElementById("width-test").offsetWidth;
-    d.remove();
-    return w;
-  }
-
-  function cropText(input) {
-    const maxWidth = 250;
-    const textStyle = "dbEntry";
-    let truncatedText = input;
-    let textWidth;
-    let ratio;
-    let newTruncatedTextLength;
-    while (true) {
-      textWidth = measureTextWidth(truncatedText, textStyle);
-      if (textWidth <= maxWidth) {
-        break;
-      }
-
-      ratio = textWidth / maxWidth;
-      newTruncatedTextLength = Math.floor(truncatedText.length / ratio);
-
-      // detect if nothing changes
-      if (truncatedText.length === newTruncatedTextLength) {
-        break;
-      }
-
-      truncatedText = truncatedText.substring(0, newTruncatedTextLength);
+    const idx = fullText.toLowerCase().indexOf(query.toLowerCase());
+    if (idx === -1) {
+      return fullText;
     }
-
-    if (input.length > truncatedText.length) {
-      return input.substring(0, truncatedText.length - 6);
-    }
-    return input;
+    const before = fullText.substring(0, idx);
+    const match = fullText.substring(idx, idx + query.length);
+    const after = fullText.substring(idx + query.length);
+    return before + '<mark class="search-match">' + match + "</mark>" + after;
   }
 
   function createDropDownElements() {
-    let numEntries;
-    const copyRes = results;
+    if (!listbox) {
+      return;
+    }
+    const copyRes = [];
     let i;
-    let token;
+    for (i = 0; i < results.length; i++) {
+      copyRes.push(results[i]);
+    }
+
     const newResults = [];
     const newResultsIds = [];
 
-    const lc_text = searchLineEdit.node().value.toLowerCase();
-    // set the number of shown results to be maxEntries or less;
-    numEntries = results.length;
-    if (numEntries > maxEntries) {
-      numEntries = maxEntries;
-    }
-
-    for (i = 0; i < numEntries; i++) {
-      // search for the best entry
-      let indexElement = 1000000;
-      let lengthElement = 1000000;
-      let bestElement = -1;
-      for (let j = 0; j < copyRes.length; j++) {
-        token = copyRes[j].toLowerCase();
-        const tIe = token.indexOf(lc_text);
-        const tLe = token.length;
-        if (tIe > -1 && tIe <= indexElement && tLe <= lengthElement) {
-          bestElement = j;
-          indexElement = tIe;
-          lengthElement = tLe;
+    while (copyRes.length > 0) {
+      let minLen = Number.MAX_VALUE;
+      let minIdx = -1;
+      for (i = 0; i < copyRes.length; i++) {
+        if (copyRes[i] !== "") {
+          if (copyRes[i].length < minLen) {
+            minLen = copyRes[i].length;
+            minIdx = i;
+          }
         }
       }
-      newResults.push(copyRes[bestElement]);
-      newResultsIds.push(resultID[bestElement]);
-      copyRes[bestElement] = "";
+      if (minIdx === -1) {
+        break;
+      }
+      newResults.push(copyRes[minIdx]);
+      newResultsIds.push(resultID[minIdx]);
+      copyRes[minIdx] = "";
     }
 
-    // add the results to the entry menu
-    //******************************************
-    numEntries = results.length;
+    let numEntries = newResults.length;
     if (numEntries > maxEntries) {
       numEntries = maxEntries;
     }
 
     for (i = 0; i < numEntries; i++) {
-      //add results to the dropdown menu
+      const optionId = "search-option-" + i;
       const testEntry = document.createElement("li");
+      testEntry.setAttribute("id", optionId);
+      testEntry.setAttribute("role", "option");
+      testEntry.setAttribute("aria-selected", "false");
       testEntry.setAttribute("elementID", newResultsIds[i]);
       testEntry.onclick = handleClick(newResultsIds[i]);
-      testEntry.setAttribute("class", "dbEntry");
+      testEntry.setAttribute("class", "search-option");
 
       const entries = mergedIdList[newResultsIds[i]];
       const eLen = entries.length;
-
-      let croppedText = cropText(newResults[i]);
 
       const el0 = entries[0];
       let allSame = true;
@@ -385,68 +557,70 @@ module.exports = function (graph) {
           allSame = false;
         }
       }
-      if (croppedText !== newResults[i]) {
-        // append ...(#numElements) if needed
-        if (eLen > 1 && allSame === false) {
-          if (eLen !== visible) {
-            croppedText += "... (" + visible + "/" + eLen + ")";
-          }
-        } else {
-          croppedText += "...";
-        }
-        testEntry.title = newResults[i];
-      } else {
-        if (eLen > 1 && allSame === false) {
-          if (eLen !== visible) {
-            croppedText += " (" + visible + "/" + eLen + ")";
-          } else {
-            croppedText += " (" + eLen + ")";
-          }
-        }
-      }
 
-      const searchEntryNode = d3.select(testEntry);
-      if (eLen === 1 || allSame === true) {
-        if (nodeMap[entries[0]] === undefined) {
-          searchEntryNode.style("color", "#979797");
-          testEntry.title = newResults[i] + "\nElement is filtered out.";
-          testEntry.onclick = function () {};
-          d3.select(testEntry).style("cursor", "default");
-        }
-      } else {
-        if (visible < 1) {
-          searchEntryNode.style("color", "#979797");
-          testEntry.onclick = function () {};
-          testEntry.title = newResults[i] + "\nAll elements are filtered out.";
-          d3.select(testEntry).style("cursor", "default");
-        } else {
-          searchEntryNode.style("color", "");
-        }
-        if (visible < eLen && visible > 1) {
-          testEntry.title =
-            newResults[i] +
-            "\n" +
+      const rawTitle = newResults[i];
+      const queryStr = searchLineEdit.value;
+      const matchHtml = highlightQueryMatch(rawTitle, queryStr);
+      let badgeHtml = "";
+
+      if (eLen > 1 && allSame === false) {
+        if (eLen !== visible) {
+          badgeHtml =
+            '<span class="search-count-badge">' +
             visible +
             "/" +
             eLen +
-            " elements are visible.";
+            " visible</span>";
+        } else {
+          badgeHtml = '<span class="search-count-badge">' + eLen + "</span>";
         }
       }
-      searchEntryNode.node().innerHTML = croppedText;
-      m_search.node().appendChild(testEntry);
+
+      if (eLen === 1 || allSame === true) {
+        if (nodeMap[entries[0]] === undefined) {
+          testEntry.classList.add("search-entry-disabled");
+          testEntry.title = rawTitle + "\nElement is filtered out.";
+          testEntry.onclick = function () {};
+        }
+      } else {
+        if (visible < 1) {
+          testEntry.classList.add("search-entry-disabled");
+          testEntry.onclick = function () {};
+          testEntry.title = rawTitle + "\nAll elements are filtered out.";
+        } else {
+          testEntry.classList.remove("search-entry-disabled");
+        }
+        if (visible < eLen && visible > 1) {
+          testEntry.title =
+            rawTitle + "\n" + visible + "/" + eLen + " elements are visible.";
+        }
+      }
+
+      testEntry.innerHTML = "<span>" + matchHtml + "</span>" + badgeHtml;
+      listbox.appendChild(testEntry);
     }
   }
 
   function handleAutoCompletion() {
-    /**  pre condition: autoCompletion has already a valid text**/
     clearSearchEntries();
     createSearchEntries();
     createDropDownElements();
   }
 
+  function updateClearButtonVisibility() {
+    const clearBtn = document.getElementById("search-clear-btn");
+    if (clearBtn) {
+      const hasValue = searchLineEdit && searchLineEdit.value.length > 0;
+      if (!hasValue) {
+        clearBtn.classList.add("hidden");
+      } else {
+        clearBtn.classList.remove("hidden");
+      }
+    }
+  }
+
   function userInput() {
-    c_locate.classed("highlighted", false);
-    c_locate.node().title = "Nothing to locate";
+    setLocateButtonState(false);
 
     if (dictionaryUpdateRequired) {
       updateSearchDictionary();
@@ -457,7 +631,8 @@ module.exports = function (graph) {
       console.warn("dictionary is empty");
       return;
     }
-    inputText = searchLineEdit.node().value;
+    inputText = searchLineEdit.value;
+    updateClearButtonVisibility();
 
     clearSearchEntries();
     if (inputText.length !== 0) {
@@ -469,32 +644,66 @@ module.exports = function (graph) {
   }
 
   function handleClick(elementId) {
-    return function () {
-      const id = elementId;
-      const correspondingIds = mergedIdList[id];
-
-      // autoComplete the text for the user
-      const autoComStr = entryNames[id];
-      searchLineEdit.node().value = autoComStr;
-
-      graph.resetSearchHighlight();
-      graph.highLightNodes(correspondingIds);
-      c_locate.node().title = "Locate search term";
-      if (autoComStr !== inputText) {
-        handleAutoCompletion();
-      }
-      searchMenu.hideSearchEntries();
+    return function (event) {
+      selectSearchResult(elementId, event);
     };
   }
 
+  function selectSearchResult(elementId, event) {
+    if (event && event.stopPropagation) {
+      event.stopPropagation();
+    }
+    const id = parseInt(elementId, 10);
+    const correspondingIds = mergedIdList[id];
+    const autoComStr = entryNames[id];
+    if (searchLineEdit) {
+      searchLineEdit.value = autoComStr;
+    }
+    updateClearButtonVisibility();
+
+    if (correspondingIds && graph) {
+      graph.resetSearchHighlight();
+      graph.highLightNodes(correspondingIds);
+    } else {
+      setLocateButtonState(true);
+    }
+    if (autoComStr !== inputText) {
+      handleAutoCompletion();
+    }
+    searchMenu.hideSearchEntries();
+  }
+
   searchMenu.clearText = function () {
-    searchLineEdit.node().value = "";
-    c_locate.classed("highlighted", false);
-    c_locate.node().title = "Nothing to locate";
-    const htmlCollection = m_search.node().children;
-    const numEntries = htmlCollection.length;
-    for (let i = 0; i < numEntries; i++) {
-      htmlCollection[0].remove();
+    if (searchLineEdit) {
+      searchLineEdit.value = "";
+    }
+    if (graph && graph.resetSearchHighlight) {
+      graph.resetSearchHighlight();
+    }
+    setLocateButtonState(false);
+    updateClearButtonVisibility();
+    if (listbox) {
+      const htmlCollection = listbox.children;
+      const numEntries = htmlCollection.length;
+      for (let i = 0; i < numEntries; i++) {
+        htmlCollection[0].remove();
+      }
+    }
+  };
+
+  searchMenu.updateLocateButtonVisibility = function (hasVisibleNodes) {
+    setLocateButtonState(hasVisibleNodes);
+  };
+
+  searchMenu.setMenuMode = function (enabled) {
+    menuEnabled = Boolean(enabled);
+    document.getElementById("search-input-text").disabled = !menuEnabled;
+    document.getElementById("mobile-search-toggle-btn").disabled = !menuEnabled;
+    document.getElementById("search-clear-btn").disabled = !menuEnabled;
+    setLocateButtonState(locateAvailable);
+    if (!menuEnabled) {
+      searchMenu.hideSearchEntries();
+      collapseMobileSearch();
     }
   };
 

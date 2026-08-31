@@ -1,5 +1,14 @@
 # owlapi-js migration
 
+> **Archive notice (31 August 2026):** This directory is a historical
+> WebVOWL migration and reconstruction record. It no longer authorizes active
+> `owlapi` package work. Active package authority is the
+> [standalone `owlapi` implementation plan](https://github.com/Hadden-Industries/owlapi/blob/main/docs/implementation-plan.md),
+> while active WebVOWL pre-registry consumer work is governed by the
+> [focused Phase 19D1 consumer plan](../plans/owlapi-pre-registry-consumer-cutover.md).
+> Historical commits, paths, review records, lessons, schemas, and digest-bound
+> evidence below remain preserved in their original temporal context.
+
 This directory contains the executable governance and delivery records for the
 `owlapi-js` migration described by `docs/owlapi-js/implementation-plan.md`.
 `owlapi-js` remains the historical WebVOWL staging/path name; the final public

@@ -6,19 +6,161 @@
  */
 module.exports = function (graph) {
   const navigationMenu = {};
-  const scrollContainer = d3.select("#menuElementContainer").node();
-  const menuContainer = d3.select("#menuContainer").node();
-  const leftButton = d3.select("#scrollLeftButton");
-  const rightButton = d3.select("#scrollRightButton");
-  let scrolLeftValue;
-  let scrollMax = 0;
+  const scrollContainer = document.querySelector("#menuElementContainer");
+  const menuContainer = document.querySelector("#menuContainer");
+  const leftButton = document.querySelector("#scrollLeftButton");
+  const rightButton = document.querySelector("#scrollRightButton");
   let currentlyVisibleMenu;
   let currentlyHoveredEntry;
-  let touchedElement = false;
   let t_scrollLeft;
   let t_scrollRight;
   let c_select = [];
   let m_select = [];
+
+  /**
+   * Installed iOS apps need a narrowly scoped exception to declarative
+   * popover invocation. WebKit bug 286146 (a duplicate of 285811) documents
+   * an infinite focus-navigation loop when a form control is focused inside
+   * some invoker-owned popovers:
+   * https://bugs.webkit.org/show_bug.cgi?id=286146
+   *
+   * A button with `popovertarget` becomes the popover's trigger. That trigger
+   * owns a separate focus-navigation scope while the popover is showing. The
+   * workaround below opens the same native popover without a trigger, avoiding
+   * the faulty scope while retaining top-layer rendering and light-dismiss.
+   * These variables retain the opener information that the browser would
+   * otherwise own so ARIA state and safe focus restoration can be maintained.
+   */
+  const standalonePopoverOpeners = new Map();
+  let activeStandalonePopoverOpener;
+
+  function needsStandalonePopoverFocusWorkaround() {
+    try {
+      // `display-mode` limits the workaround to installed/home-screen apps;
+      // the input-capability checks exclude desktop Safari and hybrid devices
+      // whose primary interaction still provides hover and a fine pointer.
+      return window.matchMedia(
+        "(display-mode: standalone) and (hover: none) and (pointer: coarse)",
+      ).matches;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Restore only the focus behavior lost when `popovertarget` is removed.
+   *
+   * A close button, Escape, or swipe dismissal can leave focus inside the
+   * closing popover (or on `body` after WebKit clears it), in which case the
+   * opener is the appropriate destination. Light-dismiss can instead be
+   * caused by activating another control. The queued `toggle` event may run
+   * after that control receives focus, so unconditional restoration would
+   * steal focus and make the newly activated control appear unresponsive.
+   */
+  function restoreStandalonePopoverFocus(popoverNode, openerNode) {
+    if (!openerNode || activeStandalonePopoverOpener !== openerNode) {
+      return;
+    }
+
+    const activeElement = document.activeElement;
+    const focusStayedInPopover =
+      activeElement &&
+      typeof popoverNode.contains === "function" &&
+      popoverNode.contains(activeElement);
+    if (activeElement !== document.body && !focusStayedInPopover) {
+      return;
+    }
+
+    try {
+      openerNode.focus({ preventScroll: true });
+    } catch {
+      openerNode.focus();
+    }
+  }
+
+  function setupStandalonePopoverFocusWorkaround() {
+    if (!needsStandalonePopoverFocusWorkaround()) {
+      return;
+    }
+
+    document
+      .querySelectorAll(".navButton[popovertarget]")
+      .forEach(function (openerNode) {
+        const popoverId = openerNode.getAttribute("popovertarget");
+        const popoverNode = document.getElementById(popoverId);
+        if (!popoverId || !popoverNode) {
+          return;
+        }
+
+        // Removing the attribute before activation prevents the browser from
+        // installing `openerNode` as the native popover trigger. Do not replace
+        // the zero-argument `showPopover()` call below with
+        // `showPopover({ source: openerNode })` or an equivalent invoker API:
+        // supplying a source would recreate the focus scope this code avoids.
+        // Because declarative accessibility state is also removed, the toggle
+        // listener below synchronizes `aria-expanded` explicitly.
+        openerNode.removeAttribute("popovertarget");
+        openerNode.setAttribute("aria-controls", popoverId);
+        openerNode.setAttribute("aria-expanded", "false");
+        openerNode.addEventListener("click", function () {
+          try {
+            if (popoverNode.matches(":popover-open")) {
+              popoverNode.hidePopover();
+              return;
+            }
+
+            navigationMenu.hideAllMenus();
+            standalonePopoverOpeners.set(popoverNode, openerNode);
+            activeStandalonePopoverOpener = openerNode;
+            popoverNode.showPopover();
+          } catch {
+            // A light-dismiss or competing opener can change top-layer state
+            // between click dispatch and the Popover API call. Leave the
+            // button collapsed and discard stale restoration state if so.
+            standalonePopoverOpeners.delete(popoverNode);
+            if (activeStandalonePopoverOpener === openerNode) {
+              activeStandalonePopoverOpener = undefined;
+            }
+          }
+        });
+      });
+  }
+
+  function setPopoverInlineStart(node, value) {
+    if (!node || !node.style || typeof node.style.setProperty !== "function") {
+      return;
+    }
+    node.style.setProperty("--popover-inline-start", value);
+  }
+
+  function clearPopoverInlineStart(node) {
+    if (
+      !node ||
+      !node.style ||
+      typeof node.style.removeProperty !== "function"
+    ) {
+      return;
+    }
+    node.style.removeProperty("--popover-inline-start");
+  }
+
+  function setSheetDragY(node, value) {
+    if (!node || !node.style || typeof node.style.setProperty !== "function") {
+      return;
+    }
+    node.style.setProperty("--sheet-drag-y", value);
+  }
+
+  function clearSheetDragY(node) {
+    if (
+      !node ||
+      !node.style ||
+      typeof node.style.removeProperty !== "function"
+    ) {
+      return;
+    }
+    node.style.removeProperty("--sheet-drag-y");
+  }
 
   function clearAllTimers() {
     cancelAnimationFrame(t_scrollLeft);
@@ -26,10 +168,10 @@ module.exports = function (graph) {
   }
 
   function timed_scrollRight() {
-    scrolLeftValue += 5;
-    scrollContainer.scrollLeft = scrolLeftValue;
+    const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+    scrollContainer.scrollLeft += 5;
     navigationMenu.updateScrollButtonVisibility();
-    if (scrolLeftValue >= scrollMax) {
+    if (scrollContainer.scrollLeft >= maxScroll) {
       clearAllTimers();
       return;
     }
@@ -37,14 +179,13 @@ module.exports = function (graph) {
   }
 
   function timed_scrollLeft() {
-    scrolLeftValue -= 5;
-    scrollContainer.scrollLeft = scrolLeftValue;
+    scrollContainer.scrollLeft -= 5;
     navigationMenu.updateScrollButtonVisibility();
-    if (scrolLeftValue <= 0) {
+    if (scrollContainer.scrollLeft <= 0) {
       clearAllTimers();
       return;
     }
-    t_scrollRight = requestAnimationFrame(timed_scrollLeft);
+    t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
   }
 
   // collect all menu entries and stuff;
@@ -77,17 +218,12 @@ module.exports = function (graph) {
       } else {
         m_select[i] = undefined;
       }
-      // create custom behavior for click, touch, and hover
-      d3.select("#" + c_select[i]).on("mouseover", menuElementOnHovered);
-      d3.select("#" + c_select[i]).on("mouseout", menuElementOutHovered);
-
-      d3.select("#" + c_select[i]).on("click", menuElementClicked);
-      d3.select("#" + c_select[i]).on("touchstart", menuElementTouched);
+      // Popover API buttons handle toggling natively via popovertarget attribute
     }
 
     // connect to mouseWheel
-    d3.select("#menuElementContainer").on("wheel", function () {
-      const wheelEvent = d3.event;
+    scrollContainer.addEventListener("wheel", function (event) {
+      const wheelEvent = event;
       let offset;
       if (wheelEvent.deltaY < 0) {
         offset = 20;
@@ -100,169 +236,393 @@ module.exports = function (graph) {
       navigationMenu.updateScrollButtonVisibility();
     });
 
-    // connect scrollIndicator Buttons;
-    d3.select("#scrollRightButton")
-      .on("mousedown", function () {
-        scrolLeftValue = scrollContainer.scrollLeft;
-        navigationMenu.hideAllMenus();
-        t_scrollRight = requestAnimationFrame(timed_scrollRight);
-      })
-      .on("touchstart", function () {
-        scrolLeftValue = scrollContainer.scrollLeft;
-        navigationMenu.hideAllMenus();
-        t_scrollRight = requestAnimationFrame(timed_scrollRight);
-      })
-      .on("mouseup", clearAllTimers)
-      .on("touchend", clearAllTimers)
-      .on("touchcancel", clearAllTimers);
+    // bind global release listeners
+    window.addEventListener("mouseup", clearAllTimers);
+    window.addEventListener("touchend", clearAllTimers);
+    window.addEventListener("resize", function () {
+      navigationMenu.updateScrollButtonVisibility();
+      updateMenuPosition();
+    });
 
-    d3.select("#scrollLeftButton")
-      .on("mousedown", function () {
-        scrolLeftValue = scrollContainer.scrollLeft;
+    // connect scrollIndicator Buttons;
+    rightButton.addEventListener("mousedown", function () {
+      navigationMenu.hideAllMenus();
+      t_scrollRight = requestAnimationFrame(timed_scrollRight);
+    });
+    rightButton.addEventListener(
+      "touchstart",
+      function (event) {
+        if (event && event.cancelable) {
+          event.preventDefault();
+        }
+        navigationMenu.hideAllMenus();
+        t_scrollRight = requestAnimationFrame(timed_scrollRight);
+      },
+      { passive: false },
+    );
+    rightButton.addEventListener("contextmenu", function (event) {
+      if (event) {
+        event.preventDefault();
+      }
+    });
+    rightButton.addEventListener("click", function () {
+      scrollContainer.scrollLeft += 100;
+      navigationMenu.updateScrollButtonVisibility();
+    });
+    rightButton.addEventListener("mouseup", clearAllTimers);
+    rightButton.addEventListener("touchend", clearAllTimers);
+    rightButton.addEventListener("touchcancel", clearAllTimers);
+
+    leftButton.addEventListener("mousedown", function () {
+      navigationMenu.hideAllMenus();
+      t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
+    });
+    leftButton.addEventListener(
+      "touchstart",
+      function (event) {
+        if (event && event.cancelable) {
+          event.preventDefault();
+        }
         navigationMenu.hideAllMenus();
         t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
-      })
-      .on("touchstart", function () {
-        scrolLeftValue = scrollContainer.scrollLeft;
-        navigationMenu.hideAllMenus();
-        t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
-      })
-      .on("mouseup", clearAllTimers)
-      .on("touchend", clearAllTimers)
-      .on("touchcancel", clearAllTimers);
+      },
+      { passive: false },
+    );
+    leftButton.addEventListener("contextmenu", function (event) {
+      if (event) {
+        event.preventDefault();
+      }
+    });
+    leftButton.addEventListener("click", function () {
+      scrollContainer.scrollLeft -= 100;
+      navigationMenu.updateScrollButtonVisibility();
+    });
+    leftButton.addEventListener("mouseup", clearAllTimers);
+    leftButton.addEventListener("touchend", clearAllTimers);
+    leftButton.addEventListener("touchcancel", clearAllTimers);
+
+    document.querySelectorAll(".navButton").forEach(function (btn) {
+      btn.addEventListener("contextmenu", function (event) {
+        if (event) {
+          event.preventDefault();
+        }
+      });
+    });
 
     // connect the scroll functionality;
-    d3.select("#menuElementContainer").on("scroll", function () {
+    scrollContainer.addEventListener("scroll", function () {
       navigationMenu.updateScrollButtonVisibility();
       navigationMenu.hideAllMenus();
     });
   }
 
-  function menuElementOnHovered() {
-    navigationMenu.hideAllMenus();
-    if (touchedElement) {
+  function updateMenuPosition(controllerID) {
+    if (controllerID) {
+      currentlyHoveredEntry = document.querySelector("#" + controllerID);
+    }
+    if (!currentlyVisibleMenu) {
       return;
     }
-    showSingleMenu(this.id);
-  }
 
-  function menuElementOutHovered() {
-    hoveroutedControMenu(this.id);
-  }
+    const menuNode = currentlyVisibleMenu;
 
-  function menuElementClicked() {
-    const m_element = m_select[c_select.indexOf(this.id)];
-    if (m_element) {
-      const menuElement = d3.select("#" + m_element);
-      if (menuElement) {
-        if (menuElement.style("display") === "block") {
-          menuElement.style("display", "none"); // hide it
-        } else {
-          showSingleMenu(this.id);
+    // On mobile screen widths, clear desktop positioning so bottom-sheet rules govern.
+    if (window.innerWidth <= 768) {
+      clearPopoverInlineStart(menuNode);
+      return;
+    }
+
+    const targetNode = currentlyHoveredEntry;
+
+    if (targetNode && typeof targetNode.getBoundingClientRect === "function") {
+      const buttonRect = targetNode.getBoundingClientRect();
+      let finalOffset = buttonRect.left;
+
+      let maxRightBoundary = window.innerWidth - 16;
+      const detailArea = document.querySelector("#detailsArea");
+      if (detailArea && !detailArea.classList.contains("hidden")) {
+        const sidebarLeft = detailArea.getBoundingClientRect().left;
+        if (sidebarLeft > 0) {
+          maxRightBoundary = Math.min(maxRightBoundary, sidebarLeft - 16);
         }
       }
-    }
-  }
 
-  function menuElementTouched() {
-    // it sets a flag that we have touched it,
-    // since d3. propagates the event for touch as hover and then click, we block the hover event
-    touchedElement = true;
-  }
-
-  function hoveroutedControMenu(controllerID) {
-    currentlyHoveredEntry = d3.select("#" + controllerID);
-    if (controllerID !== "c_search") {
-      d3.select("#" + controllerID)
-        .select("path")
-        .style("stroke-width", "0");
-      d3.select("#" + controllerID)
-        .select("path")
-        .style("fill", "#fff");
-    }
-  }
-
-  function showSingleMenu(controllerID) {
-    currentlyHoveredEntry = d3.select("#" + controllerID).node();
-    // get the corresponding menu element for this controller
-    const m_element = m_select[c_select.indexOf(controllerID)];
-    if (m_element) {
-      if (controllerID !== "c_search") {
-        d3.select("#" + controllerID)
-          .select("path")
-          .style("stroke-width", "0");
-        d3.select("#" + controllerID)
-          .select("path")
-          .style("fill", "#bdc3c7");
+      const elementWidth = currentlyVisibleMenu.getBoundingClientRect().width;
+      if (finalOffset + elementWidth > maxRightBoundary) {
+        finalOffset = maxRightBoundary - elementWidth;
       }
-      // show it if we have a menu
-      currentlyVisibleMenu = d3.select("#" + m_element);
-      currentlyVisibleMenu.style("display", "block");
-      if (m_element === "m_export") {
-        graph.options().exportMenu().exportAsUrl();
-      }
-      updateMenuPosition();
+
+      finalOffset = Math.max(16, finalOffset);
+      setPopoverInlineStart(menuNode, finalOffset + "px");
     }
   }
 
-  function updateMenuPosition() {
-    if (currentlyHoveredEntry) {
-      const leftOffset = currentlyHoveredEntry.offsetLeft;
-      const scrollOffset = scrollContainer.scrollLeft;
-      const totalOffset = leftOffset - scrollOffset;
-      let finalOffset = Math.max(0, totalOffset);
-      const fullContainer_width = scrollContainer.getBoundingClientRect().width;
-      const elementWidth = currentlyVisibleMenu
-        .node()
-        .getBoundingClientRect().width;
-      // make priority > first check if we are right
-      if (finalOffset + elementWidth > fullContainer_width) {
-        finalOffset = fullContainer_width - elementWidth;
-      }
-      // fix priority;
-      finalOffset = Math.max(0, finalOffset);
-      currentlyVisibleMenu.style("left", finalOffset + "px");
-
-      // // check if outside the viewport
-      // var menuWidth=currentlyHoveredEntry.getBoundingClientRect().width;
-      // var bt_width=36;
-      // if (totalOffset+menuWidth<bt_width || totalOffset+bt_width>fullContainer_width){
-      //     navigationMenu.hideAllMenus();
-      //     currentlyHoveredEntry=undefined;
-      // }
-    }
-  }
+  navigationMenu.updateMenuPosition = updateMenuPosition;
 
   navigationMenu.hideAllMenus = function () {
-    d3.selectAll(".toolTipMenu").style("display", "none"); // hiding all menus
+    document.querySelectorAll(".modern-popover").forEach(function (popover) {
+      try {
+        if (popover.matches(":popover-open")) {
+          popover.hidePopover();
+        }
+      } catch {
+        /* ignore */
+      }
+    });
   };
 
   navigationMenu.updateScrollButtonVisibility = function () {
-    scrollMax = scrollContainer.scrollWidth - scrollContainer.clientWidth - 2;
-    if (scrollContainer.scrollLeft === 0) {
-      leftButton.classed("hidden", true);
-    } else {
-      leftButton.classed("hidden", false);
+    if (!scrollContainer) {
+      return;
+    }
+    const scrollLeft = scrollContainer.scrollLeft;
+    const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+
+    if (maxScroll <= 2) {
+      leftButton.classList.add("hidden");
+      rightButton.classList.add("hidden");
+      return;
     }
 
-    if (scrollContainer.scrollLeft > scrollMax) {
-      rightButton.classed("hidden", true);
-    } else {
-      rightButton.classed("hidden", false);
-    }
+    leftButton.classList.toggle("hidden", scrollLeft <= 2);
+    rightButton.classList.toggle("hidden", scrollLeft >= maxScroll - 2);
   };
 
   navigationMenu.setup = function () {
     setupControlsAndMenus();
-    // make sure that the menu elements follow their controller and also their restrictions
-    // some hovering behavior -- lets the menu disappear when hovered in graph or sidebar;
-    d3.select("#graph").on("mouseover", function () {
-      navigationMenu.hideAllMenus();
+    setupStandalonePopoverFocusWorkaround();
+    // Allow popover light-dismiss natively on click; avoid closing on hover across graph gap
+    const graphElement = document.querySelector("#graph");
+    if (graphElement) {
+      graphElement.addEventListener(
+        "touchstart",
+        function () {
+          navigationMenu.hideAllMenus();
+        },
+        { passive: true },
+      );
+    }
+    const generalDetails = document.querySelector("#generalDetails");
+    if (generalDetails) {
+      generalDetails.addEventListener(
+        "touchstart",
+        function () {
+          navigationMenu.hideAllMenus();
+        },
+        { passive: true },
+      );
+    }
+
+    // Sync active-menu-item class, positioning, and export state when popovers toggle
+    document.querySelectorAll(".modern-popover").forEach(function (popover) {
+      popover.addEventListener("toggle", function (event) {
+        const menuId = this.id;
+        const controllerIdx = m_select.indexOf(menuId);
+        const controllerId =
+          controllerIdx > -1 ? c_select[controllerIdx] : null;
+
+        const isOpen =
+          event && event.newState
+            ? event.newState === "open"
+            : this.matches(":popover-open");
+        const standaloneOpener = standalonePopoverOpeners.get(this);
+        if (standaloneOpener) {
+          // Native `popovertarget` normally exposes this relationship. The
+          // standalone workaround removed that attribute, so mirror the real
+          // toggle state rather than predicting it in the click handler.
+          standaloneOpener.setAttribute(
+            "aria-expanded",
+            isOpen ? "true" : "false",
+          );
+        }
+
+        // Reset drag classes and runtime positioning data when state changes.
+        this.classList.remove(
+          "dragging",
+          "has-dragged",
+          "snap-back",
+          "sheet-dismissing",
+        );
+        clearSheetDragY(this);
+
+        if (isOpen) {
+          if (controllerId && controllerId !== "c_search") {
+            const ctrlEl = document.querySelector("#" + controllerId);
+            if (ctrlEl) {
+              ctrlEl.classList.add("active-menu-item");
+            }
+          }
+          currentlyVisibleMenu = document.querySelector("#" + menuId);
+          if (controllerId) {
+            currentlyHoveredEntry = document.querySelector("#" + controllerId);
+          }
+          if (menuId === "m_export") {
+            graph.options().exportMenu().exportAsUrl();
+          }
+          updateMenuPosition(controllerId);
+        } else {
+          if (controllerId && controllerId !== "c_search") {
+            const ctrlEl = document.querySelector("#" + controllerId);
+            if (ctrlEl) {
+              ctrlEl.classList.remove("active-menu-item");
+            }
+          }
+          if (standaloneOpener) {
+            restoreStandalonePopoverFocus(this, standaloneOpener);
+            standalonePopoverOpeners.delete(this);
+            if (activeStandalonePopoverOpener === standaloneOpener) {
+              activeStandalonePopoverOpener = undefined;
+            }
+          }
+        }
+      });
     });
-    d3.select("#generalDetails").on("mouseover", function () {
-      navigationMenu.hideAllMenus();
+
+    // Contain user interactions inside popovers so they don't propagate to background graph canvas
+    const popoverElements =
+      typeof document !== "undefined" &&
+      typeof document.querySelectorAll === "function"
+        ? document.querySelectorAll(".modern-popover")
+        : [];
+    const interactionEvents = [
+      "click",
+      "mousedown",
+      "mouseup",
+      "pointerdown",
+      "pointerup",
+      "touchstart",
+      "touchend",
+      "wheel",
+    ];
+    popoverElements.forEach(function (popover) {
+      if (!popover || typeof popover.addEventListener !== "function") {
+        return;
+      }
+      interactionEvents.forEach(function (eventType) {
+        popover.addEventListener(eventType, function (event) {
+          if (event && typeof event.stopPropagation === "function") {
+            event.stopPropagation();
+          }
+        });
+      });
     });
+
+    setupMobileSheetDragDismiss();
   };
+
+  function setupMobileSheetDragDismiss() {
+    document
+      .querySelectorAll(".modern-popover")
+      .forEach(function (popoverNode) {
+        if (!popoverNode.querySelectorAll) {
+          return;
+        }
+        const dragAreaNodes = popoverNode.querySelectorAll(
+          ".sheet-handle, .popover-header",
+        );
+
+        let startY = 0;
+        let startTime = 0;
+        let currentDy = 0;
+        let isDragging = false;
+
+        function onTouchStart(event) {
+          if (window.innerWidth > 768) {
+            return;
+          }
+          // Don't start drag gesture if tapping close button
+          if (
+            event.target &&
+            typeof event.target.closest === "function" &&
+            event.target.closest(".popover-close-btn")
+          ) {
+            return;
+          }
+          if (event.touches && event.touches.length === 1) {
+            startY = event.touches[0].clientY;
+            startTime = Date.now();
+            currentDy = 0;
+            isDragging = true;
+            popoverNode.classList.add("dragging", "has-dragged");
+            popoverNode.classList.remove("snap-back", "sheet-dismissing");
+          }
+        }
+
+        function onTouchMove(event) {
+          if (!isDragging || window.innerWidth > 768) {
+            return;
+          }
+          if (event.touches && event.touches.length === 1) {
+            const currentY = event.touches[0].clientY;
+            let dy = currentY - startY;
+
+            // Clamp upward drag so full-width bottom sheet cannot be torn away from bottom of screen
+            if (dy < 0) {
+              dy = 0;
+            }
+
+            currentDy = dy;
+            setSheetDragY(popoverNode, dy + "px");
+
+            if (event.cancelable) {
+              event.preventDefault();
+            }
+          }
+        }
+
+        function onTouchEnd() {
+          if (!isDragging) {
+            return;
+          }
+          isDragging = false;
+          const duration = Date.now() - startTime;
+          const velocity = currentDy / Math.max(1, duration);
+
+          popoverNode.classList.remove("dragging");
+
+          const dismissThreshold = 80;
+          const velocityThreshold = 0.3;
+
+          if (
+            currentDy >= dismissThreshold ||
+            (currentDy > 20 && velocity > velocityThreshold)
+          ) {
+            // Slide off-screen down and hide popover
+            popoverNode.classList.add("sheet-dismissing");
+            setTimeout(function () {
+              try {
+                if (popoverNode.matches(":popover-open")) {
+                  popoverNode.hidePopover();
+                }
+              } catch {
+                /* ignore */
+              }
+              clearSheetDragY(popoverNode);
+              popoverNode.classList.remove("sheet-dismissing");
+            }, 200);
+          } else {
+            // Snap back into place
+            popoverNode.classList.add("snap-back");
+            setSheetDragY(popoverNode, "0px");
+            setTimeout(function () {
+              clearSheetDragY(popoverNode);
+              popoverNode.classList.remove("snap-back");
+            }, 250);
+          }
+        }
+
+        dragAreaNodes.forEach(function (node) {
+          if (node && typeof node.addEventListener === "function") {
+            node.addEventListener("touchstart", onTouchStart, {
+              passive: true,
+            });
+            node.addEventListener("touchmove", onTouchMove, { passive: false });
+            node.addEventListener("touchend", onTouchEnd, { passive: true });
+            node.addEventListener("touchcancel", onTouchEnd, { passive: true });
+          }
+        });
+      });
+  }
 
   return navigationMenu;
 };

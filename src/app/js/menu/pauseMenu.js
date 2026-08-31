@@ -12,53 +12,50 @@ module.exports = function (graph) {
    * Adds the pause button to the website.
    */
   pauseMenu.setup = function () {
-    const menuEntry = d3.select("#pauseOption");
-    menuEntry.on("mouseover", function () {
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
+    pauseButton = document.getElementById("pause-button");
+    pauseButton.datum = { paused: false };
+    pauseButton.addEventListener("click", function () {
+      const d = pauseButton.datum;
+      graph.paused(!d.paused);
+      d.paused = !d.paused;
+      updatePauseButton();
     });
-    pauseButton = d3
-      .select("#pause-button")
-      .datum({ paused: false })
-      .on("click", function (d) {
-        graph.paused(!d.paused);
-        d.paused = !d.paused;
-        updatePauseButton();
-        pauseButton.classed("highlighted", d.paused);
-      });
     // Set these properties the first time manually
     updatePauseButton();
   };
 
   pauseMenu.setPauseValue = function (value) {
-    pauseButton.datum().paused = value;
+    pauseButton.datum.paused = value;
     graph.paused(value);
-    pauseButton.classed("highlighted", value);
     updatePauseButton();
   };
 
   function updatePauseButton() {
-    updatePauseButtonClass();
-    updatePauseButtonText();
-  }
-
-  function updatePauseButtonClass() {
-    pauseButton.classed("paused", function (d) {
-      return d.paused;
-    });
-  }
-
-  function updatePauseButtonText() {
-    if (pauseButton.datum().paused) {
-      pauseButton.text("Resume");
+    const isPaused = pauseButton.datum.paused;
+    if (isPaused) {
+      pauseButton.classList.add("paused");
     } else {
-      pauseButton.text("Pause");
+      pauseButton.classList.remove("paused");
     }
+    pauseButton.setAttribute("aria-pressed", isPaused ? "true" : "false");
+    pauseButton.setAttribute(
+      "title",
+      isPaused
+        ? "Resume graph physics simulation"
+        : "Pause graph physics simulation",
+    );
+    pauseButton.querySelector(".menuElementLabel").textContent = isPaused
+      ? "Resume"
+      : "Pause";
   }
 
   pauseMenu.reset = function () {
     // resuming
     pauseMenu.setPauseValue(false);
+  };
+
+  pauseMenu.setMenuMode = function (enabled) {
+    document.getElementById("pause-button").disabled = !enabled;
   };
 
   return pauseMenu;

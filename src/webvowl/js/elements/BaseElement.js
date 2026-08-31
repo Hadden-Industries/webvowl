@@ -3,7 +3,6 @@
  */
 module.exports = (function () {
   const Base = function (graph) {
-    const languageTools = require("../util/languageTools")();
     // Basic attributes
     let equivalents = [],
       id,
@@ -26,6 +25,7 @@ module.exports = (function () {
       styleClass,
       visible = true,
       backupLabel;
+    const languageTools = require("../../../shared/js/util/languageTools")();
 
     this.backupLabel = function (label) {
       if (!arguments.length) {
@@ -208,6 +208,30 @@ module.exports = (function () {
     this.labelForCurrentLanguage = function () {
       const preferredLanguage =
         graph && graph.language ? graph.language() : null;
+
+      const ann = annotations;
+      if (ann && ann.prefLabel) {
+        const prefLabels = ann.prefLabel;
+        if (preferredLanguage) {
+          for (let i = 0; i < prefLabels.length; i++) {
+            if (prefLabels[i].language === preferredLanguage) {
+              return prefLabels[i].value;
+            }
+          }
+        }
+        for (let i = 0; i < prefLabels.length; i++) {
+          if (
+            prefLabels[i].language === "undefined" ||
+            !prefLabels[i].language
+          ) {
+            return prefLabels[i].value;
+          }
+        }
+        if (prefLabels.length > 0) {
+          return prefLabels[0].value;
+        }
+      }
+
       return languageTools.textInLanguage(this.label(), preferredLanguage);
     };
   };

@@ -46,20 +46,6 @@ describe("default test run scope", () => {
 
     expect(differentialSuites.sort()).toEqual([
       "src/owl2vowl/test/vowlBuilder.differential.test.js",
-      "src/owlapi-js/parser/dl/dlSyntax.differential.test.js",
-      "src/owlapi-js/parser/functional/functionalSyntax.differential.test.js",
-      "src/owlapi-js/parser/jsonld/jsonLd.differential.test.js",
-      "src/owlapi-js/parser/krss1/krss1Syntax.differential.test.js",
-      "src/owlapi-js/parser/krss2/krss2Syntax.differential.test.js",
-      "src/owlapi-js/parser/manchester/manchesterSyntax.differential.test.js",
-      "src/owlapi-js/parser/nquads/nQuads.differential.test.js",
-      "src/owlapi-js/parser/ntriples/nTriples.differential.test.js",
-      "src/owlapi-js/parser/owlxml/owlXml.differential.test.js",
-      "src/owlapi-js/parser/rdfxml/rdfXml.differential.test.js",
-      "src/owlapi-js/parser/trig/trig.differential.test.js",
-      "src/owlapi-js/parser/turtle/turtle.differential.test.js",
-      "src/owlapi-js/rdf/owlToRdfTranslator.differential.test.js",
-      "src/owlapi-js/rdf/rdfToOwlTranslator.differential.test.js",
     ]);
   });
 

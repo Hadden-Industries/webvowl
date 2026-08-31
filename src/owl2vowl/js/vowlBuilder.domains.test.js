@@ -1,10 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
-import {
-  IRI,
-  OWLDataFactory,
-  OWLOntology,
-} from "../../owlapi-js/model/index.js";
+import { IRI, OWLDataFactory, OWLOntology } from "owlapi/model";
 
 import { VOWLBuilder } from "./vowlBuilder.js";
 

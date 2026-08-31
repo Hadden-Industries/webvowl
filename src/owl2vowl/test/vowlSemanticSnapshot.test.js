@@ -29,7 +29,7 @@ const restrictionEdgeVowl = () => ({
 const SCOPE = Object.freeze({
   artifactType: "VOWL semantic snapshot",
   capability: "webvowl.vowl-builder",
-  fixture: "util/owlapi-reference/fixtures/rdf/phase5-structural.rdf",
+  fixture: "src/owl2vowl/test/fixtures/ontology-syntax/phase5-structural.rdf",
   parser: "RDF/XML",
 });
 

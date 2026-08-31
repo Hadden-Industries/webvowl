@@ -1,66 +1,51 @@
-WebVOWL [![Build Status](https://travis-ci.org/VisualDataWeb/WebVOWL.svg?branch=master)](https://travis-ci.org/VisualDataWeb/WebVOWL)
-=======
+# WebVOWL
 
 > [!CAUTION]
-> The URL https://visualdataweb.org/ is not owned bei VisualDataWeb anymore! Not related to WebVOWL anymore.
-> 🌐 The new link to WebVOWL is:  https://service.tib.eu/webvowl/ 
+> The URL https://visualdataweb.org/ is no longer owned by VisualDataWeb and is not related to WebVOWL.
+> The current public WebVOWL service is <https://service.tib.eu/webvowl/>.
 
-This repository was ported from an internal SVN repository to Github after the release of WebVOWL 0.4.0. Due to cleanups with `git filter-branch`, the commit history might show some strange effects.
+This repository was ported from an internal SVN repository to GitHub after the release of WebVOWL 0.4.0. Due to historical cleanups with `git filter-branch`, the early commit history may show unusual effects.
 
-Run Using Docker
-------------
-The legacy root `Dockerfile` downloaded a WAR from `vowl.visualdataweb.org` (broken; see issue #212).
+WebVOWL now performs ontology ingestion and VOWL conversion in JavaScript. Local development and production builds do not require a Java OWL2VOWL service or Docker.
 
-Clone **WebVOWL** only. The image build fetches [OWL2VOWL](https://github.com/VisualDataWeb/OWL2VOWL) from GitHub (no second local clone):
+## Requirements
+
+- A current [Node.js long-term support release](https://nodejs.org/en/about/previous-releases)
+- The npm version bundled with that Node.js release
+
+## Development setup
+
+Install the exact dependency graph recorded in `package-lock.json`:
 
 ```bash
-docker compose build && docker compose up -d
+npm ci
 ```
 
-**Frontend only** (no `/convert`; faster build):
+Start the Vite development server. The command prints the local URL and opens it in the default browser:
 
 ```bash
-docker compose -f docker-compose.frontend.yml up -d --build
+npm run dev
 ```
 
-Pin converter source: `OWL2VOWL_GIT_REF=v0.3.7 docker compose build` (branch or tag on `VisualDataWeb/OWL2VOWL`).
+Run the complete Jest suite serially:
 
-See [docker/README.md](docker/README.md) and [docs/adr/0001-docker-local-development.md](docs/adr/0001-docker-local-development.md).
+```bash
+npm test -- --runInBand
+```
 
-Visit [http://localhost:8080](http://localhost:8080).
+Create the production build in `deploy/`:
 
-Requirements
-------------
+```bash
+npm run build
+```
 
-Node.js for installing the development tools and dependencies.
+Preview the production build locally:
 
+```bash
+npm run preview
+```
 
-Development setup
------------------
-
-### Simple ###
-1. Download and install Node.js from https://nodejs.org/download/
-2. Open the terminal in the root directory
-3. Run `npm install` to install the dependencies and build the project
-4. Edit the code
-5. Run `npm run-script release` to (re-)build all necessary files into the deploy directory
-6. Run `serve deploy/` to run the server locally, by installing serve by using `npm install serve -g`.
-
-Visit [http://localhost:8000](http://localhost:8000) to use WebVOWL.
-
-### Advanced ###
-Instead of the last step of the simple setup, install the npm package `grunt-cli` globally with
-`npm install grunt-cli -g`. Now you can execute a few more advanced commands in the terminal:
-
-* `grunt` or `grunt release` builds the release files into the deploy directory
-* `grunt package` builds the development version
-* `grunt webserver` starts a local live-updating webserver with the current development version
-* `grunt test` starts the test runner
-* `grunt zip` builds the project and puts it into a zip file
-
-
-Additional information
-----------------------
+## Additional information
 
 To export the VOWL visualization to an SVG image, all css styles have to be included into the SVG code.
 This means that if you change the CSS code in the `vowl.css` file, you also have to update the code that

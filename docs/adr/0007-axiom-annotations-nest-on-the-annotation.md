@@ -150,4 +150,4 @@ first.
 | Recovery tests             | `src/owlapi-js/rdf/undeclaredAnnotation.test.js`                  |
 | Nesting                    | `src/owl2vowl/js/vowlBuilder.js`                                  |
 | Nesting tests              | `src/owl2vowl/js/vowlBuilder.annotations.test.js`                 |
-| Governed differences       | `docs/owlapi-js/compatibility/production-corpus-differences.json` |
+| Governed differences       | `docs/owl2vowl/compatibility/production-corpus-differences.json`  |

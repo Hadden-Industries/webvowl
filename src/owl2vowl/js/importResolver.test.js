@@ -1,10 +1,7 @@
 import { jest } from "@jest/globals";
 
-import {
-  IRI,
-  ResourceLimitError,
-  SecurityPolicyError,
-} from "../../owlapi-js/index.js";
+import { ResourceLimitError, SecurityPolicyError } from "owlapi/io";
+import { IRI } from "owlapi/model";
 
 import { WebVowlImportResolver } from "./importResolver.js";
 

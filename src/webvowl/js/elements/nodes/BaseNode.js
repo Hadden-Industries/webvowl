@@ -109,7 +109,7 @@ module.exports = (function () {
       that.raiseDoubleClickEdit(true);
     };
 
-    this.raiseDoubleClickEdit = function (forceIRISync) {
+    this.raiseDoubleClickEdit = function (forceIRISync, event) {
       d3.selectAll(".foreignelements").remove();
       if (
         nodeElement === undefined ||
@@ -124,8 +124,12 @@ module.exports = (function () {
       }
 
       backupFullIri = undefined;
-      graph.options().focuserModule().handle(undefined);
-      graph.options().focuserModule().handle(that);
+      graph.dispatchEvent(
+        new CustomEvent("elementfocused", { detail: { element: undefined } }),
+      );
+      graph.dispatchEvent(
+        new CustomEvent("elementfocused", { detail: { element: that } }),
+      );
       // add again the editing elements to that one
       if (graph.isTouchDevice() === true) {
         graph.activateHoverElements(true, that, true);
@@ -141,31 +145,21 @@ module.exports = (function () {
         .attr("y", -12)
         .attr("height", 30)
         .attr("class", "foreignelements")
-        .on("dragstart", function () {
+        .on("dragstart", function (event) {
           return false;
         }) // remove drag operations of text element)
         .attr("width", that.textWidth() - 2);
 
       const editText = fobj
         .append("xhtml:input")
-        .attr("class", "nodeEditSpan")
+        .attr("class", "nodeEditSpan nodeEditSpan--node")
         .attr("id", that.id())
         .attr("align", "center")
         .attr("contentEditable", "true")
-        .on("dragstart", function () {
+        .on("dragstart", function (event) {
           return false;
         }); // remove drag operations of text element)
 
-      const bgColor = "#f00";
-      const txtWidth = that.textWidth() - 2;
-      editText.style({
-        align: "center",
-        color: "black",
-        width: txtWidth + "px",
-        height: "15px",
-        "background-color": bgColor,
-        "border-bottom": "2px solid black",
-      });
       const txtNode = editText.node();
       txtNode.value = that.labelForCurrentLanguage();
       txtNode.focus();
@@ -173,45 +167,55 @@ module.exports = (function () {
       that.frozen(true); // << releases the not after selection
       that.locked(true);
 
-      d3.event.stopPropagation();
+      event && event.stopPropagation();
       // ignoreNodeHoverEvent=true;
       // // add some events that relate to this object
-      editText.on("click", function () {
-        d3.event.stopPropagation();
+      editText.on("click", function (event) {
+        event.stopPropagation();
       });
       // // remove hover Events for now;
-      editText.on("mouseout", function () {
-        d3.event.stopPropagation();
+      editText.on("mouseout", function (event) {
+        event.stopPropagation();
       });
       editText
-        .on("mousedown", function () {
-          d3.event.stopPropagation();
+        .on("mousedown", function (event) {
+          event.stopPropagation();
         })
-        .on("keydown", function () {
-          d3.event.stopPropagation();
-          if (d3.event.keyCode === 13) {
+        .on("keydown", function (event) {
+          event.stopPropagation();
+          if (event.key === "Enter") {
             this.blur();
             that.frozen(false); // << releases the not after selection
             that.locked(false);
           }
         })
-        .on("keyup", function () {
+        .on("keyup", function (event) {
+          let syncedIRI = null;
           if (forceIRISync) {
             const labelName = editText.node().value;
             const resourceName = labelName.replaceAll(" ", "_");
-            const syncedIRI = that.baseIri() + resourceName;
+            syncedIRI = that.baseIri() + resourceName;
             backupFullIri = syncedIRI;
-
-            d3.select("#element_iriEditor").node().title = syncedIRI;
-            d3.select("#element_iriEditor").node().value = graph
+          }
+          let prefixedIri = null;
+          if (forceIRISync) {
+            prefixedIri = graph
               .options()
               .prefixModule()
               .getPrefixRepresentationForFullURI(syncedIRI);
           }
-          d3.select("#element_labelEditor").node().value =
-            editText.node().value;
+          graph.dispatchEvent(
+            new CustomEvent("editor-element-keyup", {
+              detail: {
+                element: that,
+                label: editText.node().value,
+                syncedIRI: forceIRISync ? syncedIRI : null,
+                prefixedIri: prefixedIri,
+              },
+            }),
+          );
         })
-        .on("blur", function () {
+        .on("blur", function (event) {
           that.editingTextElement = false;
           ignoreLocalHoverEvents = false;
           that
@@ -224,6 +228,9 @@ module.exports = (function () {
           that.label(newLabel);
           that.backupLabel(newLabel);
           that.redrawLabelText();
+          if (graph !== undefined) {
+            graph.dispatchEvent(new CustomEvent("dictionarychange"));
+          }
           that.frozen(graph.paused());
           that.locked(graph.paused());
           graph.ignoreOtherHoverEvents(false);
@@ -253,8 +260,14 @@ module.exports = (function () {
             }
           }
           if (graph.isADraggerActive() === false) {
-            graph.options().focuserModule().handle(undefined);
-            graph.options().focuserModule().handle(that);
+            graph.dispatchEvent(
+              new CustomEvent("elementfocused", {
+                detail: { element: undefined },
+              }),
+            );
+            graph.dispatchEvent(
+              new CustomEvent("elementfocused", { detail: { element: that } }),
+            );
           }
         }); // add a foreiner element to this thing;
     };
@@ -365,7 +378,6 @@ module.exports = (function () {
 
       that
         .nodeElement()
-        .selectAll("*")
         .on("mouseover", onMouseOver)
         .on("mouseout", onMouseOut);
     };
@@ -389,47 +401,68 @@ module.exports = (function () {
     };
 
     this.foreground = function () {
-      const selectedNode = that.nodeElement().node(),
-        nodeContainer = selectedNode.parentNode;
+      const selectedNode = that.nodeElement()
+          ? that.nodeElement().node()
+          : null,
+        nodeContainer = selectedNode ? selectedNode.parentNode : null;
       // check if the halo is present and an animation is running
-      if (that.animationProcess() === false) {
+      if (
+        nodeContainer &&
+        nodeContainer.lastChild !== selectedNode &&
+        that.animationProcess() === false
+      ) {
         // Append hovered element as last child to the container list.
         nodeContainer.appendChild(selectedNode);
       }
     };
 
-    function onMouseOver() {
-      if (that.mouseEntered() || ignoreLocalHoverEvents === true) {
+    function onMouseOver(event) {
+      if (
+        that.mouseEntered() ||
+        ignoreLocalHoverEvents === true ||
+        graph.ignoreOtherHoverEvents() === true
+      ) {
         return;
       }
 
-      const selectedNode = that.nodeElement().node(),
-        nodeContainer = selectedNode.parentNode;
+      const selectedNode = that.nodeElement()
+          ? that.nodeElement().node()
+          : null,
+        nodeContainer = selectedNode ? selectedNode.parentNode : null;
 
-      // Append hovered element as last child to the container list.
-      if (that.animationProcess() === false) {
+      // Append hovered element as last child to the container list if not already last.
+      if (
+        nodeContainer &&
+        nodeContainer.lastChild !== selectedNode &&
+        that.animationProcess() === false
+      ) {
         nodeContainer.appendChild(selectedNode);
       }
       if (graph.isTouchDevice() === false) {
         that.setHoverHighlighting(true);
         that.mouseEntered(true);
-        if (
-          graph.editorMode() === true &&
-          graph.ignoreOtherHoverEvents() === false
-        ) {
+        if (graph.editorMode() === true) {
           graph.activateHoverElements(true, that);
         }
       } else {
-        if (
-          graph.editorMode() === true &&
-          graph.ignoreOtherHoverEvents() === false
-        ) {
+        if (graph.editorMode() === true) {
           graph.activateHoverElements(true, that, true);
         }
       }
     }
 
-    function onMouseOut() {
+    function onMouseOut(event) {
+      const selectedNode = that.nodeElement()
+        ? that.nodeElement().node()
+        : null;
+      if (
+        event &&
+        event.relatedTarget &&
+        selectedNode &&
+        selectedNode.contains(event.relatedTarget)
+      ) {
+        return;
+      }
       that.setHoverHighlighting(false);
       that.mouseEntered(false);
       if (

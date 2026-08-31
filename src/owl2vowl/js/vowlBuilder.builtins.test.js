@@ -1,12 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
-import {
-  IRI,
-  OWLDataFactory,
-  OWLOntology,
-} from "../../owlapi-js/model/index.js";
-
-import { createOntologyID } from "../../owlapi-js/model/structural.js";
+import { IRI, OWLDataFactory, OWLOntology } from "owlapi/model";
 
 import { VOWLBuilder } from "./vowlBuilder.js";
 
@@ -69,7 +63,7 @@ describe("external marking of datatype nodes", () => {
             ),
           ),
         ],
-        ontologyID: createOntologyID(iri("http://example.org/vocab")),
+        ontologyID: factory.getOWLOntologyID(iri("http://example.org/vocab")),
       }),
     );
 
@@ -95,7 +89,7 @@ describe("external marking by base IRI", () => {
         axioms: [
           factory.getOWLDeclarationAxiom(factory.getOWLClass(iri(entityIri))),
         ],
-        ontologyID: createOntologyID(iri(ontologyIri)),
+        ontologyID: factory.getOWLOntologyID(iri(ontologyIri)),
       }),
     );
 

@@ -7,11 +7,27 @@
 module.exports = function (graph) {
   const filterMenu = {};
   const checkboxData = [];
-  const menuControl = d3.select("#c_filter a");
-  const nodeDegreeContainer = d3.select("#nodeDegreeFilteringOption");
+  let menuControl;
+  let nodeDegreeContainer;
   let graphDegreeLevel;
   let defaultDegreeValue = 0;
   let degreeSlider;
+
+  function getMenuControl() {
+    if (!menuControl) {
+      menuControl = document.querySelector("#c_filter button");
+    }
+    return menuControl;
+  }
+
+  function getNodeDegreeContainer() {
+    if (!nodeDegreeContainer) {
+      nodeDegreeContainer = document.querySelector(
+        "#nodeDegreeFilteringOption",
+      );
+    }
+    return nodeDegreeContainer;
+  }
 
   filterMenu.setDefaultDegreeValue = function (val) {
     defaultDegreeValue = val;
@@ -29,7 +45,7 @@ module.exports = function (graph) {
   };
 
   filterMenu.getDegreeSliderValue = function () {
-    return degreeSlider.property("value");
+    return degreeSlider ? degreeSlider.value : 0;
   };
   /**
    * Connects the website with graph filters.
@@ -48,15 +64,8 @@ module.exports = function (graph) {
     setOperatorFilter,
     nodeDegreeFilter,
   ) {
-    // TODO: is this here really necessarry? << new menu visualization style?
-    menuControl.on("mouseover", function () {
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-    });
-    menuControl.on("mouseleave", function () {
-      filterMenu.highlightForDegreeSlider(false);
-    });
-
+    menuControl = getMenuControl();
+    nodeDegreeContainer = getNodeDegreeContainer();
     addFilterItem(
       datatypeFilter,
       "datatype",
@@ -98,17 +107,17 @@ module.exports = function (graph) {
     pluralNameOfFilteredItems,
     selector,
   ) {
-    const filterContainer = d3
-      .select(selector)
-      .append("div")
-      .classed("checkboxContainer", true);
-
-    const filterCheckbox = filterContainer
-      .append("input")
-      .classed("filterCheckbox", true)
-      .attr("id", identifier + "FilterCheckbox")
-      .attr("type", "checkbox")
-      .property("checked", filter.enabled());
+    const filterContainer = document.querySelector(selector);
+    if (!filterContainer) {
+      return;
+    }
+    const filterCheckbox = filterContainer.querySelector(
+      "#" + identifier + "FilterCheckbox",
+    );
+    if (!filterCheckbox) {
+      return;
+    }
+    filterCheckbox.checked = filter.enabled();
 
     // Store for easier resetting
     checkboxData.push({
@@ -116,86 +125,94 @@ module.exports = function (graph) {
       defaultState: filter.enabled(),
     });
 
-    filterCheckbox.on("click", function (silent) {
+    const onClickHandler = function (arg1, arg2) {
       // There might be no parameters passed because of a manual
       // invocation when resetting the filters
-      const isEnabled = filterCheckbox.property("checked");
+      const isEnabled = filterCheckbox.checked;
       filter.enabled(isEnabled);
+      const silent =
+        typeof arg1 === "boolean"
+          ? arg1
+          : typeof arg2 === "boolean"
+            ? arg2
+            : false;
       if (silent !== true) {
         // updating graph when silent is false or the parameter is not given.
         graph.update();
       }
-    });
-
-    filterContainer
-      .append("label")
-      .attr("for", identifier + "FilterCheckbox")
-      .text(pluralNameOfFilteredItems);
+    };
+    filterCheckbox.addEventListener("click", onClickHandler);
+    filterCheckbox.__onclick = onClickHandler;
   }
 
   function addNodeDegreeFilter(nodeDegreeFilter, container) {
+    if (!container) {
+      return;
+    }
+    const sliderValueLabel = container.querySelector("#nodeDegreeSliderValue");
+    degreeSlider = container.querySelector("#nodeDegreeDistanceSlider");
+    if (!degreeSlider) {
+      return;
+    }
+
     nodeDegreeFilter.setMaxDegreeSetter(function (maxDegree) {
-      degreeSlider.attr("max", maxDegree);
-      setSliderValue(
-        degreeSlider,
-        Math.min(maxDegree, degreeSlider.property("value")),
-      );
+      degreeSlider.max = maxDegree;
+      setSliderValue(degreeSlider, Math.min(maxDegree, degreeSlider.value));
     });
 
     nodeDegreeFilter.setDegreeGetter(function () {
-      return degreeSlider.property("value");
+      return degreeSlider.value;
     });
 
     nodeDegreeFilter.setDegreeSetter(function (value) {
       setSliderValue(degreeSlider, value);
     });
 
-    const sliderContainer = container
-      .append("div")
-      .classed("distanceSliderContainer", true);
-
-    degreeSlider = sliderContainer
-      .append("input")
-      .attr("id", "nodeDegreeDistanceSlider")
-      .attr("type", "range")
-      .attr("min", 0)
-      .attr("step", 1);
-
-    sliderContainer
-      .append("label")
-      .classed("description", true)
-      .attr("for", "nodeDegreeDistanceSlider")
-      .text("Degree of collapsing");
-
-    const sliderValueLabel = sliderContainer
-      .append("label")
-      .classed("value", true)
-      .attr("for", "nodeDegreeDistanceSlider")
-      .text(0);
-
-    degreeSlider.on("change", function (silent) {
+    const onChangeHandler = function (arg1, arg2) {
+      const degree = degreeSlider.value;
+      if (parseInt(degree, 10) === 0) {
+        filterMenu.highlightForDegreeSlider(false);
+      }
+      const silent =
+        typeof arg1 === "boolean"
+          ? arg1
+          : typeof arg2 === "boolean"
+            ? arg2
+            : false;
       if (silent !== true) {
         graph.update();
-        graphDegreeLevel = degreeSlider.property("value");
+        graphDegreeLevel = degree;
       }
-    });
+    };
+    degreeSlider.addEventListener("change", onChangeHandler);
+    degreeSlider.__onchange = onChangeHandler;
 
-    degreeSlider.on("input", function () {
-      const degree = degreeSlider.property("value");
-      sliderValueLabel.text(degree);
-    });
+    const onInputHandler = function () {
+      const degree = degreeSlider.value;
+      if (sliderValueLabel) {
+        sliderValueLabel.textContent = degree;
+      }
+      if (parseInt(degree, 10) === 0) {
+        filterMenu.highlightForDegreeSlider(false);
+      }
+    };
+    degreeSlider.addEventListener("input", onInputHandler);
+    degreeSlider.__oninput = onInputHandler;
 
     // adding wheel events
-    degreeSlider.on("wheel", handleWheelEvent);
-    degreeSlider.on("focusout", function () {
-      if (degreeSlider.property("value") !== graphDegreeLevel) {
+    degreeSlider.addEventListener("wheel", handleWheelEvent);
+    degreeSlider.addEventListener("focusout", function () {
+      if (degreeSlider.value !== graphDegreeLevel) {
         graph.update();
       }
     });
   }
 
-  function handleWheelEvent() {
-    const wheelEvent = d3.event;
+  function handleWheelEvent(event) {
+    if (!degreeSlider) {
+      return;
+    }
+    const wheelEvent = event;
 
     let offset;
     if (wheelEvent.deltaY < 0) {
@@ -204,8 +221,8 @@ module.exports = function (graph) {
     if (wheelEvent.deltaY > 0) {
       offset = -1;
     }
-    const maxDeg = parseInt(degreeSlider.attr("max"));
-    const oldVal = parseInt(degreeSlider.property("value"));
+    const maxDeg = parseInt(degreeSlider.max, 10);
+    const oldVal = parseInt(degreeSlider.value, 10);
     const newSliderValue = oldVal + offset;
     if (
       oldVal !== newSliderValue &&
@@ -214,15 +231,23 @@ module.exports = function (graph) {
     ) {
       // only update when they are different [reducing redundant updates]
       // set the new value and emit an update signal
-      degreeSlider.property("value", newSliderValue);
-      degreeSlider.on("input")(); // <<-- sets the text value
+      degreeSlider.value = newSliderValue;
+      if (typeof degreeSlider.__oninput === "function") {
+        degreeSlider.__oninput(); // <<-- sets the text value
+      }
       graph.update();
     }
-    d3.event.preventDefault();
+    event.preventDefault();
   }
 
   function setSliderValue(slider, value) {
-    slider.property("value", value).on("input")();
+    if (!slider) {
+      return;
+    }
+    slider.value = value;
+    if (typeof slider.__oninput === "function") {
+      slider.__oninput();
+    }
   }
 
   /**
@@ -232,49 +257,75 @@ module.exports = function (graph) {
     checkboxData.forEach(function (checkboxData) {
       const checkbox = checkboxData.checkbox,
         enabledByDefault = checkboxData.defaultState,
-        isChecked = checkbox.property("checked");
+        isChecked = checkbox.checked;
 
       if (isChecked !== enabledByDefault) {
-        checkbox.property("checked", enabledByDefault);
+        checkbox.checked = enabledByDefault;
         // Call onclick event handlers programmatically
-        checkbox.on("click")();
+        if (typeof checkbox.__onclick === "function") {
+          checkbox.__onclick();
+        }
       }
     });
 
-    setSliderValue(degreeSlider, 0);
-    degreeSlider.on("change")();
+    if (degreeSlider) {
+      setSliderValue(degreeSlider, 0);
+      if (typeof degreeSlider.__onchange === "function") {
+        degreeSlider.__onchange();
+      }
+    }
   };
 
   function addAnimationFinishedListener() {
-    menuControl.node().addEventListener("animationend", function () {
-      menuControl.classed("buttonPulse", false);
-      menuControl.classed("filterMenuButtonHighlight", true);
+    const ctrl = getMenuControl();
+    if (!ctrl) {
+      return;
+    }
+    ctrl.addEventListener("animationend", function () {
+      ctrl.classList.remove("buttonPulse");
+      ctrl.classList.add("filterMenuButtonHighlight");
     });
   }
 
   filterMenu.killButtonAnimation = function () {
-    menuControl.classed("buttonPulse", false);
-    menuControl.classed("filterMenuButtonHighlight", false);
+    const ctrl = getMenuControl();
+    if (!ctrl) {
+      return;
+    }
+    ctrl.classList.remove("buttonPulse");
+    ctrl.classList.remove("filterMenuButtonHighlight");
   };
 
   filterMenu.highlightForDegreeSlider = function (enable) {
-    let timer;
     if (!arguments.length) {
       enable = true;
     }
-    menuControl.classed("highlighted", enable);
-    nodeDegreeContainer.classed("highlighted", enable);
+    const ctrl = getMenuControl();
+    const container = getNodeDegreeContainer();
+    if (ctrl) {
+      ctrl.classList.toggle("highlighted", enable);
+    }
+    if (container) {
+      container.classList.toggle("highlighted", enable);
+    }
+    const hint = document.querySelector("#degree-of-collapsing-hint");
+    if (hint) {
+      hint.classList.toggle("hidden", !enable);
+    }
+    if (!ctrl) {
+      return;
+    }
     // pulse button handling
-    if (menuControl.classed("buttonPulse") === true && enable === true) {
-      menuControl.classed("buttonPulse", false);
-      timer = setTimeout(function () {
-        menuControl.classed("buttonPulse", enable);
+    if (ctrl.classList.contains("buttonPulse") === true && enable === true) {
+      ctrl.classList.remove("buttonPulse");
+      const timer = setTimeout(function () {
+        ctrl.classList.toggle("buttonPulse", enable);
         clearTimeout(timer);
         // after the time is done, remove the pulse but stay highlighted
       }, 100);
     } else {
-      menuControl.classed("buttonPulse", enable);
-      menuControl.classed("filterMenuButtonHighlight", enable);
+      ctrl.classList.toggle("buttonPulse", enable);
+      ctrl.classList.toggle("filterMenuButtonHighlight", enable);
     }
   };
 
@@ -283,9 +334,9 @@ module.exports = function (graph) {
   // no update of the gui settings, these are updated in updateSettings
   filterMenu.setCheckBoxValue = function (id, checked) {
     for (let i = 0; i < checkboxData.length; i++) {
-      const cbdId = checkboxData[i].checkbox.attr("id");
+      const cbdId = checkboxData[i].checkbox.id;
       if (cbdId === id) {
-        checkboxData[i].checkbox.property("checked", checked);
+        checkboxData[i].checkbox.checked = checked;
         break;
       }
     }
@@ -293,25 +344,23 @@ module.exports = function (graph) {
 
   filterMenu.getCheckBoxValue = function (id) {
     for (let i = 0; i < checkboxData.length; i++) {
-      const cbdId = checkboxData[i].checkbox.attr("id");
+      const cbdId = checkboxData[i].checkbox.id;
       if (cbdId === id) {
-        return checkboxData[i].checkbox.property("checked");
+        return checkboxData[i].checkbox.checked;
       }
     }
   };
   // set the value of the slider
   filterMenu.setDegreeSliderValue = function (val) {
-    degreeSlider.property("value", val);
-  };
-
-  filterMenu.getDegreeSliderValue = function () {
-    return degreeSlider.property("value");
+    if (degreeSlider) {
+      degreeSlider.value = val;
+    }
   };
 
   // update the gui without invoking graph update (calling silent onclick function)
   filterMenu.updateSettings = function () {
     const silent = true;
-    const sliderValue = degreeSlider.property("value");
+    const sliderValue = degreeSlider ? degreeSlider.value : 0;
     if (sliderValue > 0) {
       filterMenu.highlightForDegreeSlider(true);
     } else {
@@ -319,11 +368,19 @@ module.exports = function (graph) {
     }
     checkboxData.forEach(function (checkboxData) {
       const checkbox = checkboxData.checkbox;
-      checkbox.on("click")(silent);
+      if (typeof checkbox.__onclick === "function") {
+        checkbox.__onclick(silent);
+      }
     });
 
-    degreeSlider.on("input")();
-    degreeSlider.on("change")();
+    if (degreeSlider) {
+      if (typeof degreeSlider.__oninput === "function") {
+        degreeSlider.__oninput();
+      }
+      if (typeof degreeSlider.__onchange === "function") {
+        degreeSlider.__onchange();
+      }
+    }
   };
 
   return filterMenu;

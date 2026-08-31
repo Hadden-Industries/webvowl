@@ -4,12 +4,6 @@ import { readFileSync } from "node:fs";
 import owl2vowl from "../js/index.js";
 
 const require = createRequire(import.meta.url);
-const {
-  installD3V3CollectionAdapter,
-} = require("../../webvowl/test/d3V3CollectionAdapter.js");
-const restoreD3 = installD3V3CollectionAdapter();
-afterAll(restoreD3);
-
 const createWebVowlParser = require("../../webvowl/js/parser.js");
 
 const graphStub = () => ({
@@ -28,10 +22,7 @@ describe("VOWLBuilder WebVOWL consumer contract", () => {
   test("the existing graph parser consumes the direct structural result", async () => {
     const fileName = "phase5-structural.rdf";
     const text = readFileSync(
-      new URL(
-        `../../../util/owlapi-reference/fixtures/rdf/${fileName}`,
-        import.meta.url,
-      ),
+      new URL(`./fixtures/ontology-syntax/${fileName}`, import.meta.url),
       "utf8",
     );
     const result = await owl2vowl(text, { fileName });

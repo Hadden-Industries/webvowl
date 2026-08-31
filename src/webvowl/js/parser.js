@@ -12,14 +12,14 @@ const propertyPrototypeMap = require("./elements/properties/propertyMap")();
  */
 module.exports = function (graph) {
   const parser = {};
-  let nodes;
-  let properties;
-  let classMap;
-  let settingsData;
-  let settingsImported = false;
-  let settingsImportGraphZoomAndTranslation = false;
-  let dictionary = [];
-  let propertyMap;
+  let nodes,
+    properties,
+    classMap,
+    settingsData,
+    settingsImported = false,
+    settingsImportGraphZoomAndTranslation = false,
+    dictionary = [],
+    propertyMap;
 
   parser.getDictionary = function () {
     return dictionary;
@@ -46,16 +46,37 @@ module.exports = function (graph) {
     }
     /** global settings **********************************************************/
     if (settingsData.global) {
-      if (settingsData.global.zoom) {
-        const zoomFactor = settingsData.global.zoom;
-        graph.setZoom(zoomFactor);
-        settingsImportGraphZoomAndTranslation = true;
-      }
+      const hasZoom = Object.prototype.hasOwnProperty.call(
+        settingsData.global,
+        "zoom",
+      );
+      const hasTranslation = Object.prototype.hasOwnProperty.call(
+        settingsData.global,
+        "translation",
+      );
 
-      if (settingsData.global.translation) {
-        const translation = settingsData.global.translation;
-        graph.setTranslation(translation);
-        settingsImportGraphZoomAndTranslation = true;
+      if (
+        hasZoom &&
+        hasTranslation &&
+        typeof graph.setViewportTransform === "function"
+      ) {
+        settingsImportGraphZoomAndTranslation =
+          graph.setViewportTransform(
+            settingsData.global.zoom,
+            settingsData.global.translation,
+          ) !== false;
+      } else {
+        if (hasZoom) {
+          settingsImportGraphZoomAndTranslation =
+            graph.setZoom(settingsData.global.zoom) !== false ||
+            settingsImportGraphZoomAndTranslation;
+        }
+
+        if (hasTranslation) {
+          settingsImportGraphZoomAndTranslation =
+            graph.setTranslation(settingsData.global.translation) !== false ||
+            settingsImportGraphZoomAndTranslation;
+        }
       }
 
       if (settingsData.global.paused) {
@@ -257,10 +278,10 @@ module.exports = function (graph) {
           }
 
           if (element.attributes) {
-            const deduplicatedAttributes = d3.set(
+            const deduplicatedAttributes = new Set(
               element.attributes.concat(node.attributes()),
             );
-            node.attributes(deduplicatedAttributes.values());
+            node.attributes(Array.from(deduplicatedAttributes));
           }
           combinations.push(node);
         } else {
@@ -331,10 +352,10 @@ module.exports = function (graph) {
           }
 
           if (element.attributes) {
-            const deduplicatedAttributes = d3.set(
+            const deduplicatedAttributes = new Set(
               element.attributes.concat(property.attributes()),
             );
-            property.attributes(deduplicatedAttributes.values());
+            property.attributes(Array.from(deduplicatedAttributes));
           }
           combinations.push(property);
         } else {
@@ -347,9 +368,11 @@ module.exports = function (graph) {
   }
 
   function createLowerCasePrototypeMap(prototypeMap) {
-    return d3.map(prototypeMap.values(), function (Prototype) {
-      return new Prototype().type().toLowerCase();
-    });
+    return new Map(
+      Array.from(prototypeMap.values()).map(function (Prototype) {
+        return [new Prototype().type().toLowerCase(), Prototype];
+      }),
+    );
   }
 
   function mergeRangesOfEquivalentProperties(properties, nodes) {

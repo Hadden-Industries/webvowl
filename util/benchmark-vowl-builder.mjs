@@ -1,41 +1,40 @@
 import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { createRequire } from "node:module";
 import { cpus, release, totalmem } from "node:os";
 import { performance } from "node:perf_hooks";
 import process from "node:process";
 
-import { StringDocumentSource } from "../src/owlapi-js/io/index.js";
-import { OWLManager } from "../src/owlapi-js/manager/index.js";
+import { OWLManager } from "owlapi/apibinding";
+import { StringDocumentSource } from "owlapi/io";
+
 import owl2vowl from "../src/owl2vowl/js/index.js";
 import { VOWLBuilder } from "../src/owl2vowl/js/vowlBuilder.js";
 
 import { assertQuiescentMachine } from "./benchmarkEnvironment.mjs";
+import {
+  generateVowlBenchmarkFixture,
+  VOWL_BENCHMARK_GENERATOR_VERSION,
+} from "./vowlBenchmarkFixtures.mjs";
 
 await assertQuiescentMachine();
 
-const require = createRequire(import.meta.url);
-const {
-  GENERATOR_VERSION,
-  generateBenchmarkFixture,
-} = require("./generate-owlapi-benchmark-fixtures.js");
 const RUN_COUNT = 5;
 const SAMPLE_INTERVAL_MS = 5;
 const WARMUP_COUNT = 1;
 const LARGE_COUNT = 50_000;
 
-const firstUseText = generateBenchmarkFixture("rdfxml", { count: 100 });
-const largeFunctionalText = generateBenchmarkFixture("functional", {
+const firstUseText = generateVowlBenchmarkFixture("rdfxml", { count: 100 });
+const largeFunctionalText = generateVowlBenchmarkFixture("functional", {
   count: LARGE_COUNT,
 });
-const largeRdfXmlText = generateBenchmarkFixture("rdfxml", {
+const largeRdfXmlText = generateVowlBenchmarkFixture("rdfxml", {
   count: LARGE_COUNT,
 });
 const largeOntology =
   await OWLManager.createOWLOntologyManager().loadOntologyFromOntologyDocument(
     new StringDocumentSource(largeFunctionalText, {
-      documentIRI: "urn:owlapi-js:benchmark:vowl-builder",
+      documentIRI: "urn:webvowl:benchmark:vowl-builder",
       fileName: "generated-vowl-builder-large.ofn",
     }),
   );
@@ -90,7 +89,9 @@ const firstUse = await sample(async () => {
     fileName: "first-use.rdf",
   });
   if (result.class.length !== 100) {
-    throw new Error("The first-use benchmark produced an incomplete VOWL graph");
+    throw new Error(
+      "The first-use benchmark produced an incomplete VOWL graph",
+    );
   }
 });
 const benchmarks = Object.freeze([
@@ -154,7 +155,7 @@ console.log(
       firstUse: {
         inputBytes: Buffer.byteLength(firstUseText),
         measurement: firstUse,
-        path: "development adapter -> manager -> RDF/XML -> RDF-to-OWL -> VOWLBuilder",
+        path: "installed owlapi -> manager -> RDF/XML -> RDF-to-OWL -> VOWLBuilder",
       },
       measuredOn: new Date().toISOString(),
       protocol: {
@@ -162,7 +163,7 @@ console.log(
         fixture: {
           count: LARGE_COUNT,
           functionalBytes: Buffer.byteLength(largeFunctionalText),
-          generator: GENERATOR_VERSION,
+          generator: VOWL_BENCHMARK_GENERATOR_VERSION,
           rdfXmlBytes: Buffer.byteLength(largeRdfXmlText),
         },
         garbageCollectionRequestedBeforeEachRun:

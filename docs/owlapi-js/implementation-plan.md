@@ -1,5 +1,14 @@
 # Extract and Publish the `owlapi` Core Module from WebVOWL
 
+> **Archive notice (31 August 2026):** This WebVOWL-local document is the
+> historical migration, extraction, and reconstruction blueprint. It no longer
+> authorizes active `owlapi` package work. Active package authority is the
+> [standalone `owlapi` implementation plan](https://github.com/Hadden-Industries/owlapi/blob/main/docs/implementation-plan.md),
+> while active WebVOWL pre-registry consumer work is governed by the
+> [focused Phase 19D1 consumer plan](../plans/owlapi-pre-registry-consumer-cutover.md).
+> Historical commits, paths, review records, lessons, schemas, and digest-bound
+> evidence below remain preserved in their original temporal context.
+
 > **Status:** Final architecture and implementation blueprint  
 > **Research baseline:** 8 August 2026  
 > **Package identity and versioning decision:** 25 August 2026 — publish the unscoped npm package `owlapi`; begin with the useful `0.1.0-alpha.0` prerelease under `next`; publish another alpha or an `0.1.0-rc.N` only when it supplies material public validation rather than as ceremony; target the production-recommended initial-development `0.1.0` under `latest`; apply only §2.60's immutable-tag contingency to a consumed coordinate; permanently avoid every consumed historical coordinate; and defer any post-zero version choice to a future stability-promotion decision.<br>
