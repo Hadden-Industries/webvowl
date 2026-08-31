@@ -8,15 +8,6 @@
 - Before requesting approval, identify the exact file and setting, explain the behavioral and pipeline impact, and propose the smallest change.
 - If a task appears to require a configuration change, stop and request approval instead of inferring permission.
 
-# Command Execution
-
-- Execute shell commands individually, one command per execution action.
-- Do not use command chaining, pipelines, background operators, or command substitution (`;`, `&&`, `||`, `|`, `&`, `$()`, or backticks). The host environment rejects compound commands.
-- Inspect each command's exit status and output before executing a dependent command.
-
-# File Editing Guidance
-- Use native file-reading, searching, and targeted-editing tools for ordinary source-file operations. Do not use shell commands, ad-hoc scripts, or Git restoration commands as substitutes for targeted file editing when an appropriate native tool is available.
-
 # Git Guidance
 
 ## Local Workspace Commits & Pushing
@@ -34,6 +25,7 @@ Treat all existing working-tree changes as user-owned and potentially valuable.
 
 - Use the current working-tree contents as the authoritative starting point for ordinary file editing.
 - Preserve all pre-existing modifications unless the user explicitly requests that they be changed or discarded.
+- Treat any change you did not make as deliberate, including content that was present earlier in the session and is now absent. Never restore it, and do not assume a regression, a sync artefact, or a tooling bug; raise it and ask if it materially affects work in progress.
 - Edit files directly using minimal, targeted changes.
 - Never use `git checkout`, `git restore`, `git reset --hard`, or another Git restoration operation to undo edits made during the current task.
 - To undo your own changes, reverse only the specific edits you introduced.
