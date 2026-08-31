@@ -2,10 +2,14 @@
 
 | Metadata | Value |
 |----------|-------|
-| **Status** | Accepted (implemented in this repository) |
+| **Status** | Superseded |
 | **Date** | 2026-06-04 |
 | **Deciders** | VisualDataWeb maintainers / local dev workflow |
 | **Supersedes** | wget-based root `Dockerfile` on upstream `master` |
+| **Superseded by** | [ADR 0009](0009-native-node-development-without-docker.md) |
+
+> [!IMPORTANT]
+> This ADR is retained as a historical record of the former Java-backed container architecture. [ADR 0009](0009-native-node-development-without-docker.md) replaces it with the native Node.js and JavaScript ontology-processing workflow; the Docker implementation described below has been removed.
 
 ## Context
 
@@ -134,7 +138,7 @@ curl -sf http://localhost:8080/serverTimeStamp
 
 ## References
 
-- [docker/README.md](../docker/README.md)
-- [doc/Docker/README.md](../doc/Docker/README.md) — legacy inotify image
-- [OWL2VOWL doc/docker/README.md](../../../OWL2VOWL/doc/docker/README.md) — sibling layout
+- Former `docker/README.md` operator guide (removed under ADR 0009)
+- Former `doc/Docker/README.md` legacy inotify-image guide (removed under ADR 0009)
+- Former OWL2VOWL `doc/docker/README.md` sibling-layout guide
 - [TIB WebVOWL](https://service.tib.eu/webvowl/)
