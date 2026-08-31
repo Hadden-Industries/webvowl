@@ -53,7 +53,14 @@
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/committing-to-git/SKILL.md",
-      "computedHash": "35a57350515ca39dfc60a4ed9ca732149cb0cf19b3eacae5339d758d6ab65f41"
+      "computedHash": "3e91ec12a81fe894378a3f6e186680dc3e7501cbfae0fa0d288e8d2d6fa19d16"
+    },
+    "defining-concepts": {
+      "source": "Hadden-Industries/agent-skills",
+      "ref": "main",
+      "sourceType": "github",
+      "skillPath": "skills/defining-concepts/SKILL.md",
+      "computedHash": "0d6c0a2a9edda8adbf105d13bd771debf51c6c98c72a50b97b9db82171bf9b55"
     },
     "diagnosing-bugs": {
       "source": "mattpocock/skills",
@@ -126,7 +133,7 @@
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/modern-web-guidance/SKILL.md",
-      "computedHash": "647209d360295e26b6b994395743ea860e36f5d2b16d706cbb5ce4a3e5f5ec26"
+      "computedHash": "c75f98ef13e63bcf0c074f6e7651ecb567ffcd78f2527d085a7cddd530073c4f"
     },
     "review-animations": {
       "source": "emilkowalski/skills",
@@ -148,13 +155,6 @@
       "sourceType": "github",
       "skillPath": "skills/ui-craft/SKILL.md",
       "computedHash": "e09de6e10f95e0fbdf406314ebe42dd89d6901d9b2630f083f56d0a8d09a6f8e"
-    },
-    "verification-before-completion": {
-      "source": "obra/superpowers",
-      "ref": "main",
-      "sourceType": "github",
-      "skillPath": "skills/verification-before-completion/SKILL.md",
-      "computedHash": "b529822bdac4b197b180fe12225cff86b930b65910435103c10622df7f041651"
     },
     "writing-for-agents": {
       "source": "mattpocock/skills",
