@@ -1,6 +1,6 @@
 {
   "name": "webvowl",
-  "version": "1.1.7",
+  "version": "2.0.0",
   "dependencies": {
     "@rdfjs/data-model": "2.1.2",
     "@rdfjs/dataset": "2.0.3",
@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@oddbird/popover-polyfill": "^0.7.1",
     "@rollup/plugin-replace": "^6.0.2",
     "archiver": "^8.0.0",
     "cross-env": "^10.1.0",

@@ -100,25 +100,6 @@ module.exports = function (graph) {
     //     {"x": 0, "y": 0}
     // ];
 
-    [
-      { x: -40, y: 0 }, // start
-      { x: -20, y: -10 },
-      { x: 20, y: -50 },
-      { x: -10, y: 0 }, // center
-      { x: 20, y: 50 },
-      { x: -20, y: 10 },
-      { x: -40, y: 0 },
-    ];
-
-    d3.svg
-      .line()
-      .x(function (d) {
-        return d.x;
-      })
-      .y(function (d) {
-        return d.y;
-      })
-      .interpolate("basis-closed");
     const pathData = "M 20,40 C 0,15 0,-15 20,-40 L -40,0 Z";
     // var pathData="M 20,40 C 0,15 0,-15 20,-40 20,-40 -35.22907,-23.905556 -45.113897,0.06313453 -35.22907,20.095453 20,40 20,40 Z";
     // var pathData="M 39.107144,51.25 C 0,17.362169 0,-13.75 39.285715,-49.821429 c 0,0 -69.58321,34.511175 -100.714286,50.35714329 C -22.96643,20.324376 39.107144,51.25 39.107144,51.25 Z";
@@ -196,7 +177,7 @@ module.exports = function (graph) {
       "transform",
       "translate(" + Class_dragger.x + "," + Class_dragger.y + ")",
     );
-    // console.log("update Elmenent root element"+Class_dragger.x + "," + Class_dragger.y );
+    // console.warn("update Elmenent root element"+Class_dragger.x + "," + Class_dragger.y );
     //
     // Class_dragger.nodeElement.attr("transform", function (d) {
     //     return "rotate(" + angle + ")";
@@ -206,7 +187,7 @@ module.exports = function (graph) {
   /** MOUSE HANDLING FUNCTIONS ------------------------------------------------- **/
 
   Class_dragger.addMouseEvents = function () {
-    // console.log("adding mouse events");
+    // console.warn("adding mouse events");
     Class_dragger.rootNodeLayer
       .selectAll("*")
       .on("mouseover", Class_dragger.onMouseOver)
@@ -218,14 +199,14 @@ module.exports = function (graph) {
   };
 
   Class_dragger.mouseDown = function () {
-    Class_dragger.nodeElement.style("cursor", "move");
+    Class_dragger.nodeElement.classed("is-dragging", true);
     Class_dragger.nodeElement.classed("classDraggerNodeHovered", true);
     Class_dragger.mouseButtonPressed = true;
     console.warn("Mouse DOWN from Dragger");
   };
 
   Class_dragger.mouseUp = function () {
-    Class_dragger.nodeElement.style("cursor", "auto");
+    Class_dragger.nodeElement.classed("is-dragging", false);
     Class_dragger.mouseButtonPressed = false;
     console.warn("Mouse UP from Dragger");
   };
@@ -271,7 +252,7 @@ module.exports = function (graph) {
   };
 
   Class_dragger.setAdditionalClassForClass_dragger = function (name, val) {
-    // console.log("Class_dragger should sett the class here")
+    // console.warn("Class_dragger should sett the class here")
     // Class_dragger.nodeElement.classed(name,val);
   };
   return Class_dragger;

@@ -1,5 +1,6 @@
 const BaseElement = require("../BaseElement");
-const CenteringTextElement = require("../../util/CenteringTextElement");
+const CenteringTextElement = require("../../../../shared/js/util/CenteringTextElement");
+const textTools = require("../../../../shared/js/util/textTools")();
 const drawTools = require("../drawTools")();
 const forceLayoutNodeFunctions = require("../forceLayoutNodeFunctions")();
 const rectangularElementTools = require("../rectangularElementTools")();
@@ -13,41 +14,47 @@ module.exports = (function () {
   // Constructor, private variables and privileged methods
   const Base = function (graph) {
     BaseElement.apply(this, arguments);
-    const that = this;
-    const defaultWidth = 80;
 
+    const that = this;
     // Basic attributes
-    let cardinality,
-      domain,
-      inverse,
-      link,
-      minCardinality,
-      maxCardinality,
-      range,
-      subproperties,
-      superproperties,
-      // Style attributes
-      linkType = "normal",
-      markerType = "filled",
-      labelVisible = true,
-      // Element containers
-      cardinalityElement,
-      labelElement,
-      linkGroup,
-      markerElement,
-      // Other
-      ignoreLocalHoverEvents,
-      fobj,
-      pinGroupElement,
-      haloGroupElement,
-      myWidth = 80,
-      shapeElement,
-      textElement,
-      parent_labelObject,
-      backupFullIri,
-      redundantProperties = [];
+    let cardinality;
+    let domain;
+    let inverse;
+    let link;
+    let minCardinality;
+    let maxCardinality;
+    let range;
+    let subproperties;
+    let superproperties;
+    // Style attributes
+    let linkType = "normal";
+    let markerType = "filled";
+    let labelVisible = true;
+    // Element containers
+    let cardinalityElement;
+    let labelElement;
+    let linkGroup;
+    let markerElement;
+    // Other
+    let ignoreLocalHoverEvents;
+    let fobj;
+    let pinGroupElement;
+    let haloGroupElement;
+    let myWidth = 80;
+    const defaultWidth = 80;
+    let shapeElement;
+    let textElement;
+    let parent_labelObject;
+    let backupFullIri;
+
+    let redundantProperties = [];
 
     this.existingPropertyIRI = function (url) {
+      // Emit an event that the app could respond to, though this is a synchronous return value.
+      // For now, we leave the direct call intact, but emit the event for future async migration.
+      graph.dispatchEvent(
+        new CustomEvent("urlcheckrequested", { detail: { url: url } }),
+      );
       return graph.options().editSidebar().checkForExistingURL(url);
     };
 
@@ -230,7 +237,7 @@ module.exports = (function () {
       that.focused(!that.focused());
       labelElement.select("rect").classed("focused", that.focused());
       graph.resetSearchHighlight();
-      graph.options().searchMenu().clearText();
+      graph.dispatchEvent(new CustomEvent("searchcleared"));
     };
     this.getShapeElement = function () {
       return shapeElement;
@@ -265,7 +272,13 @@ module.exports = (function () {
           .append("g")
           .datum(property)
           .classed("label", true)
-          .attr("id", property.id());
+          .attr("id", property.id())
+          .on("mouseover", function (event) {
+            onMouseOver(event, property);
+          })
+          .on("mouseout", function (event) {
+            onMouseOut(event, property);
+          });
 
         property.drawLabel(labelContainer);
         return labelContainer;
@@ -281,18 +294,29 @@ module.exports = (function () {
       }
 
       that.labelElement(attachLabel(that));
-      // Draw an inverse label and reposition both labels if necessary
+      // Draw an inverse label and reposition both labels deterministically
       if (that.inverse()) {
         const yTransformation = that.height() / 2 + 1; /* additional space */
         that.inverse().labelElement(attachLabel(that.inverse()));
 
-        that
-          .labelElement()
-          .attr("transform", "translate(" + 0 + ",-" + yTransformation + ")");
-        that
-          .inverse()
-          .labelElement()
-          .attr("transform", "translate(" + 0 + "," + yTransformation + ")");
+        const primaryProperty = that.link() ? that.link().property() : that;
+        if (that === primaryProperty) {
+          that
+            .labelElement()
+            .attr("transform", "translate(" + 0 + ",-" + yTransformation + ")");
+          that
+            .inverse()
+            .labelElement()
+            .attr("transform", "translate(" + 0 + "," + yTransformation + ")");
+        } else {
+          that
+            .labelElement()
+            .attr("transform", "translate(" + 0 + "," + yTransformation + ")");
+          that
+            .inverse()
+            .labelElement()
+            .attr("transform", "translate(" + 0 + ",-" + yTransformation + ")");
+        }
       }
 
       if (that.pinned()) {
@@ -316,13 +340,7 @@ module.exports = (function () {
         .attr("x", -that.width() / 2)
         .attr("y", -that.height() / 2)
         .attr("width", that.width())
-        .attr("height", that.height())
-        .on("mouseover", function () {
-          onMouseOver();
-        })
-        .on("mouseout", function () {
-          onMouseOut();
-        });
+        .attr("height", that.height());
 
       rect.append("title").text(that.labelForCurrentLanguage());
 
@@ -338,7 +356,7 @@ module.exports = (function () {
       } else {
         rect.classed("deprecatedproperty", false);
       }
-      rect.style("fill", bgColor);
+      drawTools.setBackgroundColor(rect, bgColor);
 
       return rect;
     };
@@ -398,7 +416,7 @@ module.exports = (function () {
               "d",
               "m -8.8832678,-11.303355 -7.97e-4,0 0.717374,1.833297 8.22987151,21.371761 8.66826659,-21.2123526 0.797082,-1.9927054 0.02471,0 -0.8218553,1.9927054 -2.2517565,5.4201577 -12.4444429,8e-6 -2.2019394,-5.5795821 z",
             )
-            .style("fill", "none")
+            .classed("nofill", true)
             .attr("transform", "matrix(0.5,0,0,0.5,0.5,0.5)");
           return true;
         } else if (
@@ -414,7 +432,7 @@ module.exports = (function () {
               "d",
               "m -5.5788451,-8.0958763 10.8749368,0 0,8.34681523 -9.5707468,0.040132 9.5707468,-0.040132 0,8.42707237 -10.9150654,0",
             )
-            .style("fill", "none")
+            .classed("nofill", true)
             .attr("transform", "matrix(0.5,0,0,0.5,0.5,0.5)");
           return true;
         } else {
@@ -443,9 +461,15 @@ module.exports = (function () {
 
     that.setHighlighting = function (enable) {
       if (that.labelElement && that.labelElement()) {
-        that.labelElement().select("rect").classed("hovered", enable);
+        that
+          .labelElement()
+          .selectAll("rect")
+          .classed("hovered", enable)
+          .classed("indirect-highlighting", false);
       }
-      that.linkGroup().selectAll("path, text").classed("hovered", enable);
+      if (that.linkGroup()) {
+        that.linkGroup().selectAll("path, text").classed("hovered", enable);
+      }
       if (that.markerElement()) {
         that.markerElement().select("path").classed("hovered", enable);
         if (that.cardinalityElement()) {
@@ -461,22 +485,44 @@ module.exports = (function () {
         if (property.labelElement && property.labelElement()) {
           property
             .labelElement()
-            .select("rect")
+            .selectAll("rect")
+            .classed("indirect-highlighting", enable);
+        }
+        if (
+          property.inverse &&
+          property.inverse() &&
+          property.inverse().labelElement &&
+          property.inverse().labelElement()
+        ) {
+          property
+            .inverse()
+            .labelElement()
+            .selectAll("rect")
             .classed("indirect-highlighting", enable);
         }
       });
       let inversed = false;
 
       if (graph.ignoreOtherHoverEvents() === false) {
-        if (that.inverse()) {
+        if (
+          that.inverse() &&
+          that.labelElement() &&
+          that.labelElement().attr("transform") === "translate(0,15)"
+        ) {
           inversed = true;
         }
 
         if (graph.isTouchDevice() === false) {
           graph.activateHoverElementsForProperties(enable, that, inversed);
         } else {
-          that.labelElement().select("rect").classed("hovered", false);
-          that.linkGroup().selectAll("path, text").classed("hovered", false);
+          that
+            .labelElement()
+            .selectAll("rect")
+            .classed("hovered", false)
+            .classed("indirect-highlighting", false);
+          if (that.linkGroup()) {
+            that.linkGroup().selectAll("path, text").classed("hovered", false);
+          }
           if (that.markerElement()) {
             that.markerElement().select("path").classed("hovered", false);
             if (that.cardinalityElement()) {
@@ -523,21 +569,32 @@ module.exports = (function () {
         return;
       }
       const selectedLabelGroup = that.labelElement().node().parentNode,
-        labelContainer = selectedLabelGroup.parentNode,
-        selectedLinkGroup = that.linkGroup().node(),
-        linkContainer = that.linkGroup().node().parentNode;
-      if (that.animationProcess() === false) {
+        labelContainer = selectedLabelGroup
+          ? selectedLabelGroup.parentNode
+          : null,
+        selectedLinkGroup = that.linkGroup() ? that.linkGroup().node() : null,
+        linkContainer = selectedLinkGroup ? selectedLinkGroup.parentNode : null;
+      if (
+        labelContainer &&
+        labelContainer.lastChild !== selectedLabelGroup &&
+        that.animationProcess() === false
+      ) {
         labelContainer.appendChild(selectedLabelGroup);
       }
-      linkContainer.appendChild(selectedLinkGroup);
+      if (linkContainer && linkContainer.lastChild !== selectedLinkGroup) {
+        linkContainer.appendChild(selectedLinkGroup);
+      }
     };
 
     /**
      * Foregrounds the sub- and superproperties of this property.
      * This is separated from the foreground-function to prevent endless loops.
      */
-    function foregroundSubAndSuperProperties() {
-      const subAndSuperProperties = getSubAndSuperProperties();
+    function foregroundSubAndSuperProperties(targetProperty) {
+      const prop = targetProperty || that;
+      const subAndSuperProperties = prop.getSubAndSuperProperties
+        ? prop.getSubAndSuperProperties()
+        : getSubAndSuperProperties();
 
       subAndSuperProperties.forEach(function (property) {
         if (property.foreground) {
@@ -546,23 +603,41 @@ module.exports = (function () {
       });
     }
 
-    function onMouseOver() {
-      if (that.mouseEntered() || ignoreLocalHoverEvents === true) {
+    function onMouseOver(event, targetProperty) {
+      const prop = targetProperty || that;
+      if (
+        prop.mouseEntered() ||
+        ignoreLocalHoverEvents === true ||
+        graph.ignoreOtherHoverEvents() === true
+      ) {
         return;
       }
-      that.mouseEntered(true);
-      that.setHighlighting(true);
-      that.foreground();
-      foregroundSubAndSuperProperties();
+      prop.mouseEntered(true);
+      prop.setHighlighting(true);
+      prop.foreground();
+      foregroundSubAndSuperProperties(prop);
     }
 
-    function onMouseOut() {
-      that.mouseEntered(false);
-      that.setHighlighting(false);
+    function onMouseOut(event, targetProperty) {
+      const prop = targetProperty || that;
+      const labelNode = prop.labelElement() ? prop.labelElement().node() : null;
+      if (
+        event &&
+        event.relatedTarget &&
+        labelNode &&
+        labelNode.contains(event.relatedTarget)
+      ) {
+        return;
+      }
+      prop.mouseEntered(false);
+      prop.setHighlighting(false);
     }
 
     this.drawPin = function () {
       that.pinned(true);
+      if (that.inverse()) {
+        that.inverse().pinned(true);
+      }
       if (graph.options().dynamicLabelWidth() === true) {
         myWidth = that.getMyWidth();
       } else {
@@ -571,11 +646,21 @@ module.exports = (function () {
 
       if (that.inverse()) {
         // check which element is rendered on top and add a pin to it
-        const tr_that = that.labelElement().attr("transform");
-        const tr_inv = that.inverse().labelElement().attr("transform");
+        const tr_that = that.labelElement()
+          ? that.labelElement().attr("transform")
+          : "";
+        const tr_inv =
+          that.inverse() && that.inverse().labelElement()
+            ? that.inverse().labelElement().attr("transform")
+            : "";
 
-        const thatY = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_that)[2];
-        const invY = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_inv)[2];
+        const matchThat = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(
+          tr_that,
+        );
+        const matchInv = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(tr_inv);
+
+        const thatY = matchThat ? parseFloat(matchThat[2]) : -15;
+        const invY = matchInv ? parseFloat(matchInv[2]) : 15;
 
         if (thatY < invY) {
           pinGroupElement = drawTools.drawPin(
@@ -613,6 +698,9 @@ module.exports = (function () {
      */
     this.removePin = function () {
       that.pinned(false);
+      if (that.inverse()) {
+        that.inverse().pinned(false);
+      }
       if (pinGroupElement) {
         pinGroupElement.remove();
       }
@@ -692,36 +780,17 @@ module.exports = (function () {
 
     this.getMyWidth = function () {
       const text = that.labelForCurrentLanguage();
-      myWidth = measureTextWidth(text, "text") + 20;
+      myWidth = textTools.measureTextWidth(text, "text") + 20;
       // check for sub names;
       const indicatorText = that.indicationString();
-      const indicatorWidth = measureTextWidth(indicatorText, "subtext") + 20;
+      const indicatorWidth =
+        textTools.measureTextWidth(indicatorText, "subtext") + 20;
       if (indicatorWidth > myWidth) {
         myWidth = indicatorWidth;
       }
 
       return myWidth;
     };
-
-    function measureTextWidth(text, textStyle) {
-      // Set a default value
-      if (!textStyle) {
-        textStyle = "text";
-      }
-      const d = d3
-          .select("body")
-          .append("div")
-          .attr("class", textStyle)
-          .attr("id", "width-test") // tag this element to identify it
-          .attr(
-            "style",
-            "position:absolute; float:left; white-space:nowrap; visibility:hidden;",
-          )
-          .text(text),
-        w = document.getElementById("width-test").offsetWidth;
-      d.remove();
-      return w;
-    }
 
     this.textWidth = function () {
       return myWidth;
@@ -743,10 +812,10 @@ module.exports = (function () {
         shapeElement
           .transition()
           .tween("attr", function () {})
-          .ease("linear")
+          .ease(d3.easeLinear)
           .duration(100)
           .attr({ x: -myWidth / 2, y: -h / 2, width: myWidth, height: h })
-          .each("end", function () {
+          .on("end", function () {
             that.updateTextElement();
           });
       } else {
@@ -756,7 +825,7 @@ module.exports = (function () {
         shapeElement
           .transition()
           .tween("attr", function () {})
-          .ease("linear")
+          .ease(d3.easeLinear)
           .duration(100)
           .attr({ x: -myWidth / 2, y: -h / 2, width: myWidth, height: h });
       }
@@ -767,7 +836,7 @@ module.exports = (function () {
           .transition()
           .tween("attr.translate", function () {})
           .attr("transform", "translate(" + dx + "," + dy + ")")
-          .ease("linear")
+          .ease(d3.easeLinear)
           .duration(100);
       }
     };
@@ -808,7 +877,7 @@ module.exports = (function () {
       that.raiseDoubleClickEdit(true);
     };
 
-    this.raiseDoubleClickEdit = function (forceIRISync) {
+    this.raiseDoubleClickEdit = function (forceIRISync, event) {
       d3.selectAll(".foreignelements").remove();
       if (
         that.labelElement() === undefined ||
@@ -822,8 +891,12 @@ module.exports = (function () {
         that.labelElement().selectAll(".foreignelements").remove();
       }
       backupFullIri = undefined;
-      graph.options().focuserModule().handle(undefined);
-      graph.options().focuserModule().handle(that);
+      graph.dispatchEvent(
+        new CustomEvent("elementfocused", { detail: { element: undefined } }),
+      );
+      graph.dispatchEvent(
+        new CustomEvent("elementfocused", { detail: { element: that } }),
+      );
       that.editingTextElement = true;
       ignoreLocalHoverEvents = true;
       that.labelElement().selectAll("rect").classed("hoveredForEditing", true);
@@ -837,7 +910,7 @@ module.exports = (function () {
         .attr("y", -13)
         .attr("height", 25)
         .attr("class", "foreignelements")
-        .on("dragstart", function () {
+        .on("dragstart", function (event) {
           return false;
         }) // remove drag operations of text element)
         .attr("width", that.textWidth() - 2);
@@ -847,86 +920,86 @@ module.exports = (function () {
       //
       const editText = fobj
         .append("xhtml:input")
-        .attr("class", "nodeEditSpan")
+        .attr("class", "nodeEditSpan nodeEditSpan--property")
         .attr("id", that.id())
         .attr("align", "center")
         .attr("contentEditable", "true")
-        .on("dragstart", function () {
+        .on("dragstart", function (event) {
           return false;
         }); // remove drag operations of text element)
 
-      const bgColor = "#f00";
-      const txtWidth = that.textWidth() - 2;
-      editText.style({
-        // 'line-height': '30px',
-        align: "center",
-        color: "black",
-        width: txtWidth + "px",
-        "background-color": bgColor,
-        "border-bottom": "2px solid black",
-      });
       const txtNode = editText.node();
       txtNode.value = that.labelForCurrentLanguage();
       txtNode.focus();
       txtNode.select();
-      if (d3.event.stopPropagation) {
-        d3.event.stopPropagation();
+      if (event && event.stopPropagation) {
+        event.stopPropagation();
       }
-      if (d3.event.sourceEvent && d3.event.sourceEvent.stopPropagation) {
-        d3.event.sourceEvent.stopPropagation();
+      if (event && event.sourceEvent && event.sourceEvent.stopPropagation) {
+        event.sourceEvent.stopPropagation();
       }
 
       // add some events that relate to this object
-      editText.on("click", function () {
-        if (d3.event.stopPropagation) {
-          d3.event.stopPropagation();
+      editText.on("click", function (event) {
+        if (event && event.stopPropagation) {
+          event.stopPropagation();
         }
-        if (d3.event.sourceEvent && d3.event.sourceEvent.stopPropagation) {
-          d3.event.sourceEvent.stopPropagation();
+        if (event && event.sourceEvent && event.sourceEvent.stopPropagation) {
+          event.sourceEvent.stopPropagation();
         }
       });
       // // remove hover Events for now;
-      editText.on("mouseout", function () {
-        if (d3.event.stopPropagation) {
-          d3.event.stopPropagation();
+      editText.on("mouseout", function (event) {
+        if (event && event.stopPropagation) {
+          event.stopPropagation();
         }
-        if (d3.event.sourceEvent && d3.event.sourceEvent.stopPropagation) {
-          d3.event.sourceEvent.stopPropagation();
+        if (event && event.sourceEvent && event.sourceEvent.stopPropagation) {
+          event.sourceEvent.stopPropagation();
         }
       });
       editText
-        .on("mousedown", function () {
-          if (d3.event.stopPropagation) {
-            d3.event.stopPropagation();
+        .on("mousedown", function (event) {
+          if (event && event.stopPropagation) {
+            event.stopPropagation();
           }
-          if (d3.event.sourceEvent && d3.event.sourceEvent.stopPropagation) {
-            d3.event.sourceEvent.stopPropagation();
+          if (event && event.sourceEvent && event.sourceEvent.stopPropagation) {
+            event.sourceEvent.stopPropagation();
           }
         })
-        .on("keydown", function () {
-          if (d3.event.keyCode === 13) {
+        .on("keydown", function (event) {
+          if (event.key === "Enter") {
             this.blur();
             that.frozen(false); // << releases the not after selection
             that.locked(false);
           }
         })
-        .on("keyup", function () {
+        .on("keyup", function (event) {
+          let syncedIRI = null;
           if (forceIRISync) {
             const labelName = editText.node().value;
             const resourceName = labelName.replaceAll(" ", "_");
-            const syncedIRI = that.baseIri() + resourceName;
+            syncedIRI = that.baseIri() + resourceName;
             backupFullIri = syncedIRI;
-
-            d3.select("#element_iriEditor").node().title = syncedIRI;
-            d3.select("#element_iriEditor").node().value = graph
+          }
+          let prefixedIri = null;
+          if (forceIRISync) {
+            prefixedIri = graph
               .options()
               .prefixModule()
               .getPrefixRepresentationForFullURI(syncedIRI);
           }
-          d3.select("#element_labelEditor").node().value =
-            editText.node().value;
+          graph.dispatchEvent(
+            new CustomEvent("editor-element-keyup", {
+              detail: {
+                element: that,
+                label: editText.node().value,
+                syncedIRI: forceIRISync ? syncedIRI : null,
+                prefixedIri: prefixedIri,
+              },
+            }),
+          );
         })
-        .on("blur", function () {
+        .on("blur", function (event) {
           that.editingTextElement = false;
           ignoreLocalHoverEvents = false;
           that
@@ -939,6 +1012,9 @@ module.exports = (function () {
           that.label(newLabel);
           that.backupLabel(newLabel);
           that.redrawLabelText();
+          if (graph !== undefined) {
+            graph.dispatchEvent(new CustomEvent("dictionarychange"));
+          }
           updateHoverElements(true);
           graph.showHoverElementsAfterAnimation(that, false);
           graph.ignoreOtherHoverEvents(false);
@@ -975,8 +1051,14 @@ module.exports = (function () {
             }
             that.iri(backupFullIri);
           }
-          graph.options().focuserModule().handle(undefined);
-          graph.options().focuserModule().handle(that);
+          graph.dispatchEvent(
+            new CustomEvent("elementfocused", {
+              detail: { element: undefined },
+            }),
+          );
+          graph.dispatchEvent(
+            new CustomEvent("elementfocused", { detail: { element: that } }),
+          );
           graph.updatePropertyDraggerElements(that);
         }); // add a foreiner element to this thing;
     };
@@ -985,7 +1067,11 @@ module.exports = (function () {
     function updateHoverElements(enable) {
       if (graph.ignoreOtherHoverEvents() === false) {
         let inversed = false;
-        if (that.inverse()) {
+        if (
+          that.inverse() &&
+          that.labelElement() &&
+          that.labelElement().attr("transform") === "translate(0,15)"
+        ) {
           inversed = true;
         }
         if (enable === true) {

@@ -1,9 +1,22 @@
 {
   "extends": [
     "html-validate:recommended",
+    "html-validate:document",
     "html-validate:prettier"
   ],
   "rules": {
-    "no-inline-style": "off"
+    "no-inline-style": [
+      "error",
+      {
+        "allowVariables": true,
+        "allowedProperties": []
+      }
+    ],
+    "require-sri": [
+      "error",
+      {
+        "target": "crossorigin"
+      }
+    ]
   }
 }

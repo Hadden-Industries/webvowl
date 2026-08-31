@@ -14,9 +14,11 @@ nodes.push(require("./implementations/RdfsDatatype"));
 nodes.push(require("./implementations/RdfsLiteral"));
 nodes.push(require("./implementations/RdfsResource"));
 
-const map = d3.map(nodes, function (Prototype) {
-  return new Prototype().type();
-});
+const map = new Map(
+  nodes.map(function (Prototype) {
+    return [new Prototype().type(), Prototype];
+  }),
+);
 
 module.exports = function () {
   return map;

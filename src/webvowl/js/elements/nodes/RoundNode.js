@@ -1,5 +1,5 @@
 const BaseNode = require("./BaseNode");
-const CenteringTextElement = require("../../util/CenteringTextElement");
+const CenteringTextElement = require("../../../../shared/js/util/CenteringTextElement");
 const drawTools = require("../drawTools")();
 
 module.exports = (function () {
@@ -86,7 +86,7 @@ module.exports = (function () {
         that.nodeElement().select("circle").classed("focused", that.focused());
       }
       graph.resetSearchHighlight();
-      graph.options().searchMenu().clearText();
+      graph.dispatchEvent(new CustomEvent("searchcleared"));
     };
 
     this.actualRadius = function () {

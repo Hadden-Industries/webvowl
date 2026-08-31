@@ -2,14 +2,15 @@
  * Contains the logic for the export button.
  * @returns {{}}
  */
-module.exports = function (graph) {
+module.exports = function exportTTLModule(graph) {
   const exportTTLModule = {};
   let resultingTTLContent = "";
   let currentNodes;
   let currentProperties;
   let Map_ID2Node = {};
   let Map_ID2Prop = {};
-  const prefixModule = webvowl.util.prefixTools(graph);
+  const prefixModule =
+    require("../../../shared/js/util/prefixRepresentationModule")(graph);
 
   exportTTLModule.requestExport = function () {
     prefixModule.updatePrefixModel();
@@ -51,21 +52,15 @@ module.exports = function (graph) {
       const nodeIRI = prefixModule.getPrefixRepresentationForFullURI(
         allNodes[i].iri(),
       );
-      if (prefixModule.validURL(nodeIRI) === true) {
-        allNodes[i].prefixRepresentation = "<" + nodeIRI + ">";
-      } else {
-        allNodes[i].prefixRepresentation = nodeIRI;
-      }
+      // In Turtle format, prefixed QNames (e.g. "owl:Thing") stay bare,
+      // while un-prefixed absolute IRIs are enclosed in angle brackets (<https://...>).
+      allNodes[i].prefixRepresentation = prefixModule.formatForTTL(nodeIRI);
     }
     for (i = 0; i < allProps.length; i++) {
       const propIRI = prefixModule.getPrefixRepresentationForFullURI(
         allProps[i].iri(),
       );
-      if (prefixModule.validURL(propIRI) === true) {
-        allProps[i].prefixRepresentation = "<" + propIRI + ">";
-      } else {
-        allProps[i].prefixRepresentation = propIRI;
-      }
+      allProps[i].prefixRepresentation = prefixModule.formatForTTL(propIRI);
     }
   }
 
@@ -166,12 +161,7 @@ module.exports = function (graph) {
       const eqIRI = prefixModule.getPrefixRepresentationForFullURI(
         node.equivalents()[e].iri(),
       );
-      let eqNode_prefRepresentation;
-      if (prefixModule.validURL(eqIRI) === true) {
-        eqNode_prefRepresentation = "<" + eqIRI + ">";
-      } else {
-        eqNode_prefRepresentation = eqIRI;
-      }
+      const eqNode_prefRepresentation = prefixModule.formatForTTL(eqIRI);
       objectDef +=
         indent + " owl:equivalentClass " + eqNode_prefRepresentation + " ;\r\n";
     }
@@ -216,12 +206,7 @@ module.exports = function (graph) {
         const duIri = prefixModule.getPrefixRepresentationForFullURI(
           arrayOfNodes[duE].iri(),
         );
-        let duNode_prefRepresentation;
-        if (prefixModule.validURL(duIri) === true) {
-          duNode_prefRepresentation = "<" + duIri + ">";
-        } else {
-          duNode_prefRepresentation = duIri;
-        }
+        const duNode_prefRepresentation = prefixModule.formatForTTL(duIri);
         objectDef += indent + indent + duNode_prefRepresentation + " \n";
       }
       objectDef += ") ;\r\n";
@@ -237,12 +222,7 @@ module.exports = function (graph) {
           const uIri = prefixModule.getPrefixRepresentationForFullURI(
             arrayOfUnionNodes[uE].iri(),
           );
-          let uNode_prefRepresentation;
-          if (prefixModule.validURL(uIri) === true) {
-            uNode_prefRepresentation = "<" + uIri + ">";
-          } else {
-            uNode_prefRepresentation = uIri;
-          }
+          const uNode_prefRepresentation = prefixModule.formatForTTL(uIri);
           objectDef +=
             indent + indent + indent + uNode_prefRepresentation + " \n";
         }
@@ -499,7 +479,7 @@ module.exports = function (graph) {
     resultingTTLContent +=
       "#################################################################\r\n";
     resultingTTLContent +=
-      "###  Generated with the experimental alpha version of the TTL exporter of WebVOWL (version 1.1.7) " +
+      "###  Generated with the experimental alpha version of the TTL exporter of WebVOWL (version 2.0.0) " +
       " http://visualdataweb.de/webvowl/   ###\r\n";
     resultingTTLContent +=
       "#################################################################\r\n\r\n";

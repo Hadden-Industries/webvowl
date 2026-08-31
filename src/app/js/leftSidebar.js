@@ -5,23 +5,20 @@
  */
 module.exports = function (graph) {
   const leftSidebar = {};
-  const collapseButton = d3.select("#leftSideBarCollapseButton");
+  const collapseButton = document.querySelector("#leftSideBarCollapseButton");
   let visibleSidebar = 0;
-  let backupVisibility = 0;
-  const sideBarContent = d3.select("#leftSideBarContent");
-  const sideBarContainer = d3.select("#containerForLeftSideBar");
+  const sideBarContent = document.querySelector("#leftSideBarContent");
+  const sideBarContainer = document.querySelector("#containerForLeftSideBar");
   const defaultClassSelectionContainers = [];
   const defaultDatatypeSelectionContainers = [];
   const defaultPropertySelectionContainers = [];
 
   leftSidebar.setup = function () {
     setupCollapsing();
-    leftSidebar.initSideBarAnimation();
 
-    collapseButton.on("click", function () {
+    collapseButton.addEventListener("click", function () {
       graph.options().navigationMenu().hideAllMenus();
       const settingValue = parseInt(leftSidebar.getSidebarVisibility());
-      backupVisibility = settingValue;
       if (settingValue === 0) {
         leftSidebar.showSidebar(1);
       } else {
@@ -29,46 +26,48 @@ module.exports = function (graph) {
       }
     });
 
+    collapseButton.addEventListener("contextmenu", function (event) {
+      if (event) {
+        event.preventDefault();
+      }
+    });
+
     setupSelectionContainers();
-    d3.select("#WarningErrorMessages")
-      .node()
-      .addEventListener("animationend", function () {
-        d3.select("#WarningErrorMessages").style(
-          "-webkit-animation-name",
-          "none",
-        );
-      });
   };
 
   leftSidebar.hideCollapseButton = function (val) {
-    sideBarContainer.classed("hidden", val);
+    sideBarContainer.classList.toggle("hidden", val);
+    collapseButton.classList.toggle("hidden", val);
   };
 
   function unselectAllElements(container) {
     for (let i = 0; i < container.length; i++) {
-      container[i].classed("defaultSelected", false);
+      container[i].classList.remove("defaultSelected");
     }
   }
 
   function selectThisDefaultElement(element) {
-    d3.select(element).classed("defaultSelected", true);
+    element.classList.add("defaultSelected");
   }
 
   function updateDefaultNameInAccordion(element, identifier) {
     let elementDescription = "";
     if (identifier === "defaultClass") {
       elementDescription = "Class: ";
+      graph.options().defaultClass(element.innerHTML);
     }
     if (identifier === "defaultDatatype") {
       elementDescription = "Datatype: ";
+      graph.options().defaultDatatype(element.innerHTML);
     }
     if (identifier === "defaultProperty") {
       elementDescription = "Property: ";
+      graph.options().defaultProperty(element.innerHTML);
     }
 
-    d3.select("#" + identifier).node().innerHTML =
+    document.querySelector("#" + identifier).innerHTML =
       elementDescription + element.innerHTML;
-    d3.select("#" + identifier).node().title = element.innerHTML;
+    document.querySelector("#" + identifier).title = element.innerHTML;
   }
 
   function classSelectorFunction() {
@@ -90,10 +89,9 @@ module.exports = function (graph) {
   }
 
   function setupSelectionContainers() {
-    let aClassSelectionContainer;
-    const classContainer = d3.select("#classContainer");
-    const datatypeContainer = d3.select("#datatypeContainer");
-    const propertyContainer = d3.select("#propertyContainer");
+    const classContainer = document.querySelector("#classContainer");
+    const datatypeContainer = document.querySelector("#datatypeContainer");
+    const propertyContainer = document.querySelector("#propertyContainer");
     // create the supported elements
 
     const defaultClass = "owl:Class";
@@ -106,80 +104,77 @@ module.exports = function (graph) {
     let i;
 
     for (i = 0; i < supportedClasses.length; i++) {
-      aClassSelectionContainer = classContainer.append("div");
-      aClassSelectionContainer.classed("containerForDefaultSelection", true);
-      aClassSelectionContainer.classed("noselect", true);
-      aClassSelectionContainer.node().id =
-        "selectedClass" + supportedClasses[i];
-      aClassSelectionContainer.node().innerHTML = supportedClasses[i];
+      const aClassSelectionContainer = document.createElement("div");
+      classContainer.appendChild(aClassSelectionContainer);
+      aClassSelectionContainer.classList.add("containerForDefaultSelection");
+      aClassSelectionContainer.classList.add("noselect");
+      aClassSelectionContainer.id = "selectedClass" + supportedClasses[i];
+      aClassSelectionContainer.innerHTML = supportedClasses[i];
 
       if (supportedClasses[i] === defaultClass) {
-        selectThisDefaultElement(aClassSelectionContainer.node());
+        selectThisDefaultElement(aClassSelectionContainer);
       }
-      aClassSelectionContainer.on("click", classSelectorFunction);
+      aClassSelectionContainer.addEventListener("click", classSelectorFunction);
       defaultClassSelectionContainers.push(aClassSelectionContainer);
     }
 
     for (i = 0; i < supportedDatatypes.length; i++) {
-      const aDTSelectionContainer = datatypeContainer.append("div");
-      aDTSelectionContainer.classed("containerForDefaultSelection", true);
-      aDTSelectionContainer.classed("noselect", true);
-      aDTSelectionContainer.node().id =
-        "selectedDatatype" + supportedDatatypes[i];
-      aDTSelectionContainer.node().innerHTML = supportedDatatypes[i];
+      const aDTSelectionContainer = document.createElement("div");
+      datatypeContainer.appendChild(aDTSelectionContainer);
+      aDTSelectionContainer.classList.add("containerForDefaultSelection");
+      aDTSelectionContainer.classList.add("noselect");
+      aDTSelectionContainer.id = "selectedDatatype" + supportedDatatypes[i];
+      aDTSelectionContainer.innerHTML = supportedDatatypes[i];
 
       if (supportedDatatypes[i] === defaultDatatype) {
-        selectThisDefaultElement(aDTSelectionContainer.node());
+        selectThisDefaultElement(aDTSelectionContainer);
       }
-      aDTSelectionContainer.on("click", datatypeSelectorFunction);
+      aDTSelectionContainer.addEventListener("click", datatypeSelectorFunction);
       defaultDatatypeSelectionContainers.push(aDTSelectionContainer);
     }
     for (i = 0; i < supportedProperties.length; i++) {
-      const aPropSelectionContainer = propertyContainer.append("div");
-      aPropSelectionContainer.classed("containerForDefaultSelection", true);
-      aPropSelectionContainer.classed("noselect", true);
-      aPropSelectionContainer.node().id =
-        "selectedClass" + supportedProperties[i];
-      aPropSelectionContainer.node().innerHTML = supportedProperties[i];
-      aPropSelectionContainer.on("click", propertySelectorFunction);
+      const aPropSelectionContainer = document.createElement("div");
+      propertyContainer.appendChild(aPropSelectionContainer);
+      aPropSelectionContainer.classList.add("containerForDefaultSelection");
+      aPropSelectionContainer.classList.add("noselect");
+      aPropSelectionContainer.id = "selectedClass" + supportedProperties[i];
+      aPropSelectionContainer.innerHTML = supportedProperties[i];
+      aPropSelectionContainer.addEventListener(
+        "click",
+        propertySelectorFunction,
+      );
       if (supportedProperties[i] === defaultProperty) {
-        selectThisDefaultElement(aPropSelectionContainer.node());
+        selectThisDefaultElement(aPropSelectionContainer);
       }
       defaultPropertySelectionContainers.push(aPropSelectionContainer);
     }
   }
 
   function setupCollapsing() {
-    // adapted version of this example: http://www.normansblog.de/simple-jquery-accordion/
-    function collapseContainers(containers) {
-      containers.classed("hidden", true);
-    }
+    const triggers = document.querySelectorAll(".accordion-trigger");
 
-    function expandContainers(containers) {
-      containers.classed("hidden", false);
-    }
+    triggers.forEach(function (trigger) {
+      trigger.setAttribute("tabindex", "0");
+      trigger.setAttribute("role", "button");
+      trigger.addEventListener("keydown", function (event) {
+        const evt = event || window.event;
+        if (evt && (evt.key === "Enter" || evt.key === " ")) {
+          evt.preventDefault();
+          this.click();
+        }
+      });
 
-    const triggers = d3.selectAll(".accordion-trigger");
-
-    // Collapse all inactive triggers on startup
-    // collapseContainers(d3.selectAll(".accordion-trigger:not(.accordion-trigger-active) + div"));
-
-    triggers.on("click", function () {
-      const selectedTrigger = d3.select(this);
-      if (selectedTrigger.classed("accordion-trigger-active")) {
-        // Collapse the active (which is also the selected) trigger
-        collapseContainers(
-          d3.select(selectedTrigger.node().nextElementSibling),
-        );
-        selectedTrigger.classed("accordion-trigger-active", false);
-      } else {
-        // Collapse the other trigger ...
-        // collapseContainers(d3.selectAll(".accordion-trigger-active + div"));
-        // activeTriggers.classed("accordion-trigger-active", false);
-        // ... and expand the selected one
-        expandContainers(d3.select(selectedTrigger.node().nextElementSibling));
-        selectedTrigger.classed("accordion-trigger-active", true);
-      }
+      trigger.addEventListener("click", function () {
+        if (this.classList.contains("accordion-trigger-active")) {
+          // Collapse the active
+          this.nextElementSibling.classList.add("hidden");
+          this.classList.remove("accordion-trigger-active");
+        } else {
+          // expand the selected one
+          this.nextElementSibling.classList.remove("hidden");
+          this.classList.add("accordion-trigger-active");
+        }
+      });
     });
   }
 
@@ -192,97 +187,41 @@ module.exports = function (graph) {
     leftSidebar.showSidebar(parseInt(vis), init);
   };
 
-  leftSidebar.initSideBarAnimation = function () {
-    sideBarContainer.node().addEventListener("animationend", function () {
-      sideBarContent.classed("hidden", !visibleSidebar);
-      if (visibleSidebar === true) {
-        sideBarContainer.style("width", "200px");
-        sideBarContent.classed("hidden", false);
-        d3.select("#leftSideBarCollapseButton").style("left", "200px");
-        d3.select("#leftSideBarCollapseButton").classed("hidden", false);
-        d3.select("#WarningErrorMessages").style("left", "100px");
-      } else {
-        sideBarContainer.style("width", "0px");
-        d3.select("#leftSideBarCollapseButton").style("left", "0px");
-        d3.select("#WarningErrorMessages").style("left", "0px");
-        d3.select("#leftSideBarCollapseButton").classed("hidden", false);
-      }
-      graph.updateCanvasContainerSize();
-      graph.options().navigationMenu().updateScrollButtonVisibility();
-    });
-  };
-
   leftSidebar.showSidebar = function (val, init) {
-    // make val to bool
-    const collapseButton = d3.select("#leftSideBarCollapseButton");
+    const collapseButton = document.querySelector("#leftSideBarCollapseButton");
+
     if (init === true) {
-      visibleSidebar = backupVisibility === 0;
-      sideBarContent.classed("hidden", !visibleSidebar);
-      sideBarContainer.style("-webkit-animation-name", "none");
-      d3.select("#WarningErrorMessages").style(
-        "-webkit-animation-name",
-        "none",
-      );
-      if (visibleSidebar === true) {
-        sideBarContainer.style("width", "200px");
-        sideBarContent.classed("hidden", false);
-        d3.select("#leftSideBarCollapseButton").style("left", "200px");
-        d3.select("#leftSideBarCollapseButton").classed("hidden", false);
-        d3.select("#WarningErrorMessages").style("left", "100px");
-        collapseButton.node().innerHTML = "<";
-      } else {
-        sideBarContainer.style("width", "0px");
-        d3.select("#WarningErrorMessages").style("left", "0px");
-        d3.select("#leftSideBarCollapseButton").style("left", "0px");
-        d3.select("#leftSideBarCollapseButton").classed("hidden", false);
-        collapseButton.node().innerHTML = ">";
-      }
-
-      graph.updateCanvasContainerSize();
-      graph.options().navigationMenu().updateScrollButtonVisibility();
-      return;
+      document.body.classList.add("no-transition");
     }
 
-    d3.select("#leftSideBarCollapseButton").classed("hidden", true);
+    const isVisible = val === 1;
+    visibleSidebar = isVisible;
+    collapseButton.innerHTML = isVisible ? "<" : ">";
 
-    if (val === 1) {
-      visibleSidebar = true;
-      collapseButton.node().innerHTML = "<";
-      // call expand animation;
-      sideBarContainer.style("-webkit-animation-name", "l_sbExpandAnimation");
-      sideBarContainer.style("-webkit-animation-duration", "0.5s");
-      // prepare the animation;
+    sideBarContent.classList.toggle("hidden", !isVisible);
+    sideBarContainer.classList.toggle("sidebar-visible", isVisible);
+    collapseButton.classList.toggle("aligned-to-left-sidebar", isVisible);
+    collapseButton.classList.toggle(
+      "hidden",
+      sideBarContainer.classList.contains("hidden"),
+    );
 
-      d3.select("#WarningErrorMessages").style(
-        "-webkit-animation-name",
-        "warn_ExpandLeftBarAnimation",
-      );
-      d3.select("#WarningErrorMessages").style(
-        "-webkit-animation-duration",
-        "0.5s",
-      );
-    }
-    if (val === 0) {
-      visibleSidebar = false;
-      sideBarContent.classed("hidden", true);
-      collapseButton.node().innerHTML = ">";
-      // call collapse animation
-      sideBarContainer.style("-webkit-animation-name", "l_sbCollapseAnimation");
-      sideBarContainer.style("-webkit-animation-duration", "0.5s");
-      d3.select("#WarningErrorMessages").style(
-        "-webkit-animation-name",
-        "warn_CollapseLeftBarAnimation",
-      );
-      d3.select("#WarningErrorMessages").style(
-        "-webkit-animation-duration",
-        "0.5s",
-      );
-      d3.select("#WarningErrorMessages").style("left", "0");
+    document
+      .querySelector("#WarningErrorMessages")
+      .classList.toggle("aligned-to-left-sidebar", isVisible);
+
+    graph.updateCanvasContainerSize();
+    graph.options().navigationMenu().updateScrollButtonVisibility();
+
+    if (init === true) {
+      requestAnimationFrame(function () {
+        document.body.classList.remove("no-transition");
+      });
     }
   };
 
   leftSidebar.getSidebarVisibility = function () {
-    const isHidden = sideBarContent.classed("hidden");
+    const isHidden = sideBarContent.classList.contains("hidden");
     if (isHidden === false) {
       return String(1);
     }

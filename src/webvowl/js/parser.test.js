@@ -1,10 +1,3 @@
-const {
-  installD3V3CollectionAdapter,
-} = require("../test/d3V3CollectionAdapter");
-
-const restoreD3 = installD3V3CollectionAdapter();
-afterAll(restoreD3);
-
 const createParser = require("./parser");
 
 describe("Parser Inverse Property Type Matching Unit Tests", () => {
@@ -98,5 +91,49 @@ describe("Parser Inverse Property Type Matching Unit Tests", () => {
     // someValuesFrom pair
     expect(p169.inverse()).toBe(p170);
     expect(p170.inverse()).toBe(p169);
+  });
+});
+
+describe("Parser viewport settings", () => {
+  function createMockGraph() {
+    return {
+      options: () => ({
+        filterMenu: () => ({ updateSettings: () => {} }),
+        modeMenu: () => ({ updateSettings: () => {} }),
+        gravityMenu: () => ({ reset: () => {} }),
+      }),
+      setViewportTransform: jest.fn(() => true),
+      setZoom: jest.fn(() => true),
+      setTranslation: jest.fn(() => true),
+      updateStyle: jest.fn(),
+    };
+  }
+
+  test("imports zoom and translation as one atomic viewport update", () => {
+    const graph = createMockGraph();
+    const parser = createParser(graph);
+    parser.parse({
+      settings: { global: { zoom: "0.38", translation: [10, 20] } },
+    });
+
+    parser.parseSettings();
+
+    expect(graph.setViewportTransform).toHaveBeenCalledWith("0.38", [10, 20]);
+    expect(graph.setZoom).not.toHaveBeenCalled();
+    expect(graph.setTranslation).not.toHaveBeenCalled();
+    expect(parser.settingsImportGraphZoomAndTranslation()).toBe(true);
+  });
+
+  test("does not suppress centering when an invalid viewport is rejected", () => {
+    const graph = createMockGraph();
+    graph.setViewportTransform.mockReturnValue(false);
+    const parser = createParser(graph);
+    parser.parse({
+      settings: { global: { zoom: "NaN", translation: [NaN, NaN] } },
+    });
+
+    parser.parseSettings();
+
+    expect(parser.settingsImportGraphZoomAndTranslation()).toBe(false);
   });
 });

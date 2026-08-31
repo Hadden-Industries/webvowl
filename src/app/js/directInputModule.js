@@ -7,51 +7,44 @@ if (!owl2vowl.loadWithImports && owl2vowlModule.loadWithImports) {
 module.exports = function (graph) {
   /** variable defs **/
   const directInputModule = {};
-  const inputContainer = d3.select("#DirectInputContent");
-  inputContainer.style("top", "0");
-  inputContainer.style("position", "absolute");
-  const textArea = d3.select("#directInputTextArea");
+  const inputContainer = document.querySelector("#DirectInputContent");
+  const textArea = document.querySelector("#directInputTextArea");
   let visibleContainer = false;
-
-  inputContainer.style("border", "1px solid black");
-  inputContainer.style("padding", "5px");
-  inputContainer.style("background", "#fff");
 
   // connect upload and close button;
   directInputModule.handleDirectUpload = function () {
-    const text = textArea.node().value;
+    const text = textArea.value;
+    const loadingModule = graph.options().loadingModule();
+    loadingModule.initializeLoader();
     let jsonOBJ;
     try {
       jsonOBJ = JSON.parse(text);
-      graph.options().loadingModule().directInput(text);
+      loadingModule.directInput(text);
       // close if successful
-      if (jsonOBJ.class.length > 0) {
+      if (Array.isArray(jsonOBJ.class) && jsonOBJ.class.length > 0) {
         directInputModule.setDirectInputMode(false);
       }
     } catch (_e) {
       try {
-        // Initialize;
-        graph.options().loadingModule().initializeLoader();
         owl2vowl
           .loadWithImports(text)
           .then(function (vowlJson) {
-            graph
-              .options()
-              .loadingModule()
-              .directInput(JSON.stringify(vowlJson));
+            loadingModule.directInput(JSON.stringify(vowlJson));
             directInputModule.setDirectInputMode(false);
           })
           .catch(function (error2) {
             console.warn("Error " + error2);
-            d3.select("#Error_onLoad").classed("hidden", false);
-            d3.select("#Error_onLoad").node().innerHTML =
+            document.querySelector("#Error_onLoad").classList.remove("hidden");
+            document.querySelector("#Error_onLoad").innerHTML =
               "Failed to convert the input! " + error2.message;
+            graph.handleOnLoadingError();
           });
       } catch (error2) {
         console.warn("Error " + error2);
-        d3.select("#Error_onLoad").classed("hidden", false);
-        d3.select("#Error_onLoad").node().innerHTML =
+        document.querySelector("#Error_onLoad").classList.remove("hidden");
+        document.querySelector("#Error_onLoad").innerHTML =
           "Failed to convert the input! " + error2.message;
+        graph.handleOnLoadingError();
       }
     }
   };
@@ -60,12 +53,7 @@ module.exports = function (graph) {
     directInputModule.setDirectInputMode(false);
   };
 
-  directInputModule.updateLayout = function () {
-    const w = graph.options().width();
-    const h = graph.options().height();
-    textArea.style("width", 0.4 * w + "px");
-    textArea.style("height", 0.7 * h + "px");
-  };
+  directInputModule.updateLayout = function () {};
 
   directInputModule.setDirectInputMode = function (val) {
     if (!val) {
@@ -75,18 +63,16 @@ module.exports = function (graph) {
     }
     // update visibility;
     directInputModule.updateLayout();
-    d3.select("#Error_onLoad").classed("hidden", true);
-    inputContainer.classed("hidden", !visibleContainer);
+    document.querySelector("#Error_onLoad").classList.add("hidden");
+    inputContainer.classList.toggle("hidden", !visibleContainer);
   };
 
-  d3.select("#directUploadBtn").on(
-    "click",
-    directInputModule.handleDirectUpload,
-  );
-  d3.select("#close_directUploadBtn").on(
-    "click",
-    directInputModule.handleCloseButton,
-  );
+  document
+    .querySelector("#directUploadBtn")
+    .addEventListener("click", directInputModule.handleDirectUpload);
+  document
+    .querySelector("#close_directUploadBtn")
+    .addEventListener("click", directInputModule.handleCloseButton);
 
   return directInputModule;
 };

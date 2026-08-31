@@ -10,8 +10,12 @@
  *   - app/js/entry.js imports ../css/toolstyle.css
  */
 
-// Import both library entry points (CJS, transformed by vite-plugin-commonjs)
+// Conditionally import Popover API polyfill for non-Baseline browsers
+if (!("popover" in HTMLElement.prototype)) {
+  await import("@oddbird/popover-polyfill");
+}
 
+// Import both library entry points (CJS, transformed by vite-plugin-commonjs)
 const webvowl = require("./webvowl/js/entry");
 const app = require("./app/js/entry");
 
@@ -20,7 +24,7 @@ const app = require("./app/js/entry");
 //   webvowl = <exports>            (from entry "webvowl")
 //   webvowl.app = <exports>        (from entry "webvowl.app" with dotted name)
 // The HTML initialization script expects webvowl.app() to be callable.
-window.webvowl = webvowl;
+// Global reference for debugging or legacy reasons removed as part of UI decoupling
 webvowl.app = app;
 const application = webvowl.app();
 

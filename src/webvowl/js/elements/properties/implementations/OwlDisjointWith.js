@@ -1,5 +1,5 @@
 const BaseProperty = require("../BaseProperty");
-const CenteringTextElement = require("../../../util/CenteringTextElement");
+const CenteringTextElement = require("../../../../../shared/js/util/CenteringTextElement");
 
 module.exports = (function () {
   const o = function (graph) {

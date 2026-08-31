@@ -2,18 +2,12 @@ module.exports = function (graph) {
   const configMenu = {},
     checkboxes = [];
 
-  configMenu.setup = function () {
-    const menuEntry = d3.select("#m_modes");
-    menuEntry.on("mouseover", function () {
-      const searchMenu = graph.options().searchMenu();
-      searchMenu.hideSearchEntries();
-    });
-
+  configMenu.setup = function (zoomSlider) {
     addCheckBox(
       "showZoomSlider",
       "Zoom controls",
       "#zoomSliderOption",
-      graph.options().zoomSlider().showSlider,
+      zoomSlider.showSlider,
       0,
     );
     addLabelWidthSlider(
@@ -25,47 +19,29 @@ module.exports = function (graph) {
   };
 
   function addLabelWidthSlider(selector, identifier, label, onChangeFunction) {
-    const sliderContainer = d3
-      .select(selector)
-      .append("div")
-      .classed("distanceSliderContainer", true);
+    const sliderContainer = document.querySelector(selector);
+    const sliderValueLabel = sliderContainer.querySelector(
+      "#" + identifier + "SliderValue",
+    );
+    sliderValueLabel.textContent = onChangeFunction();
+    const slider = sliderContainer.querySelector("#" + identifier + "Slider");
+    slider.setAttribute("value", onChangeFunction());
 
-    const slider = sliderContainer
-      .append("input")
-      .attr("id", identifier + "Slider")
-      .attr("type", "range")
-      .attr("min", 20)
-      .attr("max", 600)
-      .attr("value", onChangeFunction())
-      .attr("step", 10);
-    sliderContainer
-      .append("label")
-      .classed("description", true)
-      .attr("for", identifier + "Slider")
-      .attr("id", identifier + "DescriptionLabel")
-      .text(label);
-    const sliderValueLabel = sliderContainer
-      .append("label")
-      .classed("value", true)
-      .attr("for", identifier + "Slider")
-      .attr("id", identifier + "valueLabel")
-      .text(onChangeFunction());
-
-    slider.on("input", function () {
-      const value = slider.property("value");
+    slider.addEventListener("input", function () {
+      const value = slider.value;
       onChangeFunction(value);
-      sliderValueLabel.text(value);
+      sliderValueLabel.textContent = value;
       if (graph.options().dynamicLabelWidth() === true) {
         graph.animateDynamicLabelWidth();
       }
     });
 
     // add wheel event to the slider
-    slider.on("wheel", function () {
-      if (slider.node().disabled === true) {
+    slider.addEventListener("wheel", function (event) {
+      if (slider.disabled === true) {
         return;
       }
-      const wheelEvent = d3.event;
+      const wheelEvent = event;
       let offset;
       if (wheelEvent.deltaY < 0) {
         offset = 10;
@@ -73,14 +49,14 @@ module.exports = function (graph) {
       if (wheelEvent.deltaY > 0) {
         offset = -10;
       }
-      const oldVal = parseInt(slider.property("value"));
+      const oldVal = parseInt(slider.value);
       const newSliderValue = oldVal + offset;
       if (newSliderValue !== oldVal) {
-        slider.property("value", newSliderValue);
+        slider.value = newSliderValue;
         onChangeFunction(newSliderValue);
-        slider.on("input")(); // << set text and update the graphStyles
+        slider.dispatchEvent(new Event("input")); // << set text and update the graphStyles
       }
-      d3.event.preventDefault();
+      event.preventDefault();
     });
   }
 
@@ -91,20 +67,21 @@ module.exports = function (graph) {
     onChangeFunc,
     updateLvl,
   ) {
-    const configOptionContainer = d3
-      .select(selector)
-      .append("div")
-      .classed("checkboxContainer", true);
-    const configCheckbox = configOptionContainer
-      .append("input")
-      .classed("moduleCheckbox", true)
-      .attr("id", identifier + "ConfigCheckbox")
-      .attr("type", "checkbox")
-      .property("checked", onChangeFunc());
+    const configOptionContainer = document.querySelector(selector);
+    const configCheckbox = configOptionContainer.querySelector(
+      "#" + identifier + "ConfigCheckbox",
+    );
+    configCheckbox.checked = onChangeFunc();
 
-    configCheckbox.on("click", function (silent) {
-      const isEnabled = configCheckbox.property("checked");
+    const clickHandler = function (arg1, arg2) {
+      const isEnabled = configCheckbox.checked;
       onChangeFunc(isEnabled);
+      const silent =
+        typeof arg1 === "boolean"
+          ? arg1
+          : typeof arg2 === "boolean"
+            ? arg2
+            : false;
       if (silent !== true) {
         // updating graph when silent is false or the parameter is not given.
         if (updateLvl === 1) {
@@ -119,19 +96,22 @@ module.exports = function (graph) {
           graph.updateDraggerElements();
         }
       }
+    };
+
+    configCheckbox.addEventListener("click", clickHandler);
+    checkboxes.push({
+      id: configCheckbox.id,
+      element: configCheckbox,
+      update: clickHandler,
     });
-    checkboxes.push(configCheckbox);
-    configOptionContainer
-      .append("label")
-      .attr("for", identifier + "ConfigCheckbox")
-      .text(modeName);
   }
 
   configMenu.setCheckBoxValue = function (identifier, value) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].attr("id");
-      if (cbdId === identifier) {
-        checkboxes[i].property("checked", value);
+      const item = checkboxes[i];
+      if (item.id === identifier) {
+        item.element.checked = value;
+        item.update();
         break;
       }
     }
@@ -139,17 +119,17 @@ module.exports = function (graph) {
 
   configMenu.getCheckBoxValue = function (id) {
     for (let i = 0; i < checkboxes.length; i++) {
-      const cbdId = checkboxes[i].attr("id");
-      if (cbdId === id) {
-        return checkboxes[i].property("checked");
+      const item = checkboxes[i];
+      if (item.id === id) {
+        return item.element.checked;
       }
     }
   };
 
   configMenu.updateSettings = function () {
     const silent = true;
-    checkboxes.forEach(function (checkbox) {
-      checkbox.on("click")(silent);
+    checkboxes.forEach(function (item) {
+      item.update(silent);
     });
   };
 

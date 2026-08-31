@@ -61,8 +61,12 @@ function addFixedLocationFunctions(node) {
   function applyFixedLocationAttributes() {
     if (node.locked() || node.frozen() || node.pinned()) {
       node.fixed = true;
+      node.fx = node.x;
+      node.fy = node.y;
     } else {
       node.fixed = false;
+      node.fx = null;
+      node.fy = null;
     }
   }
 }

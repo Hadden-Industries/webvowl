@@ -285,9 +285,16 @@ export default defineConfig(({ mode }) => {
           entryFileNames: "js/[name].js",
           chunkFileNames: "js/[name].js",
           assetFileNames: (assetInfo) => {
-            if (assetInfo.names?.[0]?.endsWith(".css")) {
+            const assetName = assetInfo.names?.[0] ?? "";
+
+            if (assetName.endsWith(".css")) {
               return "css/[name].[ext]";
             }
+
+            if (assetName.endsWith(".woff2")) {
+              return "fonts/[name].[ext]";
+            }
+
             return "[name].[ext]";
           },
           codeSplitting: {
@@ -322,7 +329,13 @@ export default defineConfig(({ mode }) => {
             dest: "data",
             rename: { stripBase: true }
           },
+          {
+            src: "app/fonts/open-sans/OFL.txt",
+            dest: "licenses/open-sans",
+            rename: { stripBase: true }
+          },
           { src: "favicon.ico", dest: "." },
+          { src: "favicon.svg", dest: "." },
           {
             src: normalizePath(resolve(configDir, "LICENSE")),
             // Bypasses the '.' collapse bug
