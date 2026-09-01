@@ -6,9 +6,36 @@ import {
   UnloadableImportError,
 } from "owlapi/io";
 import { IRI } from "owlapi/model";
-import resolveFetchUrl from "../../shared/js/util/resolveFetchUrl.js";
 
 const textBytes = (text) => new TextEncoder().encode(text).byteLength;
+
+const baseUrlProtocol = (baseUrl) => {
+  try {
+    return new URL(String(baseUrl)).protocol;
+  } catch {
+    return baseUrl?.protocol;
+  }
+};
+
+const resolveMixedContentSafeFetchUrl = (
+  resourceUrl,
+  baseUrl = globalThis.location,
+) => {
+  if (baseUrlProtocol(baseUrl) !== "https:") {
+    return resourceUrl;
+  }
+
+  try {
+    const parsedResourceUrl = new URL(resourceUrl);
+    if (parsedResourceUrl.protocol === "http:") {
+      parsedResourceUrl.protocol = "https:";
+      return parsedResourceUrl.href;
+    }
+  } catch {
+    // Relative and non-URL resource identifiers are not mixed-content URLs.
+  }
+  return resourceUrl;
+};
 
 const requestDeadline = (signal, timeoutMs) => {
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 0) {
@@ -70,12 +97,15 @@ export class WebVowlImportResolver {
   getDocumentIRI(importIri) {
     const normalized = IRI.create(importIri);
     const mapped = this.#catalog[normalized.value] || normalized.value;
-    return IRI.create(resolveFetchUrl(mapped, this.#baseUrl));
+    return IRI.create(resolveMixedContentSafeFetchUrl(mapped, this.#baseUrl));
   }
 
   async load(documentIri, { config = {}, signal } = {}) {
     const normalized = IRI.create(documentIri);
-    const requestUrl = resolveFetchUrl(normalized.value, this.#baseUrl);
+    const requestUrl = resolveMixedContentSafeFetchUrl(
+      normalized.value,
+      this.#baseUrl,
+    );
     const requestIri =
       requestUrl === normalized.value ? normalized : IRI.create(requestUrl);
     let url;
@@ -143,7 +173,18 @@ export class WebVowlImportResolver {
           },
         );
       }
-      const text = await response.text();
+      let text;
+      try {
+        text = await response.text();
+      } catch (cause) {
+        if (deadline.signal?.aborted || !(cause instanceof TypeError)) {
+          throw cause;
+        }
+        throw new MissingImportError(
+          "The imported ontology response body could not be read",
+          { cause, documentIRI: requestIri },
+        );
+      }
       const observed = textBytes(text);
       if (observed > limit) {
         throw new ResourceLimitError(

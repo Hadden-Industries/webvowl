@@ -24,6 +24,8 @@ const ARCHITECTURE_TEST_MODULE_PATH =
 const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/app/js/controller/linkedAbortSignal.js",
   "src/app/js/controller/linkedAbortSignal.test.js",
+  "src/app/js/controller/ontologySourceLoader.js",
+  "src/app/js/controller/ontologySourceLoader.test.js",
   "src/app/js/controller/webVowlControllerContracts.js",
   "src/app/js/controller/webVowlControllerContracts.test.js",
 ]);
@@ -4528,7 +4530,10 @@ function analyzeAuthoredJavaScriptModule(source, repositoryRelativePath) {
 function analyzeNativeEsmSource(
   source,
   repositoryRelativePath,
-  { inspectProhibitedSourcePatterns = true } = {},
+  {
+    inspectNamedExportContract = true,
+    inspectProhibitedSourcePatterns = true,
+  } = {},
 ) {
   const violations = [];
   if (path.posix.extname(repositoryRelativePath).toLowerCase() === ".cjs") {
@@ -4588,15 +4593,17 @@ function analyzeNativeEsmSource(
         label === "imported module namespace mutation",
     ),
   );
-  if (sourceStructure.hasDefaultExport) {
+  if (inspectNamedExportContract && sourceStructure.hasDefaultExport) {
     violations.push("default export");
   }
   if (
+    inspectNamedExportContract &&
     repositoryRelativePath.endsWith(".test.js") &&
     !sourceStructure.hasNativeEsmDeclaration
   ) {
     violations.push("no native ESM import or export declaration");
   } else if (
+    inspectNamedExportContract &&
     !repositoryRelativePath.endsWith(".test.js") &&
     !sourceStructure.hasSemanticallyNamedExport
   ) {
@@ -4870,6 +4877,7 @@ function collectNativeEsmDependencyGraphDiagnostics(
     }
 
     const nativeEsmAnalysis = analyzeNativeEsmSource(source, importerPath, {
+      inspectNamedExportContract: false,
       inspectProhibitedSourcePatterns: false,
     });
     for (const violation of nativeEsmAnalysis.violations) {
@@ -5940,6 +5948,31 @@ describe("native-ESM source inspection policy", () => {
 });
 
 describe("native-ESM module dependency graph policy", () => {
+  test("leaves the named-export contract to required-module inspection while traversing existing ESM dependencies", () => {
+    const requiredModulePath = "src/app/js/controller/root.js";
+    const existingEsmDependencyPath = "src/owl2vowl/js/existingApi.js";
+    const authoredModuleSourceByPath = new Map([
+      [
+        requiredModulePath,
+        'import existingApi from "../../../owl2vowl/js/existingApi.js"; export function useExistingApi() { return existingApi(); }',
+      ],
+      [existingEsmDependencyPath, "export default function existingApi() {}"],
+    ]);
+
+    expect(
+      collectDependencyCruiserGraphFixtureDiagnostics(
+        authoredModuleSourceByPath,
+        [
+          {
+            importerPath: requiredModulePath,
+            moduleSpecifier: "../../../owl2vowl/js/existingApi.js",
+            resolvedModulePath: existingEsmDependencyPath,
+          },
+        ],
+      ),
+    ).toEqual({ advisoryFindings: [], blockingViolations: [] });
+  });
+
   test("discovers native-ESM and CommonJS edges with dependency-cruiser", () => {
     const fixtureDirectoryPath = mkdtempSync(
       path.join(tmpdir(), "webvowl-module-format-graph-"),
