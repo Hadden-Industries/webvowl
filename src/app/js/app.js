@@ -1,3 +1,12 @@
+const nativeApplicationUiModuleNamespacesPromise = Promise.all([
+  import("./directInputModule.js"),
+  import("./editSidebar.js"),
+  import("./leftSidebar.js"),
+  import("./loadingModule.js"),
+  import("./sidebar.js"),
+  import("./warningModule.js"),
+]);
+
 String.prototype.replaceAll = function (search, replacement) {
   const target = this;
   return target.split(search).join(replacement);
@@ -7,6 +16,15 @@ module.exports = function () {
     graph = require("../../webvowl/js/graph")(),
     options = graph.graphOptions(),
     languageTools = require("../../shared/js/util/languageTools")(),
+    elementTools = require("../../shared/js/util/elementTools")(),
+    webVowlConstants = require("../../shared/js/util/constants")(),
+    languageConstants = {
+      iriBasedLanguage: webVowlConstants.LANG_IRIBASED,
+      undefinedLanguage: webVowlConstants.LANG_UNDEFINED,
+    },
+    prefixModule = require("../../shared/js/util/prefixRepresentationModule")(
+      graph,
+    ),
     GRAPH_SELECTOR = "#graph",
     // Modules for the webvowl app
     exportMenu = require("./menu/exportMenu")(graph),
@@ -20,13 +38,7 @@ module.exports = function () {
     searchMenu = require("./menu/searchMenu")(graph),
     navigationMenu = require("./menu/navigationMenu")(graph),
     zoomSlider = require("./menu/zoomSlider")(graph),
-    sidebar = require("./sidebar")(graph),
-    leftSidebar = require("./leftSidebar")(graph),
-    editSidebar = require("./editSidebar")(graph),
     configMenu = require("./menu/configMenu")(graph),
-    loadingModule = require("./loadingModule")(graph),
-    warningModule = require("./warningModule")(graph),
-    directInputMod = require("./directInputModule")(graph),
     // Graph modules
     colorExternalsSwitch =
       require("../../shared/js/modules/colorExternalsSwitch")(graph),
@@ -46,13 +58,17 @@ module.exports = function () {
     objectPropertyFilter =
       require("../../shared/js/modules/objectPropertyFilter")(),
     pickAndPin = require("../../shared/js/modules/pickAndPin")(),
-    selectionDetailDisplayer =
-      require("../../shared/js/modules/selectionDetailsDisplayer")(
-        sidebar.updateSelectionInformation,
-      ),
     statistics = require("../../shared/js/modules/statistics")(),
     subclassFilter = require("../../shared/js/modules/subclassFilter")(),
     setOperatorFilter = require("../../shared/js/modules/setOperatorFilter")();
+
+  let directInputModule;
+  let editSidebar;
+  let leftSidebar;
+  let loadingModule;
+  let selectionDetailDisplayer;
+  let sidebar;
+  let warningModule;
 
   app.getOptions = function () {
     return options;
@@ -121,12 +137,6 @@ module.exports = function () {
         document.querySelector("#drag_msg_text").innerHTML = "Drop it here.";
         document.querySelector("#drag_msg").classList.add("drag-over");
         executeFileDrop = true;
-        // d3.select("#drag_svg").transition()
-        //   .duration(100)
-        //   // .attr("-webkit-transform", "rotate(90)")
-        //   // .attr("-moz-transform",    "rotate(90)")
-        //   // .attr("-o-transform",      "rotate(90)")
-        //   .attr("transform",         "rotate(90)");
 
         document.querySelector("#drag_icon").classList.add("hidden");
         document.querySelector("#drag_icon_drop").classList.remove("hidden");
@@ -138,14 +148,6 @@ module.exports = function () {
 
         document.querySelector("#drag_icon").classList.remove("hidden");
         document.querySelector("#drag_icon_drop").classList.add("hidden");
-
-        // d3.select("#drag_svg").transition()
-        //   .duration(100)
-        //   // .attr("-webkit-transform", "rotate(0)")
-        //   // .attr("-moz-transform",    "rotate(0)")
-        //   // .attr("-o-transform",      "rotate(0)")
-        //   .attr("transform",         "rotate(0)");
-        //
       }
     };
     node.ondrop = function (ev) {
@@ -202,7 +204,38 @@ module.exports = function () {
     };
   }
 
-  app.initialize = function () {
+  async function initializeNativeApplicationUiModules() {
+    const [
+      { createDirectInputModule },
+      { createEditSidebar },
+      { createLeftSidebar },
+      { createLoadingModule },
+      { createSidebar },
+      { createWarningModule },
+    ] = await nativeApplicationUiModuleNamespacesPromise;
+
+    directInputModule = createDirectInputModule(graph);
+    editSidebar = createEditSidebar(graph, {
+      elementTools,
+      languageTools,
+      prefixModule,
+    });
+    leftSidebar = createLeftSidebar(graph);
+    loadingModule = createLoadingModule(graph);
+    sidebar = createSidebar(graph, {
+      elementTools,
+      languageConstants,
+      languageTools,
+    });
+    warningModule = createWarningModule(graph);
+    selectionDetailDisplayer =
+      require("../../shared/js/modules/selectionDetailsDisplayer")(
+        sidebar.updateSelectionInformation,
+      );
+  }
+
+  app.initialize = async function () {
+    await initializeNativeApplicationUiModules();
     addFileDropEvents(GRAPH_SELECTOR);
 
     window.requestAnimationFrame =
@@ -456,7 +489,7 @@ module.exports = function () {
     options.graphObject(graph);
 
     options.warningModule(warningModule);
-    options.directInputModule(directInputMod);
+    options.directInputModule(directInputModule);
     options.datatypeFilter(datatypeFilter);
     options.objectPropertyFilter(objectPropertyFilter);
     options.subclassFilter(subclassFilter);
@@ -538,12 +571,10 @@ module.exports = function () {
     const directTextInput = document.querySelector("#direct-text-input");
     if (directTextInput) {
       directTextInput.addEventListener("click", function () {
-        directInputMod.setDirectInputMode();
+        directInputModule.setDirectInputMode();
       });
     }
-    options.prefixModule(
-      require("../../shared/js/util/prefixRepresentationModule")(graph),
-    );
+    options.prefixModule(prefixModule);
     adjustSize();
     sidebar.updateOntologyInformation(undefined, statistics);
     loadingModule.parseUrlAndLoadOntology(); // loads automatically the ontology provided by the parameters
@@ -663,7 +694,7 @@ module.exports = function () {
   }
 
   function adjustSize() {
-    directInputMod.updateLayout();
+    directInputModule.updateLayout();
     const viewport = graph.updateCanvasContainerSize();
 
     graph.updateStyle();

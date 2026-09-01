@@ -1,26 +1,48 @@
 import {
   afterEach,
+  beforeAll,
   beforeEach,
   describe,
   expect,
   jest,
   test,
 } from "@jest/globals";
-import OwlClass from "../../webvowl/js/elements/nodes/implementations/OwlClass.js";
-import RdfsDatatype from "../../webvowl/js/elements/nodes/implementations/RdfsDatatype.js";
-import prefixRepresentationModule from "../../shared/js/util/prefixRepresentationModule.js";
-import editSidebarFactory from "./editSidebar.js";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { createContext, SourceTextModule } from "node:vm";
+
+let createEditSidebar;
+let editSidebarModuleContext;
+
+beforeAll(async () => {
+  const moduleUrl = new URL("./editSidebar.js", import.meta.url);
+  editSidebarModuleContext = createContext({
+    AbortController,
+    Event,
+    console,
+    document: undefined,
+  });
+  const sourceModule = new SourceTextModule(
+    readFileSync(fileURLToPath(moduleUrl), "utf8"),
+    { context: editSidebarModuleContext, identifier: moduleUrl.href },
+  );
+  await sourceModule.link((specifier) => {
+    throw new Error(`Unexpected edit-sidebar dependency: ${specifier}`);
+  });
+  await sourceModule.evaluate();
+  ({ createEditSidebar } = sourceModule.namespace);
+});
 
 const CUSTOM_DATATYPE_IRI =
   "https://haddenindustries.com/ontology/iso-iec/11179/-3/ed-4/textDatatype";
 
-class MockElement {
+class MockElement extends EventTarget {
   constructor() {
+    super();
     this.attributes = {};
     this.children = [];
     this.disabled = false;
     this.innerHTML = "";
-    this.listeners = new Map();
     this.title = "";
     this.value = "";
     this._classes = new Set();
@@ -30,25 +52,17 @@ class MockElement {
     return this.children[0];
   }
 
-  addEventListener(type, listener) {
-    const listeners = this.listeners.get(type) || [];
-    listeners.push(listener);
-    this.listeners.set(type, listeners);
-  }
-
   appendChild(child) {
     child.parentNode = this;
     this.children.push(child);
   }
 
   dispatch(type) {
-    for (const listener of this.listeners.get(type) || []) {
-      listener.call(this, {
-        key: undefined,
-        preventDefault: jest.fn(),
-        stopPropagation: jest.fn(),
-      });
-    }
+    this.dispatchEvent(new Event(type));
+  }
+
+  getAttribute(name) {
+    return this.attributes[name];
   }
 
   get classList() {
@@ -106,11 +120,107 @@ function createControls() {
   return new Map(selectors.map((selector) => [selector, new MockElement()]));
 }
 
+function createMutableOntologyElement({
+  baseIri,
+  datatypeName = "undefined",
+  iri,
+  kind,
+  label,
+  localIdentifier,
+  renderType,
+  type,
+}) {
+  const mutableValues = {
+    attributes: [],
+    backgroundColor: undefined,
+    baseIri,
+    datatypeName,
+    focused: false,
+    indications: [],
+    iri,
+    label,
+    styleClass: undefined,
+    type,
+    visualAttributes: [],
+  };
+  const ontologyElement = {
+    ontologyElementKind: kind,
+    id: () => localIdentifier,
+    labelForCurrentLanguage: () => {
+      const currentLabel = mutableValues.label;
+      return typeof currentLabel === "object" ? currentLabel.en : currentLabel;
+    },
+    redrawElement: jest.fn(),
+    redrawLabelText: jest.fn(),
+    renderType: () => renderType,
+    toggleFocus: jest.fn(),
+  };
+  const defineMutableOperation = (operationName, valueName = operationName) => {
+    ontologyElement[operationName] = function (nextValue) {
+      if (arguments.length > 0) {
+        mutableValues[valueName] = nextValue;
+        return ontologyElement;
+      }
+      return mutableValues[valueName];
+    };
+  };
+  defineMutableOperation("attributes");
+  defineMutableOperation("backgroundColor");
+  defineMutableOperation("baseIri");
+  defineMutableOperation("dType", "datatypeName");
+  defineMutableOperation("focused");
+  defineMutableOperation("indications");
+  defineMutableOperation("iri");
+  defineMutableOperation("label");
+  defineMutableOperation("styleClass");
+  defineMutableOperation("type");
+  defineMutableOperation("visualAttributes");
+  return ontologyElement;
+}
+
+function createElementClassificationTools() {
+  return {
+    isDatatypeProperty: (element) =>
+      element.ontologyElementKind === "datatype-property",
+    isNode: (element) => element.ontologyElementKind === "node",
+    isProperty: (element) =>
+      element.ontologyElementKind === "datatype-property" ||
+      element.ontologyElementKind === "object-property",
+  };
+}
+
+function createPrefixRepresentation({ baseOntologyIri, prefixList }) {
+  return {
+    getPrefixRepresentationForFullURI: (fullIri) => {
+      for (const [prefixName, namespaceIri] of Object.entries(prefixList)) {
+        if (fullIri.startsWith(namespaceIri)) {
+          return `${prefixName}:${fullIri.slice(namespaceIri.length)}`;
+        }
+      }
+      if (fullIri.startsWith(baseOntologyIri)) {
+        return `:${fullIri.slice(baseOntologyIri.length)}`;
+      }
+      return fullIri;
+    },
+    updatePrefixModel: jest.fn(),
+    validURL: (candidateIri) => {
+      try {
+        return ["ftp:", "http:", "https:"].includes(
+          new URL(candidateIri).protocol,
+        );
+      } catch {
+        return false;
+      }
+    },
+  };
+}
+
 describe("datatype editing", () => {
   let controls;
   let datatype;
   let editSidebar;
   let graph;
+  let prefixModule;
 
   beforeEach(() => {
     controls = createControls();
@@ -118,7 +228,13 @@ describe("datatype editing", () => {
       createElement: () => new MockElement(),
       querySelector: (selector) => controls.get(selector) || new MockElement(),
     };
+    editSidebarModuleContext.document = global.document;
 
+    const prefixList = {};
+    prefixModule = createPrefixRepresentation({
+      baseOntologyIri: "https://example.com/ontology",
+      prefixList,
+    });
     graph = {
       language: () => "en",
       options: () => ({
@@ -126,18 +242,28 @@ describe("datatype editing", () => {
           iri: "https://example.com/ontology",
         }),
         getGeneralMetaObjectProperty: () => "https://example.com/ontology",
-        prefixList: () => ({}),
+        prefixList: () => prefixList,
       }),
     };
-    datatype = new RdfsDatatype(graph)
-      .baseIri("https://haddenindustries.com/ontology/iso-iec/11179/-3/ed-4/")
-      .iri(CUSTOM_DATATYPE_IRI)
-      .label({ en: "Text" });
-    datatype.redrawLabelText = jest.fn();
-    editSidebar = editSidebarFactory(graph);
+    datatype = createMutableOntologyElement({
+      baseIri: "https://haddenindustries.com/ontology/iso-iec/11179/-3/ed-4/",
+      iri: CUSTOM_DATATYPE_IRI,
+      kind: "node",
+      label: { en: "Text" },
+      localIdentifier: "textDatatype",
+      renderType: "rect",
+      type: "rdfs:Datatype",
+    });
+    editSidebar = createEditSidebar(graph, {
+      elementTools: createElementClassificationTools(),
+      languageTools: {},
+      prefixModule,
+    });
   });
 
   afterEach(() => {
+    editSidebar?.dispose();
+    editSidebarModuleContext.document = undefined;
     delete global.document;
   });
 
@@ -191,6 +317,7 @@ describe("element IRI editing with modern URLs and prefixes", () => {
   let graph;
   let mockWarningModule;
   let prefixList;
+  let prefixModule;
 
   beforeEach(() => {
     controls = createControls();
@@ -198,6 +325,7 @@ describe("element IRI editing with modern URLs and prefixes", () => {
       createElement: () => new MockElement(),
       querySelector: (selector) => controls.get(selector) || new MockElement(),
     };
+    editSidebarModuleContext.document = global.document;
 
     mockWarningModule = {
       showWarning: jest.fn(),
@@ -207,6 +335,10 @@ describe("element IRI editing with modern URLs and prefixes", () => {
       foaf: "http://xmlns.com/foaf/0.1/",
       owl: "http://www.w3.org/2002/07/owl#",
     };
+    prefixModule = createPrefixRepresentation({
+      baseOntologyIri: "http://example.org/ontology#",
+      prefixList,
+    });
 
     const optionsObj = {
       getGeneralMetaObject: () => ({
@@ -216,7 +348,7 @@ describe("element IRI editing with modern URLs and prefixes", () => {
         prop === "iri" ? "http://example.org/ontology#" : undefined,
       prefixList: () => prefixList,
       warningModule: () => mockWarningModule,
-      prefixModule: () => prefixRepresentationModule(graph),
+      prefixModule: () => prefixModule,
       editSidebar: () => editSidebar,
     };
 
@@ -228,17 +360,26 @@ describe("element IRI editing with modern URLs and prefixes", () => {
       dispatchEvent: jest.fn(),
     };
 
-    node = new OwlClass(graph)
-      .baseIri("http://example.org/ontology#")
-      .iri("http://example.org/ontology#InitialClass")
-      .label({ en: "InitialClass" });
-    node.redrawLabelText = jest.fn();
-    node.redrawElement = jest.fn();
+    node = createMutableOntologyElement({
+      baseIri: "http://example.org/ontology#",
+      iri: "http://example.org/ontology#InitialClass",
+      kind: "node",
+      label: { en: "InitialClass" },
+      localIdentifier: "InitialClass",
+      renderType: "round",
+      type: "owl:Class",
+    });
 
-    editSidebar = editSidebarFactory(graph);
+    editSidebar = createEditSidebar(graph, {
+      elementTools: createElementClassificationTools(),
+      languageTools: {},
+      prefixModule,
+    });
   });
 
   afterEach(() => {
+    editSidebar?.dispose();
+    editSidebarModuleContext.document = undefined;
     delete global.document;
   });
 
@@ -285,5 +426,213 @@ describe("element IRI editing with modern URLs and prefixes", () => {
     expect(mockWarningModule.showWarning).toHaveBeenCalled();
     // Reverts to original IRI
     expect(iriEditor.value).toBe("http://example.org/ontology#InitialClass");
+  });
+});
+
+class EditSidebarControl extends EventTarget {
+  constructor(tagName = "div") {
+    super();
+    this.tagName = tagName;
+    this.children = [];
+    this.disabled = false;
+    this.innerHTML = "";
+    this.value = "";
+    this.classes = new Set();
+    this.classList = {
+      add: (...classNames) =>
+        classNames.forEach((className) => this.classes.add(className)),
+      contains: (className) => this.classes.has(className),
+      remove: (...classNames) =>
+        classNames.forEach((className) => this.classes.delete(className)),
+    };
+  }
+
+  appendChild(child) {
+    this.children.push(child);
+    child.parentNode = this;
+    return child;
+  }
+
+  click() {
+    this.dispatchEvent(new Event("click"));
+  }
+
+  focus() {}
+
+  querySelectorAll() {
+    return [];
+  }
+
+  replaceChildren(...children) {
+    this.children = [];
+    children.forEach((child) => this.appendChild(child));
+  }
+
+  setAttribute(name, value) {
+    this[name] = value;
+  }
+}
+
+function findDescendantById(rootElement, expectedId) {
+  if (rootElement.id === expectedId) {
+    return rootElement;
+  }
+  for (const child of rootElement.children) {
+    const matchingDescendant = findDescendantById(child, expectedId);
+    if (matchingDescendant) {
+      return matchingDescendant;
+    }
+  }
+  return undefined;
+}
+
+describe("edit sidebar native prefix controls", () => {
+  let controls;
+  let editSidebar;
+  let graphOptions;
+  let prefixModule;
+
+  beforeEach(() => {
+    controls = new Map();
+    const controlFor = (selector) => {
+      if (selector.startsWith("#")) {
+        const expectedId = selector.slice(1);
+        for (const rootControl of controls.values()) {
+          const matchingControl = findDescendantById(rootControl, expectedId);
+          if (matchingControl) {
+            return matchingControl;
+          }
+        }
+      }
+      if (!controls.has(selector)) {
+        controls.set(selector, new EditSidebarControl());
+      }
+      return controls.get(selector);
+    };
+    global.document = {
+      createElement: (tagName) => new EditSidebarControl(tagName),
+      createElementNS: (_namespaceIri, tagName) =>
+        new EditSidebarControl(tagName),
+      querySelector: controlFor,
+      querySelectorAll: () => [],
+    };
+    editSidebarModuleContext.document = global.document;
+    delete global.d3;
+    prefixModule = { updatePrefixModel: jest.fn() };
+    graphOptions = {
+      addOrUpdateGeneralObjectEntry: jest.fn(),
+      prefixList: () => ({}),
+      removePrefix: jest.fn(),
+      supportedDatatypes: () => [],
+      updatePrefix: jest.fn(() => true),
+    };
+    const graph = {
+      isEditorMode: () => false,
+      options: () => graphOptions,
+    };
+    editSidebar = createEditSidebar(graph, {
+      elementTools: {},
+      languageTools: {},
+      prefixModule,
+    });
+  });
+
+  afterEach(() => {
+    editSidebar?.dispose();
+    editSidebarModuleContext.document = undefined;
+    delete global.document;
+  });
+
+  test("refreshes the prefix container without a global D3 selection", () => {
+    const prefixContainer = global.document.querySelector(
+      "#prefixURL_Container",
+    );
+    prefixContainer.appendChild(new EditSidebarControl());
+
+    expect(() => editSidebar.updatePrefixUi()).not.toThrow();
+
+    expect(prefixContainer.children).toEqual([]);
+  });
+
+  test("owns only accordion triggers inside the editing details section", () => {
+    const editingDetailsSection = new EditSidebarControl("section");
+    const editingTrigger = new EditSidebarControl("h3");
+    editingTrigger.nextElementSibling = new EditSidebarControl();
+    const foreignDetailsTrigger = new EditSidebarControl("h3");
+    foreignDetailsTrigger.nextElementSibling = new EditSidebarControl();
+    editingDetailsSection.querySelectorAll = jest.fn(() => [editingTrigger]);
+    controls.set("#generalDetailsEdit", editingDetailsSection);
+    global.document.querySelectorAll = jest.fn(() => [
+      editingTrigger,
+      foreignDetailsTrigger,
+    ]);
+
+    editSidebar.setup();
+
+    const simulatedClick = jest.spyOn(editingTrigger, "click");
+    const keyboardActivationEvent = new Event("keydown", {
+      cancelable: true,
+    });
+    Object.defineProperty(keyboardActivationEvent, "key", { value: "Enter" });
+    editingTrigger.dispatchEvent(keyboardActivationEvent);
+
+    expect(editingTrigger.role).toBe("button");
+    expect(foreignDetailsTrigger.role).toBeUndefined();
+    expect(keyboardActivationEvent.defaultPrevented).toBe(true);
+    expect(simulatedClick).not.toHaveBeenCalled();
+    expect(editingTrigger.classes).toContain("accordion-trigger-active");
+  });
+
+  test.each(["Enter", " "])(
+    "activates the prefix save operation once for the %p key without synthesizing a click",
+    (activationKey) => {
+      editSidebar.setup();
+      controls.get("#addPrefixButton").dispatchEvent(new Event("click"));
+      const prefixNameInput = global.document.querySelector(
+        "#prefixInputFor_emptyPrefixEntry",
+      );
+      const namespaceIriInput = global.document.querySelector(
+        "#prefixURLFor_emptyPrefixEntry",
+      );
+      const prefixSaveControl = global.document.querySelector(
+        "#editButtonFor_emptyPrefixEntry",
+      );
+      prefixNameInput.value = "example";
+      namespaceIriInput.value = "https://example.com/ontology#";
+      const observedClick = jest.fn();
+      prefixSaveControl.addEventListener("click", observedClick);
+      const keyboardActivationEvent = new Event("keydown", {
+        cancelable: true,
+      });
+      Object.defineProperty(keyboardActivationEvent, "key", {
+        value: activationKey,
+      });
+
+      prefixSaveControl.dispatchEvent(keyboardActivationEvent);
+
+      expect(keyboardActivationEvent.defaultPrevented).toBe(true);
+      expect(graphOptions.updatePrefix).toHaveBeenCalledTimes(1);
+      expect(graphOptions.updatePrefix).toHaveBeenCalledWith(
+        "emptyPrefixEntry",
+        "example",
+        "",
+        "https://example.com/ontology#",
+      );
+      expect(observedClick).not.toHaveBeenCalled();
+    },
+  );
+
+  test("setup is idempotent and disposal detaches owned editor listeners", () => {
+    editSidebar.setup();
+    editSidebar.setup();
+    editSidebar.dispose();
+    editSidebar.dispose();
+
+    expect(() =>
+      controls.get("#addPrefixButton").dispatchEvent(new Event("click")),
+    ).not.toThrow();
+    expect(
+      global.document.querySelector("#prefixURL_Container").children,
+    ).toEqual([]);
   });
 });

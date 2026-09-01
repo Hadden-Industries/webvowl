@@ -1,12 +1,12 @@
-const owl2vowlModule = require("../../owl2vowl/js/index.js");
-const owl2vowl = owl2vowlModule.default || owl2vowlModule;
-const ontologyLifecycle = require("./ontologyLifecycle");
-const resolveFetchUrl = require("../../shared/js/util/resolveFetchUrl");
-if (!owl2vowl.loadWithImports && owl2vowlModule.loadWithImports) {
-  owl2vowl.loadWithImports = owl2vowlModule.loadWithImports;
-}
+import { loadWithImports } from "../../owl2vowl/js/index.js";
+import { resolveFetchUrl } from "../../shared/js/util/resolveFetchUrl.js";
+import {
+  ONTOLOGY_LIFECYCLE_STATES,
+  isOntologyModelAvailable,
+  ontologyLifecycleCapabilitiesFor,
+} from "./ontologyLifecycle.js";
 
-module.exports = function (graph) {
+export function createLoadingModule(graph) {
   /** some constants **/
   const PREDEFINED = 0,
     FILE_UPLOAD = 1,
@@ -18,7 +18,7 @@ module.exports = function (graph) {
   const PROGRESS_BAR_PERCENT = 2;
   let progressBarMode = 1;
 
-  let applicationState = ontologyLifecycle.STATES.IDLE;
+  let applicationState = ONTOLOGY_LIFECYCLE_STATES.IDLE;
   let missingImportsWarning = false;
   let showLoadingDetails = false;
   let visibilityStatus = true;
@@ -47,6 +47,8 @@ module.exports = function (graph) {
   let ontologyMenu;
   let ontologyIdentifierFromURL;
   let newOntologyCounter = 1;
+  const lifecycleAbortController = new AbortController();
+  let isSetup = false;
 
   /** functon defs **/
   loadingModule.checkForScreenSize = function () {
@@ -91,7 +93,7 @@ module.exports = function (graph) {
   };
 
   loadingModule.successfullyLoadedOntology = function () {
-    return ontologyLifecycle.isModelAvailable(applicationState);
+    return isOntologyModelAvailable(applicationState);
   };
 
   loadingModule.state = function () {
@@ -113,7 +115,7 @@ module.exports = function (graph) {
   }
 
   function applyControlAvailability() {
-    const capabilities = ontologyLifecycle.capabilitiesFor(applicationState);
+    const capabilities = ontologyLifecycleCapabilitiesFor(applicationState);
     const graphControlsDisabled = !capabilities.graphControls;
 
     setDisabled(
@@ -145,26 +147,26 @@ module.exports = function (graph) {
   }
 
   loadingModule.setState = function (state) {
-    ontologyLifecycle.capabilitiesFor(state);
+    ontologyLifecycleCapabilitiesFor(state);
     applicationState = state;
     applyControlAvailability();
   };
 
   loadingModule.refreshControlAvailability = applyControlAvailability;
   loadingModule.markLoading = function () {
-    loadingModule.setState(ontologyLifecycle.STATES.LOADING);
+    loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.LOADING);
   };
   loadingModule.markModelReady = function () {
-    loadingModule.setState(ontologyLifecycle.STATES.MODEL_READY);
+    loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.MODEL_READY);
   };
   loadingModule.markRendering = function () {
-    loadingModule.setState(ontologyLifecycle.STATES.RENDERING);
+    loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.RENDERING);
   };
   loadingModule.markReady = function () {
-    loadingModule.setState(ontologyLifecycle.STATES.READY);
+    loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.READY);
   };
   loadingModule.markError = function () {
-    loadingModule.setState(ontologyLifecycle.STATES.ERROR);
+    loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.ERROR);
   };
 
   loadingModule.missingImportsWarning = function () {
@@ -211,22 +213,38 @@ module.exports = function (graph) {
 
   /** -- SETUP -- **/
   loadingModule.setup = function () {
+    if (isSetup || lifecycleAbortController.signal.aborted) {
+      return;
+    }
+    isSetup = true;
     // create connections for close and details button;
     loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
-    detailsButton.addEventListener("click", function () {
-      showLoadingDetails = !showLoadingDetails;
-      loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
-      detailsButton.classList.toggle(
-        "accordion-trigger-active",
-        showLoadingDetails,
-      );
-    });
+    detailsButton.addEventListener(
+      "click",
+      function () {
+        showLoadingDetails = !showLoadingDetails;
+        loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
+        detailsButton.classList.toggle(
+          "accordion-trigger-active",
+          showLoadingDetails,
+        );
+      },
+      { signal: lifecycleAbortController.signal },
+    );
 
-    closeButton.addEventListener("click", function () {
-      menuContainer.classList.add("hidden");
-    });
+    closeButton.addEventListener(
+      "click",
+      function () {
+        menuContainer.classList.add("hidden");
+      },
+      { signal: lifecycleAbortController.signal },
+    );
     loadingModule.setBusyMode();
-    loadingModule.setState(ontologyLifecycle.STATES.IDLE);
+    loadingModule.setState(ONTOLOGY_LIFECYCLE_STATES.IDLE);
+  };
+
+  loadingModule.dispose = function () {
+    lifecycleAbortController.abort();
   };
 
   loadingModule.updateSize = function () {
@@ -484,8 +502,7 @@ module.exports = function (graph) {
             // RFC 3986 section 5.1.3: the IRI a document was retrieved from is
             // its base. Passing it lets relative references resolve against the
             // real namespace instead of falling back to a synthetic base.
-            owl2vowl
-              .loadWithImports(xmlText, { documentIRI: requestUrl })
+            loadWithImports(xmlText, { documentIRI: requestUrl })
               .then(function (vowlJson) {
                 parseOntologyContent(JSON.stringify(vowlJson));
                 ontologyMenu.append_message_toLastBulletPoint("done");
@@ -566,8 +583,7 @@ module.exports = function (graph) {
           ontologyMenu.append_bulletPoint("Converting ontology client-side...");
           // An uploaded file has no retrieval IRI, so no base is supplied and
           // the synthetic one applies. The name is passed for diagnostics only.
-          owl2vowl
-            .loadWithImports(xmlText, { fileName })
+          loadWithImports(xmlText, { fileName })
             .then(function (vowlJson) {
               ontologyIdentifierFromURL = fileName;
               parseOntologyContent(JSON.stringify(vowlJson));
@@ -655,8 +671,7 @@ module.exports = function (graph) {
               "Converting ontology client-side...",
             );
             // A dropped or selected file has no retrieval IRI either.
-            owl2vowl
-              .loadWithImports(xmlText, { fileName: filename })
+            loadWithImports(xmlText, { fileName: filename })
               .then(function (vowlJson) {
                 ontologyIdentifierFromURL = filename;
                 parseOntologyContent(JSON.stringify(vowlJson));
@@ -984,4 +999,4 @@ module.exports = function (graph) {
   }
 
   return loadingModule;
-};
+}

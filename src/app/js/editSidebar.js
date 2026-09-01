@@ -3,16 +3,19 @@
  * @param graph the graph that belongs to these controls
  * @returns {{}}
  */
-module.exports = function createEditSidebar(graph) {
-  const editSidebar = {},
-    languageTools = require("../../shared/js/util/languageTools")(),
-    elementTools = require("../../shared/js/util/elementTools")();
-
-  const prefixModule =
-    require("../../shared/js/util/prefixRepresentationModule")(graph);
+export function createEditSidebar(
+  graph,
+  { elementTools, languageTools, prefixModule },
+) {
+  const editSidebar = {};
+  const lifecycleAbortController = new AbortController();
+  let prefixControlsAbortController = new AbortController();
+  let selectionControlsAbortController = new AbortController();
   let selectedElementForCharacteristics;
-  let oldPrefix, oldPrefixURL;
-  let prefix_editMode = false;
+  let previousPrefixName;
+  let previousPrefixNamespaceIri;
+  let isPrefixEditMode = false;
+  let isSetup = false;
 
   editSidebar.clearMetaObjectValue = function () {
     document.querySelector("#titleEditor").value = "";
@@ -25,30 +28,37 @@ module.exports = function createEditSidebar(graph) {
 
   editSidebar.updatePrefixUi = function () {
     editSidebar.updateElementWidth();
-    const prefixListContainer = d3.select("#prefixURL_Container");
-    prefixListContainer.selectAll("*").remove();
+    prefixControlsAbortController.abort();
+    prefixControlsAbortController = new AbortController();
+    document.querySelector("#prefixURL_Container").replaceChildren();
     setupPrefixList();
   };
 
   editSidebar.setup = function () {
+    if (isSetup) {
+      return;
+    }
+    isSetup = true;
     setupCollapsing();
     setupPrefixList();
     setupAddPrefixButton();
     setupSupportedDatatypes();
 
-    document
-      .querySelector("#titleEditor")
-      .addEventListener("change", function () {
+    document.querySelector("#titleEditor").addEventListener(
+      "change",
+      function () {
         graph
           .options()
           .addOrUpdateGeneralObjectEntry(
             "title",
             document.querySelector("#titleEditor").value,
           );
-      });
-    document
-      .querySelector("#titleEditor")
-      .addEventListener("keydown", function (event) {
+      },
+      { signal: lifecycleAbortController.signal },
+    );
+    document.querySelector("#titleEditor").addEventListener(
+      "keydown",
+      function (event) {
         event.stopPropagation();
         if (event.key === "Enter") {
           event.preventDefault();
@@ -59,10 +69,12 @@ module.exports = function createEditSidebar(graph) {
               document.querySelector("#titleEditor").value,
             );
         }
-      });
-    document
-      .querySelector("#iriEditor")
-      .addEventListener("change", function () {
+      },
+      { signal: lifecycleAbortController.signal },
+    );
+    document.querySelector("#iriEditor").addEventListener(
+      "change",
+      function () {
         if (
           graph
             .options()
@@ -76,10 +88,12 @@ module.exports = function createEditSidebar(graph) {
             .options()
             .getGeneralMetaObjectProperty("iri");
         }
-      });
-    document
-      .querySelector("#iriEditor")
-      .addEventListener("keydown", function (event) {
+      },
+      { signal: lifecycleAbortController.signal },
+    );
+    document.querySelector("#iriEditor").addEventListener(
+      "keydown",
+      function (event) {
         event.stopPropagation();
         if (event.key === "Enter") {
           event.preventDefault();
@@ -97,20 +111,24 @@ module.exports = function createEditSidebar(graph) {
               .getGeneralMetaObjectProperty("iri");
           }
         }
-      });
-    document
-      .querySelector("#versionEditor")
-      .addEventListener("change", function () {
+      },
+      { signal: lifecycleAbortController.signal },
+    );
+    document.querySelector("#versionEditor").addEventListener(
+      "change",
+      function () {
         graph
           .options()
           .addOrUpdateGeneralObjectEntry(
             "version",
             document.querySelector("#versionEditor").value,
           );
-      });
-    document
-      .querySelector("#versionEditor")
-      .addEventListener("keydown", function (event) {
+      },
+      { signal: lifecycleAbortController.signal },
+    );
+    document.querySelector("#versionEditor").addEventListener(
+      "keydown",
+      function (event) {
         event.stopPropagation();
         if (event.key === "Enter") {
           event.preventDefault();
@@ -121,20 +139,24 @@ module.exports = function createEditSidebar(graph) {
               document.querySelector("#versionEditor").value,
             );
         }
-      });
-    document
-      .querySelector("#authorsEditor")
-      .addEventListener("change", function () {
+      },
+      { signal: lifecycleAbortController.signal },
+    );
+    document.querySelector("#authorsEditor").addEventListener(
+      "change",
+      function () {
         graph
           .options()
           .addOrUpdateGeneralObjectEntry(
             "author",
             document.querySelector("#authorsEditor").value,
           );
-      });
-    document
-      .querySelector("#authorsEditor")
-      .addEventListener("keydown", function (event) {
+      },
+      { signal: lifecycleAbortController.signal },
+    );
+    document.querySelector("#authorsEditor").addEventListener(
+      "keydown",
+      function (event) {
         event.stopPropagation();
         if (event.key === "Enter") {
           event.preventDefault();
@@ -145,17 +167,21 @@ module.exports = function createEditSidebar(graph) {
               document.querySelector("#authorsEditor").value,
             );
         }
-      });
-    document
-      .querySelector("#descriptionEditor")
-      .addEventListener("change", function () {
+      },
+      { signal: lifecycleAbortController.signal },
+    );
+    document.querySelector("#descriptionEditor").addEventListener(
+      "change",
+      function () {
         graph
           .options()
           .addOrUpdateGeneralObjectEntry(
             "description",
             document.querySelector("#descriptionEditor").value,
           );
-      });
+      },
+      { signal: lifecycleAbortController.signal },
+    );
 
     editSidebar.updateElementWidth();
   };
@@ -167,11 +193,11 @@ module.exports = function createEditSidebar(graph) {
     const supportedDatatypes = graph
       .options()
       .supportedDatatypes()
-      .filter((d) => d !== "rdfs:Literal");
-    for (let i = 0; i < supportedDatatypes.length; i++) {
-      const optB = document.createElement("option");
-      optB.innerHTML = supportedDatatypes[i];
-      datatypeEditorSelection.appendChild(optB);
+      .filter((datatypeName) => datatypeName !== "rdfs:Literal");
+    for (const supportedDatatype of supportedDatatypes) {
+      const datatypeOption = document.createElement("option");
+      datatypeOption.textContent = supportedDatatype;
+      datatypeEditorSelection.appendChild(datatypeOption);
     }
   }
 
@@ -205,432 +231,315 @@ module.exports = function createEditSidebar(graph) {
     }
   }
 
+  const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
+  const PROTECTED_PREFIX_NAMES = new Set(["rdf", "rdfs", "xsd", "dc", "owl"]);
+  const PREFIX_EDITOR_ICON_PATHS = Object.freeze({
+    edit: {
+      pathData:
+        "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z",
+      transform: "matrix(-0.45,0,0,0.45,10,5)",
+    },
+    save: {
+      pathData: "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z",
+      transform: "matrix(0.45,0,0,0.45,0,5)",
+    },
+  });
+
+  function setPrefixEditorAction(editButton, prefixEditorAction) {
+    editButton.prefixEditorAction = prefixEditorAction;
+    const iconPresentation = PREFIX_EDITOR_ICON_PATHS[prefixEditorAction];
+    editButton.prefixEditorIconPath.setAttribute(
+      "d",
+      iconPresentation.pathData,
+    );
+    editButton.prefixEditorIconPath.setAttribute(
+      "transform",
+      iconPresentation.transform,
+    );
+  }
+
+  function isKeyboardActivationEvent(event) {
+    return event.key === "Enter" || event.key === " ";
+  }
+
+  function activatePrefixEditorControlFromKeyboard(event) {
+    if (isKeyboardActivationEvent(event)) {
+      event.preventDefault();
+      enablePrefixEdit(event.currentTarget);
+    }
+  }
+
+  function activatePrefixDeleteControlFromKeyboard(event) {
+    if (isKeyboardActivationEvent(event)) {
+      event.preventDefault();
+      deletePrefixLine(event.currentTarget);
+    }
+  }
+
+  function appendPrefixEditorRow({ isNewPrefix, namespaceIri, prefixName }) {
+    const prefixListContainer = document.querySelector("#prefixURL_Container");
+    const prefixEditorRow = document.createElement("div");
+    prefixEditorRow.classList.add("prefixIRIElements");
+    prefixEditorRow.id = "prefixContainerFor_" + prefixName;
+    prefixListContainer.appendChild(prefixEditorRow);
+
+    const editControlContainer = document.createElement("div");
+    editControlContainer.classList.add("icon-container-abs");
+    editControlContainer.id = "containerFor_" + prefixName;
+    editControlContainer.title = isNewPrefix
+      ? "Save new prefix and IRI"
+      : "Edit prefix and IRI";
+    prefixEditorRow.appendChild(editControlContainer);
+
+    const editButton = document.createElementNS(SVG_NAMESPACE_IRI, "svg");
+    editButton.classList.add("edit-btn-svg", "noselect");
+    editButton.id = "editButtonFor_" + prefixName;
+    editButton.prefixName = prefixName;
+    editButton.setAttribute("role", "button");
+    editButton.setAttribute("tabindex", "0");
+    editButton.setAttribute(
+      "aria-label",
+      isNewPrefix ? "Save prefix" : "Edit prefix",
+    );
+    editControlContainer.appendChild(editButton);
+
+    const editIcon = document.createElementNS(SVG_NAMESPACE_IRI, "g");
+    editIcon.id = "iconFor_" + prefixName;
+    editIcon.prefixName = prefixName;
+    editButton.appendChild(editIcon);
+
+    const editRectangle = document.createElementNS(SVG_NAMESPACE_IRI, "rect");
+    editRectangle.id = "rectFor_" + prefixName;
+    editRectangle.classList.add("edit-rect-style");
+    editRectangle.setAttribute("width", "14px");
+    editRectangle.setAttribute("height", "14px");
+    editRectangle.setAttribute("transform", "matrix(1,0,0,1,-3,4)");
+    editIcon.appendChild(editRectangle);
+
+    const editPath = document.createElementNS(SVG_NAMESPACE_IRI, "path");
+    editPath.id = "pathFor_" + prefixName;
+    editPath.classList.add("editPrefixIcon", "edit-path-style");
+    editIcon.appendChild(editPath);
+    editButton.prefixEditorIconPath = editPath;
+
+    const initialEditorAction = isNewPrefix ? "save" : "edit";
+    setPrefixEditorAction(editButton, initialEditorAction);
+    editIcon.addEventListener(
+      "mouseover",
+      function (event) {
+        highlightEditButton(true, event.currentTarget.prefixName);
+      },
+      { signal: prefixControlsAbortController.signal },
+    );
+    editIcon.addEventListener(
+      "mouseout",
+      function (event) {
+        highlightEditButton(false, event.currentTarget.prefixName);
+      },
+      { signal: prefixControlsAbortController.signal },
+    );
+    editButton.addEventListener("click", enablePrefixEdit, {
+      signal: prefixControlsAbortController.signal,
+    });
+    editButton.addEventListener(
+      "keydown",
+      activatePrefixEditorControlFromKeyboard,
+      { signal: prefixControlsAbortController.signal },
+    );
+
+    const prefixNameInput = document.createElement("input");
+    prefixNameInput.classList.add("prefixInput", "pref-input-style");
+    prefixNameInput.type = "text";
+    prefixNameInput.id = "prefixInputFor_" + prefixName;
+    prefixNameInput.autocomplete = "off";
+    prefixNameInput.value = isNewPrefix ? "" : prefixName;
+    prefixNameInput.disabled = !isNewPrefix;
+    prefixEditorRow.appendChild(prefixNameInput);
+
+    const namespaceIriInput = document.createElement("input");
+    namespaceIriInput.classList.add("prefixURL");
+    namespaceIriInput.type = "text";
+    namespaceIriInput.id = "prefixURLFor_" + prefixName;
+    namespaceIriInput.autocomplete = "off";
+    namespaceIriInput.value = namespaceIri;
+    namespaceIriInput.title = namespaceIri;
+    namespaceIriInput.disabled = !isNewPrefix;
+    prefixEditorRow.appendChild(namespaceIriInput);
+
+    const deleteControlContainer = document.createElement("div");
+    deleteControlContainer.classList.add("delete-container-style");
+    deleteControlContainer.title = "Delete prefix and IRI";
+    prefixEditorRow.appendChild(deleteControlContainer);
+
+    const deleteButton = document.createElementNS(SVG_NAMESPACE_IRI, "svg");
+    deleteButton.classList.add("delete-btn-svg");
+    deleteButton.id = "deleteButtonFor_" + prefixName;
+    deleteButton.prefixName = prefixName;
+    deleteButton.setAttribute("role", "button");
+    deleteButton.setAttribute("tabindex", "0");
+    deleteButton.setAttribute("aria-label", "Delete prefix");
+    deleteControlContainer.appendChild(deleteButton);
+
+    const deleteIcon = document.createElementNS(SVG_NAMESPACE_IRI, "g");
+    deleteIcon.id = "del_iconFor_" + prefixName;
+    deleteIcon.prefixName = prefixName;
+    deleteButton.appendChild(deleteIcon);
+
+    const deleteRectangle = document.createElementNS(SVG_NAMESPACE_IRI, "rect");
+    deleteRectangle.id = "del_rectFor_" + prefixName;
+    deleteRectangle.classList.add("delete-rect-style");
+    deleteRectangle.setAttribute("width", "10px");
+    deleteRectangle.setAttribute("height", "14px");
+    deleteRectangle.setAttribute("transform", "matrix(1,0,0,1,-3,4)");
+    deleteIcon.appendChild(deleteRectangle);
+
+    const deletePath = document.createElementNS(SVG_NAMESPACE_IRI, "path");
+    deletePath.id = "del_pathFor_" + prefixName;
+    deletePath.classList.add("delete-path-style");
+    deletePath.setAttribute(
+      "d",
+      "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
+    );
+    deletePath.setAttribute("transform", "matrix(0.45,0,0,0.45,0,5)");
+    deleteIcon.appendChild(deletePath);
+
+    deleteIcon.addEventListener(
+      "mouseover",
+      function (event) {
+        highlightDeleteButton(true, event.currentTarget.prefixName);
+      },
+      { signal: prefixControlsAbortController.signal },
+    );
+    deleteIcon.addEventListener(
+      "mouseout",
+      function (event) {
+        highlightDeleteButton(false, event.currentTarget.prefixName);
+      },
+      { signal: prefixControlsAbortController.signal },
+    );
+    deleteButton.addEventListener("click", deletePrefixLine, {
+      signal: prefixControlsAbortController.signal,
+    });
+    deleteButton.addEventListener(
+      "keydown",
+      activatePrefixDeleteControlFromKeyboard,
+      { signal: prefixControlsAbortController.signal },
+    );
+
+    if (PROTECTED_PREFIX_NAMES.has(prefixName)) {
+      editControlContainer.classList.add("hidden");
+      deleteControlContainer.classList.add("hidden");
+    }
+
+    return prefixNameInput;
+  }
+
   function setupAddPrefixButton() {
-    const btn = document.querySelector("#addPrefixButton");
-    btn.addEventListener("click", function () {
-      // check if we are still in editMode?
-      if (prefix_editMode === false) {
-        // create new line entry;
-        const name = "emptyPrefixEntry";
-        const prefixListContainer = d3.select("#prefixURL_Container");
-        const prefixEditContainer = prefixListContainer.append("div");
-        prefixEditContainer.classed("prefixIRIElements", true);
-        prefixEditContainer.node().id = "prefixContainerFor_" + name;
-
-        const IconContainer = prefixEditContainer.append("div");
-        IconContainer.classed("icon-container-abs", true);
-        IconContainer.node().id = "containerFor_" + name;
-        const editButton = IconContainer.append("svg");
-        editButton.classed("edit-btn-svg noselect", true);
-        editButton.node().id = "editButtonFor_" + name;
-
-        editButton.node().elementStyle = "save";
-        editButton.node().selectorName = name;
-        const editIcon = editButton.append("g");
-        const editRect = editIcon.append("rect");
-        const editPath = editIcon.append("path");
-        editIcon.node().id = "iconFor_" + name;
-        editPath.node().id = "pathFor_" + name;
-        editRect.node().id = "rectFor_" + name;
-
-        editIcon.node().selectorName = name;
-        editPath.node().selectorName = name;
-        editRect.node().selectorName = name;
-        IconContainer.node().title = "Save new prefix and IRI";
-
-        editPath.classed("editPrefixIcon edit-path-style", true);
-        editRect.attr("width", "14px");
-        editRect.attr("height", "14px");
-        editRect.classed("edit-rect-style", true);
-        editRect.attr("transform", "matrix(1,0,0,1,-3,4)");
-
-        editButton.selectAll("g").on("mouseover", function () {
-          highlightEditButton(true, this.selectorName, true);
-        });
-        editButton.selectAll("g").on("mouseout", function () {
-          highlightEditButton(false, this.selectorName, true);
-        });
-        // Check mark
-        // M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z
-        // pencil
-        // M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z
-        editPath.attr(
-          "d",
-          "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z",
-        );
-        editPath.attr("transform", "matrix(0.45,0,0,0.45,0,5)");
-
-        const prefInput = prefixEditContainer.append("input");
-        prefInput.classed("prefixInput pref-input-style", true);
-        prefInput.node().type = "text";
-        prefInput.node().id = "prefixInputFor_" + name;
-        prefInput.node().autocomplete = "off";
-        prefInput.node().value = "";
-
-        const prefURL = prefixEditContainer.append("input");
-        prefURL.classed("prefixURL", true);
-        prefURL.node().type = "text";
-        prefURL.node().id = "prefixURLFor_" + name;
-        prefURL.node().autocomplete = "off";
-        prefURL.node().value = "";
-
-        prefInput.node().disabled = false;
-        prefURL.node().disabled = false;
-        prefix_editMode = true;
-        const deleteContainer = prefixEditContainer.append("div");
-        deleteContainer.classed("delete-container-style", true);
-        const deleteButton = deleteContainer.append("svg");
-        deleteButton.node().id = "deleteButtonFor_" + name;
-        deleteContainer.node().title = "Delete prefix and IRI";
-        deleteButton.classed("delete-btn-svg", true);
-        const deleteIcon = deleteButton.append("g");
-        const deleteRect = deleteIcon.append("rect");
-        const deletePath = deleteIcon.append("path");
-        deleteIcon.node().id = "del_iconFor_" + name;
-        deletePath.node().id = "del_pathFor_" + name;
-        deleteRect.node().id = "del_rectFor_" + name;
-
-        deleteIcon.node().selectorName = name;
-        deletePath.node().selectorName = name;
-        deleteRect.node().selectorName = name;
-
-        deletePath.classed("delete-path-style", true);
-        deleteRect.attr("width", "10px");
-        deleteRect.attr("height", "14px");
-        deleteRect.classed("delete-rect-style", true);
-        deleteRect.attr("transform", "matrix(1,0,0,1,-3,4)");
-
-        deletePath.attr(
-          "d",
-          "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
-        );
-        deletePath.attr("transform", "matrix(0.45,0,0,0.45,0,5)");
-
-        deleteButton.selectAll("g").on("mouseover", function () {
-          highlightDeleteButton(true, this.selectorName);
-        });
-        deleteButton.selectAll("g").on("mouseout", function () {
-          highlightDeleteButton(false, this.selectorName);
-        });
-
-        // connect the buttons;
-        editButton.on("click", enablePrefixEdit);
-        deleteButton.on("click", deletePrefixLine);
-
-        editSidebar.updateElementWidth();
-        // swap focus to prefixInput
-        prefInput.node().focus();
-        oldPrefix = name;
-        oldPrefixURL = "";
-        document.querySelector("#addPrefixButton").innerHTML = "Save Prefix";
-      } else {
+    document.querySelector("#addPrefixButton").addEventListener(
+      "click",
+      function () {
+        if (!isPrefixEditMode) {
+          const temporaryPrefixName = "emptyPrefixEntry";
+          const prefixNameInput = appendPrefixEditorRow({
+            isNewPrefix: true,
+            namespaceIri: "",
+            prefixName: temporaryPrefixName,
+          });
+          isPrefixEditMode = true;
+          previousPrefixName = temporaryPrefixName;
+          previousPrefixNamespaceIri = "";
+          document.querySelector("#addPrefixButton").textContent =
+            "Save Prefix";
+          editSidebar.updateElementWidth();
+          prefixNameInput.focus();
+          return;
+        }
         enablePrefixEdit(
           document.querySelector("#editButtonFor_emptyPrefixEntry"),
         );
-      }
-    });
+      },
+      { signal: lifecycleAbortController.signal },
+    );
   }
 
   function setupPrefixList() {
-    if (graph.isEditorMode() === false) {
+    if (!graph.isEditorMode()) {
       return;
     }
-    const prefixListContainer = d3.select("#prefixURL_Container");
-    const prefixElements = graph.options().prefixList();
-    for (const name in prefixElements) {
-      if (Object.prototype.hasOwnProperty.call(prefixElements, name)) {
-        const prefixEditContainer = prefixListContainer.append("div");
-        prefixEditContainer.classed("prefixIRIElements", true);
-        prefixEditContainer.node().id = "prefixContainerFor_" + name;
-
-        // create edit button which enables the input fields
-        const IconContainer = prefixEditContainer.append("div");
-        IconContainer.classed("icon-container-abs", true);
-        IconContainer.node().id = "containerFor_" + name;
-        const editButton = IconContainer.append("svg");
-        editButton.classed("edit-btn-svg noselect", true);
-        editButton.node().id = "editButtonFor_" + name;
-        IconContainer.node().title = "Edit prefix and IRI";
-        editButton.node().elementStyle = "save";
-        editButton.node().selectorName = name;
-
-        editButton.node().id = "editButtonFor_" + name;
-        editButton.node().elementStyle = "edit";
-        const editIcon = editButton.append("g");
-        const editRect = editIcon.append("rect");
-        const editPath = editIcon.append("path");
-        editIcon.node().id = "iconFor_" + name;
-        editPath.node().id = "pathFor_" + name;
-        editRect.node().id = "rectFor_" + name;
-
-        editIcon.node().selectorName = name;
-        editPath.node().selectorName = name;
-        editRect.node().selectorName = name;
-
-        editPath.classed("editPrefixIcon edit-path-style", true);
-        editRect.attr("width", "14px");
-        editRect.attr("height", "14px");
-        editRect.classed("edit-rect-style", true);
-        editRect.attr("transform", "matrix(1,0,0,1,-3,4)");
-
-        editButton.selectAll("g").on("mouseover", function () {
-          const sender = this;
-          const enable = true;
-          const f_editPath = document.querySelector(
-            "#pathFor_" + sender.selectorName,
-          );
-          const f_editRect = document.querySelector(
-            "#rectFor_" + sender.selectorName,
-          );
-
-          if (enable === false) {
-            f_editPath.classList.add("edit-path-style");
-            f_editRect.classList.add("non-clickable");
-            f_editRect.classList.remove("clickable");
-          } else {
-            f_editPath.classList.add("edit-path-style");
-            f_editRect.classList.add("clickable");
-            f_editRect.classList.remove("non-clickable");
-          }
-        });
-        editButton.selectAll("g").on("mouseout", function () {
-          const sender = this;
-          const enable = false;
-          const f_editPath = document.querySelector(
-            "#pathFor_" + sender.selectorName,
-          );
-          const f_editRect = document.querySelector(
-            "#rectFor_" + sender.selectorName,
-          );
-
-          if (enable === false) {
-            f_editPath.classList.add("edit-path-style");
-            f_editRect.classList.add("non-clickable");
-            f_editRect.classList.remove("clickable");
-          } else {
-            f_editPath.classList.add("edit-path-style");
-            f_editRect.classList.add("clickable");
-            f_editRect.classList.remove("non-clickable");
-          }
-        });
-
-        editPath.attr(
-          "d",
-          "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z",
-        );
-        editPath.attr("transform", "matrix(-0.45,0,0,0.45,10,5)");
-
-        // create input field for prefix
-        const prefInput = prefixEditContainer.append("input");
-        prefInput.classed("prefixInput pref-input-style", true);
-        prefInput.node().type = "text";
-        prefInput.node().id = "prefixInputFor_" + name;
-        prefInput.node().autocomplete = "off";
-        prefInput.node().value = name;
-
-        // create input field for prefix url
-        const prefURL = prefixEditContainer.append("input");
-        prefURL.classed("prefixURL", true);
-        prefURL.node().type = "text";
-        prefURL.node().id = "prefixURLFor_" + name;
-        prefURL.node().autocomplete = "off";
-        prefURL.node().value = prefixElements[name];
-        prefURL.node().title = prefixElements[name];
-        prefInput.node().disabled = true;
-        prefURL.node().disabled = true;
-
-        // create the delete button
-        const deleteContainer = prefixEditContainer.append("div");
-        deleteContainer.classed("delete-container-style", true);
-        const deleteButton = deleteContainer.append("svg");
-        deleteButton.node().id = "deleteButtonFor_" + name;
-        deleteContainer.node().title = "Delete prefix and IRI";
-        deleteButton.classed("delete-btn-svg", true);
-        const deleteIcon = deleteButton.append("g");
-        const deleteRect = deleteIcon.append("rect");
-        const deletePath = deleteIcon.append("path");
-        deleteIcon.node().id = "del_iconFor_" + name;
-        deletePath.node().id = "del_pathFor_" + name;
-        deleteRect.node().id = "del_rectFor_" + name;
-
-        deleteIcon.node().selectorName = name;
-        deletePath.node().selectorName = name;
-        deleteRect.node().selectorName = name;
-
-        deletePath.classed("delete-path-style", true);
-        deleteRect.attr("width", "10px");
-        deleteRect.attr("height", "14px");
-        deleteRect.classed("delete-rect-style", true);
-        deleteRect.attr("transform", "matrix(1,0,0,1,-3,4)");
-
-        deletePath.attr(
-          "d",
-          "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
-        );
-        deletePath.attr("transform", "matrix(0.45,0,0,0.45,0,5)");
-
-        deleteButton.selectAll("g").on("mouseover", function () {
-          const selector = this;
-          const enable = true;
-          const f_deletePath = document.querySelector(
-            "#del_pathFor_" + selector.selectorName,
-          );
-          const f_deleteRect = document.querySelector(
-            "#del_rectFor_" + selector.selectorName,
-          );
-
-          if (enable === false) {
-            f_deletePath.classList.add("delete-path-style");
-            f_deleteRect.classList.add("non-clickable");
-            f_deleteRect.classList.remove("clickable");
-          } else {
-            f_deletePath.classList.add("delete-path-style");
-            f_deleteRect.classList.add("clickable");
-            f_deleteRect.classList.remove("non-clickable");
-          }
-        });
-        deleteButton.selectAll("g").on("mouseout", function () {
-          const selector = this;
-          const enable = false;
-          const f_deletePath = document.querySelector(
-            "#del_pathFor_" + selector.selectorName,
-          );
-          const f_deleteRect = document.querySelector(
-            "#del_rectFor_" + selector.selectorName,
-          );
-
-          if (enable === false) {
-            f_deletePath.classList.add("delete-path-style");
-            f_deleteRect.classList.add("non-clickable");
-            f_deleteRect.classList.remove("clickable");
-          } else {
-            f_deletePath.classList.add("delete-path-style");
-            f_deleteRect.classList.add("clickable");
-            f_deleteRect.classList.remove("non-clickable");
-          }
-        });
-
-        editButton.on("click", enablePrefixEdit);
-        deleteButton.on("click", deletePrefixLine);
-
-        // EXPERIMENTAL
-
-        if (
-          name === "rdf" ||
-          name === "rdfs" ||
-          name === "xsd" ||
-          name === "dc" ||
-          name === "owl"
-        ) {
-          // make them invis so the spacing does not change
-          IconContainer.classed("hidden", true);
-          deleteContainer.classed("hidden", true);
-        }
-      }
+    for (const [prefixName, namespaceIri] of Object.entries(
+      graph.options().prefixList(),
+    )) {
+      appendPrefixEditorRow({
+        isNewPrefix: false,
+        namespaceIri,
+        prefixName,
+      });
     }
     prefixModule.updatePrefixModel();
   }
 
-  function deletePrefixLine() {
-    if (this.disabled === true) {
+  function deletePrefixLine(prefixDeleteControlOrEvent) {
+    const deleteButton =
+      prefixDeleteControlOrEvent?.currentTarget ?? prefixDeleteControlOrEvent;
+    if (!deleteButton) {
       return;
     }
-    document.querySelector("#addPrefixButton").innerHTML = "Add Prefix";
-    const selector = this.id.split("_")[1];
-    document.querySelector("#prefixContainerFor_" + selector).remove();
-    graph.options().removePrefix(selector);
-    prefix_editMode = false; // <<TODO make some sanity checks
-    prefixModule.updatePrefixModel();
+    if (deleteButton.disabled === true) {
+      return;
+    }
+    document.querySelector("#addPrefixButton").textContent = "Add Prefix";
+    graph.options().removePrefix(deleteButton.prefixName);
+    isPrefixEditMode = false;
+    editSidebar.updatePrefixUi();
   }
 
-  function enablePrefixEdit(item) {
-    let agent = this;
-    if (item && !(item instanceof Event) && item.id) {
-      agent = item;
-    }
-    if (!agent || agent.disabled === true || !agent.id) {
+  function enablePrefixEdit(prefixEditorControlOrEvent) {
+    const editButton =
+      prefixEditorControlOrEvent?.currentTarget ?? prefixEditorControlOrEvent;
+    if (!editButton || editButton.disabled === true || !editButton.prefixName) {
       return;
     }
-    const selector = agent.id.split("_")[1];
-    const stl = agent.elementStyle;
-    if (stl === "edit") {
-      document.querySelector("#prefixInputFor_" + selector).disabled = false;
-      document.querySelector("#prefixURLFor_" + selector).disabled = false;
-      // change the button content
-      //  this.innerHTML = "\u2714";
-      agent.elementStyle = "save";
-      oldPrefix = document.querySelector("#prefixInputFor_" + selector).value;
-      oldPrefixURL = document.querySelector("#prefixURLFor_" + selector).value;
-      prefix_editMode = true;
-      if (document.querySelector("#containerFor_" + selector)) {
-        document.querySelector("#containerFor_" + selector).title =
+    const prefixName = editButton.prefixName;
+    const prefixEditorAction = editButton.prefixEditorAction;
+    if (prefixEditorAction === "edit") {
+      document.querySelector("#prefixInputFor_" + prefixName).disabled = false;
+      document.querySelector("#prefixURLFor_" + prefixName).disabled = false;
+      previousPrefixName = document.querySelector(
+        "#prefixInputFor_" + prefixName,
+      ).value;
+      previousPrefixNamespaceIri = document.querySelector(
+        "#prefixURLFor_" + prefixName,
+      ).value;
+      isPrefixEditMode = true;
+      if (document.querySelector("#containerFor_" + prefixName)) {
+        document.querySelector("#containerFor_" + prefixName).title =
           "Save new prefix and IRI";
       }
-
-      agent.querySelectorAll("g").forEach(function (g) {
-        g.addEventListener("mouseover", function () {
-          highlightEditButton(true, agent.selectorName, true);
-        });
-        g.addEventListener("mouseout", function () {
-          highlightEditButton(false, agent.selectorName, true);
-        });
-      });
-
-      const editPath = document.querySelector("#pathFor_" + agent.selectorName);
-      editPath.setAttribute(
-        "d",
-        "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z",
-      );
-      editPath.setAttribute("transform", "matrix(0.45,0,0,0.45,0,5)");
-
-      highlightEditButton(true, agent.selectorName, true);
+      setPrefixEditorAction(editButton, "save");
+      highlightEditButton(true, prefixName);
+      return;
     }
-    if (stl === "save") {
-      const newPrefixURL = document.querySelector(
-        "#prefixURLFor_" + selector,
+    if (prefixEditorAction === "save") {
+      const newPrefixNamespaceIri = document.querySelector(
+        "#prefixURLFor_" + prefixName,
       ).value;
       const newPrefix = document.querySelector(
-        "#prefixInputFor_" + selector,
+        "#prefixInputFor_" + prefixName,
       ).value;
 
       if (
         graph
           .options()
-          .updatePrefix(oldPrefix, newPrefix, oldPrefixURL, newPrefixURL) ===
-        true
+          .updatePrefix(
+            previousPrefixName,
+            newPrefix,
+            previousPrefixNamespaceIri,
+            newPrefixNamespaceIri,
+          ) === true
       ) {
-        editSidebar.updateEditDeleteButtonIds(oldPrefix, newPrefix);
-        document.querySelector("#prefixInputFor_" + newPrefix).disabled = true;
-        document.querySelector("#prefixURLFor_" + newPrefix).disabled = true;
-        document.querySelector("#addPrefixButton").innerHTML = "Add Prefix";
-        if (document.querySelector("#containerFor_" + selector)) {
-          document.querySelector("#containerFor_" + selector).title =
-            "Edit prefix and IRI";
-        }
-
-        // change the button content
-
-        agent.elementStyle = "edit";
-        prefix_editMode = false;
-        prefixModule.updatePrefixModel();
-        agent.querySelectorAll("g").forEach(function (g) {
-          g.addEventListener("mouseover", function () {
-            highlightEditButton(true, agent.selectorName, false);
-          });
-          g.addEventListener("mouseout", function () {
-            highlightEditButton(false, agent.selectorName, false);
-          });
-        });
-
-        const savePath = document.querySelector(
-          "#pathFor_" + agent.selectorName,
-        );
-        savePath.setAttribute(
-          "d",
-          "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z",
-        );
-        savePath.setAttribute("transform", "matrix(-0.45,0,0,0.45,10,5)");
-        highlightEditButton(true, agent.selectorName, false);
+        document.querySelector("#addPrefixButton").textContent = "Add Prefix";
+        isPrefixEditMode = false;
+        editSidebar.updatePrefixUi();
       }
     }
   }
@@ -676,12 +585,12 @@ module.exports = function createEditSidebar(graph) {
     return elementIRI.indexOf(ontoIRI) === -1;
   }
 
-  function defaultIriValue(element) {
+  function usesDefaultDerivedIri(element) {
     // get the iri of that element;
     if (graph.options().getGeneralMetaObject().iri) {
-      const str2Compare =
+      const defaultDerivedIri =
         graph.options().getGeneralMetaObject().iri + element.id();
-      return element.iri() === str2Compare;
+      return element.iri() === defaultDerivedIri;
     }
     return false;
   }
@@ -695,11 +604,11 @@ module.exports = function createEditSidebar(graph) {
    * @param {Object} element - The currently selected graph element.
    * @returns {string|undefined} The resolved absolute IRI string, or undefined on error.
    */
-  function getURLFROMPrefixedVersion(element) {
-    let url = document.querySelector("#element_iriEditor").value;
-    const base = graph.options().getGeneralMetaObjectProperty("iri");
+  function resolveElementIriInput(element) {
+    let resolvedIri = document.querySelector("#element_iriEditor").value;
+    const ontologyBaseIri = graph.options().getGeneralMetaObjectProperty("iri");
 
-    if (!url || url.trim().length === 0) {
+    if (!resolvedIri || resolvedIri.trim().length === 0) {
       graph
         .options()
         .warningModule()
@@ -715,17 +624,17 @@ module.exports = function createEditSidebar(graph) {
     }
 
     // If already a valid absolute URL, accept it directly without mangling
-    if (prefixModule.validURL(url) === true) {
-      return url;
+    if (prefixModule.validURL(resolvedIri) === true) {
+      return resolvedIri;
     }
 
     // Attempt CURIE / prefix expansion
-    const tokens = url.split(":");
-    if (tokens.length === 2) {
-      const pr = tokens[0];
-      const name = tokens[1];
+    const curieSegments = resolvedIri.split(":");
+    if (curieSegments.length === 2) {
+      const prefixName = curieSegments[0];
+      const localIdentifier = curieSegments[1];
 
-      if (name.length === 0) {
+      if (localIdentifier.length === 0) {
         graph
           .options()
           .warningModule()
@@ -740,15 +649,15 @@ module.exports = function createEditSidebar(graph) {
         return undefined;
       }
 
-      if (pr.length > 0) {
-        const basePref = graph.options().prefixList()[pr];
-        if (basePref === undefined) {
+      if (prefixName.length > 0) {
+        const prefixNamespaceIri = graph.options().prefixList()[prefixName];
+        if (prefixNamespaceIri === undefined) {
           graph
             .options()
             .warningModule()
             .showWarning(
               "Invalid Element IRI",
-              "Could not resolve prefix '" + pr + "'",
+              "Could not resolve prefix '" + prefixName + "'",
               "Restoring previous IRI for Element: " + element.iri(),
               1,
               false,
@@ -756,28 +665,28 @@ module.exports = function createEditSidebar(graph) {
           document.querySelector("#element_iriEditor").value = element.iri();
           return undefined;
         }
-        url = basePref + name;
+        resolvedIri = prefixNamespaceIri + localIdentifier;
       } else {
-        url = base + name;
+        resolvedIri = ontologyBaseIri + localIdentifier;
       }
     } else {
       // Append input string to ontology base IRI
-      url = base + url;
+      resolvedIri = ontologyBaseIri + resolvedIri;
     }
-    return url;
+    return resolvedIri;
   }
 
   function changeIriForElement(element) {
-    const url = getURLFROMPrefixedVersion(element);
-    if (!url) {
+    const resolvedIri = resolveElementIriInput(element);
+    if (!resolvedIri) {
       return;
     }
-    const base = graph.options().getGeneralMetaObjectProperty("iri");
+    const ontologyBaseIri = graph.options().getGeneralMetaObjectProperty("iri");
     let sanityCheckResult;
     if (elementTools.isNode(element)) {
-      sanityCheckResult = graph.checkIfIriClassAlreadyExist(url);
+      sanityCheckResult = graph.checkIfIriClassAlreadyExist(resolvedIri);
       if (sanityCheckResult === false) {
-        element.iri(url);
+        element.iri(resolvedIri);
       } else {
         // throw warning
         graph
@@ -786,7 +695,7 @@ module.exports = function createEditSidebar(graph) {
           .showWarning(
             "Already seen this class",
             "Input IRI: " +
-              url +
+              resolvedIri +
               " for element: " +
               element.labelForCurrentLanguage() +
               " already been set",
@@ -801,7 +710,10 @@ module.exports = function createEditSidebar(graph) {
       }
     }
     if (elementTools.isProperty(element) === true) {
-      sanityCheckResult = editSidebar.checkProperIriChange(element, url);
+      sanityCheckResult = editSidebar.checkProperIriChange(
+        element,
+        resolvedIri,
+      );
       if (sanityCheckResult !== false) {
         graph
           .options()
@@ -809,7 +721,7 @@ module.exports = function createEditSidebar(graph) {
           .showWarning(
             "Already seen this property",
             "Input IRI: " +
-              url +
+              resolvedIri +
               " for element: " +
               element.labelForCurrentLanguage() +
               " already been set",
@@ -824,22 +736,11 @@ module.exports = function createEditSidebar(graph) {
       }
     }
 
-    // if (element.existingPropertyIRI(url)===true){
-    //     console.warn("I Have seen this Particular URL already "+url);
-    //     graph.options().warningModule().showWarning("Already Seen This one ",
-    //         "Input IRI For Element"+ element.labelForCurrentLanguage()+" already been set  ",
-    //         "Restoring previous IRI for Element"+element.iri(),1,false);
-    //     document.querySelector("#element_iriEditor").value =
-    graph
-      .options()
-      .prefixModule()
-      .getPrefixRepresentationForFullURI(element.iri());
-    //     editSidebar.updateSelectionInformation(element);
-    //     return;
-    // }
-
-    element.iri(url);
-    if (identifyExternalCharacteristicForElement(base, url) === true) {
+    element.iri(resolvedIri);
+    if (
+      identifyExternalCharacteristicForElement(ontologyBaseIri, resolvedIri) ===
+      true
+    ) {
       addAttribute(element, "external");
       // background color for external element;
       element.backgroundColor("#36C");
@@ -861,7 +762,7 @@ module.exports = function createEditSidebar(graph) {
     // graph.options().focuserModule().handle(undefined);
 
     document.querySelector("#element_iriEditor").value =
-      prefixModule.getPrefixRepresentationForFullURI(url);
+      prefixModule.getPrefixRepresentationForFullURI(resolvedIri);
     editSidebar.updateSelectionInformation(element);
   }
 
@@ -871,33 +772,18 @@ module.exports = function createEditSidebar(graph) {
     graph.dispatchEvent(new CustomEvent("dictionarychange"));
   }
 
-  editSidebar.updateEditDeleteButtonIds = function (oldPrefix, newPrefix) {
-    document.querySelector("#prefixInputFor_" + oldPrefix).id =
-      "prefixInputFor_" + newPrefix;
-    document.querySelector("#prefixURLFor_" + oldPrefix).id =
-      "prefixURLFor_" + newPrefix;
-    document.querySelector("#deleteButtonFor_" + oldPrefix).id =
-      "deleteButtonFor_" + newPrefix;
-    document.querySelector("#editButtonFor_" + oldPrefix).id =
-      "editButtonFor_" + newPrefix;
-
-    document.querySelector("#prefixContainerFor_" + oldPrefix).id =
-      "prefixContainerFor_" + newPrefix;
-  };
-
-  editSidebar.checkForExistingURL = function (url) {
-    let i;
-    const allProps = graph.getUnfilteredData().properties;
-    for (i = 0; i < allProps.length; i++) {
-      if (allProps[i].iri() === url) {
+  editSidebar.checkForExistingURL = function (candidateIri) {
+    const ontologyProperties = graph.getUnfilteredData().properties;
+    for (const ontologyProperty of ontologyProperties) {
+      if (ontologyProperty.iri() === candidateIri) {
         return true;
       }
     }
     return false;
   };
-  editSidebar.checkProperIriChange = function (element, url) {
+  editSidebar.checkProperIriChange = function (element, candidateIri) {
     console.warn("Element changed Label");
-    console.warn("Testing URL " + url);
+    console.warn("Testing URL " + candidateIri);
     if (
       element.type() === "rdfs:subClassOf" ||
       element.type() === "owl:disjointWith"
@@ -906,14 +792,13 @@ module.exports = function createEditSidebar(graph) {
         "ignore this for now, already handled in the type and domain range changer",
       );
     } else {
-      let i;
-      const allProps = graph.getUnfilteredData().properties;
-      for (i = 0; i < allProps.length; i++) {
-        if (allProps[i] === element) {
+      const ontologyProperties = graph.getUnfilteredData().properties;
+      for (const ontologyProperty of ontologyProperties) {
+        if (ontologyProperty === element) {
           continue;
         }
-        if (allProps[i].iri() === url) {
-          return allProps[i];
+        if (ontologyProperty.iri() === candidateIri) {
+          return ontologyProperty;
         }
       }
     }
@@ -921,6 +806,9 @@ module.exports = function createEditSidebar(graph) {
   };
 
   editSidebar.updateSelectionInformation = function (element) {
+    selectionControlsAbortController.abort();
+    selectionControlsAbortController = new AbortController();
+    const selectionControlsSignal = selectionControlsAbortController.signal;
     if (element === undefined) {
       document
         .querySelector("#selectedElementProperties")
@@ -945,24 +833,26 @@ module.exports = function createEditSidebar(graph) {
         element.labelForCurrentLanguage();
       document.querySelector("#element_iriEditor").title = element.iri();
 
-      document
-        .querySelector("#element_iriEditor")
-        .addEventListener("change", function () {
-          const elementIRI = element.iri();
-          const prefixed = graph
-            .options()
-            .prefixModule()
-            .getPrefixRepresentationForFullURI(elementIRI);
-          if (prefixed === document.querySelector("#element_iriEditor").value) {
+      document.querySelector("#element_iriEditor").addEventListener(
+        "change",
+        function () {
+          const elementIri = element.iri();
+          const prefixedIri =
+            prefixModule.getPrefixRepresentationForFullURI(elementIri);
+          if (
+            prefixedIri === document.querySelector("#element_iriEditor").value
+          ) {
             console.warn("Iri is identical, nothing has changed!");
             return;
           }
 
           changeIriForElement(element);
-        });
-      document
-        .querySelector("#element_iriEditor")
-        .addEventListener("keydown", function (event) {
+        },
+        { signal: selectionControlsSignal },
+      );
+      document.querySelector("#element_iriEditor").addEventListener(
+        "keydown",
+        function (event) {
           event.stopPropagation();
           if (event.key === "Enter") {
             event.preventDefault();
@@ -970,20 +860,22 @@ module.exports = function createEditSidebar(graph) {
             changeIriForElement(element);
             document.querySelector("#element_iriEditor").title = element.iri();
           }
-        });
+        },
+        { signal: selectionControlsSignal },
+      );
 
-      const forceIRISync = defaultIriValue(element);
-      document
-        .querySelector("#element_labelEditor")
-        .addEventListener("change", function () {
+      const shouldSynchronizeIriWithLabel = usesDefaultDerivedIri(element);
+      document.querySelector("#element_labelEditor").addEventListener(
+        "change",
+        function () {
           let sanityCheckResult;
           console.warn("Element changed Label");
-          const url = getURLFROMPrefixedVersion(element);
-          if (element.iri() !== url) {
+          const resolvedIri = resolveElementIriInput(element);
+          if (element.iri() !== resolvedIri) {
             if (elementTools.isProperty(element) === true) {
               sanityCheckResult = editSidebar.checkProperIriChange(
                 element,
-                url,
+                resolvedIri,
               );
               if (sanityCheckResult !== false) {
                 graph
@@ -992,7 +884,7 @@ module.exports = function createEditSidebar(graph) {
                   .showWarning(
                     "Already seen this property",
                     "Input IRI: " +
-                      url +
+                      resolvedIri +
                       " for element: " +
                       element.labelForCurrentLanguage() +
                       " already been set",
@@ -1007,7 +899,8 @@ module.exports = function createEditSidebar(graph) {
             }
 
             if (elementTools.isNode(element) === true) {
-              sanityCheckResult = graph.checkIfIriClassAlreadyExist(url);
+              sanityCheckResult =
+                graph.checkIfIriClassAlreadyExist(resolvedIri);
               if (sanityCheckResult !== false) {
                 graph
                   .options()
@@ -1015,7 +908,7 @@ module.exports = function createEditSidebar(graph) {
                   .showWarning(
                     "Already seen this Class",
                     "Input IRI: " +
-                      url +
+                      resolvedIri +
                       " for element: " +
                       element.labelForCurrentLanguage() +
                       " already been set",
@@ -1029,25 +922,27 @@ module.exports = function createEditSidebar(graph) {
                 return;
               }
             }
-            element.iri(url);
+            element.iri(resolvedIri);
           }
           changeLabelForElement(element);
           editSidebar.updateSelectionInformation(element); // prevents that it will be changed if node is still active
-        });
-      document
-        .querySelector("#element_labelEditor")
-        .addEventListener("keydown", function (event) {
+        },
+        { signal: selectionControlsSignal },
+      );
+      document.querySelector("#element_labelEditor").addEventListener(
+        "keydown",
+        function (event) {
           event.stopPropagation();
           if (event.key === "Enter") {
             event.preventDefault();
             let sanityCheckResult;
             console.warn("Element changed Label");
-            const url = getURLFROMPrefixedVersion(element);
-            if (element.iri() !== url) {
+            const resolvedIri = resolveElementIriInput(element);
+            if (element.iri() !== resolvedIri) {
               if (elementTools.isProperty(element) === true) {
                 sanityCheckResult = editSidebar.checkProperIriChange(
                   element,
-                  url,
+                  resolvedIri,
                 );
                 if (sanityCheckResult !== false) {
                   graph
@@ -1056,7 +951,7 @@ module.exports = function createEditSidebar(graph) {
                     .showWarning(
                       "Already seen this property",
                       "Input IRI: " +
-                        url +
+                        resolvedIri +
                         " for element: " +
                         element.labelForCurrentLanguage() +
                         " already been set",
@@ -1072,7 +967,8 @@ module.exports = function createEditSidebar(graph) {
               }
 
               if (elementTools.isNode(element) === true) {
-                sanityCheckResult = graph.checkIfIriClassAlreadyExist(url);
+                sanityCheckResult =
+                  graph.checkIfIriClassAlreadyExist(resolvedIri);
                 if (sanityCheckResult !== false) {
                   graph
                     .options()
@@ -1080,7 +976,7 @@ module.exports = function createEditSidebar(graph) {
                     .showWarning(
                       "Already seen this Class",
                       "Input IRI: " +
-                        url +
+                        resolvedIri +
                         " for element: " +
                         element.labelForCurrentLanguage() +
                         " already been set",
@@ -1094,15 +990,17 @@ module.exports = function createEditSidebar(graph) {
                   return;
                 }
               }
-              element.iri(url);
+              element.iri(resolvedIri);
             }
             changeLabelForElement(element);
           }
-        });
-      document
-        .querySelector("#element_labelEditor")
-        .addEventListener("keyup", function () {
-          if (forceIRISync) {
+        },
+        { signal: selectionControlsSignal },
+      );
+      document.querySelector("#element_labelEditor").addEventListener(
+        "keyup",
+        function () {
+          if (shouldSynchronizeIriWithLabel) {
             const labelName = document.querySelector(
               "#element_labelEditor",
             ).value;
@@ -1114,7 +1012,9 @@ module.exports = function createEditSidebar(graph) {
             document.querySelector("#element_iriEditor").value =
               prefixModule.getPrefixRepresentationForFullURI(syncedIRI);
           }
-        });
+        },
+        { signal: selectionControlsSignal },
+      );
       // check if we are allowed to change IRI OR LABEL
       document.querySelector("#element_iriEditor").disabled = false;
       document.querySelector("#element_labelEditor").disabled = false;
@@ -1176,33 +1076,42 @@ module.exports = function createEditSidebar(graph) {
           document.querySelector("#element_labelEditor").disabled = false;
         }
         // reconnect the element
-        datatypeEditorSelection.addEventListener("change", function () {
-          changeDatatypeType(element);
-        });
+        datatypeEditorSelection.addEventListener(
+          "change",
+          function () {
+            changeDatatypeType(element);
+          },
+          { signal: selectionControlsSignal },
+        );
       }
 
       // add type selector
       const typeEditorSelection = document.querySelector("#typeEditor");
-      const htmlCollection = typeEditorSelection.children;
-      const numEntries = htmlCollection.length;
-      let i;
+      const existingTypeOptions = typeEditorSelection.children;
+      const existingTypeOptionCount = existingTypeOptions.length;
       const elementPrototypes = getElementPrototypes(element);
-      for (i = 0; i < numEntries; i++) {
-        typeEditorSelection.removeChild(htmlCollection[0]);
+      for (
+        let optionIndex = 0;
+        optionIndex < existingTypeOptionCount;
+        optionIndex++
+      ) {
+        typeEditorSelection.removeChild(existingTypeOptions[0]);
       }
 
-      for (i = 0; i < elementPrototypes.length; i++) {
-        const optA = document.createElement("option");
-        optA.innerHTML = elementPrototypes[i];
-        typeEditorSelection.appendChild(optA);
+      for (const elementPrototype of elementPrototypes) {
+        const elementTypeOption = document.createElement("option");
+        elementTypeOption.textContent = elementPrototype;
+        typeEditorSelection.appendChild(elementTypeOption);
       }
       // set the proper value in the selection
       typeEditorSelection.value = element.type();
-      document
-        .querySelector("#typeEditor")
-        .addEventListener("change", function () {
+      document.querySelector("#typeEditor").addEventListener(
+        "change",
+        function () {
           elementTypeSelectionChanged(element);
-        });
+        },
+        { signal: selectionControlsSignal },
+      );
 
       // add characteristics selection
       const needChar = elementNeedsCharacteristics(element);
@@ -1314,7 +1223,9 @@ module.exports = function createEditSidebar(graph) {
         filterContainer.appendChild(filterLabel);
         charSelectionNode.appendChild(filterContainer);
 
-        filterCheckbox.addEventListener("click", handleCheckBoxClick);
+        filterCheckbox.addEventListener("click", handleCheckBoxClick, {
+          signal: selectionControlsAbortController.signal,
+        });
       }
     } else {
       // add the deprecated characteristic;
@@ -1349,7 +1260,9 @@ module.exports = function createEditSidebar(graph) {
         filterContainer.appendChild(filterLabel);
         charSelectionNode.appendChild(filterContainer);
 
-        filterCheckbox.addEventListener("click", handleCheckBoxClick);
+        filterCheckbox.addEventListener("click", handleCheckBoxClick, {
+          signal: selectionControlsAbortController.signal,
+        });
       }
     }
   }
@@ -1358,9 +1271,10 @@ module.exports = function createEditSidebar(graph) {
     return selectedElement.attributes().indexOf(element) >= 0;
   }
 
-  function handleCheckBoxClick() {
-    const checked = this.checked;
-    const char = this.getAttribute("characteristics");
+  function handleCheckBoxClick(event) {
+    const characteristicCheckbox = event.currentTarget;
+    const checked = characteristicCheckbox.checked;
+    const char = characteristicCheckbox.getAttribute("characteristics");
     if (checked === true) {
       addAttribute(selectedElementForCharacteristics, char);
     } else {
@@ -1479,34 +1393,34 @@ module.exports = function createEditSidebar(graph) {
   }
 
   function getElementPrototypes(selectedElement) {
-    const availiblePrototypes = [];
+    const availablePrototypes = [];
     // TODO the text should be also complied with the prefixes loaded into the ontology
     if (elementTools.isProperty(selectedElement)) {
       if (selectedElement.type() === "owl:DatatypeProperty") {
-        availiblePrototypes.push("owl:DatatypeProperty");
+        availablePrototypes.push("owl:DatatypeProperty");
       } else {
-        availiblePrototypes.push("owl:ObjectProperty");
+        availablePrototypes.push("owl:ObjectProperty");
         // handling loops !
         if (selectedElement.domain() !== selectedElement.range()) {
-          availiblePrototypes.push("rdfs:subClassOf");
+          availablePrototypes.push("rdfs:subClassOf");
         }
-        availiblePrototypes.push("owl:disjointWith");
-        availiblePrototypes.push("owl:allValuesFrom");
-        availiblePrototypes.push("owl:someValuesFrom");
+        availablePrototypes.push("owl:disjointWith");
+        availablePrototypes.push("owl:allValuesFrom");
+        availablePrototypes.push("owl:someValuesFrom");
       }
-      return availiblePrototypes;
+      return availablePrototypes;
     }
     if (selectedElement.renderType() === "rect") {
-      availiblePrototypes.push("rdfs:Literal");
-      availiblePrototypes.push("rdfs:Datatype");
+      availablePrototypes.push("rdfs:Literal");
+      availablePrototypes.push("rdfs:Datatype");
     } else {
-      availiblePrototypes.push("owl:Class");
-      availiblePrototypes.push("owl:Thing");
+      availablePrototypes.push("owl:Class");
+      availablePrototypes.push("owl:Thing");
       //  TODO: ADD MORE TYPES
-      // availiblePrototypes.push("owl:complementOf");
-      // availiblePrototypes.push("owl:disjointUnionOf");
+      // availablePrototypes.push("owl:complementOf");
+      // availablePrototypes.push("owl:disjointUnionOf");
     }
-    return availiblePrototypes;
+    return availablePrototypes;
   }
 
   function setupCollapsing() {
@@ -1522,36 +1436,50 @@ module.exports = function createEditSidebar(graph) {
       container.classList.remove("hidden");
     }
 
-    const triggers = document.querySelectorAll(".accordion-trigger");
+    function toggleEditingDetailsAccordionTrigger(selectedTrigger) {
+      if (selectedTrigger.classList.contains("accordion-trigger-active")) {
+        collapseContainers(selectedTrigger.nextElementSibling);
+        selectedTrigger.classList.remove("accordion-trigger-active");
+      } else {
+        expandContainers(selectedTrigger.nextElementSibling);
+        selectedTrigger.classList.add("accordion-trigger-active");
+      }
+      editSidebar.updateElementWidth();
+    }
+
+    const editingDetailsSection = document.querySelector("#generalDetailsEdit");
+    const triggers =
+      editingDetailsSection.querySelectorAll(".accordion-trigger");
 
     triggers.forEach(function (trigger) {
       trigger.setAttribute("tabindex", "0");
       trigger.setAttribute("role", "button");
-      trigger.addEventListener("keydown", function (event) {
-        const evt = event || window.event;
-        if (evt && (evt.key === "Enter" || evt.key === " ")) {
-          evt.preventDefault();
-          this.click();
-        }
-      });
+      trigger.addEventListener(
+        "keydown",
+        function (event) {
+          if (isKeyboardActivationEvent(event)) {
+            event.preventDefault();
+            toggleEditingDetailsAccordionTrigger(event.currentTarget);
+          }
+        },
+        { signal: lifecycleAbortController.signal },
+      );
 
-      trigger.addEventListener("click", function () {
-        if (this.classList.contains("accordion-trigger-active")) {
-          // Collapse the active (which is also the selected) trigger
-          collapseContainers(this.nextElementSibling);
-          this.classList.remove("accordion-trigger-active");
-        } else {
-          // Collapse the other trigger ...
-          // collapseContainers(document.querySelectorAll(".accordion-trigger-active + div"));
-
-          // ... and expand the selected one
-          expandContainers(this.nextElementSibling);
-          this.classList.add("accordion-trigger-active");
-        }
-        editSidebar.updateElementWidth();
-      });
+      trigger.addEventListener(
+        "click",
+        function (event) {
+          toggleEditingDetailsAccordionTrigger(event.currentTarget);
+        },
+        { signal: lifecycleAbortController.signal },
+      );
     });
   }
 
+  editSidebar.dispose = function () {
+    lifecycleAbortController.abort();
+    prefixControlsAbortController.abort();
+    selectionControlsAbortController.abort();
+  };
+
   return editSidebar;
-};
+}

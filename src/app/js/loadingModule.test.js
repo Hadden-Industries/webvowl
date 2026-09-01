@@ -1,55 +1,117 @@
-import { beforeEach, describe, expect, jest, test } from "@jest/globals";
-import loadingModuleFactory from "./loadingModule.js";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  jest,
+  test,
+} from "@jest/globals";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
 
-class MockSelection {
+import { loadWithImports as productionLoadWithImports } from "../../owl2vowl/js/index.js";
+
+let createLoadingModule;
+let loadingModuleContext;
+
+class LoadingControl extends EventTarget {
   constructor() {
+    super();
+    this.className = "";
+    this.disabled = false;
+    this.scrollHeight = 0;
+    this.scrollTop = 0;
     this.textContent = "";
+    this.classes = new Set();
+    this.classList = {
+      add: (...classNames) =>
+        classNames.forEach((className) => this.classes.add(className)),
+      contains: (className) => this.classes.has(className),
+      remove: (...classNames) =>
+        classNames.forEach((className) => this.classes.delete(className)),
+      toggle: (className, isPresent) => {
+        if (isPresent) {
+          this.classes.add(className);
+        } else {
+          this.classes.delete(className);
+        }
+      },
+    };
   }
-  classed() {
-    return this;
-  }
-  attr() {
-    return this;
-  }
-  property() {
-    return this;
-  }
-  append() {
-    return new MockSelection();
-  }
-  text() {
-    return this;
-  }
-  style() {
-    return this;
-  }
-  on() {
-    return this;
-  }
-  remove() {}
-  node() {
-    return { innerHTML: "", scrollHeight: 0, scrollTop: 0 };
+
+  removeAttribute() {}
+
+  setAttribute(name, value) {
+    this[name] = value;
   }
 }
 
 global.document = {
-  querySelector: jest.fn().mockReturnValue(new MockSelection()),
+  querySelector: jest.fn().mockReturnValue(new LoadingControl()),
+  querySelectorAll: jest.fn().mockReturnValue([]),
 };
 global.window = {
   history: {
     pushState: jest.fn(),
   },
 };
+
+beforeAll(async () => {
+  const loadingModuleUrl = new URL("./loadingModule.js", import.meta.url);
+  const lifecycleModuleUrl = new URL("./ontologyLifecycle.js", import.meta.url);
+  const resolveFetchUrlModuleUrl = new URL(
+    "../../shared/js/util/resolveFetchUrl.js",
+    import.meta.url,
+  );
+  loadingModuleContext = createContext({
+    AbortController,
+    URL,
+    console,
+    document: global.document,
+    fetch: undefined,
+    location: undefined,
+    window: global.window,
+  });
+  const createSourceTextModule = (moduleUrl) =>
+    new SourceTextModule(readFileSync(fileURLToPath(moduleUrl), "utf8"), {
+      context: loadingModuleContext,
+      identifier: moduleUrl.href,
+    });
+  const loadingModuleSource = createSourceTextModule(loadingModuleUrl);
+  const lifecycleModuleSource = createSourceTextModule(lifecycleModuleUrl);
+  const resolveFetchUrlModuleSource = createSourceTextModule(
+    resolveFetchUrlModuleUrl,
+  );
+  const owl2VowlModule = new SyntheticModule(
+    ["loadWithImports"],
+    function initializeOwl2VowlModule() {
+      this.setExport("loadWithImports", productionLoadWithImports);
+    },
+    { context: loadingModuleContext, identifier: "test:owl2vowl" },
+  );
+  await loadingModuleSource.link((specifier) => {
+    if (specifier === "../../owl2vowl/js/index.js") {
+      return owl2VowlModule;
+    }
+    if (specifier === "../../shared/js/util/resolveFetchUrl.js") {
+      return resolveFetchUrlModuleSource;
+    }
+    if (specifier === "./ontologyLifecycle.js") {
+      return lifecycleModuleSource;
+    }
+    throw new Error(`Unexpected loading-module dependency: ${specifier}`);
+  });
+  await loadingModuleSource.evaluate();
+  ({ createLoadingModule } = loadingModuleSource.namespace);
+});
 describe("loading module create-new command", () => {
   let graph;
   let loadingModule;
   let pushedRoutes;
 
   beforeEach(() => {
-    global.d3 = {
-      select: () => new MockSelection(),
-      selectAll: () => new MockSelection(),
-    };
     global.location = { hash: "#file=foaf.rdf.json" };
     pushedRoutes = [];
     global.window = {
@@ -60,15 +122,23 @@ describe("loading module create-new command", () => {
         },
       },
     };
+    loadingModuleContext.document = global.document;
+    loadingModuleContext.location = global.location;
+    loadingModuleContext.window = global.window;
 
     graph = {
       clearAllGraphData: jest.fn(),
       editorMode: jest.fn(),
       options: () => ({}),
     };
-    loadingModule = loadingModuleFactory(graph);
+    loadingModule = createLoadingModule(graph);
     loadingModule.initializeLoader = jest.fn();
     loadingModule.from_presetOntology = jest.fn();
+  });
+
+  afterEach(() => {
+    loadingModule?.dispose();
+    loadingModuleContext.location = undefined;
   });
 
   test("loads each new ontology directly and records a unique shareable route", () => {
@@ -111,15 +181,17 @@ describe("loading module remote fetch URLs", () => {
       append_message: jest.fn(),
       cachedOntology: jest.fn(() => undefined),
     };
-    const loadingModule = loadingModuleFactory({ options: () => ({}) });
+    const loadingModule = createLoadingModule({ options: () => ({}) });
     loadingModule.setOntologyMenu(ontologyMenu);
     global.fetch = fetchImpl;
+    loadingModuleContext.fetch = fetchImpl;
 
     try {
       global.location = {
         href: "https://webvowl.example/viewer",
         protocol: "https:",
       };
+      loadingModuleContext.location = global.location;
       loadingModule.from_JSON_URL(
         "url=" + encodeURIComponent("http://example.com/graph.json"),
       );
@@ -131,6 +203,7 @@ describe("loading module remote fetch URLs", () => {
         href: "http://webvowl.example/viewer",
         protocol: "http:",
       };
+      loadingModuleContext.location = global.location;
       loadingModule.from_JSON_URL(
         "url=" + encodeURIComponent("http://example.com/local.json"),
       );
@@ -141,8 +214,11 @@ describe("loading module remote fetch URLs", () => {
         "http://example.com/local.json",
       ]);
     } finally {
+      loadingModule.dispose();
       global.fetch = originalFetch;
       global.location = originalLocation;
+      loadingModuleContext.fetch = originalFetch;
+      loadingModuleContext.location = originalLocation;
     }
   });
 
@@ -173,7 +249,7 @@ describe("loading module remote fetch URLs", () => {
       handleOnLoadingError: jest.fn(),
       options: () => ({}),
     };
-    const loadingModule = loadingModuleFactory(graph);
+    const loadingModule = createLoadingModule(graph);
     loadingModule.setOntologyMenu(ontologyMenu);
     global.location = {
       href: "https://webvowl.example/viewer",
@@ -185,6 +261,8 @@ describe("loading module remote fetch URLs", () => {
       statusText: "OK",
       text: async () => ontologyDocument,
     }));
+    loadingModuleContext.location = global.location;
+    loadingModuleContext.fetch = global.fetch;
 
     try {
       loadingModule.from_IRI_URL(
@@ -201,8 +279,50 @@ describe("loading module remote fetch URLs", () => {
         ]),
       );
     } finally {
+      loadingModule.dispose();
       global.fetch = originalFetch;
       global.location = originalLocation;
+      loadingModuleContext.fetch = originalFetch;
+      loadingModuleContext.location = originalLocation;
     }
+  });
+});
+
+describe("loading presentation listener ownership", () => {
+  let controls;
+  let loadingModule;
+
+  beforeEach(() => {
+    controls = new Map();
+    global.document = {
+      querySelector: (selector) => {
+        if (!controls.has(selector)) {
+          controls.set(selector, new LoadingControl());
+        }
+        return controls.get(selector);
+      },
+      querySelectorAll: () => [],
+    };
+    loadingModuleContext.document = global.document;
+    loadingModule = createLoadingModule({ options: () => ({}) });
+  });
+
+  afterEach(() => {
+    loadingModule?.dispose();
+    loadingModuleContext.document = undefined;
+  });
+
+  test("setup registers one details toggle and disposal removes it", () => {
+    loadingModule.setup();
+    loadingModule.setup();
+    const detailsButton = controls.get("#show-loadingInfo-button");
+
+    detailsButton.dispatchEvent(new Event("click"));
+    expect(loadingModule.getDetailsState()).toBe(true);
+
+    loadingModule.dispose();
+    loadingModule.dispose();
+    detailsButton.dispatchEvent(new Event("click"));
+    expect(loadingModule.getDetailsState()).toBe(true);
   });
 });

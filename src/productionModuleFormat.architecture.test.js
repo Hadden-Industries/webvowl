@@ -22,6 +22,14 @@ const ARCHITECTURE_TEST_MODULE_PATH =
   "src/productionModuleFormat.architecture.test.js";
 
 const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
+  "src/app/js/directInputModule.js",
+  "src/app/js/directInputModule.test.js",
+  "src/app/js/editSidebar.js",
+  "src/app/js/editSidebar.test.js",
+  "src/app/js/leftSidebar.js",
+  "src/app/js/leftSidebar.test.js",
+  "src/app/js/loadingModule.js",
+  "src/app/js/loadingModule.test.js",
   "src/app/js/controller/linkedAbortSignal.js",
   "src/app/js/controller/linkedAbortSignal.test.js",
   "src/app/js/controller/ontologySourceLoader.js",
@@ -30,9 +38,17 @@ const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/app/js/controller/renderedGraphRuntimeContracts.test.js",
   "src/app/js/controller/webVowlControllerContracts.js",
   "src/app/js/controller/webVowlControllerContracts.test.js",
+  "src/app/js/ontologyLifecycle.js",
+  "src/app/js/ontologyLifecycle.test.js",
+  "src/app/js/sidebar.js",
+  "src/app/js/sidebar.test.js",
   "src/app/test/inMemoryRenderedGraphAdapter.js",
   "src/app/test/inMemoryRenderedGraphAdapter.test.js",
   "src/app/test/renderedGraphRuntimeContract.js",
+  "src/app/js/warningModule.js",
+  "src/app/js/warningModule.test.js",
+  "src/shared/js/util/resolveFetchUrl.js",
+  "src/shared/js/util/resolveFetchUrl.test.js",
 ]);
 
 const REQUIRED_NATIVE_ESM_DIRECTORY_PATHS = Object.freeze([
@@ -43,6 +59,25 @@ const REQUIRED_NATIVE_ESM_DIRECTORY_PATHS = Object.freeze([
 ]);
 
 const APPROVED_DEFAULT_EXPORT_MODULE_PATHS = Object.freeze([]);
+
+// Task 5's source inventory found that ordinary application D3 selection and
+// event work was confined to sidebar.js and editSidebar.js. Once those uses
+// move to native DOM APIs, only application composition and live-SVG export
+// remain as deletion-bound Task 9 migration sources. Loading and converter
+// transport already use native Fetch and therefore do not belong in this set.
+const APPLICATION_D3_MIGRATION_SOURCE_PATHS = Object.freeze([
+  "src/app/js/app.js",
+  "src/app/js/menu/exportMenu.js",
+]);
+
+const TASK_5_NATIVE_UI_PRODUCTION_MODULE_PATHS = Object.freeze([
+  "src/app/js/directInputModule.js",
+  "src/app/js/editSidebar.js",
+  "src/app/js/leftSidebar.js",
+  "src/app/js/loadingModule.js",
+  "src/app/js/sidebar.js",
+  "src/app/js/warningModule.js",
+]);
 
 // Task 1 found 110 authored JavaScript modules reachable from src/main.js:
 // 103 CommonJS, four native ESM, and three hybrid modules. Only these 30
@@ -7348,6 +7383,70 @@ describe("scoped production native-ESM ratchet", () => {
       "src/app/js/webmcp",
       "src/webvowl/js/runtime",
     ]);
+  });
+
+  test("records the exact deletion-bound Task 9 application D3 migration sources", () => {
+    expect(APPLICATION_D3_MIGRATION_SOURCE_PATHS).toEqual([
+      "src/app/js/app.js",
+      "src/app/js/menu/exportMenu.js",
+    ]);
+    expect(Object.isFrozen(APPLICATION_D3_MIGRATION_SOURCE_PATHS)).toBe(true);
+  });
+
+  test("keeps the Task 9 composition source from requiring migrated native-ESM UI modules", () => {
+    const dependencyGraph = discoverAuthoredJavaScriptModuleDependencyGraph([
+      "src/app/js/app.js",
+    ]);
+    const applicationModuleRecord = dependencyGraph.find(
+      ({ source }) => source === "src/app/js/app.js",
+    );
+    const taskFiveUiModulePaths = new Set(
+      TASK_5_NATIVE_UI_PRODUCTION_MODULE_PATHS,
+    );
+
+    expect(
+      applicationModuleRecord.dependencies
+        .filter(
+          ({ dependencyTypes, resolved }) =>
+            dependencyTypes.includes("require") &&
+            taskFiveUiModulePaths.has(resolved),
+        )
+        .map(({ resolved }) => resolved)
+        .sort(),
+    ).toEqual([]);
+  });
+
+  test("loads Task 5 native-ESM UI modules through one deferred platform module boundary", () => {
+    const applicationModulePath = "src/app/js/app.js";
+    const applicationSourceStructure = analyzeAuthoredJavaScriptModule(
+      readFileSync(absoluteRepositoryPath(applicationModulePath), "utf8"),
+      applicationModulePath,
+    );
+    const expectedDynamicModuleSpecifiers =
+      TASK_5_NATIVE_UI_PRODUCTION_MODULE_PATHS.map(
+        (modulePath) => `./${path.posix.basename(modulePath)}`,
+      );
+
+    expect(applicationSourceStructure.syntaxErrorMessage).toBeUndefined();
+    expect(applicationSourceStructure.hasNativeEsmDeclaration).toBe(false);
+    expect(
+      applicationSourceStructure.moduleSpecifierRecords.filter(
+        ({ kind }) => kind !== "dynamic",
+      ),
+    ).toEqual([]);
+    expect(
+      applicationSourceStructure.moduleSpecifierRecords.map(
+        ({ kind, specifier }) => ({ kind, specifier }),
+      ),
+    ).toEqual(
+      expectedDynamicModuleSpecifiers.map((specifier) => ({
+        kind: "dynamic",
+        specifier,
+      })),
+    );
+    expect(applicationSourceStructure.prohibitedSourcePatternLabels).toContain(
+      "CommonJS module export",
+    );
   });
 
   test("requires every declared native-ESM module to exist", () => {

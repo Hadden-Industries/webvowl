@@ -1,6 +1,6 @@
 const NAVIGABLE_IRI_SCHEMES = new Set(["http:", "https:", "urn:"]);
 
-function navigableIri(value) {
+export function navigableOntologyIri(value) {
   if (typeof value !== "string") {
     return undefined;
   }
@@ -20,7 +20,7 @@ function navigableIri(value) {
 }
 
 function appendIriLabel(element, name, iri) {
-  const href = navigableIri(iri);
+  const href = navigableOntologyIri(iri);
   const tag = document.createElement(href ? "a" : "span");
   element.appendChild(tag);
 
@@ -32,7 +32,7 @@ function appendIriLabel(element, name, iri) {
   tag.textContent = name;
 }
 
-function renderOntologyIri(element, iri) {
+export function renderOntologyIri(element, iri) {
   element.textContent = "";
   const label =
     typeof iri === "string" && iri.trim() ? iri.trim() : "not given";
@@ -44,29 +44,66 @@ function renderOntologyIri(element, iri) {
  * @param graph the graph that belongs to these controls
  * @returns {{}}
  */
-function createSidebar(graph) {
+export function createSidebar(
+  graph,
+  { elementTools, languageConstants, languageTools },
+) {
   const sidebar = {};
-  const languageTools = require("../../shared/js/util/languageTools")();
-  const elementTools = require("../../shared/js/util/elementTools")();
+  const lifecycleAbortController = new AbortController();
   // Required for reloading when the language changes
   let ontologyInfo;
-  let visibleSidebar = 1;
+  let isSidebarVisible = true;
   let lastSelectedElement;
+  let isSetup = false;
+  let isSidebarAnimationInitialized = false;
+  let removeNoTransitionClassAnimationFrame;
+  let ownsNoTransitionClass = false;
 
-  const detailArea = document.querySelector("#detailsArea");
-  const graphArea = document.querySelector("#canvasArea");
-  const collapseButton = document.querySelector("#sidebarExpandButton");
+  const detailsSidebar = document.querySelector("#detailsArea");
+  const documentBody = document.querySelector("body");
+  const graphCanvasArea = document.querySelector("#canvasArea");
+  const sidebarToggleButton = document.querySelector("#sidebarExpandButton");
 
   /**
    * Setup the menu bar.
    */
 
+  function toggleOntologyDetailsAccordionTrigger(selectedTrigger) {
+    const ontologyDetailsSection = document.querySelector("#generalDetails");
+    const activeTriggers = ontologyDetailsSection.querySelectorAll(
+      ".accordion-trigger-active",
+    );
+
+    if (selectedTrigger.classList.contains("accordion-trigger-active")) {
+      if (selectedTrigger.nextElementSibling) {
+        selectedTrigger.nextElementSibling.classList.add("hidden");
+      }
+      selectedTrigger.classList.remove("accordion-trigger-active");
+      return;
+    }
+
+    ontologyDetailsSection
+      .querySelectorAll(".accordion-trigger-active + div")
+      .forEach(function (element) {
+        element.classList.add("hidden");
+      });
+    activeTriggers.forEach(function (activeTrigger) {
+      activeTrigger.classList.remove("accordion-trigger-active");
+    });
+    if (selectedTrigger.nextElementSibling) {
+      selectedTrigger.nextElementSibling.classList.remove("hidden");
+    }
+    selectedTrigger.classList.add("accordion-trigger-active");
+  }
+
   function setupCollapsing() {
     // adapted version of this example: http://www.normansblog.de/simple-jquery-accordion/
-    const triggers = document.querySelectorAll(".accordion-trigger");
+    const ontologyDetailsSection = document.querySelector("#generalDetails");
+    const triggers =
+      ontologyDetailsSection.querySelectorAll(".accordion-trigger");
 
     // Collapse all inactive triggers on startup
-    document
+    ontologyDetailsSection
       .querySelectorAll(
         ".accordion-trigger:not(.accordion-trigger-active) + div",
       )
@@ -77,42 +114,24 @@ function createSidebar(graph) {
     triggers.forEach(function (trigger) {
       trigger.setAttribute("tabindex", "0");
       trigger.setAttribute("role", "button");
-      trigger.addEventListener("keydown", function (event) {
-        const evt = event || window.event;
-        if (evt && (evt.key === "Enter" || evt.key === " ")) {
-          evt.preventDefault();
-          this.click();
-        }
-      });
-
-      trigger.addEventListener("click", function () {
-        const activeTriggers = document.querySelectorAll(
-          ".accordion-trigger-active",
-        );
-
-        if (this.classList.contains("accordion-trigger-active")) {
-          // Collapse the active (which is also the selected) trigger
-          if (this.nextElementSibling) {
-            this.nextElementSibling.classList.add("hidden");
+      trigger.addEventListener(
+        "keydown",
+        function (event) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            toggleOntologyDetailsAccordionTrigger(event.currentTarget);
           }
-          this.classList.remove("accordion-trigger-active");
-        } else {
-          // Collapse the other trigger ...
-          document
-            .querySelectorAll(".accordion-trigger-active + div")
-            .forEach(function (el) {
-              el.classList.add("hidden");
-            });
-          activeTriggers.forEach(function (el) {
-            el.classList.remove("accordion-trigger-active");
-          });
-          // ... and expand the selected one
-          if (this.nextElementSibling) {
-            this.nextElementSibling.classList.remove("hidden");
-          }
-          this.classList.add("accordion-trigger-active");
-        }
-      });
+        },
+        { signal: lifecycleAbortController.signal },
+      );
+
+      trigger.addEventListener(
+        "click",
+        function (event) {
+          toggleOntologyDetailsAccordionTrigger(event.currentTarget);
+        },
+        { signal: lifecycleAbortController.signal },
+      );
     });
   }
 
@@ -137,8 +156,9 @@ function createSidebar(graph) {
       .querySelector("#selection-details-trigger")
       .classList.contains("accordion-trigger-active");
     if (isTriggerActive) {
-      // close accordion
-      document.querySelector("#selection-details-trigger").click();
+      toggleOntologyDetailsAccordionTrigger(
+        document.querySelector("#selection-details-trigger"),
+      );
     }
     showSelectionAdvice();
   };
@@ -238,14 +258,13 @@ function createSidebar(graph) {
     }
 
     // 4. Fallback: LANG_UNDEFINED ("undefined")
-    const langUndefined = require("../../shared/js/util/constants")()
-      .LANG_UNDEFINED;
+    const langUndefined = languageConstants.undefinedLanguage;
     if (languages.indexOf(langUndefined) >= 0) {
       return langUndefined;
     }
 
     // 5. Fallback: LANG_IRIBASED ("id")
-    const langIri = require("../../shared/js/util/constants")().LANG_IRIBASED;
+    const langIri = languageConstants.iriBasedLanguage;
     if (languages.indexOf(langIri) >= 0) {
       return langIri;
     }
@@ -255,59 +274,47 @@ function createSidebar(graph) {
   }
 
   function setLanguages(languages) {
-    languages = languages || [];
+    const availableLanguages = Array.isArray(languages) ? [...languages] : [];
 
     // Put the default and unset label on top of the selection labels
-    languages.sort(function (a, b) {
-      if (a === require("../../shared/js/util/constants")().LANG_IRIBASED) {
+    availableLanguages.sort(function (a, b) {
+      if (a === languageConstants.iriBasedLanguage) {
         return -1;
-      } else if (
-        b === require("../../shared/js/util/constants")().LANG_IRIBASED
-      ) {
+      } else if (b === languageConstants.iriBasedLanguage) {
         return 1;
       }
-      if (a === require("../../shared/js/util/constants")().LANG_UNDEFINED) {
+      if (a === languageConstants.undefinedLanguage) {
         return -1;
-      } else if (
-        b === require("../../shared/js/util/constants")().LANG_UNDEFINED
-      ) {
+      } else if (b === languageConstants.undefinedLanguage) {
         return 1;
       }
       return a.localeCompare(b);
     });
 
-    const languageSelection = d3
-      .select("#language")
-      .on("change", function (event) {
-        graph.language(event.target.value);
-        updateGraphInformation();
-        sidebar.updateSelectionInformation(lastSelectedElement);
-      });
+    const languageSelect = document.querySelector("#language");
+    const languageOptions = availableLanguages.map(function (language) {
+      const option = document.createElement("option");
+      option.value = language;
+      option.textContent = language;
+      return option;
+    });
+    languageSelect.replaceChildren(...languageOptions);
 
-    languageSelection.selectAll("option").remove();
-    languageSelection
-      .selectAll("option")
-      .data(languages)
-      .enter()
-      .append("option")
-      .attr("value", function (d) {
-        return d;
-      })
-      .text(function (d) {
-        return d;
-      });
-
-    const selectedLanguage = findBestMatchingLanguage(languages);
+    const selectedLanguage = findBestMatchingLanguage(availableLanguages);
     if (selectedLanguage) {
-      const langIndex = languages.indexOf(selectedLanguage);
+      const langIndex = availableLanguages.indexOf(selectedLanguage);
       if (langIndex >= 0) {
-        languageSelection.property("selectedIndex", langIndex);
+        languageSelect.selectedIndex = langIndex;
       }
-      if (languageSelection.node()) {
-        languageSelection.node().value = selectedLanguage;
-      }
+      languageSelect.value = selectedLanguage;
       graph.language(selectedLanguage);
     }
+  }
+
+  function handleLanguageChange(event) {
+    graph.language(event.currentTarget.value);
+    updateGraphInformation();
+    sidebar.updateSelectionInformation(lastSelectedElement);
   }
 
   function updateGraphInformation() {
@@ -560,9 +567,8 @@ function createSidebar(graph) {
     const universalEntries = [];
     const languageEntries = [];
 
-    const langUndefined = require("../../shared/js/util/constants")()
-      .LANG_UNDEFINED;
-    const langIri = require("../../shared/js/util/constants")().LANG_IRIBASED;
+    const langUndefined = languageConstants.undefinedLanguage;
+    const langIri = languageConstants.iriBasedLanguage;
 
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
@@ -705,7 +711,9 @@ function createSidebar(graph) {
       .querySelector("#selection-details-trigger")
       .classList.contains("accordion-trigger-active");
     if (selectedElement && !isTriggerActive) {
-      document.querySelector("#selection-details-trigger").click();
+      toggleOntologyDetailsAccordionTrigger(
+        document.querySelector("#selection-details-trigger"),
+      );
     } else if (!selectedElement && isTriggerActive) {
       showSelectionAdvice();
       return;
@@ -1045,12 +1053,11 @@ function createSidebar(graph) {
   /** Collapsible Sidebar functions; **/
 
   sidebar.updateDockedControlsPosition = function () {
-    const isHidden = detailArea.classList.contains("hidden");
+    const isHidden = detailsSidebar.classList.contains("hidden");
     const zoomSlider = document.querySelector("#zoomSlider");
-    const collapseButton = document.querySelector("#sidebarExpandButton");
 
     zoomSlider.classList.toggle("aligned-to-sidebar", !isHidden);
-    collapseButton.classList.toggle("aligned-to-sidebar", !isHidden);
+    sidebarToggleButton.classList.toggle("aligned-to-sidebar", !isHidden);
   };
 
   function updateNavMenuScrollButtons() {
@@ -1065,24 +1072,47 @@ function createSidebar(graph) {
     }
   }
 
-  sidebar.showSidebar = function (val, init) {
-    if (init === true) {
-      document.querySelector("body").classList.add("no-transition");
+  function cancelPendingNoTransitionClassRemoval() {
+    if (
+      removeNoTransitionClassAnimationFrame !== undefined &&
+      typeof cancelAnimationFrame === "function"
+    ) {
+      cancelAnimationFrame(removeNoTransitionClassAnimationFrame);
+    }
+    removeNoTransitionClassAnimationFrame = undefined;
+  }
+
+  function removeOwnedNoTransitionClass() {
+    if (!ownsNoTransitionClass) {
+      return;
+    }
+    documentBody.classList.remove("no-transition");
+    ownsNoTransitionClass = false;
+  }
+
+  sidebar.showSidebar = function (
+    requestedVisibilityValue,
+    shouldSuppressInitialTransition,
+  ) {
+    if (shouldSuppressInitialTransition === true) {
+      cancelPendingNoTransitionClassRemoval();
+      documentBody.classList.add("no-transition");
+      ownsNoTransitionClass = true;
     }
 
-    if (val === 1) {
-      visibleSidebar = true;
-      collapseButton.innerHTML = ">";
-      detailArea.classList.remove("hidden");
-      graphArea.classList.add("sidebar-visible");
+    if (requestedVisibilityValue === 1) {
+      isSidebarVisible = true;
+      sidebarToggleButton.textContent = ">";
+      detailsSidebar.classList.remove("hidden");
+      graphCanvasArea.classList.add("sidebar-visible");
       document
         .querySelector("#WarningErrorMessagesContainer")
         .classList.add("sidebar-visible");
     } else {
-      visibleSidebar = false;
-      collapseButton.innerHTML = "<";
-      detailArea.classList.add("hidden");
-      graphArea.classList.remove("sidebar-visible");
+      isSidebarVisible = false;
+      sidebarToggleButton.textContent = "<";
+      detailsSidebar.classList.add("hidden");
+      graphCanvasArea.classList.remove("sidebar-visible");
       document
         .querySelector("#WarningErrorMessagesContainer")
         .classList.remove("sidebar-visible");
@@ -1092,66 +1122,99 @@ function createSidebar(graph) {
     graph.updateCanvasContainerSize();
     updateNavMenuScrollButtons();
 
-    if (init === true) {
-      requestAnimationFrame(function () {
-        document.querySelector("body").classList.remove("no-transition");
-      });
+    if (shouldSuppressInitialTransition === true) {
+      removeNoTransitionClassAnimationFrame = requestAnimationFrame(
+        function () {
+          removeNoTransitionClassAnimationFrame = undefined;
+          removeOwnedNoTransitionClass();
+        },
+      );
     }
   };
 
   sidebar.isSidebarVisible = function () {
-    return visibleSidebar;
+    return isSidebarVisible;
   };
 
-  sidebar.updateSideBarVis = function (init) {
-    const vis = sidebar.getSidebarVisibility();
-    sidebar.showSidebar(parseInt(vis), init);
+  sidebar.updateSideBarVis = function (shouldSuppressInitialTransition) {
+    const storedVisibilityValue = sidebar.getSidebarVisibility();
+    sidebar.showSidebar(
+      Number.parseInt(storedVisibilityValue, 10),
+      shouldSuppressInitialTransition,
+    );
   };
 
   sidebar.getSidebarVisibility = function () {
-    const isHidden = detailArea.classList.contains("hidden");
-    if (isHidden === false) {
-      return String(1);
-    }
-    if (isHidden === true) {
-      return String(0);
-    }
+    return detailsSidebar.classList.contains("hidden") ? "0" : "1";
   };
 
   sidebar.initSideBarAnimation = function () {
-    graphArea.addEventListener("transitionend", function (event) {
-      if (event.propertyName !== "width") {
-        return;
-      }
-      detailArea.classList.toggle("hidden", !visibleSidebar);
-      graph.updateCanvasContainerSize();
-      updateNavMenuScrollButtons();
-    });
+    if (isSidebarAnimationInitialized) {
+      return;
+    }
+    isSidebarAnimationInitialized = true;
+    graphCanvasArea.addEventListener(
+      "transitionend",
+      function (event) {
+        if (event.propertyName !== "width") {
+          return;
+        }
+        detailsSidebar.classList.toggle("hidden", !isSidebarVisible);
+        graph.updateCanvasContainerSize();
+        updateNavMenuScrollButtons();
+      },
+      { signal: lifecycleAbortController.signal },
+    );
   };
 
   sidebar.setup = function () {
+    if (isSetup) {
+      return;
+    }
+    isSetup = true;
     setupCollapsing();
     sidebar.initSideBarAnimation();
 
-    collapseButton.addEventListener("click", function () {
-      hideNavMenus();
-      const settingValue = parseInt(sidebar.getSidebarVisibility());
-      if (settingValue === 1) {
-        sidebar.showSidebar(0);
-      } else {
-        sidebar.showSidebar(1);
-      }
-    });
+    document
+      .querySelector("#language")
+      .addEventListener("change", handleLanguageChange, {
+        signal: lifecycleAbortController.signal,
+      });
 
-    collapseButton.addEventListener("contextmenu", function (event) {
-      if (event) {
+    sidebarToggleButton.addEventListener(
+      "click",
+      function () {
+        hideNavMenus();
+        const currentVisibilityValue = Number.parseInt(
+          sidebar.getSidebarVisibility(),
+          10,
+        );
+        if (currentVisibilityValue === 1) {
+          sidebar.showSidebar(0);
+        } else {
+          sidebar.showSidebar(1);
+        }
+      },
+      { signal: lifecycleAbortController.signal },
+    );
+
+    sidebarToggleButton.addEventListener(
+      "contextmenu",
+      function (event) {
         event.preventDefault();
-      }
-    });
+      },
+      { signal: lifecycleAbortController.signal },
+    );
 
     if (window.innerWidth <= 1024) {
       sidebar.showSidebar(0, true);
     }
+  };
+
+  sidebar.dispose = function () {
+    lifecycleAbortController.abort();
+    cancelPendingNoTransitionClassRemoval();
+    removeOwnedNoTransitionClass();
   };
 
   sidebar.updateShowedInformation = function () {
@@ -1179,33 +1242,31 @@ function createSidebar(graph) {
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "title")) {
       // title has language to it -.-
       if (typeof generalMetaObj.title === "object") {
-        document.querySelector("#title").value = languageTools.textInLanguage(
-          generalMetaObj.title,
-          preferredLanguage,
-        );
+        document.querySelector("#title").textContent =
+          languageTools.textInLanguage(generalMetaObj.title, preferredLanguage);
       } else {
-        document.querySelector("#title").innerHTML = generalMetaObj.title;
+        document.querySelector("#title").textContent = generalMetaObj.title;
       }
     }
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "iri")) {
       renderOntologyIri(document.querySelector("#about"), generalMetaObj.iri);
     }
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "version")) {
-      document.querySelector("#version").innerHTML = generalMetaObj.version;
+      document.querySelector("#version").textContent = generalMetaObj.version;
     }
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "author")) {
-      document.querySelector("#authors").innerHTML = generalMetaObj.author;
+      document.querySelector("#authors").textContent = generalMetaObj.author;
     }
     // this could also be an object >>
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "description")) {
       if (typeof generalMetaObj.description === "object") {
-        document.querySelector("#description").innerHTML =
+        document.querySelector("#description").textContent =
           languageTools.textInLanguage(
             generalMetaObj.description,
             preferredLanguage,
           );
       } else {
-        document.querySelector("#description").innerHTML =
+        document.querySelector("#description").textContent =
           generalMetaObj.description;
       }
     }
@@ -1213,8 +1274,3 @@ function createSidebar(graph) {
 
   return sidebar;
 }
-
-createSidebar.navigableIri = navigableIri;
-createSidebar.renderOntologyIri = renderOntologyIri;
-
-module.exports = createSidebar;
