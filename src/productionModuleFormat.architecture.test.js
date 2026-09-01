@@ -26,8 +26,13 @@ const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/app/js/controller/linkedAbortSignal.test.js",
   "src/app/js/controller/ontologySourceLoader.js",
   "src/app/js/controller/ontologySourceLoader.test.js",
+  "src/app/js/controller/renderedGraphRuntimeContracts.js",
+  "src/app/js/controller/renderedGraphRuntimeContracts.test.js",
   "src/app/js/controller/webVowlControllerContracts.js",
   "src/app/js/controller/webVowlControllerContracts.test.js",
+  "src/app/test/inMemoryRenderedGraphAdapter.js",
+  "src/app/test/inMemoryRenderedGraphAdapter.test.js",
+  "src/app/test/renderedGraphRuntimeContract.js",
 ]);
 
 const REQUIRED_NATIVE_ESM_DIRECTORY_PATHS = Object.freeze([
@@ -4738,6 +4743,18 @@ function isNodeCommonJsInteroperabilityDependencyCruiserRecord(
   );
 }
 
+function isApplicationTestSupportModulePath(modulePath) {
+  return modulePath.startsWith("src/app/test/");
+}
+
+function isProductionAuthoredModulePath(modulePath) {
+  return (
+    modulePath.startsWith("src/") &&
+    !modulePath.endsWith(".test.js") &&
+    !isApplicationTestSupportModulePath(modulePath)
+  );
+}
+
 function collectNativeEsmDependencyGraphDiagnostics(
   moduleDependencyGraph,
   readModuleSource = readRepositoryModuleSource,
@@ -4805,6 +4822,20 @@ function collectNativeEsmDependencyGraphDiagnostics(
         blockingViolations.push(
           `${importerPath}: Node.js CommonJS interoperability dependency is prohibited: ${dependencyRecord.module}`,
         );
+      }
+      if (
+        isProductionAuthoredModulePath(importerPath) &&
+        isRepositoryLocalDependencyCruiserRecord(dependencyRecord) &&
+        typeof dependencyRecord.resolved === "string"
+      ) {
+        const dependencyPath = normalizedDependencyCruiserModulePath(
+          dependencyRecord.resolved,
+        );
+        if (isApplicationTestSupportModulePath(dependencyPath)) {
+          blockingViolations.push(
+            `${importerPath} -> ${dependencyPath}: production dependency on application test support`,
+          );
+        }
       }
     }
 
@@ -5948,6 +5979,37 @@ describe("native-ESM source inspection policy", () => {
 });
 
 describe("native-ESM module dependency graph policy", () => {
+  test("rejects a production dependency on application test support", () => {
+    const productionModulePath = "src/app/js/controller/controller.js";
+    const testSupportModulePath =
+      "src/app/test/inMemoryRenderedGraphAdapter.js";
+    const authoredModuleSourceByPath = new Map([
+      [
+        productionModulePath,
+        'import { createInMemoryRenderedGraphAdapter } from "../../test/inMemoryRenderedGraphAdapter.js"; export function createController() { return createInMemoryRenderedGraphAdapter(); }',
+      ],
+      [
+        testSupportModulePath,
+        "export function createInMemoryRenderedGraphAdapter() { return {}; }",
+      ],
+    ]);
+
+    expect(
+      collectDependencyCruiserGraphFixtureDiagnostics(
+        authoredModuleSourceByPath,
+        [
+          {
+            importerPath: productionModulePath,
+            moduleSpecifier: "../../test/inMemoryRenderedGraphAdapter.js",
+            resolvedModulePath: testSupportModulePath,
+          },
+        ],
+      ).blockingViolations,
+    ).toEqual([
+      `${productionModulePath} -> ${testSupportModulePath}: production dependency on application test support`,
+    ]);
+  });
+
   test("leaves the named-export contract to required-module inspection while traversing existing ESM dependencies", () => {
     const requiredModulePath = "src/app/js/controller/root.js";
     const existingEsmDependencyPath = "src/owl2vowl/js/existingApi.js";

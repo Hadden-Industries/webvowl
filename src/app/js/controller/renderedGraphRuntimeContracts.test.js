@@ -1,0 +1,731 @@
+import { beforeAll, describe, expect, test } from "@jest/globals";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { SourceTextModule } from "node:vm";
+
+let RENDERED_GRAPH_EVENT_KINDS;
+let RENDERED_GRAPH_RUNTIME_METHOD_NAMES;
+let assertRenderedGraphRuntime;
+let createGraphLayoutPauseRequest;
+let createGraphLayoutPauseResult;
+let createGraphLayoutSnapshot;
+let createOntologyInspectionSnapshot;
+let createRenderedGraphEvent;
+let createRenderedSvgSnapshot;
+let createRenderedSvgSnapshotRequest;
+let createVisibleRenderedGraphSnapshot;
+let createVisualizationViewApplicationRequest;
+let createVisualizationViewApplicationResult;
+let createVowlModelReplacementRequest;
+let createVowlModelReplacementResult;
+
+const RENDERED_GRAPH_RUNTIME_CONTRACTS_MODULE_URL = new URL(
+  "./renderedGraphRuntimeContracts.js",
+  import.meta.url,
+);
+const WEB_VOWL_CONTROLLER_CONTRACTS_MODULE_URL = new URL(
+  "./webVowlControllerContracts.js",
+  import.meta.url,
+);
+
+beforeAll(async () => {
+  const webVowlControllerContractsModule = new SourceTextModule(
+    readFileSync(
+      fileURLToPath(WEB_VOWL_CONTROLLER_CONTRACTS_MODULE_URL),
+      "utf8",
+    ),
+    { identifier: WEB_VOWL_CONTROLLER_CONTRACTS_MODULE_URL.href },
+  );
+  await webVowlControllerContractsModule.link((specifier) => {
+    throw new Error(`Unexpected controller-contract dependency: ${specifier}`);
+  });
+  await webVowlControllerContractsModule.evaluate();
+
+  const renderedGraphRuntimeContractsModule = new SourceTextModule(
+    readFileSync(
+      fileURLToPath(RENDERED_GRAPH_RUNTIME_CONTRACTS_MODULE_URL),
+      "utf8",
+    ),
+    { identifier: RENDERED_GRAPH_RUNTIME_CONTRACTS_MODULE_URL.href },
+  );
+  await renderedGraphRuntimeContractsModule.link((specifier) => {
+    if (specifier === "./webVowlControllerContracts.js") {
+      return webVowlControllerContractsModule;
+    }
+    throw new Error(`Unexpected rendered-graph dependency: ${specifier}`);
+  });
+  await renderedGraphRuntimeContractsModule.evaluate();
+  ({
+    RENDERED_GRAPH_EVENT_KINDS,
+    RENDERED_GRAPH_RUNTIME_METHOD_NAMES,
+    assertRenderedGraphRuntime,
+    createGraphLayoutPauseRequest,
+    createGraphLayoutPauseResult,
+    createGraphLayoutSnapshot,
+    createOntologyInspectionSnapshot,
+    createRenderedGraphEvent,
+    createRenderedSvgSnapshot,
+    createRenderedSvgSnapshotRequest,
+    createVisibleRenderedGraphSnapshot,
+    createVisualizationViewApplicationRequest,
+    createVisualizationViewApplicationResult,
+    createVowlModelReplacementRequest,
+    createVowlModelReplacementResult,
+  } = renderedGraphRuntimeContractsModule.namespace);
+});
+
+const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
+
+function createOntologyInspectionSnapshotSource() {
+  const personReference = {
+    kind: "class",
+    iri: "https://example.test/Person",
+  };
+  const agentReference = {
+    kind: "class",
+    iri: "https://example.test/Agent",
+  };
+  const stringReference = {
+    kind: "datatype",
+    iri: "http://www.w3.org/2001/XMLSchema#string",
+  };
+  const nameReference = {
+    kind: "property",
+    iri: "https://example.test/name",
+  };
+
+  return {
+    availableLabelLanguages: ["en", "fr"],
+    classRecords: [
+      {
+        ontologyElementReference: personReference,
+        labelRecords: [
+          { languageTag: "en", text: "Person" },
+          { languageTag: "fr", text: "Personne" },
+        ],
+        commentRecords: [{ languageTag: null, text: "A human being" }],
+        superclassReferences: [agentReference],
+        equivalentClassReferences: [],
+        disjointClassReferences: [],
+      },
+    ],
+    datatypeRecords: [
+      {
+        ontologyElementReference: stringReference,
+        labelRecords: [{ languageTag: "en", text: "string" }],
+        commentRecords: [],
+      },
+    ],
+    importRecords: [
+      { importedOntologyIri: "https://example.test/imported-ontology" },
+    ],
+    individualRecords: [
+      {
+        ontologyElementReference: {
+          kind: "individual",
+          loadGeneration: 3,
+          localId: "AnonymousIndividual7",
+        },
+        labelRecords: [{ languageTag: null, text: "Anonymous person" }],
+        commentRecords: [],
+        classReferences: [personReference],
+      },
+    ],
+    loadGeneration: 3,
+    namespaceRecords: [{ prefix: "ex", namespaceIri: "https://example.test/" }],
+    ontologyHeaderRecord: {
+      ontologyIri: "https://example.test/ontology",
+      versionInformationText: "Version 1.0",
+      titleRecords: [{ languageTag: "en", text: "Example ontology" }],
+      descriptionRecords: [
+        { languageTag: "en", text: "An ontology used by contract tests" },
+      ],
+      authorNames: ["Ada Example"],
+    },
+    propertyRecords: [
+      {
+        ontologyElementReference: nameReference,
+        labelRecords: [{ languageTag: "en", text: "name" }],
+        commentRecords: [],
+        domainReferences: [personReference],
+        rangeReferences: [stringReference],
+        superpropertyReferences: [],
+        inversePropertyReferences: [],
+      },
+    ],
+  };
+}
+
+function expectPlainDataDeeplyFrozen(plainDataValue) {
+  if (plainDataValue === null || typeof plainDataValue !== "object") {
+    return;
+  }
+  expect(Object.isFrozen(plainDataValue)).toBe(true);
+  if (Array.isArray(plainDataValue)) {
+    expect(() => plainDataValue.push(undefined)).toThrow();
+  } else {
+    const existingFieldName = Object.keys(plainDataValue)[0];
+    if (existingFieldName === undefined) {
+      expect(() => {
+        plainDataValue.unexpectedField = true;
+      }).toThrow();
+    } else {
+      expect(() => {
+        plainDataValue[existingFieldName] = undefined;
+      }).toThrow();
+    }
+  }
+  for (const nestedValue of Object.values(plainDataValue)) {
+    expectPlainDataDeeplyFrozen(nestedValue);
+  }
+}
+
+function createDetachedSvgRootFixture(marker = "detached-root") {
+  return {
+    localName: "svg",
+    marker,
+    namespaceURI: SVG_NAMESPACE_IRI,
+    parentNode: null,
+    cloneNode(includeDescendants) {
+      if (includeDescendants !== true) {
+        throw new TypeError("The SVG fixture requires a deep clone.");
+      }
+      return createDetachedSvgRootFixture(marker);
+    },
+  };
+}
+
+describe("rendered graph runtime interface", () => {
+  test("declares the exact application-facing runtime method vocabulary", () => {
+    expect(RENDERED_GRAPH_RUNTIME_METHOD_NAMES).toEqual([
+      "replaceVowlModel",
+      "applyVisualizationView",
+      "readOntologyInspectionSnapshot",
+      "readVisibleRenderedGraphSnapshot",
+      "readGraphLayoutSnapshot",
+      "setGraphLayoutPaused",
+      "createRenderedSvgSnapshot",
+      "subscribeToRenderedGraphEvents",
+      "dispose",
+    ]);
+  });
+
+  test("accepts a runtime implementing every required method", () => {
+    const renderedGraphRuntime = Object.fromEntries(
+      RENDERED_GRAPH_RUNTIME_METHOD_NAMES.map((methodName) => [
+        methodName,
+        () => undefined,
+      ]),
+    );
+
+    expect(assertRenderedGraphRuntime(renderedGraphRuntime)).toBe(
+      renderedGraphRuntime,
+    );
+  });
+
+  test("rejects a runtime missing an application-facing method", () => {
+    const renderedGraphRuntime = Object.fromEntries(
+      RENDERED_GRAPH_RUNTIME_METHOD_NAMES.filter(
+        (methodName) => methodName !== "createRenderedSvgSnapshot",
+      ).map((methodName) => [methodName, () => undefined]),
+    );
+
+    expect(() => assertRenderedGraphRuntime(renderedGraphRuntime)).toThrow(
+      "createRenderedSvgSnapshot",
+    );
+  });
+});
+
+describe("rendered graph events", () => {
+  test("declares the exact closed event-kind union", () => {
+    expect(RENDERED_GRAPH_EVENT_KINDS).toEqual([
+      "render-progress-changed",
+      "render-warning-raised",
+      "rendered-element-selection-changed",
+      "viewport-changed",
+      "graph-layout-state-changed",
+    ]);
+  });
+
+  test.each([
+    [
+      "render-progress-changed",
+      { completedRenderedElementCount: 4, totalRenderedElementCount: 10 },
+    ],
+    [
+      "render-warning-raised",
+      { warningCode: "UNSUPPORTED_AXIOM", message: "Axiom omitted" },
+    ],
+    [
+      "rendered-element-selection-changed",
+      {
+        selectedOntologyElementReferences: [
+          { kind: "class", iri: "https://example.test/Person" },
+        ],
+      },
+    ],
+    [
+      "viewport-changed",
+      { zoomScale: 1.25, translationXPx: 12, translationYPx: -8 },
+    ],
+    [
+      "graph-layout-state-changed",
+      { forceAlpha: 0.04, hasEnded: false, isPaused: true },
+    ],
+  ])("creates an immutable %s event", (kind, payload) => {
+    const event = createRenderedGraphEvent({
+      kind,
+      loadGeneration: 3,
+      payload,
+    });
+
+    expect(event).toEqual({ kind, loadGeneration: 3, payload });
+    expectPlainDataDeeplyFrozen(event);
+  });
+
+  test("copies a selection event before freezing it", () => {
+    const sourceReference = {
+      kind: "class",
+      iri: "https://example.test/Person",
+    };
+    const payload = {
+      selectedOntologyElementReferences: [sourceReference],
+    };
+    const event = createRenderedGraphEvent({
+      kind: "rendered-element-selection-changed",
+      loadGeneration: 3,
+      payload,
+    });
+
+    sourceReference.iri = "https://example.test/Mutated";
+    payload.selectedOntologyElementReferences.push({
+      kind: "class",
+      iri: "https://example.test/Other",
+    });
+
+    expect(event.payload.selectedOntologyElementReferences).toEqual([
+      { kind: "class", iri: "https://example.test/Person" },
+    ]);
+    expect(event.payload).not.toBe(payload);
+  });
+
+  test("rejects an unknown event kind", () => {
+    expect(() =>
+      createRenderedGraphEvent({
+        kind: "d3-tick",
+        loadGeneration: 3,
+        payload: {},
+      }),
+    ).toThrow("Unsupported rendered-graph event kind");
+  });
+
+  test("requires a positive load generation on every event", () => {
+    expect(() =>
+      createRenderedGraphEvent({
+        kind: "viewport-changed",
+        loadGeneration: 0,
+        payload: { zoomScale: 1, translationXPx: 0, translationYPx: 0 },
+      }),
+    ).toThrow("loadGeneration");
+  });
+
+  test("rejects a payload belonging to a different event kind", () => {
+    expect(() =>
+      createRenderedGraphEvent({
+        kind: "viewport-changed",
+        loadGeneration: 3,
+        payload: { forceAlpha: 0.1, hasEnded: false, isPaused: false },
+      }),
+    ).toThrow("viewport-changed payload");
+  });
+});
+
+describe("ontology inspection snapshots", () => {
+  test("creates the exact semantic ontology projection", () => {
+    const source = createOntologyInspectionSnapshotSource();
+
+    const snapshot = createOntologyInspectionSnapshot(source);
+
+    expect(snapshot).toEqual(source);
+    expectPlainDataDeeplyFrozen(snapshot);
+  });
+
+  test("copies every nested record, collection, and ontology-element reference", () => {
+    const source = createOntologyInspectionSnapshotSource();
+    const expectedSnapshot = createOntologyInspectionSnapshotSource();
+
+    const snapshot = createOntologyInspectionSnapshot(source);
+
+    source.ontologyHeaderRecord.titleRecords[0].text = "Mutated title";
+    source.ontologyHeaderRecord.authorNames.push("Unexpected author");
+    source.classRecords[0].ontologyElementReference.iri =
+      "https://example.test/Mutated";
+    source.classRecords[0].labelRecords.push({
+      languageTag: "de",
+      text: "Person",
+    });
+    source.classRecords[0].superclassReferences.length = 0;
+    source.propertyRecords[0].domainReferences.length = 0;
+    source.datatypeRecords[0].commentRecords.push({
+      languageTag: null,
+      text: "Unexpected",
+    });
+    source.individualRecords[0].classReferences.length = 0;
+    source.namespaceRecords[0].prefix = "changed";
+    source.importRecords[0].importedOntologyIri =
+      "https://example.test/changed";
+    source.availableLabelLanguages.push("de");
+
+    expect(snapshot).toEqual(expectedSnapshot);
+    expect(snapshot.classRecords).not.toBe(source.classRecords);
+    expect(snapshot.classRecords[0]).not.toBe(source.classRecords[0]);
+    expect(snapshot.classRecords[0].ontologyElementReference).not.toBe(
+      source.classRecords[0].ontologyElementReference,
+    );
+  });
+
+  test("rejects a renderer-shaped value instead of retaining it", () => {
+    const source = createOntologyInspectionSnapshotSource();
+    source.classRecords[0].rendererSelection = { node: () => ({}) };
+
+    expect(() => createOntologyInspectionSnapshot(source)).toThrow(
+      "class record",
+    );
+  });
+
+  test("rejects a relationship reference with the wrong ontology kind", () => {
+    const source = createOntologyInspectionSnapshotSource();
+    source.propertyRecords[0].superpropertyReferences = [
+      { kind: "class", iri: "https://example.test/NotAProperty" },
+    ];
+
+    expect(() => createOntologyInspectionSnapshot(source)).toThrow(
+      "superpropertyReferences",
+    );
+  });
+});
+
+describe("visible rendered graph snapshots", () => {
+  test("creates immutable stable references and matching visible counts", () => {
+    const source = {
+      loadGeneration: 3,
+      visibleElementReferences: [
+        { kind: "class", iri: "https://example.test/Person" },
+      ],
+      visibleRelationshipReferences: [
+        { kind: "property", iri: "https://example.test/name" },
+      ],
+      visibleGraphCounts: {
+        visibleNodeCount: 1,
+        visiblePropertyCount: 1,
+      },
+    };
+
+    const snapshot = createVisibleRenderedGraphSnapshot(source);
+
+    source.visibleElementReferences[0].iri = "https://example.test/Mutated";
+    expect(snapshot).toEqual({
+      loadGeneration: 3,
+      visibleElementReferences: [
+        { kind: "class", iri: "https://example.test/Person" },
+      ],
+      visibleRelationshipReferences: [
+        { kind: "property", iri: "https://example.test/name" },
+      ],
+      visibleGraphCounts: {
+        visibleNodeCount: 1,
+        visiblePropertyCount: 1,
+      },
+    });
+    expectPlainDataDeeplyFrozen(snapshot);
+  });
+
+  test("rejects visible counts that disagree with the projected references", () => {
+    expect(() =>
+      createVisibleRenderedGraphSnapshot({
+        loadGeneration: 3,
+        visibleElementReferences: [],
+        visibleRelationshipReferences: [],
+        visibleGraphCounts: {
+          visibleNodeCount: 1,
+          visiblePropertyCount: 0,
+        },
+      }),
+    ).toThrow("visibleNodeCount");
+  });
+});
+
+describe("graph layout snapshots", () => {
+  test("copies and freezes generation-scoped layout coordinates", () => {
+    const sourcePosition = {
+      stableLayoutElementKey: "class:https://example.test/Person",
+      x: 10.5,
+      y: -2,
+    };
+    const source = {
+      forceAlpha: 0.004,
+      hasEnded: false,
+      heightPx: 720,
+      isPaused: false,
+      layoutElementPositions: [sourcePosition],
+      loadGeneration: 3,
+      observedAtMs: 250.5,
+      widthPx: 1280,
+    };
+
+    const snapshot = createGraphLayoutSnapshot(source);
+
+    sourcePosition.x = 999;
+    expect(snapshot).toEqual({
+      forceAlpha: 0.004,
+      hasEnded: false,
+      heightPx: 720,
+      isPaused: false,
+      layoutElementPositions: [
+        {
+          stableLayoutElementKey: "class:https://example.test/Person",
+          x: 10.5,
+          y: -2,
+        },
+      ],
+      loadGeneration: 3,
+      observedAtMs: 250.5,
+      widthPx: 1280,
+    });
+    expectPlainDataDeeplyFrozen(snapshot);
+  });
+
+  test("rejects duplicate stable layout-element keys", () => {
+    expect(() =>
+      createGraphLayoutSnapshot({
+        forceAlpha: 0.2,
+        hasEnded: false,
+        heightPx: 600,
+        isPaused: false,
+        layoutElementPositions: [
+          { stableLayoutElementKey: "class:person", x: 1, y: 2 },
+          { stableLayoutElementKey: "class:person", x: 3, y: 4 },
+        ],
+        loadGeneration: 3,
+        observedAtMs: 100,
+        widthPx: 800,
+      }),
+    ).toThrow("stableLayoutElementKey");
+  });
+});
+
+describe("rendered SVG snapshots", () => {
+  test("owns a deep detached SVG clone without retaining the supplied DOM node", () => {
+    const sourceRoot = createDetachedSvgRootFixture();
+
+    const snapshot = createRenderedSvgSnapshot({
+      detachedSvgRoot: sourceRoot,
+      heightPx: 720,
+      loadGeneration: 3,
+      widthPx: 1280,
+    });
+
+    expect(snapshot).toEqual({
+      detachedSvgRoot: expect.objectContaining({
+        localName: "svg",
+        marker: "detached-root",
+        namespaceURI: SVG_NAMESPACE_IRI,
+        parentNode: null,
+      }),
+      heightPx: 720,
+      loadGeneration: 3,
+      widthPx: 1280,
+    });
+    expect(snapshot.detachedSvgRoot).not.toBe(sourceRoot);
+    expect(Object.isFrozen(snapshot)).toBe(true);
+  });
+
+  test("rejects a live SVG root", () => {
+    const sourceRoot = createDetachedSvgRootFixture();
+    sourceRoot.parentNode = { localName: "main" };
+
+    expect(() =>
+      createRenderedSvgSnapshot({
+        detachedSvgRoot: sourceRoot,
+        heightPx: 720,
+        loadGeneration: 3,
+        widthPx: 1280,
+      }),
+    ).toThrow("detachedSvgRoot");
+  });
+
+  test("rejects a D3 selection instead of treating it as an SVG root", () => {
+    expect(() =>
+      createRenderedSvgSnapshot({
+        detachedSvgRoot: { node: () => createDetachedSvgRootFixture() },
+        heightPx: 720,
+        loadGeneration: 3,
+        widthPx: 1280,
+      }),
+    ).toThrow("detachedSvgRoot");
+  });
+});
+
+describe("rendered graph requests and results", () => {
+  test("copies and freezes an opaque VOWL model replacement request", () => {
+    const vowlModel = {
+      class: [{ id: "1", type: "owl:Class" }],
+      header: { iri: "https://example.test/ontology" },
+    };
+
+    const request = createVowlModelReplacementRequest({
+      displayName: "example.json",
+      loadGeneration: 3,
+      vowlModel,
+    });
+
+    vowlModel.class[0].id = "mutated";
+    expect(request).toEqual({
+      displayName: "example.json",
+      loadGeneration: 3,
+      vowlModel: {
+        class: [{ id: "1", type: "owl:Class" }],
+        header: { iri: "https://example.test/ontology" },
+      },
+    });
+    expectPlainDataDeeplyFrozen(request);
+  });
+
+  test("creates a replacement result only for its completed generation", () => {
+    expect(createVowlModelReplacementResult({ loadGeneration: 3 })).toEqual({
+      loadGeneration: 3,
+    });
+  });
+
+  test("creates an exact partial visualization-view application request", () => {
+    const request = createVisualizationViewApplicationRequest({
+      filters: { datatypes: "hide", minDegree: 2 },
+      focus: [{ kind: "class", iri: "https://example.test/Person" }],
+      language: "en",
+      layout: "relax",
+      loadGeneration: 3,
+      viewport: "fit",
+    });
+
+    expect(request).toEqual({
+      filters: { datatypes: "hide", minDegree: 2 },
+      focus: [{ kind: "class", iri: "https://example.test/Person" }],
+      language: "en",
+      layout: "relax",
+      loadGeneration: 3,
+      viewport: "fit",
+    });
+    expectPlainDataDeeplyFrozen(request);
+  });
+
+  test("rejects an out-of-range visualization minimum degree", () => {
+    expect(() =>
+      createVisualizationViewApplicationRequest({
+        filters: { minDegree: 101 },
+        loadGeneration: 3,
+      }),
+    ).toThrow("minDegree");
+  });
+
+  test("returns the applied view with its visible rendered graph snapshot", () => {
+    const result = createVisualizationViewApplicationResult({
+      appliedVisualizationView: {
+        filters: {
+          datatypes: "hide",
+          disjointness: "show",
+          minDegree: 2,
+          objectProperties: "show",
+          setOperators: "show",
+          subclasses: "show",
+        },
+        focus: [{ kind: "class", iri: "https://example.test/Person" }],
+        language: "en",
+        layout: "relax",
+        viewport: "fit",
+      },
+      loadGeneration: 3,
+      visibleRenderedGraphSnapshot: {
+        loadGeneration: 3,
+        visibleElementReferences: [
+          { kind: "class", iri: "https://example.test/Person" },
+        ],
+        visibleRelationshipReferences: [],
+        visibleGraphCounts: {
+          visibleNodeCount: 1,
+          visiblePropertyCount: 0,
+        },
+      },
+    });
+
+    expect(result.loadGeneration).toBe(3);
+    expect(result.appliedVisualizationView.language).toBe("en");
+    expect(result.visibleRenderedGraphSnapshot.visibleGraphCounts).toEqual({
+      visibleNodeCount: 1,
+      visiblePropertyCount: 0,
+    });
+    expectPlainDataDeeplyFrozen(result);
+  });
+
+  test("rejects a result whose visible snapshot belongs to another generation", () => {
+    expect(() =>
+      createVisualizationViewApplicationResult({
+        appliedVisualizationView: {
+          filters: {
+            datatypes: "show",
+            disjointness: "show",
+            minDegree: 0,
+            objectProperties: "show",
+            setOperators: "show",
+            subclasses: "show",
+          },
+          focus: [],
+          language: "en",
+          layout: "preserve",
+          viewport: "preserve",
+        },
+        loadGeneration: 3,
+        visibleRenderedGraphSnapshot: {
+          loadGeneration: 2,
+          visibleElementReferences: [],
+          visibleRelationshipReferences: [],
+          visibleGraphCounts: {
+            visibleNodeCount: 0,
+            visiblePropertyCount: 0,
+          },
+        },
+      }),
+    ).toThrow("loadGeneration");
+  });
+
+  test("creates exact graph-layout pause request and result values", () => {
+    expect(
+      createGraphLayoutPauseRequest({ isPaused: true, loadGeneration: 3 }),
+    ).toEqual({ isPaused: true, loadGeneration: 3 });
+    expect(
+      createGraphLayoutPauseResult({
+        isPaused: true,
+        layoutStatus: "paused",
+        loadGeneration: 3,
+      }),
+    ).toEqual({
+      isPaused: true,
+      layoutStatus: "paused",
+      loadGeneration: 3,
+    });
+  });
+
+  test("creates an exact generation-scoped SVG-snapshot request", () => {
+    expect(createRenderedSvgSnapshotRequest({ loadGeneration: 3 })).toEqual({
+      loadGeneration: 3,
+    });
+  });
+
+  test("rejects unknown fields on a runtime request", () => {
+    expect(() =>
+      createRenderedSvgSnapshotRequest({
+        graph: { nodes: [] },
+        loadGeneration: 3,
+      }),
+    ).toThrow("rendered SVG snapshot request");
+  });
+});
