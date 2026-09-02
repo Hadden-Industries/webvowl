@@ -251,11 +251,23 @@ Tests define the exact nested ontology-header and element-record fields before i
 const WEB_VOWL_OPERATION_LIMITS = Object.freeze({
   maxRemoteSourceLocationCharacters: 2048,
   maxInlineOntologyBytes: 1024 * 1024,
-  maxSearchResults: 25,
+  maxFocusReferences: 25,
   maxWarnings: 10,
   maxOntologyDerivedTextCharacters: 256,
 });
+```
 
+`maxFocusReferences` bounds how many elements the visible graph focuses at once,
+which is a property of the visualization rather than of any caller. Search
+results carry no controller-domain ceiling: `findOntologyElements` returns every
+match unless the caller supplies a `limit`, so the existing human search lists
+exactly what it listed before this migration. The bound an agent needs lives
+with the protocol that needs it, in `find_ontology_elements` (`limit` 1-25,
+defaulting to 10). Introducing a ceiling for the human search as well would be a
+usability change rather than a seam correction, and is deliberately left as a
+possible later augmentation.
+
+```js
 const WEB_MCP_TOOL_LIMITS = Object.freeze({
   maxToolNameCharacters: 30,
   maxToolDescriptionCharacters: 500,

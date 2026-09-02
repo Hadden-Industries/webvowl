@@ -597,6 +597,27 @@ describe("rendered graph requests and results", () => {
     });
   });
 
+  test("accepts advancing the viewport to the next focused element", () => {
+    const request = createVisualizationViewApplicationRequest({
+      focus: [{ kind: "class", iri: "https://example.test/Person" }],
+      loadGeneration: 3,
+      viewport: "focus-next",
+    });
+
+    // Locating a search result brings one focused element into view at a
+    // time, which fitting the whole graph cannot express.
+    expect(request.viewport).toBe("focus-next");
+  });
+
+  test("rejects an unknown viewport directive", () => {
+    expect(() =>
+      createVisualizationViewApplicationRequest({
+        loadGeneration: 3,
+        viewport: "locate",
+      }),
+    ).toThrow();
+  });
+
   test("creates an exact partial visualization-view application request", () => {
     const request = createVisualizationViewApplicationRequest({
       filters: { datatypes: "hide", minDegree: 2 },

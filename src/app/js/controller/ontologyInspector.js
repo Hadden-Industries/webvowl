@@ -126,6 +126,10 @@ function boundResultCollection(
   maximumEntryCount,
   truncationTracker,
 ) {
+  // An absent ceiling means the caller accepts every entry.
+  if (maximumEntryCount === undefined) {
+    return [...resultEntries];
+  }
   const truncation = truncateResultCollection(resultEntries, maximumEntryCount);
   if (truncation.isTruncated) {
     truncationTracker.isTruncated = true;
@@ -194,7 +198,7 @@ function createNeighborhoodFacts(elementRecord, kind, truncationTracker) {
   for (const neighborhoodFieldName of NEIGHBORHOOD_FIELD_NAMES_BY_KIND[kind]) {
     neighborhoodFacts[neighborhoodFieldName] = boundResultCollection(
       elementRecord[neighborhoodFieldName],
-      WEB_VOWL_OPERATION_LIMITS.maxSearchResults,
+      WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
       truncationTracker,
     );
   }
@@ -224,15 +228,17 @@ function resolveRequestedKinds(kinds) {
   return kinds;
 }
 
+// A caller that needs a bounded answer says so. The WebMCP tool contract
+// supplies that bound for an agent; the interface lists every match, as it
+// always has.
 function resolveMatchLimit(limit) {
-  const maximumMatchCount = WEB_VOWL_OPERATION_LIMITS.maxSearchResults;
   if (limit === undefined) {
-    return maximumMatchCount;
+    return undefined;
   }
   if (!Number.isInteger(limit) || limit < 1) {
     throw new RangeError("A search limit must be a positive integer.");
   }
-  return Math.min(limit, maximumMatchCount);
+  return limit;
 }
 
 export function createOntologyInspector() {
@@ -455,12 +461,12 @@ export function createOntologyInspector() {
         loadGeneration,
         focusableReferences: boundResultCollection(
           focusableReferences,
-          WEB_VOWL_OPERATION_LIMITS.maxSearchResults,
+          WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
           truncationTracker,
         ),
         unresolvedReferences: boundResultCollection(
           unresolvedReferences,
-          WEB_VOWL_OPERATION_LIMITS.maxSearchResults,
+          WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
           truncationTracker,
         ),
         isTruncated: truncationTracker.isTruncated,

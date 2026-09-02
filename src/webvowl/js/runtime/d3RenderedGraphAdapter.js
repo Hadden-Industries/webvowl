@@ -550,10 +550,8 @@ export function createD3RenderedGraphAdapter(dependencies) {
       requiresRecomputation = true;
     }
 
-    if (requestedView.focus !== undefined) {
-      renderedGraphSettings.focuserModule()?.handle(null, undefined, true);
-      requiresRecomputation = true;
-    }
+    // Focus is purely visual: it marks elements without changing which are
+    // present, so it must not recompute and restart the force simulation.
     if (requiresRecomputation) {
       renderedGraphInternals.update();
     }
@@ -578,8 +576,9 @@ export function createD3RenderedGraphAdapter(dependencies) {
             ) ?? [],
         );
         if (focusedElementIds.length > 0) {
+          // Highlighting marks the elements; bringing one into view is the
+          // separate focus-next directive.
           renderedGraphInternals.highLightNodes(focusedElementIds);
-          renderedGraphInternals.locateSearchResult();
         }
       }
     }
@@ -688,9 +687,11 @@ export function createD3RenderedGraphAdapter(dependencies) {
           "The load generation was superseded during view application.",
         );
       }
-      // Fitting the viewport needs the geometry the recomputation produced.
+      // Moving the viewport needs the geometry the recomputation produced.
       if (requestedView.viewport === "fit") {
         renderedGraphInternals.forceRelocationEvent();
+      } else if (requestedView.viewport === "focus-next") {
+        renderedGraphInternals.locateSearchResult();
       }
 
       const viewApplicationResult = createVisualizationViewApplicationResult({

@@ -337,7 +337,8 @@ describe("ontology summary projection", () => {
   });
 
   test("keeps every namespace, import, language, and author name", () => {
-    const excessiveEntryCount = WEB_VOWL_OPERATION_LIMITS.maxSearchResults + 12;
+    const excessiveEntryCount =
+      WEB_VOWL_OPERATION_LIMITS.maxFocusReferences + 12;
     const summary = createOntologyInspector().getOntologySummary(
       createSummaryRequest({
         ontologyInspectionSnapshot: createInspectionSnapshot({
@@ -563,15 +564,42 @@ describe("ontology element search", () => {
     expect(personIriMatches).toHaveLength(2);
   });
 
-  test("applies the caller limit and the shared search ceiling", () => {
+  test("applies a caller limit and reports the truncation", () => {
     expect(findMatches({ query: "person", limit: 2 }).matches).toHaveLength(2);
     expect(findMatches({ query: "person", limit: 2 }).isTruncated).toBe(true);
-    expect(
-      findMatches({
-        query: "person",
-        limit: WEB_VOWL_OPERATION_LIMITS.maxSearchResults + 50,
-      }).matches.length,
-    ).toBeLessThanOrEqual(WEB_VOWL_OPERATION_LIMITS.maxSearchResults);
+  });
+
+  test("returns every match when the caller asks for no limit", () => {
+    const matchingClassCount = 40;
+    const classRecords = Array.from(
+      { length: matchingClassCount },
+      (_unused, recordIndex) => ({
+        ontologyElementReference: {
+          kind: "class",
+          iri: `https://example.test/Person${recordIndex}`,
+        },
+        labelRecords: [{ languageTag: null, text: `Person ${recordIndex}` }],
+        commentRecords: [],
+        superclassReferences: [],
+        equivalentClassReferences: [],
+        disjointClassReferences: [],
+      }),
+    );
+
+    const searchResult = createOntologyInspector().findOntologyElements({
+      ontologyInspectionSnapshot: createInspectionSnapshot({ classRecords }),
+      visibleRenderedGraphSnapshot: createVisibleSnapshot(),
+      query: "person",
+    });
+
+    // Bounding search results is a protocol concern, so the interface is not
+    // forced to hide matches a reader could previously see.
+    const syntheticMatches = searchResult.matches.filter(({ displayLabel }) =>
+      displayLabel.startsWith("Person "),
+    );
+    expect(syntheticMatches).toHaveLength(matchingClassCount);
+    expect(searchResult.matches.length).toBeGreaterThan(25);
+    expect(searchResult.isTruncated).toBe(false);
   });
 
   test("omits neighborhood facts unless the caller requests them", () => {
@@ -692,7 +720,7 @@ describe("focusable reference resolution", () => {
 
   test("bounds the resolved focus collection to the shared focus ceiling", () => {
     const repeatedReferences = Array.from(
-      { length: WEB_VOWL_OPERATION_LIMITS.maxSearchResults + 10 },
+      { length: WEB_VOWL_OPERATION_LIMITS.maxFocusReferences + 10 },
       () => ({ kind: "class", iri: PERSON_IRI }),
     );
 
@@ -704,7 +732,7 @@ describe("focusable reference resolution", () => {
       });
 
     expect(resolution.focusableReferences.length).toBeLessThanOrEqual(
-      WEB_VOWL_OPERATION_LIMITS.maxSearchResults,
+      WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
     );
     expect(resolution.isTruncated).toBe(true);
   });

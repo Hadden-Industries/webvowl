@@ -71,7 +71,7 @@ describe("WebVOWL operation limits", () => {
     expect(WEB_VOWL_OPERATION_LIMITS).toEqual({
       maxRemoteSourceLocationCharacters: 2048,
       maxInlineOntologyBytes: 1024 * 1024,
-      maxSearchResults: 25,
+      maxFocusReferences: 25,
       maxWarnings: 10,
       maxOntologyDerivedTextCharacters: 256,
     });
@@ -290,19 +290,19 @@ describe("bounded ontology-derived values", () => {
 
   test("retains the deterministic leading search-result window", () => {
     const searchResultEntries = Array.from(
-      { length: WEB_VOWL_OPERATION_LIMITS.maxSearchResults + 2 },
+      { length: WEB_VOWL_OPERATION_LIMITS.maxFocusReferences + 2 },
       (_, index) => `match-${index}`,
     );
 
     const boundedResults = truncateResultCollection(
       searchResultEntries,
-      WEB_VOWL_OPERATION_LIMITS.maxSearchResults,
+      WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
     );
 
     expect(boundedResults).toEqual({
       retainedEntries: searchResultEntries.slice(
         0,
-        WEB_VOWL_OPERATION_LIMITS.maxSearchResults,
+        WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
       ),
       isTruncated: true,
     });

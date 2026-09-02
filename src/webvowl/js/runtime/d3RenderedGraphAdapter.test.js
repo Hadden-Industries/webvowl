@@ -744,9 +744,30 @@ describe("D3 rendered graph adapter", () => {
     await viewApplication;
 
     // The reference names the ontology element; the runtime resolves it to the
-    // drawn node the renderer knows.
+    // drawn node the renderer knows. Highlighting does not move the viewport.
     expect(internals.highlightedElementIds).toEqual([["Person"]]);
+    expect(internals.locateRequests).toBe(0);
+  });
+
+  test("advances the viewport to the next focused element on request", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+    const internals = adapterHarness.renderedGraphInternalsFixture;
+
+    const viewApplication =
+      adapterHarness.renderedGraphRuntime.applyVisualizationView({
+        loadGeneration: 1,
+        viewport: "focus-next",
+      });
+    adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+      1,
+    );
+    await viewApplication;
+
+    // Locating is its own action, so it neither re-highlights nor refits.
     expect(internals.locateRequests).toBe(1);
+    expect(internals.relocationRequests).toBe(0);
+    expect(internals.highlightedElementIds).toEqual([]);
   });
 
   test("clears the highlight when the focus becomes empty", async () => {
@@ -810,5 +831,46 @@ describe("D3 rendered graph adapter", () => {
     expect(
       selectionEvents[0].payload.selectedOntologyElementReferences,
     ).toEqual([]);
+  });
+
+  test("does not recompute the graph when only the focus changes", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+    const internals = adapterHarness.renderedGraphInternalsFixture;
+    const updateCountBefore = internals.updateCallCount;
+
+    const viewApplication =
+      adapterHarness.renderedGraphRuntime.applyVisualizationView({
+        loadGeneration: 1,
+        focus: [{ kind: "class", iri: "https://example.test/Person" }],
+      });
+    adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+      1,
+    );
+    await viewApplication;
+
+    // Recomputing restarts the force simulation, which would move every node
+    // just because the reader highlighted something.
+    expect(internals.updateCallCount).toBe(updateCountBefore);
+  });
+
+  test("does not recompute the graph when the focus is cleared", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+    const internals = adapterHarness.renderedGraphInternalsFixture;
+    const updateCountBefore = internals.updateCallCount;
+
+    const viewApplication =
+      adapterHarness.renderedGraphRuntime.applyVisualizationView({
+        loadGeneration: 1,
+        focus: [],
+      });
+    adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+      1,
+    );
+    await viewApplication;
+
+    expect(internals.updateCallCount).toBe(updateCountBefore);
+    expect(internals.highlightResets).toBe(1);
   });
 });

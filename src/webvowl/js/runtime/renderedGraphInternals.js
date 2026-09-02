@@ -224,6 +224,8 @@ function createGraph(graphContainerSelector) {
   let transformAnimation = false;
   let graphTranslation = [0, 0];
   let pulseNodeIds = [];
+  // The element ids the runtime last reported as highlighted.
+  let highlightedElementIds = [];
   let nodeArrayForPulse = [];
   let nodeMap = [];
   let locationId = 0;
@@ -474,18 +476,6 @@ function createGraph(graphContainerSelector) {
     // proceeds so behaviour is unchanged until the UI supplies one.
     requestRenderedGraphConfirmation: (_code, _message, onConfirmed) =>
       onConfirmed(),
-  };
-
-  // Focus text applied through the visualization view. The renderer keeps it
-  // as view state instead of reading it back from a search menu.
-  let focusedSearchText = "";
-
-  graph.focusedSearchText = function (nextText) {
-    if (nextText === undefined) {
-      return focusedSearchText;
-    }
-    focusedSearchText = String(nextText);
-    return graph;
   };
 
   graph.setRenderedGraphEventPort = function (nextPort) {
@@ -2582,12 +2572,10 @@ function createGraph(graphContainerSelector) {
           if (node.property) {
             // match search strings with property label
             if (node.property().inverse) {
-              const searchString = graph.focusedSearchText().toLowerCase();
-              const name = node
-                .property()
-                .labelForCurrentLanguage()
-                .toLowerCase();
-              if (name === searchString) {
+              // The halo belongs on whichever of the property and its inverse
+              // the reader actually selected. The runtime reports that set, so
+              // membership answers it exactly rather than by matching text.
+              if (highlightedElementIds.includes(node.property().id())) {
                 computeDistanceToCenter(node);
               } else {
                 node.property().removeHalo();
@@ -2980,6 +2968,7 @@ function createGraph(graphContainerSelector) {
     // get all nodes (handle also already filtered nodes )
     pulseNodeIds = [];
     nodeArrayForPulse = [];
+    highlightedElementIds = [];
     if (
       !unfilteredData ||
       !unfilteredData.nodes ||
@@ -3044,6 +3033,7 @@ function createGraph(graphContainerSelector) {
     }
     pulseNodeIds = [];
     nodeArrayForPulse = nodeIdArray;
+    highlightedElementIds = nodeIdArray;
     const missedIds = [];
 
     // identify the force id to highlight

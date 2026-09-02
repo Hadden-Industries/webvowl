@@ -14,7 +14,6 @@ export function createSearchMenu(
   } = {},
 ) {
   const searchMenu = {};
-  const MAXIMUM_SEARCH_RESULT_COUNT = 25;
   let focusableElementCountsBySearchEntry = [];
   let hasReportedOntologySelection = false;
   let dictionary = [];
@@ -62,9 +61,10 @@ export function createSearchMenu(
 
     let searchResult;
     try {
+      // The reader sees every match, as before; bounding belongs to the agent
+      // protocol rather than to this control.
       searchResult = webVowlController.findOntologyElements({
         query: queryText,
-        limit: MAXIMUM_SEARCH_RESULT_COUNT,
       });
     } catch {
       // No ontology is loaded, so there is nothing to offer.
@@ -238,9 +238,7 @@ export function createSearchMenu(
     if (c_locate) {
       c_locate.addEventListener("click", function () {
         if (c_locate.classList.contains("highlighted")) {
-          searchMenu.reportSelectedOntologyElement(
-            searchLineEdit ? searchLineEdit.value : "",
-          );
+          searchMenu.advanceToNextFocusedElement();
         }
       });
     }
@@ -630,33 +628,25 @@ export function createSearchMenu(
 
   // The menu reports which ontology element the reader picked. What focusing
   // means for the visible graph is the runtime's decision, not this module's.
-  searchMenu.reportSelectedOntologyElement = function (selectedLabel) {
-    if (webVowlController === undefined) {
-      return undefined;
-    }
-    let searchResult;
-    try {
-      searchResult = webVowlController.findOntologyElements({
-        query: selectedLabel,
-      });
-    } catch {
-      // No ontology is loaded, so there is nothing to report.
-      return undefined;
-    }
-    const focusReferences = searchResult.matches
-      .filter(
-        (ontologyElementMatch) =>
-          ontologyElementMatch.displayLabel === selectedLabel &&
-          ontologyElementMatch.isFocusable,
-      )
-      .map(
-        (ontologyElementMatch) => ontologyElementMatch.ontologyElementReference,
-      );
-    if (focusReferences.length === 0) {
+  searchMenu.reportSelectedOntologyElements = function (
+    ontologyElementReferences,
+  ) {
+    if (
+      webVowlController === undefined ||
+      ontologyElementReferences.length === 0
+    ) {
       return undefined;
     }
     hasReportedOntologySelection = true;
-    return webVowlController.setVisualizationView({ focus: focusReferences });
+    return webVowlController.setVisualizationView({
+      focus: [...ontologyElementReferences],
+    });
+  };
+
+  // Locating is its own action: the reader asks to see the next element among
+  // those already highlighted, and the runtime decides how to move the view.
+  searchMenu.advanceToNextFocusedElement = function () {
+    return webVowlController?.setVisualizationView({ viewport: "focus-next" });
   };
 
   function selectSearchResult(elementId, event) {
@@ -671,11 +661,11 @@ export function createSearchMenu(
     }
     updateClearButtonVisibility();
 
-    // Something was picked, so locating it is now available regardless of what
-    // the runtime does with the report.
-    setLocateButtonState(true);
+    // Locating is offered only when at least one match is actually drawn,
+    // which is what the controller reports through isFocusable.
+    setLocateButtonState((focusableElementCountsBySearchEntry[id] ?? 0) > 0);
     if (correspondingIds) {
-      searchMenu.reportSelectedOntologyElement(autoComStr);
+      searchMenu.reportSelectedOntologyElements(correspondingIds);
     }
     if (autoComStr !== inputText) {
       handleAutoCompletion();

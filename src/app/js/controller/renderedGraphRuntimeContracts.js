@@ -771,9 +771,16 @@ function assertLayoutDirective(layout) {
   }
 }
 
+// preserve leaves the viewport alone, fit frames the whole graph, and
+// focus-next brings one focused element into view, advancing through them on
+// repeat so a reader can step through every match.
+const VIEWPORT_DIRECTIVES = Object.freeze(["preserve", "fit", "focus-next"]);
+
 function assertViewportDirective(viewport) {
-  if (viewport !== "preserve" && viewport !== "fit") {
-    throw new TypeError("viewport must be preserve or fit.");
+  if (!VIEWPORT_DIRECTIVES.includes(viewport)) {
+    throw new TypeError(
+      `viewport must be one of ${VIEWPORT_DIRECTIVES.join(", ")}.`,
+    );
   }
 }
 
