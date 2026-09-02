@@ -247,6 +247,14 @@ export function createWebVowlController(dependencies) {
       });
       return;
     }
+    if (renderedGraphEvent.kind === "rendered-element-selection-changed") {
+      publishForGeneration(renderedGraphEvent.loadGeneration, {
+        selection: [
+          ...renderedGraphEvent.payload.selectedOntologyElementReferences,
+        ],
+      });
+      return;
+    }
     if (renderedGraphEvent.kind === "render-progress-changed") {
       publishForGeneration(renderedGraphEvent.loadGeneration, {
         renderProgress: {

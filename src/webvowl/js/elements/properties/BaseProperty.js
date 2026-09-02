@@ -247,7 +247,9 @@ const BaseProperty = (function () {
       that.focused(!that.focused());
       labelElement.select("rect").classed("focused", that.focused());
       graph.resetSearchHighlight();
-      graph.dispatchEvent(new CustomEvent("searchcleared"));
+      // Report which drawn elements are selected now; what that means for the
+      // search box is decided outside the renderer.
+      graph.reportRenderedElementSelection(that.focused() ? [that.id()] : []);
     };
     this.getShapeElement = function () {
       return shapeElement;

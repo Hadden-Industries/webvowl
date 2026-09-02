@@ -256,7 +256,7 @@ describe("ontology menu actions", () => {
       createNewOntology,
       setOntologyMenu: jest.fn(),
       loadRemoteSource: jest.fn(() => Promise.resolve()),
-      sourceFromLocation: jest.fn(() => ({
+      ontologySourceFromLocation: jest.fn(() => ({
         kind: "vowl-json-url",
         url: "https://example.test/foaf.json",
       })),
@@ -439,7 +439,7 @@ describe("ontology menu converter responses", () => {
       createNewOntology: jest.fn(),
       setOntologyMenu: jest.fn(),
       loadRemoteSource: jest.fn(() => Promise.resolve()),
-      sourceFromLocation: jest.fn(),
+      ontologySourceFromLocation: jest.fn(),
     });
     ontologyMenu = createOntologyMenu(
       {

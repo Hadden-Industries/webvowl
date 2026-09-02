@@ -1,4 +1,4 @@
-export function createWarningModule(graph) {
+export function createWarningModule(graph, { webVowlController } = {}) {
   /** variable defs **/
   const warningModule = {};
   const lifecycleAbortController = new AbortController();
@@ -308,7 +308,7 @@ export function createWarningModule(graph) {
     action,
     type,
     forcedWarning,
-    additionalOpts,
+    focusableElementReference,
   ) {
     const id = warningModule.addMessageBox();
     const warningContainer = _messageContext[id];
@@ -381,39 +381,22 @@ export function createWarningModule(graph) {
       warningContainer.appendChild(spanNode1);
       spanNode1.innerHTML = "|";
 
-      const zoomToElementButton = document.createElement("button");
-      warningContainer.appendChild(zoomToElementButton);
-      zoomToElementButton.setAttribute("type", "button");
-      zoomToElementButton.id = "zoomElementThing_" + id;
-      zoomToElementButton.innerHTML = "Zoom to element ";
-      zoomToElementButton.addEventListener(
+      // The warning reports which element it is about; the runtime decides
+      // how to surface it. This module never draws on a renderer element.
+      const showElementButton = document.createElement("button");
+      warningContainer.appendChild(showElementButton);
+      showElementButton.setAttribute("type", "button");
+      showElementButton.id = "showElementThing_" + id;
+      showElementButton.textContent = "Show element in graph";
+      showElementButton.addEventListener(
         "click",
         function () {
-          graph.zoomToElementInGraph(additionalOpts);
-        },
-        { signal: lifecycleAbortController.signal },
-      );
-
-      const spanNode2 = document.createElement("span");
-      warningContainer.appendChild(spanNode2);
-      spanNode2.innerHTML = "|";
-
-      const ShowElementButton = document.createElement("button");
-      warningContainer.appendChild(ShowElementButton);
-      ShowElementButton.setAttribute("type", "button");
-      ShowElementButton.id = "showElementThing_" + id;
-      ShowElementButton.innerHTML = "Indicate element";
-      ShowElementButton.addEventListener(
-        "click",
-        function () {
-          if (additionalOpts.halo() === false) {
-            additionalOpts.drawHalo();
-            graph.updatePulseIds([additionalOpts.id()]);
-          } else {
-            additionalOpts.removeHalo();
-            additionalOpts.drawHalo();
-            graph.updatePulseIds([additionalOpts.id()]);
+          if (focusableElementReference === undefined) {
+            return;
           }
+          webVowlController?.setVisualizationView({
+            focus: [focusableElementReference],
+          });
         },
         { signal: lifecycleAbortController.signal },
       );

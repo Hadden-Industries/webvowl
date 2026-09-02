@@ -526,6 +526,33 @@ describe("WebVOWL controller orchestration", () => {
       await loadPromise;
     });
 
+    test("reduces a rendered element selection into controller state", async () => {
+      await completeLoad();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: 1,
+        payload: {
+          selectedOntologyElementReferences: [
+            { kind: "class", iri: "https://example.test/Person" },
+          ],
+        },
+      });
+      await flushMicrotasks();
+
+      expect(controller.getState().selection).toEqual([
+        { kind: "class", iri: "https://example.test/Person" },
+      ]);
+
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: 1,
+        payload: { selectedOntologyElementReferences: [] },
+      });
+      await flushMicrotasks();
+
+      expect(controller.getState().selection).toEqual([]);
+    });
+
     test("reduces a render progress event into controller state", async () => {
       await completeLoad();
       renderedGraphTestHarness.publishRenderedGraphEvent({

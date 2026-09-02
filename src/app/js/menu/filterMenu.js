@@ -211,7 +211,9 @@ export function createFilterMenu(
       if (typeof degreeSlider.__oninput === "function") {
         degreeSlider.__oninput(); // <<-- sets the text value
       }
-      graph.update();
+      // A wheel is just another way of moving the slider, so it reports the
+      // same fact through the same control the controller listens on.
+      degreeSlider.dispatchEvent(new Event("change", { bubbles: true }));
     }
     event.preventDefault();
   }

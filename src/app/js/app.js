@@ -74,7 +74,6 @@ export function createWebVowlApplication() {
     modeMenu = createModeMenu(graph),
     debugMenu = createDebugMenu(graph),
     pauseMenu = createPauseMenu({ documentObject: document }),
-    resetMenu = createResetMenu(graph),
     navigationMenu = createNavigationMenu(graph),
     zoomSlider = createZoomSlider(graph),
     configMenu = createConfigMenu(graph),
@@ -161,6 +160,7 @@ export function createWebVowlApplication() {
   // Menus that command the controller are constructed once it exists.
   const exportMenu = createExportMenu(graph, { webVowlController });
   const searchMenu = createSearchMenu(graph, { webVowlController });
+  const resetMenu = createResetMenu(graph, { webVowlController });
   const ontologyMenu = createOntologyMenu(graph, { webVowlController });
   const viewControlsLifecycleController = new AbortController();
   createVisualizationViewControlsAdapter({
@@ -332,8 +332,9 @@ export function createWebVowlApplication() {
       elementTools,
       languageConstants,
       languageTools,
+      webVowlController,
     });
-    warningModule = createWarningModule(graph);
+    warningModule = createWarningModule(graph, { webVowlController });
     selectionDetailDisplayer = createSelectionDetailsDisplayer(
       sidebar.updateSelectionInformation,
     );
@@ -394,7 +395,6 @@ export function createWebVowlApplication() {
     graph.addEventListener("dictionarychange", () =>
       searchMenu.requestDictionaryUpdate(),
     );
-    graph.addEventListener("searchcleared", () => searchMenu.clearText());
     graph.addEventListener("updatelocatebutton", (e) =>
       searchMenu.updateLocateButtonVisibility(e.detail.visible),
     );
@@ -571,6 +571,9 @@ export function createWebVowlApplication() {
         pauseMenu.renderGraphLayoutPaused(
           controllerState.layout?.status === "paused",
         );
+        if (Array.isArray(controllerState.selection)) {
+          searchMenu.renderSelectedOntologyElements(controllerState.selection);
+        }
         if (controllerState.status === "ready") {
           sidebar.renderOntologySummary(webVowlController.getOntologySummary());
         }
@@ -586,7 +589,6 @@ export function createWebVowlApplication() {
       modeMenu,
       focuser,
       selectionDetailDisplayer,
-      pauseMenu,
     ]);
     searchMenu.setup();
     navigationMenu.setup();
@@ -694,7 +696,7 @@ export function createWebVowlApplication() {
     sidebar.updateOntologyInformation(undefined, statistics);
     // The location names the ontology to show; the controller loads it.
     loadingModule.loadRemoteSource({
-      source: loadingModule.sourceFromLocation(),
+      source: loadingModule.ontologySourceFromLocation(),
     });
     renderedGraphSettings.debugMenu(debugMenu);
     debugMenu.updateSettings();

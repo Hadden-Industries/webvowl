@@ -319,7 +319,10 @@ function createAdapterHarness() {
     paused(isPaused) {
       renderedGraphInternalsFixture.pauseStates.push(isPaused);
     },
-    setRenderedGraphEventPort() {},
+    setRenderedGraphEventPort(nextPort) {
+      renderedGraphInternalsFixture.installedEventPort = nextPort;
+    },
+    installedEventPort: undefined,
     appliedLanguages: [],
     updateCallCount: 0,
     relocationRequests: 0,
@@ -339,6 +342,10 @@ function createAdapterHarness() {
     },
     locateSearchResult() {
       renderedGraphInternalsFixture.locateRequests += 1;
+    },
+    highlightResets: 0,
+    resetSearchHighlight() {
+      renderedGraphInternalsFixture.highlightResets += 1;
     },
     restartForceLayout() {
       renderedGraphInternalsFixture.callOrder.push("relax");
@@ -391,6 +398,10 @@ function createAdapterHarness() {
     renderedGraphTestHarness: {
       completeInitialPaint: resolvePendingPaint,
       completeVisualizationViewApplication: resolvePendingPaint,
+      reportRenderedElementSelection: (selectedElementIds) =>
+        renderedGraphInternalsFixture.installedEventPort?.publishRenderedElementSelection(
+          selectedElementIds,
+        ),
       publishRenderedGraphEvent:
         renderedGraphInteractionPort.publishRenderedGraphEvent,
     },
@@ -736,5 +747,68 @@ describe("D3 rendered graph adapter", () => {
     // drawn node the renderer knows.
     expect(internals.highlightedElementIds).toEqual([["Person"]]);
     expect(internals.locateRequests).toBe(1);
+  });
+
+  test("clears the highlight when the focus becomes empty", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+    const internals = adapterHarness.renderedGraphInternalsFixture;
+
+    const viewApplication =
+      adapterHarness.renderedGraphRuntime.applyVisualizationView({
+        loadGeneration: 1,
+        focus: [],
+      });
+    adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+      1,
+    );
+    await viewApplication;
+
+    // Nothing is selected, so nothing should still be pulsing.
+    expect(internals.highlightResets).toBe(1);
+    expect(internals.highlightedElementIds).toEqual([]);
+    expect(internals.locateRequests).toBe(0);
+  });
+
+  test("publishes a renderer selection as ontology element references", async () => {
+    const adapterHarness = createAdapterHarness();
+    const publishedEvents = [];
+    adapterHarness.renderedGraphRuntime.subscribeToRenderedGraphEvents(
+      (renderedGraphEvent) => publishedEvents.push(renderedGraphEvent),
+    );
+    await loadGeneration(adapterHarness, 1);
+
+    adapterHarness.renderedGraphTestHarness.reportRenderedElementSelection([
+      "Person",
+    ]);
+
+    // The renderer speaks in its own element ids; the runtime translates.
+    const selectionEvents = publishedEvents.filter(
+      (renderedGraphEvent) =>
+        renderedGraphEvent.kind === "rendered-element-selection-changed",
+    );
+    expect(selectionEvents).toHaveLength(1);
+    expect(
+      selectionEvents[0].payload.selectedOntologyElementReferences,
+    ).toEqual([{ kind: "class", iri: "https://example.test/Person" }]);
+  });
+
+  test("publishes an empty selection when the renderer reports none", async () => {
+    const adapterHarness = createAdapterHarness();
+    const publishedEvents = [];
+    adapterHarness.renderedGraphRuntime.subscribeToRenderedGraphEvents(
+      (renderedGraphEvent) => publishedEvents.push(renderedGraphEvent),
+    );
+    await loadGeneration(adapterHarness, 1);
+
+    adapterHarness.renderedGraphTestHarness.reportRenderedElementSelection([]);
+
+    const selectionEvents = publishedEvents.filter(
+      (renderedGraphEvent) =>
+        renderedGraphEvent.kind === "rendered-element-selection-changed",
+    );
+    expect(
+      selectionEvents[0].payload.selectedOntologyElementReferences,
+    ).toEqual([]);
   });
 });

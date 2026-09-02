@@ -469,6 +469,7 @@ function createGraph(graphContainerSelector) {
     hasMissingImports: () => false,
     publishRenderProgress: () => undefined,
     publishRenderWarning: () => undefined,
+    publishRenderedElementSelection: () => undefined,
     // Presentation may interpose a confirmation; by default the renderer
     // proceeds so behaviour is unchanged until the UI supplies one.
     requestRenderedGraphConfirmation: (_code, _message, onConfirmed) =>
@@ -496,6 +497,15 @@ function createGraph(graphContainerSelector) {
   // graph runtime turns this into a render-warning-raised event.
   graph.raiseRenderWarning = function (warningCode, message) {
     renderedGraphEventPort.publishRenderWarning(warningCode, message);
+  };
+
+  // Renderer-owned selection channel. An element reports which drawn nodes are
+  // selected using the renderer's own ids; the runtime turns those into
+  // ontology element references for the controller.
+  graph.reportRenderedElementSelection = function (selectedElementIds) {
+    renderedGraphEventPort.publishRenderedElementSelection(
+      Array.isArray(selectedElementIds) ? selectedElementIds : [],
+    );
   };
   // search functionality
   graph.getUpdateDictionary = function () {

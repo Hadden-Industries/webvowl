@@ -9,6 +9,19 @@ export function createEditSidebar(
 ) {
   const editSidebar = {};
   const lifecycleAbortController = new AbortController();
+
+  // A warning names the ontology element it concerns, not the drawn node the
+  // renderer happens to be holding.
+  function ontologyElementReferenceForRenderedElement(renderedElement) {
+    const elementIri = renderedElement?.iri?.();
+    if (typeof elementIri !== "string" || elementIri.length === 0) {
+      return undefined;
+    }
+    return {
+      kind: elementTools.isProperty(renderedElement) ? "property" : "class",
+      iri: elementIri,
+    };
+  }
   let prefixControlsAbortController = new AbortController();
   let selectionControlsAbortController = new AbortController();
   let selectedElementForCharacteristics;
@@ -708,7 +721,7 @@ export function createEditSidebar(
             "Restoring previous IRI for Element : " + element.iri(),
             2,
             false,
-            sanityCheckResult,
+            ontologyElementReferenceForRenderedElement(sanityCheckResult),
           );
 
         editSidebar.updateSelectionInformation(element);
@@ -734,7 +747,7 @@ export function createEditSidebar(
             "Restoring previous IRI for Element : " + element.iri(),
             1,
             false,
-            sanityCheckResult,
+            ontologyElementReferenceForRenderedElement(sanityCheckResult),
           );
 
         editSidebar.updateSelectionInformation(element);
@@ -897,7 +910,9 @@ export function createEditSidebar(
                     "Continuing with duplicate property!",
                     1,
                     false,
-                    sanityCheckResult,
+                    ontologyElementReferenceForRenderedElement(
+                      sanityCheckResult,
+                    ),
                   );
                 editSidebar.updateSelectionInformation(element);
                 return;
@@ -921,7 +936,9 @@ export function createEditSidebar(
                     "Restoring previous IRI for Element : " + element.iri(),
                     2,
                     false,
-                    sanityCheckResult,
+                    ontologyElementReferenceForRenderedElement(
+                      sanityCheckResult,
+                    ),
                   );
 
                 editSidebar.updateSelectionInformation(element);
@@ -964,7 +981,9 @@ export function createEditSidebar(
                       "Continuing with duplicate property!",
                       1,
                       false,
-                      sanityCheckResult,
+                      ontologyElementReferenceForRenderedElement(
+                        sanityCheckResult,
+                      ),
                     );
 
                   editSidebar.updateSelectionInformation(element);
@@ -989,7 +1008,9 @@ export function createEditSidebar(
                       "Restoring previous IRI for Element : " + element.iri(),
                       2,
                       false,
-                      sanityCheckResult,
+                      ontologyElementReferenceForRenderedElement(
+                        sanityCheckResult,
+                      ),
                     );
 
                   editSidebar.updateSelectionInformation(element);

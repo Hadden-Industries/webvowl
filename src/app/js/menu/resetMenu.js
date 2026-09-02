@@ -1,3 +1,4 @@
+import { applicationUiModule } from "../ui/applicationUiRegistry.js";
 import { RENDERED_GRAPH_CONFIGURATION_DEFAULTS } from "../../../webvowl/js/runtime/renderedGraphConfiguration.js";
 
 /**
@@ -9,7 +10,12 @@ import { RENDERED_GRAPH_CONFIGURATION_DEFAULTS } from "../../../webvowl/js/runti
 export function createResetMenu(
   graph,
   {
+    clearTimeout: clearFlashTimer = globalThis.clearTimeout,
     documentObject = globalThis.document,
+    requestAnimationFrame:
+      requestNextAnimationFrame = globalThis.requestAnimationFrame,
+    setTimeout: scheduleFlashTimer = globalThis.setTimeout,
+    webVowlController,
     windowObject = globalThis.window,
   } = {},
 ) {
@@ -36,7 +42,7 @@ export function createResetMenu(
     //    will-change: transform on #reset-button and will-change: opacity
     //    on .reset-glow are ALWAYS set in CSS, so their compositor layers
     //    are pre-established — no creation delay at click time.
-    clearTimeout(resetFlashTimer);
+    clearFlashTimer(resetFlashTimer);
     resetButton.classList.remove("flash-out", "flash-active");
     const _reflow = resetButton.offsetWidth; // eslint-disable-line no-unused-vars
     resetButton.classList.add("flash-active");
@@ -49,10 +55,12 @@ export function createResetMenu(
     //    Frame N+2 (second rAF):         graph.reset() runs — compositor
     //                                    now has N+1's committed state and
     //                                    can animate independently.
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
+    requestNextAnimationFrame(function () {
+      requestNextAnimationFrame(function () {
         graph.resetSearchHighlight();
-        graph.dispatchEvent(new CustomEvent("searchcleared"));
+        const searchMenu = applicationUiModule("searchMenu");
+        searchMenu?.clearText();
+        searchMenu?.reportClearedOntologySelection();
         options.classDistance(
           RENDERED_GRAPH_CONFIGURATION_DEFAULTS.classDistance,
         );
@@ -66,9 +74,10 @@ export function createResetMenu(
         );
         graph.reset();
 
-        resettableModules.forEach(function (module) {
-          module.reset();
+        resettableModules.forEach(function (resettableModule) {
+          resettableModule.reset();
         });
+        webVowlController?.setGraphLayoutPaused({ isPaused: false });
 
         graph.updateStyle();
 
@@ -76,7 +85,7 @@ export function createResetMenu(
         // layer of .reset-glow independently of any remaining main-thread work.
         resetButton.classList.remove("flash-active");
         resetButton.classList.add("flash-out");
-        resetFlashTimer = setTimeout(function () {
+        resetFlashTimer = scheduleFlashTimer(function () {
           resetButton.classList.remove("flash-out");
         }, 700);
       });

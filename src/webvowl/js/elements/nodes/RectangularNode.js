@@ -104,7 +104,9 @@ const RectangularNode = (function () {
       that.focused(!that.focused());
       that.nodeElement().select("rect").classed("focused", that.focused());
       graph.resetSearchHighlight();
-      graph.dispatchEvent(new CustomEvent("searchcleared"));
+      // Report which drawn elements are selected now; what that means for the
+      // search box is decided outside the renderer.
+      graph.reportRenderedElementSelection(that.focused() ? [that.id()] : []);
     };
 
     /**

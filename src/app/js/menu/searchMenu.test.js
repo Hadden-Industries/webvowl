@@ -208,6 +208,7 @@ class MockDocument {
 }
 
 describe("searchMenu responsive controls, clear button, and mobile overlay state", () => {
+  let sharedSearchController;
   let mockDoc;
   let mockGraph;
   let cSearch;
@@ -288,6 +289,23 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     mockDoc.elements["scrollRightButton"] = scrollRight;
 
     global.d3 = d3;
+    sharedSearchController = {
+      findOntologyElements: ({ query }) => ({
+        matches: "Person".toLowerCase().includes(String(query).toLowerCase())
+          ? [
+              {
+                displayLabel: "Person",
+                isFocusable: true,
+                ontologyElementReference: {
+                  kind: "class",
+                  iri: "http://xmlns.com/foaf/0.1/Person",
+                },
+              },
+            ]
+          : [],
+      }),
+      setVisualizationView: () => Promise.resolve({}),
+    };
     mockGraph = {
       getUpdateDictionary: () => [
         {
@@ -313,6 +331,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
+      webVowlController: sharedSearchController,
     });
     mockGraph.searchMenu = searchMenu;
     searchMenu.setup();
@@ -331,6 +350,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
+      webVowlController: sharedSearchController,
     });
     searchMenu.setup();
 
@@ -352,6 +372,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
+      webVowlController: sharedSearchController,
     });
     searchMenu.setup();
 
@@ -387,6 +408,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
+      webVowlController: sharedSearchController,
     });
     searchMenu.setup();
 
@@ -409,6 +431,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
+      webVowlController: sharedSearchController,
     });
     searchMenu.setup();
 
@@ -434,6 +457,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
+      webVowlController: sharedSearchController,
     });
     searchMenu.setup();
     mobileToggleBtn.click();
@@ -458,6 +482,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
+      webVowlController: sharedSearchController,
     });
     searchMenu.setup();
 
@@ -475,6 +500,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
+      webVowlController: sharedSearchController,
     });
     searchMenu.setup();
 
@@ -492,6 +518,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
+      webVowlController: sharedSearchController,
     });
     searchMenu.setup();
     searchInput.value = "Per";
@@ -514,6 +541,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
+      webVowlController: sharedSearchController,
     });
     mockGraph.searchMenu = searchMenu;
     searchMenu.setup();
@@ -546,6 +574,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
+      webVowlController: sharedSearchController,
     });
     mockGraph.searchMenu = searchMenu;
     searchMenu.setup();
@@ -583,8 +612,10 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     expect(locateBtn.getAttribute("aria-label")).toBe("Locate search term");
     expect(locateBtn.classList.contains("highlighted")).toBe(true);
 
+    // Locating reports the selection to the controller; it never drives the
+    // renderer from here.
     locateBtn.click();
-    expect(locateCount).toBe(1);
+    expect(locateCount).toBe(0);
 
     // Clear search
     searchMenu.clearText();
@@ -599,6 +630,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
+      webVowlController: sharedSearchController,
     });
     mockGraph.searchMenu = searchMenu;
     const locateBtn = mockDoc.elements["locateSearchResult"];
@@ -640,6 +672,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
+      webVowlController: sharedSearchController,
     });
     mockGraph.searchMenu = searchMenu;
     const locateBtn = mockDoc.elements["locateSearchResult"];
@@ -676,6 +709,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
+      webVowlController: sharedSearchController,
     });
     searchMenu.setup();
 
@@ -743,5 +777,144 @@ describe("searchMenu selection reporting", () => {
       },
     ]);
     expect(highlightCalls).toEqual([]);
+  });
+
+  test("reports a cleared selection only when one was reported", () => {
+    const highlightCalls = [];
+    const viewRequests = [];
+    const searchMenu = searchMenuFactory(
+      {
+        getUpdateDictionary: () => [],
+        getNodeMapForSearch: () => ({}),
+        resetSearchHighlight: () => highlightCalls.push("reset"),
+        highLightNodes: (ids) => highlightCalls.push(ids),
+        locateSearchResult: () => highlightCalls.push("locate"),
+      },
+      {
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        webVowlController: {
+          findOntologyElements: () => ({
+            matches: [
+              {
+                displayLabel: "Person",
+                isFocusable: true,
+                ontologyElementReference: {
+                  kind: "class",
+                  iri: "http://xmlns.com/foaf/0.1/Person",
+                },
+              },
+            ],
+          }),
+          setVisualizationView: (request) => {
+            viewRequests.push(request);
+            return Promise.resolve({});
+          },
+        },
+      },
+    );
+
+    // With nothing selected there is no change to report.
+    searchMenu.reportClearedOntologySelection();
+    expect(viewRequests).toEqual([]);
+
+    searchMenu.reportSelectedOntologyElement("Person");
+    searchMenu.reportClearedOntologySelection();
+
+    // Clearing after a selection is the fact that nothing is selected now.
+    expect(viewRequests.at(-1)).toEqual({ focus: [] });
+    expect(highlightCalls).toEqual([]);
+  });
+
+  test("does not recurse when the runtime clears the search in response", () => {
+    const viewRequests = [];
+    const searchMenuHolder = {};
+    const reentrantController = {
+      findOntologyElements: () => ({
+        matches: [
+          {
+            displayLabel: "Person",
+            isFocusable: true,
+            ontologyElementReference: {
+              kind: "class",
+              iri: "http://xmlns.com/foaf/0.1/Person",
+            },
+          },
+        ],
+      }),
+      setVisualizationView: (request) => {
+        viewRequests.push(request);
+        // Applying a focus change makes the renderer announce that the search
+        // was cleared, which the application routes straight back here.
+        searchMenuHolder.instance.clearText();
+        return Promise.resolve({});
+      },
+    };
+    searchMenuHolder.instance = searchMenuFactory(
+      {
+        getUpdateDictionary: () => [],
+        getNodeMapForSearch: () => ({}),
+        highLightNodes: () => {},
+        resetSearchHighlight: () => {},
+        locateSearchResult: () => {},
+      },
+      {
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        webVowlController: reentrantController,
+      },
+    );
+
+    expect(() =>
+      searchMenuHolder.instance.reportSelectedOntologyElement("Person"),
+    ).not.toThrow();
+    expect(viewRequests).toHaveLength(1);
+  });
+
+  test("clears its own presentation when the controller reports no selection", () => {
+    const viewRequests = [];
+    const searchMenu = searchMenuFactory(
+      {
+        getUpdateDictionary: () => [],
+        getNodeMapForSearch: () => ({}),
+        highLightNodes: () => {},
+        resetSearchHighlight: () => {},
+        locateSearchResult: () => {},
+      },
+      {
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        webVowlController: {
+          findOntologyElements: () => ({
+            matches: [
+              {
+                displayLabel: "Person",
+                isFocusable: true,
+                ontologyElementReference: {
+                  kind: "class",
+                  iri: "http://xmlns.com/foaf/0.1/Person",
+                },
+              },
+            ],
+          }),
+          setVisualizationView: (request) => {
+            viewRequests.push(request);
+            return Promise.resolve({});
+          },
+        },
+      },
+    );
+    searchMenu.setup();
+    searchMenu.reportSelectedOntologyElement("Person");
+    const reportedRequestCount = viewRequests.length;
+
+    searchMenu.renderSelectedOntologyElements([]);
+
+    // Rendering state is presentation: it must not report a change back.
+    expect(viewRequests).toHaveLength(reportedRequestCount);
+    expect(searchMenu.getSearchString()).toBe("");
   });
 });

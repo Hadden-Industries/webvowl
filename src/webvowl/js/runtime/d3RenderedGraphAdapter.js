@@ -115,7 +115,7 @@ function localizedTextRecords(vowlLabelValue) {
 // or `datatype` carrying the id and type, and an entry in the matching
 // `*Attribute` collection carrying the IRI, labels and comments. An inspection
 // record needs both, so they are merged by id before projection.
-function mergeVowlAttributes(baseCollection, attributeCollection) {
+function mergeVowlElementsWithAttributes(baseCollection, attributeCollection) {
   const attributesById = new Map(
     vowlBaseRecords(attributeCollection).map((attributeRecord) => [
       String(attributeRecord.id),
@@ -129,15 +129,15 @@ function mergeVowlAttributes(baseCollection, attributeCollection) {
 }
 
 function projectOntologyInspectionSnapshot(vowlModel, loadGeneration) {
-  const mergedClasses = mergeVowlAttributes(
+  const mergedClasses = mergeVowlElementsWithAttributes(
     vowlModel.class,
     vowlModel.classAttribute,
   );
-  const mergedProperties = mergeVowlAttributes(
+  const mergedProperties = mergeVowlElementsWithAttributes(
     vowlModel.property,
     vowlModel.propertyAttribute,
   );
-  const mergedDatatypes = mergeVowlAttributes(
+  const mergedDatatypes = mergeVowlElementsWithAttributes(
     vowlModel.datatype,
     vowlModel.datatypeAttribute,
   );
@@ -271,7 +271,8 @@ export function createD3RenderedGraphAdapter(dependencies) {
   let isDisposed = false;
   let activeLoadGeneration = null;
   let hasBuiltRenderedGraphRoot = false;
-  let rendererElementIdsByReferenceKey = new Map();
+  let rendererElementIdsByOntologyElementReferenceKey = new Map();
+  let ontologyElementReferencesByRendererElementId = new Map();
   let activeForceSimulation = null;
   let ontologyInspectionSnapshot = null;
   let visibleRenderedGraphSnapshot = null;
@@ -394,6 +395,30 @@ export function createD3RenderedGraphAdapter(dependencies) {
         },
       });
     },
+    // The renderer names drawn nodes by its own ids; the runtime reports the
+    // ontology elements they stand for.
+    publishRenderedElementSelection: (selectedElementIds) => {
+      if (activeLoadGeneration === null) {
+        return;
+      }
+      publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: activeLoadGeneration,
+        payload: {
+          selectedOntologyElementReferences: selectedElementIds.flatMap(
+            (rendererElementId) => {
+              const ontologyElementReference =
+                ontologyElementReferencesByRendererElementId.get(
+                  String(rendererElementId),
+                );
+              return ontologyElementReference === undefined
+                ? []
+                : [ontologyElementReference];
+            },
+          ),
+        },
+      });
+    },
     publishRenderWarning: (warningCode, message) => {
       if (activeLoadGeneration === null) {
         return;
@@ -439,26 +464,30 @@ export function createD3RenderedGraphAdapter(dependencies) {
     activeForceSimulation = forceSimulation;
   }
 
-  function referenceKey(ontologyElementReference) {
+  function ontologyElementReferenceKey(ontologyElementReference) {
     return typeof ontologyElementReference.iri === "string"
       ? `iri:${ontologyElementReference.iri}`
       : `localId:${ontologyElementReference.localId}`;
   }
 
-  function indexRendererElementIds(vowlModel, loadGeneration) {
+  function indexRendererElementIdsByOntologyElement(vowlModel, loadGeneration) {
     const elementIdsByKey = new Map();
+    ontologyElementReferencesByRendererElementId = new Map();
     const indexCollection = (baseCollection, attributeCollection, kind) => {
-      for (const mergedRecord of mergeVowlAttributes(
+      for (const mergedRecord of mergeVowlElementsWithAttributes(
         baseCollection,
         attributeCollection,
       )) {
-        const key = referenceKey(
-          ontologyElementReferenceForVowlRecord(
-            mergedRecord,
-            kind,
-            loadGeneration,
-          ),
+        const ontologyElementReference = ontologyElementReferenceForVowlRecord(
+          mergedRecord,
+          kind,
+          loadGeneration,
         );
+        ontologyElementReferencesByRendererElementId.set(
+          String(mergedRecord.id),
+          ontologyElementReference,
+        );
+        const key = ontologyElementReferenceKey(ontologyElementReference);
         const elementIds = elementIdsByKey.get(key) ?? [];
         elementIds.push(String(mergedRecord.id));
         elementIdsByKey.set(key, elementIds);
@@ -490,7 +519,7 @@ export function createD3RenderedGraphAdapter(dependencies) {
 
   // One normalized batch: every field the view changed is written to the
   // renderer before a single recomputation runs.
-  function applyViewToRenderer(requestedView) {
+  function applyVisualizationViewToRenderer(requestedView) {
     const renderedGraphSettings = renderedGraphInternals.options();
     let requiresRecomputation = false;
 
@@ -537,16 +566,21 @@ export function createD3RenderedGraphAdapter(dependencies) {
 
     // The caller reports which elements were selected; the runtime decides
     // that focusing means highlighting them and moving the viewport there.
-    if (requestedView.focus !== undefined && requestedView.focus.length > 0) {
-      const focusedElementIds = requestedView.focus.flatMap(
-        (ontologyElementReference) =>
-          rendererElementIdsByReferenceKey.get(
-            referenceKey(ontologyElementReference),
-          ) ?? [],
-      );
-      if (focusedElementIds.length > 0) {
-        renderedGraphInternals.highLightNodes(focusedElementIds);
-        renderedGraphInternals.locateSearchResult();
+    if (requestedView.focus !== undefined) {
+      if (requestedView.focus.length === 0) {
+        // Nothing is selected, so nothing should still be pulsing.
+        renderedGraphInternals.resetSearchHighlight();
+      } else {
+        const focusedElementIds = requestedView.focus.flatMap(
+          (ontologyElementReference) =>
+            rendererElementIdsByOntologyElementReferenceKey.get(
+              ontologyElementReferenceKey(ontologyElementReference),
+            ) ?? [],
+        );
+        if (focusedElementIds.length > 0) {
+          renderedGraphInternals.highLightNodes(focusedElementIds);
+          renderedGraphInternals.locateSearchResult();
+        }
       }
     }
   }
@@ -569,10 +603,11 @@ export function createD3RenderedGraphAdapter(dependencies) {
       isGraphLayoutPaused = false;
       appliedVisualizationView = DEFAULT_APPLIED_VISUALIZATION_VIEW;
 
-      rendererElementIdsByReferenceKey = indexRendererElementIds(
-        replacementRequest.vowlModel,
-        loadGeneration,
-      );
+      rendererElementIdsByOntologyElementReferenceKey =
+        indexRendererElementIdsByOntologyElement(
+          replacementRequest.vowlModel,
+          loadGeneration,
+        );
       ontologyInspectionSnapshot = projectOntologyInspectionSnapshot(
         replacementRequest.vowlModel,
         loadGeneration,
@@ -642,7 +677,7 @@ export function createD3RenderedGraphAdapter(dependencies) {
         },
       };
 
-      applyViewToRenderer(requestedView);
+      applyVisualizationViewToRenderer(requestedView);
 
       await awaitObservedPaint(loadGeneration, signal);
       if (isDisposed) {

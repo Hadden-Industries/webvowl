@@ -14,6 +14,8 @@ import {
 
 let createLoadingModule;
 let loadingModuleContext;
+// Interface modules collaborate through the application registry.
+const registeredUiModulesForTest = new Map();
 
 class LoadingControl extends EventTarget {
   constructor() {
@@ -100,6 +102,22 @@ beforeAll(async () => {
     }
     if (specifier === "./ontologyLifecycle.js") {
       return lifecycleModuleSource;
+    }
+    if (specifier.endsWith("applicationUiRegistry.js")) {
+      return new SyntheticModule(
+        ["applicationUiModule", "registerApplicationUiModule"],
+        function provideApplicationUiRegistry() {
+          this.setExport("applicationUiModule", (moduleName) =>
+            registeredUiModulesForTest.get(moduleName),
+          );
+          this.setExport(
+            "registerApplicationUiModule",
+            (moduleName, uiModule) =>
+              registeredUiModulesForTest.set(moduleName, uiModule),
+          );
+        },
+        { context: loadingModuleContext, identifier: specifier },
+      );
     }
     throw new Error(`Unexpected loading-module dependency: ${specifier}`);
   });
@@ -224,7 +242,7 @@ describe("loading module remote source derivation", () => {
         encodeURIComponent("http://example.com/graph.json"),
     );
 
-    expect(loadingModule.sourceFromLocation()).toEqual({
+    expect(loadingModule.ontologySourceFromLocation()).toEqual({
       kind: "vowl-json-url",
       url: "http://example.com/graph.json",
     });
@@ -236,7 +254,7 @@ describe("loading module remote source derivation", () => {
         encodeURIComponent("http://example.com/ontology.rdf"),
     );
 
-    expect(loadingModule.sourceFromLocation()).toEqual({
+    expect(loadingModule.ontologySourceFromLocation()).toEqual({
       kind: "ontology-document-iri",
       documentIri: "http://example.com/ontology.rdf",
     });
@@ -424,7 +442,7 @@ describe("loading module canonical controller sources", () => {
     );
 
     await loadingModule.loadRemoteSource({
-      source: loadingModule.sourceFromLocation(),
+      source: loadingModule.ontologySourceFromLocation(),
     });
 
     expect(requestedLoads).toEqual([
@@ -443,7 +461,7 @@ describe("loading module canonical controller sources", () => {
     );
 
     await loadingModule.loadRemoteSource({
-      source: loadingModule.sourceFromLocation(),
+      source: loadingModule.ontologySourceFromLocation(),
     });
 
     expect(requestedLoads).toEqual([
@@ -462,7 +480,7 @@ describe("loading module canonical controller sources", () => {
     );
 
     await loadingModule.loadRemoteSource({
-      source: loadingModule.sourceFromLocation(),
+      source: loadingModule.ontologySourceFromLocation(),
     });
 
     expect(requestedLoads).toEqual([
@@ -517,5 +535,52 @@ describe("loading module canonical controller sources", () => {
         },
       },
     ]);
+  });
+});
+
+describe("loading module control availability", () => {
+  let controls;
+  let loadingModule;
+  let zoomSliderMenuModes;
+
+  beforeEach(() => {
+    controls = new Map();
+    global.document = {
+      querySelector: (selector) => {
+        if (!controls.has(selector)) {
+          controls.set(selector, new LoadingControl());
+        }
+        return controls.get(selector);
+      },
+      querySelectorAll: () => [],
+    };
+    loadingModuleContext.document = global.document;
+    zoomSliderMenuModes = [];
+    registeredUiModulesForTest.clear();
+    registeredUiModulesForTest.set("zoomSlider", {
+      setMenuMode: (enabled) => zoomSliderMenuModes.push(enabled),
+    });
+    loadingModule = createLoadingModule({ options: () => ({}) });
+  });
+
+  afterEach(() => {
+    loadingModule?.dispose();
+    loadingModuleContext.document = undefined;
+    registeredUiModulesForTest.clear();
+  });
+
+  test("enables graph controls through the interface registry when ready", () => {
+    loadingModule.markReady();
+
+    // The renderer settings object no longer carries interface modules, so a
+    // lookup there would silently leave the zoom controls disabled.
+    expect(zoomSliderMenuModes).toEqual([true]);
+  });
+
+  test("disables graph controls again while a load is in flight", () => {
+    loadingModule.markReady();
+    loadingModule.markLoading();
+
+    expect(zoomSliderMenuModes).toEqual([true, false]);
   });
 });

@@ -14,14 +14,15 @@ export function createSearchMenu(
   } = {},
 ) {
   const searchMenu = {};
+  const MAXIMUM_SEARCH_RESULT_COUNT = 25;
+  let focusableElementCountsBySearchEntry = [];
+  let hasReportedOntologySelection = false;
   let dictionary = [];
   let entryNames = [];
   let searchLineEdit;
   let mergedStringsList;
   let mergedIdList;
   const maxEntries = 6;
-  let dictionaryUpdateRequired = true;
-  let labelDictionary;
   let inputText;
   let menuEnabled = true;
   let locateAvailable = false;
@@ -37,7 +38,6 @@ export function createSearchMenu(
   };
 
   searchMenu.requestDictionaryUpdate = function () {
-    dictionaryUpdateRequired = true;
     if (listbox) {
       while (listbox.children.length > 0) {
         listbox.children[0].remove();
@@ -48,65 +48,48 @@ export function createSearchMenu(
     }
   };
 
-  function updateSearchDictionary() {
-    labelDictionary = graph.getUpdateDictionary();
-    dictionaryUpdateRequired = false;
-    dictionary = [];
-    entryNames = [];
-    const idList = [];
-    const stringList = [];
-
-    let i;
-    for (i = 0; i < labelDictionary.length; i++) {
-      const lEntry = labelDictionary[i].labelForCurrentLanguage();
-      idList.push(labelDictionary[i].id());
-      stringList.push(lEntry);
-      // add all equivalents to the search space;
-      if (
-        labelDictionary[i].equivalents &&
-        labelDictionary[i].equivalents().length > 0
-      ) {
-        const eqs = labelDictionary[i].equivalentsString();
-        const eqsLabels = eqs.split(", ");
-        for (let e = 0; e < eqsLabels.length; e++) {
-          idList.push(labelDictionary[i].id());
-          stringList.push(eqsLabels[e]);
-        }
-      }
-    }
-
+  // The controller owns element identity and visibility, so the dropdown is
+  // built from what it reports rather than from the renderer's own dictionary.
+  function loadSearchResultsForQuery(queryText) {
     mergedStringsList = [];
     mergedIdList = [];
-    let indexInStringList;
-    let currentString;
-    let currentObjectId;
-
-    for (i = 0; i < stringList.length; i++) {
-      if (i === 0) {
-        // just add the elements
-        mergedStringsList.push(stringList[i]);
-        mergedIdList.push([]);
-        mergedIdList[0].push(idList[i]);
-        continue;
-      } else {
-        currentString = stringList[i];
-        currentObjectId = idList[i];
-        indexInStringList = mergedStringsList.indexOf(currentString);
-      }
-      if (indexInStringList === -1) {
-        mergedStringsList.push(stringList[i]);
-        mergedIdList.push([]);
-        const lastEntry = mergedIdList.length;
-        mergedIdList[lastEntry - 1].push(currentObjectId);
-      } else {
-        mergedIdList[indexInStringList].push(currentObjectId);
-      }
+    focusableElementCountsBySearchEntry = [];
+    dictionary = [];
+    entryNames = [];
+    if (webVowlController === undefined || queryText.length === 0) {
+      return;
     }
 
-    for (i = 0; i < mergedStringsList.length; i++) {
-      const aString = mergedStringsList[i];
-      dictionary.push(aString);
-      entryNames.push(aString);
+    let searchResult;
+    try {
+      searchResult = webVowlController.findOntologyElements({
+        query: queryText,
+        limit: MAXIMUM_SEARCH_RESULT_COUNT,
+      });
+    } catch {
+      // No ontology is loaded, so there is nothing to offer.
+      return;
+    }
+
+    const groupsByLabel = new Map();
+    for (const ontologyElementMatch of searchResult.matches) {
+      const group = groupsByLabel.get(ontologyElementMatch.displayLabel) ?? {
+        references: [],
+        focusableCount: 0,
+      };
+      group.references.push(ontologyElementMatch.ontologyElementReference);
+      if (ontologyElementMatch.isFocusable) {
+        group.focusableCount += 1;
+      }
+      groupsByLabel.set(ontologyElementMatch.displayLabel, group);
+    }
+
+    for (const [displayLabel, group] of groupsByLabel) {
+      mergedStringsList.push(displayLabel);
+      mergedIdList.push(group.references);
+      focusableElementCountsBySearchEntry.push(group.focusableCount);
+      dictionary.push(displayLabel);
+      entryNames.push(displayLabel);
     }
   }
 
@@ -246,6 +229,7 @@ export function createSearchMenu(
         event.stopPropagation();
       }
       searchMenu.clearText();
+      searchMenu.reportClearedOntologySelection();
       if (searchLineEdit) {
         searchLineEdit.focus();
       }
@@ -254,7 +238,9 @@ export function createSearchMenu(
     if (c_locate) {
       c_locate.addEventListener("click", function () {
         if (c_locate.classList.contains("highlighted")) {
-          graph.locateSearchResult();
+          searchMenu.reportSelectedOntologyElement(
+            searchLineEdit ? searchLineEdit.value : "",
+          );
         }
       });
     }
@@ -364,10 +350,6 @@ export function createSearchMenu(
   }
 
   function userNavigation(event) {
-    if (dictionaryUpdateRequired) {
-      updateSearchDictionary();
-    }
-
     if (event.key === "Escape") {
       event.preventDefault();
       searchMenu.hideSearchEntries();
@@ -473,20 +455,11 @@ export function createSearchMenu(
 
   function createSearchEntries() {
     inputText = searchLineEdit.value;
-    let i;
-    const lc_text = inputText.toLowerCase();
-    let token;
-
-    for (i = 0; i < dictionary.length; i++) {
-      const tokenElement = dictionary[i];
-      if (tokenElement === undefined) {
-        continue;
-      }
-      token = dictionary[i].toLowerCase();
-      if (token.indexOf(lc_text) > -1) {
-        results.push(dictionary[i]);
-        resultID.push(i);
-      }
+    // The controller already matched the query, so every entry is a result.
+    loadSearchResultsForQuery(inputText);
+    for (let i = 0; i < dictionary.length; i++) {
+      results.push(dictionary[i]);
+      resultID.push(i);
     }
   }
 
@@ -508,34 +481,12 @@ export function createSearchMenu(
     if (!listbox) {
       return;
     }
-    const copyRes = [];
+    // The controller ranks matches by relevance (exact label, then prefix,
+    // then containment), so the dropdown presents them in that order.
+    const newResults = [...results];
+    const newResultsIds = [...resultID];
+
     let i;
-    for (i = 0; i < results.length; i++) {
-      copyRes.push(results[i]);
-    }
-
-    const newResults = [];
-    const newResultsIds = [];
-
-    while (copyRes.length > 0) {
-      let minLen = Number.MAX_VALUE;
-      let minIdx = -1;
-      for (i = 0; i < copyRes.length; i++) {
-        if (copyRes[i] !== "") {
-          if (copyRes[i].length < minLen) {
-            minLen = copyRes[i].length;
-            minIdx = i;
-          }
-        }
-      }
-      if (minIdx === -1) {
-        break;
-      }
-      newResults.push(copyRes[minIdx]);
-      newResultsIds.push(resultID[minIdx]);
-      copyRes[minIdx] = "";
-    }
-
     let numEntries = newResults.length;
     if (numEntries > maxEntries) {
       numEntries = maxEntries;
@@ -554,20 +505,15 @@ export function createSearchMenu(
       const entries = mergedIdList[newResultsIds[i]];
       const eLen = entries.length;
 
-      const el0 = entries[0];
+      const referenceKeyOf = (elementReference) =>
+        elementReference.iri ?? elementReference.localId;
+      const el0 = referenceKeyOf(entries[0]);
       let allSame = true;
-      const nodeMap = graph.getNodeMapForSearch();
-      let visible = eLen;
-      if (eLen > 1) {
-        for (let q = 0; q < eLen; q++) {
-          if (nodeMap[entries[q]] === undefined) {
-            visible--;
-          }
-        }
-      }
+      const visible =
+        focusableElementCountsBySearchEntry[newResultsIds[i]] ?? 0;
 
       for (let a = 0; a < eLen; a++) {
-        if (el0 !== entries[a]) {
+        if (el0 !== referenceKeyOf(entries[a])) {
           allSame = false;
         }
       }
@@ -591,7 +537,7 @@ export function createSearchMenu(
       }
 
       if (eLen === 1 || allSame === true) {
-        if (nodeMap[entries[0]] === undefined) {
+        if (visible < 1) {
           testEntry.classList.add("search-entry-disabled");
           testEntry.title = rawTitle + "\nElement is filtered out.";
           testEntry.onclick = function () {};
@@ -636,15 +582,10 @@ export function createSearchMenu(
   function userInput() {
     setLocateButtonState(false);
 
-    if (dictionaryUpdateRequired) {
-      updateSearchDictionary();
-    }
-    graph.resetSearchHighlight();
+    searchMenu.reportClearedOntologySelection();
 
-    if (dictionary.length === 0) {
-      console.warn("dictionary is empty");
-      return;
-    }
+    // The controller answers each query, so there is no dictionary to
+    // populate ahead of time and nothing to guard against here.
     inputText = searchLineEdit.value;
     updateClearButtonVisibility();
 
@@ -662,6 +603,30 @@ export function createSearchMenu(
       selectSearchResult(elementId, event);
     };
   }
+
+  // Presentation of the controller's selection. Rendering never reports, so a
+  // selection the renderer originated cannot echo back as a new fact.
+  searchMenu.renderSelectedOntologyElements = function (
+    selectedOntologyElementReferences,
+  ) {
+    if (selectedOntologyElementReferences.length > 0) {
+      return;
+    }
+    hasReportedOntologySelection = false;
+    searchMenu.clearText();
+  };
+
+  // Reporting that nothing is selected is as much a fact as reporting a
+  // selection, so the runtime clears its own highlight. Applying that change
+  // makes the renderer announce the cleared search, which the application
+  // routes back into clearText, so only a real change is reported.
+  searchMenu.reportClearedOntologySelection = function () {
+    if (hasReportedOntologySelection === false) {
+      return undefined;
+    }
+    hasReportedOntologySelection = false;
+    return webVowlController?.setVisualizationView({ focus: [] });
+  };
 
   // The menu reports which ontology element the reader picked. What focusing
   // means for the visible graph is the runtime's decision, not this module's.
@@ -690,6 +655,7 @@ export function createSearchMenu(
     if (focusReferences.length === 0) {
       return undefined;
     }
+    hasReportedOntologySelection = true;
     return webVowlController.setVisualizationView({ focus: focusReferences });
   };
 
@@ -720,9 +686,6 @@ export function createSearchMenu(
   searchMenu.clearText = function () {
     if (searchLineEdit) {
       searchLineEdit.value = "";
-    }
-    if (graph && graph.resetSearchHighlight) {
-      graph.resetSearchHighlight();
     }
     setLocateButtonState(false);
     updateClearButtonVisibility();

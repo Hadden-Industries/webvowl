@@ -289,12 +289,14 @@ describe("sidebar native language and lifecycle controls", () => {
     ]);
     expect(languageSelect.value).toBe("en");
 
-    // The language change reaches the controller through the view-controls
-    // adapter, so the sidebar must not set it on the renderer itself.
+    // Neither populating the list nor changing it touches the renderer: the
+    // controller owns the language.
+    expect(language).toBe("undefined");
+
     languageSelect.value = "fr";
     languageSelect.dispatchEvent(new Event("change"));
 
-    expect(language).toBe("en");
+    expect(language).toBe("undefined");
   });
 
   test("renders ontology metadata as inert text", () => {
@@ -522,5 +524,109 @@ describe("sidebar ontology summary presentation", () => {
     expect(controls.get("#description").textContent).toBe(
       "No description available.",
     );
+  });
+});
+
+describe("sidebar preferred language reporting", () => {
+  let controls;
+  let sidebar;
+  let viewRequests;
+
+  beforeEach(() => {
+    controls = new Map();
+    const controlFor = (selector) => {
+      if (!controls.has(selector)) {
+        controls.set(selector, new SidebarElement());
+      }
+      return controls.get(selector);
+    };
+    global.document = {
+      createElement: (tagName) => new SidebarElement(tagName),
+      querySelector: controlFor,
+      querySelectorAll: () => [],
+    };
+    Object.defineProperty(global, "navigator", {
+      configurable: true,
+      value: { language: "en-US", languages: ["en-US"] },
+    });
+    global.requestAnimationFrame = jest.fn((callback) => callback());
+    global.cancelAnimationFrame = jest.fn();
+    sidebarModuleContext.cancelAnimationFrame = global.cancelAnimationFrame;
+    sidebarModuleContext.document = global.document;
+    sidebarModuleContext.navigator = global.navigator;
+    sidebarModuleContext.requestAnimationFrame = global.requestAnimationFrame;
+    sidebarModuleContext.window = { innerWidth: 1280 };
+    viewRequests = [];
+    sidebar = createSidebar(
+      {
+        language: () => "undefined",
+        options: () => ({ sidebar: () => ({ showSidebar: jest.fn() }) }),
+        ontologyEditingState: () => ({
+          sidebar: () => ({ showSidebar: jest.fn() }),
+        }),
+        updateCanvasContainerSize: jest.fn(),
+      },
+      {
+        elementTools: { isNode: () => false, isProperty: () => false },
+        languageConstants: {
+          iriBasedLanguage: "id",
+          undefinedLanguage: "undefined",
+        },
+        languageTools: {
+          textInLanguage: (localizedText) =>
+            typeof localizedText === "string" ? localizedText : undefined,
+        },
+        webVowlController: {
+          setVisualizationView: (request) => {
+            viewRequests.push(request);
+            return Promise.resolve({});
+          },
+        },
+      },
+    );
+  });
+
+  afterEach(() => {
+    sidebar?.dispose();
+    sidebarModuleContext.document = undefined;
+    sidebarModuleContext.cancelAnimationFrame = undefined;
+    sidebarModuleContext.navigator = undefined;
+    sidebarModuleContext.requestAnimationFrame = undefined;
+    sidebarModuleContext.window = undefined;
+    delete global.document;
+  });
+
+  function summaryWithLanguages(availableLabelLanguages, selectedLanguage) {
+    return {
+      ontologyHeader: {
+        ontologyIri: null,
+        versionInformationText: null,
+        title: null,
+        description: null,
+        authorNames: [],
+      },
+      elementCounts: {
+        classCount: 0,
+        propertyCount: 0,
+        datatypeCount: 0,
+        individualCount: 0,
+      },
+      availableLabelLanguages,
+      selectedLanguage,
+    };
+  }
+
+  test("reports the reader's preferred language when the controller has none", () => {
+    sidebar.renderOntologySummary(summaryWithLanguages(["fr", "en"], null));
+
+    // A fact: this is the language the reader's browser prefers.
+    expect(viewRequests).toEqual([{ language: "en" }]);
+  });
+
+  test("stays silent when the controller already holds a language", () => {
+    sidebar.renderOntologySummary(summaryWithLanguages(["fr", "en"], "fr"));
+
+    expect(viewRequests).toEqual([]);
+    expect(controls.get("#language").value).toBe("fr");
   });
 });

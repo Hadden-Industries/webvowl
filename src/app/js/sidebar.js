@@ -47,10 +47,11 @@ export function renderOntologyIri(element, iri) {
  */
 export function createSidebar(
   graph,
-  { elementTools, languageConstants, languageTools },
+  { elementTools, languageConstants, languageTools, webVowlController },
 ) {
   const sidebar = {};
   const lifecycleAbortController = new AbortController();
+  let activeOntologySummaryLanguage = null;
   // Required for reloading when the language changes
   let ontologyInfo;
   let isSidebarVisible = true;
@@ -189,6 +190,7 @@ export function createSidebar(
     document.querySelector("#description").textContent =
       ontologyHeader.description || "No description available.";
 
+    activeOntologySummaryLanguage = ontologySummary.selectedLanguage ?? null;
     setLanguages(ontologySummary.availableLabelLanguages);
 
     const visibleGraphCounts = ontologySummary.visibleGraphCounts ?? {
@@ -343,6 +345,19 @@ export function createSidebar(
     });
     languageSelect.replaceChildren(...languageOptions);
 
+    // The controller's own language wins; the sidebar only proposes the
+    // reader's preferred one when the controller is not holding a choice.
+    if (typeof activeOntologySummaryLanguage === "string") {
+      const activeIndex = availableLanguages.indexOf(
+        activeOntologySummaryLanguage,
+      );
+      if (activeIndex >= 0) {
+        languageSelect.selectedIndex = activeIndex;
+      }
+      languageSelect.value = activeOntologySummaryLanguage;
+      return;
+    }
+
     const selectedLanguage = findBestMatchingLanguage(availableLanguages);
     if (selectedLanguage) {
       const langIndex = availableLanguages.indexOf(selectedLanguage);
@@ -350,7 +365,8 @@ export function createSidebar(
         languageSelect.selectedIndex = langIndex;
       }
       languageSelect.value = selectedLanguage;
-      graph.language(selectedLanguage);
+      // A fact for the controller: this is the language the reader prefers.
+      webVowlController?.setVisualizationView({ language: selectedLanguage });
     }
   }
 

@@ -82,7 +82,7 @@ function createOntologyMenu(
     ontologyMenu.clearCachedVersion();
     graph.clearGraphData();
     loadingModule.loadRemoteSource({
-      source: loadingModule.sourceFromLocation(),
+      source: loadingModule.ontologySourceFromLocation(),
       shouldCache: false,
     });
   };
@@ -148,7 +148,7 @@ function createOntologyMenu(
           return;
         }
         loadingModule.loadRemoteSource({
-          source: loadingModule.sourceFromLocation(),
+          source: loadingModule.ontologySourceFromLocation(),
         });
       }
     });

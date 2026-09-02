@@ -1,3 +1,4 @@
+import { applicationUiModule } from "./ui/applicationUiRegistry.js";
 import {
   ONTOLOGY_LIFECYCLE_STATES,
   isOntologyModelAvailable,
@@ -93,7 +94,13 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
     return applicationState;
   };
 
+  // Interface modules live in the application registry. The renderer settings
+  // object still carries a few, so it remains the fallback until they move.
   function optionModule(name) {
+    const registeredUiModule = applicationUiModule(name);
+    if (registeredUiModule !== undefined) {
+      return registeredUiModule;
+    }
     const graphOptions = graph.options && graph.options();
     if (!graphOptions || typeof graphOptions[name] !== "function") {
       return undefined;
@@ -341,7 +348,7 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
       : DEFAULT_JSON_NAME;
   }
 
-  function cachedVowlModelSource(ontologyIdentifier) {
+  function cachedVowlModelSourceFor(ontologyIdentifier) {
     const cachedOntologyContent =
       ontologyMenu?.cachedOntology(ontologyIdentifier);
     if (!cachedOntologyContent) {
@@ -359,7 +366,7 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
 
   // The location is the application's shareable route; it names one canonical
   // controller source rather than a loading branch.
-  loadingModule.sourceFromLocation = function () {
+  loadingModule.ontologySourceFromLocation = function () {
     const ontologyIdentifier = ontologyIdentifierFromLocation();
     if (typeof graph.dispatchEvent === "function") {
       loadGraphOptions(identifyParameter(String(location)));
@@ -369,7 +376,7 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
       const requestedUrl = decodeURIComponent(ontologyIdentifier.slice(4));
       ontologyIdentifierFromURL = requestedUrl;
       return (
-        cachedVowlModelSource(requestedUrl) ?? {
+        cachedVowlModelSourceFor(requestedUrl) ?? {
           kind: "vowl-json-url",
           url: requestedUrl,
         }
@@ -379,7 +386,7 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
       const requestedIri = decodeURIComponent(ontologyIdentifier.slice(4));
       ontologyIdentifierFromURL = requestedIri;
       return (
-        cachedVowlModelSource(requestedIri) ?? {
+        cachedVowlModelSourceFor(requestedIri) ?? {
           kind: "ontology-document-iri",
           documentIri: requestedIri,
         }
@@ -391,7 +398,7 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
       : ontologyIdentifier;
     ontologyIdentifierFromURL = presetIdentifier;
     return (
-      cachedVowlModelSource(presetIdentifier) ?? {
+      cachedVowlModelSourceFor(presetIdentifier) ?? {
         kind: "vowl-json-url",
         url: new URL("data/" + presetIdentifier + ".json", document.baseURI)
           .href,
@@ -422,7 +429,7 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
       .classList.add("hidden");
   }
 
-  async function requestControllerLoad(source) {
+  async function loadOntologyThroughController(source) {
     try {
       return await webVowlController.loadOntology({ source });
     } catch (loadError) {
@@ -441,7 +448,7 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
     graph.clearAllGraphData?.();
     prepareLoadingPresentation(shouldCache);
     document.querySelector("#progressBarLabel").textContent = "";
-    return requestControllerLoad(source);
+    return loadOntologyThroughController(source);
   };
 
   // The one route for a file the reader dropped or selected.
@@ -462,7 +469,7 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
         });
         return undefined;
       }
-      return requestControllerLoad({
+      return loadOntologyThroughController({
         kind: "vowl-model",
         model: vowlModel,
         displayName: file.name,
@@ -472,7 +479,7 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
     const ontologyTextFormat = ONTOLOGY_TEXT_FORMAT_BY_FILE_EXTENSION.get(
       fileExtensionOf(file.name),
     );
-    return requestControllerLoad({
+    return loadOntologyThroughController({
       kind: "ontology-text",
       text: fileContent,
       displayName: file.name,
