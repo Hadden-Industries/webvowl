@@ -172,6 +172,9 @@ export function createSidebar(
    */
   // Controller state, not renderer internals, drives the ontology panel.
   sidebar.renderOntologySummary = function (ontologySummary) {
+    // Presenting a summary is what makes the ontology details readable; the
+    // section ships hidden and nothing else reveals it.
+    revealDetailsSectionForCurrentMode();
     const ontologyHeader = ontologySummary.ontologyHeader;
     const elementCounts = ontologySummary.elementCounts;
 
@@ -1276,6 +1279,16 @@ export function createSidebar(
     cancelPendingNoTransitionClassRemoval();
     removeOwnedNoTransitionClass();
   };
+
+  function revealDetailsSectionForCurrentMode() {
+    const isEditorMode = graph.editorMode?.() === true;
+    document
+      .querySelector("#generalDetails")
+      .classList.toggle("hidden", isEditorMode);
+    document
+      .querySelector("#generalDetailsEdit")
+      .classList.toggle("hidden", !isEditorMode);
+  }
 
   sidebar.updateShowedInformation = function () {
     const editMode = graph.editorMode();

@@ -469,6 +469,37 @@ describe("sidebar ontology summary presentation", () => {
     delete global.document;
   });
 
+  test("reveals the ontology details section when a summary is presented", () => {
+    const detailsSection = global.document.querySelector("#generalDetails");
+    const editingDetailsSection = global.document.querySelector(
+      "#generalDetailsEdit",
+    );
+    detailsSection.classList.add("hidden");
+    editingDetailsSection.classList.remove("hidden");
+
+    sidebar.renderOntologySummary({
+      ontologyHeader: {
+        ontologyIri: "http://xmlns.com/foaf/0.1/",
+        versionInformationText: null,
+        title: "Friend of a Friend",
+        description: null,
+        authorNames: [],
+      },
+      elementCounts: {
+        classCount: 21,
+        propertyCount: 44,
+        datatypeCount: 6,
+        individualCount: 0,
+      },
+      availableLabelLanguages: [],
+      selectedLanguage: null,
+    });
+
+    // Nothing else reveals it, so selection details would stay invisible.
+    expect(detailsSection.classList.contains("hidden")).toBe(false);
+    expect(editingDetailsSection.classList.contains("hidden")).toBe(true);
+  });
+
   test("renders the header and element counts from a controller summary", () => {
     sidebar.renderOntologySummary({
       ontologyHeader: {
