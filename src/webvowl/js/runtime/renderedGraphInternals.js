@@ -1,10 +1,22 @@
-const _ = require("lodash/core");
-const math = require("../../shared/js/util/math")();
-const linkCreator = require("./parsing/linkCreator")();
-const elementTools = require("../../shared/js/util/elementTools")();
+import { createLinkCreator as createLinkCreatorModule } from "../parsing/linkCreator.js";
+import { createElementTools as createElementToolsModule } from "../../../shared/js/util/elementTools.js";
+import { createNodeMap as createNodePrototypeMapModule } from "../elements/nodes/nodeMap.js";
+import { createPropertyMap as createPropertyPrototypeMapModule } from "../elements/properties/propertyMap.js";
+import { createOntologyEditingState } from "../../../shared/js/ontologyEditingState.js";
+import { createRenderedGraphSettings } from "./renderedGraphSettings.js";
+import { createParser as createVowlParser } from "../parser.js";
+import { createClassDragger } from "../classDragger.js";
+import { createRangeDragger } from "../rangeDragger.js";
+import { createDomainDragger } from "../domainDragger.js";
+import { createShadowClone } from "../shadowClone.js";
+import _ from "lodash/core";
+import { createMath as createMathModule } from "../../../shared/js/util/math.js";
+const math = createMathModule();
+const linkCreator = createLinkCreatorModule();
+const elementTools = createElementToolsModule();
 // add some maps for nodes and properties -- used for object generation
-const nodePrototypeMap = require("./elements/nodes/nodeMap")();
-const propertyPrototypeMap = require("./elements/properties/propertyMap")();
+const nodePrototypeMap = createNodePrototypeMapModule();
+const propertyPrototypeMap = createPropertyPrototypeMapModule();
 
 function finiteNumber(value) {
   if (typeof value === "string" && value.trim() === "") {
@@ -178,8 +190,9 @@ function createGraph(graphContainerSelector) {
   const reportInvalidGeometry = createInvalidGeometryReporter(graph);
   const CARDINALITY_HDISTANCE = 20;
   const CARDINALITY_VDISTANCE = 10;
-  const options = require("../../shared/js/options")();
-  const parser = require("./parser")(graph);
+  const renderedGraphSettings = createRenderedGraphSettings();
+  const ontologyEditingState = createOntologyEditingState();
+  const parser = createVowlParser(graph);
   let language = "default";
   let paused = false;
   // Container for visual elements
@@ -239,7 +252,7 @@ function createGraph(graphContainerSelector) {
 
   let eP = 0; // id for new properties
   let eN = 0; // id for new Nodes
-  let editMode = options.initialConfig().editorMode === "true";
+  let editMode = ontologyEditingState.initialConfig().editorMode === "true";
   let finishedLoadingSequence = false;
 
   let ignoreOtherHoverEvents = false;
@@ -250,10 +263,8 @@ function createGraph(graphContainerSelector) {
   let seenEditorHint = false;
   let showReloadButtonAfterLayoutOptimization = false;
 
-  let keepDetailsCollapsedOnLoading = true;
-  let adjustingGraphSize = false;
   let zoom;
-  //var prefixModule=require("./prefixRepresentationModule")(graph);
+  //var prefixModule=require("../prefixRepresentationModule")(graph);
   function syncZoomState() {
     const svgNode =
       graphContainer && graphContainer.node()
@@ -270,8 +281,8 @@ function createGraph(graphContainerSelector) {
     const normalized = viewportTransform.normalizeViewport(
       scale,
       translation,
-      options.minMagnification(),
-      options.maxMagnification(),
+      renderedGraphSettings.minMagnification(),
+      renderedGraphSettings.maxMagnification(),
     );
     if (!normalized) {
       return false;
@@ -293,10 +304,10 @@ function createGraph(graphContainerSelector) {
   const NodePrototypeMap = createLowerCasePrototypeMap(nodePrototypeMap);
   const PropertyPrototypeMap =
     createLowerCasePrototypeMap(propertyPrototypeMap);
-  const classDragger = require("./classDragger")(graph);
-  const rangeDragger = require("./rangeDragger")(graph);
-  const domainDragger = require("./domainDragger")(graph);
-  const shadowClone = require("./shadowClone")(graph);
+  const classDragger = createClassDragger(graph);
+  const rangeDragger = createRangeDragger(graph);
+  const domainDragger = createDomainDragger(graph);
+  const shadowClone = createShadowClone(graph);
 
   graph.math = function () {
     return math;
@@ -323,8 +334,8 @@ function createGraph(graphContainerSelector) {
   graph.setDefaultZoom = function (val) {
     const normalized = viewportTransform.normalizeZoom(
       val,
-      options.minMagnification(),
-      options.maxMagnification(),
+      renderedGraphSettings.minMagnification(),
+      renderedGraphSettings.maxMagnification(),
     );
     if (normalized === undefined) {
       return false;
@@ -339,8 +350,8 @@ function createGraph(graphContainerSelector) {
   graph.setTargetZoom = function (val) {
     const normalized = viewportTransform.normalizeZoom(
       val,
-      options.minMagnification(),
-      options.maxMagnification(),
+      renderedGraphSettings.minMagnification(),
+      renderedGraphSettings.maxMagnification(),
     );
     if (normalized === undefined) {
       return false;
@@ -348,8 +359,16 @@ function createGraph(graphContainerSelector) {
     defaultTargetZoom = normalized;
     return true;
   };
+  graph.ontologyEditingState = function () {
+    return ontologyEditingState;
+  };
+
   graph.graphOptions = function () {
-    return options;
+    return renderedGraphSettings;
+  };
+
+  graph.ontologyEditingState = function () {
+    return ontologyEditingState;
   };
 
   graph.scaleFactor = function () {
@@ -375,17 +394,17 @@ function createGraph(graphContainerSelector) {
   graph.setSliderZoom = function (val) {
     const targetZoom = viewportTransform.normalizeZoom(
       val,
-      options.minMagnification(),
-      options.maxMagnification(),
+      renderedGraphSettings.minMagnification(),
+      renderedGraphSettings.maxMagnification(),
     );
     if (targetZoom === undefined || !graphContainer) {
       return false;
     }
-    const cx = 0.5 * graph.options().width();
-    const cy = 0.5 * graph.options().height();
+    const cx = 0.5 * renderedGraphSettings.width();
+    const cy = 0.5 * renderedGraphSettings.height();
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
-    const sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
-    const eP = [cp.x, cp.y, graph.options().height() / targetZoom];
+    const sP = [cp.x, cp.y, renderedGraphSettings.height() / zoomFactor];
+    const eP = [cp.x, cp.y, renderedGraphSettings.height() / targetZoom];
     const pos_intp = d3.interpolateZoom(sP, eP);
 
     graphContainer
@@ -410,8 +429,8 @@ function createGraph(graphContainerSelector) {
   graph.setZoom = function (value) {
     const normalized = viewportTransform.normalizeZoom(
       value,
-      options.minMagnification(),
-      options.maxMagnification(),
+      renderedGraphSettings.minMagnification(),
+      renderedGraphSettings.maxMagnification(),
     );
     if (normalized === undefined) {
       return false;
@@ -436,7 +455,47 @@ function createGraph(graphContainerSelector) {
   };
 
   graph.options = function () {
-    return options;
+    return renderedGraphSettings;
+  };
+
+  // Renderer-owned presentation channel. The rendered graph runtime turns these
+  // into RenderedGraphEvent values; the renderer never reaches a presentation
+  // module directly.
+  let renderedGraphEventPort = {
+    // Nothing is renderable until a model has been placed. This replaces the
+    // former question to the loading presentation about whether a load
+    // succeeded, which the renderer must not ask.
+    isOntologyRenderable: () => renderedGraphSettings.data() !== undefined,
+    hasMissingImports: () => false,
+    publishRenderProgress: () => undefined,
+    publishRenderWarning: () => undefined,
+    // Presentation may interpose a confirmation; by default the renderer
+    // proceeds so behaviour is unchanged until the UI supplies one.
+    requestRenderedGraphConfirmation: (_code, _message, onConfirmed) =>
+      onConfirmed(),
+  };
+
+  // Focus text applied through the visualization view. The renderer keeps it
+  // as view state instead of reading it back from a search menu.
+  let focusedSearchText = "";
+
+  graph.focusedSearchText = function (nextText) {
+    if (nextText === undefined) {
+      return focusedSearchText;
+    }
+    focusedSearchText = String(nextText);
+    return graph;
+  };
+
+  graph.setRenderedGraphEventPort = function (nextPort) {
+    renderedGraphEventPort = { ...renderedGraphEventPort, ...nextPort };
+  };
+
+  // Renderer-owned warning channel. Element modules raise a bounded code and
+  // message here instead of reaching into a presentation module; the rendered
+  // graph runtime turns this into a render-warning-raised event.
+  graph.raiseRenderWarning = function (warningCode, message) {
+    renderedGraphEventPort.publishRenderWarning(warningCode, message);
   };
   // search functionality
   graph.getUpdateDictionary = function () {
@@ -476,7 +535,7 @@ function createGraph(graphContainerSelector) {
     lastExecutedElement = selectedElement;
     lastExecutedTime = now;
 
-    options.selectionModules().forEach(function (module) {
+    renderedGraphSettings.selectionModules().forEach(function (module) {
       module.handle(event, selectedElement, forced);
     });
   }
@@ -503,7 +562,7 @@ function createGraph(graphContainerSelector) {
 
   // Initializes the graph.
   function initializeGraph() {
-    options.graphContainerSelector(graphContainerSelector);
+    renderedGraphSettings.graphContainerSelector(graphContainerSelector);
     let moved = false;
     force = d3.forceSimulation().on("tick", hiddenRecalculatePositions);
     forceLink = d3.forceLink();
@@ -697,7 +756,7 @@ function createGraph(graphContainerSelector) {
           }
         } else {
           d.locked(false);
-          const pnp = graph.options().pickAndPinModule();
+          const pnp = renderedGraphSettings.pickAndPinModule();
           if (moved === true) {
             if (pnp.enabled() === true) {
               if (d.id) {
@@ -730,7 +789,10 @@ function createGraph(graphContainerSelector) {
     // Apply the zooming factor.
     zoom = d3
       .zoom()
-      .scaleExtent([options.minMagnification(), options.maxMagnification()])
+      .scaleExtent([
+        renderedGraphSettings.minMagnification(),
+        renderedGraphSettings.maxMagnification(),
+      ])
       .on("start", function () {
         clearAllHover();
       })
@@ -748,8 +810,9 @@ function createGraph(graphContainerSelector) {
     recalculatePositions();
   };
 
-  graph.adjustingGraphSize = function (val) {
-    adjustingGraphSize = val;
+  graph.adjustingGraphSize = function () {
+    // Loading-details presentation moved to the controller with the D3 cutover,
+    // so the renderer no longer tracks a resize-in-progress flag.
   };
 
   graph.showReloadButtonAfterLayoutOptimization = function (show) {
@@ -758,38 +821,26 @@ function createGraph(graphContainerSelector) {
 
   function hiddenRecalculatePositions() {
     finishedLoadingSequence = false;
-    if (
-      graph.options().loadingModule().successfullyLoadedOntology() === false
-    ) {
+    if (renderedGraphEventPort.isOntologyRenderable() === false) {
       force.stop();
       graph.updateProgressBarMode();
-      graph
-        .options()
-        .loadingModule()
-        .showErrorDetailsMessage(hiddenRecalculatePositions);
-      if (keepDetailsCollapsedOnLoading && adjustingGraphSize === false) {
-        graph
-          .options()
-          .loadingModule()
-          .collapseDetails("hiddenRecalculatePositions");
-      }
+      renderedGraphEventPort.publishRenderWarning(
+        "RENDER_POSITIONS_UNAVAILABLE",
+        "The rendered graph could not recalculate element positions.",
+      );
       return;
     }
     if (updateRenderingDuringSimulation === false) {
       const progress = Math.max(0, Math.min(1, 1.0 - force.alpha()));
       const percentValue = Math.min(100, Math.max(0, parseInt(200 * progress)));
-      graph.options().loadingModule().setPercentValue(percentValue);
+      renderedGraphEventPort.publishRenderProgress(percentValue);
 
       if (progress >= 0.5) {
         updateRenderingDuringSimulation = true;
         // show graph container;
         if (graphContainer) {
           graphContainer.classed("is-render-pending", false);
-          graph.options().loadingModule().setPercentValue(100);
-          graph
-            .options()
-            .ontologyMenu()
-            .append_message_toLastBulletPoint("done");
+          renderedGraphEventPort.publishRenderProgress(100);
           const reloadCachedOntologyBtn = document.getElementById(
             "reloadCachedOntology",
           );
@@ -830,21 +881,13 @@ function createGraph(graphContainerSelector) {
 
         graph.showEditorHintIfNeeded();
 
-        if (graph.options().loadingModule().missingImportsWarning() === false) {
-          graph.options().loadingModule().hideLoadingIndicator();
-          graph
-            .options()
-            .ontologyMenu()
-            .append_bulletPoint("Successfully loaded ontology");
-          graph.options().loadingModule().setSuccessful();
-        } else {
-          graph.options().loadingModule().showWarningDetailsMessage();
-          graph
-            .options()
-            .ontologyMenu()
-            .append_bulletPoint("Loaded ontology with warnings");
+        if (renderedGraphEventPort.hasMissingImports()) {
+          renderedGraphEventPort.publishRenderWarning(
+            "MISSING_IMPORTS",
+            "The ontology was rendered with unresolved imports.",
+          );
         }
-        graph.options().loadingModule().markReady();
+        renderedGraphEventPort.publishRenderProgress(100);
       }
     }
   }
@@ -852,7 +895,10 @@ function createGraph(graphContainerSelector) {
   graph.showEditorHintIfNeeded = function () {
     if (seenEditorHint === false && editMode === true) {
       seenEditorHint = true;
-      graph.options().warningModule().showEditorHint();
+      renderedGraphEventPort.publishRenderWarning(
+        "EDITOR_MODE_HINT",
+        "Editor mode is active.",
+      );
     }
   };
 
@@ -1317,9 +1363,9 @@ function createGraph(graphContainerSelector) {
 
   function defaultIriValue(element) {
     // get the iri of that element;
-    if (graph.options().getGeneralMetaObject().iri) {
+    if (ontologyEditingState.getGeneralMetaObject().iri) {
       const str2Compare =
-        graph.options().getGeneralMetaObject().iri + element.id();
+        ontologyEditingState.getGeneralMetaObject().iri + element.id();
       return element.iri() === str2Compare;
     }
     return false;
@@ -1422,11 +1468,11 @@ function createGraph(graphContainerSelector) {
     remove();
 
     graphContainer = d3
-      .selectAll(options.graphContainerSelector())
+      .selectAll(renderedGraphSettings.graphContainerSelector())
       .append("svg")
       .classed("vowlGraph", true)
-      .attr("width", options.width())
-      .attr("height", options.height())
+      .attr("width", renderedGraphSettings.width())
+      .attr("height", renderedGraphSettings.height())
       .call(zoom)
       .append("g");
     // add touch and double click functions
@@ -1483,14 +1529,17 @@ function createGraph(graphContainerSelector) {
       .append("title")
       .text("Add Datatype Property");
 
-    if (graph.options().useAccuracyHelper()) {
+    if (renderedGraphSettings.useAccuracyHelper()) {
       addDataPropertyGroupElement
         .append("circle")
         .attr("r", 15)
         .attr("cx", -7)
         .attr("cy", 7)
         .classed("superHiddenElement", true)
-        .classed("superOpacityElement", !graph.options().showDraggerObject());
+        .classed(
+          "superOpacityElement",
+          !renderedGraphSettings.showDraggerObject(),
+        );
     }
 
     deleteGroupElement = editContainer
@@ -1527,14 +1576,17 @@ function createGraph(graphContainerSelector) {
       .append("title")
       .text("Delete This Node");
 
-    if (graph.options().useAccuracyHelper()) {
+    if (renderedGraphSettings.useAccuracyHelper()) {
       deleteGroupElement
         .append("circle")
         .attr("r", 15)
         .attr("cx", 7)
         .attr("cy", -7)
         .classed("superHiddenElement", true)
-        .classed("superOpacityElement", !graph.options().showDraggerObject());
+        .classed(
+          "superOpacityElement",
+          !renderedGraphSettings.showDraggerObject(),
+        );
     }
   }
 
@@ -1774,21 +1826,21 @@ function createGraph(graphContainerSelector) {
       const graphHost = svgNode ? svgNode.parentNode : null;
       const measuredViewport = measureViewportElement(
         graphHost,
-        options.width(),
-        options.height(),
+        renderedGraphSettings.width(),
+        renderedGraphSettings.height(),
       );
 
-      options.width(measuredViewport.width);
-      options.height(measuredViewport.height);
+      renderedGraphSettings.width(measuredViewport.width);
+      renderedGraphSettings.height(measuredViewport.height);
 
-      svgElement.attr("width", options.width());
-      svgElement.attr("height", options.height());
+      svgElement.attr("width", renderedGraphSettings.width());
+      svgElement.attr("height", renderedGraphSettings.height());
       graphContainer.attr("transform", viewportTransformString());
     }
 
     return {
-      width: options.width(),
-      height: options.height(),
+      width: renderedGraphSettings.width(),
+      height: renderedGraphSettings.height(),
     };
   };
 
@@ -1799,18 +1851,24 @@ function createGraph(graphContainerSelector) {
     redrawGraph();
     graph.update(true);
 
-    if (
-      graph.options().loadingModule().successfullyLoadedOntology() === false
-    ) {
-      graph.options().loadingModule().setErrorMode();
+    if (renderedGraphEventPort.isOntologyRenderable() === false) {
+      renderedGraphEventPort.publishRenderWarning(
+        "RENDER_FAILED",
+        "The rendered graph could not be drawn.",
+      );
     }
   };
 
   // Updates only the style of the graph.
+  // Relax: let the existing layout settle further without rebuilding it.
+  graph.restartForceLayout = function () {
+    force.alpha(1).restart();
+  };
+
   graph.updateStyle = function () {
     refreshGraphStyle();
     if (
-      graph.options().loadingModule().successfullyLoadedOntology() === false ||
+      renderedGraphEventPort.isOntologyRenderable() === false ||
       paused === true
     ) {
       force.stop();
@@ -1911,19 +1969,14 @@ function createGraph(graphContainerSelector) {
   // Updates the graphs displayed data and style.
   graph.update = function (init) {
     clearAllHover();
-    const validOntology = graph
-      .options()
-      .loadingModule()
-      .successfullyLoadedOntology();
+    const validOntology = renderedGraphEventPort.isOntologyRenderable();
     if (validOntology === false && init && init === true) {
-      graph.options().loadingModule().collapseDetails();
       return;
     }
     if (validOntology === false) {
       return;
     }
 
-    keepDetailsCollapsedOnLoading = false;
     refreshGraphData();
     // update node map
     updateNodeMap();
@@ -1945,8 +1998,8 @@ function createGraph(graphContainerSelector) {
   };
   graph.reset = function () {
     // window size
-    const w = 0.5 * graph.options().width();
-    const h = 0.5 * graph.options().height();
+    const w = 0.5 * renderedGraphSettings.width();
+    const h = 0.5 * renderedGraphSettings.height();
     // computing initial translation for the graph due tue the dynamic default zoom level
     const tx = w - defaultZoom * w;
     const ty = h - defaultZoom * h;
@@ -1954,19 +2007,19 @@ function createGraph(graphContainerSelector) {
   };
 
   graph.zoomOut = function () {
-    const minMag = options.minMagnification(),
-      maxMag = options.maxMagnification();
+    const minMag = renderedGraphSettings.minMagnification(),
+      maxMag = renderedGraphSettings.maxMagnification();
     const stepSize = (maxMag - minMag) / 10;
     let val = zoomFactor - stepSize;
     if (val < minMag) {
       val = minMag;
     }
 
-    const cx = 0.5 * graph.options().width();
-    const cy = 0.5 * graph.options().height();
+    const cx = 0.5 * renderedGraphSettings.width();
+    const cy = 0.5 * renderedGraphSettings.height();
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
-    const sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
-    const eP = [cp.x, cp.y, graph.options().height() / val];
+    const sP = [cp.x, cp.y, renderedGraphSettings.height() / zoomFactor];
+    const eP = [cp.x, cp.y, renderedGraphSettings.height() / val];
     const pos_intp = d3.interpolateZoom(sP, eP);
 
     graphContainer
@@ -1989,18 +2042,18 @@ function createGraph(graphContainerSelector) {
   };
 
   graph.zoomIn = function () {
-    const minMag = options.minMagnification(),
-      maxMag = options.maxMagnification();
+    const minMag = renderedGraphSettings.minMagnification(),
+      maxMag = renderedGraphSettings.maxMagnification();
     const stepSize = (maxMag - minMag) / 10;
     let val = zoomFactor + stepSize;
     if (val > maxMag) {
       val = maxMag;
     }
-    const cx = 0.5 * graph.options().width();
-    const cy = 0.5 * graph.options().height();
+    const cx = 0.5 * renderedGraphSettings.width();
+    const cy = 0.5 * renderedGraphSettings.height();
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
-    const sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
-    const eP = [cp.x, cp.y, graph.options().height() / val];
+    const sP = [cp.x, cp.y, renderedGraphSettings.height() / zoomFactor];
+    const eP = [cp.x, cp.y, renderedGraphSettings.height() / val];
     const pos_intp = d3.interpolateZoom(sP, eP);
 
     graphContainer
@@ -2029,7 +2082,7 @@ function createGraph(graphContainerSelector) {
   let cachedJsonOBJ = null;
   graph.clearAllGraphData = function () {
     if (graph.graphNodeElements() && graph.graphNodeElements().length > 0) {
-      cachedJsonOBJ = graph.options().exportMenu().createJSON_exportObject();
+      cachedJsonOBJ = null;
     } else {
       cachedJsonOBJ = null;
     }
@@ -2046,10 +2099,7 @@ function createGraph(graphContainerSelector) {
   // removes data when data could not be loaded
   graph.clearGraphData = function () {
     force.stop();
-    const sidebar = graph.options().sidebar();
-    if (sidebar) {
-      sidebar.clearOntologyInformation();
-    }
+
     if (graphContainer) {
       redrawGraph();
     }
@@ -2073,7 +2123,7 @@ function createGraph(graphContainerSelector) {
     }
     parser.setDictionary(originalDictionary);
 
-    const literFilter = graph.options().literalFilter();
+    const literFilter = renderedGraphSettings.literalFilter();
     const idsToRemove = literFilter.removedNodes();
     const originalDict = parser.getDictionary();
     const newDict = [];
@@ -2105,28 +2155,13 @@ function createGraph(graphContainerSelector) {
   }
 
   graph.updateProgressBarMode = function () {
-    const loadingModule = graph.options().loadingModule();
-
-    const state = loadingModule.getProgressBarMode();
-    switch (state) {
-      case 0:
-        loadingModule.setErrorMode();
-        break;
-      case 1:
-        loadingModule.setBusyMode();
-        break;
-      case 2:
-        loadingModule.setPercentMode();
-        break;
-      default:
-        loadingModule.setPercentMode();
-    }
+    // Progress presentation is controller-owned; the renderer only reports
+    // progress through its event port.
   };
 
   function loadGraphData(init) {
     // reset the locate button and previously selected locations and other variables
 
-    const loadingModule = graph.options().loadingModule();
     force.stop();
 
     force.nodes([]);
@@ -2144,7 +2179,7 @@ function createGraph(graphContainerSelector) {
     }
 
     seenEditorHint = false;
-    parser.parse(options.data());
+    parser.parse(renderedGraphSettings.data());
     unfilteredData = {
       nodes: parser.nodes(),
       properties: parser.properties(),
@@ -2186,18 +2221,10 @@ function createGraph(graphContainerSelector) {
 
     // loading handler
     updateRenderingDuringSimulation = true;
-    const validOntology = graph
-      .options()
-      .loadingModule()
-      .successfullyLoadedOntology();
+    const validOntology = renderedGraphEventPort.isOntologyRenderable();
     if (graphContainer && validOntology === true) {
       updateRenderingDuringSimulation = false;
-      loadingModule.markRendering();
-      graph
-        .options()
-        .ontologyMenu()
-        .append_bulletPoint("Generating visualization ... ");
-      loadingModule.setPercentMode();
+      renderedGraphEventPort.publishRenderProgress(0);
 
       if (unfilteredData.nodes.length > 0) {
         graphContainer.classed("is-render-pending", true);
@@ -2209,62 +2236,53 @@ function createGraph(graphContainerSelector) {
         } else {
           force.on("tick", recalculatePositions);
         }
-        loadingModule.setPercentValue(100);
-        graph.options().ontologyMenu().append_message_toLastBulletPoint("done");
-        if (loadingModule.missingImportsWarning() === false) {
-          loadingModule.hideLoadingIndicator();
-          graph
-            .options()
-            .ontologyMenu()
-            .append_bulletPoint("Successfully loaded ontology");
-          loadingModule.setSuccessful();
-        } else {
-          loadingModule.showWarningDetailsMessage();
-          graph
-            .options()
-            .ontologyMenu()
-            .append_bulletPoint("Loaded ontology with warnings");
+        renderedGraphEventPort.publishRenderProgress(100);
+        if (renderedGraphEventPort.hasMissingImports()) {
+          renderedGraphEventPort.publishRenderWarning(
+            "MISSING_IMPORTS",
+            "The ontology was rendered with unresolved imports.",
+          );
         }
-        loadingModule.markReady();
       }
 
       force.alpha(1).restart();
     } else {
       force.stop();
-      graph
-        .options()
-        .ontologyMenu()
-        .append_bulletPoint("Failed to load ontology");
-      loadingModule.setErrorMode();
-      loadingModule.markError();
+      renderedGraphEventPort.publishRenderWarning(
+        "RENDER_FAILED",
+        "The ontology could not be rendered.",
+      );
     }
     // update prefixList(
     // update general MetaOBJECT
-    graph.options().clearMetaObject();
-    graph.options().clearGeneralMetaObject();
-    graph.options().editSidebar().clearMetaObjectValue();
-    if (options.data() !== undefined) {
-      const header = options.data().header;
+    ontologyEditingState.clearMetaObject();
+    ontologyEditingState.clearGeneralMetaObject();
+    renderedGraphSettings.editSidebar().clearMetaObjectValue();
+    if (renderedGraphSettings.data() !== undefined) {
+      const header = renderedGraphSettings.data().header;
       if (header) {
         if (header.iri) {
-          graph.options().addOrUpdateGeneralObjectEntry("iri", header.iri);
+          ontologyEditingState.addOrUpdateGeneralObjectEntry("iri", header.iri);
         }
         if (header.title) {
-          graph.options().addOrUpdateGeneralObjectEntry("title", header.title);
+          ontologyEditingState.addOrUpdateGeneralObjectEntry(
+            "title",
+            header.title,
+          );
         }
         if (header.author) {
           graph
-            .options()
+            .ontologyEditingState()
             .addOrUpdateGeneralObjectEntry("author", header.author);
         }
         if (header.version) {
           graph
-            .options()
+            .ontologyEditingState()
             .addOrUpdateGeneralObjectEntry("version", header.version);
         }
         if (header.description) {
           graph
-            .options()
+            .ontologyEditingState()
             .addOrUpdateGeneralObjectEntry("description", header.description);
         }
         if (header.prefixList) {
@@ -2272,7 +2290,7 @@ function createGraph(graphContainerSelector) {
           for (const pr in pL) {
             if (Object.prototype.hasOwnProperty.call(pL, pr)) {
               const val = pL[pr];
-              graph.options().addPrefix(pr, val);
+              ontologyEditingState.addPrefix(pr, val);
             }
           }
         }
@@ -2287,7 +2305,7 @@ function createGraph(graphContainerSelector) {
                 Object.prototype.hasOwnProperty.call(otherObj, "value")
               ) {
                 graph
-                  .options()
+                  .ontologyEditingState()
                   .addOrUpdateMetaObjectEntry(
                     otherObj.identfier,
                     otherObj.value,
@@ -2301,7 +2319,7 @@ function createGraph(graphContainerSelector) {
     // update more meta OBJECT
     // Initialize filters with data to replicate consecutive filtering
     let initializationData = _.clone(unfilteredData);
-    options.filterModules().forEach(function (module) {
+    renderedGraphSettings.filterModules().forEach(function (module) {
       initializationData = filterFunction(module, initializationData, true);
     });
     // generate dictionary here ;
@@ -2313,26 +2331,23 @@ function createGraph(graphContainerSelector) {
       centerGraphViewOnLoad = false;
     }
     graph.dispatchEvent(new CustomEvent("dictionarychange"));
-    graph.options().editSidebar().updateGeneralOntologyInfo();
-    graph.options().editSidebar().updatePrefixUi();
-    graph.options().editSidebar().updateElementWidth();
+    renderedGraphSettings.editSidebar().updateGeneralOntologyInfo();
+    renderedGraphSettings.editSidebar().updatePrefixUi();
+    renderedGraphSettings.editSidebar().updateElementWidth();
   }
 
   graph.handleOnLoadingError = function () {
     force.stop();
     graph.clearGraphData();
-    graph
-      .options()
-      .ontologyMenu()
-      .append_bulletPoint("Failed to load ontology");
-    graph.options().loadingModule().setErrorMode();
-    graph.options().loadingModule().markError();
-    graph.options().loadingModule().showErrorDetailsMessage();
-    if (graph.options().resetMenu()) {
-      graph.options().resetMenu().setMenuMode(false);
+    renderedGraphEventPort.publishRenderWarning(
+      "RENDER_FAILED",
+      "The ontology could not be rendered.",
+    );
+    if (renderedGraphSettings.resetMenu()) {
+      renderedGraphSettings.resetMenu().setMenuMode(false);
     }
-    if (graph.options().pausedMenu()) {
-      graph.options().pausedMenu().setMenuMode(false);
+    if (renderedGraphSettings.pausedMenu()) {
+      renderedGraphSettings.pausedMenu().setMenuMode(false);
     }
   };
 
@@ -2348,17 +2363,19 @@ function createGraph(graphContainerSelector) {
 
   //Applies the data of the graph options object and parses it. The graph is not redrawn.
   function refreshGraphData() {
-    const shouldExecuteEmptyFilter = options.literalFilter().enabled();
+    const shouldExecuteEmptyFilter = renderedGraphSettings
+      .literalFilter()
+      .enabled();
     graph.executeEmptyLiteralFilter();
-    options.literalFilter().enabled(shouldExecuteEmptyFilter);
+    renderedGraphSettings.literalFilter().enabled(shouldExecuteEmptyFilter);
 
     let preprocessedData = _.clone(unfilteredData);
 
     // Filter the data
-    options.filterModules().forEach(function (module) {
+    renderedGraphSettings.filterModules().forEach(function (module) {
       preprocessedData = filterFunction(module, preprocessedData);
     });
-    options.focuserModule().handle(null, undefined, true);
+    renderedGraphSettings.focuserModule().handle(null, undefined, true);
     classNodes = preprocessedData.nodes;
     properties = preprocessedData.properties;
     links = linkCreator.createLinks(properties);
@@ -2369,7 +2386,7 @@ function createGraph(graphContainerSelector) {
     setForceLayoutData(classNodes, labelNodes, links);
     // for (var i = 0; i < classNodes.length; i++) {
     //     if (classNodes[i].setRectangularRepresentation)
-    //         classNodes[i].setRectangularRepresentation(graph.options().rectangularRepresentation());
+    //         classNodes[i].setRectangularRepresentation(renderedGraphSettings.rectangularRepresentation());
     // }
   }
 
@@ -2443,8 +2460,8 @@ function createGraph(graphContainerSelector) {
   // Applies all options that don't change the graph data.
   function refreshGraphStyle() {
     zoom = zoom.scaleExtent([
-      options.minMagnification(),
-      options.maxMagnification(),
+      renderedGraphSettings.minMagnification(),
+      renderedGraphSettings.maxMagnification(),
     ]);
     if (graphContainer) {
       const svgNode = graphContainer.node()
@@ -2464,7 +2481,7 @@ function createGraph(graphContainerSelector) {
       .force(
         "charge",
         d3.forceManyBody().strength(function (element) {
-          let charge = options.charge();
+          let charge = renderedGraphSettings.charge();
           if (elementTools.isLabel(element)) {
             charge *= 0.8;
           }
@@ -2473,14 +2490,27 @@ function createGraph(graphContainerSelector) {
       )
       .force(
         "center",
-        d3.forceCenter(options.width() / 2, options.height() / 2),
+        d3.forceCenter(
+          renderedGraphSettings.width() / 2,
+          renderedGraphSettings.height() / 2,
+        ),
       )
-      .force("x", d3.forceX(options.width() / 2).strength(options.gravity()))
-      .force("y", d3.forceY(options.height() / 2).strength(options.gravity()));
+      .force(
+        "x",
+        d3
+          .forceX(renderedGraphSettings.width() / 2)
+          .strength(renderedGraphSettings.gravity()),
+      )
+      .force(
+        "y",
+        d3
+          .forceY(renderedGraphSettings.height() / 2)
+          .strength(renderedGraphSettings.gravity()),
+      );
 
     forceLink
       .distance(calculateLinkPartDistance)
-      .strength(options.linkStrength()); // Flexibility of links
+      .strength(renderedGraphSettings.linkStrength()); // Flexibility of links
 
     force.nodes().forEach(function (n) {
       n.frozen(paused);
@@ -2491,7 +2521,7 @@ function createGraph(graphContainerSelector) {
     const link = linkPart.link();
 
     if (link.isLoop()) {
-      return options.loopDistance();
+      return renderedGraphSettings.loopDistance();
     }
 
     // divide by 2 to receive the length for a single link part
@@ -2506,9 +2536,9 @@ function createGraph(graphContainerSelector) {
       elementTools.isDatatype(link.domain()) ||
       elementTools.isDatatype(link.range())
     ) {
-      return options.datatypeDistance();
+      return renderedGraphSettings.datatypeDistance();
     } else {
-      return options.classDistance();
+      return renderedGraphSettings.classDistance();
     }
   }
 
@@ -2517,7 +2547,7 @@ function createGraph(graphContainerSelector) {
   /** --------------------------------------------------------- **/
 
   graph.animateDynamicLabelWidth = function () {
-    const wantedWidth = options.dynamicLabelWidth();
+    const wantedWidth = renderedGraphSettings.dynamicLabelWidth();
     let i;
     for (i = 0; i < classNodes.length; i++) {
       const nodeElement = classNodes[i];
@@ -2542,11 +2572,7 @@ function createGraph(graphContainerSelector) {
           if (node.property) {
             // match search strings with property label
             if (node.property().inverse) {
-              const searchString = graph
-                .options()
-                .searchMenu()
-                .getSearchString()
-                .toLowerCase();
+              const searchString = graph.focusedSearchText().toLowerCase();
               const name = node
                 .property()
                 .labelForCurrentLanguage()
@@ -2596,8 +2622,8 @@ function createGraph(graphContainerSelector) {
 
   function computeDistanceToCenter(node, inverse) {
     let container = node;
-    const w = graph.options().width();
-    const h = graph.options().height();
+    const w = renderedGraphSettings.width();
+    const h = renderedGraphSettings.height();
     let posXY = getScreenCoords(node.x, node.y, graphTranslation, zoomFactor);
 
     let highlightOfInv = false;
@@ -2834,9 +2860,9 @@ function createGraph(graphContainerSelector) {
       return viewportTransformString();
     }
     const nextZoom = viewportTransform.normalizeZoom(
-      graph.options().height() / p[2],
-      options.minMagnification(),
-      options.maxMagnification(),
+      renderedGraphSettings.height() / p[2],
+      renderedGraphSettings.minMagnification(),
+      renderedGraphSettings.maxMagnification(),
     );
     if (nextZoom === undefined) {
       return viewportTransformString();
@@ -2869,16 +2895,16 @@ function createGraph(graphContainerSelector) {
       return;
     }
     // store the original information
-    const cx = 0.5 * graph.options().width();
-    const cy = 0.5 * graph.options().height();
+    const cx = 0.5 * renderedGraphSettings.width();
+    const cy = 0.5 * renderedGraphSettings.height();
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
-    const sP = [cp.x, cp.y, graph.options().height() / zoomFactor];
+    const sP = [cp.x, cp.y, renderedGraphSettings.height() / zoomFactor];
 
     const zoomLevel = Math.max(
       defaultZoom + 0.5 * defaultZoom,
       defaultTargetZoom,
     );
-    const eP = [target.x, target.y, graph.options().height() / zoomLevel];
+    const eP = [target.x, target.y, renderedGraphSettings.height() / zoomLevel];
     const pos_intp = d3.interpolateZoom(sP, eP);
 
     let lenAnimation = pos_intp.duration;
@@ -3069,8 +3095,8 @@ function createGraph(graphContainerSelector) {
   };
 
   function nodeInViewport(node, property) {
-    const w = graph.options().width();
-    const h = graph.options().height();
+    const w = renderedGraphSettings.width();
+    const h = renderedGraphSettings.height();
     const posXY = getScreenCoords(node.x, node.y, graphTranslation, zoomFactor);
     const x = posXY.x;
     const y = posXY.y;
@@ -3083,8 +3109,8 @@ function createGraph(graphContainerSelector) {
     const halos = graph.hideHalos();
     const bbox = graphContainer.node().getBoundingClientRect();
     halos.classed("hidden", false);
-    const w = graph.options().width();
-    const h = graph.options().height();
+    const w = renderedGraphSettings.width();
+    const h = renderedGraphSettings.height();
 
     // get the graph coordinates
     const topLeft = getWorldPosFromScreen(0, 0, graphTranslation, zoomFactor);
@@ -3193,11 +3219,11 @@ function createGraph(graphContainerSelector) {
       zoomFactor,
     );
 
-    let w = graph.options().width();
-    if (graph.options().leftSidebar().isSidebarVisible() === true) {
+    let w = renderedGraphSettings.width();
+    if (renderedGraphSettings.leftSidebar().isSidebarVisible() === true) {
       w -= 200;
     }
-    const h = graph.options().height();
+    const h = renderedGraphSettings.height();
     topLeft.x += bboxOffset;
     topLeft.y -= bboxOffset;
     botRight.x -= bboxOffset;
@@ -3212,7 +3238,7 @@ function createGraph(graphContainerSelector) {
     let cx = 0.5 * w;
     const cy = 0.5 * h;
 
-    if (graph.options().leftSidebar().isSidebarVisible() === true) {
+    if (renderedGraphSettings.leftSidebar().isSidebarVisible() === true) {
       cx += 200;
     }
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
@@ -3268,11 +3294,11 @@ function createGraph(graphContainerSelector) {
       zoomFactor,
     );
 
-    let w = graph.options().width();
-    if (graph.options().leftSidebar().isSidebarVisible() === true) {
+    let w = renderedGraphSettings.width();
+    if (renderedGraphSettings.leftSidebar().isSidebarVisible() === true) {
       w -= 200;
     }
-    const h = graph.options().height();
+    const h = renderedGraphSettings.height();
     topLeft.x += bboxOffset;
     topLeft.y -= bboxOffset;
     botRight.x -= bboxOffset;
@@ -3299,7 +3325,7 @@ function createGraph(graphContainerSelector) {
     let cx = 0.5 * w;
     const cy = 0.5 * h;
 
-    if (graph.options().leftSidebar().isSidebarVisible() === true) {
+    if (renderedGraphSettings.leftSidebar().isSidebarVisible() === true) {
       cx += 200;
     }
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
@@ -3377,7 +3403,7 @@ function createGraph(graphContainerSelector) {
   graph.changeNodeType = function (element, typeString) {
     if (graph.classesSanityCheck(element, typeString) === false) {
       // call reselection to restore previous type selection
-      graph.options().editSidebar().updateSelectionInformation(element);
+      renderedGraphSettings.editSidebar().updateSelectionInformation(element);
       return;
     }
 
@@ -3447,7 +3473,7 @@ function createGraph(graphContainerSelector) {
     // very important thing for selection!;
     addNewNodeElement(aNode);
     // handle focuser!
-    options.focuserModule().handle(null, aNode);
+    renderedGraphSettings.focuserModule().handle(null, aNode);
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
   };
@@ -3485,7 +3511,7 @@ function createGraph(graphContainerSelector) {
     } else {
       if (element.iri() === "http://www.w3.org/2000/01/rdf-schema#subClassOf") {
         aProp.iri(
-          graph.options().getGeneralMetaObjectProperty("iri") + aProp.id(),
+          ontologyEditingState.getGeneralMetaObjectProperty("iri") + aProp.id(),
         );
       }
     }
@@ -3497,7 +3523,7 @@ function createGraph(graphContainerSelector) {
         element.range(),
       ) === false
     ) {
-      graph.options().editSidebar().updateSelectionInformation(element);
+      renderedGraphSettings.editSidebar().updateSelectionInformation(element);
       return;
     }
     // // TODO: change its base IRI to proper value
@@ -3531,7 +3557,7 @@ function createGraph(graphContainerSelector) {
       aProp.labelObject().py = element.labelObject().py;
     }
 
-    options.focuserModule().handle(null, aProp);
+    renderedGraphSettings.focuserModule().handle(null, aProp);
   };
 
   graph.removeEditElements = function () {
@@ -3575,11 +3601,11 @@ function createGraph(graphContainerSelector) {
     graph.dispatchEvent(
       new CustomEvent("editorchange", { detail: { value: editMode } }),
     );
-    graph.options().setEditorModeForDefaultObject(editMode);
+    ontologyEditingState.setEditorModeForDefaultObject(editMode);
     if (editMode === false) {
       seenEditorHint = false;
-      options.compactNotationModule().enabled(false);
-      options.literalFilter().enabled(false);
+      renderedGraphSettings.compactNotationModule().enabled(false);
+      renderedGraphSettings.literalFilter().enabled(false);
       graph.executeCompactNotationModule();
       graph.executeEmptyLiteralFilter();
       graph.lazyRefresh();
@@ -3605,7 +3631,7 @@ function createGraph(graphContainerSelector) {
   }
 
   function createNewNodeAtPosition(pos) {
-    const typeToCreate = graph.options().defaultClass();
+    const typeToCreate = ontologyEditingState.defaultClass();
     const prototype = NodePrototypeMap.get(typeToCreate.toLowerCase());
     const aNode = new prototype(graph);
     let autoEditElement = false;
@@ -3622,10 +3648,10 @@ function createGraph(graphContainerSelector) {
     aNode.id("Class" + eN++);
     // aNode.paused(true);
 
-    aNode.baseIri(graph.options().baseIri());
+    aNode.baseIri(ontologyEditingState.baseIri());
     aNode.iri(aNode.baseIri() + aNode.id());
     addNewNodeElement(aNode);
-    options.focuserModule().handle(null, aNode, true);
+    renderedGraphSettings.focuserModule().handle(null, aNode, true);
     aNode.frozen(graph.paused());
     aNode.locked(graph.paused());
     aNode.enableEditing(autoEditElement);
@@ -3694,84 +3720,48 @@ function createGraph(graphContainerSelector) {
     action,
   ) {
     if (domain === range && typeString === "rdfs:subClassOf") {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          header,
-          "rdfs:subClassOf can not be created as loops (domain == range)",
-          action,
-          1,
-          false,
-        );
+      renderedGraphEventPort.publishRenderWarning(
+        "SUBCLASS_LOOP_REJECTED",
+        "rdfs:subClassOf can not be created as loops (domain == range)",
+      );
       return false;
     }
     if (domain === range && typeString === "owl:disjointWith") {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          header,
-          "owl:disjointWith  can not be created as loops (domain == range)",
-          action,
-          1,
-          false,
-        );
+      renderedGraphEventPort.publishRenderWarning(
+        "GRAPH_EDIT_REJECTED",
+        "owl:disjointWith  can not be created as loops (domain == range)",
+      );
       return false;
     }
     // allProps[i].type()==="owl:allValuesFrom"  ||
     // allProps[i].type()==="owl:someValuesFrom"
     if (domain.type() === "owl:Thing" && typeString === "owl:allValuesFrom") {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          header,
-          "owl:allValuesFrom can not originate from owl:Thing",
-          action,
-          1,
-          false,
-        );
+      renderedGraphEventPort.publishRenderWarning(
+        "GRAPH_EDIT_REJECTED",
+        "owl:allValuesFrom can not originate from owl:Thing",
+      );
       return false;
     }
     if (domain.type() === "owl:Thing" && typeString === "owl:someValuesFrom") {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          header,
-          "owl:someValuesFrom can not originate from owl:Thing",
-          action,
-          1,
-          false,
-        );
+      renderedGraphEventPort.publishRenderWarning(
+        "GRAPH_EDIT_REJECTED",
+        "owl:someValuesFrom can not originate from owl:Thing",
+      );
       return false;
     }
 
     if (range.type() === "owl:Thing" && typeString === "owl:allValuesFrom") {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          header,
-          "owl:allValuesFrom can not be connected to owl:Thing",
-          action,
-          1,
-          false,
-        );
+      renderedGraphEventPort.publishRenderWarning(
+        "GRAPH_EDIT_REJECTED",
+        "owl:allValuesFrom can not be connected to owl:Thing",
+      );
       return false;
     }
     if (range.type() === "owl:Thing" && typeString === "owl:someValuesFrom") {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          header,
-          "owl:someValuesFrom can not be connected to owl:Thing",
-          action,
-          1,
-          false,
-        );
+      renderedGraphEventPort.publishRenderWarning(
+        "GRAPH_EDIT_REJECTED",
+        "owl:someValuesFrom can not be connected to owl:Thing",
+      );
       return false;
     }
 
@@ -3819,29 +3809,17 @@ function createGraph(graphContainerSelector) {
         ) {
           // check for the type of that property
           if (allProps[i].type() === "owl:someValuesFrom") {
-            graph
-              .options()
-              .warningModule()
-              .showWarning(
-                "Can not change class type",
-                "The element has a property that is of type owl:someValuesFrom",
-                "Element type not changed!",
-                1,
-                true,
-              );
+            renderedGraphEventPort.publishRenderWarning(
+              "GRAPH_EDIT_REJECTED",
+              "The element has a property that is of type owl:someValuesFrom",
+            );
             return false;
           }
           if (allProps[i].type() === "owl:allValuesFrom") {
-            graph
-              .options()
-              .warningModule()
-              .showWarning(
-                "Can not change class type",
-                "The element has a property that is of type owl:allValuesFrom",
-                "Element type not changed!",
-                1,
-                true,
-              );
+            renderedGraphEventPort.publishRenderWarning(
+              "GRAPH_EDIT_REJECTED",
+              "The element has a property that is of type owl:allValuesFrom",
+            );
             return false;
           }
         }
@@ -3866,16 +3844,10 @@ function createGraph(graphContainerSelector) {
           allProps[i].range() === range &&
           allProps[i].type() === property.type()
         ) {
-          graph
-            .options()
-            .warningModule()
-            .showWarning(
-              "Warning",
-              "This triple already exist!",
-              "Element not created!",
-              1,
-              false,
-            );
+          renderedGraphEventPort.publishRenderWarning(
+            "GRAPH_EDIT_REJECTED",
+            "This triple already exist!",
+          );
           return false;
         }
         if (
@@ -3883,16 +3855,10 @@ function createGraph(graphContainerSelector) {
           allProps[i].range() === domain &&
           allProps[i].type() === property.type()
         ) {
-          graph
-            .options()
-            .warningModule()
-            .showWarning(
-              "Warning",
-              "Inverse assignment already exist! ",
-              "Element not created!",
-              1,
-              false,
-            );
+          renderedGraphEventPort.publishRenderWarning(
+            "GRAPH_EDIT_REJECTED",
+            "Inverse assignment already exist! ",
+          );
           return false;
         }
       }
@@ -3912,9 +3878,10 @@ function createGraph(graphContainerSelector) {
   //     console.log("test range results in "+ b1);
   //
   //     if (b1  && b2 ){
-  //         graph.options().warningModule().showWarning("Warning",
+  //         renderedGraphEventPort.publishRenderWarning(
+  //             "GRAPH_EDIT_REJECTED",
   //             "This triple already exist!",
-  //             "Element not created!",1,false);
+  //         );
   //         return false;
   //     }
   //     return true;
@@ -3925,116 +3892,68 @@ function createGraph(graphContainerSelector) {
 
     if (
       typeString === "owl:objectProperty" &&
-      graph.options().objectPropertyFilter().enabled() === true
+      renderedGraphSettings.objectPropertyFilter().enabled() === true
     ) {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          "Warning",
-          "Object properties are filtered out in the visualization!",
-          "Element not created!",
-          1,
-          false,
-        );
+      renderedGraphEventPort.publishRenderWarning(
+        "GRAPH_EDIT_REJECTED",
+        "Object properties are filtered out in the visualization!",
+      );
       return false;
     }
 
     if (
       typeString === "owl:disjointWith" &&
-      graph.options().disjointPropertyFilter().enabled() === true
+      renderedGraphSettings.disjointPropertyFilter().enabled() === true
     ) {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          "Warning",
-          "owl:disjointWith properties are filtered out in the visualization!",
-          "Element not created!",
-          1,
-          false,
-        );
+      renderedGraphEventPort.publishRenderWarning(
+        "GRAPH_EDIT_REJECTED",
+        "owl:disjointWith properties are filtered out in the visualization!",
+      );
       return false;
     }
 
     if (domain === range && typeString === "rdfs:subClassOf") {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          "Warning",
-          "rdfs:subClassOf can not be created as loops (domain == range)",
-          "Element not created!",
-          1,
-          false,
-        );
+      renderedGraphEventPort.publishRenderWarning(
+        "GRAPH_EDIT_REJECTED",
+        "rdfs:subClassOf can not be created as loops (domain == range)",
+      );
       return false;
     }
     if (domain === range && typeString === "owl:disjointWith") {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          "Warning",
-          "owl:disjointWith  can not be created as loops (domain == range)",
-          "Element not created!",
-          1,
-          false,
-        );
+      renderedGraphEventPort.publishRenderWarning(
+        "GRAPH_EDIT_REJECTED",
+        "owl:disjointWith  can not be created as loops (domain == range)",
+      );
       return false;
     }
 
     if (domain.type() === "owl:Thing" && typeString === "owl:someValuesFrom") {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          "Warning",
-          "owl:someValuesFrom can not originate from owl:Thing",
-          "Element not created!",
-          1,
-          false,
-        );
+      renderedGraphEventPort.publishRenderWarning(
+        "GRAPH_EDIT_REJECTED",
+        "owl:someValuesFrom can not originate from owl:Thing",
+      );
       return false;
     }
     if (domain.type() === "owl:Thing" && typeString === "owl:allValuesFrom") {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          "Warning",
-          "owl:allValuesFrom can not originate from owl:Thing",
-          "Element not created!",
-          1,
-          false,
-        );
+      renderedGraphEventPort.publishRenderWarning(
+        "GRAPH_EDIT_REJECTED",
+        "owl:allValuesFrom can not originate from owl:Thing",
+      );
       return false;
     }
 
     if (range.type() === "owl:Thing" && typeString === "owl:allValuesFrom") {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          "Warning",
-          "owl:allValuesFrom can not be connected to owl:Thing",
-          "Element not created!",
-          1,
-          false,
-        );
+      renderedGraphEventPort.publishRenderWarning(
+        "GRAPH_EDIT_REJECTED",
+        "owl:allValuesFrom can not be connected to owl:Thing",
+      );
       return false;
     }
     if (range.type() === "owl:Thing" && typeString === "owl:someValuesFrom") {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          "Warning",
-          "owl:someValuesFrom can not be connected to owl:Thing",
-          "Element not created!",
-          1,
-          false,
-        );
+      renderedGraphEventPort.publishRenderWarning(
+        "GRAPH_EDIT_REJECTED",
+        "owl:someValuesFrom can not be connected to owl:Thing",
+      );
       return false;
     }
     return true; // we can create a property
@@ -4043,7 +3962,7 @@ function createGraph(graphContainerSelector) {
   function createNewObjectProperty(domain, range, draggerEndposition) {
     // check type of the property that we want to create;
 
-    const defaultPropertyName = graph.options().defaultProperty();
+    const defaultPropertyName = ontologyEditingState.defaultProperty();
 
     // check if we are allow to create that property
     if (
@@ -4060,7 +3979,7 @@ function createGraph(graphContainerSelector) {
     aProp.domain(domain);
     aProp.range(range);
     aProp.label("newObjectProperty");
-    aProp.baseIri(graph.options().baseIri());
+    aProp.baseIri(ontologyEditingState.baseIri());
     aProp.iri(aProp.baseIri() + aProp.id());
 
     // check for duplicate;
@@ -4125,7 +4044,7 @@ function createGraph(graphContainerSelector) {
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
 
-    options.focuserModule().handle(null, aProp);
+    renderedGraphSettings.focuserModule().handle(null, aProp);
     graph.activateHoverElementsForProperties(true, aProp, false, touchDevice);
     aProp.labelObject().increasedLoopAngle = true;
     aProp.enableEditing(autoEditElement);
@@ -4135,24 +4054,18 @@ function createGraph(graphContainerSelector) {
     // random postion issues;
     clearTimeout(nodeFreezer);
     // tells user when element is filtered out
-    if (graph.options().datatypeFilter().enabled() === true) {
-      graph
-        .options()
-        .warningModule()
-        .showWarning(
-          "Warning",
-          "Datatype properties are filtered out in the visualization!",
-          "Element not created!",
-          1,
-          false,
-        );
+    if (renderedGraphSettings.datatypeFilter().enabled() === true) {
+      renderedGraphEventPort.publishRenderWarning(
+        "GRAPH_EDIT_REJECTED",
+        "Datatype properties are filtered out in the visualization!",
+      );
       return;
     }
 
     let aNode, prototype;
 
     // create a default datatype Node >> HERE LITERAL;
-    const defaultDatatypeName = graph.options().defaultDatatype();
+    const defaultDatatypeName = ontologyEditingState.defaultDatatype();
     if (defaultDatatypeName === "rdfs:Literal") {
       prototype = NodePrototypeMap.get("rdfs:literal");
       aNode = new prototype(graph);
@@ -4205,7 +4118,7 @@ function createGraph(graphContainerSelector) {
     aProp.label("newDatatypeProperty");
 
     // TODO: change its base IRI to proper value
-    const ontoIri = graph.options().baseIri();
+    const ontoIri = ontologyEditingState.baseIri();
     aProp.baseIri(ontoIri);
     aProp.iri(ontoIri + aProp.id());
     // add this to the data;
@@ -4228,7 +4141,7 @@ function createGraph(graphContainerSelector) {
         node.locked(graph.paused());
       }
     }, 1000);
-    options.focuserModule().handle(null, undefined);
+    renderedGraphSettings.focuserModule().handle(null, undefined);
     if (node) {
       node.frozen(true);
       node.locked(true);
@@ -4263,7 +4176,7 @@ function createGraph(graphContainerSelector) {
     graph.fastUpdate();
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
-    options.focuserModule().handle(null, undefined);
+    renderedGraphSettings.focuserModule().handle(null, undefined);
   };
 
   graph.removeNodeViaEditor = function (node) {
@@ -4305,17 +4218,11 @@ function createGraph(graphContainerSelector) {
           " properties";
       }
 
-      graph
-        .options()
-        .warningModule()
-        .responseWarning(
-          "Removing elements",
-          text,
-          "Awaiting response!",
-          graph.removeNodesViaResponse,
-          [nodesToRemove, propsToRemove],
-          false,
-        );
+      renderedGraphEventPort.requestRenderedGraphConfirmation(
+        "REMOVE_ELEMENTS",
+        text,
+        () => graph.removeNodesViaResponse([nodesToRemove, propsToRemove]),
+      );
 
       //
       // if (confirm("Remove :\n"+propsToRemove.length + " properties\n"+nodesToRemove.length+" classes? ")===false){
@@ -4350,7 +4257,7 @@ function createGraph(graphContainerSelector) {
       graph.fastUpdate();
       generateDictionary(unfilteredData);
       graph.getUpdateDictionary();
-      options.focuserModule().handle(null, undefined);
+      renderedGraphSettings.focuserModule().handle(null, undefined);
     }
   };
 
@@ -4386,12 +4293,12 @@ function createGraph(graphContainerSelector) {
     graph.fastUpdate();
     generateDictionary(unfilteredData);
     graph.getUpdateDictionary();
-    options.focuserModule().handle(null, undefined);
+    renderedGraphSettings.focuserModule().handle(null, undefined);
   };
 
   graph.executeColorExternalsModule = function () {
     if (unfilteredData) {
-      options
+      renderedGraphSettings
         .colorExternalsModule()
         .filter(unfilteredData.nodes, unfilteredData.properties);
     }
@@ -4399,7 +4306,7 @@ function createGraph(graphContainerSelector) {
 
   graph.executeCompactNotationModule = function () {
     if (unfilteredData) {
-      options
+      renderedGraphSettings
         .compactNotationModule()
         .filter(unfilteredData.nodes, unfilteredData.properties);
     }
@@ -4407,18 +4314,22 @@ function createGraph(graphContainerSelector) {
 
   graph.executeNodeScalingModule = function () {
     if (unfilteredData) {
-      options
+      renderedGraphSettings
         .nodeScalingModule()
         .filter(unfilteredData.nodes, unfilteredData.properties);
     }
   };
   graph.executeEmptyLiteralFilter = function () {
     if (unfilteredData && unfilteredData.nodes.length > 1) {
-      options
+      renderedGraphSettings
         .literalFilter()
         .filter(unfilteredData.nodes, unfilteredData.properties);
-      unfilteredData.nodes = options.literalFilter().filteredNodes();
-      unfilteredData.properties = options.literalFilter().filteredProperties();
+      unfilteredData.nodes = renderedGraphSettings
+        .literalFilter()
+        .filteredNodes();
+      unfilteredData.properties = renderedGraphSettings
+        .literalFilter()
+        .filteredProperties();
     }
   };
 
@@ -4427,7 +4338,7 @@ function createGraph(graphContainerSelector) {
   /** --------------------------------------------------------- **/
 
   graph.animateDynamicLabelWidth = function () {
-    const wantedWidth = options.dynamicLabelWidth();
+    const wantedWidth = renderedGraphSettings.dynamicLabelWidth();
     let i;
     for (i = 0; i < classNodes.length; i++) {
       const nodeElement = classNodes[i];
@@ -4625,7 +4536,7 @@ function createGraph(graphContainerSelector) {
         if (
           hoveredPropertyElement &&
           hoveredPropertyElement.focused() === true &&
-          graph.options().drawPropertyDraggerOnHover() === true
+          renderedGraphSettings.drawPropertyDraggerOnHover() === true
         ) {
           hoveredPropertyElement.labelObject().increasedLoopAngle = false;
           // lazy update
@@ -4763,7 +4674,7 @@ function createGraph(graphContainerSelector) {
       }
 
       hoveredPropertyElement = property;
-      if (graph.options().drawPropertyDraggerOnHover() === true) {
+      if (renderedGraphSettings.drawPropertyDraggerOnHover() === true) {
         if (property.type() !== "owl:DatatypeProperty") {
           if (property.domain() === property.range()) {
             property.labelObject().increasedLoopAngle = true;
@@ -4789,7 +4700,7 @@ function createGraph(graphContainerSelector) {
         }
       } else {
         // hide when we dont want that option
-        if (graph.options().drawPropertyDraggerOnHover() === true) {
+        if (renderedGraphSettings.drawPropertyDraggerOnHover() === true) {
           rangeDragger.hideDragger(true);
           domainDragger.hideDragger(true);
           shadowClone.hideClone(true);
@@ -4815,7 +4726,7 @@ function createGraph(graphContainerSelector) {
       setDeleteHoverElementPositionProperty(property, inversed);
       deleteGroupElement.selectAll("*").on("click", function (event) {
         if (touchBehaviour && property.focused() === false) {
-          graph.options().focuserModule().handle(null, property);
+          renderedGraphSettings.focuserModule().handle(null, property);
           return;
         }
         graph.removePropertyViaEditor(property);
@@ -4833,30 +4744,42 @@ function createGraph(graphContainerSelector) {
 
     rangeDragger.draggerObject.classed(
       "superOpacityElement",
-      !graph.options().showDraggerObject(),
+      !renderedGraphSettings.showDraggerObject(),
     );
     domainDragger.draggerObject.classed(
       "superOpacityElement",
-      !graph.options().showDraggerObject(),
+      !renderedGraphSettings.showDraggerObject(),
     );
     classDragger.draggerObject.classed(
       "superOpacityElement",
-      !graph.options().showDraggerObject(),
+      !renderedGraphSettings.showDraggerObject(),
     );
 
     nodeContainer
       .selectAll(".superHiddenElement")
-      .classed("superOpacityElement", !graph.options().showDraggerObject());
+      .classed(
+        "superOpacityElement",
+        !renderedGraphSettings.showDraggerObject(),
+      );
     labelContainer
       .selectAll(".superHiddenElement")
-      .classed("superOpacityElement", !graph.options().showDraggerObject());
+      .classed(
+        "superOpacityElement",
+        !renderedGraphSettings.showDraggerObject(),
+      );
 
     deleteGroupElement
       .selectAll(".superHiddenElement")
-      .classed("superOpacityElement", !graph.options().showDraggerObject());
+      .classed(
+        "superOpacityElement",
+        !renderedGraphSettings.showDraggerObject(),
+      );
     addDataPropertyGroupElement
       .selectAll(".superHiddenElement")
-      .classed("superOpacityElement", !graph.options().showDraggerObject());
+      .classed(
+        "superOpacityElement",
+        !renderedGraphSettings.showDraggerObject(),
+      );
   };
 
   function setAddDataPropertyHoverElementPosition(node) {
@@ -4926,7 +4849,7 @@ function createGraph(graphContainerSelector) {
       touchBehaviour = false;
     }
     if (val === true) {
-      if (graph.options().drawPropertyDraggerOnHover() === true) {
+      if (renderedGraphSettings.drawPropertyDraggerOnHover() === true) {
         rangeDragger.hideDragger(true);
         domainDragger.hideDragger(true);
         shadowClone.hideClone(true);
@@ -4968,7 +4891,7 @@ function createGraph(graphContainerSelector) {
         .selectAll("*")
         .on("click", function (event) {
           if (touchBehaviour && node.focused() === false) {
-            graph.options().focuserModule().handle(null, node);
+            renderedGraphSettings.focuserModule().handle(null, node);
             return;
           }
           graph.removeNodeViaEditor(node);
@@ -5000,7 +4923,7 @@ function createGraph(graphContainerSelector) {
           .selectAll("*")
           .on("click", function (event) {
             if (touchBehaviour && node.focused() === false) {
-              graph.options().focuserModule().handle(null, node);
+              renderedGraphSettings.focuserModule().handle(null, node);
               return;
             }
             graph.createDataTypeProperty(node);
@@ -5023,9 +4946,10 @@ function createGraph(graphContainerSelector) {
   return graph;
 }
 
-createGraph.viewportTransform = viewportTransform;
-createGraph.measureViewportElement = measureViewportElement;
-createGraph.svgRenderingGuard = svgRenderingGuard;
-createGraph.createInvalidGeometryReporter = createInvalidGeometryReporter;
-
-module.exports = createGraph;
+export {
+  createInvalidGeometryReporter,
+  createGraph as createRenderedGraphInternals,
+  measureViewportElement,
+  svgRenderingGuard,
+  viewportTransform,
+};

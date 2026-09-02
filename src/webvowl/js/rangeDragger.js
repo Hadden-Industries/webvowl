@@ -1,4 +1,4 @@
-module.exports = function (graph) {
+export function createRangeDragger(graph) {
   /** variable defs **/
   const Range_dragger = {};
   Range_dragger.nodeId = 10002;
@@ -410,4 +410,4 @@ module.exports = function (graph) {
 
   Range_dragger.setAdditionalClassForClass_dragger = function (name, val) {};
   return Range_dragger;
-};
+}

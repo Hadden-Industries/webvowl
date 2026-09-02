@@ -1,3 +1,4 @@
+import owl2vowl, { loadWithImports, catalog } from "./index.js";
 import {
   describe,
   test,
@@ -6,7 +7,6 @@ import {
   beforeEach,
   afterEach,
 } from "@jest/globals";
-import owl2vowl, { loadWithImports, catalog } from "./index.js";
 
 const RDF_XML = `
   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"

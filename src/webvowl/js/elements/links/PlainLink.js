@@ -1,6 +1,7 @@
-const Label = require("./Label");
+import { createLinkPart } from "./linkPart.js";
+import { Label } from "./Label.js";
 
-module.exports = PlainLink;
+export { PlainLink };
 
 /**
  * A link connects at least two VOWL nodes.
@@ -13,8 +14,8 @@ function PlainLink(domain, range, property) {
   let layers, layerIndex, loops, loopIndex, pathEl;
   const label = new Label(property, this);
 
-  const backPart = require("./linkPart")(domain, label, this),
-    frontPart = require("./linkPart")(label, range, this);
+  const backPart = createLinkPart(domain, label, this),
+    frontPart = createLinkPart(label, range, this);
 
   this.layers = function (p) {
     if (!arguments.length) {

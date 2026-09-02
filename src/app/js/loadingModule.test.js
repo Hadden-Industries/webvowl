@@ -1,3 +1,7 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
+import { loadWithImports as productionLoadWithImports } from "../../owl2vowl/js/index.js";
 import {
   afterEach,
   beforeAll,
@@ -7,11 +11,6 @@ import {
   jest,
   test,
 } from "@jest/globals";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
-
-import { loadWithImports as productionLoadWithImports } from "../../owl2vowl/js/index.js";
 
 let createLoadingModule;
 let loadingModuleContext;
@@ -49,6 +48,7 @@ class LoadingControl extends EventTarget {
 }
 
 global.document = {
+  baseURI: "https://example.test/webvowl/",
   querySelector: jest.fn().mockReturnValue(new LoadingControl()),
   querySelectorAll: jest.fn().mockReturnValue([]),
 };
@@ -110,6 +110,7 @@ describe("loading module create-new command", () => {
   let graph;
   let loadingModule;
   let pushedRoutes;
+  let requestedLoads;
 
   beforeEach(() => {
     global.location = { hash: "#file=foaf.rdf.json" };
@@ -131,9 +132,15 @@ describe("loading module create-new command", () => {
       editorMode: jest.fn(),
       options: () => ({}),
     };
-    loadingModule = createLoadingModule(graph);
-    loadingModule.initializeLoader = jest.fn();
-    loadingModule.from_presetOntology = jest.fn();
+    requestedLoads = [];
+    loadingModule = createLoadingModule(graph, {
+      webVowlController: {
+        loadOntology(loadRequest) {
+          requestedLoads.push(loadRequest);
+          return Promise.resolve({ status: "ready" });
+        },
+      },
+    });
   });
 
   afterEach(() => {
@@ -151,16 +158,21 @@ describe("loading module create-new command", () => {
     ]);
     expect(graph.editorMode).toHaveBeenCalledTimes(2);
     expect(graph.editorMode).toHaveBeenNthCalledWith(1, true);
-    expect(graph.clearAllGraphData).toHaveBeenCalledTimes(2);
-    expect(loadingModule.initializeLoader).toHaveBeenCalledTimes(2);
-    expect(loadingModule.from_presetOntology).toHaveBeenNthCalledWith(
-      1,
-      "new_ontology1",
-    );
-    expect(loadingModule.from_presetOntology).toHaveBeenNthCalledWith(
-      2,
-      "new_ontology2",
-    );
+    // The empty preset document reaches the controller like any other source.
+    expect(requestedLoads).toEqual([
+      {
+        source: {
+          kind: "vowl-json-url",
+          url: "https://example.test/webvowl/data/new_ontology.json",
+        },
+      },
+      {
+        source: {
+          kind: "vowl-json-url",
+          url: "https://example.test/webvowl/data/new_ontology.json",
+        },
+      },
+    ]);
   });
 
   test("continues numbering after a new-ontology route loaded from elsewhere", () => {
@@ -170,121 +182,64 @@ describe("loading module create-new command", () => {
   });
 });
 
-describe("loading module remote fetch URLs", () => {
-  test("derives direct HTTP resource fetch schemes from the WebVOWL base", () => {
-    const originalFetch = global.fetch;
-    const originalLocation = global.location;
-    const pendingResponse = new Promise(() => undefined);
-    const fetchImpl = jest.fn(() => pendingResponse);
-    const ontologyMenu = {
-      append_bulletPoint: jest.fn(),
-      append_message: jest.fn(),
-      cachedOntology: jest.fn(() => undefined),
+describe("loading module remote source derivation", () => {
+  let loadingModule;
+  let requestedLoads;
+
+  function createLoadingModuleForLocation(locationHref) {
+    global.location = {
+      hash: locationHref.slice(locationHref.indexOf("#")),
+      href: locationHref,
+      protocol: new URL(locationHref).protocol,
+      toString: () => locationHref,
     };
-    const loadingModule = createLoadingModule({ options: () => ({}) });
-    loadingModule.setOntologyMenu(ontologyMenu);
-    global.fetch = fetchImpl;
-    loadingModuleContext.fetch = fetchImpl;
+    loadingModuleContext.location = global.location;
+    return createLoadingModule(
+      { options: () => ({}), clearAllGraphData() {}, clearGraphData() {} },
+      {
+        webVowlController: {
+          loadOntology(loadRequest) {
+            requestedLoads.push(loadRequest);
+            return Promise.resolve({ status: "ready" });
+          },
+        },
+      },
+    );
+  }
 
-    try {
-      global.location = {
-        href: "https://webvowl.example/viewer",
-        protocol: "https:",
-      };
-      loadingModuleContext.location = global.location;
-      loadingModule.from_JSON_URL(
-        "url=" + encodeURIComponent("http://example.com/graph.json"),
-      );
-      loadingModule.from_IRI_URL(
-        "iri=" + encodeURIComponent("http://example.com/ontology.rdf"),
-      );
-
-      global.location = {
-        href: "http://webvowl.example/viewer",
-        protocol: "http:",
-      };
-      loadingModuleContext.location = global.location;
-      loadingModule.from_JSON_URL(
-        "url=" + encodeURIComponent("http://example.com/local.json"),
-      );
-
-      expect(fetchImpl.mock.calls.map(([url]) => url)).toEqual([
-        "https://example.com/graph.json",
-        "https://example.com/ontology.rdf",
-        "http://example.com/local.json",
-      ]);
-    } finally {
-      loadingModule.dispose();
-      global.fetch = originalFetch;
-      global.location = originalLocation;
-      loadingModuleContext.fetch = originalFetch;
-      loadingModuleContext.location = originalLocation;
-    }
+  beforeEach(() => {
+    requestedLoads = [];
   });
 
-  test("resolves relative ontology IRIs against the upgraded retrieval URL", async () => {
-    const originalFetch = global.fetch;
-    const originalLocation = global.location;
-    const ontologyDocument = `
-      <rdf:RDF
-        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        xmlns:owl="http://www.w3.org/2002/07/owl#">
-        <owl:Ontology rdf:about=""/>
-        <owl:Class rdf:about="#Person"/>
-      </rdf:RDF>
-    `;
-    let finishLoading;
-    const loadedOntology = new Promise((resolve) => {
-      finishLoading = resolve;
+  afterEach(() => {
+    loadingModule?.dispose();
+    loadingModuleContext.location = undefined;
+  });
+
+  test("records the requested location rather than a rewritten one", () => {
+    // The retrieval layer upgrades mixed content; the source keeps the
+    // identity the reader asked for.
+    loadingModule = createLoadingModuleForLocation(
+      "https://webvowl.example/#url=" +
+        encodeURIComponent("http://example.com/graph.json"),
+    );
+
+    expect(loadingModule.sourceFromLocation()).toEqual({
+      kind: "vowl-json-url",
+      url: "http://example.com/graph.json",
     });
-    const ontologyMenu = {
-      append_bulletPoint: jest.fn(),
-      append_message_toLastBulletPoint: jest.fn(),
-      cachedOntology: jest.fn(() => undefined),
-      getLoadingFunction: () => (content) => {
-        finishLoading(JSON.parse(content));
-      },
-    };
-    const graph = {
-      handleOnLoadingError: jest.fn(),
-      options: () => ({}),
-    };
-    const loadingModule = createLoadingModule(graph);
-    loadingModule.setOntologyMenu(ontologyMenu);
-    global.location = {
-      href: "https://webvowl.example/viewer",
-      protocol: "https:",
-    };
-    global.fetch = jest.fn(async () => ({
-      ok: true,
-      status: 200,
-      statusText: "OK",
-      text: async () => ontologyDocument,
-    }));
-    loadingModuleContext.location = global.location;
-    loadingModuleContext.fetch = global.fetch;
+  });
 
-    try {
-      loadingModule.from_IRI_URL(
-        "iri=" + encodeURIComponent("http://example.com/ontology.rdf"),
-      );
-      const result = await loadedOntology;
+  test("keeps an ontology document IRI exactly as supplied", () => {
+    loadingModule = createLoadingModuleForLocation(
+      "https://webvowl.example/#iri=" +
+        encodeURIComponent("http://example.com/ontology.rdf"),
+    );
 
-      expect(result.header.iri).toBe("https://example.com/ontology.rdf");
-      expect(result.classAttribute).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            iri: "https://example.com/ontology.rdf#Person",
-          }),
-        ]),
-      );
-    } finally {
-      loadingModule.dispose();
-      global.fetch = originalFetch;
-      global.location = originalLocation;
-      loadingModuleContext.fetch = originalFetch;
-      loadingModuleContext.location = originalLocation;
-    }
+    expect(loadingModule.sourceFromLocation()).toEqual({
+      kind: "ontology-document-iri",
+      documentIri: "http://example.com/ontology.rdf",
+    });
   });
 });
 
@@ -324,5 +279,243 @@ describe("loading presentation listener ownership", () => {
     loadingModule.dispose();
     detailsButton.dispatchEvent(new Event("click"));
     expect(loadingModule.getDetailsState()).toBe(true);
+  });
+});
+
+describe("loading module controller state presentation", () => {
+  let controls;
+  let loadingModule;
+
+  beforeEach(() => {
+    controls = new Map();
+    global.document = {
+      querySelector: (selector) => {
+        if (!controls.has(selector)) {
+          controls.set(selector, new LoadingControl());
+        }
+        return controls.get(selector);
+      },
+      querySelectorAll: () => [],
+    };
+    loadingModuleContext.document = global.document;
+    loadingModule = createLoadingModule({ options: () => ({}) });
+  });
+
+  afterEach(() => {
+    loadingModule?.dispose();
+    loadingModuleContext.document = undefined;
+  });
+
+  test("shows layout progress while the controller reports a load", () => {
+    loadingModule.renderControllerState({
+      status: "loading",
+      loadGeneration: 1,
+      renderProgress: {
+        completedRenderedElementCount: 40,
+        totalRenderedElementCount: 100,
+      },
+    });
+
+    expect(loadingModule.getMessageVisibilityStatus()).toBe(true);
+    expect(controls.get("#progressBarLabel").textContent).toBe("40%");
+    expect(loadingModule.state()).toBe("rendering");
+  });
+
+  test("keeps the indicator busy through every in-flight controller status", () => {
+    for (const inFlightStatus of ["loading", "parsing", "rendering"]) {
+      loadingModule.renderControllerState({
+        status: inFlightStatus,
+        loadGeneration: 1,
+      });
+
+      expect(loadingModule.getMessageVisibilityStatus()).toBe(true);
+      expect(controls.get("#currentLoadingStep").className).toBe("step-busy");
+    }
+  });
+
+  test("keeps the indicator visible while the layout is still relaxing", () => {
+    loadingModule.renderControllerState({
+      status: "relaxing",
+      loadGeneration: 1,
+      renderProgress: {
+        completedRenderedElementCount: 80,
+        totalRenderedElementCount: 100,
+      },
+    });
+
+    expect(loadingModule.getMessageVisibilityStatus()).toBe(true);
+    expect(controls.get("#progressBarLabel").textContent).toBe("80%");
+  });
+
+  test("hides the indicator once the controller reports the graph is ready", () => {
+    loadingModule.renderControllerState({
+      status: "loading",
+      loadGeneration: 1,
+    });
+    loadingModule.renderControllerState({ status: "ready", loadGeneration: 1 });
+
+    expect(loadingModule.getMessageVisibilityStatus()).toBe(false);
+    expect(loadingModule.state()).toBe("ready");
+  });
+
+  test("keeps the indicator visible and reports a controller error", () => {
+    loadingModule.renderControllerState({
+      status: "error",
+      loadGeneration: 1,
+      error: { code: "LOAD_FAILED", message: "The ontology could not load." },
+    });
+
+    expect(loadingModule.getMessageVisibilityStatus()).toBe(true);
+    expect(controls.get("#currentLoadingStep").className).toBe("step-error");
+    expect(loadingModule.state()).toBe("error");
+  });
+});
+
+describe("loading module canonical controller sources", () => {
+  let controls;
+  let loadingModule;
+  let requestedLoads;
+
+  function createLoadingModuleForLocation(locationHref) {
+    global.location = {
+      hash: locationHref.slice(locationHref.indexOf("#")),
+      href: locationHref,
+      toString: () => locationHref,
+    };
+    loadingModuleContext.location = global.location;
+    return createLoadingModule(
+      { options: () => ({}), clearAllGraphData() {}, clearGraphData() {} },
+      {
+        webVowlController: {
+          loadOntology(loadRequest) {
+            requestedLoads.push(loadRequest);
+            return Promise.resolve({ status: "ready" });
+          },
+        },
+      },
+    );
+  }
+
+  beforeEach(() => {
+    requestedLoads = [];
+    controls = new Map();
+    global.document = {
+      baseURI: "https://example.test/webvowl/",
+      querySelector: (selector) => {
+        if (!controls.has(selector)) {
+          controls.set(selector, new LoadingControl());
+        }
+        return controls.get(selector);
+      },
+      querySelectorAll: () => [],
+    };
+    loadingModuleContext.document = global.document;
+  });
+
+  afterEach(() => {
+    loadingModule?.dispose();
+    loadingModuleContext.document = undefined;
+    loadingModuleContext.location = undefined;
+  });
+
+  test("routes a VOWL JSON URL in the location to the controller", async () => {
+    loadingModule = createLoadingModuleForLocation(
+      "https://example.test/webvowl/#url=https%3A%2F%2Fexample.test%2Ffoaf.json",
+    );
+
+    await loadingModule.loadRemoteSource({
+      source: loadingModule.sourceFromLocation(),
+    });
+
+    expect(requestedLoads).toEqual([
+      {
+        source: {
+          kind: "vowl-json-url",
+          url: "https://example.test/foaf.json",
+        },
+      },
+    ]);
+  });
+
+  test("routes an ontology document IRI in the location to the controller", async () => {
+    loadingModule = createLoadingModuleForLocation(
+      "https://example.test/webvowl/#iri=http%3A%2F%2Fxmlns.com%2Ffoaf%2F0.1%2F",
+    );
+
+    await loadingModule.loadRemoteSource({
+      source: loadingModule.sourceFromLocation(),
+    });
+
+    expect(requestedLoads).toEqual([
+      {
+        source: {
+          kind: "ontology-document-iri",
+          documentIri: "http://xmlns.com/foaf/0.1/",
+        },
+      },
+    ]);
+  });
+
+  test("resolves a preset ontology against the document base URI", async () => {
+    loadingModule = createLoadingModuleForLocation(
+      "https://example.test/webvowl/#foaf",
+    );
+
+    await loadingModule.loadRemoteSource({
+      source: loadingModule.sourceFromLocation(),
+    });
+
+    expect(requestedLoads).toEqual([
+      {
+        source: {
+          kind: "vowl-json-url",
+          url: "https://example.test/webvowl/data/foaf.json",
+        },
+      },
+    ]);
+  });
+
+  test("routes a dropped JSON file as an already parsed VOWL model", async () => {
+    loadingModule = createLoadingModuleForLocation(
+      "https://example.test/webvowl/#foaf",
+    );
+    const vowlModel = { header: { title: { undefined: "Dropped" } } };
+
+    await loadingModule.loadDroppedFile({
+      name: "dropped.json",
+      text: () => Promise.resolve(JSON.stringify(vowlModel)),
+    });
+
+    expect(requestedLoads).toEqual([
+      {
+        source: {
+          kind: "vowl-model",
+          model: vowlModel,
+          displayName: "dropped.json",
+        },
+      },
+    ]);
+  });
+
+  test("routes a dropped ontology document as ontology text", async () => {
+    loadingModule = createLoadingModuleForLocation(
+      "https://example.test/webvowl/#foaf",
+    );
+
+    await loadingModule.loadDroppedFile({
+      name: "dropped.ttl",
+      text: () => Promise.resolve("@prefix ex: <http://example.test/> ."),
+    });
+
+    expect(requestedLoads).toEqual([
+      {
+        source: {
+          kind: "ontology-text",
+          text: "@prefix ex: <http://example.test/> .",
+          displayName: "dropped.ttl",
+          format: "turtle",
+        },
+      },
+    ]);
   });
 });

@@ -1,5 +1,15 @@
-import { beforeEach, describe, expect, test } from "@jest/globals";
-import exportTTLModuleFactory from "./exportTTLModule.js";
+import { beforeAll, beforeEach, describe, expect, test } from "@jest/globals";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
+
+let exportTTLModuleFactory;
+
+beforeAll(async () => {
+  ({ createExportTtlModule: exportTTLModuleFactory } =
+    await loadEsmModuleForTest(
+      new URL("./exportTTLModule.js", import.meta.url),
+      import.meta.url,
+    ));
+});
 
 describe("exportTTLModule", () => {
   let exportTTLModule;
@@ -79,6 +89,21 @@ describe("exportTTLModule", () => {
 
     mockGraph = {
       options: () => ({
+        prefixList: () => prefixListMock,
+        getGeneralMetaObjectProperty: (prop) => {
+          if (prop === "iri") {
+            return "http://example.org/ontology#";
+          }
+          if (prop === "title") {
+            return "Test Ontology";
+          }
+          if (prop === "version") {
+            return "1.0";
+          }
+          return undefined;
+        },
+      }),
+      ontologyEditingState: () => ({
         prefixList: () => prefixListMock,
         getGeneralMetaObjectProperty: (prop) => {
           if (prop === "iri") {

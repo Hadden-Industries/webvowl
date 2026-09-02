@@ -1,7 +1,9 @@
-const elementTools = require("../util/elementTools")();
-const filterTools = require("../util/filterTools")();
+import { createFilterTools as filterToolsFactory } from "../util/filterTools.js";
+import { createElementTools as elementToolsFactory } from "../util/elementTools.js";
+const elementTools = elementToolsFactory();
+const filterTools = filterToolsFactory();
 
-module.exports = function (menu) {
+export function createNodeDegreeFilter(menu) {
   const filter = {};
   let nodes;
   let properties;
@@ -11,6 +13,7 @@ module.exports = function (menu) {
   let maxDegreeSetter;
   let degreeGetter;
   let degreeSetter;
+  let requestedMinimumDegree;
 
   const NODE_COUNT_LIMIT_FOR_AUTO_ENABLING = 50;
 
@@ -67,8 +70,12 @@ module.exports = function (menu) {
     nodes = untouchedNodes;
     properties = untouchedProperties;
 
+    // A degree the runtime set takes precedence over one read from a control,
+    // so the filter works with no user interface attached.
     if (this.enabled()) {
-      if (degreeGetter instanceof Function) {
+      if (requestedMinimumDegree !== undefined) {
+        filterByNodeDegreeAndApply(requestedMinimumDegree);
+      } else if (degreeGetter instanceof Function) {
         filterByNodeDegreeAndApply(degreeGetter());
       } else {
         console.error("No degree query function set.");
@@ -121,6 +128,17 @@ module.exports = function (menu) {
     };
   }
 
+  filter.minDegree = function (nextMinimumDegree) {
+    if (!arguments.length) {
+      return requestedMinimumDegree;
+    }
+    requestedMinimumDegree = nextMinimumDegree;
+    if (degreeSetter instanceof Function) {
+      degreeSetter(nextMinimumDegree);
+    }
+    return filter;
+  };
+
   filter.setMaxDegreeSetter = function (_maxDegreeSetter) {
     maxDegreeSetter = _maxDegreeSetter;
   };
@@ -151,4 +169,4 @@ module.exports = function (menu) {
   };
 
   return filter;
-};
+}

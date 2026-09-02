@@ -1,5 +1,15 @@
+import { applicationUiModule } from "../ui/applicationUiRegistry.js";
 /** The zoom Slider **/
-module.exports = function (graph) {
+export function createZoomSlider(
+  graph,
+  {
+    documentObject = globalThis.document,
+    windowObject = globalThis.window,
+    requestAnimationFrameFunction = globalThis.requestAnimationFrame,
+    cancelAnimationFrameFunction = globalThis.cancelAnimationFrame,
+    nowMs = () => globalThis.performance.now(),
+  } = {},
+) {
   const zoomSlider = {};
   const minMag = graph.options().minMagnification();
   const maxMag = graph.options().maxMagnification();
@@ -22,7 +32,7 @@ module.exports = function (graph) {
 
   function stopContinuousZoom() {
     if (activeAnimationFrame !== undefined) {
-      cancelAnimationFrame(activeAnimationFrame);
+      cancelAnimationFrameFunction(activeAnimationFrame);
     }
     activeAnimationFrame = undefined;
     activeDirection = 0;
@@ -54,8 +64,8 @@ module.exports = function (graph) {
   function updateZoomButtonStates(value) {
     const zoomInDisabled = !controlsEnabled || !zoomAvailable(1, value);
     const zoomOutDisabled = !controlsEnabled || !zoomAvailable(-1, value);
-    document.getElementById("zoomInButton").disabled = zoomInDisabled;
-    document.getElementById("zoomOutButton").disabled = zoomOutDisabled;
+    documentObject.getElementById("zoomInButton").disabled = zoomInDisabled;
+    documentObject.getElementById("zoomOutButton").disabled = zoomOutDisabled;
   }
 
   function timedZoom(timestamp) {
@@ -70,7 +80,7 @@ module.exports = function (graph) {
     );
     previousFrameTime = timestamp;
     if (applyZoomStep(activeDirection, elapsed / nominalFrameDuration)) {
-      activeAnimationFrame = requestAnimationFrame(timedZoom);
+      activeAnimationFrame = requestAnimationFrameFunction(timedZoom);
     }
   }
 
@@ -85,10 +95,10 @@ module.exports = function (graph) {
     }
     graph.options().navigationMenu().hideAllMenus();
     activeDirection = direction;
-    previousFrameTime = performance.now();
+    previousFrameTime = nowMs();
 
     if (applyZoomStep(direction, 1)) {
-      activeAnimationFrame = requestAnimationFrame(timedZoom);
+      activeAnimationFrame = requestAnimationFrameFunction(timedZoom);
     }
     return true;
   }
@@ -110,7 +120,7 @@ module.exports = function (graph) {
   }
 
   zoomSlider.setup = function () {
-    slider = document.getElementById("zoomSliderElement");
+    slider = documentObject.getElementById("zoomSliderElement");
     slider.value = defZoom;
     slider.min = minMag;
     slider.max = maxMag;
@@ -131,7 +141,7 @@ module.exports = function (graph) {
         return;
       }
       const touch = event.touches[0];
-      const container = document.getElementById("zoomSliderParagraph");
+      const container = documentObject.getElementById("zoomSliderParagraph");
       if (!container) {
         return;
       }
@@ -147,12 +157,14 @@ module.exports = function (graph) {
       }
     }
 
-    const sliderParagraph = document.getElementById("zoomSliderParagraph");
+    const sliderParagraph = documentObject.getElementById(
+      "zoomSliderParagraph",
+    );
     sliderParagraph.addEventListener("touchstart", handleContainerTouch);
     sliderParagraph.addEventListener("touchmove", handleContainerTouch);
 
     function bindZoomButton(selector, direction, title) {
-      const el = document.querySelector(selector);
+      const el = documentObject.querySelector(selector);
       if (!el) {
         return;
       }
@@ -229,23 +241,25 @@ module.exports = function (graph) {
     bindZoomButton("#zoomInButton", 1, "zoom in");
     updateZoomButtonStates(graph.scaleFactor());
 
-    window.addEventListener("pointerup", stopPointerZoom);
-    window.addEventListener("pointercancel", stopPointerZoom);
-    window.addEventListener("blur", stopContinuousZoom);
+    windowObject.addEventListener("pointerup", stopPointerZoom);
+    windowObject.addEventListener("pointercancel", stopPointerZoom);
+    windowObject.addEventListener("blur", stopContinuousZoom);
 
-    document.addEventListener("visibilitychange", function () {
-      if (document.hidden) {
+    documentObject.addEventListener("visibilitychange", function () {
+      if (documentObject.hidden) {
         stopContinuousZoom();
       }
     });
 
-    const centerGraphButton = document.getElementById("centerGraphButton");
+    const centerGraphButton =
+      documentObject.getElementById("centerGraphButton");
+    // Fitting the viewport reaches the controller through the view-controls
+    // adapter; this only closes the menus that would cover the result.
     centerGraphButton.addEventListener("click", function () {
       if (!controlsEnabled) {
         return;
       }
       graph.options().navigationMenu().hideAllMenus();
-      graph.forceRelocationEvent();
     });
     centerGraphButton.setAttribute("title", "center graph");
   };
@@ -254,15 +268,15 @@ module.exports = function (graph) {
     if (!arguments.length) {
       return showSlider;
     }
-    const sliderContainer = document.getElementById("zoomSlider");
+    const sliderContainer = documentObject.getElementById("zoomSlider");
     if (val) {
       sliderContainer.classList.remove("hidden");
     } else {
       sliderContainer.classList.add("hidden");
     }
     showSlider = val;
-    if (graph.options().sidebar && graph.options().sidebar()) {
-      graph.options().sidebar().updateDockedControlsPosition();
+    if (applicationUiModule("sidebar")) {
+      applicationUiModule("sidebar").updateDockedControlsPosition();
     }
   };
 
@@ -292,7 +306,8 @@ module.exports = function (graph) {
     if (!controlsEnabled) {
       stopContinuousZoom();
     }
-    document.getElementById("centerGraphButton").disabled = !controlsEnabled;
+    documentObject.getElementById("centerGraphButton").disabled =
+      !controlsEnabled;
     if (slider) {
       slider.disabled = !controlsEnabled;
     }
@@ -300,4 +315,4 @@ module.exports = function (graph) {
   };
 
   return zoomSlider;
-};
+}

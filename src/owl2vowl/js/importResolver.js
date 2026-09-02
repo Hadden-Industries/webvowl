@@ -1,3 +1,4 @@
+import { IRI } from "owlapi/model";
 import {
   MissingImportError,
   ResourceLimitError,
@@ -5,7 +6,6 @@ import {
   StringDocumentSource,
   UnloadableImportError,
 } from "owlapi/io";
-import { IRI } from "owlapi/model";
 
 const textBytes = (text) => new TextEncoder().encode(text).byteLength;
 

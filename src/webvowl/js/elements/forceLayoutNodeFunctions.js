@@ -8,9 +8,9 @@
  * @type {{}}
  */
 const nodeFunctions = {};
-module.exports = function () {
+export function createForceLayoutNodeFunctions() {
   return nodeFunctions;
-};
+}
 
 nodeFunctions.addTo = function (node) {
   addFixedLocationFunctions(node);

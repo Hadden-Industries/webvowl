@@ -1,6 +1,6 @@
-const _ = require("lodash/core");
+import _ from "lodash/core";
 
-module.exports = function () {
+export function createColorExternalsSwitch() {
   const DEFAULT_STATE = true;
   const COLOR_MODES = [
     { type: "same", range: [d3.rgb("#36C"), d3.rgb("#36C")] },
@@ -118,4 +118,4 @@ module.exports = function () {
   };
 
   return filter;
-};
+}

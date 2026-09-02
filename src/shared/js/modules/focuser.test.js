@@ -1,10 +1,21 @@
-jest.mock("../util/elementTools", () => {
-  return () => ({
-    isProperty: (elem) => elem && elem.isProperty === true,
-  });
-});
+import { beforeAll, jest } from "@jest/globals";
+import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
-const focuserFactory = require("./focuser");
+let focuserFactory;
+
+beforeAll(async () => {
+  ({ createFocuser: focuserFactory } = await loadEsmModuleForTest(
+    new URL("./focuser.js", import.meta.url),
+    import.meta.url,
+    {
+      "../util/elementTools.js": {
+        createElementTools: () => ({
+          isProperty: (elem) => elem && elem.isProperty === true,
+        }),
+      },
+    },
+  ));
+});
 
 describe("Focuser Module Unit Tests", () => {
   let graphMock;

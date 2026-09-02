@@ -2,7 +2,7 @@
  * Parses the attributes an element has and sets the corresponding attributes.
  * @returns {Function}
  */
-module.exports = (function () {
+const createAttributeParser = (function () {
   const attributeParser = {},
     // Style
     ANONYMOUS = "anonymous",
@@ -112,3 +112,5 @@ module.exports = (function () {
     return attributeParser;
   };
 })();
+
+export { createAttributeParser };

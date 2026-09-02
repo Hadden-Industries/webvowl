@@ -229,9 +229,10 @@ export function createWebVowlController(dependencies) {
   }
 
   function reduceRenderedGraphEvent(renderedGraphEvent) {
+    // The active generation is the one being rendered, so its events are
+    // current even before the load completes; every other generation is stale.
     if (
       isDisposed ||
-      renderedGraphEvent.loadGeneration !== currentOntologyGeneration ||
       renderedGraphEvent.loadGeneration !== activeLoadGeneration
     ) {
       return;
@@ -243,6 +244,17 @@ export function createWebVowlController(dependencies) {
       ).retainedEntries;
       publishForGeneration(renderedGraphEvent.loadGeneration, {
         warnings: [...currentWarnings],
+      });
+      return;
+    }
+    if (renderedGraphEvent.kind === "render-progress-changed") {
+      publishForGeneration(renderedGraphEvent.loadGeneration, {
+        renderProgress: {
+          completedRenderedElementCount:
+            renderedGraphEvent.payload.completedRenderedElementCount,
+          totalRenderedElementCount:
+            renderedGraphEvent.payload.totalRenderedElementCount,
+        },
       });
       return;
     }

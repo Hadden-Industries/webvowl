@@ -1,6 +1,22 @@
-import { describe, test, expect, beforeEach, jest } from "@jest/globals";
+import {
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  jest,
+  test,
+} from "@jest/globals";
 import * as d3 from "d3";
-import filterMenuFactory from "./filterMenu.js";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
+
+let filterMenuFactory;
+
+beforeAll(async () => {
+  ({ createFilterMenu: filterMenuFactory } = await loadEsmModuleForTest(
+    new URL("./filterMenu.js", import.meta.url),
+    import.meta.url,
+  ));
+});
 
 const HTML_NAMESPACE = "http://www.w3.org/1999/xhtml";
 
@@ -192,7 +208,11 @@ describe("filterMenu degree slider highlight clearing", () => {
       }),
     };
 
-    const filterMenu = filterMenuFactory(mockGraph);
+    const filterMenu = filterMenuFactory(mockGraph, {
+      documentObject: global.document,
+      windowObject: global.window,
+      locationObject: global.location,
+    });
 
     const mockFilter = { enabled: () => false };
     const mockNodeDegreeFilter = {
@@ -282,7 +302,11 @@ describe("filterMenu degree slider highlight clearing", () => {
       }),
     };
 
-    const filterMenu = filterMenuFactory(mockGraph);
+    const filterMenu = filterMenuFactory(mockGraph, {
+      documentObject: global.document,
+      windowObject: global.window,
+      locationObject: global.location,
+    });
     const mockFilter = { enabled: () => false };
     const mockNodeDegreeFilter = {
       setMaxDegreeSetter: jest.fn(),
@@ -344,7 +368,11 @@ describe("filterMenu degree slider highlight clearing", () => {
       }),
     };
 
-    const filterMenu = filterMenuFactory(mockGraph);
+    const filterMenu = filterMenuFactory(mockGraph, {
+      documentObject: global.document,
+      windowObject: global.window,
+      locationObject: global.location,
+    });
     const mockFilter = { enabled: () => false };
     const mockNodeDegreeFilter = {
       setMaxDegreeSetter: jest.fn(),
@@ -380,7 +408,7 @@ describe("filterMenu degree slider highlight clearing", () => {
     }).not.toThrow();
   });
 
-  test("filter checkbox click handler triggers graph update on native MouseEvent but skips on silent: true", () => {
+  test("leaves the graph untouched when a filter checkbox is clicked", () => {
     const mockGraph = {
       update: jest.fn(),
       options: () => ({
@@ -415,7 +443,11 @@ describe("filterMenu degree slider highlight clearing", () => {
     );
     datatypeContainer.appendChild(datatypeCheckbox);
 
-    const filterMenu = filterMenuFactory(mockGraph);
+    const filterMenu = filterMenuFactory(mockGraph, {
+      documentObject: global.document,
+      windowObject: global.window,
+      locationObject: global.location,
+    });
     filterMenu.setup(
       mockFilter,
       mockFilter,
@@ -425,20 +457,16 @@ describe("filterMenu degree slider highlight clearing", () => {
       mockNodeDegreeFilter,
     );
 
-    // Native mouse click event (arg1 is event object, not boolean)
+    // The click reaches the controller through the view-controls adapter.
     datatypeCheckbox.checked = true;
-    const clickEvent = new CustomEvent("click");
-    datatypeCheckbox.dispatchEvent(clickEvent);
+    datatypeCheckbox.dispatchEvent(new CustomEvent("click"));
+
+    expect(mockGraph.update).not.toHaveBeenCalled();
+
+    // Resetting still re-applies the checkbox state to the filter module.
+    datatypeCheckbox.__onclick();
 
     expect(mockFilter.enabled()).toBe(true);
-    expect(mockGraph.update).toHaveBeenCalledTimes(1);
-
-    // Programmatic silent call
-    mockGraph.update.mockClear();
-    datatypeCheckbox.checked = false;
-    datatypeCheckbox.__onclick(true); // silent = true
-
-    expect(mockFilter.enabled()).toBe(false);
     expect(mockGraph.update).not.toHaveBeenCalled();
   });
 });

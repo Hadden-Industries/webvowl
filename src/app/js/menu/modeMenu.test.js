@@ -1,4 +1,14 @@
-const modeMenuFactory = require("./modeMenu.js");
+import { beforeAll, jest } from "@jest/globals";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
+
+let modeMenuFactory;
+
+beforeAll(async () => {
+  ({ createModeMenu: modeMenuFactory } = await loadEsmModuleForTest(
+    new URL("./modeMenu.js", import.meta.url),
+    import.meta.url,
+  ));
+});
 
 class MockElement {
   constructor(id = "") {
@@ -121,7 +131,10 @@ describe("mode menu bug fixes", () => {
       colorModeType: jest.fn(),
     };
 
-    modeMenu = modeMenuFactory(mockGraph);
+    modeMenu = modeMenuFactory(mockGraph, {
+      documentObject: global.document,
+      windowObject: global.window,
+    });
   });
 
   afterEach(() => {
@@ -162,14 +175,23 @@ describe("mode menu bug fixes", () => {
   });
 
   test("modeMenu setup handles missing optional DOM containers gracefully", () => {
-    global.document = {
-      querySelector: (selector) => null,
+    const documentWithoutOptionalContainers = {
+      querySelector: () => null,
     };
+    const menuWithoutOptionalContainers = modeMenuFactory(mockGraph, {
+      documentObject: documentWithoutOptionalContainers,
+      windowObject: global.window,
+    });
 
     expect(() => {
-      modeMenu.setup(pickAndPin, nodeScaling, compactNotation, colorExternals);
-      modeMenu.setDynamicLabelWidth(true);
-      modeMenu.reset();
+      menuWithoutOptionalContainers.setup(
+        pickAndPin,
+        nodeScaling,
+        compactNotation,
+        colorExternals,
+      );
+      menuWithoutOptionalContainers.setDynamicLabelWidth(true);
+      menuWithoutOptionalContainers.reset();
     }).not.toThrow();
   });
 

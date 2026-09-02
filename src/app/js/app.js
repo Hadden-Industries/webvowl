@@ -1,3 +1,46 @@
+import { registerApplicationUiModule } from "./ui/applicationUiRegistry.js";
+import { createD3RenderedGraphAdapter } from "../../webvowl/js/runtime/d3RenderedGraphAdapter.js";
+import { createRenderedGraphConfiguration } from "../../webvowl/js/runtime/renderedGraphConfiguration.js";
+import { createGraphLayoutSettler } from "./controller/graphLayoutSettler.js";
+import { createOntologyInspector } from "./controller/ontologyInspector.js";
+import { createOntologySourceLoader } from "./controller/ontologySourceLoader.js";
+import { createSvgArtifactService } from "./controller/svgArtifactService.js";
+import { createSvgSerializer } from "./controller/svgSerializer.js";
+import { createWebVowlController } from "./controller/webVowlController.js";
+import { createSvgArtifactDownloadAdapter } from "./ui/svgArtifactDownloadAdapter.js";
+import { createColorExternalsSwitch } from "../../webvowl/js/runtime/colorExternalsSwitch.js";
+import { createCompactNotationSwitch } from "../../shared/js/modules/compactNotationSwitch.js";
+import { createConstants } from "../../shared/js/util/constants.js";
+import { createDatatypeFilter } from "../../shared/js/modules/datatypeFilter.js";
+import { createDisjointFilter } from "../../shared/js/modules/disjointFilter.js";
+import { createElementTools } from "../../shared/js/util/elementTools.js";
+import { createEmptyLiteralFilter } from "../../shared/js/modules/emptyLiteralFilter.js";
+import { createFocuser } from "../../shared/js/modules/focuser.js";
+import { createLanguageTools } from "../../shared/js/util/languageTools.js";
+import { createNodeDegreeFilter } from "../../shared/js/modules/nodeDegreeFilter.js";
+import { createNodeScalingSwitch } from "../../shared/js/modules/nodeScalingSwitch.js";
+import { createObjectPropertyFilter } from "../../shared/js/modules/objectPropertyFilter.js";
+import { createPickAndPin } from "../../shared/js/modules/pickAndPin.js";
+import { createPrefixRepresentationModule } from "../../shared/js/util/prefixRepresentationModule.js";
+import { createSelectionDetailsDisplayer } from "../../shared/js/modules/selectionDetailsDisplayer.js";
+import { createSetOperatorFilter } from "../../shared/js/modules/setOperatorFilter.js";
+import { createStatistics } from "../../shared/js/modules/statistics.js";
+import { createSubclassFilter } from "../../shared/js/modules/subclassFilter.js";
+import { createConfigMenu } from "./menu/configMenu.js";
+import { createDebugMenu } from "./menu/debugMenu.js";
+import { createExportMenu } from "./menu/exportMenu.js";
+import { createFilterMenu } from "./menu/filterMenu.js";
+import { createGravityMenu } from "./menu/gravityMenu.js";
+import { createModeMenu } from "./menu/modeMenu.js";
+import { createNavigationMenu } from "./menu/navigationMenu.js";
+import { createOntologyMenu } from "./menu/ontologyMenu.js";
+import { createPauseMenu } from "./menu/pauseMenu.js";
+import { createVisualizationViewControlsAdapter } from "./ui/visualizationViewControlsAdapter.js";
+import { createRenderedGraphInternals } from "../../webvowl/js/runtime/renderedGraphInternals.js";
+import { createResetMenu } from "./menu/resetMenu.js";
+import { createSearchMenu } from "./menu/searchMenu.js";
+import { createZoomSlider } from "./menu/zoomSlider.js";
+
 const nativeApplicationUiModuleNamespacesPromise = Promise.all([
   import("./directInputModule.js"),
   import("./editSidebar.js"),
@@ -11,56 +54,44 @@ String.prototype.replaceAll = function (search, replacement) {
   const target = this;
   return target.split(search).join(replacement);
 };
-module.exports = function () {
+export function createWebVowlApplication() {
   const app = {},
-    graph = require("../../webvowl/js/graph")(),
-    options = graph.graphOptions(),
-    languageTools = require("../../shared/js/util/languageTools")(),
-    elementTools = require("../../shared/js/util/elementTools")(),
-    webVowlConstants = require("../../shared/js/util/constants")(),
+    graph = createRenderedGraphInternals(),
+    renderedGraphSettings = graph.graphOptions(),
+    ontologyEditingState = graph.ontologyEditingState(),
+    languageTools = createLanguageTools(),
+    elementTools = createElementTools(),
+    webVowlConstants = createConstants(),
     languageConstants = {
       iriBasedLanguage: webVowlConstants.LANG_IRIBASED,
       undefinedLanguage: webVowlConstants.LANG_UNDEFINED,
     },
-    prefixModule = require("../../shared/js/util/prefixRepresentationModule")(
-      graph,
-    ),
+    prefixModule = createPrefixRepresentationModule(graph),
     GRAPH_SELECTOR = "#graph",
     // Modules for the webvowl app
-    exportMenu = require("./menu/exportMenu")(graph),
-    filterMenu = require("./menu/filterMenu")(graph),
-    gravityMenu = require("./menu/gravityMenu")(graph),
-    modeMenu = require("./menu/modeMenu")(graph),
-    debugMenu = require("./menu/debugMenu")(graph),
-    ontologyMenu = require("./menu/ontologyMenu")(graph),
-    pauseMenu = require("./menu/pauseMenu")(graph),
-    resetMenu = require("./menu/resetMenu")(graph),
-    searchMenu = require("./menu/searchMenu")(graph),
-    navigationMenu = require("./menu/navigationMenu")(graph),
-    zoomSlider = require("./menu/zoomSlider")(graph),
-    configMenu = require("./menu/configMenu")(graph),
+    filterMenu = createFilterMenu(graph),
+    gravityMenu = createGravityMenu(graph),
+    modeMenu = createModeMenu(graph),
+    debugMenu = createDebugMenu(graph),
+    pauseMenu = createPauseMenu({ documentObject: document }),
+    resetMenu = createResetMenu(graph),
+    navigationMenu = createNavigationMenu(graph),
+    zoomSlider = createZoomSlider(graph),
+    configMenu = createConfigMenu(graph),
     // Graph modules
-    colorExternalsSwitch =
-      require("../../shared/js/modules/colorExternalsSwitch")(graph),
-    compactNotationSwitch =
-      require("../../shared/js/modules/compactNotationSwitch")(graph),
-    datatypeFilter = require("../../shared/js/modules/datatypeFilter")(),
-    disjointFilter = require("../../shared/js/modules/disjointFilter")(),
-    focuser = require("../../shared/js/modules/focuser")(graph),
-    emptyLiteralFilter =
-      require("../../shared/js/modules/emptyLiteralFilter")(),
-    nodeDegreeFilter = require("../../shared/js/modules/nodeDegreeFilter")(
-      filterMenu,
-    ),
-    nodeScalingSwitch = require("../../shared/js/modules/nodeScalingSwitch")(
-      graph,
-    ),
-    objectPropertyFilter =
-      require("../../shared/js/modules/objectPropertyFilter")(),
-    pickAndPin = require("../../shared/js/modules/pickAndPin")(),
-    statistics = require("../../shared/js/modules/statistics")(),
-    subclassFilter = require("../../shared/js/modules/subclassFilter")(),
-    setOperatorFilter = require("../../shared/js/modules/setOperatorFilter")();
+    colorExternalsSwitch = createColorExternalsSwitch(graph),
+    compactNotationSwitch = createCompactNotationSwitch(graph),
+    datatypeFilter = createDatatypeFilter(),
+    disjointFilter = createDisjointFilter(),
+    focuser = createFocuser(graph),
+    emptyLiteralFilter = createEmptyLiteralFilter(),
+    nodeDegreeFilter = createNodeDegreeFilter(filterMenu),
+    nodeScalingSwitch = createNodeScalingSwitch(graph),
+    objectPropertyFilter = createObjectPropertyFilter(),
+    pickAndPin = createPickAndPin(),
+    statistics = createStatistics(),
+    subclassFilter = createSubclassFilter(),
+    setOperatorFilter = createSetOperatorFilter();
 
   let directInputModule;
   let editSidebar;
@@ -70,11 +101,84 @@ module.exports = function () {
   let sidebar;
   let warningModule;
 
-  app.getOptions = function () {
-    return options;
+  app.getRenderedGraphSettings = function () {
+    return renderedGraphSettings;
+  };
+  app.getOntologyEditingState = function () {
+    return ontologyEditingState;
   };
   app.getGraph = function () {
     return graph;
+  };
+
+  // Agent-neutral controller. Embedding hosts and WebMCP reach WebVOWL through
+  // this interface rather than through the renderer.
+  const svgArtifactDownloadAdapter = createSvgArtifactDownloadAdapter({
+    documentObject: document,
+  });
+  // One production rendering path: the adapter owns the renderer implementation
+  // and publishes it as the RenderedGraphRuntime the controller consumes.
+  const { renderedGraphRuntime } = createD3RenderedGraphAdapter({
+    renderedGraphInternals: graph,
+    graphContainerElement: document.querySelector(GRAPH_SELECTOR),
+    observeNextPaint: () =>
+      new Promise((resolveFrame) =>
+        globalThis.requestAnimationFrame(() => resolveFrame()),
+      ),
+    renderedGraphConfiguration: createRenderedGraphConfiguration(),
+  });
+
+  let unsubscribeFromControllerState;
+  const webVowlController = createWebVowlController({
+    ontologySourceLoader: createOntologySourceLoader(),
+    renderedGraphRuntime,
+    ontologyInspector: createOntologyInspector(),
+    graphLayoutSettler: createGraphLayoutSettler({
+      requestAnimationFrame: (frameCallback) =>
+        globalThis.requestAnimationFrame(frameCallback),
+      cancelAnimationFrame: (frameHandle) =>
+        globalThis.cancelAnimationFrame(frameHandle),
+      nowMs: () => globalThis.performance.now(),
+    }),
+    svgArtifactService: createSvgArtifactService({
+      svgSerializer: createSvgSerializer({
+        XMLSerializerConstructor: globalThis.XMLSerializer,
+        documentObject: document,
+        webVowlVersion: webVowlConstants.WEBVOWL_VERSION,
+      }),
+      webCrypto: globalThis.crypto,
+      BlobConstructor: globalThis.Blob,
+      objectUrlApi: globalThis.URL,
+      svgArtifactPublicationPort: svgArtifactDownloadAdapter,
+    }),
+    waitForDocumentFonts: () => document.fonts?.ready ?? Promise.resolve(),
+    waitForBrowserPaint: () =>
+      new Promise((resolveFrame) =>
+        globalThis.requestAnimationFrame(() => resolveFrame()),
+      ),
+  });
+
+  // Menus that command the controller are constructed once it exists.
+  const exportMenu = createExportMenu(graph, { webVowlController });
+  const searchMenu = createSearchMenu(graph, { webVowlController });
+  const ontologyMenu = createOntologyMenu(graph, { webVowlController });
+  const viewControlsLifecycleController = new AbortController();
+  createVisualizationViewControlsAdapter({
+    controller: webVowlController,
+    documentObject: document,
+    lifecycleSignal: viewControlsLifecycleController.signal,
+  });
+
+  app.getWebVowlController = function () {
+    return webVowlController;
+  };
+
+  app.dispose = function () {
+    viewControlsLifecycleController.abort();
+    unsubscribeFromControllerState?.();
+    unsubscribeFromControllerState = undefined;
+    webVowlController.dispose();
+    svgArtifactDownloadAdapter.dispose();
   };
   // app.afterInitializationCallback=undefined;
 
@@ -158,7 +262,7 @@ module.exports = function () {
           if (ev.dataTransfer.items.length === 1) {
             if (ev.dataTransfer.items[0].kind === "file") {
               const file = ev.dataTransfer.items[0].getAsFile();
-              loadingModule.fromFileDrop(file.name, file);
+              loadingModule.loadDroppedFile(file);
             }
           } else {
             //  >> WARNING not multiple file uploaded;
@@ -214,24 +318,25 @@ module.exports = function () {
       { createWarningModule },
     ] = await nativeApplicationUiModuleNamespacesPromise;
 
-    directInputModule = createDirectInputModule(graph);
+    directInputModule = createDirectInputModule(graph, {
+      webVowlController,
+    });
     editSidebar = createEditSidebar(graph, {
       elementTools,
       languageTools,
       prefixModule,
     });
     leftSidebar = createLeftSidebar(graph);
-    loadingModule = createLoadingModule(graph);
+    loadingModule = createLoadingModule(graph, { webVowlController });
     sidebar = createSidebar(graph, {
       elementTools,
       languageConstants,
       languageTools,
     });
     warningModule = createWarningModule(graph);
-    selectionDetailDisplayer =
-      require("../../shared/js/modules/selectionDetailsDisplayer")(
-        sidebar.updateSelectionInformation,
-      );
+    selectionDetailDisplayer = createSelectionDetailsDisplayer(
+      sidebar.updateSelectionInformation,
+    );
   }
 
   app.initialize = async function () {
@@ -253,23 +358,23 @@ module.exports = function () {
         clearTimeout(requestID);
       }; //fall back
 
-    options.graphContainerSelector(GRAPH_SELECTOR);
-    options.selectionModules().push(focuser);
-    options.selectionModules().push(selectionDetailDisplayer);
-    options.selectionModules().push(pickAndPin);
+    renderedGraphSettings.graphContainerSelector(GRAPH_SELECTOR);
+    renderedGraphSettings.selectionModules().push(focuser);
+    renderedGraphSettings.selectionModules().push(selectionDetailDisplayer);
+    renderedGraphSettings.selectionModules().push(pickAndPin);
 
-    options.filterModules().push(emptyLiteralFilter);
-    options.filterModules().push(statistics);
+    renderedGraphSettings.filterModules().push(emptyLiteralFilter);
+    renderedGraphSettings.filterModules().push(statistics);
 
-    options.filterModules().push(nodeDegreeFilter);
-    options.filterModules().push(datatypeFilter);
-    options.filterModules().push(objectPropertyFilter);
-    options.filterModules().push(subclassFilter);
-    options.filterModules().push(disjointFilter);
-    options.filterModules().push(setOperatorFilter);
-    options.filterModules().push(nodeScalingSwitch);
-    options.filterModules().push(compactNotationSwitch);
-    options.filterModules().push(colorExternalsSwitch);
+    renderedGraphSettings.filterModules().push(nodeDegreeFilter);
+    renderedGraphSettings.filterModules().push(datatypeFilter);
+    renderedGraphSettings.filterModules().push(objectPropertyFilter);
+    renderedGraphSettings.filterModules().push(subclassFilter);
+    renderedGraphSettings.filterModules().push(disjointFilter);
+    renderedGraphSettings.filterModules().push(setOperatorFilter);
+    renderedGraphSettings.filterModules().push(nodeScalingSwitch);
+    renderedGraphSettings.filterModules().push(compactNotationSwitch);
+    renderedGraphSettings.filterModules().push(colorExternalsSwitch);
 
     window.addEventListener("resize", scheduleSizeAdjustment);
 
@@ -349,9 +454,9 @@ module.exports = function () {
       }
       if (opts.debugFeatures) {
         settingFlag = opts.debugFeatures === "true";
-        graph.options().setHideDebugFeatures(settingFlag);
-        if (graph.options().getHideDebugFeatures() === false) {
-          graph.options().executeHiddenDebugFeatures();
+        graph.ontologyEditingState().setHideDebugFeatures(settingFlag);
+        if (graph.ontologyEditingState().getHideDebugFeatures() === false) {
+          graph.ontologyEditingState().executeHiddenDebugFeatures();
         }
       }
 
@@ -427,12 +532,9 @@ module.exports = function () {
       }
       document.querySelector("#element_labelEditor").value = e.detail.label;
     });
-
-    options.searchMenu(searchMenu);
-    options.focuserModule(focuser);
-    options.zoomSlider(zoomSlider);
-    options.pausedMenu(pauseMenu);
-    options.resetMenu(resetMenu);
+    renderedGraphSettings.focuserModule(focuser);
+    renderedGraphSettings.pausedMenu(pauseMenu);
+    renderedGraphSettings.resetMenu(resetMenu);
 
     exportMenu.setup();
     gravityMenu.setup();
@@ -450,9 +552,30 @@ module.exports = function () {
       compactNotationSwitch,
       colorExternalsSwitch,
     );
+    registerApplicationUiModule("loadingModule", loadingModule);
+    registerApplicationUiModule("warningModule", warningModule);
+    registerApplicationUiModule("sidebar", sidebar);
+    registerApplicationUiModule("ontologyMenu", ontologyMenu);
+    registerApplicationUiModule("exportMenu", exportMenu);
+    registerApplicationUiModule("searchMenu", searchMenu);
+    registerApplicationUiModule("zoomSlider", zoomSlider);
+    registerApplicationUiModule("directInputModule", directInputModule);
     pauseMenu.setup();
     sidebar.setup();
     loadingModule.setup();
+    // Presentation modules render controller state rather than being called
+    // from inside the renderer.
+    unsubscribeFromControllerState = webVowlController.subscribeToState(
+      (controllerState) => {
+        loadingModule.renderControllerState(controllerState);
+        pauseMenu.renderGraphLayoutPaused(
+          controllerState.layout?.status === "paused",
+        );
+        if (controllerState.status === "ready") {
+          sidebar.renderOntologySummary(webVowlController.getOntologySummary());
+        }
+      },
+    );
     leftSidebar.setup();
     editSidebar.setup();
     debugMenu.setup();
@@ -470,37 +593,29 @@ module.exports = function () {
     zoomSlider.setup();
 
     // give the options the pointer to the some menus for import and export
-    options.literalFilter(emptyLiteralFilter);
-    options.nodeDegreeFilter(nodeDegreeFilter);
-    options.loadingModule(loadingModule);
-    options.filterMenu(filterMenu);
-    options.modeMenu(modeMenu);
-    options.gravityMenu(gravityMenu);
-    options.pausedMenu(pauseMenu);
-    options.pickAndPinModule(pickAndPin);
-    options.resetMenu(resetMenu);
+    renderedGraphSettings.literalFilter(emptyLiteralFilter);
+    renderedGraphSettings.nodeDegreeFilter(nodeDegreeFilter);
+    renderedGraphSettings.filterMenu(filterMenu);
+    renderedGraphSettings.modeMenu(modeMenu);
+    renderedGraphSettings.gravityMenu(gravityMenu);
+    renderedGraphSettings.pausedMenu(pauseMenu);
+    renderedGraphSettings.pickAndPinModule(pickAndPin);
+    renderedGraphSettings.resetMenu(resetMenu);
+    renderedGraphSettings.navigationMenu(navigationMenu);
+    renderedGraphSettings.leftSidebar(leftSidebar);
+    renderedGraphSettings.editSidebar(editSidebar);
+    renderedGraphSettings.graphObject(graph);
+    renderedGraphSettings.datatypeFilter(datatypeFilter);
+    renderedGraphSettings.objectPropertyFilter(objectPropertyFilter);
+    renderedGraphSettings.subclassFilter(subclassFilter);
+    renderedGraphSettings.setOperatorFilter(setOperatorFilter);
+    renderedGraphSettings.disjointPropertyFilter(disjointFilter);
 
-    options.ontologyMenu(ontologyMenu);
-    options.navigationMenu(navigationMenu);
-    options.sidebar(sidebar);
-    options.leftSidebar(leftSidebar);
-    options.editSidebar(editSidebar);
-    options.exportMenu(exportMenu);
-    options.graphObject(graph);
+    renderedGraphSettings.colorExternalsModule(colorExternalsSwitch);
+    renderedGraphSettings.compactNotationModule(compactNotationSwitch);
+    renderedGraphSettings.nodeScalingModule(nodeScalingSwitch);
 
-    options.warningModule(warningModule);
-    options.directInputModule(directInputModule);
-    options.datatypeFilter(datatypeFilter);
-    options.objectPropertyFilter(objectPropertyFilter);
-    options.subclassFilter(subclassFilter);
-    options.setOperatorFilter(setOperatorFilter);
-    options.disjointPropertyFilter(disjointFilter);
-
-    options.colorExternalsModule(colorExternalsSwitch);
-    options.compactNotationModule(compactNotationSwitch);
-    options.nodeScalingModule(nodeScalingSwitch);
-
-    ontologyMenu.setup(loadOntologyFromText);
+    ontologyMenu.setup();
     configMenu.setup(zoomSlider);
     loadingModule.refreshControlAvailability();
 
@@ -538,7 +653,7 @@ module.exports = function () {
         event.key &&
         event.key.toLowerCase() === "d"
       ) {
-        graph.options().executeHiddenDebugFeatuers();
+        graph.ontologyEditingState().executeHiddenDebugFeatuers();
         event.preventDefault();
       }
     });
@@ -574,11 +689,14 @@ module.exports = function () {
         directInputModule.setDirectInputMode();
       });
     }
-    options.prefixModule(prefixModule);
+    ontologyEditingState.prefixModule(prefixModule);
     adjustSize();
     sidebar.updateOntologyInformation(undefined, statistics);
-    loadingModule.parseUrlAndLoadOntology(); // loads automatically the ontology provided by the parameters
-    options.debugMenu(debugMenu);
+    // The location names the ontology to show; the controller loads it.
+    loadingModule.loadRemoteSource({
+      source: loadingModule.sourceFromLocation(),
+    });
+    renderedGraphSettings.debugMenu(debugMenu);
     debugMenu.updateSettings();
 
     // connect the reloadCachedVersionButton
@@ -597,91 +715,6 @@ module.exports = function () {
     }
     // add the initialized objects
   };
-
-  function loadOntologyFromText(jsonText, filename, alternativeFilename) {
-    const reloadCachedOntologyBtn = document.getElementById(
-      "reloadCachedOntology",
-    );
-    if (reloadCachedOntologyBtn) {
-      reloadCachedOntologyBtn.classList.add("hidden");
-    }
-    pauseMenu.reset();
-    navigationMenu.hideAllMenus();
-
-    if (
-      (jsonText === undefined && filename === undefined) ||
-      jsonText.length === 0
-    ) {
-      loadingModule.notValidJsonFile();
-      return;
-    }
-    let data;
-    if (jsonText) {
-      // validate JSON FILE
-      let validJSON;
-      try {
-        data = JSON.parse(jsonText);
-        validJSON = true;
-      } catch (_e) {
-        validJSON = false;
-      }
-      if (validJSON === false) {
-        // the server output is not a valid json file
-        loadingModule.notValidJsonFile();
-        return;
-      }
-
-      if (!filename) {
-        // First look if an ontology title exists, otherwise take the alternative filename
-        const ontologyNames = data.header ? data.header.title : undefined;
-        const ontologyName = languageTools.textInLanguage(ontologyNames);
-
-        if (ontologyName) {
-          filename = ontologyName;
-        } else {
-          filename = alternativeFilename;
-        }
-      }
-    }
-
-    // check if we have graph data
-    let classCount = 0;
-    if (data.class !== undefined) {
-      classCount = data.class.length;
-    }
-
-    let loadEmptyOntologyForEditing = false;
-    if (location.hash.indexOf("#new_ontology") !== -1) {
-      loadEmptyOntologyForEditing = true;
-    }
-    if (
-      classCount === 0 &&
-      graph.editorMode() === false &&
-      loadEmptyOntologyForEditing === false
-    ) {
-      // generate message for the user;
-      loadingModule.emptyGraphContentError();
-    } else {
-      ontologyMenu.setCachedOntology(filename, jsonText);
-      exportMenu.setJsonText(jsonText);
-      options.data(data);
-      loadingModule.validJsonFile();
-      loadingModule.setPercentMode();
-      if (loadEmptyOntologyForEditing === true) {
-        graph.editorMode(true);
-      }
-      graph.load();
-      sidebar.updateOntologyInformation(data, statistics);
-      exportMenu.setFilename(filename);
-      graph.updateZoomSliderValueFromOutside();
-      adjustSize();
-
-      const flagOfCheckBox = document.querySelector(
-        "#editorModeModuleCheckbox",
-      ).checked;
-      graph.editorMode(flagOfCheckBox); // update gui
-    }
-  }
 
   function scheduleSizeAdjustment() {
     if (resizeAnimationFrame !== undefined) {
@@ -774,4 +807,4 @@ module.exports = function () {
   }
 
   return app;
-};
+}

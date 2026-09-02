@@ -1,6 +1,8 @@
-const elementTools = require("./elementTools")();
+import { createElementTools } from "./elementTools.js";
+import { createSet } from "./set.js";
+const elementTools = createElementTools();
 
-module.exports = (function () {
+const createFilterTools = (function () {
   const tools = {};
 
   /**
@@ -11,7 +13,7 @@ module.exports = (function () {
    * @returns {{nodes: Array, properties: Array}} the filtered nodes and properties
    */
   tools.filterNodesAndTidy = function (nodes, properties, shouldKeepNode) {
-    const removedNodes = require("./set")(),
+    const removedNodes = createSet(),
       cleanedNodes = [],
       cleanedProperties = [],
       referencedNodes = new Set(),
@@ -73,3 +75,5 @@ module.exports = (function () {
     return tools;
   };
 })();
+
+export { createFilterTools };

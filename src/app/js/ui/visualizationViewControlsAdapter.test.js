@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { SourceTextModule } from "node:vm";
 import {
   beforeAll,
   beforeEach,
@@ -6,9 +9,6 @@ import {
   jest,
   test,
 } from "@jest/globals";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { SourceTextModule } from "node:vm";
 
 let VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS;
 let createVisualizationViewControlsAdapter;
@@ -169,16 +169,17 @@ describe("native visualization view controls", () => {
       connectAdapter();
       const filterCheckbox = controlElement(controlName);
 
+      // These are filter-out checkboxes: checked removes the elements.
       filterCheckbox.checked = true;
       filterCheckbox.emit("change");
       expect(controller.setVisualizationView).toHaveBeenLastCalledWith({
-        filters: { [filterFieldName]: "show" },
+        filters: { [filterFieldName]: "hide" },
       });
 
       filterCheckbox.checked = false;
       filterCheckbox.emit("change");
       expect(controller.setVisualizationView).toHaveBeenLastCalledWith({
-        filters: { [filterFieldName]: "hide" },
+        filters: { [filterFieldName]: "show" },
       });
     },
   );
@@ -385,10 +386,9 @@ describe("controller state presentation", () => {
     publishControllerState(READY_STATE);
 
     expect(controlElement("languageSelect").value).toBe("de");
-    expect(controlElement("datatypesFilterCheckbox").checked).toBe(true);
-    expect(controlElement("objectPropertiesFilterCheckbox").checked).toBe(
-      false,
-    );
+    // "show" leaves the filter-out checkbox unchecked.
+    expect(controlElement("datatypesFilterCheckbox").checked).toBe(false);
+    expect(controlElement("objectPropertiesFilterCheckbox").checked).toBe(true);
     expect(controlElement("minimumDegreeRange").value).toBe("4");
     expect(controlElement("graphLayoutStatusOutput").textContent).toBe(
       "relaxing",

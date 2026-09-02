@@ -17,9 +17,9 @@ const EXPORTED_VISUAL_PROPERTIES = [
   "visibility",
 ];
 
-module.exports = function createExportSvgClone(liveSvg, getComputedStyle) {
+export function createExportSvgClone(liveSvg, getComputedStyle) {
   const readComputedStyle =
-    getComputedStyle || window.getComputedStyle.bind(window);
+    getComputedStyle || globalThis.getComputedStyle.bind(globalThis);
   const exportedSvg = liveSvg.cloneNode(true);
   const liveElements = [liveSvg].concat(
     Array.from(liveSvg.querySelectorAll("*")),
@@ -48,4 +48,4 @@ module.exports = function createExportSvgClone(liveSvg, getComputedStyle) {
   exportedSvg.setAttribute("version", "1.1");
   exportedSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
   return exportedSvg;
-};
+}

@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { createContext, SourceTextModule } from "node:vm";
 import {
   afterEach,
   beforeAll,
@@ -7,9 +10,6 @@ import {
   jest,
   test,
 } from "@jest/globals";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { createContext, SourceTextModule } from "node:vm";
 
 let createLeftSidebar;
 let leftSidebarModuleContext;
@@ -136,6 +136,7 @@ describe("left sidebar native controls", () => {
     };
     graph = {
       options: () => graphOptions,
+      ontologyEditingState: () => graphOptions,
       updateCanvasContainerSize: jest.fn(),
     };
     leftSidebar = createLeftSidebar(graph);
@@ -166,7 +167,9 @@ describe("left sidebar native controls", () => {
     expect(simulatedClick).not.toHaveBeenCalled();
     expect(accordionTrigger.classes).toContain("accordion-trigger-active");
     expect(accordionPanel.classes).not.toContain("hidden");
-    expect(graph.options().defaultClass).toHaveBeenCalledWith("owl:Class");
+    expect(graph.ontologyEditingState().defaultClass).toHaveBeenCalledWith(
+      "owl:Class",
+    );
   });
 
   test("owns only accordion triggers inside the left sidebar", () => {
@@ -195,7 +198,7 @@ describe("left sidebar native controls", () => {
     classSelection.dispatchEvent(new Event("click"));
 
     expect(graph.updateCanvasContainerSize).not.toHaveBeenCalled();
-    expect(graph.options().defaultClass).not.toHaveBeenCalled();
+    expect(graph.ontologyEditingState().defaultClass).not.toHaveBeenCalled();
   });
 
   test("replaces and disposes pending transition-suppression frames", () => {

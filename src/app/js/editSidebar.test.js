@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { createContext, SourceTextModule } from "node:vm";
 import {
   afterEach,
   beforeAll,
@@ -7,9 +10,6 @@ import {
   jest,
   test,
 } from "@jest/globals";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { createContext, SourceTextModule } from "node:vm";
 
 let createEditSidebar;
 let editSidebarModuleContext;
@@ -244,6 +244,13 @@ describe("datatype editing", () => {
         getGeneralMetaObjectProperty: () => "https://example.com/ontology",
         prefixList: () => prefixList,
       }),
+      ontologyEditingState: () => ({
+        getGeneralMetaObject: () => ({
+          iri: "https://example.com/ontology",
+        }),
+        getGeneralMetaObjectProperty: () => "https://example.com/ontology",
+        prefixList: () => prefixList,
+      }),
     };
     datatype = createMutableOntologyElement({
       baseIri: "https://haddenindustries.com/ontology/iso-iec/11179/-3/ed-4/",
@@ -355,6 +362,7 @@ describe("element IRI editing with modern URLs and prefixes", () => {
     graph = {
       language: () => "en",
       options: () => optionsObj,
+      ontologyEditingState: () => optionsObj,
       checkIfIriClassAlreadyExist: jest.fn(() => false),
       checkIfIriPropertyAlreadyExist: jest.fn(() => false),
       dispatchEvent: jest.fn(),
@@ -529,6 +537,7 @@ describe("edit sidebar native prefix controls", () => {
     const graph = {
       isEditorMode: () => false,
       options: () => graphOptions,
+      ontologyEditingState: () => graphOptions,
     };
     editSidebar = createEditSidebar(graph, {
       elementTools: {},

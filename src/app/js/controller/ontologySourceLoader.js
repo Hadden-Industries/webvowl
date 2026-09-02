@@ -1,3 +1,7 @@
+import { OWLOntologyLoaderConfiguration } from "owlapi/model";
+import { loadWithImports as productionLoadWithImports } from "../../../owl2vowl/js/index.js";
+import { WebVowlImportResolver } from "../../../owl2vowl/js/importResolver.js";
+import { createLinkedAbortSignal } from "./linkedAbortSignal.js";
 import { OWLDocumentFormats } from "owlapi/formats";
 import {
   DocumentLoadError,
@@ -7,11 +11,7 @@ import {
   SecurityPolicyError,
   UnparsableOntologyException,
 } from "owlapi/io";
-import { OWLOntologyLoaderConfiguration } from "owlapi/model";
 
-import { loadWithImports as productionLoadWithImports } from "../../../owl2vowl/js/index.js";
-import { WebVowlImportResolver } from "../../../owl2vowl/js/importResolver.js";
-import { createLinkedAbortSignal } from "./linkedAbortSignal.js";
 import {
   WEB_VOWL_OPERATION_LIMITS,
   WebVowlOperationError,

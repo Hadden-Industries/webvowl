@@ -1,4 +1,4 @@
-module.exports = function (graph) {
+export function createDomainDragger(graph) {
   /** variable defs **/
   const Domain_dragger = {};
   Domain_dragger.nodeId = 10002;
@@ -404,4 +404,4 @@ module.exports = function (graph) {
     // Class_dragger.nodeElement.classed(name,val);
   };
   return Domain_dragger;
-};
+}

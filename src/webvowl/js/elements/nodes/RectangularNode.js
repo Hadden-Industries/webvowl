@@ -1,10 +1,19 @@
-const BaseNode = require("./BaseNode");
-const CenteringTextElement = require("../../../../shared/js/util/CenteringTextElement");
-const textTools = require("../../../../shared/js/util/textTools")();
-const drawTools = require("../drawTools")();
-const rectangularElementTools = require("../rectangularElementTools")();
+import { createDrawTools as drawToolsFactory } from "../drawTools.js";
+import { createRectangularElementTools as rectangularElementToolsFactory } from "../rectangularElementTools.js";
+import { BaseNode } from "./BaseNode.js";
+import { CenteringTextElement } from "../../../../shared/js/util/CenteringTextElement.js";
+import { createTextTools as textToolsFactory } from "../../../../shared/js/util/textTools.js";
+const textTools = textToolsFactory();
+const drawTools = drawToolsFactory();
+const rectangularElementTools = rectangularElementToolsFactory();
 
-module.exports = (function () {
+// Linear easing is the identity function; keeping it local removes this
+// renderer element's dependency on an ambient force-layout global.
+function linearEasing(normalizedTime) {
+  return +normalizedTime;
+}
+
+const RectangularNode = (function () {
   const o = function (graph) {
     BaseNode.apply(this, arguments);
 
@@ -239,7 +248,7 @@ module.exports = (function () {
         shapeElement
           .transition()
           .tween("attr", function () {})
-          .ease(d3.easeLinear)
+          .ease(linearEasing)
           .duration(100)
           .attr({
             x: -labelWidth / 2,
@@ -256,7 +265,7 @@ module.exports = (function () {
         shapeElement
           .transition()
           .tween("attr", function () {})
-          .ease(d3.easeLinear)
+          .ease(linearEasing)
           .duration(100)
           .attr({
             x: -labelWidth / 2,
@@ -275,7 +284,7 @@ module.exports = (function () {
           .transition()
           .tween("attr.translate", function () {})
           .attr("transform", "translate(" + dx + "," + dy + ")")
-          .ease(d3.easeLinear)
+          .ease(linearEasing)
           .duration(100);
       }
     };
@@ -294,3 +303,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { RectangularNode };

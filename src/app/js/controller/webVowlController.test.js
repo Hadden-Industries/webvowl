@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { SourceTextModule } from "node:vm";
 import {
   beforeAll,
   beforeEach,
@@ -6,9 +9,6 @@ import {
   jest,
   test,
 } from "@jest/globals";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { SourceTextModule } from "node:vm";
 
 let createInMemoryRenderedGraphAdapter;
 let createOntologyInspector;
@@ -494,6 +494,54 @@ describe("WebVOWL controller orchestration", () => {
       expect(controller.getState().warnings).toContain(
         "One label was truncated.",
       );
+    });
+
+    test("reduces render progress published while the load is still in flight", async () => {
+      const loadPromise = controller.loadOntology(SOURCE_REQUEST);
+      await flushMicrotasks(2);
+      const deferredLoad = deferredSourceLoads.at(-1);
+      deferredLoad.resolve(createSourceLoadRecord());
+      await flushMicrotasks(3);
+
+      // The renderer reports layout progress before the first paint resolves.
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "render-progress-changed",
+        loadGeneration: 1,
+        payload: {
+          completedRenderedElementCount: 60,
+          totalRenderedElementCount: 100,
+        },
+      });
+      await flushMicrotasks();
+
+      expect(controller.getState().renderProgress).toEqual({
+        completedRenderedElementCount: 60,
+        totalRenderedElementCount: 100,
+      });
+
+      renderedGraphTestHarness.completeInitialPaint(1);
+      await flushMicrotasks(3);
+      renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      await flushMicrotasks(3);
+      await loadPromise;
+    });
+
+    test("reduces a render progress event into controller state", async () => {
+      await completeLoad();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "render-progress-changed",
+        loadGeneration: 1,
+        payload: {
+          completedRenderedElementCount: 40,
+          totalRenderedElementCount: 100,
+        },
+      });
+      await flushMicrotasks();
+
+      expect(controller.getState().renderProgress).toEqual({
+        completedRenderedElementCount: 40,
+        totalRenderedElementCount: 100,
+      });
     });
   });
 

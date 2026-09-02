@@ -73,15 +73,15 @@ export function createLeftSidebar(graph) {
     let elementDescription = "";
     if (defaultOptionName === "defaultClass") {
       elementDescription = "Class: ";
-      graph.options().defaultClass(selectedControl.textContent);
+      graph.ontologyEditingState().defaultClass(selectedControl.textContent);
     }
     if (defaultOptionName === "defaultDatatype") {
       elementDescription = "Datatype: ";
-      graph.options().defaultDatatype(selectedControl.textContent);
+      graph.ontologyEditingState().defaultDatatype(selectedControl.textContent);
     }
     if (defaultOptionName === "defaultProperty") {
       elementDescription = "Property: ";
-      graph.options().defaultProperty(selectedControl.textContent);
+      graph.ontologyEditingState().defaultProperty(selectedControl.textContent);
     }
 
     const defaultOptionHeading = document.querySelector(
@@ -123,9 +123,13 @@ export function createLeftSidebar(graph) {
     const defaultDatatype = "rdfs:Literal";
     const defaultProperty = "owl:objectProperty";
 
-    const supportedClasses = graph.options().supportedClasses();
-    const supportedDatatypes = graph.options().supportedDatatypes();
-    const supportedProperties = graph.options().supportedProperties();
+    const supportedClasses = graph.ontologyEditingState().supportedClasses();
+    const supportedDatatypes = graph
+      .ontologyEditingState()
+      .supportedDatatypes();
+    const supportedProperties = graph
+      .ontologyEditingState()
+      .supportedProperties();
     for (const supportedClass of supportedClasses) {
       const classSelectionControl = document.createElement("div");
       classContainer.appendChild(classSelectionControl);

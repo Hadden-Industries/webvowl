@@ -1,14 +1,21 @@
+import { RENDERED_GRAPH_CONFIGURATION_DEFAULTS } from "../../../webvowl/js/runtime/renderedGraphConfiguration.js";
+
 /**
  * Contains the logic for the reset button.
  *
  * @param graph the associated webvowl graph
  * @returns {{}}
  */
-module.exports = function (graph) {
+export function createResetMenu(
+  graph,
+  {
+    documentObject = globalThis.document,
+    windowObject = globalThis.window,
+  } = {},
+) {
   const resetMenu = {};
   const options = graph.graphOptions();
   let resettableModules;
-  const untouchedOptions = require("../../../shared/js/options")();
 
   /**
    * Adds the reset button to the website.
@@ -16,14 +23,14 @@ module.exports = function (graph) {
    */
   resetMenu.setup = function (_resettableModules) {
     resettableModules = _resettableModules;
-    document
+    documentObject
       .getElementById("reset-button")
       .addEventListener("click", resetGraph);
   };
 
   let resetFlashTimer;
   function resetGraph() {
-    const resetButton = document.getElementById("reset-button");
+    const resetButton = documentObject.getElementById("reset-button");
 
     // 1. Apply visual feedback SYNCHRONOUSLY before any async work.
     //    will-change: transform on #reset-button and will-change: opacity
@@ -46,11 +53,17 @@ module.exports = function (graph) {
       requestAnimationFrame(function () {
         graph.resetSearchHighlight();
         graph.dispatchEvent(new CustomEvent("searchcleared"));
-        options.classDistance(untouchedOptions.classDistance());
-        options.datatypeDistance(untouchedOptions.datatypeDistance());
-        options.charge(untouchedOptions.charge());
-        options.gravity(untouchedOptions.gravity());
-        options.linkStrength(untouchedOptions.linkStrength());
+        options.classDistance(
+          RENDERED_GRAPH_CONFIGURATION_DEFAULTS.classDistance,
+        );
+        options.datatypeDistance(
+          RENDERED_GRAPH_CONFIGURATION_DEFAULTS.datatypeDistance,
+        );
+        options.charge(RENDERED_GRAPH_CONFIGURATION_DEFAULTS.charge);
+        options.gravity(RENDERED_GRAPH_CONFIGURATION_DEFAULTS.gravity);
+        options.linkStrength(
+          RENDERED_GRAPH_CONFIGURATION_DEFAULTS.linkStrength,
+        );
         graph.reset();
 
         resettableModules.forEach(function (module) {
@@ -71,8 +84,8 @@ module.exports = function (graph) {
   }
 
   resetMenu.setMenuMode = function (enabled) {
-    document.getElementById("reset-button").disabled = !enabled;
+    documentObject.getElementById("reset-button").disabled = !enabled;
   };
 
   return resetMenu;
-};
+}

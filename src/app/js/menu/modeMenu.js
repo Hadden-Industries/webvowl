@@ -4,7 +4,13 @@
  * @param graph the graph that belongs to these controls
  * @returns {{}}
  */
-module.exports = function (graph) {
+export function createModeMenu(
+  graph,
+  {
+    documentObject = globalThis.document,
+    windowObject = globalThis.window,
+  } = {},
+) {
   const SAME_COLOR_MODE = { text: "Multicolor", type: "same" };
   const GRADIENT_COLOR_MODE = { text: "Multicolor", type: "gradient" };
 
@@ -93,7 +99,7 @@ module.exports = function (graph) {
     onChangeFunc,
     updateLvl,
   ) {
-    const moduleOptionContainer = document.querySelector(selector);
+    const moduleOptionContainer = documentObject.querySelector(selector);
     if (!moduleOptionContainer) {
       return;
     }
@@ -108,15 +114,17 @@ module.exports = function (graph) {
     moduleCheckbox.addEventListener("click", function () {
       const isEnabled = moduleCheckbox.checked;
       onChangeFunc(isEnabled);
-      const slider = document.querySelector("#maxLabelWidthSlider");
+      const slider = documentObject.querySelector("#maxLabelWidthSlider");
       if (slider) {
         slider.disabled = !isEnabled;
       }
-      const sliderVal = document.querySelector("#maxLabelWidthSliderValue");
+      const sliderVal = documentObject.querySelector(
+        "#maxLabelWidthSliderValue",
+      );
       if (sliderVal) {
         sliderVal.classList.toggle("disabledLabelForSlider", !isEnabled);
       }
-      const descLabel = document.querySelector(
+      const descLabel = documentObject.querySelector(
         "#maxLabelWidthDescriptionLabel",
       );
       if (descLabel) {
@@ -133,7 +141,7 @@ module.exports = function (graph) {
   }
 
   function addCheckBox(identifier, modeName, selector, onChangeFunc) {
-    const moduleOptionContainer = document.querySelector(selector);
+    const moduleOptionContainer = documentObject.querySelector(selector);
     if (!moduleOptionContainer) {
       return;
     }
@@ -161,7 +169,7 @@ module.exports = function (graph) {
     selector,
     updateGraphOnClick,
   ) {
-    const moduleOptionContainer = document.querySelector(selector);
+    const moduleOptionContainer = documentObject.querySelector(selector);
     if (!moduleOptionContainer) {
       return null;
     }
@@ -359,14 +367,16 @@ module.exports = function (graph) {
   };
 
   modeMenu.syncEditorState = function (editMode) {
-    const editorCheckbox = document.querySelector("#editorModeModuleCheckbox");
+    const editorCheckbox = documentObject.querySelector(
+      "#editorModeModuleCheckbox",
+    );
     if (editorCheckbox) {
       editorCheckbox.checked = editMode;
     }
 
-    const create_entry = document.querySelector("#empty");
-    const create_container = document.querySelector("#emptyContainer");
-    const emptyHint = document.querySelector("#empty-disabled-hint");
+    const create_entry = documentObject.querySelector("#empty");
+    const create_container = documentObject.querySelector("#emptyContainer");
+    const emptyHint = documentObject.querySelector("#empty-disabled-hint");
     const createMessage = editMode
       ? "Creates a new empty ontology"
       : "Enable editing in Modes menu to be able to create a new ontology";
@@ -379,7 +389,7 @@ module.exports = function (graph) {
       create_container.title = createMessage;
     }
 
-    const accuracyHelper = document.querySelector("#useAccuracyHelper");
+    const accuracyHelper = documentObject.querySelector("#useAccuracyHelper");
     if (accuracyHelper) {
       if (!editMode) {
         accuracyHelper.classList.add("disabled");
@@ -389,7 +399,7 @@ module.exports = function (graph) {
         accuracyHelper.removeAttribute("aria-disabled");
       }
     }
-    const accuracyCheckbox = document.querySelector(
+    const accuracyCheckbox = documentObject.querySelector(
       "#useAccuracyHelperConfigCheckbox",
     );
     if (accuracyCheckbox) {
@@ -405,10 +415,10 @@ module.exports = function (graph) {
       }
     }
 
-    const compactNotationContainer = document.querySelector(
+    const compactNotationContainer = documentObject.querySelector(
       "#compactnotationModuleCheckbox",
     );
-    const compactNotationOption = document.querySelector(
+    const compactNotationOption = documentObject.querySelector(
       "#compactNotationOption",
     );
     if (compactNotationContainer) {
@@ -426,4 +436,4 @@ module.exports = function (graph) {
   };
 
   return modeMenu;
-};
+}

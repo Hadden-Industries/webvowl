@@ -1,10 +1,26 @@
-const { DOMImplementation } = require("@xmldom/xmldom");
+import { DOMImplementation } from "@xmldom/xmldom";
+import * as d3 from "d3";
+import { beforeAll } from "@jest/globals";
+import loadEsmModuleForTest from "../../app/test/loadEsmModuleForTest.js";
 
-global.d3 = require("d3");
+const graphModule = {};
 
-const graphModule = require("./graph");
-const svgRenderingGuard = graphModule.svgRenderingGuard;
-const createInvalidGeometryReporter = graphModule.createInvalidGeometryReporter;
+let svgRenderingGuard;
+let createInvalidGeometryReporter;
+
+beforeAll(async () => {
+  Object.assign(
+    graphModule,
+    await loadEsmModuleForTest(
+      new URL("./runtime/renderedGraphInternals.js", import.meta.url),
+      import.meta.url,
+    ),
+  );
+  svgRenderingGuard = graphModule.svgRenderingGuard;
+  createInvalidGeometryReporter = graphModule.createInvalidGeometryReporter;
+});
+
+globalThis.d3 = d3;
 
 function createSvgElement(tagName) {
   const document = new DOMImplementation().createDocument(

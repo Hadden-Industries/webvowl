@@ -1,3 +1,9 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
+
+// Interface modules collaborate through the application registry.
+const registeredUiModulesForTest = new Map();
 import {
   afterEach,
   beforeAll,
@@ -7,9 +13,6 @@ import {
   jest,
   test,
 } from "@jest/globals";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
 
 let createDirectInputModule;
 let directInputModuleContext;
@@ -25,16 +28,22 @@ beforeAll(async () => {
     readFileSync(fileURLToPath(moduleUrl), "utf8"),
     { context: directInputModuleContext, identifier: moduleUrl.href },
   );
-  const owl2VowlModule = new SyntheticModule(
-    ["loadWithImports"],
-    function initializeOwl2VowlModule() {
-      this.setExport("loadWithImports", jest.fn());
-    },
-    { context: directInputModuleContext, identifier: "test:owl2vowl" },
-  );
   await sourceModule.link((specifier) => {
-    if (specifier === "../../owl2vowl/js/index.js") {
-      return owl2VowlModule;
+    if (specifier.endsWith("applicationUiRegistry.js")) {
+      return new SyntheticModule(
+        ["applicationUiModule", "registerApplicationUiModule"],
+        function provideApplicationUiRegistry() {
+          this.setExport("applicationUiModule", (moduleName) =>
+            registeredUiModulesForTest.get(moduleName),
+          );
+          this.setExport(
+            "registerApplicationUiModule",
+            (moduleName, uiModule) =>
+              registeredUiModulesForTest.set(moduleName, uiModule),
+          );
+        },
+        { context: directInputModuleContext, identifier: specifier },
+      );
     }
     throw new Error(`Unexpected direct-input dependency: ${specifier}`);
   });
@@ -64,10 +73,18 @@ class DirectInputControl extends EventTarget {
   }
 }
 
+async function flushMicrotasks(flushCount = 6) {
+  for (let flushIndex = 0; flushIndex < flushCount; flushIndex += 1) {
+    await Promise.resolve();
+  }
+}
+
 describe("direct ontology input controls", () => {
   let controls;
   let directInputModule;
   let loadingModule;
+  let requestedLoads;
+  let webVowlController;
 
   beforeEach(() => {
     controls = new Map(
@@ -83,15 +100,23 @@ describe("direct ontology input controls", () => {
       querySelector: (selector) => controls.get(selector),
     };
     directInputModuleContext.document = global.document;
+    requestedLoads = [];
+    webVowlController = {
+      loadOntology: jest.fn((loadRequest) => {
+        requestedLoads.push(loadRequest);
+        return Promise.resolve({ status: "ready" });
+      }),
+    };
     loadingModule = {
       directInput: jest.fn(),
       initializeLoader: jest.fn(),
     };
+    // Direct input reaches the loading module through the interface registry.
+    registeredUiModulesForTest.set("loadingModule", loadingModule);
     const graph = {
       handleOnLoadingError: jest.fn(),
-      options: () => ({ loadingModule: () => loadingModule }),
     };
-    directInputModule = createDirectInputModule(graph);
+    directInputModule = createDirectInputModule(graph, { webVowlController });
   });
 
   afterEach(() => {
@@ -100,19 +125,43 @@ describe("direct ontology input controls", () => {
     delete global.document;
   });
 
-  test("loads VOWL JSON from the upload button and closes the input panel", () => {
+  test("sends an already parsed VOWL model to the controller", async () => {
     directInputModule.setDirectInputMode(true);
-    controls.get("#directInputTextArea").value = JSON.stringify({
-      class: [{ id: "1", type: "owl:Class" }],
-    });
+    const vowlModel = { class: [{ id: "1", type: "owl:Class" }] };
+    controls.get("#directInputTextArea").value = JSON.stringify(vowlModel);
 
     controls.get("#directUploadBtn").dispatchEvent(new Event("click"));
+    await flushMicrotasks();
 
-    expect(loadingModule.initializeLoader).toHaveBeenCalledTimes(1);
-    expect(loadingModule.directInput).toHaveBeenCalledWith(
-      controls.get("#directInputTextArea").value,
-    );
+    expect(requestedLoads).toEqual([
+      {
+        source: {
+          kind: "vowl-model",
+          model: vowlModel,
+          displayName: "Direct input",
+        },
+      },
+    ]);
     expect(controls.get("#DirectInputContent").classes).toContain("hidden");
+  });
+
+  test("sends any other ontology text to the controller as ontology text", async () => {
+    directInputModule.setDirectInputMode(true);
+    const ontologyText = "@prefix ex: <http://example.test/> .";
+    controls.get("#directInputTextArea").value = ontologyText;
+
+    controls.get("#directUploadBtn").dispatchEvent(new Event("click"));
+    await flushMicrotasks();
+
+    expect(requestedLoads).toEqual([
+      {
+        source: {
+          kind: "ontology-text",
+          text: ontologyText,
+          displayName: "Direct input",
+        },
+      },
+    ]);
   });
 
   test("treats an explicit visibility value as state rather than a toggle", () => {
@@ -133,7 +182,6 @@ describe("direct ontology input controls", () => {
     controls.get("#directUploadBtn").dispatchEvent(new Event("click"));
     controls.get("#close_directUploadBtn").dispatchEvent(new Event("click"));
 
-    expect(loadingModule.initializeLoader).not.toHaveBeenCalled();
-    expect(loadingModule.directInput).not.toHaveBeenCalled();
+    expect(webVowlController.loadOntology).not.toHaveBeenCalled();
   });
 });

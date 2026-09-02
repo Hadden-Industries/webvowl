@@ -1,4 +1,10 @@
-module.exports = function (graph) {
+export function createDebugMenu(
+  graph,
+  {
+    documentObject = globalThis.document,
+    windowObject = globalThis.window,
+  } = {},
+) {
   const debugMenu = {},
     checkboxes = [];
 
@@ -10,13 +16,14 @@ module.exports = function (graph) {
       graph.options().useAccuracyHelper,
       function (enabled, silent) {
         if (!enabled) {
-          document
+          documentObject
             .querySelector("#showDraggerObject")
             .classList.add("disabled");
-          document.querySelector("#showDraggerObjectConfigCheckbox").checked =
-            false;
+          documentObject.querySelector(
+            "#showDraggerObjectConfigCheckbox",
+          ).checked = false;
         } else {
-          document
+          documentObject
             .querySelector("#showDraggerObject")
             .classList.remove("disabled");
         }
@@ -47,12 +54,14 @@ module.exports = function (graph) {
       "#showFPS_Statistics",
       graph.options().showRenderingStatistic,
       function (enabled, silent) {
-        if (graph.options().getHideDebugFeatures() === false) {
-          document
+        if (graph.ontologyEditingState().getHideDebugFeatures() === false) {
+          documentObject
             .querySelector("#FPS_Statistics")
             .classList.toggle("hidden", !enabled);
         } else {
-          document.querySelector("#FPS_Statistics").classList.add("hidden");
+          documentObject
+            .querySelector("#FPS_Statistics")
+            .classList.add("hidden");
         }
       },
     );
@@ -62,12 +71,12 @@ module.exports = function (graph) {
       "#showModeOfOperation",
       graph.options().showInputModality,
       function (enabled) {
-        if (graph.options().getHideDebugFeatures() === false) {
-          document
+        if (graph.ontologyEditingState().getHideDebugFeatures() === false) {
+          documentObject
             .querySelector("#modeOfOperationString")
             .classList.toggle("hidden", !enabled);
         } else {
-          document
+          documentObject
             .querySelector("#modeOfOperationString")
             .classList.add("hidden");
         }
@@ -82,7 +91,7 @@ module.exports = function (graph) {
     onChangeFunc,
     _callbackFunction,
   ) {
-    const configOptionContainer = document.querySelector(selector);
+    const configOptionContainer = documentObject.querySelector(selector);
     const configCheckbox = configOptionContainer.querySelector(
       "#" + identifier + "ConfigCheckbox",
     );
@@ -130,8 +139,8 @@ module.exports = function (graph) {
   };
 
   debugMenu.updateSettings = function () {
-    const debugOptions = document.querySelectorAll(".debugOption");
-    const hideDebug = graph.options().getHideDebugFeatures();
+    const debugOptions = documentObject.querySelectorAll(".debugOption");
+    const hideDebug = graph.ontologyEditingState().getHideDebugFeatures();
     debugOptions.forEach(function (option) {
       option.classList.toggle("hidden", hideDebug);
     });
@@ -141,12 +150,18 @@ module.exports = function (graph) {
       item.update(silent);
     });
     if (graph.editorMode() === false) {
-      document.querySelector("#useAccuracyHelper").classList.add("disabled");
-      document.querySelector("#showDraggerObject").classList.add("disabled");
+      documentObject
+        .querySelector("#useAccuracyHelper")
+        .classList.add("disabled");
+      documentObject
+        .querySelector("#showDraggerObject")
+        .classList.add("disabled");
     } else {
-      document.querySelector("#useAccuracyHelper").classList.remove("disabled");
+      documentObject
+        .querySelector("#useAccuracyHelper")
+        .classList.remove("disabled");
     }
   };
 
   return debugMenu;
-};
+}

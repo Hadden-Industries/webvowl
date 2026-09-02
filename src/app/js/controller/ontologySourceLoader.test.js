@@ -1,3 +1,6 @@
+import { OWLOntologyLoaderConfiguration } from "owlapi/model";
+import { loadWithImports as productionLoadWithImports } from "../../../owl2vowl/js/index.js";
+import { WebVowlImportResolver } from "../../../owl2vowl/js/importResolver.js";
 import { beforeAll, describe, expect, jest, test } from "@jest/globals";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -14,10 +17,6 @@ import {
   UnloadableImportError,
   UnparsableOntologyException,
 } from "owlapi/io";
-import { OWLOntologyLoaderConfiguration } from "owlapi/model";
-
-import { loadWithImports as productionLoadWithImports } from "../../../owl2vowl/js/index.js";
-import { WebVowlImportResolver } from "../../../owl2vowl/js/importResolver.js";
 
 let createOntologySourceLoader;
 
@@ -1073,5 +1072,42 @@ describe("canonical ontology source loading", () => {
         },
       }),
     ).rejects.toBe(collaboratorDefect);
+  });
+});
+
+describe("mixed-content retrieval", () => {
+  test("retrieves an http location over https from an https page", async () => {
+    const requestedUrls = [];
+    const fetchImpl = jest.fn(async (requestedUrl) => {
+      requestedUrls.push(String(requestedUrl));
+      return new Response(JSON.stringify(createVowlModel()), {
+        headers: { "content-type": "application/json" },
+        status: 200,
+      });
+    });
+    const ontologySourceLoader = createOntologySourceLoader({
+      computeSha256Hex: async () => SHA256_HEX_FIXTURE,
+      createImportResolver: () => createRealImportResolver(fetchImpl),
+      loadWithImports: async () => createVowlModel(),
+    });
+    const originalLocation = globalThis.location;
+    Object.defineProperty(globalThis, "location", {
+      configurable: true,
+      value: { href: "https://viewer.example/", protocol: "https:" },
+    });
+
+    try {
+      await ontologySourceLoader.loadOntologySource({
+        source: { kind: "vowl-json-url", url: "http://example.com/model.json" },
+      });
+    } finally {
+      Object.defineProperty(globalThis, "location", {
+        configurable: true,
+        value: originalLocation,
+      });
+    }
+
+    // The page is https, so the browser would block the http retrieval.
+    expect(requestedUrls).toEqual(["https://example.com/model.json"]);
   });
 });

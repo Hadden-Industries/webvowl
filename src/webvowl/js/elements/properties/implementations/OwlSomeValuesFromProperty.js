@@ -1,6 +1,6 @@
-const BaseProperty = require("../BaseProperty");
+import { BaseProperty } from "../BaseProperty.js";
 
-module.exports = (function () {
+const OwlSomeValuesFromProperty = (function () {
   const o = function (graph) {
     BaseProperty.apply(this, arguments);
 
@@ -27,3 +27,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { OwlSomeValuesFromProperty };

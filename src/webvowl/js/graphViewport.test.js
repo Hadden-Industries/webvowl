@@ -1,7 +1,25 @@
-global.d3 = require("d3");
-const graphModule = require("./graph");
-const viewportTransform = graphModule.viewportTransform;
-const measureViewportElement = graphModule.measureViewportElement;
+import * as d3 from "d3";
+import { beforeAll } from "@jest/globals";
+import loadEsmModuleForTest from "../../app/test/loadEsmModuleForTest.js";
+
+const graphModule = {};
+
+let viewportTransform;
+let measureViewportElement;
+
+beforeAll(async () => {
+  Object.assign(
+    graphModule,
+    await loadEsmModuleForTest(
+      new URL("./runtime/renderedGraphInternals.js", import.meta.url),
+      import.meta.url,
+    ),
+  );
+  viewportTransform = graphModule.viewportTransform;
+  measureViewportElement = graphModule.measureViewportElement;
+});
+
+globalThis.d3 = d3;
 
 describe("graph viewport transform normalization", () => {
   test.each([

@@ -1,7 +1,9 @@
-const elementTools = require("../util/elementTools")();
-const filterTools = require("../util/filterTools")();
+import { createFilterTools as filterToolsFactory } from "../util/filterTools.js";
+import { createElementTools as elementToolsFactory } from "../util/elementTools.js";
+const elementTools = elementToolsFactory();
+const filterTools = filterToolsFactory();
 
-module.exports = function () {
+export function createDatatypeFilter() {
   const filter = {};
   let nodes;
   let properties;
@@ -59,4 +61,4 @@ module.exports = function () {
   };
 
   return filter;
-};
+}

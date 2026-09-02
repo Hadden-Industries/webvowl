@@ -1,10 +1,18 @@
+import { applicationUiModule } from "../ui/applicationUiRegistry.js";
 /**
  * Contains the search "engine"
  *
  * @param graph the associated webvowl graph
  * @returns {{}}
  */
-module.exports = function (graph) {
+export function createSearchMenu(
+  graph,
+  {
+    documentObject = globalThis.document,
+    webVowlController,
+    windowObject = globalThis.window,
+  } = {},
+) {
   const searchMenu = {};
   let dictionary = [];
   let entryNames = [];
@@ -21,8 +29,8 @@ module.exports = function (graph) {
 
   let results = [];
   let resultID = [];
-  const c_locate = document.getElementById("locateSearchResult");
-  const listbox = document.getElementById("search-results-listbox");
+  const c_locate = documentObject.getElementById("locateSearchResult");
+  const listbox = documentObject.getElementById("search-results-listbox");
 
   String.prototype.beginsWith = function (string) {
     return this.indexOf(string) === 0;
@@ -123,44 +131,46 @@ module.exports = function (graph) {
   }
 
   function expandMobileSearch() {
-    document.getElementById("c_search").classList.add("search-expanded");
-    document
+    documentObject.getElementById("c_search").classList.add("search-expanded");
+    documentObject
       .getElementById("scrollLeftButton")
       .classList.add("hidden-by-search");
-    document
+    documentObject
       .getElementById("scrollRightButton")
       .classList.add("hidden-by-search");
     updateClearButtonVisibility();
   }
 
   function collapseMobileSearch() {
-    document.getElementById("c_search").classList.remove("search-expanded");
-    document
+    documentObject
+      .getElementById("c_search")
+      .classList.remove("search-expanded");
+    documentObject
       .getElementById("scrollLeftButton")
       .classList.remove("hidden-by-search");
-    document
+    documentObject
       .getElementById("scrollRightButton")
       .classList.remove("hidden-by-search");
   }
 
   function updateVisualViewportMetrics() {
     if (
-      !window.visualViewport ||
-      !document.documentElement ||
-      !document.documentElement.style
+      !windowObject.visualViewport ||
+      !documentObject.documentElement ||
+      !documentObject.documentElement.style
     ) {
       return;
     }
 
     const updateMetrics = function () {
       visualViewportAnimationFrame = undefined;
-      document.documentElement.style.setProperty(
+      documentObject.documentElement.style.setProperty(
         "--visual-viewport-height",
-        window.visualViewport.height + "px",
+        windowObject.visualViewport.height + "px",
       );
-      document.documentElement.style.setProperty(
+      documentObject.documentElement.style.setProperty(
         "--visual-viewport-offset-top",
-        window.visualViewport.offsetTop + "px",
+        windowObject.visualViewport.offsetTop + "px",
       );
     };
 
@@ -178,7 +188,9 @@ module.exports = function (graph) {
   }
 
   function portalSearchResults() {
-    const overlayLayer = document.getElementById("applicationOverlayLayer");
+    const overlayLayer = documentObject.getElementById(
+      "applicationOverlayLayer",
+    );
     const listboxNode = listbox;
     if (
       overlayLayer &&
@@ -197,7 +209,7 @@ module.exports = function (graph) {
 
     setLocateButtonState(false);
 
-    searchLineEdit = document.getElementById("search-input-text");
+    searchLineEdit = documentObject.getElementById("search-input-text");
 
     searchLineEdit.addEventListener("input", userInput);
     searchLineEdit.addEventListener("keydown", userNavigation);
@@ -207,7 +219,9 @@ module.exports = function (graph) {
     });
     searchLineEdit.addEventListener("focus", hoverSearchEntryView);
 
-    const mobileToggleBtn = document.getElementById("mobile-search-toggle-btn");
+    const mobileToggleBtn = documentObject.getElementById(
+      "mobile-search-toggle-btn",
+    );
     mobileToggleBtn.addEventListener("click", function (event) {
       if (!menuEnabled) {
         return;
@@ -223,7 +237,7 @@ module.exports = function (graph) {
       searchMenu.showSearchEntries();
     });
 
-    const clearBtn = document.getElementById("search-clear-btn");
+    const clearBtn = documentObject.getElementById("search-clear-btn");
     clearBtn.addEventListener("click", function (event) {
       if (!menuEnabled) {
         return;
@@ -247,9 +261,9 @@ module.exports = function (graph) {
 
     // Light dismiss: Close search listbox & mobile overlay when tapping outside c_search or search-results-listbox
     const dismissSearchOnOutsideTap = function (event) {
-      const cSearchNode = document.getElementById("c_search");
+      const cSearchNode = documentObject.getElementById("c_search");
       const listboxNode = listbox;
-      const cLocateNode = document.getElementById("c_locate");
+      const cLocateNode = documentObject.getElementById("c_locate");
       if (event && event.target) {
         if (cSearchNode && cSearchNode.contains(event.target)) {
           return;
@@ -265,9 +279,9 @@ module.exports = function (graph) {
       collapseMobileSearch();
     };
 
-    document.addEventListener("click", dismissSearchOnOutsideTap);
-    document.addEventListener("pointerdown", dismissSearchOnOutsideTap);
-    document.addEventListener("touchstart", dismissSearchOnOutsideTap);
+    documentObject.addEventListener("click", dismissSearchOnOutsideTap);
+    documentObject.addEventListener("pointerdown", dismissSearchOnOutsideTap);
+    documentObject.addEventListener("touchstart", dismissSearchOnOutsideTap);
 
     if (listbox) {
       listbox.addEventListener("click", function (event) {
@@ -289,7 +303,7 @@ module.exports = function (graph) {
       });
     }
 
-    if (window.visualViewport) {
+    if (windowObject.visualViewport) {
       const handleVisualViewportChange = function () {
         updateVisualViewportMetrics();
         if (listbox && !listbox.classList.contains("hidden")) {
@@ -298,11 +312,11 @@ module.exports = function (graph) {
       };
 
       updateVisualViewportMetrics();
-      window.visualViewport.addEventListener(
+      windowObject.visualViewport.addEventListener(
         "resize",
         handleVisualViewportChange,
       );
-      window.visualViewport.addEventListener(
+      windowObject.visualViewport.addEventListener(
         "scroll",
         handleVisualViewportChange,
       );
@@ -399,7 +413,7 @@ module.exports = function (graph) {
 
         const valid = ValidURL(iri);
         if (valid) {
-          const ontM = graph.options().ontologyMenu();
+          const ontM = applicationUiModule("ontologyMenu");
           ontM.setIriText(iri);
           searchLineEdit.value = "";
         } else {
@@ -529,7 +543,7 @@ module.exports = function (graph) {
 
     for (i = 0; i < numEntries; i++) {
       const optionId = "search-option-" + i;
-      const testEntry = document.createElement("li");
+      const testEntry = documentObject.createElement("li");
       testEntry.setAttribute("id", optionId);
       testEntry.setAttribute("role", "option");
       testEntry.setAttribute("aria-selected", "false");
@@ -608,7 +622,7 @@ module.exports = function (graph) {
   }
 
   function updateClearButtonVisibility() {
-    const clearBtn = document.getElementById("search-clear-btn");
+    const clearBtn = documentObject.getElementById("search-clear-btn");
     if (clearBtn) {
       const hasValue = searchLineEdit && searchLineEdit.value.length > 0;
       if (!hasValue) {
@@ -649,6 +663,36 @@ module.exports = function (graph) {
     };
   }
 
+  // The menu reports which ontology element the reader picked. What focusing
+  // means for the visible graph is the runtime's decision, not this module's.
+  searchMenu.reportSelectedOntologyElement = function (selectedLabel) {
+    if (webVowlController === undefined) {
+      return undefined;
+    }
+    let searchResult;
+    try {
+      searchResult = webVowlController.findOntologyElements({
+        query: selectedLabel,
+      });
+    } catch {
+      // No ontology is loaded, so there is nothing to report.
+      return undefined;
+    }
+    const focusReferences = searchResult.matches
+      .filter(
+        (ontologyElementMatch) =>
+          ontologyElementMatch.displayLabel === selectedLabel &&
+          ontologyElementMatch.isFocusable,
+      )
+      .map(
+        (ontologyElementMatch) => ontologyElementMatch.ontologyElementReference,
+      );
+    if (focusReferences.length === 0) {
+      return undefined;
+    }
+    return webVowlController.setVisualizationView({ focus: focusReferences });
+  };
+
   function selectSearchResult(elementId, event) {
     if (event && event.stopPropagation) {
       event.stopPropagation();
@@ -661,11 +705,11 @@ module.exports = function (graph) {
     }
     updateClearButtonVisibility();
 
-    if (correspondingIds && graph) {
-      graph.resetSearchHighlight();
-      graph.highLightNodes(correspondingIds);
-    } else {
-      setLocateButtonState(true);
+    // Something was picked, so locating it is now available regardless of what
+    // the runtime does with the report.
+    setLocateButtonState(true);
+    if (correspondingIds) {
+      searchMenu.reportSelectedOntologyElement(autoComStr);
     }
     if (autoComStr !== inputText) {
       handleAutoCompletion();
@@ -697,9 +741,10 @@ module.exports = function (graph) {
 
   searchMenu.setMenuMode = function (enabled) {
     menuEnabled = Boolean(enabled);
-    document.getElementById("search-input-text").disabled = !menuEnabled;
-    document.getElementById("mobile-search-toggle-btn").disabled = !menuEnabled;
-    document.getElementById("search-clear-btn").disabled = !menuEnabled;
+    documentObject.getElementById("search-input-text").disabled = !menuEnabled;
+    documentObject.getElementById("mobile-search-toggle-btn").disabled =
+      !menuEnabled;
+    documentObject.getElementById("search-clear-btn").disabled = !menuEnabled;
     setLocateButtonState(locateAvailable);
     if (!menuEnabled) {
       searchMenu.hideSearchEntries();
@@ -708,4 +753,4 @@ module.exports = function (graph) {
   };
 
   return searchMenu;
-};
+}

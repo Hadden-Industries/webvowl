@@ -1,9 +1,52 @@
-const OwlClass = require("../../../webvowl/js/elements/nodes/implementations/OwlClass");
-const OwlThing = require("../../../webvowl/js/elements/nodes/implementations/OwlThing");
-const ObjectProperty = require("../../../webvowl/js/elements/properties/implementations/OwlObjectProperty");
-const DatatypeProperty = require("../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty");
-const Link = require("../../../webvowl/js/elements/links/PlainLink");
-const objectPropertyFilterFactory = require("./objectPropertyFilter");
+import { beforeAll } from "@jest/globals";
+import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
+
+let OwlClass;
+let OwlThing;
+let ObjectProperty;
+let DatatypeProperty;
+let Link;
+let objectPropertyFilterFactory;
+
+beforeAll(async () => {
+  ({ OwlClass } = await loadEsmModuleForTest(
+    new URL(
+      "../../../webvowl/js/elements/nodes/implementations/OwlClass.js",
+      import.meta.url,
+    ),
+    import.meta.url,
+  ));
+  ({ OwlThing } = await loadEsmModuleForTest(
+    new URL(
+      "../../../webvowl/js/elements/nodes/implementations/OwlThing.js",
+      import.meta.url,
+    ),
+    import.meta.url,
+  ));
+  ({ OwlObjectProperty: ObjectProperty } = await loadEsmModuleForTest(
+    new URL(
+      "../../../webvowl/js/elements/properties/implementations/OwlObjectProperty.js",
+      import.meta.url,
+    ),
+    import.meta.url,
+  ));
+  ({ OwlDatatypeProperty: DatatypeProperty } = await loadEsmModuleForTest(
+    new URL(
+      "../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty.js",
+      import.meta.url,
+    ),
+    import.meta.url,
+  ));
+  ({ PlainLink: Link } = await loadEsmModuleForTest(
+    new URL("../../../webvowl/js/elements/links/PlainLink.js", import.meta.url),
+    import.meta.url,
+  ));
+  ({ createObjectPropertyFilter: objectPropertyFilterFactory } =
+    await loadEsmModuleForTest(
+      new URL("./objectPropertyFilter.js", import.meta.url),
+      import.meta.url,
+    ));
+});
 
 describe("Filtering of object properties", () => {
   let filter;

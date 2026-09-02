@@ -1,12 +1,23 @@
-const {
+import {
   afterEach,
+  beforeAll,
   beforeEach,
   describe,
   expect,
+  jest,
   test,
-} = require("@jest/globals");
-const d3 = require("d3");
-const zoomSliderFactory = require("./zoomSlider");
+} from "@jest/globals";
+import * as d3 from "d3";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
+
+let zoomSliderFactory;
+
+beforeAll(async () => {
+  ({ createZoomSlider: zoomSliderFactory } = await loadEsmModuleForTest(
+    new URL("./zoomSlider.js", import.meta.url),
+    import.meta.url,
+  ));
+});
 
 const HTML_NAMESPACE = "http://www.w3.org/1999/xhtml";
 const originalGlobals = new Map(
@@ -198,7 +209,13 @@ describe("zoomSlider input handling", () => {
       zoomParagraph.appendChild(zoomSliderElement);
     }
 
-    const zoomSlider = zoomSliderFactory(graph);
+    const zoomSlider = zoomSliderFactory(graph, {
+      documentObject: global.document,
+      windowObject: global.window,
+      requestAnimationFrameFunction: global.requestAnimationFrame,
+      cancelAnimationFrameFunction: global.cancelAnimationFrame,
+      nowMs: () => global.performance.now(),
+    });
     zoomSlider.setup();
 
     return {
@@ -456,7 +473,7 @@ describe("zoomSlider input handling", () => {
     },
   );
 
-  test("retains context-menu prevention and center-graph behavior", () => {
+  test("prevents zoom context menus and leaves fitting to the controller", () => {
     const { forceRelocationEvent, zoomInButton, zoomOutButton } =
       mountZoomSlider();
     const zoomInContext = new MockEvent("contextmenu");
@@ -470,6 +487,7 @@ describe("zoomSlider input handling", () => {
 
     expect(zoomInContext.defaultPrevented).toBe(true);
     expect(zoomOutContext.defaultPrevented).toBe(true);
-    expect(forceRelocationEvent).toHaveBeenCalledTimes(1);
+    // The fit itself is applied by the controller through the runtime.
+    expect(forceRelocationEvent).not.toHaveBeenCalled();
   });
 });

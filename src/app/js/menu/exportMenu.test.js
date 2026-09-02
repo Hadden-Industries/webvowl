@@ -1,12 +1,25 @@
 import {
   afterEach,
+  beforeAll,
   beforeEach,
   describe,
   expect,
   jest,
   test,
 } from "@jest/globals";
-import exportMenuFactory from "./exportMenu.js";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
+
+const exportMenuFactory = {};
+
+beforeAll(async () => {
+  Object.assign(
+    exportMenuFactory,
+    await loadEsmModuleForTest(
+      new URL("./exportMenu.js", import.meta.url),
+      import.meta.url,
+    ),
+  );
+});
 
 describe("export menu downloads", () => {
   let anchor;
@@ -45,6 +58,9 @@ describe("export menu downloads", () => {
       "ontology content",
       "text/turtle;charset=utf-8",
       "ontology.ttl",
+      global.document,
+      global.URL,
+      global.setTimeout,
     );
 
     expect(document.createElement).toHaveBeenCalledWith("a");
@@ -252,6 +268,34 @@ describe("export menu json deterministic export", () => {
         classDistance: () => 10,
         datatypeDistance: () => 10,
       }),
+      ontologyEditingState: () => ({
+        data: () => ({
+          _comment: "Test",
+          header: {},
+          namespace: [
+            { prefix: "b", iri: "http://b" },
+            { prefix: "a", iri: "http://a" },
+          ],
+          metrics: {},
+        }),
+        getGeneralMetaObject: () => ({}),
+        filterMenu: () => ({
+          getCheckBoxContainer: () => [
+            { checkbox: { checked: true, id: "chk2" } },
+            { checkbox: { checked: false, id: "chk1" } },
+          ],
+          getDegreeSliderValue: () => 0,
+        }),
+        modeMenu: () => ({
+          getCheckBoxContainer: () => [
+            { element: { checked: true }, id: "mode2" },
+            { element: { checked: false }, id: "mode1" },
+          ],
+          colorModeState: () => false,
+        }),
+        classDistance: () => 10,
+        datatypeDistance: () => 10,
+      }),
       getUnfilteredData: () => ({ nodes, properties }),
       graphNodeElements: () => ({ each: () => {} }),
       graphLabelElements: () => [],
@@ -280,8 +324,16 @@ describe("export menu json deterministic export", () => {
       [propA, propB],
     );
 
-    const menu1 = exportMenuFactory(graph1);
-    const menu2 = exportMenuFactory(graph2);
+    const menu1 = exportMenuFactory.createExportMenu(graph1, {
+      documentObject: global.document,
+      windowObject: global.window,
+      locationObject: global.location,
+    });
+    const menu2 = exportMenuFactory.createExportMenu(graph2, {
+      documentObject: global.document,
+      windowObject: global.window,
+      locationObject: global.location,
+    });
 
     const json1 = JSON.stringify(menu1.createJSON_exportObject());
     const json2 = JSON.stringify(menu2.createJSON_exportObject());
@@ -346,6 +398,37 @@ describe("export menu json deterministic export", () => {
         classDistance: () => 10,
         datatypeDistance: () => 10,
       }),
+      ontologyEditingState: () => ({
+        data: () => ({
+          _comment: "Test",
+          header: {},
+          namespace: [],
+          metrics: {},
+        }),
+        getGeneralMetaObject: () => ({}),
+        filterMenu: () => ({
+          getCheckBoxContainer: () => [
+            { checkbox: { id: "datatypeFilterCheckbox", checked: true } },
+            { checkbox: { id: "subclassFilterCheckbox", checked: false } },
+          ],
+          getDegreeSliderValue: () => 2,
+        }),
+        modeMenu: () => ({
+          getCheckBoxContainer: () => [
+            {
+              id: "nodescalingModuleCheckbox",
+              element: { id: "nodescalingModuleCheckbox", checked: true },
+            },
+            {
+              id: "compactnotationModuleCheckbox",
+              element: { id: "compactnotationModuleCheckbox", checked: false },
+            },
+          ],
+          colorModeState: () => false,
+        }),
+        classDistance: () => 10,
+        datatypeDistance: () => 10,
+      }),
       getUnfilteredData: () => ({ nodes: [nodeA], properties: [propA] }),
       graphNodeElements: () => ({ each: () => {} }),
       graphLabelElements: () => [],
@@ -354,7 +437,11 @@ describe("export menu json deterministic export", () => {
       translation: () => [0, 0],
     };
 
-    const menu = exportMenuFactory(graph);
+    const menu = exportMenuFactory.createExportMenu(graph, {
+      documentObject: global.document,
+      windowObject: global.window,
+      locationObject: global.location,
+    });
     const exportObj = menu.createJSON_exportObject();
 
     expect(exportObj.settings.filter.checkBox).toEqual([
@@ -409,6 +496,42 @@ describe("export menu json deterministic export", () => {
         classDistance: () => 200,
         datatypeDistance: () => 120,
       }),
+      ontologyEditingState: () => ({
+        data: () => ({
+          _comment: "Test",
+          header: {},
+          namespace: [],
+          metrics: {},
+        }),
+        getGeneralMetaObject: () => ({}),
+        filterMenu: () => ({
+          getCheckBoxContainer: () => [
+            { checkbox: { checked: true, id: "datatypeFilterCheckbox" } },
+            { checkbox: { checked: false, id: "subclassFilterCheckbox" } },
+            { checkbox: { checked: true, id: "disjointFilterCheckbox" } },
+          ],
+          getDegreeSliderValue: () => 3,
+        }),
+        modeMenu: () => ({
+          getCheckBoxContainer: () => [
+            {
+              element: { checked: true },
+              id: "nodescalingModuleCheckbox",
+            },
+            {
+              element: { checked: false },
+              id: "compactnotationModuleCheckbox",
+            },
+            {
+              element: { checked: true },
+              id: "pickandpinModuleCheckbox",
+            },
+          ],
+          colorModeState: () => true,
+        }),
+        classDistance: () => 200,
+        datatypeDistance: () => 120,
+      }),
       getUnfilteredData: () => ({ nodes: [nodeA], properties: [propA] }),
       graphNodeElements: () => ({ each: () => {} }),
       graphLabelElements: () => [],
@@ -417,7 +540,11 @@ describe("export menu json deterministic export", () => {
       translation: () => [100, 200],
     };
 
-    const menu = exportMenuFactory(sourceGraph);
+    const menu = exportMenuFactory.createExportMenu(sourceGraph, {
+      documentObject: global.document,
+      windowObject: global.window,
+      locationObject: global.location,
+    });
     const exportedJson = menu.createJSON_exportObject();
 
     // Target state receivers
@@ -445,5 +572,108 @@ describe("export menu json deterministic export", () => {
     expect(exportedJson.settings.gravity.datatypeDistance).toBe(120);
     expect(exportedJson.settings.global.zoom).toBe(1.5);
     expect(exportedJson.settings.global.paused).toBe(true);
+  });
+});
+
+describe("export menu SVG artifact route", () => {
+  let originalDocument;
+  let controls;
+  let exportMenu;
+  let exportRequests;
+  let hideAllMenus;
+
+  function controlFor(selector) {
+    if (!controls.has(selector)) {
+      controls.set(selector, {
+        addEventListener(eventName, listener) {
+          this.listeners = this.listeners ?? {};
+          this.listeners[eventName] = listener;
+        },
+        click: jest.fn(),
+        listeners: {},
+        getAttribute: (name) => controls.get(selector)[name] ?? null,
+      });
+    }
+    return controls.get(selector);
+  }
+
+  beforeEach(() => {
+    originalDocument = global.document;
+    controls = new Map();
+    global.document = {
+      querySelector: controlFor,
+      querySelectorAll: () => [],
+      getElementById: (id) => controlFor("#" + id),
+    };
+    exportRequests = [];
+    hideAllMenus = jest.fn();
+    exportMenu = exportMenuFactory.createExportMenu(
+      {
+        options: () => ({ navigationMenu: () => ({ hideAllMenus }) }),
+        ontologyEditingState: () => ({ getHideDebugFeatures: () => true }),
+      },
+      {
+        documentObject: global.document,
+        locationObject: { href: "https://example.test/" },
+        webVowlController: {
+          exportVisualization: jest.fn((exportRequest) => {
+            exportRequests.push(exportRequest);
+            return Promise.resolve({
+              artifactMetadata: { filename: "graph.svg", byteLength: 12 },
+            });
+          }),
+        },
+        windowObject: global.window,
+      },
+    );
+  });
+
+  afterEach(() => {
+    global.document = originalDocument;
+  });
+
+  test("asks the controller for the artifact instead of serializing inline", async () => {
+    const exportEvent = { preventDefault: jest.fn() };
+
+    await exportMenu.exportSvgArtifact(exportEvent);
+
+    // The link must not navigate before the artifact URL is published.
+    expect(exportEvent.preventDefault).toHaveBeenCalledTimes(1);
+    expect(exportRequests).toEqual([{}]);
+    expect(hideAllMenus).toHaveBeenCalledTimes(1);
+  });
+
+  test("triggers exactly one programmatic download once the link is published", async () => {
+    const downloadLink = controlFor("#exportSvg");
+    downloadLink.href = "blob:webvowl-artifact";
+
+    await exportMenu.exportSvgArtifact({ preventDefault: jest.fn() });
+
+    expect(downloadLink.click).toHaveBeenCalledTimes(1);
+  });
+
+  test("does not click the link when the export fails", async () => {
+    const downloadLink = controlFor("#exportSvg");
+    exportMenu = exportMenuFactory.createExportMenu(
+      {
+        options: () => ({ navigationMenu: () => ({ hideAllMenus }) }),
+        ontologyEditingState: () => ({ getHideDebugFeatures: () => true }),
+      },
+      {
+        documentObject: global.document,
+        locationObject: { href: "https://example.test/" },
+        webVowlController: {
+          exportVisualization: () =>
+            Promise.reject(
+              Object.assign(new Error("no ontology"), { code: "NO_ONTOLOGY" }),
+            ),
+        },
+        windowObject: global.window,
+      },
+    );
+
+    await exportMenu.exportSvgArtifact({ preventDefault: jest.fn() });
+
+    expect(downloadLink.click).not.toHaveBeenCalled();
   });
 });

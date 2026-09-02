@@ -48,7 +48,7 @@ export function createEditSidebar(
       "change",
       function () {
         graph
-          .options()
+          .ontologyEditingState()
           .addOrUpdateGeneralObjectEntry(
             "title",
             document.querySelector("#titleEditor").value,
@@ -63,7 +63,7 @@ export function createEditSidebar(
         if (event.key === "Enter") {
           event.preventDefault();
           graph
-            .options()
+            .ontologyEditingState()
             .addOrUpdateGeneralObjectEntry(
               "title",
               document.querySelector("#titleEditor").value,
@@ -77,7 +77,7 @@ export function createEditSidebar(
       function () {
         if (
           graph
-            .options()
+            .ontologyEditingState()
             .addOrUpdateGeneralObjectEntry(
               "iri",
               document.querySelector("#iriEditor").value,
@@ -85,7 +85,7 @@ export function createEditSidebar(
         ) {
           // restore value
           document.querySelector("#iriEditor").value = graph
-            .options()
+            .ontologyEditingState()
             .getGeneralMetaObjectProperty("iri");
         }
       },
@@ -99,7 +99,7 @@ export function createEditSidebar(
           event.preventDefault();
           if (
             graph
-              .options()
+              .ontologyEditingState()
               .addOrUpdateGeneralObjectEntry(
                 "iri",
                 document.querySelector("#iriEditor").value,
@@ -107,7 +107,7 @@ export function createEditSidebar(
           ) {
             // restore value
             document.querySelector("#iriEditor").value = graph
-              .options()
+              .ontologyEditingState()
               .getGeneralMetaObjectProperty("iri");
           }
         }
@@ -118,7 +118,7 @@ export function createEditSidebar(
       "change",
       function () {
         graph
-          .options()
+          .ontologyEditingState()
           .addOrUpdateGeneralObjectEntry(
             "version",
             document.querySelector("#versionEditor").value,
@@ -133,7 +133,7 @@ export function createEditSidebar(
         if (event.key === "Enter") {
           event.preventDefault();
           graph
-            .options()
+            .ontologyEditingState()
             .addOrUpdateGeneralObjectEntry(
               "version",
               document.querySelector("#versionEditor").value,
@@ -146,7 +146,7 @@ export function createEditSidebar(
       "change",
       function () {
         graph
-          .options()
+          .ontologyEditingState()
           .addOrUpdateGeneralObjectEntry(
             "author",
             document.querySelector("#authorsEditor").value,
@@ -161,7 +161,7 @@ export function createEditSidebar(
         if (event.key === "Enter") {
           event.preventDefault();
           graph
-            .options()
+            .ontologyEditingState()
             .addOrUpdateGeneralObjectEntry(
               "author",
               document.querySelector("#authorsEditor").value,
@@ -174,7 +174,7 @@ export function createEditSidebar(
       "change",
       function () {
         graph
-          .options()
+          .ontologyEditingState()
           .addOrUpdateGeneralObjectEntry(
             "description",
             document.querySelector("#descriptionEditor").value,
@@ -191,7 +191,7 @@ export function createEditSidebar(
       "#typeEditor_datatype",
     );
     const supportedDatatypes = graph
-      .options()
+      .ontologyEditingState()
       .supportedDatatypes()
       .filter((datatypeName) => datatypeName !== "rdfs:Literal");
     for (const supportedDatatype of supportedDatatypes) {
@@ -467,7 +467,7 @@ export function createEditSidebar(
       return;
     }
     for (const [prefixName, namespaceIri] of Object.entries(
-      graph.options().prefixList(),
+      graph.ontologyEditingState().prefixList(),
     )) {
       appendPrefixEditorRow({
         isNewPrefix: false,
@@ -488,7 +488,7 @@ export function createEditSidebar(
       return;
     }
     document.querySelector("#addPrefixButton").textContent = "Add Prefix";
-    graph.options().removePrefix(deleteButton.prefixName);
+    graph.ontologyEditingState().removePrefix(deleteButton.prefixName);
     isPrefixEditMode = false;
     editSidebar.updatePrefixUi();
   }
@@ -529,7 +529,7 @@ export function createEditSidebar(
 
       if (
         graph
-          .options()
+          .ontologyEditingState()
           .updatePrefix(
             previousPrefixName,
             newPrefix,
@@ -587,9 +587,9 @@ export function createEditSidebar(
 
   function usesDefaultDerivedIri(element) {
     // get the iri of that element;
-    if (graph.options().getGeneralMetaObject().iri) {
+    if (graph.ontologyEditingState().getGeneralMetaObject().iri) {
       const defaultDerivedIri =
-        graph.options().getGeneralMetaObject().iri + element.id();
+        graph.ontologyEditingState().getGeneralMetaObject().iri + element.id();
       return element.iri() === defaultDerivedIri;
     }
     return false;
@@ -606,7 +606,9 @@ export function createEditSidebar(
    */
   function resolveElementIriInput(element) {
     let resolvedIri = document.querySelector("#element_iriEditor").value;
-    const ontologyBaseIri = graph.options().getGeneralMetaObjectProperty("iri");
+    const ontologyBaseIri = graph
+      .ontologyEditingState()
+      .getGeneralMetaObjectProperty("iri");
 
     if (!resolvedIri || resolvedIri.trim().length === 0) {
       graph
@@ -650,7 +652,9 @@ export function createEditSidebar(
       }
 
       if (prefixName.length > 0) {
-        const prefixNamespaceIri = graph.options().prefixList()[prefixName];
+        const prefixNamespaceIri = graph.ontologyEditingState().prefixList()[
+          prefixName
+        ];
         if (prefixNamespaceIri === undefined) {
           graph
             .options()
@@ -681,7 +685,9 @@ export function createEditSidebar(
     if (!resolvedIri) {
       return;
     }
-    const ontologyBaseIri = graph.options().getGeneralMetaObjectProperty("iri");
+    const ontologyBaseIri = graph
+      .ontologyEditingState()
+      .getGeneralMetaObjectProperty("iri");
     let sanityCheckResult;
     if (elementTools.isNode(element)) {
       sanityCheckResult = graph.checkIfIriClassAlreadyExist(resolvedIri);
@@ -1139,7 +1145,7 @@ export function createEditSidebar(
     const preferredLanguage = graph && graph.language ? graph.language() : null;
 
     // get it from graph.options
-    const generalMetaObj = graph.options().getGeneralMetaObject();
+    const generalMetaObj = graph.ontologyEditingState().getGeneralMetaObject();
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "title")) {
       // title has language to it -.-
       if (typeof generalMetaObj.title === "object") {

@@ -1,3 +1,8 @@
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, test } from "@jest/globals";
+import { Linter } from "eslint";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import {
@@ -9,12 +14,6 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-import { describe, expect, test } from "@jest/globals";
-import { Linter } from "eslint";
 
 const REPOSITORY_ROOT_URL_STRING = new URL("..", import.meta.url).href;
 const REPOSITORY_ROOT_PATH = fileURLToPath(REPOSITORY_ROOT_URL_STRING);
@@ -30,6 +29,20 @@ const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/app/js/leftSidebar.test.js",
   "src/app/js/loadingModule.js",
   "src/app/js/loadingModule.test.js",
+  "src/main.js",
+  "src/app/js/app.js",
+  "src/app/js/entry.js",
+  "src/app/js/menu/exportMenu.js",
+  "src/app/js/menu/exportMenu.test.js",
+  "src/app/js/menu/ontologyMenu.js",
+  "src/app/js/menu/ontologyMenu.test.js",
+  "src/app/js/ui/svgArtifactDownloadAdapter.js",
+  "src/app/js/ui/svgArtifactDownloadAdapter.test.js",
+  "src/webvowl/js/entry.js",
+  "src/webvowl/js/runtime/d3RenderedGraphAdapter.js",
+  "src/webvowl/js/runtime/d3RenderedGraphAdapter.test.js",
+  "src/webvowl/js/runtime/renderedGraphConfiguration.js",
+  "src/webvowl/js/runtime/renderedGraphConfiguration.test.js",
   "src/app/js/controller/graphLayoutSettler.js",
   "src/app/js/controller/graphLayoutSettler.test.js",
   "src/app/js/controller/linkedAbortSignal.js",
@@ -194,8 +207,27 @@ const TASK_1_COMMONJS_RENDERER_LEAF_CONTENT_SHA256_BY_PATH = Object.freeze({
 
 // This list may only shrink. A path leaves it in the same change that moves,
 // materially changes, or publicly exposes that module through a new interface.
-const LEGACY_COMMONJS_RENDERER_LEAF_PATHS = Object.freeze([
-  ...TASK_1_COMMONJS_RENDERER_LEAF_PATHS,
+// Task 9 removes every Task 1 leaf this cutover rewrites. Seven leaves lost
+// their private-renderer status here: the shared text and colour utilities and
+// four element modules, each of which had its ambient D3 or presentation
+// coupling severed. They must reach native ESM rather than stay allowlisted.
+// Task 9 converted the renderer to native ESM, so no private CommonJS
+// renderer leaf survives the cutover. The set may only ever shrink.
+const LEGACY_COMMONJS_RENDERER_LEAF_PATHS = Object.freeze([]);
+
+// The production allowlist is empty after the cutover, so the policy self-tests
+// below supply a synthetic leaf set to keep exercising the machinery that would
+// govern any future private CommonJS leaf.
+let activeCommonJsRendererLeafPaths = LEGACY_COMMONJS_RENDERER_LEAF_PATHS;
+
+// Test infrastructure, not a production boundary. Jest runs this repository
+// without "type": "module", which the migration plan deliberately leaves
+// unchanged, so a test cannot statically import a native-ESM repository module.
+// This loader therefore has to stay CommonJS and reach node:module's
+// createRequire to link CommonJS dependencies into a vm ESM module. It is
+// reachable only from test files and never from a composition root.
+const APPROVED_TEST_INFRASTRUCTURE_COMMONJS_PATHS = Object.freeze([
+  "src/app/test/loadEsmModuleForTest.js",
 ]);
 
 const RETIRED_AT_RENDERED_GRAPH_CUTOVER_PATHS = Object.freeze([
@@ -4707,11 +4739,14 @@ function isApprovedLegacyCommonJsDependencyPosition(
   dependencyPath,
   importKind,
 ) {
+  if (APPROVED_TEST_INFRASTRUCTURE_COMMONJS_PATHS.includes(dependencyPath)) {
+    return importerPath.endsWith(".test.js");
+  }
   return (
     ["possible-public-value-escape", "static"].includes(importKind) &&
-    LEGACY_COMMONJS_RENDERER_LEAF_PATHS.includes(dependencyPath) &&
+    activeCommonJsRendererLeafPaths.includes(dependencyPath) &&
     (importerPath === D3_RENDERED_GRAPH_ADAPTER_MODULE_PATH ||
-      LEGACY_COMMONJS_RENDERER_LEAF_PATHS.includes(importerPath))
+      activeCommonJsRendererLeafPaths.includes(importerPath))
   );
 }
 
@@ -4862,6 +4897,10 @@ function collectNativeEsmDependencyGraphDiagnostics(
       continue;
     }
 
+    if (APPROVED_TEST_INFRASTRUCTURE_COMMONJS_PATHS.includes(importerPath)) {
+      continue;
+    }
+
     for (const dependencyRecord of moduleRecord.dependencies) {
       if (
         isNodeCommonJsInteroperabilityDependencyCruiserRecord(dependencyRecord)
@@ -4887,7 +4926,7 @@ function collectNativeEsmDependencyGraphDiagnostics(
     }
 
     if (isCommonJs) {
-      if (!LEGACY_COMMONJS_RENDERER_LEAF_PATHS.includes(importerPath)) {
+      if (!activeCommonJsRendererLeafPaths.includes(importerPath)) {
         continue;
       }
       for (const {
@@ -4944,7 +4983,10 @@ function collectNativeEsmDependencyGraphDiagnostics(
           );
           continue;
         }
-        if (!LEGACY_COMMONJS_RENDERER_LEAF_PATHS.includes(dependencyPath)) {
+        if (
+          !activeCommonJsRendererLeafPaths.includes(dependencyPath) &&
+          !APPROVED_TEST_INFRASTRUCTURE_COMMONJS_PATHS.includes(dependencyPath)
+        ) {
           blockingViolations.push(
             `${importerPath} -> ${dependencyPath}: unapproved CommonJS dependency`,
           );
@@ -5065,9 +5107,9 @@ function collectNativeEsmDependencyGraphDiagnostics(
 
       if (
         kind === "re-export" &&
-        LEGACY_COMMONJS_RENDERER_LEAF_PATHS.includes(dependencyPath) &&
+        activeCommonJsRendererLeafPaths.includes(dependencyPath) &&
         (importerPath === D3_RENDERED_GRAPH_ADAPTER_MODULE_PATH ||
-          LEGACY_COMMONJS_RENDERER_LEAF_PATHS.includes(importerPath))
+          activeCommonJsRendererLeafPaths.includes(importerPath))
       ) {
         blockingViolations.push(
           `${importerPath} -> ${dependencyPath}: public CommonJS re-export`,
@@ -5123,7 +5165,8 @@ function collectNativeEsmDependencyGraphDiagnostics(
   for (const [sourcePath, { isCommonJs }] of moduleAnalysisBySourcePath) {
     if (
       isCommonJs &&
-      !LEGACY_COMMONJS_RENDERER_LEAF_PATHS.includes(sourcePath) &&
+      !activeCommonJsRendererLeafPaths.includes(sourcePath) &&
+      !APPROVED_TEST_INFRASTRUCTURE_COMMONJS_PATHS.includes(sourcePath) &&
       !unapprovedCommonJsDependencyPaths.has(sourcePath)
     ) {
       blockingViolations.push(
@@ -5216,17 +5259,34 @@ function createDependencyCruiserGraphFixture(
   }));
 }
 
+function withAllowlistedCommonJsLeafPaths(leafPaths, evaluatePolicy) {
+  const productionLeafPaths = activeCommonJsRendererLeafPaths;
+  activeCommonJsRendererLeafPaths = leafPaths;
+  try {
+    return evaluatePolicy();
+  } finally {
+    activeCommonJsRendererLeafPaths = productionLeafPaths;
+  }
+}
+
 function collectDependencyCruiserGraphFixtureDiagnostics(
   authoredModuleSourceByPath,
   dependencyEdges,
+  allowlistedCommonJsLeafPaths = TASK_1_COMMONJS_RENDERER_LEAF_PATHS,
 ) {
-  return collectNativeEsmDependencyGraphDiagnostics(
-    createDependencyCruiserGraphFixture(
-      authoredModuleSourceByPath,
-      dependencyEdges,
-    ),
-    (modulePath) => authoredModuleSourceByPath.get(modulePath),
-  );
+  const productionLeafPaths = activeCommonJsRendererLeafPaths;
+  activeCommonJsRendererLeafPaths = allowlistedCommonJsLeafPaths;
+  try {
+    return collectNativeEsmDependencyGraphDiagnostics(
+      createDependencyCruiserGraphFixture(
+        authoredModuleSourceByPath,
+        dependencyEdges,
+      ),
+      (modulePath) => authoredModuleSourceByPath.get(modulePath),
+    );
+  } finally {
+    activeCommonJsRendererLeafPaths = productionLeafPaths;
+  }
 }
 
 function moduleSpecifierExposureClassification(
@@ -6231,11 +6291,14 @@ describe("native-ESM module dependency graph policy", () => {
       },
     ];
 
-    const dependencyGraphDiagnostics =
-      collectNativeEsmDependencyGraphDiagnostics(
-        dependencyGraph,
-        (modulePath) => authoredModuleSourceByPath.get(modulePath),
-      );
+    const dependencyGraphDiagnostics = withAllowlistedCommonJsLeafPaths(
+      TASK_1_COMMONJS_RENDERER_LEAF_PATHS,
+      () =>
+        collectNativeEsmDependencyGraphDiagnostics(
+          dependencyGraph,
+          (modulePath) => authoredModuleSourceByPath.get(modulePath),
+        ),
+    );
 
     expect(dependencyGraphDiagnostics).toEqual({
       advisoryFindings: [
@@ -6290,9 +6353,13 @@ describe("native-ESM module dependency graph policy", () => {
     ];
 
     expect(
-      collectNativeEsmDependencyGraphDiagnostics(
-        dependencyGraph,
-        (modulePath) => authoredModuleSourceByPath.get(modulePath),
+      withAllowlistedCommonJsLeafPaths(
+        TASK_1_COMMONJS_RENDERER_LEAF_PATHS,
+        () =>
+          collectNativeEsmDependencyGraphDiagnostics(
+            dependencyGraph,
+            (modulePath) => authoredModuleSourceByPath.get(modulePath),
+          ),
       ).blockingViolations,
     ).toEqual([
       `${commonJsLeafPath} -> ${unapprovedDependencyPath}: unapproved CommonJS dependency`,
@@ -7428,7 +7495,11 @@ describe("scoped production native-ESM ratchet", () => {
     ).toEqual([]);
   });
 
-  test("loads Task 5 native-ESM UI modules through one deferred platform module boundary", () => {
+  // Task 5 deferred the migrated UI modules behind one dynamic-import boundary
+  // while the composition root was still CommonJS. Task 9 converts that root to
+  // native ESM, so the boundary is now a native-ESM module that still reaches
+  // every Task 5 UI module through the same deferred specifiers.
+  test("keeps the native-ESM composition root loading every Task 5 UI module", () => {
     const applicationModulePath = "src/app/js/app.js";
     const applicationSourceStructure = analyzeAuthoredJavaScriptModule(
       readFileSync(absoluteRepositoryPath(applicationModulePath), "utf8"),
@@ -7440,25 +7511,16 @@ describe("scoped production native-ESM ratchet", () => {
       );
 
     expect(applicationSourceStructure.syntaxErrorMessage).toBeUndefined();
-    expect(applicationSourceStructure.hasNativeEsmDeclaration).toBe(false);
+    expect(applicationSourceStructure.hasNativeEsmDeclaration).toBe(true);
     expect(
-      applicationSourceStructure.moduleSpecifierRecords.filter(
-        ({ kind }) => kind !== "dynamic",
-      ),
-    ).toEqual([]);
+      applicationSourceStructure.moduleSpecifierRecords
+        .filter(({ kind }) => kind === "dynamic")
+        .map(({ specifier }) => specifier)
+        .sort(),
+    ).toEqual([...expectedDynamicModuleSpecifiers].sort());
     expect(
-      applicationSourceStructure.moduleSpecifierRecords.map(
-        ({ kind, specifier }) => ({ kind, specifier }),
-      ),
-    ).toEqual(
-      expectedDynamicModuleSpecifiers.map((specifier) => ({
-        kind: "dynamic",
-        specifier,
-      })),
-    );
-    expect(applicationSourceStructure.prohibitedSourcePatternLabels).toContain(
-      "CommonJS module export",
-    );
+      applicationSourceStructure.prohibitedSourcePatternLabels,
+    ).not.toContain("CommonJS module export");
   });
 
   test("requires every declared native-ESM module to exist", () => {
@@ -7570,14 +7632,14 @@ describe("Task 1 private CommonJS renderer evidence", () => {
     expect(violations).toEqual([]);
   });
 
-  test("does not misrepresent the legacy graph and options routes as an approved final boundary", () => {
+  test("ratchets the rendered-graph cutover composition and runtime paths", () => {
     expect(
       RETIRED_AT_RENDERED_GRAPH_CUTOVER_PATHS.filter((modulePath) =>
-        LEGACY_COMMONJS_RENDERER_LEAF_PATHS.includes(modulePath),
+        activeCommonJsRendererLeafPaths.includes(modulePath),
       ),
     ).toEqual([]);
-    expect(REQUIRED_NATIVE_ESM_MODULE_PATHS).not.toContain("src/main.js");
-    expect(REQUIRED_NATIVE_ESM_MODULE_PATHS).not.toContain(
+    expect(REQUIRED_NATIVE_ESM_MODULE_PATHS).toContain("src/main.js");
+    expect(REQUIRED_NATIVE_ESM_MODULE_PATHS).toContain(
       "src/webvowl/js/runtime/d3RenderedGraphAdapter.js",
     );
   });

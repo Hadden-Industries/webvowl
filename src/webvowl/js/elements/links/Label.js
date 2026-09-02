@@ -1,4 +1,4 @@
-module.exports = Label;
+export { Label };
 
 /**
  * A label represents the element(s) which further describe a link.

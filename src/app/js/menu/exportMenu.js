@@ -1,25 +1,33 @@
+import { applicationUiModule } from "../ui/applicationUiRegistry.js";
 /**
  * Contains the logic for the export button.
  * @returns {{}}
  */
-const createExportSvgClone = require("./svgExportStyles");
+import { createExportTtlModule } from "./exportTTLModule.js";
 
-function downloadFile(content, mimeType, filename) {
-  const objectUrl = URL.createObjectURL(
+function downloadFile(
+  content,
+  mimeType,
+  filename,
+  documentObject = globalThis.document,
+  objectUrlApi = globalThis.URL,
+  scheduleTimeout = globalThis.setTimeout,
+) {
+  const objectUrl = objectUrlApi.createObjectURL(
     new Blob([content], { type: mimeType }),
   );
-  const link = document.createElement("a");
+  const link = documentObject.createElement("a");
   link.href = objectUrl;
   link.download = filename;
   link.hidden = true;
-  document.body.appendChild(link);
+  documentObject.body.appendChild(link);
 
   try {
     link.click();
   } finally {
     link.remove();
-    setTimeout(function () {
-      URL.revokeObjectURL(objectUrl);
+    scheduleTimeout(function () {
+      objectUrlApi.revokeObjectURL(objectUrl);
     }, 0);
   }
 }
@@ -101,12 +109,19 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
   };
 }
 
-function createExportMenu(graph) {
+function createExportMenu(
+  graph,
+  {
+    documentObject = globalThis.document,
+    locationObject = globalThis.location,
+    webVowlController,
+    windowObject = globalThis.window,
+  } = {},
+) {
   const exportMenu = {};
   let exportFilename;
-  let exportableJsonText;
 
-  const exportTTLModule = require("./exportTTLModule")(graph);
+  const exportTTLModule = createExportTtlModule(graph);
 
   String.prototype.replaceAll = function (search, replacement) {
     const target = this;
@@ -117,14 +132,20 @@ function createExportMenu(graph) {
    * Adds the export button to the website.
    */
   exportMenu.setup = function () {
-    document.querySelector("#exportSvg").addEventListener("click", exportSvg);
-    document.querySelector("#exportJson").addEventListener("click", exportJson);
+    documentObject
+      .querySelector("#exportSvg")
+      .addEventListener("click", exportMenu.exportSvgArtifact);
+    documentObject
+      .querySelector("#exportJson")
+      .addEventListener("click", exportJson);
 
-    document.querySelector("#copyBt").addEventListener("click", copyUrl);
+    documentObject.querySelector("#copyBt").addEventListener("click", copyUrl);
 
-    document.querySelector("#exportTex").addEventListener("click", exportTex);
+    documentObject
+      .querySelector("#exportTex")
+      .addEventListener("click", exportTex);
 
-    document
+    documentObject
       .querySelector("#exportTurtle")
       .addEventListener("click", exportTurtle);
   };
@@ -135,7 +156,7 @@ function createExportMenu(graph) {
     console.warn("Exporter was successful: " + success);
     if (success) {
       // console.warn("The result is : " + result);
-      // var ontoTitle=graph.options().getGeneralMetaObjectProperty('title');
+      // var ontoTitle=graph.ontologyEditingState().getGeneralMetaObjectProperty('title');
       // if (ontoTitle===undefined || ontoTitle.length===0)
       // 	ontoTitle="NewOntology";
       // else{
@@ -148,8 +169,8 @@ function createExportMenu(graph) {
       downloadFile(result, "text/turtle;charset=utf-8", ontoTitle + ".ttl");
     } else {
       console.warn("ShowWarning!");
-      graph.options().warningModule().showExporterWarning();
-      console.warn("Stay on the page! " + window.location.href);
+      applicationUiModule("warningModule")?.showExporterWarning();
+      console.warn("Stay on the page! " + windowObject.location.href);
     }
   }
 
@@ -157,20 +178,16 @@ function createExportMenu(graph) {
     exportFilename = filename || "export";
   };
 
-  exportMenu.setJsonText = function (jsonText) {
-    exportableJsonText = jsonText;
-  };
-
   let copyFeedbackTimer;
   let successfulCopyCount = 0;
   async function copyUrl() {
-    const urlInputNode = document.querySelector("#exportedUrl");
+    const urlInputNode = documentObject.querySelector("#exportedUrl");
     if (!urlInputNode) {
       return;
     }
 
     const copied = await copyInputValue(urlInputNode);
-    const copyButtonNode = document.querySelector("#copyBt");
+    const copyButtonNode = documentObject.querySelector("#copyBt");
     const feedback = nextCopyFeedback(copied, successfulCopyCount);
     successfulCopyCount = feedback.successfulCopyCount;
     copyButtonNode.classList.toggle("copied", copied);
@@ -224,7 +241,7 @@ function createExportMenu(graph) {
 
   exportMenu.exportAsUrl = function () {
     const currObj = {};
-    currObj.sidebar = graph.options().sidebar().getSidebarVisibility();
+    currObj.sidebar = applicationUiModule("sidebar")?.getSidebarVisibility();
 
     // identify default value given by ontology;
     const defOntValue = graph.options().filterMenu().getDefaultDegreeValue();
@@ -285,30 +302,32 @@ function createExportMenu(graph) {
     currObj.mode_pnp = String(
       graph.options().modeMenu().getCheckBoxValue("pickandpinModuleCheckbox"),
     );
-    currObj.debugFeatures = String(!graph.options().getHideDebugFeatures());
+    currObj.debugFeatures = String(
+      !graph.ontologyEditingState().getHideDebugFeatures(),
+    );
     currObj.rect = 0;
 
-    const defObj = graph.options().initialConfig();
+    const defObj = graph.ontologyEditingState().initialConfig();
     const optsString = prepareOptionString(defObj, currObj);
-    let urlString = String(location);
+    let urlString = String(locationObject);
     let htmlElement;
     // when everything is default then there is nothing to write
     if (optsString.length === 0) {
       // building up parameter list;
 
-      // remove the all options form location
-      const hashCode = location.hash;
+      // remove the all options form locationObject
+      const hashCode = locationObject.hash;
       urlString = urlString.split(hashCode)[0];
 
       const lPos = hashCode.lastIndexOf("#");
       if (lPos === -1) {
-        htmlElement = document.querySelector("#exportedUrl");
-        htmlElement.value = String(location);
-        htmlElement.title = String(location);
-        return; // nothing to change in the location String
+        htmlElement = documentObject.querySelector("#exportedUrl");
+        htmlElement.value = String(locationObject);
+        htmlElement.title = String(locationObject);
+        return; // nothing to change in the locationObject String
       }
       const newURL = hashCode.slice(lPos, hashCode.length);
-      htmlElement = document.querySelector("#exportedUrl");
+      htmlElement = documentObject.querySelector("#exportedUrl");
       htmlElement.value = urlString + newURL;
       htmlElement.title = urlString + newURL;
       return;
@@ -338,40 +357,30 @@ function createExportMenu(graph) {
       }
     }
     // building up parameter list;
-    htmlElement = document.querySelector("#exportedUrl");
+    htmlElement = documentObject.querySelector("#exportedUrl");
     htmlElement.value = newUrlString;
     htmlElement.title = newUrlString;
   };
 
-  function exportSvg() {
+  // The controller owns SVG export: it settles the layout, clones the live
+  // graph, and publishes a page-local artifact URL onto the download link.
+  exportMenu.exportSvgArtifact = async function (exportEvent) {
+    // The link carries the previous artifact, so navigation waits for this one.
+    exportEvent?.preventDefault?.();
     graph.options().navigationMenu().hideAllMenus();
-    const graphContainer = document.querySelector(
-      graph.options().graphContainerSelector(),
-    );
-    const liveSvg = graphContainer ? graphContainer.querySelector("svg") : null;
-    if (!liveSvg) {
+
+    try {
+      await webVowlController.exportVisualization({});
+    } catch (exportError) {
+      console.warn("The visualization could not be exported: " + exportError);
       return;
     }
 
-    const exportedSvg = createExportSvgClone(liveSvg);
-    let graphSvgCode = exportedSvg.outerHTML;
-
-    // Insert the reference to VOWL
-    const version = require("../../../shared/js/util/constants")()
-      .WEBVOWL_VERSION;
-    graphSvgCode =
-      "<!-- Created with WebVOWL (version " +
-      version +
-      ")" +
-      ", https://github.com/Hadden-Industries/webvowl -->\n" +
-      graphSvgCode;
-
-    downloadFile(
-      graphSvgCode,
-      "image/svg+xml;charset=utf-8",
-      exportFilename + ".svg",
-    );
-  }
+    const downloadLinkElement = documentObject.querySelector("#exportSvg");
+    if (downloadLinkElement?.href) {
+      downloadLinkElement.click();
+    }
+  };
 
   exportMenu.createJSON_exportObject = function () {
     let i, j, k; // an index variable for the for-loops
@@ -383,7 +392,7 @@ function createExportMenu(graph) {
     // extract onotology information;
     const unfilteredData = graph.getUnfilteredData();
     const ontologyComment = graph.options().data()._comment;
-    const metaObj = graph.options().getGeneralMetaObject();
+    const metaObj = graph.ontologyEditingState().getGeneralMetaObject();
     const header = graph.options().data().header;
 
     if (metaObj.iri && metaObj.iri !== header.iri) {
@@ -830,7 +839,7 @@ function createExportMenu(graph) {
   function exportJson() {
     graph.options().navigationMenu().hideAllMenus();
     /**  check if there is data **/
-    if (!exportableJsonText) {
+    if (!graph.options().data()) {
       alert("No graph data available.");
       return;
     }
@@ -861,7 +870,8 @@ function createExportMenu(graph) {
       " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n";
     comment +=
       " %   The content can be used as import in other TeX documents. \n";
-    comment += " %   Parent document has to use the following packages   \n";
+    comment +=
+      " %   Parent documentObject has to use the following packages   \n";
     comment += " %   \\usepackage{tikz}  \n";
     comment += " %   \\usepackage{helvet}  \n";
     comment +=
@@ -875,7 +885,7 @@ function createExportMenu(graph) {
     comment +=
       " %\\usetikzlibrary{decorations.markings,decorations.shapes,decorations,arrows,automata,backgrounds,petri,shapes.geometric} \n";
     comment += " %\\usepackage{xcolor} \n\n";
-    comment += " %\\begin{document} \n";
+    comment += " %\\begin{documentObject} \n";
     comment += " %\\section{Example} \n";
     comment += " %  This is an example. \n";
     comment += " %  \\begin{figure} \n";
@@ -884,7 +894,7 @@ function createExportMenu(graph) {
     comment +=
       " %    \\caption{A generated graph with TKIZ using alpha version of the TeX exporter of WebVOWL (version 1.1.3) } \n";
     comment += " %  \\end{figure} \n";
-    comment += " %\\end{document} \n";
+    comment += " %\\end{documentObject} \n";
     comment +=
       " %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n";
 
@@ -1004,7 +1014,7 @@ function createExportMenu(graph) {
 
     graph.options().navigationMenu().hideAllMenus();
     /**  check if there is data **/
-    if (!exportableJsonText) {
+    if (!graph.options().data()) {
       alert("No graph data available.");
       return;
     }
@@ -1297,7 +1307,7 @@ function createExportMenu(graph) {
       }
       let textColorStr = "";
       if (node.textBlock) {
-        const txtColor = window.getComputedStyle(
+        const txtColor = windowObject.getComputedStyle(
           node.textBlock()._textBlock().node(),
         ).fill;
         if (txtColor === "rgb(0, 0, 0)") {
@@ -1661,7 +1671,7 @@ function createExportMenu(graph) {
       }
       let textColorStr = "";
       if (correspondingProp.textBlock && correspondingProp.textBlock()) {
-        const txtColor = window.getComputedStyle(
+        const txtColor = windowObject.getComputedStyle(
           correspondingProp.textBlock()._textBlock().node(),
         ).fill;
         if (txtColor === "rgb(0, 0, 0)") {
@@ -1792,7 +1802,7 @@ function createExportMenu(graph) {
           inv_correspondingProp.textBlock &&
           inv_correspondingProp.textBlock()
         ) {
-          const inv_txtColor = window.getComputedStyle(
+          const inv_txtColor = windowObject.getComputedStyle(
             inv_correspondingProp.textBlock()._textBlock().node(),
           ).fill;
           if (inv_txtColor === "rgb(0, 0, 0)") {
@@ -1927,9 +1937,10 @@ function createExportMenu(graph) {
   return exportMenu;
 }
 
-createExportMenu.downloadFile = downloadFile;
-createExportMenu.copyInputValue = copyInputValue;
-createExportMenu.legacyCopyInputValue = legacyCopyInputValue;
-createExportMenu.nextCopyFeedback = nextCopyFeedback;
-
-module.exports = createExportMenu;
+export {
+  copyInputValue,
+  createExportMenu,
+  downloadFile,
+  legacyCopyInputValue,
+  nextCopyFeedback,
+};

@@ -1,7 +1,7 @@
 const tools = {};
-module.exports = function () {
+export function createRectangularElementTools() {
   return tools;
-};
+}
 
 tools.distanceToBorder = function (rect, dx, dy) {
   const width = rect.width(),

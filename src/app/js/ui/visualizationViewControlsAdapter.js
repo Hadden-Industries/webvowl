@@ -1,16 +1,22 @@
+// The controls the reader already sees. This adapter is the single route from
+// those controls to the controller; no menu module drives the graph directly.
 export const VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS = Object.freeze({
-  languageSelect: "visualizationLanguageSelect",
-  datatypesFilterCheckbox: "visualizationDatatypesFilterCheckbox",
-  objectPropertiesFilterCheckbox: "visualizationObjectPropertiesFilterCheckbox",
-  subclassesFilterCheckbox: "visualizationSubclassesFilterCheckbox",
-  disjointnessFilterCheckbox: "visualizationDisjointnessFilterCheckbox",
-  setOperatorsFilterCheckbox: "visualizationSetOperatorsFilterCheckbox",
-  minimumDegreeRange: "visualizationMinimumDegreeRange",
+  languageSelect: "language",
+  datatypesFilterCheckbox: "datatypeFilterCheckbox",
+  objectPropertiesFilterCheckbox: "objectPropertyFilterCheckbox",
+  subclassesFilterCheckbox: "subclassFilterCheckbox",
+  disjointnessFilterCheckbox: "disjointFilterCheckbox",
+  setOperatorsFilterCheckbox: "setoperatorFilterCheckbox",
+  minimumDegreeRange: "nodeDegreeDistanceSlider",
+  // The search dropdown is still owned by the search menu, which carries
+  // keyboard navigation and highlighting this adapter does not replicate.
+  // Binding here as well would render a second, poorer result list over it.
   ontologySearchInput: "visualizationOntologySearchInput",
   ontologySearchResultList: "visualizationOntologySearchResultList",
+  // No relax-only control ships yet; the adapter skips absent controls.
   relaxLayoutButton: "visualizationRelaxLayoutButton",
-  fitViewportButton: "visualizationFitViewportButton",
-  graphLayoutPauseButton: "visualizationGraphLayoutPauseButton",
+  fitViewportButton: "centerGraphButton",
+  graphLayoutPauseButton: "pause-button",
   graphLayoutStatusOutput: "visualizationGraphLayoutStatusOutput",
 });
 
@@ -167,7 +173,8 @@ export function createVisualizationViewControlsAdapter(dependencies) {
     listenOnControl(controlName, "change", (changeEvent) => {
       requestVisualizationView({
         filters: {
-          [filterFieldName]: changeEvent.target.checked ? "show" : "hide",
+          // A checked filter control removes those elements from the graph.
+          [filterFieldName]: changeEvent.target.checked ? "hide" : "show",
         },
       });
     });
@@ -248,7 +255,7 @@ export function createVisualizationViewControlsAdapter(dependencies) {
       )) {
         presentControlChecked(
           controlName,
-          visualizationView.filters[filterFieldName] === "show",
+          visualizationView.filters[filterFieldName] === "hide",
         );
       }
       presentControlValue(

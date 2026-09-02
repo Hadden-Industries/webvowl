@@ -1,7 +1,7 @@
 /** @WORKAROUND CODE:
  * clears empty literals that are provided by owl2vowl: 0.2.2x*/
 
-module.exports = function () {
+export function createEmptyLiteralFilter() {
   const filter = {};
   let enabled = true;
   let filteredNodes;
@@ -92,4 +92,4 @@ module.exports = function () {
   };
 
   return filter;
-};
+}

@@ -1,16 +1,19 @@
-const OwlDisjointWith = require("./elements/properties/implementations/OwlDisjointWith");
-const attributeParser = require("./parsing/attributeParser")();
-const equivalentPropertyMerger =
-  require("./parsing/equivalentPropertyMerger")();
-const nodePrototypeMap = require("./elements/nodes/nodeMap")();
-const propertyPrototypeMap = require("./elements/properties/propertyMap")();
+import { createNodeMap as nodePrototypeMapFactory } from "./elements/nodes/nodeMap.js";
+import { createPropertyMap as propertyPrototypeMapFactory } from "./elements/properties/propertyMap.js";
+import { createEquivalentPropertyMerger } from "./parsing/equivalentPropertyMerger.js";
+import { OwlDisjointWith } from "./elements/properties/implementations/OwlDisjointWith.js";
+import { createAttributeParser as attributeParserFactory } from "./parsing/attributeParser.js";
+const attributeParser = attributeParserFactory();
+const equivalentPropertyMerger = createEquivalentPropertyMerger();
+const nodePrototypeMap = nodePrototypeMapFactory();
+const propertyPrototypeMap = propertyPrototypeMapFactory();
 
 /**
  * Encapsulates the parsing and preparation logic of the input data.
  * @param graph the graph object that will be passed to the elements
  * @returns {{}}
  */
-module.exports = function (graph) {
+export function createParser(graph) {
   const parser = {};
   let nodes,
     properties,
@@ -830,4 +833,4 @@ module.exports = function (graph) {
   }
 
   return parser;
-};
+}

@@ -1,7 +1,16 @@
-import { describe, test, expect, beforeEach } from "@jest/globals";
+import { beforeAll, beforeEach, describe, expect, test } from "@jest/globals";
 import fs from "node:fs";
 import * as d3 from "d3";
-import pauseMenuFactory from "./pauseMenu.js";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
+
+let pauseMenuFactory;
+
+beforeAll(async () => {
+  ({ createPauseMenu: pauseMenuFactory } = await loadEsmModuleForTest(
+    new URL("./pauseMenu.js", import.meta.url),
+    import.meta.url,
+  ));
+});
 
 const pauseMenuSource = fs.readFileSync(
   new URL("./pauseMenu.js", import.meta.url),
@@ -185,11 +194,9 @@ class MockDocument {
 
 describe("pauseMenu component", () => {
   let mockDoc;
-  let mockGraph;
   let pauseBtnElement;
   let pauseSvgElement;
   let pauseLabelElement;
-  let isPausedState;
 
   beforeEach(() => {
     mockDoc = new MockDocument();
@@ -214,20 +221,12 @@ describe("pauseMenu component", () => {
 
     mockDoc.elements["pause-button"] = pauseBtnElement;
     global.d3 = d3;
-
-    isPausedState = false;
-    mockGraph = {
-      paused: (val) => {
-        if (typeof val !== "undefined") {
-          isPausedState = val;
-        }
-        return isPausedState;
-      },
-    };
   });
 
   test("initializes pause button correctly on setup()", () => {
-    const pauseMenu = pauseMenuFactory(mockGraph);
+    const pauseMenu = pauseMenuFactory({
+      documentObject: global.document,
+    });
     pauseMenu.setup();
 
     expect(pauseBtnElement.classList.contains("paused")).toBe(false);
@@ -242,15 +241,17 @@ describe("pauseMenu component", () => {
     expect(pauseLabelElement.textContent).toBe("Pause");
   });
 
-  test("toggles paused state and aria-pressed without replacing button content", () => {
-    const pauseMenu = pauseMenuFactory(mockGraph);
+  test("renders the paused state the controller reports", () => {
+    const pauseMenu = pauseMenuFactory({
+      documentObject: global.document,
+    });
     pauseMenu.setup();
 
     const originalChildren = [...pauseBtnElement.children];
 
-    pauseBtnElement.click();
+    pauseMenu.renderGraphLayoutPaused(true);
 
-    expect(isPausedState).toBe(true);
+    expect(pauseMenu.isGraphLayoutPaused()).toBe(true);
     expect(pauseBtnElement.classList.contains("paused")).toBe(true);
     expect(pauseBtnElement.classList.contains("highlighted")).toBe(false);
     expect(pauseBtnElement.getAttribute("aria-pressed")).toBe("true");
@@ -260,9 +261,9 @@ describe("pauseMenu component", () => {
     expect(pauseBtnElement.children).toEqual(originalChildren);
     expect(pauseLabelElement.textContent).toBe("Resume");
 
-    pauseBtnElement.click();
+    pauseMenu.renderGraphLayoutPaused(false);
 
-    expect(isPausedState).toBe(false);
+    expect(pauseMenu.isGraphLayoutPaused()).toBe(false);
     expect(pauseBtnElement.classList.contains("paused")).toBe(false);
     expect(pauseBtnElement.classList.contains("highlighted")).toBe(false);
     expect(pauseBtnElement.getAttribute("aria-pressed")).toBe("false");
@@ -273,30 +274,16 @@ describe("pauseMenu component", () => {
     expect(pauseLabelElement.textContent).toBe("Pause");
   });
 
-  test("setPauseValue programmatic toggle", () => {
-    const pauseMenu = pauseMenuFactory(mockGraph);
-    pauseMenu.setup();
-
-    pauseMenu.setPauseValue(true);
-    expect(isPausedState).toBe(true);
-    expect(pauseBtnElement.classList.contains("paused")).toBe(true);
-    expect(pauseBtnElement.classList.contains("highlighted")).toBe(false);
-    expect(pauseLabelElement.textContent).toBe("Resume");
-    expect(pauseBtnElement.getAttribute("title")).toBe(
-      "Resume graph physics simulation",
-    );
-
-    pauseMenu.setPauseValue(false);
-    expect(isPausedState).toBe(false);
-    expect(pauseBtnElement.classList.contains("paused")).toBe(false);
-    expect(pauseLabelElement.textContent).toBe("Pause");
-    expect(pauseBtnElement.getAttribute("title")).toBe(
-      "Pause graph physics simulation",
-    );
+  test("does not drive the graph itself", () => {
+    // The click reaches the controller through the view-controls adapter.
+    expect(pauseMenuSource).not.toMatch(/(?<![A-Za-z0-9_$])graph\./u);
+    expect(pauseMenuSource).not.toContain("addEventListener");
   });
 
   test("setMenuMode enables and disables button element", () => {
-    const pauseMenu = pauseMenuFactory(mockGraph);
+    const pauseMenu = pauseMenuFactory({
+      documentObject: global.document,
+    });
     pauseMenu.setup();
 
     pauseMenu.setMenuMode(false);
@@ -304,16 +291,6 @@ describe("pauseMenu component", () => {
 
     pauseMenu.setMenuMode(true);
     expect(pauseBtnElement.disabled).toBe(false);
-  });
-
-  test("reset resumes graph physics and updates button state", () => {
-    const pauseMenu = pauseMenuFactory(mockGraph);
-    pauseMenu.setup();
-    pauseMenu.setPauseValue(true);
-
-    pauseMenu.reset();
-    expect(isPausedState).toBe(false);
-    expect(pauseBtnElement.classList.contains("paused")).toBe(false);
   });
 
   test("updates state without DOM construction or HTML injection", () => {

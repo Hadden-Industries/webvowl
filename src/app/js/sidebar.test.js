@@ -1,3 +1,9 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
+
+// Interface modules collaborate through the application registry.
+const registeredUiModulesForTest = new Map();
 import {
   afterEach,
   beforeAll,
@@ -7,9 +13,6 @@ import {
   jest,
   test,
 } from "@jest/globals";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { createContext, SourceTextModule } from "node:vm";
 
 let createSidebar;
 let navigableOntologyIri;
@@ -32,6 +35,22 @@ beforeAll(async () => {
     { context: sidebarModuleContext, identifier: moduleUrl.href },
   );
   await sourceModule.link((specifier) => {
+    if (specifier.endsWith("applicationUiRegistry.js")) {
+      return new SyntheticModule(
+        ["applicationUiModule", "registerApplicationUiModule"],
+        function provideApplicationUiRegistry() {
+          this.setExport("applicationUiModule", (moduleName) =>
+            registeredUiModulesForTest.get(moduleName),
+          );
+          this.setExport(
+            "registerApplicationUiModule",
+            (moduleName, uiModule) =>
+              registeredUiModulesForTest.set(moduleName, uiModule),
+          );
+        },
+        { context: sidebarModuleContext, identifier: specifier },
+      );
+    }
     throw new Error(`Unexpected sidebar dependency: ${specifier}`);
   });
   await sourceModule.evaluate();
@@ -215,6 +234,9 @@ describe("sidebar native language and lifecycle controls", () => {
       options: () => ({
         sidebar: () => ({ showSidebar: jest.fn() }),
       }),
+      ontologyEditingState: () => ({
+        sidebar: () => ({ showSidebar: jest.fn() }),
+      }),
       updateCanvasContainerSize: jest.fn(),
     };
     sidebar = createSidebar(graph, {
@@ -246,7 +268,7 @@ describe("sidebar native language and lifecycle controls", () => {
     delete global.requestAnimationFrame;
   });
 
-  test("renders native option elements and applies the event target language", () => {
+  test("renders native option elements without setting the renderer language", () => {
     sidebar.setup();
     sidebar.updateOntologyInformation(
       {
@@ -267,14 +289,16 @@ describe("sidebar native language and lifecycle controls", () => {
     ]);
     expect(languageSelect.value).toBe("en");
 
+    // The language change reaches the controller through the view-controls
+    // adapter, so the sidebar must not set it on the renderer itself.
     languageSelect.value = "fr";
     languageSelect.dispatchEvent(new Event("change"));
 
-    expect(language).toBe("fr");
+    expect(language).toBe("en");
   });
 
   test("renders ontology metadata as inert text", () => {
-    graph.options = () => ({
+    graph.ontologyEditingState = () => ({
       getGeneralMetaObject: () => ({
         author: '<img src="invalid" onerror="alert(1)">',
         description: "<script>unexpected()</script>",
@@ -379,5 +403,124 @@ describe("sidebar native language and lifecycle controls", () => {
     expect(global.cancelAnimationFrame).toHaveBeenCalledWith(2);
     expect(pendingAnimationFrames).toEqual(new Map());
     expect(pageBody.classList.contains("no-transition")).toBe(false);
+  });
+});
+
+describe("sidebar ontology summary presentation", () => {
+  let controls;
+  let sidebar;
+
+  beforeEach(() => {
+    controls = new Map();
+    const controlFor = (selector) => {
+      if (!controls.has(selector)) {
+        controls.set(selector, new SidebarElement());
+      }
+      return controls.get(selector);
+    };
+    global.document = {
+      createElement: (tagName) => new SidebarElement(tagName),
+      querySelector: controlFor,
+      querySelectorAll: () => [],
+    };
+    Object.defineProperty(global, "navigator", {
+      configurable: true,
+      value: { language: "en-US", languages: ["en-US"] },
+    });
+    global.requestAnimationFrame = jest.fn((callback) => callback());
+    global.cancelAnimationFrame = jest.fn();
+    sidebarModuleContext.cancelAnimationFrame = global.cancelAnimationFrame;
+    sidebarModuleContext.document = global.document;
+    sidebarModuleContext.navigator = global.navigator;
+    sidebarModuleContext.requestAnimationFrame = global.requestAnimationFrame;
+    sidebarModuleContext.window = { innerWidth: 1280 };
+    sidebar = createSidebar(
+      {
+        language: () => "undefined",
+        options: () => ({ sidebar: () => ({ showSidebar: jest.fn() }) }),
+        ontologyEditingState: () => ({
+          sidebar: () => ({ showSidebar: jest.fn() }),
+        }),
+        updateCanvasContainerSize: jest.fn(),
+      },
+      {
+        elementTools: { isNode: () => false, isProperty: () => false },
+        languageConstants: {
+          iriBasedLanguage: "id",
+          undefinedLanguage: "undefined",
+        },
+        languageTools: {
+          textInLanguage: (localizedText) =>
+            typeof localizedText === "string" ? localizedText : undefined,
+        },
+      },
+    );
+  });
+
+  afterEach(() => {
+    sidebar?.dispose();
+    sidebarModuleContext.document = undefined;
+    sidebarModuleContext.cancelAnimationFrame = undefined;
+    sidebarModuleContext.navigator = undefined;
+    sidebarModuleContext.requestAnimationFrame = undefined;
+    sidebarModuleContext.window = undefined;
+    delete global.document;
+  });
+
+  test("renders the header and element counts from a controller summary", () => {
+    sidebar.renderOntologySummary({
+      ontologyHeader: {
+        ontologyIri: "http://xmlns.com/foaf/0.1/",
+        versionInformationText: "0.99",
+        title: "Friend of a Friend",
+        description: "The FOAF vocabulary.",
+        authorNames: ["Dan Brickley", "Libby Miller"],
+      },
+      elementCounts: {
+        classCount: 21,
+        propertyCount: 44,
+        datatypeCount: 6,
+        individualCount: 0,
+      },
+      availableLabelLanguages: ["en", "undefined"],
+      selectedLanguage: "en",
+    });
+
+    expect(controls.get("#title").textContent).toBe("Friend of a Friend");
+    expect(controls.get("#version").textContent).toBe("0.99");
+    expect(controls.get("#authors").textContent).toBe(
+      "Dan Brickley, Libby Miller",
+    );
+    expect(controls.get("#description").textContent).toBe(
+      "The FOAF vocabulary.",
+    );
+    expect(controls.get("#classCount").textContent).toBe(21);
+  });
+
+  test("falls back to placeholders when the summary omits header text", () => {
+    sidebar.renderOntologySummary({
+      ontologyHeader: {
+        ontologyIri: null,
+        versionInformationText: null,
+        title: null,
+        description: null,
+        authorNames: [],
+      },
+      elementCounts: {
+        classCount: 0,
+        propertyCount: 0,
+        datatypeCount: 0,
+        individualCount: 0,
+      },
+      availableLabelLanguages: [],
+      selectedLanguage: null,
+    });
+
+    expect(controls.get("#title").textContent).toBe("No title available");
+    expect(controls.get("#version").textContent).toBe("--");
+    expect(controls.get("#authors").textContent).toBe("--");
+    expect(controls.get("#description").textContent).toBe(
+      "No description available.",
+    );
   });
 });

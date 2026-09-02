@@ -1,7 +1,8 @@
-const textTools = require("./textTools")();
-const AbstractTextElement = require("./AbstractTextElement");
+import { AbstractTextElement } from "./AbstractTextElement.js";
+import { createTextTools as textToolsFactory } from "./textTools.js";
+const textTools = textToolsFactory();
 
-module.exports = CenteringTextElement;
+export { CenteringTextElement };
 function CenteringTextElement(container, backgroundColor) {
   AbstractTextElement.apply(this, arguments);
   this.storedFullTextLines = [];

@@ -1,4 +1,14 @@
-const createExportSvgClone = require("./svgExportStyles");
+import { beforeAll } from "@jest/globals";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
+
+let createExportSvgClone;
+
+beforeAll(async () => {
+  ({ createExportSvgClone } = await loadEsmModuleForTest(
+    new URL("./svgExportStyles.js", import.meta.url),
+    import.meta.url,
+  ));
+});
 
 class FakeStyle {
   constructor() {

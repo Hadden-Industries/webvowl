@@ -1,4 +1,10 @@
-module.exports = function (graph) {
+export function createConfigMenu(
+  graph,
+  {
+    documentObject = globalThis.document,
+    windowObject = globalThis.window,
+  } = {},
+) {
   const configMenu = {},
     checkboxes = [];
 
@@ -19,7 +25,7 @@ module.exports = function (graph) {
   };
 
   function addLabelWidthSlider(selector, identifier, label, onChangeFunction) {
-    const sliderContainer = document.querySelector(selector);
+    const sliderContainer = documentObject.querySelector(selector);
     const sliderValueLabel = sliderContainer.querySelector(
       "#" + identifier + "SliderValue",
     );
@@ -67,7 +73,7 @@ module.exports = function (graph) {
     onChangeFunc,
     updateLvl,
   ) {
-    const configOptionContainer = document.querySelector(selector);
+    const configOptionContainer = documentObject.querySelector(selector);
     const configCheckbox = configOptionContainer.querySelector(
       "#" + identifier + "ConfigCheckbox",
     );
@@ -134,4 +140,4 @@ module.exports = function (graph) {
   };
 
   return configMenu;
-};
+}

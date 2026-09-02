@@ -4,7 +4,13 @@
  * @param graph the associated webvowl graph
  * @returns {{}}
  */
-module.exports = function (graph) {
+export function createGravityMenu(
+  graph,
+  {
+    documentObject = globalThis.document,
+    windowObject = globalThis.window,
+  } = {},
+) {
   const gravityMenu = {},
     sliders = [],
     options = graph.graphOptions(),
@@ -30,7 +36,7 @@ module.exports = function (graph) {
 
   function addDistanceSlider(selector, identifier, label, distanceFunction) {
     const defaultLinkDistance = distanceFunction();
-    const sliderContainer = document.querySelector(selector);
+    const sliderContainer = documentObject.querySelector(selector);
 
     const sliderValueLabel = sliderContainer.querySelector(
       "#" + identifier + "DistanceSliderValue",
@@ -102,4 +108,4 @@ module.exports = function (graph) {
   };
 
   return gravityMenu;
-};
+}

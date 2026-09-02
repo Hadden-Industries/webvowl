@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { createContext, SourceTextModule } from "node:vm";
 import {
   afterEach,
   beforeAll,
@@ -6,9 +9,6 @@ import {
   expect,
   test,
 } from "@jest/globals";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { createContext, SourceTextModule } from "node:vm";
 
 let createWarningModule;
 let warningModuleContext;

@@ -1,5 +1,50 @@
-import { beforeEach, describe, expect, jest, test } from "@jest/globals";
-import ontologyMenuFactory from "./ontologyMenu.js";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { SourceTextModule, SyntheticModule } from "node:vm";
+
+// Interface modules collaborate through the application registry.
+const registeredUiModulesForTest = new Map();
+import {
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  jest,
+  test,
+} from "@jest/globals";
+
+let createOntologyMenu;
+let normalizeOntologyUrl;
+
+const ONTOLOGY_MENU_MODULE_URL = new URL("./ontologyMenu.js", import.meta.url);
+
+beforeAll(async () => {
+  const ontologyMenuModule = new SourceTextModule(
+    readFileSync(fileURLToPath(ONTOLOGY_MENU_MODULE_URL), "utf8"),
+    { identifier: ONTOLOGY_MENU_MODULE_URL.href },
+  );
+  await ontologyMenuModule.link((specifier) => {
+    if (specifier.endsWith("applicationUiRegistry.js")) {
+      return new SyntheticModule(
+        ["applicationUiModule", "registerApplicationUiModule"],
+        function provideApplicationUiRegistry() {
+          this.setExport("applicationUiModule", (moduleName) =>
+            registeredUiModulesForTest.get(moduleName),
+          );
+          this.setExport(
+            "registerApplicationUiModule",
+            (moduleName, uiModule) =>
+              registeredUiModulesForTest.set(moduleName, uiModule),
+          );
+        },
+        { identifier: specifier },
+      );
+    }
+    throw new Error(`Unexpected ontology menu dependency: ${specifier}`);
+  });
+  await ontologyMenuModule.evaluate();
+  ({ createOntologyMenu, normalizeOntologyUrl } = ontologyMenuModule.namespace);
+});
 
 class MockSelection {
   constructor(node = {}) {
@@ -109,7 +154,8 @@ class MockSelection {
 }
 
 describe("ontology URL normalization", () => {
-  const normalize = ontologyMenuFactory.normalizeOntologyUrl;
+  const normalize = (...normalizationArguments) =>
+    normalizeOntologyUrl(...normalizationArguments);
 
   test("adds HTTPS when the protocol is omitted", () => {
     expect(normalize("example.org/ontology.owl")).toMatchObject({
@@ -173,6 +219,8 @@ describe("ontology menu actions", () => {
   let ontologyMenu;
   let createNewOntology;
   let hideAllMenus;
+  let requestedLoads;
+  let webVowlController;
 
   beforeEach(() => {
     selections = new Map();
@@ -197,14 +245,26 @@ describe("ontology menu actions", () => {
 
     createNewOntology = jest.fn();
     hideAllMenus = jest.fn();
+    requestedLoads = [];
+    webVowlController = {
+      loadOntology: jest.fn((loadRequest) => {
+        requestedLoads.push(loadRequest);
+        return Promise.resolve({ status: "ready" });
+      }),
+    };
     const loadingModule = {
       createNewOntology,
       setOntologyMenu: jest.fn(),
-      parseUrlAndLoadOntology: jest.fn(),
+      loadRemoteSource: jest.fn(() => Promise.resolve()),
+      sourceFromLocation: jest.fn(() => ({
+        kind: "vowl-json-url",
+        url: "https://example.test/foaf.json",
+      })),
     };
+    // The ontology menu reaches the loading module through the registry.
+    registeredUiModulesForTest.set("loadingModule", loadingModule);
     const graph = {
       options: () => ({
-        loadingModule: () => loadingModule,
         navigationMenu: () => ({ hideAllMenus }),
       }),
       editorMode: jest.fn().mockReturnValue(false),
@@ -212,7 +272,12 @@ describe("ontology menu actions", () => {
       showReloadButtonAfterLayoutOptimization: jest.fn(),
     };
 
-    ontologyMenu = ontologyMenuFactory(graph);
+    ontologyMenu = createOntologyMenu(graph, {
+      documentObject: global.document,
+      locationObject: global.location,
+      webVowlController,
+      windowObject: global.window,
+    });
     ontologyMenu.setup(jest.fn());
     emptyButton = selectionFor("#empty");
     iriInput = selectionFor("#iri-converter-input");
@@ -340,5 +405,88 @@ describe("ontology menu actions", () => {
     expect(reloadButton.element.title).toContain(
       "reloading original version not possible",
     );
+  });
+});
+
+describe("ontology menu converter responses", () => {
+  let ontologyMenu;
+  let requestedLoads;
+  let webVowlController;
+
+  beforeEach(() => {
+    const selections = new Map();
+    const selectionFor = (key) => {
+      if (!selections.has(key)) {
+        selections.set(key, new MockSelection());
+      }
+      return selections.get(key);
+    };
+    global.location = { hash: "#foaf" };
+    global.window = { addEventListener: jest.fn() };
+    global.document = {
+      getElementById: (id) => selectionFor("#" + id).element,
+    };
+    global.d3 = { select: selectionFor, selectAll: selectionFor };
+
+    requestedLoads = [];
+    webVowlController = {
+      loadOntology: jest.fn((loadRequest) => {
+        requestedLoads.push(loadRequest);
+        return Promise.resolve({ status: "ready" });
+      }),
+    };
+    registeredUiModulesForTest.set("loadingModule", {
+      createNewOntology: jest.fn(),
+      setOntologyMenu: jest.fn(),
+      loadRemoteSource: jest.fn(() => Promise.resolve()),
+      sourceFromLocation: jest.fn(),
+    });
+    ontologyMenu = createOntologyMenu(
+      {
+        options: () => ({
+          navigationMenu: () => ({ hideAllMenus: jest.fn() }),
+        }),
+        editorMode: jest.fn().mockReturnValue(false),
+        addEventListener: jest.fn(),
+        showReloadButtonAfterLayoutOptimization: jest.fn(),
+      },
+      {
+        documentObject: global.document,
+        locationObject: global.location,
+        webVowlController,
+        windowObject: global.window,
+      },
+    );
+    ontologyMenu.setup();
+  });
+
+  test("sends a converted VOWL model straight to the controller", async () => {
+    const vowlModel = { class: [{ id: "1", type: "owl:Class" }] };
+
+    await ontologyMenu.loadConvertedVowlModel(
+      JSON.stringify(vowlModel),
+      "example.owl",
+    );
+
+    expect(requestedLoads).toEqual([
+      {
+        source: {
+          kind: "vowl-model",
+          model: vowlModel,
+          displayName: "example.owl",
+        },
+      },
+    ]);
+  });
+
+  test("caches the converted model itself rather than its serialization", async () => {
+    const vowlModel = { class: [{ id: "1", type: "owl:Class" }] };
+
+    await ontologyMenu.loadConvertedVowlModel(
+      JSON.stringify(vowlModel),
+      "example.owl",
+    );
+
+    expect(ontologyMenu.cachedOntology("example.owl")).toEqual(vowlModel);
   });
 });

@@ -1,4 +1,4 @@
-module.exports = function (handlerFunction) {
+export function createSelectionDetailsDisplayer(handlerFunction) {
   const viewer = {};
   let lastSelectedElement;
 
@@ -41,4 +41,4 @@ module.exports = function (handlerFunction) {
   };
 
   return viewer;
-};
+}

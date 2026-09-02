@@ -1,4 +1,14 @@
-const AbstractTextElement = require("./AbstractTextElement");
+import { beforeAll } from "@jest/globals";
+import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
+
+let AbstractTextElement;
+
+beforeAll(async () => {
+  ({ AbstractTextElement } = await loadEsmModuleForTest(
+    new URL("./AbstractTextElement.js", import.meta.url),
+    import.meta.url,
+  ));
+});
 
 function createTextSelection() {
   const classes = {};
@@ -17,7 +27,6 @@ function createTextSelection() {
 
 describe("AbstractTextElement contrast state", () => {
   test("uses a semantic light-text class on dark backgrounds", () => {
-    global.d3 = { rgb: () => ({ r: 0, g: 0, b: 0 }) };
     const textSelection = createTextSelection();
     const container = { append: () => textSelection };
 
@@ -29,7 +38,6 @@ describe("AbstractTextElement contrast state", () => {
   });
 
   test("uses a semantic dark-text class on light backgrounds", () => {
-    global.d3 = { rgb: () => ({ r: 255, g: 255, b: 255 }) };
     const textSelection = createTextSelection();
     const container = { append: () => textSelection };
 

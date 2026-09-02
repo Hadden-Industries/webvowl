@@ -1,7 +1,8 @@
-module.exports = function (graph) {
+import { createElementTools } from "../util/elementTools.js";
+export function createFocuser(graph) {
   const focuser = {};
   let focusedElement;
-  const elementTools = require("../util/elementTools")();
+  const elementTools = createElementTools();
   focuser.handle = function (event, selectedElement, forced) {
     // Don't display details on a drag event, which will be prevented
     if (event && event.defaultPrevented && !forced) {
@@ -59,4 +60,4 @@ module.exports = function (graph) {
   };
 
   return focuser;
-};
+}

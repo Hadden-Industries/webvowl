@@ -1,4 +1,14 @@
-const createParser = require("./parser");
+import { beforeAll, jest } from "@jest/globals";
+import loadEsmModuleForTest from "../../app/test/loadEsmModuleForTest.js";
+
+let createParser;
+
+beforeAll(async () => {
+  ({ createParser } = await loadEsmModuleForTest(
+    new URL("./parser.js", import.meta.url),
+    import.meta.url,
+  ));
+});
 
 describe("Parser Inverse Property Type Matching Unit Tests", () => {
   let mockGraph;

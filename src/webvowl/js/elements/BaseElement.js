@@ -1,7 +1,8 @@
+import { createLanguageTools } from "../../../shared/js/util/languageTools.js";
 /**
  * The base element for all visual elements of webvowl.
  */
-module.exports = (function () {
+const BaseElement = (function () {
   const Base = function (graph) {
     // Basic attributes
     let equivalents = [],
@@ -25,7 +26,7 @@ module.exports = (function () {
       styleClass,
       visible = true,
       backupLabel;
-    const languageTools = require("../../../shared/js/util/languageTools")();
+    const languageTools = createLanguageTools();
 
     this.backupLabel = function (label) {
       if (!arguments.length) {
@@ -248,3 +249,5 @@ module.exports = (function () {
 
   return Base;
 })();
+
+export { BaseElement };

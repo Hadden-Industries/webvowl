@@ -1,7 +1,8 @@
-const BaseElement = require("../BaseElement");
-const forceLayoutNodeFunctions = require("../forceLayoutNodeFunctions")();
+import { BaseElement } from "../BaseElement.js";
+import { createForceLayoutNodeFunctions as forceLayoutNodeFunctionsFactory } from "../forceLayoutNodeFunctions.js";
+const forceLayoutNodeFunctions = forceLayoutNodeFunctionsFactory();
 
-module.exports = (function () {
+const BaseNode = (function () {
   const Base = function (graph) {
     BaseElement.apply(this, arguments);
 
@@ -110,7 +111,11 @@ module.exports = (function () {
     };
 
     this.raiseDoubleClickEdit = function (forceIRISync, event) {
-      d3.selectAll(".foreignelements").remove();
+      for (const foreignElement of document.querySelectorAll(
+        ".foreignelements",
+      )) {
+        foreignElement.remove();
+      }
       if (
         nodeElement === undefined ||
         this.type() === "owl:Thing" ||
@@ -200,7 +205,7 @@ module.exports = (function () {
           let prefixedIri = null;
           if (forceIRISync) {
             prefixedIri = graph
-              .options()
+              .ontologyEditingState()
               .prefixModule()
               .getPrefixRepresentationForFullURI(syncedIRI);
           }
@@ -241,22 +246,15 @@ module.exports = (function () {
             if (sanityCheckResult === false) {
               that.iri(backupFullIri);
             } else {
-              // throw warnign
-              graph
-                .options()
-                .warningModule()
-                .showWarning(
-                  "Already seen this class",
-                  "Input IRI: " +
-                    backupFullIri +
-                    " for element: " +
-                    that.labelForCurrentLanguage() +
-                    " already been set",
-                  "Restoring previous IRI for Element : " + that.iri(),
-                  2,
-                  false,
-                  sanityCheckResult,
-                );
+              graph.raiseRenderWarning(
+                "DUPLICATE_CLASS_IRI",
+                "Input IRI: " +
+                  backupFullIri +
+                  " for element: " +
+                  that.labelForCurrentLanguage() +
+                  " already been set. Restoring previous IRI for Element : " +
+                  that.iri(),
+              );
             }
           }
           if (graph.isADraggerActive() === false) {
@@ -481,3 +479,5 @@ module.exports = (function () {
 
   return Base;
 })();
+
+export { BaseNode };

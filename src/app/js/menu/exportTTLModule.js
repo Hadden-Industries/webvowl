@@ -1,16 +1,16 @@
+import { createPrefixRepresentationModule } from "../../../shared/js/util/prefixRepresentationModule.js";
 /**
  * Contains the logic for the export button.
  * @returns {{}}
  */
-module.exports = function exportTTLModule(graph) {
+export function createExportTtlModule(graph) {
   const exportTTLModule = {};
   let resultingTTLContent = "";
   let currentNodes;
   let currentProperties;
   let Map_ID2Node = {};
   let Map_ID2Prop = {};
-  const prefixModule =
-    require("../../../shared/js/util/prefixRepresentationModule")(graph);
+  const prefixModule = createPrefixRepresentationModule(graph);
 
   exportTTLModule.requestExport = function () {
     prefixModule.updatePrefixModel();
@@ -486,8 +486,10 @@ module.exports = function exportTTLModule(graph) {
   }
 
   function preparePrefixList() {
-    const ontoIri = graph.options().getGeneralMetaObjectProperty("iri");
-    const prefixList = graph.options().prefixList();
+    const ontoIri = graph
+      .ontologyEditingState()
+      .getGeneralMetaObjectProperty("iri");
+    const prefixList = graph.ontologyEditingState().prefixList();
     const prefixDef = [];
     prefixDef.push("@prefix : \t\t<" + ontoIri + "> .");
     for (const name in prefixList) {
@@ -505,7 +507,9 @@ module.exports = function exportTTLModule(graph) {
   }
 
   function prepareOntologyDef() {
-    const ontoIri = graph.options().getGeneralMetaObjectProperty("iri");
+    const ontoIri = graph
+      .ontologyEditingState()
+      .getGeneralMetaObjectProperty("iri");
     const indent = getIndent("<" + ontoIri + ">");
     resultingTTLContent +=
       "<" +
@@ -532,7 +536,7 @@ module.exports = function exportTTLModule(graph) {
 
   function getOntologyAuthor(indent) {
     const languageElement = graph
-      .options()
+      .ontologyEditingState()
       .getGeneralMetaObjectProperty("author");
     if (languageElement) {
       if (typeof languageElement !== "object") {
@@ -557,7 +561,7 @@ module.exports = function exportTTLModule(graph) {
 
   function getOntologyVersion(indent) {
     const languageElement = graph
-      .options()
+      .ontologyEditingState()
       .getGeneralMetaObjectProperty("version");
     if (languageElement) {
       if (typeof languageElement !== "object") {
@@ -578,7 +582,7 @@ module.exports = function exportTTLModule(graph) {
     endStatement,
   ) {
     const languageElement = graph
-      .options()
+      .ontologyEditingState()
       .getGeneralMetaObjectProperty(metaObjectDescription);
 
     if (typeof languageElement === "object") {
@@ -717,4 +721,4 @@ module.exports = function exportTTLModule(graph) {
   }
 
   return exportTTLModule;
-};
+}

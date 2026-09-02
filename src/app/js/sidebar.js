@@ -1,3 +1,4 @@
+import { applicationUiModule } from "./ui/applicationUiRegistry.js";
 const NAVIGABLE_IRI_SCHEMES = new Set(["http:", "https:", "urn:"]);
 
 export function navigableOntologyIri(value) {
@@ -168,6 +169,48 @@ export function createSidebar(
    * @param data the graph data
    * @param statistics the statistics module
    */
+  // Controller state, not renderer internals, drives the ontology panel.
+  sidebar.renderOntologySummary = function (ontologySummary) {
+    const ontologyHeader = ontologySummary.ontologyHeader;
+    const elementCounts = ontologySummary.elementCounts;
+
+    document.querySelector("#title").textContent =
+      ontologyHeader.title || "No title available";
+    renderOntologyIri(
+      document.querySelector("#about"),
+      ontologyHeader.ontologyIri,
+    );
+    document.querySelector("#version").textContent =
+      ontologyHeader.versionInformationText || "--";
+    document.querySelector("#authors").textContent =
+      ontologyHeader.authorNames.length > 0
+        ? ontologyHeader.authorNames.join(", ")
+        : "--";
+    document.querySelector("#description").textContent =
+      ontologyHeader.description || "No description available.";
+
+    setLanguages(ontologySummary.availableLabelLanguages);
+
+    const visibleGraphCounts = ontologySummary.visibleGraphCounts ?? {
+      visibleNodeCount: 0,
+      visiblePropertyCount: 0,
+    };
+    document.querySelector("#classCount").textContent =
+      elementCounts.classCount;
+    document.querySelector("#objectPropertyCount").textContent =
+      elementCounts.propertyCount;
+    document.querySelector("#datatypePropertyCount").textContent =
+      elementCounts.datatypeCount;
+    document.querySelector("#individualCount").textContent =
+      elementCounts.individualCount;
+    document.querySelector("#nodeCount").textContent =
+      visibleGraphCounts.visibleNodeCount;
+    document.querySelector("#edgeCount").textContent =
+      visibleGraphCounts.visiblePropertyCount;
+
+    sidebar.updateSelectionInformation(undefined);
+  };
+
   sidebar.updateOntologyInformation = function (data, statistics) {
     data = data || {};
     ontologyInfo = data.header || {};
@@ -311,8 +354,9 @@ export function createSidebar(
     }
   }
 
-  function handleLanguageChange(event) {
-    graph.language(event.currentTarget.value);
+  // The language change itself reaches the controller through the
+  // view-controls adapter; this only refreshes what the sidebar shows.
+  function handleLanguageChange() {
     updateGraphInformation();
     sidebar.updateSelectionInformation(lastSelectedElement);
   }
@@ -1232,12 +1276,12 @@ export function createSidebar(
     graph.options().editSidebar().updateGeneralOntologyInfo();
 
     // todo: update showed meta info;
-    graph.options().sidebar().updateGeneralOntologyInfo();
+    applicationUiModule("sidebar")?.updateGeneralOntologyInfo();
   };
 
   sidebar.updateGeneralOntologyInfo = function () {
     // get it from graph.options
-    const generalMetaObj = graph.options().getGeneralMetaObject();
+    const generalMetaObj = graph.ontologyEditingState().getGeneralMetaObject();
     const preferredLanguage = graph && graph.language ? graph.language() : null;
     if (Object.prototype.hasOwnProperty.call(generalMetaObj, "title")) {
       // title has language to it -.-

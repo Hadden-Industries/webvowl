@@ -1,11 +1,21 @@
-const BaseElement = require("../BaseElement");
-const CenteringTextElement = require("../../../../shared/js/util/CenteringTextElement");
-const textTools = require("../../../../shared/js/util/textTools")();
-const drawTools = require("../drawTools")();
-const forceLayoutNodeFunctions = require("../forceLayoutNodeFunctions")();
-const rectangularElementTools = require("../rectangularElementTools")();
+import { createDrawTools as drawToolsFactory } from "../drawTools.js";
+import { createForceLayoutNodeFunctions as forceLayoutNodeFunctionsFactory } from "../forceLayoutNodeFunctions.js";
+import { createRectangularElementTools as rectangularElementToolsFactory } from "../rectangularElementTools.js";
+import { BaseElement } from "../BaseElement.js";
+import { CenteringTextElement } from "../../../../shared/js/util/CenteringTextElement.js";
+import { createTextTools as textToolsFactory } from "../../../../shared/js/util/textTools.js";
+const textTools = textToolsFactory();
+const drawTools = drawToolsFactory();
+const forceLayoutNodeFunctions = forceLayoutNodeFunctionsFactory();
+const rectangularElementTools = rectangularElementToolsFactory();
 
-module.exports = (function () {
+// Linear easing is the identity function; keeping it local removes this
+// renderer element's dependency on an ambient force-layout global.
+function linearEasing(normalizedTime) {
+  return +normalizedTime;
+}
+
+const BaseProperty = (function () {
   // Static variables
   const labelHeight = 28,
     labelWidth = 80,
@@ -812,7 +822,7 @@ module.exports = (function () {
         shapeElement
           .transition()
           .tween("attr", function () {})
-          .ease(d3.easeLinear)
+          .ease(linearEasing)
           .duration(100)
           .attr({ x: -myWidth / 2, y: -h / 2, width: myWidth, height: h })
           .on("end", function () {
@@ -825,7 +835,7 @@ module.exports = (function () {
         shapeElement
           .transition()
           .tween("attr", function () {})
-          .ease(d3.easeLinear)
+          .ease(linearEasing)
           .duration(100)
           .attr({ x: -myWidth / 2, y: -h / 2, width: myWidth, height: h });
       }
@@ -836,7 +846,7 @@ module.exports = (function () {
           .transition()
           .tween("attr.translate", function () {})
           .attr("transform", "translate(" + dx + "," + dy + ")")
-          .ease(d3.easeLinear)
+          .ease(linearEasing)
           .duration(100);
       }
     };
@@ -878,7 +888,11 @@ module.exports = (function () {
     };
 
     this.raiseDoubleClickEdit = function (forceIRISync, event) {
-      d3.selectAll(".foreignelements").remove();
+      for (const foreignElement of document.querySelectorAll(
+        ".foreignelements",
+      )) {
+        foreignElement.remove();
+      }
       if (
         that.labelElement() === undefined ||
         this.type() === "owl:disjointWith" ||
@@ -984,7 +998,7 @@ module.exports = (function () {
           let prefixedIri = null;
           if (forceIRISync) {
             prefixedIri = graph
-              .options()
+              .ontologyEditingState()
               .prefixModule()
               .getPrefixRepresentationForFullURI(syncedIRI);
           }
@@ -1033,21 +1047,14 @@ module.exports = (function () {
               .editSidebar()
               .checkProperIriChange(that, backupFullIri);
             if (sanityCheckResult !== false) {
-              graph
-                .options()
-                .warningModule()
-                .showWarning(
-                  "Already seen this property",
-                  "Input IRI: " +
-                    backupFullIri +
-                    " for element: " +
-                    that.labelForCurrentLanguage() +
-                    " already been set",
-                  "Continuing with duplicate property!",
-                  1,
-                  false,
-                  sanityCheckResult,
-                );
+              graph.raiseRenderWarning(
+                "DUPLICATE_PROPERTY_IRI",
+                "Input IRI: " +
+                  backupFullIri +
+                  " for element: " +
+                  that.labelForCurrentLanguage() +
+                  " already been set. Continuing with duplicate property!",
+              );
             }
             that.iri(backupFullIri);
           }
@@ -1118,3 +1125,5 @@ module.exports = (function () {
 
   return Base;
 })();
+
+export { BaseProperty };

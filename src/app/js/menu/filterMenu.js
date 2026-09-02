@@ -4,25 +4,30 @@
  * @param graph required for calling a refresh after a filter change
  * @returns {{}}
  */
-module.exports = function (graph) {
+export function createFilterMenu(
+  graph,
+  {
+    documentObject = globalThis.document,
+    windowObject = globalThis.window,
+  } = {},
+) {
   const filterMenu = {};
   const checkboxData = [];
   let menuControl;
   let nodeDegreeContainer;
-  let graphDegreeLevel;
   let defaultDegreeValue = 0;
   let degreeSlider;
 
   function getMenuControl() {
     if (!menuControl) {
-      menuControl = document.querySelector("#c_filter button");
+      menuControl = documentObject.querySelector("#c_filter button");
     }
     return menuControl;
   }
 
   function getNodeDegreeContainer() {
     if (!nodeDegreeContainer) {
-      nodeDegreeContainer = document.querySelector(
+      nodeDegreeContainer = documentObject.querySelector(
         "#nodeDegreeFilteringOption",
       );
     }
@@ -107,7 +112,7 @@ module.exports = function (graph) {
     pluralNameOfFilteredItems,
     selector,
   ) {
-    const filterContainer = document.querySelector(selector);
+    const filterContainer = documentObject.querySelector(selector);
     if (!filterContainer) {
       return;
     }
@@ -125,23 +130,10 @@ module.exports = function (graph) {
       defaultState: filter.enabled(),
     });
 
-    const onClickHandler = function (arg1, arg2) {
-      // There might be no parameters passed because of a manual
-      // invocation when resetting the filters
-      const isEnabled = filterCheckbox.checked;
-      filter.enabled(isEnabled);
-      const silent =
-        typeof arg1 === "boolean"
-          ? arg1
-          : typeof arg2 === "boolean"
-            ? arg2
-            : false;
-      if (silent !== true) {
-        // updating graph when silent is false or the parameter is not given.
-        graph.update();
-      }
+    // Resetting still needs to re-apply the checkbox state without a click.
+    const onClickHandler = function () {
+      filter.enabled(filterCheckbox.checked);
     };
-    filterCheckbox.addEventListener("click", onClickHandler);
     filterCheckbox.__onclick = onClickHandler;
   }
 
@@ -168,23 +160,12 @@ module.exports = function (graph) {
       setSliderValue(degreeSlider, value);
     });
 
-    const onChangeHandler = function (arg1, arg2) {
+    const onChangeHandler = function () {
       const degree = degreeSlider.value;
       if (parseInt(degree, 10) === 0) {
         filterMenu.highlightForDegreeSlider(false);
       }
-      const silent =
-        typeof arg1 === "boolean"
-          ? arg1
-          : typeof arg2 === "boolean"
-            ? arg2
-            : false;
-      if (silent !== true) {
-        graph.update();
-        graphDegreeLevel = degree;
-      }
     };
-    degreeSlider.addEventListener("change", onChangeHandler);
     degreeSlider.__onchange = onChangeHandler;
 
     const onInputHandler = function () {
@@ -201,11 +182,6 @@ module.exports = function (graph) {
 
     // adding wheel events
     degreeSlider.addEventListener("wheel", handleWheelEvent);
-    degreeSlider.addEventListener("focusout", function () {
-      if (degreeSlider.value !== graphDegreeLevel) {
-        graph.update();
-      }
-    });
   }
 
   function handleWheelEvent(event) {
@@ -308,7 +284,7 @@ module.exports = function (graph) {
     if (container) {
       container.classList.toggle("highlighted", enable);
     }
-    const hint = document.querySelector("#degree-of-collapsing-hint");
+    const hint = documentObject.querySelector("#degree-of-collapsing-hint");
     if (hint) {
       hint.classList.toggle("hidden", !enable);
     }
@@ -384,4 +360,4 @@ module.exports = function (graph) {
   };
 
   return filterMenu;
-};
+}

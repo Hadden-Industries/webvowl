@@ -1,4 +1,4 @@
-module.exports = function () {
+export function createFilterModuleTemplate() {
   const filter = {};
   let filteredNodes;
   let filteredProperties;
@@ -20,4 +20,4 @@ module.exports = function () {
   };
 
   return filter;
-};
+}

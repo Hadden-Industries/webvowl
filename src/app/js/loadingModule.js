@@ -1,18 +1,11 @@
-import { loadWithImports } from "../../owl2vowl/js/index.js";
-import { resolveFetchUrl } from "../../shared/js/util/resolveFetchUrl.js";
 import {
   ONTOLOGY_LIFECYCLE_STATES,
   isOntologyModelAvailable,
   ontologyLifecycleCapabilitiesFor,
 } from "./ontologyLifecycle.js";
 
-export function createLoadingModule(graph) {
+export function createLoadingModule(graph, { webVowlController } = {}) {
   /** some constants **/
-  const PREDEFINED = 0,
-    FILE_UPLOAD = 1,
-    JSON_URL = 2,
-    IRI_URL = 3;
-
   const PROGRESS_BAR_ERROR = 0;
   const PROGRESS_BAR_BUSY = 1;
   const PROGRESS_BAR_PERCENT = 2;
@@ -313,6 +306,234 @@ export function createLoadingModule(graph) {
       Math.round(percent) + "%";
   };
 
+  // Ontology document extensions the browser can name confidently. Anything
+  // else reaches the controller with a display name and no asserted format.
+  const ONTOLOGY_TEXT_FORMAT_BY_FILE_EXTENSION = new Map([
+    ["ttl", "turtle"],
+    ["turtle", "turtle"],
+    ["rdf", "rdfxml"],
+    ["owl", "rdfxml"],
+    ["xml", "rdfxml"],
+    ["owx", "owlxml"],
+    ["nt", "ntriples"],
+    ["nq", "nquads"],
+    ["trig", "trig"],
+    ["jsonld", "jsonld"],
+    ["omn", "manchester"],
+    ["ofn", "functional"],
+  ]);
+
+  function fileExtensionOf(displayName) {
+    const extensionSeparatorIndex = String(displayName).lastIndexOf(".");
+    return extensionSeparatorIndex === -1
+      ? ""
+      : String(displayName)
+          .slice(extensionSeparatorIndex + 1)
+          .toLowerCase();
+  }
+
+  function ontologyIdentifierFromLocation() {
+    const locationParameters = identifyParameter(String(location)).filter(
+      (locationParameter) => !locationParameter.startsWith("opts="),
+    );
+    return locationParameters.length > 0
+      ? locationParameters[locationParameters.length - 1]
+      : DEFAULT_JSON_NAME;
+  }
+
+  function cachedVowlModelSource(ontologyIdentifier) {
+    const cachedOntologyContent =
+      ontologyMenu?.cachedOntology(ontologyIdentifier);
+    if (!cachedOntologyContent) {
+      return null;
+    }
+    return {
+      kind: "vowl-model",
+      model:
+        typeof cachedOntologyContent === "string"
+          ? JSON.parse(cachedOntologyContent)
+          : cachedOntologyContent,
+      displayName: ontologyIdentifier,
+    };
+  }
+
+  // The location is the application's shareable route; it names one canonical
+  // controller source rather than a loading branch.
+  loadingModule.sourceFromLocation = function () {
+    const ontologyIdentifier = ontologyIdentifierFromLocation();
+    if (typeof graph.dispatchEvent === "function") {
+      loadGraphOptions(identifyParameter(String(location)));
+    }
+
+    if (ontologyIdentifier.startsWith("url=")) {
+      const requestedUrl = decodeURIComponent(ontologyIdentifier.slice(4));
+      ontologyIdentifierFromURL = requestedUrl;
+      return (
+        cachedVowlModelSource(requestedUrl) ?? {
+          kind: "vowl-json-url",
+          url: requestedUrl,
+        }
+      );
+    }
+    if (ontologyIdentifier.startsWith("iri=")) {
+      const requestedIri = decodeURIComponent(ontologyIdentifier.slice(4));
+      ontologyIdentifierFromURL = requestedIri;
+      return (
+        cachedVowlModelSource(requestedIri) ?? {
+          kind: "ontology-document-iri",
+          documentIri: requestedIri,
+        }
+      );
+    }
+
+    const presetIdentifier = ontologyIdentifier.startsWith("file=")
+      ? ontologyIdentifier.slice("file=".length)
+      : ontologyIdentifier;
+    ontologyIdentifierFromURL = presetIdentifier;
+    return (
+      cachedVowlModelSource(presetIdentifier) ?? {
+        kind: "vowl-json-url",
+        url: new URL("data/" + presetIdentifier + ".json", document.baseURI)
+          .href,
+      }
+    );
+  };
+
+  function prepareLoadingPresentation(shouldCache) {
+    loadingModule.markLoading();
+    optionModule("navigationMenu")?.hideAllMenus?.();
+    const cachedVowlJson = graph.getCachedJsonObj?.() ?? null;
+    if (shouldCache === true && cachedVowlJson !== null) {
+      ontologyMenu?.setCachedOntology(
+        ontologyIdentifierFromURL,
+        JSON.stringify(cachedVowlJson),
+      );
+    }
+    conversion_sessionId = -10000;
+    ontologyMenu?.setConversionID(conversion_sessionId);
+    ontologyMenu?.stopLoadingTimer();
+    ontologyMenu?.clearDetailInformation();
+    loadingModule.setBusyMode();
+    loadingModule.showLoadingIndicator();
+    loadingModule.collapseDetails();
+    missingImportsWarning = false;
+    document
+      .querySelector("#loadingIndicator_closeButton")
+      .classList.add("hidden");
+  }
+
+  async function requestControllerLoad(source) {
+    try {
+      return await webVowlController.loadOntology({ source });
+    } catch (loadError) {
+      loadingModule.renderControllerState({
+        status: "error",
+        error: {
+          message: loadError?.message ?? "The ontology could not load.",
+        },
+      });
+      return undefined;
+    }
+  }
+
+  // The one route for every location-driven ontology source.
+  loadingModule.loadRemoteSource = function ({ source, shouldCache = true }) {
+    graph.clearAllGraphData?.();
+    prepareLoadingPresentation(shouldCache);
+    document.querySelector("#progressBarLabel").textContent = "";
+    return requestControllerLoad(source);
+  };
+
+  // The one route for a file the reader dropped or selected.
+  loadingModule.loadDroppedFile = async function (file) {
+    graph.clearAllGraphData?.();
+    prepareLoadingPresentation(false);
+    ontologyIdentifierFromURL = file.name;
+    const fileContent = await file.text();
+
+    if (fileExtensionOf(file.name) === "json") {
+      let vowlModel;
+      try {
+        vowlModel = JSON.parse(fileContent);
+      } catch {
+        loadingModule.renderControllerState({
+          status: "error",
+          error: { message: "The dropped file is not valid VOWL JSON." },
+        });
+        return undefined;
+      }
+      return requestControllerLoad({
+        kind: "vowl-model",
+        model: vowlModel,
+        displayName: file.name,
+      });
+    }
+
+    const ontologyTextFormat = ONTOLOGY_TEXT_FORMAT_BY_FILE_EXTENSION.get(
+      fileExtensionOf(file.name),
+    );
+    return requestControllerLoad({
+      kind: "ontology-text",
+      text: fileContent,
+      displayName: file.name,
+      ...(ontologyTextFormat === undefined
+        ? {}
+        : { format: ontologyTextFormat }),
+    });
+  };
+
+  // The controller owns the load lifecycle; this module renders its state.
+  loadingModule.renderControllerState = function (controllerState) {
+    if (controllerState === null || typeof controllerState !== "object") {
+      return;
+    }
+    if (controllerState.status === "ready") {
+      loadingModule.markReady();
+      loadingModule.setSuccessful();
+      loadingModule.hideLoadingIndicator();
+      return;
+    }
+    if (controllerState.status === "error") {
+      loadingModule.markError();
+      loadingModule.setErrorMode();
+      loadingModule.showLoadingIndicator();
+      if (controllerState.error) {
+        ontologyMenu?.append_message_toLastBulletPoint(
+          controllerState.error.message,
+          { tone: "error", breakBefore: true },
+        );
+      }
+      return;
+    }
+    // Every remaining controller status is an in-flight load.
+    const IN_FLIGHT_CONTROLLER_STATUSES = new Set([
+      "loading",
+      "parsing",
+      "rendering",
+      "relaxing",
+    ]);
+    if (!IN_FLIGHT_CONTROLLER_STATUSES.has(controllerState.status)) {
+      return;
+    }
+
+    loadingModule.showLoadingIndicator();
+    const renderProgress = controllerState.renderProgress;
+    if (!renderProgress) {
+      loadingModule.markLoading();
+      loadingModule.setBusyMode();
+      return;
+    }
+    loadingModule.markRendering();
+    if (progressBarMode !== PROGRESS_BAR_PERCENT) {
+      loadingModule.setPercentMode();
+    }
+    const completedCount = renderProgress.completedRenderedElementCount;
+    const totalCount = renderProgress.totalRenderedElementCount;
+    loadingModule.setPercentValue(
+      totalCount > 0 ? (100 * completedCount) / totalCount : 0,
+    );
+  };
+
   loadingModule.emptyGraphContentError = function () {
     graph.clearGraphData();
     ontologyMenu.append_message_toLastBulletPoint("failed", { tone: "error" });
@@ -324,71 +545,7 @@ export function createLoadingModule(graph) {
     loadingModule.setErrorMode();
   };
 
-  loadingModule.isThreadCanceled = function () {};
-
-  loadingModule.initializeLoader = function (storeCache) {
-    loadingModule.markLoading();
-    const navigationMenu = optionModule("navigationMenu");
-    if (navigationMenu && navigationMenu.hideAllMenus) {
-      navigationMenu.hideAllMenus();
-    }
-    if (storeCache === true && graph.getCachedJsonObj() !== null) {
-      // save cached ontology;
-      const cachedContent = JSON.stringify(graph.getCachedJsonObj());
-      const cachedName = ontologyIdentifierFromURL;
-      ontologyMenu.setCachedOntology(cachedName, cachedContent);
-    }
-    conversion_sessionId = -10000;
-    ontologyMenu.setConversionID(conversion_sessionId);
-    ontologyMenu.stopLoadingTimer();
-    graph.clearGraphData();
-    loadingModule.setBusyMode();
-    loadingModule.showLoadingIndicator();
-    loadingModule.collapseDetails();
-    missingImportsWarning = false;
-    document
-      .querySelector("#loadingIndicator_closeButton")
-      .classList.add("hidden");
-    ontologyMenu.clearDetailInformation();
-  };
-
   /** ------------------ URL Interpreter -------------- **/
-  loadingModule.parseUrlAndLoadOntology = function (storeCache) {
-    let autoStore = true;
-    if (storeCache === false) {
-      autoStore = false;
-    }
-
-    graph.clearAllGraphData();
-    loadingModule.initializeLoader(autoStore);
-    const urlString = String(location);
-    const parameterArray = identifyParameter(urlString);
-    ontologyIdentifierFromURL = DEFAULT_JSON_NAME;
-    loadGraphOptions(parameterArray); // identifies and loads configuration values
-    const loadingMethod = identifyOntologyLoadingMethod(
-      ontologyIdentifierFromURL,
-    );
-    document.querySelector("#progressBarLabel").textContent = "";
-    switch (loadingMethod) {
-      case 0:
-        loadingModule.from_presetOntology(ontologyIdentifierFromURL);
-        break;
-      case 1:
-        loadingModule.from_FileUpload(ontologyIdentifierFromURL);
-        break;
-      case 2:
-        loadingModule.from_JSON_URL(ontologyIdentifierFromURL);
-        break;
-      case 3:
-        loadingModule.from_IRI_URL(ontologyIdentifierFromURL);
-        break;
-      default:
-        console.warn(
-          "Could not identify loading method , or not IMPLEMENTED YET",
-        );
-    }
-  };
-
   function nextNewOntologyIdentifier() {
     const routeMatch = String(location.hash).match(/#new_ontology(\d+)/);
     if (routeMatch) {
@@ -405,12 +562,16 @@ export function createLoadingModule(graph) {
     const route = "#opts=editorMode=true;#" + ontologyIdentifier;
 
     graph.editorMode(true);
-    graph.clearAllGraphData();
-    loadingModule.initializeLoader(true);
     ontologyIdentifierFromURL = ontologyIdentifier;
     window.history.pushState(null, "", route);
-    document.querySelector("#progressBarLabel").textContent = "";
-    loadingModule.from_presetOntology(ontologyIdentifier);
+    // A new ontology is the empty preset document, loaded like any other.
+    loadingModule.loadRemoteSource({
+      source: {
+        kind: "vowl-json-url",
+        url: new URL("data/new_ontology.json", document.baseURI).href,
+      },
+      shouldCache: true,
+    });
     return ontologyIdentifier;
   };
 
@@ -420,455 +581,7 @@ export function createLoadingModule(graph) {
   // 2] File Upload
   // 3] Load From URL / IRI
 
-  loadingModule.from_JSON_URL = function (fileName) {
-    const filename = decodeURIComponent(fileName.slice("url=".length));
-    const requestUrl = resolveFetchUrl(filename);
-    ontologyIdentifierFromURL = filename;
-
-    if (ontologyMenu.cachedOntology(filename)) {
-      ontologyMenu.append_bulletPoint(
-        "Loading already cached ontology: " + filename,
-      );
-      const ontologyContent = ontologyMenu.cachedOntology(filename);
-      parseOntologyContent(ontologyContent);
-    } else {
-      ontologyMenu.append_message(
-        "Retrieving ontology from JSON URL " + filename,
-      );
-      fetch(requestUrl, { headers: { Accept: "application/json" } })
-        .then(function (response) {
-          if (!response.ok) {
-            throw response;
-          }
-          return response.text();
-        })
-        .then(function (responseText) {
-          parseOntologyContent(responseText);
-        })
-        .catch(function (error) {
-          console.error(error);
-          ontologyMenu.append_message_toLastBulletPoint("failed", {
-            tone: "error",
-          });
-          ontologyMenu.append_bulletPoint(
-            "Could not fetch remote JSON: " + filename,
-          );
-          ontologyMenu.append_message_toLastBulletPoint(
-            "CORS restrictions might prevent loading remote files directly in the browser.",
-            { breakBefore: true },
-          );
-          loadingModule.setErrorMode();
-          graph.handleOnLoadingError();
-        });
-    }
-  };
-
-  loadingModule.requestServerTimeStampForDirectInput = function (
-    callback,
-    text,
-  ) {
-    // Bypassed timestamp for client side parsing
-    callback(text, ["conversionIDClient", "clientSession"]);
-  };
-
-  loadingModule.from_IRI_URL = function (fileName) {
-    const filename = decodeURIComponent(fileName.slice("iri=".length));
-    const requestUrl = resolveFetchUrl(filename);
-    ontologyIdentifierFromURL = filename;
-
-    if (ontologyMenu.cachedOntology(filename)) {
-      ontologyMenu.append_bulletPoint(
-        "Loading already cached ontology: " + filename,
-      );
-      const ontologyContent = ontologyMenu.cachedOntology(filename);
-      parseOntologyContent(ontologyContent);
-    } else {
-      ontologyMenu.append_bulletPoint(
-        "Retrieving ontology from IRI: " + filename,
-      );
-      fetch(requestUrl)
-        .then(function (response) {
-          if (!response.ok) {
-            throw response;
-          }
-          return response.text();
-        })
-        .then(function (responseText) {
-          try {
-            ontologyMenu.append_bulletPoint(
-              "Converting remote ontology client-side...",
-            );
-            const xmlText = responseText;
-            // RFC 3986 section 5.1.3: the IRI a document was retrieved from is
-            // its base. Passing it lets relative references resolve against the
-            // real namespace instead of falling back to a synthetic base.
-            loadWithImports(xmlText, { documentIRI: requestUrl })
-              .then(function (vowlJson) {
-                parseOntologyContent(JSON.stringify(vowlJson));
-                ontologyMenu.append_message_toLastBulletPoint("done");
-              })
-              .catch(function (e) {
-                console.error(e);
-                ontologyMenu.append_message_toLastBulletPoint("failed", {
-                  tone: "error",
-                });
-                ontologyMenu.append_bulletPoint(
-                  "Failed to convert remote ontology: " + filename,
-                );
-                ontologyMenu.append_message_toLastBulletPoint(
-                  "Error: " + e.message,
-                  { tone: "error", breakBefore: true },
-                );
-                loadingModule.setErrorMode();
-                graph.handleOnLoadingError();
-              });
-          } catch (e) {
-            console.error(e);
-            ontologyMenu.append_message_toLastBulletPoint("failed", {
-              tone: "error",
-            });
-            ontologyMenu.append_bulletPoint(
-              "Failed to convert remote ontology: " + filename,
-            );
-            ontologyMenu.append_message_toLastBulletPoint(
-              "Error: " + e.message,
-              { tone: "error", breakBefore: true },
-            );
-            loadingModule.setErrorMode();
-            graph.handleOnLoadingError();
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-          ontologyMenu.append_message_toLastBulletPoint("failed", {
-            tone: "error",
-          });
-          ontologyMenu.append_bulletPoint(
-            "Could not fetch remote IRI: " + filename,
-          );
-          ontologyMenu.append_message_toLastBulletPoint(
-            "CORS restrictions might prevent loading remote files directly in the browser.",
-            { breakBefore: true },
-          );
-          loadingModule.setErrorMode();
-          graph.handleOnLoadingError();
-        });
-    }
-  };
-
-  loadingModule.fromFileDrop = function (fileName, file) {
-    document.querySelector("#progressBarLabel").textContent = "";
-    loadingModule.initializeLoader(false);
-
-    ontologyMenu.append_bulletPoint(
-      "Retrieving ontology from dropped file: " + fileName,
-    );
-    let ontologyContent = "";
-
-    if (fileName.match(/\.json$/)) {
-      ontologyMenu.setConversionID(-10000);
-      const reader = new FileReader();
-      reader.readAsText(file);
-      reader.onload = function () {
-        ontologyContent = reader.result;
-        ontologyIdentifierFromURL = fileName;
-        parseOntologyContent(ontologyContent);
-      };
-    } else {
-      const reader = new FileReader();
-      reader.readAsText(file);
-      reader.onload = function () {
-        try {
-          const xmlText = reader.result;
-          ontologyMenu.append_bulletPoint("Converting ontology client-side...");
-          // An uploaded file has no retrieval IRI, so no base is supplied and
-          // the synthetic one applies. The name is passed for diagnostics only.
-          loadWithImports(xmlText, { fileName })
-            .then(function (vowlJson) {
-              ontologyIdentifierFromURL = fileName;
-              parseOntologyContent(JSON.stringify(vowlJson));
-              ontologyMenu.append_message_toLastBulletPoint("done");
-            })
-            .catch(function (e) {
-              console.error(e);
-              ontologyMenu.append_message_toLastBulletPoint("failed", {
-                tone: "error",
-              });
-              ontologyMenu.append_bulletPoint("Failed to convert: " + fileName);
-              ontologyMenu.append_message_toLastBulletPoint(
-                "Error: " + e.message,
-                { tone: "error", breakBefore: true },
-              );
-              loadingModule.setErrorMode();
-              graph.handleOnLoadingError();
-            });
-        } catch (e) {
-          console.error(e);
-          ontologyMenu.append_message_toLastBulletPoint("failed", {
-            tone: "error",
-          });
-          ontologyMenu.append_bulletPoint("Failed to convert: " + fileName);
-          ontologyMenu.append_message_toLastBulletPoint("Error: " + e.message, {
-            tone: "error",
-            breakBefore: true,
-          });
-          loadingModule.setErrorMode();
-          graph.handleOnLoadingError();
-        }
-      };
-    }
-  };
-
-  loadingModule.from_FileUpload = function (fileName) {
-    loadingModule.setBusyMode();
-    let filename = decodeURIComponent(fileName.slice("file=".length));
-    ontologyIdentifierFromURL = filename;
-    let ontologyContent = "";
-    if (ontologyMenu.cachedOntology(filename)) {
-      ontologyMenu.append_bulletPoint(
-        "Loading already cached ontology: " + filename,
-      );
-      ontologyContent = ontologyMenu.cachedOntology(filename);
-      parseOntologyContent(ontologyContent);
-    } else {
-      ontologyMenu.append_bulletPoint(
-        "Retrieving ontology from file: " + filename,
-      );
-      const selectedFile = document.querySelector("#file-converter-input")
-        .files[0];
-      if (!selectedFile || (filename && filename !== selectedFile.name)) {
-        ontologyMenu.append_message_toLastBulletPoint(
-          'No cached version of "' + filename + '" was found.',
-          { tone: "error", breakBefore: true },
-        );
-        ontologyMenu.append_message_toLastBulletPoint(
-          "Please reupload the file.",
-          { breakBefore: true },
-        );
-        loadingModule.setErrorMode();
-        graph.handleOnLoadingError();
-        return;
-      } else {
-        filename = selectedFile.name;
-      }
-
-      if (filename.match(/\.json$/)) {
-        ontologyMenu.setConversionID(-10000);
-        const reader = new FileReader();
-        reader.readAsText(selectedFile);
-        reader.onload = function () {
-          ontologyContent = reader.result;
-          ontologyIdentifierFromURL = filename;
-          parseOntologyContent(ontologyContent);
-        };
-      } else {
-        const reader = new FileReader();
-        reader.readAsText(selectedFile);
-        reader.onload = function () {
-          try {
-            const xmlText = reader.result;
-            ontologyMenu.append_bulletPoint(
-              "Converting ontology client-side...",
-            );
-            // A dropped or selected file has no retrieval IRI either.
-            loadWithImports(xmlText, { fileName: filename })
-              .then(function (vowlJson) {
-                ontologyIdentifierFromURL = filename;
-                parseOntologyContent(JSON.stringify(vowlJson));
-                ontologyMenu.append_message_toLastBulletPoint("done");
-              })
-              .catch(function (e) {
-                console.error(e);
-                ontologyMenu.append_message_toLastBulletPoint("failed", {
-                  tone: "error",
-                });
-                ontologyMenu.append_bulletPoint(
-                  "Failed to convert: " + filename,
-                );
-                ontologyMenu.append_message_toLastBulletPoint(
-                  "Error: " + e.message,
-                  { tone: "error", breakBefore: true },
-                );
-                loadingModule.setErrorMode();
-                graph.handleOnLoadingError();
-              });
-          } catch (e) {
-            console.error(e);
-            ontologyMenu.append_message_toLastBulletPoint("failed", {
-              tone: "error",
-            });
-            ontologyMenu.append_bulletPoint("Failed to convert: " + filename);
-            ontologyMenu.append_message_toLastBulletPoint(
-              "Error: " + e.message,
-              { tone: "error", breakBefore: true },
-            );
-            loadingModule.setErrorMode();
-            graph.handleOnLoadingError();
-          }
-        };
-      }
-    }
-  };
-
-  loadingModule.directInput = function (text) {
-    loadingModule.markLoading();
-    ontologyMenu.clearDetailInformation();
-    parseOntologyContent(text);
-  };
-
-  loadingModule.loadFromOWL2VOWL = function (ontoContent, filename) {
-    loadingModule.markLoading();
-    const old = document.querySelector("#bulletPoint_container").innerHTML;
-    if (old.indexOf("(with warnings)") !== -1) {
-      missingImportsWarning = true;
-    }
-
-    if (ontologyMenu.cachedOntology(ontoContent)) {
-      ontologyMenu.append_bulletPoint(
-        "Loading already cached ontology: " + filename,
-      );
-      parseOntologyContent(ontoContent);
-    } else {
-      // set parse the ontology content;
-      parseOntologyContent(ontoContent);
-    }
-  };
-
-  loadingModule.from_presetOntology = function (selectedOntology) {
-    ontologyMenu.append_bulletPoint("Retrieving ontology: " + selectedOntology);
-    loadPresetOntology(selectedOntology);
-  };
-
-  function loadPresetOntology(ontology) {
-    // check if already cached in ontology menu?
-    let f2r;
-    let loadingNewOntologyForEditor = false;
-    if (ontology.indexOf("new_ontology") !== -1) {
-      loadingModule.hideLoadingIndicator();
-      graph.showEditorHintIfNeeded();
-      f2r = "./data/new_ontology.json";
-      loadingNewOntologyForEditor = true;
-    }
-
-    let ontologyContent = "";
-    if (ontologyMenu.cachedOntology(ontology)) {
-      ontologyMenu.append_bulletPoint(
-        "Loading already cached ontology: " + ontology,
-      );
-      ontologyContent = ontologyMenu.cachedOntology(ontology);
-      loadingModule.showLoadingIndicator();
-      parseOntologyContent(ontologyContent);
-    } else {
-      // read the file name
-
-      let fileToRead = "./data/" + ontology + ".json";
-      if (f2r) {
-        fileToRead = f2r;
-      } // overwrite the newOntology Index
-      // read file
-      fetch(fileToRead, { headers: { Accept: "application/json" } })
-        .then(function (response) {
-          if (!response.ok) {
-            throw response;
-          }
-          return response.text();
-        })
-        .then(function (responseText) {
-          ontologyContent = responseText;
-          parseOntologyContent(ontologyContent);
-        })
-        .catch(function (error) {
-          if (loadingNewOntologyForEditor) {
-            ontologyContent =
-              "{\n" +
-              '  "_comment": "Empty ontology for WebVOWL Editor",\n' +
-              '  "header": {\n' +
-              '    "languages": [\n' +
-              '      "en"\n' +
-              "    ],\n" +
-              '    "baseIris": [\n' +
-              '      "http://www.w3.org/2000/01/rdf-schema"\n' +
-              "    ],\n" +
-              '    "iri": "https://haddenindustries.com/ontology/new/",\n' +
-              '    "title": {\n' +
-              '      "en": "New ontology"\n' +
-              "    },\n" +
-              '    "description": {\n' +
-              '      "en": "New ontology description"\n' +
-              "    }\n" +
-              "  },\n" +
-              '  "namespace": [],\n' +
-              '  "metrics": {\n' +
-              '    "classCount": 0,\n' +
-              '    "datatypeCount": 0,\n' +
-              '    "objectPropertyCount": 0,\n' +
-              '    "datatypePropertyCount": 0,\n' +
-              '    "propertyCount": 0,\n' +
-              '    "nodeCount": 0,\n' +
-              '    "individualCount": 0\n' +
-              "  }\n" +
-              "}\n";
-            parseOntologyContent(ontologyContent);
-          } else {
-            // some error occurred
-            ontologyMenu.append_bulletPoint("Failed to load: " + ontology);
-            const errorStatus =
-              error.status !== undefined ? error.status : error.message || 0;
-            if (errorStatus === 0 || errorStatus === "Failed to fetch") {
-              // assumption this is CORS error when running locally (error status == 0)
-              ontologyMenu.append_message_toLastBulletPoint(" ERROR STATUS:", {
-                tone: "error",
-              });
-              ontologyMenu.append_message_toLastBulletPoint(
-                " " + errorStatus,
-                {},
-              );
-              if (window.location.toString().startsWith("file:/")) {
-                ontologyMenu.append_message_toLastBulletPoint(
-                  "WebVOWL runs in a local instance.",
-                  { block: true },
-                );
-                ontologyMenu.append_message_toLastBulletPoint(
-                  "CORS prevents automatically loading files from the host system.",
-                  { block: true },
-                );
-                ontologyMenu.append_message_toLastBulletPoint(
-                  "You can load preprocessed ontologies (VOWL-JSON files) using the upload feature in the ontology menu or by dragging the files onto the canvas.",
-                  { block: true },
-                );
-                ontologyMenu.append_message_toLastBulletPoint(
-                  "Hint: Conversion into VOWL-JSON requires an additional converter such as OWL2VOWL.",
-                  { block: true },
-                );
-                ontologyMenu.append_message_toLastBulletPoint(
-                  "Ontologies can be created by activating editing mode in the Modes menu and creating a new ontology from the Ontology menu.",
-                  { block: true },
-                );
-              }
-            } else {
-              ontologyMenu.append_message_toLastBulletPoint(" ERROR STATUS:", {
-                tone: "error",
-              });
-              ontologyMenu.append_message_toLastBulletPoint(
-                " " + errorStatus,
-                {},
-              );
-            }
-
-            graph.handleOnLoadingError();
-            loadingModule.setErrorMode();
-          }
-        });
-    }
-  }
-
   /** -- PARSE JSON CONTENT -- **/
-  function parseOntologyContent(content) {
-    ontologyMenu.append_bulletPoint("Reading ontology graph ... ");
-    const _loader = ontologyMenu.getLoadingFunction();
-    _loader(content, ontologyIdentifierFromURL, "noAlternativeNameYet");
-  }
-
   loadingModule.notValidJsonFile = function () {
     graph.clearGraphData();
     ontologyMenu.append_message_toLastBulletPoint(" failed", { tone: "error" });
@@ -913,7 +626,7 @@ export function createLoadingModule(graph) {
       graph.dispatchEvent(
         new CustomEvent("urloptions", {
           detail: {
-            opts: graph.options().initialConfig(),
+            opts: graph.ontologyEditingState().initialConfig(),
             changeEditFlag: false,
           },
         }),
@@ -922,7 +635,7 @@ export function createLoadingModule(graph) {
 
     function loadCustomConfig(opts) {
       let changeEditingFlag = false;
-      const defObj = graph.options().initialConfig();
+      const defObj = graph.ontologyEditingState().initialConfig();
       for (let i = 0; i < opts.length; i++) {
         const keyVal = opts[i].split("=");
         if (keyVal[0] === "editorMode") {
@@ -978,24 +691,6 @@ export function createLoadingModule(graph) {
         loadDefaultConfig();
         ontologyIdentifierFromURL = "ERROR_TO_MANY_INPUT_PARAMETERS";
     }
-  }
-
-  function identifyOntologyLoadingMethod(url) {
-    const iriKey = "iri=";
-    const urlKey = "url=";
-    const fileKey = "file=";
-
-    let method;
-    if (url.substr(0, fileKey.length) === fileKey) {
-      method = FILE_UPLOAD;
-    } else if (url.substr(0, urlKey.length) === urlKey) {
-      method = JSON_URL;
-    } else if (url.substr(0, iriKey.length) === iriKey) {
-      method = IRI_URL;
-    } else {
-      method = PREDEFINED;
-    }
-    return method;
   }
 
   return loadingModule;

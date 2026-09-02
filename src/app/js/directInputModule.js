@@ -1,9 +1,6 @@
-import { loadWithImports } from "../../owl2vowl/js/index.js";
+const DIRECT_INPUT_DISPLAY_NAME = "Direct input";
 
-export function createDirectInputModule(
-  graph,
-  { convertOntologyTextToVowlModelWithImports = loadWithImports } = {},
-) {
+export function createDirectInputModule(graph, { webVowlController } = {}) {
   /** variable defs **/
   const directInputModule = {};
   const inputContainer = document.querySelector("#DirectInputContent");
@@ -11,45 +8,50 @@ export function createDirectInputModule(
   const lifecycleAbortController = new AbortController();
   let isInputContainerVisible = false;
 
-  // connect upload and close button;
-  directInputModule.handleDirectUpload = function () {
-    const text = textArea.value;
-    const loadingModule = graph.options().loadingModule();
-    loadingModule.initializeLoader();
-    let parsedVowlModel;
+  // A VOWL model the reader already pasted needs no conversion; every other
+  // text goes to the controller's source loader as ontology text.
+  function directInputSource(suppliedText) {
     try {
-      parsedVowlModel = JSON.parse(text);
-      loadingModule.directInput(text);
-      // close if successful
+      const parsedVowlModel = JSON.parse(suppliedText);
       if (
-        Array.isArray(parsedVowlModel.class) &&
-        parsedVowlModel.class.length > 0
+        parsedVowlModel !== null &&
+        typeof parsedVowlModel === "object" &&
+        !Array.isArray(parsedVowlModel)
       ) {
-        directInputModule.setDirectInputMode(false);
+        return {
+          kind: "vowl-model",
+          model: parsedVowlModel,
+          displayName: DIRECT_INPUT_DISPLAY_NAME,
+        };
       }
-    } catch (_e) {
-      try {
-        convertOntologyTextToVowlModelWithImports(text)
-          .then(function (vowlJson) {
-            loadingModule.directInput(JSON.stringify(vowlJson));
-            directInputModule.setDirectInputMode(false);
-          })
-          .catch(function (error2) {
-            console.warn("Error " + error2);
-            const errorOnLoadElement = document.querySelector("#Error_onLoad");
-            errorOnLoadElement.classList.remove("hidden");
-            errorOnLoadElement.textContent =
-              "Failed to convert the input! " + error2.message;
-            graph.handleOnLoadingError();
-          });
-      } catch (error2) {
-        console.warn("Error " + error2);
-        const errorOnLoadElement = document.querySelector("#Error_onLoad");
-        errorOnLoadElement.classList.remove("hidden");
-        errorOnLoadElement.textContent =
-          "Failed to convert the input! " + error2.message;
-        graph.handleOnLoadingError();
-      }
+    } catch {
+      // Ontology documents are not VOWL JSON; the controller converts them.
+    }
+    return {
+      kind: "ontology-text",
+      text: suppliedText,
+      displayName: DIRECT_INPUT_DISPLAY_NAME,
+    };
+  }
+
+  function reportDirectInputFailure(failureMessage) {
+    const errorOnLoadElement = document.querySelector("#Error_onLoad");
+    errorOnLoadElement.classList.remove("hidden");
+    errorOnLoadElement.textContent =
+      "Failed to convert the input! " + failureMessage;
+    graph.handleOnLoadingError();
+  }
+
+  // connect upload and close button;
+  directInputModule.handleDirectUpload = async function () {
+    try {
+      await webVowlController.loadOntology({
+        source: directInputSource(textArea.value),
+      });
+      directInputModule.setDirectInputMode(false);
+    } catch (loadError) {
+      console.warn("Error " + loadError);
+      reportDirectInputFailure(loadError?.message ?? String(loadError));
     }
   };
 

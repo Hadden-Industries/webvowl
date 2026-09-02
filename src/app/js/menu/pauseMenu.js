@@ -1,62 +1,57 @@
 /**
- * Contains the logic for the pause and resume button.
+ * Presentation for the pause and resume button.
  *
- * @param graph the associated webvowl graph
+ * The button's click reaches the controller through
+ * VisualizationViewControlsAdapter; this module only renders the layout state
+ * the controller reports.
+ *
  * @returns {{}}
  */
-module.exports = function (graph) {
+export function createPauseMenu({ documentObject = globalThis.document } = {}) {
   const pauseMenu = {};
   let pauseButton;
+  let isGraphLayoutPaused = false;
 
-  /**
-   * Adds the pause button to the website.
-   */
   pauseMenu.setup = function () {
-    pauseButton = document.getElementById("pause-button");
-    pauseButton.datum = { paused: false };
-    pauseButton.addEventListener("click", function () {
-      const d = pauseButton.datum;
-      graph.paused(!d.paused);
-      d.paused = !d.paused;
-      updatePauseButton();
-    });
-    // Set these properties the first time manually
+    pauseButton = documentObject.getElementById("pause-button");
     updatePauseButton();
   };
 
-  pauseMenu.setPauseValue = function (value) {
-    pauseButton.datum.paused = value;
-    graph.paused(value);
+  pauseMenu.renderGraphLayoutPaused = function (nextIsGraphLayoutPaused) {
+    isGraphLayoutPaused = nextIsGraphLayoutPaused === true;
     updatePauseButton();
+  };
+
+  pauseMenu.isGraphLayoutPaused = function () {
+    return isGraphLayoutPaused;
   };
 
   function updatePauseButton() {
-    const isPaused = pauseButton.datum.paused;
-    if (isPaused) {
+    if (!pauseButton) {
+      return;
+    }
+    if (isGraphLayoutPaused) {
       pauseButton.classList.add("paused");
     } else {
       pauseButton.classList.remove("paused");
     }
-    pauseButton.setAttribute("aria-pressed", isPaused ? "true" : "false");
+    pauseButton.setAttribute(
+      "aria-pressed",
+      isGraphLayoutPaused ? "true" : "false",
+    );
     pauseButton.setAttribute(
       "title",
-      isPaused
+      isGraphLayoutPaused
         ? "Resume graph physics simulation"
         : "Pause graph physics simulation",
     );
-    pauseButton.querySelector(".menuElementLabel").textContent = isPaused
-      ? "Resume"
-      : "Pause";
+    pauseButton.querySelector(".menuElementLabel").textContent =
+      isGraphLayoutPaused ? "Resume" : "Pause";
   }
 
-  pauseMenu.reset = function () {
-    // resuming
-    pauseMenu.setPauseValue(false);
-  };
-
   pauseMenu.setMenuMode = function (enabled) {
-    document.getElementById("pause-button").disabled = !enabled;
+    documentObject.getElementById("pause-button").disabled = !enabled;
   };
 
   return pauseMenu;
-};
+}
