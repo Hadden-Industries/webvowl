@@ -325,12 +325,15 @@ export function createSvgSerializer(dependencies) {
       }
       throwIfOperationAborted(options.signal);
 
-      const exportSvgRoot = ownedRenderedSvgSnapshot.detachedSvgRoot;
-      exportSvgRoot.setAttribute("version", "1.1");
-      exportSvgRoot.setAttribute("xmlns", SVG_NAMESPACE_IRI);
-      exportSvgRoot.setAttribute("width", ownedRenderedSvgSnapshot.widthPx);
-      exportSvgRoot.setAttribute("height", ownedRenderedSvgSnapshot.heightPx);
-      exportSvgRoot.setAttribute(
+      const serializedSvgRoot = ownedRenderedSvgSnapshot.detachedSvgRoot;
+      serializedSvgRoot.setAttribute("version", "1.1");
+      serializedSvgRoot.setAttribute("xmlns", SVG_NAMESPACE_IRI);
+      serializedSvgRoot.setAttribute("width", ownedRenderedSvgSnapshot.widthPx);
+      serializedSvgRoot.setAttribute(
+        "height",
+        ownedRenderedSvgSnapshot.heightPx,
+      );
+      serializedSvgRoot.setAttribute(
         "viewBox",
         `0 0 ${ownedRenderedSvgSnapshot.widthPx} ${ownedRenderedSvgSnapshot.heightPx}`,
       );
@@ -343,7 +346,7 @@ export function createSvgSerializer(dependencies) {
         webVowlVersion,
         ...normalizedViewRecipe,
       });
-      exportSvgRoot.appendChild(metadataElement);
+      serializedSvgRoot.appendChild(metadataElement);
 
       const serializedSvgDocument = documentObject.createDocumentFragment();
       serializedSvgDocument.appendChild(
@@ -351,7 +354,7 @@ export function createSvgSerializer(dependencies) {
           `Created with WebVOWL (version ${webVowlVersion}), https://github.com/Hadden-Industries/webvowl`,
         ),
       );
-      serializedSvgDocument.appendChild(exportSvgRoot);
+      serializedSvgDocument.appendChild(serializedSvgRoot);
       throwIfOperationAborted(options.signal);
       return new XMLSerializerConstructor().serializeToString(
         serializedSvgDocument,
