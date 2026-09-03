@@ -55,6 +55,9 @@ export function createSidebar(
   // Required for reloading when the language changes
   let ontologyInfo;
   let isSidebarVisible = true;
+  // The last editor mode the renderer reported, kept here so no presentation
+  // asks the renderer which mode it is in.
+  let isEditorMode = false;
   let isSetup = false;
   let isSidebarAnimationInitialized = false;
   let removeNoTransitionClassAnimationFrame;
@@ -1254,7 +1257,6 @@ export function createSidebar(
   };
 
   function revealDetailsSectionForCurrentMode() {
-    const isEditorMode = graph.editorMode?.() === true;
     document
       .querySelector("#generalDetails")
       .classList.toggle("hidden", isEditorMode);
@@ -1263,14 +1265,15 @@ export function createSidebar(
       .classList.toggle("hidden", !isEditorMode);
   }
 
+  // The renderer publishes which mode it is in; this module keeps its own copy
+  // of the last reported mode rather than asking the renderer for it.
+  sidebar.renderEditorMode = function (nextIsEditorMode) {
+    isEditorMode = nextIsEditorMode === true;
+    revealDetailsSectionForCurrentMode();
+  };
+
   sidebar.updateShowedInformation = function () {
-    const editMode = graph.editorMode();
-    document
-      .querySelector("#generalDetails")
-      .classList.toggle("hidden", editMode);
-    document
-      .querySelector("#generalDetailsEdit")
-      .classList.toggle("hidden", !editMode);
+    revealDetailsSectionForCurrentMode();
 
     // store the meta information in graph.options()
 

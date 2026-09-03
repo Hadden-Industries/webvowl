@@ -2,9 +2,20 @@ import { beforeAll, describe, expect, jest, test } from "@jest/globals";
 import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let createControllerStatePresenter;
+let PRESENTED_CONTROLLER_STATE_FIELD_NAMES;
+let AGENT_FACING_ONLY_CONTROLLER_STATE_FIELD_NAMES;
+let WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES;
 
 beforeAll(async () => {
-  ({ createControllerStatePresenter } = await loadEsmModuleForTest(
+  ({ WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES } = await loadEsmModuleForTest(
+    new URL("../controller/webVowlControllerContracts.js", import.meta.url),
+    import.meta.url,
+  ));
+  ({
+    createControllerStatePresenter,
+    PRESENTED_CONTROLLER_STATE_FIELD_NAMES,
+    AGENT_FACING_ONLY_CONTROLLER_STATE_FIELD_NAMES,
+  } = await loadEsmModuleForTest(
     new URL("./controllerStatePresenter.js", import.meta.url),
     import.meta.url,
   ));
@@ -41,6 +52,7 @@ function createPresentationSpies() {
     renderSelectedOntologyElementDetails: jest.fn(),
     renderOntologySummary: jest.fn(),
     renderViewport: jest.fn(),
+    renderEditorMode: jest.fn(),
     describeOntologyElements: jest.fn(() => ({
       elementDescriptions: [{ kind: "class", displayLabel: "Person" }],
     })),
@@ -235,5 +247,47 @@ describe("controller state presentation", () => {
     );
 
     expect(presentationSpies.renderViewport).not.toHaveBeenCalled();
+  });
+
+  test("presents the editor mode the renderer reported", () => {
+    const { presentationSpies, presenter } = mountPresenter();
+
+    // Editor mode is published as a fact so a presentation module stops asking
+    // the renderer what mode it is in.
+    presenter.present(
+      createControllerState({ editorMode: { isEditorMode: true } }),
+      ["editorMode"],
+    );
+
+    expect(presentationSpies.renderEditorMode).toHaveBeenCalledWith(true);
+  });
+
+  test("presents no editor mode before the renderer has reported one", () => {
+    const { presentationSpies, presenter } = mountPresenter();
+
+    presenter.present(createControllerState({ editorMode: null }), [
+      "editorMode",
+    ]);
+
+    expect(presentationSpies.renderEditorMode).not.toHaveBeenCalled();
+  });
+
+  test("accounts for every field the controller publishes", () => {
+    // A state field with no presentation is capability the controller carries
+    // and nobody collects. Naming the agent-facing-only fields explicitly makes
+    // that a decision taken when the field is added rather than an omission.
+    const accountedFieldNames = [
+      ...PRESENTED_CONTROLLER_STATE_FIELD_NAMES,
+      ...AGENT_FACING_ONLY_CONTROLLER_STATE_FIELD_NAMES,
+    ];
+
+    expect(
+      PRESENTED_CONTROLLER_STATE_FIELD_NAMES.filter((fieldName) =>
+        AGENT_FACING_ONLY_CONTROLLER_STATE_FIELD_NAMES.includes(fieldName),
+      ),
+    ).toEqual([]);
+    expect([...accountedFieldNames].sort()).toEqual(
+      [...WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES].sort(),
+    );
   });
 });

@@ -18,6 +18,7 @@ const CONTROLLER_STATE_PRESENTER_DEPENDENCY_FIELD_NAMES = Object.freeze([
   "renderSelectedOntologyElementDetails",
   "renderOntologySummary",
   "renderViewport",
+  "renderEditorMode",
   "describeOntologyElements",
   "readOntologySummary",
 ]);
@@ -31,6 +32,26 @@ const LOAD_STATE_FIELD_NAMES = Object.freeze([
   "warnings",
   "renderProgress",
   "error",
+]);
+
+// Every field this module draws something from. Paired with the list below it
+// accounts for the controller's whole closed field set, so a field added
+// without a presentation fails a test rather than going quietly uncollected.
+export const PRESENTED_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
+  ...LOAD_STATE_FIELD_NAMES,
+  "layout",
+  "selection",
+  "zoomScale",
+  "editorMode",
+]);
+
+// Fields the controller publishes for an agent reading getState rather than for
+// a presentation. The pan is deliberately here: a zoom control must not be
+// disturbed by a pan, and nothing else draws the translation. The applied view
+// is likewise a fact an agent reads back, not something an interface redraws.
+export const AGENT_FACING_ONLY_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
+  "view",
+  "translation",
 ]);
 
 function assertExactDependencyFieldNames(dependencies) {
@@ -61,6 +82,7 @@ export function createControllerStatePresenter(dependencies) {
     renderSelectedOntologyElementDetails,
     renderOntologySummary,
     renderViewport,
+    renderEditorMode,
     describeOntologyElements,
     readOntologySummary,
   } = dependencies;
@@ -115,6 +137,16 @@ export function createControllerStatePresenter(dependencies) {
         typeof controllerState.zoomScale === "number"
       ) {
         renderViewport(controllerState.zoomScale);
+      }
+
+      // Editor mode reaches the interface as a published fact, so no
+      // presentation asks the renderer which mode it is in.
+      if (
+        changedFields.has("editorMode") &&
+        controllerState.editorMode !== null &&
+        controllerState.editorMode !== undefined
+      ) {
+        renderEditorMode(controllerState.editorMode.isEditorMode === true);
       }
 
       // A load reaches ready either when it completes or later when background

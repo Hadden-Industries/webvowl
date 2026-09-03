@@ -500,6 +500,25 @@ describe("sidebar ontology summary presentation", () => {
     expect(editingDetailsSection.classList.contains("hidden")).toBe(true);
   });
 
+  test("shows the editing details when the reported editor mode changes", () => {
+    // The renderer publishes editor mode as a fact, so this module keeps its
+    // own copy of the last reported mode instead of asking which mode it is in.
+    const detailsSection = global.document.querySelector("#generalDetails");
+    const editingDetailsSection = global.document.querySelector(
+      "#generalDetailsEdit",
+    );
+
+    sidebar.renderEditorMode(true);
+
+    expect(detailsSection.classList.contains("hidden")).toBe(true);
+    expect(editingDetailsSection.classList.contains("hidden")).toBe(false);
+
+    sidebar.renderEditorMode(false);
+
+    expect(detailsSection.classList.contains("hidden")).toBe(false);
+    expect(editingDetailsSection.classList.contains("hidden")).toBe(true);
+  });
+
   test("renders the header and element counts from a controller summary", () => {
     sidebar.renderOntologySummary({
       ontologyHeader: {

@@ -585,6 +585,8 @@ export function createWebVowlApplication() {
       renderOntologySummary: (ontologySummary) =>
         sidebar.renderOntologySummary(ontologySummary),
       renderViewport: (zoomScale) => zoomSlider.renderViewport(zoomScale),
+      renderEditorMode: (isEditorMode) =>
+        sidebar.renderEditorMode(isEditorMode),
       describeOntologyElements: (descriptionRequest) =>
         webVowlController.describeOntologyElements(descriptionRequest),
       readOntologySummary: () => webVowlController.getOntologySummary(),
