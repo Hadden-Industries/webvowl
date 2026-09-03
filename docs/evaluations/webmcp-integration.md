@@ -11,10 +11,68 @@ ontology does not support has failed the job even though it passed its test.
 
 ## Status
 
-**Not yet run.** The fixture, the tool contracts and the registration are in
-place and verified by automated tests and by direct calls against the live
-controller in a browser without the host API. The matrix below still needs a
-session in a WebMCP-enabled browser with a real client attached.
+**Partly run.** A first session in a WebMCP-enabled Chrome exercised the
+registration, the host's own tool listing, and the flagship prompt's mechanics
+end to end. It found one blocking defect in the exported artifact, recorded
+under [Findings](#findings). The twenty prompts still need a run with a model
+driving the tools rather than a script calling them.
+
+### Session 1
+
+| Field | Value |
+| --- | --- |
+| Date | 2026-09-03 |
+| Browser and version | Chrome 152.0.0.0 (Windows) |
+| Client | none — tools driven directly through `document.modelContext.executeTool` |
+| WebMCP enablement method | browser feature enabled locally |
+| Model | none |
+| Page | `http://localhost:8000`, top level |
+
+**What passed.**
+
+- The page registered on a supported top-level page: `availabilityReason` of
+  `available`, and `document.modelContext.getTools()` listed five tools.
+- The host's listing matches the contract exactly: all five names, and every
+  description, annotation and input schema identical to
+  `WEB_MCP_TOOL_DEFINITIONS`.
+- `load_ontology` fetched, parsed and rendered the evaluation fixture from an
+  ontology document IRI: load generation 2, no warnings, 810 serialized
+  characters, 13.4 s.
+- `set_visualization_view` applied English labels, hid datatype nodes, focused
+  `Person` and `Organization`, relaxed and fit, in 943 serialized characters.
+  The visible graph matched the reported view: English labels throughout, the
+  datatype node gone, both classes drawn with focus rings.
+- `export_visualization` reported success with a view recipe, layout outcome
+  `settled`/`native-end`, source identity and hash, 800×600 dimensions, and
+  **no SVG source and no object URL**, in 1,045 characters.
+- The artifact verified independently: the reported SHA-256 equals a hash
+  recomputed over the downloaded bytes, the reported byte length matches, it
+  parses as SVG, it is 800×600 as reported, and its `<metadata>` carries the
+  view recipe including the source hash.
+- The live SVG was untouched by the export: still 1600×845 with no `<metadata>`
+  and no inlined style, while the artifact is a detached 800×600 clone.
+- The download is offered as a manual `<a download="person-organization.svg">`
+  with a `blob:` href, exactly as the README describes.
+
+**Environment note.** `exportVisualization` waits for the browser to paint
+before snapshotting, which is correct: snapshotting before the settled layout
+is painted would capture the wrong geometry. A backgrounded tab suspends
+`requestAnimationFrame`, so an export started while the window is hidden does
+not complete until the tab is visible again. This is the environment, not the
+page; it cost two misreadings during this session before the tab's visibility
+was checked.
+
+### Host transport observations
+
+Neither changes the contract, but both matter to anyone reading a transcript.
+
+- The host passes tool arguments as a **JSON string** and returns the tool
+  result as a **JSON string**; it parses the arguments before calling
+  `execute`, so the adapter receives an ordinary object.
+- `getTools()` returns `inputSchema` serialized as a JSON string, and lists the
+  tools alphabetically rather than in registration order. Comparing the listing
+  to the contract requires parsing that string first.
+- Each listed tool carries host-added `origin`, `title` and `window` fields.
 
 ## How to run it
 
@@ -31,16 +89,8 @@ other browser or deployment configuration to the repository to make this work.
 If production enablement needs one, stop after the local evaluation and ask for
 approval for the exact smallest change on its own.
 
-## Session
-
-| Field | Value |
-| --- | --- |
-| Date | |
-| Browser and version | |
-| Client and version | |
-| WebMCP enablement method | |
-| Model | |
-| Evaluator | |
+Record each further session as its own `### Session n` block under Status, with
+the same fields.
 
 ## Fixture
 
@@ -164,11 +214,45 @@ are different outcomes and conflating them hides which one failed.
 | No WebMCP | | | | |
 | Non-top-level iframe | | | | |
 
-## Observations carried forward
+## Findings
 
-Recorded during implementation, to be confirmed or dismissed during the run.
+### 1. The exported SVG is unstyled and clipped (blocking)
 
-- `get_ontology_summary` reported `ontologyHeader.title` as `null` for the
-  evaluation fixture even though the ontology carries `rdfs:label` in two
-  languages, with `selectedLanguage` at its default. Worth establishing whether
-  the summary reads a title annotation only, and whether that is correct.
+**Severity: blocking.** `export_visualization` reports success, and every fact
+it reports is true — correct hash, correct byte length, correct dimensions,
+correct metadata — yet the file a reader opens does not resemble the graph. This
+is precisely the failure an evaluation exists to catch: callback success is not
+user work.
+
+Opened independently, the artifact renders as a few black shapes in one corner,
+mostly outside its own viewBox. Two causes, both visible in the file:
+
+- **No styling survives the export.** Across 108 elements the artifact has zero
+  `<style>` elements, zero `style` attributes and zero `fill` attributes. The
+  visualization is styled by an external stylesheet, and the export serializes
+  a detached clone of the live SVG root, which carries none of it. The README's
+  "Additional information" section describes a tool for generating the code
+  that inlines those styles; whatever inlining that produced is not happening in
+  the current export path.
+- **The geometry is not reframed for the artifact.** The live SVG is 1600×845
+  and its content sits under a pan-and-zoom transform. The artifact declares
+  800×600 with `viewBox="0 0 800 600"` while keeping the live coordinates, so
+  most of the graph falls outside the visible area.
+
+This is pre-existing rather than caused by the controller migration: the only
+change to the export path in that work was one line recording the magnification
+in the view recipe. It affects the human **Export as SVG** control identically,
+because both routes produce the same artifact.
+
+Nothing in the tool contract can detect this. The result is bounded, honest and
+internally consistent; the artifact is simply wrong. A regression test should
+compare the exported artifact against the live rendering rather than against the
+reported metadata.
+
+### 2. The ontology title is not reported
+
+`get_ontology_summary` reports `ontologyHeader.title` as `null` for the
+evaluation fixture, and the sidebar shows "No title available", even though the
+ontology carries `rdfs:label` in English and German and the language is set to
+English. Establish whether the summary reads only a title annotation, and
+whether that is the intended reading of an ontology's name.
