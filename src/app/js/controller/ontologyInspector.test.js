@@ -821,6 +821,7 @@ describe("ontology inspector boundary", () => {
   test("accepts no injected renderer, menu, or WebMCP dependency", () => {
     expect(createOntologyInspector).toHaveLength(0);
     expect(Object.keys(createOntologyInspector()).sort()).toEqual([
+      "describeOntologyElements",
       "findOntologyElements",
       "getOntologySummary",
       "resolveFocusableOntologyElementReferences",
@@ -846,5 +847,72 @@ describe("ontology inspector boundary", () => {
         ),
       );
     }
+  });
+});
+
+describe("ontology element descriptions", () => {
+  test("describes a selected element from the snapshot rather than the renderer", () => {
+    const descriptionResult =
+      createOntologyInspector().describeOntologyElements({
+        ontologyInspectionSnapshot: createInspectionSnapshot(),
+        visibleRenderedGraphSnapshot: createVisibleSnapshot(),
+        ontologyElementReferences: [{ kind: "class", iri: PERSON_IRI }],
+        language: "en",
+      });
+
+    expect(descriptionResult.loadGeneration).toBe(LOAD_GENERATION);
+    expect(descriptionResult.elementDescriptions).toHaveLength(1);
+    const [personDescription] = descriptionResult.elementDescriptions;
+    expect(personDescription.kind).toBe("class");
+    expect(personDescription.displayLabel).toBe("Person");
+    expect(personDescription.iri).toBe(PERSON_IRI);
+    expect(personDescription.superclassReferences).toEqual([
+      { kind: "class", iri: ORGANISATION_IRI },
+    ]);
+    expect(Object.isFrozen(descriptionResult)).toBe(true);
+    expect(Object.isFrozen(personDescription)).toBe(true);
+  });
+
+  test("describes a property with the cardinality and characteristics it declares", () => {
+    const descriptionResult =
+      createOntologyInspector().describeOntologyElements({
+        ontologyInspectionSnapshot: createInspectionSnapshot({
+          propertyRecords: [
+            propertyRecord({
+              iri: KNOWS_IRI,
+              labelRecords: englishLabel("knows"),
+              characteristicNames: ["symmetric"],
+              cardinalityRecord: { exact: null, minimum: 1, maximum: 5 },
+            }),
+          ],
+        }),
+        visibleRenderedGraphSnapshot: createVisibleSnapshot(),
+        ontologyElementReferences: [{ kind: "property", iri: KNOWS_IRI }],
+      });
+
+    const [knowsDescription] = descriptionResult.elementDescriptions;
+    expect(knowsDescription.kind).toBe("property");
+    expect(knowsDescription.characteristicNames).toEqual(["symmetric"]);
+    expect(knowsDescription.cardinalityRecord).toEqual({
+      exact: null,
+      minimum: 1,
+      maximum: 5,
+    });
+  });
+
+  test("omits a reference the loaded ontology no longer contains", () => {
+    const descriptionResult =
+      createOntologyInspector().describeOntologyElements({
+        ontologyInspectionSnapshot: createInspectionSnapshot(),
+        visibleRenderedGraphSnapshot: createVisibleSnapshot(),
+        ontologyElementReferences: [
+          { kind: "class", iri: "https://example.test/Absent" },
+          { kind: "class", iri: PERSON_IRI },
+        ],
+      });
+
+    expect(descriptionResult.elementDescriptions.map(({ iri }) => iri)).toEqual(
+      [PERSON_IRI],
+    );
   });
 });

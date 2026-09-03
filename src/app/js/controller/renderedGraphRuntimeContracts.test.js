@@ -299,7 +299,28 @@ describe("rendered graph events", () => {
       "rendered-element-selection-changed",
       "viewport-changed",
       "graph-layout-state-changed",
+      "editor-mode-changed",
     ]);
+  });
+
+  test("carries editor mode as a fact rather than a renderer query", () => {
+    // A presentation module asks controller state what mode the application is
+    // in; it never asks the renderer.
+    const renderedGraphEvent = createRenderedGraphEvent({
+      kind: "editor-mode-changed",
+      loadGeneration: 2,
+      payload: { isEditorMode: true },
+    });
+
+    expect(renderedGraphEvent.payload).toEqual({ isEditorMode: true });
+    expect(Object.isFrozen(renderedGraphEvent.payload)).toBe(true);
+    expect(() =>
+      createRenderedGraphEvent({
+        kind: "editor-mode-changed",
+        loadGeneration: 2,
+        payload: { isEditorMode: "yes" },
+      }),
+    ).toThrow();
   });
 
   test.each([

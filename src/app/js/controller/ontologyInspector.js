@@ -462,6 +462,95 @@ export function createOntologyInspector() {
       });
     },
 
+    // The selection details panel renders what state says is selected, so it
+    // needs the record behind a reference rather than the drawn element. The
+    // relation arrays are unbounded here because a reader is looking at one
+    // element rather than at a protocol-bounded result.
+    describeOntologyElements({
+      ontologyInspectionSnapshot,
+      visibleRenderedGraphSnapshot,
+      ontologyElementReferences,
+      language,
+    }) {
+      const loadGeneration = assertAgreeingLoadGeneration(
+        ontologyInspectionSnapshot,
+        visibleRenderedGraphSnapshot,
+      );
+      if (!Array.isArray(ontologyElementReferences)) {
+        throw new TypeError(
+          "Ontology-element references must be supplied as an array.",
+        );
+      }
+      const selectedLanguage = language ?? null;
+      const recordsByReferenceKey = new Map();
+      for (const [kind, collectionFieldName] of Object.entries(
+        RECORD_COLLECTION_FIELD_NAMES_BY_KIND,
+      )) {
+        for (const elementRecord of ontologyInspectionSnapshot[
+          collectionFieldName
+        ]) {
+          const key = ontologyElementReferenceKey(
+            elementRecord.ontologyElementReference,
+          );
+          if (!recordsByReferenceKey.has(key)) {
+            recordsByReferenceKey.set(key, { elementRecord, kind });
+          }
+        }
+      }
+
+      const elementDescriptions = ontologyElementReferences.flatMap(
+        (ontologyElementReference) => {
+          const currentReference = assertCurrentOntologyElementReference(
+            ontologyElementReference,
+            loadGeneration,
+          );
+          const matched = recordsByReferenceKey.get(
+            ontologyElementReferenceKey(currentReference),
+          );
+          if (matched === undefined) {
+            return [];
+          }
+          const { elementRecord, kind } = matched;
+          const description = {
+            ontologyElementReference: elementRecord.ontologyElementReference,
+            kind,
+            displayLabel: displayLabelForRecord(
+              elementRecord,
+              selectedLanguage,
+            ),
+            iri: elementIri(elementRecord.ontologyElementReference),
+            commentText: selectLocalizedText(
+              elementRecord.commentRecords,
+              selectedLanguage,
+            ),
+            descriptionText: selectLocalizedText(
+              elementRecord.descriptionRecords,
+              selectedLanguage,
+            ),
+            annotationRecords: elementRecord.annotationRecords,
+            characteristicNames: elementRecord.characteristicNames,
+            unclassifiedAttributeNames:
+              elementRecord.unclassifiedAttributeNames,
+          };
+          if (kind === "property") {
+            description.cardinalityRecord = elementRecord.cardinalityRecord;
+          }
+          for (const neighborhoodFieldName of NEIGHBORHOOD_FIELD_NAMES_BY_KIND[
+            kind
+          ]) {
+            description[neighborhoodFieldName] =
+              elementRecord[neighborhoodFieldName];
+          }
+          return [Object.freeze(description)];
+        },
+      );
+
+      return Object.freeze({
+        loadGeneration,
+        elementDescriptions: Object.freeze(elementDescriptions),
+      });
+    },
+
     resolveFocusableOntologyElementReferences({
       ontologyInspectionSnapshot,
       visibleRenderedGraphSnapshot,

@@ -271,6 +271,26 @@ export function createD3RenderedGraphAdapter(dependencies) {
         },
       });
     },
+    publishViewportChange: (zoomScale, translationXPx, translationYPx) => {
+      if (activeLoadGeneration === null) {
+        return;
+      }
+      publishRenderedGraphEvent({
+        kind: "viewport-changed",
+        loadGeneration: activeLoadGeneration,
+        payload: { zoomScale, translationXPx, translationYPx },
+      });
+    },
+    publishEditorModeChange: (isEditorMode) => {
+      if (activeLoadGeneration === null) {
+        return;
+      }
+      publishRenderedGraphEvent({
+        kind: "editor-mode-changed",
+        loadGeneration: activeLoadGeneration,
+        payload: { isEditorMode },
+      });
+    },
     // The renderer names drawn nodes by its own ids; the runtime reports the
     // ontology elements they stand for.
     publishRenderedElementSelection: (selectedElementIds) => {

@@ -274,6 +274,22 @@ export function createWebVowlController(dependencies) {
       });
       return;
     }
+    if (renderedGraphEvent.kind === "viewport-changed") {
+      publishForGeneration(renderedGraphEvent.loadGeneration, {
+        viewport: {
+          zoomScale: renderedGraphEvent.payload.zoomScale,
+          translationXPx: renderedGraphEvent.payload.translationXPx,
+          translationYPx: renderedGraphEvent.payload.translationYPx,
+        },
+      });
+      return;
+    }
+    if (renderedGraphEvent.kind === "editor-mode-changed") {
+      publishForGeneration(renderedGraphEvent.loadGeneration, {
+        editorMode: { isEditorMode: renderedGraphEvent.payload.isEditorMode },
+      });
+      return;
+    }
     if (renderedGraphEvent.kind === "graph-layout-state-changed") {
       publishForGeneration(renderedGraphEvent.loadGeneration, {
         layout: {
@@ -453,6 +469,18 @@ export function createWebVowlController(dependencies) {
       return ontologyInspector.findOntologyElements({
         ...readInspectionRequestSnapshots(),
         ...searchRequest,
+        language: controllerState.view?.language,
+      });
+    },
+
+    // A presentation module renders what state says is selected; this resolves
+    // those references against the ontology the controller holds, so the
+    // interface never reads a drawn element for a semantic fact.
+    describeOntologyElements(descriptionRequest) {
+      assertOntologyPresent();
+      return ontologyInspector.describeOntologyElements({
+        ...readInspectionRequestSnapshots(),
+        ...descriptionRequest,
         language: controllerState.view?.language,
       });
     },

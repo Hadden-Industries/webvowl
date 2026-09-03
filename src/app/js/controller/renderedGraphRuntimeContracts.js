@@ -24,6 +24,7 @@ export const RENDERED_GRAPH_EVENT_KINDS = Object.freeze([
   "rendered-element-selection-changed",
   "viewport-changed",
   "graph-layout-state-changed",
+  "editor-mode-changed",
 ]);
 
 const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
@@ -1143,6 +1144,12 @@ function createRenderedGraphEventPayload(kind, payload) {
           "selectedOntologyElementReferences",
         ),
       });
+    case "editor-mode-changed":
+      assertExactFieldNames(payload, ["isEditorMode"], `${kind} payload`);
+      if (typeof payload.isEditorMode !== "boolean") {
+        throw new TypeError("isEditorMode must be a boolean.");
+      }
+      return Object.freeze({ isEditorMode: payload.isEditorMode });
     case "viewport-changed":
       assertExactFieldNames(
         payload,

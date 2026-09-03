@@ -267,6 +267,23 @@ function createGraph(graphContainerSelector) {
 
   let zoom;
   //var prefixModule=require("../prefixRepresentationModule")(graph);
+  let renderedGraphEventPort = {
+    // Nothing is renderable until a model has been placed. This replaces the
+    // former question to the loading presentation about whether a load
+    // succeeded, which the renderer must not ask.
+    isOntologyRenderable: () => renderedGraphSettings.data() !== undefined,
+    hasMissingImports: () => false,
+    publishRenderProgress: () => undefined,
+    publishRenderWarning: () => undefined,
+    publishRenderedElementSelection: () => undefined,
+    publishViewportChange: () => undefined,
+    publishEditorModeChange: () => undefined,
+    // Presentation may interpose a confirmation; by default the renderer
+    // proceeds so behaviour is unchanged until the UI supplies one.
+    requestRenderedGraphConfirmation: (_code, _message, onConfirmed) =>
+      onConfirmed(),
+  };
+
   function syncZoomState() {
     const svgNode =
       graphContainer && graphContainer.node()
@@ -294,6 +311,14 @@ function createGraph(graphContainerSelector) {
     if (synchronize) {
       syncZoomState();
     }
+    // Every viewport change passes through here, whether a control asked for
+    // it or the reader panned and zoomed on the visualization itself, so this
+    // is the one place the fact is reported.
+    renderedGraphEventPort.publishViewportChange(
+      zoomFactor,
+      graphTranslation[0],
+      graphTranslation[1],
+    );
     return true;
   }
 
@@ -463,21 +488,6 @@ function createGraph(graphContainerSelector) {
   // Renderer-owned presentation channel. The rendered graph runtime turns these
   // into RenderedGraphEvent values; the renderer never reaches a presentation
   // module directly.
-  let renderedGraphEventPort = {
-    // Nothing is renderable until a model has been placed. This replaces the
-    // former question to the loading presentation about whether a load
-    // succeeded, which the renderer must not ask.
-    isOntologyRenderable: () => renderedGraphSettings.data() !== undefined,
-    hasMissingImports: () => false,
-    publishRenderProgress: () => undefined,
-    publishRenderWarning: () => undefined,
-    publishRenderedElementSelection: () => undefined,
-    // Presentation may interpose a confirmation; by default the renderer
-    // proceeds so behaviour is unchanged until the UI supplies one.
-    requestRenderedGraphConfirmation: (_code, _message, onConfirmed) =>
-      onConfirmed(),
-  };
-
   graph.setRenderedGraphEventPort = function (nextPort) {
     renderedGraphEventPort = { ...renderedGraphEventPort, ...nextPort };
   };
@@ -3601,6 +3611,7 @@ function createGraph(graphContainerSelector) {
     graph.dispatchEvent(
       new CustomEvent("editorchange", { detail: { value: editMode } }),
     );
+    renderedGraphEventPort.publishEditorModeChange(editMode);
     ontologyEditingState.setEditorModeForDefaultObject(editMode);
     if (editMode === false) {
       seenEditorHint = false;

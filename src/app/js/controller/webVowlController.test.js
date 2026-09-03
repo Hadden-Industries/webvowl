@@ -612,6 +612,46 @@ describe("WebVOWL controller orchestration", () => {
       await loadPromise;
     });
 
+    test("describes the elements state reports as selected", async () => {
+      await completeLoad();
+      const descriptionResult = controller.describeOntologyElements({
+        ontologyElementReferences: [],
+      });
+
+      expect(descriptionResult.loadGeneration).toBe(1);
+      expect(descriptionResult.elementDescriptions).toEqual([]);
+    });
+
+    test("reduces a viewport change into controller state", async () => {
+      await completeLoad();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "viewport-changed",
+        loadGeneration: 1,
+        payload: { zoomScale: 1.75, translationXPx: -40, translationYPx: 12 },
+      });
+      await flushMicrotasks();
+
+      expect(controller.getState().viewport).toEqual({
+        zoomScale: 1.75,
+        translationXPx: -40,
+        translationYPx: 12,
+      });
+    });
+
+    test("reduces an editor mode change into controller state", async () => {
+      await completeLoad();
+      expect(controller.getState().editorMode).toBeNull();
+
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "editor-mode-changed",
+        loadGeneration: 1,
+        payload: { isEditorMode: true },
+      });
+      await flushMicrotasks();
+
+      expect(controller.getState().editorMode).toEqual({ isEditorMode: true });
+    });
+
     test("reduces a render progress event into controller state", async () => {
       await completeLoad();
       renderedGraphTestHarness.publishRenderedGraphEvent({
@@ -884,6 +924,7 @@ describe("WebVOWL controller orchestration", () => {
 
     test("exposes exactly the documented controller operations", () => {
       expect(Object.keys(controller).sort()).toEqual([
+        "describeOntologyElements",
         "dispose",
         "exportVisualization",
         "findOntologyElements",
