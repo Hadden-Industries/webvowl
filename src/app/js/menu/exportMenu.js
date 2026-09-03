@@ -362,9 +362,21 @@ function createExportMenu(
     htmlElement.title = newUrlString;
   };
 
+  // One element is both the control a reader clicks and the link the artifact
+  // is published onto. This says which of the two a click is, because the
+  // handler finishes by clicking that element to save the file: without it the
+  // click re-enters this handler, which prevents the download and starts
+  // another export, without end.
+  let isSavingArtifact = false;
+
   // The controller owns SVG export: it settles the layout, clones the live
   // graph, and publishes a page-local artifact URL onto the download link.
   exportMenu.exportSvgArtifact = async function (exportEvent) {
+    // Our own click, asking the browser to save the published artifact. Let it
+    // through untouched.
+    if (isSavingArtifact) {
+      return;
+    }
     // The link carries the previous artifact, so navigation waits for this one.
     exportEvent?.preventDefault?.();
     graph.options().navigationMenu().hideAllMenus();
@@ -378,7 +390,12 @@ function createExportMenu(
 
     const downloadLinkElement = documentObject.querySelector("#exportSvg");
     if (downloadLinkElement?.href) {
-      downloadLinkElement.click();
+      isSavingArtifact = true;
+      try {
+        downloadLinkElement.click();
+      } finally {
+        isSavingArtifact = false;
+      }
     }
   };
 

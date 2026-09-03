@@ -575,6 +575,12 @@ describe("export menu json deterministic export", () => {
   });
 });
 
+async function flushPendingWork() {
+  for (let round = 0; round < 20; round += 1) {
+    await Promise.resolve();
+  }
+}
+
 describe("export menu SVG artifact route", () => {
   let originalDocument;
   let controls;
@@ -584,15 +590,34 @@ describe("export menu SVG artifact route", () => {
 
   function controlFor(selector) {
     if (!controls.has(selector)) {
-      controls.set(selector, {
+      const control = {
         addEventListener(eventName, listener) {
           this.listeners = this.listeners ?? {};
           this.listeners[eventName] = listener;
         },
-        click: jest.fn(),
         listeners: {},
+        defaultActionCount: 0,
+        clickCount: 0,
         getAttribute: (name) => controls.get(selector)[name] ?? null,
+      };
+      // Dispatches to its own listener the way a real element does, so a
+      // handler that clicks the element it is bound to re-enters itself here
+      // as it would in a browser.
+      control.click = jest.fn(function performClick() {
+        control.clickCount += 1;
+        let isDefaultPrevented = false;
+        const clickEvent = {
+          preventDefault() {
+            isDefaultPrevented = true;
+          },
+        };
+        control.listeners?.click?.(clickEvent);
+        if (!isDefaultPrevented) {
+          // What a browser would do: follow the link and save the file.
+          control.defaultActionCount += 1;
+        }
       });
+      controls.set(selector, control);
     }
     return controls.get(selector);
   }
@@ -650,6 +675,23 @@ describe("export menu SVG artifact route", () => {
     await exportMenu.exportSvgArtifact({ preventDefault: jest.fn() });
 
     expect(downloadLink.click).toHaveBeenCalledTimes(1);
+  });
+
+  test("downloads once for a reader's click without re-entering itself", async () => {
+    const downloadLink = controlFor("#exportSvg");
+    downloadLink.href = "blob:webvowl-artifact";
+    exportMenu.setup();
+
+    // What a reader does: one click on the export entry.
+    downloadLink.click();
+    await flushPendingWork();
+
+    // One export, one saved file, and the menus hidden once. Clicking the very
+    // element the handler is bound to previously re-entered it without end,
+    // which prevented every download and hid the menus on every pass.
+    expect(exportRequests).toHaveLength(1);
+    expect(downloadLink.defaultActionCount).toBe(1);
+    expect(hideAllMenus).toHaveBeenCalledTimes(1);
   });
 
   test("does not click the link when the export fails", async () => {
