@@ -46,6 +46,7 @@ const VISUALIZATION_VIEW_FIELD_NAMES = Object.freeze([
   "focus",
   "layout",
   "viewport",
+  "zoomScale",
 ]);
 
 function isPlainRecord(candidate) {
@@ -1019,6 +1020,19 @@ function createVisualizationView(view, { requireEveryField }) {
   if (view.viewport !== undefined || requireEveryField) {
     assertViewportDirective(view.viewport);
     normalizedView.viewport = view.viewport;
+  }
+  // The magnification a control writes, and the read half of the same channel
+  // is the viewport-changed event. Bounds belong to the renderer, which
+  // rejects a value outside its configured magnification range.
+  // Null states that no magnification was requested, matching how the applied
+  // view reports one that has never been set.
+  if (view.zoomScale !== undefined && view.zoomScale !== null) {
+    assertFiniteNumber(view.zoomScale, "zoomScale", {
+      minimum: Number.MIN_VALUE,
+    });
+    normalizedView.zoomScale = view.zoomScale;
+  } else if (requireEveryField || view.zoomScale === null) {
+    normalizedView.zoomScale = null;
   }
   return Object.freeze(normalizedView);
 }

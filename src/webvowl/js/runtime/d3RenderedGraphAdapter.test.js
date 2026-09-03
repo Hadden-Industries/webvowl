@@ -335,6 +335,10 @@ function createAdapterHarness() {
     forceRelocationEvent() {
       renderedGraphInternalsFixture.relocationRequests += 1;
     },
+    requestedZoomScales: [],
+    setSliderZoom(zoomScale) {
+      renderedGraphInternalsFixture.requestedZoomScales.push(zoomScale);
+    },
     highlightedElementIds: [],
     locateRequests: 0,
     highLightNodes(elementIds) {
@@ -539,6 +543,25 @@ describe("D3 rendered graph adapter", () => {
     ).toBe(visibleRenderedGraphSnapshot.visibleElementReferences.length);
   });
 
+  test("applies a requested magnification to the renderer", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+
+    const viewApplication =
+      adapterHarness.renderedGraphRuntime.applyVisualizationView({
+        loadGeneration: 1,
+        zoomScale: 2.5,
+      });
+    adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+      1,
+    );
+    await viewApplication;
+
+    expect(
+      adapterHarness.renderedGraphInternalsFixture.requestedZoomScales,
+    ).toEqual([2.5]);
+  });
+
   test("builds the renderer graph root once and reloads it for later models", async () => {
     const adapterHarness = createAdapterHarness();
 
@@ -642,6 +665,7 @@ describe("D3 rendered graph adapter", () => {
         filters: { datatypes: "hide", minDegree: 3 },
         language: "en",
         viewport: "fit",
+        zoomScale: null,
       });
     adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
       1,

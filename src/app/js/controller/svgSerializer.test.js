@@ -250,6 +250,7 @@ function createViewRecipe(overrides = {}) {
       focus: [{ kind: "class", iri: "https://example.test/ontology#Person" }],
       layout: "preserve",
       viewport: "fit",
+      zoomScale: null,
     },
     viewportDimensions: { widthPx: 960, heightPx: 640 },
     layoutOutcome: { status: "settled", reason: "stable-frames" },

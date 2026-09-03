@@ -109,6 +109,7 @@ function createDefaultAppliedVisualizationView() {
     language: "default",
     layout: "preserve",
     viewport: "preserve",
+    zoomScale: null,
   });
 }
 

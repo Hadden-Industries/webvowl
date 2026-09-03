@@ -39,6 +39,7 @@ const DEFAULT_APPLIED_VISUALIZATION_VIEW = Object.freeze({
   language: "default",
   layout: "preserve",
   viewport: "preserve",
+  zoomScale: null,
 });
 
 function assertPlainRecord(candidate, description) {
@@ -539,6 +540,11 @@ export function createD3RenderedGraphAdapter(dependencies) {
         throw createAbortError(
           "The load generation was superseded during view application.",
         );
+      }
+      // A requested magnification is applied before a directive, so a control
+      // that writes both gets the directive's framing rather than the level.
+      if (requestedView.zoomScale !== undefined) {
+        renderedGraphInternals.setSliderZoom(requestedView.zoomScale);
       }
       // Moving the viewport needs the geometry the recomputation produced.
       if (requestedView.viewport === "fit") {

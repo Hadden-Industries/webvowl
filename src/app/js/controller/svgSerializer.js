@@ -23,6 +23,7 @@ const APPLIED_VISUALIZATION_VIEW_FIELD_NAMES = Object.freeze([
   "focus",
   "layout",
   "viewport",
+  "zoomScale",
 ]);
 const SOURCE_PROVENANCE_FIELD_NAMES = Object.freeze([
   "kind",

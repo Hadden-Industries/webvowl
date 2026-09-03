@@ -165,6 +165,7 @@ export async function assertRenderedGraphRuntimeContract({
         language: "en",
         layout: "relax",
         viewport: "fit",
+        zoomScale: null,
       },
       loadGeneration: 1,
       visibleRenderedGraphSnapshot:

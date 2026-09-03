@@ -306,6 +306,29 @@ describe("rendered graph events", () => {
     ]);
   });
 
+  test("accepts a continuous zoom scale in the visualization view", () => {
+    // A slider must be able to write a level, not only step, because it also
+    // has to follow pinch and wheel gestures performed on the visualization.
+    const request = createVisualizationViewApplicationRequest({
+      loadGeneration: 2,
+      zoomScale: 1.75,
+    });
+
+    expect(request.zoomScale).toBe(1.75);
+    expect(() =>
+      createVisualizationViewApplicationRequest({
+        loadGeneration: 2,
+        zoomScale: 0,
+      }),
+    ).toThrow();
+    expect(() =>
+      createVisualizationViewApplicationRequest({
+        loadGeneration: 2,
+        zoomScale: "1.5",
+      }),
+    ).toThrow();
+  });
+
   test("carries editor mode as a fact rather than a renderer query", () => {
     // A presentation module asks controller state what mode the application is
     // in; it never asks the renderer.
@@ -705,6 +728,7 @@ describe("rendered graph requests and results", () => {
       layout: "relax",
       loadGeneration: 3,
       viewport: "fit",
+      zoomScale: null,
     });
 
     expect(request).toEqual({
@@ -714,6 +738,7 @@ describe("rendered graph requests and results", () => {
       layout: "relax",
       loadGeneration: 3,
       viewport: "fit",
+      zoomScale: null,
     });
     expectPlainDataDeeplyFrozen(request);
   });
@@ -742,6 +767,7 @@ describe("rendered graph requests and results", () => {
         language: "en",
         layout: "relax",
         viewport: "fit",
+        zoomScale: null,
       },
       loadGeneration: 3,
       visibleRenderedGraphSnapshot: {
@@ -782,6 +808,7 @@ describe("rendered graph requests and results", () => {
           language: "en",
           layout: "preserve",
           viewport: "preserve",
+          zoomScale: null,
         },
         loadGeneration: 3,
         visibleRenderedGraphSnapshot: {
