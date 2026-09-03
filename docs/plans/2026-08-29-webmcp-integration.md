@@ -891,13 +891,13 @@ Implements ADR 0010. This task runs before the tool contracts because `get_ontol
 
 **Movement 5 — close the remaining view-control couplings.**
 
-- [ ] Add `zoomScale` to the visualization view request with the renderer's configured magnification bounds, and apply it in the adapter.
-- [ ] Convert `zoomSlider` to read `state.viewport.zoomScale` and report intent through `setVisualizationView`. It must no longer call `graph.scaleFactor()`, `graph.setSliderZoom`, `graph.options()` or `navigationMenu()`.
-- [ ] Add `setForceLayoutDistances` and `setVisualizationMode` to the controller and convert `gravityMenu`, `modeMenu` and `configMenu` onto them. Neither becomes a WebMCP tool and neither appears in §1.6.
-- [ ] Add `resetVisualization` to the controller and the seam, and convert `resetMenu` onto it. It must no longer call `graph.graphOptions()`, `graph.resetSearchHighlight()`, `graph.reset()` or `graph.updateStyle()`, and takes no renderer at all afterwards.
-- [ ] Extend the seam-conformance test to cover every contract method both implementations expose, so a future divergence fails rather than surfacing in the browser.
-- [ ] Run `rg -n "graph\.|options\(\)\." src/app/js/menu src/app/js/sidebar.js`; every remaining production match must be a recorded debt item, not ordinary view-control code.
-- [ ] Verify in the real browser that selecting a node opens its details, that clearing a search moves nothing, that the zoom slider tracks a wheel gesture, and that loading a second ontology clears the previous selection.
+- [x] Add `zoomScale` to the visualization view request with the renderer's configured magnification bounds, and apply it in the adapter.
+- [x] Convert `zoomSlider` to read `state.viewport.zoomScale` and report intent through `setVisualizationView`. It must no longer call `graph.scaleFactor()`, `graph.setSliderZoom`, `graph.options()` or `navigationMenu()`.
+- [x] Add `setForceLayoutDistances` and `setVisualizationMode` to the controller and convert `gravityMenu`, `modeMenu` and `configMenu` onto them. Neither becomes a WebMCP tool and neither appears in §1.6.
+- [x] Add `resetVisualization` to the controller and the seam, and convert `resetMenu` onto it. It must no longer call `graph.graphOptions()`, `graph.resetSearchHighlight()`, `graph.reset()` or `graph.updateStyle()`, and takes no renderer at all afterwards.
+- [x] Extend the seam-conformance test to cover every contract method both implementations expose, so a future divergence fails rather than surfacing in the browser.
+- [x] Run `rg -n "graph\.|options\(\)\." src/app/js/menu src/app/js/sidebar.js`; every remaining production match must be a recorded debt item, not ordinary view-control code.
+- [x] Verify in the real browser that selecting a node opens its details, that clearing a search moves nothing, that the zoom slider tracks a wheel gesture, and that loading a second ontology clears the previous selection.
 - [ ] Rerun `npm run format:check`, `npm run lint`, `npm test` and `npm run build`; request approval for `refactor(controller): Own the ontology model outside the renderer`.
 
 **Acceptance:** Every semantic fact the interface renders comes from controller state projected from the VOWL model, answerable before the renderer mounts and testable without it. The seam carries no ontology-inspection reader, the controller state has a closed shape that resets per load, and no view control calls the renderer.

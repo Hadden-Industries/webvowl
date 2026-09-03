@@ -380,24 +380,28 @@ export function createInMemoryRenderedGraphAdapter() {
       },
 
       setContinuousZoom(request) {
+        assertNotDisposed();
         const { zoomDirection } = createContinuousZoomRequest(request);
         requestedContinuousZoomDirections.push(zoomDirection);
         return zoomDirection;
       },
 
       setVisualizationMode(request) {
+        assertNotDisposed();
         const requestedMode = createVisualizationModeRequest(request);
         requestedVisualizationModes.push(requestedMode);
         return requestedMode;
       },
 
       setForceLayoutDistances(request) {
+        assertNotDisposed();
         const requestedDistances = createForceLayoutDistancesRequest(request);
         requestedForceLayoutDistances.push(requestedDistances);
         return requestedDistances;
       },
 
       resetVisualization() {
+        assertNotDisposed();
         visualizationResetCount += 1;
       },
 

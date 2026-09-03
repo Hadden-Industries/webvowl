@@ -262,6 +262,51 @@ export async function assertRenderedGraphRuntimeContract({
     adapterHarness.renderedGraphRuntime.dispose();
   }
 
+  // Every renderer-tuning operation, on both implementations. These were the
+  // last contract methods this shared suite did not exercise, so a divergence
+  // between the two runtimes surfaced only in the browser.
+  {
+    const adapterHarness = createAdapterHarness();
+    await completeRenderedGraphLoad(adapterHarness, 1);
+    const { renderedGraphRuntime } = adapterHarness;
+
+    expect(
+      renderedGraphRuntime.setVisualizationMode({ nodeScaling: true }),
+    ).toEqual({ nodeScaling: true });
+    expect(
+      renderedGraphRuntime.setForceLayoutDistances({ classDistancePx: 240 }),
+    ).toEqual({ classDistancePx: 240 });
+    expect(
+      renderedGraphRuntime.setContinuousZoom({ zoomDirection: "in" }),
+    ).toBe("in");
+    expect(
+      renderedGraphRuntime.setContinuousZoom({ zoomDirection: "none" }),
+    ).toBe("none");
+    expect(renderedGraphRuntime.resetVisualization()).toBeUndefined();
+
+    // A request naming nothing is refused at the seam rather than reaching a
+    // renderer module.
+    expect(() => renderedGraphRuntime.setVisualizationMode({})).toThrow();
+    expect(() => renderedGraphRuntime.setForceLayoutDistances({})).toThrow();
+    expect(() =>
+      renderedGraphRuntime.setContinuousZoom({ zoomDirection: "sideways" }),
+    ).toThrow();
+
+    renderedGraphRuntime.dispose();
+
+    // A disposed runtime tunes nothing, on either implementation.
+    expect(() =>
+      renderedGraphRuntime.setVisualizationMode({ nodeScaling: true }),
+    ).toThrow("disposed");
+    expect(() =>
+      renderedGraphRuntime.setForceLayoutDistances({ classDistancePx: 240 }),
+    ).toThrow("disposed");
+    expect(() =>
+      renderedGraphRuntime.setContinuousZoom({ zoomDirection: "in" }),
+    ).toThrow("disposed");
+    expect(() => renderedGraphRuntime.resetVisualization()).toThrow("disposed");
+  }
+
   {
     const adapterHarness = createAdapterHarness();
     const pendingReplacement =
