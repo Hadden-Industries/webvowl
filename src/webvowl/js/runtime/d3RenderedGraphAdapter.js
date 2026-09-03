@@ -4,6 +4,7 @@ import {
   ontologyElementReferenceKey,
 } from "../../../app/js/controller/vowlModelInspectionProjector.js";
 import {
+  createContinuousZoomRequest,
   createGraphLayoutPauseRequest,
   createGraphLayoutPauseResult,
   createGraphLayoutSnapshot,
@@ -624,6 +625,19 @@ export function createD3RenderedGraphAdapter(dependencies) {
             ? "settled"
             : "relaxing",
       });
+    },
+
+    setContinuousZoom(request) {
+      assertNotDisposed();
+      const { zoomDirection } = createContinuousZoomRequest(request);
+      if (zoomDirection === "none") {
+        renderedGraphInternals.stopContinuousZoom();
+      } else {
+        renderedGraphInternals.startContinuousZoom(
+          zoomDirection === "in" ? 1 : -1,
+        );
+      }
+      return zoomDirection;
     },
 
     createRenderedSvgSnapshot(request) {

@@ -111,6 +111,7 @@ describe("WebVOWL controller orchestration", () => {
   let graphLayoutSettler;
   let ontologySourceLoader;
   let publishedStates;
+  let publishedChangeSets;
   let renderedGraphRuntime;
   let renderedGraphTestHarness;
   let settlementRequests;
@@ -181,8 +182,10 @@ describe("WebVOWL controller orchestration", () => {
     });
 
     publishedStates = [];
-    controller.subscribeToState((controllerState) => {
+    publishedChangeSets = [];
+    controller.subscribeToState((controllerState, changedFieldNames) => {
       publishedStates.push(controllerState);
+      publishedChangeSets.push(changedFieldNames);
     });
   });
 
@@ -283,6 +286,50 @@ describe("WebVOWL controller orchestration", () => {
       expect(controller.getState().error).toEqual(
         expect.objectContaining({ code: "PARSE_FAILED" }),
       );
+    });
+
+    test("tells a subscriber which fields it wrote, narrowed to real changes", async () => {
+      await completeLoad();
+      const changeSetsDuringLoad = publishedChangeSets.slice();
+
+      expect(changeSetsDuringLoad[0]).toEqual(
+        expect.arrayContaining(["status", "loadGeneration"]),
+      );
+      // A publication reports only the fields it wrote, never the whole shape.
+      for (const changedFieldNames of changeSetsDuringLoad) {
+        expect(Array.isArray(changedFieldNames)).toBe(true);
+        expect(changedFieldNames).not.toContain("editorMode");
+      }
+
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: 1,
+        payload: {
+          selectedOntologyElementReferences: [
+            { kind: "class", iri: "https://example.test/Person" },
+          ],
+        },
+      });
+      await flushMicrotasks();
+
+      expect(publishedChangeSets.at(-1)).toEqual(["selection"]);
+    });
+
+    test("omits a written field whose value did not actually change", async () => {
+      await completeLoad();
+      const publicationCount = publishedChangeSets.length;
+
+      // Selecting nothing when nothing is selected writes the field without
+      // changing it, so no subscriber is told anything changed.
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: 1,
+        payload: { selectedOntologyElementReferences: [] },
+      });
+      await flushMicrotasks();
+
+      expect(publishedChangeSets.length).toBe(publicationCount + 1);
+      expect(publishedChangeSets.at(-1)).toEqual([]);
     });
 
     test("notifies subscribers in order and stops after unsubscribe", async () => {
@@ -622,6 +669,15 @@ describe("WebVOWL controller orchestration", () => {
       expect(descriptionResult.elementDescriptions).toEqual([]);
     });
 
+    test("passes a held zoom gesture to the runtime rather than a magnification", async () => {
+      await completeLoad();
+
+      expect(controller.setContinuousZoom({ zoomDirection: "in" })).toBe("in");
+      expect(controller.setContinuousZoom({ zoomDirection: "none" })).toBe(
+        "none",
+      );
+    });
+
     test("reduces a viewport change into controller state", async () => {
       await completeLoad();
       renderedGraphTestHarness.publishRenderedGraphEvent({
@@ -931,6 +987,7 @@ describe("WebVOWL controller orchestration", () => {
         "getOntologySummary",
         "getState",
         "loadOntology",
+        "setContinuousZoom",
         "setGraphLayoutPaused",
         "setVisualizationView",
         "subscribeToState",

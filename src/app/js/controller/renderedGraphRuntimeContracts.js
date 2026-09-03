@@ -6,6 +6,7 @@ export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "readVisibleRenderedGraphSnapshot",
   "readGraphLayoutSnapshot",
   "setGraphLayoutPaused",
+  "setContinuousZoom",
   "createRenderedSvgSnapshot",
   "subscribeToRenderedGraphEvents",
   "dispose",
@@ -977,6 +978,22 @@ function assertLayoutDirective(layout) {
 // focus-next brings one focused element into view, advancing through them on
 // repeat so a reader can step through every match.
 const VIEWPORT_DIRECTIVES = Object.freeze(["preserve", "fit", "focus-next"]);
+
+// A held zoom control reports that a gesture started and that it ended. The
+// renderer owns the animation between those two facts, because the viewport is
+// renderer-owned and a per-frame write through an asynchronous, generation
+// fenced operation would be sixty round trips a second.
+const CONTINUOUS_ZOOM_DIRECTIONS = Object.freeze(["in", "out", "none"]);
+
+export function createContinuousZoomRequest(request) {
+  assertExactFieldNames(request, ["zoomDirection"], "continuous zoom request");
+  if (!CONTINUOUS_ZOOM_DIRECTIONS.includes(request.zoomDirection)) {
+    throw new TypeError(
+      `zoomDirection must be one of ${CONTINUOUS_ZOOM_DIRECTIONS.join(", ")}.`,
+    );
+  }
+  return Object.freeze({ zoomDirection: request.zoomDirection });
+}
 
 function assertViewportDirective(viewport) {
   if (!VIEWPORT_DIRECTIVES.includes(viewport)) {

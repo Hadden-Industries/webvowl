@@ -1,59 +1,40 @@
 import { applicationUiModule } from "../ui/applicationUiRegistry.js";
 /** The zoom Slider **/
-export function createZoomSlider(
-  graph,
-  {
-    documentObject = globalThis.document,
-    windowObject = globalThis.window,
-    requestAnimationFrameFunction = globalThis.requestAnimationFrame,
-    cancelAnimationFrameFunction = globalThis.cancelAnimationFrame,
-    nowMs = () => globalThis.performance.now(),
-  } = {},
-) {
+export function createZoomSlider({
+  webVowlController,
+  minimumMagnification,
+  maximumMagnification,
+  graphWidthPx,
+  graphHeightPx,
+  documentObject = globalThis.document,
+  windowObject = globalThis.window,
+} = {}) {
   const zoomSlider = {};
-  const minMag = graph.options().minMagnification();
-  const maxMag = graph.options().maxMagnification();
-  const nominalFrameDuration = 1000 / 60;
-  const maxFrameDuration = 100;
-  const zoomInFactor = 1.02;
-  const zoomOutFactor = 0.98;
-  let activeAnimationFrame;
+  const minMag = minimumMagnification;
+  const maxMag = maximumMagnification;
   let activeDirection = 0;
   let activePointerId;
-  let previousFrameTime;
-  let zoomValue;
+  // The magnification the controller last published. The renderer owns the
+  // live value; this is the control's view of it.
+  let zoomValue = Math.min(graphWidthPx, graphHeightPx) / 1000;
   let showSlider = true;
   let controlsEnabled = true;
-  const w = graph.options().width();
-  const h = graph.options().height();
   let slider;
 
-  const defZoom = Math.min(w, h) / 1000;
-
-  function stopContinuousZoom() {
-    if (activeAnimationFrame !== undefined) {
-      cancelAnimationFrameFunction(activeAnimationFrame);
-    }
-    activeAnimationFrame = undefined;
-    activeDirection = 0;
-    activePointerId = undefined;
-    previousFrameTime = undefined;
+  function hideNavigationMenus() {
+    applicationUiModule("navigationMenu")?.hideAllMenus();
   }
 
-  function applyZoomStep(direction, elapsedFrames) {
-    if (!controlsEnabled) {
-      return false;
+  function requestMagnification(nextZoomValue) {
+    webVowlController?.setVisualizationView({ zoomScale: nextZoomValue });
+  }
+
+  function stopContinuousZoom() {
+    if (activeDirection !== 0) {
+      webVowlController?.setContinuousZoom({ zoomDirection: "none" });
     }
-    const factor = direction > 0 ? zoomInFactor : zoomOutFactor;
-    zoomValue *= Math.pow(factor, elapsedFrames);
-    const reachedBoundary =
-      direction > 0 ? zoomValue >= maxMag : zoomValue <= minMag;
-    if (reachedBoundary) {
-      zoomValue = direction > 0 ? maxMag : minMag;
-    }
-    graph.setSliderZoom(zoomValue);
-    updateZoomButtonStates(zoomValue);
-    return !reachedBoundary;
+    activeDirection = 0;
+    activePointerId = undefined;
   }
 
   function zoomAvailable(direction, value) {
@@ -68,51 +49,33 @@ export function createZoomSlider(
     documentObject.getElementById("zoomOutButton").disabled = zoomOutDisabled;
   }
 
-  function timedZoom(timestamp) {
-    activeAnimationFrame = undefined;
-    if (activeDirection === 0) {
-      return;
-    }
-
-    const elapsed = Math.min(
-      maxFrameDuration,
-      Math.max(0, timestamp - previousFrameTime),
-    );
-    previousFrameTime = timestamp;
-    if (applyZoomStep(activeDirection, elapsed / nominalFrameDuration)) {
-      activeAnimationFrame = requestAnimationFrameFunction(timedZoom);
-    }
-  }
-
+  // The renderer runs the ramp because the viewport is renderer-owned; the
+  // control reports that the gesture started and, later, that it ended.
   function startContinuousZoom(direction) {
     if (!controlsEnabled || activeDirection !== 0) {
       return false;
     }
-
-    zoomValue = Number(graph.scaleFactor());
     if (!zoomAvailable(direction, zoomValue)) {
       return false;
     }
-    graph.options().navigationMenu().hideAllMenus();
+    hideNavigationMenus();
     activeDirection = direction;
-    previousFrameTime = nowMs();
-
-    if (applyZoomStep(direction, 1)) {
-      activeAnimationFrame = requestAnimationFrameFunction(timedZoom);
-    }
+    webVowlController?.setContinuousZoom({
+      zoomDirection: direction > 0 ? "in" : "out",
+    });
     return true;
   }
 
+  // Keyboard activation is a discrete step rather than a held gesture.
   function applySingleZoom(direction) {
-    if (!controlsEnabled) {
+    if (!controlsEnabled || !zoomAvailable(direction, zoomValue)) {
       return;
     }
-    zoomValue = Number(graph.scaleFactor());
-    if (!zoomAvailable(direction, zoomValue)) {
-      return;
-    }
-    graph.options().navigationMenu().hideAllMenus();
-    applyZoomStep(direction, 1);
+    hideNavigationMenus();
+    const singleStepFactor = direction > 0 ? 1.2 : 1 / 1.2;
+    requestMagnification(
+      Math.min(maxMag, Math.max(minMag, zoomValue * singleStepFactor)),
+    );
   }
 
   function zoomPercentage(value) {
@@ -121,11 +84,11 @@ export function createZoomSlider(
 
   zoomSlider.setup = function () {
     slider = documentObject.getElementById("zoomSliderElement");
-    slider.value = defZoom;
+    slider.value = zoomValue;
     slider.min = minMag;
     slider.max = maxMag;
     slider.step = (maxMag - minMag) / 40;
-    slider.setAttribute("aria-valuetext", zoomPercentage(defZoom));
+    slider.setAttribute("aria-valuetext", zoomPercentage(zoomValue));
     slider.disabled = !controlsEnabled;
     slider.addEventListener("input", function () {
       zoomSlider.zooming();
@@ -239,7 +202,7 @@ export function createZoomSlider(
 
     bindZoomButton("#zoomOutButton", -1, "zoom out");
     bindZoomButton("#zoomInButton", 1, "zoom in");
-    updateZoomButtonStates(graph.scaleFactor());
+    updateZoomButtonStates(zoomValue);
 
     windowObject.addEventListener("pointerup", stopPointerZoom);
     windowObject.addEventListener("pointercancel", stopPointerZoom);
@@ -259,7 +222,7 @@ export function createZoomSlider(
       if (!controlsEnabled) {
         return;
       }
-      graph.options().navigationMenu().hideAllMenus();
+      hideNavigationMenus();
     });
     centerGraphButton.setAttribute("title", "center graph");
   };
@@ -284,21 +247,28 @@ export function createZoomSlider(
     if (!controlsEnabled) {
       return;
     }
-    graph.options().navigationMenu().hideAllMenus();
-    const zoomValue = slider.value;
-    slider.setAttribute("value", zoomValue);
-    slider.setAttribute("aria-valuetext", zoomPercentage(zoomValue));
-    updateZoomButtonStates(zoomValue);
-    graph.setSliderZoom(zoomValue);
+    hideNavigationMenus();
+    const requestedZoom = Number(slider.value);
+    slider.setAttribute("value", requestedZoom);
+    slider.setAttribute("aria-valuetext", zoomPercentage(requestedZoom));
+    updateZoomButtonStates(requestedZoom);
+    requestMagnification(requestedZoom);
   };
 
-  zoomSlider.updateZoomSliderValue = function (val) {
-    if (slider) {
-      slider.setAttribute("value", val);
-      slider.value = val;
-      slider.setAttribute("aria-valuetext", zoomPercentage(val));
-      updateZoomButtonStates(val);
+  // Presentation only: the magnification the controller published, however it
+  // was reached - a slider drag, a held button, or a wheel gesture the reader
+  // made on the visualization itself.
+  zoomSlider.renderViewport = function (zoomScale) {
+    if (!Number.isFinite(zoomScale)) {
+      return;
     }
+    zoomValue = zoomScale;
+    if (slider) {
+      slider.setAttribute("value", zoomScale);
+      slider.value = zoomScale;
+      slider.setAttribute("aria-valuetext", zoomPercentage(zoomScale));
+    }
+    updateZoomButtonStates(zoomScale);
   };
 
   zoomSlider.setMenuMode = function (enabled) {
@@ -311,7 +281,7 @@ export function createZoomSlider(
     if (slider) {
       slider.disabled = !controlsEnabled;
     }
-    updateZoomButtonStates(graph.scaleFactor());
+    updateZoomButtonStates(zoomValue);
   };
 
   return zoomSlider;

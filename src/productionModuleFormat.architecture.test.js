@@ -36,6 +36,8 @@ const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/app/js/menu/exportMenu.test.js",
   "src/app/js/menu/ontologyMenu.js",
   "src/app/js/menu/ontologyMenu.test.js",
+  "src/app/js/ui/controllerStatePresenter.js",
+  "src/app/js/ui/controllerStatePresenter.test.js",
   "src/app/js/ui/svgArtifactDownloadAdapter.js",
   "src/app/js/ui/svgArtifactDownloadAdapter.test.js",
   "src/webvowl/js/entry.js",
@@ -74,6 +76,8 @@ const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/app/test/renderedGraphRuntimeContract.js",
   "src/app/js/warningModule.js",
   "src/app/js/warningModule.test.js",
+  "src/shared/js/util/continuousZoomRamp.js",
+  "src/shared/js/util/continuousZoomRamp.test.js",
   "src/shared/js/util/resolveFetchUrl.js",
   "src/shared/js/util/resolveFetchUrl.test.js",
 ]);

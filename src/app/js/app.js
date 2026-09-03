@@ -1,4 +1,5 @@
 import { registerApplicationUiModule } from "./ui/applicationUiRegistry.js";
+import { createControllerStatePresenter } from "./ui/controllerStatePresenter.js";
 import { createD3RenderedGraphAdapter } from "../../webvowl/js/runtime/d3RenderedGraphAdapter.js";
 import { createRenderedGraphConfiguration } from "../../webvowl/js/runtime/renderedGraphConfiguration.js";
 import { createGraphLayoutSettler } from "./controller/graphLayoutSettler.js";
@@ -75,7 +76,6 @@ export function createWebVowlApplication() {
     debugMenu = createDebugMenu(graph),
     pauseMenu = createPauseMenu({ documentObject: document }),
     navigationMenu = createNavigationMenu(graph),
-    zoomSlider = createZoomSlider(graph),
     configMenu = createConfigMenu(graph),
     // Graph modules
     colorExternalsSwitch = createColorExternalsSwitch(graph),
@@ -115,6 +115,7 @@ export function createWebVowlApplication() {
     documentObject: document,
   });
   // One production rendering path: the adapter owns the renderer implementation
+  const renderedGraphConfiguration = createRenderedGraphConfiguration();
   // and publishes it as the RenderedGraphRuntime the controller consumes.
   const { renderedGraphRuntime } = createD3RenderedGraphAdapter({
     renderedGraphInternals: graph,
@@ -123,7 +124,7 @@ export function createWebVowlApplication() {
       new Promise((resolveFrame) =>
         globalThis.requestAnimationFrame(() => resolveFrame()),
       ),
-    renderedGraphConfiguration: createRenderedGraphConfiguration(),
+    renderedGraphConfiguration,
   });
 
   let unsubscribeFromControllerState;
@@ -158,6 +159,13 @@ export function createWebVowlApplication() {
   });
 
   // Menus that command the controller are constructed once it exists.
+  const zoomSlider = createZoomSlider({
+    webVowlController,
+    minimumMagnification: renderedGraphConfiguration.minMagnification,
+    maximumMagnification: renderedGraphConfiguration.maxMagnification,
+    graphWidthPx: renderedGraphConfiguration.width,
+    graphHeightPx: renderedGraphConfiguration.height,
+  });
   const exportMenu = createExportMenu(graph, { webVowlController });
   const searchMenu = createSearchMenu(graph, { webVowlController });
   const resetMenu = createResetMenu(graph, { webVowlController });
@@ -388,9 +396,6 @@ export function createWebVowlApplication() {
       graphResizeObserver.observe(graphHost);
     }
 
-    graph.addEventListener("zoomchange", (e) =>
-      zoomSlider.updateZoomSliderValue(e.detail.value),
-    );
     graph.addEventListener("dictionarychange", () =>
       searchMenu.requestDictionaryUpdate(),
     );
@@ -563,30 +568,28 @@ export function createWebVowlApplication() {
     sidebar.setup();
     loadingModule.setup();
     // Presentation modules render controller state rather than being called
-    // from inside the renderer.
+    // from inside the renderer, and each runs only when its own slice changed.
+    const controllerStatePresenter = createControllerStatePresenter({
+      renderLoadState: (controllerState) =>
+        loadingModule.renderControllerState(controllerState),
+      renderGraphLayoutPaused: (isPaused) =>
+        pauseMenu.renderGraphLayoutPaused(isPaused),
+      renderSelectedOntologyElements: (ontologyElementReferences) =>
+        searchMenu.renderSelectedOntologyElements(ontologyElementReferences),
+      // Details are described from the ontology the controller holds, so the
+      // sidebar never reads a drawn element for a semantic fact.
+      renderSelectedOntologyElementDetails: (elementDescriptions) =>
+        sidebar.renderSelectedOntologyElementDetails(elementDescriptions),
+      renderOntologySummary: (ontologySummary) =>
+        sidebar.renderOntologySummary(ontologySummary),
+      renderViewport: (zoomScale) => zoomSlider.renderViewport(zoomScale),
+      describeOntologyElements: (descriptionRequest) =>
+        webVowlController.describeOntologyElements(descriptionRequest),
+      readOntologySummary: () => webVowlController.getOntologySummary(),
+    });
     unsubscribeFromControllerState = webVowlController.subscribeToState(
-      (controllerState) => {
-        loadingModule.renderControllerState(controllerState);
-        pauseMenu.renderGraphLayoutPaused(
-          controllerState.layout?.status === "paused",
-        );
-        if (Array.isArray(controllerState.selection)) {
-          searchMenu.renderSelectedOntologyElements(controllerState.selection);
-          // Details are described from the ontology the controller holds, so
-          // the sidebar never reads a drawn element for a semantic fact.
-          sidebar.renderSelectedOntologyElementDetails(
-            controllerState.selection.length === 0 ||
-              controllerState.loadGeneration === 0
-              ? []
-              : webVowlController.describeOntologyElements({
-                  ontologyElementReferences: controllerState.selection,
-                }).elementDescriptions,
-          );
-        }
-        if (controllerState.status === "ready") {
-          sidebar.renderOntologySummary(webVowlController.getOntologySummary());
-        }
-      },
+      (controllerState, changedFieldNames) =>
+        controllerStatePresenter.present(controllerState, changedFieldNames),
     );
     leftSidebar.setup();
     editSidebar.setup();

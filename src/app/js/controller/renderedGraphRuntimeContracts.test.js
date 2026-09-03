@@ -6,6 +6,7 @@ import { SourceTextModule } from "node:vm";
 let RENDERED_GRAPH_EVENT_KINDS;
 let RENDERED_GRAPH_RUNTIME_METHOD_NAMES;
 let assertRenderedGraphRuntime;
+let createContinuousZoomRequest;
 let createGraphLayoutPauseRequest;
 let createGraphLayoutPauseResult;
 let createGraphLayoutSnapshot;
@@ -59,6 +60,7 @@ beforeAll(async () => {
     RENDERED_GRAPH_EVENT_KINDS,
     RENDERED_GRAPH_RUNTIME_METHOD_NAMES,
     assertRenderedGraphRuntime,
+    createContinuousZoomRequest,
     createGraphLayoutPauseRequest,
     createGraphLayoutPauseResult,
     createGraphLayoutSnapshot,
@@ -237,6 +239,7 @@ describe("rendered graph runtime interface", () => {
       "readVisibleRenderedGraphSnapshot",
       "readGraphLayoutSnapshot",
       "setGraphLayoutPaused",
+      "setContinuousZoom",
       "createRenderedSvgSnapshot",
       "subscribeToRenderedGraphEvents",
       "dispose",
@@ -304,6 +307,23 @@ describe("rendered graph events", () => {
       "graph-layout-state-changed",
       "editor-mode-changed",
     ]);
+  });
+
+  test("declares a continuous zoom request with a closed direction union", () => {
+    // A held zoom button reports that a gesture started and that it ended. The
+    // renderer owns the animation between those two facts, so the control does
+    // not write a magnification on every animation frame.
+    for (const zoomDirection of ["in", "out", "none"]) {
+      expect(createContinuousZoomRequest({ zoomDirection })).toEqual({
+        zoomDirection,
+      });
+    }
+    expect(() =>
+      createContinuousZoomRequest({ zoomDirection: "up" }),
+    ).toThrow();
+    expect(() =>
+      createContinuousZoomRequest({ zoomDirection: "in", extra: true }),
+    ).toThrow();
   });
 
   test("accepts a continuous zoom scale in the visualization view", () => {

@@ -9,6 +9,7 @@ import { createClassDragger } from "../classDragger.js";
 import { createRangeDragger } from "../rangeDragger.js";
 import { createDomainDragger } from "../domainDragger.js";
 import { createShadowClone } from "../shadowClone.js";
+import { nextContinuousZoomScale } from "../../../shared/js/util/continuousZoomRamp.js";
 import _ from "lodash/core";
 import { createMath as createMathModule } from "../../../shared/js/util/math.js";
 const math = createMathModule();
@@ -284,6 +285,20 @@ function createGraph(graphContainerSelector) {
       onConfirmed(),
   };
 
+  // Several animated zoom paths set the transform through a d3 transition and
+  // never pass through updateViewportState, so every one of them reports here.
+  // A duplicate fact costs nothing: the presentation compares by value.
+  function reportViewportChanged() {
+    graph.dispatchEvent(
+      new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
+    );
+    renderedGraphEventPort.publishViewportChange(
+      zoomFactor,
+      graphTranslation[0],
+      graphTranslation[1],
+    );
+  }
+
   function syncZoomState() {
     const svgNode =
       graphContainer && graphContainer.node()
@@ -353,9 +368,7 @@ function createGraph(graphContainerSelector) {
   };
 
   graph.updateZoomSliderValueFromOutside = function () {
-    graph.dispatchEvent(
-      new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
-    );
+    reportViewportChanged();
   };
 
   graph.setDefaultZoom = function (val) {
@@ -418,6 +431,73 @@ function createGraph(graphContainerSelector) {
     return links;
   };
 
+  // A held zoom control reports a direction and, later, that the gesture
+  // ended. The ramp lives here because the viewport is renderer-owned; the
+  // control used to run this loop itself and write a magnification across the
+  // seam on every animation frame.
+  const NOMINAL_FRAME_DURATION_MS = 1000 / 60;
+  const MAXIMUM_FRAME_DURATION_MS = 100;
+  let continuousZoomDirection = 0;
+  let continuousZoomFrame;
+  let continuousZoomPreviousFrameTime;
+
+  function stepContinuousZoom(elapsedFrames) {
+    const minimumMagnification = renderedGraphSettings.minMagnification();
+    const maximumMagnification = renderedGraphSettings.maxMagnification();
+    const { zoomScale: nextZoom, hasReachedBoundary } = nextContinuousZoomScale(
+      {
+        zoomScale: zoomFactor,
+        zoomDirection: continuousZoomDirection,
+        elapsedFrames,
+        minimumMagnification,
+        maximumMagnification,
+      },
+    );
+    updateViewportState(graphTranslation, nextZoom);
+    graph.updateZoomSliderValueFromOutside();
+    return !hasReachedBoundary;
+  }
+
+  function advanceContinuousZoom(frameTimestamp) {
+    continuousZoomFrame = undefined;
+    if (continuousZoomDirection === 0) {
+      return;
+    }
+    const elapsedMs = Math.min(
+      MAXIMUM_FRAME_DURATION_MS,
+      Math.max(0, frameTimestamp - continuousZoomPreviousFrameTime),
+    );
+    continuousZoomPreviousFrameTime = frameTimestamp;
+    if (stepContinuousZoom(elapsedMs / NOMINAL_FRAME_DURATION_MS)) {
+      continuousZoomFrame = requestAnimationFrame(advanceContinuousZoom);
+    } else {
+      continuousZoomDirection = 0;
+    }
+  }
+
+  graph.startContinuousZoom = function (zoomDirection) {
+    if (continuousZoomDirection !== 0) {
+      return false;
+    }
+    continuousZoomDirection = zoomDirection > 0 ? 1 : -1;
+    continuousZoomPreviousFrameTime = performance.now();
+    if (stepContinuousZoom(1)) {
+      continuousZoomFrame = requestAnimationFrame(advanceContinuousZoom);
+      return true;
+    }
+    continuousZoomDirection = 0;
+    return false;
+  };
+
+  graph.stopContinuousZoom = function () {
+    if (continuousZoomFrame !== undefined) {
+      cancelAnimationFrame(continuousZoomFrame);
+      continuousZoomFrame = undefined;
+    }
+    continuousZoomDirection = 0;
+    continuousZoomPreviousFrameTime = undefined;
+  };
+
   graph.setSliderZoom = function (val) {
     const targetZoom = viewportTransform.normalizeZoom(
       val,
@@ -446,9 +526,7 @@ function createGraph(graphContainerSelector) {
       .on("end", function () {
         graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
-        graph.dispatchEvent(
-          new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
-        );
+        reportViewportChanged();
       });
     return true;
   };
@@ -1411,9 +1489,7 @@ function createGraph(graphContainerSelector) {
       }
       graphContainer.attr("transform", viewportTransformString());
       updateHaloRadius();
-      graph.dispatchEvent(
-        new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
-      );
+      reportViewportChanged();
       return;
     }
     /** animate the transition **/
@@ -1461,9 +1537,7 @@ function createGraph(graphContainerSelector) {
             }
           }
           updateHaloRadius();
-          graph.dispatchEvent(
-            new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
-          );
+          reportViewportChanged();
         };
       })
       .on("end", function () {
@@ -2045,9 +2119,7 @@ function createGraph(graphContainerSelector) {
         graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
         updateHaloRadius();
-        graph.dispatchEvent(
-          new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
-        );
+        reportViewportChanged();
       });
   };
 
@@ -2079,9 +2151,7 @@ function createGraph(graphContainerSelector) {
         graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
         updateHaloRadius();
-        graph.dispatchEvent(
-          new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
-        );
+        reportViewportChanged();
       });
   };
 
@@ -2880,9 +2950,7 @@ function createGraph(graphContainerSelector) {
       return viewportTransformString();
     }
     updateHaloRadius();
-    graph.dispatchEvent(
-      new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
-    );
+    reportViewportChanged();
     return viewportTransformString();
   }
 
@@ -3389,9 +3457,7 @@ function createGraph(graphContainerSelector) {
 
         graphContainer.attr("transform", viewportTransformString());
         syncZoomState();
-        graph.dispatchEvent(
-          new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
-        );
+        reportViewportChanged();
       });
   };
 

@@ -339,6 +339,16 @@ function createAdapterHarness() {
     setSliderZoom(zoomScale) {
       renderedGraphInternalsFixture.requestedZoomScales.push(zoomScale);
     },
+    continuousZoomDirections: [],
+    startContinuousZoom(zoomDirection) {
+      renderedGraphInternalsFixture.continuousZoomDirections.push(
+        zoomDirection,
+      );
+      return true;
+    },
+    stopContinuousZoom() {
+      renderedGraphInternalsFixture.continuousZoomDirections.push(0);
+    },
     highlightedElementIds: [],
     locateRequests: 0,
     highLightNodes(elementIds) {
@@ -560,6 +570,22 @@ describe("D3 rendered graph adapter", () => {
     expect(
       adapterHarness.renderedGraphInternalsFixture.requestedZoomScales,
     ).toEqual([2.5]);
+  });
+
+  test("hands a held zoom gesture to the renderer as start and stop", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+
+    adapterHarness.renderedGraphRuntime.setContinuousZoom({
+      zoomDirection: "out",
+    });
+    adapterHarness.renderedGraphRuntime.setContinuousZoom({
+      zoomDirection: "none",
+    });
+
+    expect(
+      adapterHarness.renderedGraphInternalsFixture.continuousZoomDirections,
+    ).toEqual([-1, 0]);
   });
 
   test("builds the renderer graph root once and reloads it for later models", async () => {

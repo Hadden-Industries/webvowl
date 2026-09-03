@@ -1,6 +1,7 @@
 import { createLinkedAbortSignal } from "./linkedAbortSignal.js";
 import {
   createWebVowlControllerState,
+  WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES,
   GENERATION_SCOPED_CONTROLLER_STATE_FIELDS,
   toPublicWebVowlError,
   truncateOntologyDerivedText,
@@ -43,6 +44,40 @@ const IDLE_CONTROLLER_STATE = Object.freeze({
   editorMode: null,
   error: null,
 });
+
+function arePublishedValuesEqual(leftValue, rightValue) {
+  if (leftValue === rightValue) {
+    return true;
+  }
+  if (
+    leftValue === null ||
+    rightValue === null ||
+    typeof leftValue !== "object" ||
+    typeof rightValue !== "object"
+  ) {
+    return false;
+  }
+  if (Array.isArray(leftValue) !== Array.isArray(rightValue)) {
+    return false;
+  }
+  if (Array.isArray(leftValue)) {
+    return (
+      leftValue.length === rightValue.length &&
+      leftValue.every((entry, entryIndex) =>
+        arePublishedValuesEqual(entry, rightValue[entryIndex]),
+      )
+    );
+  }
+  const leftFieldNames = Object.keys(leftValue);
+  return (
+    leftFieldNames.length === Object.keys(rightValue).length &&
+    leftFieldNames.every(
+      (fieldName) =>
+        Object.prototype.hasOwnProperty.call(rightValue, fieldName) &&
+        arePublishedValuesEqual(leftValue[fieldName], rightValue[fieldName]),
+    )
+  );
+}
 
 function assertPlainRecord(candidate, description) {
   if (
@@ -161,13 +196,27 @@ export function createWebVowlController(dependencies) {
   let currentWarnings = [];
   const stateSubscribers = new Set();
 
-  function publishControllerState(nextControllerState) {
+  // A writer states the fields it wrote. Narrowing that set to the fields whose
+  // value actually differs happens once, here, using what the writer already
+  // knew - rather than every subscriber comparing its own slice to work out
+  // what a broadcast snapshot changed.
+  function publishControllerState(nextControllerState, writtenFieldNames) {
     if (isDisposed) {
       return;
     }
+    const previousControllerState = controllerState;
     controllerState = createWebVowlControllerState(nextControllerState);
+    const changedFieldNames = Object.freeze(
+      writtenFieldNames.filter(
+        (fieldName) =>
+          !arePublishedValuesEqual(
+            previousControllerState?.[fieldName],
+            controllerState[fieldName],
+          ),
+      ),
+    );
     for (const stateSubscriber of [...stateSubscribers]) {
-      stateSubscriber(controllerState);
+      stateSubscriber(controllerState, changedFieldNames);
     }
   }
 
@@ -175,7 +224,10 @@ export function createWebVowlController(dependencies) {
     if (isDisposed || loadGeneration !== activeLoadGeneration) {
       return;
     }
-    publishControllerState({ ...controllerState, ...controllerStateChanges });
+    publishControllerState(
+      { ...controllerState, ...controllerStateChanges },
+      Object.keys(controllerStateChanges),
+    );
   }
 
   function isCurrentGeneration(loadGeneration) {
@@ -327,15 +379,21 @@ export function createWebVowlController(dependencies) {
     }
     if (isAbortError(operationError)) {
       activeLoadGeneration = currentOntologyGeneration;
-      publishControllerState(lastValidControllerState);
+      publishControllerState(
+        lastValidControllerState,
+        WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES,
+      );
       return;
     }
-    publishControllerState({
-      ...lastValidControllerState,
-      status: "error",
-      loadGeneration,
-      error: publicErrorProjection(operationError),
-    });
+    publishControllerState(
+      {
+        ...lastValidControllerState,
+        status: "error",
+        loadGeneration,
+        error: publicErrorProjection(operationError),
+      },
+      WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES,
+    );
   }
 
   async function applyRuntimeVisualizationView(
@@ -560,6 +618,14 @@ export function createWebVowlController(dependencies) {
       });
       lastValidControllerState = controllerState;
       return graphLayoutPauseResult;
+    },
+
+    // A held zoom control reports the gesture, not a magnification per frame.
+    // Like the pause operation this is controller-domain only and is never a
+    // WebMCP tool: it tunes how the visualization is drawn, not what it says.
+    setContinuousZoom(continuousZoomRequest) {
+      assertOntologyPresent();
+      return renderedGraphRuntime.setContinuousZoom(continuousZoomRequest);
     },
 
     async exportVisualization(exportRequest = {}, { signal } = {}) {
