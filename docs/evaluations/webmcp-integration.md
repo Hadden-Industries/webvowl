@@ -223,23 +223,36 @@ The convergence check surfaced an asymmetry rather than a disagreement.
   is what the pair above exercised — so this is a redundant binding rather than
   a gap.
 
-### A tool accepts a language the ontology does not offer
+### A tool accepted a language the ontology does not offer (fixed)
 
 Found while setting the convergence check up, on the shipped FOAF preset:
 
 - `get_ontology_summary` reports `availableLabelLanguages: ["IRI-based"]`, and
   the language select correctly offers only that.
-- `set_visualization_view({ language: "en" })` nonetheless succeeds, and both
-  `view.language` and the summary's `selectedLanguage` then report `en`.
-- Nothing changes: the drawn labels are identical before and after, and the
-  select still shows `IRI-based` because it has no `en` option to show.
+- `set_visualization_view({ language: "en" })` nonetheless succeeded, and both
+  `view.language` and the summary's `selectedLanguage` then reported `en`.
+- Nothing changed: the drawn labels were identical before and after, and the
+  select still showed `IRI-based` because it has no `en` option to show.
 
-An agent acting on that result would tell a reader it had switched the graph to
-English labels, which would not be true. The request should be refused, or the
-result should say the language was not applied. On an ontology that does carry
-the language — the evaluation fixture — the same request behaves correctly and
-both routes converge, which is why this only appears with a preset whose labels
-carry no language tags.
+An agent acting on that result would have told a reader it had switched the
+graph to English labels, which would not have been true.
+
+**The fix.** A language is only meaningful against the ontology that is loaded,
+so it is checked in the controller rather than by a schema, following the
+precedent already set for an element reference that does not resolve. A language
+the ontology does not carry is refused with `VIEW_REJECTED` and a message naming
+the ones it does carry, so an agent can choose again rather than believe a
+change that did not happen. The unchosen language, `default`, stays acceptable
+always: it is how both a reader and an agent ask for the ontology's own labels
+rather than a translation.
+
+Verified in the browser:
+
+- FOAF refuses with `The ontology carries no labels in en. It carries default,
+  IRI-based.` and `view.language` stays `default`.
+- The evaluation fixture, which carries English and German, accepts: the view
+  reports `en`, the language select reads `en`, and the drawn labels are the
+  English ones.
 
 ### Export does not disturb the page
 

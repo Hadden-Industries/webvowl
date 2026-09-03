@@ -366,6 +366,37 @@ export function createWebVowlController(dependencies) {
     }
   }
 
+  // The language that names no choice at all. It is always acceptable, because
+  // it is how a reader and an agent ask for the ontology's own labels rather
+  // than a particular translation.
+  const UNCHOSEN_LANGUAGE = "default";
+
+  // A language is only meaningful against the ontology that is loaded, so this
+  // is a controller-domain check rather than something a schema could make.
+  // Accepting a language the ontology does not carry would report it as
+  // selected while every label on screen stayed as it was, and an agent would
+  // tell a reader the graph had switched when it had not.
+  function assertRequestedLanguageIsCarried(requestedLanguage) {
+    if (requestedLanguage === undefined) {
+      return;
+    }
+    const availableLabelLanguages =
+      currentOntologyInspectionSnapshot?.availableLabelLanguages ?? [];
+    if (
+      requestedLanguage === UNCHOSEN_LANGUAGE ||
+      availableLabelLanguages.includes(requestedLanguage)
+    ) {
+      return;
+    }
+    throw new WebVowlOperationError({
+      code: "VIEW_REJECTED",
+      message: `The ontology carries no labels in ${requestedLanguage}. It carries ${[
+        UNCHOSEN_LANGUAGE,
+        ...availableLabelLanguages,
+      ].join(", ")}.`,
+    });
+  }
+
   function readInspectionRequestSnapshots() {
     if (currentOntologyInspectionSnapshot === null) {
       throw createNoOntologyError();
@@ -555,6 +586,7 @@ export function createWebVowlController(dependencies) {
       );
 
       try {
+        assertRequestedLanguageIsCarried(visualizationViewRequest?.language);
         const requestedFocus = visualizationViewRequest?.focus;
         const resolvedVisualizationView = { ...visualizationViewRequest };
         if (requestedFocus !== undefined) {

@@ -207,12 +207,13 @@ describe("WebVOWL controller orchestration", () => {
     loadGeneration = 1,
     loadOptions = {},
     snapshotOverrides = {},
+    sourceLoadRecord = createSourceLoadRecord(),
   ) {
     const loadPromise = controller.loadOntology(SOURCE_REQUEST, loadOptions);
     await flushMicrotasks(2);
     const deferredLoad = deferredSourceLoads.at(-1);
     deferredLoad.onPhaseChange?.("parsing");
-    deferredLoad.resolve(createSourceLoadRecord());
+    deferredLoad.resolve(sourceLoadRecord);
     await flushMicrotasks(3);
     renderedGraphTestHarness.completeInitialPaint(
       loadGeneration,
@@ -516,7 +517,25 @@ describe("WebVOWL controller orchestration", () => {
     });
 
     test("applies one runtime view request and preserves omitted fields", async () => {
-      await completeLoad();
+      await completeLoad(
+        1,
+        {},
+        {},
+        createSourceLoadRecord({
+          vowlModel: {
+            header: { title: { en: "Example" } },
+            class: [{ id: "c1", type: "owl:Class" }],
+            classAttribute: [
+              {
+                id: "c1",
+                iri: "https://example.test/Person",
+                label: { de: "Person" },
+              },
+            ],
+            property: [],
+          },
+        }),
+      );
       const viewPromise = controller.setVisualizationView({ language: "de" });
       await flushMicrotasks(2);
       renderedGraphTestHarness.completeVisualizationViewApplication(1);
@@ -784,6 +803,74 @@ describe("WebVOWL controller orchestration", () => {
         completedRenderedElementCount: 40,
         totalRenderedElementCount: 100,
       });
+    });
+  });
+
+  describe("visualization language", () => {
+    function createLabelledSourceLoadRecord() {
+      return createSourceLoadRecord({
+        vowlModel: {
+          header: { title: { en: "Example" } },
+          class: [{ id: "c1", type: "owl:Class" }],
+          classAttribute: [
+            {
+              id: "c1",
+              iri: "https://example.test/Person",
+              label: { en: "Person" },
+            },
+          ],
+          property: [],
+        },
+      });
+    }
+
+    test("refuses a language the loaded ontology does not carry", async () => {
+      // Accepting it would report a language as selected while every label on
+      // screen stayed as it was, so an agent would tell a reader the graph had
+      // switched when it had not.
+      await completeLoad();
+      const viewBefore = controller.getState().view;
+
+      await expect(
+        controller.setVisualizationView({ language: "en" }),
+      ).rejects.toMatchObject({ code: "VIEW_REJECTED" });
+
+      expect(controller.getState().view).toEqual(viewBefore);
+    });
+
+    test("names the languages the ontology does carry", async () => {
+      await completeLoad(1, {}, {}, createLabelledSourceLoadRecord());
+
+      await expect(
+        controller.setVisualizationView({ language: "fr" }),
+      ).rejects.toMatchObject({
+        code: "VIEW_REJECTED",
+        message: expect.stringContaining("en"),
+      });
+    });
+
+    test("accepts a language the ontology carries", async () => {
+      await completeLoad(1, {}, {}, createLabelledSourceLoadRecord());
+
+      const viewPromise = controller.setVisualizationView({ language: "en" });
+      await flushMicrotasks(2);
+      renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      await viewPromise;
+
+      expect(controller.getState().view.language).toBe("en");
+    });
+
+    test("accepts the default language, which names no choice at all", async () => {
+      await completeLoad();
+
+      const viewPromise = controller.setVisualizationView({
+        language: "default",
+      });
+      await flushMicrotasks(2);
+      renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      await viewPromise;
+
+      expect(controller.getState().view.language).toBe("default");
     });
   });
 
