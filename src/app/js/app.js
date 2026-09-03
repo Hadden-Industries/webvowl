@@ -9,6 +9,7 @@ import { vowlModelInspectionProjector } from "./controller/vowlModelInspectionPr
 import { createSvgArtifactService } from "./controller/svgArtifactService.js";
 import { createSvgSerializer } from "./controller/svgSerializer.js";
 import { createWebVowlController } from "./controller/webVowlController.js";
+import { registerWebMcpTools } from "./webmcp/webMcpAdapter.js";
 import { createSvgArtifactDownloadAdapter } from "./ui/svgArtifactDownloadAdapter.js";
 import { createColorExternalsSwitch } from "../../webvowl/js/runtime/colorExternalsSwitch.js";
 import { createCompactNotationSwitch } from "../../shared/js/modules/compactNotationSwitch.js";
@@ -180,11 +181,27 @@ export function createWebVowlApplication() {
     lifecycleSignal: viewControlsLifecycleController.signal,
   });
 
+  // The agent surface is registered once the controller exists, because every
+  // tool is an operation on it. A page that cannot offer tools carries on as an
+  // ordinary WebVOWL page.
+  const webMcpRegistration = registerWebMcpTools({
+    controller: webVowlController,
+    documentObject: document,
+    windowObject: window,
+  });
+
   app.getWebVowlController = function () {
     return webVowlController;
   };
 
+  app.getWebMcpRegistration = function () {
+    return webMcpRegistration;
+  };
+
   app.dispose = function () {
+    // Withdraw the tools before the controller they call goes away, so no
+    // registration can outlive what answers it.
+    webMcpRegistration.dispose();
     viewControlsLifecycleController.abort();
     unsubscribeFromControllerState?.();
     unsubscribeFromControllerState = undefined;

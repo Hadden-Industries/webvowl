@@ -945,11 +945,11 @@ Implements ADR 0010. This task runs before the tool contracts because `get_ontol
 - Create `src/app/js/webmcp/webMcpAdapter.test.js`
 - Create `src/app/js/webmcp/webMcpArchitecture.test.js`
 - Modify `src/app/js/app.js`
-- Modify `src/main.js`
+- Modify `src/main.js` — not needed in the end: it already disposes the application on `pagehide`, and the registration is withdrawn first inside `app.dispose`
 
-- [ ] Add all three new Task 12 WebMCP module/test paths to the required native-ESM architecture set and observe RED before creating them. `app.js` and `main.js` must already be in that set from Task 9.
-- [ ] Write adapter tests with injected `documentObject`, `windowObject`, and `AbortControllerConstructor`. Cover an absent `modelContext`, missing `registerTool`, a non-top-level page, five successful registrations, rejected registration, repeated initialization, execute before ontology load, execute with an omitted options object, execution `AbortSignal` forwarding, controller errors, and idempotent disposal.
-- [ ] Assert each registration uses the current imperative shape:
+- [x] Add all three new Task 12 WebMCP module/test paths to the required native-ESM architecture set and observe RED before creating them. `app.js` and `main.js` must already be in that set from Task 9.
+- [x] Write adapter tests with injected `documentObject`, `windowObject`, and `AbortControllerConstructor`. Cover an absent `modelContext`, missing `registerTool`, a non-top-level page, five successful registrations, rejected registration, repeated initialization, execute before ontology load, execute with an omitted options object, execution `AbortSignal` forwarding, controller errors, and idempotent disposal.
+- [x] Assert each registration uses the current imperative shape:
 
 ```js
 await documentObject.modelContext.registerTool(
@@ -964,20 +964,20 @@ await documentObject.modelContext.registerTool(
 );
 ```
 
-- [ ] Assert the five tools remain registered for the adapter lifetime even when controller state is `idle`; state-dependent operations must return `NO_ONTOLOGY`, not churn registrations.
-- [ ] Assert aborting the lifecycle signal unregisters all definitions, cancels pending registration where supported, and does not abort an independently active controller operation except through page disposal.
-- [ ] Write an architecture test that walks the static native-ESM application graph and the separately allowlisted private CommonJS renderer leaves, and fails if any controller, graph, parser, loader, inspector, layout, or exporter module imports `src/app/js/webmcp/`. Also fail if `modelContext`, `registerTool`, or tool names appear outside `src/app/js/webmcp/` and the explicit `app.js` composition import.
-- [ ] Extend that architecture test with the no-shims allowlist: production application code must contain one controller factory, one source loader, one SVG artifact service, and one WebMCP adapter; it must contain no legacy callback-name alias, caller-dependent implementation switch, duplicate remote-source transport, or alternate SVG transport.
-- [ ] Compose, rather than weaken, Task 9's decoupling architecture test: WebMCP may depend on `WebVowlController` only and may not import `RenderedGraphRuntime`, `D3RenderedGraphAdapter`, a renderer configuration, UI module, live SVG, or D3. Tool execution must wait for the controller's visible-completion promise rather than observing DOM or renderer events itself.
-- [ ] Run `npm test -- src/app/js/webmcp/webMcpAdapter.test.js src/app/js/webmcp/webMcpArchitecture.test.js --runInBand` and confirm RED.
-- [ ] Implement `registerWebMcpTools({ controller, documentObject, windowObject })`, returning `{ isAvailable, availabilityReason, whenRegistered, dispose }`. The availability reasons are `available`, `unsupported`, `not-top-level`, or `registration-failed`; they are local diagnostics, not ontology data.
-- [ ] Author the adapter and both WebMCP architecture/contract tests as native ESM with named exports and explicit relative `.js` specifiers. Do not expose a default WebMCP namespace object or publish the adapter through a browser global.
-- [ ] Feature-detect before reading the API. Require `windowObject.top === windowObject`; do not inspect or proxy iframe documents.
-- [ ] Register after `WebVowlController` construction in `app.js`, retain the registration handle on the application instance, and dispose it before controller disposal on `pagehide`.
-- [ ] Catch registration failure, record one bounded console warning, and leave the UI/controller working. Do not retry in a loop.
-- [ ] Rerun all WebMCP, controller, app, decoupling, and production-module-format architecture suites plus `npm run lint`, `npm run format:check`, and `npm run build`.
-- [ ] Inspect matches with `rg -n "modelContext|registerTool" src`; only the adapter, its tests, the architecture allowlist, and the composition import may match.
-- [ ] Request approval for `feat(webmcp): Register controller tools`.
+- [x] Assert the five tools remain registered for the adapter lifetime even when controller state is `idle`; state-dependent operations must return `NO_ONTOLOGY`, not churn registrations.
+- [x] Assert aborting the lifecycle signal unregisters all definitions, cancels pending registration where supported, and does not abort an independently active controller operation except through page disposal.
+- [x] Write an architecture test that walks the static native-ESM application graph and the separately allowlisted private CommonJS renderer leaves, and fails if any controller, graph, parser, loader, inspector, layout, or exporter module imports `src/app/js/webmcp/`. Also fail if `modelContext`, `registerTool`, or tool names appear outside `src/app/js/webmcp/` and the explicit `app.js` composition import.
+- [x] Extend that architecture test with the no-shims allowlist: production application code must contain one controller factory, one source loader, one SVG artifact service, and one WebMCP adapter; it must contain no legacy callback-name alias, caller-dependent implementation switch, duplicate remote-source transport, or alternate SVG transport.
+- [x] Compose, rather than weaken, Task 9's decoupling architecture test: WebMCP may depend on `WebVowlController` only and may not import `RenderedGraphRuntime`, `D3RenderedGraphAdapter`, a renderer configuration, UI module, live SVG, or D3. Tool execution must wait for the controller's visible-completion promise rather than observing DOM or renderer events itself.
+- [x] Run `npm test -- src/app/js/webmcp/webMcpAdapter.test.js src/app/js/webmcp/webMcpArchitecture.test.js --runInBand` and confirm RED.
+- [x] Implement `registerWebMcpTools({ controller, documentObject, windowObject })`, returning `{ isAvailable, availabilityReason, whenRegistered, dispose }`. The availability reasons are `available`, `unsupported`, `not-top-level`, or `registration-failed`; they are local diagnostics, not ontology data.
+- [x] Author the adapter and both WebMCP architecture/contract tests as native ESM with named exports and explicit relative `.js` specifiers. Do not expose a default WebMCP namespace object or publish the adapter through a browser global.
+- [x] Feature-detect before reading the API. Require `windowObject.top === windowObject`; do not inspect or proxy iframe documents.
+- [x] Register after `WebVowlController` construction in `app.js`, retain the registration handle on the application instance, and dispose it before controller disposal on `pagehide`.
+- [x] Catch registration failure, record one bounded console warning, and leave the UI/controller working. Do not retry in a loop.
+- [x] Rerun all WebMCP, controller, app, decoupling, and production-module-format architecture suites plus `npm run lint`, `npm run format:check`, and `npm run build`.
+- [x] Inspect matches with `rg -n "modelContext|registerTool" src`; only the adapter, its tests, the architecture allowlist, and the composition import may match.
+- [x] Request approval for `feat(webmcp): Register controller tools`.
 
 **Acceptance:** A supported top-level page exposes five stable imperative tools; unsupported or embedded pages remain normal WebVOWL pages with deterministic cleanup.
 
