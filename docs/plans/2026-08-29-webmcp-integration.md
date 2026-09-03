@@ -65,6 +65,7 @@ flowchart LR
         Controller[WebVowlController]
         State[Immutable WebVowlControllerState]
         Loader[OntologySourceLoader]
+        Projector[VowlModelInspectionProjector]
         Inspector[OntologyInspector]
         Settler[GraphLayoutSettler]
         Artifact[SvgArtifactService]
@@ -90,6 +91,7 @@ flowchart LR
     UiInput --> Controller
     WebMcp --> Controller
     Controller --> Loader
+    Controller --> Projector
     Controller --> Inspector
     Controller --> Settler
     Controller --> Artifact
@@ -111,6 +113,8 @@ flowchart LR
 
 This is the target structure, not an optional refactoring. There is no UI–D3 edge, UI–graph edge, graph–UI edge, controller–D3 edge, serializer–graph edge, or CommonJS edge crossing upward through the runtime seam. The composition root creates `D3RenderedGraphAdapter`, passes it to `WebVowlController` only as `RenderedGraphRuntime`, gives input/state UI adapters only the controller and native browser objects, and supplies `SvgArtifactService` with the narrow publication port implemented by the download adapter. Pointer gestures on the live visualization remain internal to the D3 adapter and publish structured graph events; standalone controls never depend on the adapter. The only temporary CommonJS island is the exact untouched private-renderer allowlist shown below the native-ESM adapter; it cannot grow and does not weaken complete UI–D3 decoupling.
 
+Ownership follows ADR 0010: the rendered graph is one projection of the ontology and is never its store. `VowlModelInspectionProjector` builds the `OntologyInspectionSnapshot` from the VOWL model that `OntologySourceLoader` returns, so every semantic question is answerable before the renderer mounts, and the seam carries no `readOntologyInspectionSnapshot`. `readVisibleRenderedGraphSnapshot` stays on the seam because the renderer owns what is visible while the application owns what is true. The application addresses ontology entities only; which drawn occurrence of an entity was clicked, pinned or haloed never crosses the seam.
+
 The planned module locality is:
 
 ```text
@@ -120,6 +124,7 @@ src/app/js/app.js                                      composition root
 src/app/js/controller/webVowlController.js             application orchestration
 src/app/js/controller/renderedGraphRuntimeContracts.js application-facing graph contracts
 src/app/js/controller/ontologySourceLoader.js          canonical source ingestion
+src/app/js/controller/vowlModelInspectionProjector.js  VOWL model to immutable inspection snapshot
 src/app/js/controller/ontologyInspector.js             immutable snapshot inspection
 src/app/js/controller/graphLayoutSettler.js             snapshot-based settlement
 src/app/js/controller/svgSerializer.js                  detached-snapshot serialization
@@ -140,6 +145,7 @@ Every JavaScript path in this map is native ESM and uses named exports. `graph.j
 ```js
 const controller = createWebVowlController({
   ontologySourceLoader,
+  vowlModelInspectionProjector,
   renderedGraphRuntime,
   ontologyInspector,
   graphLayoutSettler,
@@ -153,13 +159,15 @@ controller.getOntologySummary();
 controller.findOntologyElements(request);
 await controller.setVisualizationView(request, { signal });
 controller.setGraphLayoutPaused(request);
+controller.setForceLayoutDistances(request);
+controller.setVisualizationMode(request);
 await controller.exportVisualization(request, { signal });
 controller.getState();
 const unsubscribeFromState = controller.subscribeToState(onStateChange);
 controller.dispose();
 ```
 
-The controller state is a frozen snapshot:
+The controller state is a frozen snapshot with a **closed field set**. `createWebVowlControllerState` asserts exactly these names, exactly as every other contract in this plan does, so a reducer cannot introduce a field by writing one:
 
 ```js
 {
@@ -168,23 +176,34 @@ The controller state is a frozen snapshot:
   source: null,
   warnings: [],
   view: null,
+  viewport: null,
   layout: { status: "unavailable" | "relaxing" | "settled" | "best-effort" },
+  selection: [],
+  renderProgress: null,
+  editorMode: null,
   error: null,
 }
 ```
 
+`selection`, `renderProgress` and `viewport` are generation-scoped: beginning a new load resets them to their idle values in the same publication that sets `status: "loading"`. Without that reset a selection made in one generation survives into the next and names an element that no longer exists.
+
+`selection` carries `OntologyElementReference` values only. Which drawn occurrence of an entity the reader clicked is renderer-local state and is never published; a focus request naming an entity correctly marks every occurrence of it.
+
 `loadOntology` resolves after the selected generation is parsed and its initial graph paint completes. The returned load status may be `relaxing`; a generation-bound background observer moves it to `ready` when the force ends or remains stable. `exportVisualization` performs its own stricter bounded settlement and never relies only on the background observer.
 
-The controller accepts the complete modules above, not a bag of renderer callbacks. It never receives a concrete graph, D3 value, filter module, sidebar, serializer graph port, or separate load/focus/zoom/pause function. `ontologyInspector` consumes an `OntologyInspectionSnapshot`; `graphLayoutSettler` consumes `GraphLayoutSnapshot` values and structured events; `svgArtifactService` consumes serialized bytes. The controller obtains each snapshot through `renderedGraphRuntime`.
+The controller accepts the complete modules above, not a bag of renderer callbacks. It never receives a concrete graph, D3 value, filter module, sidebar, serializer graph port, or separate load/focus/zoom/pause function. `vowlModelInspectionProjector` consumes a VOWL model and produces an `OntologyInspectionSnapshot`; `ontologyInspector` consumes that snapshot; `graphLayoutSettler` consumes `GraphLayoutSnapshot` values and structured events; `svgArtifactService` consumes serialized bytes. The controller holds the inspection snapshot itself and obtains the visible-graph and layout snapshots through `renderedGraphRuntime`.
 
 `setGraphLayoutPaused` accepts exactly `{ isPaused: boolean }` and returns a frozen `{ loadGeneration, isPaused, layoutStatus }` result for the current generation, where `layoutStatus` is `paused`, `relaxing`, or `settled`. It is a controller-owned application operation, not an injected pause callback or WebMCP tool.
+
+`setForceLayoutDistances` and `setVisualizationMode` follow that same precedent. Both are controller-domain requests and neither is a WebMCP tool, because both tune how the visualization is drawn rather than what the ontology says. `setForceLayoutDistances` accepts `{ classDistancePx, datatypeDistancePx, loopDistancePx }` with every field optional; `setVisualizationMode` accepts the renderer's display toggles — `dynamicLabelWidth`, `maxLabelWidthPx`, `colorExternals`, `compactNotation`, `nodeScaling` — again with every field optional. Routing them through the controller is what keeps §1.1's rule that no user-interface module calls the renderer; exposing them as tools is not, so they stay out of §1.6.
+
+Editor mode is published into state as a fact and is not settable through the controller. `editorMode` exists so a presentation module stops asking the renderer what mode it is in; entering and leaving editor mode, and every editing operation, remain outside this plan's scope.
 
 #### 1.2.1 Rendered-graph runtime contract
 
 ```js
 await renderedGraphRuntime.replaceVowlModel(request, { signal });
 await renderedGraphRuntime.applyVisualizationView(request, { signal });
-renderedGraphRuntime.readOntologyInspectionSnapshot();
 renderedGraphRuntime.readVisibleRenderedGraphSnapshot();
 renderedGraphRuntime.readGraphLayoutSnapshot();
 renderedGraphRuntime.setGraphLayoutPaused(request);
@@ -196,9 +215,11 @@ renderedGraphRuntime.dispose();
 
 `replaceVowlModel` requires `{ loadGeneration, vowlModel, displayName }`. The adapter must synchronously retire the previous generation, stop its simulation, detach listeners, cancel supported timers/transitions, and fence every tick, end, progress, warning, and paint callback with both the active `loadGeneration` and operation `AbortSignal`. It resolves only after new graph geometry is in the live SVG and the browser has painted that geometry. A progress value or the return of `graph.load()` is insufficient.
 
-The initial `RenderedGraphEvent.kind` values are exactly `render-progress-changed`, `render-warning-raised`, `rendered-element-selection-changed`, `viewport-changed`, and `graph-layout-state-changed`. Every event includes its `loadGeneration` and an immutable kind-specific payload. The controller rejects stale events and publishes a new frozen state snapshot.
+The `RenderedGraphEvent.kind` values are exactly `render-progress-changed`, `render-warning-raised`, `rendered-element-selection-changed`, `viewport-changed`, `graph-layout-state-changed`, and `editor-mode-changed`. Every event includes its `loadGeneration` and an immutable kind-specific payload. The controller rejects stale events and publishes a new frozen state snapshot.
 
-The three plain snapshot contracts are:
+Every one of those kinds is published by the production adapter. `viewport-changed` carries `{ zoomScale, translationXPx, translationYPx }` and is the sole route by which the interface learns the current zoom and pan: a zoom control reads `state.viewport.zoomScale` and never `graph.scaleFactor()`. It fires for pointer and wheel gestures as well as for requested viewport changes, so a control's presentation follows a gesture it did not initiate.
+
+The plain snapshot contracts are:
 
 ```js
 // OntologyInspectionSnapshot
@@ -244,6 +265,26 @@ The three plain snapshot contracts are:
 ```
 
 Tests define the exact nested ontology-header and element-record fields before implementation. Each plain snapshot and nested collection is deeply frozen and detached from renderer-owned values. `RenderedSvgSnapshot.detachedSvgRoot` is the explicit exception to the plain-data rule: it is a detached, fully styled SVG DOM clone for one generation and one export operation, never the live SVG.
+
+`OntologyInspectionSnapshot` is produced by `VowlModelInspectionProjector`, not by the runtime, and every relation array it declares is populated from the VOWL model rather than left empty. Each element record additionally carries:
+
+```js
+{
+  annotationRecords: [
+    { localName: "term_status", propertyIri: null, languageTag: null, text: "stable", valueKind: "text" },
+  ],
+  characteristicNames: ["functional", "transitive"],
+  unclassifiedAttributeNames: ["external", "union"],
+  descriptionRecords: [],
+  cardinalityRecord: { exact: null, minimum: 0, maximum: null },
+}
+```
+
+`propertyIri` is `null` where the source did not carry enough to reconstruct it. VOWL groups annotations under a bare local name, which cannot distinguish two annotation properties from different namespaces; `vowlBuilder` records the remainder of the IRI as `predicateNs` so nothing is lost, but VOWL files produced before that carry no such field. Projecting a guessed IRI would assert structure the source never carried, so the field is nullable by contract.
+
+`characteristicNames` holds only the OWL property characteristics, which OWL defines unambiguously: `functional`, `inverse functional`, `transitive`, `symmetric`, `asymmetric`, `reflexive`, `irreflexive`, and `key`. Every other value of VOWL's flat `attributes` bag — class-expression kinds such as `union`, `intersection`, `complement` and `disjointUnion`, and status markers such as `external`, `deprecated` and `anonymous` — stays in `unclassifiedAttributeNames`. Splitting further would assert a taxonomy VOWL does not state and OWL does not settle.
+
+`cardinalityRecord` is present on property records only, and each field is `null` when the corresponding VOWL field is absent.
 
 ### 1.3 Shared limits and expected errors
 
@@ -320,12 +361,15 @@ The initial view request is deliberately smaller than the existing UI:
   ],
   layout: "relax",
   viewport: "fit",
+  zoomScale: 1.5,
 }
 ```
 
-Every field is optional. Filter values are `show` or `hide`; `minDegree` is an integer from 0 through 100; `focus` contains at most 25 references; `layout` is `preserve` or `relax`; and `viewport` is `preserve` or `fit`. Omitted fields preserve current visible state.
+Every field is optional. Filter values are `show` or `hide`; `minDegree` is an integer from 0 through 100; `focus` contains at most 25 references; `layout` is `preserve` or `relax`; `viewport` is `preserve`, `fit`, or `focus-next`; and `zoomScale` is a finite number within the renderer's configured magnification bounds, currently 0.01 through 4. Omitted fields preserve current visible state.
 
-The existing human pause control uses the separate controller-domain request `{ isPaused: true | false }` with `setGraphLayoutPaused`. It is deliberately not an initial WebMCP field or sixth tool; agent-requested relaxation remains the bounded `layout: "relax"` visualization-view action.
+`zoomScale` and the `viewport` directives are the write half of one channel whose read half is the `viewport-changed` event. A zoom control writes `zoomScale`, a fit control writes `viewport: "fit"`, and both read the resulting `state.viewport.zoomScale` back. This is deliberately a continuous value rather than a step directive: the existing slider must track pinch and wheel gestures the reader performs directly on the visualization, and a stepped vocabulary cannot express that. `zoomScale` is the exact spelling `viewport-changed` already uses, so the two halves share one name.
+
+The existing human pause control uses the separate controller-domain request `{ isPaused: true | false }` with `setGraphLayoutPaused`. It is deliberately not an initial WebMCP field or sixth tool; agent-requested relaxation remains the bounded `layout: "relax"` visualization-view action. `setForceLayoutDistances` and `setVisualizationMode`, defined in §1.2, follow the same rule for the same reason.
 
 Export accepts only:
 
@@ -372,6 +416,11 @@ The design's controlled vocabulary applies to every task. In particular:
 | Renderer configuration                  | `RenderedGraphConfiguration`; contains only renderer-owned settings and never UI/application object references                                                                 |
 | Renderer notifications                  | `RenderedGraphEvent` with a closed semantic `kind`; never expose a D3 event or generic callback payload                                                                        |
 | Semantic inspection projection          | `OntologyInspectionSnapshot`; deeply immutable plain data, never mutable element instances or a graph-data alias                                                               |
+| Snapshot construction                   | `VowlModelInspectionProjector`; names its VOWL input because what that input does and does not carry is load-bearing, never a generic snapshot builder or ontology projector   |
+| Element identity across layers          | `OntologyElementReference` names an entity and may match several drawn occurrences; occurrence identity has no controller-domain name because it never crosses the seam        |
+| Annotation projection                   | `localName` with a nullable `propertyIri`; never present a local name as though it were an IRI, and never reconstruct an IRI the source did not carry                          |
+| Element attribute classification        | `characteristicNames` for the OWL property characteristics only; everything else stays in `unclassifiedAttributeNames` rather than acquiring an asserted taxonomy              |
+| Renderer tuning requests                | `setForceLayoutDistances` with `…Px` fields and `setVisualizationMode`; controller-domain operations following the `setGraphLayoutPaused` precedent, never WebMCP tools        |
 | Visible graph projection                | `VisibleRenderedGraphSnapshot`; stable references and counts, never selections or shallow copies of internal arrays                                                            |
 | Layout projection                       | `GraphLayoutSnapshot`; coordinate/force scalars for one generation and instant, never the force simulation                                                                     |
 | SVG export input                        | `RenderedSvgSnapshot`; a detached styled clone, never the live SVG or serialized artifact bytes                                                                                |
@@ -775,14 +824,79 @@ Every task inherits §1.9. For a task with a checkpoint commit, its final operat
 
 **Acceptance:** The Mermaid target architecture is real: UI and WebMCP depend on the same native-ESM controller; the controller depends on one native-ESM `RenderedGraphRuntime`; native-ESM `D3RenderedGraphAdapter` is the sole production implementation and sole D3-owning module boundary; the graph contains no UI references; snapshots are immutable; export is clone-only; and every old graph/options/loading/export route is absent. All new and materially changed modules are native ESM, any remaining CommonJS is exactly the fixed untouched private-renderer allowlist with no upward edge or shim, and all ordinary WebVOWL flows remain usable.
 
-### Task 10: Define and bound the five tool contracts
+### Task 10: Move ontology model ownership out of the renderer
+
+Implements ADR 0010. This task runs before the tool contracts because `get_ontology_summary` and `find_ontology_elements` project the same snapshot: every relation left empty here is a fact those tools could not report, and defining them first would mean revisiting their projections a second time.
+
+**Read first:**
+
+- `docs/adr/0010-rendered-graph-is-a-projection-not-the-store.md` for the ownership rule and its verification obligations
+- `src/webvowl/js/runtime/d3RenderedGraphAdapter.js` `projectOntologyInspectionSnapshot` — the function being moved, not rewritten
+- `src/app/js/sidebar.js` `displayNodeInformation` and `displayPropertyInformation` — the exact fields the snapshot must carry
+
+**Files:**
+
+- Create `src/app/js/controller/vowlModelInspectionProjector.js`
+- Create `src/app/js/controller/vowlModelInspectionProjector.test.js`
+- Edit `src/app/js/controller/webVowlControllerContracts.js`
+- Edit `src/app/js/controller/renderedGraphRuntimeContracts.js`
+- Edit `src/app/js/controller/webVowlController.js`
+- Edit `src/app/js/controller/ontologyInspector.js`
+- Edit `src/webvowl/js/runtime/d3RenderedGraphAdapter.js`
+- Edit `src/app/js/sidebar.js`, `src/app/js/app.js`
+- Edit `src/app/js/menu/zoomSlider.js`, `src/app/js/menu/gravityMenu.js`, `src/app/js/menu/modeMenu.js`
+
+**Movement 1 — close the controller state shape.** This is a defect fix with a failing test available today and is committed on its own before the rest.
+
+- [ ] Write a failing test asserting that a selection published in one load generation is absent from controller state once a subsequent load completes. Observe RED against the current implementation, which retains it.
+- [ ] Write a failing test asserting `createWebVowlControllerState` rejects an unknown field name, and that the idle state contains exactly the eleven names in §1.2.
+- [ ] Implement `createWebVowlControllerState` with `assertExactFieldNames`, add `selection`, `renderProgress`, `viewport` and `editorMode` to the idle state, and reset the generation-scoped fields in the same publication that sets `status: "loading"`.
+- [ ] Rerun the focused suites and commit `fix(controller): Close the controller state shape and reset it per load`.
+
+**Movement 2 — move the projection to the application.**
+
+- [ ] Add `src/app/js/controller/vowlModelInspectionProjector.js` and its test to the required native-ESM architecture set and observe RED before creating them.
+- [ ] Write failing projection tests against the shipped `src/app/data/foaf.json` and `goodrelations.json` with no renderer, no DOM and no D3 in the test. Assert every relation array the model can supply is populated, including the sixty anonymous `goodrelations` classes addressed by `{ kind, loadGeneration, localId }` and the six `owl:Thing` occurrences that share one IRI.
+- [ ] Move `projectOntologyInspectionSnapshot`, `mergeVowlElementsWithAttributes`, `localizedTextRecords`, `ontologyElementReferenceForVowlRecord` and `indexRendererElementIdsByOntologyElement` out of the adapter into the new module without rewriting their behavior, then populate the nine relation arrays.
+- [ ] Write a failing test asserting `assertRenderedGraphRuntime` rejects a runtime that still exposes `readOntologyInspectionSnapshot`, then remove that name from `RENDERED_GRAPH_RUNTIME_METHOD_NAMES`, from the adapter, from `inMemoryRenderedGraphAdapter`, and from the seam-conformance contract.
+- [ ] Make `WebVowlController` accept `vowlModelInspectionProjector`, project the snapshot from the `vowlModel` the loader returns, and hold it. Keep `OntologyInspector` a pure function over a snapshot.
+- [ ] Keep `readVisibleRenderedGraphSnapshot` on the seam unchanged.
+
+**Movement 3 — complete the snapshot and restore equivalents search.**
+
+- [ ] Extend `createOntologyInspectionSnapshot` with `annotationRecords`, `characteristicNames`, `unclassifiedAttributeNames`, `descriptionRecords` and, on property records, `cardinalityRecord`, correcting the defining contract and every caller in the same change.
+- [ ] Assert `propertyIri` is `null` for an annotation originating from a legacy preset that carries no `predicateNs`, and is the joined IRI when `predicateNs` is present. Never synthesize an IRI from a local name.
+- [ ] Assert `characteristicNames` holds only the eight OWL property characteristics and that every other `attributes` value appears in `unclassifiedAttributeNames`.
+- [ ] Write a failing test asserting that searching for the label of an equivalent class finds the element it is equivalent to, ranked below a direct label hit and above the IRI ranks, using an ontology that actually declares equivalences.
+- [ ] Extend `ontologyInspector.findOntologyElements` to rank equivalent labels at that position.
+
+**Movement 4 — route selection and viewport facts through the controller.**
+
+- [ ] Publish `rendered-element-selection-changed` from the node and property click paths exactly as the focus toggle already does, and delete the `searchcleared`-era coupling that remains.
+- [ ] Rewrite `sidebar.updateSelectionInformation` to render from `state.selection` resolved against the snapshot, then delete `selectionModules` from the renderer settings along with `selectionDetailsDisplayer`'s renderer coupling. Reconsider `focuser` and `pickAndPin` in the same change; both stay renderer-local under ADR 0010 decision 5.
+- [ ] Add the `editor-mode-changed` event kind, publish it, and reduce it into `state.editorMode` so `revealDetailsSectionForCurrentMode` stops calling `graph.editorMode()`.
+- [ ] Publish `viewport-changed` from the adapter for pointer, wheel and requested viewport changes, and reduce it into `state.viewport`.
+
+**Movement 5 — close the remaining view-control couplings.**
+
+- [ ] Add `zoomScale` to the visualization view request with the renderer's configured magnification bounds, and apply it in the adapter.
+- [ ] Convert `zoomSlider` to read `state.viewport.zoomScale` and report intent through `setVisualizationView`. It must no longer call `graph.scaleFactor()`, `graph.setSliderZoom`, `graph.options()` or `navigationMenu()`.
+- [ ] Add `setForceLayoutDistances` and `setVisualizationMode` to the controller and convert `gravityMenu`, `modeMenu` and `configMenu` onto them. Neither becomes a WebMCP tool and neither appears in §1.6.
+- [ ] Extend the seam-conformance test to cover every contract method both implementations expose, so a future divergence fails rather than surfacing in the browser.
+- [ ] Run `rg -n "graph\.|options\(\)\." src/app/js/menu src/app/js/sidebar.js`; every remaining production match must be a recorded debt item, not ordinary view-control code.
+- [ ] Verify in the real browser that selecting a node opens its details, that clearing a search moves nothing, that the zoom slider tracks a wheel gesture, and that loading a second ontology clears the previous selection.
+- [ ] Rerun `npm run format:check`, `npm run lint`, `npm test` and `npm run build`; request approval for `refactor(controller): Own the ontology model outside the renderer`.
+
+**Acceptance:** Every semantic fact the interface renders comes from controller state projected from the VOWL model, answerable before the renderer mounts and testable without it. The seam carries no ontology-inspection reader, the controller state has a closed shape that resets per load, and no view control calls the renderer.
+
+### Task 11: Define and bound the five tool contracts
 
 **Files:**
 
 - Create `src/app/js/webmcp/webMcpToolContracts.js`
 - Create `src/app/js/webmcp/webMcpToolContracts.test.js`
 
-- [ ] Add both Task 10 paths to the required native-ESM architecture set and observe RED before creating them.
+- [ ] Add both Task 11 paths to the required native-ESM architecture set and observe RED before creating them.
 - [ ] Write a failing test asserting the exported definition names are exactly, and in this stable order, `load_ontology`, `get_ontology_summary`, `find_ontology_elements`, `set_visualization_view`, and `export_visualization`.
 - [ ] Assert every name is at most 30 characters, every description at most 500, every parameter description at most 150, every object schema has `additionalProperties: false`, and every union branch rejects fields from another branch.
 - [ ] Use these exact concise descriptions:
@@ -810,7 +924,7 @@ Every task inherits §1.9. For a task with a checkpoint commit, its final operat
 
 **Acceptance:** The complete agent-facing interface is exact, small, runtime-validated, correctly annotated, deterministic, and context-bounded.
 
-### Task 11: Register tools imperatively with page-owned lifecycle
+### Task 12: Register tools imperatively with page-owned lifecycle
 
 **Files:**
 
@@ -820,7 +934,7 @@ Every task inherits §1.9. For a task with a checkpoint commit, its final operat
 - Modify `src/app/js/app.js`
 - Modify `src/main.js`
 
-- [ ] Add all three new Task 11 WebMCP module/test paths to the required native-ESM architecture set and observe RED before creating them. `app.js` and `main.js` must already be in that set from Task 9.
+- [ ] Add all three new Task 12 WebMCP module/test paths to the required native-ESM architecture set and observe RED before creating them. `app.js` and `main.js` must already be in that set from Task 9.
 - [ ] Write adapter tests with injected `documentObject`, `windowObject`, and `AbortControllerConstructor`. Cover an absent `modelContext`, missing `registerTool`, a non-top-level page, five successful registrations, rejected registration, repeated initialization, execute before ontology load, execute with an omitted options object, execution `AbortSignal` forwarding, controller errors, and idempotent disposal.
 - [ ] Assert each registration uses the current imperative shape:
 
@@ -854,7 +968,7 @@ await documentObject.modelContext.registerTool(
 
 **Acceptance:** A supported top-level page exposes five stable imperative tools; unsupported or embedded pages remain normal WebVOWL pages with deterministic cleanup.
 
-### Task 12: Validate complete user jobs and document the capability
+### Task 13: Validate complete user jobs and document the capability
 
 **Files:**
 
@@ -901,7 +1015,7 @@ await documentObject.modelContext.registerTool(
 
 **Acceptance:** The feature is evaluated as complete user work, not just callback success; SVG retrieval, client attachment, security, and unsupported environments are reported as distinct outcomes.
 
-### Task 13: Run the final release-readiness and scope audit
+### Task 14: Run the final release-readiness and scope audit
 
 **Files:** Read-only audit of all feature changes; edit only a failing feature file through a new RED/GREEN cycle.
 
@@ -917,7 +1031,7 @@ await documentObject.modelContext.registerTool(
 - [ ] Compare `LEGACY_COMMONJS_RENDERER_LEAF_PATHS` to the Task 1 maximum. The final set must be equal or smaller; each member must be unchanged, private, reachable only beneath `D3RenderedGraphAdapter`, absent from public exports, and free of UI/application/WebMCP dependencies. Trace every CommonJS edge and reject any edge crossing upward through `RenderedGraphRuntime`.
 - [ ] Inspect `src/webvowl/js/runtime/` imports, constructor parameters, closures, and event publications. Reject any menu, sidebar, loading, search, export, warning, statistics-presentation, controller, or WebMCP object reference even if it is injected under a renamed generic field.
 - [ ] Inspect all human language/filter/minimum-degree/search/focus/relax/pause/fit handlers and prove each calls `WebVowlController`; none may call a runtime, renderer configuration, graph/filter implementation, or D3.
-- [ ] Run `rg -n "modelContext|registerTool" src`; confirm the architecture allowlist from Task 11.
+- [ ] Run `rg -n "modelContext|registerTool" src`; confirm the architecture allowlist from Task 12.
 - [ ] Inspect production call graphs and prove there is exactly one remote ontology/VOWL JSON load route, one rendered-graph route, one SVG artifact route, and one application controller. Reject a forwarding wrapper even if the retired name itself has changed.
 - [ ] Audit every new exported symbol, structured-object field, schema property, error, constant, DOM identifier, and metadata field against §1.7. Confirm each name denotes the correct domain concept, role, lifecycle, state, and unit; correct the defining contract and every caller together if any name still requires implementation knowledge to interpret.
 - [ ] Run `rg -n '"ontology-iri"|"vowl-json"|sourceIri|focusable:|truncated:|retryable:|\bartifactId\b|\bviewRecipeId\b' src/app/js/controller src/app/js/webmcp`; review every match and require that none belongs to a new production contract. Do not introduce aliases for these rejected spellings.
@@ -1057,10 +1171,10 @@ The original conversation’s complete product reasoning has an implementation h
 - “Load a specific source, make a graph, let it relax, export SVG, and send it back” is Tasks 3 and 6–9 plus the flagship prompt. Page-side download is guaranteed; conversation attachment is measured and reported separately.
 - “Help users do their jobs better more broadly” is represented by snapshot-based summary, search, one-hop structural facts, task-specific views, diagnostics, teaching, and provenance work in Tasks 7, 10, and 12.
 - “Agent-neutral controller” is the central dependency in Tasks 2–9, with WebMCP and D3 isolation enforced separately in Tasks 9 and 11.
-- “No shims” is enforced as both controller and renderer ownership: Tasks 4 and 6–8 prepare real contracts/modules without a second connected route; Task 9 atomically migrates all production callers and deletes graph/options/loading/export routes; Tasks 11 and 13 prevent aliases or parallel implementations from returning.
-- “All new objects need semantically correct, semantically precise, modern names” is a global constraint and fixed contract in §1.7: the source/result examples are corrected immediately, every task inherits the vocabulary, public names are contract-tested, and Task 13 performs a complete semantic audit without preserving rejected names as aliases.
+- “No shims” is enforced as both controller and renderer ownership: Tasks 4 and 6–8 prepare real contracts/modules without a second connected route; Task 9 atomically migrates all production callers and deletes graph/options/loading/export routes; Tasks 12 and 14 prevent aliases or parallel implementations from returning.
+- “All new objects need semantically correct, semantically precise, modern names” is a global constraint and fixed contract in §1.7: the source/result examples are corrected immediately, every task inherits the vocabulary, public names are contract-tested, and Task 14 performs a complete semantic audit without preserving rejected names as aliases.
 - “Could the UI be insufficiently decoupled from D3 graphing?” is answered as a release invariant, not a risk note: Tasks 4–9 establish one rendered-graph seam, native-DOM UI, controller-owned human actions, graph-to-controller events, immutable snapshots, generation fencing, and clone-only export; Tasks 9, 11, and 13 prove the prohibited edges are absent.
-- “Promote changed modules into proper ESM while decoupling” is implemented as a scoped ratchet rather than a syntax-only or repository-wide migration: Tasks 1–8 establish native-ESM contracts and feature modules, Task 9 atomically converts the composition/runtime boundary and every materially changed owner, Tasks 10–11 keep WebMCP native ESM, and Tasks 9/13 confine any untouched legacy CommonJS to a fixed shrinking private-renderer allowlist with no shim or upward edge.
+- “Promote changed modules into proper ESM while decoupling” is implemented as a scoped ratchet rather than a syntax-only or repository-wide migration: Tasks 1–8 establish native-ESM contracts and feature modules, Task 9 atomically converts the composition/runtime boundary and every materially changed owner, Tasks 11–12 keep WebMCP native ESM, and Tasks 9/14 confine any untouched legacy CommonJS to a fixed shrinking private-renderer allowlist with no shim or upward edge.
 - “Do not disturb other implementation branches” is enforced by the isolated-worktree preflight, clean-status checks, configuration gates, narrow staging, approval per commit, and no-push rule.
 
 ---
@@ -1076,11 +1190,14 @@ This plan is complete only when all of the following are true:
 - Every new JavaScript module/test and every existing JavaScript module materially reshaped by the initiative is native ESM with explicit relative extensions and semantically precise named exports. The browser/application/visualization entry chain and both sides of `RenderedGraphRuntime` are included.
 - Any remaining production CommonJS matches the exact fixed shrinking allowlist of untouched renderer leaves beneath `D3RenderedGraphAdapter`; it has no public or upward edge, no changed member, no runtime probing or export mutation, and no authored interoperability shim. The result does not claim package-wide ESM or modify package/build/test configuration to manufacture that claim.
 - No UI, controller, WebMCP, inspector, layout-settlement, serializer, or artifact module imports/reads D3 or calls a concrete graph/filter/options implementation, and no rendered-graph module stores or calls a UI object.
+- The ontology model is owned by the application, per ADR 0010. `VowlModelInspectionProjector` builds `OntologyInspectionSnapshot` from the VOWL model, the seam exposes no ontology-inspection reader, every semantic question is answerable before the renderer mounts, and no interface module obtains an ontology fact from a rendered element, a renderer settings bag, or the live SVG.
+- `WebVowlControllerState` has a closed asserted field set, and its generation-scoped fields are reset when a load begins, so no state field can name an element of a retired generation.
+- The application addresses ontology entities only; which drawn occurrence was clicked, pinned, or haloed never crosses the seam.
 - Every new exported symbol and structured object uses the §1.7 controlled vocabulary consistently; names distinguish ontology documents, VOWL models, rendered graphs, visualization views, SVG artifacts, handles, and URLs, and encode Boolean predicates, units, encodings, and lifetimes where applicable.
 - Newer loads cannot be overwritten by stale generations; stale ticks, end/progress/paint callbacks, relaxation, snapshot work, and export restoration are fenced; cancellation preserves the most recent valid graph.
 - Initial render completion means the current generation's geometry was actually painted.
-- Summary and search use immutable `OntologyInspectionSnapshot` and `VisibleRenderedGraphSnapshot` values, return stable references, and make no semantic claims from visual proximity.
-- Human language/filter/minimum-degree/search/focus/relax/pause/fit actions and agent view requests use controller operations; changes remain visible, reversible, and synchronized with native DOM controls.
+- Summary and search use immutable `OntologyInspectionSnapshot` and `VisibleRenderedGraphSnapshot` values, return stable references, and make no semantic claims from visual proximity. The inspection snapshot carries every relation the VOWL model supplies, plus annotations, OWL property characteristics, cardinality, and localized descriptions, so searching an equivalent class's label finds the element it is equivalent to.
+- Human language/filter/minimum-degree/search/focus/relax/pause/fit/zoom/distance/display-mode actions and agent view requests use controller operations; changes remain visible, reversible, and synchronized with native DOM controls. A zoom control reads `state.viewport.zoomScale` and tracks pointer and wheel gestures it did not initiate.
 - Strict export waits for the agreed stability contract; best-effort output occurs only when explicitly requested.
 - SVG export has one production implementation: the runtime creates a detached styled `RenderedSvgSnapshot`, the D3-free serializer leaves the live SVG unchanged, and the artifact service creates a valid local Blob with matching visible download, metadata, byte length, and SHA-256; obsolete object URLs are revoked, and missing required browser primitives produce `EXPORT_FAILED` rather than a legacy transport fallback.
 - Tool results never contain ontology source, VOWL JSON, SVG source, download URLs, credentials, stack traces, or unbounded derived content.

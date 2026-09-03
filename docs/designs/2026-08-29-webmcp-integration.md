@@ -301,6 +301,7 @@ flowchart LR
         Controller[WebVowlController]
         ControllerState[Immutable controller state]
         SourceLoader[OntologySourceLoader]
+        Projector[VowlModelInspectionProjector]
         Inspector[OntologyInspector]
         LayoutSettler[GraphLayoutSettler]
         ArtifactService[SvgArtifactService]
@@ -368,7 +369,7 @@ The interface includes all caller-visible invariants and error modes:
 - `loadOntology` resolves only for the active load generation after parsing and initial graph rendering are complete.
 - Starting a new load supersedes the previous generation. Late callbacks from an older generation cannot change state or resolve as the current result.
 - Operations that can wait or perform network work accept an `AbortSignal`.
-- Summary and search consume an immutable `OntologyInspectionSnapshot` from `RenderedGraphRuntime` rather than scraping SVG labels or traversing mutable renderer objects.
+- Summary and search consume an immutable `OntologyInspectionSnapshot` rather than scraping SVG labels or traversing mutable renderer objects. Per ADR 0010 that snapshot is built by the application's `VowlModelInspectionProjector` from the VOWL model, not obtained from `RenderedGraphRuntime`, so a semantic question is answerable before the renderer mounts.
 - `setVisualizationView` resolves after the requested view has been normalized, applied, and reflected by the graph.
 - `exportVisualization` owns layout settlement; callers do not poll a separate waiting tool.
 - Every result reports what actually happened, including bounded warnings and normalized settings.
@@ -385,7 +386,7 @@ Cancellation returns the controller to the most recent valid state. It is not re
 
 Existing UI capabilities will move behind `WebVowlController` as complete vertical cutovers. A cutover may be delivered one capability at a time, but no completed slice may leave a legacy production path or forwarding shim beside the controller path. The controller will not simulate clicks or manipulate menu controls to perform work. UI-specific presentation remains in the UI, while the controller owns application operations and structured outcomes. This direction of dependency is what keeps the seam useful when WebMCP is disabled or replaced.
 
-Every in-scope human control will use that same direction. Language, class/datatype/property filters, minimum-degree filtering, search-result focus, explicit graph focus, layout relaxation, and fit-to-viewport actions enter through `setVisualizationView`; pause/resume enters through `setGraphLayoutPaused`. Search suggestions come from `findOntologyElements`; selecting one applies focus through `setVisualizationView`. UI presentation adapters write controller state to DOM properties without dispatching synthetic events, so reflecting state cannot start another controller operation. Pointer gestures performed directly on the rendered SVG remain renderer-owned interactions and are reported upward as structured events; no menu or sidebar imports D3 to implement them.
+Every in-scope human control will use that same direction. Language, class/datatype/property filters, minimum-degree filtering, search-result focus, explicit graph focus, layout relaxation, zoom magnification, and fit-to-viewport actions enter through `setVisualizationView`; pause/resume enters through `setGraphLayoutPaused`, force distances through `setForceLayoutDistances`, and display toggles through `setVisualizationMode`. None of the last three is a WebMCP tool. Search suggestions come from `findOntologyElements`; selecting one applies focus through `setVisualizationView`. UI presentation adapters write controller state to DOM properties without dispatching synthetic events, so reflecting state cannot start another controller operation. Pointer gestures performed directly on the rendered SVG remain renderer-owned interactions and are reported upward as structured events; no menu or sidebar imports D3 to implement them.
 
 ### `RenderedGraphRuntime` interface
 
@@ -394,7 +395,6 @@ The controller receives one `renderedGraphRuntime` dependency. It does not recei
 ```js
 replaceVowlModel(request, { signal }) -> Promise<RenderedGraphReplacementResult>
 applyVisualizationView(request, { signal }) -> Promise<VisualizationViewApplicationResult>
-readOntologyInspectionSnapshot() -> OntologyInspectionSnapshot
 readVisibleRenderedGraphSnapshot() -> VisibleRenderedGraphSnapshot
 readGraphLayoutSnapshot() -> GraphLayoutSnapshot
 setGraphLayoutPaused(request) -> GraphLayoutPauseResult
@@ -407,7 +407,7 @@ All arguments, results, snapshots, and events crossing this interface are plain 
 
 `replaceVowlModel` receives the controller-assigned `loadGeneration` with the VOWL model. On replacement, the production adapter must stop the previous simulation, detach its event listeners, cancel its timers and transitions where supported, and fence every tick, end, progress, warning, and paint callback by both generation and `AbortSignal`. Aborting or superseding a generation guarantees that it can no longer mutate the live DOM, publish an event, update controller state, or resolve as current. The replacement promise resolves only after the new generation's first graph geometry is present in the live SVG and a browser paint containing that geometry has occurred; the existing progress threshold is not this completion signal.
 
-`RenderedGraphEvent` is a closed discriminated union whose initial kinds are `render-progress-changed`, `render-warning-raised`, `rendered-element-selection-changed`, `viewport-changed`, and `graph-layout-state-changed`. The controller subscribes through the interface, rejects events from a non-current generation, and derives a new immutable controller-state snapshot. The graph adapter never calls a menu, sidebar, loading indicator, or other presentation object.
+`RenderedGraphEvent` is a closed discriminated union whose kinds are `render-progress-changed`, `render-warning-raised`, `rendered-element-selection-changed`, `viewport-changed`, `graph-layout-state-changed`, and `editor-mode-changed`. Every kind is published by the production adapter; `viewport-changed` is the sole route by which a zoom control learns the current magnification, so no control reads the renderer to position itself. The controller subscribes through the interface, rejects events from a non-current generation, and derives a new immutable controller-state snapshot. The graph adapter never calls a menu, sidebar, loading indicator, or other presentation object.
 
 `D3RenderedGraphAdapter.createRenderedSvgSnapshot` is called only after the controller has frozen the graph and completed the required font and paint waits. It clones the live SVG into a detached tree, removes interaction-only content from the clone, resolves computed visual styles onto the clone, and returns it without mutating or restoring the live SVG. A D3-free `SvgSerializer` inserts metadata with DOM APIs and text content, serializes the detached clone with `XMLSerializer`, and returns bytes to `SvgArtifactService`. The artifact service alone owns `Blob` creation, object-URL lifecycle, hashing, filenames, and artifact handles; it publishes the current page-local download through `SvgArtifactPublicationPort`, whose native-DOM adapter owns only presentation.
 
