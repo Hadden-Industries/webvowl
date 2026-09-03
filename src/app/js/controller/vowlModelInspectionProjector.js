@@ -139,6 +139,10 @@ function cardinalityRecordFrom(vowlRecord) {
 // The descriptive fields every element record carries, whatever its kind.
 function describedElementFields(vowlRecord) {
   return {
+    elementTypeName:
+      typeof vowlRecord.type === "string" && vowlRecord.type.length > 0
+        ? vowlRecord.type
+        : null,
     labelRecords: localizedTextRecords(vowlRecord.label),
     commentRecords: localizedTextRecords(vowlRecord.comment),
     descriptionRecords: localizedTextRecords(vowlRecord.description),
@@ -364,6 +368,14 @@ export function projectOntologyInspectionSnapshot(vowlModel, loadGeneration) {
     ),
     inversePropertyReferences: resolveReferences(
       vowlRecord.inverse,
+      propertyReferencesById,
+    ),
+    equivalentPropertyReferences: resolveReferences(
+      vowlRecord.equivalent,
+      propertyReferencesById,
+    ),
+    subpropertyReferences: resolveReferences(
+      vowlRecord.subproperty,
       propertyReferencesById,
     ),
   }));

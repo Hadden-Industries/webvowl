@@ -80,6 +80,7 @@ const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
 // names the ones a given assertion cares about.
 function describedElementFields(overrides = {}) {
   return {
+    elementTypeName: null,
     labelRecords: [],
     commentRecords: [],
     descriptionRecords: [],
@@ -182,6 +183,8 @@ function createOntologyInspectionSnapshotSource() {
         rangeReferences: [stringReference],
         superpropertyReferences: [],
         inversePropertyReferences: [],
+        equivalentPropertyReferences: [],
+        subpropertyReferences: [],
       },
     ],
   };

@@ -35,6 +35,47 @@ const NEIGHBORHOOD_FIELD_NAMES_BY_KIND = Object.freeze({
   ]),
 });
 
+// A described relation names the elements it relates rather than bare
+// references, because a reader needs the label to recognise them and a second
+// lookup per relation would make the interface query the controller in a loop.
+const DESCRIBED_RELATION_FIELD_NAMES_BY_KIND = Object.freeze({
+  class: Object.freeze([
+    ["superclassReferences", "superclassElements"],
+    ["equivalentClassReferences", "equivalentClassElements"],
+    ["disjointClassReferences", "disjointClassElements"],
+  ]),
+  datatype: Object.freeze([]),
+  individual: Object.freeze([["classReferences", "classElements"]]),
+  property: Object.freeze([
+    ["domainReferences", "domainElements"],
+    ["rangeReferences", "rangeElements"],
+    ["superpropertyReferences", "superpropertyElements"],
+    ["inversePropertyReferences", "inversePropertyElements"],
+    ["equivalentPropertyReferences", "equivalentPropertyElements"],
+    ["subpropertyReferences", "subpropertyElements"],
+  ]),
+});
+
+// A related element carries only what a reader needs to recognise and address
+// it. Its label falls back to its identity when the ontology gives it none.
+function describeRelatedElement(
+  ontologyElementReference,
+  recordsByReferenceKey,
+  selectedLanguage,
+) {
+  const matched = recordsByReferenceKey.get(
+    ontologyElementReferenceKey(ontologyElementReference),
+  );
+  return Object.freeze({
+    ontologyElementReference,
+    displayLabel:
+      matched === undefined
+        ? elementIdentitySortKey(ontologyElementReference)
+        : displayLabelForRecord(matched.elementRecord, selectedLanguage),
+    iri: elementIri(ontologyElementReference),
+  });
+}
+
 const EXACT_LABEL_RANK = 0;
 const LABEL_PREFIX_RANK = 1;
 const LABEL_CONTAINS_RANK = 2;
@@ -514,6 +555,7 @@ export function createOntologyInspector() {
           const description = {
             ontologyElementReference: elementRecord.ontologyElementReference,
             kind,
+            elementTypeName: elementRecord.elementTypeName,
             displayLabel: displayLabelForRecord(
               elementRecord,
               selectedLanguage,
@@ -535,11 +577,40 @@ export function createOntologyInspector() {
           if (kind === "property") {
             description.cardinalityRecord = elementRecord.cardinalityRecord;
           }
-          for (const neighborhoodFieldName of NEIGHBORHOOD_FIELD_NAMES_BY_KIND[
-            kind
-          ]) {
-            description[neighborhoodFieldName] =
-              elementRecord[neighborhoodFieldName];
+          if (kind === "class") {
+            const classKey = ontologyElementReferenceKey(
+              elementRecord.ontologyElementReference,
+            );
+            description.individualElements = Object.freeze(
+              ontologyInspectionSnapshot.individualRecords
+                .filter((individualRecord) =>
+                  individualRecord.classReferences.some(
+                    (classReference) =>
+                      ontologyElementReferenceKey(classReference) === classKey,
+                  ),
+                )
+                .map((individualRecord) =>
+                  describeRelatedElement(
+                    individualRecord.ontologyElementReference,
+                    recordsByReferenceKey,
+                    selectedLanguage,
+                  ),
+                ),
+            );
+          }
+          for (const [
+            recordFieldName,
+            describedFieldName,
+          ] of DESCRIBED_RELATION_FIELD_NAMES_BY_KIND[kind]) {
+            description[describedFieldName] = Object.freeze(
+              elementRecord[recordFieldName].map((relatedReference) =>
+                describeRelatedElement(
+                  relatedReference,
+                  recordsByReferenceKey,
+                  selectedLanguage,
+                ),
+              ),
+            );
           }
           return [Object.freeze(description)];
         },

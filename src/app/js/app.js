@@ -23,7 +23,6 @@ import { createNodeScalingSwitch } from "../../shared/js/modules/nodeScalingSwit
 import { createObjectPropertyFilter } from "../../shared/js/modules/objectPropertyFilter.js";
 import { createPickAndPin } from "../../shared/js/modules/pickAndPin.js";
 import { createPrefixRepresentationModule } from "../../shared/js/util/prefixRepresentationModule.js";
-import { createSelectionDetailsDisplayer } from "../../shared/js/modules/selectionDetailsDisplayer.js";
 import { createSetOperatorFilter } from "../../shared/js/modules/setOperatorFilter.js";
 import { createStatistics } from "../../shared/js/modules/statistics.js";
 import { createSubclassFilter } from "../../shared/js/modules/subclassFilter.js";
@@ -97,7 +96,6 @@ export function createWebVowlApplication() {
   let editSidebar;
   let leftSidebar;
   let loadingModule;
-  let selectionDetailDisplayer;
   let sidebar;
   let warningModule;
 
@@ -337,9 +335,6 @@ export function createWebVowlApplication() {
       webVowlController,
     });
     warningModule = createWarningModule(graph, { webVowlController });
-    selectionDetailDisplayer = createSelectionDetailsDisplayer(
-      sidebar.updateSelectionInformation,
-    );
   }
 
   app.initialize = async function () {
@@ -362,8 +357,10 @@ export function createWebVowlApplication() {
       }; //fall back
 
     renderedGraphSettings.graphContainerSelector(GRAPH_SELECTOR);
+    // Focus and pinning are renderer-local: neither outlives a mount, so both
+    // stay behind the seam. The selection itself is published as a fact and
+    // reaches the sidebar through controller state.
     renderedGraphSettings.selectionModules().push(focuser);
-    renderedGraphSettings.selectionModules().push(selectionDetailDisplayer);
     renderedGraphSettings.selectionModules().push(pickAndPin);
 
     renderedGraphSettings.filterModules().push(emptyLiteralFilter);
@@ -575,6 +572,16 @@ export function createWebVowlApplication() {
         );
         if (Array.isArray(controllerState.selection)) {
           searchMenu.renderSelectedOntologyElements(controllerState.selection);
+          // Details are described from the ontology the controller holds, so
+          // the sidebar never reads a drawn element for a semantic fact.
+          sidebar.renderSelectedOntologyElementDetails(
+            controllerState.selection.length === 0 ||
+              controllerState.loadGeneration === 0
+              ? []
+              : webVowlController.describeOntologyElements({
+                  ontologyElementReferences: controllerState.selection,
+                }).elementDescriptions,
+          );
         }
         if (controllerState.status === "ready") {
           sidebar.renderOntologySummary(webVowlController.getOntologySummary());
@@ -585,13 +592,7 @@ export function createWebVowlApplication() {
     editSidebar.setup();
     debugMenu.setup();
     document.querySelector("#logo").classList.remove("hidden");
-    resetMenu.setup([
-      gravityMenu,
-      filterMenu,
-      modeMenu,
-      focuser,
-      selectionDetailDisplayer,
-    ]);
+    resetMenu.setup([gravityMenu, filterMenu, modeMenu, focuser]);
     searchMenu.setup();
     navigationMenu.setup();
     zoomSlider.setup();

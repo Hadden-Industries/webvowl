@@ -248,6 +248,17 @@ const OWL_PROPERTY_CHARACTERISTIC_NAMES = Object.freeze([
 
 const ANNOTATION_VALUE_KINDS = Object.freeze(["literal", "iri"]);
 
+// The OWL type VOWL states for an element, such as `owl:Class` or
+// `owl:ObjectProperty`. An individual is declared by the class that names it
+// and carries no type of its own, so the field is nullable.
+function createElementTypeName(elementTypeName, description) {
+  if (elementTypeName === null) {
+    return null;
+  }
+  assertNonEmptyString(elementTypeName, description);
+  return elementTypeName;
+}
+
 function createAnnotationRecord(annotationRecord, description) {
   assertExactFieldNames(
     annotationRecord,
@@ -360,6 +371,10 @@ function createCommonOntologyElementRecord(
       [expectedKind],
       `${description}.ontologyElementReference`,
     ),
+    elementTypeName: createElementTypeName(
+      record.elementTypeName,
+      `${description}.elementTypeName`,
+    ),
     labelRecords: createLocalizedTextRecordCollection(
       record.labelRecords,
       `${description}.labelRecords`,
@@ -395,6 +410,7 @@ function createClassRecord(classRecord) {
       "class",
       [
         "ontologyElementReference",
+        "elementTypeName",
         "labelRecords",
         "commentRecords",
         "descriptionRecords",
@@ -432,6 +448,7 @@ function createDatatypeRecord(datatypeRecord) {
       "datatype",
       [
         "ontologyElementReference",
+        "elementTypeName",
         "labelRecords",
         "commentRecords",
         "descriptionRecords",
@@ -452,6 +469,7 @@ function createIndividualRecord(individualRecord) {
       "individual",
       [
         "ontologyElementReference",
+        "elementTypeName",
         "labelRecords",
         "commentRecords",
         "descriptionRecords",
@@ -478,6 +496,7 @@ function createPropertyRecord(propertyRecord) {
       "property",
       [
         "ontologyElementReference",
+        "elementTypeName",
         "labelRecords",
         "commentRecords",
         "descriptionRecords",
@@ -488,6 +507,8 @@ function createPropertyRecord(propertyRecord) {
         "rangeReferences",
         "superpropertyReferences",
         "inversePropertyReferences",
+        "equivalentPropertyReferences",
+        "subpropertyReferences",
         "cardinalityRecord",
       ],
       description,
@@ -515,6 +536,16 @@ function createPropertyRecord(propertyRecord) {
       propertyRecord.inversePropertyReferences,
       ["property"],
       "inversePropertyReferences",
+    ),
+    equivalentPropertyReferences: createFrozenReferenceCollection(
+      propertyRecord.equivalentPropertyReferences,
+      ["property"],
+      "equivalentPropertyReferences",
+    ),
+    subpropertyReferences: createFrozenReferenceCollection(
+      propertyRecord.subpropertyReferences,
+      ["property"],
+      "subpropertyReferences",
     ),
   });
 }

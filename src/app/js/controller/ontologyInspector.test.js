@@ -83,6 +83,7 @@ function englishLabel(text) {
 // names the ones a given test cares about.
 function describedElementFields(overrides = {}) {
   return {
+    elementTypeName: null,
     labelRecords: [],
     commentRecords: [],
     descriptionRecords: [],
@@ -119,6 +120,8 @@ function propertyRecord({
   rangeReferences = [],
   superpropertyReferences = [],
   inversePropertyReferences = [],
+  equivalentPropertyReferences = [],
+  subpropertyReferences = [],
   cardinalityRecord = { exact: null, minimum: null, maximum: null },
   ...describedFieldOverrides
 }) {
@@ -130,6 +133,8 @@ function propertyRecord({
     rangeReferences,
     superpropertyReferences,
     inversePropertyReferences,
+    equivalentPropertyReferences,
+    subpropertyReferences,
   };
 }
 
@@ -866,8 +871,12 @@ describe("ontology element descriptions", () => {
     expect(personDescription.kind).toBe("class");
     expect(personDescription.displayLabel).toBe("Person");
     expect(personDescription.iri).toBe(PERSON_IRI);
-    expect(personDescription.superclassReferences).toEqual([
-      { kind: "class", iri: ORGANISATION_IRI },
+    expect(personDescription.superclassElements).toEqual([
+      {
+        ontologyElementReference: { kind: "class", iri: ORGANISATION_IRI },
+        displayLabel: "Organisation",
+        iri: ORGANISATION_IRI,
+      },
     ]);
     expect(Object.isFrozen(descriptionResult)).toBe(true);
     expect(Object.isFrozen(personDescription)).toBe(true);

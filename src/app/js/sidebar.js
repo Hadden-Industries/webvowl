@@ -55,7 +55,6 @@ export function createSidebar(
   // Required for reloading when the language changes
   let ontologyInfo;
   let isSidebarVisible = true;
-  let lastSelectedElement;
   let isSetup = false;
   let isSidebarAnimationInitialized = false;
   let removeNoTransitionClassAnimationFrame;
@@ -212,8 +211,6 @@ export function createSidebar(
       visibleGraphCounts.visibleNodeCount;
     document.querySelector("#edgeCount").textContent =
       visibleGraphCounts.visiblePropertyCount;
-
-    sidebar.updateSelectionInformation(undefined);
   };
 
   sidebar.updateOntologyInformation = function (data, statistics) {
@@ -224,9 +221,6 @@ export function createSidebar(
     updateGraphInformation();
     displayGraphStatistics(undefined, statistics);
     displayMetadata(ontologyInfo.other);
-
-    // Reset the sidebar selection
-    sidebar.updateSelectionInformation(undefined);
   };
 
   function getBrowserLanguages() {
@@ -374,10 +368,12 @@ export function createSidebar(
   }
 
   // The language change itself reaches the controller through the
-  // view-controls adapter; this only refreshes what the sidebar shows.
+  // view-controls adapter; this only refreshes what the sidebar shows. The
+  // selected element's details refresh when the controller republishes state
+  // for the new language, so they are not re-rendered from a stale description
+  // here.
   function handleLanguageChange() {
     updateGraphInformation();
-    sidebar.updateSelectionInformation(lastSelectedElement);
   }
 
   function updateGraphInformation() {
@@ -758,34 +754,34 @@ export function createSidebar(
    * Update the information of the selected node.
    * @param selectedElement the selection or null if nothing is selected
    */
-  sidebar.updateSelectionInformation = function (
-    selectedElement,
-    event,
-    forced,
+  // Presentation only: the controller decides what is selected, this renders
+  // the description it published. Nothing here reads a drawn element.
+  // Presentation only. Selection is cleared by the controller when a load
+  // begins, so nothing here clears it as a side effect of summarising.
+  sidebar.renderSelectedOntologyElementDetails = function (
+    elementDescriptions,
   ) {
-    lastSelectedElement = selectedElement;
-
-    // Click event was prevented when dragging
-    if (event && event.defaultPrevented && !forced) {
-      return;
-    }
+    const [elementDescription] = elementDescriptions ?? [];
 
     const isTriggerActive = document
       .querySelector("#selection-details-trigger")
       .classList.contains("accordion-trigger-active");
-    if (selectedElement && !isTriggerActive) {
+    if (elementDescription && !isTriggerActive) {
       toggleOntologyDetailsAccordionTrigger(
         document.querySelector("#selection-details-trigger"),
       );
-    } else if (!selectedElement && isTriggerActive) {
+    } else if (!elementDescription && isTriggerActive) {
       showSelectionAdvice();
       return;
     }
+    if (!elementDescription) {
+      return;
+    }
 
-    if (elementTools.isProperty(selectedElement)) {
-      displayPropertyInformation(selectedElement);
-    } else if (elementTools.isNode(selectedElement)) {
-      displayNodeInformation(selectedElement);
+    if (elementDescription.kind === "property") {
+      displayPropertyInformation(elementDescription);
+    } else {
+      displayNodeInformation(elementDescription);
     }
   };
 
@@ -809,129 +805,140 @@ export function createSidebar(
       .classList.toggle("hidden", !showAdvice);
   }
 
-  function displayPropertyInformation(property) {
+  // VOWL groups annotations under a bare local name and the DOM helper below
+  // still consumes that shape, so a description's flat annotation list is
+  // regrouped here rather than duplicating the helper.
+  function annotationGroupsFromRecords(annotationRecords, displayLabel) {
+    const annotationGroups = {};
+    for (const annotationRecord of annotationRecords) {
+      const { localName, propertyIri, languageTag, text } = annotationRecord;
+      // The preferred name is shown as Name, and a label equal to it adds
+      // nothing; a differing rdfs:label is surfaced under its own heading.
+      if (localName === "prefLabel") {
+        continue;
+      }
+      const groupName = localName === "label" ? "rdfs:label" : localName;
+      if (localName === "label" && text === displayLabel) {
+        continue;
+      }
+      annotationGroups[groupName] ||= [];
+      annotationGroups[groupName].push({
+        identifier: groupName,
+        value: text,
+        type: annotationRecord.valueKind === "iri" ? "iri" : "label",
+        language: languageTag ?? "undefined",
+        predicateNs:
+          propertyIri === null
+            ? undefined
+            : propertyIri.slice(0, propertyIri.length - localName.length),
+      });
+    }
+    return annotationGroups;
+  }
+
+  function displayElementAttributes(elementDescription, textSpan) {
+    // Both lists describe the element; VOWL's own type markers add nothing a
+    // reader can act on and were already suppressed before this migration.
+    displayAttributes(
+      [
+        ...elementDescription.characteristicNames,
+        ...elementDescription.unclassifiedAttributeNames,
+      ],
+      textSpan,
+    );
+  }
+
+  function displayPropertyInformation(propertyDescription) {
     showPropertyInformations();
 
     setIriLabel(
       document.querySelector("#propname"),
-      property.labelForCurrentLanguage(),
-      property.iri(),
+      propertyDescription.displayLabel,
+      propertyDescription.iri,
     );
 
-    document.querySelector("#typeProp").textContent = property.type();
+    document.querySelector("#typeProp").textContent =
+      propertyDescription.elementTypeName ?? "";
 
-    if (property.inverse() !== undefined) {
+    const [inverseElement] = propertyDescription.inversePropertyElements;
+    if (inverseElement !== undefined) {
       document.querySelector("#inverse").classList.remove("hidden");
       setIriLabel(
         document.querySelector("#inverse span"),
-        property.inverse().labelForCurrentLanguage(),
-        property.inverse().iri(),
+        inverseElement.displayLabel,
+        inverseElement.iri,
       );
     } else {
       document.querySelector("#inverse").classList.add("hidden");
     }
 
-    const equivalentIriSpan = document.querySelector("#propEquivUri");
-    listNodeArray(equivalentIriSpan, property.equivalents());
-
+    listNodeArray(
+      document.querySelector("#propEquivUri"),
+      propertyDescription.equivalentPropertyElements,
+    );
     listNodeArray(
       document.querySelector("#subproperties"),
-      property.subproperties(),
+      propertyDescription.subpropertyElements,
     );
     listNodeArray(
       document.querySelector("#superproperties"),
-      property.superproperties(),
+      propertyDescription.superpropertyElements,
     );
 
-    if (property.minCardinality() !== undefined) {
+    const { exact, minimum, maximum } = propertyDescription.cardinalityRecord;
+    if (minimum !== null) {
       document.querySelector("#infoCardinality").classList.add("hidden");
       document.querySelector("#minCardinality").classList.remove("hidden");
-      document.querySelector("#minCardinality span").textContent =
-        property.minCardinality();
+      document.querySelector("#minCardinality span").textContent = minimum;
       document.querySelector("#maxCardinality").classList.remove("hidden");
-
-      if (property.maxCardinality() !== undefined) {
-        document.querySelector("#maxCardinality span").textContent =
-          property.maxCardinality();
-      } else {
-        document.querySelector("#maxCardinality span").textContent = "*";
-      }
-    } else if (property.cardinality() !== undefined) {
+      // An absent upper bound is unbounded, which VOWL and the reader both
+      // write as an asterisk.
+      document.querySelector("#maxCardinality span").textContent =
+        maximum === null ? "*" : maximum;
+    } else if (exact !== null) {
       document.querySelector("#minCardinality").classList.add("hidden");
       document.querySelector("#maxCardinality").classList.add("hidden");
       document.querySelector("#infoCardinality").classList.remove("hidden");
-      document.querySelector("#infoCardinality span").textContent =
-        property.cardinality();
+      document.querySelector("#infoCardinality span").textContent = exact;
     } else {
       document.querySelector("#infoCardinality").classList.add("hidden");
       document.querySelector("#minCardinality").classList.add("hidden");
       document.querySelector("#maxCardinality").classList.add("hidden");
     }
 
+    const [domainElement] = propertyDescription.domainElements;
+    const [rangeElement] = propertyDescription.rangeElements;
     setIriLabel(
       document.querySelector("#domain"),
-      property.domain().labelForCurrentLanguage(),
-      property.domain().iri(),
+      domainElement?.displayLabel,
+      domainElement?.iri,
     );
     setIriLabel(
       document.querySelector("#range"),
-      property.range().labelForCurrentLanguage(),
-      property.range().iri(),
+      rangeElement?.displayLabel,
+      rangeElement?.iri,
     );
 
-    displayAttributes(
-      property.attributes(),
+    displayElementAttributes(
+      propertyDescription,
       document.querySelector("#propAttributes"),
     );
 
     setTextAndVisibility(
       document.querySelector("#propDescription"),
-      property.descriptionForCurrentLanguage(),
+      propertyDescription.descriptionText,
     );
     setTextAndVisibility(
       document.querySelector("#propComment"),
-      property.commentForCurrentLanguage(),
+      propertyDescription.commentText,
     );
-
-    const annotations = property.annotations();
-    const filteredAnnotations = {};
-    if (annotations) {
-      for (const key in annotations) {
-        // Skip prefLabel (shown as Name) and raw "label" key (handled below as rdfs:label)
-        if (
-          Object.prototype.hasOwnProperty.call(annotations, key) &&
-          key !== "prefLabel" &&
-          key !== "label"
-        ) {
-          filteredAnnotations[key] = annotations[key];
-        }
-      }
-    }
-
-    // Surface rdfs:label values that differ from the preferred display name
-    const prefName = property.labelForCurrentLanguage();
-    const allRdfsLabels =
-      annotations && annotations["label"] ? annotations["label"] : [];
-    const rdfsLabels = allRdfsLabels
-      .filter(function (entry) {
-        return entry.value !== prefName;
-      })
-      .map(function (entry) {
-        return {
-          identifier: "rdfs:label",
-          value: entry.value,
-          type: "label",
-          predicateNs: "http://www.w3.org/2000/01/rdf-schema#",
-          language: entry.language,
-        };
-      });
-    if (rdfsLabels.length > 0) {
-      filteredAnnotations["rdfs:label"] = rdfsLabels;
-    }
 
     listAnnotations(
       document.querySelector("#propertySelectionInformation"),
-      filteredAnnotations,
+      annotationGroupsFromRecords(
+        propertyDescription.annotationRecords,
+        propertyDescription.displayLabel,
+      ),
     );
     sortDetailsPane("#propertySelectionInformation");
   }
@@ -978,100 +985,70 @@ export function createSidebar(
     }
   }
 
-  function displayNodeInformation(node) {
+  function displayNodeInformation(classDescription) {
     showClassInformations();
 
     setIriLabel(
       document.querySelector("#name"),
-      node.labelForCurrentLanguage(),
-      node.iri(),
+      classDescription.displayLabel,
+      classDescription.iri,
     );
 
-    /* Equivalent stuff. */
-    const equivalentIriSpan = document.querySelector("#classEquivUri");
-    listNodeArray(equivalentIriSpan, node.equivalents());
+    listNodeArray(
+      document.querySelector("#classEquivUri"),
+      classDescription.equivalentClassElements,
+    );
 
-    document.querySelector("#typeNode").textContent = node.type();
-    listNodeArray(document.querySelector("#individuals"), node.individuals());
+    document.querySelector("#typeNode").textContent =
+      classDescription.elementTypeName ?? "";
+    listNodeArray(
+      document.querySelector("#individuals"),
+      classDescription.individualElements,
+    );
 
-    /* Disjoint stuff. */
     const disjointNodes = document.querySelector("#disjointNodes");
     const disjointNodesParent = disjointNodes.parentNode;
-
-    if (node.disjointWith() !== undefined) {
+    if (classDescription.disjointClassElements.length > 0) {
       disjointNodes.innerHTML = "";
-
-      node.disjointWith().forEach(function (element, index) {
-        if (index > 0) {
-          const s = document.createElement("span");
-          s.textContent = ", ";
-          disjointNodes.appendChild(s);
-        }
-        appendIriLabel(
-          disjointNodes,
-          element.labelForCurrentLanguage(),
-          element.iri(),
-        );
-      });
-
+      classDescription.disjointClassElements.forEach(
+        function (disjointElement, elementIndex) {
+          if (elementIndex > 0) {
+            const separator = document.createElement("span");
+            separator.textContent = ", ";
+            disjointNodes.appendChild(separator);
+          }
+          appendIriLabel(
+            disjointNodes,
+            disjointElement.displayLabel,
+            disjointElement.iri,
+          );
+        },
+      );
       disjointNodesParent.classList.remove("hidden");
     } else {
       disjointNodesParent.classList.add("hidden");
     }
 
-    displayAttributes(
-      node.attributes(),
+    displayElementAttributes(
+      classDescription,
       document.querySelector("#classAttributes"),
     );
 
     setTextAndVisibility(
       document.querySelector("#nodeDescription"),
-      node.descriptionForCurrentLanguage(),
+      classDescription.descriptionText,
     );
     setTextAndVisibility(
       document.querySelector("#nodeComment"),
-      node.commentForCurrentLanguage(),
+      classDescription.commentText,
     );
-
-    const annotations = node.annotations();
-    const filteredAnnotations = {};
-    if (annotations) {
-      for (const key in annotations) {
-        // Skip prefLabel (shown as Name) and raw "label" key (handled below as rdfs:label)
-        if (
-          Object.prototype.hasOwnProperty.call(annotations, key) &&
-          key !== "prefLabel" &&
-          key !== "label"
-        ) {
-          filteredAnnotations[key] = annotations[key];
-        }
-      }
-    }
-
-    // Surface rdfs:label values that differ from the preferred display name
-    const prefName = node.labelForCurrentLanguage();
-    const allRdfsLabels =
-      annotations && annotations["label"] ? annotations["label"] : [];
-    const rdfsLabels = allRdfsLabels
-      .filter(function (entry) {
-        return entry.value !== prefName;
-      })
-      .map(function (entry) {
-        return {
-          identifier: "rdfs:label",
-          value: entry.value,
-          type: "label",
-          predicateNs: "http://www.w3.org/2000/01/rdf-schema#",
-          language: entry.language,
-        };
-      });
-    if (rdfsLabels.length > 0) {
-      filteredAnnotations["rdfs:label"] = rdfsLabels;
-    }
 
     listAnnotations(
       document.querySelector("#classSelectionInformation"),
-      filteredAnnotations,
+      annotationGroupsFromRecords(
+        classDescription.annotationRecords,
+        classDescription.displayLabel,
+      ),
     );
     sortDetailsPane("#classSelectionInformation");
   }
@@ -1091,11 +1068,7 @@ export function createSidebar(
           s.textContent = ", ";
           textSpan.appendChild(s);
         }
-        appendIriLabel(
-          textSpan,
-          element.labelForCurrentLanguage(),
-          element.iri(),
-        );
+        appendIriLabel(textSpan, element.displayLabel, element.iri);
       });
 
       spanParent.classList.remove("hidden");

@@ -332,4 +332,51 @@ describe("projection of a shipped VOWL model", () => {
     expect(expectedDescribedCount).toBeGreaterThan(0);
     expect(projectedDescribedCount).toBe(expectedDescribedCount);
   });
+
+  test("carries the OWL type VOWL states for each element", () => {
+    const snapshot = projectOntologyInspectionSnapshot(FOAF_VOWL_MODEL, 1);
+
+    const expectedClassTypeNames = new Set(
+      FOAF_VOWL_MODEL.class.map(({ type }) => type),
+    );
+    const projectedClassTypeNames = new Set(
+      snapshot.classRecords.map(({ elementTypeName }) => elementTypeName),
+    );
+
+    expect(expectedClassTypeNames.size).toBeGreaterThan(0);
+    expect(projectedClassTypeNames).toEqual(expectedClassTypeNames);
+    expect(
+      snapshot.propertyRecords.every(
+        ({ elementTypeName }) => typeof elementTypeName === "string",
+      ),
+    ).toBe(true);
+  });
+
+  test("projects the equivalent and sub properties a property declares", () => {
+    const benchmarkSnapshot = projectOntologyInspectionSnapshot(
+      BENCHMARK_VOWL_MODEL,
+      1,
+    );
+    const foafSnapshot = projectOntologyInspectionSnapshot(FOAF_VOWL_MODEL, 1);
+
+    const expectedEquivalentPropertyCount =
+      BENCHMARK_VOWL_MODEL.propertyAttribute.filter(
+        (attributeRecord) => (attributeRecord.equivalent ?? []).length > 0,
+      ).length;
+    const expectedSubpropertyCount = FOAF_VOWL_MODEL.propertyAttribute.filter(
+      (attributeRecord) => (attributeRecord.subproperty ?? []).length > 0,
+    ).length;
+
+    expect(expectedEquivalentPropertyCount).toBeGreaterThan(0);
+    expect(
+      countPopulated(
+        benchmarkSnapshot.propertyRecords,
+        "equivalentPropertyReferences",
+      ),
+    ).toBeGreaterThan(0);
+    expect(expectedSubpropertyCount).toBeGreaterThan(0);
+    expect(
+      countPopulated(foafSnapshot.propertyRecords, "subpropertyReferences"),
+    ).toBe(expectedSubpropertyCount);
+  });
 });
