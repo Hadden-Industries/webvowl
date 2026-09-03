@@ -45,6 +45,58 @@ Preview the production build locally:
 npm run preview
 ```
 
+## Optional WebMCP integration
+
+On a browser that offers the experimental WebMCP host API, a WebVOWL page
+registers five tools an agent can call. They cover the jobs the interface itself
+supports: loading an ontology, summarizing the loaded one, finding elements by
+label or IRI, changing the visible view, and exporting the visualization as SVG.
+
+This is experimental and entirely optional. A browser without the API is an
+ordinary WebVOWL page with nothing missing and nothing logged, because an absent
+API is not a fault. Only a top-level page registers anything: a WebVOWL page
+inside an iframe does not read the API at all, and never inspects or proxies the
+document that embeds it.
+
+**What an agent can change, and what it cannot.** Every change a tool makes is
+one the reader can see in the visualization and undo through the ordinary
+controls: a language, the visibility filters, which elements are focused,
+whether the layout relaxes, and the viewport. There is no tool for pausing the
+layout, tuning force distances, or switching display modes; those are
+controller-domain operations the interface uses and the agent surface
+deliberately does not expose.
+
+**What it accepts as a source.** An ontology document IRI over HTTP(S), a VOWL
+JSON URL over HTTP(S), or ontology text supplied directly with its syntax named.
+A location using any other scheme, or carrying credentials, is refused. Nothing
+reads the local filesystem.
+
+**Privacy and artifacts.** Ontology content is fetched and parsed by the page in
+your browser; nothing is uploaded anywhere by this application. An exported SVG
+is a browser-local artifact reachable through an object URL that the page
+retires when it is superseded or the page goes away. Retrieving the file is a
+manual download, and whether a particular agent client can attach that download
+to its conversation is that client's behaviour, not something this page can
+promise. A tool result never contains SVG source.
+
+**One implementation, no fallback.** The tools and the human interface call the
+same `WebVowlController`. There is no legacy callback route, no compatibility
+adapter, and no second transport for loading or exporting; an architecture test
+fails the build if one appears.
+
+For an application-level embedding, `app.getWebVowlController()` returns the
+controller. The concrete renderer and options entry points were removed
+deliberately and have no aliases.
+
+The modules added or materially changed by this work are native ESM with named
+exports and explicit relative `.js` specifiers. The package as a whole is not
+ESM: some renderer leaves remain CommonJS behind an allowlist that may only
+shrink, and that allowlist is an implementation-private detail rather than a
+public compatibility surface.
+
+See the [design record](docs/designs/2026-09-03-ontology-model-ownership.md) and
+the [evaluation](docs/evaluations/webmcp-integration.md).
+
 ## Additional information
 
 To export the VOWL visualization to an SVG image, all css styles have to be included into the SVG code.
