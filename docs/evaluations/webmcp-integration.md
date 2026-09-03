@@ -209,6 +209,37 @@ a slightly different moment relative to the asynchronous application step. Not
 visible to a reader at these magnitudes, but the plan values determinism
 elsewhere and this is worth understanding.
 
+### An agent overrides a reader's pause and cannot restore it
+
+WebMCP puts an agent on the page a reader is already using, so the two can hold
+opposing intentions about the same graph. Measured in the browser:
+
+1. A reader pauses the layout and drags a node into an arrangement they want.
+   The controller reports `layout.status: "paused"` and the button reads
+   `Resume`.
+2. An agent calls `set_visualization_view({ layout: "relax" })`. It succeeds.
+3. The graph moves, the arrangement is gone, the button now reads `Pause`, and
+   the status reads `settled`.
+
+The agent silently cleared a pause the reader had set deliberately. The reader
+loses the arrangement and is returned to a running layout without having asked
+for it, and nothing in the tool result says a pause was overridden.
+
+The capability is asymmetric in the dangerous direction. `layout: "relax"` and
+resuming are the same renderer call, so an agent can start a layout and destroy
+a held arrangement, while pausing is deliberately controller-domain and not
+available to an agent at all. It can remove the protection and cannot put it
+back.
+
+Exporting, by contrast, respects a held arrangement: a reader who pauses,
+drags a node and then asks an agent to export gets an artifact of exactly what
+they arranged, with the graph still paused afterwards. That was measured on the
+same page immediately before the run above.
+
+This is the strongest argument for reconsidering how the agent addresses the
+layout, and it is recorded here rather than acted on because the shape of the
+remedy is a design decision.
+
 ### Two view fields have no human control
 
 The convergence check surfaced an asymmetry rather than a disagreement.
