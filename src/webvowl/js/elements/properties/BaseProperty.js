@@ -60,11 +60,6 @@ const BaseProperty = (function () {
     let redundantProperties = [];
 
     this.existingPropertyIRI = function (url) {
-      // Emit an event that the app could respond to, though this is a synchronous return value.
-      // For now, we leave the direct call intact, but emit the event for future async migration.
-      graph.dispatchEvent(
-        new CustomEvent("urlcheckrequested", { detail: { url: url } }),
-      );
       return graph.options().editSidebar().checkForExistingURL(url);
     };
 

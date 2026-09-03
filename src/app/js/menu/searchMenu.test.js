@@ -327,7 +327,6 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
           mockGraph.searchMenu.updateLocateButtonVisibility(true);
         }
       },
-      getNodeMapForSearch: () => ({ 1: {} }),
     };
   });
 
@@ -760,7 +759,6 @@ describe("searchMenu selection reporting", () => {
     const viewRequests = [];
     const mockGraph = {
       getUpdateDictionary: () => [],
-      getNodeMapForSearch: () => ({}),
       highLightNodes: (ids) => highlightCalls.push(ids),
       resetSearchHighlight: () => {},
       locateSearchResult: () => {},
@@ -817,7 +815,6 @@ describe("searchMenu selection reporting", () => {
     const searchMenu = searchMenuFactory(
       {
         getUpdateDictionary: () => [],
-        getNodeMapForSearch: () => ({}),
         resetSearchHighlight: () => highlightCalls.push("reset"),
         highLightNodes: (ids) => highlightCalls.push(ids),
         locateSearchResult: () => highlightCalls.push("locate"),
@@ -888,7 +885,6 @@ describe("searchMenu selection reporting", () => {
     searchMenuHolder.instance = searchMenuFactory(
       {
         getUpdateDictionary: () => [],
-        getNodeMapForSearch: () => ({}),
         highLightNodes: () => {},
         resetSearchHighlight: () => {},
         locateSearchResult: () => {},
@@ -914,7 +910,6 @@ describe("searchMenu selection reporting", () => {
     const searchMenu = searchMenuFactory(
       {
         getUpdateDictionary: () => [],
-        getNodeMapForSearch: () => ({}),
         highLightNodes: () => {},
         resetSearchHighlight: () => {},
         locateSearchResult: () => {},
@@ -961,7 +956,6 @@ describe("searchMenu selection reporting", () => {
     const searchMenu = searchMenuFactory(
       {
         getUpdateDictionary: () => [],
-        getNodeMapForSearch: () => ({}),
         highLightNodes: () => {},
         resetSearchHighlight: () => {},
         locateSearchResult: () => {},

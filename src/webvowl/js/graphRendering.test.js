@@ -111,22 +111,29 @@ describe("finite SVG rendering guard", () => {
 });
 
 describe("invalid geometry reporting", () => {
-  test("dispatches one warning per continuous invalid geometry episode", () => {
-    const target = new EventTarget();
-    const details = [];
-    target.addEventListener("renderingwarning", (event) => {
-      details.push(event.detail);
+  test("raises one warning per continuous invalid geometry episode", () => {
+    // The warning travels the renderer's own warning channel, which the
+    // runtime turns into a render-warning-raised event a reader can see. The
+    // DOM route this once used reached nobody.
+    const raisedWarnings = [];
+    const report = createInvalidGeometryReporter((warningCode, message) => {
+      raisedWarnings.push({ warningCode, message });
     });
-    const report = createInvalidGeometryReporter(target);
 
     report(2);
     report(3);
     report(0);
     report(1);
 
-    expect(details).toEqual([
-      { code: "NON_FINITE_GEOMETRY", skippedUpdates: 2 },
-      { code: "NON_FINITE_GEOMETRY", skippedUpdates: 1 },
+    expect(raisedWarnings).toEqual([
+      {
+        warningCode: "NON_FINITE_GEOMETRY",
+        message: "Skipped 2 updates with non-finite geometry.",
+      },
+      {
+        warningCode: "NON_FINITE_GEOMETRY",
+        message: "Skipped 1 update with non-finite geometry.",
+      },
     ]);
   });
 });

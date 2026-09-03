@@ -47,6 +47,13 @@ const RETIRED_SOURCE_IDENTIFIERS = Object.freeze([
 
 const RETIRED_SOURCE_LITERALS = Object.freeze(["data:image/svg+xml;base64"]);
 
+const RENDERED_GRAPH_INTERNALS_PATH =
+  "src/webvowl/js/runtime/renderedGraphInternals.js";
+
+function renderedGraphInternalsMemberPattern() {
+  return /^ {2}graph\.([A-Za-z0-9_]+)\s*=/gmu;
+}
+
 const USER_INTERFACE_IDENTIFIERS = Object.freeze([
   "sidebar",
   "searchMenu",
@@ -96,6 +103,47 @@ function collectAuthoredJavaScriptModulePaths(relativeDirectoryPath) {
   return modulePaths;
 }
 
+// Reachability counts test modules too, so a member a test exercises is not
+// reported as unreachable; a member nothing names at all is genuinely dead.
+function collectAuthoredJavaScriptModulePathsIncludingTests(
+  relativeDirectoryPath,
+) {
+  const absoluteDirectoryPath = path.join(
+    REPOSITORY_ROOT_PATH,
+    relativeDirectoryPath,
+  );
+  let directoryEntryNames;
+  try {
+    directoryEntryNames = readdirSync(absoluteDirectoryPath);
+  } catch {
+    return [];
+  }
+
+  const modulePaths = [];
+  for (const directoryEntryName of directoryEntryNames) {
+    const relativeEntryPath = path.posix.join(
+      relativeDirectoryPath,
+      directoryEntryName,
+    );
+    const absoluteEntryPath = path.join(
+      REPOSITORY_ROOT_PATH,
+      relativeEntryPath,
+    );
+    if (statSync(absoluteEntryPath).isDirectory()) {
+      modulePaths.push(
+        ...collectAuthoredJavaScriptModulePathsIncludingTests(
+          relativeEntryPath,
+        ),
+      );
+      continue;
+    }
+    if (directoryEntryName.endsWith(".js")) {
+      modulePaths.push(relativeEntryPath);
+    }
+  }
+  return modulePaths;
+}
+
 function readModuleSource(modulePath) {
   return readFileSync(path.join(REPOSITORY_ROOT_PATH, modulePath), "utf8");
 }
@@ -115,6 +163,54 @@ function applicationModulePaths() {
 
 function rendererModulePaths() {
   return collectAuthoredJavaScriptModulePaths(RENDERER_SOURCE_DIRECTORY);
+}
+
+// Every member the renderer hangs off the graph object it returns, paired with
+// the one-based line each definition sits on.
+function renderedGraphInternalsMemberDefinitionLines() {
+  const internalsSource = readModuleSource(RENDERED_GRAPH_INTERNALS_PATH);
+  const definitionLinesByMemberName = new Map();
+  for (const definitionMatch of internalsSource.matchAll(
+    renderedGraphInternalsMemberPattern(),
+  )) {
+    const memberName = definitionMatch[1];
+    const definitionLine = internalsSource
+      .slice(0, definitionMatch.index)
+      .split("\n").length;
+    definitionLinesByMemberName.set(memberName, [
+      ...(definitionLinesByMemberName.get(memberName) ?? []),
+      definitionLine,
+    ]);
+  }
+  return definitionLinesByMemberName;
+}
+
+// A member is reached through property access or through a quoted name, never
+// as a bare word, so prose that happens to spell a member name is not mistaken
+// for a call on it.
+function isMemberReached(moduleSource, memberName) {
+  return new RegExp(`(?:\\.|["'\`])${memberName}(?![A-Za-z0-9_$])`, "u").test(
+    moduleSource,
+  );
+}
+
+// A definition is not a use of the thing it defines, so the definitions are
+// blanked before the renderer's own source is scanned for references.
+function renderedGraphInternalsSourceWithoutDefinitions() {
+  return readModuleSource(RENDERED_GRAPH_INTERNALS_PATH).replace(
+    renderedGraphInternalsMemberPattern(),
+    "  definedMember =",
+  );
+}
+
+function everyAuthoredModulePath() {
+  return [
+    ...APPLICATION_SOURCE_DIRECTORIES,
+    RENDERER_SOURCE_DIRECTORY,
+    "src/app/test",
+  ].flatMap((directoryPath) =>
+    collectAuthoredJavaScriptModulePathsIncludingTests(directoryPath),
+  );
 }
 
 describe("rendered graph decoupling", () => {
@@ -251,5 +347,117 @@ describe("rendered graph decoupling", () => {
   test("keeps the in-memory adapter available only to tests", () => {
     expect(() => readModuleSource(IN_MEMORY_ADAPTER_PATH)).not.toThrow();
     expect(IN_MEMORY_ADAPTER_PATH.startsWith("src/app/test/")).toBe(true);
+  });
+
+  test("defines each renderer member exactly once", () => {
+    // A second definition silently replaces the first at load time, so the
+    // earlier one can never run and no tool reports it.
+    const shadowedMembers = [];
+    for (const [
+      memberName,
+      definitionLines,
+    ] of renderedGraphInternalsMemberDefinitionLines()) {
+      if (definitionLines.length > 1) {
+        shadowedMembers.push(`${memberName}: ${definitionLines.join(", ")}`);
+      }
+    }
+
+    expect(shadowedMembers).toEqual([]);
+  });
+
+  test("reaches every member the renderer exposes", () => {
+    // A member nothing names is capability the graph carries and cannot
+    // deliver: it survives refactors, invites copying, and reads as though it
+    // were load-bearing.
+    const definitionLinesByMemberName =
+      renderedGraphInternalsMemberDefinitionLines();
+    const moduleSources = everyAuthoredModulePath().map((modulePath) => ({
+      modulePath,
+      moduleSource:
+        modulePath === RENDERED_GRAPH_INTERNALS_PATH
+          ? renderedGraphInternalsSourceWithoutDefinitions()
+          : readModuleSource(modulePath),
+    }));
+
+    const unreachedMembers = [];
+    for (const [memberName, definitionLines] of definitionLinesByMemberName) {
+      const isReached = moduleSources.some(({ moduleSource }) =>
+        isMemberReached(moduleSource, memberName),
+      );
+      if (!isReached) {
+        unreachedMembers.push(`${memberName}: ${definitionLines.join(", ")}`);
+      }
+    }
+
+    expect(unreachedMembers).toEqual([]);
+  });
+
+  test("listens for every custom event the source dispatches", () => {
+    // A dispatch nothing listens for is the same defect as an uncalled
+    // member, wearing a different shape: it reads as a working notification
+    // and delivers nothing.
+    const productionModulePaths = [
+      ...applicationModulePaths(),
+      ...rendererModulePaths(),
+    ];
+    const productionModuleSources = productionModulePaths.map((modulePath) =>
+      readModuleSource(modulePath),
+    );
+
+    const dispatchedEventNames = new Set();
+    for (const moduleSource of productionModuleSources) {
+      for (const dispatchMatch of moduleSource.matchAll(
+        /new CustomEvent\(\s*"([A-Za-z-]+)"/gu,
+      )) {
+        dispatchedEventNames.add(dispatchMatch[1]);
+      }
+    }
+
+    expect(dispatchedEventNames.size).toBeGreaterThan(0);
+
+    // Both the DOM route and D3's own selection route count as listening.
+    const unheardEventNames = [...dispatchedEventNames]
+      .filter(
+        (eventName) =>
+          !productionModuleSources.some((moduleSource) =>
+            new RegExp(
+              `(?:addEventListener|\\.on)\\(\\s*"${eventName}"`,
+              "u",
+            ).test(moduleSource),
+          ),
+      )
+      .sort();
+
+    expect(unheardEventNames).toEqual([]);
+  });
+
+  test("publishes every rendered graph event kind the seam declares", () => {
+    // The inverse defect: a kind that is contracted and conformance-tested but
+    // that no implementation ever emits passes every check while delivering
+    // nothing.
+    const runtimeImplementationSources = [
+      D3_RENDERED_GRAPH_ADAPTER_PATH,
+      IN_MEMORY_ADAPTER_PATH,
+    ].map((modulePath) => readModuleSource(modulePath));
+    const contractSource = readModuleSource(
+      "src/app/js/controller/renderedGraphRuntimeContracts.js",
+    );
+    const declaredEventKinds = [
+      ...contractSource
+        .slice(contractSource.indexOf("RENDERED_GRAPH_EVENT_KINDS"))
+        .split("]);")[0]
+        .matchAll(/"([a-z-]+)"/gu),
+    ].map((eventKindMatch) => eventKindMatch[1]);
+
+    expect(declaredEventKinds.length).toBeGreaterThan(0);
+
+    const unpublishedEventKinds = declaredEventKinds.filter(
+      (eventKind) =>
+        !runtimeImplementationSources.some((moduleSource) =>
+          moduleSource.includes(`kind: "${eventKind}"`),
+        ),
+    );
+
+    expect(unpublishedEventKinds).toEqual([]);
   });
 });

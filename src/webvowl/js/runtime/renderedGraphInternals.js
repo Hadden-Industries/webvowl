@@ -126,7 +126,7 @@ const svgRenderingGuard = Object.freeze({
   },
 });
 
-function createInvalidGeometryReporter(target) {
+function createInvalidGeometryReporter(raiseRenderWarning) {
   let episodeActive = false;
 
   return function (skippedUpdates) {
@@ -139,13 +139,11 @@ function createInvalidGeometryReporter(target) {
     }
 
     episodeActive = true;
-    target.dispatchEvent(
-      new CustomEvent("renderingwarning", {
-        detail: {
-          code: "NON_FINITE_GEOMETRY",
-          skippedUpdates,
-        },
-      }),
+    raiseRenderWarning(
+      "NON_FINITE_GEOMETRY",
+      `Skipped ${skippedUpdates} update${
+        skippedUpdates === 1 ? "" : "s"
+      } with non-finite geometry.`,
     );
   };
 }
@@ -188,7 +186,9 @@ function measureViewportElement(element, fallbackWidth, fallbackHeight) {
 
 function createGraph(graphContainerSelector) {
   const graph = new EventTarget();
-  const reportInvalidGeometry = createInvalidGeometryReporter(graph);
+  const reportInvalidGeometry = createInvalidGeometryReporter(
+    (warningCode, message) => graph.raiseRenderWarning(warningCode, message),
+  );
   const CARDINALITY_HDISTANCE = 20;
   const CARDINALITY_VDISTANCE = 10;
   const renderedGraphSettings = createRenderedGraphSettings();
@@ -231,7 +231,7 @@ function createGraph(graphContainerSelector) {
   let nodeMap = [];
   let locationId = 0;
   let defaultZoom = 1.0;
-  let defaultTargetZoom = 0.8;
+  const defaultTargetZoom = 0.8;
   let global_dof = -1;
   let touchDevice = false;
   let last_canvas_touch_time = 0;
@@ -289,9 +289,6 @@ function createGraph(graphContainerSelector) {
   // never pass through updateViewportState, so every one of them reports here.
   // A duplicate fact costs nothing: the presentation compares by value.
   function reportViewportChanged() {
-    graph.dispatchEvent(
-      new CustomEvent("zoomchange", { detail: { value: zoomFactor } }),
-    );
     renderedGraphEventPort.publishViewportChange(
       zoomFactor,
       graphTranslation[0],
@@ -382,27 +379,8 @@ function createGraph(graphContainerSelector) {
     }
     defaultZoom = normalized;
     graph.reset();
-    graph.dispatchEvent(
-      new CustomEvent("zoomchange", { detail: { value: defaultZoom } }),
-    );
     return true;
   };
-  graph.setTargetZoom = function (val) {
-    const normalized = viewportTransform.normalizeZoom(
-      val,
-      renderedGraphSettings.minMagnification(),
-      renderedGraphSettings.maxMagnification(),
-    );
-    if (normalized === undefined) {
-      return false;
-    }
-    defaultTargetZoom = normalized;
-    return true;
-  };
-  graph.ontologyEditingState = function () {
-    return ontologyEditingState;
-  };
-
   graph.graphOptions = function () {
     return renderedGraphSettings;
   };
@@ -898,11 +876,6 @@ function createGraph(graphContainerSelector) {
     recalculatePositions();
   };
 
-  graph.adjustingGraphSize = function () {
-    // Loading-details presentation moved to the controller with the D3 cutover,
-    // so the renderer no longer tracks a resize-in-progress flag.
-  };
-
   graph.showReloadButtonAfterLayoutOptimization = function (show) {
     showReloadButtonAfterLayoutOptimization = show;
   };
@@ -994,12 +967,6 @@ function createGraph(graphContainerSelector) {
     showFPS = true;
     if (force && finishedLoadingSequence === true) {
       force.on("tick", recalculatePositionsWithFPS);
-    }
-  };
-  graph.setDefaultForceTickFunction = function () {
-    showFPS = false;
-    if (force && finishedLoadingSequence === true) {
-      force.on("tick", recalculatePositions);
     }
   };
   function recalculatePositionsWithFPS() {
@@ -1674,25 +1641,6 @@ function createGraph(graphContainerSelector) {
     }
   }
 
-  graph.getUnfilteredData = function () {
-    return unfilteredData;
-  };
-
-  graph.getClassDataForTtlExport = function () {
-    const allNodes = unfilteredData.nodes;
-    const nodeData = [];
-    for (let i = 0; i < allNodes.length; i++) {
-      if (
-        allNodes[i].type() !== "rdfs:Literal" &&
-        allNodes[i].type() !== "rdfs:Datatype" &&
-        allNodes[i].type() !== "owl:Thing"
-      ) {
-        nodeData.push(allNodes[i]);
-      }
-    }
-    return nodeData;
-  };
-
   graph.getPropertyDataForTtlExport = function () {
     const propertyData = [];
     const allProperties = unfilteredData.properties;
@@ -1718,12 +1666,6 @@ function createGraph(graphContainerSelector) {
       }
     }
     return propertyData;
-  };
-
-  graph.getAxiomsForTtlExport = function () {
-    const axioms = [];
-    // TODO: Implement axiom extraction for TTL export
-    return axioms;
   };
 
   graph.getUnfilteredData = function () {
@@ -1991,11 +1933,6 @@ function createGraph(graphContainerSelector) {
     }
   };
 
-  graph.reload = function () {
-    loadGraphData();
-    graph.update();
-  };
-
   graph.load = function () {
     force.stop();
     loadGraphData();
@@ -2025,9 +1962,6 @@ function createGraph(graphContainerSelector) {
     updateHaloStyles();
   };
 
-  graph.getNodeMapForSearch = function () {
-    return nodeMap;
-  };
   function updateNodeMap() {
     nodeMap = [];
     let node;
@@ -2118,71 +2052,6 @@ function createGraph(graphContainerSelector) {
     const tx = w - defaultZoom * w;
     const ty = h - defaultZoom * h;
     updateViewportState([tx, ty], defaultZoom);
-  };
-
-  graph.zoomOut = function () {
-    const minMag = renderedGraphSettings.minMagnification(),
-      maxMag = renderedGraphSettings.maxMagnification();
-    const stepSize = (maxMag - minMag) / 10;
-    let val = zoomFactor - stepSize;
-    if (val < minMag) {
-      val = minMag;
-    }
-
-    const cx = 0.5 * renderedGraphSettings.width();
-    const cy = 0.5 * renderedGraphSettings.height();
-    const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
-    const sP = [cp.x, cp.y, renderedGraphSettings.height() / zoomFactor];
-    const eP = [cp.x, cp.y, renderedGraphSettings.height() / val];
-    const pos_intp = d3.interpolateZoom(sP, eP);
-
-    graphContainer
-      .attr("transform", transform(sP, cx, cy))
-      .transition()
-      .duration(250)
-      .attrTween("transform", function () {
-        return function (t) {
-          return transform(pos_intp(t), cx, cy);
-        };
-      })
-      .on("end", function () {
-        graphContainer.attr("transform", viewportTransformString());
-        syncZoomState();
-        updateHaloRadius();
-        reportViewportChanged();
-      });
-  };
-
-  graph.zoomIn = function () {
-    const minMag = renderedGraphSettings.minMagnification(),
-      maxMag = renderedGraphSettings.maxMagnification();
-    const stepSize = (maxMag - minMag) / 10;
-    let val = zoomFactor + stepSize;
-    if (val > maxMag) {
-      val = maxMag;
-    }
-    const cx = 0.5 * renderedGraphSettings.width();
-    const cy = 0.5 * renderedGraphSettings.height();
-    const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
-    const sP = [cp.x, cp.y, renderedGraphSettings.height() / zoomFactor];
-    const eP = [cp.x, cp.y, renderedGraphSettings.height() / val];
-    const pos_intp = d3.interpolateZoom(sP, eP);
-
-    graphContainer
-      .attr("transform", transform(sP, cx, cy))
-      .transition()
-      .duration(250)
-      .attrTween("transform", function () {
-        return function (t) {
-          return transform(pos_intp(t), cx, cy);
-        };
-      })
-      .on("end", function () {
-        graphContainer.attr("transform", viewportTransformString());
-        syncZoomState();
-        updateHaloRadius();
-        reportViewportChanged();
-      });
   };
 
   /** --------------------------------------------------------- **/
@@ -2656,20 +2525,6 @@ function createGraph(graphContainerSelector) {
   /** -- animation functions for the nodes --                   **/
   /** --------------------------------------------------------- **/
 
-  graph.animateDynamicLabelWidth = function () {
-    const wantedWidth = renderedGraphSettings.dynamicLabelWidth();
-    let i;
-    for (i = 0; i < classNodes.length; i++) {
-      const nodeElement = classNodes[i];
-      if (elementTools.isDatatype(nodeElement)) {
-        nodeElement.animateDynamicLabelWidth(wantedWidth);
-      }
-    }
-    for (i = 0; i < properties.length; i++) {
-      properties[i].animateDynamicLabelWidth(wantedWidth);
-    }
-  };
-
   /** --------------------------------------------------------- **/
   /** -- halo and localization functions --                     **/
   /** --------------------------------------------------------- **/
@@ -2983,13 +2838,6 @@ function createGraph(graphContainerSelector) {
     reportViewportChanged();
     return viewportTransformString();
   }
-
-  graph.zoomToElementInGraph = function (element) {
-    targetLocationZoom(element);
-  };
-  graph.updateHaloRadius = function (element) {
-    computeDistanceToCenter(element);
-  };
 
   function targetLocationZoom(target) {
     if (
@@ -4604,8 +4452,6 @@ function createGraph(graphContainerSelector) {
     }
   }
 
-  graph.clearAllHover = clearAllHover;
-
   function delayedHiddingHoverElements(tbh) {
     if (tbh === true) {
       return;
@@ -4663,10 +4509,6 @@ function createGraph(graphContainerSelector) {
     }
   }
 
-  // TODO : experimental code for updating dynamic label with and its hover element
-  graph.hideHoverPropertyElementsForAnimation = function () {
-    deleteGroupElement.classed("hidden", true);
-  };
   graph.showHoverElementsAfterAnimation = function (property, inversed) {
     setDeleteHoverElementPositionProperty(property, inversed);
     deleteGroupElement.classed("hidden", false);
