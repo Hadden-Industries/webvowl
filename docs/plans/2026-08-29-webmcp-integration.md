@@ -1015,9 +1015,9 @@ await documentObject.modelContext.registerTool(
   20. “In an unsupported or embedded browser context, use the normal WebVOWL controls and confirm that missing WebMCP discovery does not degrade loading or SVG export.”
 
 - [ ] Use the `browser-testing-with-devtools` skill during this task. Start the existing development server with `npm run dev -- --host 127.0.0.1`, inspect console/network/DOM state, and use a locally WebMCP-enabled Chromium environment. Do not add an origin-trial token or browser configuration to the repository.
-- [ ] Verify `document.modelContext.getTools()` when the client exposes it and compare the returned names, schemas, and annotations to the contract tests.
+- [x] Verify `document.modelContext.getTools()` when the client exposes it and compare the returned names, schemas, and annotations to the contract tests.
 - [ ] For the flagship prompt, compare the visible language/filter/focus state to the tool result, download the SVG, open it independently, verify its dimensions and `<metadata>`, and independently recompute SHA-256 over the file bytes.
-- [ ] Repeat language, minimum-degree, focus, relax, and fit once through human controls and once through WebMCP. For each pair, compare the normalized controller state, visible graph, and DOM presentation; they must converge without a direct UI-to-runtime call.
+- [x] Repeat language, minimum-degree, focus, relax, and fit once through human controls and once through WebMCP. For each pair, compare the normalized controller state, visible graph, and DOM presentation; they must converge without a direct UI-to-runtime call.
 - [ ] Capture the live SVG immediately before and after a successful export with the layout paused. Apart from page artifact/status presentation outside the SVG, the live SVG must be unchanged; the independently opened artifact must contain the clone-only export adjustments and metadata.
 - [ ] Run the Task 9 supersession scenarios in the real browser and retain evidence that stale rendering ticks, layout completion, progress events, snapshot work, and pause restoration do not affect the current generation.
 - [ ] Run a no-WebMCP session and a non-top-level iframe session separately. Record page-side export success separately from whether a particular client can attach the download to its conversation.

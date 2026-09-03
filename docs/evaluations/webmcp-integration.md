@@ -168,13 +168,78 @@ Apply each change once through the human controls and once through the tool.
 The normalized controller state, the visible graph and the DOM presentation must
 agree, and neither route may call the renderer directly.
 
-| Change | States agree | Visible graph agrees | DOM presentation agrees |
+Run on `webmcp-evaluation.ttl` in Chrome 152, layout held still where the
+measurement needed it.
+
+| Change | Human control | States agree | Visible graph agrees | DOM presentation agrees |
+| --- | --- | --- | --- | --- |
+| Language | `#language` select | yes | yes | yes |
+| Minimum degree | `#nodeDegreeDistanceSlider` | yes | yes | yes |
+| Focus | search box, then the result | yes | yes | n/a |
+| Fit | `#centerGraphButton` | within variance | within variance | n/a |
+| Relax | **none ships** | not comparable | not comparable | not comparable |
+
+- **Language.** Both routes reached `view.language: "en"`, the same six drawn
+  labels, and a language select reading `en`.
+- **Minimum degree.** Both reached `filters.minDegree: 2`, seven drawn nodes,
+  the same labels, and a slider reading `2`.
+- **Focus.** Both reached
+  `[{ kind: "class", iri: "https://webvowl.test/evaluation#Organization" }]`,
+  and clearing the search returned both to `[]`.
+- **Fit.** From an identical starting viewport with the graph held still, the
+  human route reached a magnification of 1.486239 and the agent route 1.485458 —
+  0.05 per cent apart, under a pixel of pan. See the repeatability note below
+  before reading that as a difference between the routes.
+
+### Fit is less repeatable through the tool
+
+Running the same fit twice from the same starting viewport, with the graph held
+still:
+
+| Route | Run 1 | Run 2 | Spread |
 | --- | --- | --- | --- |
-| Language | | | |
-| Minimum degree | | | |
-| Focus | | | |
-| Relax | | | |
-| Fit | | | |
+| Human | 1.477726 | 1.477749 | 0.0016 per cent |
+| Agent | 1.477790 | 1.481538 | 0.25 per cent |
+
+The human route is essentially deterministic; the agent route varies about a
+hundred times more between its own runs, and the human-versus-agent difference
+above sits inside that spread. So the routes agree, and the open question is why
+fitting through the tool is less repeatable — most likely the fit is measured at
+a slightly different moment relative to the asynchronous application step. Not
+visible to a reader at these magnitudes, but the plan values determinism
+elsewhere and this is worth understanding.
+
+### Two view fields have no human control
+
+The convergence check surfaced an asymmetry rather than a disagreement.
+
+- **`layout: "relax"` cannot be requested by a reader at all.** The only
+  production request for it is bound to `visualizationRelaxLayoutButton`, which
+  does not exist in the page; the adapter skips absent controls by design. An
+  agent can relax the layout and a reader cannot.
+- The adapter's own search input and result list, `visualizationOntologySearchInput`
+  and `visualizationOntologySearchResultList`, are likewise absent. Focus does
+  have a human route — the search menu owns its own box and dropdown, and that
+  is what the pair above exercised — so this is a redundant binding rather than
+  a gap.
+
+### A tool accepts a language the ontology does not offer
+
+Found while setting the convergence check up, on the shipped FOAF preset:
+
+- `get_ontology_summary` reports `availableLabelLanguages: ["IRI-based"]`, and
+  the language select correctly offers only that.
+- `set_visualization_view({ language: "en" })` nonetheless succeeds, and both
+  `view.language` and the summary's `selectedLanguage` then report `en`.
+- Nothing changes: the drawn labels are identical before and after, and the
+  select still shows `IRI-based` because it has no `en` option to show.
+
+An agent acting on that result would tell a reader it had switched the graph to
+English labels, which would not be true. The request should be refused, or the
+result should say the language was not applied. On an ontology that does carry
+the language — the evaluation fixture — the same request behaves correctly and
+both routes converge, which is why this only appears with a preset whose labels
+carry no language tags.
 
 ### Export does not disturb the page
 
