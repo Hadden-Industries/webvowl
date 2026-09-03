@@ -17,7 +17,8 @@ export const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "source",
   "warnings",
   "view",
-  "viewport",
+  "zoomScale",
+  "translation",
   "layout",
   "selection",
   "renderProgress",
@@ -31,7 +32,8 @@ export const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
 export const GENERATION_SCOPED_CONTROLLER_STATE_FIELDS = Object.freeze({
   selection: Object.freeze([]),
   renderProgress: null,
-  viewport: null,
+  zoomScale: null,
+  translation: null,
 });
 
 const ONTOLOGY_ELEMENT_KINDS = Object.freeze([

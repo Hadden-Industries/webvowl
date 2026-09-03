@@ -177,7 +177,8 @@ The controller state is a frozen snapshot with a **closed field set**. `createWe
   source: null,
   warnings: [],
   view: null,
-  viewport: null,
+  zoomScale: null,
+  translation: null,
   layout: { status: "unavailable" | "relaxing" | "settled" | "best-effort" },
   selection: [],
   renderProgress: null,
@@ -188,7 +189,7 @@ The controller state is a frozen snapshot with a **closed field set**. `createWe
 
 A subscriber receives the frozen state **and the field names that changed**: `subscribeToState((controllerState, changedFieldNames) => …)`. Every writer already hands the controller an explicit map of the fields it wrote, so the controller narrows that map once to the fields whose value actually differs and reports it. A presentation module therefore runs when its own field changed and not otherwise, without comparing anything itself. Making each consumer diff a broadcast snapshot would reconstruct, by inference, information the producer computed one call earlier. The whole snapshot stays on the subscription because `getState` is an agent-facing surface; the change set is an addition beside it.
 
-`selection`, `renderProgress` and `viewport` are generation-scoped: beginning a new load resets them to their idle values in the same publication that sets `status: "loading"`. Without that reset a selection made in one generation survives into the next and names an element that no longer exists.
+`selection`, `renderProgress`, `zoomScale` and `translation` are generation-scoped: beginning a new load resets them to their idle values in the same publication that sets `status: "loading"`. Without that reset a selection made in one generation survives into the next and names an element that no longer exists.
 
 `selection` carries `OntologyElementReference` values only. Which drawn occurrence of an entity the reader clicked is renderer-local state and is never published; a focus request naming an entity correctly marks every occurrence of it.
 
@@ -222,7 +223,7 @@ renderedGraphRuntime.dispose();
 
 The `RenderedGraphEvent.kind` values are exactly `render-progress-changed`, `render-warning-raised`, `rendered-element-selection-changed`, `viewport-changed`, `graph-layout-state-changed`, and `editor-mode-changed`. Every event includes its `loadGeneration` and an immutable kind-specific payload. The controller rejects stale events and publishes a new frozen state snapshot.
 
-Every one of those kinds is published by the production adapter. `viewport-changed` carries `{ zoomScale, translationXPx, translationYPx }` and is the sole route by which the interface learns the current zoom and pan: a zoom control reads `state.viewport.zoomScale` and never `graph.scaleFactor()`. It fires for pointer and wheel gestures as well as for requested viewport changes, so a control's presentation follows a gesture it did not initiate.
+Every one of those kinds is published by the production adapter. `viewport-changed` carries `{ zoomScale, translationXPx, translationYPx }` and is the sole route by which the interface learns the current zoom and pan. The controller reduces it into two separate state fields, `zoomScale` and `translation`, rather than one overloaded viewport field, so a zoom control is never told about a pan: it reads `state.zoomScale` and never `graph.scaleFactor()`. It fires for pointer and wheel gestures as well as for requested viewport changes, so a control's presentation follows a gesture it did not initiate.
 
 The plain snapshot contracts are:
 

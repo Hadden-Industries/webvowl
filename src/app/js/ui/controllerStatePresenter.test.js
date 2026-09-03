@@ -22,7 +22,8 @@ function createControllerState(overrides = {}) {
     source: null,
     warnings: [],
     view: null,
-    viewport: null,
+    zoomScale: null,
+    translation: null,
     layout: { status: "settled" },
     selection: [],
     renderProgress: null,
@@ -76,21 +77,18 @@ describe("controller state presentation", () => {
     expect(presentationSpies.renderOntologySummary).toHaveBeenCalledTimes(1);
   });
 
-  test("leaves every other panel alone when only the viewport changed", () => {
+  test("leaves every other panel alone when only the magnification changed", () => {
     const { presentationSpies, presenter } = mountPresenter({
       selection: [PERSON_REFERENCE],
     });
 
-    // A held zoom button reports a viewport fact on every animation frame. A
+    // A held zoom button reports a magnification on every animation frame. A
     // reader's highlighted text and scroll position in the details panel must
     // survive that.
     for (const zoomScale of [1.1, 1.2, 1.3]) {
       presenter.present(
-        createControllerState({
-          selection: [PERSON_REFERENCE],
-          viewport: { zoomScale, translationXPx: 0, translationYPx: 0 },
-        }),
-        ["viewport"],
+        createControllerState({ selection: [PERSON_REFERENCE], zoomScale }),
+        ["zoomScale"],
       );
     }
 
@@ -189,13 +187,10 @@ describe("controller state presentation", () => {
 
     expect(presentationSpies.renderLoadState).toHaveBeenCalledTimes(1);
 
-    // A viewport fact is not part of the load state.
+    // A magnification is not part of the load state.
     presenter.present(
-      createControllerState({
-        status: "loading",
-        viewport: { zoomScale: 3, translationXPx: 1, translationYPx: 2 },
-      }),
-      ["viewport"],
+      createControllerState({ status: "loading", zoomScale: 3 }),
+      ["zoomScale"],
     );
 
     expect(presentationSpies.renderLoadState).toHaveBeenCalledTimes(1);
@@ -224,6 +219,20 @@ describe("controller state presentation", () => {
     const { presentationSpies, presenter } = mountPresenter();
 
     presenter.present(createControllerState({ viewport: null }), ["viewport"]);
+
+    expect(presentationSpies.renderViewport).not.toHaveBeenCalled();
+  });
+
+  test("leaves a zoom control alone when only the pan changed", () => {
+    const { presentationSpies, presenter } = mountPresenter({ zoomScale: 2 });
+
+    presenter.present(
+      createControllerState({
+        zoomScale: 2,
+        translation: { xPx: 40, yPx: -12 },
+      }),
+      ["translation"],
+    );
 
     expect(presentationSpies.renderViewport).not.toHaveBeenCalled();
   });

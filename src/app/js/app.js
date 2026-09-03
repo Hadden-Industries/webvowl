@@ -71,7 +71,6 @@ export function createWebVowlApplication() {
     GRAPH_SELECTOR = "#graph",
     // Modules for the webvowl app
     filterMenu = createFilterMenu(graph),
-    gravityMenu = createGravityMenu(graph),
     modeMenu = createModeMenu(graph),
     debugMenu = createDebugMenu(graph),
     pauseMenu = createPauseMenu({ documentObject: document }),
@@ -159,6 +158,11 @@ export function createWebVowlApplication() {
   });
 
   // Menus that command the controller are constructed once it exists.
+  const gravityMenu = createGravityMenu({
+    webVowlController,
+    classDistancePx: renderedGraphConfiguration.classDistance,
+    datatypeDistancePx: renderedGraphConfiguration.datatypeDistance,
+  });
   const zoomSlider = createZoomSlider({
     webVowlController,
     minimumMagnification: renderedGraphConfiguration.minMagnification,

@@ -7,6 +7,7 @@ let RENDERED_GRAPH_EVENT_KINDS;
 let RENDERED_GRAPH_RUNTIME_METHOD_NAMES;
 let assertRenderedGraphRuntime;
 let createContinuousZoomRequest;
+let createForceLayoutDistancesRequest;
 let createGraphLayoutPauseRequest;
 let createGraphLayoutPauseResult;
 let createGraphLayoutSnapshot;
@@ -61,6 +62,7 @@ beforeAll(async () => {
     RENDERED_GRAPH_RUNTIME_METHOD_NAMES,
     assertRenderedGraphRuntime,
     createContinuousZoomRequest,
+    createForceLayoutDistancesRequest,
     createGraphLayoutPauseRequest,
     createGraphLayoutPauseResult,
     createGraphLayoutSnapshot,
@@ -240,6 +242,7 @@ describe("rendered graph runtime interface", () => {
       "readGraphLayoutSnapshot",
       "setGraphLayoutPaused",
       "setContinuousZoom",
+      "setForceLayoutDistances",
       "createRenderedSvgSnapshot",
       "subscribeToRenderedGraphEvents",
       "dispose",
@@ -307,6 +310,25 @@ describe("rendered graph events", () => {
       "graph-layout-state-changed",
       "editor-mode-changed",
     ]);
+  });
+
+  test("declares force layout distances in pixels with every field optional", () => {
+    expect(createForceLayoutDistancesRequest({ classDistancePx: 240 })).toEqual(
+      { classDistancePx: 240 },
+    );
+    expect(
+      createForceLayoutDistancesRequest({
+        classDistancePx: 240,
+        datatypeDistancePx: 90,
+      }),
+    ).toEqual({ classDistancePx: 240, datatypeDistancePx: 90 });
+    expect(() => createForceLayoutDistancesRequest({})).toThrow();
+    expect(() =>
+      createForceLayoutDistancesRequest({ classDistancePx: 0 }),
+    ).toThrow();
+    expect(() =>
+      createForceLayoutDistancesRequest({ classDistancePx: 240, charge: -50 }),
+    ).toThrow();
   });
 
   test("declares a continuous zoom request with a closed direction union", () => {

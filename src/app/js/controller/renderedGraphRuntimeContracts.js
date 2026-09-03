@@ -7,6 +7,7 @@ export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "readGraphLayoutSnapshot",
   "setGraphLayoutPaused",
   "setContinuousZoom",
+  "setForceLayoutDistances",
   "createRenderedSvgSnapshot",
   "subscribeToRenderedGraphEvents",
   "dispose",
@@ -984,6 +985,37 @@ const VIEWPORT_DIRECTIVES = Object.freeze(["preserve", "fit", "focus-next"]);
 // renderer-owned and a per-frame write through an asynchronous, generation
 // fenced operation would be sixty round trips a second.
 const CONTINUOUS_ZOOM_DIRECTIONS = Object.freeze(["in", "out", "none"]);
+
+// Force distances are renderer tuning: they change how the graph is laid out,
+// never what the ontology says. The charge the simulation derives from them is
+// the renderer's own business and is not part of this request.
+const FORCE_LAYOUT_DISTANCE_FIELD_NAMES = Object.freeze([
+  "classDistancePx",
+  "datatypeDistancePx",
+  "loopDistancePx",
+]);
+
+export function createForceLayoutDistancesRequest(request) {
+  assertAllowedFieldNames(
+    request,
+    FORCE_LAYOUT_DISTANCE_FIELD_NAMES,
+    "force layout distances request",
+  );
+  const requestedDistances = {};
+  for (const fieldName of FORCE_LAYOUT_DISTANCE_FIELD_NAMES) {
+    if (request[fieldName] === undefined) {
+      continue;
+    }
+    assertFiniteNumber(request[fieldName], fieldName, { minimum: 1 });
+    requestedDistances[fieldName] = request[fieldName];
+  }
+  if (Object.keys(requestedDistances).length === 0) {
+    throw new TypeError(
+      "A force layout distances request must name at least one distance.",
+    );
+  }
+  return Object.freeze(requestedDistances);
+}
 
 export function createContinuousZoomRequest(request) {
   assertExactFieldNames(request, ["zoomDirection"], "continuous zoom request");

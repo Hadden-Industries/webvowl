@@ -339,6 +339,12 @@ function createAdapterHarness() {
     setSliderZoom(zoomScale) {
       renderedGraphInternalsFixture.requestedZoomScales.push(zoomScale);
     },
+    requestedForceLayoutDistances: [],
+    setForceLayoutDistances(requestedDistances) {
+      renderedGraphInternalsFixture.requestedForceLayoutDistances.push(
+        requestedDistances,
+      );
+    },
     continuousZoomDirections: [],
     startContinuousZoom(zoomDirection) {
       renderedGraphInternalsFixture.continuousZoomDirections.push(
@@ -570,6 +576,20 @@ describe("D3 rendered graph adapter", () => {
     expect(
       adapterHarness.renderedGraphInternalsFixture.requestedZoomScales,
     ).toEqual([2.5]);
+  });
+
+  test("hands requested force distances to the renderer in pixels", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+
+    adapterHarness.renderedGraphRuntime.setForceLayoutDistances({
+      classDistancePx: 240,
+    });
+
+    expect(
+      adapterHarness.renderedGraphInternalsFixture
+        .requestedForceLayoutDistances,
+    ).toEqual([{ classDistancePx: 240 }]);
   });
 
   test("hands a held zoom gesture to the renderer as start and stop", async () => {

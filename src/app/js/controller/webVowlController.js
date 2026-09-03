@@ -37,7 +37,8 @@ const IDLE_CONTROLLER_STATE = Object.freeze({
   source: null,
   warnings: [],
   view: null,
-  viewport: null,
+  zoomScale: null,
+  translation: null,
   layout: { status: "unavailable" },
   selection: [],
   renderProgress: null,
@@ -327,11 +328,14 @@ export function createWebVowlController(dependencies) {
       return;
     }
     if (renderedGraphEvent.kind === "viewport-changed") {
+      // Magnification and pan are separate fields because a control cares
+      // about one or the other; overloading them into a single viewport field
+      // would tell a zoom control about every pan.
       publishForGeneration(renderedGraphEvent.loadGeneration, {
-        viewport: {
-          zoomScale: renderedGraphEvent.payload.zoomScale,
-          translationXPx: renderedGraphEvent.payload.translationXPx,
-          translationYPx: renderedGraphEvent.payload.translationYPx,
+        zoomScale: renderedGraphEvent.payload.zoomScale,
+        translation: {
+          xPx: renderedGraphEvent.payload.translationXPx,
+          yPx: renderedGraphEvent.payload.translationYPx,
         },
       });
       return;
@@ -618,6 +622,16 @@ export function createWebVowlController(dependencies) {
       });
       lastValidControllerState = controllerState;
       return graphLayoutPauseResult;
+    },
+
+    // Force distances tune how the graph is laid out rather than what the
+    // ontology says, so like the pause operation this is controller-domain
+    // only and never a WebMCP tool.
+    setForceLayoutDistances(forceLayoutDistancesRequest) {
+      assertOntologyPresent();
+      return renderedGraphRuntime.setForceLayoutDistances(
+        forceLayoutDistancesRequest,
+      );
     },
 
     // A held zoom control reports the gesture, not a magnification per frame.

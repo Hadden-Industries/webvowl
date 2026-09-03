@@ -215,7 +215,8 @@ describe("WebVOWL controller orchestration", () => {
         source: null,
         warnings: [],
         view: null,
-        viewport: null,
+        zoomScale: null,
+        translation: null,
         layout: { status: "unavailable" },
         selection: [],
         renderProgress: null,
@@ -669,6 +670,14 @@ describe("WebVOWL controller orchestration", () => {
       expect(descriptionResult.elementDescriptions).toEqual([]);
     });
 
+    test("passes requested force distances to the runtime", async () => {
+      await completeLoad();
+
+      expect(
+        controller.setForceLayoutDistances({ classDistancePx: 240 }),
+      ).toEqual({ classDistancePx: 240 });
+    });
+
     test("passes a held zoom gesture to the runtime rather than a magnification", async () => {
       await completeLoad();
 
@@ -687,10 +696,10 @@ describe("WebVOWL controller orchestration", () => {
       });
       await flushMicrotasks();
 
-      expect(controller.getState().viewport).toEqual({
-        zoomScale: 1.75,
-        translationXPx: -40,
-        translationYPx: 12,
+      expect(controller.getState().zoomScale).toBe(1.75);
+      expect(controller.getState().translation).toEqual({
+        xPx: -40,
+        yPx: 12,
       });
     });
 
@@ -988,6 +997,7 @@ describe("WebVOWL controller orchestration", () => {
         "getState",
         "loadOntology",
         "setContinuousZoom",
+        "setForceLayoutDistances",
         "setGraphLayoutPaused",
         "setVisualizationView",
         "subscribeToState",

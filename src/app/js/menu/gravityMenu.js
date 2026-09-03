@@ -1,75 +1,71 @@
 /**
  * Contains the logic for setting up the gravity sliders.
  *
- * @param graph the associated webvowl graph
- * @returns {{}}
+ * A slider states the distance the reader asked for. What that distance means
+ * for the force simulation — the charge derived from it, and when to restyle —
+ * is renderer behaviour and stays behind the seam.
  */
-export function createGravityMenu(
-  graph,
-  {
-    documentObject = globalThis.document,
-    windowObject = globalThis.window,
-  } = {},
-) {
-  const gravityMenu = {},
-    sliders = [],
-    options = graph.graphOptions(),
-    defaultCharge = options.charge();
+export function createGravityMenu({
+  webVowlController,
+  classDistancePx,
+  datatypeDistancePx,
+  documentObject = globalThis.document,
+} = {}) {
+  const gravityMenu = {};
+  const sliders = [];
 
-  /**
-   * Adds the gravity sliders to the website.
-   */
   gravityMenu.setup = function () {
     addDistanceSlider(
       "#classSliderOption",
       "class",
-      "Class distance",
-      options.classDistance,
+      classDistancePx,
+      "classDistancePx",
     );
     addDistanceSlider(
       "#datatypeSliderOption",
       "datatype",
-      "Datatype distance",
-      options.datatypeDistance,
+      datatypeDistancePx,
+      "datatypeDistancePx",
     );
   };
 
-  function addDistanceSlider(selector, identifier, label, distanceFunction) {
-    const defaultLinkDistance = distanceFunction();
+  function addDistanceSlider(
+    selector,
+    identifier,
+    defaultDistancePx,
+    distanceFieldName,
+  ) {
     const sliderContainer = documentObject.querySelector(selector);
-
     const sliderValueLabel = sliderContainer.querySelector(
       "#" + identifier + "DistanceSliderValue",
     );
-    sliderValueLabel.textContent = defaultLinkDistance;
+    sliderValueLabel.textContent = defaultDistancePx;
 
     const slider = sliderContainer.querySelector(
       "#" + identifier + "DistanceSlider",
     );
-    slider.setAttribute("value", defaultLinkDistance);
+    slider.setAttribute("value", defaultDistancePx);
 
-    // Store slider for easier resetting
+    // Stored so the reset control can return every slider to its default.
     sliders.push({
       reset: function () {
-        slider.value = defaultLinkDistance;
+        slider.value = defaultDistancePx;
         slider.dispatchEvent(new Event("input"));
       },
     });
 
-    slider.addEventListener("focusout", function () {
-      graph.updateStyle();
-    });
-
     function handleInput() {
-      const distance = slider.value;
-      distanceFunction(distance);
-      adjustCharge(defaultLinkDistance);
-      sliderValueLabel.textContent = distance;
-      graph.updateStyle();
+      const requestedDistancePx = Number(slider.value);
+      if (!Number.isFinite(requestedDistancePx) || requestedDistancePx < 1) {
+        return;
+      }
+      sliderValueLabel.textContent = slider.value;
+      webVowlController?.setForceLayoutDistances({
+        [distanceFieldName]: requestedDistancePx,
+      });
     }
     slider.addEventListener("input", handleInput);
 
-    // add wheel event to the slider
     slider.addEventListener("wheel", function (event) {
       let offset = 0;
       if (event.deltaY < 0) {
@@ -77,25 +73,14 @@ export function createGravityMenu(
       } else if (event.deltaY > 0) {
         offset = -10;
       }
-      const oldVal = parseInt(slider.value, 10);
-      const newSliderValue = oldVal + offset;
-      if (newSliderValue !== oldVal && !isNaN(newSliderValue)) {
-        slider.value = newSliderValue;
+      const previousDistancePx = parseInt(slider.value, 10);
+      const nextDistancePx = previousDistancePx + offset;
+      if (nextDistancePx !== previousDistancePx && !isNaN(nextDistancePx)) {
+        slider.value = nextDistancePx;
         slider.dispatchEvent(new Event("input"));
       }
       event.preventDefault();
     });
-  }
-
-  function adjustCharge(defaultLinkDistance) {
-    const greaterDistance = Math.max(
-        options.classDistance(),
-        options.datatypeDistance(),
-      ),
-      ratio = greaterDistance / defaultLinkDistance,
-      newCharge = defaultCharge * ratio;
-
-    options.charge(newCharge);
   }
 
   /**

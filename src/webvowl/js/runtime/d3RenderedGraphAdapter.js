@@ -5,6 +5,7 @@ import {
 } from "../../../app/js/controller/vowlModelInspectionProjector.js";
 import {
   createContinuousZoomRequest,
+  createForceLayoutDistancesRequest,
   createGraphLayoutPauseRequest,
   createGraphLayoutPauseResult,
   createGraphLayoutSnapshot,
@@ -638,6 +639,13 @@ export function createD3RenderedGraphAdapter(dependencies) {
         );
       }
       return zoomDirection;
+    },
+
+    setForceLayoutDistances(request) {
+      assertNotDisposed();
+      const requestedDistances = createForceLayoutDistancesRequest(request);
+      renderedGraphInternals.setForceLayoutDistances(requestedDistances);
+      return requestedDistances;
     },
 
     createRenderedSvgSnapshot(request) {

@@ -6,7 +6,7 @@
 // runs when the producer says its field changed, and not otherwise.
 //
 // This matters to a reader rather than only to a profiler. A held zoom button
-// reports a viewport fact on every animation frame; re-rendering the selection
+// reports a magnification on every animation frame; re-rendering the selection
 // details panel that often would destroy text the reader had highlighted, move
 // focus out of the panel, make a screen reader re-announce it, and reset its
 // scroll position.
@@ -108,14 +108,13 @@ export function createControllerStatePresenter(dependencies) {
         );
       }
 
-      // A pan and a zoom both write the viewport field, so a zoom control is
-      // told about a pan. Presenting a magnification is idempotent, so the
-      // redundant call costs a reader nothing.
+      // Magnification and pan are separate state fields, so a pan does not
+      // reach a zoom control at all.
       if (
-        changedFields.has("viewport") &&
-        typeof controllerState.viewport?.zoomScale === "number"
+        changedFields.has("zoomScale") &&
+        typeof controllerState.zoomScale === "number"
       ) {
-        renderViewport(controllerState.viewport.zoomScale);
+        renderViewport(controllerState.zoomScale);
       }
 
       // A load reaches ready either when it completes or later when background

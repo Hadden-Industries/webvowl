@@ -1949,6 +1949,36 @@ function createGraph(graphContainerSelector) {
     force.alpha(1).restart();
   };
 
+  // The charge a force simulation needs is derived from the distances it is
+  // laying out, so the derivation lives here rather than in the control that
+  // asks for a distance. The control states a distance; the renderer decides
+  // what that means for the simulation.
+  const DEFAULT_FORCE_LAYOUT_CHARGE = renderedGraphSettings.charge();
+  const DEFAULT_CLASS_DISTANCE_PX = renderedGraphSettings.classDistance();
+
+  graph.setForceLayoutDistances = function (requestedDistances) {
+    if (requestedDistances.classDistancePx !== undefined) {
+      renderedGraphSettings.classDistance(requestedDistances.classDistancePx);
+    }
+    if (requestedDistances.datatypeDistancePx !== undefined) {
+      renderedGraphSettings.datatypeDistance(
+        requestedDistances.datatypeDistancePx,
+      );
+    }
+    if (requestedDistances.loopDistancePx !== undefined) {
+      renderedGraphSettings.loopDistance(requestedDistances.loopDistancePx);
+    }
+    const greatestDistance = Math.max(
+      renderedGraphSettings.classDistance(),
+      renderedGraphSettings.datatypeDistance(),
+    );
+    renderedGraphSettings.charge(
+      (DEFAULT_FORCE_LAYOUT_CHARGE * greatestDistance) /
+        DEFAULT_CLASS_DISTANCE_PX,
+    );
+    graph.updateStyle();
+  };
+
   graph.updateStyle = function () {
     refreshGraphStyle();
     if (
