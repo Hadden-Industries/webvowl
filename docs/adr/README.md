@@ -12,3 +12,4 @@
 | [0008](0008-promote-original-krss1-into-v1.md)                     | Promote original KRSS/KRSS1 into v1                | Accepted   |
 | [0009](0009-native-node-development-without-docker.md)             | Native Node.js development without Docker          | Accepted   |
 | [0010](0010-rendered-graph-is-a-projection-not-the-store.md)       | Rendered graph is a projection, never the store    | Accepted   |
+| [0011](0011-a-test-double-must-behave-like-its-subject.md)         | A test double must behave like its subject         | Accepted   |

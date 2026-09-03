@@ -307,7 +307,41 @@ Two related observations from the same investigation:
   export never completes. Both behaviours are covered by tests; the browser
   check belongs in a visible window.
 
-### 3. The ontology title is not reported
+### 3. Exporting never saved a file (fixed)
+
+**Severity: blocking. Fixed.** Reported from the browser: clicking **Export as
+SVG** produced no download and no console error, and afterwards every menu
+flashed open and instantly dismissed itself.
+
+`#exportSvg` is both the control a reader clicks and the link the artifact is
+published onto, and the handler finished by clicking that element to trigger the
+save. That click re-entered the handler, which called `preventDefault()` — so
+the download never happened — and `hideAllMenus()` — hence the flashing — and
+then started another export. The recursion was unbounded, which is why nothing
+was ever saved and why the menus could not stay open.
+
+The handler now distinguishes a reader's click from its own click asking the
+browser to save, and lets the second through untouched.
+
+The reason no test caught it is recorded as
+[ADR 0011](../adr/0011-a-test-double-must-behave-like-its-subject.md): the
+element double recorded `click` without dispatching, so the handler never
+re-entered under test. With the double made honest the test failed by
+exhausting a four-gigabyte heap.
+
+**Sweep for the same shape.** Every remaining instance was checked:
+
+| Site | Shape | Outcome |
+| --- | --- | --- |
+| `exportMenu.exportSvgArtifact` | Clicks the element its own listener is bound to | The defect; fixed |
+| `exportMenu` download helper | Clicks a freshly created, detached anchor | Safe: no listeners to re-enter |
+| `ontologyMenu` upload button | A change handler clicks a button that has a click listener | Safe: that listener does not click back. It has no test coverage, which is a gap rather than a defect |
+
+Two test doubles mock `click`. The one that mattered is corrected; the other
+stands for the detached anchor and now says at the double what it does not
+model.
+
+### 4. The ontology title is not reported
 
 `get_ontology_summary` reports `ontologyHeader.title` as `null` for the
 evaluation fixture, and the sidebar shows "No title available", even though the

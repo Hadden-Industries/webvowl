@@ -30,6 +30,11 @@ describe("export menu downloads", () => {
     jest.useFakeTimers();
     originalDocument = global.document;
     originalUrl = global.URL;
+    // This anchor stands for one the helper creates, appends, clicks and
+    // removes. It carries no listeners, so a recorded click is faithful: there
+    // is nothing for a dispatch to reach. What this double does not model is
+    // the browser's own save, so these tests show that a download was asked
+    // for, not that a file arrived.
     anchor = {
       click: jest.fn(),
       download: "",
