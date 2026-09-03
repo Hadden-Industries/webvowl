@@ -722,6 +722,11 @@ export function createD3RenderedGraphAdapter(dependencies) {
       return requestedDistances;
     },
 
+    resetVisualization() {
+      assertNotDisposed();
+      renderedGraphInternals.resetVisualization();
+    },
+
     createRenderedSvgSnapshot(request) {
       assertNotDisposed();
       const snapshotRequest = createRenderedSvgSnapshotRequest({

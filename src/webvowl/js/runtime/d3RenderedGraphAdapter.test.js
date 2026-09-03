@@ -413,6 +413,10 @@ function createAdapterHarness() {
     resetSearchHighlight() {
       renderedGraphInternalsFixture.highlightResets += 1;
     },
+    visualizationResets: 0,
+    resetVisualization() {
+      renderedGraphInternalsFixture.visualizationResets += 1;
+    },
     restartForceLayout() {
       renderedGraphInternalsFixture.callOrder.push("relax");
     },
@@ -675,6 +679,20 @@ describe("D3 rendered graph adapter", () => {
 
     expect(internals.maxLabelWidths).toEqual([200]);
     expect(internals.labelWidthAnimations).toBe(0);
+  });
+
+  test("asks the renderer to return the visualization to its defaults", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+
+    adapterHarness.renderedGraphRuntime.resetVisualization();
+
+    // A reader asking for a reset states an intent. Which settings go back to
+    // which values, and the restyle that follows, are the renderer's business,
+    // so the adapter carries the intent across and decides nothing.
+    expect(
+      adapterHarness.renderedGraphInternalsFixture.visualizationResets,
+    ).toBe(1);
   });
 
   test("hands requested force distances to the renderer in pixels", async () => {

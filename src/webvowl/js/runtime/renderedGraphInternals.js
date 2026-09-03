@@ -4,6 +4,7 @@ import { createNodeMap as createNodePrototypeMapModule } from "../elements/nodes
 import { createPropertyMap as createPropertyPrototypeMapModule } from "../elements/properties/propertyMap.js";
 import { createOntologyEditingState } from "../../../shared/js/ontologyEditingState.js";
 import { createRenderedGraphSettings } from "./renderedGraphSettings.js";
+import { RENDERED_GRAPH_CONFIGURATION_DEFAULTS } from "./renderedGraphConfiguration.js";
 import { createParser as createVowlParser } from "../parser.js";
 import { createClassDragger } from "../classDragger.js";
 import { createRangeDragger } from "../rangeDragger.js";
@@ -1919,6 +1920,28 @@ function createGraph(graphContainerSelector) {
         DEFAULT_CLASS_DISTANCE_PX,
     );
     graph.updateStyle();
+  };
+
+  // A reader asking for a reset states an intent; deciding what the
+  // visualization returns to is the renderer's business, which is why the
+  // charge, gravity and link strength appear here and in no request shape.
+  graph.resetVisualization = function () {
+    graph.resetSearchHighlight();
+    renderedGraphSettings.charge(RENDERED_GRAPH_CONFIGURATION_DEFAULTS.charge);
+    renderedGraphSettings.gravity(
+      RENDERED_GRAPH_CONFIGURATION_DEFAULTS.gravity,
+    );
+    renderedGraphSettings.linkStrength(
+      RENDERED_GRAPH_CONFIGURATION_DEFAULTS.linkStrength,
+    );
+    // The distances come last because applying them derives the charge from
+    // the greatest of them and restyles, which is the reset the reader sees.
+    graph.setForceLayoutDistances({
+      classDistancePx: RENDERED_GRAPH_CONFIGURATION_DEFAULTS.classDistance,
+      datatypeDistancePx:
+        RENDERED_GRAPH_CONFIGURATION_DEFAULTS.datatypeDistance,
+    });
+    graph.reset();
   };
 
   graph.updateStyle = function () {

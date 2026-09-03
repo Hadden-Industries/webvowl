@@ -63,38 +63,30 @@ function createResetMenuHarness() {
   ]);
 
   const pauseRequests = [];
-  const graphOptions = {};
-  for (const settingName of [
-    "classDistance",
-    "datatypeDistance",
-    "charge",
-    "gravity",
-    "linkStrength",
-  ]) {
-    graphOptions[settingName] = jest.fn();
-  }
-  const resetMenu = createResetMenu(
-    {
-      graphOptions: () => graphOptions,
-      options: () => graphOptions,
-      reset: jest.fn(),
-      resetSearchHighlight: jest.fn(),
-      updateStyle: jest.fn(),
-    },
-    {
-      clearTimeout: () => undefined,
-      documentObject: global.document,
-      requestAnimationFrame: (frameCallback) => frameCallback(),
-      setTimeout: (timerCallback) => timerCallback(),
-      webVowlController: {
-        setGraphLayoutPaused: (request) => {
-          pauseRequests.push(request);
-          return { isPaused: request.isPaused };
-        },
+  const visualizationResets = [];
+  // The menu takes no renderer at all: a reset control states that the reader
+  // asked for defaults back, and what that means for the drawn graph is the
+  // renderer's business.
+  const resetMenu = createResetMenu({
+    clearTimeout: () => undefined,
+    documentObject: global.document,
+    requestAnimationFrame: (frameCallback) => frameCallback(),
+    setTimeout: (timerCallback) => timerCallback(),
+    webVowlController: {
+      resetVisualization: () => visualizationResets.push("reset"),
+      setGraphLayoutPaused: (request) => {
+        pauseRequests.push(request);
+        return { isPaused: request.isPaused };
       },
     },
-  );
-  return { clearedSelectionReports, controlFor, pauseRequests, resetMenu };
+  });
+  return {
+    clearedSelectionReports,
+    controlFor,
+    pauseRequests,
+    resetMenu,
+    visualizationResets,
+  };
 }
 
 describe("reset menu", () => {
@@ -122,5 +114,14 @@ describe("reset menu", () => {
       "presentation-cleared",
       "cleared",
     ]);
+  });
+
+  test("reports that the visualization should return to its defaults", () => {
+    const harness = createResetMenuHarness();
+    harness.resetMenu.setup([]);
+
+    harness.controlFor("reset-button").click();
+
+    expect(harness.visualizationResets).toEqual(["reset"]);
   });
 });

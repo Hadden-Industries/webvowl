@@ -175,7 +175,7 @@ export function createWebVowlApplication() {
   });
   const exportMenu = createExportMenu(graph, { webVowlController });
   const searchMenu = createSearchMenu(graph, { webVowlController });
-  const resetMenu = createResetMenu(graph, { webVowlController });
+  const resetMenu = createResetMenu({ webVowlController });
   const ontologyMenu = createOntologyMenu(graph, { webVowlController });
   const viewControlsLifecycleController = new AbortController();
   createVisualizationViewControlsAdapter({

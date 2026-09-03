@@ -162,6 +162,7 @@ controller.setGraphLayoutPaused(request);
 controller.setForceLayoutDistances(request);
 controller.setVisualizationMode(request);
 controller.setContinuousZoom(request);
+controller.resetVisualization();
 await controller.exportVisualization(request, { signal });
 controller.getState();
 const unsubscribeFromState = controller.subscribeToState(onStateChange);
@@ -203,6 +204,8 @@ The controller accepts the complete modules above, not a bag of renderer callbac
 
 `setContinuousZoom` accepts exactly `{ zoomDirection: "in" | "out" | "none" }`. A held zoom control reports that a gesture started and later that it ended; the renderer owns the ramp between those two facts because the viewport is renderer-owned, and a control writing a magnification on every animation frame would be sixty asynchronous, generation-fenced round trips a second. A slider drag writes `zoomScale` directly, and a keyboard activation writes one discrete `zoomScale`. All three read the result back through `viewport-changed`.
 
+`resetVisualization` takes no request and returns nothing. A reset control states that the reader asked for defaults back; what the visualization returns to — the viewport home position, the configured force distances, the derived charge, gravity and link strength, a cleared search highlight, and the restyle that follows — is renderer-owned and stays behind the seam. Composing a reset from the tuning operations instead would require the interface to name the very quantities §1.2 keeps behind the seam, and would put an interface module in charge of deciding what "reset" means. Like `setGraphLayoutPaused` it is controller-domain only and never a WebMCP tool. It requires no loaded ontology, because a viewport and a force configuration are meaningful for an empty graph; the application half of a reset — clearing the search box, resetting each resettable module, and resuming the layout — stays in the interface and is unaffected.
+
 Editor mode is published into state as a fact and is not settable through the controller. `editorMode` exists so a presentation module stops asking the renderer what mode it is in; entering and leaving editor mode, and every editing operation, remain outside this plan's scope.
 
 #### 1.2.1 Rendered-graph runtime contract
@@ -213,6 +216,7 @@ await renderedGraphRuntime.applyVisualizationView(request, { signal });
 renderedGraphRuntime.readVisibleRenderedGraphSnapshot();
 renderedGraphRuntime.readGraphLayoutSnapshot();
 renderedGraphRuntime.setGraphLayoutPaused(request);
+renderedGraphRuntime.resetVisualization();
 renderedGraphRuntime.createRenderedSvgSnapshot(request);
 const unsubscribeFromRenderedGraphEvents =
   renderedGraphRuntime.subscribeToRenderedGraphEvents(onRenderedGraphEvent);
@@ -890,6 +894,7 @@ Implements ADR 0010. This task runs before the tool contracts because `get_ontol
 - [ ] Add `zoomScale` to the visualization view request with the renderer's configured magnification bounds, and apply it in the adapter.
 - [ ] Convert `zoomSlider` to read `state.viewport.zoomScale` and report intent through `setVisualizationView`. It must no longer call `graph.scaleFactor()`, `graph.setSliderZoom`, `graph.options()` or `navigationMenu()`.
 - [ ] Add `setForceLayoutDistances` and `setVisualizationMode` to the controller and convert `gravityMenu`, `modeMenu` and `configMenu` onto them. Neither becomes a WebMCP tool and neither appears in §1.6.
+- [ ] Add `resetVisualization` to the controller and the seam, and convert `resetMenu` onto it. It must no longer call `graph.graphOptions()`, `graph.resetSearchHighlight()`, `graph.reset()` or `graph.updateStyle()`, and takes no renderer at all afterwards.
 - [ ] Extend the seam-conformance test to cover every contract method both implementations expose, so a future divergence fails rather than surfacing in the browser.
 - [ ] Run `rg -n "graph\.|options\(\)\." src/app/js/menu src/app/js/sidebar.js`; every remaining production match must be a recorded debt item, not ordinary view-control code.
 - [ ] Verify in the real browser that selecting a node opens its details, that clearing a search moves nothing, that the zoom slider tracks a wheel gesture, and that loading a second ontology clears the previous selection.

@@ -652,6 +652,14 @@ export function createWebVowlController(dependencies) {
       return renderedGraphRuntime.setContinuousZoom(continuousZoomRequest);
     },
 
+    // A reset control states that the reader asked for defaults back. What the
+    // visualization returns to is renderer-owned, so this operation carries no
+    // request and returns nothing. Like the other renderer-tuning operations it
+    // is controller-domain only, is never a WebMCP tool, and needs no ontology.
+    resetVisualization() {
+      renderedGraphRuntime.resetVisualization();
+    },
+
     async exportVisualization(exportRequest = {}, { signal } = {}) {
       assertOntologyPresent();
       assertAllowedFieldNames(

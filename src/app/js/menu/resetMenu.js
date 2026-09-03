@@ -1,26 +1,25 @@
 import { applicationUiModule } from "../ui/applicationUiRegistry.js";
-import { RENDERED_GRAPH_CONFIGURATION_DEFAULTS } from "../../../webvowl/js/runtime/renderedGraphConfiguration.js";
 
 /**
  * Contains the logic for the reset button.
  *
- * @param graph the associated webvowl graph
+ * The control states that the reader asked for defaults back. What the drawn
+ * graph returns to — its viewport, its force settings, its search highlight —
+ * is renderer-owned and reached through the controller, so this menu holds no
+ * renderer at all.
+ *
  * @returns {{}}
  */
-export function createResetMenu(
-  graph,
-  {
-    clearTimeout: clearFlashTimer = globalThis.clearTimeout,
-    documentObject = globalThis.document,
-    requestAnimationFrame:
-      requestNextAnimationFrame = globalThis.requestAnimationFrame,
-    setTimeout: scheduleFlashTimer = globalThis.setTimeout,
-    webVowlController,
-    windowObject = globalThis.window,
-  } = {},
-) {
+export function createResetMenu({
+  clearTimeout: clearFlashTimer = globalThis.clearTimeout,
+  documentObject = globalThis.document,
+  requestAnimationFrame:
+    requestNextAnimationFrame = globalThis.requestAnimationFrame,
+  setTimeout: scheduleFlashTimer = globalThis.setTimeout,
+  webVowlController,
+  windowObject = globalThis.window,
+} = {}) {
   const resetMenu = {};
-  const options = graph.graphOptions();
   let resettableModules;
 
   /**
@@ -52,34 +51,20 @@ export function createResetMenu(
     //
     //    Frame N   (after click event):  classes set → browser paints
     //    Frame N+1 (first rAF):          scale frame 1 painted & committed
-    //    Frame N+2 (second rAF):         graph.reset() runs — compositor
-    //                                    now has N+1's committed state and
-    //                                    can animate independently.
+    //    Frame N+2 (second rAF):         the reset runs — compositor now
+    //                                    has N+1's committed state and can
+    //                                    animate independently.
     requestNextAnimationFrame(function () {
       requestNextAnimationFrame(function () {
-        graph.resetSearchHighlight();
         const searchMenu = applicationUiModule("searchMenu");
         searchMenu?.clearText();
         searchMenu?.reportClearedOntologySelection();
-        options.classDistance(
-          RENDERED_GRAPH_CONFIGURATION_DEFAULTS.classDistance,
-        );
-        options.datatypeDistance(
-          RENDERED_GRAPH_CONFIGURATION_DEFAULTS.datatypeDistance,
-        );
-        options.charge(RENDERED_GRAPH_CONFIGURATION_DEFAULTS.charge);
-        options.gravity(RENDERED_GRAPH_CONFIGURATION_DEFAULTS.gravity);
-        options.linkStrength(
-          RENDERED_GRAPH_CONFIGURATION_DEFAULTS.linkStrength,
-        );
-        graph.reset();
+        webVowlController?.resetVisualization();
 
         resettableModules.forEach(function (resettableModule) {
           resettableModule.reset();
         });
         webVowlController?.setGraphLayoutPaused({ isPaused: false });
-
-        graph.updateStyle();
 
         // Trigger glow fade-out via CSS transition — runs on the compositor
         // layer of .reset-glow independently of any remaining main-thread work.

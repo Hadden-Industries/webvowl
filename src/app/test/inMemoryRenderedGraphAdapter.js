@@ -181,6 +181,7 @@ export function createInMemoryRenderedGraphAdapter() {
   let renderedSvgSnapshot = null;
   let appliedVisualizationView = createDefaultAppliedVisualizationView();
   const requestedContinuousZoomDirections = [];
+  let visualizationResetCount = 0;
   const requestedForceLayoutDistances = [];
   const requestedVisualizationModes = [];
   const renderedGraphEventSubscribers = new Set();
@@ -396,6 +397,10 @@ export function createInMemoryRenderedGraphAdapter() {
         return requestedDistances;
       },
 
+      resetVisualization() {
+        visualizationResetCount += 1;
+      },
+
       createRenderedSvgSnapshot(request) {
         assertNotDisposed();
         const snapshotRequest = createRenderedSvgSnapshotRequest(request);
@@ -448,6 +453,10 @@ export function createInMemoryRenderedGraphAdapter() {
   );
 
   const renderedGraphTestHarness = Object.freeze({
+    readVisualizationResetCount() {
+      return visualizationResetCount;
+    },
+
     completeInitialPaint(loadGeneration, snapshotOverrides = {}) {
       assertSnapshotOverrides(snapshotOverrides);
       if (

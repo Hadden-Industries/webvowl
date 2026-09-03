@@ -9,6 +9,7 @@ export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "setContinuousZoom",
   "setForceLayoutDistances",
   "setVisualizationMode",
+  "resetVisualization",
   "createRenderedSvgSnapshot",
   "subscribeToRenderedGraphEvents",
   "dispose",

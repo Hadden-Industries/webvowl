@@ -246,6 +246,7 @@ describe("rendered graph runtime interface", () => {
       "setContinuousZoom",
       "setForceLayoutDistances",
       "setVisualizationMode",
+      "resetVisualization",
       "createRenderedSvgSnapshot",
       "subscribeToRenderedGraphEvents",
       "dispose",

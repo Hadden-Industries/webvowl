@@ -685,6 +685,13 @@ describe("WebVOWL controller orchestration", () => {
       );
     });
 
+    test("returns the visualization to its defaults without an ontology", () => {
+      // Resetting configures how a graph is drawn, so like the other renderer
+      // tuning operations it does not require one to be loaded.
+      expect(controller.resetVisualization()).toBeUndefined();
+      expect(renderedGraphTestHarness.readVisualizationResetCount()).toBe(1);
+    });
+
     test("passes a requested display mode to the runtime", async () => {
       await completeLoad();
 
@@ -1019,6 +1026,7 @@ describe("WebVOWL controller orchestration", () => {
         "getOntologySummary",
         "getState",
         "loadOntology",
+        "resetVisualization",
         "setContinuousZoom",
         "setForceLayoutDistances",
         "setGraphLayoutPaused",
