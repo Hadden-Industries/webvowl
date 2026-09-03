@@ -161,6 +161,7 @@ await controller.setVisualizationView(request, { signal });
 controller.setGraphLayoutPaused(request);
 controller.setForceLayoutDistances(request);
 controller.setVisualizationMode(request);
+controller.setContinuousZoom(request);
 await controller.exportVisualization(request, { signal });
 controller.getState();
 const unsubscribeFromState = controller.subscribeToState(onStateChange);
@@ -185,6 +186,8 @@ The controller state is a frozen snapshot with a **closed field set**. `createWe
 }
 ```
 
+A subscriber receives the frozen state **and the field names that changed**: `subscribeToState((controllerState, changedFieldNames) => …)`. Every writer already hands the controller an explicit map of the fields it wrote, so the controller narrows that map once to the fields whose value actually differs and reports it. A presentation module therefore runs when its own field changed and not otherwise, without comparing anything itself. Making each consumer diff a broadcast snapshot would reconstruct, by inference, information the producer computed one call earlier. The whole snapshot stays on the subscription because `getState` is an agent-facing surface; the change set is an addition beside it.
+
 `selection`, `renderProgress` and `viewport` are generation-scoped: beginning a new load resets them to their idle values in the same publication that sets `status: "loading"`. Without that reset a selection made in one generation survives into the next and names an element that no longer exists.
 
 `selection` carries `OntologyElementReference` values only. Which drawn occurrence of an entity the reader clicked is renderer-local state and is never published; a focus request naming an entity correctly marks every occurrence of it.
@@ -196,6 +199,8 @@ The controller accepts the complete modules above, not a bag of renderer callbac
 `setGraphLayoutPaused` accepts exactly `{ isPaused: boolean }` and returns a frozen `{ loadGeneration, isPaused, layoutStatus }` result for the current generation, where `layoutStatus` is `paused`, `relaxing`, or `settled`. It is a controller-owned application operation, not an injected pause callback or WebMCP tool.
 
 `setForceLayoutDistances` and `setVisualizationMode` follow that same precedent. Both are controller-domain requests and neither is a WebMCP tool, because both tune how the visualization is drawn rather than what the ontology says. `setForceLayoutDistances` accepts `{ classDistancePx, datatypeDistancePx, loopDistancePx }` with every field optional; `setVisualizationMode` accepts the renderer's display toggles — `dynamicLabelWidth`, `maxLabelWidthPx`, `colorExternals`, `compactNotation`, `nodeScaling` — again with every field optional. Routing them through the controller is what keeps §1.1's rule that no user-interface module calls the renderer; exposing them as tools is not, so they stay out of §1.6.
+
+`setContinuousZoom` accepts exactly `{ zoomDirection: "in" | "out" | "none" }`. A held zoom control reports that a gesture started and later that it ended; the renderer owns the ramp between those two facts because the viewport is renderer-owned, and a control writing a magnification on every animation frame would be sixty asynchronous, generation-fenced round trips a second. A slider drag writes `zoomScale` directly, and a keyboard activation writes one discrete `zoomScale`. All three read the result back through `viewport-changed`.
 
 Editor mode is published into state as a fact and is not settable through the controller. `editorMode` exists so a presentation module stops asking the renderer what mode it is in; entering and leaving editor mode, and every editing operation, remain outside this plan's scope.
 
@@ -405,34 +410,36 @@ The adapter returns `{ isSuccess: true, toolResult }` or `{ isSuccess: false, er
 
 The design's controlled vocabulary applies to every task. In particular:
 
-| Concern                                 | Required names and distinction                                                                                                                                                 |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Remote OWL source                       | `ontology-document-iri` with `documentIri`; this is a retrievable document location, not the ontology IRI asserted by OWL semantics                                            |
-| Remote VOWL JSON                        | `vowl-json-url` with `url`; JSON names the serialized representation at the remote boundary                                                                                    |
-| Inline ontology document                | `ontology-text` with `text` and `format` or a real `displayName` for canonical detection                                                                                       |
-| Parsed VOWL input                       | `vowl-model` with `model`; never call an in-memory object `json` or route it through a serialized-text field                                                                   |
-| Application graph seam                  | `RenderedGraphRuntime`; never call it a generic graph API, renderer service, bridge, wrapper, or options object                                                                |
-| Production visualization implementation | `D3RenderedGraphAdapter`; this is the sole production runtime implementation, not a controller or compatibility adapter                                                        |
-| Renderer configuration                  | `RenderedGraphConfiguration`; contains only renderer-owned settings and never UI/application object references                                                                 |
-| Renderer notifications                  | `RenderedGraphEvent` with a closed semantic `kind`; never expose a D3 event or generic callback payload                                                                        |
-| Semantic inspection projection          | `OntologyInspectionSnapshot`; deeply immutable plain data, never mutable element instances or a graph-data alias                                                               |
-| Snapshot construction                   | `VowlModelInspectionProjector`; names its VOWL input because what that input does and does not carry is load-bearing, never a generic snapshot builder or ontology projector   |
-| Element identity across layers          | `OntologyElementReference` names an entity and may match several drawn occurrences; occurrence identity has no controller-domain name because it never crosses the seam        |
-| Annotation projection                   | `localName` with a nullable `propertyIri`; never present a local name as though it were an IRI, and never reconstruct an IRI the source did not carry                          |
-| Element attribute classification        | `characteristicNames` for the OWL property characteristics only; everything else stays in `unclassifiedAttributeNames` rather than acquiring an asserted taxonomy              |
-| Renderer tuning requests                | `setForceLayoutDistances` with `…Px` fields and `setVisualizationMode`; controller-domain operations following the `setGraphLayoutPaused` precedent, never WebMCP tools        |
-| Visible graph projection                | `VisibleRenderedGraphSnapshot`; stable references and counts, never selections or shallow copies of internal arrays                                                            |
-| Layout projection                       | `GraphLayoutSnapshot`; coordinate/force scalars for one generation and instant, never the force simulation                                                                     |
-| SVG export input                        | `RenderedSvgSnapshot`; a detached styled clone, never the live SVG or serialized artifact bytes                                                                                |
-| Human view integration                  | `VisualizationViewControlsAdapter`; maps native DOM input to controller requests and controller state to DOM presentation, never applies graph behavior itself                 |
-| Artifact presentation interface         | `SvgArtifactPublicationPort`; narrow application output contract, never a controller/WebMCP result or object-URL owner                                                         |
-| Manual download presentation            | `SvgArtifactDownloadAdapter`; native-DOM port implementation, never the serializer or artifact lifecycle owner                                                                 |
-| Load lifetime                           | `loadGeneration`, never an unqualified numeric `generation` in a structured object                                                                                             |
-| Boolean state                           | Positive predicates such as `isFocusable`, `isRetryable`, `isTruncated`, `isAvailable`, and `hasEnded`; request directives may use verbs such as `includeNeighborhood`         |
-| Quantities and encodings                | Names expose units or representation: `settleTimeoutMs`, `byteLength`, `widthPx`, `heightPx`, `sha256Hex`, and limits ending in `Bytes`, `Characters`, or a count-bearing noun |
-| Browser artifact lifetime               | `pageLocalArtifactId`, `pageLocalViewRecipeId`, and `objectUrl`; none may be represented as a durable URL or attachment ID                                                     |
-| Layers                                  | WebMCP tool names and protocol envelopes stay under `src/app/js/webmcp/`; controller-domain objects never use WebMCP vocabulary                                                |
-| Initialisms                             | Prose uses official capitalization; JavaScript uses `WebVowl`, `webMcp`, `Svg`, and `Iri` consistently, while external tool names retain snake_case                            |
+| Concern                                 | Required names and distinction                                                                                                                                                               |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Remote OWL source                       | `ontology-document-iri` with `documentIri`; this is a retrievable document location, not the ontology IRI asserted by OWL semantics                                                          |
+| Remote VOWL JSON                        | `vowl-json-url` with `url`; JSON names the serialized representation at the remote boundary                                                                                                  |
+| Inline ontology document                | `ontology-text` with `text` and `format` or a real `displayName` for canonical detection                                                                                                     |
+| Parsed VOWL input                       | `vowl-model` with `model`; never call an in-memory object `json` or route it through a serialized-text field                                                                                 |
+| Application graph seam                  | `RenderedGraphRuntime`; never call it a generic graph API, renderer service, bridge, wrapper, or options object                                                                              |
+| Production visualization implementation | `D3RenderedGraphAdapter`; this is the sole production runtime implementation, not a controller or compatibility adapter                                                                      |
+| Renderer configuration                  | `RenderedGraphConfiguration`; contains only renderer-owned settings and never UI/application object references                                                                               |
+| Renderer notifications                  | `RenderedGraphEvent` with a closed semantic `kind`; never expose a D3 event or generic callback payload                                                                                      |
+| Semantic inspection projection          | `OntologyInspectionSnapshot`; deeply immutable plain data, never mutable element instances or a graph-data alias                                                                             |
+| Snapshot construction                   | `VowlModelInspectionProjector`; names its VOWL input because what that input does and does not carry is load-bearing, never a generic snapshot builder or ontology projector                 |
+| Element identity across layers          | `OntologyElementReference` names an entity and may match several drawn occurrences; occurrence identity has no controller-domain name because it never crosses the seam                      |
+| Annotation projection                   | `localName` with a nullable `propertyIri`; never present a local name as though it were an IRI, and never reconstruct an IRI the source did not carry                                        |
+| Element attribute classification        | `characteristicNames` for the OWL property characteristics only; everything else stays in `unclassifiedAttributeNames` rather than acquiring an asserted taxonomy                            |
+| Renderer tuning requests                | `setForceLayoutDistances` with `…Px` fields, `setVisualizationMode` and `setContinuousZoom`; controller-domain operations following the `setGraphLayoutPaused` precedent, never WebMCP tools |
+| Held gesture                            | `zoomDirection` with a closed `in`/`out`/`none` union; a control reports the gesture, never a value per animation frame                                                                      |
+| State publication                       | `changedFieldNames` beside the frozen snapshot; the producer states what it wrote, and no consumer diffs a broadcast to rediscover it                                                        |
+| Visible graph projection                | `VisibleRenderedGraphSnapshot`; stable references and counts, never selections or shallow copies of internal arrays                                                                          |
+| Layout projection                       | `GraphLayoutSnapshot`; coordinate/force scalars for one generation and instant, never the force simulation                                                                                   |
+| SVG export input                        | `RenderedSvgSnapshot`; a detached styled clone, never the live SVG or serialized artifact bytes                                                                                              |
+| Human view integration                  | `VisualizationViewControlsAdapter`; maps native DOM input to controller requests and controller state to DOM presentation, never applies graph behavior itself                               |
+| Artifact presentation interface         | `SvgArtifactPublicationPort`; narrow application output contract, never a controller/WebMCP result or object-URL owner                                                                       |
+| Manual download presentation            | `SvgArtifactDownloadAdapter`; native-DOM port implementation, never the serializer or artifact lifecycle owner                                                                               |
+| Load lifetime                           | `loadGeneration`, never an unqualified numeric `generation` in a structured object                                                                                                           |
+| Boolean state                           | Positive predicates such as `isFocusable`, `isRetryable`, `isTruncated`, `isAvailable`, and `hasEnded`; request directives may use verbs such as `includeNeighborhood`                       |
+| Quantities and encodings                | Names expose units or representation: `settleTimeoutMs`, `byteLength`, `widthPx`, `heightPx`, `sha256Hex`, and limits ending in `Bytes`, `Characters`, or a count-bearing noun               |
+| Browser artifact lifetime               | `pageLocalArtifactId`, `pageLocalViewRecipeId`, and `objectUrl`; none may be represented as a durable URL or attachment ID                                                                   |
+| Layers                                  | WebMCP tool names and protocol envelopes stay under `src/app/js/webmcp/`; controller-domain objects never use WebMCP vocabulary                                                              |
+| Initialisms                             | Prose uses official capitalization; JavaScript uses `WebVowl`, `webMcp`, `Svg`, and `Iri` consistently, while external tool names retain snake_case                                          |
 
 Names must state a domain noun and role. Do not introduce unqualified `data`, `info`, `item`, `object`, `thing`, `helper`, `util`, `manager`, `handler`, `process`, `value`, or `result` where a precise name is available. Contextually precise names such as `documentObject`, `layoutResult`, or the controller method-local `request` remain valid because their owning interface fixes the concept. Tests assert exact public spellings and object shapes; reviewers assess semantic correctness and cross-layer vocabulary. Do not add a brittle generic-word lint rule or repository configuration.
 
