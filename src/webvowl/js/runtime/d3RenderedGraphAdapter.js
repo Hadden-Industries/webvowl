@@ -636,9 +636,7 @@ export function createD3RenderedGraphAdapter(dependencies) {
       }
 
       isGraphLayoutPaused = pauseRequest.isPaused;
-      // The renderer owns its simulation, so it makes the change; it needs the
-      // one fact only this adapter has, which is whether the layout had ended.
-      renderedGraphInternals.paused?.(pauseRequest.isPaused, hasForceEnded);
+      renderedGraphInternals.paused?.(pauseRequest.isPaused);
       if (pauseRequest.isPaused) {
         activeForceSimulation?.stop();
       } else if (!hasForceEnded) {

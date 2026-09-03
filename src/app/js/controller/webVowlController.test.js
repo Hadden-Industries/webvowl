@@ -891,6 +891,64 @@ describe("WebVOWL controller orchestration", () => {
       });
     });
 
+    test("never disturbs a layout that has already come to rest", async () => {
+      // Exporting holds the graph still so the snapshot matches what settled.
+      // A layout that has ended is already still, so pausing it achieves
+      // nothing and the resume afterwards would re-energise it — which is
+      // right when a reader resumes, and wrong as a side effect of exporting.
+      await completeLoad(
+        1,
+        {},
+        {
+          graphLayoutSnapshot: {
+            forceAlpha: 0,
+            hasEnded: true,
+            heightPx: 600,
+            isPaused: false,
+            layoutElementPositions: [],
+            loadGeneration: 1,
+            observedAtMs: 1,
+            widthPx: 800,
+          },
+        },
+      );
+      const pauseStatesBefore =
+        renderedGraphTestHarness.readGraphLayoutPauseRequests().length;
+
+      const exportPromise = exportVisualization({ filename: "still.svg" });
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+      await flushMicrotasks(6);
+      await exportPromise;
+
+      expect(
+        renderedGraphTestHarness.readGraphLayoutPauseRequests().length,
+      ).toBe(pauseStatesBefore);
+    });
+
+    test("holds a still-relaxing layout still and restores it afterwards", async () => {
+      await completeLoad();
+
+      const exportPromise = exportVisualization({ filename: "moving.svg" });
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "stable-frames",
+      });
+      await flushMicrotasks(6);
+      await exportPromise;
+
+      expect(renderedGraphTestHarness.readGraphLayoutPauseRequests()).toEqual([
+        true,
+        false,
+      ]);
+    });
+
     test("accepts an explicit best-effort settlement outcome", async () => {
       await completeLoad();
       const exportPromise = exportVisualization({ onTimeout: "best-effort" });

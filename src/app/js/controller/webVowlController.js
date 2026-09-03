@@ -693,11 +693,18 @@ export function createWebVowlController(dependencies) {
           );
         throwWhenSuperseded(loadGeneration, linkedAbortSignal.signal);
 
-        renderedGraphRuntime.setGraphLayoutPaused({
-          loadGeneration,
-          isPaused: true,
-        });
-        didPauseForExport = true;
+        // Holding the layout still keeps the snapshot matching what settled.
+        // A layout that has already ended is still by itself, so pausing it
+        // achieves nothing and the restore afterwards would re-energise it —
+        // which is right when a reader resumes, and wrong as a side effect of
+        // exporting a graph they had watched come to rest.
+        if (!priorGraphLayoutSnapshot.hasEnded) {
+          renderedGraphRuntime.setGraphLayoutPaused({
+            loadGeneration,
+            isPaused: true,
+          });
+          didPauseForExport = true;
+        }
 
         await waitForDocumentFonts();
         for (

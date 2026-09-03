@@ -181,6 +181,7 @@ export function createInMemoryRenderedGraphAdapter() {
   let renderedSvgSnapshot = null;
   let appliedVisualizationView = createDefaultAppliedVisualizationView();
   const requestedContinuousZoomDirections = [];
+  const requestedGraphLayoutPauseStates = [];
   let visualizationResetCount = 0;
   const requestedForceLayoutDistances = [];
   const requestedVisualizationModes = [];
@@ -346,6 +347,7 @@ export function createInMemoryRenderedGraphAdapter() {
       setGraphLayoutPaused(request) {
         assertNotDisposed();
         const pauseRequest = createGraphLayoutPauseRequest(request);
+        requestedGraphLayoutPauseStates.push(pauseRequest.isPaused);
         assertActiveGeneration(
           pauseRequest.loadGeneration,
           activeLoadGeneration,
@@ -459,6 +461,12 @@ export function createInMemoryRenderedGraphAdapter() {
   const renderedGraphTestHarness = Object.freeze({
     readVisualizationResetCount() {
       return visualizationResetCount;
+    },
+    // Whether an operation held the layout still, and in which order, is the
+    // difference between an export that disturbs a settled graph and one that
+    // leaves it alone.
+    readGraphLayoutPauseRequests() {
+      return [...requestedGraphLayoutPauseStates];
     },
 
     completeInitialPaint(loadGeneration, snapshotOverrides = {}) {

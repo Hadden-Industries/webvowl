@@ -302,7 +302,6 @@ function createAdapterHarness() {
     callOrder: [],
     loadCallCount: 0,
     pauseStates: [],
-    pauseEndedFlags: [],
     suppliedVowlModels: [],
     options: () => ({
       datatypeFilter: () =>
@@ -354,17 +353,8 @@ function createAdapterHarness() {
       renderedGraphInternalsFixture.callOrder.push("load");
       renderedGraphInternalsFixture.loadCallCount += 1;
     },
-    paused(isPaused, hasLayoutEnded) {
+    paused(isPaused) {
       renderedGraphInternalsFixture.pauseStates.push(isPaused);
-      // The real renderer owns the simulation, so the double must too, or a
-      // test cannot see whether resuming restarts a finished layout.
-      renderedGraphInternalsFixture.pauseEndedFlags.push(hasLayoutEnded);
-      const forceSimulation = d3Fixture.createdSimulations.at(-1);
-      if (isPaused === true) {
-        forceSimulation?.stop();
-      } else if (hasLayoutEnded !== true) {
-        forceSimulation?.restart();
-      }
     },
     setRenderedGraphEventPort(nextPort) {
       renderedGraphInternalsFixture.installedEventPort = nextPort;
