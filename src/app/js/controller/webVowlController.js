@@ -624,6 +624,16 @@ export function createWebVowlController(dependencies) {
       return graphLayoutPauseResult;
     },
 
+    // Display modes change how the graph is drawn rather than what the
+    // ontology says, so like the pause operation this is controller-domain
+    // only and never a WebMCP tool.
+    setVisualizationMode(visualizationModeRequest) {
+      assertOntologyPresent();
+      return renderedGraphRuntime.setVisualizationMode(
+        visualizationModeRequest,
+      );
+    },
+
     // Force distances tune how the graph is laid out rather than what the
     // ontology says, so like the pause operation this is controller-domain
     // only and never a WebMCP tool.

@@ -2,6 +2,7 @@ import {
   assertRenderedGraphRuntime,
   createContinuousZoomRequest,
   createForceLayoutDistancesRequest,
+  createVisualizationModeRequest,
   createGraphLayoutPauseRequest,
   createGraphLayoutPauseResult,
   createGraphLayoutSnapshot,
@@ -181,6 +182,7 @@ export function createInMemoryRenderedGraphAdapter() {
   let appliedVisualizationView = createDefaultAppliedVisualizationView();
   const requestedContinuousZoomDirections = [];
   const requestedForceLayoutDistances = [];
+  const requestedVisualizationModes = [];
   const renderedGraphEventSubscribers = new Set();
 
   function assertNotDisposed() {
@@ -380,6 +382,12 @@ export function createInMemoryRenderedGraphAdapter() {
         const { zoomDirection } = createContinuousZoomRequest(request);
         requestedContinuousZoomDirections.push(zoomDirection);
         return zoomDirection;
+      },
+
+      setVisualizationMode(request) {
+        const requestedMode = createVisualizationModeRequest(request);
+        requestedVisualizationModes.push(requestedMode);
+        return requestedMode;
       },
 
       setForceLayoutDistances(request) {

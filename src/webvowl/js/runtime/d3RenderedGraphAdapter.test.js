@@ -300,6 +300,20 @@ function createAdapterHarness() {
       nodeDegreeFilter: () =>
         renderedGraphInternalsFixture.filterModules.minDegree,
       focuserModule: () => renderedGraphInternalsFixture.focuserModule,
+      colorExternalsModule: () =>
+        renderedGraphInternalsFixture.modeModules.colorExternals,
+      compactNotationModule: () =>
+        renderedGraphInternalsFixture.modeModules.compactNotation,
+      nodeScalingModule: () =>
+        renderedGraphInternalsFixture.modeModules.nodeScaling,
+      dynamicLabelWidth(nextDynamicLabelWidth) {
+        renderedGraphInternalsFixture.dynamicLabelWidths.push(
+          nextDynamicLabelWidth,
+        );
+      },
+      maxLabelWidth(nextMaxLabelWidthPx) {
+        renderedGraphInternalsFixture.maxLabelWidths.push(nextMaxLabelWidthPx);
+      },
       data(vowlModel) {
         renderedGraphInternalsFixture.callOrder.push("data");
         renderedGraphInternalsFixture.suppliedVowlModels.push(vowlModel);
@@ -338,6 +352,31 @@ function createAdapterHarness() {
     requestedZoomScales: [],
     setSliderZoom(zoomScale) {
       renderedGraphInternalsFixture.requestedZoomScales.push(zoomScale);
+    },
+    modeModules: {
+      colorExternals: createFilterModuleFixture(),
+      compactNotation: createFilterModuleFixture(),
+      nodeScaling: createFilterModuleFixture(),
+    },
+    dynamicLabelWidths: [],
+    maxLabelWidths: [],
+    modeExecutions: [],
+    labelWidthAnimations: 0,
+    lazyRefreshes: 0,
+    executeColorExternalsModule() {
+      renderedGraphInternalsFixture.modeExecutions.push("colorExternals");
+    },
+    executeCompactNotationModule() {
+      renderedGraphInternalsFixture.modeExecutions.push("compactNotation");
+    },
+    executeNodeScalingModule() {
+      renderedGraphInternalsFixture.modeExecutions.push("nodeScaling");
+    },
+    animateDynamicLabelWidth() {
+      renderedGraphInternalsFixture.labelWidthAnimations += 1;
+    },
+    lazyRefresh() {
+      renderedGraphInternalsFixture.lazyRefreshes += 1;
     },
     requestedForceLayoutDistances: [],
     setForceLayoutDistances(requestedDistances) {
@@ -576,6 +615,25 @@ describe("D3 rendered graph adapter", () => {
     expect(
       adapterHarness.renderedGraphInternalsFixture.requestedZoomScales,
     ).toEqual([2.5]);
+  });
+
+  test("applies each requested display mode and refreshes once", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+    const internals = adapterHarness.renderedGraphInternalsFixture;
+
+    adapterHarness.renderedGraphRuntime.setVisualizationMode({
+      colorExternals: true,
+      nodeScaling: true,
+      maxLabelWidthPx: 180,
+    });
+
+    expect(internals.modeExecutions).toEqual(["colorExternals", "nodeScaling"]);
+    expect(internals.modeModules.colorExternals.enabled()).toBe(true);
+    expect(internals.modeModules.nodeScaling.enabled()).toBe(true);
+    expect(internals.maxLabelWidths).toEqual([180]);
+    expect(internals.labelWidthAnimations).toBe(1);
+    expect(internals.lazyRefreshes).toBe(1);
   });
 
   test("hands requested force distances to the renderer in pixels", async () => {

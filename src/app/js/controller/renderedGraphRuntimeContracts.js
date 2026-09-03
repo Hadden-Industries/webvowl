@@ -8,6 +8,7 @@ export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "setGraphLayoutPaused",
   "setContinuousZoom",
   "setForceLayoutDistances",
+  "setVisualizationMode",
   "createRenderedSvgSnapshot",
   "subscribeToRenderedGraphEvents",
   "dispose",
@@ -994,6 +995,46 @@ const FORCE_LAYOUT_DISTANCE_FIELD_NAMES = Object.freeze([
   "datatypeDistancePx",
   "loopDistancePx",
 ]);
+
+// How the graph is drawn rather than what it says. Editor mode is deliberately
+// absent: this plan publishes it as a fact so a presentation module can read
+// it, and opens no vocabulary for entering or leaving it.
+const VISUALIZATION_MODE_PREDICATE_FIELD_NAMES = Object.freeze([
+  "colorExternals",
+  "compactNotation",
+  "nodeScaling",
+  "dynamicLabelWidth",
+]);
+
+export function createVisualizationModeRequest(request) {
+  assertAllowedFieldNames(
+    request,
+    [...VISUALIZATION_MODE_PREDICATE_FIELD_NAMES, "maxLabelWidthPx"],
+    "visualization mode request",
+  );
+  const requestedMode = {};
+  for (const fieldName of VISUALIZATION_MODE_PREDICATE_FIELD_NAMES) {
+    if (request[fieldName] === undefined) {
+      continue;
+    }
+    if (typeof request[fieldName] !== "boolean") {
+      throw new TypeError(`${fieldName} must be a boolean.`);
+    }
+    requestedMode[fieldName] = request[fieldName];
+  }
+  if (request.maxLabelWidthPx !== undefined) {
+    assertFiniteNumber(request.maxLabelWidthPx, "maxLabelWidthPx", {
+      minimum: 1,
+    });
+    requestedMode.maxLabelWidthPx = request.maxLabelWidthPx;
+  }
+  if (Object.keys(requestedMode).length === 0) {
+    throw new TypeError(
+      "A visualization mode request must name at least one mode.",
+    );
+  }
+  return Object.freeze(requestedMode);
+}
 
 export function createForceLayoutDistancesRequest(request) {
   assertAllowedFieldNames(

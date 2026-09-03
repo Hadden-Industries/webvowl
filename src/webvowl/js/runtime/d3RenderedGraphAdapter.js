@@ -6,6 +6,7 @@ import {
 import {
   createContinuousZoomRequest,
   createForceLayoutDistancesRequest,
+  createVisualizationModeRequest,
   createGraphLayoutPauseRequest,
   createGraphLayoutPauseResult,
   createGraphLayoutSnapshot,
@@ -363,6 +364,15 @@ export function createD3RenderedGraphAdapter(dependencies) {
     activeForceSimulation = forceSimulation;
   }
 
+  // Each display mode the interface can address, paired with the renderer
+  // module that draws it. Dynamic label width is absent because it is a
+  // setting rather than a module.
+  const VISUALIZATION_MODE_MODULE_READERS = Object.freeze({
+    colorExternals: (settings) => settings.colorExternalsModule(),
+    compactNotation: (settings) => settings.compactNotationModule(),
+    nodeScaling: (settings) => settings.nodeScalingModule(),
+  });
+
   // Each visibility filter the view can address, paired with the renderer
   // module that enforces it.
   const VISIBILITY_FILTER_MODULE_READERS = Object.freeze({
@@ -639,6 +649,51 @@ export function createD3RenderedGraphAdapter(dependencies) {
         );
       }
       return zoomDirection;
+    },
+
+    setVisualizationMode(request) {
+      assertNotDisposed();
+      const requestedMode = createVisualizationModeRequest(request);
+      const renderedGraphSettings = renderedGraphInternals.options();
+      let hasChangedElementRendering = false;
+      for (const [modeName, readModeModule] of Object.entries(
+        VISUALIZATION_MODE_MODULE_READERS,
+      )) {
+        if (requestedMode[modeName] === undefined) {
+          continue;
+        }
+        readModeModule(renderedGraphSettings)?.enabled(requestedMode[modeName]);
+        hasChangedElementRendering = true;
+      }
+      if (requestedMode.colorExternals !== undefined) {
+        renderedGraphInternals.executeColorExternalsModule();
+      }
+      if (requestedMode.compactNotation !== undefined) {
+        renderedGraphInternals.executeCompactNotationModule();
+      }
+      if (requestedMode.nodeScaling !== undefined) {
+        renderedGraphInternals.executeNodeScalingModule();
+      }
+      // Label width is a drawing setting rather than a filter module, so it is
+      // applied directly and animated into place.
+      let hasChangedLabelWidth = false;
+      if (requestedMode.dynamicLabelWidth !== undefined) {
+        renderedGraphSettings.dynamicLabelWidth(
+          requestedMode.dynamicLabelWidth,
+        );
+        hasChangedLabelWidth = true;
+      }
+      if (requestedMode.maxLabelWidthPx !== undefined) {
+        renderedGraphSettings.maxLabelWidth(requestedMode.maxLabelWidthPx);
+        hasChangedLabelWidth = true;
+      }
+      if (hasChangedLabelWidth) {
+        renderedGraphInternals.animateDynamicLabelWidth();
+      }
+      if (hasChangedElementRendering) {
+        renderedGraphInternals.lazyRefresh();
+      }
+      return requestedMode;
     },
 
     setForceLayoutDistances(request) {

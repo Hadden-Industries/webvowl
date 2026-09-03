@@ -8,6 +8,7 @@ let RENDERED_GRAPH_RUNTIME_METHOD_NAMES;
 let assertRenderedGraphRuntime;
 let createContinuousZoomRequest;
 let createForceLayoutDistancesRequest;
+let createVisualizationModeRequest;
 let createGraphLayoutPauseRequest;
 let createGraphLayoutPauseResult;
 let createGraphLayoutSnapshot;
@@ -63,6 +64,7 @@ beforeAll(async () => {
     assertRenderedGraphRuntime,
     createContinuousZoomRequest,
     createForceLayoutDistancesRequest,
+    createVisualizationModeRequest,
     createGraphLayoutPauseRequest,
     createGraphLayoutPauseResult,
     createGraphLayoutSnapshot,
@@ -243,6 +245,7 @@ describe("rendered graph runtime interface", () => {
       "setGraphLayoutPaused",
       "setContinuousZoom",
       "setForceLayoutDistances",
+      "setVisualizationMode",
       "createRenderedSvgSnapshot",
       "subscribeToRenderedGraphEvents",
       "dispose",
@@ -310,6 +313,36 @@ describe("rendered graph events", () => {
       "graph-layout-state-changed",
       "editor-mode-changed",
     ]);
+  });
+
+  test("declares the display modes with every field optional", () => {
+    expect(createVisualizationModeRequest({ colorExternals: true })).toEqual({
+      colorExternals: true,
+    });
+    expect(
+      createVisualizationModeRequest({
+        compactNotation: false,
+        nodeScaling: true,
+        dynamicLabelWidth: false,
+        maxLabelWidthPx: 180,
+      }),
+    ).toEqual({
+      compactNotation: false,
+      nodeScaling: true,
+      dynamicLabelWidth: false,
+      maxLabelWidthPx: 180,
+    });
+    expect(() => createVisualizationModeRequest({})).toThrow();
+    expect(() =>
+      createVisualizationModeRequest({ colorExternals: "yes" }),
+    ).toThrow();
+    expect(() =>
+      createVisualizationModeRequest({ maxLabelWidthPx: 0 }),
+    ).toThrow();
+    // Editor mode is a fact this plan publishes, never one a request sets.
+    expect(() =>
+      createVisualizationModeRequest({ editorMode: true }),
+    ).toThrow();
   });
 
   test("declares force layout distances in pixels with every field optional", () => {

@@ -670,6 +670,14 @@ describe("WebVOWL controller orchestration", () => {
       expect(descriptionResult.elementDescriptions).toEqual([]);
     });
 
+    test("passes a requested display mode to the runtime", async () => {
+      await completeLoad();
+
+      expect(controller.setVisualizationMode({ nodeScaling: true })).toEqual({
+        nodeScaling: true,
+      });
+    });
+
     test("passes requested force distances to the runtime", async () => {
       await completeLoad();
 
@@ -999,6 +1007,7 @@ describe("WebVOWL controller orchestration", () => {
         "setContinuousZoom",
         "setForceLayoutDistances",
         "setGraphLayoutPaused",
+        "setVisualizationMode",
         "setVisualizationView",
         "subscribeToState",
       ]);
