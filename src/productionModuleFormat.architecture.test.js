@@ -45,6 +45,8 @@ const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/webvowl/js/runtime/d3RenderedGraphAdapter.test.js",
   "src/webvowl/js/runtime/renderedGraphConfiguration.js",
   "src/webvowl/js/runtime/renderedGraphConfiguration.test.js",
+  "src/webvowl/js/runtime/renderedSvgExportClone.js",
+  "src/webvowl/js/runtime/renderedSvgExportClone.test.js",
   "src/app/js/controller/graphLayoutSettler.js",
   "src/app/js/controller/graphLayoutSettler.test.js",
   "src/app/js/controller/linkedAbortSignal.js",

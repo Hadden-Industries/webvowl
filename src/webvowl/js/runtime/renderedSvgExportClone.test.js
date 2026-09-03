@@ -1,11 +1,11 @@
 import { beforeAll } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
+import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
-let createExportSvgClone;
+let createRenderedSvgExportClone;
 
 beforeAll(async () => {
-  ({ createExportSvgClone } = await loadEsmModuleForTest(
-    new URL("./svgExportStyles.js", import.meta.url),
+  ({ createRenderedSvgExportClone } = await loadEsmModuleForTest(
+    new URL("./renderedSvgExportClone.js", import.meta.url),
     import.meta.url,
   ));
 });
@@ -45,9 +45,10 @@ class FakeElement {
     if (selector === "*") {
       return descendants;
     }
-    if (selector === ".hidden-in-export") {
+    if (selector.startsWith(".")) {
+      const className = selector.slice(1);
       return descendants.filter((element) =>
-        element.classNames.includes("hidden-in-export"),
+        element.classNames.includes(className),
       );
     }
     return [];
@@ -65,6 +66,12 @@ class FakeElement {
 
   setAttribute(name, value) {
     this.attributes[name] = value;
+  }
+
+  getAttribute(name) {
+    return Object.prototype.hasOwnProperty.call(this.attributes, name)
+      ? this.attributes[name]
+      : null;
   }
 
   remove() {
@@ -90,7 +97,7 @@ describe("detached SVG style materialization", () => {
     const liveSvg = new FakeElement({ children: [visible, hidden] });
     visible.style.setProperty("--vowl-fill", "#36c");
 
-    const exportedSvg = createExportSvgClone(liveSvg, (element) => ({
+    const exportedSvg = createRenderedSvgExportClone(liveSvg, (element) => ({
       getPropertyValue: (name) => element.computed[name] || "",
     }));
 
@@ -112,7 +119,7 @@ describe("detached SVG style materialization", () => {
     const liveSvg = new FakeElement({ children: [markerPath, linkPath] });
     linkPath.setAttribute("marker-end", "url(#marker-property-1)");
 
-    const exportedSvg = createExportSvgClone(liveSvg, (element) => ({
+    const exportedSvg = createRenderedSvgExportClone(liveSvg, (element) => ({
       getPropertyValue: (name) => element.computed[name] || "",
     }));
     const [exportedMarkerPath, exportedLinkPath] =
@@ -123,5 +130,50 @@ describe("detached SVG style materialization", () => {
       "url(#marker-property-1)",
     );
     expect(linkPath.attributes["marker-end"]).toBe("url(#marker-property-1)");
+  });
+
+  test("frames the clone on what the reader is looking at", () => {
+    // An exported view is the view on screen. Framing the clone to a different
+    // canvas would clip a graph the reader can see, because the drawn content
+    // is positioned for the live viewport.
+    const liveSvg = new FakeElement({ children: [] });
+    liveSvg.setAttribute("width", "1600");
+    liveSvg.setAttribute("height", "845");
+
+    const exportedSvg = createRenderedSvgExportClone(
+      liveSvg,
+      (element) => ({
+        getPropertyValue: (name) => element.computed[name] || "",
+      }),
+      { widthPx: 1600, heightPx: 845 },
+    );
+
+    expect(exportedSvg.attributes.width).toBe("1600");
+    expect(exportedSvg.attributes.height).toBe("845");
+    expect(exportedSvg.attributes.viewBox).toBe("0 0 1600 845");
+  });
+
+  test("removes interaction-only content along with export-hidden content", () => {
+    // Neither belongs in a file: one exists only to catch a pointer, the other
+    // is marked as not for export.
+    const interactionOnly = new FakeElement({
+      classNames: ["vowl-interaction-only"],
+    });
+    const hidden = new FakeElement({ classNames: ["hidden-in-export"] });
+    const liveSvg = new FakeElement({ children: [interactionOnly, hidden] });
+
+    const exportedSvg = createRenderedSvgExportClone(
+      liveSvg,
+      (element) => ({
+        getPropertyValue: (name) => element.computed[name] || "",
+      }),
+      { widthPx: 800, heightPx: 600 },
+    );
+
+    expect(exportedSvg.querySelectorAll(".vowl-interaction-only")).toHaveLength(
+      0,
+    );
+    expect(exportedSvg.querySelectorAll(".hidden-in-export")).toHaveLength(0);
+    expect(liveSvg.querySelectorAll(".vowl-interaction-only")).toHaveLength(1);
   });
 });

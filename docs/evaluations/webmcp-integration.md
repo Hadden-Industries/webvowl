@@ -13,9 +13,9 @@ ontology does not support has failed the job even though it passed its test.
 
 **Partly run.** A first session in a WebMCP-enabled Chrome exercised the
 registration, the host's own tool listing, and the flagship prompt's mechanics
-end to end. It found one blocking defect in the exported artifact, recorded
-under [Findings](#findings). The twenty prompts still need a run with a model
-driving the tools rather than a script calling them.
+end to end. It found and fixed one blocking defect in the exported artifact,
+recorded under [Findings](#findings). The twenty prompts still need a run with a
+model driving the tools rather than a script calling them.
 
 ### Session 1
 
@@ -216,38 +216,59 @@ are different outcomes and conflating them hides which one failed.
 
 ## Findings
 
-### 1. The exported SVG is unstyled and clipped (blocking)
+### 1. The exported SVG was unstyled and clipped (fixed)
 
-**Severity: blocking.** `export_visualization` reports success, and every fact
-it reports is true — correct hash, correct byte length, correct dimensions,
-correct metadata — yet the file a reader opens does not resemble the graph. This
-is precisely the failure an evaluation exists to catch: callback success is not
-user work.
+**Severity: blocking. Fixed.** `export_visualization` reported success, and
+every fact it reported was true — correct hash, correct byte length, correct
+dimensions, correct metadata — yet the file a reader opened did not resemble the
+graph. This is precisely the failure an evaluation exists to catch: callback
+success is not user work, and nothing in the tool contract could detect it,
+because the result was bounded, honest and internally consistent while the
+artifact was simply wrong.
 
-Opened independently, the artifact renders as a few black shapes in one corner,
-mostly outside its own viewBox. Two causes, both visible in the file:
+Opened independently, the artifact rendered as a few black shapes in one corner,
+mostly outside its own viewBox. Two causes:
 
-- **No styling survives the export.** Across 108 elements the artifact has zero
+- **No styling survived the export.** Across 108 elements the artifact had zero
   `<style>` elements, zero `style` attributes and zero `fill` attributes. The
-  visualization is styled by an external stylesheet, and the export serializes
-  a detached clone of the live SVG root, which carries none of it. The README's
-  "Additional information" section describes a tool for generating the code
-  that inlines those styles; whatever inlining that produced is not happening in
-  the current export path.
-- **The geometry is not reframed for the artifact.** The live SVG is 1600×845
-  and its content sits under a pan-and-zoom transform. The artifact declares
-  800×600 with `viewBox="0 0 800 600"` while keeping the live coordinates, so
-  most of the graph falls outside the visible area.
+  visualization is styled by a stylesheet, and the export serialized a bare
+  `cloneNode(true)` of the live SVG root, which carries none of it. A module
+  that resolves computed styles onto such a clone already existed, fully
+  implemented and tested — and nothing in production called it. It was the same
+  dead-functionality defect the renderer sweep found, one layer up.
+- **The geometry was not framed for the artifact.** The live SVG was 1600×845
+  with its content under a pan-and-zoom transform, while the artifact declared
+  800×600 from the configured canvas and kept the live coordinates, so most of
+  the graph fell outside the visible area.
 
-This is pre-existing rather than caused by the controller migration: the only
-change to the export path in that work was one line recording the magnification
-in the view recipe. It affects the human **Export as SVG** control identically,
-because both routes produce the same artifact.
+It affected the human **Export as SVG** control identically, because both routes
+produce the same artifact.
 
-Nothing in the tool contract can detect this. The result is bounded, honest and
-internally consistent; the artifact is simply wrong. A regression test should
-compare the exported artifact against the live rendering rather than against the
-reported metadata.
+**The fix.** The style-resolving clone builder moved into the renderer as
+`renderedSvgExportClone`, where ADR 0010 puts anything that reads the live SVG,
+and the adapter now uses it instead of a bare clone. An exported view is framed
+on the viewport the reader is looking at, so the clone takes its dimensions and
+`viewBox` from the live SVG rather than the configured canvas, and the view
+recipe reports the viewport the artifact actually used rather than the layout's —
+otherwise the serializer refuses the pair as inconsistent, which is how the
+mismatch surfaced.
+
+**Evidence after the fix**, measured in the same browser:
+
+- 942 of 943 elements now carry a resolved `style` attribute, where none did.
+- A drawn class node's appearance matches the live rendering exactly:
+  `fill: rgb(255, 255, 255)`, `stroke: rgb(0, 0, 0)`, `stroke-width: 2px` and
+  `fill-opacity: 1` are identical in the artifact and in what the browser paints.
+- All 113 text elements in the live graph appear in the artifact.
+- The artifact grew from 7,466 bytes to roughly 413,000, which is what carrying
+  the appearance costs.
+- The `viewBox` tracks the live viewport, verified by shrinking the window: the
+  artifact followed it rather than staying at the configured canvas.
+
+A picture of the artifact was not captured, because the browser window was
+collapsed to 157×25 during this session and could not be restored. The property
+comparison above is stronger evidence than a screenshot would be, but opening an
+exported file at a normal window size is worth doing once.
 
 ### 2. The ontology title is not reported
 

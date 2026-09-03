@@ -711,7 +711,6 @@ export function createWebVowlController(dependencies) {
 
         const renderedSvgSnapshot =
           renderedGraphRuntime.createRenderedSvgSnapshot({ loadGeneration });
-        const graphLayoutSnapshot = readGraphLayoutSnapshot();
 
         return await svgArtifactService.createSvgArtifact(
           {
@@ -721,9 +720,12 @@ export function createWebVowlController(dependencies) {
               source: { ...currentSourceProvenance },
               loadGeneration,
               appliedVisualizationView: controllerState.view,
+              // The viewport the artifact was framed on, read from the
+              // snapshot itself. Taking it from the layout instead lets the
+              // recipe and the artifact disagree about the same picture.
               viewportDimensions: {
-                widthPx: graphLayoutSnapshot.widthPx,
-                heightPx: graphLayoutSnapshot.heightPx,
+                widthPx: renderedSvgSnapshot.widthPx,
+                heightPx: renderedSvgSnapshot.heightPx,
               },
               layoutOutcome: {
                 status: layoutOutcome.status,

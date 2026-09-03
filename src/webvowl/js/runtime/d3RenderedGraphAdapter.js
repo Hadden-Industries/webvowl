@@ -1,4 +1,5 @@
 import { createRenderedGraphConfiguration } from "./renderedGraphConfiguration.js";
+import { createRenderedSvgExportClone } from "./renderedSvgExportClone.js";
 import {
   indexOntologyElementReferencesByVowlElementId,
   ontologyElementReferenceKey,
@@ -19,8 +20,6 @@ import {
   createVowlModelReplacementRequest,
   createVowlModelReplacementResult,
 } from "../../../app/js/controller/renderedGraphRuntimeContracts.js";
-
-const INTERACTION_ONLY_ELEMENT_CLASS = "vowl-interaction-only";
 
 const D3_RENDERED_GRAPH_ADAPTER_DEPENDENCY_FIELD_NAMES = Object.freeze([
   "renderedGraphInternals",
@@ -74,6 +73,20 @@ function assertExactDependencyFieldNames(dependencies) {
       "D3 rendered graph adapter dependencies have an invalid dependency field set.",
     );
   }
+}
+
+// An SVG length attribute may be absent or carry a unit. Only a plain finite
+// number is usable as a viewport dimension; anything else falls back to the
+// configured canvas.
+function readSvgLengthAttribute(svgElement, attributeName) {
+  const attributeValue = svgElement.getAttribute(attributeName);
+  if (attributeValue === null) {
+    return undefined;
+  }
+  const parsedLength = Number.parseFloat(attributeValue);
+  return Number.isFinite(parsedLength) && parsedLength > 0
+    ? parsedLength
+    : undefined;
 }
 
 function createAbortError(message) {
@@ -744,18 +757,32 @@ export function createD3RenderedGraphAdapter(dependencies) {
       if (liveSvgRoot === null) {
         throw createAbortError("The rendered graph has no SVG root to export.");
       }
-      const detachedSvgRoot = liveSvgRoot.cloneNode(true);
-      for (const interactionOnlyElement of detachedSvgRoot.querySelectorAll(
-        `.${INTERACTION_ONLY_ELEMENT_CLASS}`,
-      )) {
-        interactionOnlyElement.parentNode?.removeChild(interactionOnlyElement);
-      }
+      // An exported view is the view on screen, so the clone is framed on the
+      // live viewport rather than on the configured canvas. Framing it on a
+      // different canvas would clip a graph the reader can see, because the
+      // drawn content is positioned for the viewport it is drawn in.
+      const viewportDimensions = {
+        widthPx:
+          readSvgLengthAttribute(liveSvgRoot, "width") ??
+          renderedGraphConfiguration.widthPx,
+        heightPx:
+          readSvgLengthAttribute(liveSvgRoot, "height") ??
+          renderedGraphConfiguration.heightPx,
+      };
+      // The reader comes from the document the graph is drawn in, so the
+      // export resolves the styles that document actually applies.
+      const liveWindowObject = liveSvgRoot.ownerDocument?.defaultView;
+      const detachedSvgRoot = createRenderedSvgExportClone(
+        liveSvgRoot,
+        liveWindowObject?.getComputedStyle?.bind(liveWindowObject),
+        viewportDimensions,
+      );
 
       return createRenderedSvgSnapshot({
         loadGeneration: snapshotRequest.loadGeneration,
         detachedSvgRoot,
-        widthPx: renderedGraphConfiguration.widthPx,
-        heightPx: renderedGraphConfiguration.heightPx,
+        widthPx: viewportDimensions.widthPx,
+        heightPx: viewportDimensions.heightPx,
       });
     },
 

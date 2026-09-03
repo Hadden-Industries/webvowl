@@ -70,7 +70,13 @@ class SvgElementFixture {
     // parentNode is read-only on real DOM nodes. The double enforces that so
     // an assignment cannot pass here and throw in a browser.
     this.ownParentNode = null;
-    this.style = { cssText: "" };
+    this.style = {
+      cssText: "",
+      properties: {},
+      setProperty(propertyName, propertyValue) {
+        this.properties[propertyName] = propertyValue;
+      },
+    };
     this.textContent = "";
   }
 
@@ -88,6 +94,11 @@ class SvgElementFixture {
     return childElement;
   }
 
+  // ChildNode.remove, which every real element has.
+  remove() {
+    this.ownParentNode?.removeChild(this);
+  }
+
   cloneNode(includeDescendants) {
     const clonedElement = new SvgElementFixture(
       this.documentObject,
@@ -96,7 +107,13 @@ class SvgElementFixture {
     );
     clonedElement.attributes = new Map(this.attributes);
     clonedElement.textContent = this.textContent;
-    clonedElement.style = { cssText: this.style.cssText };
+    clonedElement.style = {
+      cssText: this.style.cssText,
+      properties: { ...this.style.properties },
+      setProperty(propertyName, propertyValue) {
+        this.properties[propertyName] = propertyValue;
+      },
+    };
     if (includeDescendants) {
       for (const childElement of this.childNodes) {
         clonedElement.appendChild(childElement.cloneNode(true));
@@ -679,6 +696,34 @@ describe("D3 rendered graph adapter", () => {
 
     expect(internals.maxLabelWidths).toEqual([200]);
     expect(internals.labelWidthAnimations).toBe(0);
+  });
+
+  test("exports a styled clone framed on what the reader is looking at", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+    const liveSvgRoot =
+      adapterHarness.graphContainerElement.querySelector("svg");
+    liveSvgRoot.setAttribute("width", "1600");
+    liveSvgRoot.setAttribute("height", "845");
+
+    const renderedSvgSnapshot =
+      adapterHarness.renderedGraphRuntime.createRenderedSvgSnapshot({
+        loadGeneration: 1,
+      });
+
+    // A bare clone of the live SVG carries no appearance, because the
+    // visualization is styled by a stylesheet. The export resolves those
+    // styles and frames the clone on the viewport the reader is looking at.
+    expect(renderedSvgSnapshot.detachedSvgRoot.getAttribute("viewBox")).toBe(
+      "0 0 1600 845",
+    );
+    expect(renderedSvgSnapshot.detachedSvgRoot.getAttribute("width")).toBe(
+      "1600",
+    );
+    expect(renderedSvgSnapshot.widthPx).toBe(1600);
+    expect(renderedSvgSnapshot.heightPx).toBe(845);
+    // The live SVG is never touched.
+    expect(liveSvgRoot.getAttribute("viewBox")).toBeNull();
   });
 
   test("asks the renderer to return the visualization to its defaults", async () => {

@@ -189,14 +189,35 @@ describe("WebVOWL controller orchestration", () => {
     });
   });
 
-  async function completeLoad(loadGeneration = 1, loadOptions = {}) {
+  function createDetachedSvgRootFixture() {
+    return {
+      localName: "svg",
+      namespaceURI: "http://www.w3.org/2000/svg",
+      parentNode: null,
+      cloneNode(includeDescendants) {
+        if (includeDescendants !== true) {
+          throw new TypeError("Rendered SVG snapshots require a deep clone.");
+        }
+        return createDetachedSvgRootFixture();
+      },
+    };
+  }
+
+  async function completeLoad(
+    loadGeneration = 1,
+    loadOptions = {},
+    snapshotOverrides = {},
+  ) {
     const loadPromise = controller.loadOntology(SOURCE_REQUEST, loadOptions);
     await flushMicrotasks(2);
     const deferredLoad = deferredSourceLoads.at(-1);
     deferredLoad.onPhaseChange?.("parsing");
     deferredLoad.resolve(createSourceLoadRecord());
     await flushMicrotasks(3);
-    renderedGraphTestHarness.completeInitialPaint(loadGeneration);
+    renderedGraphTestHarness.completeInitialPaint(
+      loadGeneration,
+      snapshotOverrides,
+    );
     await flushMicrotasks(3);
     renderedGraphTestHarness.completeVisualizationViewApplication(
       loadGeneration,
@@ -817,13 +838,56 @@ describe("WebVOWL controller orchestration", () => {
         identity: DOCUMENT_IRI,
         sha256Hex: "a".repeat(64),
       });
+      // The recipe states the viewport the artifact was actually framed on,
+      // taken from the snapshot itself. Reading it from anywhere else lets the
+      // two disagree, which the serializer refuses.
+      const { renderedSvgSnapshot } =
+        svgArtifactService.createSvgArtifact.mock.calls[0][0];
       expect(viewRecipe.viewportDimensions).toEqual({
-        widthPx: 800,
-        heightPx: 600,
+        widthPx: renderedSvgSnapshot.widthPx,
+        heightPx: renderedSvgSnapshot.heightPx,
       });
       expect(viewRecipe.layoutOutcome).toEqual({
         status: "settled",
         reason: "stable-frames",
+      });
+    });
+
+    test("states the viewport the artifact was framed on, not the layout's", async () => {
+      // The artifact is framed on the viewport the reader is looking at, which
+      // need not be the configured canvas the layout reports. The recipe must
+      // state the viewport the artifact actually used, or the serializer
+      // refuses the pair as inconsistent.
+      await completeLoad(
+        1,
+        {},
+        {
+          renderedSvgSnapshot: {
+            detachedSvgRoot: createDetachedSvgRootFixture(),
+            heightPx: 845,
+            loadGeneration: 1,
+            widthPx: 1600,
+          },
+        },
+      );
+
+      const exportPromise = exportVisualization({ filename: "framed.svg" });
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+      await flushMicrotasks(6);
+      await exportPromise;
+
+      const { viewRecipe, renderedSvgSnapshot } =
+        svgArtifactService.createSvgArtifact.mock.calls.at(-1)[0];
+
+      expect(renderedSvgSnapshot.widthPx).toBe(1600);
+      expect(viewRecipe.viewportDimensions).toEqual({
+        widthPx: 1600,
+        heightPx: 845,
       });
     });
 
