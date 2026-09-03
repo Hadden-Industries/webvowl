@@ -16,7 +16,6 @@ export function createRenderedGraphSettings() {
     linkStrength = 1,
     height = 600,
     width = 800,
-    selectionModules = [],
     filterModules = [],
     minMagnification = 0.01,
     maxMagnification = 4,
@@ -282,13 +281,6 @@ export function createRenderedGraphSettings() {
       return scaleNodesByIndividuals;
     }
     scaleNodesByIndividuals = p;
-    return renderedGraphSettings;
-  };
-  renderedGraphSettings.selectionModules = function (p) {
-    if (!arguments.length) {
-      return selectionModules;
-    }
-    selectionModules = p;
     return renderedGraphSettings;
   };
   renderedGraphSettings.width = function (p) {

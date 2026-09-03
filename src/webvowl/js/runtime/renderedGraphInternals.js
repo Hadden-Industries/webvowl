@@ -11,6 +11,8 @@ import { createRangeDragger } from "../rangeDragger.js";
 import { createDomainDragger } from "../domainDragger.js";
 import { createShadowClone } from "../shadowClone.js";
 import { nextContinuousZoomScale } from "../../../shared/js/util/continuousZoomRamp.js";
+import { createFocuser } from "../../../shared/js/modules/focuser.js";
+import { createPickAndPin } from "../../../shared/js/modules/pickAndPin.js";
 import _ from "lodash/core";
 import { createMath as createMathModule } from "../../../shared/js/util/math.js";
 const math = createMathModule();
@@ -193,6 +195,17 @@ function createGraph(graphContainerSelector) {
   const CARDINALITY_HDISTANCE = 20;
   const CARDINALITY_VDISTANCE = 10;
   const renderedGraphSettings = createRenderedGraphSettings();
+  // Focus and pinning last only as long as this mount, so the renderer builds
+  // them rather than accepting them from the application. The selection they
+  // respond to is published as a fact and reaches the interface through
+  // controller state.
+  const focuser = createFocuser(graph);
+  const pickAndPin = createPickAndPin();
+  renderedGraphSettings.focuserModule(focuser);
+  renderedGraphSettings.pickAndPinModule(pickAndPin);
+  graph.addEventListener("elementfocused", (focusEvent) =>
+    focuser.handle(focusEvent.detail.element),
+  );
   const ontologyEditingState = createOntologyEditingState();
   const parser = createVowlParser(graph);
   let language = "default";
@@ -602,9 +615,8 @@ function createGraph(graphContainerSelector) {
     lastExecutedElement = selectedElement;
     lastExecutedTime = now;
 
-    renderedGraphSettings.selectionModules().forEach(function (module) {
-      module.handle(event, selectedElement, forced);
-    });
+    focuser.handle(event, selectedElement, forced);
+    pickAndPin.handle(event, selectedElement, forced);
   }
 
   function isSolitaryLabel(d) {
@@ -1927,6 +1939,7 @@ function createGraph(graphContainerSelector) {
   // charge, gravity and link strength appear here and in no request shape.
   graph.resetVisualization = function () {
     graph.resetSearchHighlight();
+    focuser.reset();
     renderedGraphSettings.charge(RENDERED_GRAPH_CONFIGURATION_DEFAULTS.charge);
     renderedGraphSettings.gravity(
       RENDERED_GRAPH_CONFIGURATION_DEFAULTS.gravity,

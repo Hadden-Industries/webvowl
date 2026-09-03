@@ -17,12 +17,10 @@ import { createDatatypeFilter } from "../../shared/js/modules/datatypeFilter.js"
 import { createDisjointFilter } from "../../shared/js/modules/disjointFilter.js";
 import { createElementTools } from "../../shared/js/util/elementTools.js";
 import { createEmptyLiteralFilter } from "../../shared/js/modules/emptyLiteralFilter.js";
-import { createFocuser } from "../../shared/js/modules/focuser.js";
 import { createLanguageTools } from "../../shared/js/util/languageTools.js";
 import { createNodeDegreeFilter } from "../../shared/js/modules/nodeDegreeFilter.js";
 import { createNodeScalingSwitch } from "../../shared/js/modules/nodeScalingSwitch.js";
 import { createObjectPropertyFilter } from "../../shared/js/modules/objectPropertyFilter.js";
-import { createPickAndPin } from "../../shared/js/modules/pickAndPin.js";
 import { createPrefixRepresentationModule } from "../../shared/js/util/prefixRepresentationModule.js";
 import { createSetOperatorFilter } from "../../shared/js/modules/setOperatorFilter.js";
 import { createStatistics } from "../../shared/js/modules/statistics.js";
@@ -79,12 +77,10 @@ export function createWebVowlApplication() {
     compactNotationSwitch = createCompactNotationSwitch(graph),
     datatypeFilter = createDatatypeFilter(),
     disjointFilter = createDisjointFilter(),
-    focuser = createFocuser(graph),
     emptyLiteralFilter = createEmptyLiteralFilter(),
     nodeDegreeFilter = createNodeDegreeFilter(filterMenu),
     nodeScalingSwitch = createNodeScalingSwitch(graph),
     objectPropertyFilter = createObjectPropertyFilter(),
-    pickAndPin = createPickAndPin(),
     statistics = createStatistics(),
     subclassFilter = createSubclassFilter(),
     setOperatorFilter = createSetOperatorFilter();
@@ -372,11 +368,6 @@ export function createWebVowlApplication() {
       }; //fall back
 
     renderedGraphSettings.graphContainerSelector(GRAPH_SELECTOR);
-    // Focus and pinning are renderer-local: neither outlives a mount, so both
-    // stay behind the seam. The selection itself is published as a fact and
-    // reaches the sidebar through controller state.
-    renderedGraphSettings.selectionModules().push(focuser);
-    renderedGraphSettings.selectionModules().push(pickAndPin);
 
     renderedGraphSettings.filterModules().push(emptyLiteralFilter);
     renderedGraphSettings.filterModules().push(statistics);
@@ -408,9 +399,6 @@ export function createWebVowlApplication() {
     );
     graph.addEventListener("updatelocatebutton", (e) =>
       searchMenu.updateLocateButtonVisibility(e.detail.visible),
-    );
-    graph.addEventListener("elementfocused", (e) =>
-      focuser.handle(e.detail.element),
     );
     graph.addEventListener("editorchange", (e) => {
       const isEditMode = e.detail.value;
@@ -543,7 +531,6 @@ export function createWebVowlApplication() {
       }
       document.querySelector("#element_labelEditor").value = e.detail.label;
     });
-    renderedGraphSettings.focuserModule(focuser);
     renderedGraphSettings.pausedMenu(pauseMenu);
     renderedGraphSettings.resetMenu(resetMenu);
 
@@ -599,7 +586,9 @@ export function createWebVowlApplication() {
     editSidebar.setup();
     debugMenu.setup();
     document.querySelector("#logo").classList.remove("hidden");
-    resetMenu.setup([gravityMenu, filterMenu, modeMenu, focuser]);
+    // Focus is reset by the renderer as part of returning the visualization to
+    // its defaults, so it is no longer a resettable module the interface holds.
+    resetMenu.setup([gravityMenu, filterMenu, modeMenu]);
     searchMenu.setup();
     navigationMenu.setup();
     zoomSlider.setup();
@@ -611,7 +600,6 @@ export function createWebVowlApplication() {
     renderedGraphSettings.modeMenu(modeMenu);
     renderedGraphSettings.gravityMenu(gravityMenu);
     renderedGraphSettings.pausedMenu(pauseMenu);
-    renderedGraphSettings.pickAndPinModule(pickAndPin);
     renderedGraphSettings.resetMenu(resetMenu);
     renderedGraphSettings.navigationMenu(navigationMenu);
     renderedGraphSettings.leftSidebar(leftSidebar);

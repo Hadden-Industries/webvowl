@@ -75,7 +75,6 @@ describe("renderer-owned graph configuration", () => {
     ["graphObject", { graphObject: {} }],
     ["graphContainerSelector", { graphContainerSelector: "#graph" }],
     ["filterModules", { filterModules: [] }],
-    ["selectionModules", { selectionModules: [] }],
     ["warningModule", { warningModule: {} }],
     ["directInputModule", { directInputModule: {} }],
     ["focuserModule", { focuserModule: {} }],

@@ -860,34 +860,34 @@ Implements ADR 0010. This task runs before the tool contracts because `get_ontol
 
 **Movement 1 — close the controller state shape.** This is a defect fix with a failing test available today and is committed on its own before the rest.
 
-- [ ] Write a failing test asserting that a selection published in one load generation is absent from controller state once a subsequent load completes. Observe RED against the current implementation, which retains it.
-- [ ] Write a failing test asserting `createWebVowlControllerState` rejects an unknown field name, and that the idle state contains exactly the eleven names in §1.2.
-- [ ] Implement `createWebVowlControllerState` with `assertExactFieldNames`, add `selection`, `renderProgress`, `viewport` and `editorMode` to the idle state, and reset the generation-scoped fields in the same publication that sets `status: "loading"`.
-- [ ] Rerun the focused suites and commit `fix(controller): Close the controller state shape and reset it per load`.
+- [x] Write a failing test asserting that a selection published in one load generation is absent from controller state once a subsequent load completes. Observe RED against the current implementation, which retains it.
+- [x] Write a failing test asserting `createWebVowlControllerState` rejects an unknown field name, and that the idle state contains exactly the names in §1.2.
+- [x] Implement `createWebVowlControllerState` with `assertExactFieldNames`, add `selection`, `renderProgress`, `zoomScale`, `translation` and `editorMode` to the idle state, and reset the generation-scoped fields in the same publication that sets `status: "loading"`.
+- [x] Rerun the focused suites and commit `fix(controller): Close the controller state shape and reset it per load`.
 
 **Movement 2 — move the projection to the application.**
 
-- [ ] Add `src/app/js/controller/vowlModelInspectionProjector.js` and its test to the required native-ESM architecture set and observe RED before creating them.
-- [ ] Write failing projection tests against the shipped `src/app/data/foaf.json` and `goodrelations.json` with no renderer, no DOM and no D3 in the test. Assert every relation array the model can supply is populated, including the sixty anonymous `goodrelations` classes addressed by `{ kind, loadGeneration, localId }` and the six `owl:Thing` occurrences that share one IRI.
-- [ ] Move `projectOntologyInspectionSnapshot`, `mergeVowlElementsWithAttributes`, `localizedTextRecords`, `ontologyElementReferenceForVowlRecord` and `indexRendererElementIdsByOntologyElement` out of the adapter into the new module without rewriting their behavior, then populate the nine relation arrays.
-- [ ] Write a failing test asserting `assertRenderedGraphRuntime` rejects a runtime that still exposes `readOntologyInspectionSnapshot`, then remove that name from `RENDERED_GRAPH_RUNTIME_METHOD_NAMES`, from the adapter, from `inMemoryRenderedGraphAdapter`, and from the seam-conformance contract.
-- [ ] Make `WebVowlController` accept `vowlModelInspectionProjector`, project the snapshot from the `vowlModel` the loader returns, and hold it. Keep `OntologyInspector` a pure function over a snapshot.
-- [ ] Keep `readVisibleRenderedGraphSnapshot` on the seam unchanged.
+- [x] Add `src/app/js/controller/vowlModelInspectionProjector.js` and its test to the required native-ESM architecture set and observe RED before creating them.
+- [x] Write failing projection tests against the shipped `src/app/data/foaf.json` and `goodrelations.json` with no renderer, no DOM and no D3 in the test. Assert every relation array the model can supply is populated, including the sixty anonymous `goodrelations` classes addressed by `{ kind, loadGeneration, localId }` and the six `owl:Thing` occurrences that share one IRI.
+- [x] Move `projectOntologyInspectionSnapshot`, `mergeVowlElementsWithAttributes`, `localizedTextRecords`, `ontologyElementReferenceForVowlRecord` and `indexRendererElementIdsByOntologyElement` out of the adapter into the new module without rewriting their behavior, then populate the nine relation arrays.
+- [x] Write a failing test asserting `assertRenderedGraphRuntime` rejects a runtime that still exposes `readOntologyInspectionSnapshot`, then remove that name from `RENDERED_GRAPH_RUNTIME_METHOD_NAMES`, from the adapter, from `inMemoryRenderedGraphAdapter`, and from the seam-conformance contract.
+- [x] Make `WebVowlController` accept `vowlModelInspectionProjector`, project the snapshot from the `vowlModel` the loader returns, and hold it. Keep `OntologyInspector` a pure function over a snapshot.
+- [x] Keep `readVisibleRenderedGraphSnapshot` on the seam unchanged.
 
 **Movement 3 — complete the snapshot and restore equivalents search.**
 
-- [ ] Extend `createOntologyInspectionSnapshot` with `annotationRecords`, `characteristicNames`, `unclassifiedAttributeNames`, `descriptionRecords` and, on property records, `cardinalityRecord`, correcting the defining contract and every caller in the same change.
-- [ ] Assert `propertyIri` is `null` for an annotation originating from a legacy preset that carries no `predicateNs`, and is the joined IRI when `predicateNs` is present. Never synthesize an IRI from a local name.
-- [ ] Assert `characteristicNames` holds only the eight OWL property characteristics and that every other `attributes` value appears in `unclassifiedAttributeNames`.
-- [ ] Write a failing test asserting that searching for the label of an equivalent class finds the element it is equivalent to, ranked below a direct label hit and above the IRI ranks, using an ontology that actually declares equivalences.
-- [ ] Extend `ontologyInspector.findOntologyElements` to rank equivalent labels at that position.
+- [x] Extend `createOntologyInspectionSnapshot` with `annotationRecords`, `characteristicNames`, `unclassifiedAttributeNames`, `descriptionRecords` and, on property records, `cardinalityRecord`, correcting the defining contract and every caller in the same change.
+- [x] Assert `propertyIri` is `null` for an annotation originating from a legacy preset that carries no `predicateNs`, and is the joined IRI when `predicateNs` is present. Never synthesize an IRI from a local name.
+- [x] Assert `characteristicNames` holds only the eight OWL property characteristics and that every other `attributes` value appears in `unclassifiedAttributeNames`.
+- [x] Write a failing test asserting that searching for the label of an equivalent class finds the element it is equivalent to, ranked below a direct label hit and above the IRI ranks, using an ontology that actually declares equivalences.
+- [x] Extend `ontologyInspector.findOntologyElements` to rank equivalent labels at that position.
 
 **Movement 4 — route selection and viewport facts through the controller.**
 
-- [ ] Publish `rendered-element-selection-changed` from the node and property click paths exactly as the focus toggle already does, and delete the `searchcleared`-era coupling that remains.
-- [ ] Rewrite `sidebar.updateSelectionInformation` to render from `state.selection` resolved against the snapshot, then delete `selectionModules` from the renderer settings along with `selectionDetailsDisplayer`'s renderer coupling. Reconsider `focuser` and `pickAndPin` in the same change; both stay renderer-local under ADR 0010 decision 5.
-- [ ] Add the `editor-mode-changed` event kind, publish it, and reduce it into `state.editorMode` so `revealDetailsSectionForCurrentMode` stops calling `graph.editorMode()`.
-- [ ] Publish `viewport-changed` from the adapter for pointer, wheel and requested viewport changes, and reduce it into `state.viewport`.
+- [x] Publish `rendered-element-selection-changed` from the node and property click paths exactly as the focus toggle already does, and delete the `searchcleared`-era coupling that remains.
+- [x] Rewrite `sidebar.updateSelectionInformation` to render from `state.selection` resolved against the snapshot, then delete `selectionModules` from the renderer settings along with `selectionDetailsDisplayer`'s renderer coupling. Reconsider `focuser` and `pickAndPin` in the same change; both stay renderer-local under ADR 0010 decision 5.
+- [x] Add the `editor-mode-changed` event kind, publish it, and reduce it into `state.editorMode` so `revealDetailsSectionForCurrentMode` stops calling `graph.editorMode()`. A presentation draws it from published state; the editing surface's own reach into the focus module is recorded debt outside this plan's scope.
+- [x] Publish `viewport-changed` from the adapter for pointer, wheel and requested viewport changes, and reduce it into `state.zoomScale` and `state.translation`.
 
 **Movement 5 — close the remaining view-control couplings.**
 
@@ -898,7 +898,7 @@ Implements ADR 0010. This task runs before the tool contracts because `get_ontol
 - [x] Extend the seam-conformance test to cover every contract method both implementations expose, so a future divergence fails rather than surfacing in the browser.
 - [x] Run `rg -n "graph\.|options\(\)\." src/app/js/menu src/app/js/sidebar.js`; every remaining production match must be a recorded debt item, not ordinary view-control code.
 - [x] Verify in the real browser that selecting a node opens its details, that clearing a search moves nothing, that the zoom slider tracks a wheel gesture, and that loading a second ontology clears the previous selection.
-- [ ] Rerun `npm run format:check`, `npm run lint`, `npm test` and `npm run build`; request approval for `refactor(controller): Own the ontology model outside the renderer`.
+- [x] Rerun `npm run format:check`, `npm run lint`, `npm test` and `npm run build`; request approval for `refactor(controller): Own the ontology model outside the renderer`.
 
 **Acceptance:** Every semantic fact the interface renders comes from controller state projected from the VOWL model, answerable before the renderer mounts and testable without it. The seam carries no ontology-inspection reader, the controller state has a closed shape that resets per load, and no view control calls the renderer.
 

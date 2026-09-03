@@ -47,6 +47,21 @@ const RETIRED_SOURCE_IDENTIFIERS = Object.freeze([
 
 const RETIRED_SOURCE_LITERALS = Object.freeze(["data:image/svg+xml;base64"]);
 
+// Focus and pinning do not outlive a mount, so ADR 0010 decision 5 keeps both
+// renderer-local. An application module that builds one, or installs one into
+// renderer settings, is doing renderer bookkeeping across the seam.
+const RENDERER_LOCAL_SELECTION_IDENTIFIERS = Object.freeze([
+  "createFocuser",
+  "createPickAndPin",
+  "selectionModules",
+  "focuserModule",
+  "pickAndPinModule",
+]);
+const APPLICATION_INTERFACE_SOURCE_DIRECTORY = "src/app/js";
+// The editing surface is outside this migration's scope, so its remaining
+// reach into the focus module is recorded debt rather than a new violation.
+const EDITING_SURFACE_MODULE_PATH = "src/app/js/editSidebar.js";
+
 const RENDERED_GRAPH_INTERNALS_PATH =
   "src/webvowl/js/runtime/renderedGraphInternals.js";
 
@@ -347,6 +362,25 @@ describe("rendered graph decoupling", () => {
   test("keeps the in-memory adapter available only to tests", () => {
     expect(() => readModuleSource(IN_MEMORY_ADAPTER_PATH)).not.toThrow();
     expect(IN_MEMORY_ADAPTER_PATH.startsWith("src/app/test/")).toBe(true);
+  });
+
+  test("builds the renderer-local selection modules inside the renderer", () => {
+    const violations = [];
+    for (const modulePath of collectAuthoredJavaScriptModulePaths(
+      APPLICATION_INTERFACE_SOURCE_DIRECTORY,
+    )) {
+      if (modulePath === EDITING_SURFACE_MODULE_PATH) {
+        continue;
+      }
+      const moduleSource = readModuleSource(modulePath);
+      for (const rendererLocalIdentifier of RENDERER_LOCAL_SELECTION_IDENTIFIERS) {
+        if (namesIdentifier(moduleSource, rendererLocalIdentifier)) {
+          violations.push(`${modulePath}: ${rendererLocalIdentifier}`);
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
   });
 
   test("defines each renderer member exactly once", () => {
