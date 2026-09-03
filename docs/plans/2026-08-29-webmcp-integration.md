@@ -377,7 +377,7 @@ The initial view request is deliberately smaller than the existing UI:
 
 Every field is optional. Filter values are `show` or `hide`; `minDegree` is an integer from 0 through 100; `focus` contains at most 25 references; `layout` is `preserve` or `relax`; `viewport` is `preserve`, `fit`, or `focus-next`; and `zoomScale` is a finite number within the renderer's configured magnification bounds, currently 0.01 through 4. Omitted fields preserve current visible state.
 
-`zoomScale` and the `viewport` directives are the write half of one channel whose read half is the `viewport-changed` event. A zoom control writes `zoomScale`, a fit control writes `viewport: "fit"`, and both read the resulting `state.viewport.zoomScale` back. This is deliberately a continuous value rather than a step directive: the existing slider must track pinch and wheel gestures the reader performs directly on the visualization, and a stepped vocabulary cannot express that. `zoomScale` is the exact spelling `viewport-changed` already uses, so the two halves share one name.
+`zoomScale` and the `viewport` directives are the write half of one channel whose read half is the `viewport-changed` event. A zoom control writes `zoomScale`, a fit control writes `viewport: "fit"`, and both read the resulting `state.zoomScale` back. This is deliberately a continuous value rather than a step directive: the existing slider must track pinch and wheel gestures the reader performs directly on the visualization, and a stepped vocabulary cannot express that. `zoomScale` is the exact spelling `viewport-changed` already uses, so the two halves share one name.
 
 The existing human pause control uses the separate controller-domain request `{ isPaused: true | false }` with `setGraphLayoutPaused`. It is deliberately not an initial WebMCP field or sixth tool; agent-requested relaxation remains the bounded `layout: "relax"` visualization-view action. `setForceLayoutDistances` and `setVisualizationMode`, defined in §1.2, follow the same rule for the same reason.
 
@@ -406,7 +406,7 @@ On timeout, `onTimeout: "fail"` throws `LAYOUT_TIMEOUT`. `onTimeout: "best-effor
 | `load_ontology`          | `source` discriminated union | none                                                 | `readOnlyHint: false`, `untrustedContentHint: true` |
 | `get_ontology_summary`   | none                         | none                                                 | `readOnlyHint: true`, `untrustedContentHint: true`  |
 | `find_ontology_elements` | `query`                      | `kinds`, `limit`, `includeNeighborhood`              | `readOnlyHint: true`, `untrustedContentHint: true`  |
-| `set_visualization_view` | none                         | `language`, `filters`, `focus`, `layout`, `viewport` | `readOnlyHint: false`, `untrustedContentHint: true` |
+| `set_visualization_view` | none                         | `language`, `filters`, `focus`, `layout`, `viewport`, `zoomScale` | `readOnlyHint: false`, `untrustedContentHint: true` |
 | `export_visualization`   | none                         | `filename`, `settleTimeoutMs`, `onTimeout`           | `readOnlyHint: false`, `untrustedContentHint: true` |
 
 The adapter returns `{ isSuccess: true, toolResult }` or `{ isSuccess: false, error }`. Per-tool projectors remove internal data such as VOWL models, graph objects, stack traces, object URLs, and SVG text. If a projected tool result exceeds 1,500 serialized characters, the projector drops optional neighborhood facts first, then trims matches, warnings, imports, and namespaces from the end, truncates remaining derived strings, and sets `isTruncated: true`. A final minimal envelope containing operation, status/error code, load generation when relevant, and `isTruncated: true` is always below the ceiling; raw JSON is never cut mid-string.
@@ -909,10 +909,10 @@ Implements ADR 0010. This task runs before the tool contracts because `get_ontol
 - Create `src/app/js/webmcp/webMcpToolContracts.js`
 - Create `src/app/js/webmcp/webMcpToolContracts.test.js`
 
-- [ ] Add both Task 11 paths to the required native-ESM architecture set and observe RED before creating them.
-- [ ] Write a failing test asserting the exported definition names are exactly, and in this stable order, `load_ontology`, `get_ontology_summary`, `find_ontology_elements`, `set_visualization_view`, and `export_visualization`.
-- [ ] Assert every name is at most 30 characters, every description at most 500, every parameter description at most 150, every object schema has `additionalProperties: false`, and every union branch rejects fields from another branch.
-- [ ] Use these exact concise descriptions:
+- [x] Add both Task 11 paths to the required native-ESM architecture set and observe RED before creating them.
+- [x] Write a failing test asserting the exported definition names are exactly, and in this stable order, `load_ontology`, `get_ontology_summary`, `find_ontology_elements`, `set_visualization_view`, and `export_visualization`.
+- [x] Assert every name is at most 30 characters, every description at most 500, every parameter description at most 150, every object schema has `additionalProperties: false`, and every union branch rejects fields from another branch.
+- [x] Use these exact concise descriptions:
 
   | Tool                     | Description                                                                                                                      |
   | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
@@ -922,18 +922,18 @@ Implements ADR 0010. This task runs before the tool contracts because `get_ontol
   | `set_visualization_view` | Apply supported language, filters, focus, layout, and viewport changes to the visible WebVOWL graph.                             |
   | `export_visualization`   | Wait for the visible graph to settle and create a browser-local downloadable SVG with provenance metadata.                       |
 
-- [ ] Define `load_ontology.inputSchema` as one required `source` with three `oneOf` branches. The `ontology-document-iri` branch requires `documentIri`; the `vowl-json-url` branch requires `url`; each location has `maxLength: 2048`. The `ontology-text` branch requires `text` and one of the 12 format keys from §1.4; advertise `maxLength: 1048576` and still enforce UTF-8 bytes at runtime. Every branch is closed and rejects the fields belonging to another source concept.
-- [ ] Define an empty, closed object schema for `get_ontology_summary`.
-- [ ] Define `find_ontology_elements` with required `query` of length 1–256, optional unique `kinds` from the four approved kinds, integer `limit` 1–25 defaulting to 10, and boolean `includeNeighborhood` defaulting to true.
-- [ ] Define `set_visualization_view` from the exact request in §1.4, including closed nested objects, at most 25 focus references, IRI strings capped at 2,048, local IDs capped at 256, and positive integer load generations.
-- [ ] Define `export_visualization` with filename length 1–128, integer timeout 1,000–30,000 default 12,000, and `onTimeout` enum `fail`/`best-effort` default `fail`.
-- [ ] Write runtime-validation tests that do not trust schemas: nulls, arrays, inherited properties, unknown fields, NaN, fractional integers, extra union fields, overlong UTF-8 text, unsupported schemes, credentials, stale references, and unsafe filenames must fail before a controller method runs.
-- [ ] Write projection tests for each success and error shape, all annotations, untrusted injection-like labels, deterministic collection trimming, `isTruncated: true`, and the hard 1,500-character serialized ceiling.
-- [ ] Run `npm test -- src/app/js/webmcp/webMcpToolContracts.test.js --runInBand` and confirm RED.
-- [ ] Implement static definitions, request normalizers, controller dispatch functions, safe error mapping, and per-tool result projectors. Keep WebMCP vocabulary in this directory.
-- [ ] Author the contracts and tests as native ESM with semantically precise named exports and explicit relative `.js` specifiers. They may import controller-domain contracts but no renderer or CommonJS leaf.
-- [ ] Do not add `wait_for_layout`, `create_visualization`, a generic command tool, an inspect tool, or aliases.
-- [ ] Rerun the focused suite, `src/productionModuleFormat.architecture.test.js`, and `npm run lint:js`; request approval for `feat(webmcp): Define bounded tool contracts`.
+- [x] Define `load_ontology.inputSchema` as one required `source` with three `oneOf` branches. The `ontology-document-iri` branch requires `documentIri`; the `vowl-json-url` branch requires `url`; each location has `maxLength: 2048`. The `ontology-text` branch requires `text` and one of the 12 format keys from §1.4; advertise `maxLength: 1048576` and still enforce UTF-8 bytes at runtime. Every branch is closed and rejects the fields belonging to another source concept.
+- [x] Define an empty, closed object schema for `get_ontology_summary`.
+- [x] Define `find_ontology_elements` with required `query` of length 1–256, optional unique `kinds` from the four approved kinds, integer `limit` 1–25 defaulting to 10, and boolean `includeNeighborhood` defaulting to true.
+- [x] Define `set_visualization_view` from the exact request in §1.4, including closed nested objects, at most 25 focus references, IRI strings capped at 2,048, local IDs capped at 256, and positive integer load generations.
+- [x] Define `export_visualization` with filename length 1–128, integer timeout 1,000–30,000 default 12,000, and `onTimeout` enum `fail`/`best-effort` default `fail`.
+- [x] Write runtime-validation tests that do not trust schemas: nulls, arrays, inherited properties, unknown fields, NaN, fractional integers, extra union fields, overlong UTF-8 text, unsupported schemes, credentials, stale references, and unsafe filenames must fail before a controller method runs.
+- [x] Write projection tests for each success and error shape, all annotations, untrusted injection-like labels, deterministic collection trimming, `isTruncated: true`, and the hard 1,500-character serialized ceiling.
+- [x] Run `npm test -- src/app/js/webmcp/webMcpToolContracts.test.js --runInBand` and confirm RED.
+- [x] Implement static definitions, request normalizers, controller dispatch functions, safe error mapping, and per-tool result projectors. Keep WebMCP vocabulary in this directory. The projection is one function routed by tool name rather than five, because §1.6 states a single drop order for every tool and a per-tool copy of it would be five places to disagree.
+- [x] Author the contracts and tests as native ESM with semantically precise named exports and explicit relative `.js` specifiers. They may import controller-domain contracts but no renderer or CommonJS leaf.
+- [x] Do not add `wait_for_layout`, `create_visualization`, a generic command tool, an inspect tool, or aliases.
+- [x] Rerun the focused suite, `src/productionModuleFormat.architecture.test.js`, and `npm run lint:js`; request approval for `feat(webmcp): Define bounded tool contracts`.
 
 **Acceptance:** The complete agent-facing interface is exact, small, runtime-validated, correctly annotated, deterministic, and context-bounded.
 

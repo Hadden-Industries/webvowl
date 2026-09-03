@@ -76,6 +76,8 @@ const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/app/test/renderedGraphRuntimeContract.js",
   "src/app/js/warningModule.js",
   "src/app/js/warningModule.test.js",
+  "src/app/js/webmcp/webMcpToolContracts.js",
+  "src/app/js/webmcp/webMcpToolContracts.test.js",
   "src/shared/js/util/continuousZoomRamp.js",
   "src/shared/js/util/continuousZoomRamp.test.js",
   "src/shared/js/util/resolveFetchUrl.js",
