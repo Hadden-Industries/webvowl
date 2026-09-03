@@ -276,32 +276,36 @@ exported file at a normal window size is worth doing once.
 as SVG** on a graph that had come to rest left it moving and apparently never
 settling.
 
-Exporting pauses the layout, snapshots it, and restores the previous pause
-state. Resuming went through the renderer's `updateStyle`, which resets the
-simulation to full alpha — right for a change that alters the layout, such as a
-new force distance, but wrong for resuming. Every export therefore re-ran the
-whole layout on a graph the reader had already watched settle. The behaviour
+Exporting holds the layout still so the snapshot matches what settled: it pauses,
+snapshots, and restores the previous pause state. Resuming re-energises the
+layout, which is correct — a reader who drags an element while paused expects it
+to relax back when they resume — but it meant every export re-ran the whole
+layout on a graph the reader had already watched come to rest. The behaviour
 predates this work; exporting simply had not been exercised recently.
 
-The fix separates the two. Pausing stops the simulation and resuming continues
-it, without ever resetting alpha, and the renderer is told whether the layout
-had already ended so it leaves a finished one alone. Only the caller knows that:
-a graph can visibly come to rest while the simulation's own alpha is still
-running, which is why resuming a "settled" graph restarted it.
+The fix is in the export, not the pause: a layout that has already ended is
+still by itself, so the export no longer pauses it at all. Resuming is untouched
+and still re-energises. An export of a graph that is genuinely relaxing still
+pauses and restores it.
 
-Verified in the browser: a settled graph exported with no movement in any of 20
-one-second samples, where the same measurement gave 20 of 20 before the fix.
+**A wrong turn worth recording.** The first attempt changed what resuming means,
+stopping it from resetting alpha. That fixed the export and broke the reader's
+own control: pausing, dragging an element out and resuming left the element
+where it was dropped instead of relaxing back. The lesson is that the export and
+the pause button were asking for different things from one operation, and the
+one to change was the caller with the unusual need, not the shared behaviour
+every reader depends on.
 
 Two related observations from the same investigation:
 
 - The adapter's own `activeForceSimulation.restart()` appears to be a no-op in
   production, because the renderer creates and owns its simulation rather than
-  taking it from the adapter's D3. The renderer had to be told the fact instead.
-  Whether that adapter branch is reachable at all is worth establishing.
-- Resuming a genuinely mid-relax layout is covered by unit tests that now model
-  the renderer's pause behaviour in the double, but it was **not** confirmed
-  end to end in the browser: repeated attempts could not reliably catch the
-  graph in motion at the moment of pausing. Worth one manual check.
+  taking it from the adapter's D3. Whether that branch is reachable at all is
+  worth establishing.
+- Automated confirmation in the browser proved unreliable: a background tab
+  suspends `requestAnimationFrame`, so a load never reaches `ready` and an
+  export never completes. Both behaviours are covered by tests; the browser
+  check belongs in a visible window.
 
 ### 3. The ontology title is not reported
 
