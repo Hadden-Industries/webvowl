@@ -38,7 +38,12 @@ const NEIGHBORHOOD_FIELD_NAMES_BY_KIND = Object.freeze({
 const EXACT_LABEL_RANK = 0;
 const LABEL_PREFIX_RANK = 1;
 const LABEL_CONTAINS_RANK = 2;
-const IRI_CONTAINS_RANK = 3;
+// An equivalent's label identifies the element it is equivalent to, which is
+// how the original search reached a class by the name of its equivalent. It
+// ranks below every direct label match so a direct hit still wins, and above
+// the IRI ranks because it is a name a reader would recognise.
+const EQUIVALENT_LABEL_RANK = 3;
+const IRI_CONTAINS_RANK = 4;
 const NO_MATCH_RANK = Number.MAX_SAFE_INTEGER;
 
 const REFERENCE_KEY_SEPARATOR = "\u0000";
@@ -180,17 +185,47 @@ function labelMatchRank(labelTexts, normalizedQuery) {
   return bestRank;
 }
 
-function matchRankForRecord(elementRecord, normalizedQuery) {
+function matchRankForRecord(
+  elementRecord,
+  normalizedQuery,
+  labelTextsByReferenceKey,
+) {
   const labelTexts = elementRecord.labelRecords.map(({ text }) => text);
   const rank = labelMatchRank(labelTexts, normalizedQuery);
   if (rank !== NO_MATCH_RANK) {
     return rank;
+  }
+  const equivalentLabelTexts = (
+    elementRecord.equivalentClassReferences ?? []
+  ).flatMap(
+    (equivalentReference) =>
+      labelTextsByReferenceKey.get(
+        ontologyElementReferenceKey(equivalentReference),
+      ) ?? [],
+  );
+  if (labelMatchRank(equivalentLabelTexts, normalizedQuery) !== NO_MATCH_RANK) {
+    return EQUIVALENT_LABEL_RANK;
   }
   const iri = elementIri(elementRecord.ontologyElementReference);
   if (iri !== null && iri.toLowerCase().includes(normalizedQuery)) {
     return IRI_CONTAINS_RANK;
   }
   return NO_MATCH_RANK;
+}
+
+// An equivalence names another record by reference, so its labels have to be
+// looked up rather than read from the record that carries the equivalence.
+function indexLabelTextsByReferenceKey(ontologyInspectionSnapshot) {
+  const labelTextsByReferenceKey = new Map();
+  for (const elementRecord of ontologyInspectionSnapshot.classRecords) {
+    const key = ontologyElementReferenceKey(
+      elementRecord.ontologyElementReference,
+    );
+    const labelTexts = labelTextsByReferenceKey.get(key) ?? [];
+    labelTexts.push(...elementRecord.labelRecords.map(({ text }) => text));
+    labelTextsByReferenceKey.set(key, labelTexts);
+  }
+  return labelTextsByReferenceKey;
 }
 
 function createNeighborhoodFacts(elementRecord, kind, truncationTracker) {
@@ -347,6 +382,9 @@ export function createOntologyInspector() {
       const normalizedQuery = query.trim().toLowerCase();
       const truncationTracker = createTruncationTracker();
 
+      const labelTextsByReferenceKey = indexLabelTextsByReferenceKey(
+        ontologyInspectionSnapshot,
+      );
       const rankedMatches = [];
       for (const kind of requestedKinds) {
         const elementRecords =
@@ -354,7 +392,11 @@ export function createOntologyInspector() {
             RECORD_COLLECTION_FIELD_NAMES_BY_KIND[kind]
           ];
         for (const elementRecord of elementRecords) {
-          const matchRank = matchRankForRecord(elementRecord, normalizedQuery);
+          const matchRank = matchRankForRecord(
+            elementRecord,
+            normalizedQuery,
+            labelTextsByReferenceKey,
+          );
           if (matchRank === NO_MATCH_RANK) {
             continue;
           }

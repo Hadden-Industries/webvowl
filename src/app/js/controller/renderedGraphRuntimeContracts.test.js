@@ -76,6 +76,20 @@ beforeAll(async () => {
 
 const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
 
+// Every element record carries the same descriptive fields; a fixture only
+// names the ones a given assertion cares about.
+function describedElementFields(overrides = {}) {
+  return {
+    labelRecords: [],
+    commentRecords: [],
+    descriptionRecords: [],
+    annotationRecords: [],
+    characteristicNames: [],
+    unclassifiedAttributeNames: [],
+    ...overrides,
+  };
+}
+
 function createOntologyInspectionSnapshotSource() {
   const personReference = {
     kind: "class",
@@ -99,11 +113,22 @@ function createOntologyInspectionSnapshotSource() {
     classRecords: [
       {
         ontologyElementReference: personReference,
-        labelRecords: [
-          { languageTag: "en", text: "Person" },
-          { languageTag: "fr", text: "Personne" },
-        ],
-        commentRecords: [{ languageTag: null, text: "A human being" }],
+        ...describedElementFields({
+          labelRecords: [
+            { languageTag: "en", text: "Person" },
+            { languageTag: "fr", text: "Personne" },
+          ],
+          commentRecords: [{ languageTag: null, text: "A human being" }],
+          annotationRecords: [
+            {
+              localName: "term_status",
+              propertyIri: null,
+              languageTag: null,
+              text: "stable",
+              valueKind: "literal",
+            },
+          ],
+        }),
         superclassReferences: [agentReference],
         equivalentClassReferences: [],
         disjointClassReferences: [],
@@ -112,8 +137,9 @@ function createOntologyInspectionSnapshotSource() {
     datatypeRecords: [
       {
         ontologyElementReference: stringReference,
-        labelRecords: [{ languageTag: "en", text: "string" }],
-        commentRecords: [],
+        ...describedElementFields({
+          labelRecords: [{ languageTag: "en", text: "string" }],
+        }),
       },
     ],
     importRecords: [
@@ -126,8 +152,9 @@ function createOntologyInspectionSnapshotSource() {
           loadGeneration: 3,
           localId: "AnonymousIndividual7",
         },
-        labelRecords: [{ languageTag: null, text: "Anonymous person" }],
-        commentRecords: [],
+        ...describedElementFields({
+          labelRecords: [{ languageTag: null, text: "Anonymous person" }],
+        }),
         classReferences: [personReference],
       },
     ],
@@ -145,8 +172,12 @@ function createOntologyInspectionSnapshotSource() {
     propertyRecords: [
       {
         ontologyElementReference: nameReference,
-        labelRecords: [{ languageTag: "en", text: "name" }],
-        commentRecords: [],
+        ...describedElementFields({
+          labelRecords: [{ languageTag: "en", text: "name" }],
+          characteristicNames: ["functional"],
+          unclassifiedAttributeNames: ["external"],
+        }),
+        cardinalityRecord: { exact: null, minimum: 1, maximum: null },
         domainReferences: [personReference],
         rangeReferences: [stringReference],
         superpropertyReferences: [],

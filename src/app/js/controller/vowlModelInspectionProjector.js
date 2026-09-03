@@ -60,6 +60,96 @@ function mergeVowlElementsWithAttributes(baseCollection, attributeCollection) {
   }));
 }
 
+// The eight characteristics OWL defines for a property. VOWL keeps them in one
+// flat `attributes` bag alongside class-expression kinds such as `union` and
+// status markers such as `external`; only these eight have an unambiguous OWL
+// reading, so the rest stay unclassified rather than acquiring an invented
+// taxonomy.
+const OWL_PROPERTY_CHARACTERISTIC_NAMES = Object.freeze([
+  "functional",
+  "inverse functional",
+  "transitive",
+  "symmetric",
+  "asymmetric",
+  "reflexive",
+  "irreflexive",
+  "key",
+]);
+
+function characteristicNamesFrom(vowlAttributeNames) {
+  return vowlBaseRecords(vowlAttributeNames).filter((attributeName) =>
+    OWL_PROPERTY_CHARACTERISTIC_NAMES.includes(attributeName),
+  );
+}
+
+function unclassifiedAttributeNamesFrom(vowlAttributeNames) {
+  return vowlBaseRecords(vowlAttributeNames).filter(
+    (attributeName) =>
+      !OWL_PROPERTY_CHARACTERISTIC_NAMES.includes(attributeName),
+  );
+}
+
+// VOWL groups annotations under the annotation property's bare local name and,
+// since the current converter, records the rest of the IRI beside each value as
+// `predicateNs`. A model converted before that carries no namespace, so the
+// property IRI is unknown rather than absent and is projected as null.
+function annotationRecordsFrom(vowlAnnotations) {
+  if (vowlAnnotations === null || typeof vowlAnnotations !== "object") {
+    return [];
+  }
+  return Object.entries(vowlAnnotations).flatMap(([localName, annotations]) =>
+    vowlBaseRecords(annotations)
+      .filter(
+        (annotation) =>
+          annotation !== null &&
+          typeof annotation === "object" &&
+          typeof annotation.value === "string",
+      )
+      .map((annotation) => ({
+        localName,
+        propertyIri:
+          typeof annotation.predicateNs === "string" &&
+          annotation.predicateNs.length > 0
+            ? `${annotation.predicateNs}${localName}`
+            : null,
+        languageTag:
+          typeof annotation.language === "string" &&
+          annotation.language !== "undefined"
+            ? annotation.language
+            : null,
+        text: annotation.value,
+        valueKind: annotation.type === "iri" ? "iri" : "literal",
+      })),
+  );
+}
+
+function cardinalityBound(vowlCardinalityValue) {
+  const boundValue = Number(vowlCardinalityValue);
+  return Number.isInteger(boundValue) && boundValue >= 0 ? boundValue : null;
+}
+
+function cardinalityRecordFrom(vowlRecord) {
+  return {
+    exact: cardinalityBound(vowlRecord.cardinality),
+    minimum: cardinalityBound(vowlRecord.minCardinality),
+    maximum: cardinalityBound(vowlRecord.maxCardinality),
+  };
+}
+
+// The descriptive fields every element record carries, whatever its kind.
+function describedElementFields(vowlRecord) {
+  return {
+    labelRecords: localizedTextRecords(vowlRecord.label),
+    commentRecords: localizedTextRecords(vowlRecord.comment),
+    descriptionRecords: localizedTextRecords(vowlRecord.description),
+    annotationRecords: annotationRecordsFrom(vowlRecord.annotations),
+    characteristicNames: characteristicNamesFrom(vowlRecord.attributes),
+    unclassifiedAttributeNames: unclassifiedAttributeNamesFrom(
+      vowlRecord.attributes,
+    ),
+  };
+}
+
 function referencesByVowlElementId(mergedRecords, kind, loadGeneration) {
   return new Map(
     mergedRecords.map((mergedRecord) => [
@@ -181,10 +271,10 @@ function projectIndividualRecords(
           "individual",
           loadGeneration,
         ),
-        labelRecords: localizedTextRecords(
-          individualRecord.labels ?? individualRecord.label,
-        ),
-        commentRecords: localizedTextRecords(individualRecord.comment),
+        ...describedElementFields({
+          ...individualRecord,
+          label: individualRecord.labels ?? individualRecord.label,
+        }),
         classReferences:
           declaringClassReference === undefined
             ? []
@@ -238,8 +328,7 @@ export function projectOntologyInspectionSnapshot(vowlModel, loadGeneration) {
       "class",
       loadGeneration,
     ),
-    labelRecords: localizedTextRecords(vowlRecord.label),
-    commentRecords: localizedTextRecords(vowlRecord.comment),
+    ...describedElementFields(vowlRecord),
     superclassReferences: resolveReferences(
       superclassIdsBySubclassId.get(String(vowlRecord.id)),
       classReferencesById,
@@ -259,8 +348,8 @@ export function projectOntologyInspectionSnapshot(vowlModel, loadGeneration) {
       "property",
       loadGeneration,
     ),
-    labelRecords: localizedTextRecords(vowlRecord.label),
-    commentRecords: localizedTextRecords(vowlRecord.comment),
+    ...describedElementFields(vowlRecord),
+    cardinalityRecord: cardinalityRecordFrom(vowlRecord),
     domainReferences: resolveReferences(
       vowlRecord.domain,
       classOrDatatypeReferencesById,
@@ -284,8 +373,7 @@ export function projectOntologyInspectionSnapshot(vowlModel, loadGeneration) {
       "datatype",
       loadGeneration,
     ),
-    labelRecords: localizedTextRecords(vowlRecord.label),
-    commentRecords: localizedTextRecords(vowlRecord.comment),
+    ...describedElementFields(vowlRecord),
   }));
 
   const ontologyHeader = vowlModel.header ?? {};

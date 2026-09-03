@@ -79,22 +79,34 @@ function englishLabel(text) {
   return [{ languageTag: "en", text }];
 }
 
+// Every element record carries the same descriptive fields; a fixture only
+// names the ones a given test cares about.
+function describedElementFields(overrides = {}) {
+  return {
+    labelRecords: [],
+    commentRecords: [],
+    descriptionRecords: [],
+    annotationRecords: [],
+    characteristicNames: [],
+    unclassifiedAttributeNames: [],
+    ...overrides,
+  };
+}
+
 function classRecord({
   iri,
   localId,
-  labelRecords = [],
-  commentRecords = [],
   superclassReferences = [],
   equivalentClassReferences = [],
   disjointClassReferences = [],
+  ...describedFieldOverrides
 }) {
   return {
     ontologyElementReference:
       iri === undefined
         ? { kind: "class", loadGeneration: LOAD_GENERATION, localId }
         : { kind: "class", iri },
-    labelRecords,
-    commentRecords,
+    ...describedElementFields(describedFieldOverrides),
     superclassReferences,
     equivalentClassReferences,
     disjointClassReferences,
@@ -103,17 +115,17 @@ function classRecord({
 
 function propertyRecord({
   iri,
-  labelRecords = [],
-  commentRecords = [],
   domainReferences = [],
   rangeReferences = [],
   superpropertyReferences = [],
   inversePropertyReferences = [],
+  cardinalityRecord = { exact: null, minimum: null, maximum: null },
+  ...describedFieldOverrides
 }) {
   return {
     ontologyElementReference: { kind: "property", iri },
-    labelRecords,
-    commentRecords,
+    ...describedElementFields(describedFieldOverrides),
+    cardinalityRecord,
     domainReferences,
     rangeReferences,
     superpropertyReferences,
@@ -179,15 +191,13 @@ function createInspectionSnapshot(overrides = {}) {
           kind: "datatype",
           iri: STRING_DATATYPE_IRI,
         },
-        labelRecords: englishLabel("string"),
-        commentRecords: [],
+        ...describedElementFields({ labelRecords: englishLabel("string") }),
       },
     ],
     individualRecords: [
       {
         ontologyElementReference: { kind: "individual", iri: ALICE_IRI },
-        labelRecords: englishLabel("Alice"),
-        commentRecords: [],
+        ...describedElementFields({ labelRecords: englishLabel("Alice") }),
         classReferences: [{ kind: "class", iri: PERSON_IRI }],
       },
     ],
@@ -569,21 +579,78 @@ describe("ontology element search", () => {
     expect(findMatches({ query: "person", limit: 2 }).isTruncated).toBe(true);
   });
 
+  test("finds an element through the label of a class it is equivalent to", () => {
+    // The original search indexed each equivalent's label against the element
+    // it is equivalent to, so typing the equivalent's name found the drawn
+    // element. Ranking it below a direct label hit keeps a direct match first.
+    const searchResult = createOntologyInspector().findOntologyElements({
+      ontologyInspectionSnapshot: createInspectionSnapshot({
+        classRecords: [
+          classRecord({
+            iri: PERSON_IRI,
+            labelRecords: englishLabel("Person"),
+            equivalentClassReferences: [
+              { kind: "class", iri: ORGANISATION_IRI },
+            ],
+          }),
+          classRecord({
+            iri: ORGANISATION_IRI,
+            labelRecords: englishLabel("Legal Entity"),
+          }),
+        ],
+      }),
+      visibleRenderedGraphSnapshot: createVisibleSnapshot(),
+      query: "legal entity",
+    });
+
+    expect(searchResult.matches.map(({ iri }) => iri)).toEqual([
+      ORGANISATION_IRI,
+      PERSON_IRI,
+    ]);
+  });
+
+  test("ranks an equivalent label below every direct label match", () => {
+    const searchResult = createOntologyInspector().findOntologyElements({
+      ontologyInspectionSnapshot: createInspectionSnapshot({
+        classRecords: [
+          classRecord({
+            iri: PERSON_IRI,
+            labelRecords: englishLabel("Unrelated"),
+            equivalentClassReferences: [
+              { kind: "class", iri: ORGANISATION_IRI },
+            ],
+          }),
+          classRecord({
+            iri: ORGANISATION_IRI,
+            labelRecords: englishLabel("Agency"),
+          }),
+          classRecord({
+            iri: UNLABELLED_IRI,
+            labelRecords: englishLabel("Agency of record"),
+          }),
+        ],
+      }),
+      visibleRenderedGraphSnapshot: createVisibleSnapshot(),
+      query: "agency",
+    });
+
+    // Exact label, then label prefix, then the equivalent-label match.
+    expect(searchResult.matches.map(({ iri }) => iri)).toEqual([
+      ORGANISATION_IRI,
+      UNLABELLED_IRI,
+      PERSON_IRI,
+    ]);
+  });
+
   test("returns every match when the caller asks for no limit", () => {
     const matchingClassCount = 40;
     const classRecords = Array.from(
       { length: matchingClassCount },
-      (_unused, recordIndex) => ({
-        ontologyElementReference: {
-          kind: "class",
+      (_unused, recordIndex) =>
+        classRecord({
           iri: `https://example.test/Person${recordIndex}`,
-        },
-        labelRecords: [{ languageTag: null, text: `Person ${recordIndex}` }],
-        commentRecords: [],
-        superclassReferences: [],
-        equivalentClassReferences: [],
-        disjointClassReferences: [],
-      }),
+          labelRecords: [{ languageTag: null, text: `Person ${recordIndex}` }],
+        }),
     );
 
     const searchResult = createOntologyInspector().findOntologyElements({

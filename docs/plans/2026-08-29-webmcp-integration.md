@@ -271,7 +271,7 @@ Tests define the exact nested ontology-header and element-record fields before i
 ```js
 {
   annotationRecords: [
-    { localName: "term_status", propertyIri: null, languageTag: null, text: "stable", valueKind: "text" },
+    { localName: "term_status", propertyIri: null, languageTag: null, text: "stable", valueKind: "literal" },
   ],
   characteristicNames: ["functional", "transitive"],
   unclassifiedAttributeNames: ["external", "union"],
@@ -284,7 +284,7 @@ Tests define the exact nested ontology-header and element-record fields before i
 
 `characteristicNames` holds only the OWL property characteristics, which OWL defines unambiguously: `functional`, `inverse functional`, `transitive`, `symmetric`, `asymmetric`, `reflexive`, `irreflexive`, and `key`. Every other value of VOWL's flat `attributes` bag — class-expression kinds such as `union`, `intersection`, `complement` and `disjointUnion`, and status markers such as `external`, `deprecated` and `anonymous` — stays in `unclassifiedAttributeNames`. Splitting further would assert a taxonomy VOWL does not state and OWL does not settle.
 
-`cardinalityRecord` is present on property records only, and each field is `null` when the corresponding VOWL field is absent.
+`valueKind` is `literal` or `iri`, naming what RDF says the annotation value is rather than how it is carried. `cardinalityRecord` is present on property records only, and each field is `null` when the corresponding VOWL field is absent.
 
 ### 1.3 Shared limits and expected errors
 

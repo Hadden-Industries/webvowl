@@ -231,6 +231,121 @@ function createOntologyHeaderRecord(ontologyHeaderRecord) {
   });
 }
 
+// The eight characteristics OWL defines for a property. VOWL keeps them in one
+// flat bag alongside class-expression kinds and status markers; only these have
+// an unambiguous OWL reading, so only these are classified.
+const OWL_PROPERTY_CHARACTERISTIC_NAMES = Object.freeze([
+  "functional",
+  "inverse functional",
+  "transitive",
+  "symmetric",
+  "asymmetric",
+  "reflexive",
+  "irreflexive",
+  "key",
+]);
+
+const ANNOTATION_VALUE_KINDS = Object.freeze(["literal", "iri"]);
+
+function createAnnotationRecord(annotationRecord, description) {
+  assertExactFieldNames(
+    annotationRecord,
+    ["localName", "propertyIri", "languageTag", "text", "valueKind"],
+    description,
+  );
+  assertNonEmptyString(annotationRecord.localName, `${description}.localName`);
+  // VOWL groups annotations under a bare local name, which cannot distinguish
+  // two annotation properties from different namespaces. A model converted
+  // before the current builder records no namespace, so the IRI is genuinely
+  // unknown rather than absent.
+  if (
+    annotationRecord.propertyIri !== null &&
+    typeof annotationRecord.propertyIri !== "string"
+  ) {
+    throw new TypeError(`${description}.propertyIri must be a string or null.`);
+  }
+  if (
+    annotationRecord.languageTag !== null &&
+    typeof annotationRecord.languageTag !== "string"
+  ) {
+    throw new TypeError(`${description}.languageTag must be a string or null.`);
+  }
+  if (typeof annotationRecord.text !== "string") {
+    throw new TypeError(`${description}.text must be a string.`);
+  }
+  if (!ANNOTATION_VALUE_KINDS.includes(annotationRecord.valueKind)) {
+    throw new TypeError(
+      `${description}.valueKind must be one of ${ANNOTATION_VALUE_KINDS.join(", ")}.`,
+    );
+  }
+  return Object.freeze({
+    localName: annotationRecord.localName,
+    propertyIri: annotationRecord.propertyIri,
+    languageTag: annotationRecord.languageTag,
+    text: annotationRecord.text,
+    valueKind: annotationRecord.valueKind,
+  });
+}
+
+function createAnnotationRecordCollection(annotationRecords, description) {
+  if (!Array.isArray(annotationRecords)) {
+    throw new TypeError(`${description} must be an array.`);
+  }
+  return Object.freeze(
+    annotationRecords.map((annotationRecord) =>
+      createAnnotationRecord(annotationRecord, description),
+    ),
+  );
+}
+
+function createAttributeNameCollection(attributeNames, description) {
+  if (!Array.isArray(attributeNames)) {
+    throw new TypeError(`${description} must be an array.`);
+  }
+  return Object.freeze(
+    attributeNames.map((attributeName) => {
+      assertNonEmptyString(attributeName, description);
+      return attributeName;
+    }),
+  );
+}
+
+function createCharacteristicNameCollection(characteristicNames, description) {
+  const names = createAttributeNameCollection(characteristicNames, description);
+  for (const characteristicName of names) {
+    if (!OWL_PROPERTY_CHARACTERISTIC_NAMES.includes(characteristicName)) {
+      throw new TypeError(
+        `${description} must contain only OWL property characteristics.`,
+      );
+    }
+  }
+  return names;
+}
+
+function createCardinalityRecord(cardinalityRecord, description) {
+  assertExactFieldNames(
+    cardinalityRecord,
+    ["exact", "minimum", "maximum"],
+    description,
+  );
+  for (const boundName of ["exact", "minimum", "maximum"]) {
+    const boundValue = cardinalityRecord[boundName];
+    if (
+      boundValue !== null &&
+      (!Number.isInteger(boundValue) || boundValue < 0)
+    ) {
+      throw new TypeError(
+        `${description}.${boundName} must be a non-negative integer or null.`,
+      );
+    }
+  }
+  return Object.freeze({
+    exact: cardinalityRecord.exact,
+    minimum: cardinalityRecord.minimum,
+    maximum: cardinalityRecord.maximum,
+  });
+}
+
 function createCommonOntologyElementRecord(
   record,
   expectedKind,
@@ -252,6 +367,22 @@ function createCommonOntologyElementRecord(
       record.commentRecords,
       `${description}.commentRecords`,
     ),
+    descriptionRecords: createLocalizedTextRecordCollection(
+      record.descriptionRecords,
+      `${description}.descriptionRecords`,
+    ),
+    annotationRecords: createAnnotationRecordCollection(
+      record.annotationRecords,
+      `${description}.annotationRecords`,
+    ),
+    characteristicNames: createCharacteristicNameCollection(
+      record.characteristicNames,
+      `${description}.characteristicNames`,
+    ),
+    unclassifiedAttributeNames: createAttributeNameCollection(
+      record.unclassifiedAttributeNames,
+      `${description}.unclassifiedAttributeNames`,
+    ),
   };
 }
 
@@ -265,6 +396,10 @@ function createClassRecord(classRecord) {
         "ontologyElementReference",
         "labelRecords",
         "commentRecords",
+        "descriptionRecords",
+        "annotationRecords",
+        "characteristicNames",
+        "unclassifiedAttributeNames",
         "superclassReferences",
         "equivalentClassReferences",
         "disjointClassReferences",
@@ -294,7 +429,15 @@ function createDatatypeRecord(datatypeRecord) {
     createCommonOntologyElementRecord(
       datatypeRecord,
       "datatype",
-      ["ontologyElementReference", "labelRecords", "commentRecords"],
+      [
+        "ontologyElementReference",
+        "labelRecords",
+        "commentRecords",
+        "descriptionRecords",
+        "annotationRecords",
+        "characteristicNames",
+        "unclassifiedAttributeNames",
+      ],
       "datatype record",
     ),
   );
@@ -310,6 +453,10 @@ function createIndividualRecord(individualRecord) {
         "ontologyElementReference",
         "labelRecords",
         "commentRecords",
+        "descriptionRecords",
+        "annotationRecords",
+        "characteristicNames",
+        "unclassifiedAttributeNames",
         "classReferences",
       ],
       description,
@@ -332,12 +479,21 @@ function createPropertyRecord(propertyRecord) {
         "ontologyElementReference",
         "labelRecords",
         "commentRecords",
+        "descriptionRecords",
+        "annotationRecords",
+        "characteristicNames",
+        "unclassifiedAttributeNames",
         "domainReferences",
         "rangeReferences",
         "superpropertyReferences",
         "inversePropertyReferences",
+        "cardinalityRecord",
       ],
       description,
+    ),
+    cardinalityRecord: createCardinalityRecord(
+      propertyRecord.cardinalityRecord,
+      `${description}.cardinalityRecord`,
     ),
     domainReferences: createFrozenReferenceCollection(
       propertyRecord.domainReferences,
