@@ -200,7 +200,6 @@ describe("rendered graph runtime interface", () => {
     expect(RENDERED_GRAPH_RUNTIME_METHOD_NAMES).toEqual([
       "replaceVowlModel",
       "applyVisualizationView",
-      "readOntologyInspectionSnapshot",
       "readVisibleRenderedGraphSnapshot",
       "readGraphLayoutSnapshot",
       "setGraphLayoutPaused",
@@ -232,6 +231,31 @@ describe("rendered graph runtime interface", () => {
 
     expect(() => assertRenderedGraphRuntime(renderedGraphRuntime)).toThrow(
       "createRenderedSvgSnapshot",
+    );
+  });
+
+  test("rejects a runtime that still exposes a retired reader", () => {
+    // The ontology model is owned by the application, so a runtime offering to
+    // read it has reopened a boundary the migration closed. This fails at the
+    // contract rather than surviving as a second, renderer-owned source.
+    const renderedGraphRuntime = Object.fromEntries(
+      [
+        ...RENDERED_GRAPH_RUNTIME_METHOD_NAMES,
+        "readOntologyInspectionSnapshot",
+      ].map((methodName) => [methodName, () => undefined]),
+    );
+
+    expect(() => assertRenderedGraphRuntime(renderedGraphRuntime)).toThrow(
+      "readOntologyInspectionSnapshot",
+    );
+  });
+
+  test("no longer declares an ontology-inspection reader", () => {
+    expect(RENDERED_GRAPH_RUNTIME_METHOD_NAMES).not.toContain(
+      "readOntologyInspectionSnapshot",
+    );
+    expect(RENDERED_GRAPH_RUNTIME_METHOD_NAMES).toContain(
+      "readVisibleRenderedGraphSnapshot",
     );
   });
 });

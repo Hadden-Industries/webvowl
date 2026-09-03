@@ -3,13 +3,19 @@ import { createOntologyElementReference } from "./webVowlControllerContracts.js"
 export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "replaceVowlModel",
   "applyVisualizationView",
-  "readOntologyInspectionSnapshot",
   "readVisibleRenderedGraphSnapshot",
   "readGraphLayoutSnapshot",
   "setGraphLayoutPaused",
   "createRenderedSvgSnapshot",
   "subscribeToRenderedGraphEvents",
   "dispose",
+]);
+
+// Names the seam once carried and must never regain. The ontology model is
+// owned by the application, so a runtime offering to read it would reopen a
+// second, renderer-owned source of the same facts.
+export const RETIRED_RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
+  "readOntologyInspectionSnapshot",
 ]);
 
 export const RENDERED_GRAPH_EVENT_KINDS = Object.freeze([
@@ -405,6 +411,13 @@ export function assertRenderedGraphRuntime(renderedGraphRuntime) {
     if (typeof renderedGraphRuntime[methodName] !== "function") {
       throw new TypeError(
         `RenderedGraphRuntime requires a ${methodName} method.`,
+      );
+    }
+  }
+  for (const methodName of RETIRED_RENDERED_GRAPH_RUNTIME_METHOD_NAMES) {
+    if (renderedGraphRuntime[methodName] !== undefined) {
+      throw new TypeError(
+        `RenderedGraphRuntime must not expose the retired ${methodName} method.`,
       );
     }
   }

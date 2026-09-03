@@ -57,6 +57,8 @@ const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/app/js/controller/svgArtifactService.test.js",
   "src/app/js/controller/svgSerializer.js",
   "src/app/js/controller/svgSerializer.test.js",
+  "src/app/js/controller/vowlModelInspectionProjector.js",
+  "src/app/js/controller/vowlModelInspectionProjector.test.js",
   "src/app/js/controller/webVowlController.js",
   "src/app/js/controller/webVowlController.test.js",
   "src/app/js/controller/webVowlControllerContracts.js",

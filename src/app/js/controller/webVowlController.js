@@ -11,6 +11,7 @@ import {
 
 const WEB_VOWL_CONTROLLER_DEPENDENCY_FIELD_NAMES = Object.freeze([
   "ontologySourceLoader",
+  "vowlModelInspectionProjector",
   "renderedGraphRuntime",
   "ontologyInspector",
   "graphLayoutSettler",
@@ -139,6 +140,7 @@ export function createWebVowlController(dependencies) {
   assertExactDependencyFieldNames(dependencies);
   const {
     ontologySourceLoader,
+    vowlModelInspectionProjector,
     renderedGraphRuntime,
     ontologyInspector,
     graphLayoutSettler,
@@ -155,6 +157,7 @@ export function createWebVowlController(dependencies) {
   let activeLoadAbortController;
   let backgroundObservationController;
   let currentSourceProvenance = null;
+  let currentOntologyInspectionSnapshot = null;
   let currentWarnings = [];
   const stateSubscribers = new Set();
 
@@ -292,9 +295,11 @@ export function createWebVowlController(dependencies) {
   }
 
   function readInspectionRequestSnapshots() {
+    if (currentOntologyInspectionSnapshot === null) {
+      throw createNoOntologyError();
+    }
     return {
-      ontologyInspectionSnapshot:
-        renderedGraphRuntime.readOntologyInspectionSnapshot(),
+      ontologyInspectionSnapshot: currentOntologyInspectionSnapshot,
       visibleRenderedGraphSnapshot:
         renderedGraphRuntime.readVisibleRenderedGraphSnapshot(),
     };
@@ -370,6 +375,15 @@ export function createWebVowlController(dependencies) {
         );
         throwWhenSuperseded(loadGeneration, linkedAbortSignal.signal);
 
+        // Projected before the renderer is asked to draw, so a semantic
+        // question is answerable as soon as the model exists.
+        const ontologyInspectionSnapshot =
+          vowlModelInspectionProjector.projectOntologyInspectionSnapshot(
+            sourceLoadRecord.vowlModel,
+            loadGeneration,
+          );
+        throwWhenSuperseded(loadGeneration, linkedAbortSignal.signal);
+
         publishForGeneration(loadGeneration, { status: "rendering" });
         await renderedGraphRuntime.replaceVowlModel(
           {
@@ -382,6 +396,7 @@ export function createWebVowlController(dependencies) {
         throwWhenSuperseded(loadGeneration, linkedAbortSignal.signal);
 
         currentOntologyGeneration = loadGeneration;
+        currentOntologyInspectionSnapshot = ontologyInspectionSnapshot;
         currentSourceProvenance = sourceLoadRecord.sourceProvenance;
         currentWarnings = truncateResultCollection(
           sourceLoadRecord.diagnostics.map(

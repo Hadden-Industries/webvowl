@@ -4,6 +4,7 @@ import { createRenderedGraphConfiguration } from "../../webvowl/js/runtime/rende
 import { createGraphLayoutSettler } from "./controller/graphLayoutSettler.js";
 import { createOntologyInspector } from "./controller/ontologyInspector.js";
 import { createOntologySourceLoader } from "./controller/ontologySourceLoader.js";
+import { vowlModelInspectionProjector } from "./controller/vowlModelInspectionProjector.js";
 import { createSvgArtifactService } from "./controller/svgArtifactService.js";
 import { createSvgSerializer } from "./controller/svgSerializer.js";
 import { createWebVowlController } from "./controller/webVowlController.js";
@@ -130,6 +131,7 @@ export function createWebVowlApplication() {
   let unsubscribeFromControllerState;
   const webVowlController = createWebVowlController({
     ontologySourceLoader: createOntologySourceLoader(),
+    vowlModelInspectionProjector,
     renderedGraphRuntime,
     ontologyInspector: createOntologyInspector(),
     graphLayoutSettler: createGraphLayoutSettler({

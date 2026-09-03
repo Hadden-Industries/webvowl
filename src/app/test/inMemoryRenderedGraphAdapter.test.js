@@ -96,35 +96,17 @@ async function completeLoad(adapterHarness, loadGeneration) {
   await loadPromise;
 }
 
-function createOntologyInspectionSnapshotSource(loadGeneration) {
+function createVisibleRenderedGraphSnapshotSource(loadGeneration) {
   return {
-    availableLabelLanguages: ["en"],
-    classRecords: [
-      {
-        commentRecords: [],
-        disjointClassReferences: [],
-        equivalentClassReferences: [],
-        labelRecords: [{ languageTag: "en", text: "Person" }],
-        ontologyElementReference: {
-          kind: "class",
-          iri: "https://example.test/Person",
-        },
-        superclassReferences: [],
-      },
-    ],
-    datatypeRecords: [],
-    importRecords: [],
-    individualRecords: [],
     loadGeneration,
-    namespaceRecords: [{ namespaceIri: "https://example.test/", prefix: "ex" }],
-    ontologyHeaderRecord: {
-      authorNames: [],
-      descriptionRecords: [],
-      ontologyIri: "https://example.test/ontology",
-      titleRecords: [{ languageTag: "en", text: "Example ontology" }],
-      versionInformationText: null,
-    },
-    propertyRecords: [],
+    visibleElementReferences: [
+      { kind: "class", iri: "https://example.test/Person" },
+      { kind: "datatype", iri: "http://www.w3.org/2001/XMLSchema#string" },
+    ],
+    visibleRelationshipReferences: [
+      { kind: "property", iri: "https://example.test/name" },
+    ],
+    visibleGraphCounts: { visibleNodeCount: 2, visiblePropertyCount: 1 },
   };
 }
 
@@ -215,24 +197,24 @@ describe("InMemoryRenderedGraphAdapter", () => {
 
   test("completion snapshots do not retain adapter-harness records", async () => {
     const adapterHarness = createInMemoryRenderedGraphAdapter();
-    const ontologyInspectionSnapshotSource =
-      createOntologyInspectionSnapshotSource(1);
+    const visibleRenderedGraphSnapshotSource =
+      createVisibleRenderedGraphSnapshotSource(1);
     const loadPromise = adapterHarness.renderedGraphRuntime.replaceVowlModel(
       createReplacementRequest(1),
       { signal: new AbortController().signal },
     );
 
     adapterHarness.renderedGraphTestHarness.completeInitialPaint(1, {
-      ontologyInspectionSnapshot: ontologyInspectionSnapshotSource,
+      visibleRenderedGraphSnapshot: visibleRenderedGraphSnapshotSource,
     });
     await loadPromise;
-    ontologyInspectionSnapshotSource.classRecords[0].labelRecords[0].text =
-      "Mutated person";
-    ontologyInspectionSnapshotSource.namespaceRecords.length = 0;
+    visibleRenderedGraphSnapshotSource.visibleElementReferences[0].iri =
+      "https://example.test/Mutated";
+    visibleRenderedGraphSnapshotSource.visibleRelationshipReferences.length = 0;
 
     expect(
-      adapterHarness.renderedGraphRuntime.readOntologyInspectionSnapshot(),
-    ).toEqual(createOntologyInspectionSnapshotSource(1));
+      adapterHarness.renderedGraphRuntime.readVisibleRenderedGraphSnapshot(),
+    ).toEqual(createVisibleRenderedGraphSnapshotSource(1));
     adapterHarness.renderedGraphRuntime.dispose();
   });
 

@@ -512,18 +512,15 @@ describe("D3 rendered graph adapter", () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
 
-    const ontologyInspectionSnapshot =
-      adapterHarness.renderedGraphRuntime.readOntologyInspectionSnapshot();
     const visibleRenderedGraphSnapshot =
       adapterHarness.renderedGraphRuntime.readVisibleRenderedGraphSnapshot();
     const graphLayoutSnapshot =
       adapterHarness.renderedGraphRuntime.readGraphLayoutSnapshot();
 
     for (const frozenValue of [
-      ontologyInspectionSnapshot,
-      ontologyInspectionSnapshot.classRecords,
-      ontologyInspectionSnapshot.classRecords[0],
+      visibleRenderedGraphSnapshot,
       visibleRenderedGraphSnapshot.visibleElementReferences,
+      visibleRenderedGraphSnapshot.visibleElementReferences[0],
       graphLayoutSnapshot.layoutElementPositions,
     ]) {
       expect(Object.isFrozen(frozenValue)).toBe(true);
@@ -531,28 +528,15 @@ describe("D3 rendered graph adapter", () => {
 
     expect(() => {
       "use strict";
-      ontologyInspectionSnapshot.classRecords[0].labelRecords.push({
-        languageTag: "en",
-        text: "injected",
+      visibleRenderedGraphSnapshot.visibleElementReferences.push({
+        kind: "class",
+        iri: "https://example.test/Injected",
       });
     }).toThrow();
     expect(
-      adapterHarness.renderedGraphRuntime.readOntologyInspectionSnapshot()
-        .classRecords[0].labelRecords,
-    ).toEqual([{ languageTag: null, text: "Person" }]);
-  });
-
-  test("keeps an anonymous class reference bound to its own generation", async () => {
-    const adapterHarness = createAdapterHarness();
-    await loadGeneration(adapterHarness, 3);
-
-    const { classRecords } =
-      adapterHarness.renderedGraphRuntime.readOntologyInspectionSnapshot();
-    expect(classRecords[1].ontologyElementReference).toEqual({
-      kind: "class",
-      loadGeneration: 3,
-      localId: "AnonymousClass1",
-    });
+      adapterHarness.renderedGraphRuntime.readVisibleRenderedGraphSnapshot()
+        .visibleElementReferences.length,
+    ).toBe(visibleRenderedGraphSnapshot.visibleElementReferences.length);
   });
 
   test("builds the renderer graph root once and reloads it for later models", async () => {
@@ -672,28 +656,6 @@ describe("D3 rendered graph adapter", () => {
     // Filter, language and degree changes recompute the graph once.
     expect(internals.updateCallCount).toBe(updateCountBefore + 1);
     expect(internals.relocationRequests).toBe(1);
-  });
-
-  test("merges each element's attribute entry into its inspection record", () => {
-    const adapterHarness = createAdapterHarness();
-
-    return loadGeneration(adapterHarness, 1).then(() => {
-      const snapshot =
-        adapterHarness.renderedGraphRuntime.readOntologyInspectionSnapshot();
-      const personRecord = snapshot.classRecords.find(
-        (classRecord) =>
-          classRecord.ontologyElementReference.iri ===
-          "https://example.test/Person",
-      );
-
-      expect(personRecord).toBeDefined();
-      expect(personRecord.labelRecords).toEqual([
-        { languageTag: null, text: "Person" },
-      ]);
-      expect(snapshot.propertyRecords[0].ontologyElementReference.iri).toBe(
-        "https://example.test/knows",
-      );
-    });
   });
 
   test("lays out every drawn node when several share one ontology IRI", async () => {

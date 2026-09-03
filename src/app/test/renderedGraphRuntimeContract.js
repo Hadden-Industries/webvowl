@@ -54,19 +54,15 @@ export async function assertRenderedGraphRuntimeContract({
     expect(renderedGraphTestHarness.completeInitialPaint(1)).toBe(true);
     await expect(replacementPromise).resolves.toEqual({ loadGeneration: 1 });
 
-    const ontologyInspectionSnapshot =
-      renderedGraphRuntime.readOntologyInspectionSnapshot();
     const visibleRenderedGraphSnapshot =
       renderedGraphRuntime.readVisibleRenderedGraphSnapshot();
     const graphLayoutSnapshot = renderedGraphRuntime.readGraphLayoutSnapshot();
-    expect(ontologyInspectionSnapshot.loadGeneration).toBe(1);
     expect(visibleRenderedGraphSnapshot.loadGeneration).toBe(1);
     expect(graphLayoutSnapshot.loadGeneration).toBe(1);
-    expect(Object.isFrozen(ontologyInspectionSnapshot)).toBe(true);
     expect(Object.isFrozen(visibleRenderedGraphSnapshot)).toBe(true);
     expect(Object.isFrozen(graphLayoutSnapshot)).toBe(true);
-    expect(renderedGraphRuntime.readOntologyInspectionSnapshot()).not.toBe(
-      ontologyInspectionSnapshot,
+    expect(renderedGraphRuntime.readVisibleRenderedGraphSnapshot()).not.toBe(
+      visibleRenderedGraphSnapshot,
     );
 
     const renderedSvgSnapshot = renderedGraphRuntime.createRenderedSvgSnapshot({

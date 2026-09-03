@@ -3,7 +3,6 @@ import {
   createGraphLayoutPauseRequest,
   createGraphLayoutPauseResult,
   createGraphLayoutSnapshot,
-  createOntologyInspectionSnapshot,
   createRenderedGraphEvent,
   createRenderedSvgSnapshot,
   createRenderedSvgSnapshotRequest,
@@ -60,34 +59,6 @@ function createDetachedSvgRootFixture(loadGeneration) {
       return createDetachedSvgRootFixture(loadGeneration);
     },
   };
-}
-
-function createDefaultOntologyInspectionSnapshot(
-  loadGeneration,
-  replacementRequest,
-) {
-  const ontologyIri =
-    typeof replacementRequest.vowlModel.header?.iri === "string" &&
-    replacementRequest.vowlModel.header.iri.length > 0
-      ? replacementRequest.vowlModel.header.iri
-      : null;
-  return createOntologyInspectionSnapshot({
-    availableLabelLanguages: [],
-    classRecords: [],
-    datatypeRecords: [],
-    importRecords: [],
-    individualRecords: [],
-    loadGeneration,
-    namespaceRecords: [],
-    ontologyHeaderRecord: {
-      authorNames: [],
-      descriptionRecords: [],
-      ontologyIri,
-      titleRecords: [],
-      versionInformationText: null,
-    },
-    propertyRecords: [],
-  });
 }
 
 function createDefaultVisibleRenderedGraphSnapshot(loadGeneration) {
@@ -150,7 +121,6 @@ function assertSnapshotOverrides(snapshotOverrides) {
     throw new TypeError("Snapshot overrides must be a plain object.");
   }
   const allowedFieldNames = [
-    "ontologyInspectionSnapshot",
     "visibleRenderedGraphSnapshot",
     "graphLayoutSnapshot",
     "renderedSvgSnapshot",
@@ -202,7 +172,6 @@ export function createInMemoryRenderedGraphAdapter() {
   let activeLoadGeneration = null;
   let pendingReplacement = null;
   let pendingViewApplication = null;
-  let ontologyInspectionSnapshot = null;
   let visibleRenderedGraphSnapshot = null;
   let graphLayoutSnapshot = null;
   let renderedSvgSnapshot = null;
@@ -287,7 +256,6 @@ export function createInMemoryRenderedGraphAdapter() {
         rejectPendingReplacement(supersededReason);
         rejectPendingViewApplication(supersededReason);
         activeLoadGeneration = replacementRequest.loadGeneration;
-        ontologyInspectionSnapshot = null;
         visibleRenderedGraphSnapshot = null;
         graphLayoutSnapshot = null;
         renderedSvgSnapshot = null;
@@ -349,14 +317,6 @@ export function createInMemoryRenderedGraphAdapter() {
         pendingOperation.viewApplicationRequest = viewApplicationRequest;
         pendingViewApplication = pendingOperation;
         return pendingOperation.promise;
-      },
-
-      readOntologyInspectionSnapshot() {
-        return readCompletedSnapshot(
-          ontologyInspectionSnapshot,
-          createOntologyInspectionSnapshot,
-          "ontology inspection snapshot",
-        );
       },
 
       readVisibleRenderedGraphSnapshot() {
@@ -455,7 +415,6 @@ export function createInMemoryRenderedGraphAdapter() {
         rejectPendingViewApplication(disposalReason);
         renderedGraphEventSubscribers.clear();
         activeLoadGeneration = null;
-        ontologyInspectionSnapshot = null;
         visibleRenderedGraphSnapshot = null;
         graphLayoutSnapshot = null;
         renderedSvgSnapshot = null;
@@ -475,14 +434,6 @@ export function createInMemoryRenderedGraphAdapter() {
         return false;
       }
       const replacementToComplete = pendingReplacement;
-      const replacementRequest = replacementToComplete.replacementRequest;
-      const nextOntologyInspectionSnapshot = createOntologyInspectionSnapshot(
-        snapshotOverrides.ontologyInspectionSnapshot ??
-          createDefaultOntologyInspectionSnapshot(
-            loadGeneration,
-            replacementRequest,
-          ),
-      );
       const nextVisibleRenderedGraphSnapshot =
         createVisibleRenderedGraphSnapshot(
           snapshotOverrides.visibleRenderedGraphSnapshot ??
@@ -497,7 +448,6 @@ export function createInMemoryRenderedGraphAdapter() {
           createDefaultRenderedSvgSnapshot(loadGeneration),
       );
       for (const snapshot of [
-        nextOntologyInspectionSnapshot,
         nextVisibleRenderedGraphSnapshot,
         nextGraphLayoutSnapshot,
         nextRenderedSvgSnapshot,
@@ -509,7 +459,6 @@ export function createInMemoryRenderedGraphAdapter() {
         }
       }
 
-      ontologyInspectionSnapshot = nextOntologyInspectionSnapshot;
       visibleRenderedGraphSnapshot = nextVisibleRenderedGraphSnapshot;
       graphLayoutSnapshot = nextGraphLayoutSnapshot;
       renderedSvgSnapshot = nextRenderedSvgSnapshot;

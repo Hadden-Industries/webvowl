@@ -12,6 +12,7 @@ import {
 
 let createInMemoryRenderedGraphAdapter;
 let createOntologyInspector;
+let vowlModelInspectionProjector;
 let createWebVowlController;
 
 const CONTROLLER_MODULE_URL = new URL(
@@ -64,6 +65,11 @@ beforeAll(async () => {
   ).namespace);
   ({ createInMemoryRenderedGraphAdapter } = (
     await loadRepositoryModule(IN_MEMORY_ADAPTER_MODULE_URL)
+  ).namespace);
+  ({ vowlModelInspectionProjector } = (
+    await loadRepositoryModule(
+      new URL("./vowlModelInspectionProjector.js", import.meta.url),
+    )
   ).namespace);
   ({ createWebVowlController } = (
     await loadRepositoryModule(CONTROLLER_MODULE_URL)
@@ -165,6 +171,7 @@ describe("WebVOWL controller orchestration", () => {
 
     controller = createWebVowlController({
       ontologySourceLoader,
+      vowlModelInspectionProjector,
       renderedGraphRuntime,
       ontologyInspector: createOntologyInspector(),
       graphLayoutSettler,

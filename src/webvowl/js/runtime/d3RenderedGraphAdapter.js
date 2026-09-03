@@ -1,9 +1,12 @@
 import { createRenderedGraphConfiguration } from "./renderedGraphConfiguration.js";
 import {
+  indexOntologyElementReferencesByVowlElementId,
+  ontologyElementReferenceKey,
+} from "../../../app/js/controller/vowlModelInspectionProjector.js";
+import {
   createGraphLayoutPauseRequest,
   createGraphLayoutPauseResult,
   createGraphLayoutSnapshot,
-  createOntologyInspectionSnapshot,
   createRenderedGraphEvent,
   createRenderedSvgSnapshot,
   createRenderedSvgSnapshotRequest,
@@ -77,165 +80,21 @@ function vowlBaseRecords(vowlModelCollection) {
   return Array.isArray(vowlModelCollection) ? vowlModelCollection : [];
 }
 
-function ontologyElementReferenceForVowlRecord(
-  vowlRecord,
-  kind,
-  loadGeneration,
-) {
-  if (typeof vowlRecord.iri === "string" && vowlRecord.iri.length > 0) {
-    return { kind, iri: vowlRecord.iri };
-  }
-  return {
-    kind,
-    loadGeneration,
-    localId: String(vowlRecord.id ?? "anonymous"),
-  };
-}
-
-function localizedTextRecords(vowlLabelValue) {
-  // VOWL writes a label either as a language-keyed object or, for elements
-  // with no language information, as a bare string.
-  if (typeof vowlLabelValue === "string") {
-    return vowlLabelValue.length > 0
-      ? [{ languageTag: null, text: vowlLabelValue }]
-      : [];
-  }
-  if (vowlLabelValue === null || typeof vowlLabelValue !== "object") {
-    return [];
-  }
-  return Object.entries(vowlLabelValue)
-    .filter(([, text]) => typeof text === "string" && text.length > 0)
-    .map(([languageTag, text]) => ({
-      languageTag: languageTag === "undefined" ? null : languageTag,
-      text,
-    }));
-}
-
-// VOWL JSON splits every element in two: a bare entry in `class`, `property`
-// or `datatype` carrying the id and type, and an entry in the matching
-// `*Attribute` collection carrying the IRI, labels and comments. An inspection
-// record needs both, so they are merged by id before projection.
-function mergeVowlElementsWithAttributes(baseCollection, attributeCollection) {
-  const attributesById = new Map(
-    vowlBaseRecords(attributeCollection).map((attributeRecord) => [
-      String(attributeRecord.id),
-      attributeRecord,
-    ]),
-  );
-  return vowlBaseRecords(baseCollection).map((baseRecord) => ({
-    ...baseRecord,
-    ...(attributesById.get(String(baseRecord.id)) ?? {}),
-  }));
-}
-
-function projectOntologyInspectionSnapshot(vowlModel, loadGeneration) {
-  const mergedClasses = mergeVowlElementsWithAttributes(
-    vowlModel.class,
-    vowlModel.classAttribute,
-  );
-  const mergedProperties = mergeVowlElementsWithAttributes(
-    vowlModel.property,
-    vowlModel.propertyAttribute,
-  );
-  const mergedDatatypes = mergeVowlElementsWithAttributes(
-    vowlModel.datatype,
-    vowlModel.datatypeAttribute,
-  );
-  const classRecords = mergedClasses.map((vowlRecord) => ({
-    ontologyElementReference: ontologyElementReferenceForVowlRecord(
-      vowlRecord,
-      "class",
-      loadGeneration,
-    ),
-    labelRecords: localizedTextRecords(vowlRecord.label),
-    commentRecords: localizedTextRecords(vowlRecord.comment),
-    superclassReferences: [],
-    equivalentClassReferences: [],
-    disjointClassReferences: [],
-  }));
-  const propertyRecords = mergedProperties.map((vowlRecord) => ({
-    ontologyElementReference: ontologyElementReferenceForVowlRecord(
-      vowlRecord,
-      "property",
-      loadGeneration,
-    ),
-    labelRecords: localizedTextRecords(vowlRecord.label),
-    commentRecords: localizedTextRecords(vowlRecord.comment),
-    domainReferences: [],
-    rangeReferences: [],
-    superpropertyReferences: [],
-    inversePropertyReferences: [],
-  }));
-  const datatypeRecords = mergedDatatypes.map((vowlRecord) => ({
-    ontologyElementReference: ontologyElementReferenceForVowlRecord(
-      vowlRecord,
-      "datatype",
-      loadGeneration,
-    ),
-    labelRecords: localizedTextRecords(vowlRecord.label),
-    commentRecords: localizedTextRecords(vowlRecord.comment),
-  }));
-
-  const ontologyHeader = vowlModel.header ?? {};
-  return createOntologyInspectionSnapshot({
-    loadGeneration,
-    ontologyHeaderRecord: {
-      ontologyIri:
-        typeof ontologyHeader.iri === "string" ? ontologyHeader.iri : null,
-      versionInformationText:
-        typeof ontologyHeader.version === "string"
-          ? ontologyHeader.version
-          : null,
-      titleRecords: localizedTextRecords(ontologyHeader.title),
-      descriptionRecords: localizedTextRecords(ontologyHeader.description),
-      authorNames: Array.isArray(ontologyHeader.author)
-        ? ontologyHeader.author.filter(
-            (authorName) =>
-              typeof authorName === "string" && authorName.length > 0,
-          )
-        : [],
-    },
-    classRecords,
-    propertyRecords,
-    datatypeRecords,
-    individualRecords: [],
-    namespaceRecords: Array.isArray(vowlModel.namespace)
-      ? vowlModel.namespace
-          .filter((namespaceRecord) => namespaceRecord !== null)
-          .map((namespaceRecord) => ({
-            prefix: String(Object.keys(namespaceRecord)[0] ?? ""),
-            namespaceIri: String(Object.values(namespaceRecord)[0] ?? ""),
-          }))
-          .filter(({ namespaceIri }) => namespaceIri.length > 0)
-      : [],
-    importRecords: [],
-    availableLabelLanguages: [
-      ...new Set(
-        [...classRecords, ...propertyRecords, ...datatypeRecords]
-          .flatMap(({ labelRecords }) => labelRecords)
-          .map(({ languageTag }) => languageTag)
-          .filter(
-            (languageTag) =>
-              typeof languageTag === "string" && languageTag.length > 0,
-          ),
-      ),
-    ],
-  });
-}
-
 function projectVisibleRenderedGraphSnapshot(
-  ontologyInspectionSnapshot,
+  ontologyElementReferencesByVowlElementId,
   loadGeneration,
 ) {
-  const visibleElementReferences = [
-    ...ontologyInspectionSnapshot.classRecords,
-    ...ontologyInspectionSnapshot.datatypeRecords,
-    ...ontologyInspectionSnapshot.individualRecords,
-  ].map(({ ontologyElementReference }) => ({ ...ontologyElementReference }));
-  const visibleRelationshipReferences =
-    ontologyInspectionSnapshot.propertyRecords.map(
-      ({ ontologyElementReference }) => ({ ...ontologyElementReference }),
-    );
+  const drawnReferences = [
+    ...ontologyElementReferencesByVowlElementId.values(),
+  ];
+  // Individuals are drawn inside the class that declares them rather than as
+  // nodes of their own, so they are not part of the visible element set.
+  const visibleElementReferences = drawnReferences
+    .filter(({ kind }) => kind === "class" || kind === "datatype")
+    .map((ontologyElementReference) => ({ ...ontologyElementReference }));
+  const visibleRelationshipReferences = drawnReferences
+    .filter(({ kind }) => kind === "property")
+    .map((ontologyElementReference) => ({ ...ontologyElementReference }));
 
   return createVisibleRenderedGraphSnapshot({
     loadGeneration,
@@ -246,6 +105,24 @@ function projectVisibleRenderedGraphSnapshot(
       visiblePropertyCount: visibleRelationshipReferences.length,
     },
   });
+}
+
+// One reference key may name several drawn elements, so focus marks every
+// occurrence of the entity a caller names.
+function groupRendererElementIdsByReferenceKey(
+  ontologyElementReferencesByRendererElementId,
+) {
+  const rendererElementIdsByKey = new Map();
+  for (const [
+    rendererElementId,
+    ontologyElementReference,
+  ] of ontologyElementReferencesByRendererElementId) {
+    const referenceKey = ontologyElementReferenceKey(ontologyElementReference);
+    const rendererElementIds = rendererElementIdsByKey.get(referenceKey) ?? [];
+    rendererElementIds.push(rendererElementId);
+    rendererElementIdsByKey.set(referenceKey, rendererElementIds);
+  }
+  return rendererElementIdsByKey;
 }
 
 export function createD3RenderedGraphAdapter(dependencies) {
@@ -274,7 +151,6 @@ export function createD3RenderedGraphAdapter(dependencies) {
   let rendererElementIdsByOntologyElementReferenceKey = new Map();
   let ontologyElementReferencesByRendererElementId = new Map();
   let activeForceSimulation = null;
-  let ontologyInspectionSnapshot = null;
   let visibleRenderedGraphSnapshot = null;
   let appliedVisualizationView = DEFAULT_APPLIED_VISUALIZATION_VIEW;
   let forceAlpha = 1;
@@ -464,49 +340,6 @@ export function createD3RenderedGraphAdapter(dependencies) {
     activeForceSimulation = forceSimulation;
   }
 
-  function ontologyElementReferenceKey(ontologyElementReference) {
-    return typeof ontologyElementReference.iri === "string"
-      ? `iri:${ontologyElementReference.iri}`
-      : `localId:${ontologyElementReference.localId}`;
-  }
-
-  function indexRendererElementIdsByOntologyElement(vowlModel, loadGeneration) {
-    const elementIdsByKey = new Map();
-    ontologyElementReferencesByRendererElementId = new Map();
-    const indexCollection = (baseCollection, attributeCollection, kind) => {
-      for (const mergedRecord of mergeVowlElementsWithAttributes(
-        baseCollection,
-        attributeCollection,
-      )) {
-        const ontologyElementReference = ontologyElementReferenceForVowlRecord(
-          mergedRecord,
-          kind,
-          loadGeneration,
-        );
-        ontologyElementReferencesByRendererElementId.set(
-          String(mergedRecord.id),
-          ontologyElementReference,
-        );
-        const key = ontologyElementReferenceKey(ontologyElementReference);
-        const elementIds = elementIdsByKey.get(key) ?? [];
-        elementIds.push(String(mergedRecord.id));
-        elementIdsByKey.set(key, elementIds);
-      }
-    };
-    indexCollection(vowlModel.class, vowlModel.classAttribute, "class");
-    indexCollection(
-      vowlModel.property,
-      vowlModel.propertyAttribute,
-      "property",
-    );
-    indexCollection(
-      vowlModel.datatype,
-      vowlModel.datatypeAttribute,
-      "datatype",
-    );
-    return elementIdsByKey;
-  }
-
   // Each visibility filter the view can address, paired with the renderer
   // module that enforces it.
   const VISIBILITY_FILTER_MODULE_READERS = Object.freeze({
@@ -602,17 +435,17 @@ export function createD3RenderedGraphAdapter(dependencies) {
       isGraphLayoutPaused = false;
       appliedVisualizationView = DEFAULT_APPLIED_VISUALIZATION_VIEW;
 
-      rendererElementIdsByOntologyElementReferenceKey =
-        indexRendererElementIdsByOntologyElement(
+      ontologyElementReferencesByRendererElementId =
+        indexOntologyElementReferencesByVowlElementId(
           replacementRequest.vowlModel,
           loadGeneration,
         );
-      ontologyInspectionSnapshot = projectOntologyInspectionSnapshot(
-        replacementRequest.vowlModel,
-        loadGeneration,
-      );
+      rendererElementIdsByOntologyElementReferenceKey =
+        groupRendererElementIdsByReferenceKey(
+          ontologyElementReferencesByRendererElementId,
+        );
       visibleRenderedGraphSnapshot = projectVisibleRenderedGraphSnapshot(
-        ontologyInspectionSnapshot,
+        ontologyElementReferencesByRendererElementId,
         loadGeneration,
       );
       // The renderer draws the graph; the adapter must not touch its container.
@@ -703,14 +536,6 @@ export function createD3RenderedGraphAdapter(dependencies) {
       visibleRenderedGraphSnapshot =
         viewApplicationResult.visibleRenderedGraphSnapshot;
       return viewApplicationResult;
-    },
-
-    readOntologyInspectionSnapshot() {
-      assertNotDisposed();
-      if (ontologyInspectionSnapshot === null) {
-        throw new Error("No completed ontology inspection snapshot exists.");
-      }
-      return createOntologyInspectionSnapshot(ontologyInspectionSnapshot);
     },
 
     readVisibleRenderedGraphSnapshot() {
@@ -835,7 +660,6 @@ export function createD3RenderedGraphAdapter(dependencies) {
       );
       renderedGraphEventSubscribers.clear();
       activeLoadGeneration = null;
-      ontologyInspectionSnapshot = null;
       visibleRenderedGraphSnapshot = null;
     },
   });
