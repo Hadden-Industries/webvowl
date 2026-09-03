@@ -270,7 +270,40 @@ collapsed to 157×25 during this session and could not be restored. The property
 comparison above is stronger evidence than a screenshot would be, but opening an
 exported file at a normal window size is worth doing once.
 
-### 2. The ontology title is not reported
+### 2. Exporting set a settled graph moving again (fixed)
+
+**Severity: user-visible. Fixed.** Reported from the browser: clicking **Export
+as SVG** on a graph that had come to rest left it moving and apparently never
+settling.
+
+Exporting pauses the layout, snapshots it, and restores the previous pause
+state. Resuming went through the renderer's `updateStyle`, which resets the
+simulation to full alpha — right for a change that alters the layout, such as a
+new force distance, but wrong for resuming. Every export therefore re-ran the
+whole layout on a graph the reader had already watched settle. The behaviour
+predates this work; exporting simply had not been exercised recently.
+
+The fix separates the two. Pausing stops the simulation and resuming continues
+it, without ever resetting alpha, and the renderer is told whether the layout
+had already ended so it leaves a finished one alone. Only the caller knows that:
+a graph can visibly come to rest while the simulation's own alpha is still
+running, which is why resuming a "settled" graph restarted it.
+
+Verified in the browser: a settled graph exported with no movement in any of 20
+one-second samples, where the same measurement gave 20 of 20 before the fix.
+
+Two related observations from the same investigation:
+
+- The adapter's own `activeForceSimulation.restart()` appears to be a no-op in
+  production, because the renderer creates and owns its simulation rather than
+  taking it from the adapter's D3. The renderer had to be told the fact instead.
+  Whether that adapter branch is reachable at all is worth establishing.
+- Resuming a genuinely mid-relax layout is covered by unit tests that now model
+  the renderer's pause behaviour in the double, but it was **not** confirmed
+  end to end in the browser: repeated attempts could not reliably catch the
+  graph in motion at the moment of pausing. Worth one manual check.
+
+### 3. The ontology title is not reported
 
 `get_ontology_summary` reports `ontologyHeader.title` as `null` for the
 evaluation fixture, and the sidebar shows "No title available", even though the

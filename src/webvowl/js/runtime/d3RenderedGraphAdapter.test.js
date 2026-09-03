@@ -302,6 +302,7 @@ function createAdapterHarness() {
     callOrder: [],
     loadCallCount: 0,
     pauseStates: [],
+    pauseEndedFlags: [],
     suppliedVowlModels: [],
     options: () => ({
       datatypeFilter: () =>
@@ -353,8 +354,17 @@ function createAdapterHarness() {
       renderedGraphInternalsFixture.callOrder.push("load");
       renderedGraphInternalsFixture.loadCallCount += 1;
     },
-    paused(isPaused) {
+    paused(isPaused, hasLayoutEnded) {
       renderedGraphInternalsFixture.pauseStates.push(isPaused);
+      // The real renderer owns the simulation, so the double must too, or a
+      // test cannot see whether resuming restarts a finished layout.
+      renderedGraphInternalsFixture.pauseEndedFlags.push(hasLayoutEnded);
+      const forceSimulation = d3Fixture.createdSimulations.at(-1);
+      if (isPaused === true) {
+        forceSimulation?.stop();
+      } else if (hasLayoutEnded !== true) {
+        forceSimulation?.restart();
+      }
     },
     setRenderedGraphEventPort(nextPort) {
       renderedGraphInternalsFixture.installedEventPort = nextPort;
@@ -593,6 +603,47 @@ describe("D3 rendered graph adapter", () => {
         isPaused: true,
       }),
     ).toThrow(expect.objectContaining({ name: "AbortError" }));
+  });
+
+  test("resumes a layout that had not finished", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+    const forceSimulation = adapterHarness.d3Fixture.createdSimulations.at(-1);
+
+    adapterHarness.renderedGraphRuntime.setGraphLayoutPaused({
+      loadGeneration: 1,
+      isPaused: true,
+    });
+    expect(forceSimulation.isStopped).toBe(true);
+
+    adapterHarness.renderedGraphRuntime.setGraphLayoutPaused({
+      loadGeneration: 1,
+      isPaused: false,
+    });
+
+    // A reader who pauses mid-layout and resumes expects it to carry on.
+    expect(forceSimulation.isStopped).toBe(false);
+  });
+
+  test("leaves a finished layout alone when it is resumed", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+    const forceSimulation = adapterHarness.d3Fixture.createdSimulations.at(-1);
+    // The layout reaches its own end, as it does once a graph settles.
+    forceSimulation.emit("end");
+
+    adapterHarness.renderedGraphRuntime.setGraphLayoutPaused({
+      loadGeneration: 1,
+      isPaused: true,
+    });
+    adapterHarness.renderedGraphRuntime.setGraphLayoutPaused({
+      loadGeneration: 1,
+      isPaused: false,
+    });
+
+    // Exporting pauses and resumes. Restarting here would set a settled graph
+    // moving again every time a reader exported it.
+    expect(forceSimulation.isStopped).toBe(true);
   });
 
   test("projects deeply frozen snapshots that no caller can mutate", async () => {

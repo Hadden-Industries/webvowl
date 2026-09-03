@@ -2072,12 +2072,25 @@ function createGraph(graphContainerSelector) {
     updateHaloStyles();
   };
 
-  graph.paused = function (p) {
+  // `hasLayoutEnded` says whether the layout had already finished when the
+  // caller paused. Only the caller knows: the simulation's own alpha can still
+  // be running while the graph has visibly come to rest.
+  graph.paused = function (p, hasLayoutEnded) {
     if (!arguments.length) {
       return paused;
     }
     paused = p;
-    graph.updateStyle();
+    // Restyle, then stop or continue. Deliberately not graph.updateStyle(),
+    // which resets the simulation to full alpha: that is right for a change
+    // that alters the layout, such as a new force distance, but resuming is
+    // not such a change. Exporting pauses and resumes, so resetting alpha here
+    // made every export set a settled graph moving again from scratch.
+    refreshGraphStyle();
+    if (paused === true) {
+      force.stop();
+    } else if (hasLayoutEnded !== true) {
+      force.restart();
+    }
     return graph;
   };
   graph.reset = function () {
