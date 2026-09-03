@@ -7,16 +7,35 @@
 export function createModeMenu(
   graph,
   {
+    webVowlController,
     documentObject = globalThis.document,
     windowObject = globalThis.window,
   } = {},
 ) {
+  // The states the renderer's own modules start from. Supplied here rather
+  // than read back out of the renderer, which is what let this menu drop its
+  // module references.
+  const DEFAULT_DISPLAY_MODES = Object.freeze({
+    colorExternals: true,
+    compactNotation: false,
+    nodeScaling: true,
+    pickAndPin: false,
+  });
+  const dynamicLabelWidthDefault = true;
+
   const SAME_COLOR_MODE = { text: "Multicolor", type: "same" };
   const GRADIENT_COLOR_MODE = { text: "Multicolor", type: "gradient" };
 
   const modeMenu = {};
   const checkboxes = [];
   let colorModeSwitch;
+
+  // A checkbox states which display mode a reader chose. What that mode means
+  // for the drawn graph — which module enforces it, and when to recompute — is
+  // renderer behaviour and stays behind the seam.
+  function requestVisualizationMode(requestedMode) {
+    webVowlController?.setVisualizationMode(requestedMode);
+  }
 
   let dynamicLabelWidthCheckBox;
   // getter and setter for the state of color modes
@@ -58,47 +77,40 @@ export function createModeMenu(
       "labelWidth",
       "Dynamic label width",
       "#dynamicLabelWidth",
-      graph.options().dynamicLabelWidth,
-      1,
+      dynamicLabelWidthDefault,
     );
     addCheckBox("editorMode", "Editing ", "#editMode", graph.editorMode);
     addModeItem(
-      pickAndPin,
+      "pickAndPin",
+      DEFAULT_DISPLAY_MODES.pickAndPin,
       "pickandpin",
       "Pick & pin",
       "#pickAndPinOption",
-      false,
     );
     addModeItem(
-      nodeScaling,
+      "nodeScaling",
+      DEFAULT_DISPLAY_MODES.nodeScaling,
       "nodescaling",
       "Node scaling",
       "#nodeScalingOption",
-      true,
     );
     addModeItem(
-      compactNotation,
+      "compactNotation",
+      DEFAULT_DISPLAY_MODES.compactNotation,
       "compactnotation",
       "Compact notation",
       "#compactNotationOption",
-      true,
     );
     const container = addModeItem(
-      colorExternals,
+      "colorExternals",
+      DEFAULT_DISPLAY_MODES.colorExternals,
       "colorexternals",
       "Color externals",
       "#colorExternalsOption",
-      true,
     );
-    colorModeSwitch = addExternalModeSelection(container, colorExternals);
+    colorModeSwitch = addExternalModeSelection(container);
   };
-  function addCheckBoxD(
-    identifier,
-    modeName,
-    selector,
-    onChangeFunc,
-    updateLvl,
-  ) {
+  function addCheckBoxD(identifier, modeName, selector, defaultState) {
     const moduleOptionContainer = documentObject.querySelector(selector);
     if (!moduleOptionContainer) {
       return;
@@ -109,11 +121,11 @@ export function createModeMenu(
     if (!moduleCheckbox) {
       return;
     }
-    moduleCheckbox.checked = onChangeFunc();
+    moduleCheckbox.checked = defaultState;
 
     moduleCheckbox.addEventListener("click", function () {
       const isEnabled = moduleCheckbox.checked;
-      onChangeFunc(isEnabled);
+      requestVisualizationMode({ dynamicLabelWidth: isEnabled });
       const slider = documentObject.querySelector("#maxLabelWidthSlider");
       if (slider) {
         slider.disabled = !isEnabled;
@@ -129,11 +141,6 @@ export function createModeMenu(
       );
       if (descLabel) {
         descLabel.classList.toggle("disabledLabelForSlider", !isEnabled);
-      }
-
-      if (updateLvl > 0) {
-        graph.animateDynamicLabelWidth();
-        // graph.lazyRefresh();
       }
     });
 
@@ -163,11 +170,11 @@ export function createModeMenu(
   }
 
   function addModeItem(
-    module,
+    visualizationModeName,
+    defaultState,
     identifier,
     modeName,
     selector,
-    updateGraphOnClick,
   ) {
     const moduleOptionContainer = documentObject.querySelector(selector);
     if (!moduleOptionContainer) {
@@ -179,33 +186,21 @@ export function createModeMenu(
     if (!moduleCheckbox) {
       return moduleOptionContainer;
     }
-    const defaultState = module.enabled();
     moduleCheckbox.checked = defaultState;
 
     // Store for easier resetting all modes
     checkboxes.push({
       id: moduleCheckbox.id,
       element: moduleCheckbox,
-      module: module,
+      visualizationModeName,
       defaultState: defaultState,
       update: null,
     });
 
-    const clickHandler = function (arg1, arg2) {
-      const isEnabled = moduleCheckbox.checked;
-      module.enabled(isEnabled);
-      const silent =
-        typeof arg1 === "boolean"
-          ? arg1
-          : typeof arg2 === "boolean"
-            ? arg2
-            : false;
-      if (updateGraphOnClick && silent !== true) {
-        graph.executeColorExternalsModule();
-        graph.executeCompactNotationModule();
-        graph.executeNodeScalingModule();
-        graph.lazyRefresh();
-      }
+    const clickHandler = function () {
+      requestVisualizationMode({
+        [visualizationModeName]: moduleCheckbox.checked,
+      });
     };
     moduleCheckbox.addEventListener("click", clickHandler);
     checkboxes[checkboxes.length - 1].update = clickHandler;
@@ -213,7 +208,7 @@ export function createModeMenu(
     return moduleOptionContainer;
   }
 
-  function addExternalModeSelection(container, colorExternalsMode) {
+  function addExternalModeSelection(container) {
     if (!container) {
       return {
         element: null,
@@ -236,21 +231,14 @@ export function createModeMenu(
       };
     }
     let isActive = false;
-    applyColorModeSwitchState(button, colorExternalsMode, isActive);
+    applyColorModeSwitchState(button, isActive);
 
-    const clickHandler = function (arg1, arg2) {
+    const clickHandler = function () {
       isActive = !isActive;
-      applyColorModeSwitchState(button, colorExternalsMode, isActive);
-      const silent =
-        typeof arg1 === "boolean"
-          ? arg1
-          : typeof arg2 === "boolean"
-            ? arg2
-            : false;
-      if (colorExternalsMode.enabled() && silent !== true) {
-        graph.executeColorExternalsModule();
-        graph.lazyRefresh();
-      }
+      applyColorModeSwitchState(button, isActive);
+      requestVisualizationMode({
+        colorExternalsMode: getColorModeByState(isActive).type,
+      });
     };
     button.addEventListener("click", clickHandler);
 
@@ -266,15 +254,11 @@ export function createModeMenu(
     };
   }
 
-  function applyColorModeSwitchState(element, colorExternalsMode, isActive) {
+  function applyColorModeSwitchState(element, isActive) {
     const activeColorMode = getColorModeByState(isActive);
 
     element.classList.toggle("active", isActive);
     element.textContent = activeColorMode.text;
-
-    if (colorExternalsMode) {
-      colorExternalsMode.colorModeType(activeColorMode.type);
-    }
   }
 
   function getColorModeByState(isActive) {
@@ -297,9 +281,10 @@ export function createModeMenu(
         }
       }
 
-      // Reset the module that is connected with the checkbox
-      if (item.module && typeof item.module.reset === "function") {
-        item.module.reset();
+      if (item.visualizationModeName !== undefined) {
+        requestVisualizationMode({
+          [item.visualizationModeName]: defaultState,
+        });
       }
     });
 
@@ -344,26 +329,32 @@ export function createModeMenu(
     }
   };
 
-  modeMenu.updateSettingsUsingURL = function () {
-    const silent = true;
-    checkboxes.forEach(function (item) {
-      if (typeof item.update === "function") {
-        item.update(silent);
+  // Every checkbox state in one request, so importing settings costs one
+  // recomputation rather than one per checkbox. This is what the former silent
+  // flag was for.
+  function reportEveryDisplayMode(includeColorMode) {
+    const requestedMode = {};
+    for (const item of checkboxes) {
+      if (item.visualizationModeName !== undefined) {
+        requestedMode[item.visualizationModeName] = item.element.checked;
       }
-    });
+    }
+    if (includeColorMode && colorModeSwitch) {
+      requestedMode.colorExternalsMode = getColorModeByState(
+        colorModeSwitch.getActive(),
+      ).type;
+    }
+    if (Object.keys(requestedMode).length > 0) {
+      requestVisualizationMode(requestedMode);
+    }
+  }
+
+  modeMenu.updateSettingsUsingURL = function () {
+    reportEveryDisplayMode(false);
   };
 
   modeMenu.updateSettings = function () {
-    const silent = true;
-    checkboxes.forEach(function (item) {
-      if (typeof item.update === "function") {
-        item.update(silent);
-      }
-    });
-    // this simulates onclick and inverts its state
-    if (colorModeSwitch) {
-      colorModeSwitch.update(silent);
-    }
+    reportEveryDisplayMode(true);
   };
 
   modeMenu.syncEditorState = function (editMode) {

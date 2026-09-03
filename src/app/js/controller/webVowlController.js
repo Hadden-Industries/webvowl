@@ -625,30 +625,30 @@ export function createWebVowlController(dependencies) {
     },
 
     // Display modes change how the graph is drawn rather than what the
-    // ontology says, so like the pause operation this is controller-domain
-    // only and never a WebMCP tool.
+    // ontology says, so this is controller-domain only and never a WebMCP
+    // tool. Unlike pausing a layout it needs no ontology: a display mode is
+    // meaningful for an empty graph and survives the next load.
     setVisualizationMode(visualizationModeRequest) {
-      assertOntologyPresent();
       return renderedGraphRuntime.setVisualizationMode(
         visualizationModeRequest,
       );
     },
 
     // Force distances tune how the graph is laid out rather than what the
-    // ontology says, so like the pause operation this is controller-domain
-    // only and never a WebMCP tool.
+    // ontology says, so this is controller-domain only and never a WebMCP
+    // tool. Like a display mode it configures drawing rather than reading an
+    // ontology, so it is accepted before one is loaded.
     setForceLayoutDistances(forceLayoutDistancesRequest) {
-      assertOntologyPresent();
       return renderedGraphRuntime.setForceLayoutDistances(
         forceLayoutDistancesRequest,
       );
     },
 
     // A held zoom control reports the gesture, not a magnification per frame.
-    // Like the pause operation this is controller-domain only and is never a
-    // WebMCP tool: it tunes how the visualization is drawn, not what it says.
+    // This is controller-domain only and never a WebMCP tool: it tunes how the
+    // visualization is drawn, not what it says, so an empty graph may be
+    // magnified like any other.
     setContinuousZoom(continuousZoomRequest) {
-      assertOntologyPresent();
       return renderedGraphRuntime.setContinuousZoom(continuousZoomRequest);
     },
 

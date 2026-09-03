@@ -319,6 +319,9 @@ describe("rendered graph events", () => {
     expect(createVisualizationModeRequest({ colorExternals: true })).toEqual({
       colorExternals: true,
     });
+    expect(createVisualizationModeRequest({ pickAndPin: true })).toEqual({
+      pickAndPin: true,
+    });
     expect(
       createVisualizationModeRequest({
         compactNotation: false,
@@ -338,6 +341,12 @@ describe("rendered graph events", () => {
     ).toThrow();
     expect(() =>
       createVisualizationModeRequest({ maxLabelWidthPx: 0 }),
+    ).toThrow();
+    expect(
+      createVisualizationModeRequest({ colorExternalsMode: "gradient" }),
+    ).toEqual({ colorExternalsMode: "gradient" });
+    expect(() =>
+      createVisualizationModeRequest({ colorExternalsMode: "rainbow" }),
     ).toThrow();
     // Editor mode is a fact this plan publishes, never one a request sets.
     expect(() =>

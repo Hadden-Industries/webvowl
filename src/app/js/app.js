@@ -71,11 +71,9 @@ export function createWebVowlApplication() {
     GRAPH_SELECTOR = "#graph",
     // Modules for the webvowl app
     filterMenu = createFilterMenu(graph),
-    modeMenu = createModeMenu(graph),
     debugMenu = createDebugMenu(graph),
     pauseMenu = createPauseMenu({ documentObject: document }),
     navigationMenu = createNavigationMenu(graph),
-    configMenu = createConfigMenu(graph),
     // Graph modules
     colorExternalsSwitch = createColorExternalsSwitch(graph),
     compactNotationSwitch = createCompactNotationSwitch(graph),
@@ -158,6 +156,11 @@ export function createWebVowlApplication() {
   });
 
   // Menus that command the controller are constructed once it exists.
+  const modeMenu = createModeMenu(graph, { webVowlController });
+  const configMenu = createConfigMenu({
+    webVowlController,
+    maxLabelWidthPx: renderedGraphConfiguration.maxLabelWidth,
+  });
   const gravityMenu = createGravityMenu({
     webVowlController,
     classDistancePx: renderedGraphConfiguration.classDistance,
@@ -554,12 +557,7 @@ export function createWebVowlApplication() {
       setOperatorFilter,
       nodeDegreeFilter,
     );
-    modeMenu.setup(
-      pickAndPin,
-      nodeScalingSwitch,
-      compactNotationSwitch,
-      colorExternalsSwitch,
-    );
+    modeMenu.setup();
     registerApplicationUiModule("loadingModule", loadingModule);
     registerApplicationUiModule("warningModule", warningModule);
     registerApplicationUiModule("sidebar", sidebar);

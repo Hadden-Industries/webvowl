@@ -1004,12 +1004,21 @@ const VISUALIZATION_MODE_PREDICATE_FIELD_NAMES = Object.freeze([
   "compactNotation",
   "nodeScaling",
   "dynamicLabelWidth",
+  "pickAndPin",
 ]);
+
+// How external elements are coloured when that mode is on: one shared colour,
+// or a gradient across them.
+const COLOR_EXTERNALS_MODES = Object.freeze(["same", "gradient"]);
 
 export function createVisualizationModeRequest(request) {
   assertAllowedFieldNames(
     request,
-    [...VISUALIZATION_MODE_PREDICATE_FIELD_NAMES, "maxLabelWidthPx"],
+    [
+      ...VISUALIZATION_MODE_PREDICATE_FIELD_NAMES,
+      "maxLabelWidthPx",
+      "colorExternalsMode",
+    ],
     "visualization mode request",
   );
   const requestedMode = {};
@@ -1027,6 +1036,14 @@ export function createVisualizationModeRequest(request) {
       minimum: 1,
     });
     requestedMode.maxLabelWidthPx = request.maxLabelWidthPx;
+  }
+  if (request.colorExternalsMode !== undefined) {
+    if (!COLOR_EXTERNALS_MODES.includes(request.colorExternalsMode)) {
+      throw new TypeError(
+        `colorExternalsMode must be one of ${COLOR_EXTERNALS_MODES.join(", ")}.`,
+      );
+    }
+    requestedMode.colorExternalsMode = request.colorExternalsMode;
   }
   if (Object.keys(requestedMode).length === 0) {
     throw new TypeError(

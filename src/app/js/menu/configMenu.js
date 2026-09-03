@@ -1,10 +1,9 @@
-export function createConfigMenu(
-  graph,
-  {
-    documentObject = globalThis.document,
-    windowObject = globalThis.window,
-  } = {},
-) {
+export function createConfigMenu({
+  webVowlController,
+  maxLabelWidthPx,
+  documentObject = globalThis.document,
+  windowObject = globalThis.window,
+} = {}) {
   const configMenu = {},
     checkboxes = [];
 
@@ -14,33 +13,39 @@ export function createConfigMenu(
       "Zoom controls",
       "#zoomSliderOption",
       zoomSlider.showSlider,
-      0,
     );
     addLabelWidthSlider(
       "#maxLabelWidthSliderOption",
       "maxLabelWidth",
       "Max label width",
-      graph.options().maxLabelWidth,
+      maxLabelWidthPx,
     );
   };
 
-  function addLabelWidthSlider(selector, identifier, label, onChangeFunction) {
+  function addLabelWidthSlider(selector, identifier, label, defaultWidthPx) {
     const sliderContainer = documentObject.querySelector(selector);
     const sliderValueLabel = sliderContainer.querySelector(
       "#" + identifier + "SliderValue",
     );
-    sliderValueLabel.textContent = onChangeFunction();
+    sliderValueLabel.textContent = defaultWidthPx;
     const slider = sliderContainer.querySelector("#" + identifier + "Slider");
-    slider.setAttribute("value", onChangeFunction());
+    slider.setAttribute("value", defaultWidthPx);
 
-    slider.addEventListener("input", function () {
-      const value = slider.value;
-      onChangeFunction(value);
-      sliderValueLabel.textContent = value;
-      if (graph.options().dynamicLabelWidth() === true) {
-        graph.animateDynamicLabelWidth();
+    // The slider states the width a reader asked for. Whether that width is
+    // currently visible, and whether to animate labels into it, is renderer
+    // behaviour.
+    function requestLabelWidth() {
+      const requestedWidthPx = Number(slider.value);
+      if (!Number.isFinite(requestedWidthPx) || requestedWidthPx < 1) {
+        return;
       }
-    });
+      sliderValueLabel.textContent = slider.value;
+      webVowlController?.setVisualizationMode({
+        maxLabelWidthPx: requestedWidthPx,
+      });
+    }
+
+    slider.addEventListener("input", requestLabelWidth);
 
     // add wheel event to the slider
     slider.addEventListener("wheel", function (event) {
@@ -59,49 +64,23 @@ export function createConfigMenu(
       const newSliderValue = oldVal + offset;
       if (newSliderValue !== oldVal) {
         slider.value = newSliderValue;
-        onChangeFunction(newSliderValue);
-        slider.dispatchEvent(new Event("input")); // << set text and update the graphStyles
+        slider.dispatchEvent(new Event("input"));
       }
       event.preventDefault();
     });
   }
 
-  function addCheckBox(
-    identifier,
-    modeName,
-    selector,
-    onChangeFunc,
-    updateLvl,
-  ) {
+  function addCheckBox(identifier, modeName, selector, onChangeFunc) {
     const configOptionContainer = documentObject.querySelector(selector);
     const configCheckbox = configOptionContainer.querySelector(
       "#" + identifier + "ConfigCheckbox",
     );
     configCheckbox.checked = onChangeFunc();
 
-    const clickHandler = function (arg1, arg2) {
-      const isEnabled = configCheckbox.checked;
-      onChangeFunc(isEnabled);
-      const silent =
-        typeof arg1 === "boolean"
-          ? arg1
-          : typeof arg2 === "boolean"
-            ? arg2
-            : false;
-      if (silent !== true) {
-        // updating graph when silent is false or the parameter is not given.
-        if (updateLvl === 1) {
-          graph.lazyRefresh();
-          //graph.redrawWithoutForce
-        }
-        if (updateLvl === 2) {
-          graph.update();
-        }
-
-        if (updateLvl === 3) {
-          graph.updateDraggerElements();
-        }
-      }
+    // Showing or hiding the zoom controls is presentation, so it needs no
+    // recomputation of the drawn graph.
+    const clickHandler = function () {
+      onChangeFunc(configCheckbox.checked);
     };
 
     configCheckbox.addEventListener("click", clickHandler);
@@ -133,9 +112,8 @@ export function createConfigMenu(
   };
 
   configMenu.updateSettings = function () {
-    const silent = true;
     checkboxes.forEach(function (item) {
-      item.update(silent);
+      item.update();
     });
   };
 

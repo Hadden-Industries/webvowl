@@ -371,6 +371,9 @@ export function createD3RenderedGraphAdapter(dependencies) {
     colorExternals: (settings) => settings.colorExternalsModule(),
     compactNotation: (settings) => settings.compactNotationModule(),
     nodeScaling: (settings) => settings.nodeScalingModule(),
+    // Pinning is renderer-local behaviour, but whether it is on is a display
+    // mode a reader chooses, so the choice crosses and the behaviour does not.
+    pickAndPin: (settings) => settings.pickAndPinModule(),
   });
 
   // Each visibility filter the view can address, paired with the renderer
@@ -665,7 +668,16 @@ export function createD3RenderedGraphAdapter(dependencies) {
         readModeModule(renderedGraphSettings)?.enabled(requestedMode[modeName]);
         hasChangedElementRendering = true;
       }
-      if (requestedMode.colorExternals !== undefined) {
+      if (requestedMode.colorExternalsMode !== undefined) {
+        renderedGraphSettings
+          .colorExternalsModule()
+          ?.colorModeType(requestedMode.colorExternalsMode);
+        hasChangedElementRendering = true;
+      }
+      if (
+        requestedMode.colorExternals !== undefined ||
+        requestedMode.colorExternalsMode !== undefined
+      ) {
         renderedGraphInternals.executeColorExternalsModule();
       }
       if (requestedMode.compactNotation !== undefined) {
@@ -676,18 +688,25 @@ export function createD3RenderedGraphAdapter(dependencies) {
       }
       // Label width is a drawing setting rather than a filter module, so it is
       // applied directly and animated into place.
-      let hasChangedLabelWidth = false;
+      let hasChangedDynamicLabelWidthMode = false;
+      let hasChangedMaxLabelWidth = false;
       if (requestedMode.dynamicLabelWidth !== undefined) {
         renderedGraphSettings.dynamicLabelWidth(
           requestedMode.dynamicLabelWidth,
         );
-        hasChangedLabelWidth = true;
+        hasChangedDynamicLabelWidthMode = true;
       }
       if (requestedMode.maxLabelWidthPx !== undefined) {
         renderedGraphSettings.maxLabelWidth(requestedMode.maxLabelWidthPx);
-        hasChangedLabelWidth = true;
+        hasChangedMaxLabelWidth = true;
       }
-      if (hasChangedLabelWidth) {
+      // Switching the mode animates either way, because labels are clamped to
+      // the width or released back to their own. A width on its own is only
+      // visible while labels are sizing themselves to it.
+      if (
+        hasChangedDynamicLabelWidthMode ||
+        (hasChangedMaxLabelWidth && renderedGraphSettings.dynamicLabelWidth())
+      ) {
         renderedGraphInternals.animateDynamicLabelWidth();
       }
       if (hasChangedElementRendering) {

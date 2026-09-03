@@ -670,6 +670,21 @@ describe("WebVOWL controller orchestration", () => {
       expect(descriptionResult.elementDescriptions).toEqual([]);
     });
 
+    test("tunes the renderer before any ontology is loaded", () => {
+      // Display modes, force distances and zoom configure how a graph is drawn.
+      // They are meaningful for an empty graph and persist across loads, so
+      // unlike pausing a layout they do not require an ontology.
+      expect(controller.setVisualizationMode({ nodeScaling: true })).toEqual({
+        nodeScaling: true,
+      });
+      expect(
+        controller.setForceLayoutDistances({ classDistancePx: 240 }),
+      ).toEqual({ classDistancePx: 240 });
+      expect(controller.setContinuousZoom({ zoomDirection: "none" })).toBe(
+        "none",
+      );
+    });
+
     test("passes a requested display mode to the runtime", async () => {
       await completeLoad();
 

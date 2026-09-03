@@ -307,9 +307,15 @@ function createAdapterHarness() {
       nodeScalingModule: () =>
         renderedGraphInternalsFixture.modeModules.nodeScaling,
       dynamicLabelWidth(nextDynamicLabelWidth) {
+        if (!arguments.length) {
+          return renderedGraphInternalsFixture.isDynamicLabelWidth;
+        }
+        renderedGraphInternalsFixture.isDynamicLabelWidth =
+          nextDynamicLabelWidth;
         renderedGraphInternalsFixture.dynamicLabelWidths.push(
           nextDynamicLabelWidth,
         );
+        return undefined;
       },
       maxLabelWidth(nextMaxLabelWidthPx) {
         renderedGraphInternalsFixture.maxLabelWidths.push(nextMaxLabelWidthPx);
@@ -358,6 +364,7 @@ function createAdapterHarness() {
       compactNotation: createFilterModuleFixture(),
       nodeScaling: createFilterModuleFixture(),
     },
+    isDynamicLabelWidth: true,
     dynamicLabelWidths: [],
     maxLabelWidths: [],
     modeExecutions: [],
@@ -634,6 +641,40 @@ describe("D3 rendered graph adapter", () => {
     expect(internals.maxLabelWidths).toEqual([180]);
     expect(internals.labelWidthAnimations).toBe(1);
     expect(internals.lazyRefreshes).toBe(1);
+  });
+
+  test("animates labels back when dynamic label width is switched off", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+    const internals = adapterHarness.renderedGraphInternalsFixture;
+
+    // Labels already clamped to a maximum have to be animated back to their
+    // full width, so switching the mode off animates just as switching it on
+    // does. Skipping it would leave them clamped until something else redrew.
+    adapterHarness.renderedGraphRuntime.setVisualizationMode({
+      dynamicLabelWidth: false,
+    });
+
+    expect(internals.labelWidthAnimations).toBe(1);
+  });
+
+  test("leaves labels alone when a width changes while the mode is off", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+    const internals = adapterHarness.renderedGraphInternalsFixture;
+    adapterHarness.renderedGraphRuntime.setVisualizationMode({
+      dynamicLabelWidth: false,
+    });
+    internals.labelWidthAnimations = 0;
+
+    // A width that no label is sizing itself to is not visible, so there is
+    // nothing to animate into place.
+    adapterHarness.renderedGraphRuntime.setVisualizationMode({
+      maxLabelWidthPx: 200,
+    });
+
+    expect(internals.maxLabelWidths).toEqual([200]);
+    expect(internals.labelWidthAnimations).toBe(0);
   });
 
   test("hands requested force distances to the renderer in pixels", async () => {

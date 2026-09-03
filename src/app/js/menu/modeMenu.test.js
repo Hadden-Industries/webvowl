@@ -56,12 +56,7 @@ class MockElement {
 }
 
 describe("mode menu bug fixes", () => {
-  let mockGraph,
-    modeMenu,
-    pickAndPin,
-    nodeScaling,
-    compactNotation,
-    colorExternals;
+  let mockGraph, modeMenu, setVisualizationMode, webVowlController;
   let dynamicLabelWidthContainer,
     editModeContainer,
     pickAndPinContainer,
@@ -118,20 +113,17 @@ describe("mode menu bug fixes", () => {
       }),
     };
 
+    // Editor mode is the one renderer call this menu still makes; the plan
+    // records that as a deliberate exception.
     mockGraph = {
-      options: () => ({ dynamicLabelWidth: jest.fn().mockReturnValue(true) }),
       editorMode: jest.fn().mockReturnValue(false),
-      animateDynamicLabelWidth: jest.fn(),
+      showEditorHintIfNeeded: jest.fn(),
     };
-    pickAndPin = { enabled: jest.fn().mockReturnValue(false) };
-    nodeScaling = { enabled: jest.fn().mockReturnValue(true) };
-    compactNotation = { enabled: jest.fn().mockReturnValue(true) };
-    colorExternals = {
-      enabled: jest.fn().mockReturnValue(true),
-      colorModeType: jest.fn(),
-    };
+    setVisualizationMode = jest.fn();
+    webVowlController = { setVisualizationMode };
 
     modeMenu = modeMenuFactory(mockGraph, {
+      webVowlController,
       documentObject: global.document,
       windowObject: global.window,
     });
@@ -142,7 +134,7 @@ describe("mode menu bug fixes", () => {
   });
 
   test("toggling dynamic label width applies 'disabledLabelForSlider' to slider values and disables slider", () => {
-    modeMenu.setup(pickAndPin, nodeScaling, compactNotation, colorExternals);
+    modeMenu.setup();
 
     const dynamicCheckbox = dynamicLabelWidthContainer.children.find(
       (c) => c.id === "labelWidthModuleCheckbox",
@@ -179,53 +171,59 @@ describe("mode menu bug fixes", () => {
       querySelector: () => null,
     };
     const menuWithoutOptionalContainers = modeMenuFactory(mockGraph, {
+      webVowlController,
       documentObject: documentWithoutOptionalContainers,
       windowObject: global.window,
     });
 
     expect(() => {
-      menuWithoutOptionalContainers.setup(
-        pickAndPin,
-        nodeScaling,
-        compactNotation,
-        colorExternals,
-      );
+      menuWithoutOptionalContainers.setup();
       menuWithoutOptionalContainers.setDynamicLabelWidth(true);
       menuWithoutOptionalContainers.reset();
     }).not.toThrow();
   });
 
-  test("mode checkbox click handler triggers module updates on native click event but skips on silent: true", () => {
-    modeMenu.setup(pickAndPin, nodeScaling, compactNotation, colorExternals);
+  test("a mode checkbox reports the mode the reader chose", () => {
+    modeMenu.setup();
 
-    const pickAndPinCheckbox = pickAndPinContainer.children.find(
-      (c) => c.id === "pickandpinModuleCheckbox",
-    );
-    expect(pickAndPinCheckbox).toBeDefined();
-
-    mockGraph.executeColorExternalsModule = jest.fn();
-    mockGraph.executeCompactNotationModule = jest.fn();
-    mockGraph.executeNodeScalingModule = jest.fn();
-    mockGraph.lazyRefresh = jest.fn();
-
-    // Node scaling checkbox
     const nodeScalingCheckbox = nodeScalingContainer.children.find(
       (c) => c.id === "nodescalingModuleCheckbox",
     );
-    nodeScalingCheckbox.checked = true;
+    nodeScalingCheckbox.checked = false;
 
-    // Simulate native click (arg1 is MouseEvent)
     nodeScalingCheckbox.listeners["click"][0]({ type: "click" });
 
-    expect(nodeScaling.enabled).toHaveBeenCalledWith(true);
-    expect(mockGraph.lazyRefresh).toHaveBeenCalledTimes(1);
+    expect(setVisualizationMode).toHaveBeenCalledWith({ nodeScaling: false });
+  });
 
-    // Silent programmatic call
-    mockGraph.lazyRefresh.mockClear();
+  test("importing settings reports every mode in one request", () => {
+    modeMenu.setup();
+    setVisualizationMode.mockClear();
+
+    modeMenu.updateSettingsUsingURL();
+
+    // One request rather than one per checkbox, so the graph recomputes once.
+    expect(setVisualizationMode).toHaveBeenCalledTimes(1);
+    expect(setVisualizationMode.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        colorExternals: expect.any(Boolean),
+        compactNotation: expect.any(Boolean),
+        nodeScaling: expect.any(Boolean),
+        pickAndPin: expect.any(Boolean),
+      }),
+    );
+  });
+
+  test("resetting reports each mode's default rather than resetting a module", () => {
+    modeMenu.setup();
+    const nodeScalingCheckbox = nodeScalingContainer.children.find(
+      (c) => c.id === "nodescalingModuleCheckbox",
+    );
     nodeScalingCheckbox.checked = false;
-    nodeScalingCheckbox.listeners["click"][0](true); // silent = true
+    setVisualizationMode.mockClear();
 
-    expect(nodeScaling.enabled).toHaveBeenCalledWith(false);
-    expect(mockGraph.lazyRefresh).not.toHaveBeenCalled();
+    modeMenu.reset();
+
+    expect(setVisualizationMode).toHaveBeenCalledWith({ nodeScaling: true });
   });
 });
