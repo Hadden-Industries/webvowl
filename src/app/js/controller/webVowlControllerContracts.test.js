@@ -7,6 +7,7 @@ let WEB_VOWL_OPERATION_LIMITS;
 let WebVowlOperationError;
 let assertCurrentOntologyElementReference;
 let createOntologyElementReference;
+let createWebVowlControllerState;
 let freezeWebVowlControllerState;
 let normalizeSvgFilename;
 let toPublicWebVowlError;
@@ -29,6 +30,7 @@ beforeAll(async () => {
     WebVowlOperationError,
     assertCurrentOntologyElementReference,
     createOntologyElementReference,
+    createWebVowlControllerState,
     freezeWebVowlControllerState,
     normalizeSvgFilename,
     toPublicWebVowlError,
@@ -520,6 +522,34 @@ describe("ontology-element references", () => {
   });
 });
 
+const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
+  "status",
+  "loadGeneration",
+  "source",
+  "warnings",
+  "view",
+  "viewport",
+  "layout",
+  "selection",
+  "renderProgress",
+  "editorMode",
+  "error",
+]);
+
+const IDLE_CONTROLLER_STATE_FIELDS = Object.freeze({
+  status: "idle",
+  loadGeneration: 0,
+  source: null,
+  warnings: [],
+  view: null,
+  viewport: null,
+  layout: { status: "unavailable" },
+  selection: [],
+  renderProgress: null,
+  editorMode: null,
+  error: null,
+});
+
 describe("controller-state snapshots", () => {
   test("deeply copies and freezes controller-owned plain state", () => {
     const mutableControllerState = {
@@ -562,6 +592,47 @@ describe("controller-state snapshots", () => {
     expect(() => {
       stateSnapshot.layout.status = "relaxing";
     }).toThrow(TypeError);
+  });
+
+  test("rejects a field name outside the controller-state contract", () => {
+    expect(
+      captureThrownError(() =>
+        createWebVowlControllerState({
+          ...IDLE_CONTROLLER_STATE_FIELDS,
+          renderedElementCount: 12,
+        }),
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        name: "TypeError",
+        message: expect.stringContaining("controller state"),
+      }),
+    );
+  });
+
+  test("accepts exactly the declared controller-state field names", () => {
+    const stateSnapshot = createWebVowlControllerState(
+      IDLE_CONTROLLER_STATE_FIELDS,
+    );
+
+    expect(Object.keys(stateSnapshot).sort()).toEqual(
+      [...WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES].sort(),
+    );
+    expect(Object.isFrozen(stateSnapshot)).toBe(true);
+  });
+
+  test("rejects a controller state that omits a declared field name", () => {
+    const { selection, ...withoutSelection } = IDLE_CONTROLLER_STATE_FIELDS;
+
+    expect(selection).toEqual([]);
+    expect(
+      captureThrownError(() => createWebVowlControllerState(withoutSelection)),
+    ).toEqual(
+      expect.objectContaining({
+        name: "TypeError",
+        message: expect.stringContaining("controller state"),
+      }),
+    );
   });
 
   test("rejects mutable values outside the plain controller-state contract", () => {

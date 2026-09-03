@@ -205,7 +205,11 @@ describe("WebVOWL controller orchestration", () => {
         source: null,
         warnings: [],
         view: null,
+        viewport: null,
         layout: { status: "unavailable" },
+        selection: [],
+        renderProgress: null,
+        editorMode: null,
         error: null,
       });
       expect(Object.isFrozen(controllerState)).toBe(true);
@@ -551,6 +555,54 @@ describe("WebVOWL controller orchestration", () => {
       await flushMicrotasks();
 
       expect(controller.getState().selection).toEqual([]);
+    });
+
+    test("clears a selection made in a superseded load generation", async () => {
+      await completeLoad(1);
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: 1,
+        payload: {
+          selectedOntologyElementReferences: [
+            { kind: "class", iri: "https://example.test/Person" },
+          ],
+        },
+      });
+      await flushMicrotasks();
+      expect(controller.getState().selection).toHaveLength(1);
+
+      await completeLoad(2);
+
+      expect(controller.getState().loadGeneration).toBe(2);
+      expect(controller.getState().selection).toEqual([]);
+    });
+
+    test("clears in-flight render progress when a new load begins", async () => {
+      await completeLoad(1);
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "render-progress-changed",
+        loadGeneration: 1,
+        payload: {
+          completedRenderedElementCount: 40,
+          totalRenderedElementCount: 100,
+        },
+      });
+      await flushMicrotasks();
+      expect(controller.getState().renderProgress).not.toBeNull();
+
+      const loadPromise = controller.loadOntology(SOURCE_REQUEST);
+      await flushMicrotasks(2);
+
+      expect(controller.getState().status).toBe("loading");
+      expect(controller.getState().renderProgress).toBeNull();
+
+      deferredSourceLoads.at(-1).resolve(createSourceLoadRecord());
+      await flushMicrotasks(3);
+      renderedGraphTestHarness.completeInitialPaint(2);
+      await flushMicrotasks(3);
+      renderedGraphTestHarness.completeVisualizationViewApplication(2);
+      await flushMicrotasks(3);
+      await loadPromise;
     });
 
     test("reduces a render progress event into controller state", async () => {

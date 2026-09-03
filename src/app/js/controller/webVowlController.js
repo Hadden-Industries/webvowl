@@ -1,6 +1,7 @@
 import { createLinkedAbortSignal } from "./linkedAbortSignal.js";
 import {
-  freezeWebVowlControllerState,
+  createWebVowlControllerState,
+  GENERATION_SCOPED_CONTROLLER_STATE_FIELDS,
   toPublicWebVowlError,
   truncateOntologyDerivedText,
   truncateResultCollection,
@@ -34,7 +35,11 @@ const IDLE_CONTROLLER_STATE = Object.freeze({
   source: null,
   warnings: [],
   view: null,
+  viewport: null,
   layout: { status: "unavailable" },
+  selection: [],
+  renderProgress: null,
+  editorMode: null,
   error: null,
 });
 
@@ -143,7 +148,7 @@ export function createWebVowlController(dependencies) {
   } = dependencies;
 
   let isDisposed = false;
-  let controllerState = freezeWebVowlControllerState(IDLE_CONTROLLER_STATE);
+  let controllerState = createWebVowlControllerState(IDLE_CONTROLLER_STATE);
   let lastValidControllerState = controllerState;
   let activeLoadGeneration = 0;
   let currentOntologyGeneration = 0;
@@ -157,7 +162,7 @@ export function createWebVowlController(dependencies) {
     if (isDisposed) {
       return;
     }
-    controllerState = freezeWebVowlControllerState(nextControllerState);
+    controllerState = createWebVowlControllerState(nextControllerState);
     for (const stateSubscriber of [...stateSubscribers]) {
       stateSubscriber(controllerState);
     }
@@ -346,6 +351,7 @@ export function createWebVowlController(dependencies) {
 
       try {
         publishForGeneration(loadGeneration, {
+          ...GENERATION_SCOPED_CONTROLLER_STATE_FIELDS,
           status: "loading",
           loadGeneration,
           error: null,

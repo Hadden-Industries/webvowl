@@ -11,6 +11,29 @@ const WEB_VOWL_OPERATION_ERROR_CODES = Object.freeze([
   "EXPORT_FAILED",
 ]);
 
+export const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
+  "status",
+  "loadGeneration",
+  "source",
+  "warnings",
+  "view",
+  "viewport",
+  "layout",
+  "selection",
+  "renderProgress",
+  "editorMode",
+  "error",
+]);
+
+// Fields whose meaning is bound to one load generation. Beginning a load
+// resets them, so no published field can name an element of a retired
+// ontology.
+export const GENERATION_SCOPED_CONTROLLER_STATE_FIELDS = Object.freeze({
+  selection: Object.freeze([]),
+  renderProgress: null,
+  viewport: null,
+});
+
 const ONTOLOGY_ELEMENT_KINDS = Object.freeze([
   "class",
   "datatype",
@@ -412,4 +435,29 @@ export function freezeWebVowlControllerState(controllerState) {
     throw new TypeError("Controller state must be a plain object.");
   }
   return cloneAndFreezeControllerStateValue(controllerState, new WeakSet());
+}
+
+export function createWebVowlControllerState(controllerState) {
+  if (
+    controllerState === null ||
+    typeof controllerState !== "object" ||
+    Array.isArray(controllerState)
+  ) {
+    throw new TypeError("Controller state must be a plain object.");
+  }
+  // The published state is the whole application's read interface, so the
+  // field set is asserted rather than inferred from whichever reducer ran
+  // last. Without this a branch can introduce a field that no consumer knows
+  // to clear, which is how a selection outlived its load generation.
+  const actualFieldNames = Object.keys(controllerState).sort();
+  const expectedFieldNames = [...WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES].sort();
+  if (
+    actualFieldNames.length !== expectedFieldNames.length ||
+    actualFieldNames.some(
+      (fieldName, fieldIndex) => fieldName !== expectedFieldNames[fieldIndex],
+    )
+  ) {
+    throw new TypeError("The controller state has an invalid field set.");
+  }
+  return freezeWebVowlControllerState(controllerState);
 }
