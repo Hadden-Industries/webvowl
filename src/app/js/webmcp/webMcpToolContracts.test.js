@@ -365,7 +365,13 @@ describe("set_visualization_view input schema", () => {
       type: "array",
       maxItems: 25,
     });
-    expect(inputSchema.properties.layout.enum).toEqual(["preserve", "relax"]);
+    // The same two acts the reader's own pause control performs, under the
+    // same names, so one page does not describe one action two ways.
+    expect(inputSchema.properties.layout.enum).toEqual([
+      "preserve",
+      "pause",
+      "resume",
+    ]);
     expect(inputSchema.properties.viewport.enum).toEqual([
       "preserve",
       "fit",
@@ -678,11 +684,11 @@ describe("set_visualization_view input normalization", () => {
     // An omitted field preserves what is shown, so a normalizer must not
     // invent one.
     expect(normalizeSetVisualizationViewToolInput({})).toEqual({});
-    expect(normalizeSetVisualizationViewToolInput({ layout: "relax" })).toEqual(
-      {
-        layout: "relax",
-      },
-    );
+    expect(
+      normalizeSetVisualizationViewToolInput({ layout: "resume" }),
+    ).toEqual({
+      layout: "resume",
+    });
   });
 
   test("carries filters, focus and magnification through unchanged", () => {
@@ -691,7 +697,7 @@ describe("set_visualization_view input normalization", () => {
         language: "en",
         filters: { datatypes: "hide", minDegree: 2 },
         focus: [{ kind: "class", iri: "https://example.test/Person" }],
-        layout: "relax",
+        layout: "resume",
         viewport: "fit",
         zoomScale: 1.5,
       }),
@@ -699,7 +705,7 @@ describe("set_visualization_view input normalization", () => {
       language: "en",
       filters: { datatypes: "hide", minDegree: 2 },
       focus: [{ kind: "class", iri: "https://example.test/Person" }],
-      layout: "relax",
+      layout: "resume",
       viewport: "fit",
       zoomScale: 1.5,
     });
@@ -1147,7 +1153,7 @@ describe("WebMCP tool dispatch", () => {
     });
     await callWebMcpTool("get_ontology_summary", {});
     await callWebMcpTool("find_ontology_elements", { query: "Person" });
-    await callWebMcpTool("set_visualization_view", { layout: "relax" });
+    await callWebMcpTool("set_visualization_view", { layout: "resume" });
     await callWebMcpTool("export_visualization", {});
 
     expect(

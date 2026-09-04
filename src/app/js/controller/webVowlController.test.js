@@ -550,7 +550,7 @@ describe("WebVOWL controller orchestration", () => {
     test("returns to relaxing and restarts observation on a relax view change", async () => {
       await completeLoad();
       const backgroundSettlement = settlementRequests.at(-1);
-      const viewPromise = controller.setVisualizationView({ layout: "relax" });
+      const viewPromise = controller.setVisualizationView({ layout: "resume" });
       await flushMicrotasks(2);
       renderedGraphTestHarness.completeVisualizationViewApplication(1);
       await viewPromise;

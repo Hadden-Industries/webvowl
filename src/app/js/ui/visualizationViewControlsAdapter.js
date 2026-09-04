@@ -187,7 +187,7 @@ export function createVisualizationViewControlsAdapter(dependencies) {
   });
 
   listenOnControl("relaxLayoutButton", "click", () => {
-    requestVisualizationView({ layout: "relax" });
+    requestVisualizationView({ layout: "resume" });
   });
 
   listenOnControl("fitViewportButton", "click", () => {

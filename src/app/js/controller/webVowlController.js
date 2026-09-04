@@ -600,7 +600,7 @@ export function createWebVowlController(dependencies) {
           ];
         }
 
-        if (visualizationViewRequest?.layout === "relax") {
+        if (visualizationViewRequest?.layout === "resume") {
           abortBackgroundLayoutObservation();
         }
 
@@ -610,17 +610,17 @@ export function createWebVowlController(dependencies) {
           linkedAbortSignal.signal,
         );
         const graphLayoutSnapshot = readGraphLayoutSnapshot();
-        const isRelaxRequested = visualizationViewRequest?.layout === "relax";
+        const isResumeRequested = visualizationViewRequest?.layout === "resume";
 
         publishForGeneration(loadGeneration, {
-          status: isRelaxRequested
+          status: isResumeRequested
             ? "relaxing"
             : controllerState.status === "error"
               ? "ready"
               : controllerState.status,
           view: viewApplicationResult.appliedVisualizationView,
           layout: {
-            status: isRelaxRequested
+            status: isResumeRequested
               ? "relaxing"
               : layoutStatusFromSnapshot(graphLayoutSnapshot),
           },
@@ -628,7 +628,7 @@ export function createWebVowlController(dependencies) {
         });
         lastValidControllerState = controllerState;
 
-        if (isRelaxRequested) {
+        if (isResumeRequested) {
           startBackgroundLayoutObservation(loadGeneration);
         }
         return controllerState;

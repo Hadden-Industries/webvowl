@@ -236,18 +236,32 @@ drags a node and then asks an agent to export gets an artifact of exactly what
 they arranged, with the graph still paused afterwards. That was measured on the
 same page immediately before the run above.
 
-This is the strongest argument for reconsidering how the agent addresses the
-layout, and it is recorded here rather than acted on because the shape of the
-remedy is a design decision.
+**Resolved.** The agent's `layout` directive now names the two acts the
+reader's control performs, using the same words: `pause` and `resume`. The
+earlier `relax` was resume under a second name — the same `alpha(1).restart()`
+call described twice — which is what let an agent clear a hold while having no
+way to set one.
+
+Re-measured in the browser after the change: a reader pauses; an agent's
+`resume` sets the layout running and the reader's button reads `Pause`; the
+agent's `pause` holds it still again and the button reads `Resume`. Both
+directions are available to both parties, and the reader's control reflects
+what the agent did rather than silently disagreeing with it.
+
+What is not yet addressed is that the applied view still reports the last
+directive on each axis as though it were standing state, so `view.layout` reads
+`resume` after a resume even once the graph has settled, and `view.viewport`
+reads `fit` long after the viewport has moved. That is the separate modelling
+question recorded above.
 
 ### Two view fields have no human control
 
 The convergence check surfaced an asymmetry rather than a disagreement.
 
-- **`layout: "relax"` cannot be requested by a reader at all.** The only
-  production request for it is bound to `visualizationRelaxLayoutButton`, which
-  does not exist in the page; the adapter skips absent controls by design. An
-  agent can relax the layout and a reader cannot.
+- **The layout directive had no dedicated reader control**, and needs none: it
+  is now `pause` and `resume`, which the Pause button performs. The binding for
+  a `visualizationRelaxLayoutButton` that never shipped is a leftover; the
+  adapter skips absent controls by design.
 - The adapter's own search input and result list, `visualizationOntologySearchInput`
   and `visualizationOntologySearchResultList`, are likewise absent. Focus does
   have a human route — the search menu owns its own box and dropdown, and that

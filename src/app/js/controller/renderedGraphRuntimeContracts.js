@@ -971,9 +971,14 @@ function createVisualizationFocus(focus) {
   );
 }
 
+// preserve leaves the layout as it is; pause holds it still; resume sets it
+// running again. These are the two acts the reader's own pause control
+// performs, named the same way, so one page never describes one action twice.
+const LAYOUT_DIRECTIVES = Object.freeze(["preserve", "pause", "resume"]);
+
 function assertLayoutDirective(layout) {
-  if (layout !== "preserve" && layout !== "relax") {
-    throw new TypeError("layout must be preserve or relax.");
+  if (!LAYOUT_DIRECTIVES.includes(layout)) {
+    throw new TypeError(`layout must be ${LAYOUT_DIRECTIVES.join(", ")}.`);
   }
 }
 

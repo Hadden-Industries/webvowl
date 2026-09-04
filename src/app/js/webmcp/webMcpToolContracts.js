@@ -278,8 +278,9 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
         }),
         layout: Object.freeze({
           type: "string",
-          description: "Keep the current arrangement, or relax it again.",
-          enum: Object.freeze(["preserve", "relax"]),
+          description:
+            "Keep the layout as it is, hold it still, or set it running.",
+          enum: Object.freeze(["preserve", "pause", "resume"]),
         }),
         viewport: Object.freeze({
           type: "string",
@@ -733,7 +734,7 @@ export function normalizeSetVisualizationViewToolInput(toolInput = {}) {
     visualizationViewRequest.layout = assertEnumMember(
       toolInput.layout,
       "layout",
-      ["preserve", "relax"],
+      ["preserve", "pause", "resume"],
     );
   }
   if (toolInput.viewport !== undefined) {

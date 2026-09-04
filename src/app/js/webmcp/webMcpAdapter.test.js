@@ -243,7 +243,7 @@ describe("WebMCP tool execution", () => {
     );
 
     await toolDefinition.execute(
-      { layout: "relax" },
+      { layout: "resume" },
       { signal: abortController.signal },
     );
 

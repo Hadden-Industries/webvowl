@@ -201,7 +201,7 @@ describe("native visualization view controls", () => {
     controlElement("fitViewportButton").emit("click");
 
     expect(controller.setVisualizationView).toHaveBeenNthCalledWith(1, {
-      layout: "relax",
+      layout: "resume",
     });
     expect(controller.setVisualizationView).toHaveBeenNthCalledWith(2, {
       viewport: "fit",

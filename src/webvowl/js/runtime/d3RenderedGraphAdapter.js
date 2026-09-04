@@ -437,11 +437,19 @@ export function createD3RenderedGraphAdapter(dependencies) {
     if (requiresRecomputation) {
       renderedGraphInternals.update();
     }
-    if (requestedView.layout === "relax") {
+    // Whichever route asks, pausing and resuming reach the simulation the same
+    // way the reader's own control does.
+    if (requestedView.layout === "resume") {
+      isGraphLayoutPaused = false;
+      renderedGraphInternals.paused?.(false);
       renderedGraphInternals.restartForceLayout();
       forceAlpha = 1;
       hasForceEnded = false;
       activeForceSimulation?.alpha(1).restart();
+    } else if (requestedView.layout === "pause") {
+      isGraphLayoutPaused = true;
+      renderedGraphInternals.paused?.(true);
+      activeForceSimulation?.stop();
     }
 
     // The caller reports which elements were selected; the runtime decides

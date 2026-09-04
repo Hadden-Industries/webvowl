@@ -739,6 +739,57 @@ describe("D3 rendered graph adapter", () => {
     expect(internals.labelWidthAnimations).toBe(0);
   });
 
+  test("holds the layout still when a view asks it to pause", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+    const forceSimulation = adapterHarness.d3Fixture.createdSimulations.at(-1);
+
+    const viewApplication =
+      adapterHarness.renderedGraphRuntime.applyVisualizationView({
+        loadGeneration: 1,
+        layout: "pause",
+      });
+    adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+      1,
+    );
+    await viewApplication;
+
+    // An agent asking to pause reaches the simulation the same way the
+    // reader's own control does, so a held graph is held whoever asked.
+    expect(forceSimulation.isStopped).toBe(true);
+    expect(adapterHarness.renderedGraphInternalsFixture.pauseStates).toContain(
+      true,
+    );
+    expect(
+      adapterHarness.renderedGraphRuntime.readGraphLayoutSnapshot().isPaused,
+    ).toBe(true);
+  });
+
+  test("sets the layout running again when a view asks it to resume", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+    const forceSimulation = adapterHarness.d3Fixture.createdSimulations.at(-1);
+    adapterHarness.renderedGraphRuntime.setGraphLayoutPaused({
+      loadGeneration: 1,
+      isPaused: true,
+    });
+
+    const viewApplication =
+      adapterHarness.renderedGraphRuntime.applyVisualizationView({
+        loadGeneration: 1,
+        layout: "resume",
+      });
+    adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+      1,
+    );
+    await viewApplication;
+
+    expect(forceSimulation.isStopped).toBe(false);
+    expect(
+      adapterHarness.renderedGraphRuntime.readGraphLayoutSnapshot().isPaused,
+    ).toBe(false);
+  });
+
   test("exports a styled clone framed on what the reader is looking at", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
