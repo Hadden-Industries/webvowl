@@ -11,7 +11,7 @@
       "sourcePath": ".sdlc/PACKAGE_STATUS.json",
       "destinationPath": ".sdlc/PACKAGE_STATUS.json",
       "sourceSha256": "b9b80493dd413107d6c23efc1a07cba09a8d3895dbfa4b901151eb668781d3db",
-      "destinationSha256": "c52579b048da0010a849c502f2fff6e490a49b4bf465f27913a0b9ff9b94d3d7",
+      "destinationSha256": "101e0bf43a80228bff3b74bde4120555c6d9099dd9de2a0a5e8e7e984118f2f6",
       "integration": "WebVOWL adaptation"
     },
     {
@@ -277,7 +277,7 @@
       "sourcePath": "docs/sdlc/adoption.md",
       "destinationPath": "docs/sdlc/adoption.md",
       "sourceSha256": "a7a3bfccce50a02ea37217bc62dd586a053dea04dd8ba92063d81639daf5fe35",
-      "destinationSha256": "16d5dd7a9eaf7aeaffeaab06894045b9b510619a8b3c08319cb2297e32e2f9c5",
+      "destinationSha256": "9aa12ed641dc2ef81ca51afd3d4558fb8c4ed8b70406a596e4ec5f4af629dc81",
       "integration": "WebVOWL adaptation"
     },
     {
@@ -319,14 +319,14 @@
       "sourcePath": "docs/sdlc/github-governance.md",
       "destinationPath": "docs/sdlc/github-governance.md",
       "sourceSha256": "94da970ffe0b848d0f388e7a52ba75cd3443f15962f45c41afaaf70b9ed4654c",
-      "destinationSha256": "430081796157a946228c834f8056fc3f0392f385b9a1c09bb5adc3bb68d8b01b",
+      "destinationSha256": "fa2a554c213d2b8eda0356dde5c1583fcc2c9b070b9bd9041ab44ba84108ab2d",
       "integration": "WebVOWL adaptation"
     },
     {
       "sourcePath": "docs/sdlc/howto.md",
       "destinationPath": "docs/sdlc/howto.md",
       "sourceSha256": "969d37733e3377af8a70c390cdcc845cbad6b97fc08ee3a8bc4efe72eb93c9d5",
-      "destinationSha256": "40b2bd1b7cb2ddbac44468e06adbf79be53d0fe6b2da7c32b6ff7d326ae1a535",
+      "destinationSha256": "7f94758bc46c168094cb6fe0cb97b09f81cba958726937b9c4927a94b04cb344",
       "integration": "WebVOWL adaptation"
     },
     {
@@ -389,7 +389,7 @@
       "sourcePath": "docs/sdlc/verification.md",
       "destinationPath": "docs/sdlc/verification.md",
       "sourceSha256": "bc2f8e7deb97d23605891659d5cf943c867ba1d46b55b9fee6b5d7e028e271bc",
-      "destinationSha256": "67b98c0818609ad30dbf3430b0f3ad5db7944279021f4432bc9f2e9088b3bf2c",
+      "destinationSha256": "a3c2678d65bc6be52d4eb810fdd0248512d8e4d1e2697a8e745f587cd8438410",
       "integration": "WebVOWL adaptation"
     },
     {
@@ -466,7 +466,7 @@
       "sourcePath": "scripts/set_up_sdlc.py",
       "destinationPath": "util/set_up_sdlc.py",
       "sourceSha256": "dd38737d0be81c046100b26d2c9c1b9a5b0a06c6783024e9a86a67c976a789f8",
-      "destinationSha256": "1dcf6b6a1f4c2d29513e12cbbb60735243b0229fcdcbf9cb04cbd1fce0130318",
+      "destinationSha256": "a60614b2161ab498adb279810a3564eaee2b2c4df41bb549d9ab75189bd404d1",
       "integration": "WebVOWL adaptation"
     },
     {
@@ -522,7 +522,7 @@
       "sourcePath": "tests/sdlc/test_pipeline_controls.py",
       "destinationPath": "tests/sdlc/test_pipeline_controls.py",
       "sourceSha256": "1fd62186c1cdb33443d5f89d27ddb24eb7248b50111ef47ee9ca7fa8b32f4cd3",
-      "destinationSha256": "fe467ddab78070991d4a2b1d6821306fb58d59971f1564f481e40edf81a91ab2",
+      "destinationSha256": "8307bb18f0455f5a9dff067e814bf572d6c840be2de00e291d0bb3f90abd4e03",
       "integration": "WebVOWL adaptation"
     },
     {

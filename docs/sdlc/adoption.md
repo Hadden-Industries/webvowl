@@ -57,21 +57,37 @@ changing DCG or trust. That observation is not proof of every command surface.
 The copied DCG assets retain their upstream licence, including its non-standard
 OpenAI/Anthropic rider; no binary or new operator configuration is installed here.
 
-## Activation boundaries
+## Operational activation
 
-The bootstrap observed desktop Codex 0.153.4 and a separate PATH CLI 0.149.1.
-The owner subsequently approved upgrading the npm CLI to 0.153.4. The optional
-[runtime preflight](howto.md#inspect-the-runtime-before-native-hook-qualification)
-now identifies each selected executable and checks its native prerequisites.
-Validate configuration against the native schema and report host loading separately.
-Setup does not create a pending desktop hook approval. Native Stop-hook
-loading/trust for this WebVOWL worktree remains unverified; user-level trust is not
-changed. Direct npm verification remains usable. See the
-[native hook documentation](https://learn.chatgpt.com/docs/hooks).
+The owner approved normal-checkout setup, native project/exact-hook trust, bounded
+acceptance turns, main protection and conditional deployment recording on
+2026-09-09 (Europe/Bucharest). A subsequent explicit approval covers the Windows
+interpreter correction and acceptance reruns. Version 1.0.0 remains pre-release.
 
-GitHub default CodeQL was not configured at preflight, so no default/advanced mode
-transition is required. Main was unprotected; the existing Phase 19A tag ruleset is
-preserved. Trusted-base PR linkage needs this bootstrap on main and qualification
-on subsequent real work before it can be required. No synthetic pilot is created.
-PACKAGE_STATUS.json remains 1.0.0 pre-release with deployed=false while host acceptance
-is unverified. Successful repository integration does not erase that distinction.
+The normal checkout and SDLC worktree have configured Python environments, six
+native-discovered local skills and eight installed optional role files. The native
+consumer loads their project policy. Role execution remains untested because the
+owner prohibits delegation. The normal checkout preserves the owner's fast-uri
+3.1.7 lockfile edit as an uncommitted change.
+
+The approved npm Codex upgrade aligned the CLI with desktop 0.153.4. Native
+app-server acceptance used the installed desktop executable, without bypassing
+hook trust or changing DCG. Both checkout contexts discover the normal checkout's
+project Stop definition; its command resolves the session's current Git worktree.
+One exact native hash therefore covers the discovered definition in both contexts.
+
+The original Windows hook body assumed PowerShell, while the native runtime
+launches command hooks through cmd.exe. The renderer now explicitly invokes
+PowerShell with the existing body. The regression exercises the real shell
+boundary, paths containing spaces, nested cwd, arguments, stdin and exit status.
+Native acceptance observed a blocked Stop followed by an honest continuation in
+the SDLC worktree, and an allowed Stop with current evidence in the normal checkout.
+See [verification.md](verification.md) for the retained positive and failed evidence.
+
+Main now requires the four qualified checks described in
+[GitHub governance](github-governance.md), including administrator enforcement and
+up-to-date branches. The existing Phase 19A tag ruleset is preserved. Real PRs
+[4](https://github.com/Hadden-Industries/webvowl/pull/4) and
+[5](https://github.com/Hadden-Industries/webvowl/pull/5) qualified trusted-base linkage.
+PACKAGE_STATUS.json records this qualified local adoption as deployed=true.
+This does not promote SDLC version/status or establish WebVOWL product acceptance.
