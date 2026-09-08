@@ -12,10 +12,12 @@ through the GitHub API, and never checks out or executes candidate code. Tests c
 schema/risk/state, immutable baseline versions, renamed paths and head/base freshness.
 Reference presence does not establish research quality or human acceptance.
 
-The initial base lacks these controls. The bootstrap cannot prove its own trusted
-policy pass. Qualify linkage on a subsequent real PR before making it required;
-never run head policy with privileged credentials or fabricate a bootstrap pass.
-Re-read live accepted intent before merge: issue edits and prior checks are not atomic.
+The bootstrap initially lacked a trusted-base policy pass. Subsequent real PRs
+[4](https://github.com/Hadden-Industries/webvowl/pull/4) and
+[5](https://github.com/Hadden-Industries/webvowl/pull/5) qualified linkage before it
+became required. Never run head policy with privileged credentials or fabricate a
+bootstrap pass. Re-read live accepted intent before merge: issue edits and prior
+checks are not atomic.
 
 ## Checks and permissions
 
@@ -34,9 +36,21 @@ required rights. The issue edit job can invalidate accepted labels; the CodeQL j
 can upload security results. No build/deploy job receives publishing credentials.
 
 CODEOWNERS names @MaksymShostak for SDLC ownership. It grants no access or independent
-review; GitHub prohibits author self-approval. Main protection and the existing tag
-ruleset are preserved. The owner's bootstrap merge approval is recorded in the
-adoption plan; it is not a general exception for later work.
+review; GitHub prohibits author self-approval. The owner approved main protection
+on 2026-09-09. It requires an up-to-date pull request and these qualified checks:
+
+| Required check | GitHub App ID |
+|---|---|
+| SDLC controls | 15368 |
+| WebVOWL application | 15368 |
+| validate | 15368 |
+| CodeQL | 57789 |
+
+Protection applies to administrators, forbids force pushes/deletion and adds no
+actor restrictions or bypass allowances. Zero mandatory approving reviews and no
+CODEOWNER/last-push approval preserve the single-maintainer workflow. Merge commits
+remain allowed. The existing Phase 19A tag ruleset is unchanged. The owner's scoped
+bootstrap/activation merge approval is not a general exception for later work.
 
 The label helper derives its destination explicitly from origin. For this checkout
 that is Hadden-Industries/webvowl, never VisualDataWeb/WebVOWL. Label setup is separate

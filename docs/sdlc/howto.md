@@ -38,6 +38,18 @@ approval request. Preserve the operator's DCG and trust settings. The documented
 native `/hooks` interface belongs to a CLI launched in the target checkout; do not
 assume the PATH CLI is the same version as the desktop host.
 
+On Windows, Codex launches command hooks through cmd.exe; the generated Stop
+command explicitly selects PowerShell before running its existing body. Qualify
+through the native host, since directly invoking the body in PowerShell misses
+that integration boundary. In a linked worktree, native discovery may select the
+normal checkout's hook file. Inspect the actual source/hash in each context; the
+command resolves the session's Git root and uses that checkout's evidence.
+
+The [local adoption record](adoption.md#operational-activation) identifies the
+qualified host and checkouts. Hooks still require review after their definition
+changes. An empty inventory, installed files or a trusted hash alone is not evidence
+that the Stop gate executed.
+
 ## Inspect the runtime before native hook qualification
 
 After installing/updating Codex, and before qualifying hooks in a selected host,

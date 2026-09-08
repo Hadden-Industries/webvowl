@@ -67,3 +67,63 @@ containment. A new real-filesystem relative-root case reproduced the same identi
 bug before the fix; the existing Windows test remains the 8.3-path regression.
 Neither containment validation nor test coverage was relaxed. Original failed run
 logs remain in .sdlc/runtime/adoption and the PR checks.
+
+## Operational qualification, 2026-09-09
+
+This section supersedes the historical activation gaps above. The owner approved
+normal-checkout setup, native trust and bounded acceptance, required-check
+enforcement, and the subsequently identified Windows interpreter correction.
+SDLC 1.0.0 remains pre-release; deployed=true describes the qualified local adoption.
+
+The native Codex 0.153.4 Windows consumer exposed a real bootstrap defect: the
+generated PowerShell body was passed to cmd.exe and exited 1 before evaluating
+evidence. The old regression supplied PowerShell itself and missed that boundary.
+The corrected regression failed first through cmd.exe, then passed after the
+renderer explicitly selected powershell.exe with NoLogo, NoProfile and
+NonInteractive. The original body, Stop protocol and 30-second timeout remain.
+The test also checks a repository path containing spaces, nested cwd, forwarded
+arguments/stdin and both zero and two exit statuses. The upstream consumer contract
+is [Codex 0.153.4 command_runner.rs](https://github.com/openai/codex/blob/rust-v0.153.4/codex-rs/hooks/src/engine/command_runner.rs).
+
+Actual native app-server acceptance used the installed desktop executable and
+ephemeral text-only turns. No tools or subagents were requested by those turns.
+Native hooks/list selects the normal checkout's project definition for both normal
+and linked checkout contexts. Its qualified hash is
+sha256:19d9746a7770de540be174006f2eaf895e672ee41f355b9f1e1e7888294ca2b8.
+The SDLC-worktree Stop blocked missing evidence, then completed with the honest
+incomplete-evidence warning; the normal-checkout Stop completed with current
+evidence. Native discovery loaded all six local skills in both contexts, and their
+project policy loaded without a disabled layer. Eight optional role files are
+installed; role execution is not claimed under the no-delegation constraint.
+Existing global DCG metadata/trust and unrelated user/project configuration were
+preserved.
+
+The normal checkout was fast-forwarded using native Git autostash. The user's
+fast-uri 3.1.7 version, registry URL and integrity remain uncommitted; other lock
+entries match updated main. setup:development completed through selected npm
+12.0.2 with Node 24.20.0 and Python 3.14.7. After the interpreter correction,
+`npm exec --yes --package=npm@12.0.2 -- npm run sdlc -- verify` passed there:
+109 Python SDLC tests, 29 setup tests with one Windows-inapplicable POSIX skip,
+78 JavaScript control tests, all 69 JavaScript suites/663 tests, formatting/lint,
+and the production build. The affected runner selected both owners because of the
+preserved lockfile edit. This is automated verification, not browser acceptance.
+
+The required-check configuration was applied and independently read back from
+GitHub: SDLC controls, WebVOWL application, validate and CodeQL, bound to their
+qualified App IDs, with up-to-date and administrator enforcement. Force pushes and
+deletion are disabled; mandatory approvals remain zero. The Phase 19A tag ruleset
+is unchanged. Prior merge 38f727777f247a7fa9e909bd98cd592b60eb45e7 passed all three
+main workflows. The final correction PR and its merge own subsequent CI identities.
+
+Retained raw evidence is under the SDLC worktree's .sdlc/runtime/readiness:
+native-stop-missing-2.json records the actual failed hook; native-stop-missing-3.json
+and native-stop-current.json record passing native execution; the earlier
+native-stop-missing.json is a preparatory metadata-check failure before a model
+turn. stop-shell-diagnostic.json retains the minimized failing/candidate comparison.
+native-corrected-trust-and-skills.json and main-branch-protection.json retain native
+discovery/configuration readback. Main's full command transcript and identity are
+in its .sdlc/runtime/verification/affected.json and immutable runs directory.
+The task owner retains these records and lock-preservation evidence through final
+delivery and follow-up review; reassess at that checkpoint under the temporary
+artefact policy. The requested donor-repository diagnosis is retained separately
+in donor-hook-diagnosis.json; no donor configuration was changed.
