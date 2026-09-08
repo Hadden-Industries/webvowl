@@ -1,0 +1,19 @@
+# Native weekly update proposals; grouping does not authorize automatic merge.
+version: 2
+multi-ecosystem-groups:
+  repository-version-updates:
+    schedule:
+      interval: weekly
+updates:
+  - package-ecosystem: npm
+    directory: /
+    patterns: ["*"]
+    multi-ecosystem-group: repository-version-updates
+  - package-ecosystem: pip
+    directory: /
+    patterns: ["*"]
+    multi-ecosystem-group: repository-version-updates
+  - package-ecosystem: github-actions
+    directory: /
+    patterns: ["*"]
+    multi-ecosystem-group: repository-version-updates

@@ -1,0 +1,649 @@
+{
+  "schemaVersion": 1,
+  "sourceRepository": "https://github.com/MaksymShostak/oxygen-not-included",
+  "sourceCommit": "1d352b9040005e144a9fc4a1ac7dd628241e7284",
+  "targetSourceRepository": "https://github.com/Hadden-Industries/universal-ontology",
+  "targetSourceCommit": "b3984ffbfe9b38cca7bd4570aeb3f5bc0fa6f20e",
+  "sourceInspection": "The relevant Universal Ontology SDLC was unchanged at b32d7cff65e57a4d4ea68334350e27b8ef5038ef when inspected on 2026-09-08.",
+  "licence": "Retain .sdlc/UPSTREAM-LICENSE, the adapted TDD notices and the separately identified DCG licence/rider. Root WebVOWL licence remains AGPL-3.0-only.",
+  "imports": [
+    {
+      "sourcePath": ".sdlc/PACKAGE_STATUS.json",
+      "destinationPath": ".sdlc/PACKAGE_STATUS.json",
+      "sourceSha256": "b9b80493dd413107d6c23efc1a07cba09a8d3895dbfa4b901151eb668781d3db",
+      "destinationSha256": "101e0bf43a80228bff3b74bde4120555c6d9099dd9de2a0a5e8e7e984118f2f6",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": ".sdlc/SOURCE_PACKAGE.json",
+      "destinationPath": ".sdlc/SOURCE_PACKAGE.json",
+      "sourceSha256": "8f6b8f02158eb6a264a05188b2f15d32352576505e18c2fed94b5455a6aa4e4b",
+      "destinationSha256": "0560a2221994c8b279c8e4e0dc49955908270e6c3378f881464910e25f39b981",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": ".sdlc/UPSTREAM-LICENSE",
+      "destinationPath": ".sdlc/UPSTREAM-LICENSE",
+      "sourceSha256": "69448cf2562bd17902878fa1a96567c82d8062c0868937775129d6b6603e65c8",
+      "destinationSha256": "69448cf2562bd17902878fa1a96567c82d8062c0868937775129d6b6603e65c8",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/codex/agents/principles_reviewer.toml",
+      "destinationPath": ".sdlc/codex/agents/principles_reviewer.toml",
+      "sourceSha256": "45f85e4dded0ce7e0ec29dd13d84081a9cf2007ac0df075f2927234b7ca489b6",
+      "destinationSha256": "45f85e4dded0ce7e0ec29dd13d84081a9cf2007ac0df075f2927234b7ca489b6",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/codex/agents/repo_explorer.toml",
+      "destinationPath": ".sdlc/codex/agents/repo_explorer.toml",
+      "sourceSha256": "061c62e224b38dbc076aefd5035d01a7d78654aadbbbd941677817c1ff30de82",
+      "destinationSha256": "061c62e224b38dbc076aefd5035d01a7d78654aadbbbd941677817c1ff30de82",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/codex/agents/researcher.toml",
+      "destinationPath": ".sdlc/codex/agents/researcher.toml",
+      "sourceSha256": "021a8655adda0d3d83c69193bb6ea5f6685b1bb6595c80d0e13ba50b8c783d14",
+      "destinationSha256": "021a8655adda0d3d83c69193bb6ea5f6685b1bb6595c80d0e13ba50b8c783d14",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/codex/agents/review_maintainability.toml",
+      "destinationPath": ".sdlc/codex/agents/review_maintainability.toml",
+      "sourceSha256": "68b07a43eb0cb1c9979914af67f59b5fba9c0bb32e75fb038bef92aad2caf35d",
+      "destinationSha256": "68b07a43eb0cb1c9979914af67f59b5fba9c0bb32e75fb038bef92aad2caf35d",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/codex/agents/review_operability.toml",
+      "destinationPath": ".sdlc/codex/agents/review_operability.toml",
+      "sourceSha256": "982b5f3551a6bde2947cb0829ec6d25af5fdf8efff6a0a0c29426bf6d5f65465",
+      "destinationSha256": "982b5f3551a6bde2947cb0829ec6d25af5fdf8efff6a0a0c29426bf6d5f65465",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/codex/agents/security_requirements_reviewer.toml",
+      "destinationPath": ".sdlc/codex/agents/security_requirements_reviewer.toml",
+      "sourceSha256": "f95d72710c100a32915f9db6190a31f538ed2795d1a0b20dbca1e4559b746c97",
+      "destinationSha256": "f95d72710c100a32915f9db6190a31f538ed2795d1a0b20dbca1e4559b746c97",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/codex/agents/test_oracle_reviewer.toml",
+      "destinationPath": ".sdlc/codex/agents/test_oracle_reviewer.toml",
+      "sourceSha256": "8b8d806a0a023dc92c24092ea24242e6ac758aeb19e79db3815d147b856a5a19",
+      "destinationSha256": "8b8d806a0a023dc92c24092ea24242e6ac758aeb19e79db3815d147b856a5a19",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/codex/agents/verifier.toml",
+      "destinationPath": ".sdlc/codex/agents/verifier.toml",
+      "sourceSha256": "6460cdcc80f7b8f4ddead4bbd2098987c10ee0219b67cd1805ce22fb9f8401c1",
+      "destinationSha256": "6460cdcc80f7b8f4ddead4bbd2098987c10ee0219b67cd1805ce22fb9f8401c1",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/codex/config.toml",
+      "destinationPath": ".sdlc/codex/config.toml",
+      "sourceSha256": "c288ad9fa8a386d5cf0aa3000ec5c17f59457e3d2c78673fb841c5b0ac3b92e4",
+      "destinationSha256": "c288ad9fa8a386d5cf0aa3000ec5c17f59457e3d2c78673fb841c5b0ac3b92e4",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/codex/hooks.json",
+      "destinationPath": ".sdlc/codex/hooks.json",
+      "sourceSha256": "a2e00536033b5b6dd6b4d755fd55bedc646b9eac1209c8d387931336ce0c9ab9",
+      "destinationSha256": "a2e00536033b5b6dd6b4d755fd55bedc646b9eac1209c8d387931336ce0c9ab9",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/codex/rules/default.rules",
+      "destinationPath": ".sdlc/codex/rules/default.rules",
+      "sourceSha256": "5c8421cec5f73c89730d2fa91b04d5309d3a2888c8f21bc28f16f87e64e06458",
+      "destinationSha256": "5c8421cec5f73c89730d2fa91b04d5309d3a2888c8f21bc28f16f87e64e06458",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/dcg/UPSTREAM.json",
+      "destinationPath": ".sdlc/dcg/UPSTREAM.json",
+      "sourceSha256": "11a703c1d9552811430524d1c036b6aa0ef75dd3fafd76f4926a058eb9923c58",
+      "destinationSha256": "11a703c1d9552811430524d1c036b6aa0ef75dd3fafd76f4926a058eb9923c58",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/dcg/codex-hook.example.json",
+      "destinationPath": ".sdlc/dcg/codex-hook.example.json",
+      "sourceSha256": "1f9cfc8b78b0f3419806112567e672b6dd5649ceaaa111d77499b3e3910dd277",
+      "destinationSha256": "1f9cfc8b78b0f3419806112567e672b6dd5649ceaaa111d77499b3e3910dd277",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/dcg/git-reset-hard.yaml",
+      "destinationPath": ".sdlc/dcg/git-reset-hard.yaml",
+      "sourceSha256": "e62af55b59293b84194ded18117e4183f835922ca9f69d6fa829e7c124cff9aa",
+      "destinationSha256": "e62af55b59293b84194ded18117e4183f835922ca9f69d6fa829e7c124cff9aa",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/dcg/hook-probe-cases.json",
+      "destinationPath": ".sdlc/dcg/hook-probe-cases.json",
+      "sourceSha256": "d7c1ee25acf8f3977c2925f8a6f04ecfe6b7d753cf554da5e1a7d54b18788c11",
+      "destinationSha256": "d7c1ee25acf8f3977c2925f8a6f04ecfe6b7d753cf554da5e1a7d54b18788c11",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/dcg/operator-config.example.toml",
+      "destinationPath": ".sdlc/dcg/operator-config.example.toml",
+      "sourceSha256": "f69d7ef54714213836cb8ffd3484b272b277ba4383874bf9560667becbdf6b34",
+      "destinationSha256": "f69d7ef54714213836cb8ffd3484b272b277ba4383874bf9560667becbdf6b34",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/pipeline-policy.json",
+      "destinationPath": ".sdlc/pipeline-policy.json",
+      "sourceSha256": "13c254add78f3186719c990333bb0c5b9068c094589eaf34ad8eaec179128a26",
+      "destinationSha256": "13c254add78f3186719c990333bb0c5b9068c094589eaf34ad8eaec179128a26",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/schemas/accepted-baseline.schema.json",
+      "destinationPath": ".sdlc/schemas/accepted-baseline.schema.json",
+      "sourceSha256": "7411fd7a393768b5ac772943ebb7ce925f407b4f088ae4929340d43d3edfe485",
+      "destinationSha256": "7411fd7a393768b5ac772943ebb7ce925f407b4f088ae4929340d43d3edfe485",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/schemas/pipeline-policy.schema.json",
+      "destinationPath": ".sdlc/schemas/pipeline-policy.schema.json",
+      "sourceSha256": "0ed4e2212f8302bf0320719de2a188c855187293e71ab9df5031901ad7782dad",
+      "destinationSha256": "0ed4e2212f8302bf0320719de2a188c855187293e71ab9df5031901ad7782dad",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/schemas/verification-config.schema.json",
+      "destinationPath": ".sdlc/schemas/verification-config.schema.json",
+      "sourceSha256": "84a79026100f3df984a19fcc83d65b5dcf227df46a7b43ec801b3677aa67ceb5",
+      "destinationSha256": "84a79026100f3df984a19fcc83d65b5dcf227df46a7b43ec801b3677aa67ceb5",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/skill-policies.json",
+      "destinationPath": ".sdlc/skill-policies.json",
+      "sourceSha256": "e1cf150eb6f31ea19425ddc018f3c4ef37090040b78d78a8428d38fcdc844c12",
+      "destinationSha256": "e1cf150eb6f31ea19425ddc018f3c4ef37090040b78d78a8428d38fcdc844c12",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/skills/motivation-to-evidence/SKILL.md",
+      "destinationPath": ".sdlc/skills/motivation-to-evidence/SKILL.md",
+      "sourceSha256": "f8afd5fb82bc7e5bf75205e0dd5323647a60ddf07208d9d40e779086471a0692",
+      "destinationSha256": "f8afd5fb82bc7e5bf75205e0dd5323647a60ddf07208d9d40e779086471a0692",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/skills/quality-attribute-scenarios/SKILL.md",
+      "destinationPath": ".sdlc/skills/quality-attribute-scenarios/SKILL.md",
+      "sourceSha256": "5d674655b68f8176aa246f27f84eda137b1e848fa376a57d3aa31ba711d2e507",
+      "destinationSha256": "5d674655b68f8176aa246f27f84eda137b1e848fa376a57d3aa31ba711d2e507",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/skills/release-readiness/SKILL.md",
+      "destinationPath": ".sdlc/skills/release-readiness/SKILL.md",
+      "sourceSha256": "0d64ca82622965fd5c84f100528db15ca865a7dd9c9d29c4d494d4d097c5d608",
+      "destinationSha256": "0d64ca82622965fd5c84f100528db15ca865a7dd9c9d29c4d494d4d097c5d608",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/skills/sdlc-route/SKILL.md",
+      "destinationPath": ".sdlc/skills/sdlc-route/SKILL.md",
+      "sourceSha256": "45f267955fd93e995ad30e3a3776531d87c3c7642a77430eb04372e4d51559cd",
+      "destinationSha256": "45f267955fd93e995ad30e3a3776531d87c3c7642a77430eb04372e4d51559cd",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/skills/test-driven-development/LICENSE",
+      "destinationPath": ".sdlc/skills/test-driven-development/LICENSE",
+      "sourceSha256": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400",
+      "destinationSha256": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/skills/test-driven-development/SKILL.md",
+      "destinationPath": ".sdlc/skills/test-driven-development/SKILL.md",
+      "sourceSha256": "06b78be8167a2fa193feb60a477894b1bfd363f0d7746f8daae06ad6a9597830",
+      "destinationSha256": "06b78be8167a2fa193feb60a477894b1bfd363f0d7746f8daae06ad6a9597830",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/skills/test-driven-development/UPSTREAM.json",
+      "destinationPath": ".sdlc/skills/test-driven-development/UPSTREAM.json",
+      "sourceSha256": "75bfe88fa53a9cbf3b0856dcc411ca2b2e4b1d63cb88eba9a993e13ea2506e3c",
+      "destinationSha256": "75bfe88fa53a9cbf3b0856dcc411ca2b2e4b1d63cb88eba9a993e13ea2506e3c",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/skills/test-driven-development/agents/openai.yaml",
+      "destinationPath": ".sdlc/skills/test-driven-development/agents/openai.yaml",
+      "sourceSha256": "5caf523e7aff1278ad2961434d848dcaf8c4e6318cf6446fd96a60019107988e",
+      "destinationSha256": "5caf523e7aff1278ad2961434d848dcaf8c4e6318cf6446fd96a60019107988e",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/skills/test-driven-development/references/evidence-and-handoffs.md",
+      "destinationPath": ".sdlc/skills/test-driven-development/references/evidence-and-handoffs.md",
+      "sourceSha256": "1eb4ca28625ac1b203337b3fc0291aa1dcc1e7a24606f548450b3a9a611bef9c",
+      "destinationSha256": "1eb4ca28625ac1b203337b3fc0291aa1dcc1e7a24606f548450b3a9a611bef9c",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/skills/test-driven-development/references/verification-routes.md",
+      "destinationPath": ".sdlc/skills/test-driven-development/references/verification-routes.md",
+      "sourceSha256": "115d45ee13e4da007bcd3f6eee6169781cdcba11eaae3e52172a500a04be5954",
+      "destinationSha256": "115d45ee13e4da007bcd3f6eee6169781cdcba11eaae3e52172a500a04be5954",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/skills/test-driven-development/writing-good-tests.md",
+      "destinationPath": ".sdlc/skills/test-driven-development/writing-good-tests.md",
+      "sourceSha256": "5f35d091c63f647a598a8db0c3cfe3302692f1a628b897c7ed382b321aa07259",
+      "destinationSha256": "5f35d091c63f647a598a8db0c3cfe3302692f1a628b897c7ed382b321aa07259",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/skills/thin-implementation-plan/SKILL.md",
+      "destinationPath": ".sdlc/skills/thin-implementation-plan/SKILL.md",
+      "sourceSha256": "8c70dcd10758add142a2ec1d819f17a7e5cdab379926b2a0620a7b5140402ebf",
+      "destinationSha256": "8c70dcd10758add142a2ec1d819f17a7e5cdab379926b2a0620a7b5140402ebf",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".sdlc/verification.json",
+      "destinationPath": ".sdlc/verification.json",
+      "sourceSha256": "787d507b1dbc33c320683e9f6204931252fb2816d3fd04060fd1fc3217832370",
+      "destinationSha256": "d89d1d0a6bebb3fcafca067a255bc373bd9320e1b3750b08c21093b3bd00a2d8",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "docs/sdlc/SDLC-BOOTSTRAP-01.md",
+      "destinationPath": "docs/sdlc/SDLC-BOOTSTRAP-01.md",
+      "sourceSha256": "fd39d64ec6e00aaec2fdf333693819673c1ef6fbac5a6cfc134ab1ea6160c460",
+      "destinationSha256": "ad39392552280c257a0103cc2b0713883b49a3dd45b4ea5f10d4beb35942bf68",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "docs/sdlc/adoption.md",
+      "destinationPath": "docs/sdlc/adoption.md",
+      "sourceSha256": "a7a3bfccce50a02ea37217bc62dd586a053dea04dd8ba92063d81639daf5fe35",
+      "destinationSha256": "9aa12ed641dc2ef81ca51afd3d4558fb8c4ed8b70406a596e4ec5f4af629dc81",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "docs/sdlc/baselines/.gitkeep",
+      "destinationPath": "docs/sdlc/baselines/.gitkeep",
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "docs/sdlc/codex-security.md",
+      "destinationPath": "docs/sdlc/codex-security.md",
+      "sourceSha256": "ca61bb242213bcdc415d38becec64af58656886ba06dec8616579945f4acadd2",
+      "destinationSha256": "ca61bb242213bcdc415d38becec64af58656886ba06dec8616579945f4acadd2",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "docs/sdlc/command-safety.md",
+      "destinationPath": "docs/sdlc/command-safety.md",
+      "sourceSha256": "d8e4b32a361615bffcdbfaf94f12af279e296d6b793cfd02fbf65b8231cb0250",
+      "destinationSha256": "eec702e12ad1fe28ac132b387ea8197cd78935d36a2219834db999a408fdf0ba",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "docs/sdlc/dcg-acceptance.md",
+      "destinationPath": "docs/sdlc/dcg-acceptance.md",
+      "sourceSha256": "b752a49a10da2d5c3fc9f6cc6c4d0d0bd6871cba69053ce9db1fc19cbba552db",
+      "destinationSha256": "b752a49a10da2d5c3fc9f6cc6c4d0d0bd6871cba69053ce9db1fc19cbba552db",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "docs/sdlc/engineering-principles.md",
+      "destinationPath": "docs/sdlc/engineering-principles.md",
+      "sourceSha256": "e142a9a6904cd191a1a91c04fc0c37368de62418c7966c2f22ab68cd54bddc80",
+      "destinationSha256": "e142a9a6904cd191a1a91c04fc0c37368de62418c7966c2f22ab68cd54bddc80",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "docs/sdlc/github-governance.md",
+      "destinationPath": "docs/sdlc/github-governance.md",
+      "sourceSha256": "94da970ffe0b848d0f388e7a52ba75cd3443f15962f45c41afaaf70b9ed4654c",
+      "destinationSha256": "fa2a554c213d2b8eda0356dde5c1583fcc2c9b070b9bd9041ab44ba84108ab2d",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "docs/sdlc/howto.md",
+      "destinationPath": "docs/sdlc/howto.md",
+      "sourceSha256": "969d37733e3377af8a70c390cdcc845cbad6b97fc08ee3a8bc4efe72eb93c9d5",
+      "destinationSha256": "7f94758bc46c168094cb6fe0cb97b09f81cba958726937b9c4927a94b04cb344",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "docs/sdlc/package-reuse-assessment.md",
+      "destinationPath": "docs/sdlc/package-reuse-assessment.md",
+      "sourceSha256": "2de36415b5f861eac6190c47e6d9af2fb86aa836038da30a5b72df2e74462b0d",
+      "destinationSha256": "3cd5429a84637eefab62235595f4b453bd9ce6d61f49d39ade25ede5200f73f0",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "docs/sdlc/proportional-workflow.md",
+      "destinationPath": "docs/sdlc/proportional-workflow.md",
+      "sourceSha256": "348ce6608320de9800760a4e598f13b2cf05f0be8a82ba92cc47861adcb84f22",
+      "destinationSha256": "348ce6608320de9800760a4e598f13b2cf05f0be8a82ba92cc47861adcb84f22",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "docs/sdlc/software-selection.md",
+      "destinationPath": "docs/sdlc/software-selection.md",
+      "sourceSha256": "81d639f3f8ae785949d5c0d8586aa8e6208f6be35c4ed533738fc879b8bc9452",
+      "destinationSha256": "81d639f3f8ae785949d5c0d8586aa8e6208f6be35c4ed533738fc879b8bc9452",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "docs/sdlc/sources.md",
+      "destinationPath": "docs/sdlc/sources.md",
+      "sourceSha256": "224f9f57a1822b2e76649d97e7a77b69733db0f856c583d5f94664c31cd5dcd3",
+      "destinationSha256": "224f9f57a1822b2e76649d97e7a77b69733db0f856c583d5f94664c31cd5dcd3",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "docs/sdlc/subagent-playbook.md",
+      "destinationPath": "docs/sdlc/subagent-playbook.md",
+      "sourceSha256": "4cf80f6b1ec04ab98db79e3eeb0fcbefc73f16514299e52941ea40aa0215a0fb",
+      "destinationSha256": "4cf80f6b1ec04ab98db79e3eeb0fcbefc73f16514299e52941ea40aa0215a0fb",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "docs/sdlc/temporary-artefacts-howto.md",
+      "destinationPath": "docs/sdlc/temporary-artefacts-howto.md",
+      "sourceSha256": "c2c2232883484765e3ba92a8d0d8bb1a85dee6c54be8d273cc67f33b7cb0bb82",
+      "destinationSha256": "c2c2232883484765e3ba92a8d0d8bb1a85dee6c54be8d273cc67f33b7cb0bb82",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "docs/sdlc/temporary-artefacts.md",
+      "destinationPath": "docs/sdlc/temporary-artefacts.md",
+      "sourceSha256": "53cb621b14f28f2c787d190e8602d8a9490716a35358fc2e8c889f2905c867d2",
+      "destinationSha256": "53cb621b14f28f2c787d190e8602d8a9490716a35358fc2e8c889f2905c867d2",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "docs/sdlc/toolchain-selection.md",
+      "destinationPath": "docs/sdlc/toolchain-selection.md",
+      "sourceSha256": "f18ecb976f3aa46ab8a6f1cc67eb77aae470f2c528e3cb0826af675591896d97",
+      "destinationSha256": "39ae115a061e2f292d9810e1aeaef832c27b7054ad069fe3f17368e5b04c51c6",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "docs/sdlc/verification.md",
+      "destinationPath": "docs/sdlc/verification.md",
+      "sourceSha256": "bc2f8e7deb97d23605891659d5cf943c867ba1d46b55b9fee6b5d7e028e271bc",
+      "destinationSha256": "a3c2678d65bc6be52d4eb810fdd0248512d8e4d1e2697a8e745f587cd8438410",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "REVIEW.md",
+      "destinationPath": "REVIEW.md",
+      "sourceSha256": "bf4eba4c75a830343d0cd752f12a18b5689d286cd7f0f8ac6f04e8bb7c74b638",
+      "destinationSha256": "bf4eba4c75a830343d0cd752f12a18b5689d286cd7f0f8ac6f04e8bb7c74b638",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".node-version",
+      "destinationPath": ".node-version",
+      "sourceSha256": "5b9d0e73029969ae9000117cb877f17bb9841c1279bfe8024e294acfcf017800",
+      "destinationSha256": "5b9d0e73029969ae9000117cb877f17bb9841c1279bfe8024e294acfcf017800",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".python-version",
+      "destinationPath": ".python-version",
+      "sourceSha256": "922fe0c3de073b01988e23348ea184456161678c5e329e6f34be89be24383f93",
+      "destinationSha256": "922fe0c3de073b01988e23348ea184456161678c5e329e6f34be89be24383f93",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "requirements-sdlc.txt",
+      "destinationPath": "requirements-sdlc.txt",
+      "sourceSha256": "f28d36c262213364151ea65639cffb54dd32c7567eb5e452d288ecc30679e5eb",
+      "destinationSha256": "f28d36c262213364151ea65639cffb54dd32c7567eb5e452d288ecc30679e5eb",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "scripts/_sdlc_state.py",
+      "destinationPath": "util/_sdlc_state.py",
+      "sourceSha256": "0dcd8e80ec24e1620f12bce45b743c8ca5a4df2751ed96482fdc5ba74475e37e",
+      "destinationSha256": "0dcd8e80ec24e1620f12bce45b743c8ca5a4df2751ed96482fdc5ba74475e37e",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "scripts/sdlc.py",
+      "destinationPath": "util/sdlc.py",
+      "sourceSha256": "cf3c33cd37f24376ee5db4d6beb861554816dcc65dcd3a1e6873b8b08998316f",
+      "destinationSha256": "cf3c33cd37f24376ee5db4d6beb861554816dcc65dcd3a1e6873b8b08998316f",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "scripts/sdlc_stop_gate.py",
+      "destinationPath": "util/sdlc_stop_gate.py",
+      "sourceSha256": "999975bfadc1561f39d87a4d91b61d185487bf4a7ebe3f757ca11f4b69bf3507",
+      "destinationSha256": "999975bfadc1561f39d87a4d91b61d185487bf4a7ebe3f757ca11f4b69bf3507",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "scripts/validate_sdlc_pr.py",
+      "destinationPath": "util/validate_sdlc_pr.py",
+      "sourceSha256": "6422d571468f176727627f1dc06619a860bf3b925c0530400a6b70dada3b18a0",
+      "destinationSha256": "6422d571468f176727627f1dc06619a860bf3b925c0530400a6b70dada3b18a0",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "scripts/bootstrap_github_sdlc.py",
+      "destinationPath": "util/bootstrap_github_sdlc.py",
+      "sourceSha256": "8a2945fb20ea20077a8135fe00770bc5d17db1c1c3e09be9c81801553335e2bf",
+      "destinationSha256": "8a2945fb20ea20077a8135fe00770bc5d17db1c1c3e09be9c81801553335e2bf",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "scripts/probe_dcg_hook_protocol.py",
+      "destinationPath": "util/probe_dcg_hook_protocol.py",
+      "sourceSha256": "2a585a24c1531eea2db4ed119695f2e1a94317bc17e4a1f7c6934f0378938c8e",
+      "destinationSha256": "2a585a24c1531eea2db4ed119695f2e1a94317bc17e4a1f7c6934f0378938c8e",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "scripts/set_up_sdlc.py",
+      "destinationPath": "util/set_up_sdlc.py",
+      "sourceSha256": "dd38737d0be81c046100b26d2c9c1b9a5b0a06c6783024e9a86a67c976a789f8",
+      "destinationSha256": "a60614b2161ab498adb279810a3564eaee2b2c4df41bb549d9ab75189bd404d1",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "scripts/set_up_agent_skills.py",
+      "destinationPath": "util/set_up_agent_skills.py",
+      "sourceSha256": "287986a5e76c9aa33da6e3880146b0454e9fd167c2123858f0067f7585080786",
+      "destinationSha256": "9a1e2d6e58578eafcf3e0caa8a97831cabfc10d9e26eb62071af00696867746a",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "scripts/setUpDevelopmentEnvironment.js",
+      "destinationPath": "util/setUpDevelopmentEnvironment.mjs",
+      "sourceSha256": "e8ff6df8eb2678ab422073dea1cfceea710910df522b3368f7b79ef0b8718e5f",
+      "destinationSha256": "59a7deae58a570f08d259db84091f3b8fc3a14a4c99e6a61da579f8c43df2562",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "scripts/selectPullRequestChecks.js",
+      "destinationPath": "util/selectPullRequestChecks.mjs",
+      "sourceSha256": "92a624f6c4ad48321a54591137ff5c6ac0292204f4c94fd2f96718d4c8016766",
+      "destinationSha256": "abb281e5e4c3446440a94bf2b424fc938e6d707eaabd9c956b01a46c321617bc",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "scripts/runRepositoryPython.js",
+      "destinationPath": "util/runRepositoryPython.mjs",
+      "sourceSha256": "bfe04799a53bb769a18717c5dd8efb37e09d804c26e600cbb60e6bf9e983065e",
+      "destinationSha256": "bfe04799a53bb769a18717c5dd8efb37e09d804c26e600cbb60e6bf9e983065e",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "scripts/runAffectedChecks.js",
+      "destinationPath": "util/runAffectedChecks.mjs",
+      "sourceSha256": "3272cc567d011f5a697f72cf49af434a62855db827f24b0ab8f8f09387e280a9",
+      "destinationSha256": "7bcb31f68ceaf764dcafb0921cc1a276eb07cdc4847667d980d23ca8a3a40f71",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "tests/sdlc/test_dcg_protocol_probe.py",
+      "destinationPath": "tests/sdlc/test_dcg_protocol_probe.py",
+      "sourceSha256": "236b4da9670d6c92c48d3a8b95475c7987c56ac6d4febca3e198c0fb3389037d",
+      "destinationSha256": "b77fc4b0a87ca9a43392054551bfcdb01a79c8ed236004db45e8f5ca2bdb6765",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "tests/sdlc/test_github_destination.py",
+      "destinationPath": "tests/sdlc/test_github_destination.py",
+      "sourceSha256": "356cc72d8080da260b87c589f567ac31f1c46d610e588e6068b67968b037bb1a",
+      "destinationSha256": "64aeeb3931654b0ad19198f8b959eae29e6a43a64040cf443ed535c6dd36be62",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "tests/sdlc/test_pipeline_controls.py",
+      "destinationPath": "tests/sdlc/test_pipeline_controls.py",
+      "sourceSha256": "1fd62186c1cdb33443d5f89d27ddb24eb7248b50111ef47ee9ca7fa8b32f4cd3",
+      "destinationSha256": "8307bb18f0455f5a9dff067e814bf572d6c840be2de00e291d0bb3f90abd4e03",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "tests/sdlc/test_repository_integration.py",
+      "destinationPath": "tests/sdlc/test_repository_integration.py",
+      "sourceSha256": "d14a94bcd3976d18a1d5a95f91eb98afd80cbea48e4676da96a77e84529cfb5e",
+      "destinationSha256": "72fafd119c107724bbcf0a27fae8f156d048b15f2f791ffb47a12aa83bbe7267",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "tests/set-up-development-environment.test.js",
+      "destinationPath": "tests/set-up-development-environment.test.mjs",
+      "sourceSha256": "626fd7bd9691025dab036aed6493a08260bdd34bd58b8a5fb417b529beb138b5",
+      "destinationSha256": "9217adeeaa93204d7a5266b055465901f125ec2addff334776b0d72ecbf48b7f",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "tests/run-repository-python.test.js",
+      "destinationPath": "tests/run-repository-python.test.mjs",
+      "sourceSha256": "2aa76577fbdddba3acfafa10fe887fb9d41dc0ddd4ef65584e7826fabb9592f4",
+      "destinationSha256": "b11447e73bd206d3a52b8f7d58dd85ca583da67cb5b2cf9924ff9fd2142ed972",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "tests/sdlc-issue-acceptance.test.js",
+      "destinationPath": "tests/sdlc-issue-acceptance.test.mjs",
+      "sourceSha256": "1d565205f35a6264979c93b725842affb5cfbcd930c466fab117161effd435c7",
+      "destinationSha256": "1d565205f35a6264979c93b725842affb5cfbcd930c466fab117161effd435c7",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": "tests/pr-check-scopes.test.js",
+      "destinationPath": "tests/pr-check-scopes.test.mjs",
+      "sourceSha256": "d2e3dcfba585a90ed08ed44aa6a9c94ff59ee378f3ca5d1d31ddc5f6e5cd1052",
+      "destinationSha256": "57def3d9b5c74a03b6d8ec693b2c73e719c69b488c8ac6ea78ac0e4a05386105",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "tests/test_set_up_agent_skills.py",
+      "destinationPath": "util/test_sdlc_skill_activation.py",
+      "sourceSha256": "9b6943dabae7a09cc320ebd06c6af9170b6f04c8d8ef648cb4e7c33b35c6fdca",
+      "destinationSha256": "49879081635157e8a7ae15896e3f62a5c6aeb3d5ae625b8df264a12d5465a0ff",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": ".github/ISSUE_TEMPLATE/sdlc-change.yml",
+      "destinationPath": ".github/ISSUE_TEMPLATE/sdlc-change.yml",
+      "sourceSha256": "123b334f1f316d798a744df5b3adc6e0563d9d28aaec789f58a141aed11423de",
+      "destinationSha256": "123b334f1f316d798a744df5b3adc6e0563d9d28aaec789f58a141aed11423de",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".github/ISSUE_TEMPLATE/sdlc-bug.yml",
+      "destinationPath": ".github/ISSUE_TEMPLATE/sdlc-bug.yml",
+      "sourceSha256": "0287b8806b6c5419340a18506b3cdb92ddedcb9a4fe569998dcf0255cc717a6a",
+      "destinationSha256": "0287b8806b6c5419340a18506b3cdb92ddedcb9a4fe569998dcf0255cc717a6a",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".github/workflows/sdlc-issue-acceptance.yml",
+      "destinationPath": ".github/workflows/sdlc-issue-acceptance.yml",
+      "sourceSha256": "4ac33cea0eb460b89a5cf14de1865b58a414fdf90ece3fb17891b08dbc9091b5",
+      "destinationSha256": "4ac33cea0eb460b89a5cf14de1865b58a414fdf90ece3fb17891b08dbc9091b5",
+      "integration": "unchanged"
+    },
+    {
+      "sourcePath": ".github/workflows/sdlc-pr.yml",
+      "destinationPath": ".github/workflows/sdlc-pr.yml",
+      "sourceSha256": "dab4ba9e54ea7c7f732c6ad58a5e6fca0b4c223abb67ddac1dc679b11dcc1e49",
+      "destinationSha256": "4a3146a07f9b228e6d610ca71b92f99558bc5c456a425834721654d1c788646c",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": ".github/workflows/sdlc-control-tests.yml",
+      "destinationPath": ".github/workflows/sdlc-control-tests.yml",
+      "sourceSha256": "434fbccf211bf727e34e9797583463758013554bc4fde56cd66479ff1b720621",
+      "destinationSha256": "1502201c9c2b91d361dfb9db5ff03dd3056b548b41f0c5c0d0e5ba8cfa92881c",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": ".github/workflows/codeql.yml",
+      "destinationPath": ".github/workflows/codeql.yml",
+      "sourceSha256": "16282e1fc01f6292624a3ca73d552b78cbb554f1872195d3cdc702666622b50b",
+      "destinationSha256": "673ac801842a94690c36e070b76d42b9b01392648a52e278713cb84196b14706",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": ".github/pull_request_template.md",
+      "destinationPath": ".github/pull_request_template.md",
+      "sourceSha256": "ae864fe973e4d60c72234982cac0eab275e439d96f485322a7ef7165d08e5bde",
+      "destinationSha256": "0ee6900587430845ac76ad11b82777443023d13725ffc663b640ac938810edca",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": ".github/dependabot.yml",
+      "destinationPath": ".github/dependabot.yml",
+      "sourceSha256": "3a95616b525e656c2de3c65f5c8d0ff218236cd307855fa6c41467602adeef4c",
+      "destinationSha256": "6de5ab2f973f18d3293c3824b6df0c211d168fe6d65e7612398d68c9a7fbce88",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": ".github/CODEOWNERS",
+      "destinationPath": ".github/CODEOWNERS",
+      "sourceSha256": "dc06c0e0f47143e0b5966bf214d38a91bfdb27b014cf96430ee8a979e3d6ad43",
+      "destinationSha256": "bee55e2108d1e661f22dd124b9d2c4562c67974bf3d73f07ba2189715486bfbb",
+      "integration": "WebVOWL adaptation"
+    },
+    {
+      "sourcePath": "scripts/set_up_mcp_servers.py",
+      "destinationPath": "util/_configuration_transaction.py",
+      "sourceSha256": "e932deec0c2d83aa78f8e8aa0e272e8b53149002db1f2cf9863324a33520a5e1",
+      "destinationSha256": "a5eeafc13de88657d69bd6a62deaf96dbb66db07add46050c151f1f967d27c17",
+      "integration": "extract repository-neutral dependency closure"
+    },
+    {
+      "sourcePath": "tests/test_set_up_mcp_servers.py",
+      "destinationPath": "util/test_configuration_transaction.py",
+      "sourceSha256": "86be0eed3e8df2d918fb4837b77c1f38e38b00c794f73a2fc8a2f36ad0f53794",
+      "destinationSha256": "0c2fa7a9b1f83cc14e6c73821a339f0aec3177527d728fbc53178a2b4ceff600",
+      "integration": "extract lock and transaction preservation tests; adapt document fixture"
+    }
+  ],
+  "qualification": "Source and adapted file hashes are provenance only. WebVOWL verification and activation boundaries are in docs/sdlc/adoption.md and verification.md."
+}

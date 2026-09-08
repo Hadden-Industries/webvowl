@@ -42,3 +42,14 @@ Treat all existing working-tree changes as user-owned and potentially valuable.
 
 - **MCP Unavailability**: If the GitHub MCP Server is unavailable for GitHub platform operations, diagnose the cause first using non-destructive inspection. Do not modify configuration or connections without the approval required by the Configuration Safety rules. If the issue cannot be resolved without such changes, notify me before falling back to the Git CLI (`git`) or GitHub CLI (`gh`).
 - Before creating or modifying pull requests, issues, or remote branches through GitHub, use the MCP tools to verify the relevant remote repository state to prevent merge conflicts or duplicate work.
+
+# Repository-owned SDLC
+
+- Read [the SDLC guide](docs/sdlc/howto.md) and, for material work, [the engineering principles](docs/sdlc/engineering-principles.md). Reuse current user approvals within their scope.
+- Choose the smallest justified R0/R1/R2/R3 route. R0/R1 may use the accepted task/PR brief; ordinary R2/R3 need a previously accepted baseline. Do not invent Issues, plans or reviewers to fill a template.
+- Use the complete repository-adapted [test-driven-development](.sdlc/skills/test-driven-development/SKILL.md) as the sole implementation procedure. Local skills are available on demand; optional role installation grants no delegation authority.
+- Reassess names when responsibility changes. No new or extended shims without a specific prior user override. Research maintained native/reusable alternatives, newest applicable stable/LTS versions and exact licences before material functionality or integration; record the residual custom gap.
+- Use consumer-owned parsers/schemas/validators plus independent expected outcomes. Generated metadata and passing checks do not establish human acceptance or semantic correctness.
+- Run repository npm entry points; execute SDLC Python through this checkout's .venv. Inspect lifecycle effects first. Preserve the root module format, AGPL-3.0-only licence, application dependency ownership and pinned owlapi consumer contract.
+- Follow [REVIEW.md](REVIEW.md) and existing command protections. Native scans, host/plugin installation, hook trust, GitHub writes and product publication retain their own authorities. Test/build success does not establish browser behavior, deployment or release acceptance.
+- Preserve required failure/review evidence and remove only spent task-owned scratch after its consumers finish. [adoption.md](docs/sdlc/adoption.md) records this repository's activation evidence and gaps; another repository's result is not a WebVOWL pass.
