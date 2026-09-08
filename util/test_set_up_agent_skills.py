@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import tempfile
 import unittest
 from pathlib import Path
@@ -73,6 +74,21 @@ class BrooksReviewInvocationPolicyTests(unittest.TestCase):
                 expected,
             )
             self.assertEqual(existing_metadata.read_bytes(), expected)
+
+    def test_equivalent_relative_repository_path_preserves_the_same_skill_owner(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            installed = self.create_installed_skill(repo, Path(".agents") / "skills")
+            # The runner's checkout and temp directory can be on different
+            # Windows drives. Resolve the relative spelling from its own parent.
+            with contextlib.chdir(repo.parent):
+                relative_repo = Path(repo.name)
+                self.assertFalse(relative_repo.is_absolute())
+                self.assertEqual(relative_repo.resolve(), repo.resolve())
+                self.assertEqual(
+                    subject.unique_installed_skill_dirs(relative_repo, "brooks-review", ("codex",)),
+                    (installed.resolve(),),
+                )
 
     def test_same_named_skill_from_another_source_is_untouched(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

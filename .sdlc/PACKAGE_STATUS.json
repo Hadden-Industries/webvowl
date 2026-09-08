@@ -1,0 +1,7 @@
+{
+  "version": "1.0.0",
+  "status": "pre-release",
+  "deployed": false,
+  "deploymentConfirmation": "WebVOWL adoption is scoped by the owner's approved plan. Local verification and GitHub delivery evidence are recorded in docs/sdlc/verification.md and the bootstrap PR. Native WebVOWL Stop-hook loading/trust remains unverified, so deployed remains false. Repository integration does not establish browser or product acceptance.",
+  "versionPolicy": "Keep SDLC 1.0.0 pre-release unless Max explicitly approves a version/status change. Repository integration does not publish a product or establish hook trust."
+}
