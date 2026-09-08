@@ -168,7 +168,7 @@ def main() -> int:
     args = parser.parse_args()
     if args.runtime and not args.check:
         parser.error("--runtime requires --check; runtime inspection does not configure this checkout.")
-    if args.codex_executable and not args.runtime:
+    if args.codex_executable is not None and not args.runtime:
         parser.error("--codex-executable requires --runtime.")
     try:
         repo = derive_repo_from_script(__file__)

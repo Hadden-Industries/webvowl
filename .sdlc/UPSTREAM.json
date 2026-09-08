@@ -466,7 +466,7 @@
       "sourcePath": "scripts/set_up_sdlc.py",
       "destinationPath": "util/set_up_sdlc.py",
       "sourceSha256": "dd38737d0be81c046100b26d2c9c1b9a5b0a06c6783024e9a86a67c976a789f8",
-      "destinationSha256": "59786be79474f70b8c055cbf5499fbd3566d6767ae1a786863b83f231ac7055e",
+      "destinationSha256": "1dcf6b6a1f4c2d29513e12cbbb60735243b0229fcdcbf9cb04cbd1fce0130318",
       "integration": "WebVOWL adaptation"
     },
     {
