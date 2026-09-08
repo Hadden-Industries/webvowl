@@ -319,14 +319,14 @@
       "sourcePath": "docs/sdlc/github-governance.md",
       "destinationPath": "docs/sdlc/github-governance.md",
       "sourceSha256": "94da970ffe0b848d0f388e7a52ba75cd3443f15962f45c41afaaf70b9ed4654c",
-      "destinationSha256": "3d9344a22120664a728c89d47a42e5214e84d17d9560e44b5f88087a6c47f460",
+      "destinationSha256": "430081796157a946228c834f8056fc3f0392f385b9a1c09bb5adc3bb68d8b01b",
       "integration": "WebVOWL adaptation"
     },
     {
       "sourcePath": "docs/sdlc/howto.md",
       "destinationPath": "docs/sdlc/howto.md",
       "sourceSha256": "969d37733e3377af8a70c390cdcc845cbad6b97fc08ee3a8bc4efe72eb93c9d5",
-      "destinationSha256": "e1e7fc2d13d999bf1daa2bf647d7a3eb4fbeb3fdd33af16077696aeaef3b0c78",
+      "destinationSha256": "60ea2622ef99225d83850756528ad32c2b7d632b102666fc1453ac228708582c",
       "integration": "WebVOWL adaptation"
     },
     {
@@ -389,7 +389,7 @@
       "sourcePath": "docs/sdlc/verification.md",
       "destinationPath": "docs/sdlc/verification.md",
       "sourceSha256": "bc2f8e7deb97d23605891659d5cf943c867ba1d46b55b9fee6b5d7e028e271bc",
-      "destinationSha256": "6012460eb4a6aebecf6c9512a1dc9584ffad2452aa83b12b634370e0da71adff",
+      "destinationSha256": "67b98c0818609ad30dbf3430b0f3ad5db7944279021f4432bc9f2e9088b3bf2c",
       "integration": "WebVOWL adaptation"
     },
     {
@@ -473,7 +473,7 @@
       "sourcePath": "scripts/set_up_agent_skills.py",
       "destinationPath": "util/set_up_agent_skills.py",
       "sourceSha256": "287986a5e76c9aa33da6e3880146b0454e9fd167c2123858f0067f7585080786",
-      "destinationSha256": "63c1b1904e79bef7b877578ff0a69484e54d684e1e591e1a51cc822008f77b20",
+      "destinationSha256": "9a1e2d6e58578eafcf3e0caa8a97831cabfc10d9e26eb62071af00696867746a",
       "integration": "WebVOWL adaptation"
     },
     {

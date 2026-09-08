@@ -82,3 +82,15 @@ handoff; retain failed runs under .sdlc/runtime. Follow the
 [temporary artefact policy](temporary-artefacts.md) instead of clearing lifecycle
 state to manufacture completion. GitHub label setup is the separately authorized
 `npm run setup:sdlc:github`; see [GitHub governance](github-governance.md).
+
+## Application corpus prerequisite
+
+The existing corpus suites resolve ../universal-ontology/dist from the WebVOWL
+checkout. CI checks out Universal Ontology at immutable commit
+b3984ffbfe9b38cca7bd4570aeb3f5bc0fa6f20e beside WebVOWL and stages its external,
+iso, iso-iec and universal source directories into that dist layout. These are the
+static bytes copied by the source's native website inventory; no source code is
+executed, generated oracle output changed, network fallback added or test skipped.
+The referenced repository retains its licence and per-ontology source notices.
+Local full corpus verification likewise requires this sibling corpus. A clean
+checkout without it must report the missing input rather than a reduced pass.

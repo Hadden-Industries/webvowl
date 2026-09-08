@@ -50,3 +50,20 @@ Automated checks do not establish independent review, native security-scan compl
 browser/product acceptance, Stop-hook trust or required-check enforcement. Actual
 CI/processed-analysis and publication identities belong to the bootstrap PR/merge
 record, rather than a predicted commit ID in its own input tree.
+
+## First CI qualification failures
+
+The initial GitHub application run failed because a clean runner lacked the
+existing sibling Universal Ontology corpus; 120 corpus cases were absent and
+three input-presence/import assertions failed. The local baseline had used the
+pre-existing sibling corpus junction. CI now stages immutable source corpus bytes
+in the same layout, with the application tests and oracles unchanged. The source
+website inventory copies these static inputs without transforming them.
+
+The Windows control job exposed an existing Brooks activation comparison between
+resolved long paths and the runner's RUNNER~1 temporary-directory alias. The skill
+directory owner now canonicalizes the repository with Path.resolve before comparing
+containment. A new real-filesystem relative-root case reproduced the same identity
+bug before the fix; the existing Windows test remains the 8.3-path regression.
+Neither containment validation nor test coverage was relaxed. Original failed run
+logs remain in .sdlc/runtime/adoption and the PR checks.

@@ -30,13 +30,34 @@ jobs:
     if: needs.scope.outputs.application == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: webvowl
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          path: webvowl
           persist-credentials: false
+      - name: Check out immutable ontology corpus inputs
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Hadden-Industries/universal-ontology
+          ref: b3984ffbfe9b38cca7bd4570aeb3f5bc0fa6f20e
+          path: universal-ontology
+          persist-credentials: false
+          sparse-checkout: |
+            src/external
+            src/iso
+            src/iso-iec
+            src/universal
+      - name: Stage static corpus bytes in the existing test layout
+        working-directory: universal-ontology
+        run: |
+          mkdir -p dist
+          cp -a src/external src/iso src/iso-iec src/universal dist/
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version-file: .node-version
+          node-version-file: webvowl/.node-version
           package-manager-cache: false
       - name: Select package manager and install locked dependencies
         run: |

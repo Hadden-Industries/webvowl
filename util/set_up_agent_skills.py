@@ -421,6 +421,8 @@ def unique_installed_skill_dirs(
     skill_name: str,
     agents: tuple[str, ...],
 ) -> tuple[Path, ...]:
+    # Compare canonical identities on both sides, including Windows 8.3 paths.
+    repo = repo.resolve()
     directories: list[Path] = []
 
     for root in selected_roots(repo, agents):

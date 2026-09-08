@@ -47,3 +47,15 @@ still need scope, licence, compatibility and verification review; no automatic m
 The retained legacy .travis.yml is outside the approved configuration changes and
 still names Node 22. This adoption qualifies the new GitHub Actions checks. Do not
 interpret the legacy file as qualification of that older runtime.
+
+## Application corpus prerequisite
+
+The existing corpus suites resolve ../universal-ontology/dist from the WebVOWL
+checkout. CI checks out Universal Ontology at immutable commit
+b3984ffbfe9b38cca7bd4570aeb3f5bc0fa6f20e beside WebVOWL and stages its external,
+iso, iso-iec and universal source directories into that dist layout. These are the
+static bytes copied by the source's native website inventory; no source code is
+executed, generated oracle output changed, network fallback added or test skipped.
+The referenced repository retains its licence and per-ontology source notices.
+Local full corpus verification likewise requires this sibling corpus. A clean
+checkout without it must report the missing input rather than a reduced pass.
