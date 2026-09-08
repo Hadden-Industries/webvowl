@@ -217,5 +217,14 @@ class CodexRuntimePreflightTests(unittest.TestCase):
         run.assert_not_called()
 
 
+    def test_executable_flag_requires_runtime_even_when_the_value_is_empty(self):
+        for executable in ("", str(self.native)):
+            with self.subTest(executable=executable):
+                with self.assertRaises(SystemExit) as raised:
+                    self.invoke(extra=("--codex-executable", executable), runtime=False)
+                self.assertEqual(raised.exception.code, 2)
+                self.assertEqual(self.commands, [])
+
+
 if __name__ == "__main__":
     unittest.main()
