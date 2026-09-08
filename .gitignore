@@ -37,3 +37,14 @@ __pycache__/
 # Linter caches
 .stylelintcache
 .eslintcache
+
+# Repository-local SDLC activation and retained evidence
+/.codex/agents/
+/.codex/rules/
+/.codex/hooks.json
+/.codex/.*.repository-setup.*.staged.tmp
+/.codex/.*.repository-setup.*.activation.backup
+/.sdlc/runtime/
+/.sdlc/tmp/
+/.mcp.json.repository-setup.*.staged.tmp
+/.mcp.json.repository-setup.*.activation.backup

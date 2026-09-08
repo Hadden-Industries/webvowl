@@ -1,0 +1,14 @@
+# SDLC ownership in Hadden-Industries/webvowl. This grants no access or independent approval.
+/AGENTS.md @MaksymShostak
+/REVIEW.md @MaksymShostak
+/.sdlc/ @MaksymShostak
+/util/ @MaksymShostak
+/tests/ @MaksymShostak
+/docs/sdlc/ @MaksymShostak
+/.github/ @MaksymShostak
+/package*.json @MaksymShostak
+/skills-lock.json @MaksymShostak
+/requirements-sdlc.txt @MaksymShostak
+/.node-version @MaksymShostak
+/.python-version @MaksymShostak
+/.gitignore @MaksymShostak
