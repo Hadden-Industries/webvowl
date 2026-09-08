@@ -161,7 +161,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="Compare generated Codex files without writing.")
     parser.add_argument("--configuration-only", action="store_true", help="Do not activate local skills.")
+    parser.add_argument("--runtime", action="store_true",
+                        help="With --check, inspect native Codex runtime prerequisites.")
+    parser.add_argument("--codex-executable",
+                        help="Absolute Codex launcher/binary to inspect instead of PATH; requires --runtime.")
     args = parser.parse_args()
+    if args.runtime and not args.check:
+        parser.error("--runtime requires --check; runtime inspection does not configure this checkout.")
+    if args.codex_executable and not args.runtime:
+        parser.error("--codex-executable requires --runtime.")
     try:
         repo = derive_repo_from_script(__file__)
         if sys.version_info < (3, 14):
@@ -172,6 +180,11 @@ def main() -> int:
                      if item.observed_destination_bytes != item.rendered_contents.encode("utf-8")]
             if stale:
                 raise SetupError("Generated Codex configuration differs: " + ", ".join(stale))
+            if args.runtime:
+                from _codex_runtime import inspect_codex_runtime
+                report = inspect_codex_runtime(repo, args.codex_executable)
+                print(json.dumps(report, indent=2))
+                return 0 if report["ready"] else 1
             print("Repository Codex configuration is current; host loading/trust is a separate check.")
             return 0
         ensure_generated_setup_root_is_safe(repo)

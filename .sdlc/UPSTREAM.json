@@ -277,7 +277,7 @@
       "sourcePath": "docs/sdlc/adoption.md",
       "destinationPath": "docs/sdlc/adoption.md",
       "sourceSha256": "a7a3bfccce50a02ea37217bc62dd586a053dea04dd8ba92063d81639daf5fe35",
-      "destinationSha256": "b803223482afae7e6af619354454c2e8e083cadc59c8783894213853373cda03",
+      "destinationSha256": "16d5dd7a9eaf7aeaffeaab06894045b9b510619a8b3c08319cb2297e32e2f9c5",
       "integration": "WebVOWL adaptation"
     },
     {
@@ -326,7 +326,7 @@
       "sourcePath": "docs/sdlc/howto.md",
       "destinationPath": "docs/sdlc/howto.md",
       "sourceSha256": "969d37733e3377af8a70c390cdcc845cbad6b97fc08ee3a8bc4efe72eb93c9d5",
-      "destinationSha256": "60ea2622ef99225d83850756528ad32c2b7d632b102666fc1453ac228708582c",
+      "destinationSha256": "40b2bd1b7cb2ddbac44468e06adbf79be53d0fe6b2da7c32b6ff7d326ae1a535",
       "integration": "WebVOWL adaptation"
     },
     {
@@ -382,7 +382,7 @@
       "sourcePath": "docs/sdlc/toolchain-selection.md",
       "destinationPath": "docs/sdlc/toolchain-selection.md",
       "sourceSha256": "f18ecb976f3aa46ab8a6f1cc67eb77aae470f2c528e3cb0826af675591896d97",
-      "destinationSha256": "d6b9a55286895c8dd53105eef41cea8eda643157607c7debdca3a915dd015ec9",
+      "destinationSha256": "39ae115a061e2f292d9810e1aeaef832c27b7054ad069fe3f17368e5b04c51c6",
       "integration": "WebVOWL adaptation"
     },
     {
@@ -466,7 +466,7 @@
       "sourcePath": "scripts/set_up_sdlc.py",
       "destinationPath": "util/set_up_sdlc.py",
       "sourceSha256": "dd38737d0be81c046100b26d2c9c1b9a5b0a06c6783024e9a86a67c976a789f8",
-      "destinationSha256": "3c7b6a752c5e2c086f502a2d9cf7e9f68c982c5b7cc95372e4e47034cb141da0",
+      "destinationSha256": "59786be79474f70b8c055cbf5499fbd3566d6767ae1a786863b83f231ac7055e",
       "integration": "WebVOWL adaptation"
     },
     {

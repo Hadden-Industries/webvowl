@@ -59,9 +59,12 @@ OpenAI/Anthropic rider; no binary or new operator configuration is installed her
 
 ## Activation boundaries
 
-The running desktop executable reports Codex 0.153.4; PATH resolves a separate
-0.149.1 CLI. Validate configuration against the native schema and report host loading
-separately. Setup does not create a pending desktop hook approval. Native Stop-hook
+The bootstrap observed desktop Codex 0.153.4 and a separate PATH CLI 0.149.1.
+The owner subsequently approved upgrading the npm CLI to 0.153.4. The optional
+[runtime preflight](howto.md#inspect-the-runtime-before-native-hook-qualification)
+now identifies each selected executable and checks its native prerequisites.
+Validate configuration against the native schema and report host loading separately.
+Setup does not create a pending desktop hook approval. Native Stop-hook
 loading/trust for this WebVOWL worktree remains unverified; user-level trust is not
 changed. Direct npm verification remains usable. See the
 [native hook documentation](https://learn.chatgpt.com/docs/hooks).
