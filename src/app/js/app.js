@@ -614,7 +614,7 @@ export function createWebVowlApplication() {
     document.querySelector("#logo").classList.remove("hidden");
     // Focus is reset by the renderer as part of returning the visualization to
     // its defaults, so it is no longer a resettable module the interface holds.
-    resetMenu.setup([gravityMenu, filterMenu, modeMenu]);
+    resetMenu.setup();
     searchMenu.setup();
     navigationMenu.setup();
     zoomSlider.setup();

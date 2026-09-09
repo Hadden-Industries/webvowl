@@ -2,6 +2,7 @@ import {
   assertRenderedGraphRuntime,
   createAppliedVisualizationView,
   DEFAULT_VISUALIZATION_MODES,
+  DEFAULT_VISUALIZATION_FILTERS,
   DEFAULT_FORCE_LAYOUT_DISTANCES,
   createContinuousZoomRequest,
   createForceLayoutDistancesRequest,
@@ -440,9 +441,36 @@ export function createInMemoryRenderedGraphAdapter() {
         return appliedVisualizationView;
       },
 
-      resetVisualization() {
+      async resetVisualization({ signal } = {}) {
         assertNotDisposed();
+        signal?.throwIfAborted();
         visualizationResetCount += 1;
+        appliedVisualizationView = createAppliedVisualizationView({
+          ...appliedVisualizationView,
+          filters: DEFAULT_VISUALIZATION_FILTERS,
+          focus: [],
+          modes: DEFAULT_VISUALIZATION_MODES,
+          forceDistances: DEFAULT_FORCE_LAYOUT_DISTANCES,
+        });
+        if (activeLoadGeneration !== null) {
+          graphLayoutSnapshot = createGraphLayoutSnapshot({
+            ...graphLayoutSnapshot,
+            forceAlpha: 1,
+            hasEnded: false,
+            isPaused: false,
+          });
+          publishRenderedGraphEvent({
+            kind: "rendered-element-selection-changed",
+            loadGeneration: activeLoadGeneration,
+            payload: { selectedOntologyElementReferences: [] },
+          });
+          publishRenderedGraphEvent({
+            kind: "visualization-view-changed",
+            loadGeneration: activeLoadGeneration,
+            payload: { appliedVisualizationView },
+          });
+        }
+        return appliedVisualizationView;
       },
 
       createRenderedSvgSnapshot(request) {

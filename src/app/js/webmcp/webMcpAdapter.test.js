@@ -26,6 +26,7 @@ const EXPECTED_TOOL_NAMES = Object.freeze([
   "set_visualization_view",
   "export_visualization",
   "get_visualization_state",
+  "reset_visualization",
   "set_visualization_modes",
   "set_layout_distances",
 ]);

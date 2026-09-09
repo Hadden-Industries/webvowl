@@ -58,20 +58,20 @@ WebVOWL-owned. Installed D3 is 7.9.0 under its inspected ISC licence; the existi
 AGPL-3.0-only application licence and notices remain in force.
 
 - [x] Correct command/state contracts with observed failing tests, then migrate the
-  D3 adapter, in-memory test adapter, serializer, protocol descriptions and fixtures
-  together. Preserve omission, human pause/resume, and renderer-state publication.
-  Signed commit: `efb7f9f682e831a1c29ac47bebdeabba82c522b9`.
+      D3 adapter, in-memory test adapter, serializer, protocol descriptions and fixtures
+      together. Preserve omission, human pause/resume, and renderer-state publication.
+      Signed commit: `efb7f9f682e831a1c29ac47bebdeabba82c522b9`.
 - [ ] Complete Task 13 through model-selected native WebMCP calls in real Chrome,
-  using the available CUA browser/CDP developer capability. The old named
-  `browser-testing-with-devtools` skill is unavailable in this session; its absence
-  does not substitute for the required browser evidence. Retain prompt decisions,
-  outputs, independent SVG checks, supersession and separate unsupported/iframe runs.
+      using the available CUA browser/CDP developer capability. The old named
+      `browser-testing-with-devtools` skill is unavailable in this session; its absence
+      does not substitute for the required browser evidence. Retain prompt decisions,
+      outputs, independent SVG checks, supersession and separate unsupported/iframe runs.
 - [ ] Complete Task 14 against the integrated branch, distinguishing this task's
-  changes from already merged, separately approved SDLC configuration. Run the exact
-  checks and inspect diagrams, names, ownership and prohibited effects.
+      changes from already merged, separately approved SDLC configuration. Run the exact
+      checks and inspect diagrams, names, ownership and prohibited effects.
 - [ ] Commit coherent verified slices with detailed per-file messages using the
-  approved committing workflow. Record independent review and deployment gaps
-  truthfully; remove spent task-owned scratch and retain raw failure/run evidence.
+      approved committing workflow. Record independent review and deployment gaps
+      truthfully; remove spent task-owned scratch and retain raw failure/run evidence.
 
 New retained evidence belongs under `.sdlc/runtime/webmcp-resumption/`; disposable
 probes belong under `.sdlc/tmp/webmcp-resumption/`. Both roots were absent at start.
@@ -101,7 +101,15 @@ Human controls observe these standing choices. Native label animation completion
 and cancellation reconcile geometry, text and focus before observed state is
 published. Large focused selections are bounded as whole references with totals;
 state responses retain the core visualization values. This slice does not close
-the remaining source, editing-ownership, reset, arrangement and export cutovers.
+the remaining source, editing-ownership, arrangement and export cutovers.
+
+The reset slice adds `reset_visualization`, the ninth native registration, and
+routes the human Reset button through the same asynchronous controller operation.
+It restores the declared defaults, clears focus/selection, retains ontology and
+language, resumes layout, and applies the SVG viewport before completion. Background
+layout remains controllable: the loading presenter treats `relaxing` as usable.
+Focused native evidence uses checked input outcomes and matching paused/customized
+preconditions; it does not replace the twenty-job evaluation.
 
 ### Owner's action-parity amendment
 
@@ -113,19 +121,19 @@ zoom button, opening a menu or choosing a file) express the same domain requests
 through their respective input adapters; they do not require an agent to simulate
 clicks. Domain effects, accepted values, completion and published state must agree.
 
-| Human workflow | Shared domain responsibility | Required agent access |
-| --- | --- | --- |
-| Preset, URL/IRI, file and pasted-text loading | Load and validate one ontology source; preserve the previous valid graph on failure | Load all corresponding source forms |
-| Search, result focus, locate and details | Query the ontology, highlight references, locate a drawn occurrence and describe selection | Search, focus/locate and inspect selection/details |
-| Language and visibility filters | Apply standing view choices and publish their actual values | The same choices, including degree filtering |
-| Pause / Resume | Stop / restart automatic layout motion | `layout: pause` / `resume`; omission leaves motion alone |
-| Zoom buttons/slider, pan, Zoom and center | Set magnification/translation or frame the drawn graph | Explicit viewport operations, independent of layout motion |
-| Display modes and label width | Configure drawing and publish applied choices | The same mode values and width limits |
-| Class/datatype distances | Configure force distances | The same accepted distances |
-| Drag, pin and unpin | Arrange drawn occurrences without editing ontology facts | Generation-scoped arrangement requests |
-| Reset | Restore the same visualization defaults and clear selection | One shared reset operation |
-| SVG, VOWL JSON, Turtle and LaTeX export | Create browser-local artifacts through shared owners | Each supported format with bounded artifact descriptions |
-| Share URL | Describe a remotely reloadable source and its view choices | The same shareable URL and honest local-source limitation |
+| Human workflow                                | Shared domain responsibility                                                               | Required agent access                                      |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| Preset, URL/IRI, file and pasted-text loading | Load and validate one ontology source; preserve the previous valid graph on failure        | Load all corresponding source forms                        |
+| Search, result focus, locate and details      | Query the ontology, highlight references, locate a drawn occurrence and describe selection | Search, focus/locate and inspect selection/details         |
+| Language and visibility filters               | Apply standing view choices and publish their actual values                                | The same choices, including degree filtering               |
+| Pause / Resume                                | Stop / restart automatic layout motion                                                     | `layout: pause` / `resume`; omission leaves motion alone   |
+| Zoom buttons/slider, pan, Zoom and center     | Set magnification/translation or frame the drawn graph                                     | Explicit viewport operations, independent of layout motion |
+| Display modes and label width                 | Configure drawing and publish applied choices                                              | The same mode values and width limits                      |
+| Class/datatype distances                      | Configure force distances                                                                  | The same accepted distances                                |
+| Drag, pin and unpin                           | Arrange drawn occurrences without editing ontology facts                                   | Generation-scoped arrangement requests                     |
+| Reset                                         | Restore the same visualization defaults and clear selection                                | One shared reset operation                                 |
+| SVG, VOWL JSON, Turtle and LaTeX export       | Create browser-local artifacts through shared owners                                       | Each supported format with bounded artifact descriptions   |
+| Share URL                                     | Describe a remotely reloadable source and its view choices                                 | The same shareable URL and honest local-source limitation  |
 
 The original handoff's completion claims are not acceptance evidence. The audit
 has found unfinished Task 9 routes: non-SVG exporters and some composition/UI
@@ -534,13 +542,13 @@ On timeout, `onTimeout: "fail"` throws `LAYOUT_TIMEOUT`. `onTimeout: "best-effor
 
 ### 1.6 Exact WebMCP tool surface
 
-| Tool                     | Required input               | Optional input                                       | Annotation                                          |
-| ------------------------ | ---------------------------- | ---------------------------------------------------- | --------------------------------------------------- |
-| `load_ontology`          | `source` discriminated union | none                                                 | `readOnlyHint: false`, `untrustedContentHint: true` |
-| `get_ontology_summary`   | none                         | none                                                 | `readOnlyHint: true`, `untrustedContentHint: true`  |
-| `find_ontology_elements` | `query`                      | `kinds`, `limit`, `includeNeighborhood`              | `readOnlyHint: true`, `untrustedContentHint: true`  |
+| Tool                     | Required input               | Optional input                                                    | Annotation                                          |
+| ------------------------ | ---------------------------- | ----------------------------------------------------------------- | --------------------------------------------------- |
+| `load_ontology`          | `source` discriminated union | none                                                              | `readOnlyHint: false`, `untrustedContentHint: true` |
+| `get_ontology_summary`   | none                         | none                                                              | `readOnlyHint: true`, `untrustedContentHint: true`  |
+| `find_ontology_elements` | `query`                      | `kinds`, `limit`, `includeNeighborhood`                           | `readOnlyHint: true`, `untrustedContentHint: true`  |
 | `set_visualization_view` | none                         | `language`, `filters`, `focus`, `layout`, `viewport`, `zoomScale` | `readOnlyHint: false`, `untrustedContentHint: true` |
-| `export_visualization`   | none                         | `filename`, `settleTimeoutMs`, `onTimeout`           | `readOnlyHint: false`, `untrustedContentHint: true` |
+| `export_visualization`   | none                         | `filename`, `settleTimeoutMs`, `onTimeout`                        | `readOnlyHint: false`, `untrustedContentHint: true` |
 
 The adapter returns `{ isSuccess: true, toolResult }` or `{ isSuccess: false, error }`. Per-tool projectors remove internal data such as VOWL models, graph objects, stack traces, object URLs, and SVG text. If a projected tool result exceeds 1,500 serialized characters, the projector drops optional neighborhood facts first, then trims matches, warnings, imports, and namespaces from the end, truncates remaining derived strings, and sets `isTruncated: true`. A final minimal envelope containing operation, status/error code, load generation when relevant, and `isTruncated: true` is always below the ceiling; raw JSON is never cut mid-string.
 

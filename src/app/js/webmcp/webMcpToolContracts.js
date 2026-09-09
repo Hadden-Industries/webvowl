@@ -367,6 +367,16 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
     inputSchema: closedObjectSchema({}),
   }),
   Object.freeze({
+    name: "reset_visualization",
+    description:
+      "Restore visualization defaults, clear focus and selection, and resume layout. Retain the loaded ontology and label language.",
+    annotations: Object.freeze({
+      readOnlyHint: false,
+      untrustedContentHint: true,
+    }),
+    inputSchema: closedObjectSchema({}),
+  }),
+  Object.freeze({
     name: "set_visualization_modes",
     description:
       "Set the same display modes and maximum label width offered in the Modes and Options menus.",
@@ -1210,6 +1220,13 @@ export function projectWebMcpToolFailure(toolName, thrownError) {
 // map is the whole routing table: a tool with no entry cannot be called, and a
 // controller operation with no entry is not reachable from an agent.
 const WEB_MCP_TOOL_ROUTES = Object.freeze({
+  reset_visualization: Object.freeze({
+    normalizeToolInput: (input = {}) => {
+      assertOnlyAllowedFieldNames(input, [], "reset_visualization input");
+      return Object.freeze({});
+    },
+    controllerOperationName: "resetVisualization",
+  }),
   get_visualization_state: Object.freeze({
     normalizeToolInput: (input = {}) => {
       assertOnlyAllowedFieldNames(input, [], "get_visualization_state input");

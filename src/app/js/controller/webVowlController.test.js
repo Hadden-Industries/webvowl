@@ -1022,11 +1022,161 @@ describe("WebVOWL controller orchestration", () => {
       );
     });
 
-    test("returns the visualization to its defaults without an ontology", () => {
+    test("returns and publishes visualization defaults without an ontology", async () => {
       // Resetting configures how a graph is drawn, so like the other renderer
       // tuning operations it does not require one to be loaded.
-      expect(controller.resetVisualization()).toBeUndefined();
+      await controller.setVisualizationModes({
+        compactNotation: true,
+        maxLabelWidthPx: 80,
+      });
+      await controller.setForceLayoutDistances({ classDistancePx: 300 });
+      const result = await controller.resetVisualization();
+      expect(result).toEqual(controller.getState());
+      expect(result.view).toMatchObject({
+        modes: { compactNotation: false, maxLabelWidthPx: 120 },
+        forceDistances: { classDistancePx: 200, datatypeDistancePx: 120 },
+        filters: { minDegree: 0, disjointness: "hide" },
+        focus: [],
+      });
+      expect(result.layout.status).toBe("unavailable");
       expect(renderedGraphTestHarness.readVisualizationResetCount()).toBe(1);
+    });
+
+    test("reset clears selection and focus, resumes layout and retains the accepted ontology", async () => {
+      await completeLoad();
+      const source = controller.getState().source;
+      controller.setGraphLayoutPaused({ isPaused: true });
+      await controller.setVisualizationModes({
+        compactNotation: true,
+        maxLabelWidthPx: 80,
+      });
+      await controller.setForceLayoutDistances({ datatypeDistancePx: 200 });
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: 1,
+        payload: {
+          selectedOntologyElementReferences: [
+            { kind: "class", iri: "https://example.test/Person" },
+          ],
+        },
+      });
+      const state = await controller.resetVisualization();
+      expect(state).toMatchObject({
+        status: "relaxing",
+        loadGeneration: 1,
+        source,
+        selection: [],
+        layout: { status: "relaxing" },
+        view: {
+          focus: [],
+          modes: { compactNotation: false, maxLabelWidthPx: 120 },
+          forceDistances: { datatypeDistancePx: 120 },
+        },
+      });
+      expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(1);
+    });
+
+    test("continues observing the resumed layout when reset waiting is cancelled", async () => {
+      await completeLoad();
+      const previousObservation = settlementRequests.at(-1);
+      const cancellation = new AbortController();
+      const reset = controller.resetVisualization(
+        {},
+        { signal: cancellation.signal },
+      );
+      cancellation.abort();
+      await expect(reset).rejects.toMatchObject({ code: "LOAD_ABORTED" });
+
+      const resumedObservation = settlementRequests.at(-1);
+      expect(resumedObservation).not.toBe(previousObservation);
+      expect(resumedObservation.options.signal.aborted).toBe(false);
+      resumedObservation.resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+      await flushMicrotasks();
+      expect(controller.getState()).toMatchObject({
+        status: "ready",
+        layout: { status: "settled" },
+      });
+    });
+
+    test.each(["loading", "parsing", "rendering"])(
+      "rejects reset during %s without altering the pending load",
+      async (phase) => {
+        const pendingLoad = controller.loadOntology(SOURCE_REQUEST);
+        await flushMicrotasks(2);
+        const sourceLoad = deferredSourceLoads.at(-1);
+        if (phase === "parsing") {
+          sourceLoad.onPhaseChange("parsing");
+        }
+        if (phase === "rendering") {
+          sourceLoad.resolve(createSourceLoadRecord());
+          await flushMicrotasks(3);
+        }
+        await expect(controller.resetVisualization()).rejects.toMatchObject({
+          code: "VIEW_REJECTED",
+        });
+        expect(controller.getState().status).toBe(phase);
+        expect(renderedGraphTestHarness.readVisualizationResetCount()).toBe(0);
+        controller.dispose();
+        sourceLoad.resolve(createSourceLoadRecord());
+        await expect(pendingLoad).rejects.toMatchObject({
+          code: "LOAD_ABORTED",
+        });
+      },
+    );
+
+    test("rejects reset of a retained mount during replacement fetching", async () => {
+      await completeLoad();
+      controller.setGraphLayoutPaused({ isPaused: true });
+      await controller.setVisualizationModes({ maxLabelWidthPx: 80 });
+      const previous = controller.getState();
+      const pendingLoad = controller.loadOntology(SOURCE_REQUEST);
+      await flushMicrotasks(2);
+      await expect(controller.resetVisualization()).rejects.toMatchObject({
+        code: "VIEW_REJECTED",
+      });
+      expect(controller.getState().status).toBe("loading");
+      expect(renderedGraphTestHarness.readVisualizationResetCount()).toBe(0);
+      deferredSourceLoads.at(-1).reject(
+        Object.assign(new Error("fetch failed"), {
+          code: "FETCH_FAILED",
+          isRetryable: true,
+          details: {},
+        }),
+      );
+      await expect(pendingLoad).rejects.toMatchObject({ code: "FETCH_FAILED" });
+      expect(controller.getState().view).toEqual(previous.view);
+      expect(renderedGraphRuntime.readGraphLayoutSnapshot().isPaused).toBe(
+        true,
+      );
+    });
+
+    test("retains a human selection made after reset effects while paint is pending", async () => {
+      await completeLoad();
+      const resetRuntime = renderedGraphRuntime.resetVisualization;
+      let finishPaint;
+      const paint = new Promise((resolve) => {
+        finishPaint = resolve;
+      });
+      renderedGraphRuntime.resetVisualization = async (options) => {
+        const view = await resetRuntime(options);
+        await paint;
+        return view;
+      };
+      const reset = controller.resetVisualization();
+      await flushMicrotasks();
+      const selection = [{ kind: "class", iri: "https://example.test/Person" }];
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: 1,
+        payload: { selectedOntologyElementReferences: selection },
+      });
+      finishPaint();
+      await reset;
+      expect(controller.getState().selection).toEqual(selection);
     });
 
     test("publishes applied display modes to human and agent observers", async () => {

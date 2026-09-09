@@ -1035,6 +1035,15 @@ const VISUALIZATION_MODE_PREDICATE_FIELD_NAMES = Object.freeze([
 // or a gradient across them.
 const COLOR_EXTERNALS_MODES = Object.freeze(["same", "gradient"]);
 
+export const DEFAULT_VISUALIZATION_FILTERS = Object.freeze({
+  datatypes: "show",
+  objectProperties: "show",
+  subclasses: "show",
+  disjointness: "hide",
+  setOperators: "show",
+  minDegree: 0,
+});
+
 export const DEFAULT_VISUALIZATION_MODES = Object.freeze({
   colorExternals: true,
   compactNotation: false,

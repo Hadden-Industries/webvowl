@@ -351,7 +351,21 @@ describe("loading module controller state presentation", () => {
     }
   });
 
-  test("keeps the indicator visible while the layout is still relaxing", () => {
+  test("enables human graph actions once drawing is available during layout", () => {
+    const actionAvailability = [];
+    loadingModule.dispose();
+    loadingModule = createLoadingModule({
+      options: () => ({
+        resetMenu: () => ({
+          setMenuMode: (enabled) => actionAvailability.push(enabled),
+        }),
+      }),
+    });
+    loadingModule.renderControllerState({
+      status: "rendering",
+      loadGeneration: 1,
+    });
+    expect(actionAvailability.at(-1)).toBe(false);
     loadingModule.renderControllerState({
       status: "relaxing",
       loadGeneration: 1,
@@ -361,8 +375,9 @@ describe("loading module controller state presentation", () => {
       },
     });
 
-    expect(loadingModule.getMessageVisibilityStatus()).toBe(true);
-    expect(controls.get("#progressBarLabel").textContent).toBe("80%");
+    expect(loadingModule.state()).toBe("ready");
+    expect(actionAvailability.at(-1)).toBe(true);
+    expect(loadingModule.getMessageVisibilityStatus()).toBe(false);
   });
 
   test("hides the indicator once the controller reports the graph is ready", () => {

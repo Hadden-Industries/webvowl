@@ -879,12 +879,65 @@ export function createWebVowlController(dependencies) {
       return renderedGraphRuntime.setContinuousZoom(continuousZoomRequest);
     },
 
-    // A reset control states that the reader asked for defaults back. What the
-    // visualization returns to is renderer-owned, so this operation carries no
-    // request and returns nothing. Like the other renderer-tuning operations it
-    // is controller-domain only, is never a WebMCP tool, and needs no ontology.
-    resetVisualization() {
-      renderedGraphRuntime.resetVisualization();
+    async resetVisualization(request = {}, { signal } = {}) {
+      assertAllowedFieldNames(request, [], "visualization reset request");
+      const loadGeneration = activeLoadGeneration;
+      throwWhenSuperseded(loadGeneration, signal);
+      if (
+        ["loading", "parsing", "rendering"].includes(controllerState.status)
+      ) {
+        throw new WebVowlOperationError({
+          code: "VIEW_REJECTED",
+          message:
+            "Wait for ontology loading to finish before resetting the visualization.",
+          isRetryable: true,
+        });
+      }
+      abortBackgroundLayoutObservation();
+      try {
+        const view = await renderedGraphRuntime.resetVisualization({ signal });
+        throwWhenSuperseded(loadGeneration, signal);
+        const hasOntology = currentOntologyGeneration > 0;
+        publishForGeneration(loadGeneration, {
+          view,
+          error: null,
+          status: hasOntology ? "relaxing" : "idle",
+          layout: {
+            status: hasOntology
+              ? layoutStatusFromSnapshot(readGraphLayoutSnapshot())
+              : "unavailable",
+          },
+        });
+        lastValidControllerState = controllerState;
+        if (hasOntology) {
+          startBackgroundLayoutObservation(loadGeneration);
+        }
+        return controllerState;
+      } catch (error) {
+        if (isAbortError(error)) {
+          throw createLoadAbortedError(error);
+        }
+        throw error;
+      } finally {
+        if (
+          isCurrentGeneration(loadGeneration) &&
+          hasAcceptedRenderedMount &&
+          currentOntologyGeneration === loadGeneration &&
+          backgroundObservationController === undefined
+        ) {
+          // Reset effects precede paint. Cancelling the wait must not abandon
+          // observation of motion already resumed on the accepted graph.
+          const layout = readGraphLayoutSnapshot();
+          publishForGeneration(loadGeneration, {
+            layout: { status: layoutStatusFromSnapshot(layout) },
+            status: layout.isPaused || layout.hasEnded ? "ready" : "relaxing",
+          });
+          lastValidControllerState = controllerState;
+          if (!layout.isPaused && !layout.hasEnded) {
+            startBackgroundLayoutObservation(loadGeneration);
+          }
+        }
+      }
     },
 
     async exportVisualization(exportRequest = {}, { signal } = {}) {

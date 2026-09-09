@@ -1,4 +1,5 @@
 import { applicationUiModule } from "../ui/applicationUiRegistry.js";
+import { runVisualizationControlAction } from "../ui/visualizationControlAction.js";
 
 /**
  * Contains the logic for the reset button.
@@ -20,14 +21,11 @@ export function createResetMenu({
   windowObject = globalThis.window,
 } = {}) {
   const resetMenu = {};
-  let resettableModules;
 
   /**
    * Adds the reset button to the website.
-   * @param _resettableModules modules that can be resetted
    */
-  resetMenu.setup = function (_resettableModules) {
-    resettableModules = _resettableModules;
+  resetMenu.setup = function () {
     documentObject
       .getElementById("reset-button")
       .addEventListener("click", resetGraph);
@@ -58,21 +56,17 @@ export function createResetMenu({
       requestNextAnimationFrame(function () {
         const searchMenu = applicationUiModule("searchMenu");
         searchMenu?.clearText();
-        searchMenu?.reportClearedOntologySelection();
-        webVowlController?.resetVisualization();
-
-        resettableModules.forEach(function (resettableModule) {
-          resettableModule.reset();
-        });
-        webVowlController?.setGraphLayoutPaused({ isPaused: false });
-
-        // Trigger glow fade-out via CSS transition — runs on the compositor
-        // layer of .reset-glow independently of any remaining main-thread work.
-        resetButton.classList.remove("flash-active");
-        resetButton.classList.add("flash-out");
-        resetFlashTimer = scheduleFlashTimer(function () {
-          resetButton.classList.remove("flash-out");
-        }, 700);
+        void runVisualizationControlAction(async () => {
+          try {
+            await webVowlController.resetVisualization();
+          } finally {
+            resetButton.classList.remove("flash-active");
+            resetButton.classList.add("flash-out");
+            resetFlashTimer = scheduleFlashTimer(function () {
+              resetButton.classList.remove("flash-out");
+            }, 700);
+          }
+        }, documentObject);
       });
     });
   }

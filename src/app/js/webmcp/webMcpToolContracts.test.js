@@ -46,11 +46,14 @@ const EXPECTED_TOOL_NAMES = Object.freeze([
   "set_visualization_view",
   "export_visualization",
   "get_visualization_state",
+  "reset_visualization",
   "set_visualization_modes",
   "set_layout_distances",
 ]);
 
 const EXPECTED_TOOL_DESCRIPTIONS = Object.freeze({
+  reset_visualization:
+    "Restore visualization defaults, clear focus and selection, and resume layout. Retain the loaded ontology and label language.",
   load_ontology:
     "Load an ontology into the visible WebVOWL graph from an HTTP(S) ontology document IRI, VOWL JSON URL, or supplied ontology text.",
   get_ontology_summary:
@@ -70,6 +73,7 @@ const EXPECTED_TOOL_DESCRIPTIONS = Object.freeze({
 });
 
 const EXPECTED_TOOL_ANNOTATIONS = Object.freeze({
+  reset_visualization: { readOnlyHint: false, untrustedContentHint: true },
   load_ontology: { readOnlyHint: false, untrustedContentHint: true },
   get_ontology_summary: { readOnlyHint: true, untrustedContentHint: true },
   find_ontology_elements: { readOnlyHint: true, untrustedContentHint: true },
@@ -1174,6 +1178,28 @@ function createControllerSpy(overrides = {}) {
 }
 
 describe("WebMCP tool dispatch", () => {
+  test("resets through the same controller operation and rejects reset arguments", async () => {
+    const requests = [];
+    const { webVowlController } = createControllerSpy({
+      resetVisualization: (request) => {
+        requests.push(request);
+        return { view: { focus: [] } };
+      },
+    });
+    const dispatch = createWebMcpToolDispatch({ webVowlController });
+    expect(
+      await dispatch.callWebMcpTool("reset_visualization", {}),
+    ).toMatchObject({ isSuccess: true, toolResult: { view: { focus: [] } } });
+    expect(
+      await dispatch.callWebMcpTool("reset_visualization", {
+        editOntology: true,
+      }),
+    ).toMatchObject({
+      isSuccess: false,
+      error: { code: "INVALID_TOOL_INPUT" },
+    });
+    expect(requests).toEqual([{}]);
+  });
   test.each([
     [
       "set_visualization_modes",

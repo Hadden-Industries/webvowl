@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, jest, test } from "@jest/globals";
+import { beforeAll, describe, expect, test } from "@jest/globals";
 import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let createResetMenu;
@@ -90,35 +90,28 @@ function createResetMenuHarness() {
 }
 
 describe("reset menu", () => {
-  test("resets every resettable module without requiring one to resume itself", () => {
+  test("requests one shared reset without composing separate menu or pause actions", () => {
     const harness = createResetMenuHarness();
-    const resettableModule = { reset: jest.fn() };
-    harness.resetMenu.setup([resettableModule]);
+    harness.resetMenu.setup();
 
     expect(() => harness.controlFor("reset-button").click()).not.toThrow();
-    expect(resettableModule.reset).toHaveBeenCalledTimes(1);
+    expect(harness.visualizationResets).toEqual(["reset"]);
+    expect(harness.pauseRequests).toEqual([]);
   });
 
-  test("reports that the layout should resume and the selection is cleared", () => {
+  test("clears local search presentation while the controller owns selection and layout", () => {
     const harness = createResetMenuHarness();
-    harness.resetMenu.setup([]);
+    harness.resetMenu.setup();
 
     harness.controlFor("reset-button").click();
 
-    // Resetting means the reader wants defaults back: nothing selected and
-    // the layout running again.
-    expect(harness.pauseRequests).toEqual([{ isPaused: false }]);
-    // Reset both clears what the reader sees and reports the fact, exactly as
-    // the search box's own clear control does.
-    expect(harness.clearedSelectionReports).toEqual([
-      "presentation-cleared",
-      "cleared",
-    ]);
+    expect(harness.pauseRequests).toEqual([]);
+    expect(harness.clearedSelectionReports).toEqual(["presentation-cleared"]);
   });
 
   test("reports that the visualization should return to its defaults", () => {
     const harness = createResetMenuHarness();
-    harness.resetMenu.setup([]);
+    harness.resetMenu.setup();
 
     harness.controlFor("reset-button").click();
 

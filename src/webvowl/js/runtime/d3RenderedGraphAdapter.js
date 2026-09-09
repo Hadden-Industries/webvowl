@@ -8,6 +8,7 @@ import {
   createContinuousZoomRequest,
   createAppliedVisualizationView,
   DEFAULT_VISUALIZATION_MODES,
+  DEFAULT_VISUALIZATION_FILTERS,
   DEFAULT_FORCE_LAYOUT_DISTANCES,
   createForceLayoutDistancesRequest,
   createVisualizationModesRequest,
@@ -390,7 +391,7 @@ export function createD3RenderedGraphAdapter(dependencies) {
 
     // Focus is purely visual: it marks elements without changing which are
     // present, so it must not recompute and restart the force simulation.
-    if (requiresRecomputation) {
+    if (requiresRecomputation && activeLoadGeneration !== null) {
       renderedGraphInternals.update();
     }
     // The caller reports which elements were selected; the runtime decides
@@ -413,6 +414,87 @@ export function createD3RenderedGraphAdapter(dependencies) {
         }
       }
     }
+  }
+
+  function beginVisualizationRequest(signal) {
+    signal?.throwIfAborted();
+    activeViewAbortController?.abort(
+      createAbortError(
+        "The view request was superseded by a newer visualization request.",
+      ),
+    );
+    activeViewAbortController = new AbortController();
+    return AbortSignal.any([
+      activeViewAbortController.signal,
+      ...(activeGenerationAbortController
+        ? [activeGenerationAbortController.signal]
+        : []),
+      ...(signal ? [signal] : []),
+    ]);
+  }
+
+  function publishActualVisualizationView(loadGeneration) {
+    if (
+      loadGeneration !== null &&
+      loadGeneration === activeLoadGeneration &&
+      !isDisposed
+    ) {
+      publishRenderedGraphEvent({
+        kind: "visualization-view-changed",
+        loadGeneration,
+        payload: { appliedVisualizationView: readAppliedVisualizationView() },
+      });
+    }
+  }
+
+  function applyVisualizationModesToRenderer(requestedModes) {
+    const renderedGraphSettings = renderedGraphInternals.options();
+    let hasChangedElementRendering = false;
+    for (const [modeName, readModeModule] of Object.entries(
+      VISUALIZATION_MODE_MODULE_READERS,
+    )) {
+      if (requestedModes[modeName] === undefined) {
+        continue;
+      }
+      readModeModule(renderedGraphSettings)?.enabled(requestedModes[modeName]);
+      hasChangedElementRendering = true;
+    }
+    if (requestedModes.colorExternalsMode !== undefined) {
+      renderedGraphSettings
+        .colorExternalsModule()
+        ?.colorModeType(requestedModes.colorExternalsMode);
+      hasChangedElementRendering = true;
+    }
+    if (
+      requestedModes.colorExternals !== undefined ||
+      requestedModes.colorExternalsMode !== undefined
+    ) {
+      renderedGraphInternals.executeColorExternalsModule();
+    }
+    if (requestedModes.compactNotation !== undefined) {
+      renderedGraphInternals.executeCompactNotationModule();
+    }
+    if (requestedModes.nodeScaling !== undefined) {
+      renderedGraphInternals.executeNodeScalingModule();
+    }
+    // Label width is a drawing setting rather than a filter module, so it is
+    // applied directly and animated into place.
+    let hasChangedDynamicLabelWidthMode = false;
+    let hasChangedMaxLabelWidth = false;
+    if (requestedModes.dynamicLabelWidth !== undefined) {
+      renderedGraphSettings.dynamicLabelWidth(requestedModes.dynamicLabelWidth);
+      hasChangedDynamicLabelWidthMode = true;
+    }
+    if (requestedModes.maxLabelWidthPx !== undefined) {
+      renderedGraphSettings.maxLabelWidth(requestedModes.maxLabelWidthPx);
+      hasChangedMaxLabelWidth = true;
+    }
+    return {
+      requiresRedraw: hasChangedElementRendering,
+      requiresLabelWidthAnimation:
+        hasChangedDynamicLabelWidthMode ||
+        (hasChangedMaxLabelWidth && renderedGraphSettings.dynamicLabelWidth()),
+    };
   }
 
   const renderedGraphRuntime = Object.freeze({
@@ -505,15 +587,7 @@ export function createD3RenderedGraphAdapter(dependencies) {
         );
       }
 
-      activeViewAbortController?.abort(
-        createAbortError("The view request was superseded by a newer view."),
-      );
-      activeViewAbortController = new AbortController();
-      const viewSignal = AbortSignal.any([
-        activeGenerationAbortController.signal,
-        activeViewAbortController.signal,
-        ...(signal === undefined ? [] : [signal]),
-      ]);
+      const viewSignal = beginVisualizationRequest(signal);
 
       const requestedView = Object.fromEntries(
         Object.entries(viewApplicationRequest).filter(
@@ -659,76 +733,16 @@ export function createD3RenderedGraphAdapter(dependencies) {
       signal?.throwIfAborted();
       const requestedModes = createVisualizationModesRequest(request);
       const loadGeneration = activeLoadGeneration;
-      activeViewAbortController?.abort(
-        createAbortError(
-          "The view request was superseded by a newer display choice.",
-        ),
-      );
-      activeViewAbortController = new AbortController();
-      const viewSignal = AbortSignal.any([
-        activeViewAbortController.signal,
-        ...(activeGenerationAbortController
-          ? [activeGenerationAbortController.signal]
-          : []),
-        ...(signal ? [signal] : []),
-      ]);
-      const renderedGraphSettings = renderedGraphInternals.options();
-      let hasChangedElementRendering = false;
-      for (const [modeName, readModeModule] of Object.entries(
-        VISUALIZATION_MODE_MODULE_READERS,
-      )) {
-        if (requestedModes[modeName] === undefined) {
-          continue;
-        }
-        readModeModule(renderedGraphSettings)?.enabled(
-          requestedModes[modeName],
-        );
-        hasChangedElementRendering = true;
-      }
-      if (requestedModes.colorExternalsMode !== undefined) {
-        renderedGraphSettings
-          .colorExternalsModule()
-          ?.colorModeType(requestedModes.colorExternalsMode);
-        hasChangedElementRendering = true;
-      }
-      if (
-        requestedModes.colorExternals !== undefined ||
-        requestedModes.colorExternalsMode !== undefined
-      ) {
-        renderedGraphInternals.executeColorExternalsModule();
-      }
-      if (requestedModes.compactNotation !== undefined) {
-        renderedGraphInternals.executeCompactNotationModule();
-      }
-      if (requestedModes.nodeScaling !== undefined) {
-        renderedGraphInternals.executeNodeScalingModule();
-      }
-      // Label width is a drawing setting rather than a filter module, so it is
-      // applied directly and animated into place.
-      let hasChangedDynamicLabelWidthMode = false;
-      let hasChangedMaxLabelWidth = false;
-      if (requestedModes.dynamicLabelWidth !== undefined) {
-        renderedGraphSettings.dynamicLabelWidth(
-          requestedModes.dynamicLabelWidth,
-        );
-        hasChangedDynamicLabelWidthMode = true;
-      }
-      if (requestedModes.maxLabelWidthPx !== undefined) {
-        renderedGraphSettings.maxLabelWidth(requestedModes.maxLabelWidthPx);
-        hasChangedMaxLabelWidth = true;
-      }
-      // Switching the mode animates either way, because labels are clamped to
-      // the width or released back to their own. A width on its own is only
-      // visible while labels are sizing themselves to it.
-      if (hasChangedElementRendering && loadGeneration !== null) {
+      const viewSignal = beginVisualizationRequest(signal);
+      const renderingChanges =
+        applyVisualizationModesToRenderer(requestedModes);
+      if (renderingChanges.requiresRedraw && loadGeneration !== null) {
         renderedGraphInternals.lazyRefresh();
       }
       let labelWidthAnimation;
       if (
         loadGeneration !== null &&
-        (hasChangedDynamicLabelWidthMode ||
-          (hasChangedMaxLabelWidth &&
-            renderedGraphSettings.dynamicLabelWidth()))
+        renderingChanges.requiresLabelWidthAnimation
       ) {
         labelWidthAnimation = renderedGraphInternals.animateDynamicLabelWidth({
           signal: viewSignal,
@@ -752,19 +766,7 @@ export function createD3RenderedGraphAdapter(dependencies) {
       })().finally(() => {
         // Cancellation stops waiting for the action. Native transition handlers
         // finish its applied geometry; observers must receive those actual choices.
-        if (
-          loadGeneration !== null &&
-          loadGeneration === activeLoadGeneration &&
-          !isDisposed
-        ) {
-          publishRenderedGraphEvent({
-            kind: "visualization-view-changed",
-            loadGeneration,
-            payload: {
-              appliedVisualizationView: readAppliedVisualizationView(),
-            },
-          });
-        }
+        publishActualVisualizationView(loadGeneration);
       });
     },
 
@@ -775,9 +777,38 @@ export function createD3RenderedGraphAdapter(dependencies) {
       return createAppliedVisualizationView(readAppliedVisualizationView());
     },
 
-    resetVisualization() {
+    async resetVisualization({ signal } = {}) {
       assertNotDisposed();
-      renderedGraphInternals.resetVisualization();
+      signal?.throwIfAborted();
+      const loadGeneration = activeLoadGeneration;
+      const resetSignal = beginVisualizationRequest(signal);
+      try {
+        applyVisualizationModesToRenderer(DEFAULT_VISUALIZATION_MODES);
+        appliedVisualizationView = { ...appliedVisualizationView, focus: [] };
+        applyVisualizationViewToRenderer({
+          filters: DEFAULT_VISUALIZATION_FILTERS,
+          focus: [],
+        });
+        renderedGraphInternals.resetVisualization();
+        renderedGraphInternals.setForceLayoutDistances(
+          DEFAULT_FORCE_LAYOUT_DISTANCES,
+        );
+        if (loadGeneration !== null) {
+          renderedGraphRuntime.setGraphLayoutPaused({
+            loadGeneration,
+            isPaused: false,
+          });
+          await awaitObservedPaint(loadGeneration, resetSignal);
+        }
+        resetSignal.throwIfAborted();
+        assertNotDisposed();
+        appliedVisualizationView = createAppliedVisualizationView(
+          readAppliedVisualizationView(),
+        );
+        return appliedVisualizationView;
+      } finally {
+        publishActualVisualizationView(loadGeneration);
+      }
     },
 
     createRenderedSvgSnapshot(request) {

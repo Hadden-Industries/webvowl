@@ -331,7 +331,14 @@ export async function assertRenderedGraphRuntimeContract({
     expect(
       renderedGraphRuntime.setContinuousZoom({ zoomDirection: "none" }),
     ).toBe("none");
-    expect(renderedGraphRuntime.resetVisualization()).toBeUndefined();
+    const reset = renderedGraphRuntime.resetVisualization();
+    adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+      1,
+    );
+    expect(await reset).toMatchObject({
+      modes: { compactNotation: false, maxLabelWidthPx: 120 },
+      forceDistances: { classDistancePx: 200, datatypeDistancePx: 120 },
+    });
 
     // A request naming nothing is refused at the seam rather than reaching a
     // renderer module.
@@ -353,7 +360,9 @@ export async function assertRenderedGraphRuntimeContract({
     expect(() =>
       renderedGraphRuntime.setContinuousZoom({ zoomDirection: "in" }),
     ).toThrow("disposed");
-    expect(() => renderedGraphRuntime.resetVisualization()).toThrow("disposed");
+    await expect(renderedGraphRuntime.resetVisualization()).rejects.toThrow(
+      "disposed",
+    );
   }
 
   {

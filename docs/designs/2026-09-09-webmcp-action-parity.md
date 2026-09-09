@@ -129,6 +129,19 @@ wheel zoom. No code rewrites D3's private gesture bookkeeping.
 
 ## Remaining view actions
 
+Reset is one shared asynchronous operation. It restores default modes (including
+label width 120 and same external color), class/datatype distances 200/120,
+minimum degree zero and all filter groups except disjointness; clears focus and
+selection; restores the default viewport; and resumes layout. It retains the
+ontology and chosen label language. Existing pins and experimental editing mode
+are not reset effects. Completion follows the actual SVG transform and paint.
+Cancellation publishes defaults already applied to the drawing and retains layout
+observation. A later human selection survives completion. Reset is rejected with
+`VIEW_REJECTED` during loading/parsing/rendering so it cannot relabel the retained
+mount as a pending generation; idle reset remains available. Human controls
+remain available during background layout: `relaxing` follows initial paint and
+must not be presented as a still-loading, disabled graph.
+
 Explicit pan uses `translation: {xPx, yPx}` in viewport pixels and preserves
 magnification and node arrangement. The shared request boundary uses the same
 0.01–4 magnification interval advertised to the browser agent. Requested viewport

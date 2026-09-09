@@ -494,7 +494,10 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
     if (controllerState === null || typeof controllerState !== "object") {
       return;
     }
-    if (controllerState.status === "ready") {
+    if (
+      controllerState.status === "ready" ||
+      controllerState.status === "relaxing"
+    ) {
       loadingModule.markReady();
       loadingModule.setSuccessful();
       loadingModule.hideLoadingIndicator();
@@ -512,12 +515,11 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
       }
       return;
     }
-    // Every remaining controller status is an in-flight load.
+    // Background layout begins after the graph is drawn and can be controlled.
     const IN_FLIGHT_CONTROLLER_STATUSES = new Set([
       "loading",
       "parsing",
       "rendering",
-      "relaxing",
     ]);
     if (!IN_FLIGHT_CONTROLLER_STATUSES.has(controllerState.status)) {
       return;

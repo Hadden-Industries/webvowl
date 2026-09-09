@@ -2135,13 +2135,7 @@ function createGraph(graphContainerSelector) {
     renderedGraphSettings.linkStrength(
       RENDERED_GRAPH_CONFIGURATION_DEFAULTS.linkStrength,
     );
-    // The distances come last because applying them derives the charge from
-    // the greatest of them and restyles, which is the reset the reader sees.
-    graph.setForceLayoutDistances({
-      classDistancePx: RENDERED_GRAPH_CONFIGURATION_DEFAULTS.classDistance,
-      datatypeDistancePx:
-        RENDERED_GRAPH_CONFIGURATION_DEFAULTS.datatypeDistance,
-    });
+    // The runtime applies shared distance defaults after this native reset.
     graph.reset();
   };
 
@@ -2315,6 +2309,12 @@ function createGraph(graphContainerSelector) {
     const tx = w - defaultZoom * w;
     const ty = h - defaultZoom * h;
     updateViewportState([tx, ty], defaultZoom);
+    graphContainer
+      ?.interrupt()
+      .attr(
+        "transform",
+        viewportTransform.toSvgTransform(defaultZoom, [tx, ty]),
+      );
   };
 
   /** --------------------------------------------------------- **/

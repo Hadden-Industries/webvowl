@@ -984,6 +984,78 @@ describe("D3 rendered graph adapter", () => {
     expect(await operation).toMatchObject({ modes: { maxLabelWidthPx: 20 } });
   });
 
+  test("reset applies shared defaults and observes the completed drawing", async () => {
+    const harness = createAdapterHarness();
+    await harness.renderedGraphRuntime.setVisualizationModes({
+      compactNotation: true,
+      maxLabelWidthPx: 80,
+      colorExternalsMode: "gradient",
+    });
+    await loadGeneration(harness, 1);
+    harness.renderedGraphRuntime.setGraphLayoutPaused({
+      loadGeneration: 1,
+      isPaused: true,
+    });
+    let complete = false;
+    const reset = Promise.resolve(
+      harness.renderedGraphRuntime.resetVisualization(),
+    ).then((value) => {
+      complete = true;
+      return value;
+    });
+    await Promise.resolve();
+    expect(complete).toBe(false);
+    harness.renderedGraphTestHarness.completeVisualizationViewApplication(1);
+    const result = await reset;
+    expect(result).toMatchObject({
+      filters: {
+        disjointness: "hide",
+        minDegree: 0,
+        datatypes: "show",
+        objectProperties: "show",
+        setOperators: "show",
+        subclasses: "show",
+      },
+      focus: [],
+      modes: {
+        compactNotation: false,
+        maxLabelWidthPx: 120,
+        colorExternalsMode: "same",
+      },
+      forceDistances: { classDistancePx: 200, datatypeDistancePx: 120 },
+    });
+    expect(
+      harness.renderedGraphRuntime.readGraphLayoutSnapshot().isPaused,
+    ).toBe(false);
+  });
+
+  test("a cancelled reset still reports defaults already applied to the drawing", async () => {
+    const harness = createAdapterHarness();
+    await loadGeneration(harness, 1);
+    const events = [];
+    harness.renderedGraphRuntime.subscribeToRenderedGraphEvents((event) =>
+      events.push(event),
+    );
+    const caller = new AbortController();
+    const reset = harness.renderedGraphRuntime.resetVisualization({
+      signal: caller.signal,
+    });
+    caller.abort(new DOMException("Cancelled", "AbortError"));
+    await expect(reset).rejects.toMatchObject({ name: "AbortError" });
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        kind: "visualization-view-changed",
+        loadGeneration: 1,
+        payload: expect.objectContaining({
+          appliedVisualizationView: expect.objectContaining({
+            modes: expect.objectContaining({ maxLabelWidthPx: 120 }),
+            focus: [],
+          }),
+        }),
+      }),
+    );
+  });
+
   test("applies each requested display mode and refreshes once", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
@@ -1288,11 +1360,13 @@ describe("D3 rendered graph adapter", () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
 
-    adapterHarness.renderedGraphRuntime.resetVisualization();
+    const reset = adapterHarness.renderedGraphRuntime.resetVisualization();
+    adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+      1,
+    );
+    await reset;
 
-    // A reader asking for a reset states an intent. Which settings go back to
-    // which values, and the restyle that follows, are the renderer's business,
-    // so the adapter carries the intent across and decides nothing.
+    // The shared action restores drawing defaults through the native runtime.
     expect(
       adapterHarness.renderedGraphInternalsFixture.visualizationResets,
     ).toBe(1);
