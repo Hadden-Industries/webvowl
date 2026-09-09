@@ -80,7 +80,6 @@ function createOntologyMenu(
 
   ontologyMenu.reloadCachedOntology = function () {
     ontologyMenu.clearCachedVersion();
-    graph.clearGraphData();
     loadingModule.loadRemoteSource({
       source: loadingModule.ontologySourceFromLocation(),
       shouldCache: false,

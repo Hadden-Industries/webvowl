@@ -40,7 +40,7 @@ const VISIBILITY_FILTER_VALUES = Object.freeze(["show", "hide"]);
 const MAXIMUM_LOCATION_LENGTH = 2048;
 // One megabyte of ontology text. The byte length is enforced again at runtime,
 // because a schema counts characters and a limit that matters is in bytes.
-const MAXIMUM_ONTOLOGY_TEXT_LENGTH = 1048576;
+const MAXIMUM_DOCUMENT_TEXT_LENGTH = 1048576;
 const MAXIMUM_ANONYMOUS_LOCAL_ID_LENGTH = 256;
 const MAXIMUM_FOCUS_REFERENCE_COUNT = 25;
 
@@ -99,7 +99,7 @@ const ONTOLOGY_SOURCE_BRANCH_SCHEMAS = Object.freeze([
       text: Object.freeze({
         type: "string",
         description: "The ontology document text to parse.",
-        maxLength: MAXIMUM_ONTOLOGY_TEXT_LENGTH,
+        maxLength: MAXIMUM_DOCUMENT_TEXT_LENGTH,
         minLength: 1,
       }),
       format: Object.freeze({
@@ -107,8 +107,33 @@ const ONTOLOGY_SOURCE_BRANCH_SCHEMAS = Object.freeze([
         description: "Syntax of the supplied text.",
         enum: ONTOLOGY_TEXT_FORMAT_KEYS,
       }),
+      displayName: Object.freeze({
+        type: "string",
+        minLength: 1,
+        maxLength: 256,
+        description: "Optional local document name for provenance.",
+      }),
     },
     required: ["kind", "text", "format"],
+  }),
+  closedObjectSchema({
+    description:
+      "A local VOWL JSON document supplied as text, like a selected JSON file.",
+    properties: {
+      kind: Object.freeze({ const: "vowl-json-text" }),
+      text: Object.freeze({
+        type: "string",
+        minLength: 1,
+        maxLength: MAXIMUM_DOCUMENT_TEXT_LENGTH,
+      }),
+      displayName: Object.freeze({
+        type: "string",
+        minLength: 1,
+        maxLength: 256,
+        description: "Optional local document name for provenance.",
+      }),
+    },
+    required: ["kind", "text"],
   }),
 ]);
 
@@ -560,14 +585,14 @@ function assertRetrievableLocation(candidateValue, fieldName) {
   return candidateValue;
 }
 
-const ONTOLOGY_TEXT_ENCODER = new TextEncoder();
+const DOCUMENT_TEXT_ENCODER = new TextEncoder();
 
-function assertBoundedOntologyText(candidateValue) {
-  assertBoundedString(candidateValue, "text", MAXIMUM_ONTOLOGY_TEXT_LENGTH);
-  const encodedByteLength = ONTOLOGY_TEXT_ENCODER.encode(candidateValue).length;
-  if (encodedByteLength > WEB_VOWL_OPERATION_LIMITS.maxInlineOntologyBytes) {
+function assertBoundedDocumentText(candidateValue) {
+  assertBoundedString(candidateValue, "text", MAXIMUM_DOCUMENT_TEXT_LENGTH);
+  const encodedByteLength = DOCUMENT_TEXT_ENCODER.encode(candidateValue).length;
+  if (encodedByteLength > WEB_VOWL_OPERATION_LIMITS.maxInlineDocumentBytes) {
     refuse(
-      `text must encode to at most ${WEB_VOWL_OPERATION_LIMITS.maxInlineOntologyBytes} bytes.`,
+      `text must encode to at most ${WEB_VOWL_OPERATION_LIMITS.maxInlineDocumentBytes} bytes.`,
     );
   }
   return candidateValue;
@@ -576,7 +601,8 @@ function assertBoundedOntologyText(candidateValue) {
 const ONTOLOGY_SOURCE_FIELD_NAMES_BY_KIND = Object.freeze({
   "ontology-document-iri": Object.freeze(["kind", "documentIri"]),
   "vowl-json-url": Object.freeze(["kind", "url"]),
-  "ontology-text": Object.freeze(["kind", "text", "format"]),
+  "ontology-text": Object.freeze(["kind", "text", "format", "displayName"]),
+  "vowl-json-text": Object.freeze(["kind", "text", "displayName"]),
 });
 
 export function normalizeLoadOntologyToolInput(toolInput) {
@@ -596,7 +622,7 @@ export function normalizeLoadOntologyToolInput(toolInput) {
   }
   assertRequiredFieldNames(
     requestedSource,
-    sourceFieldNames,
+    sourceFieldNames.filter((fieldName) => fieldName !== "displayName"),
     "ontology source",
   );
   assertOnlyAllowedFieldNames(
@@ -624,15 +650,41 @@ export function normalizeLoadOntologyToolInput(toolInput) {
       }),
     });
   }
+  if (requestedSource.kind === "vowl-json-text") {
+    return Object.freeze({
+      source: Object.freeze({
+        kind: "vowl-json-text",
+        text: assertBoundedDocumentText(requestedSource.text),
+        ...(requestedSource.displayName === undefined
+          ? {}
+          : {
+              displayName: assertBoundedString(
+                requestedSource.displayName,
+                "displayName",
+                256,
+              ),
+            }),
+      }),
+    });
+  }
   return Object.freeze({
     source: Object.freeze({
       kind: "ontology-text",
-      text: assertBoundedOntologyText(requestedSource.text),
+      text: assertBoundedDocumentText(requestedSource.text),
       format: assertEnumMember(
         requestedSource.format,
         "format",
         ONTOLOGY_TEXT_FORMAT_KEYS,
       ),
+      ...(requestedSource.displayName === undefined
+        ? {}
+        : {
+            displayName: assertBoundedString(
+              requestedSource.displayName,
+              "displayName",
+              256,
+            ),
+          }),
     }),
   });
 }

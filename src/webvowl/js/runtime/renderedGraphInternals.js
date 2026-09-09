@@ -2321,19 +2321,7 @@ function createGraph(graphContainerSelector) {
   /** -- data related handling                               -- **/
   /** --------------------------------------------------------- **/
 
-  let cachedJsonOBJ = null;
-  graph.clearAllGraphData = function () {
-    if (graph.graphNodeElements() && graph.graphNodeElements().length > 0) {
-      cachedJsonOBJ = null;
-    } else {
-      cachedJsonOBJ = null;
-    }
-    force.stop();
-    if (unfilteredData) {
-      unfilteredData.nodes = [];
-      unfilteredData.properties = [];
-    }
-  };
+  const cachedJsonOBJ = null;
   graph.getCachedJsonObj = function () {
     return cachedJsonOBJ;
   };

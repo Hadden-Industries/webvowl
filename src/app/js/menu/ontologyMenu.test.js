@@ -286,6 +286,16 @@ describe("ontology menu actions", () => {
     iriForm = selectionFor("#iri-converter-form");
   });
 
+  test("reload delegates replacement without requiring a graph-clearing route", () => {
+    expect(() => ontologyMenu.reloadCachedOntology()).not.toThrow();
+    expect(
+      registeredUiModulesForTest.get("loadingModule").loadRemoteSource,
+    ).toHaveBeenCalledWith({
+      source: { kind: "vowl-json-url", url: "https://example.test/foaf.json" },
+      shouldCache: false,
+    });
+  });
+
   test("enables the visualize button only for a URL that can be normalized", () => {
     expect(iriButton.element.disabled).toBe(true);
 

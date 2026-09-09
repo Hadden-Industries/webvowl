@@ -176,6 +176,14 @@ function createValidatedOntologySourceLoadInput(source) {
           url: source.url,
         }),
       });
+    case "vowl-json-text":
+      return Object.freeze({
+        sourceVariantSnapshot: Object.freeze({
+          displayName: source.displayName,
+          kind: source.kind,
+          text: source.text,
+        }),
+      });
     case "ontology-text":
       return Object.freeze({
         sourceVariantSnapshot: Object.freeze({
@@ -222,6 +230,7 @@ function validateOntologySourceRequest(request, textEncoder) {
     case "vowl-json-url":
       validateRemoteSourceLocation(source.url, sourceKind);
       break;
+    case "vowl-json-text":
     case "ontology-text": {
       if (typeof source.text !== "string") {
         throw rejectOntologySource(
@@ -230,7 +239,11 @@ function validateOntologySourceRequest(request, textEncoder) {
         );
       }
       validateOptionalDisplayName(source.displayName, sourceKind);
-      if (source.format === undefined && source.displayName === undefined) {
+      if (
+        sourceKind === "ontology-text" &&
+        source.format === undefined &&
+        source.displayName === undefined
+      ) {
         throw rejectOntologySource(
           sourceKind,
           "Ontology text requires a format or displayName.",
@@ -247,7 +260,7 @@ function validateOntologySourceRequest(request, textEncoder) {
       }
       if (
         textEncoder.encode(source.text).byteLength >
-        WEB_VOWL_OPERATION_LIMITS.maxInlineOntologyBytes
+        WEB_VOWL_OPERATION_LIMITS.maxInlineDocumentBytes
       ) {
         throw rejectOntologySource(
           sourceKind,
@@ -516,7 +529,8 @@ function mapExpectedSourceLoadError(error, { loadPhase, signal, sourceKind }) {
     error instanceof OWLOntologyCreationError ||
     error instanceof OWLParserError ||
     error instanceof UnparsableOntologyException ||
-    (sourceKind === "vowl-json-url" && error instanceof SyntaxError)
+    (["vowl-json-url", "vowl-json-text"].includes(sourceKind) &&
+      error instanceof SyntaxError)
   ) {
     return createSourceLoadError("PARSE_FAILED", sourceKind, error);
   }
@@ -631,6 +645,13 @@ export function createOntologySourceLoader({
               JSON.parse(remoteText),
             ));
           }
+        } else if (source.kind === "vowl-json-text") {
+          sourceBytes = textEncoder.encode(source.text);
+          loadPhase = "parsing";
+          reportLoadPhase(onPhaseChange, loadPhase, cancellationSignal);
+          ({ sourceDiagnostics, vowlModel } = cloneVowlModel(
+            JSON.parse(source.text),
+          ));
         } else if (source.kind === "ontology-text") {
           sourceBytes = textEncoder.encode(source.text);
           const rootLoaderConfiguration = new OWLOntologyLoaderConfiguration({

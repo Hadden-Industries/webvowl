@@ -353,7 +353,7 @@ export function createWebVowlApplication() {
       { createWarningModule },
     ] = await nativeApplicationUiModuleNamespacesPromise;
 
-    directInputModule = createDirectInputModule(graph, {
+    directInputModule = createDirectInputModule({
       webVowlController,
     });
     editSidebar = createEditSidebar(graph, {

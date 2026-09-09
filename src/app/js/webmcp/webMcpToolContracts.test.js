@@ -223,16 +223,56 @@ describe("WebMCP tool definitions", () => {
 });
 
 describe("load_ontology input schema", () => {
-  test("requires one source of exactly three kinds", () => {
+  test("accepts the same document display name as a human ontology-file input", () => {
+    const source = {
+      kind: "ontology-text",
+      text: "@prefix ex: <https://example.test/> .",
+      format: "turtle",
+      displayName: "example.ttl",
+    };
+    expect(normalizeLoadOntologyToolInput({ source })).toEqual({ source });
+  });
+  test("accepts named local VOWL JSON text through a closed source branch", () => {
+    const source = {
+      kind: "vowl-json-text",
+      text: '{"header":{}}',
+      displayName: "local.json",
+    };
+    expect(normalizeLoadOntologyToolInput({ source })).toEqual({ source });
+    const schema = toolDefinitionNamed(
+      "load_ontology",
+    ).inputSchema.properties.source.oneOf.find(
+      (branch) => branch.properties.kind.const === source.kind,
+    );
+    expect(schema.required).toEqual(["kind", "text"]);
+    expect(schema.additionalProperties).toBe(false);
+    expect(schema.properties.text.maxLength).toBe(1048576);
+    expect(() =>
+      normalizeLoadOntologyToolInput({
+        source: { ...source, url: "https://example.test/other.json" },
+      }),
+    ).toThrow();
+    expect(() =>
+      normalizeLoadOntologyToolInput({
+        source: { ...source, text: "😀".repeat(262145) },
+      }),
+    ).toThrow();
+  });
+  test("requires one source of exactly four kinds", () => {
     const inputSchema = toolDefinitionNamed("load_ontology").inputSchema;
 
     expect(inputSchema.required).toEqual(["source"]);
-    expect(inputSchema.properties.source.oneOf).toHaveLength(3);
+    expect(inputSchema.properties.source.oneOf).toHaveLength(4);
     expect(
       inputSchema.properties.source.oneOf.map(
         (branchSchema) => branchSchema.properties.kind.const,
       ),
-    ).toEqual(["ontology-document-iri", "vowl-json-url", "ontology-text"]);
+    ).toEqual([
+      "ontology-document-iri",
+      "vowl-json-url",
+      "ontology-text",
+      "vowl-json-text",
+    ]);
   });
 
   test("gives each source branch only the fields that source concept has", () => {
@@ -250,6 +290,7 @@ describe("load_ontology input schema", () => {
     ]);
     expect(vowlJsonUrlBranch.required).toEqual(["kind", "url"]);
     expect(Object.keys(ontologyTextBranch.properties).sort()).toEqual([
+      "displayName",
       "format",
       "kind",
       "text",
@@ -261,10 +302,8 @@ describe("load_ontology input schema", () => {
     const sourceSchema =
       toolDefinitionNamed("load_ontology").inputSchema.properties.source;
 
-    // A parsed VOWL model is a controller-domain source obtained from a file,
-    // cache or converter. It is not an agent input.
+    // Parsed model objects remain internal; text has its own loading boundary.
     expect(JSON.stringify(sourceSchema)).not.toContain("vowl-model");
-    expect(JSON.stringify(sourceSchema)).not.toContain("displayName");
   });
 
   test("caps each location and the supplied text", () => {

@@ -513,7 +513,6 @@ export function createWebVowlController(dependencies) {
       {
         loadGeneration: recoveryGeneration,
         vowlModel: model,
-        displayName: state.source.identity,
       },
       { signal: recoverySignal },
     );
@@ -632,7 +631,6 @@ export function createWebVowlController(dependencies) {
           {
             loadGeneration,
             vowlModel: sourceLoadRecord.vowlModel,
-            displayName: sourceLoadRecord.sourceProvenance.identity,
           },
           { signal: cancellationSignal },
         );

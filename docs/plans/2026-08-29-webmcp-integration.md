@@ -21,6 +21,19 @@ is serial. The owner subsequently authorised an independent read-only reviewer
 and the scoped native Codex Security workflow, including its review workers.
 The clean starting revision is `20b49405`; the merged SDLC is part of that baseline.
 
+The owner subsequently authorised a normal push of signed checkpoint `180d9667`
+and subsequent verified signed checkpoints to `origin`,
+`refs/heads/feature/webmcp-integration`, as a cloud backup. GitHub readback confirms
+that first pushed checkpoint. This authority does not merge a PR or deploy the
+product. Uncommitted work remains local until its verified checkpoint.
+
+After the owner questioned repeated browser overhead, verification cadence is
+adjusted: use focused automated regressions during implementation, batch native
+browser checks around completed workflows, and rerun a focused browser regression
+only when native D3/browser behavior is material to its fix. Keep the full twenty-job
+evaluation and integrated checks at the end. Existing native failure evidence
+remains required; this batching does not waive browser acceptance.
+
 **Pause** is the action that stops automatic layout motion so the reader's current
 arrangement is retained. **Resume** restarts that motion, including reheating the
 simulation as the human Resume control does. Omitting `layout` issues neither action:
@@ -362,7 +375,7 @@ const unsubscribeFromRenderedGraphEvents =
 renderedGraphRuntime.dispose();
 ```
 
-`replaceVowlModel` requires `{ loadGeneration, vowlModel, displayName }`. The adapter must synchronously retire the previous generation, stop its simulation, detach listeners, cancel supported timers/transitions, and fence every tick, end, progress, warning, and paint callback with both the active `loadGeneration` and operation `AbortSignal`. It resolves only after new graph geometry is in the live SVG and the browser has painted that geometry. A progress value or the return of `graph.load()` is insufficient.
+`replaceVowlModel` requires `{ loadGeneration, vowlModel }`. Source identity and optional local display name belong to application provenance; the renderer neither uses nor requires them. The adapter must synchronously retire the previous generation, stop its simulation, detach listeners, cancel supported timers/transitions, and fence every tick, end, progress, warning, and paint callback with both the active `loadGeneration` and operation `AbortSignal`. It resolves only after new graph geometry is in the live SVG and the browser has painted that geometry. A progress value or the return of `graph.load()` is insufficient.
 
 The `RenderedGraphEvent.kind` values are exactly `render-progress-changed`, `render-warning-raised`, `rendered-element-selection-changed`, `viewport-changed`, `graph-layout-state-changed`, and `editor-mode-changed`. Every event includes its `loadGeneration` and an immutable kind-specific payload. The controller rejects stale events and publishes a new frozen state snapshot.
 
@@ -440,7 +453,7 @@ Tests define the exact nested ontology-header and element-record fields before i
 ```js
 const WEB_VOWL_OPERATION_LIMITS = Object.freeze({
   maxRemoteSourceLocationCharacters: 2048,
-  maxInlineOntologyBytes: 1024 * 1024,
+  maxInlineDocumentBytes: 1024 * 1024,
   maxFocusReferences: 25,
   maxWarnings: 10,
   maxOntologyDerivedTextCharacters: 256,

@@ -56,7 +56,7 @@ const validatedWebVowlOperationErrorInstances = new WeakSet();
 
 export const WEB_VOWL_OPERATION_LIMITS = Object.freeze({
   maxRemoteSourceLocationCharacters: 2048,
-  maxInlineOntologyBytes: 1024 * 1024,
+  maxInlineDocumentBytes: 1024 * 1024,
   // Focus is a domain limit: the visible graph focuses at most this many
   // elements. Bounding *search results* is a protocol concern and belongs to
   // the WebMCP tool contract, so the interface can list every match.

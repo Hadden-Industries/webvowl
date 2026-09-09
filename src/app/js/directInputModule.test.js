@@ -21,6 +21,7 @@ beforeAll(async () => {
   const moduleUrl = new URL("./directInputModule.js", import.meta.url);
   directInputModuleContext = createContext({
     AbortController,
+    TextEncoder,
     console,
     document: undefined,
   });
@@ -29,6 +30,14 @@ beforeAll(async () => {
     { context: directInputModuleContext, identifier: moduleUrl.href },
   );
   await sourceModule.link((specifier) => {
+    if (specifier === "./controller/webVowlControllerContracts.js") {
+      return new SourceTextModule(
+        readFileSync(new URL(specifier, moduleUrl), "utf8"),
+        {
+          context: directInputModuleContext,
+        },
+      );
+    }
     if (specifier.endsWith("applicationUiRegistry.js")) {
       return new SyntheticModule(
         ["applicationUiModule", "registerApplicationUiModule"],
@@ -91,8 +100,8 @@ describe("direct ontology input controls", () => {
       [
         "#DirectInputContent",
         "#directInputTextArea",
-        "#directUploadBtn",
-        "#close_directUploadBtn",
+        "#loadDirectInputButton",
+        "#closeDirectInputButton",
         "#Error_onLoad",
       ].map((selector) => [selector, new DirectInputControl()]),
     );
@@ -113,10 +122,7 @@ describe("direct ontology input controls", () => {
     };
     // Direct input reaches the loading module through the interface registry.
     registeredUiModulesForTest.set("loadingModule", loadingModule);
-    const graph = {
-      handleOnLoadingError: jest.fn(),
-    };
-    directInputModule = createDirectInputModule(graph, { webVowlController });
+    directInputModule = createDirectInputModule({ webVowlController });
   });
 
   afterEach(() => {
@@ -125,19 +131,19 @@ describe("direct ontology input controls", () => {
     delete global.document;
   });
 
-  test("sends an already parsed VOWL model to the controller", async () => {
+  test("sends supplied VOWL JSON text to the controller for validation", async () => {
     directInputModule.setDirectInputMode(true);
     const vowlModel = { class: [{ id: "1", type: "owl:Class" }] };
     controls.get("#directInputTextArea").value = JSON.stringify(vowlModel);
 
-    controls.get("#directUploadBtn").dispatchEvent(new Event("click"));
+    controls.get("#loadDirectInputButton").dispatchEvent(new Event("click"));
     await flushMicrotasks();
 
     expect(requestedLoads).toEqual([
       {
         source: {
-          kind: "vowl-model",
-          model: vowlModel,
+          kind: "vowl-json-text",
+          text: JSON.stringify(vowlModel),
           displayName: "Direct input",
         },
       },
@@ -150,7 +156,7 @@ describe("direct ontology input controls", () => {
     const ontologyText = "@prefix ex: <http://example.test/> .";
     controls.get("#directInputTextArea").value = ontologyText;
 
-    controls.get("#directUploadBtn").dispatchEvent(new Event("click"));
+    controls.get("#loadDirectInputButton").dispatchEvent(new Event("click"));
     await flushMicrotasks();
 
     expect(requestedLoads).toEqual([
@@ -164,12 +170,30 @@ describe("direct ontology input controls", () => {
     ]);
   });
 
+  test("identifies pasted JSON-LD as ontology text rather than VOWL", async () => {
+    const text =
+      '{"@context":{"@vocab":"https://example.test/"},"@id":"urn:example:person","name":"Person"}';
+    controls.get("#directInputTextArea").value = text;
+    await directInputModule.loadPastedDocument();
+    expect(requestedLoads[0].source).toMatchObject({
+      kind: "ontology-text",
+      text,
+    });
+  });
+
   test("treats an explicit visibility value as state rather than a toggle", () => {
     directInputModule.setDirectInputMode(true);
     directInputModule.setDirectInputMode(false);
     directInputModule.setDirectInputMode(false);
 
     expect(controls.get("#DirectInputContent").classes).toContain("hidden");
+  });
+
+  test("bounds pasted UTF-8 data before syntax selection or loading", async () => {
+    controls.get("#directInputTextArea").value = "😀".repeat(262145);
+    await directInputModule.loadPastedDocument();
+    expect(webVowlController.loadOntology).not.toHaveBeenCalled();
+    expect(controls.get("#Error_onLoad").textContent).toContain("1 MiB");
   });
 
   test("disposal detaches both owned click listeners and is idempotent", () => {
@@ -179,8 +203,8 @@ describe("direct ontology input controls", () => {
       class: [{ id: "1", type: "owl:Class" }],
     });
 
-    controls.get("#directUploadBtn").dispatchEvent(new Event("click"));
-    controls.get("#close_directUploadBtn").dispatchEvent(new Event("click"));
+    controls.get("#loadDirectInputButton").dispatchEvent(new Event("click"));
+    controls.get("#closeDirectInputButton").dispatchEvent(new Event("click"));
 
     expect(webVowlController.loadOntology).not.toHaveBeenCalled();
   });

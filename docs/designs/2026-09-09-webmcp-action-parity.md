@@ -129,6 +129,23 @@ wheel zoom. No code rewrites D3's private gesture bookkeeping.
 
 ## Remaining view actions
 
+Local VOWL JSON is a text document source, `vowl-json-text`, with `text` and an
+optional `displayName`. It shares the source loader's native JSON validation and
+exact-byte fingerprinting. The internal parsed `vowl-model` source remains distinct
+and is not an agent input. Both text source kinds accept the same optional document
+name; local names are provenance display names, not remote retrieval identities.
+The renderer replacement contract takes only the generation and model. Loading
+and recovery must work for local sources without a remote identity or a name.
+Ontology summaries retain the actual optional identity/name from provenance.
+The shared `maxInlineDocumentBytes` limit is 1 MiB of UTF-8 for either text kind.
+Pasted JSON-LD remains ontology syntax text. Direct input labels the action Load.
+
+Source adapters retain the accepted drawing while the controller validates a
+replacement. Failed fetch/read/parse presentation leaves that drawing usable.
+Pending file reads are superseded by newer selected files, source actions, observed
+controller loads or adapter disposal. Source parsing and replacement remain with
+the loader/controller; UI adapters identify input syntax and present outcomes.
+
 Reset is one shared asynchronous operation. It restores default modes (including
 label width 120 and same external color), class/datatype distances 200/120,
 minimum degree zero and all filter groups except disjointness; clears focus and

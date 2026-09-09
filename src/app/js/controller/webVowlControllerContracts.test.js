@@ -72,7 +72,7 @@ describe("WebVOWL operation limits", () => {
   test("publishes the exact shared controller-domain limits", () => {
     expect(WEB_VOWL_OPERATION_LIMITS).toEqual({
       maxRemoteSourceLocationCharacters: 2048,
-      maxInlineOntologyBytes: 1024 * 1024,
+      maxInlineDocumentBytes: 1024 * 1024,
       maxFocusReferences: 25,
       maxWarnings: 10,
       maxOntologyDerivedTextCharacters: 256,
@@ -82,15 +82,15 @@ describe("WebVOWL operation limits", () => {
 
   test("names inline ontology capacity in UTF-8 bytes rather than string length", () => {
     const multibyteOntologyText = "€".repeat(
-      Math.floor(WEB_VOWL_OPERATION_LIMITS.maxInlineOntologyBytes / 3) + 1,
+      Math.floor(WEB_VOWL_OPERATION_LIMITS.maxInlineDocumentBytes / 3) + 1,
     );
 
     expect(multibyteOntologyText.length).toBeLessThan(
-      WEB_VOWL_OPERATION_LIMITS.maxInlineOntologyBytes,
+      WEB_VOWL_OPERATION_LIMITS.maxInlineDocumentBytes,
     );
     expect(
       new TextEncoder().encode(multibyteOntologyText).byteLength,
-    ).toBeGreaterThan(WEB_VOWL_OPERATION_LIMITS.maxInlineOntologyBytes);
+    ).toBeGreaterThan(WEB_VOWL_OPERATION_LIMITS.maxInlineDocumentBytes);
   });
 });
 

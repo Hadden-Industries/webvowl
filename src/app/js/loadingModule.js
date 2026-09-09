@@ -43,6 +43,7 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
   let newOntologyCounter = 1;
   const lifecycleAbortController = new AbortController();
   let isSetup = false;
+  let fileReadSequence = 0;
 
   /** functon defs **/
   loadingModule.checkForScreenSize = function () {
@@ -432,20 +433,15 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
   async function loadOntologyThroughController(source) {
     try {
       return await webVowlController.loadOntology({ source });
-    } catch (loadError) {
-      loadingModule.renderControllerState({
-        status: "error",
-        error: {
-          message: loadError?.message ?? "The ontology could not load.",
-        },
-      });
+    } catch {
+      loadingModule.renderControllerState(webVowlController.getState());
       return undefined;
     }
   }
 
   // The one route for every location-driven ontology source.
   loadingModule.loadRemoteSource = function ({ source, shouldCache = true }) {
-    graph.clearAllGraphData?.();
+    fileReadSequence += 1;
     prepareLoadingPresentation(shouldCache);
     document.querySelector("#progressBarLabel").textContent = "";
     return loadOntologyThroughController(source);
@@ -453,25 +449,34 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
 
   // The one route for a file the reader dropped or selected.
   loadingModule.loadDroppedFile = async function (file) {
-    graph.clearAllGraphData?.();
+    const currentFileRead = ++fileReadSequence;
+    const isCurrentFileRead = () =>
+      currentFileRead === fileReadSequence &&
+      !lifecycleAbortController.signal.aborted;
     prepareLoadingPresentation(false);
     ontologyIdentifierFromURL = file.name;
-    const fileContent = await file.text();
-
-    if (fileExtensionOf(file.name) === "json") {
-      let vowlModel;
-      try {
-        vowlModel = JSON.parse(fileContent);
-      } catch {
-        loadingModule.renderControllerState({
-          status: "error",
-          error: { message: "The dropped file is not valid VOWL JSON." },
-        });
+    let fileContent;
+    try {
+      fileContent = await file.text();
+    } catch {
+      if (!isCurrentFileRead()) {
         return undefined;
       }
+      loadingModule.renderControllerState({
+        ...webVowlController.getState(),
+        status: "error",
+        error: { message: "The selected file could not be read." },
+      });
+      return undefined;
+    }
+    if (!isCurrentFileRead()) {
+      return undefined;
+    }
+
+    if (fileExtensionOf(file.name) === "json") {
       return loadOntologyThroughController({
-        kind: "vowl-model",
-        model: vowlModel,
+        kind: "vowl-json-text",
+        text: fileContent,
         displayName: file.name,
       });
     }
@@ -494,6 +499,11 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
     if (controllerState === null || typeof controllerState !== "object") {
       return;
     }
+    if (controllerState.status === "loading") {
+      // Every controller load, including an agent input, supersedes a file
+      // that is still being read by this input adapter.
+      fileReadSequence += 1;
+    }
     if (
       controllerState.status === "ready" ||
       controllerState.status === "relaxing"
@@ -504,7 +514,15 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
       return;
     }
     if (controllerState.status === "error") {
-      loadingModule.markError();
+      if (
+        controllerState.source &&
+        controllerState.loadGeneration > 0 &&
+        controllerState.layout?.status !== "unavailable"
+      ) {
+        loadingModule.markReady();
+      } else {
+        loadingModule.markError();
+      }
       loadingModule.setErrorMode();
       loadingModule.showLoadingIndicator();
       if (controllerState.error) {

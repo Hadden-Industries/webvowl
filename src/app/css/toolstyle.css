@@ -377,8 +377,8 @@ html {
   border: 1px solid #34495e;
 }
 
-#directUploadBtn,
-#close_directUploadBtn {
+#loadDirectInputButton,
+#closeDirectInputButton {
   cursor: pointer;
   width: 100%;
   margin-top: 5px;

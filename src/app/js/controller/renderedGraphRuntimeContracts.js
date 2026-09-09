@@ -903,11 +903,10 @@ function deepFreezePlainData(plainDataValue, ancestorObjects = new WeakSet()) {
 export function createVowlModelReplacementRequest(request) {
   assertExactFieldNames(
     request,
-    ["loadGeneration", "vowlModel", "displayName"],
+    ["loadGeneration", "vowlModel"],
     "VOWL model replacement request",
   );
   assertPositiveLoadGeneration(request.loadGeneration);
-  assertNonEmptyString(request.displayName, "displayName");
   assertPlainRecord(request.vowlModel, "vowlModel");
   let ownedVowlModel;
   try {
@@ -920,7 +919,6 @@ export function createVowlModelReplacementRequest(request) {
   return Object.freeze({
     loadGeneration: request.loadGeneration,
     vowlModel: deepFreezePlainData(ownedVowlModel),
-    displayName: request.displayName,
   });
 }
 

@@ -599,7 +599,6 @@ describe("D3 rendered graph adapter", () => {
 
   function replacementRequest(loadGeneration) {
     return {
-      displayName: `generation-${loadGeneration}.json`,
       loadGeneration,
       // Real VOWL JSON keeps identity and labels in the *Attribute
       // collections, keyed by the id of the bare element entry.
@@ -1528,7 +1527,6 @@ describe("D3 rendered graph adapter", () => {
     const replacementPromise =
       adapterHarness.renderedGraphRuntime.replaceVowlModel(
         {
-          displayName: "shared-iri.json",
           loadGeneration: 1,
           vowlModel: {
             class: [

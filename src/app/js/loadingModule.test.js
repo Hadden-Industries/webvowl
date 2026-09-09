@@ -402,6 +402,22 @@ describe("loading module controller state presentation", () => {
     expect(controls.get("#currentLoadingStep").className).toBe("step-error");
     expect(loadingModule.state()).toBe("error");
   });
+
+  test("reports a rejected replacement while keeping the retained graph usable", () => {
+    loadingModule.renderControllerState({
+      status: "error",
+      loadGeneration: 1,
+      source: {
+        kind: "vowl-json-url",
+        identity: "https://example.test/accepted.json",
+      },
+      layout: { status: "paused" },
+      error: { code: "PARSE_FAILED", message: "The new source is invalid." },
+    });
+    expect(loadingModule.state()).toBe("ready");
+    expect(loadingModule.getMessageVisibilityStatus()).toBe(true);
+    expect(controls.get("#currentLoadingStep").className).toBe("step-error");
+  });
 });
 
 describe("loading module canonical controller sources", () => {
@@ -508,7 +524,7 @@ describe("loading module canonical controller sources", () => {
     ]);
   });
 
-  test("routes a dropped JSON file as an already parsed VOWL model", async () => {
+  test("routes dropped JSON text to the controller for parsing", async () => {
     loadingModule = createLoadingModuleForLocation(
       "https://example.test/webvowl/#foaf",
     );
@@ -522,8 +538,8 @@ describe("loading module canonical controller sources", () => {
     expect(requestedLoads).toEqual([
       {
         source: {
-          kind: "vowl-model",
-          model: vowlModel,
+          kind: "vowl-json-text",
+          text: JSON.stringify(vowlModel),
           displayName: "dropped.json",
         },
       },
@@ -550,6 +566,116 @@ describe("loading module canonical controller sources", () => {
         },
       },
     ]);
+  });
+
+  test.each(["remote", "file"])(
+    "retains drawing data when a %s source is rejected",
+    async (inputKind) => {
+      const drawnNodes = ["accepted-node"];
+      const state = {
+        status: "error",
+        loadGeneration: 1,
+        source: { kind: "vowl-json-url" },
+        layout: { status: "paused" },
+        error: { message: "Bad source" },
+      };
+      loadingModule = createLoadingModule(
+        {
+          options: () => ({}),
+          clearAllGraphData: () => drawnNodes.splice(0),
+        },
+        {
+          webVowlController: {
+            getState: () => state,
+            loadOntology: async () => {
+              throw new Error("Bad source");
+            },
+          },
+        },
+      );
+      if (inputKind === "remote") {
+        await loadingModule.loadRemoteSource({
+          source: {
+            kind: "vowl-json-url",
+            url: "https://example.test/bad.json",
+          },
+        });
+      } else {
+        await loadingModule.loadDroppedFile({
+          name: "bad.json",
+          text: async () => "{",
+        });
+      }
+      expect(drawnNodes).toEqual(["accepted-node"]);
+    },
+  );
+
+  test("handles a failed file read without clearing the graph or stranding controls", async () => {
+    const state = {
+      status: "ready",
+      loadGeneration: 1,
+      source: { kind: "vowl-json-url" },
+      layout: { status: "paused" },
+    };
+    loadingModule = createLoadingModule(
+      { options: () => ({}) },
+      { webVowlController: { getState: () => state, loadOntology: jest.fn() } },
+    );
+    await expect(
+      loadingModule.loadDroppedFile({
+        name: "unreadable.json",
+        text: async () => {
+          throw new Error("read failed");
+        },
+      }),
+    ).resolves.toBeUndefined();
+    expect(loadingModule.state()).toBe("ready");
+    expect(controls.get("#currentLoadingStep").className).toBe("step-error");
+  });
+
+  test("a slow earlier file cannot replace a newer selected file", async () => {
+    loadingModule = createLoadingModuleForLocation(
+      "https://example.test/webvowl/#foaf",
+    );
+    let finishEarlierRead;
+    const earlier = loadingModule.loadDroppedFile({
+      name: "earlier.json",
+      text: () =>
+        new Promise((resolve) => {
+          finishEarlierRead = resolve;
+        }),
+    });
+    await loadingModule.loadDroppedFile({
+      name: "newer.json",
+      text: async () => '{"header":{}}',
+    });
+    finishEarlierRead('{"header":{}}');
+    await earlier;
+    expect(requestedLoads.map((request) => request.source.displayName)).toEqual(
+      ["newer.json"],
+    );
+  });
+
+  test("a controller load supersedes a pending local file read", async () => {
+    loadingModule = createLoadingModuleForLocation(
+      "https://example.test/webvowl/#foaf",
+    );
+    let finishRead;
+    const pending = loadingModule.loadDroppedFile({
+      name: "earlier.json",
+      text: () =>
+        new Promise((resolve) => {
+          finishRead = resolve;
+        }),
+    });
+    loadingModule.renderControllerState({
+      status: "loading",
+      loadGeneration: 2,
+    });
+    finishRead('{"header":{}}');
+    await pending;
+    expect(requestedLoads).toEqual([]);
+    expect(loadingModule.state()).toBe("loading");
   });
 });
 

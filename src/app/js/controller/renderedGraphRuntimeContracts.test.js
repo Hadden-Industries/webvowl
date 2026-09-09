@@ -845,14 +845,12 @@ describe("rendered graph requests and results", () => {
     };
 
     const request = createVowlModelReplacementRequest({
-      displayName: "example.json",
       loadGeneration: 3,
       vowlModel,
     });
 
     vowlModel.class[0].id = "mutated";
     expect(request).toEqual({
-      displayName: "example.json",
       loadGeneration: 3,
       vowlModel: {
         class: [{ id: "1", type: "owl:Class" }],

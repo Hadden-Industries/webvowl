@@ -78,7 +78,6 @@ beforeAll(async () => {
 
 function createReplacementRequest(loadGeneration) {
   return {
-    displayName: `generation-${loadGeneration}.json`,
     loadGeneration,
     vowlModel: {
       class: [{ id: String(loadGeneration), type: "owl:Class" }],

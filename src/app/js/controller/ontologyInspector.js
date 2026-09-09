@@ -342,10 +342,14 @@ export function createOntologyInspector() {
         ontologyInspectionSnapshot.ontologyHeaderRecord;
 
       const source = { kind: sourceProvenance.kind };
-      source.identity = boundOntologyDerivedText(
-        sourceProvenance.identity,
-        truncationTracker,
-      );
+      for (const field of ["identity", "displayName"]) {
+        if (sourceProvenance[field] !== undefined) {
+          source[field] = boundOntologyDerivedText(
+            sourceProvenance[field],
+            truncationTracker,
+          );
+        }
+      }
       if (sourceProvenance.sha256Hex !== undefined) {
         source.sha256Hex = sourceProvenance.sha256Hex;
       }

@@ -2,7 +2,6 @@ import { assertRenderedGraphRuntime } from "../js/controller/renderedGraphRuntim
 
 function createReplacementRequest(loadGeneration) {
   return {
-    displayName: `generation-${loadGeneration}.json`,
     loadGeneration,
     vowlModel: {
       class: [{ id: String(loadGeneration), type: "owl:Class" }],

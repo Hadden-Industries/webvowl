@@ -6,6 +6,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { SourceTextModule, SyntheticModule } from "node:vm";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 import { OWLDocumentFormats } from "owlapi/formats";
 import {
@@ -19,6 +20,10 @@ import {
 } from "owlapi/io";
 
 let createOntologySourceLoader;
+let createWebVowlController;
+let createInMemoryRenderedGraphAdapter;
+let createOntologyInspector;
+let vowlModelInspectionProjector;
 
 const CONTROLLER_MODULE_URL = new URL(
   "./ontologySourceLoader.js",
@@ -143,7 +148,29 @@ beforeAll(async () => {
   });
   await ontologySourceLoaderModule.evaluate();
   ({ createOntologySourceLoader } = ontologySourceLoaderModule.namespace);
+  ({ createWebVowlController } = await loadEsmModuleForTest(
+    new URL("./webVowlController.js", import.meta.url),
+    import.meta.url,
+  ));
+  ({ createInMemoryRenderedGraphAdapter } = await loadEsmModuleForTest(
+    new URL("../../test/inMemoryRenderedGraphAdapter.js", import.meta.url),
+    import.meta.url,
+  ));
+  ({ createOntologyInspector } = await loadEsmModuleForTest(
+    new URL("./ontologyInspector.js", import.meta.url),
+    import.meta.url,
+  ));
+  ({ vowlModelInspectionProjector } = await loadEsmModuleForTest(
+    new URL("./vowlModelInspectionProjector.js", import.meta.url),
+    import.meta.url,
+  ));
 });
+
+async function flushSourceMicrotasks() {
+  for (let turn = 0; turn < 30; turn += 1) {
+    await Promise.resolve();
+  }
+}
 
 function createVowlModel({ diagnostics = [], ...overrides } = {}) {
   return {
@@ -373,6 +400,136 @@ describe("canonical ontology source loading", () => {
       individuals: 2,
       properties: 4,
     });
+  });
+
+  test("loads bounded local VOWL JSON text and fingerprints its exact bytes", async () => {
+    const text = ' { "header": {"title": {"en": "Local Ω"}}, "class": [] }\n';
+    const loadWithImports = jest.fn();
+    const createImportResolver = jest.fn();
+    const loader = createOntologySourceLoader({
+      loadWithImports,
+      createImportResolver,
+      computeSha256Hex: async (bytes) =>
+        createHash("sha256").update(bytes).digest("hex"),
+    });
+    const result = await loader.loadOntologySource({
+      source: { kind: "vowl-json-text", text, displayName: "local.json" },
+    });
+    expect(result.vowlModel).toEqual({
+      header: { title: { en: "Local Ω" } },
+      class: [],
+    });
+    expect(result.sourceProvenance).toEqual({
+      kind: "vowl-json-text",
+      displayName: "local.json",
+      sha256Hex: createHash("sha256").update(text, "utf8").digest("hex"),
+    });
+    expect(loadWithImports).not.toHaveBeenCalled();
+    expect(createImportResolver).not.toHaveBeenCalled();
+    expect(Object.values(result)).not.toContain(text);
+  });
+
+  test.each([undefined, "local.json"])(
+    "loads and recovers local VOWL text through the controller without a remote identity: %s",
+    async (displayName) => {
+      const { renderedGraphRuntime, renderedGraphTestHarness } =
+        createInMemoryRenderedGraphAdapter();
+      const loader = createOntologySourceLoader({
+        computeSha256Hex: async (bytes) =>
+          createHash("sha256").update(bytes).digest("hex"),
+      });
+      const controller = createWebVowlController({
+        ontologySourceLoader: loader,
+        vowlModelInspectionProjector,
+        renderedGraphRuntime,
+        ontologyInspector: createOntologyInspector(),
+        graphLayoutSettler: {
+          waitForSettledGraphLayout: () => new Promise(() => {}),
+        },
+        svgArtifactService: { createSvgArtifact: jest.fn() },
+        waitForDocumentFonts: async () => {},
+        waitForBrowserPaint: async () => {},
+      });
+      const text = JSON.stringify({
+        header: {},
+        class: [{ id: "person", type: "owl:Class" }],
+        classAttribute: [{ id: "person", iri: "https://example.test/Person" }],
+      });
+      const source = {
+        kind: "vowl-json-text",
+        text,
+        ...(displayName === undefined ? {} : { displayName }),
+      };
+      const accepted = controller
+        .loadOntology({ source })
+        .catch((error) => error);
+      await flushSourceMicrotasks();
+      expect(renderedGraphTestHarness.completeInitialPaint(1)).toBe(true);
+      await flushSourceMicrotasks();
+      expect(
+        renderedGraphTestHarness.completeVisualizationViewApplication(1),
+      ).toBe(true);
+      await accepted;
+      expect(controller.getState().source).toEqual({
+        kind: "vowl-json-text",
+        ...(displayName === undefined ? {} : { displayName }),
+        sha256Hex: createHash("sha256").update(text, "utf8").digest("hex"),
+      });
+      expect(controller.getOntologySummary().source).toEqual(
+        controller.getState().source,
+      );
+      expect(
+        controller.findOntologyElements({ query: "Person" }).matches,
+      ).toHaveLength(1);
+      const acceptedSource = controller.getState().source;
+      const caller = new AbortController();
+      const replacement = controller
+        .loadOntology(
+          {
+            source: {
+              kind: "vowl-json-text",
+              text: '{"header":{},"class":[]}',
+            },
+          },
+          { signal: caller.signal },
+        )
+        .catch((error) => error);
+      await flushSourceMicrotasks();
+      expect(controller.getState().status).toBe("rendering");
+      caller.abort();
+      await flushSourceMicrotasks();
+      expect(renderedGraphTestHarness.completeInitialPaint(3)).toBe(true);
+      await flushSourceMicrotasks();
+      expect(
+        renderedGraphTestHarness.completeVisualizationViewApplication(3),
+      ).toBe(true);
+      expect(await replacement).toMatchObject({ code: "LOAD_ABORTED" });
+      expect(controller.getState().source).toEqual(acceptedSource);
+      expect(
+        controller.findOntologyElements({ query: "Person" }).matches,
+      ).toHaveLength(1);
+      controller.dispose();
+    },
+  );
+
+  test.each(['{"header":', '{"header": null}', "[]"])(
+    "reports invalid local VOWL JSON as PARSE_FAILED: %s",
+    async (text) => {
+      await expect(
+        createOntologySourceLoader().loadOntologySource({
+          source: { kind: "vowl-json-text", text },
+        }),
+      ).rejects.toMatchObject({ code: "PARSE_FAILED" });
+    },
+  );
+
+  test("rejects local VOWL JSON over the UTF-8 budget before parsing", async () => {
+    const text = '{"header":{"title":"' + "😀".repeat(262144) + '"}}';
+    await expect(
+      createOntologySourceLoader().loadOntologySource({
+        source: { kind: "vowl-json-text", text },
+      }),
+    ).rejects.toMatchObject({ code: "SOURCE_REJECTED" });
   });
 
   test("takes the exact ontology-text format vocabulary from OWLDocumentFormats", () => {

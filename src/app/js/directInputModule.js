@@ -1,6 +1,8 @@
+import { WEB_VOWL_OPERATION_LIMITS } from "./controller/webVowlControllerContracts.js";
+
 const DIRECT_INPUT_DISPLAY_NAME = "Direct input";
 
-export function createDirectInputModule(graph, { webVowlController } = {}) {
+export function createDirectInputModule({ webVowlController } = {}) {
   /** variable defs **/
   const directInputModule = {};
   const inputContainer = document.querySelector("#DirectInputContent");
@@ -8,19 +10,30 @@ export function createDirectInputModule(graph, { webVowlController } = {}) {
   const lifecycleAbortController = new AbortController();
   let isInputContainerVisible = false;
 
-  // A VOWL model the reader already pasted needs no conversion; every other
-  // text goes to the controller's source loader as ontology text.
+  // Identify the input syntax; the shared source loader validates the text.
   function directInputSource(suppliedText) {
+    if (
+      new TextEncoder().encode(suppliedText).byteLength >
+      WEB_VOWL_OPERATION_LIMITS.maxInlineDocumentBytes
+    ) {
+      throw new Error("The supplied document exceeds the 1 MiB text limit.");
+    }
     try {
-      const parsedVowlModel = JSON.parse(suppliedText);
+      const parsedJsonValue = JSON.parse(suppliedText);
       if (
-        parsedVowlModel !== null &&
-        typeof parsedVowlModel === "object" &&
-        !Array.isArray(parsedVowlModel)
+        parsedJsonValue !== null &&
+        typeof parsedJsonValue === "object" &&
+        !Array.isArray(parsedJsonValue) &&
+        (Object.hasOwn(parsedJsonValue, "header") ||
+          Array.isArray(parsedJsonValue.class) ||
+          Array.isArray(parsedJsonValue.property)) &&
+        !["@context", "@graph", "@id", "@type"].some((key) =>
+          Object.hasOwn(parsedJsonValue, key),
+        )
       ) {
         return {
-          kind: "vowl-model",
-          model: parsedVowlModel,
+          kind: "vowl-json-text",
+          text: suppliedText,
           displayName: DIRECT_INPUT_DISPLAY_NAME,
         };
       }
@@ -38,12 +51,11 @@ export function createDirectInputModule(graph, { webVowlController } = {}) {
     const errorOnLoadElement = document.querySelector("#Error_onLoad");
     errorOnLoadElement.classList.remove("hidden");
     errorOnLoadElement.textContent =
-      "Failed to convert the input! " + failureMessage;
-    graph.handleOnLoadingError();
+      "The input could not be loaded. " + failureMessage;
   }
 
   // connect upload and close button;
-  directInputModule.handleDirectUpload = async function () {
+  directInputModule.loadPastedDocument = async function () {
     try {
       await webVowlController.loadOntology({
         source: directInputSource(textArea.value),
@@ -78,12 +90,12 @@ export function createDirectInputModule(graph, { webVowlController } = {}) {
   };
 
   document
-    .querySelector("#directUploadBtn")
-    .addEventListener("click", directInputModule.handleDirectUpload, {
+    .querySelector("#loadDirectInputButton")
+    .addEventListener("click", directInputModule.loadPastedDocument, {
       signal: lifecycleAbortController.signal,
     });
   document
-    .querySelector("#close_directUploadBtn")
+    .querySelector("#closeDirectInputButton")
     .addEventListener("click", directInputModule.handleCloseButton, {
       signal: lifecycleAbortController.signal,
     });
