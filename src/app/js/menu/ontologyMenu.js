@@ -80,10 +80,7 @@ function createOntologyMenu(
 
   ontologyMenu.reloadCachedOntology = function () {
     ontologyMenu.clearCachedVersion();
-    loadingModule.loadRemoteSource({
-      source: loadingModule.ontologySourceFromLocation(),
-      shouldCache: false,
-    });
+    loadingModule.loadOntologyFromLocation({ shouldCache: false });
   };
 
   ontologyMenu.cachedOntology = function (ontoName) {
@@ -146,9 +143,7 @@ function createOntologyMenu(
         if (newURL === oldURL + "#") {
           return;
         }
-        loadingModule.loadRemoteSource({
-          source: loadingModule.ontologySourceFromLocation(),
-        });
+        loadingModule.loadOntologyFromLocation();
       }
     });
   }

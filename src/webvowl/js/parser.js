@@ -18,9 +18,6 @@ export function createParser(graph) {
   let nodes,
     properties,
     classMap,
-    settingsData,
-    settingsImported = false,
-    settingsImportGraphZoomAndTranslation = false,
     dictionary = [],
     propertyMap;
 
@@ -30,120 +27,6 @@ export function createParser(graph) {
 
   parser.setDictionary = function (d) {
     dictionary = d;
-  };
-
-  parser.settingsImported = function () {
-    return settingsImported;
-  };
-  parser.settingsImportGraphZoomAndTranslation = function () {
-    return settingsImportGraphZoomAndTranslation;
-  };
-
-  parser.parseSettings = function () {
-    settingsImported = true;
-    settingsImportGraphZoomAndTranslation = false;
-
-    if (!settingsData) {
-      settingsImported = false;
-      return;
-    }
-    /** global settings **********************************************************/
-    if (settingsData.global) {
-      const hasZoom = Object.prototype.hasOwnProperty.call(
-        settingsData.global,
-        "zoom",
-      );
-      const hasTranslation = Object.prototype.hasOwnProperty.call(
-        settingsData.global,
-        "translation",
-      );
-
-      if (
-        hasZoom &&
-        hasTranslation &&
-        typeof graph.setViewportTransform === "function"
-      ) {
-        settingsImportGraphZoomAndTranslation =
-          graph.setViewportTransform(
-            settingsData.global.zoom,
-            settingsData.global.translation,
-          ) !== false;
-      } else {
-        if (hasZoom) {
-          settingsImportGraphZoomAndTranslation =
-            graph.setZoom(settingsData.global.zoom) !== false ||
-            settingsImportGraphZoomAndTranslation;
-        }
-
-        if (hasTranslation) {
-          settingsImportGraphZoomAndTranslation =
-            graph.setTranslation(settingsData.global.translation) !== false ||
-            settingsImportGraphZoomAndTranslation;
-        }
-      }
-
-      if (settingsData.global.paused) {
-        const paused = settingsData.global.paused;
-        graph.options().pausedMenu().setPauseValue(paused);
-      }
-    }
-    /** Gravity Settings  **********************************************************/
-    if (settingsData.gravity) {
-      if (settingsData.gravity.classDistance) {
-        const classDistance = settingsData.gravity.classDistance;
-        graph.options().classDistance(classDistance);
-      }
-      if (settingsData.gravity.datatypeDistance) {
-        const datatypeDistance = settingsData.gravity.datatypeDistance;
-        graph.options().datatypeDistance(datatypeDistance);
-      }
-      graph.options().gravityMenu().reset(); // reads the options values and sets the gui values
-    }
-
-    // shared variable declaration
-
-    let i;
-    let id;
-    let checked;
-    /** Filter Settings **********************************************************/
-    if (settingsData.filter) {
-      // checkbox settings
-      if (settingsData.filter.checkBox) {
-        const filter_cb = settingsData.filter.checkBox;
-        for (i = 0; i < filter_cb.length; i++) {
-          id = filter_cb[i].id;
-          checked = filter_cb[i].checked;
-          graph.options().filterMenu().setCheckBoxValue(id, checked);
-        }
-      }
-      // node degree filter settings
-      if (settingsData.filter.degreeSliderValue) {
-        const degreeSliderValue = settingsData.filter.degreeSliderValue;
-        graph.options().filterMenu().setDegreeSliderValue(degreeSliderValue);
-      }
-      graph.options().filterMenu().updateSettings();
-    }
-
-    /** Modes Setting **********************************************************/
-    if (settingsData.modes) {
-      // checkbox settings
-      if (settingsData.modes.checkBox) {
-        const modes_cb = settingsData.modes.checkBox;
-        for (i = 0; i < modes_cb.length; i++) {
-          id = modes_cb[i].id;
-          checked = modes_cb[i].checked;
-          graph.options().modeMenu().setCheckBoxValue(id, checked);
-        }
-      }
-      // color switch settings
-      const state = settingsData.modes.colorSwitchState;
-      // state could be undefined
-      if (state === true || state === false) {
-        graph.options().modeMenu().setColorSwitchState(state);
-      }
-      graph.options().modeMenu().updateSettings();
-    }
-    graph.updateStyle(); // updates graph representation(setting charges and distances)
   };
 
   /**
@@ -158,11 +41,6 @@ export function createParser(graph) {
       return;
     }
     dictionary = [];
-    if (ontologyData.settings) {
-      settingsData = ontologyData.settings;
-    } else {
-      settingsData = undefined;
-    }
 
     const classes = combineClasses(
       ontologyData.class,

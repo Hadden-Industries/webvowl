@@ -10,8 +10,13 @@ import {
 import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 const exportMenuFactory = {};
+let decodeVowlVisualizationSettings;
 
 beforeAll(async () => {
+  ({ decodeVowlVisualizationSettings } = await loadEsmModuleForTest(
+    new URL("../controller/vowlVisualizationSettings.js", import.meta.url),
+    import.meta.url,
+  ));
   Object.assign(
     exportMenuFactory,
     await loadEsmModuleForTest(
@@ -243,6 +248,40 @@ describe("export menu json deterministic export", () => {
     };
   }
 
+  function appliedVisualizationState() {
+    return {
+      source: {
+        kind: "vowl-json-url",
+        identity: "https://example.test/accepted.json",
+      },
+      view: {
+        language: "de",
+        focus: [],
+        filters: {
+          datatypes: "hide",
+          objectProperties: "show",
+          subclasses: "show",
+          disjointness: "hide",
+          setOperators: "show",
+          minDegree: 2,
+        },
+        modes: {
+          nodeScaling: false,
+          compactNotation: true,
+          colorExternals: true,
+          pickAndPin: true,
+          dynamicLabelWidth: false,
+          colorExternalsMode: "gradient",
+          maxLabelWidthPx: 160,
+        },
+        forceDistances: { classDistancePx: 300, datatypeDistancePx: 180 },
+      },
+      layout: { status: "paused" },
+      zoomScale: 0.38125,
+      translation: { xPx: 0, yPx: -20.125 },
+    };
+  }
+
   function createMockGraph(nodes, properties) {
     return {
       options: () => ({
@@ -330,11 +369,13 @@ describe("export menu json deterministic export", () => {
     );
 
     const menu1 = exportMenuFactory.createExportMenu(graph1, {
+      webVowlController: { getState: appliedVisualizationState },
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
     });
     const menu2 = exportMenuFactory.createExportMenu(graph2, {
+      webVowlController: { getState: appliedVisualizationState },
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
@@ -364,219 +405,115 @@ describe("export menu json deterministic export", () => {
     // Subproperties sorted
     expect(obj.propertyAttribute[0].subproperty).toEqual(["sub1", "sub2"]);
     // Filter settings sorted
-    expect(obj.settings.filter.checkBox[0].id).toBe("chk1");
+    expect(obj.settings.filter.checkBox[0].id).toBe("datatypeFilterCheckbox");
   });
 
-  test("exports JSON with native DOM checkbox objects from filterMenu and modeMenu", () => {
-    const nodeA = createMockNode("id1", "http://A");
-    const propA = createMockProperty("p1", "http://propA");
-
-    const graph = {
-      options: () => ({
-        data: () => ({
-          _comment: "Test",
-          header: {},
-          namespace: [],
-          metrics: {},
-        }),
-        getGeneralMetaObject: () => ({}),
-        filterMenu: () => ({
-          getCheckBoxContainer: () => [
-            { checkbox: { id: "datatypeFilterCheckbox", checked: true } },
-            { checkbox: { id: "subclassFilterCheckbox", checked: false } },
-          ],
-          getDegreeSliderValue: () => 2,
-        }),
-        modeMenu: () => ({
-          getCheckBoxContainer: () => [
-            {
-              id: "nodescalingModuleCheckbox",
-              element: { id: "nodescalingModuleCheckbox", checked: true },
-            },
-            {
-              id: "compactnotationModuleCheckbox",
-              element: { id: "compactnotationModuleCheckbox", checked: false },
-            },
-          ],
-          colorModeState: () => false,
-        }),
-        classDistance: () => 10,
-        datatypeDistance: () => 10,
-      }),
-      ontologyEditingState: () => ({
-        data: () => ({
-          _comment: "Test",
-          header: {},
-          namespace: [],
-          metrics: {},
-        }),
-        getGeneralMetaObject: () => ({}),
-        filterMenu: () => ({
-          getCheckBoxContainer: () => [
-            { checkbox: { id: "datatypeFilterCheckbox", checked: true } },
-            { checkbox: { id: "subclassFilterCheckbox", checked: false } },
-          ],
-          getDegreeSliderValue: () => 2,
-        }),
-        modeMenu: () => ({
-          getCheckBoxContainer: () => [
-            {
-              id: "nodescalingModuleCheckbox",
-              element: { id: "nodescalingModuleCheckbox", checked: true },
-            },
-            {
-              id: "compactnotationModuleCheckbox",
-              element: { id: "compactnotationModuleCheckbox", checked: false },
-            },
-          ],
-          colorModeState: () => false,
-        }),
-        classDistance: () => 10,
-        datatypeDistance: () => 10,
-      }),
-      getUnfilteredData: () => ({ nodes: [nodeA], properties: [propA] }),
-      graphNodeElements: () => ({ each: () => {} }),
-      graphLabelElements: () => [],
-      scaleFactor: () => 1,
-      paused: () => false,
-      translation: () => [0, 0],
+  test("exports applied settings while stale UI and renderer settings remain unread", () => {
+    const graph = createMockGraph([createMockNode("id1", "http://A")], []);
+    const options = graph.options();
+    const rejectStaleSettingsRead = () => {
+      throw new Error("Visualization settings belong to the controller.");
     };
-
+    graph.options = () => ({
+      ...options,
+      filterMenu: rejectStaleSettingsRead,
+      modeMenu: rejectStaleSettingsRead,
+      classDistance: rejectStaleSettingsRead,
+      datatypeDistance: rejectStaleSettingsRead,
+    });
+    graph.scaleFactor = () => {
+      throw new Error("Read the observed viewport.");
+    };
+    graph.paused = () => {
+      throw new Error("Read the observed layout.");
+    };
+    graph.translation = () => {
+      throw new Error("Read the observed viewport.");
+    };
+    const state = appliedVisualizationState();
     const menu = exportMenuFactory.createExportMenu(graph, {
-      documentObject: global.document,
-      windowObject: global.window,
-      locationObject: global.location,
+      webVowlController: { getState: () => state },
     });
-    const exportObj = menu.createJSON_exportObject();
-
-    expect(exportObj.settings.filter.checkBox).toEqual([
-      { checked: true, id: "datatypeFilterCheckbox" },
-      { checked: false, id: "subclassFilterCheckbox" },
+    const settings = menu.createJSON_exportObject().settings;
+    expect(settings.global).toEqual({
+      language: "de",
+      paused: true,
+      zoom: 0.38125,
+      translation: [0, -20.125],
+    });
+    expect(settings.filter.degreeSliderValue).toBe(2);
+    expect(settings.filter.checkBox).toEqual([
+      { id: "datatypeFilterCheckbox", checked: true },
+      { id: "disjointFilterCheckbox", checked: true },
+      { id: "objectPropertyFilterCheckbox", checked: false },
+      { id: "setoperatorFilterCheckbox", checked: false },
+      { id: "subclassFilterCheckbox", checked: false },
     ]);
-    expect(exportObj.settings.filter.degreeSliderValue).toBe(2);
-    expect(exportObj.settings.modes.checkBox).toEqual([
-      { checked: false, id: "compactnotationModuleCheckbox" },
-      { checked: true, id: "nodescalingModuleCheckbox" },
-    ]);
+    expect(settings.modes.colorSwitchState).toBe(true);
+    expect(settings.modes.maxLabelWidth).toBe(160);
+    expect(settings.gravity).toEqual({
+      classDistance: 300,
+      datatypeDistance: 180,
+    });
   });
 
-  test("exported settings can be round-tripped into filterMenu and modeMenu setCheckBoxValue targets", () => {
-    const nodeA = createMockNode("id1", "http://A");
-    const propA = createMockProperty("p1", "http://propA");
-
-    const sourceGraph = {
-      options: () => ({
-        data: () => ({
-          _comment: "Test",
-          header: {},
-          namespace: [],
-          metrics: {},
-        }),
-        getGeneralMetaObject: () => ({}),
-        filterMenu: () => ({
-          getCheckBoxContainer: () => [
-            { checkbox: { checked: true, id: "datatypeFilterCheckbox" } },
-            { checkbox: { checked: false, id: "subclassFilterCheckbox" } },
-            { checkbox: { checked: true, id: "disjointFilterCheckbox" } },
-          ],
-          getDegreeSliderValue: () => 3,
-        }),
-        modeMenu: () => ({
-          getCheckBoxContainer: () => [
-            {
-              element: { checked: true },
-              id: "nodescalingModuleCheckbox",
-            },
-            {
-              element: { checked: false },
-              id: "compactnotationModuleCheckbox",
-            },
-            {
-              element: { checked: true },
-              id: "pickandpinModuleCheckbox",
-            },
-          ],
-          colorModeState: () => true,
-        }),
-        classDistance: () => 200,
-        datatypeDistance: () => 120,
-      }),
-      ontologyEditingState: () => ({
-        data: () => ({
-          _comment: "Test",
-          header: {},
-          namespace: [],
-          metrics: {},
-        }),
-        getGeneralMetaObject: () => ({}),
-        filterMenu: () => ({
-          getCheckBoxContainer: () => [
-            { checkbox: { checked: true, id: "datatypeFilterCheckbox" } },
-            { checkbox: { checked: false, id: "subclassFilterCheckbox" } },
-            { checkbox: { checked: true, id: "disjointFilterCheckbox" } },
-          ],
-          getDegreeSliderValue: () => 3,
-        }),
-        modeMenu: () => ({
-          getCheckBoxContainer: () => [
-            {
-              element: { checked: true },
-              id: "nodescalingModuleCheckbox",
-            },
-            {
-              element: { checked: false },
-              id: "compactnotationModuleCheckbox",
-            },
-            {
-              element: { checked: true },
-              id: "pickandpinModuleCheckbox",
-            },
-          ],
-          colorModeState: () => true,
-        }),
-        classDistance: () => 200,
-        datatypeDistance: () => 120,
-      }),
-      getUnfilteredData: () => ({ nodes: [nodeA], properties: [propA] }),
-      graphNodeElements: () => ({ each: () => {} }),
-      graphLabelElements: () => [],
-      scaleFactor: () => 1.5,
-      paused: () => true,
-      translation: () => [100, 200],
-    };
-
-    const menu = exportMenuFactory.createExportMenu(sourceGraph, {
-      documentObject: global.document,
-      windowObject: global.window,
-      locationObject: global.location,
+  test("exported standing settings round-trip through the application's saved-file consumer", () => {
+    const graph = createMockGraph([createMockNode("id1", "http://A")], []);
+    const state = appliedVisualizationState();
+    state.layout.status = "relaxing";
+    state.view.filters.minDegree = 0;
+    state.view.modes.colorExternalsMode = "same";
+    const menu = exportMenuFactory.createExportMenu(graph, {
+      webVowlController: { getState: () => state },
     });
-    const exportedJson = menu.createJSON_exportObject();
+    const settings = JSON.parse(
+      JSON.stringify(menu.createJSON_exportObject()),
+    ).settings;
+    expect(decodeVowlVisualizationSettings(settings)).toEqual({
+      view: {
+        language: "de",
+        layout: "resume",
+        filters: state.view.filters,
+        zoomScale: 0.38125,
+        translation: { xPx: 0, yPx: -20.125 },
+      },
+      modes: state.view.modes,
+      forceDistances: { classDistancePx: 300, datatypeDistancePx: 180 },
+    });
+  });
 
-    // Target state receivers
-    const targetFilterState = {};
-    const targetModeState = {};
-
-    exportedJson.settings.filter.checkBox.forEach((item) => {
-      targetFilterState[item.id] = item.checked;
+  test("publishes the accepted source link and explains when a local document cannot be shared as a URL", () => {
+    const controls = new Map(
+      ["#exportedUrl", "#copyBt", "#exportUrlError"].map((id) => [
+        id,
+        { value: "", textContent: "", classList: { toggle: jest.fn() } },
+      ]),
+    );
+    const graph = createMockGraph([], []);
+    graph.editorMode = () => false;
+    const editingState = graph.ontologyEditingState();
+    graph.ontologyEditingState = () => ({
+      ...editingState,
+      getHideDebugFeatures: () => true,
     });
-    exportedJson.settings.modes.checkBox.forEach((item) => {
-      targetModeState[item.id] = item.checked;
+    const state = appliedVisualizationState();
+    const menu = exportMenuFactory.createExportMenu(graph, {
+      documentObject: { querySelector: (id) => controls.get(id) },
+      locationObject: "https://viewer.test/#stale",
+      webVowlController: { getState: () => state },
     });
-
-    expect(targetFilterState).toEqual({
-      datatypeFilterCheckbox: true,
-      disjointFilterCheckbox: true,
-      subclassFilterCheckbox: false,
-    });
-    expect(targetModeState).toEqual({
-      compactnotationModuleCheckbox: false,
-      nodescalingModuleCheckbox: true,
-      pickandpinModuleCheckbox: true,
-    });
-    expect(exportedJson.settings.gravity.classDistance).toBe(200);
-    expect(exportedJson.settings.gravity.datatypeDistance).toBe(120);
-    expect(exportedJson.settings.global.zoom).toBe(1.5);
-    expect(exportedJson.settings.global.paused).toBe(true);
+    menu.exportAsUrl();
+    expect(controls.get("#exportedUrl").value).toContain(
+      "#url=https%3A%2F%2Fexample.test%2Faccepted.json",
+    );
+    expect(controls.get("#copyBt").disabled).toBe(false);
+    state.source = { kind: "vowl-json-text", displayName: "local.json" };
+    expect(() => menu.exportAsUrl()).not.toThrow();
+    expect(controls.get("#exportedUrl").value).toBe("");
+    expect(controls.get("#copyBt").disabled).toBe(true);
+    expect(controls.get("#exportUrlError").textContent).toContain(
+      "Export JSON",
+    );
   });
 });
 

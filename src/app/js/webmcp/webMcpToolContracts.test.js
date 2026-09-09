@@ -415,7 +415,7 @@ describe("set_visualization_view input schema", () => {
     expect(filterProperties.minDegree).toMatchObject({
       type: "integer",
       minimum: 0,
-      maximum: 100,
+      maximum: Number.MAX_SAFE_INTEGER,
     });
     expect(inputSchema.properties.focus).toMatchObject({
       type: "array",

@@ -45,7 +45,6 @@ export function createRenderedGraphSettings() {
   let nodeDegreeFilter;
   let debugMenu;
   let gravityMenu;
-  let filterMenu;
   let modeMenu;
   let pauseMenu;
   let resetMenu;
@@ -53,7 +52,6 @@ export function createRenderedGraphSettings() {
   let leftSidebar;
   let editSidebar;
   let pickAndPinModule;
-  let globalDOF = -1;
 
   // Presentation supplies the channel that surfaces a rejected setting; the
   // settings object never holds a presentation module itself.
@@ -310,12 +308,6 @@ export function createRenderedGraphSettings() {
     }
     gravityMenu = val;
   };
-  renderedGraphSettings.filterMenu = function (val) {
-    if (!arguments.length) {
-      return filterMenu;
-    }
-    filterMenu = val;
-  };
   renderedGraphSettings.modeMenu = function (val) {
     if (!arguments.length) {
       return modeMenu;
@@ -358,12 +350,5 @@ export function createRenderedGraphSettings() {
     }
     pickAndPinModule = val;
   };
-  renderedGraphSettings.setGlobalDOF = function (val) {
-    if (!arguments.length) {
-      return globalDOF;
-    }
-    globalDOF = val;
-  };
-
   return renderedGraphSettings;
 }

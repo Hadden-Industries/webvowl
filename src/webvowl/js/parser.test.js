@@ -1,4 +1,4 @@
-import { beforeAll, jest } from "@jest/globals";
+import { beforeAll } from "@jest/globals";
 import loadEsmModuleForTest from "../../app/test/loadEsmModuleForTest.js";
 
 let createParser;
@@ -16,24 +16,10 @@ describe("Parser Inverse Property Type Matching Unit Tests", () => {
   beforeEach(() => {
     mockGraph = {
       options: () => ({
-        filterMenu: () => ({
-          setCheckBoxValue: () => {},
-          setDegreeSliderValue: () => {},
-          updateSettings: () => {},
-        }),
-        modeMenu: () => ({
-          setCheckBoxValue: () => {},
-          setColorSwitchState: () => {},
-          updateSettings: () => {},
-        }),
-        pausedMenu: () => ({ setPauseValue: () => {} }),
-        gravityMenu: () => ({ reset: () => {} }),
         pickAndPinModule: () => ({ addPinnedElement: () => {} }),
         datatypeDistance: () => 120,
         classDistance: () => 200,
       }),
-      setZoom: () => {},
-      setTranslation: () => {},
       updateStyle: () => {},
     };
   });
@@ -104,46 +90,14 @@ describe("Parser Inverse Property Type Matching Unit Tests", () => {
   });
 });
 
-describe("Parser viewport settings", () => {
-  function createMockGraph() {
-    return {
-      options: () => ({
-        filterMenu: () => ({ updateSettings: () => {} }),
-        modeMenu: () => ({ updateSettings: () => {} }),
-        gravityMenu: () => ({ reset: () => {} }),
-      }),
-      setViewportTransform: jest.fn(() => true),
-      setZoom: jest.fn(() => true),
-      setTranslation: jest.fn(() => true),
-      updateStyle: jest.fn(),
-    };
-  }
-
-  test("imports zoom and translation as one atomic viewport update", () => {
-    const graph = createMockGraph();
-    const parser = createParser(graph);
+describe("VOWL render element materialization", () => {
+  test("leaves application-owned visualization settings to the controller", () => {
+    const parser = createParser({});
     parser.parse({
       settings: { global: { zoom: "0.38", translation: [10, 20] } },
     });
-
-    parser.parseSettings();
-
-    expect(graph.setViewportTransform).toHaveBeenCalledWith("0.38", [10, 20]);
-    expect(graph.setZoom).not.toHaveBeenCalled();
-    expect(graph.setTranslation).not.toHaveBeenCalled();
-    expect(parser.settingsImportGraphZoomAndTranslation()).toBe(true);
-  });
-
-  test("does not suppress centering when an invalid viewport is rejected", () => {
-    const graph = createMockGraph();
-    graph.setViewportTransform.mockReturnValue(false);
-    const parser = createParser(graph);
-    parser.parse({
-      settings: { global: { zoom: "NaN", translation: [NaN, NaN] } },
-    });
-
-    parser.parseSettings();
-
-    expect(parser.settingsImportGraphZoomAndTranslation()).toBe(false);
+    expect(parser.nodes()).toEqual([]);
+    expect(parser.properties()).toEqual([]);
+    expect(parser).not.toHaveProperty("parseSettings");
   });
 });

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
+import loadEsmModuleForTest from "../test/loadEsmModuleForTest.js";
 import { loadWithImports as productionLoadWithImports } from "../../owl2vowl/js/index.js";
 import {
   afterEach,
@@ -61,6 +62,10 @@ global.window = {
 };
 
 beforeAll(async () => {
+  const { readVisualizationShareLink } = await loadEsmModuleForTest(
+    new URL("./controller/visualizationShareLink.js", import.meta.url),
+    import.meta.url,
+  );
   const loadingModuleUrl = new URL("./loadingModule.js", import.meta.url);
   const lifecycleModuleUrl = new URL("./ontologyLifecycle.js", import.meta.url);
   const resolveFetchUrlModuleUrl = new URL(
@@ -94,6 +99,18 @@ beforeAll(async () => {
     { context: loadingModuleContext, identifier: "test:owl2vowl" },
   );
   await loadingModuleSource.link((specifier) => {
+    if (specifier === "./controller/visualizationShareLink.js") {
+      return new SyntheticModule(
+        ["readVisualizationShareLink"],
+        function provideShareLinkConsumer() {
+          this.setExport(
+            "readVisualizationShareLink",
+            readVisualizationShareLink,
+          );
+        },
+        { context: loadingModuleContext, identifier: specifier },
+      );
+    }
     if (specifier === "../../owl2vowl/js/index.js") {
       return owl2VowlModule;
     }
@@ -242,7 +259,7 @@ describe("loading module remote source derivation", () => {
         encodeURIComponent("http://example.com/graph.json"),
     );
 
-    expect(loadingModule.ontologySourceFromLocation()).toEqual({
+    expect(loadingModule.ontologyLoadRequestFromLocation().source).toEqual({
       kind: "vowl-json-url",
       url: "http://example.com/graph.json",
     });
@@ -254,7 +271,7 @@ describe("loading module remote source derivation", () => {
         encodeURIComponent("http://example.com/ontology.rdf"),
     );
 
-    expect(loadingModule.ontologySourceFromLocation()).toEqual({
+    expect(loadingModule.ontologyLoadRequestFromLocation().source).toEqual({
       kind: "ontology-document-iri",
       documentIri: "http://example.com/ontology.rdf",
     });
@@ -424,8 +441,13 @@ describe("loading module canonical controller sources", () => {
   let controls;
   let loadingModule;
   let requestedLoads;
+  let requestedLoadOptions;
+  let presentedRoutes;
 
-  function createLoadingModuleForLocation(locationHref) {
+  function createLoadingModuleForLocation(
+    locationHref,
+    controllerState = { status: "idle" },
+  ) {
     global.location = {
       hash: locationHref.slice(locationHref.indexOf("#")),
       href: locationHref,
@@ -435,10 +457,13 @@ describe("loading module canonical controller sources", () => {
     return createLoadingModule(
       { options: () => ({}), clearAllGraphData() {}, clearGraphData() {} },
       {
+        onShareLinkPresentation: (value) => presentedRoutes.push(value),
         webVowlController: {
-          loadOntology(loadRequest) {
+          getState: () => controllerState,
+          loadOntology(loadRequest, loadOptions) {
             requestedLoads.push(loadRequest);
-            return Promise.resolve({ status: "ready" });
+            requestedLoadOptions.push(loadOptions);
+            return Promise.resolve({ status: "ready", loadGeneration: 1 });
           },
         },
       },
@@ -447,6 +472,8 @@ describe("loading module canonical controller sources", () => {
 
   beforeEach(() => {
     requestedLoads = [];
+    requestedLoadOptions = [];
+    presentedRoutes = [];
     controls = new Map();
     global.document = {
       baseURI: "https://example.test/webvowl/",
@@ -473,7 +500,7 @@ describe("loading module canonical controller sources", () => {
     );
 
     await loadingModule.loadRemoteSource({
-      source: loadingModule.ontologySourceFromLocation(),
+      ...loadingModule.ontologyLoadRequestFromLocation(),
     });
 
     expect(requestedLoads).toEqual([
@@ -486,13 +513,90 @@ describe("loading module canonical controller sources", () => {
     ]);
   });
 
+  test("loads explicit share-link choices through the controller before presenting route-only UI choices", async () => {
+    loadingModule = createLoadingModuleForLocation(
+      "https://example.test/webvowl/#opts=doc=0;mode_scaling=false;sidebar=0;#foaf",
+    );
+    const request = loadingModule.ontologyLoadRequestFromLocation();
+    expect(request.initialVisualization).toEqual({
+      view: { filters: { minDegree: 0 } },
+      modes: { nodeScaling: false },
+    });
+    expect(presentedRoutes).toEqual([]);
+    await loadingModule.loadRemoteSource(request);
+    expect(requestedLoads).toEqual([
+      {
+        source: {
+          kind: "vowl-json-url",
+          url: "https://example.test/webvowl/data/foaf.json",
+        },
+      },
+    ]);
+    expect(requestedLoadOptions).toEqual([
+      {
+        initialVisualization: {
+          view: { filters: { minDegree: 0 } },
+          modes: { nodeScaling: false },
+        },
+      },
+    ]);
+    expect(presentedRoutes).toEqual([{ sidebar: 0 }]);
+  });
+
+  test.each([
+    { scenario: "startup", state: { status: "idle" }, expectedState: "error" },
+    {
+      scenario: "hash-change",
+      state: {
+        status: "ready",
+        loadGeneration: 1,
+        source: { kind: "vowl-json-url" },
+        layout: { status: "paused" },
+      },
+      expectedState: "ready",
+    },
+  ])(
+    "presents malformed $scenario options without rejecting initialization or replacing the drawing",
+    async ({ state, expectedState }) => {
+      loadingModule = createLoadingModuleForLocation(
+        "https://example.test/webvowl/#opts=doc=1.5;#foaf",
+        state,
+      );
+      const messages = [];
+      const inlineError = global.document.querySelector("#loadingErrorMessage");
+      inlineError.hidden = true;
+      loadingModule.setOntologyMenu({
+        append_message_toLastBulletPoint: (message) => messages.push(message),
+      });
+      await expect(
+        loadingModule.loadOntologyFromLocation(),
+      ).resolves.toBeUndefined();
+      expect(requestedLoads).toEqual([]);
+      expect(messages).toEqual([
+        "The visualization link contains invalid options or an invalid ontology address.",
+      ]);
+      // Standalone errors have no preceding loading-details bullet. The
+      // visible status must carry the explanation independently of that list.
+      expect(inlineError.textContent).toBe(messages[0]);
+      expect(inlineError.hidden).toBe(false);
+      expect(controls.get("#currentLoadingStep").textContent).toBe(
+        "Loading failed",
+      );
+      expect(loadingModule.getProgressBarMode()).toBe(0);
+      expect(loadingModule.state()).toBe(expectedState);
+      loadingModule.renderControllerState({ status: "ready" });
+      expect(inlineError.hidden).toBe(true);
+      expect(inlineError.textContent).toBe("");
+    },
+  );
+
   test("routes an ontology document IRI in the location to the controller", async () => {
     loadingModule = createLoadingModuleForLocation(
       "https://example.test/webvowl/#iri=http%3A%2F%2Fxmlns.com%2Ffoaf%2F0.1%2F",
     );
 
     await loadingModule.loadRemoteSource({
-      source: loadingModule.ontologySourceFromLocation(),
+      ...loadingModule.ontologyLoadRequestFromLocation(),
     });
 
     expect(requestedLoads).toEqual([
@@ -511,7 +615,7 @@ describe("loading module canonical controller sources", () => {
     );
 
     await loadingModule.loadRemoteSource({
-      source: loadingModule.ontologySourceFromLocation(),
+      ...loadingModule.ontologyLoadRequestFromLocation(),
     });
 
     expect(requestedLoads).toEqual([

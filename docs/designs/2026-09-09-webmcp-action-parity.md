@@ -134,8 +134,9 @@ optional `displayName`. It shares the source loader's native JSON validation and
 exact-byte fingerprinting. The internal parsed `vowl-model` source remains distinct
 and is not an agent input. Both text source kinds accept the same optional document
 name; local names are provenance display names, not remote retrieval identities.
-The renderer replacement contract takes only the generation and model. Loading
-and recovery must work for local sources without a remote identity or a name.
+The renderer replacement contract takes the generation, model and optional
+initial visualization choices. Loading and recovery must work for local sources
+without a remote identity or a name.
 Ontology summaries retain the actual optional identity/name from provenance.
 The shared `maxInlineDocumentBytes` limit is 1 MiB of UTF-8 for either text kind.
 Pasted JSON-LD remains ontology syntax text. Direct input labels the action Load.
@@ -184,3 +185,28 @@ Human controls subscribe to applied state; importing, resetting or agent actions
 must not depend on simulated checkbox clicks or reading values back from menus.
 Reset restores the existing visualization defaults and clears focus/selection
 through a single shared operation. Experimental editing remains excluded.
+
+## Saved visualization and share-link ownership
+
+The application decodes persisted VOWL settings into the shared view, display-mode
+and force-distance requests. False and zero are explicit values. Saved pause and
+viewport coordinates are applied before first paint; cancellation recovery uses
+the same initial-choice path. Explicit load choices override corresponding saved
+fields, retaining other saved choices. Invalid settings reject a candidate before
+replacing the accepted graph.
+
+JSON settings export reads applied controller state, including language, precise
+viewport coordinates, external-color mode and label width. It retains the existing
+VOWL checkbox identifiers as file-format vocabulary. Share links retain existing
+short option names and additionally carry pause, language, viewport coordinates
+and label width. Native URL and URLSearchParams parsing preserves an ontology IRI
+fragment. Links name the accepted remote source, rather than the location left by
+an earlier load; local documents require a file export to share their content.
+Experimental editor and sidebar presentation options remain human UI concerns.
+
+The node-degree algorithm owns its observed maximum, automatic minimum and applied
+minimum. A degree is a non-negative safe integer; the former agent-only cap of 100
+is removed. The controller publishes immutable degree-range observations and the
+degree control renders the range and value together. The algorithm does not read
+or command sliders. This ownership migration does not change the linear scale of
+the human slider or imply that the reported older Edge screenshot is reproduced.

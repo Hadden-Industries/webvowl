@@ -296,6 +296,10 @@ function createAdapterHarness() {
       datatypes: createFilterModuleFixture(),
       disjointness: createFilterModuleFixture(),
       minDegree: {
+        readDegreeRange: () => ({
+          maximumDegree: 3,
+          automaticMinimumDegree: 0,
+        }),
         enabledStates: [],
         minDegreeValues: [],
         enabled(nextEnabledState) {
@@ -343,10 +347,19 @@ function createAdapterHarness() {
         renderedGraphInternalsFixture.modeModules.nodeScaling,
       pickAndPinModule: () =>
         renderedGraphInternalsFixture.modeModules.pickAndPin,
-      classDistance: () =>
-        renderedGraphInternalsFixture.forceDistances.classDistancePx,
-      datatypeDistance: () =>
-        renderedGraphInternalsFixture.forceDistances.datatypeDistancePx,
+      classDistance(value) {
+        if (value !== undefined) {
+          renderedGraphInternalsFixture.forceDistances.classDistancePx = value;
+        }
+        return renderedGraphInternalsFixture.forceDistances.classDistancePx;
+      },
+      datatypeDistance(value) {
+        if (value !== undefined) {
+          renderedGraphInternalsFixture.forceDistances.datatypeDistancePx =
+            value;
+        }
+        return renderedGraphInternalsFixture.forceDistances.datatypeDistancePx;
+      },
       dynamicLabelWidth(nextDynamicLabelWidth) {
         if (!arguments.length) {
           return renderedGraphInternalsFixture.isDynamicLabelWidth;
@@ -376,7 +389,13 @@ function createAdapterHarness() {
         documentObject.createElementNS(SVG_NAMESPACE_IRI, "svg"),
       );
     },
-    load(loadGeneration) {
+    load(loadGeneration, initialChoices = {}) {
+      renderedGraphInternalsFixture.loadChoices = initialChoices;
+      if (initialChoices.language !== undefined) {
+        renderedGraphInternalsFixture.appliedLanguages.push(
+          initialChoices.language,
+        );
+      }
       renderedGraphInternalsFixture.callOrder.push("load");
       renderedGraphInternalsFixture.loadCallCount += 1;
       const simulation = rendererSimulationFixture.forceSimulation();
@@ -399,7 +418,27 @@ function createAdapterHarness() {
           renderedGraphInternalsFixture.readLayoutState(),
         );
       simulation.on("end", publish).on("tick", publish);
-      renderedGraphInternalsFixture.isPaused = false;
+      renderedGraphInternalsFixture.isPaused = initialChoices.isPaused ?? false;
+    },
+    scaleFactor: () => 1,
+    translation: () => [0, 0],
+    viewportTransforms: [],
+    setViewportTransform(scale, translation) {
+      renderedGraphInternalsFixture.viewportTransforms.push({
+        scale,
+        translation,
+      });
+      graphContainerElement
+        .querySelector("svg")
+        .setAttribute(
+          "transform",
+          `translate(${translation.join(",")})scale(${scale})`,
+        );
+      renderedGraphInternalsFixture.installedEventPort.publishViewportChange(
+        scale,
+        ...translation,
+      );
+      return true;
     },
     paused(isPaused) {
       renderedGraphInternalsFixture.pauseStates.push(isPaused);
@@ -590,6 +629,56 @@ function createAdapterHarness() {
 }
 
 describe("D3 rendered graph adapter", () => {
+  test("applies initial view values before first paint without UI callbacks or redraws of retired data", async () => {
+    const harness = createAdapterHarness();
+    const { renderedGraphRuntime, renderedGraphInternalsFixture: renderer } =
+      harness;
+    const loading = renderedGraphRuntime.replaceVowlModel(
+      {
+        ...replacementRequest(1),
+        initialVisualization: {
+          view: {
+            language: "de",
+            layout: "pause",
+            filters: { disjointness: "show", minDegree: 0 },
+            zoomScale: 0.38,
+            translation: { xPx: 0, yPx: -20 },
+          },
+          modes: {
+            nodeScaling: false,
+            dynamicLabelWidth: false,
+            colorExternalsMode: "gradient",
+          },
+          forceDistances: { classDistancePx: 300, datatypeDistancePx: 180 },
+        },
+      },
+      { signal: new AbortController().signal },
+    );
+    const outcome = loading.catch((error) => error);
+    expect(renderer.modeModules.nodeScaling.enabled()).toBe(false);
+    expect(renderer.isDynamicLabelWidth).toBe(false);
+    expect(renderer.modeModules.colorExternals.colorModeType()).toBe(
+      "gradient",
+    );
+    expect(renderer.forceDistances).toEqual({
+      classDistancePx: 300,
+      datatypeDistancePx: 180,
+    });
+    expect(renderer.loadChoices).toEqual({
+      language: "de",
+      isPaused: true,
+      centerViewport: false,
+    });
+    expect(renderer.viewportTransforms).toEqual([
+      { scale: 0.38, translation: [0, -20] },
+    ]);
+    expect(renderer.updateCallCount).toBe(0);
+    expect(renderer.modeExecutions).toEqual([]);
+    expect(harness.renderedGraphTestHarness.completeInitialPaint(1)).toBe(true);
+    expect(await outcome).toEqual({ loadGeneration: 1 });
+    expect(renderedGraphRuntime.readGraphLayoutSnapshot().isPaused).toBe(true);
+  });
+
   test("satisfies the reusable rendered graph runtime contract", async () => {
     await assertRenderedGraphRuntimeContract({
       createAdapterHarness,
@@ -699,6 +788,8 @@ describe("D3 rendered graph adapter", () => {
     );
 
     await loadGeneration(adapterHarness, 2);
+    expect(publishedEvents).toEqual(["degree-filter-range-changed"]);
+    publishedEvents.length = 0;
     retiredSimulation.emit("end");
 
     expect(publishedEvents).toEqual([]);
@@ -717,6 +808,14 @@ describe("D3 rendered graph adapter", () => {
     );
     const simulation =
       harness.rendererSimulationFixture.createdSimulations.at(-1);
+    expect(events).toEqual([
+      {
+        kind: "degree-filter-range-changed",
+        loadGeneration: 1,
+        payload: { maximumDegree: 3, automaticMinimumDegree: 0 },
+      },
+    ]);
+    events.length = 0;
     expect(simulation.isStopped).toBe(false);
     caller.abort();
     await expect(replacement).rejects.toMatchObject({ name: "AbortError" });

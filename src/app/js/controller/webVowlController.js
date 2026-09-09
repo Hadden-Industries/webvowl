@@ -8,6 +8,8 @@ import {
   WEB_VOWL_OPERATION_LIMITS,
   WebVowlOperationError,
 } from "./webVowlControllerContracts.js";
+import { decodeVowlVisualizationSettings } from "./vowlVisualizationSettings.js";
+import { createInitialVisualizationRequest } from "./renderedGraphRuntimeContracts.js";
 
 const WEB_VOWL_CONTROLLER_DEPENDENCY_FIELD_NAMES = Object.freeze([
   "ontologySourceLoader",
@@ -41,6 +43,7 @@ const IDLE_CONTROLLER_STATE = Object.freeze({
   layout: { status: "unavailable" },
   selection: [],
   renderProgress: null,
+  degreeFilterRange: null,
   editorMode: null,
   error: null,
 });
@@ -329,6 +332,12 @@ export function createWebVowlController(dependencies) {
       });
       return;
     }
+    if (renderedGraphEvent.kind === "degree-filter-range-changed") {
+      publishForGeneration(renderedGraphEvent.loadGeneration, {
+        degreeFilterRange: renderedGraphEvent.payload,
+      });
+      return;
+    }
     if (renderedGraphEvent.kind === "visualization-view-changed") {
       publishForGeneration(renderedGraphEvent.loadGeneration, {
         view: renderedGraphEvent.payload.appliedVisualizationView,
@@ -390,12 +399,15 @@ export function createWebVowlController(dependencies) {
   // Accepting a language the ontology does not carry would report it as
   // selected while every label on screen stayed as it was, and an agent would
   // tell a reader the graph had switched when it had not.
-  function assertRequestedLanguageIsCarried(requestedLanguage) {
+  function assertRequestedLanguageIsCarried(
+    requestedLanguage,
+    ontologyInspectionSnapshot = currentOntologyInspectionSnapshot,
+  ) {
     if (requestedLanguage === undefined) {
       return;
     }
     const availableLabelLanguages =
-      currentOntologyInspectionSnapshot?.availableLabelLanguages ?? [];
+      ontologyInspectionSnapshot?.availableLabelLanguages ?? [];
     if (
       requestedLanguage === UNCHOSEN_LANGUAGE ||
       availableLabelLanguages.includes(requestedLanguage)
@@ -513,26 +525,27 @@ export function createWebVowlController(dependencies) {
       {
         loadGeneration: recoveryGeneration,
         vowlModel: model,
+        initialVisualization: {
+          view: {
+            language: recoveredView.language,
+            filters: recoveredView.filters,
+            focus: recoveredView.focus,
+            layout: state.layout.status === "paused" ? "pause" : "resume",
+            ...(state.zoomScale === null ? {} : { zoomScale: state.zoomScale }),
+            ...(state.translation === null
+              ? {}
+              : { translation: state.translation }),
+          },
+          modes: recoveredView.modes,
+          forceDistances: recoveredView.forceDistances,
+        },
       },
       { signal: recoverySignal },
     );
     throwWhenSuperseded(recoveryGeneration, recoverySignal);
-    await renderedGraphRuntime.setVisualizationModes(recoveredView.modes, {
-      signal: recoverySignal,
-    });
-    await renderedGraphRuntime.setForceLayoutDistances(
-      recoveredView.forceDistances,
-      { signal: recoverySignal },
-    );
     const applied = await applyRuntimeVisualizationView(
       recoveryGeneration,
-      {
-        language: recoveredView.language,
-        filters: recoveredView.filters,
-        focus: recoveredView.focus,
-        layout: state.layout.status === "paused" ? "pause" : "resume",
-        ...(state.zoomScale === null ? {} : { zoomScale: state.zoomScale }),
-      },
+      {},
       recoverySignal,
     );
     throwWhenSuperseded(recoveryGeneration, recoverySignal);
@@ -565,9 +578,24 @@ export function createWebVowlController(dependencies) {
   }
 
   return Object.freeze({
-    async loadOntology(sourceRequest, { signal } = {}) {
+    async loadOntology(
+      sourceRequest,
+      { signal, initialVisualization: requestedInitialVisualization } = {},
+    ) {
       if (isDisposed) {
         throw createLoadAbortedError();
+      }
+      let initialChoices;
+      try {
+        initialChoices = createInitialVisualizationRequest(
+          requestedInitialVisualization ?? {},
+        );
+      } catch (cause) {
+        throw new WebVowlOperationError({
+          code: "VIEW_REJECTED",
+          message: "The initial visualization choices are invalid.",
+          cause,
+        });
       }
       activeLoadAbortController?.abort();
       abortBackgroundLayoutObservation();
@@ -615,6 +643,42 @@ export function createWebVowlController(dependencies) {
         );
         throwWhenSuperseded(loadGeneration, cancellationSignal);
 
+        let initialVisualization;
+        try {
+          initialVisualization = decodeVowlVisualizationSettings(
+            sourceLoadRecord.vowlModel.settings,
+          );
+          const mergedChoices = {};
+          for (const section of ["view", "modes", "forceDistances"]) {
+            if (
+              initialVisualization[section] !== undefined ||
+              initialChoices[section] !== undefined
+            ) {
+              mergedChoices[section] = {
+                ...initialVisualization[section],
+                ...initialChoices[section],
+              };
+            }
+          }
+          if (
+            initialVisualization.view?.filters !== undefined ||
+            initialChoices.view?.filters !== undefined
+          ) {
+            mergedChoices.view.filters = {
+              ...initialVisualization.view?.filters,
+              ...initialChoices.view?.filters,
+            };
+          }
+          initialVisualization =
+            createInitialVisualizationRequest(mergedChoices);
+        } catch (cause) {
+          throw new WebVowlOperationError({
+            code: "PARSE_FAILED",
+            message: "Saved visualization settings are invalid.",
+            cause,
+          });
+        }
+
         // Projected before the renderer is asked to draw, so a semantic
         // question is answerable as soon as the model exists.
         const ontologyInspectionSnapshot =
@@ -622,6 +686,10 @@ export function createWebVowlController(dependencies) {
             sourceLoadRecord.vowlModel,
             loadGeneration,
           );
+        assertRequestedLanguageIsCarried(
+          initialVisualization.view?.language,
+          ontologyInspectionSnapshot,
+        );
         throwWhenSuperseded(loadGeneration, cancellationSignal);
 
         publishForGeneration(loadGeneration, { status: "rendering" });
@@ -631,6 +699,9 @@ export function createWebVowlController(dependencies) {
           {
             loadGeneration,
             vowlModel: sourceLoadRecord.vowlModel,
+            ...(Object.keys(initialVisualization).length === 0
+              ? {}
+              : { initialVisualization }),
           },
           { signal: cancellationSignal },
         );

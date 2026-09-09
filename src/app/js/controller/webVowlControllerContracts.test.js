@@ -533,6 +533,7 @@ const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "layout",
   "selection",
   "renderProgress",
+  "degreeFilterRange",
   "editorMode",
   "error",
 ]);
@@ -548,6 +549,7 @@ const IDLE_CONTROLLER_STATE_FIELDS = Object.freeze({
   layout: { status: "unavailable" },
   selection: [],
   renderProgress: null,
+  degreeFilterRange: null,
   editorMode: null,
   error: null,
 });

@@ -210,9 +210,10 @@ const VISIBILITY_FILTERS_SCHEMA = closedObjectSchema({
     }),
     minDegree: Object.freeze({
       type: "integer",
-      description: "Hide elements with fewer connections than this.",
+      description:
+        "Hide elements with fewer connections than this. The graph determines the available degree range; inspect the applied minimum after filtering.",
       minimum: 0,
-      maximum: 100,
+      maximum: Number.MAX_SAFE_INTEGER,
     }),
   },
 });

@@ -30,7 +30,7 @@ import { createSubclassFilter } from "../../shared/js/modules/subclassFilter.js"
 import { createConfigMenu } from "./menu/configMenu.js";
 import { createDebugMenu } from "./menu/debugMenu.js";
 import { createExportMenu } from "./menu/exportMenu.js";
-import { createFilterMenu } from "./menu/filterMenu.js";
+import { createDegreeFilterControl } from "./ui/degreeFilterControl.js";
 import { createGravityMenu } from "./menu/gravityMenu.js";
 import { createModeMenu } from "./menu/modeMenu.js";
 import { createNavigationMenu } from "./menu/navigationMenu.js";
@@ -70,7 +70,7 @@ export function createWebVowlApplication() {
     prefixModule = createPrefixRepresentationModule(graph),
     GRAPH_SELECTOR = "#graph",
     // Modules for the webvowl app
-    filterMenu = createFilterMenu(graph),
+    degreeFilterControl = createDegreeFilterControl(),
     debugMenu = createDebugMenu(graph),
     pauseMenu = createPauseMenu({ documentObject: document }),
     navigationMenu = createNavigationMenu(graph),
@@ -80,7 +80,7 @@ export function createWebVowlApplication() {
     datatypeFilter = createDatatypeFilter(),
     disjointFilter = createDisjointFilter(),
     emptyLiteralFilter = createEmptyLiteralFilter(),
-    nodeDegreeFilter = createNodeDegreeFilter(filterMenu),
+    nodeDegreeFilter = createNodeDegreeFilter(),
     nodeScalingSwitch = createNodeScalingSwitch(graph),
     objectPropertyFilter = createObjectPropertyFilter(),
     statistics = createStatistics(),
@@ -206,6 +206,7 @@ export function createWebVowlApplication() {
     // registration can outlive what answers it.
     webMcpRegistration.dispose();
     viewControlsLifecycleController.abort();
+    degreeFilterControl.dispose();
     graphResizeObserver?.disconnect();
     graphResizeObserver = undefined;
     if (resizeAnimationFrame !== undefined) {
@@ -343,6 +344,22 @@ export function createWebVowlApplication() {
     };
   }
 
+  function applyShareLinkPresentation({
+    sidebar: sidebarVisibility,
+    editorMode,
+    debugFeatures,
+  }) {
+    if (sidebarVisibility !== undefined) {
+      sidebar.showSidebar(sidebarVisibility, true);
+    }
+    if (editorMode !== undefined) {
+      graph.editorMode(editorMode);
+    }
+    if (debugFeatures !== undefined) {
+      graph.ontologyEditingState().setDebugFeaturesVisible(debugFeatures);
+    }
+  }
+
   async function initializeNativeApplicationUiModules() {
     const [
       { createDirectInputModule },
@@ -362,7 +379,10 @@ export function createWebVowlApplication() {
       prefixModule,
     });
     leftSidebar = createLeftSidebar(graph);
-    loadingModule = createLoadingModule(graph, { webVowlController });
+    loadingModule = createLoadingModule(graph, {
+      webVowlController,
+      onShareLinkPresentation: applyShareLinkPresentation,
+    });
     sidebar = createSidebar(graph, {
       elementTools,
       languageConstants,
@@ -441,99 +461,6 @@ export function createWebVowlApplication() {
       sidebar.updateShowedInformation();
       editSidebar.updateElementWidth();
     });
-    graph.addEventListener("urloptions", (e) => {
-      const opts = e.detail.opts;
-      const changeEditFlag = e.detail.changeEditFlag;
-
-      if (opts.sidebar !== undefined) {
-        sidebar.showSidebar(parseInt(opts.sidebar), true);
-      }
-      if (opts.doc) {
-        const asInt = parseInt(opts.doc);
-        filterMenu.setDegreeSliderValue(asInt);
-        graph.options().setGlobalDOF(asInt);
-      }
-      let settingFlag;
-      if (opts.editorMode) {
-        settingFlag = opts.editorMode === "true";
-        const editorCheckbox = document.querySelector(
-          "#editorModeModuleCheckbox",
-        );
-        if (editorCheckbox) {
-          editorCheckbox.checked = settingFlag;
-        }
-        if (changeEditFlag) {
-          graph.editorMode(settingFlag);
-        }
-      }
-      if (opts.cd) {
-        graph.options().classDistance(opts.cd);
-      }
-      if (opts.dd) {
-        graph.options().datatypeDistance(opts.dd);
-      }
-
-      if (opts.filter_datatypes) {
-        settingFlag = opts.filter_datatypes === "true";
-        filterMenu.setCheckBoxValue("datatypeFilterCheckbox", settingFlag);
-      }
-      if (opts.debugFeatures) {
-        settingFlag = opts.debugFeatures === "true";
-        graph.ontologyEditingState().setHideDebugFeatures(settingFlag);
-        if (graph.ontologyEditingState().getHideDebugFeatures() === false) {
-          graph.ontologyEditingState().executeHiddenDebugFeatures();
-        }
-      }
-
-      if (opts.filter_objectProperties) {
-        settingFlag = opts.filter_objectProperties === "true";
-        filterMenu.setCheckBoxValue(
-          "objectPropertyFilterCheckbox",
-          settingFlag,
-        );
-      }
-      if (opts.filter_sco) {
-        settingFlag = opts.filter_sco === "true";
-        filterMenu.setCheckBoxValue("subclassFilterCheckbox", settingFlag);
-      }
-      if (opts.filter_disjoint) {
-        settingFlag = opts.filter_disjoint === "true";
-        filterMenu.setCheckBoxValue("disjointFilterCheckbox", settingFlag);
-      }
-      if (opts.filter_setOperator) {
-        settingFlag = opts.filter_setOperator === "true";
-        filterMenu.setCheckBoxValue("setoperatorFilterCheckbox", settingFlag);
-      }
-      filterMenu.updateSettings();
-
-      if (opts.mode_dynamic) {
-        settingFlag = opts.mode_dynamic === "true";
-        modeMenu.setDynamicLabelWidth(settingFlag);
-        graph.options().dynamicLabelWidth(settingFlag);
-      }
-      if (opts.mode_pnp) {
-        settingFlag = opts.mode_pnp === "true";
-        modeMenu.setCheckBoxValue("pickandpinModuleCheckbox", settingFlag);
-      }
-      if (opts.mode_scaling) {
-        settingFlag = opts.mode_scaling === "true";
-        modeMenu.setCheckBoxValue("nodescalingModuleCheckbox", settingFlag);
-      }
-      if (opts.mode_compact) {
-        settingFlag = opts.mode_compact === "true";
-        modeMenu.setCheckBoxValue("compactnotationModuleCheckbox", settingFlag);
-      }
-      if (opts.mode_colorExt) {
-        settingFlag = opts.mode_colorExt === "true";
-        modeMenu.setCheckBoxValue("colorexternalsModuleCheckbox", settingFlag);
-      }
-      if (opts.mode_multiColor) {
-        settingFlag = opts.mode_multiColor === "true";
-        modeMenu.setColorSwitchStateUsingURL(settingFlag);
-      }
-      modeMenu.updateSettingsUsingURL();
-      graph.options().rectangularRepresentation(opts.rect);
-    });
 
     graph.addEventListener("fpsupdate", (e) => {
       const debugContainer = document.querySelector("#FPS_Statistics");
@@ -562,14 +489,7 @@ export function createWebVowlApplication() {
 
     exportMenu.setup();
     gravityMenu.setup();
-    filterMenu.setup(
-      datatypeFilter,
-      objectPropertyFilter,
-      subclassFilter,
-      disjointFilter,
-      setOperatorFilter,
-      nodeDegreeFilter,
-    );
+    degreeFilterControl.setup();
     modeMenu.setup();
     registerApplicationUiModule("loadingModule", loadingModule);
     registerApplicationUiModule("warningModule", warningModule);
@@ -605,8 +525,18 @@ export function createWebVowlApplication() {
       readOntologySummary: () => webVowlController.getOntologySummary(),
     });
     unsubscribeFromControllerState = webVowlController.subscribeToState(
-      (controllerState, changedFieldNames) =>
-        controllerStatePresenter.present(controllerState, changedFieldNames),
+      (controllerState, changedFieldNames) => {
+        controllerStatePresenter.present(controllerState, changedFieldNames);
+        if (
+          changedFieldNames.includes("degreeFilterRange") ||
+          changedFieldNames.includes("view")
+        ) {
+          degreeFilterControl.renderDegreeFilterRange(
+            controllerState.degreeFilterRange,
+            controllerState.view?.filters.minDegree ?? 0,
+          );
+        }
+      },
     );
     leftSidebar.setup();
     editSidebar.setup();
@@ -622,7 +552,6 @@ export function createWebVowlApplication() {
     // give the options the pointer to the some menus for import and export
     renderedGraphSettings.literalFilter(emptyLiteralFilter);
     renderedGraphSettings.nodeDegreeFilter(nodeDegreeFilter);
-    renderedGraphSettings.filterMenu(filterMenu);
     renderedGraphSettings.modeMenu(modeMenu);
     renderedGraphSettings.gravityMenu(gravityMenu);
     renderedGraphSettings.pausedMenu(pauseMenu);
@@ -719,9 +648,7 @@ export function createWebVowlApplication() {
     adjustSize();
     sidebar.updateOntologyInformation(undefined, statistics);
     // The location names the ontology to show; the controller loads it.
-    loadingModule.loadRemoteSource({
-      source: loadingModule.ontologySourceFromLocation(),
-    });
+    loadingModule.loadOntologyFromLocation();
     renderedGraphSettings.debugMenu(debugMenu);
     debugMenu.updateSettings();
 

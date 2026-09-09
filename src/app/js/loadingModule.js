@@ -1,11 +1,15 @@
 import { applicationUiModule } from "./ui/applicationUiRegistry.js";
+import { readVisualizationShareLink } from "./controller/visualizationShareLink.js";
 import {
   ONTOLOGY_LIFECYCLE_STATES,
   isOntologyModelAvailable,
   ontologyLifecycleCapabilitiesFor,
 } from "./ontologyLifecycle.js";
 
-export function createLoadingModule(graph, { webVowlController } = {}) {
+export function createLoadingModule(
+  graph,
+  { webVowlController, onShareLinkPresentation } = {},
+) {
   /** some constants **/
   const PROGRESS_BAR_ERROR = 0;
   const PROGRESS_BAR_BUSY = 1;
@@ -17,7 +21,6 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
   let showLoadingDetails = false;
   let visibilityStatus = true;
 
-  const DEFAULT_JSON_NAME = "foaf"; // This file is loaded by default
   let conversion_sessionId;
 
   /** variable defs **/
@@ -279,19 +282,31 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
     );
   };
 
+  function presentLoadingError(message = "") {
+    const errorMessage = document.querySelector("#loadingErrorMessage");
+    errorMessage.textContent = message;
+    errorMessage.hidden = message.length === 0;
+  }
+
   loadingModule.setBusyMode = function () {
+    presentLoadingError();
     document.querySelector("#currentLoadingStep").className = "step-busy";
+    document.querySelector("#currentLoadingStep").textContent =
+      "Loading ontology";
     document.querySelector("#progressBarValue").removeAttribute("value");
     document.querySelector("#progressBarLabel").textContent = "";
     progressBarMode = PROGRESS_BAR_BUSY;
   };
 
   loadingModule.setSuccessful = function () {
+    presentLoadingError();
     document.querySelector("#currentLoadingStep").className = "step-success";
   };
 
   loadingModule.setErrorMode = function () {
     document.querySelector("#currentLoadingStep").className = "step-error";
+    document.querySelector("#currentLoadingStep").textContent =
+      "Loading failed";
     document.querySelector("#progressBarValue").setAttribute("value", 0);
     document.querySelector("#progressBarLabel").textContent = "";
     progressBarMode = PROGRESS_BAR_ERROR;
@@ -299,6 +314,8 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
 
   loadingModule.setPercentMode = function () {
     document.querySelector("#currentLoadingStep").className = "step-busy";
+    document.querySelector("#currentLoadingStep").textContent =
+      "Layout optimization";
     document.querySelector("#progressBarValue").setAttribute("value", 0);
     document.querySelector("#progressBarLabel").textContent = "0%";
     progressBarMode = PROGRESS_BAR_PERCENT;
@@ -340,15 +357,6 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
           .toLowerCase();
   }
 
-  function ontologyIdentifierFromLocation() {
-    const locationParameters = identifyParameter(String(location)).filter(
-      (locationParameter) => !locationParameter.startsWith("opts="),
-    );
-    return locationParameters.length > 0
-      ? locationParameters[locationParameters.length - 1]
-      : DEFAULT_JSON_NAME;
-  }
-
   function cachedVowlModelSourceFor(ontologyIdentifier) {
     const cachedOntologyContent =
       ontologyMenu?.cachedOntology(ontologyIdentifier);
@@ -367,12 +375,7 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
 
   // The location is the application's shareable route; it names one canonical
   // controller source rather than a loading branch.
-  loadingModule.ontologySourceFromLocation = function () {
-    const ontologyIdentifier = ontologyIdentifierFromLocation();
-    if (typeof graph.dispatchEvent === "function") {
-      loadGraphOptions(identifyParameter(String(location)));
-    }
-
+  function ontologySourceForIdentifier(ontologyIdentifier) {
     if (ontologyIdentifier.startsWith("url=")) {
       const requestedUrl = decodeURIComponent(ontologyIdentifier.slice(4));
       ontologyIdentifierFromURL = requestedUrl;
@@ -405,6 +408,38 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
           .href,
       }
     );
+  }
+
+  loadingModule.ontologyLoadRequestFromLocation = function () {
+    const { ontologyIdentifier, initialVisualization, presentation } =
+      readVisualizationShareLink(String(location));
+    return {
+      source: ontologySourceForIdentifier(ontologyIdentifier),
+      ...(Object.keys(initialVisualization).length === 0
+        ? {}
+        : { initialVisualization }),
+      ...(Object.keys(presentation).length === 0 ? {} : { presentation }),
+    };
+  };
+
+  loadingModule.loadOntologyFromLocation = async function ({
+    shouldCache = true,
+  } = {}) {
+    let request;
+    try {
+      request = loadingModule.ontologyLoadRequestFromLocation();
+    } catch {
+      loadingModule.renderControllerState({
+        ...webVowlController.getState(),
+        status: "error",
+        error: {
+          message:
+            "The visualization link contains invalid options or an invalid ontology address.",
+        },
+      });
+      return undefined;
+    }
+    return loadingModule.loadRemoteSource({ ...request, shouldCache });
   };
 
   function prepareLoadingPresentation(shouldCache) {
@@ -430,9 +465,14 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
       .classList.add("hidden");
   }
 
-  async function loadOntologyThroughController(source) {
+  async function loadOntologyThroughController(source, initialVisualization) {
     try {
-      return await webVowlController.loadOntology({ source });
+      return await webVowlController.loadOntology(
+        { source },
+        ...(initialVisualization === undefined
+          ? []
+          : [{ initialVisualization }]),
+      );
     } catch {
       loadingModule.renderControllerState(webVowlController.getState());
       return undefined;
@@ -440,11 +480,23 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
   }
 
   // The one route for every location-driven ontology source.
-  loadingModule.loadRemoteSource = function ({ source, shouldCache = true }) {
+  loadingModule.loadRemoteSource = async function ({
+    source,
+    initialVisualization,
+    presentation,
+    shouldCache = true,
+  }) {
     fileReadSequence += 1;
     prepareLoadingPresentation(shouldCache);
     document.querySelector("#progressBarLabel").textContent = "";
-    return loadOntologyThroughController(source);
+    const state = await loadOntologyThroughController(
+      source,
+      initialVisualization,
+    );
+    if (state && presentation !== undefined) {
+      onShareLinkPresentation?.(presentation);
+    }
+    return state;
   };
 
   // The one route for a file the reader dropped or selected.
@@ -526,6 +578,7 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
       loadingModule.setErrorMode();
       loadingModule.showLoadingIndicator();
       if (controllerState.error) {
+        presentLoadingError(controllerState.error.message);
         ontologyMenu?.append_message_toLastBulletPoint(
           controllerState.error.message,
           { tone: "error", breakBefore: true },
@@ -623,102 +676,6 @@ export function createLoadingModule(graph, { webVowlController } = {}) {
     ontologyMenu.append_message_toLastBulletPoint("done");
     loadingModule.markModelReady();
   };
-
-  /** --- HELPER FUNCTIONS **/
-
-  function identifyParameter(url) {
-    const numParameters = (url.match(/#/g) || []).length;
-    // create parameters array
-    const paramArray = [];
-    if (numParameters > 0) {
-      const tokens = url.split("#");
-      // skip the first token since it is the address of the server
-      for (let i = 1; i < tokens.length; i++) {
-        if (tokens[i].length === 0) {
-          // this token belongs actually to the last paramArray
-          paramArray[paramArray.length - 1] =
-            paramArray[paramArray.length - 1] + "#";
-        } else {
-          paramArray.push(tokens[i]);
-        }
-      }
-    }
-    return paramArray;
-  }
-
-  function loadGraphOptions(parameterArray) {
-    const optString = "opts=";
-
-    function loadDefaultConfig() {
-      graph.dispatchEvent(
-        new CustomEvent("urloptions", {
-          detail: {
-            opts: graph.ontologyEditingState().initialConfig(),
-            changeEditFlag: false,
-          },
-        }),
-      );
-    }
-
-    function loadCustomConfig(opts) {
-      let changeEditingFlag = false;
-      const defObj = graph.ontologyEditingState().initialConfig();
-      for (let i = 0; i < opts.length; i++) {
-        const keyVal = opts[i].split("=");
-        if (keyVal[0] === "editorMode") {
-          changeEditingFlag = true;
-        }
-        defObj[keyVal[0]] = keyVal[1];
-      }
-      graph.dispatchEvent(
-        new CustomEvent("urloptions", {
-          detail: { opts: defObj, changeEditFlag: changeEditingFlag },
-        }),
-      );
-    }
-
-    function identifyOptions(paramArray) {
-      if (paramArray[0].indexOf(optString) >= 0) {
-        // parse the parameters;
-        const parameterLength = paramArray[0].length;
-        const givenOptionsStr = paramArray[0].substr(5, parameterLength - 6);
-        const optionsArray = givenOptionsStr.split(";");
-        loadCustomConfig(optionsArray);
-      } else {
-        ontologyIdentifierFromURL = paramArray[0];
-        loadDefaultConfig();
-      }
-    }
-
-    function identifyOptionsAndOntology(paramArray) {
-      if (paramArray[0].indexOf(optString) >= 0) {
-        // parse the parameters;
-        const parameterLength = paramArray[0].length;
-        const givenOptionsStr = paramArray[0].substr(5, parameterLength - 6);
-        const optionsArray = givenOptionsStr.split(";");
-        loadCustomConfig(optionsArray);
-      } else {
-        loadDefaultConfig();
-      }
-      ontologyIdentifierFromURL = paramArray[1];
-    }
-
-    switch (parameterArray.length) {
-      case 0:
-        loadDefaultConfig();
-        break;
-      case 1:
-        identifyOptions(parameterArray);
-        break;
-      case 2:
-        identifyOptionsAndOntology(parameterArray);
-        break;
-      default:
-        console.warn("To many input parameters , loading default config");
-        loadDefaultConfig();
-        ontologyIdentifierFromURL = "ERROR_TO_MANY_INPUT_PARAMETERS";
-    }
-  }
 
   return loadingModule;
 }

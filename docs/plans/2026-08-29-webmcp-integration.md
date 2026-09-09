@@ -34,6 +34,17 @@ only when native D3/browser behavior is material to its fix. Keep the full twent
 evaluation and integrated checks at the end. Existing native failure evidence
 remains required; this batching does not waive browser acceptance.
 
+The 2026-09-09 proportionality review confirms that a full verification cycle is
+not required after every correction. Finish coherent workflows with focused
+regressions and preservation checks, review correction deltas using unchanged
+evidence, and perform broad verification after findings are resolved. Section 5
+is the authoritative completion inventory under the owner's parity amendment;
+historical tool counts and exclusions in earlier task records do not constrain it.
+Remaining sequence: saved settings and share links; application-owned editable
+document and renderer boundary; remaining arrangement, detail and export actions;
+integrated browser jobs and independent correctness/security review; final
+verification, architecture/naming audit, cleanup and signed feature-branch backup.
+
 **Pause** is the action that stops automatic layout motion so the reader's current
 arrangement is retained. **Resume** restarts that motion, including reheating the
 simulation as the human Resume control does. Omitting `layout` issues neither action:
@@ -1145,7 +1156,7 @@ await documentObject.modelContext.registerTool(
 
 - [x] Add a small deterministic Turtle fixture with `Person`, `Organization`, `Publication`, object properties connecting them, one datatype property, English and German labels, and no external imports. Keep it under 20 KiB and serve it through the existing Vite application data path; do not change Vite configuration.
 - [x] Create the evaluation document with fields for date, browser/client/version, WebMCP enablement method, model, source, prompt ID, tools selected, completion without manual clicking, source correctness, view correctness, warning correctness, load latency, artifact latency, serialized result size, SVG retrieval, conversation attachment, unsupported semantic claims, console errors, and notes.
-- [~] Put these 20 job-oriented prompts in the matrix and run them in order: the matrix is written; the runs need a WebMCP-enabled browser session (see the blocked note below):
+- [~] Put these 20 job-oriented prompts in the matrix and run them in order. The matrix is written and native WebMCP is now available in Chrome; complete the runs against the integrated implementation:
 
   1. “Load the evaluation ontology, use English labels, hide datatype nodes, focus on Person and Organization, relax the graph, export `person-organization.svg`, and report warnings.”
   2. “Load the local FOAF VOWL JSON URL and give me a compact orientation to the visible ontology.”
@@ -1180,7 +1191,7 @@ await documentObject.modelContext.registerTool(
 - [x] Run `npm test -- --runInBand`, `npm run lint`, `npm run format:check`, and `npm run build` after documentation and fixture changes.
 - [ ] Request approval for `docs(webmcp): Add usage and evaluation evidence`.
 
-**Blocked on a WebMCP-enabled browser session.** The fixture, the evaluation document and the README section are written, and the tools were exercised end to end against the live controller in a browser without the host API: all five register against a stub host, `get_ontology_summary` reported 48 FOAF classes, `find_ontology_elements` returned bounded matches at 727 serialized characters, `set_visualization_view` hiding datatypes took the drawn node count from 47 to 26 and restored it, and `load_ontology` fetched, parsed and rendered the new fixture with its English and German labels. What remains needs a browser that actually exposes `document.modelContext` with a client attached: the twenty prompt runs, the `getTools()` comparison, the independent artifact checks, the two-route convergence pairs, the export-does-not-disturb capture, the supersession evidence, and the iframe session. The no-WebMCP session is already confirmed: with no host API the page loads and draws normally and logs nothing.
+**Evaluation pending; native WebMCP is available.** The original stub-host and no-WebMCP runs are historical evidence recorded in the evaluation document. Subsequent Chrome checkpoints exercise native `document.modelContext` registration and execution, including pause, viewport, reset and loading. Complete the twenty model-selected jobs, independent artifact checks, human/agent convergence, export invariance, supersession and iframe/unsupported-context acceptance against the final integration. Intermediate native checks do not complete that matrix.
 
 **Acceptance:** The feature is evaluated as complete user work, not just callback success; SVG retrieval, client attachment, security, and unsupported environments are reported as distinct outcomes.
 
@@ -1350,10 +1361,10 @@ The original conversation’s complete product reasoning has an implementation h
 
 ## 5. Completion definition
 
-This plan is complete only when all of the following are true:
+This is the authoritative completion inventory, incorporating the owner's action-parity amendment and subsequent commit/push approvals. Earlier task records retain historical evidence; their five-tool ceiling and occurrence exclusions are superseded. This plan is complete only when all of the following are true:
 
 - The ordinary interface works with WebMCP absent.
-- A supported top-level page registers exactly five imperative tools and cleans them up on page disposal.
+- A supported top-level page registers the closed, bounded tools needed by every action in the owner's parity inventory and cleans them up on page disposal. Experimental ontology editing has no agent registration.
 - The same `WebVowlController` is used by human UI paths, WebMCP, and tests.
 - `RenderedGraphRuntime` is the only production application interface to graph behavior, and `D3RenderedGraphAdapter` is its only production implementation; the in-memory adapter is test-only.
 - Every new JavaScript module/test and every existing JavaScript module materially reshaped by the initiative is native ESM with explicit relative extensions and semantically precise named exports. The browser/application/visualization entry chain and both sides of `RenderedGraphRuntime` are included.
@@ -1361,12 +1372,12 @@ This plan is complete only when all of the following are true:
 - No UI, controller, WebMCP, inspector, layout-settlement, serializer, or artifact module imports/reads D3 or calls a concrete graph/filter/options implementation, and no rendered-graph module stores or calls a UI object.
 - The ontology model is owned by the application, per ADR 0010. `VowlModelInspectionProjector` builds `OntologyInspectionSnapshot` from the VOWL model, the seam exposes no ontology-inspection reader, every semantic question is answerable before the renderer mounts, and no interface module obtains an ontology fact from a rendered element, a renderer settings bag, or the live SVG.
 - `WebVowlControllerState` has a closed asserted field set, and its generation-scoped fields are reset when a load begins, so no state field can name an element of a retired generation.
-- The application addresses ontology entities only; which drawn occurrence was clicked, pinned, or haloed never crosses the seam.
+- Semantic references, VOWL document record targets and opaque generation-scoped arrangement references have distinct contracts, as defined in ADR 0012. Human edits target the application-owned document; arrangement identity carries no ontology-editing authority.
 - Every new exported symbol and structured object uses the §1.7 controlled vocabulary consistently; names distinguish ontology documents, VOWL models, rendered graphs, visualization views, SVG artifacts, handles, and URLs, and encode Boolean predicates, units, encodings, and lifetimes where applicable.
 - Newer loads cannot be overwritten by stale generations; stale ticks, end/progress/paint callbacks, relaxation, snapshot work, and export restoration are fenced; cancellation preserves the most recent valid graph.
 - Initial render completion means the current generation's geometry was actually painted.
 - Summary and search use immutable `OntologyInspectionSnapshot` and `VisibleRenderedGraphSnapshot` values, return stable references, and make no semantic claims from visual proximity. The inspection snapshot carries every relation the VOWL model supplies, plus annotations, OWL property characteristics, cardinality, and localized descriptions, so searching an equivalent class's label finds the element it is equivalent to.
-- Human language/filter/minimum-degree/search/focus/relax/pause/fit/zoom/distance/display-mode actions and agent view requests use controller operations; changes remain visible, reversible, and synchronized with native DOM controls. A zoom control reads `state.viewport.zoomScale` and tracks pointer and wheel gestures it did not initiate.
+- Every non-editing action in the parity inventory uses the shared application owner for human and agent callers: source loading, language, filters, degree, search, details, selection, focus, pause/resume, zoom and center, pan, distances, display modes, reset, arrangement, share links and supported exports. Controls present actual applied state, including `state.zoomScale` and viewport gestures they did not initiate. Human experimental editing remains usable and its accepted document changes are visible to inspection, recovery and exports.
 - Strict export waits for the agreed stability contract; best-effort output occurs only when explicitly requested.
 - SVG export has one production implementation: the runtime creates a detached styled `RenderedSvgSnapshot`, the D3-free serializer leaves the live SVG unchanged, and the artifact service creates a valid local Blob with matching visible download, metadata, byte length, and SHA-256; obsolete object URLs are revoked, and missing required browser primitives produce `EXPORT_FAILED` rather than a legacy transport fallback.
 - Tool results never contain ontology source, VOWL JSON, SVG source, download URLs, credentials, stack traces, or unbounded derived content.

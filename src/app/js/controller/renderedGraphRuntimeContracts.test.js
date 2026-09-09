@@ -360,6 +360,7 @@ describe("rendered graph events", () => {
       "rendered-element-selection-changed",
       "viewport-changed",
       "visualization-view-changed",
+      "degree-filter-range-changed",
       "graph-layout-state-changed",
       "editor-mode-changed",
     ]);
@@ -838,6 +839,57 @@ describe("rendered SVG snapshots", () => {
 });
 
 describe("rendered graph requests and results", () => {
+  test("publishes an immutable degree range with its automatic collapse minimum", () => {
+    const event = createRenderedGraphEvent({
+      kind: "degree-filter-range-changed",
+      loadGeneration: 4,
+      payload: { maximumDegree: 125, automaticMinimumDegree: 2 },
+    });
+    expect(event.payload).toEqual({
+      maximumDegree: 125,
+      automaticMinimumDegree: 2,
+    });
+    expect(Object.isFrozen(event.payload)).toBe(true);
+    expect(() =>
+      createRenderedGraphEvent({
+        kind: "degree-filter-range-changed",
+        loadGeneration: 4,
+        payload: { maximumDegree: 1, automaticMinimumDegree: 2 },
+      }),
+    ).toThrow();
+  });
+
+  test("validates and owns initial visualization choices before replacement", () => {
+    const initialVisualization = {
+      view: {
+        layout: "pause",
+        zoomScale: 0.5,
+        translation: { xPx: 0, yPx: -20 },
+        filters: { minDegree: 0 },
+      },
+      modes: { dynamicLabelWidth: false },
+      forceDistances: { classDistancePx: 300 },
+    };
+    const request = createVowlModelReplacementRequest({
+      loadGeneration: 3,
+      vowlModel: { header: {} },
+      initialVisualization,
+    });
+    initialVisualization.view.translation.xPx = 900;
+    expect(request.initialVisualization.view.translation).toEqual({
+      xPx: 0,
+      yPx: -20,
+    });
+    expectPlainDataDeeplyFrozen(request);
+    expect(() =>
+      createVowlModelReplacementRequest({
+        loadGeneration: 4,
+        vowlModel: {},
+        initialVisualization: { view: { zoomScale: 8 } },
+      }),
+    ).toThrow(/zoomScale/);
+  });
+
   test("copies and freezes an opaque VOWL model replacement request", () => {
     const vowlModel = {
       class: [{ id: "1", type: "owl:Class" }],
@@ -928,14 +980,26 @@ describe("rendered graph requests and results", () => {
     ).toEqual({ loadGeneration: 3 });
   });
 
-  test("rejects an out-of-range visualization minimum degree", () => {
-    expect(() =>
+  test("accepts the human slider's minimum degree above 100", () => {
+    expect(
       createVisualizationViewApplicationRequest({
-        filters: { minDegree: 101 },
+        filters: { minDegree: 125 },
         loadGeneration: 3,
-      }),
-    ).toThrow("minDegree");
+      }).filters.minDegree,
+    ).toBe(125);
   });
+
+  test.each([-1, 1.5, Number.MAX_SAFE_INTEGER + 1, Infinity, NaN])(
+    "rejects an invalid visualization minimum degree %s",
+    (minDegree) => {
+      expect(() =>
+        createVisualizationViewApplicationRequest({
+          filters: { minDegree },
+          loadGeneration: 3,
+        }),
+      ).toThrow("minDegree");
+    },
+  );
 
   test("returns the applied view with its visible rendered graph snapshot", () => {
     const result = createVisualizationViewApplicationResult({

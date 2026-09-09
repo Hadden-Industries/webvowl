@@ -29,6 +29,7 @@ export const RENDERED_GRAPH_EVENT_KINDS = Object.freeze([
   "rendered-element-selection-changed",
   "viewport-changed",
   "visualization-view-changed",
+  "degree-filter-range-changed",
   "graph-layout-state-changed",
   "editor-mode-changed",
 ]);
@@ -901,9 +902,9 @@ function deepFreezePlainData(plainDataValue, ancestorObjects = new WeakSet()) {
 }
 
 export function createVowlModelReplacementRequest(request) {
-  assertExactFieldNames(
+  assertAllowedFieldNames(
     request,
-    ["loadGeneration", "vowlModel"],
+    ["loadGeneration", "vowlModel", "initialVisualization"],
     "VOWL model replacement request",
   );
   assertPositiveLoadGeneration(request.loadGeneration);
@@ -919,6 +920,41 @@ export function createVowlModelReplacementRequest(request) {
   return Object.freeze({
     loadGeneration: request.loadGeneration,
     vowlModel: deepFreezePlainData(ownedVowlModel),
+    ...(request.initialVisualization === undefined
+      ? {}
+      : {
+          initialVisualization: createInitialVisualizationRequest(
+            request.initialVisualization,
+          ),
+        }),
+  });
+}
+
+export function createInitialVisualizationRequest(initial) {
+  assertAllowedFieldNames(
+    initial,
+    ["view", "modes", "forceDistances"],
+    "initial visualization",
+  );
+  if (initial.view?.viewport !== undefined) {
+    throw new TypeError(
+      "Initial visualization accepts viewport coordinates, not viewport actions.",
+    );
+  }
+  return Object.freeze({
+    ...(initial.view === undefined
+      ? {}
+      : { view: createVisualizationViewRequest(initial.view) }),
+    ...(initial.modes === undefined
+      ? {}
+      : { modes: createVisualizationModesRequest(initial.modes) }),
+    ...(initial.forceDistances === undefined
+      ? {}
+      : {
+          forceDistances: createForceLayoutDistancesRequest(
+            initial.forceDistances,
+          ),
+        }),
   });
 }
 
@@ -957,12 +993,8 @@ function createVisualizationFilters(filters, { requireEveryField }) {
     normalizedFilters[fieldName] = filters[fieldName];
   }
   if (filters.minDegree !== undefined || requireEveryField) {
-    if (
-      !Number.isInteger(filters.minDegree) ||
-      filters.minDegree < 0 ||
-      filters.minDegree > 100
-    ) {
-      throw new RangeError("minDegree must be an integer from 0 through 100.");
+    if (!Number.isSafeInteger(filters.minDegree) || filters.minDegree < 0) {
+      throw new RangeError("minDegree must be a non-negative safe integer.");
     }
     normalizedFilters.minDegree = filters.minDegree;
   }
@@ -1214,11 +1246,23 @@ export function createVisualizationViewApplicationRequest(request) {
     );
   }
   assertPositiveLoadGeneration(request.loadGeneration);
+  const { loadGeneration, ...viewRequest } = request;
+  return Object.freeze({
+    ...createVisualizationViewRequest(viewRequest),
+    loadGeneration,
+  });
+}
+
+export function createVisualizationViewRequest(request) {
+  assertAllowedFieldNames(
+    request,
+    VISUALIZATION_VIEW_REQUEST_FIELD_NAMES,
+    "visualization view request",
+  );
   const normalizedRequest = {
     ...createVisualizationViewSettings(request, {
       requireEveryField: false,
     }),
-    loadGeneration: request.loadGeneration,
   };
   if (request.layout !== undefined) {
     assertLayoutDirective(request.layout);
@@ -1395,6 +1439,23 @@ function createRenderedGraphEventPayload(kind, payload) {
         throw new TypeError("isEditorMode must be a boolean.");
       }
       return Object.freeze({ isEditorMode: payload.isEditorMode });
+    case "degree-filter-range-changed":
+      assertExactFieldNames(
+        payload,
+        ["maximumDegree", "automaticMinimumDegree"],
+        `${kind} payload`,
+      );
+      assertNonNegativeInteger(payload.maximumDegree, "maximumDegree");
+      assertNonNegativeInteger(
+        payload.automaticMinimumDegree,
+        "automaticMinimumDegree",
+      );
+      if (payload.automaticMinimumDegree > payload.maximumDegree) {
+        throw new RangeError(
+          "Automatic minimum degree cannot exceed the maximum degree.",
+        );
+      }
+      return Object.freeze({ ...payload });
     case "visualization-view-changed":
       assertExactFieldNames(
         payload,

@@ -255,11 +255,7 @@ describe("ontology menu actions", () => {
     const loadingModule = {
       createNewOntology,
       setOntologyMenu: jest.fn(),
-      loadRemoteSource: jest.fn(() => Promise.resolve()),
-      ontologySourceFromLocation: jest.fn(() => ({
-        kind: "vowl-json-url",
-        url: "https://example.test/foaf.json",
-      })),
+      loadOntologyFromLocation: jest.fn(() => Promise.resolve()),
     };
     // The ontology menu reaches the loading module through the registry.
     registeredUiModulesForTest.set("loadingModule", loadingModule);
@@ -289,9 +285,8 @@ describe("ontology menu actions", () => {
   test("reload delegates replacement without requiring a graph-clearing route", () => {
     expect(() => ontologyMenu.reloadCachedOntology()).not.toThrow();
     expect(
-      registeredUiModulesForTest.get("loadingModule").loadRemoteSource,
+      registeredUiModulesForTest.get("loadingModule").loadOntologyFromLocation,
     ).toHaveBeenCalledWith({
-      source: { kind: "vowl-json-url", url: "https://example.test/foaf.json" },
       shouldCache: false,
     });
   });
@@ -448,8 +443,7 @@ describe("ontology menu converter responses", () => {
     registeredUiModulesForTest.set("loadingModule", {
       createNewOntology: jest.fn(),
       setOntologyMenu: jest.fn(),
-      loadRemoteSource: jest.fn(() => Promise.resolve()),
-      ontologySourceFromLocation: jest.fn(),
+      loadOntologyFromLocation: jest.fn(() => Promise.resolve()),
     });
     ontologyMenu = createOntologyMenu(
       {

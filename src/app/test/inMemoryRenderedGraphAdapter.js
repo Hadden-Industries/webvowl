@@ -546,14 +546,35 @@ export function createInMemoryRenderedGraphAdapter() {
         return false;
       }
       const replacementToComplete = pendingReplacement;
+      const initial =
+        replacementToComplete.replacementRequest.initialVisualization ?? {};
+      const initialView = initial.view ?? {};
+      appliedVisualizationView = createAppliedVisualizationView({
+        ...appliedVisualizationView,
+        language: initialView.language ?? appliedVisualizationView.language,
+        focus: initialView.focus ?? appliedVisualizationView.focus,
+        filters: {
+          ...appliedVisualizationView.filters,
+          ...initialView.filters,
+        },
+        modes: { ...appliedVisualizationView.modes, ...initial.modes },
+        forceDistances: {
+          ...appliedVisualizationView.forceDistances,
+          ...initial.forceDistances,
+        },
+      });
       const nextVisibleRenderedGraphSnapshot =
         createVisibleRenderedGraphSnapshot(
           snapshotOverrides.visibleRenderedGraphSnapshot ??
             createDefaultVisibleRenderedGraphSnapshot(loadGeneration),
         );
       const nextGraphLayoutSnapshot = createGraphLayoutSnapshot(
-        snapshotOverrides.graphLayoutSnapshot ??
-          createDefaultGraphLayoutSnapshot(loadGeneration),
+        snapshotOverrides.graphLayoutSnapshot ?? {
+          ...createDefaultGraphLayoutSnapshot(loadGeneration),
+          ...(initialView.layout === undefined
+            ? {}
+            : { isPaused: initialView.layout === "pause" }),
+        },
       );
       const nextRenderedSvgSnapshot = createRenderedSvgSnapshot(
         snapshotOverrides.renderedSvgSnapshot ??
@@ -574,6 +595,22 @@ export function createInMemoryRenderedGraphAdapter() {
       visibleRenderedGraphSnapshot = nextVisibleRenderedGraphSnapshot;
       graphLayoutSnapshot = nextGraphLayoutSnapshot;
       renderedSvgSnapshot = nextRenderedSvgSnapshot;
+      if (
+        initialView.zoomScale !== undefined ||
+        initialView.translation !== undefined
+      ) {
+        publishRenderedGraphEvent({
+          kind: "viewport-changed",
+          loadGeneration,
+          payload: {
+            zoomScale: initialView.zoomScale ?? viewportState.zoomScale,
+            translationXPx:
+              initialView.translation?.xPx ?? viewportState.translationXPx,
+            translationYPx:
+              initialView.translation?.yPx ?? viewportState.translationYPx,
+          },
+        });
+      }
       pendingReplacement = null;
       settlePendingOperation(
         replacementToComplete,

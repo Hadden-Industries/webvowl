@@ -3,38 +3,31 @@ import { createElementTools as elementToolsFactory } from "../util/elementTools.
 const elementTools = elementToolsFactory();
 const filterTools = filterToolsFactory();
 
-export function createNodeDegreeFilter(menu) {
+export function createNodeDegreeFilter() {
   const filter = {};
   let nodes;
   let properties;
   let enabled = true;
   let filteredNodes;
   let filteredProperties;
-  let maxDegreeSetter;
-  let degreeGetter;
-  let degreeSetter;
   let requestedMinimumDegree;
+  let minimumDegree = 0;
+  let maximumDegree = 0;
+  let automaticMinimumDegree = 0;
 
   const NODE_COUNT_LIMIT_FOR_AUTO_ENABLING = 50;
 
   filter.initialize = function (nodes, properties) {
-    const maxLinkCount = findMaxLinkCount(nodes);
-    if (typeof maxDegreeSetter === "function") {
-      maxDegreeSetter(maxLinkCount);
-    }
-
-    menu.setDefaultDegreeValue(
-      findAutoDefaultDegree(nodes, properties, maxLinkCount),
+    maximumDegree = findMaxLinkCount(nodes);
+    automaticMinimumDegree = findAutoDefaultDegree(
+      nodes,
+      properties,
+      maximumDegree,
     );
-    const defaultDegree = findDefaultDegree(maxLinkCount);
-    if (typeof degreeSetter === "function") {
-      degreeSetter(defaultDegree);
-      if (defaultDegree > 0) {
-        menu.highlightForDegreeSlider(true);
-      }
-    } else {
-      console.error("No degree setter function set.");
-    }
+    minimumDegree = Math.min(
+      requestedMinimumDegree ?? automaticMinimumDegree,
+      maximumDegree,
+    );
   };
 
   function findAutoDefaultDegree(nodes, properties, maxDegree) {
@@ -48,19 +41,6 @@ export function createNodeDegreeFilter(menu) {
     return 0;
   }
 
-  function findDefaultDegree(maxDegree) {
-    const globalDegOfFilter = menu.getGraphObject().getGlobalDOF();
-    if (globalDegOfFilter >= 0) {
-      if (globalDegOfFilter <= maxDegree) {
-        return globalDegOfFilter;
-      } else {
-        menu.getGraphObject().setGlobalDOF(maxDegree);
-        return maxDegree;
-      }
-    }
-    return menu.getDefaultDegreeValue();
-  }
-
   /**
    * If enabled, all nodes are filter by their node degree.
    * @param untouchedNodes
@@ -70,16 +50,8 @@ export function createNodeDegreeFilter(menu) {
     nodes = untouchedNodes;
     properties = untouchedProperties;
 
-    // A degree the runtime set takes precedence over one read from a control,
-    // so the filter works with no user interface attached.
     if (this.enabled()) {
-      if (requestedMinimumDegree !== undefined) {
-        filterByNodeDegreeAndApply(requestedMinimumDegree);
-      } else if (typeof degreeGetter === "function") {
-        filterByNodeDegreeAndApply(degreeGetter());
-      } else {
-        console.error("No degree query function set.");
-      }
+      filterByNodeDegreeAndApply(minimumDegree);
     }
 
     filteredNodes = nodes;
@@ -130,25 +102,20 @@ export function createNodeDegreeFilter(menu) {
 
   filter.minDegree = function (nextMinimumDegree) {
     if (!arguments.length) {
-      return requestedMinimumDegree ?? Number(degreeGetter?.() ?? 0);
+      return minimumDegree;
+    }
+    if (!Number.isSafeInteger(nextMinimumDegree) || nextMinimumDegree < 0) {
+      throw new RangeError(
+        "Minimum node degree must be a non-negative safe integer.",
+      );
     }
     requestedMinimumDegree = nextMinimumDegree;
-    if (typeof degreeSetter === "function") {
-      degreeSetter(nextMinimumDegree);
-    }
+    minimumDegree = nextMinimumDegree;
     return filter;
   };
 
-  filter.setMaxDegreeSetter = function (_maxDegreeSetter) {
-    maxDegreeSetter = _maxDegreeSetter;
-  };
-
-  filter.setDegreeGetter = function (_degreeGetter) {
-    degreeGetter = _degreeGetter;
-  };
-
-  filter.setDegreeSetter = function (_degreeSetter) {
-    degreeSetter = _degreeSetter;
+  filter.readDegreeRange = function () {
+    return Object.freeze({ maximumDegree, automaticMinimumDegree });
   };
 
   filter.enabled = function (p) {

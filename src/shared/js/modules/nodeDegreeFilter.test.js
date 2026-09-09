@@ -64,18 +64,48 @@ describe("node degree filter minimum degree", () => {
     expect(filter.minDegree()).toBe(4);
   });
 
-  test("reports the degree supplied by its connected control before an explicit choice", () => {
+  test("owns automatic collapse and its range without any user interface", () => {
     const filter = createNodeDegreeFilter();
-    filter.setDegreeGetter(() => "4");
-    expect(filter.minDegree()).toBe(4);
+    const nodes = [
+      ...Array.from({ length: 51 }, (_, i) =>
+        createNodeFixture(`isolated-${i}`, 0),
+      ),
+      createNodeFixture("connected", 3),
+    ];
+    filter.initialize(nodes, []);
+    filter.filter(nodes, []);
+    expect(filter.minDegree()).toBe(1);
+    expect(filter.filteredNodes().map((node) => node.id())).toEqual([
+      "connected",
+    ]);
+    expect(filter.readDegreeRange()).toEqual({
+      maximumDegree: 3,
+      automaticMinimumDegree: 1,
+    });
+    expect(Object.isFrozen(filter.readDegreeRange())).toBe(true);
+    expect(filter.setDegreeGetter).toBeUndefined();
+    expect(filter.setDegreeSetter).toBeUndefined();
+    expect(filter.setMaxDegreeSetter).toBeUndefined();
+  });
+
+  test("retains explicit zero and clamps a retained minimum to the new graph maximum", () => {
+    const filter = createNodeDegreeFilter();
+    const nodes = [
+      createNodeFixture("isolated", 0),
+      createNodeFixture("connected", 3),
+    ];
+    filter.minDegree(20);
+    filter.initialize(nodes, []);
+    expect(filter.minDegree()).toBe(3);
+    filter.minDegree(0);
+    filter.initialize(nodes, []);
+    filter.filter(nodes, []);
+    expect(filter.minDegree()).toBe(0);
+    expect(filter.filteredNodes()).toEqual(nodes);
   });
 
   test("reports the zero degree actually used when the empty-result fallback restores the graph", () => {
     const filter = createNodeDegreeFilter();
-    let displayedDegree;
-    filter.setDegreeSetter((value) => {
-      displayedDegree = value;
-    });
     const nodes = [
       createNodeFixture("isolated", 0),
       createNodeFixture("connected", 1),
@@ -83,7 +113,6 @@ describe("node degree filter minimum degree", () => {
     filter.minDegree(5);
     filter.filter(nodes, []);
     expect(filter.filteredNodes()).toEqual(nodes);
-    expect(displayedDegree).toBe(0);
     expect(filter.minDegree()).toBe(0);
   });
 });

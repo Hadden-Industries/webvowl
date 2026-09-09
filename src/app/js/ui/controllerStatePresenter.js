@@ -51,6 +51,7 @@ export const PRESENTED_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
 export const SEPARATELY_PRESENTED_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "view",
   "translation",
+  "degreeFilterRange",
 ]);
 
 function assertExactDependencyFieldNames(dependencies) {

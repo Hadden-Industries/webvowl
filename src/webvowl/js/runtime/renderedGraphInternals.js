@@ -250,7 +250,6 @@ function createGraph(graphContainerSelector) {
   let locationId = 0;
   let defaultZoom = 1.0;
   const defaultTargetZoom = 0.8;
-  let global_dof = -1;
   let touchDevice = false;
   let last_canvas_touch_time = 0;
   let last_element_tap_time = 0;
@@ -375,12 +374,6 @@ function createGraph(graphContainerSelector) {
   /** --------------------------------------------------------- **/
   graph.isEditorMode = function () {
     return editMode;
-  };
-  graph.getGlobalDOF = function () {
-    return global_dof;
-  };
-  graph.setGlobalDOF = function (val) {
-    global_dof = val;
   };
 
   graph.updateZoomSliderValueFromOutside = function () {
@@ -548,32 +541,13 @@ function createGraph(graphContainerSelector) {
     return completeViewportTransition(transition, signal);
   };
 
-  graph.setZoom = function (value) {
-    const normalized = viewportTransform.normalizeZoom(
-      value,
-      renderedGraphSettings.minMagnification(),
-      renderedGraphSettings.maxMagnification(),
-    );
-    if (normalized === undefined) {
-      return false;
-    }
-    zoomFactor = normalized;
-    syncZoomState();
-    return true;
-  };
-
-  graph.setTranslation = function (translation) {
-    const normalized = viewportTransform.normalizeTranslation(translation);
-    if (!normalized) {
-      return false;
-    }
-    graphTranslation = normalized;
-    syncZoomState();
-    return true;
-  };
-
   graph.setViewportTransform = function (scale, translation) {
-    return updateViewportState(translation, scale);
+    if (!updateViewportState(translation, scale)) {
+      return false;
+    }
+    graphContainer?.interrupt().attr("transform", viewportTransformString());
+    updateHaloRadius();
+    return true;
   };
 
   graph.panViewport = function ({ xPx, yPx }) {
@@ -2151,7 +2125,16 @@ function createGraph(graphContainerSelector) {
     }
   };
 
-  graph.load = function (loadGeneration) {
+  graph.load = function (
+    loadGeneration,
+    { language: initialLanguage, isPaused, centerViewport = true } = {},
+  ) {
+    if (initialLanguage !== undefined) {
+      language = initialLanguage;
+    }
+    if (isPaused !== undefined) {
+      paused = isPaused;
+    }
     // Native drag/zoom closures retain active gesture bookkeeping. Each mount
     // owns fresh behaviours after the previous mount released its listeners.
     hasActiveRenderInteractions = true;
@@ -2166,7 +2149,7 @@ function createGraph(graphContainerSelector) {
       .on("tick.runtimeLayout", publishLayoutState)
       .on("end.runtimeLayout", publishLayoutState);
     force.stop();
-    loadGraphData();
+    loadGraphData(false, centerViewport);
     refreshGraphData();
     for (let i = 0; i < labelNodes.length; i++) {
       const label = labelNodes[i];
@@ -2389,7 +2372,7 @@ function createGraph(graphContainerSelector) {
     // progress through its event port.
   };
 
-  function loadGraphData(init) {
+  function loadGraphData(init, centerViewport = true) {
     // reset the locate button and previously selected locations and other variables
 
     force.stop();
@@ -2555,11 +2538,7 @@ function createGraph(graphContainerSelector) {
     // generate dictionary here ;
     generateDictionary(unfilteredData);
 
-    parser.parseSettings();
-    centerGraphViewOnLoad = true;
-    if (parser.settingsImportGraphZoomAndTranslation() === true) {
-      centerGraphViewOnLoad = false;
-    }
+    centerGraphViewOnLoad = centerViewport;
     graph.dispatchEvent(new CustomEvent("dictionarychange"));
     renderedGraphSettings.editSidebar().updateGeneralOntologyInfo();
     renderedGraphSettings.editSidebar().updatePrefixUi();

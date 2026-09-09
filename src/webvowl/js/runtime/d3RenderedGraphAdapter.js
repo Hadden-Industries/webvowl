@@ -358,7 +358,10 @@ export function createD3RenderedGraphAdapter(dependencies) {
 
   // One normalized batch: every field the view changed is written to the
   // renderer before a single recomputation runs.
-  function applyVisualizationViewToRenderer(requestedView) {
+  function applyVisualizationViewToRenderer(
+    requestedView,
+    { updateDrawing = true } = {},
+  ) {
     const renderedGraphSettings = renderedGraphInternals.options();
     let requiresRecomputation = false;
 
@@ -391,7 +394,11 @@ export function createD3RenderedGraphAdapter(dependencies) {
 
     // Focus is purely visual: it marks elements without changing which are
     // present, so it must not recompute and restart the force simulation.
-    if (requiresRecomputation && activeLoadGeneration !== null) {
+    if (
+      updateDrawing &&
+      requiresRecomputation &&
+      activeLoadGeneration !== null
+    ) {
       renderedGraphInternals.update();
     }
     // The caller reports which elements were selected; the runtime decides
@@ -447,7 +454,10 @@ export function createD3RenderedGraphAdapter(dependencies) {
     }
   }
 
-  function applyVisualizationModesToRenderer(requestedModes) {
+  function applyVisualizationModesToRenderer(
+    requestedModes,
+    { updateDrawing = true } = {},
+  ) {
     const renderedGraphSettings = renderedGraphInternals.options();
     let hasChangedElementRendering = false;
     for (const [modeName, readModeModule] of Object.entries(
@@ -466,15 +476,16 @@ export function createD3RenderedGraphAdapter(dependencies) {
       hasChangedElementRendering = true;
     }
     if (
-      requestedModes.colorExternals !== undefined ||
-      requestedModes.colorExternalsMode !== undefined
+      updateDrawing &&
+      (requestedModes.colorExternals !== undefined ||
+        requestedModes.colorExternalsMode !== undefined)
     ) {
       renderedGraphInternals.executeColorExternalsModule();
     }
-    if (requestedModes.compactNotation !== undefined) {
+    if (updateDrawing && requestedModes.compactNotation !== undefined) {
       renderedGraphInternals.executeCompactNotationModule();
     }
-    if (requestedModes.nodeScaling !== undefined) {
+    if (updateDrawing && requestedModes.nodeScaling !== undefined) {
       renderedGraphInternals.executeNodeScalingModule();
     }
     // Label width is a drawing setting rather than a filter module, so it is
@@ -549,7 +560,58 @@ export function createD3RenderedGraphAdapter(dependencies) {
         renderedGraphInternals
           .options()
           .data(structuredClone(replacementRequest.vowlModel));
-        renderedGraphInternals.load(loadGeneration);
+        const initial = replacementRequest.initialVisualization ?? {};
+        const initialView = initial.view ?? {};
+        // Data interpretation happened in the application. Apply its semantic
+        // choices before drawing, without running modules on a retired model.
+        applyVisualizationViewToRenderer(
+          { filters: initialView.filters },
+          { updateDrawing: false },
+        );
+        applyVisualizationModesToRenderer(initial.modes ?? {}, {
+          updateDrawing: false,
+        });
+        for (const kind of ["class", "datatype"]) {
+          const distance = initial.forceDistances?.[`${kind}DistancePx`];
+          if (distance !== undefined) {
+            renderedGraphInternals.options()[`${kind}Distance`](distance);
+          }
+        }
+        const hasInitialViewport =
+          initialView.zoomScale !== undefined ||
+          initialView.translation !== undefined;
+        renderedGraphInternals.load(loadGeneration, {
+          ...(initialView.language === undefined
+            ? {}
+            : { language: initialView.language }),
+          ...(initialView.layout === undefined
+            ? {}
+            : { isPaused: initialView.layout === "pause" }),
+          centerViewport: !hasInitialViewport,
+        });
+        publishRenderedGraphEvent({
+          kind: "degree-filter-range-changed",
+          loadGeneration,
+          payload: renderedGraphInternals
+            .options()
+            .nodeDegreeFilter()
+            .readDegreeRange(),
+        });
+        if (hasInitialViewport) {
+          renderedGraphInternals.setViewportTransform(
+            initialView.zoomScale ?? renderedGraphInternals.scaleFactor(),
+            initialView.translation === undefined
+              ? renderedGraphInternals.translation()
+              : [initialView.translation.xPx, initialView.translation.yPx],
+          );
+        }
+        if (initialView.focus !== undefined) {
+          applyVisualizationViewToRenderer({ focus: initialView.focus });
+          appliedVisualizationView = createAppliedVisualizationView({
+            ...readAppliedVisualizationView(),
+            focus: initialView.focus,
+          });
+        }
 
         while (!renderedGraphInternals.isReadyForPaint()) {
           await awaitObservedPaint(loadGeneration, replacementSignal);

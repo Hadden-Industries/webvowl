@@ -1,4 +1,6 @@
 import { applicationUiModule } from "../ui/applicationUiRegistry.js";
+import { encodeVowlVisualizationSettings } from "../controller/vowlVisualizationSettings.js";
+import { createVisualizationShareLink } from "../controller/visualizationShareLink.js";
 /**
  * Contains the logic for the export button.
  * @returns {{}}
@@ -216,150 +218,43 @@ function createExportMenu(
     }, 2000);
   }
 
-  function prepareOptionString(defOpts, currOpts) {
-    let setOptions = 0;
-    let optsString = "opts=";
-
-    for (const name in defOpts) {
-      // define key and value ;
-      if (Object.prototype.hasOwnProperty.call(defOpts, name)) {
-        // for travis warning
-        const def_value = defOpts[name];
-        const cur_value = currOpts[name];
-        if (def_value !== cur_value) {
-          optsString += name + "=" + cur_value + ";";
-          setOptions++;
-        }
-      }
-    }
-    optsString += "";
-    if (setOptions === 0) {
-      return "";
-    }
-    return optsString;
-  }
-
   exportMenu.exportAsUrl = function () {
-    const currObj = {};
-    currObj.sidebar = applicationUiModule("sidebar")?.getSidebarVisibility();
-
-    // identify default value given by ontology;
-    const defOntValue = graph.options().filterMenu().getDefaultDegreeValue();
-    const currentValue = graph.options().filterMenu().getDegreeSliderValue();
-    if (parseInt(defOntValue) === parseInt(currentValue)) {
-      currObj.doc = -1;
-    } else {
-      currObj.doc = currentValue;
-    }
-
-    currObj.cd = graph.options().classDistance();
-    currObj.dd = graph.options().datatypeDistance();
-    if (graph.editorMode() === true) {
-      currObj.editorMode = "true";
-    } else {
-      currObj.editorMode = "false";
-    }
-    currObj.filter_datatypes = String(
-      graph.options().filterMenu().getCheckBoxValue("datatypeFilterCheckbox"),
-    );
-    currObj.filter_sco = String(
-      graph.options().filterMenu().getCheckBoxValue("subclassFilterCheckbox"),
-    );
-    currObj.filter_disjoint = String(
-      graph.options().filterMenu().getCheckBoxValue("disjointFilterCheckbox"),
-    );
-    currObj.filter_setOperator = String(
-      graph
-        .options()
-        .filterMenu()
-        .getCheckBoxValue("setoperatorFilterCheckbox"),
-    );
-    currObj.filter_objectProperties = String(
-      graph
-        .options()
-        .filterMenu()
-        .getCheckBoxValue("objectPropertyFilterCheckbox"),
-    );
-    currObj.mode_dynamic = String(graph.options().dynamicLabelWidth());
-    currObj.mode_scaling = String(
-      graph.options().modeMenu().getCheckBoxValue("nodescalingModuleCheckbox"),
-    );
-    currObj.mode_compact = String(
-      graph
-        .options()
-        .modeMenu()
-        .getCheckBoxValue("compactnotationModuleCheckbox"),
-    );
-    currObj.mode_colorExt = String(
-      graph
-        .options()
-        .modeMenu()
-        .getCheckBoxValue("colorexternalsModuleCheckbox"),
-    );
-    currObj.mode_multiColor = String(
-      graph.options().modeMenu().colorModeState(),
-    );
-    currObj.mode_pnp = String(
-      graph.options().modeMenu().getCheckBoxValue("pickandpinModuleCheckbox"),
-    );
-    currObj.debugFeatures = String(
-      !graph.ontologyEditingState().getHideDebugFeatures(),
-    );
-    currObj.rect = 0;
-
-    const defObj = graph.ontologyEditingState().initialConfig();
-    const optsString = prepareOptionString(defObj, currObj);
-    let urlString = String(locationObject);
-    let htmlElement;
-    // when everything is default then there is nothing to write
-    if (optsString.length === 0) {
-      // building up parameter list;
-
-      // remove the all options form locationObject
-      const hashCode = locationObject.hash;
-      urlString = urlString.split(hashCode)[0];
-
-      const lPos = hashCode.lastIndexOf("#");
-      if (lPos === -1) {
-        htmlElement = documentObject.querySelector("#exportedUrl");
-        htmlElement.value = String(locationObject);
-        htmlElement.title = String(locationObject);
-        return; // nothing to change in the locationObject String
-      }
-      const newURL = hashCode.slice(lPos, hashCode.length);
-      htmlElement = documentObject.querySelector("#exportedUrl");
-      htmlElement.value = urlString + newURL;
-      htmlElement.title = urlString + newURL;
+    const urlInput = documentObject.querySelector("#exportedUrl");
+    const copyButton = documentObject.querySelector("#copyBt");
+    const errorMessage = documentObject.querySelector("#exportUrlError");
+    if (!urlInput) {
       return;
     }
-
-    // generate the options string;
-    const numParameters = (urlString.match(/#/g) || []).length;
-    let newUrlString;
-    if (numParameters === undefined || numParameters === 0) {
-      newUrlString = urlString + "#" + optsString;
-    }
-    if (numParameters > 0) {
-      const tokens = urlString.split("#");
-      let i;
-      if (tokens[1].indexOf("opts=") >= 0) {
-        tokens[1] = optsString;
-        newUrlString = tokens[0];
-      } else {
-        newUrlString = tokens[0] + "#";
-        newUrlString += optsString;
+    try {
+      const sidebar = applicationUiModule("sidebar")?.getSidebarVisibility();
+      urlInput.value = createVisualizationShareLink(
+        String(locationObject),
+        webVowlController.getState(),
+        {
+          ...(sidebar === undefined ? {} : { sidebar: Number(sidebar) }),
+          editorMode: graph.editorMode(),
+          debugFeatures: !graph.ontologyEditingState().getHideDebugFeatures(),
+        },
+      );
+      urlInput.title = urlInput.value;
+      if (copyButton) {
+        copyButton.disabled = false;
       }
-      // append parameters
-      for (i = 1; i < tokens.length; i++) {
-        if (tokens[i].length > 0) {
-          newUrlString += "#" + tokens[i];
-        }
+      if (errorMessage) {
+        errorMessage.textContent = "";
+        errorMessage.classList.toggle("hidden", true);
+      }
+    } catch (error) {
+      urlInput.value = "";
+      urlInput.title = "";
+      if (copyButton) {
+        copyButton.disabled = true;
+      }
+      if (errorMessage) {
+        errorMessage.textContent = error.message;
+        errorMessage.classList.toggle("hidden", false);
       }
     }
-    // building up parameter list;
-    htmlElement = documentObject.querySelector("#exportedUrl");
-    htmlElement.value = newUrlString;
-    htmlElement.title = newUrlString;
   };
 
   // One element is both the control a reader clicks and the link the artifact
@@ -752,77 +647,9 @@ function createExportMenu(
         }
       }
     }
-    /** create the variable for settings and set their values **/
-    exportText.settings = {};
-
-    // Global Settings
-    const zoom = graph.scaleFactor();
-    const paused = graph.paused();
-    const translation = [
-      parseFloat(graph.translation()[0].toFixed(2)),
-      parseFloat(graph.translation()[1].toFixed(2)),
-    ];
-    exportText.settings.global = {};
-    exportText.settings.global.zoom = Number(zoom.toFixed(2));
-    exportText.settings.global.translation = translation;
-    exportText.settings.global.paused = paused;
-
-    // shared variable declaration
-    let cb_text;
-    let isEnabled;
-    let cb_obj;
-
-    // Gravity Settings
-    const classDistance = graph.options().classDistance();
-    const datatypeDistance = graph.options().datatypeDistance();
-    exportText.settings.gravity = {};
-    exportText.settings.gravity.classDistance = classDistance;
-    exportText.settings.gravity.datatypeDistance = datatypeDistance;
-
-    // Filter Settings
-    const fMenu = graph.options().filterMenu();
-    const fContainer = (fMenu.getCheckBoxContainer() || [])
-      .slice()
-      .sort(function (a, b) {
-        return String(a.checkbox.id || "").localeCompare(
-          String(b.checkbox.id || ""),
-        );
-      });
-    const cbCont = [];
-    for (i = 0; i < fContainer.length; i++) {
-      cb_text = fContainer[i].checkbox.id;
-      isEnabled = fContainer[i].checkbox.checked;
-      cb_obj = {};
-      cb_obj.id = cb_text;
-      cb_obj.checked = isEnabled;
-      cbCont.push(cb_obj);
-    }
-    const degreeSliderVal = fMenu.getDegreeSliderValue();
-    exportText.settings.filter = {};
-    exportText.settings.filter.checkBox = cbCont;
-    exportText.settings.filter.degreeSliderValue = degreeSliderVal;
-
-    // Modes Settings
-    const mMenu = graph.options().modeMenu();
-    const mContainer = (mMenu.getCheckBoxContainer() || [])
-      .slice()
-      .sort(function (a, b) {
-        return String(a.id || "").localeCompare(String(b.id || ""));
-      });
-    const cb_modes = [];
-    for (i = 0; i < mContainer.length; i++) {
-      cb_text = mContainer[i].id;
-      isEnabled = mContainer[i].element.checked;
-      cb_obj = {};
-      cb_obj.id = cb_text;
-      cb_obj.checked = isEnabled;
-      cb_modes.push(cb_obj);
-    }
-    const colorSwitchState = mMenu.colorModeState();
-    exportText.settings.modes = {};
-    exportText.settings.modes.checkBox = cb_modes;
-    exportText.settings.modes.colorSwitchState = colorSwitchState;
-
+    exportText.settings = encodeVowlVisualizationSettings(
+      webVowlController.getState(),
+    );
     const exportObj = {};
     exportObj._comment = exportText._comment;
     exportObj.header = exportText.header;

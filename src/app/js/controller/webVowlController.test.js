@@ -241,6 +241,151 @@ describe("WebVOWL controller orchestration", () => {
   }
 
   describe("load lifecycle and state machine", () => {
+    test.each(["saved", "explicit"])(
+      "rejects an absent %s language before replacing the accepted drawing",
+      async (choiceSource) => {
+        await completeLoad();
+        const loading = controller.loadOntology(
+          SOURCE_REQUEST,
+          choiceSource === "explicit"
+            ? { initialVisualization: { view: { language: "fr" } } }
+            : {},
+        );
+        const outcome = loading.catch((error) => error);
+        const record = createSourceLoadRecord();
+        if (choiceSource === "saved") {
+          record.vowlModel.settings = { global: { language: "fr" } };
+        }
+        deferredSourceLoads.at(-1).resolve(record);
+        await flushMicrotasks(12);
+        expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(1);
+        expect(await outcome).toMatchObject({ code: "VIEW_REJECTED" });
+        expect(controller.getState().source.identity).toBe(DOCUMENT_IRI);
+      },
+    );
+
+    test("validates initial language against the candidate ontology rather than the preceding ontology", async () => {
+      await completeLoad();
+      const record = createSourceLoadRecord({
+        vowlModel: {
+          header: { title: { fr: "Exemple" } },
+          class: [{ id: "c1", type: "owl:Class" }],
+          classAttribute: [
+            {
+              id: "c1",
+              iri: "https://example.test/Person",
+              label: { fr: "Personne" },
+            },
+          ],
+          property: [],
+          settings: { global: { language: "fr", paused: true } },
+        },
+      });
+      await completeLoad(2, {}, {}, record);
+      expect(controller.getState().view.language).toBe("fr");
+    });
+
+    test("loads saved view choices through the runtime without menu side effects", async () => {
+      const record = createSourceLoadRecord({
+        vowlModel: {
+          header: {},
+          class: [],
+          settings: {
+            global: { paused: true, zoom: 0.5, translation: [0, -20] },
+            gravity: { classDistance: 300, datatypeDistance: 180 },
+            filter: {
+              degreeSliderValue: "0",
+              checkBox: [{ id: "disjointFilterCheckbox", checked: false }],
+            },
+            modes: {
+              colorSwitchState: false,
+              checkBox: [{ id: "nodescalingModuleCheckbox", checked: false }],
+            },
+          },
+        },
+      });
+      await completeLoad(1, {}, {}, record);
+      expect(controller.getState()).toMatchObject({
+        status: "ready",
+        layout: { status: "paused" },
+        zoomScale: 0.5,
+        translation: { xPx: 0, yPx: -20 },
+        view: {
+          filters: { minDegree: 0, disjointness: "show" },
+          modes: { nodeScaling: false, colorExternalsMode: "same" },
+          forceDistances: { classDistancePx: 300, datatypeDistancePx: 180 },
+        },
+      });
+      expect(
+        renderedGraphRuntime.replaceVowlModel.mock.calls[0][0]
+          .initialVisualization,
+      ).toEqual({
+        view: {
+          layout: "pause",
+          zoomScale: 0.5,
+          translation: { xPx: 0, yPx: -20 },
+          filters: { minDegree: 0, disjointness: "show" },
+        },
+        modes: { nodeScaling: false, colorExternalsMode: "same" },
+        forceDistances: { classDistancePx: 300, datatypeDistancePx: 180 },
+      });
+    });
+
+    test("rejects invalid saved choices before replacing the accepted drawing", async () => {
+      await completeLoad();
+      const loading = controller.loadOntology(SOURCE_REQUEST);
+      const outcome = loading.catch((error) => error);
+      deferredSourceLoads.at(-1).resolve(
+        createSourceLoadRecord({
+          vowlModel: { header: {}, settings: { global: { zoom: 20 } } },
+        }),
+      );
+      await flushMicrotasks(12);
+      expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(1);
+      expect(await outcome).toMatchObject({ code: "PARSE_FAILED" });
+      expect(controller.getState().source.identity).toBe(DOCUMENT_IRI);
+    });
+
+    test("applies explicit load choices over saved settings and captures them before asynchronous work", async () => {
+      const choices = {
+        view: { filters: { minDegree: 0 }, layout: "pause" },
+        modes: { nodeScaling: false },
+      };
+      const loading = controller.loadOntology(SOURCE_REQUEST, {
+        initialVisualization: choices,
+      });
+      choices.view.filters.minDegree = 10;
+      choices.modes.nodeScaling = true;
+      const record = createSourceLoadRecord();
+      record.vowlModel.settings = {
+        global: { zoom: 0.5, translation: [0, -20], paused: false },
+        filter: { degreeSliderValue: 3 },
+        modes: { colorSwitchState: true },
+      };
+      deferredSourceLoads.at(-1).resolve(record);
+      await flushMicrotasks(6);
+      expect(
+        renderedGraphRuntime.replaceVowlModel.mock.calls.at(-1)[0]
+          .initialVisualization,
+      ).toEqual({
+        view: {
+          filters: { minDegree: 0 },
+          layout: "pause",
+          zoomScale: 0.5,
+          translation: { xPx: 0, yPx: -20 },
+        },
+        modes: { nodeScaling: false, colorExternalsMode: "gradient" },
+      });
+      expect(renderedGraphTestHarness.completeInitialPaint(1)).toBe(true);
+      await flushMicrotasks(6);
+      expect(
+        renderedGraphTestHarness.completeVisualizationViewApplication(1),
+      ).toBe(true);
+      await loading;
+      expect(controller.getState().layout.status).toBe("paused");
+      expect(controller.getState().view.filters.minDegree).toBe(0);
+    });
+
     test("starts idle with a frozen empty state", () => {
       const controllerState = controller.getState();
 
@@ -255,6 +400,7 @@ describe("WebVOWL controller orchestration", () => {
         layout: { status: "unavailable" },
         selection: [],
         renderProgress: null,
+        degreeFilterRange: null,
         editorMode: null,
         error: null,
       });
@@ -530,6 +676,21 @@ describe("WebVOWL controller orchestration", () => {
         expect(
           renderedGraphRuntime.replaceVowlModel.mock.calls[2][0].vowlModel,
         ).toEqual(accepted.vowlModel);
+        expect(
+          renderedGraphRuntime.replaceVowlModel.mock.calls[2][0]
+            .initialVisualization,
+        ).toEqual({
+          view: {
+            language: priorState.view.language,
+            filters: priorState.view.filters,
+            focus: priorState.view.focus,
+            layout: "resume",
+            zoomScale: 1.5,
+            translation: { xPx: 20, yPx: -5 },
+          },
+          modes: priorState.view.modes,
+          forceDistances: priorState.view.forceDistances,
+        });
         expect(renderedGraphTestHarness.completeInitialPaint(3)).toBe(true);
         await flushMicrotasks(6);
         renderedGraphTestHarness.publishRenderedGraphEvent({
@@ -762,6 +923,30 @@ describe("WebVOWL controller orchestration", () => {
   });
 
   describe("ontology inspection and view control", () => {
+    test("publishes the current generation's degree filter range", async () => {
+      await completeLoad();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "degree-filter-range-changed",
+        loadGeneration: 1,
+        payload: { maximumDegree: 125, automaticMinimumDegree: 2 },
+      });
+      expect(controller.getState().degreeFilterRange).toEqual({
+        maximumDegree: 125,
+        automaticMinimumDegree: 2,
+      });
+      expect(Object.isFrozen(controller.getState().degreeFilterRange)).toBe(
+        true,
+      );
+      expect(
+        renderedGraphTestHarness.publishRenderedGraphEvent({
+          kind: "degree-filter-range-changed",
+          loadGeneration: 9,
+          payload: { maximumDegree: 1, automaticMinimumDegree: 0 },
+        }),
+      ).toBe(false);
+      expect(controller.getState().degreeFilterRange.maximumDegree).toBe(125);
+    });
+
     test("publishes pan independently of the standing view and preserves magnification", async () => {
       await completeLoad();
       renderedGraphTestHarness.publishRenderedGraphEvent({

@@ -84,10 +84,12 @@ export function createZoomSlider({
 
   zoomSlider.setup = function () {
     slider = documentObject.getElementById("zoomSliderElement");
-    slider.value = zoomValue;
     slider.min = minMag;
     slider.max = maxMag;
-    slider.step = (maxMag - minMag) / 40;
+    // Native range inputs round values to their step grid. The renderer can
+    // report any magnification after a gesture or saved-view load.
+    slider.step = "any";
+    slider.value = zoomValue;
     slider.setAttribute("aria-valuetext", zoomPercentage(zoomValue));
     slider.disabled = !controlsEnabled;
     slider.addEventListener("input", function () {

@@ -96,8 +96,11 @@ export function createOntologyEditingState() {
   ontologyEditingState.getHideDebugFeatures = function () {
     return hideDebugOptions;
   };
-  ontologyEditingState.executeHiddenDebugFeatures = function () {
-    hideDebugOptions = !hideDebugOptions;
+  ontologyEditingState.setDebugFeaturesVisible = function (isVisible) {
+    if (typeof isVisible !== "boolean") {
+      throw new TypeError("Debug feature visibility must be a Boolean.");
+    }
+    hideDebugOptions = !isVisible;
     for (const debugOptionElement of globalThis.document.querySelectorAll(
       ".debugOption",
     )) {
@@ -250,10 +253,6 @@ export function createOntologyEditingState() {
   ontologyEditingState.setEditorModeForDefaultObject = function (val) {
     defaultOptionsConfig.editorMode = String(val);
   };
-  ontologyEditingState.setHideDebugFeatures = function (val) {
-    hideDebugOptions = val;
-  };
-
   ontologyEditingState.setHideDebugFeaturesForDefaultObject = function (val) {
     defaultOptionsConfig.debugFeatures = String(!val);
   };
