@@ -10,6 +10,12 @@
 
 ## Context
 
+The owner's 2026-09-09 action-parity amendment supersedes decisions 5 and 8's
+restrictions on arrangement references and agent access to viewing controls.
+[ADR 0012](0012-human-and-agent-visualization-action-parity.md) records that scope
+and the distinct document, ontology and rendered-occurrence identities. The
+ownership and immutable-boundary rules below remain in force.
+
 Task 9 established a `RenderedGraphRuntime` seam and a `WebVowlController` that
 reduces renderer facts into frozen state. It did not settle who _owns_ the
 ontology. Three consequences of leaving that unsettled surfaced together.

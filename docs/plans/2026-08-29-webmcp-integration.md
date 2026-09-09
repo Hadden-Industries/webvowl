@@ -35,9 +35,9 @@ resuming a held graph. Near miss: omitting `layout` while already paused yields 
 same visible stillness but does not request a pause. Disposition: Formulate these
 application definitions from the owner's decision and the existing human controls.
 
-An applied visualization view contains the standing choices `language`, `filters`
-and `focus`. The transient `layout` and `viewport` commands and the requested
-`zoomScale` do not belong in it. Current layout status and actual zoom/translation
+An applied visualization view contains the standing choices `language`, `filters`,
+`focus`, `modes` and `forceDistances`. The transient `layout` and `viewport` commands
+and requested `zoomScale`/`translation` do not belong in it. Current layout status and actual zoom/translation
 remain renderer facts published into controller state. SVG recipes retain standing
 choices and the actual export dimensions/outcome, rather than stale command echoes.
 Use the runtime contract's constructor for those choices in the serializer as well.
@@ -94,6 +94,14 @@ chains, coded pre-mount failures and failed recovery. Native gesture retirement
 releases this graph's active mouse listeners; each replacement owns a fresh SVG
 root so a retired pan cannot capture the next wheel gesture. The evaluation document
 records focused browser RED/GREEN evidence separately from the remaining twenty jobs.
+
+The subsequent display slice adds explicit pan, shared mode/distance settings,
+`get_visualization_state`, `set_visualization_modes` and `set_layout_distances`.
+Human controls observe these standing choices. Native label animation completion
+and cancellation reconcile geometry, text and focus before observed state is
+published. Large focused selections are bounded as whole references with totals;
+state responses retain the core visualization values. This slice does not close
+the remaining source, editing-ownership, reset, arrangement and export cutovers.
 
 ### Owner's action-parity amendment
 

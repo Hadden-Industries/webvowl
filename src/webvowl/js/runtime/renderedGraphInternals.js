@@ -576,6 +576,15 @@ function createGraph(graphContainerSelector) {
     return updateViewportState(translation, scale);
   };
 
+  graph.panViewport = function ({ xPx, yPx }) {
+    if (!graphContainer || !updateViewportState([xPx, yPx], zoomFactor)) {
+      return false;
+    }
+    graphContainer.interrupt().attr("transform", viewportTransformString());
+    updateHaloRadius();
+    return true;
+  };
+
   graph.options = function () {
     return renderedGraphSettings;
   };
@@ -4550,17 +4559,28 @@ function createGraph(graphContainerSelector) {
   /** -- animation functions for the nodes --                   **/
   /** --------------------------------------------------------- **/
 
-  graph.animateDynamicLabelWidth = function () {
+  graph.animateDynamicLabelWidth = async function ({ signal } = {}) {
+    signal?.throwIfAborted();
     const wantedWidth = renderedGraphSettings.dynamicLabelWidth();
-    let i;
-    for (i = 0; i < classNodes.length; i++) {
-      const nodeElement = classNodes[i];
-      if (elementTools.isDatatype(nodeElement)) {
-        nodeElement.animateDynamicLabelWidth(wantedWidth);
+    const animationRoot = graphContainer;
+    const interrupt = () => animationRoot?.selectAll("*").interrupt();
+    signal?.addEventListener("abort", interrupt, { once: true });
+    const animations = [];
+    try {
+      let i;
+      for (i = 0; i < classNodes.length; i++) {
+        const nodeElement = classNodes[i];
+        if (elementTools.isDatatype(nodeElement)) {
+          animations.push(nodeElement.animateDynamicLabelWidth(wantedWidth));
+        }
       }
-    }
-    for (i = 0; i < properties.length; i++) {
-      properties[i].animateDynamicLabelWidth(wantedWidth);
+      for (i = 0; i < properties.length; i++) {
+        animations.push(properties[i].animateDynamicLabelWidth(wantedWidth));
+      }
+      const outcomes = await Promise.all(animations);
+      return !signal?.aborted && outcomes.every((outcome) => outcome !== false);
+    } finally {
+      signal?.removeEventListener("abort", interrupt);
     }
   };
 

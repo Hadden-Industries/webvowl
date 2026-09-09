@@ -7,8 +7,9 @@ let RENDERED_GRAPH_EVENT_KINDS;
 let RENDERED_GRAPH_RUNTIME_METHOD_NAMES;
 let assertRenderedGraphRuntime;
 let createContinuousZoomRequest;
+let createAppliedVisualizationView;
 let createForceLayoutDistancesRequest;
-let createVisualizationModeRequest;
+let createVisualizationModesRequest;
 let createGraphLayoutPauseRequest;
 let createGraphLayoutPauseResult;
 let createGraphLayoutSnapshot;
@@ -63,8 +64,9 @@ beforeAll(async () => {
     RENDERED_GRAPH_RUNTIME_METHOD_NAMES,
     assertRenderedGraphRuntime,
     createContinuousZoomRequest,
+    createAppliedVisualizationView,
     createForceLayoutDistancesRequest,
-    createVisualizationModeRequest,
+    createVisualizationModesRequest,
     createGraphLayoutPauseRequest,
     createGraphLayoutPauseResult,
     createGraphLayoutSnapshot,
@@ -246,7 +248,7 @@ describe("rendered graph runtime interface", () => {
       "setGraphLayoutPaused",
       "setContinuousZoom",
       "setForceLayoutDistances",
-      "setVisualizationMode",
+      "setVisualizationModes",
       "resetVisualization",
       "createRenderedSvgSnapshot",
       "subscribeToRenderedGraphEvents",
@@ -306,26 +308,72 @@ describe("rendered graph runtime interface", () => {
 });
 
 describe("rendered graph events", () => {
+  test("records all applied display and force choices as standing view state", () => {
+    const source = {
+      language: "default",
+      focus: [],
+      filters: {
+        datatypes: "show",
+        objectProperties: "show",
+        subclasses: "show",
+        disjointness: "hide",
+        setOperators: "show",
+        minDegree: 0,
+      },
+      modes: {
+        nodeScaling: true,
+        compactNotation: false,
+        colorExternals: true,
+        pickAndPin: false,
+        dynamicLabelWidth: true,
+        maxLabelWidthPx: 120,
+        colorExternalsMode: "same",
+      },
+      forceDistances: { classDistancePx: 200, datatypeDistancePx: 120 },
+    };
+    const applied = createAppliedVisualizationView(source);
+    expect(applied).toEqual(source);
+    expect(Object.isFrozen(applied.modes)).toBe(true);
+    expect(Object.isFrozen(applied.forceDistances)).toBe(true);
+  });
+
+  test("matches human slider limits and does not expose internal loop tuning", () => {
+    for (const maxLabelWidthPx of [19, 601]) {
+      expect(() =>
+        createVisualizationModesRequest({ maxLabelWidthPx }),
+      ).toThrow();
+    }
+    for (const classDistancePx of [9, 601]) {
+      expect(() =>
+        createForceLayoutDistancesRequest({ classDistancePx }),
+      ).toThrow();
+    }
+    expect(() =>
+      createForceLayoutDistancesRequest({ loopDistancePx: 100 }),
+    ).toThrow();
+  });
+
   test("declares the exact closed event-kind union", () => {
     expect(RENDERED_GRAPH_EVENT_KINDS).toEqual([
       "render-progress-changed",
       "render-warning-raised",
       "rendered-element-selection-changed",
       "viewport-changed",
+      "visualization-view-changed",
       "graph-layout-state-changed",
       "editor-mode-changed",
     ]);
   });
 
   test("declares the display modes with every field optional", () => {
-    expect(createVisualizationModeRequest({ colorExternals: true })).toEqual({
+    expect(createVisualizationModesRequest({ colorExternals: true })).toEqual({
       colorExternals: true,
     });
-    expect(createVisualizationModeRequest({ pickAndPin: true })).toEqual({
+    expect(createVisualizationModesRequest({ pickAndPin: true })).toEqual({
       pickAndPin: true,
     });
     expect(
-      createVisualizationModeRequest({
+      createVisualizationModesRequest({
         compactNotation: false,
         nodeScaling: true,
         dynamicLabelWidth: false,
@@ -337,22 +385,22 @@ describe("rendered graph events", () => {
       dynamicLabelWidth: false,
       maxLabelWidthPx: 180,
     });
-    expect(() => createVisualizationModeRequest({})).toThrow();
+    expect(() => createVisualizationModesRequest({})).toThrow();
     expect(() =>
-      createVisualizationModeRequest({ colorExternals: "yes" }),
+      createVisualizationModesRequest({ colorExternals: "yes" }),
     ).toThrow();
     expect(() =>
-      createVisualizationModeRequest({ maxLabelWidthPx: 0 }),
+      createVisualizationModesRequest({ maxLabelWidthPx: 0 }),
     ).toThrow();
     expect(
-      createVisualizationModeRequest({ colorExternalsMode: "gradient" }),
+      createVisualizationModesRequest({ colorExternalsMode: "gradient" }),
     ).toEqual({ colorExternalsMode: "gradient" });
     expect(() =>
-      createVisualizationModeRequest({ colorExternalsMode: "rainbow" }),
+      createVisualizationModesRequest({ colorExternalsMode: "rainbow" }),
     ).toThrow();
     // Editor mode is a fact this plan publishes, never one a request sets.
     expect(() =>
-      createVisualizationModeRequest({ editorMode: true }),
+      createVisualizationModesRequest({ editorMode: true }),
     ).toThrow();
   });
 
@@ -433,6 +481,41 @@ describe("rendered graph events", () => {
         payload: { isEditorMode: "yes" },
       }),
     ).toThrow();
+  });
+
+  test("accepts an absolute viewport translation separately from standing view choices", () => {
+    const translation = { xPx: -180.5, yPx: 72 };
+    const request = createVisualizationViewApplicationRequest({
+      loadGeneration: 1,
+      translation,
+    });
+    expect(request.translation).toEqual({ xPx: -180.5, yPx: 72 });
+    expect(Object.isFrozen(request.translation)).toBe(true);
+    expect(request.translation).not.toBe(translation);
+    for (const invalid of [
+      { xPx: 1 },
+      { xPx: "1", yPx: 2 },
+      { xPx: Infinity, yPx: 0 },
+      { xPx: 1, yPx: 2, zPx: 3 },
+    ]) {
+      expect(() =>
+        createVisualizationViewApplicationRequest({
+          loadGeneration: 1,
+          translation: invalid,
+        }),
+      ).toThrow();
+    }
+  });
+
+  test("refuses the same out-of-range zoom requests at the shared runtime boundary", () => {
+    for (const zoomScale of [0.001, 4.01]) {
+      expect(() =>
+        createVisualizationViewApplicationRequest({
+          loadGeneration: 1,
+          zoomScale,
+        }),
+      ).toThrow();
+    }
   });
 
   test.each([
@@ -869,6 +952,16 @@ describe("rendered graph requests and results", () => {
         },
         focus: [{ kind: "class", iri: "https://example.test/Person" }],
         language: "en",
+        modes: {
+          colorExternals: true,
+          compactNotation: false,
+          nodeScaling: true,
+          dynamicLabelWidth: true,
+          pickAndPin: false,
+          maxLabelWidthPx: 120,
+          colorExternalsMode: "same",
+        },
+        forceDistances: { classDistancePx: 200, datatypeDistancePx: 120 },
       },
       loadGeneration: 3,
       visibleRenderedGraphSnapshot: {
@@ -889,7 +982,9 @@ describe("rendered graph requests and results", () => {
     expect(Object.keys(result.appliedVisualizationView).sort()).toEqual([
       "filters",
       "focus",
+      "forceDistances",
       "language",
+      "modes",
     ]);
     expect(result.visibleRenderedGraphSnapshot.visibleGraphCounts).toEqual({
       visibleNodeCount: 1,
@@ -912,6 +1007,16 @@ describe("rendered graph requests and results", () => {
           },
           focus: [],
           language: "en",
+          modes: {
+            colorExternals: true,
+            compactNotation: false,
+            nodeScaling: true,
+            dynamicLabelWidth: true,
+            pickAndPin: false,
+            maxLabelWidthPx: 120,
+            colorExternalsMode: "same",
+          },
+          forceDistances: { classDistancePx: 200, datatypeDistancePx: 120 },
         },
         loadGeneration: 3,
         visibleRenderedGraphSnapshot: {

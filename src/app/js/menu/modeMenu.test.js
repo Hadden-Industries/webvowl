@@ -56,7 +56,7 @@ class MockElement {
 }
 
 describe("mode menu bug fixes", () => {
-  let mockGraph, modeMenu, setVisualizationMode, webVowlController;
+  let mockGraph, modeMenu, setVisualizationModes, webVowlController;
   let dynamicLabelWidthContainer,
     editModeContainer,
     pickAndPinContainer,
@@ -81,6 +81,7 @@ describe("mode menu bug fixes", () => {
     colorExternalsContainer = new MockElement("colorExternalsOption");
 
     global.document = {
+      getElementById: () => null,
       querySelector: jest.fn((selector) => {
         if (selector === "#maxLabelWidthSlider") {
           return maxLabelWidthSlider;
@@ -119,8 +120,8 @@ describe("mode menu bug fixes", () => {
       editorMode: jest.fn().mockReturnValue(false),
       showEditorHintIfNeeded: jest.fn(),
     };
-    setVisualizationMode = jest.fn();
-    webVowlController = { setVisualizationMode };
+    setVisualizationModes = jest.fn();
+    webVowlController = { setVisualizationModes };
 
     modeMenu = modeMenuFactory(mockGraph, {
       webVowlController,
@@ -193,18 +194,18 @@ describe("mode menu bug fixes", () => {
 
     nodeScalingCheckbox.listeners["click"][0]({ type: "click" });
 
-    expect(setVisualizationMode).toHaveBeenCalledWith({ nodeScaling: false });
+    expect(setVisualizationModes).toHaveBeenCalledWith({ nodeScaling: false });
   });
 
   test("importing settings reports every mode in one request", () => {
     modeMenu.setup();
-    setVisualizationMode.mockClear();
+    setVisualizationModes.mockClear();
 
     modeMenu.updateSettingsUsingURL();
 
     // One request rather than one per checkbox, so the graph recomputes once.
-    expect(setVisualizationMode).toHaveBeenCalledTimes(1);
-    expect(setVisualizationMode.mock.calls[0][0]).toEqual(
+    expect(setVisualizationModes).toHaveBeenCalledTimes(1);
+    expect(setVisualizationModes.mock.calls[0][0]).toEqual(
       expect.objectContaining({
         colorExternals: expect.any(Boolean),
         compactNotation: expect.any(Boolean),
@@ -220,10 +221,10 @@ describe("mode menu bug fixes", () => {
       (c) => c.id === "nodescalingModuleCheckbox",
     );
     nodeScalingCheckbox.checked = false;
-    setVisualizationMode.mockClear();
+    setVisualizationModes.mockClear();
 
     modeMenu.reset();
 
-    expect(setVisualizationMode).toHaveBeenCalledWith({ nodeScaling: true });
+    expect(setVisualizationModes).toHaveBeenCalledWith({ nodeScaling: true });
   });
 });

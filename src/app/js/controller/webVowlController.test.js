@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { SourceTextModule } from "node:vm";
+import { OWLDocumentFormats } from "owlapi/formats";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 import {
   beforeAll,
   beforeEach,
@@ -14,6 +16,7 @@ let createInMemoryRenderedGraphAdapter;
 let createOntologyInspector;
 let vowlModelInspectionProjector;
 let createWebVowlController;
+let createWebMcpToolDispatch;
 
 const CONTROLLER_MODULE_URL = new URL(
   "./webVowlController.js",
@@ -74,6 +77,11 @@ beforeAll(async () => {
   ({ createWebVowlController } = (
     await loadRepositoryModule(CONTROLLER_MODULE_URL)
   ).namespace);
+  ({ createWebMcpToolDispatch } = await loadEsmModuleForTest(
+    new URL("../webmcp/webMcpToolContracts.js", import.meta.url),
+    import.meta.url,
+    { "owlapi/formats": { OWLDocumentFormats } },
+  ));
 });
 
 function createSourceLoadRecord(overrides = {}) {
@@ -754,6 +762,25 @@ describe("WebVOWL controller orchestration", () => {
   });
 
   describe("ontology inspection and view control", () => {
+    test("publishes pan independently of the standing view and preserves magnification", async () => {
+      await completeLoad();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "viewport-changed",
+        loadGeneration: 1,
+        payload: { zoomScale: 1.5, translationXPx: 10, translationYPx: 20 },
+      });
+      const view = controller.setVisualizationView({
+        translation: { xPx: -180.5, yPx: 72 },
+      });
+      await flushMicrotasks(6);
+      renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      expect(await view).toMatchObject({
+        zoomScale: 1.5,
+        translation: { xPx: -180.5, yPx: 72 },
+      });
+      expect(controller.getState().view).not.toHaveProperty("translation");
+    });
+
     test("rejects inspection before an ontology exists", () => {
       expect(() => controller.getOntologySummary()).toThrow(
         expect.objectContaining({ code: "NO_ONTOLOGY" }),
@@ -972,16 +999,24 @@ describe("WebVOWL controller orchestration", () => {
       expect(descriptionResult.elementDescriptions).toEqual([]);
     });
 
-    test("tunes the renderer before any ontology is loaded", () => {
+    test("retains display and distance choices made before loading", async () => {
       // Display modes, force distances and zoom configure how a graph is drawn.
       // They are meaningful for an empty graph and persist across loads, so
       // unlike pausing a layout they do not require an ontology.
-      expect(controller.setVisualizationMode({ nodeScaling: true })).toEqual({
-        nodeScaling: true,
+      await controller.setVisualizationModes({
+        nodeScaling: false,
+        maxLabelWidthPx: 80,
       });
-      expect(
-        controller.setForceLayoutDistances({ classDistancePx: 240 }),
-      ).toEqual({ classDistancePx: 240 });
+      await controller.setForceLayoutDistances({ classDistancePx: 240 });
+      expect(controller.getState().view).toMatchObject({
+        modes: { nodeScaling: false, maxLabelWidthPx: 80 },
+        forceDistances: { classDistancePx: 240 },
+      });
+      await completeLoad();
+      expect(controller.getState().view).toMatchObject({
+        modes: { nodeScaling: false, maxLabelWidthPx: 80 },
+        forceDistances: { classDistancePx: 240 },
+      });
       expect(controller.setContinuousZoom({ zoomDirection: "none" })).toBe(
         "none",
       );
@@ -994,20 +1029,88 @@ describe("WebVOWL controller orchestration", () => {
       expect(renderedGraphTestHarness.readVisualizationResetCount()).toBe(1);
     });
 
-    test("passes a requested display mode to the runtime", async () => {
+    test("publishes applied display modes to human and agent observers", async () => {
       await completeLoad();
 
-      expect(controller.setVisualizationMode({ nodeScaling: true })).toEqual({
-        nodeScaling: true,
+      const observed = [];
+      controller.subscribeToState((state, fields) => {
+        if (fields.includes("view")) {
+          observed.push(state.view.modes);
+        }
+      });
+      const result = await controller.setVisualizationModes({
+        nodeScaling: false,
+        compactNotation: true,
+      });
+      expect(result).toEqual(controller.getState());
+      expect(controller.getState().view.modes).toMatchObject({
+        nodeScaling: false,
+        compactNotation: true,
+      });
+      expect(observed.at(-1)).toMatchObject({
+        nodeScaling: false,
+        compactNotation: true,
       });
     });
 
-    test("passes requested force distances to the runtime", async () => {
+    test("publishes applied force distances", async () => {
       await completeLoad();
 
-      expect(
-        controller.setForceLayoutDistances({ classDistancePx: 240 }),
-      ).toEqual({ classDistancePx: 240 });
+      const result = await controller.setForceLayoutDistances({
+        classDistancePx: 240,
+      });
+      expect(result).toEqual(controller.getState());
+      expect(result.view.forceDistances).toEqual({
+        classDistancePx: 240,
+        datatypeDistancePx: 120,
+      });
+    });
+
+    test("observes actual standing choices even when their requesting caller cancelled", async () => {
+      await completeLoad();
+      const view = {
+        ...controller.getState().view,
+        modes: { ...controller.getState().view.modes, maxLabelWidthPx: 20 },
+      };
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "visualization-view-changed",
+        loadGeneration: 1,
+        payload: { appliedVisualizationView: view },
+      });
+      expect(controller.getState().view.modes.maxLabelWidthPx).toBe(20);
+    });
+
+    test("reports superseded display requests as ordinary cancellation through tool dispatch", async () => {
+      await completeLoad();
+      const applyModes = renderedGraphRuntime.setVisualizationModes;
+      let rejectFirst;
+      renderedGraphRuntime.setVisualizationModes = jest
+        .fn()
+        .mockImplementationOnce(
+          () =>
+            new Promise((_resolve, reject) => {
+              rejectFirst = reject;
+            }),
+        )
+        .mockImplementationOnce((request) => {
+          rejectFirst(new DOMException("Newer display choice", "AbortError"));
+          return applyModes(request);
+        });
+      const dispatch = createWebMcpToolDispatch({
+        webVowlController: controller,
+      });
+      const first = dispatch.callWebMcpTool("set_visualization_modes", {
+        maxLabelWidthPx: 20,
+      });
+      const second = await dispatch.callWebMcpTool("set_visualization_modes", {
+        maxLabelWidthPx: 80,
+      });
+      expect(second.isSuccess).toBe(true);
+      expect(await first).toMatchObject({
+        isSuccess: false,
+        error: { code: "LOAD_ABORTED" },
+      });
+      expect(controller.getState().view.modes.maxLabelWidthPx).toBe(80);
     });
 
     test("passes a held zoom gesture to the runtime rather than a magnification", async () => {
@@ -1549,7 +1652,7 @@ describe("WebVOWL controller orchestration", () => {
         "setContinuousZoom",
         "setForceLayoutDistances",
         "setGraphLayoutPaused",
-        "setVisualizationMode",
+        "setVisualizationModes",
         "setVisualizationView",
         "subscribeToState",
       ]);

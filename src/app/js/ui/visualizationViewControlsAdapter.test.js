@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { SourceTextModule } from "node:vm";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 import {
   beforeAll,
   beforeEach,
@@ -28,19 +28,10 @@ const ORGANISATION_REFERENCE = Object.freeze({
 });
 
 beforeAll(async () => {
-  const adapterModule = new SourceTextModule(
-    readFileSync(fileURLToPath(ADAPTER_MODULE_URL), "utf8"),
-    { identifier: ADAPTER_MODULE_URL.href },
-  );
-  await adapterModule.link((specifier) => {
-    throw new Error(`Unexpected view controls dependency: ${specifier}`);
-  });
-  await adapterModule.evaluate();
-
   ({
     VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS,
     createVisualizationViewControlsAdapter,
-  } = adapterModule.namespace);
+  } = await loadEsmModuleForTest(ADAPTER_MODULE_URL, import.meta.url));
 });
 
 class ViewControlElementFixture extends EventTarget {
@@ -54,6 +45,11 @@ class ViewControlElementFixture extends EventTarget {
     this.focusCallCount = 0;
     this.textContent = "";
     this.value = "";
+    this.classes = new Set();
+    this.classList = {
+      toggle: (name, enabled) =>
+        enabled ? this.classes.add(name) : this.classes.delete(name),
+    };
   }
 
   append(...childElements) {
@@ -195,15 +191,11 @@ describe("native visualization view controls", () => {
     });
   });
 
-  test("requests resume and zoom-and-center as separate view actions", () => {
+  test("requests zoom-and-center independently of layout motion", () => {
     connectAdapter();
-    controlElement("relaxLayoutButton").emit("click");
     controlElement("zoomAndCenterViewportButton").emit("click");
 
     expect(controller.setVisualizationView).toHaveBeenNthCalledWith(1, {
-      layout: "resume",
-    });
-    expect(controller.setVisualizationView).toHaveBeenNthCalledWith(2, {
       viewport: "zoom-and-center",
     });
   });
@@ -237,83 +229,6 @@ describe("native visualization view controls", () => {
     expect(controller.setGraphLayoutPaused).toHaveBeenLastCalledWith({
       isPaused: true,
     });
-  });
-
-  test("searches ontology elements from the search input", () => {
-    connectAdapter();
-    const searchInput = controlElement("ontologySearchInput");
-    searchInput.value = "person";
-    searchInput.emit("input");
-
-    expect(controller.findOntologyElements).toHaveBeenCalledWith({
-      query: "person",
-    });
-    expect(controller.setVisualizationView).not.toHaveBeenCalled();
-  });
-
-  test("focuses exactly the chosen search result", () => {
-    controller.findOntologyElements.mockReturnValue({
-      loadGeneration: 2,
-      matches: [
-        {
-          ontologyElementReference: PERSON_REFERENCE,
-          kind: "class",
-          displayLabel: "Person",
-          iri: PERSON_REFERENCE.iri,
-          isFocusable: true,
-        },
-        {
-          ontologyElementReference: ORGANISATION_REFERENCE,
-          kind: "class",
-          displayLabel: "Organisation",
-          iri: ORGANISATION_REFERENCE.iri,
-          isFocusable: false,
-        },
-      ],
-      isTruncated: false,
-    });
-    connectAdapter();
-    const searchInput = controlElement("ontologySearchInput");
-    searchInput.value = "person";
-    searchInput.emit("input");
-
-    const resultList = controlElement("ontologySearchResultList");
-    expect(
-      resultList.appendedChildren.map(({ textContent }) => textContent),
-    ).toEqual(["Person", "Organisation"]);
-    expect(resultList.appendedChildren.map(({ disabled }) => disabled)).toEqual(
-      [false, true],
-    );
-
-    resultList.appendedChildren[0].emit("click");
-    expect(controller.setVisualizationView).toHaveBeenCalledWith({
-      focus: [PERSON_REFERENCE],
-    });
-  });
-
-  test("does not focus a search result the graph cannot show", () => {
-    controller.findOntologyElements.mockReturnValue({
-      loadGeneration: 2,
-      matches: [
-        {
-          ontologyElementReference: ORGANISATION_REFERENCE,
-          kind: "class",
-          displayLabel: "Organisation",
-          iri: ORGANISATION_REFERENCE.iri,
-          isFocusable: false,
-        },
-      ],
-      isTruncated: false,
-    });
-    connectAdapter();
-    const searchInput = controlElement("ontologySearchInput");
-    searchInput.value = "org";
-    searchInput.emit("input");
-
-    controlElement("ontologySearchResultList").appendedChildren[0].emit(
-      "click",
-    );
-    expect(controller.setVisualizationView).not.toHaveBeenCalled();
   });
 
   test("focuses explicitly supplied references through one view request", () => {
@@ -405,9 +320,6 @@ describe("controller state presentation", () => {
     expect(controlElement("datatypesFilterCheckbox").checked).toBe(false);
     expect(controlElement("objectPropertiesFilterCheckbox").checked).toBe(true);
     expect(controlElement("minimumDegreeRange").value).toBe("4");
-    expect(controlElement("graphLayoutStatusOutput").textContent).toBe(
-      "relaxing",
-    );
   });
 
   test("dispatches no input, change, or click event while presenting state", () => {
@@ -418,6 +330,38 @@ describe("controller state presentation", () => {
     )) {
       expect(controlElement(controlName).dispatchedEventTypes).toEqual([]);
     }
+  });
+
+  test("shows agent display and distance choices on the real controls", () => {
+    publishControllerState({
+      ...READY_STATE,
+      view: {
+        ...READY_STATE.view,
+        modes: {
+          colorExternals: true,
+          compactNotation: true,
+          nodeScaling: false,
+          dynamicLabelWidth: false,
+          pickAndPin: true,
+          maxLabelWidthPx: 20,
+          colorExternalsMode: "gradient",
+        },
+        forceDistances: { classDistancePx: 240, datatypeDistancePx: 80 },
+      },
+    });
+    expect(controlElement("compactNotationCheckbox").checked).toBe(true);
+    expect(controlElement("nodeScalingCheckbox").checked).toBe(false);
+    expect(controlElement("pickAndPinCheckbox").checked).toBe(true);
+    expect(controlElement("dynamicLabelWidthCheckbox").checked).toBe(false);
+    expect(controlElement("maximumLabelWidthRange").value).toBe("20");
+    expect(controlElement("maximumLabelWidthRange").disabled).toBe(true);
+    expect(controlElement("maximumLabelWidthValue").textContent).toBe("20");
+    expect(controlElement("classDistanceRange").value).toBe("240");
+    expect(controlElement("datatypeDistanceRange").value).toBe("80");
+    expect(controlElement("externalColorModeButton").textContent).toBe(
+      "Gradient",
+    );
+    expect(controller.setVisualizationView).not.toHaveBeenCalled();
   });
 
   test("re-enters no controller operation while presenting state", () => {
@@ -441,6 +385,21 @@ describe("controller state presentation", () => {
     expect(languageSelect.focusCallCount).toBe(0);
   });
 
+  test("does not overwrite a pending slider choice on a layout-only event", () => {
+    const state = {
+      ...READY_STATE,
+      view: {
+        ...READY_STATE.view,
+        modes: { maxLabelWidthPx: 120, dynamicLabelWidth: true },
+      },
+    };
+    publishControllerState(state, ["view"]);
+    const slider = controlElement("maximumLabelWidthRange");
+    slider.value = "80";
+    publishControllerState(state, ["layout"]);
+    expect(slider.value).toBe("80");
+  });
+
   test("presents no view control before an ontology view exists", () => {
     publishControllerState({
       status: "idle",
@@ -450,9 +409,6 @@ describe("controller state presentation", () => {
     });
 
     expect(controlElement("languageSelect").value).toBe("");
-    expect(controlElement("graphLayoutStatusOutput").textContent).toBe(
-      "unavailable",
-    );
   });
 });
 
@@ -461,7 +417,7 @@ describe("view controls lifecycle and boundary", () => {
     const lifecycleController = new AbortController();
     const partialDocument = new ViewControlDocumentFixture([
       VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS.languageSelect,
-      VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS.relaxLayoutButton,
+      VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS.zoomAndCenterViewportButton,
     ]);
 
     const viewControls = createVisualizationViewControlsAdapter({
@@ -477,7 +433,7 @@ describe("view controls lifecycle and boundary", () => {
 
     expect(viewControls.connectedControlNames).toEqual([
       "languageSelect",
-      "relaxLayoutButton",
+      "zoomAndCenterViewportButton",
     ]);
   });
 
@@ -500,7 +456,9 @@ describe("view controls lifecycle and boundary", () => {
 
     lifecycleController.abort();
     controlDocument
-      .getElementById(VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS.relaxLayoutButton)
+      .getElementById(
+        VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS.zoomAndCenterViewportButton,
+      )
       .emit("click");
 
     expect(controller.setVisualizationView).not.toHaveBeenCalled();

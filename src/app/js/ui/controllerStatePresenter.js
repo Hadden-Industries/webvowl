@@ -45,11 +45,10 @@ export const PRESENTED_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "editorMode",
 ]);
 
-// Fields the controller publishes for an agent reading getState rather than for
-// a presentation. The pan is deliberately here: a zoom control must not be
-// disturbed by a pan, and nothing else draws the translation. The applied view
-// is likewise a fact an agent reads back, not something an interface redraws.
-export const AGENT_FACING_ONLY_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
+// The view controls present standing choices through their own subscriber.
+// Translation is already drawn by the viewport and has no separate UI field.
+// Both remain observable to any controller consumer.
+export const SEPARATELY_PRESENTED_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "view",
   "translation",
 ]);

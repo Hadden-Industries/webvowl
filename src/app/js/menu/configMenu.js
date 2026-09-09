@@ -1,3 +1,5 @@
+import { runVisualizationControlAction } from "../ui/visualizationControlAction.js";
+
 export function createConfigMenu({
   webVowlController,
   maxLabelWidthPx,
@@ -40,9 +42,13 @@ export function createConfigMenu({
         return;
       }
       sliderValueLabel.textContent = slider.value;
-      webVowlController?.setVisualizationMode({
-        maxLabelWidthPx: requestedWidthPx,
-      });
+      void runVisualizationControlAction(
+        () =>
+          webVowlController.setVisualizationModes({
+            maxLabelWidthPx: requestedWidthPx,
+          }),
+        documentObject,
+      );
     }
 
     slider.addEventListener("input", requestLabelWidth);

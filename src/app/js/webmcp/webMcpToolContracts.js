@@ -2,13 +2,17 @@ import { OWLDocumentFormats } from "owlapi/formats";
 import {
   VISUALIZATION_LAYOUT_ACTIONS,
   VISUALIZATION_VIEWPORT_ACTIONS,
+  VISUALIZATION_VIEWPORT_LIMITS,
+  VISUALIZATION_SLIDER_LIMITS,
+  createVisualizationModesRequest,
+  createForceLayoutDistancesRequest,
 } from "../controller/renderedGraphRuntimeContracts.js";
 import {
   WEB_VOWL_OPERATION_LIMITS,
   normalizeSvgFilename,
 } from "../controller/webVowlControllerContracts.js";
 
-// The agent-facing surface of this page: five tools, no more. Each one is a
+// The agent-facing surface of this page. Each tool is a
 // bounded operation over the ontology the controller holds, never a generic
 // command channel and never a route into the renderer.
 //
@@ -43,8 +47,10 @@ const MAXIMUM_FOCUS_REFERENCE_COUNT = 25;
 // The renderer's configured magnification bounds. A request outside them is
 // refused here rather than clamped silently, so an agent learns what it asked
 // for was impossible.
-const MINIMUM_ZOOM_SCALE = 0.01;
-const MAXIMUM_ZOOM_SCALE = 4;
+const MINIMUM_ZOOM_SCALE = VISUALIZATION_VIEWPORT_LIMITS.minimumZoomScale;
+const MAXIMUM_ZOOM_SCALE = VISUALIZATION_VIEWPORT_LIMITS.maximumZoomScale;
+const MAXIMUM_TRANSLATION_PX =
+  VISUALIZATION_VIEWPORT_LIMITS.maximumAbsoluteTranslationPx;
 
 function closedObjectSchema({ properties = {}, required = [], description }) {
   return Object.freeze({
@@ -298,6 +304,23 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
           minimum: MINIMUM_ZOOM_SCALE,
           maximum: MAXIMUM_ZOOM_SCALE,
         }),
+        translation: closedObjectSchema({
+          description:
+            "Absolute pan offset in viewport pixels. Changes neither magnification nor node arrangement. Applied before a viewport framing action.",
+          properties: {
+            xPx: Object.freeze({
+              type: "number",
+              minimum: -MAXIMUM_TRANSLATION_PX,
+              maximum: MAXIMUM_TRANSLATION_PX,
+            }),
+            yPx: Object.freeze({
+              type: "number",
+              minimum: -MAXIMUM_TRANSLATION_PX,
+              maximum: MAXIMUM_TRANSLATION_PX,
+            }),
+          },
+          required: ["xPx", "yPx"],
+        }),
       },
     }),
   }),
@@ -331,6 +354,72 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
           default: "fail",
         }),
       },
+    }),
+  }),
+  Object.freeze({
+    name: "get_visualization_state",
+    description:
+      "Read the current visualization choices, actual layout status, zoom, pan, selection, and load state.",
+    annotations: Object.freeze({
+      readOnlyHint: true,
+      untrustedContentHint: true,
+    }),
+    inputSchema: closedObjectSchema({}),
+  }),
+  Object.freeze({
+    name: "set_visualization_modes",
+    description:
+      "Set the same display modes and maximum label width offered in the Modes and Options menus.",
+    annotations: Object.freeze({
+      readOnlyHint: false,
+      untrustedContentHint: true,
+    }),
+    inputSchema: Object.freeze({
+      ...closedObjectSchema({
+        properties: {
+          colorExternals: Object.freeze({ type: "boolean" }),
+          compactNotation: Object.freeze({ type: "boolean" }),
+          nodeScaling: Object.freeze({ type: "boolean" }),
+          dynamicLabelWidth: Object.freeze({ type: "boolean" }),
+          pickAndPin: Object.freeze({ type: "boolean" }),
+          maxLabelWidthPx: Object.freeze({
+            type: "integer",
+            minimum: VISUALIZATION_SLIDER_LIMITS.minimumLabelWidthPx,
+            maximum: VISUALIZATION_SLIDER_LIMITS.maximumPx,
+            multipleOf: VISUALIZATION_SLIDER_LIMITS.stepPx,
+          }),
+          colorExternalsMode: Object.freeze({
+            type: "string",
+            enum: Object.freeze(["same", "gradient"]),
+          }),
+        },
+      }),
+      minProperties: 1,
+    }),
+  }),
+  Object.freeze({
+    name: "set_layout_distances",
+    description:
+      "Set class and datatype layout distances in pixels, as with the human distance sliders.",
+    annotations: Object.freeze({
+      readOnlyHint: false,
+      untrustedContentHint: true,
+    }),
+    inputSchema: Object.freeze({
+      ...closedObjectSchema({
+        properties: Object.fromEntries(
+          ["classDistancePx", "datatypeDistancePx"].map((name) => [
+            name,
+            Object.freeze({
+              type: "integer",
+              minimum: VISUALIZATION_SLIDER_LIMITS.minimumForceDistancePx,
+              maximum: VISUALIZATION_SLIDER_LIMITS.maximumPx,
+              multipleOf: VISUALIZATION_SLIDER_LIMITS.stepPx,
+            }),
+          ]),
+        ),
+      }),
+      minProperties: 1,
     }),
   }),
 ]);
@@ -699,6 +788,7 @@ const SET_VISUALIZATION_VIEW_FIELD_NAMES = Object.freeze([
   "layout",
   "viewport",
   "zoomScale",
+  "translation",
 ]);
 
 export function normalizeSetVisualizationViewToolInput(toolInput = {}) {
@@ -755,6 +845,32 @@ export function normalizeSetVisualizationViewToolInput(toolInput = {}) {
       MINIMUM_ZOOM_SCALE,
       MAXIMUM_ZOOM_SCALE,
     );
+  }
+  if (toolInput.translation !== undefined) {
+    assertOnlyAllowedFieldNames(
+      toolInput.translation,
+      ["xPx", "yPx"],
+      "viewport translation",
+    );
+    assertRequiredFieldNames(
+      toolInput.translation,
+      ["xPx", "yPx"],
+      "viewport translation",
+    );
+    visualizationViewRequest.translation = Object.freeze({
+      xPx: assertFiniteNumberInRange(
+        toolInput.translation.xPx,
+        "translation.xPx",
+        -MAXIMUM_TRANSLATION_PX,
+        MAXIMUM_TRANSLATION_PX,
+      ),
+      yPx: assertFiniteNumberInRange(
+        toolInput.translation.yPx,
+        "translation.yPx",
+        -MAXIMUM_TRANSLATION_PX,
+        MAXIMUM_TRANSLATION_PX,
+      ),
+    });
   }
 
   return Object.freeze(visualizationViewRequest);
@@ -836,6 +952,7 @@ const TRIMMABLE_COLLECTION_FIELD_NAMES = Object.freeze([
   "imports",
   "warnings",
   "matches",
+  "selection",
 ]);
 
 const MAXIMUM_PROJECTED_TEXT_CHARACTERS = 120;
@@ -931,6 +1048,18 @@ function withOneTrimmedCollectionEntry(toolResult) {
       };
     }
   }
+  if (
+    Array.isArray(toolResult.view?.focus) &&
+    toolResult.view.focus.length > 0
+  ) {
+    return {
+      toolResult: {
+        ...toolResult,
+        view: { ...toolResult.view, focus: toolResult.view.focus.slice(0, -1) },
+      },
+      hasChanged: true,
+    };
+  }
   return { toolResult, hasChanged: false };
 }
 
@@ -989,6 +1118,14 @@ export function projectWebMcpToolSuccess(toolName, controllerResult) {
   // Optional structural facts are the first thing a caller can do without.
   const withoutFacts = withoutNeighborhoodFacts(toolResult);
   toolResult = { ...withoutFacts.toolResult, isTruncated: true };
+  // Reference identities remain exact; omit whole entries and retain totals.
+  // Core view/layout values still answer the state-reading action at the ceiling.
+  if (Array.isArray(toolResult.selection)) {
+    toolResult.selectionCount = toolResult.selection.length;
+  }
+  if (Array.isArray(toolResult.view?.focus)) {
+    toolResult.focusCount = toolResult.view.focus.length;
+  }
   while (
     serializedLength({ isSuccess: true, toolResult }) >
     WEB_MCP_TOOL_RESULT_CHARACTER_CEILING
@@ -1073,6 +1210,33 @@ export function projectWebMcpToolFailure(toolName, thrownError) {
 // map is the whole routing table: a tool with no entry cannot be called, and a
 // controller operation with no entry is not reachable from an agent.
 const WEB_MCP_TOOL_ROUTES = Object.freeze({
+  get_visualization_state: Object.freeze({
+    normalizeToolInput: (input = {}) => {
+      assertOnlyAllowedFieldNames(input, [], "get_visualization_state input");
+      return Object.freeze({});
+    },
+    controllerOperationName: "getState",
+  }),
+  set_visualization_modes: Object.freeze({
+    normalizeToolInput: (input) => {
+      try {
+        return createVisualizationModesRequest(input);
+      } catch (error) {
+        refuse(error.message);
+      }
+    },
+    controllerOperationName: "setVisualizationModes",
+  }),
+  set_layout_distances: Object.freeze({
+    normalizeToolInput: (input) => {
+      try {
+        return createForceLayoutDistancesRequest(input);
+      } catch (error) {
+        refuse(error.message);
+      }
+    },
+    controllerOperationName: "setForceLayoutDistances",
+  }),
   load_ontology: Object.freeze({
     normalizeToolInput: normalizeLoadOntologyToolInput,
     controllerOperationName: "loadOntology",

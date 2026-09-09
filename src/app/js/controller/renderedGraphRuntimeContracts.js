@@ -9,7 +9,7 @@ export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "setGraphLayoutPaused",
   "setContinuousZoom",
   "setForceLayoutDistances",
-  "setVisualizationMode",
+  "setVisualizationModes",
   "resetVisualization",
   "createRenderedSvgSnapshot",
   "subscribeToRenderedGraphEvents",
@@ -28,6 +28,7 @@ export const RENDERED_GRAPH_EVENT_KINDS = Object.freeze([
   "render-warning-raised",
   "rendered-element-selection-changed",
   "viewport-changed",
+  "visualization-view-changed",
   "graph-layout-state-changed",
   "editor-mode-changed",
 ]);
@@ -49,13 +50,24 @@ const APPLIED_VISUALIZATION_VIEW_FIELD_NAMES = Object.freeze([
   "language",
   "filters",
   "focus",
+  "modes",
+  "forceDistances",
 ]);
 const VISUALIZATION_VIEW_REQUEST_FIELD_NAMES = Object.freeze([
-  ...APPLIED_VISUALIZATION_VIEW_FIELD_NAMES,
+  "language",
+  "filters",
+  "focus",
   "layout",
   "viewport",
   "zoomScale",
+  "translation",
 ]);
+
+export const VISUALIZATION_VIEWPORT_LIMITS = Object.freeze({
+  minimumZoomScale: 0.01,
+  maximumZoomScale: 4,
+  maximumAbsoluteTranslationPx: Number.MAX_SAFE_INTEGER,
+});
 
 function isPlainRecord(candidate) {
   if (
@@ -1006,7 +1018,6 @@ const CONTINUOUS_ZOOM_DIRECTIONS = Object.freeze(["in", "out", "none"]);
 const FORCE_LAYOUT_DISTANCE_FIELD_NAMES = Object.freeze([
   "classDistancePx",
   "datatypeDistancePx",
-  "loopDistancePx",
 ]);
 
 // How the graph is drawn rather than what it says. Editor mode is deliberately
@@ -1024,7 +1035,39 @@ const VISUALIZATION_MODE_PREDICATE_FIELD_NAMES = Object.freeze([
 // or a gradient across them.
 const COLOR_EXTERNALS_MODES = Object.freeze(["same", "gradient"]);
 
-export function createVisualizationModeRequest(request) {
+export const DEFAULT_VISUALIZATION_MODES = Object.freeze({
+  colorExternals: true,
+  compactNotation: false,
+  nodeScaling: true,
+  dynamicLabelWidth: true,
+  pickAndPin: false,
+  maxLabelWidthPx: 120,
+  colorExternalsMode: "same",
+});
+
+export const DEFAULT_FORCE_LAYOUT_DISTANCES = Object.freeze({
+  classDistancePx: 200,
+  datatypeDistancePx: 120,
+});
+
+export const VISUALIZATION_SLIDER_LIMITS = Object.freeze({
+  minimumLabelWidthPx: 20,
+  minimumForceDistancePx: 10,
+  maximumPx: 600,
+  stepPx: 10,
+});
+
+function assertSliderValue(value, fieldName, minimum) {
+  assertFiniteNumber(value, fieldName, { minimum });
+  const { maximumPx, stepPx } = VISUALIZATION_SLIDER_LIMITS;
+  if (value > maximumPx || value % stepPx !== 0) {
+    throw new RangeError(
+      `${fieldName} must be from ${minimum} through ${maximumPx} in steps of ${stepPx} pixels.`,
+    );
+  }
+}
+
+export function createVisualizationModesRequest(request) {
   assertAllowedFieldNames(
     request,
     [
@@ -1034,7 +1077,7 @@ export function createVisualizationModeRequest(request) {
     ],
     "visualization mode request",
   );
-  const requestedMode = {};
+  const requestedModes = {};
   for (const fieldName of VISUALIZATION_MODE_PREDICATE_FIELD_NAMES) {
     if (request[fieldName] === undefined) {
       continue;
@@ -1042,13 +1085,15 @@ export function createVisualizationModeRequest(request) {
     if (typeof request[fieldName] !== "boolean") {
       throw new TypeError(`${fieldName} must be a boolean.`);
     }
-    requestedMode[fieldName] = request[fieldName];
+    requestedModes[fieldName] = request[fieldName];
   }
   if (request.maxLabelWidthPx !== undefined) {
-    assertFiniteNumber(request.maxLabelWidthPx, "maxLabelWidthPx", {
-      minimum: 1,
-    });
-    requestedMode.maxLabelWidthPx = request.maxLabelWidthPx;
+    assertSliderValue(
+      request.maxLabelWidthPx,
+      "maxLabelWidthPx",
+      VISUALIZATION_SLIDER_LIMITS.minimumLabelWidthPx,
+    );
+    requestedModes.maxLabelWidthPx = request.maxLabelWidthPx;
   }
   if (request.colorExternalsMode !== undefined) {
     if (!COLOR_EXTERNALS_MODES.includes(request.colorExternalsMode)) {
@@ -1056,14 +1101,14 @@ export function createVisualizationModeRequest(request) {
         `colorExternalsMode must be one of ${COLOR_EXTERNALS_MODES.join(", ")}.`,
       );
     }
-    requestedMode.colorExternalsMode = request.colorExternalsMode;
+    requestedModes.colorExternalsMode = request.colorExternalsMode;
   }
-  if (Object.keys(requestedMode).length === 0) {
+  if (Object.keys(requestedModes).length === 0) {
     throw new TypeError(
       "A visualization mode request must name at least one mode.",
     );
   }
-  return Object.freeze(requestedMode);
+  return Object.freeze(requestedModes);
 }
 
 export function createForceLayoutDistancesRequest(request) {
@@ -1077,7 +1122,11 @@ export function createForceLayoutDistancesRequest(request) {
     if (request[fieldName] === undefined) {
       continue;
     }
-    assertFiniteNumber(request[fieldName], fieldName, { minimum: 1 });
+    assertSliderValue(
+      request[fieldName],
+      fieldName,
+      VISUALIZATION_SLIDER_LIMITS.minimumForceDistancePx,
+    );
     requestedDistances[fieldName] = request[fieldName];
   }
   if (Object.keys(requestedDistances).length === 0) {
@@ -1129,7 +1178,21 @@ export function createAppliedVisualizationView(view) {
     APPLIED_VISUALIZATION_VIEW_FIELD_NAMES,
     "applied visualization view",
   );
-  return createVisualizationViewSettings(view, { requireEveryField: true });
+  assertExactFieldNames(
+    view.modes,
+    Object.keys(DEFAULT_VISUALIZATION_MODES),
+    "applied visualization modes",
+  );
+  assertExactFieldNames(
+    view.forceDistances,
+    FORCE_LAYOUT_DISTANCE_FIELD_NAMES,
+    "applied force distances",
+  );
+  return Object.freeze({
+    ...createVisualizationViewSettings(view, { requireEveryField: true }),
+    modes: createVisualizationModesRequest(view.modes),
+    forceDistances: createForceLayoutDistancesRequest(view.forceDistances),
+  });
 }
 
 export function createVisualizationViewApplicationRequest(request) {
@@ -1160,9 +1223,31 @@ export function createVisualizationViewApplicationRequest(request) {
   }
   if (request.zoomScale !== undefined) {
     assertFiniteNumber(request.zoomScale, "zoomScale", {
-      minimum: Number.MIN_VALUE,
+      minimum: VISUALIZATION_VIEWPORT_LIMITS.minimumZoomScale,
     });
+    if (request.zoomScale > VISUALIZATION_VIEWPORT_LIMITS.maximumZoomScale) {
+      throw new RangeError("zoomScale must be at most 4.");
+    }
     normalizedRequest.zoomScale = request.zoomScale;
+  }
+  if (request.translation !== undefined) {
+    assertExactFieldNames(
+      request.translation,
+      ["xPx", "yPx"],
+      "viewport translation",
+    );
+    for (const field of ["xPx", "yPx"]) {
+      assertFiniteNumber(request.translation[field], `translation.${field}`);
+      if (
+        Math.abs(request.translation[field]) >
+        VISUALIZATION_VIEWPORT_LIMITS.maximumAbsoluteTranslationPx
+      ) {
+        throw new RangeError(
+          `translation.${field} is outside the supported pixel range.`,
+        );
+      }
+    }
+    normalizedRequest.translation = Object.freeze({ ...request.translation });
   }
   return Object.freeze(normalizedRequest);
 }
@@ -1303,6 +1388,17 @@ function createRenderedGraphEventPayload(kind, payload) {
         throw new TypeError("isEditorMode must be a boolean.");
       }
       return Object.freeze({ isEditorMode: payload.isEditorMode });
+    case "visualization-view-changed":
+      assertExactFieldNames(
+        payload,
+        ["appliedVisualizationView"],
+        `${kind} payload`,
+      );
+      return Object.freeze({
+        appliedVisualizationView: createAppliedVisualizationView(
+          payload.appliedVisualizationView,
+        ),
+      });
     case "viewport-changed":
       assertExactFieldNames(
         payload,

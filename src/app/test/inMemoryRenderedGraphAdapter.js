@@ -1,8 +1,11 @@
 import {
   assertRenderedGraphRuntime,
+  createAppliedVisualizationView,
+  DEFAULT_VISUALIZATION_MODES,
+  DEFAULT_FORCE_LAYOUT_DISTANCES,
   createContinuousZoomRequest,
   createForceLayoutDistancesRequest,
-  createVisualizationModeRequest,
+  createVisualizationModesRequest,
   createGraphLayoutPauseRequest,
   createGraphLayoutPauseResult,
   createGraphLayoutSnapshot,
@@ -110,6 +113,8 @@ function createDefaultAppliedVisualizationView() {
     }),
     focus: Object.freeze([]),
     language: "default",
+    modes: DEFAULT_VISUALIZATION_MODES,
+    forceDistances: DEFAULT_FORCE_LAYOUT_DISTANCES,
   });
 }
 
@@ -177,6 +182,7 @@ export function createInMemoryRenderedGraphAdapter() {
   let graphLayoutSnapshot = null;
   let renderedSvgSnapshot = null;
   let appliedVisualizationView = createDefaultAppliedVisualizationView();
+  let viewportState = { zoomScale: 1, translationXPx: 0, translationYPx: 0 };
   const requestedContinuousZoomDirections = [];
   const requestedGraphLayoutPauseStates = [];
   let visualizationResetCount = 0;
@@ -226,6 +232,9 @@ export function createInMemoryRenderedGraphAdapter() {
       return false;
     }
     const renderedGraphEvent = createRenderedGraphEvent(event);
+    if (renderedGraphEvent.kind === "viewport-changed") {
+      viewportState = { ...renderedGraphEvent.payload };
+    }
     if (
       renderedGraphEvent.kind === "graph-layout-state-changed" &&
       graphLayoutSnapshot !== null
@@ -252,7 +261,11 @@ export function createInMemoryRenderedGraphAdapter() {
         visibleRenderedGraphSnapshot = null;
         graphLayoutSnapshot = null;
         renderedSvgSnapshot = null;
-        appliedVisualizationView = createDefaultAppliedVisualizationView();
+        appliedVisualizationView = createAppliedVisualizationView({
+          ...createDefaultAppliedVisualizationView(),
+          modes: appliedVisualizationView.modes,
+          forceDistances: appliedVisualizationView.forceDistances,
+        });
       },
 
       async replaceVowlModel(request, options) {
@@ -277,7 +290,11 @@ export function createInMemoryRenderedGraphAdapter() {
         visibleRenderedGraphSnapshot = null;
         graphLayoutSnapshot = null;
         renderedSvgSnapshot = null;
-        appliedVisualizationView = createDefaultAppliedVisualizationView();
+        appliedVisualizationView = createAppliedVisualizationView({
+          ...createDefaultAppliedVisualizationView(),
+          modes: appliedVisualizationView.modes,
+          forceDistances: appliedVisualizationView.forceDistances,
+        });
 
         const pendingOperation = createPendingOperation(
           signal,
@@ -398,18 +415,29 @@ export function createInMemoryRenderedGraphAdapter() {
         return zoomDirection;
       },
 
-      setVisualizationMode(request) {
+      setVisualizationModes(request) {
         assertNotDisposed();
-        const requestedMode = createVisualizationModeRequest(request);
-        requestedVisualizationModes.push(requestedMode);
-        return requestedMode;
+        const requestedModes = createVisualizationModesRequest(request);
+        requestedVisualizationModes.push(requestedModes);
+        appliedVisualizationView = createAppliedVisualizationView({
+          ...appliedVisualizationView,
+          modes: { ...appliedVisualizationView.modes, ...requestedModes },
+        });
+        return appliedVisualizationView;
       },
 
       setForceLayoutDistances(request) {
         assertNotDisposed();
         const requestedDistances = createForceLayoutDistancesRequest(request);
         requestedForceLayoutDistances.push(requestedDistances);
-        return requestedDistances;
+        appliedVisualizationView = createAppliedVisualizationView({
+          ...appliedVisualizationView,
+          forceDistances: {
+            ...appliedVisualizationView.forceDistances,
+            ...requestedDistances,
+          },
+        });
+        return appliedVisualizationView;
       },
 
       resetVisualization() {
@@ -557,6 +585,8 @@ export function createInMemoryRenderedGraphAdapter() {
       );
       const nextAppliedVisualizationView =
         overrides.appliedVisualizationView ?? {
+          modes: appliedVisualizationView.modes,
+          forceDistances: appliedVisualizationView.forceDistances,
           language:
             requestedVisualizationView.language ??
             appliedVisualizationView.language,
@@ -578,6 +608,17 @@ export function createInMemoryRenderedGraphAdapter() {
         renderedGraphRuntime.setGraphLayoutPaused({
           loadGeneration,
           isPaused: viewApplicationRequest.layout === "pause",
+        });
+      }
+      if (viewApplicationRequest.translation !== undefined) {
+        publishRenderedGraphEvent({
+          kind: "viewport-changed",
+          loadGeneration,
+          payload: {
+            ...viewportState,
+            translationXPx: viewApplicationRequest.translation.xPx,
+            translationYPx: viewApplicationRequest.translation.yPx,
+          },
         });
       }
       appliedVisualizationView = result.appliedVisualizationView;

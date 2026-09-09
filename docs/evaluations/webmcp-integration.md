@@ -69,7 +69,54 @@ after the recorded corrections, based on source and test-oracle review; they did
 not independently execute tests or use Chrome. Broader action parity and the final
 scoped native security review remain outstanding.
 
-## Original evaluation scope
+## Display and pan checkpoint — 2026-09-09
+
+The native page now registers eight tools. The three additions read visualization
+state and set the same display modes and class/datatype distances as human
+controls. Explicit pan shares the viewport contract; standing recipes include
+mode and distance choices. The custom linked-abort helper was deleted in favor
+of native AbortSignal composition.
+
+Native Chrome checks through CUA/CDP and `document.modelContext` verified:
+
+- Paused pan changed translation while retaining magnification, node positions
+  and force alpha (`viewport-pan-browser-green.json`).
+- Agent mode/distance changes updated real controls and label rectangles;
+  human rapid width inputs 40, 80, 160 and class distance 240 were reflected in
+  WebMCP state (`display-parity-browser.json`, `display-review-browser-green.json`).
+- An interrupted width change originally left five rectangles at approximately
+  58.998 px while the setting was 20. It now finishes at 20 with all three sampled
+  highlight halo elements retained; the superseded tool returns LOAD_ABORTED.
+- Direct caller cancellation originally left geometry at 20 but published width
+  at 120. Actual view observations now publish 20 to both callers after native
+  interruption finishes the geometry.
+
+The independent reviewer found those cancellation defects and a third bounded
+response defect: twenty-five focused references could remove every core view
+value from the state tool response. Maintained tests now trim whole references,
+retain original counts and keep modes, distances, layout, magnification and pan.
+Native D3 tests exercise both scheduled cancellation and running interruption;
+actual browser observations cover geometry and human presentation.
+
+Retained initial RED/GREEN logs include `display-review-red.log` (geometry RED
+plus an unrelated draft loader failure), `display-review-boundary-red.log`,
+`display-review-green.log`, `cancelled-display-observation-red.log` and
+`cancelled-display-observation-green.log`. The first integrated run passed 1,578
+tests. The review corrections added eight tests. A later full run passed 1,585
+and caught one mistakenly classified test-list entry; the corrected architecture
+suite passed all 272 tests. Production build, format and lint checks passed.
+The fresh final run passed **101 suites / 1,586 tests in 117.078 seconds**
+(`display-verified-full-suite.log`). The production build passed on the same
+production sources (`display-corrected-build.log`); the subsequent source delta
+was solely the test-list correction. The independent delta reviewer reported no
+remaining findings after inspecting the corrected patch, new tests and retained
+browser evidence. They did not independently run the suite or Chrome.
+
+These are focused mechanics checks, not the twenty model-selected jobs. The
+broader ownership, reset, arrangement, source and export cutovers and scoped
+native security review remain open. No deployment or publication is claimed.
+
+## Original evaluation scope (historical)
 
 Records whether the five agent tools accomplish complete user work, not merely
 whether their callbacks succeed. A tool that returns `isSuccess: true` while the

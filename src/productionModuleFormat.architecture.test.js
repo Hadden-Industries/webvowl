@@ -47,10 +47,9 @@ const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/webvowl/js/runtime/renderedGraphConfiguration.test.js",
   "src/webvowl/js/runtime/renderedSvgExportClone.js",
   "src/webvowl/js/runtime/renderedSvgExportClone.test.js",
+  "src/webvowl/js/elements/labelWidthTransition.test.js",
   "src/app/js/controller/graphLayoutSettler.js",
   "src/app/js/controller/graphLayoutSettler.test.js",
-  "src/app/js/controller/linkedAbortSignal.js",
-  "src/app/js/controller/linkedAbortSignal.test.js",
   "src/app/js/controller/ontologyInspector.js",
   "src/app/js/controller/ontologyInspector.test.js",
   "src/app/js/controller/ontologySourceLoader.js",
@@ -68,6 +67,8 @@ const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/app/js/controller/webVowlControllerContracts.js",
   "src/app/js/controller/webVowlControllerContracts.test.js",
   "src/app/js/ui/visualizationViewControlsAdapter.js",
+  "src/app/js/ui/visualizationControlAction.js",
+  "src/app/js/ui/visualizationControlAction.test.js",
   "src/app/js/ui/visualizationViewControlsAdapter.test.js",
   "src/app/js/ontologyLifecycle.js",
   "src/app/js/ontologyLifecycle.test.js",
@@ -1927,6 +1928,7 @@ function createExposureTraversalContext(
     activeParameterValueBindingVariables: new Set(),
     activePrivateCallableNodes: new Set(),
     activeValueBindingVariables: new Set(),
+    activeMemberExpressions: new Set(),
     parameterValueExpressionsByBindingVariable,
   };
 }
@@ -2687,46 +2689,62 @@ function directlyExposedBindingNames(
     return names;
   }
   if (unwrappedExpression.type === "MemberExpression") {
-    const fieldRecord = thisFieldRecord(unwrappedExpression);
-    if (fieldRecord?.isPrivate) {
-      addNames(
-        names,
-        privateClassMemberDependenciesByName.readDependenciesByName.get(
-          fieldRecord.name,
-        ) ?? [],
-      );
-      addNames(
-        names,
-        privateClassMemberDependenciesByName.callResultDependenciesByName.get(
-          fieldRecord.name,
-        ) ?? [],
-      );
+    // A member assigned from its previous value can resolve back to the same
+    // syntax through an imported constructor. Identifier and callable guards
+    // do not cover that edge. Cut only the active recursion path, so later
+    // reads and the other assigned values are still classified independently.
+    if (
+      exposureTraversalContext.activeMemberExpressions.has(unwrappedExpression)
+    ) {
       return names;
     }
-    const propertyName = staticMemberPropertyName(unwrappedExpression);
-    if (propertyName !== undefined) {
-      for (const memberValueExpression of resolvedLocalValueExpressions(
-        unwrappedExpression,
-        sourceCode,
-        exposureTraversalContext,
-      )) {
-        directlyExposedBindingNames(
-          memberValueExpression,
-          sourceCode,
+    exposureTraversalContext.activeMemberExpressions.add(unwrappedExpression);
+    try {
+      const fieldRecord = thisFieldRecord(unwrappedExpression);
+      if (fieldRecord?.isPrivate) {
+        addNames(
           names,
-          privateClassMemberDependenciesByName,
-          exposureTraversalContext,
+          privateClassMemberDependenciesByName.readDependenciesByName.get(
+            fieldRecord.name,
+          ) ?? [],
         );
+        addNames(
+          names,
+          privateClassMemberDependenciesByName.callResultDependenciesByName.get(
+            fieldRecord.name,
+          ) ?? [],
+        );
+        return names;
       }
-      return names;
+      const propertyName = staticMemberPropertyName(unwrappedExpression);
+      if (propertyName !== undefined) {
+        for (const memberValueExpression of resolvedLocalValueExpressions(
+          unwrappedExpression,
+          sourceCode,
+          exposureTraversalContext,
+        )) {
+          directlyExposedBindingNames(
+            memberValueExpression,
+            sourceCode,
+            names,
+            privateClassMemberDependenciesByName,
+            exposureTraversalContext,
+          );
+        }
+        return names;
+      }
+      return directlyExposedBindingNames(
+        unwrappedExpression.object,
+        sourceCode,
+        names,
+        privateClassMemberDependenciesByName,
+        exposureTraversalContext,
+      );
+    } finally {
+      exposureTraversalContext.activeMemberExpressions.delete(
+        unwrappedExpression,
+      );
     }
-    return directlyExposedBindingNames(
-      unwrappedExpression.object,
-      sourceCode,
-      names,
-      privateClassMemberDependenciesByName,
-      exposureTraversalContext,
-    );
   }
   if (
     unwrappedExpression.type === "ArrowFunctionExpression" ||
@@ -7306,6 +7324,31 @@ describe("native-ESM module dependency graph policy", () => {
       ),
     ).toBe("static");
   });
+
+  test.each([
+    ["parseOntology", "possible-public-value-escape"],
+    ['typeof parseOntology === "function"', "static"],
+  ])(
+    "terminates self-referential member assignments while retaining %s exposure",
+    (initialValue, expected) => {
+      const source = `import parseOntology from "../parser.js";
+      import {createView} from "./contracts.js";
+      export function createRuntime() {
+        let view = createView({modes:{value:${initialValue}}});
+        return {change() {
+          view = createView({...view,modes:{...view.modes}});
+          return view;
+        }};
+      }`;
+      expect(
+        moduleSpecifierExposureClassification(
+          source,
+          D3_RENDERED_GRAPH_ADAPTER_MODULE_PATH,
+          "../parser.js",
+        ),
+      ).toBe(expected);
+    },
+  );
 
   test("does not treat a nested private assignment as a public CommonJS re-export", () => {
     const adapterSource =

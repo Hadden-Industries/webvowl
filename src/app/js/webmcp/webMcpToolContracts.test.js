@@ -45,6 +45,9 @@ const EXPECTED_TOOL_NAMES = Object.freeze([
   "find_ontology_elements",
   "set_visualization_view",
   "export_visualization",
+  "get_visualization_state",
+  "set_visualization_modes",
+  "set_layout_distances",
 ]);
 
 const EXPECTED_TOOL_DESCRIPTIONS = Object.freeze({
@@ -58,6 +61,12 @@ const EXPECTED_TOOL_DESCRIPTIONS = Object.freeze({
     "Apply supported language, filters, focus, layout, and viewport changes to the visible WebVOWL graph.",
   export_visualization:
     "Wait for the visible graph to settle and create a browser-local downloadable SVG with provenance metadata.",
+  get_visualization_state:
+    "Read the current visualization choices, actual layout status, zoom, pan, selection, and load state.",
+  set_visualization_modes:
+    "Set the same display modes and maximum label width offered in the Modes and Options menus.",
+  set_layout_distances:
+    "Set class and datatype layout distances in pixels, as with the human distance sliders.",
 });
 
 const EXPECTED_TOOL_ANNOTATIONS = Object.freeze({
@@ -66,6 +75,9 @@ const EXPECTED_TOOL_ANNOTATIONS = Object.freeze({
   find_ontology_elements: { readOnlyHint: true, untrustedContentHint: true },
   set_visualization_view: { readOnlyHint: false, untrustedContentHint: true },
   export_visualization: { readOnlyHint: false, untrustedContentHint: true },
+  get_visualization_state: { readOnlyHint: true, untrustedContentHint: true },
+  set_visualization_modes: { readOnlyHint: false, untrustedContentHint: true },
+  set_layout_distances: { readOnlyHint: false, untrustedContentHint: true },
 });
 
 const EXPECTED_ONTOLOGY_TEXT_FORMAT_KEYS = Object.freeze([
@@ -124,7 +136,7 @@ function parameterDescriptionsWithin(schema) {
 }
 
 describe("WebMCP tool definitions", () => {
-  test("declares exactly the five tools in a stable order", () => {
+  test("declares the accepted non-editing actions in a stable order", () => {
     // The order is part of the contract: a host lists tools as given, and a
     // reader comparing two sessions should see the same sequence.
     expect(
@@ -336,6 +348,7 @@ describe("set_visualization_view input schema", () => {
       "focus",
       "language",
       "layout",
+      "translation",
       "viewport",
       "zoomScale",
     ]);
@@ -719,6 +732,28 @@ describe("set_visualization_view input normalization", () => {
         normalizeSetVisualizationViewToolInput({
           zoomScale: rejectedZoomScale,
         }),
+      ).toThrow();
+    }
+  });
+
+  test("offers absolute pan in viewport pixels with a closed coordinate pair", () => {
+    const input = { translation: { xPx: -180.5, yPx: 72 } };
+    expect(normalizeSetVisualizationViewToolInput(input)).toEqual(input);
+    const schema = toolDefinitionNamed("set_visualization_view").inputSchema
+      .properties.translation;
+    expect(schema).toMatchObject({
+      type: "object",
+      required: ["xPx", "yPx"],
+      additionalProperties: false,
+    });
+    for (const translation of [
+      { xPx: 0 },
+      { xPx: 0, yPx: null },
+      { xPx: NaN, yPx: 0 },
+      { xPx: 0, yPx: 0, extra: true },
+    ]) {
+      expect(() =>
+        normalizeSetVisualizationViewToolInput({ translation }),
       ).toThrow();
     }
   });
@@ -1139,6 +1174,153 @@ function createControllerSpy(overrides = {}) {
 }
 
 describe("WebMCP tool dispatch", () => {
+  test.each([
+    [
+      "set_visualization_modes",
+      { compactNotation: true, maxLabelWidthPx: 20 },
+      "setVisualizationModes",
+    ],
+    [
+      "set_layout_distances",
+      { classDistancePx: 600, datatypeDistancePx: 10 },
+      "setForceLayoutDistances",
+    ],
+  ])(
+    "routes %s to the shared human action",
+    async (tool, request, operationName) => {
+      let received;
+      const { webVowlController } = createControllerSpy({
+        [operationName]: async (input) => {
+          received = input;
+          return { view: input };
+        },
+      });
+      const result = await createWebMcpToolDispatch({
+        webVowlController,
+      }).callWebMcpTool(tool, request);
+      expect(result.isSuccess).toBe(true);
+      expect(received).toEqual(request);
+    },
+  );
+
+  test.each([
+    ["set_visualization_modes", {}],
+    ["set_visualization_modes", { nodeScaling: "true" }],
+    ["set_visualization_modes", { editorMode: true }],
+    ["set_visualization_modes", { maxLabelWidthPx: 19 }],
+    ["set_visualization_modes", { maxLabelWidthPx: 605 }],
+    ["set_layout_distances", { loopDistancePx: 150 }],
+    ["set_layout_distances", { classDistancePx: 15 }],
+    ["set_layout_distances", { classDistancePx: Infinity }],
+    ["get_visualization_state", { script: "anything" }],
+  ])(
+    "rejects invalid %s arguments before changing the view",
+    async (tool, request) => {
+      const { webVowlController, controllerCalls } = createControllerSpy();
+      const result = await createWebMcpToolDispatch({
+        webVowlController,
+      }).callWebMcpTool(tool, request);
+      expect(result.error.code).toBe("INVALID_TOOL_INPUT");
+      expect(controllerCalls).toEqual([]);
+    },
+  );
+
+  test("reads the actual controller visualization state", async () => {
+    const { webVowlController } = createControllerSpy({
+      getState: () => ({
+        loadGeneration: 4,
+        layout: { status: "paused" },
+        zoomScale: 2,
+        translation: { xPx: 12, yPx: 24 },
+        view: { modes: { nodeScaling: false } },
+      }),
+    });
+    const result = await createWebMcpToolDispatch({
+      webVowlController,
+    }).callWebMcpTool("get_visualization_state", {});
+    expect(result).toMatchObject({
+      isSuccess: true,
+      toolResult: {
+        layout: { status: "paused" },
+        zoomScale: 2,
+        translation: { xPx: 12, yPx: 24 },
+        view: { modes: { nodeScaling: false } },
+      },
+    });
+  });
+  test("retains core visualization values when a full focused selection exceeds the result ceiling", async () => {
+    const focus = Array.from({ length: 25 }, (_, index) => ({
+      kind: "class",
+      iri: `https://example.test/ontology/${"long-name-".repeat(15)}${index}`,
+    }));
+    const modes = {
+      colorExternals: true,
+      compactNotation: false,
+      nodeScaling: true,
+      dynamicLabelWidth: true,
+      pickAndPin: false,
+      maxLabelWidthPx: 120,
+      colorExternalsMode: "same",
+    };
+    const forceDistances = { classDistancePx: 200, datatypeDistancePx: 120 };
+    const state = {
+      status: "ready",
+      loadGeneration: 4,
+      layout: { status: "paused" },
+      source: {
+        kind: "ontology-document-iri",
+        identity: "https://example.test/ontology.owl",
+        sha256Hex: "a".repeat(64),
+      },
+      zoomScale: 2,
+      translation: { xPx: 12, yPx: 24 },
+      warnings: [],
+      view: {
+        language: "en",
+        filters: {
+          datatypes: "show",
+          objectProperties: "show",
+          subclasses: "show",
+          disjointness: "hide",
+          setOperators: "show",
+          minDegree: 0,
+        },
+        focus,
+        modes,
+        forceDistances,
+      },
+      selection: focus,
+      error: null,
+      renderProgress: null,
+      editorMode: null,
+    };
+    const { webVowlController } = createControllerSpy({
+      getState: () => state,
+    });
+    const result = await createWebMcpToolDispatch({
+      webVowlController,
+    }).callWebMcpTool("get_visualization_state", {});
+    expect(JSON.stringify(result).length).toBeLessThanOrEqual(
+      WEB_MCP_TOOL_RESULT_CHARACTER_CEILING,
+    );
+    expect(result.toolResult).toMatchObject({
+      isTruncated: true,
+      loadGeneration: 4,
+      layout: { status: "paused" },
+      zoomScale: 2,
+      translation: { xPx: 12, yPx: 24 },
+      view: { modes, forceDistances },
+      focusCount: 25,
+      selectionCount: 25,
+    });
+    expect(
+      result.toolResult.view.focus.every((reference) =>
+        focus.some((original) => original.iri === reference.iri),
+      ),
+    ).toBe(true);
+    expect(state.view.focus).toHaveLength(25);
+    expect(state.selection).toHaveLength(25);
+  });
   test("routes each tool to the controller operation that answers it", async () => {
     const { controllerCalls, webVowlController } = createControllerSpy();
     const { callWebMcpTool } = createWebMcpToolDispatch({ webVowlController });

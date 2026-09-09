@@ -163,6 +163,16 @@ export async function assertRenderedGraphRuntimeContract({
         },
         focus: [{ kind: "class", iri: "https://example.test/Person" }],
         language: "en",
+        modes: {
+          colorExternals: true,
+          compactNotation: false,
+          nodeScaling: true,
+          dynamicLabelWidth: true,
+          pickAndPin: false,
+          maxLabelWidthPx: 120,
+          colorExternalsMode: "same",
+        },
+        forceDistances: { classDistancePx: 200, datatypeDistancePx: 120 },
       },
       loadGeneration: 1,
       visibleRenderedGraphSnapshot:
@@ -199,7 +209,9 @@ export async function assertRenderedGraphRuntimeContract({
       expect(Object.keys(result.appliedVisualizationView).sort()).toEqual([
         "filters",
         "focus",
+        "forceDistances",
         "language",
+        "modes",
       ]);
     }
 
@@ -300,12 +312,19 @@ export async function assertRenderedGraphRuntimeContract({
     await completeRenderedGraphLoad(adapterHarness, 1);
     const { renderedGraphRuntime } = adapterHarness;
 
-    expect(
-      renderedGraphRuntime.setVisualizationMode({ nodeScaling: true }),
-    ).toEqual({ nodeScaling: true });
+    const modeApplication = renderedGraphRuntime.setVisualizationModes({
+      nodeScaling: true,
+    });
+    await Promise.resolve();
+    adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+      1,
+    );
+    expect(await modeApplication).toMatchObject({
+      modes: { nodeScaling: true },
+    });
     expect(
       renderedGraphRuntime.setForceLayoutDistances({ classDistancePx: 240 }),
-    ).toEqual({ classDistancePx: 240 });
+    ).toMatchObject({ forceDistances: { classDistancePx: 240 } });
     expect(
       renderedGraphRuntime.setContinuousZoom({ zoomDirection: "in" }),
     ).toBe("in");
@@ -316,7 +335,7 @@ export async function assertRenderedGraphRuntimeContract({
 
     // A request naming nothing is refused at the seam rather than reaching a
     // renderer module.
-    expect(() => renderedGraphRuntime.setVisualizationMode({})).toThrow();
+    expect(() => renderedGraphRuntime.setVisualizationModes({})).toThrow();
     expect(() => renderedGraphRuntime.setForceLayoutDistances({})).toThrow();
     expect(() =>
       renderedGraphRuntime.setContinuousZoom({ zoomDirection: "sideways" }),
@@ -326,7 +345,7 @@ export async function assertRenderedGraphRuntimeContract({
 
     // A disposed runtime tunes nothing, on either implementation.
     expect(() =>
-      renderedGraphRuntime.setVisualizationMode({ nodeScaling: true }),
+      renderedGraphRuntime.setVisualizationModes({ nodeScaling: true }),
     ).toThrow("disposed");
     expect(() =>
       renderedGraphRuntime.setForceLayoutDistances({ classDistancePx: 240 }),

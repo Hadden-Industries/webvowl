@@ -1,7 +1,6 @@
 import { OWLOntologyLoaderConfiguration } from "owlapi/model";
 import { loadWithImports as productionLoadWithImports } from "../../../owl2vowl/js/index.js";
 import { WebVowlImportResolver } from "../../../owl2vowl/js/importResolver.js";
-import { createLinkedAbortSignal } from "./linkedAbortSignal.js";
 import { OWLDocumentFormats } from "owlapi/formats";
 import {
   DocumentLoadError,
@@ -567,7 +566,7 @@ export function createOntologySourceLoader({
         throw new TypeError("onPhaseChange must be a function when provided.");
       }
 
-      const linkedAbortSignal = createLinkedAbortSignal(
+      const cancellationSignal = AbortSignal.any(
         signal === undefined ? [] : [signal],
       );
       let loadPhase = "validating";
@@ -578,7 +577,7 @@ export function createOntologySourceLoader({
       let source;
 
       try {
-        throwWhenLoadAborted(linkedAbortSignal.signal);
+        throwWhenLoadAborted(cancellationSignal);
 
         const ontologySourceLoadInput = validateOntologySourceRequest(
           request,
@@ -596,9 +595,9 @@ export function createOntologySourceLoader({
           source.kind === "vowl-json-url"
         ) {
           loadPhase = "loading";
-          reportLoadPhase(onPhaseChange, loadPhase, linkedAbortSignal.signal);
+          reportLoadPhase(onPhaseChange, loadPhase, cancellationSignal);
           const rootLoaderConfiguration = new OWLOntologyLoaderConfiguration({
-            signal: linkedAbortSignal.signal,
+            signal: cancellationSignal,
           });
           const remoteDocument = await createImportResolver().load(
             source.kind === "ontology-document-iri"
@@ -606,16 +605,16 @@ export function createOntologySourceLoader({
               : source.url,
             {
               config: rootLoaderConfiguration,
-              signal: linkedAbortSignal.signal,
+              signal: cancellationSignal,
             },
           );
-          throwWhenLoadAborted(linkedAbortSignal.signal);
+          throwWhenLoadAborted(cancellationSignal);
 
           const remoteText = remoteDocument.getText();
           sourceBytes = textEncoder.encode(remoteText);
           remoteIdentity = remoteDocument.getDocumentIRI()?.value;
           loadPhase = "parsing";
-          reportLoadPhase(onPhaseChange, loadPhase, linkedAbortSignal.signal);
+          reportLoadPhase(onPhaseChange, loadPhase, cancellationSignal);
 
           if (source.kind === "ontology-document-iri") {
             const parsedVowlModel = await loadWithImports(
@@ -635,10 +634,10 @@ export function createOntologySourceLoader({
         } else if (source.kind === "ontology-text") {
           sourceBytes = textEncoder.encode(source.text);
           const rootLoaderConfiguration = new OWLOntologyLoaderConfiguration({
-            signal: linkedAbortSignal.signal,
+            signal: cancellationSignal,
           });
           loadPhase = "parsing";
-          reportLoadPhase(onPhaseChange, loadPhase, linkedAbortSignal.signal);
+          reportLoadPhase(onPhaseChange, loadPhase, cancellationSignal);
           const parsedVowlModel = await loadWithImports(source.text, {
             configuration: createParserConfiguration(rootLoaderConfiguration),
             contentType:
@@ -652,12 +651,12 @@ export function createOntologySourceLoader({
           ({ sourceDiagnostics, vowlModel } = cloneVowlModel(parsedVowlModel));
         } else {
           loadPhase = "parsing";
-          reportLoadPhase(onPhaseChange, loadPhase, linkedAbortSignal.signal);
+          reportLoadPhase(onPhaseChange, loadPhase, cancellationSignal);
           ({ sourceDiagnostics, vowlModel } =
             ontologySourceLoadInput.detachedVowlModelContent);
         }
 
-        throwWhenLoadAborted(linkedAbortSignal.signal);
+        throwWhenLoadAborted(cancellationSignal);
         const sourceProvenance = sourceProvenanceWithoutFingerprint(
           source,
           remoteIdentity,
@@ -667,11 +666,11 @@ export function createOntologySourceLoader({
           try {
             sourceProvenance.sha256Hex = await computeSha256Hex(sourceBytes);
           } catch {
-            throwWhenLoadAborted(linkedAbortSignal.signal);
+            throwWhenLoadAborted(cancellationSignal);
             sourceFingerprintDiagnostic = SOURCE_SHA256_UNAVAILABLE_DIAGNOSTIC;
           }
         }
-        throwWhenLoadAborted(linkedAbortSignal.signal);
+        throwWhenLoadAborted(cancellationSignal);
 
         return Object.freeze({
           vowlModel,
@@ -685,11 +684,9 @@ export function createOntologySourceLoader({
       } catch (error) {
         throw mapExpectedSourceLoadError(error, {
           loadPhase,
-          signal: linkedAbortSignal.signal,
+          signal: cancellationSignal,
           sourceKind: source?.kind ?? requestedSourceKind,
         });
-      } finally {
-        linkedAbortSignal.dispose();
       }
     },
   });

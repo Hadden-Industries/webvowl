@@ -807,45 +807,65 @@ const BaseProperty = (function () {
     };
 
     this.animateDynamicLabelWidth = function (dynamic) {
-      that.removeHalo();
       if (shapeElement === undefined) {
         // this handles setOperatorProperties which dont have a shapeElement!
         return;
       }
 
       const h = that.height();
-      if (dynamic === true) {
-        myWidth = Math.min(that.getMyWidth(), graph.options().maxLabelWidth());
+      myWidth =
+        dynamic === true
+          ? Math.min(that.getMyWidth(), graph.options().maxLabelWidth())
+          : defaultWidth;
+      const targetWidth = myWidth;
+      const finishLabelGeometry = () => {
         shapeElement
-          .transition()
-          .tween("attr", function () {})
-          .ease(linearEasing)
-          .duration(100)
-          .attr({ x: -myWidth / 2, y: -h / 2, width: myWidth, height: h })
-          .on("end", function () {
-            that.updateTextElement();
-          });
-      } else {
-        // Static width for property labels = 80
-        myWidth = defaultWidth;
+          .attr("x", -targetWidth / 2)
+          .attr("y", -h / 2)
+          .attr("width", targetWidth)
+          .attr("height", h);
         that.updateTextElement();
+        if (that.halo()) {
+          that.removeHalo();
+          that.drawHalo(false);
+        }
+      };
+      const transitions = [
         shapeElement
           .transition()
-          .tween("attr", function () {})
           .ease(linearEasing)
           .duration(100)
-          .attr({ x: -myWidth / 2, y: -h / 2, width: myWidth, height: h });
-      }
+          .attr("x", -myWidth / 2)
+          .attr("y", -h / 2)
+          .attr("width", myWidth)
+          .attr("height", h)
+          .on("end interrupt cancel", finishLabelGeometry),
+      ];
       if (that.pinned() === true && pinGroupElement) {
         const dx = -0.5 * myWidth + 10,
           dy = -25;
-        pinGroupElement
-          .transition()
-          .tween("attr.translate", function () {})
-          .attr("transform", "translate(" + dx + "," + dy + ")")
-          .ease(linearEasing)
-          .duration(100);
+        transitions.push(
+          pinGroupElement
+            .transition()
+            .attr("transform", "translate(" + dx + "," + dy + ")")
+            .ease(linearEasing)
+            .duration(100)
+            .on("end interrupt cancel", () =>
+              pinGroupElement.attr(
+                "transform",
+                "translate(" + dx + "," + dy + ")",
+              ),
+            ),
+        );
       }
+      return Promise.all(
+        transitions.map((transition) =>
+          transition.end().then(
+            () => true,
+            () => false,
+          ),
+        ),
+      ).then((outcomes) => outcomes.every(Boolean));
     };
 
     this.redrawLabelText = function () {

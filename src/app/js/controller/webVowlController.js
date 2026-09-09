@@ -1,4 +1,3 @@
-import { createLinkedAbortSignal } from "./linkedAbortSignal.js";
 import {
   createWebVowlControllerState,
   WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES,
@@ -330,6 +329,18 @@ export function createWebVowlController(dependencies) {
       });
       return;
     }
+    if (renderedGraphEvent.kind === "visualization-view-changed") {
+      publishForGeneration(renderedGraphEvent.loadGeneration, {
+        view: renderedGraphEvent.payload.appliedVisualizationView,
+      });
+      if (
+        hasAcceptedRenderedMount &&
+        renderedGraphEvent.loadGeneration === currentOntologyGeneration
+      ) {
+        lastValidControllerState = controllerState;
+      }
+      return;
+    }
     if (renderedGraphEvent.kind === "viewport-changed") {
       // Magnification and pan are separate fields because a control cares
       // about one or the other; overloading them into a single viewport field
@@ -507,10 +518,19 @@ export function createWebVowlController(dependencies) {
       { signal: recoverySignal },
     );
     throwWhenSuperseded(recoveryGeneration, recoverySignal);
+    await renderedGraphRuntime.setVisualizationModes(recoveredView.modes, {
+      signal: recoverySignal,
+    });
+    await renderedGraphRuntime.setForceLayoutDistances(
+      recoveredView.forceDistances,
+      { signal: recoverySignal },
+    );
     const applied = await applyRuntimeVisualizationView(
       recoveryGeneration,
       {
-        ...recoveredView,
+        language: recoveredView.language,
+        filters: recoveredView.filters,
+        focus: recoveredView.focus,
         layout: state.layout.status === "paused" ? "pause" : "resume",
         ...(state.zoomScale === null ? {} : { zoomScale: state.zoomScale }),
       },
@@ -569,7 +589,7 @@ export function createWebVowlController(dependencies) {
       let hasStartedModelReplacement = false;
       const loadAbortController = new AbortController();
       activeLoadAbortController = loadAbortController;
-      const linkedAbortSignal = createLinkedAbortSignal(
+      const cancellationSignal = AbortSignal.any(
         signal === undefined
           ? [loadAbortController.signal]
           : [signal, loadAbortController.signal],
@@ -591,10 +611,10 @@ export function createWebVowlController(dependencies) {
                 publishForGeneration(loadGeneration, { status: "parsing" });
               }
             },
-            signal: linkedAbortSignal.signal,
+            signal: cancellationSignal,
           },
         );
-        throwWhenSuperseded(loadGeneration, linkedAbortSignal.signal);
+        throwWhenSuperseded(loadGeneration, cancellationSignal);
 
         // Projected before the renderer is asked to draw, so a semantic
         // question is answerable as soon as the model exists.
@@ -603,7 +623,7 @@ export function createWebVowlController(dependencies) {
             sourceLoadRecord.vowlModel,
             loadGeneration,
           );
-        throwWhenSuperseded(loadGeneration, linkedAbortSignal.signal);
+        throwWhenSuperseded(loadGeneration, cancellationSignal);
 
         publishForGeneration(loadGeneration, { status: "rendering" });
         hasStartedModelReplacement = true;
@@ -614,14 +634,14 @@ export function createWebVowlController(dependencies) {
             vowlModel: sourceLoadRecord.vowlModel,
             displayName: sourceLoadRecord.sourceProvenance.identity,
           },
-          { signal: linkedAbortSignal.signal },
+          { signal: cancellationSignal },
         );
-        throwWhenSuperseded(loadGeneration, linkedAbortSignal.signal);
+        throwWhenSuperseded(loadGeneration, cancellationSignal);
 
         const viewApplicationResult = await applyRuntimeVisualizationView(
           loadGeneration,
           {},
-          linkedAbortSignal.signal,
+          cancellationSignal,
         );
         const graphLayoutSnapshot = readGraphLayoutSnapshot();
         currentVowlModel = structuredClone(sourceLoadRecord.vowlModel);
@@ -700,8 +720,6 @@ export function createWebVowlController(dependencies) {
           previousOntology,
         );
         throw operationError;
-      } finally {
-        linkedAbortSignal.dispose();
       }
     },
 
@@ -739,7 +757,7 @@ export function createWebVowlController(dependencies) {
     async setVisualizationView(visualizationViewRequest, { signal } = {}) {
       assertOntologyPresent();
       const loadGeneration = currentOntologyGeneration;
-      const linkedAbortSignal = createLinkedAbortSignal(
+      const cancellationSignal = AbortSignal.any(
         signal === undefined ? [] : [signal],
       );
 
@@ -765,7 +783,7 @@ export function createWebVowlController(dependencies) {
         const viewApplicationResult = await applyRuntimeVisualizationView(
           loadGeneration,
           resolvedVisualizationView,
-          linkedAbortSignal.signal,
+          cancellationSignal,
         );
         const graphLayoutSnapshot = readGraphLayoutSnapshot();
         const isResumeRequested = visualizationViewRequest?.layout === "resume";
@@ -795,8 +813,6 @@ export function createWebVowlController(dependencies) {
           throw error;
         }
         throw createLoadAbortedError(error);
-      } finally {
-        linkedAbortSignal.dispose();
       }
     },
 
@@ -814,24 +830,45 @@ export function createWebVowlController(dependencies) {
       return graphLayoutPauseResult;
     },
 
-    // Display modes change how the graph is drawn rather than what the
-    // ontology says, so this is controller-domain only and never a WebMCP
-    // tool. Unlike pausing a layout it needs no ontology: a display mode is
-    // meaningful for an empty graph and survives the next load.
-    setVisualizationMode(visualizationModeRequest) {
-      return renderedGraphRuntime.setVisualizationMode(
-        visualizationModeRequest,
-      );
+    // Drawing preferences also apply to an empty graph and survive a load.
+    async setVisualizationModes(visualizationModesRequest, { signal } = {}) {
+      try {
+        const loadGeneration = activeLoadGeneration;
+        throwWhenSuperseded(loadGeneration, signal);
+        const view = await renderedGraphRuntime.setVisualizationModes(
+          visualizationModesRequest,
+          { signal },
+        );
+        throwWhenSuperseded(loadGeneration, signal);
+        publishForGeneration(loadGeneration, { view });
+        if (hasAcceptedRenderedMount) {
+          lastValidControllerState = controllerState;
+        }
+        return controllerState;
+      } catch (error) {
+        if (isAbortError(error)) {
+          throw createLoadAbortedError(error);
+        }
+        throw error;
+      }
     },
 
-    // Force distances tune how the graph is laid out rather than what the
-    // ontology says, so this is controller-domain only and never a WebMCP
-    // tool. Like a display mode it configures drawing rather than reading an
-    // ontology, so it is accepted before one is loaded.
-    setForceLayoutDistances(forceLayoutDistancesRequest) {
-      return renderedGraphRuntime.setForceLayoutDistances(
+    async setForceLayoutDistances(
+      forceLayoutDistancesRequest,
+      { signal } = {},
+    ) {
+      const loadGeneration = activeLoadGeneration;
+      throwWhenSuperseded(loadGeneration, signal);
+      const view = await renderedGraphRuntime.setForceLayoutDistances(
         forceLayoutDistancesRequest,
+        { signal },
       );
+      throwWhenSuperseded(loadGeneration, signal);
+      publishForGeneration(loadGeneration, { view });
+      if (hasAcceptedRenderedMount) {
+        lastValidControllerState = controllerState;
+      }
+      return controllerState;
     },
 
     // A held zoom control reports the gesture, not a magnification per frame.
@@ -858,7 +895,7 @@ export function createWebVowlController(dependencies) {
         "export request",
       );
       const loadGeneration = currentOntologyGeneration;
-      const linkedAbortSignal = createLinkedAbortSignal(
+      const cancellationSignal = AbortSignal.any(
         signal === undefined ? [] : [signal],
       );
       abortBackgroundLayoutObservation();
@@ -878,9 +915,9 @@ export function createWebVowlController(dependencies) {
                 DEFAULT_EXPORT_SETTLE_TIMEOUT_MS,
               onTimeout: exportRequest.onTimeout ?? "fail",
             },
-            { signal: linkedAbortSignal.signal },
+            { signal: cancellationSignal },
           );
-        throwWhenSuperseded(loadGeneration, linkedAbortSignal.signal);
+        throwWhenSuperseded(loadGeneration, cancellationSignal);
 
         // Holding the layout still keeps the snapshot matching what settled.
         // A layout that has already ended is still by itself, so pausing it
@@ -905,7 +942,7 @@ export function createWebVowlController(dependencies) {
         ) {
           await waitForBrowserPaint();
         }
-        throwWhenSuperseded(loadGeneration, linkedAbortSignal.signal);
+        throwWhenSuperseded(loadGeneration, cancellationSignal);
 
         const renderedSvgSnapshot =
           renderedGraphRuntime.createRenderedSvgSnapshot({ loadGeneration });
@@ -931,7 +968,7 @@ export function createWebVowlController(dependencies) {
               },
             },
           },
-          { signal: linkedAbortSignal.signal },
+          { signal: cancellationSignal },
         );
       } catch (error) {
         if (isExpectedOperationError(error)) {
@@ -952,7 +989,6 @@ export function createWebVowlController(dependencies) {
             layout: { status: restoredPauseResult.layoutStatus },
           });
         }
-        linkedAbortSignal.dispose();
       }
     },
 

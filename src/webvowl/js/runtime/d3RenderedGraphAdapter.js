@@ -6,8 +6,11 @@ import {
 } from "../../../app/js/controller/vowlModelInspectionProjector.js";
 import {
   createContinuousZoomRequest,
+  createAppliedVisualizationView,
+  DEFAULT_VISUALIZATION_MODES,
+  DEFAULT_FORCE_LAYOUT_DISTANCES,
   createForceLayoutDistancesRequest,
-  createVisualizationModeRequest,
+  createVisualizationModesRequest,
   createGraphLayoutPauseRequest,
   createGraphLayoutPauseResult,
   createGraphLayoutSnapshot,
@@ -39,6 +42,8 @@ const DEFAULT_APPLIED_VISUALIZATION_VIEW = Object.freeze({
   }),
   focus: Object.freeze([]),
   language: "default",
+  modes: DEFAULT_VISUALIZATION_MODES,
+  forceDistances: DEFAULT_FORCE_LAYOUT_DISTANCES,
 });
 
 function assertPlainRecord(candidate, description) {
@@ -333,6 +338,20 @@ export function createD3RenderedGraphAdapter(dependencies) {
         ),
         minDegree: degreeFilter.enabled() ? degreeFilter.minDegree() : 0,
       },
+      modes: {
+        ...Object.fromEntries(
+          Object.entries(VISUALIZATION_MODE_MODULE_READERS).map(
+            ([name, readModule]) => [name, readModule(settings).enabled()],
+          ),
+        ),
+        dynamicLabelWidth: settings.dynamicLabelWidth(),
+        maxLabelWidthPx: settings.maxLabelWidth(),
+        colorExternalsMode: settings.colorExternalsModule().colorModeType(),
+      },
+      forceDistances: {
+        classDistancePx: settings.classDistance(),
+        datatypeDistancePx: settings.datatypeDistance(),
+      },
     };
   }
 
@@ -535,6 +554,15 @@ export function createD3RenderedGraphAdapter(dependencies) {
           throw createAbortError("The viewport zoom was interrupted.");
         }
       }
+      if (requestedView.translation !== undefined) {
+        const completed = renderedGraphInternals.panViewport(
+          requestedView.translation,
+        );
+        if (completed === false) {
+          throw createAbortError("The viewport pan could not be applied.");
+        }
+        await awaitObservedPaint(loadGeneration, viewSignal);
+      }
       // Moving the viewport needs the geometry the recomputation produced.
       if (requestedView.viewport === "zoom-and-center") {
         const completed = await renderedGraphInternals.zoomAndCenterGraph(
@@ -626,72 +654,125 @@ export function createD3RenderedGraphAdapter(dependencies) {
       return zoomDirection;
     },
 
-    setVisualizationMode(request) {
+    setVisualizationModes(request, { signal } = {}) {
       assertNotDisposed();
-      const requestedMode = createVisualizationModeRequest(request);
+      signal?.throwIfAborted();
+      const requestedModes = createVisualizationModesRequest(request);
+      const loadGeneration = activeLoadGeneration;
+      activeViewAbortController?.abort(
+        createAbortError(
+          "The view request was superseded by a newer display choice.",
+        ),
+      );
+      activeViewAbortController = new AbortController();
+      const viewSignal = AbortSignal.any([
+        activeViewAbortController.signal,
+        ...(activeGenerationAbortController
+          ? [activeGenerationAbortController.signal]
+          : []),
+        ...(signal ? [signal] : []),
+      ]);
       const renderedGraphSettings = renderedGraphInternals.options();
       let hasChangedElementRendering = false;
       for (const [modeName, readModeModule] of Object.entries(
         VISUALIZATION_MODE_MODULE_READERS,
       )) {
-        if (requestedMode[modeName] === undefined) {
+        if (requestedModes[modeName] === undefined) {
           continue;
         }
-        readModeModule(renderedGraphSettings)?.enabled(requestedMode[modeName]);
+        readModeModule(renderedGraphSettings)?.enabled(
+          requestedModes[modeName],
+        );
         hasChangedElementRendering = true;
       }
-      if (requestedMode.colorExternalsMode !== undefined) {
+      if (requestedModes.colorExternalsMode !== undefined) {
         renderedGraphSettings
           .colorExternalsModule()
-          ?.colorModeType(requestedMode.colorExternalsMode);
+          ?.colorModeType(requestedModes.colorExternalsMode);
         hasChangedElementRendering = true;
       }
       if (
-        requestedMode.colorExternals !== undefined ||
-        requestedMode.colorExternalsMode !== undefined
+        requestedModes.colorExternals !== undefined ||
+        requestedModes.colorExternalsMode !== undefined
       ) {
         renderedGraphInternals.executeColorExternalsModule();
       }
-      if (requestedMode.compactNotation !== undefined) {
+      if (requestedModes.compactNotation !== undefined) {
         renderedGraphInternals.executeCompactNotationModule();
       }
-      if (requestedMode.nodeScaling !== undefined) {
+      if (requestedModes.nodeScaling !== undefined) {
         renderedGraphInternals.executeNodeScalingModule();
       }
       // Label width is a drawing setting rather than a filter module, so it is
       // applied directly and animated into place.
       let hasChangedDynamicLabelWidthMode = false;
       let hasChangedMaxLabelWidth = false;
-      if (requestedMode.dynamicLabelWidth !== undefined) {
+      if (requestedModes.dynamicLabelWidth !== undefined) {
         renderedGraphSettings.dynamicLabelWidth(
-          requestedMode.dynamicLabelWidth,
+          requestedModes.dynamicLabelWidth,
         );
         hasChangedDynamicLabelWidthMode = true;
       }
-      if (requestedMode.maxLabelWidthPx !== undefined) {
-        renderedGraphSettings.maxLabelWidth(requestedMode.maxLabelWidthPx);
+      if (requestedModes.maxLabelWidthPx !== undefined) {
+        renderedGraphSettings.maxLabelWidth(requestedModes.maxLabelWidthPx);
         hasChangedMaxLabelWidth = true;
       }
       // Switching the mode animates either way, because labels are clamped to
       // the width or released back to their own. A width on its own is only
       // visible while labels are sizing themselves to it.
-      if (
-        hasChangedDynamicLabelWidthMode ||
-        (hasChangedMaxLabelWidth && renderedGraphSettings.dynamicLabelWidth())
-      ) {
-        renderedGraphInternals.animateDynamicLabelWidth();
-      }
-      if (hasChangedElementRendering) {
+      if (hasChangedElementRendering && loadGeneration !== null) {
         renderedGraphInternals.lazyRefresh();
       }
-      return requestedMode;
+      let labelWidthAnimation;
+      if (
+        loadGeneration !== null &&
+        (hasChangedDynamicLabelWidthMode ||
+          (hasChangedMaxLabelWidth &&
+            renderedGraphSettings.dynamicLabelWidth()))
+      ) {
+        labelWidthAnimation = renderedGraphInternals.animateDynamicLabelWidth({
+          signal: viewSignal,
+        });
+      }
+      return (async () => {
+        const animationCompleted = await labelWidthAnimation;
+        viewSignal.throwIfAborted();
+        if (animationCompleted === false) {
+          throw createAbortError("The label width animation was interrupted.");
+        }
+        if (loadGeneration !== null) {
+          applyVisualizationViewToRenderer({
+            focus: appliedVisualizationView.focus,
+          });
+          await awaitObservedPaint(loadGeneration, viewSignal);
+        }
+        viewSignal.throwIfAborted();
+        assertNotDisposed();
+        return createAppliedVisualizationView(readAppliedVisualizationView());
+      })().finally(() => {
+        // Cancellation stops waiting for the action. Native transition handlers
+        // finish its applied geometry; observers must receive those actual choices.
+        if (
+          loadGeneration !== null &&
+          loadGeneration === activeLoadGeneration &&
+          !isDisposed
+        ) {
+          publishRenderedGraphEvent({
+            kind: "visualization-view-changed",
+            loadGeneration,
+            payload: {
+              appliedVisualizationView: readAppliedVisualizationView(),
+            },
+          });
+        }
+      });
     },
 
     setForceLayoutDistances(request) {
       assertNotDisposed();
       const requestedDistances = createForceLayoutDistancesRequest(request);
       renderedGraphInternals.setForceLayoutDistances(requestedDistances);
-      return requestedDistances;
+      return createAppliedVisualizationView(readAppliedVisualizationView());
     },
 
     resetVisualization() {

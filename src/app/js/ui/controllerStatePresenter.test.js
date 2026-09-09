@@ -3,7 +3,7 @@ import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let createControllerStatePresenter;
 let PRESENTED_CONTROLLER_STATE_FIELD_NAMES;
-let AGENT_FACING_ONLY_CONTROLLER_STATE_FIELD_NAMES;
+let SEPARATELY_PRESENTED_CONTROLLER_STATE_FIELD_NAMES;
 let WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES;
 
 beforeAll(async () => {
@@ -14,7 +14,7 @@ beforeAll(async () => {
   ({
     createControllerStatePresenter,
     PRESENTED_CONTROLLER_STATE_FIELD_NAMES,
-    AGENT_FACING_ONLY_CONTROLLER_STATE_FIELD_NAMES,
+    SEPARATELY_PRESENTED_CONTROLLER_STATE_FIELD_NAMES,
   } = await loadEsmModuleForTest(
     new URL("./controllerStatePresenter.js", import.meta.url),
     import.meta.url,
@@ -278,12 +278,12 @@ describe("controller state presentation", () => {
     // that a decision taken when the field is added rather than an omission.
     const accountedFieldNames = [
       ...PRESENTED_CONTROLLER_STATE_FIELD_NAMES,
-      ...AGENT_FACING_ONLY_CONTROLLER_STATE_FIELD_NAMES,
+      ...SEPARATELY_PRESENTED_CONTROLLER_STATE_FIELD_NAMES,
     ];
 
     expect(
       PRESENTED_CONTROLLER_STATE_FIELD_NAMES.filter((fieldName) =>
-        AGENT_FACING_ONLY_CONTROLLER_STATE_FIELD_NAMES.includes(fieldName),
+        SEPARATELY_PRESENTED_CONTROLLER_STATE_FIELD_NAMES.includes(fieldName),
       ),
     ).toEqual([]);
     expect([...accountedFieldNames].sort()).toEqual(

@@ -28,10 +28,6 @@ const CONTROLLER_CONTRACTS_MODULE_URL = new URL(
   "./webVowlControllerContracts.js",
   import.meta.url,
 );
-const LINKED_ABORT_SIGNAL_MODULE_URL = new URL(
-  "./linkedAbortSignal.js",
-  import.meta.url,
-);
 
 const EXPECTED_ONTOLOGY_TEXT_FORMAT_KEYS = Object.freeze([
   "dl",
@@ -93,11 +89,9 @@ async function createEvaluatedDependencyFreeModule(moduleUrl) {
 }
 
 beforeAll(async () => {
-  const [controllerContractsModule, linkedAbortSignalModule] =
-    await Promise.all([
-      createEvaluatedDependencyFreeModule(CONTROLLER_CONTRACTS_MODULE_URL),
-      createEvaluatedDependencyFreeModule(LINKED_ABORT_SIGNAL_MODULE_URL),
-    ]);
+  const controllerContractsModule = await createEvaluatedDependencyFreeModule(
+    CONTROLLER_CONTRACTS_MODULE_URL,
+  );
   const dependencyModules = new Map([
     [
       "owlapi/formats",
@@ -132,7 +126,6 @@ beforeAll(async () => {
         WebVowlImportResolver,
       }),
     ],
-    ["./linkedAbortSignal.js", linkedAbortSignalModule],
     ["./webVowlControllerContracts.js", controllerContractsModule],
   ]);
   const ontologySourceLoaderModule = new SourceTextModule(

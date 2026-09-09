@@ -25,6 +25,9 @@ const EXPECTED_TOOL_NAMES = Object.freeze([
   "find_ontology_elements",
   "set_visualization_view",
   "export_visualization",
+  "get_visualization_state",
+  "set_visualization_modes",
+  "set_layout_distances",
 ]);
 
 function createControllerDouble(overrides = {}) {

@@ -1,3 +1,5 @@
+import { runVisualizationControlAction } from "../ui/visualizationControlAction.js";
+
 /**
  * Contains the logic for setting up the gravity sliders.
  *
@@ -60,9 +62,13 @@ export function createGravityMenu({
         return;
       }
       sliderValueLabel.textContent = slider.value;
-      webVowlController?.setForceLayoutDistances({
-        [distanceFieldName]: requestedDistancePx,
-      });
+      void runVisualizationControlAction(
+        () =>
+          webVowlController.setForceLayoutDistances({
+            [distanceFieldName]: requestedDistancePx,
+          }),
+        documentObject,
+      );
     }
     slider.addEventListener("input", handleInput);
 

@@ -5,6 +5,9 @@ human reader and a WebMCP caller. This amends the accepted 2026-08-29 design and
 plan. It does not authorise ontology editing, publication or additional network
 retrieval policies. Browser artifacts remain local to the page.
 
+[ADR 0012](../adr/0012-human-and-agent-visualization-action-parity.md) records
+the superseded ownership restrictions and distinct identity boundaries.
+
 ## Action semantics
 
 Pause stops automatic layout motion and retains the arrangement. Resume restarts
@@ -123,3 +126,31 @@ Callbacks from retired interaction epochs cannot mutate the current simulation.
 Each replacement owns a fresh SVG root and native drag/zoom behaviours; retaining
 the previous root would retain D3's unfinished zoom gesture state and could disable
 wheel zoom. No code rewrites D3's private gesture bookkeeping.
+
+## Remaining view actions
+
+Explicit pan uses `translation: {xPx, yPx}` in viewport pixels and preserves
+magnification and node arrangement. The shared request boundary uses the same
+0.01–4 magnification interval advertised to the browser agent. Requested viewport
+coordinates remain transient; published translation describes the actual view.
+
+Display modes and force distances are standing choices and must be included in
+applied-view state and exported recipes. Mode requests name Boolean choices,
+the existing `same`/`gradient` external-color options and label widths from
+20 through 600 pixels. Distance requests name class and datatype distances from
+10 through 600 pixels, matching the human sliders. Internal loop distance is not
+a new agent-only tuning option. The plural `setVisualizationModes` names several
+independently selected modes; the singular designation has no retained alias.
+
+Native label animations complete geometry, text and focus even when interrupted.
+Cancellation stops waiting for a request; it does not undo already applied standing
+choices. Immutable `visualization-view-changed` observations publish those actual
+choices independently of request success, and retired generations cannot publish.
+Agent results omit whole focused/selected references to meet their bounded response
+budget, retain the original counts and core visualization values, and never shorten
+retained reference identities into different identifiers.
+
+Human controls subscribe to applied state; importing, resetting or agent actions
+must not depend on simulated checkbox clicks or reading values back from menus.
+Reset restores the existing visualization defaults and clears focus/selection
+through a single shared operation. Experimental editing remains excluded.

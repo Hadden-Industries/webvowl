@@ -1,3 +1,5 @@
+import { runVisualizationControlAction } from "../ui/visualizationControlAction.js";
+
 /**
  * Contains the logic for connecting the modes with the website.
  *
@@ -23,8 +25,8 @@ export function createModeMenu(
   });
   const dynamicLabelWidthDefault = true;
 
-  const SAME_COLOR_MODE = { text: "Multicolor", type: "same" };
-  const GRADIENT_COLOR_MODE = { text: "Multicolor", type: "gradient" };
+  const SAME_COLOR_MODE = { text: "Same color", type: "same" };
+  const GRADIENT_COLOR_MODE = { text: "Gradient", type: "gradient" };
 
   const modeMenu = {};
   const checkboxes = [];
@@ -33,8 +35,11 @@ export function createModeMenu(
   // A checkbox states which display mode a reader chose. What that mode means
   // for the drawn graph — which module enforces it, and when to recompute — is
   // renderer behaviour and stays behind the seam.
-  function requestVisualizationMode(requestedMode) {
-    webVowlController?.setVisualizationMode(requestedMode);
+  function requestVisualizationModes(requestedModes) {
+    void runVisualizationControlAction(
+      () => webVowlController.setVisualizationModes(requestedModes),
+      documentObject,
+    );
   }
 
   let dynamicLabelWidthCheckBox;
@@ -125,7 +130,7 @@ export function createModeMenu(
 
     moduleCheckbox.addEventListener("click", function () {
       const isEnabled = moduleCheckbox.checked;
-      requestVisualizationMode({ dynamicLabelWidth: isEnabled });
+      requestVisualizationModes({ dynamicLabelWidth: isEnabled });
       const slider = documentObject.querySelector("#maxLabelWidthSlider");
       if (slider) {
         slider.disabled = !isEnabled;
@@ -198,7 +203,7 @@ export function createModeMenu(
     });
 
     const clickHandler = function () {
-      requestVisualizationMode({
+      requestVisualizationModes({
         [visualizationModeName]: moduleCheckbox.checked,
       });
     };
@@ -230,13 +235,12 @@ export function createModeMenu(
         update: function () {},
       };
     }
-    let isActive = false;
-    applyColorModeSwitchState(button, isActive);
+    applyColorModeSwitchState(button, false);
 
     const clickHandler = function () {
-      isActive = !isActive;
+      const isActive = !button.classList.contains("active");
       applyColorModeSwitchState(button, isActive);
-      requestVisualizationMode({
+      requestVisualizationModes({
         colorExternalsMode: getColorModeByState(isActive).type,
       });
     };
@@ -245,10 +249,10 @@ export function createModeMenu(
     return {
       element: button,
       getActive: function () {
-        return isActive;
+        return button.classList.contains("active");
       },
       setActive: function (state) {
-        isActive = state;
+        applyColorModeSwitchState(button, state);
       },
       update: clickHandler,
     };
@@ -282,7 +286,7 @@ export function createModeMenu(
       }
 
       if (item.visualizationModeName !== undefined) {
-        requestVisualizationMode({
+        requestVisualizationModes({
           [item.visualizationModeName]: defaultState,
         });
       }
@@ -333,19 +337,19 @@ export function createModeMenu(
   // recomputation rather than one per checkbox. This is what the former silent
   // flag was for.
   function reportEveryDisplayMode(includeColorMode) {
-    const requestedMode = {};
+    const requestedModes = {};
     for (const item of checkboxes) {
       if (item.visualizationModeName !== undefined) {
-        requestedMode[item.visualizationModeName] = item.element.checked;
+        requestedModes[item.visualizationModeName] = item.element.checked;
       }
     }
     if (includeColorMode && colorModeSwitch) {
-      requestedMode.colorExternalsMode = getColorModeByState(
+      requestedModes.colorExternalsMode = getColorModeByState(
         colorModeSwitch.getActive(),
       ).type;
     }
-    if (Object.keys(requestedMode).length > 0) {
-      requestVisualizationMode(requestedMode);
+    if (Object.keys(requestedModes).length > 0) {
+      requestVisualizationModes(requestedModes);
     }
   }
 

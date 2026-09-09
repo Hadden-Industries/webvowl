@@ -1,5 +1,7 @@
-// The controls the reader already sees. This adapter is the single route from
-// those controls to the controller; no menu module drives the graph directly.
+import { runVisualizationControlAction } from "./visualizationControlAction.js";
+
+// The controls the reader already sees. Present their shared view choices and
+// connect language, filtering, pause and framing actions to the controller.
 export const VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS = Object.freeze({
   languageSelect: "language",
   datatypesFilterCheckbox: "datatypeFilterCheckbox",
@@ -8,16 +10,21 @@ export const VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS = Object.freeze({
   disjointnessFilterCheckbox: "disjointFilterCheckbox",
   setOperatorsFilterCheckbox: "setoperatorFilterCheckbox",
   minimumDegreeRange: "nodeDegreeDistanceSlider",
-  // The search dropdown is still owned by the search menu, which carries
-  // keyboard navigation and highlighting this adapter does not replicate.
-  // Binding here as well would render a second, poorer result list over it.
-  ontologySearchInput: "visualizationOntologySearchInput",
-  ontologySearchResultList: "visualizationOntologySearchResultList",
-  // No relax-only control ships yet; the adapter skips absent controls.
-  relaxLayoutButton: "visualizationRelaxLayoutButton",
+  compactNotationCheckbox: "compactnotationModuleCheckbox",
+  nodeScalingCheckbox: "nodescalingModuleCheckbox",
+  colorExternalsCheckbox: "colorexternalsModuleCheckbox",
+  pickAndPinCheckbox: "pickandpinModuleCheckbox",
+  dynamicLabelWidthCheckbox: "labelWidthModuleCheckbox",
+  maximumLabelWidthRange: "maxLabelWidthSlider",
+  maximumLabelWidthValue: "maxLabelWidthSliderValue",
+  maximumLabelWidthDescription: "maxLabelWidthDescriptionLabel",
+  classDistanceRange: "classDistanceSlider",
+  classDistanceValue: "classDistanceSliderValue",
+  datatypeDistanceRange: "datatypeDistanceSlider",
+  datatypeDistanceValue: "datatypeDistanceSliderValue",
+  externalColorModeButton: "externalColorModeButton",
   zoomAndCenterViewportButton: "centerGraphButton",
   graphLayoutPauseButton: "pause-button",
-  graphLayoutStatusOutput: "visualizationGraphLayoutStatusOutput",
 });
 
 const VIEW_CONTROLS_DEPENDENCY_FIELD_NAMES = Object.freeze([
@@ -27,7 +34,6 @@ const VIEW_CONTROLS_DEPENDENCY_FIELD_NAMES = Object.freeze([
 ]);
 
 const CONTROLLER_OPERATION_NAMES = Object.freeze([
-  "findOntologyElements",
   "setGraphLayoutPaused",
   "setVisualizationView",
   "subscribeToState",
@@ -40,8 +46,6 @@ const VISIBILITY_FILTER_CONTROL_NAMES = Object.freeze({
   disjointnessFilterCheckbox: "disjointness",
   setOperatorsFilterCheckbox: "setOperators",
 });
-
-const SEARCH_RESULT_ELEMENT_NAME = "button";
 
 function assertPlainRecord(candidate, description) {
   if (
@@ -128,39 +132,10 @@ export function createVisualizationViewControlsAdapter(dependencies) {
     if (lifecycleSignal.aborted || isPresentingControllerState) {
       return;
     }
-    controller.setVisualizationView(visualizationViewRequest);
-  }
-
-  function renderSearchResults(ontologySearchResult) {
-    const resultListElement = connectedControlElements.get(
-      "ontologySearchResultList",
+    void runVisualizationControlAction(
+      () => controller.setVisualizationView(visualizationViewRequest),
+      documentObject,
     );
-    if (resultListElement === undefined) {
-      return;
-    }
-    const resultElements = ontologySearchResult.matches.map(
-      (ontologyElementMatch) => {
-        const resultElement = documentObject.createElement(
-          SEARCH_RESULT_ELEMENT_NAME,
-        );
-        resultElement.textContent = ontologyElementMatch.displayLabel;
-        resultElement.disabled = !ontologyElementMatch.isFocusable;
-        resultElement.addEventListener(
-          "click",
-          () => {
-            if (!ontologyElementMatch.isFocusable) {
-              return;
-            }
-            requestVisualizationView({
-              focus: [ontologyElementMatch.ontologyElementReference],
-            });
-          },
-          { signal: lifecycleSignal },
-        );
-        return resultElement;
-      },
-    );
-    resultListElement.replaceChildren(...resultElements);
   }
 
   listenOnControl("languageSelect", "change", (changeEvent) => {
@@ -186,10 +161,6 @@ export function createVisualizationViewControlsAdapter(dependencies) {
     });
   });
 
-  listenOnControl("relaxLayoutButton", "click", () => {
-    requestVisualizationView({ layout: "resume" });
-  });
-
   listenOnControl("zoomAndCenterViewportButton", "click", () => {
     requestVisualizationView({ viewport: "zoom-and-center" });
   });
@@ -200,15 +171,6 @@ export function createVisualizationViewControlsAdapter(dependencies) {
     }
     isGraphLayoutPaused = !isGraphLayoutPaused;
     controller.setGraphLayoutPaused({ isPaused: isGraphLayoutPaused });
-  });
-
-  listenOnControl("ontologySearchInput", "input", (inputEvent) => {
-    if (lifecycleSignal.aborted) {
-      return;
-    }
-    renderSearchResults(
-      controller.findOntologyElements({ query: inputEvent.target.value }),
-    );
   });
 
   function presentControlValue(controlName, controlValue) {
@@ -238,14 +200,16 @@ export function createVisualizationViewControlsAdapter(dependencies) {
     controlElement.textContent = controlText;
   }
 
-  function onControllerStateChanged(controllerState) {
+  function onControllerStateChanged(
+    controllerState,
+    changedFieldNames = Object.keys(controllerState),
+  ) {
     isPresentingControllerState = true;
     try {
       isGraphLayoutPaused = controllerState.layout.status === "paused";
-      presentControlText(
-        "graphLayoutStatusOutput",
-        controllerState.layout.status,
-      );
+      if (!changedFieldNames.includes("view")) {
+        return;
+      }
       const visualizationView = controllerState.view;
       if (visualizationView === null || visualizationView === undefined) {
         return;
@@ -263,6 +227,63 @@ export function createVisualizationViewControlsAdapter(dependencies) {
         "minimumDegreeRange",
         String(visualizationView.filters.minDegree),
       );
+      const { modes, forceDistances } = visualizationView;
+      if (modes) {
+        for (const mode of [
+          "compactNotation",
+          "nodeScaling",
+          "colorExternals",
+          "pickAndPin",
+          "dynamicLabelWidth",
+        ]) {
+          presentControlChecked(`${mode}Checkbox`, modes[mode]);
+        }
+        presentControlValue(
+          "maximumLabelWidthRange",
+          String(modes.maxLabelWidthPx),
+        );
+        presentControlText(
+          "maximumLabelWidthValue",
+          String(modes.maxLabelWidthPx),
+        );
+        const widthSlider = connectedControlElements.get(
+          "maximumLabelWidthRange",
+        );
+        if (widthSlider) {
+          widthSlider.disabled = !modes.dynamicLabelWidth;
+        }
+        for (const name of [
+          "maximumLabelWidthValue",
+          "maximumLabelWidthDescription",
+        ]) {
+          connectedControlElements
+            .get(name)
+            ?.classList.toggle(
+              "disabledLabelForSlider",
+              !modes.dynamicLabelWidth,
+            );
+        }
+        const gradient = modes.colorExternalsMode === "gradient";
+        connectedControlElements
+          .get("externalColorModeButton")
+          ?.classList.toggle("active", gradient);
+        presentControlText(
+          "externalColorModeButton",
+          gradient ? "Gradient" : "Same color",
+        );
+      }
+      if (forceDistances) {
+        for (const kind of ["class", "datatype"]) {
+          presentControlValue(
+            `${kind}DistanceRange`,
+            String(forceDistances[`${kind}DistancePx`]),
+          );
+          presentControlText(
+            `${kind}DistanceValue`,
+            String(forceDistances[`${kind}DistancePx`]),
+          );
+        }
+      }
     } finally {
       isPresentingControllerState = false;
     }

@@ -270,8 +270,9 @@ function createAdapterHarness() {
   const rendererSimulationFixture = createRendererSimulationFixture();
   // The adapter owns the renderer implementation; the test supplies a
   // deterministic stand-in rather than a live D3 graph.
-  function createFilterModuleFixture() {
-    let enabledState = false;
+  function createFilterModuleFixture(initialEnabled = false) {
+    let enabledState = initialEnabled;
+    let colorMode = "same";
     return {
       enabled(nextEnabledState) {
         if (nextEnabledState === undefined) {
@@ -279,6 +280,12 @@ function createAdapterHarness() {
         }
         enabledState = nextEnabledState;
         return undefined;
+      },
+      colorModeType(value) {
+        if (value !== undefined) {
+          colorMode = value;
+        }
+        return colorMode;
       },
     };
   }
@@ -334,6 +341,12 @@ function createAdapterHarness() {
         renderedGraphInternalsFixture.modeModules.compactNotation,
       nodeScalingModule: () =>
         renderedGraphInternalsFixture.modeModules.nodeScaling,
+      pickAndPinModule: () =>
+        renderedGraphInternalsFixture.modeModules.pickAndPin,
+      classDistance: () =>
+        renderedGraphInternalsFixture.forceDistances.classDistancePx,
+      datatypeDistance: () =>
+        renderedGraphInternalsFixture.forceDistances.datatypeDistancePx,
       dynamicLabelWidth(nextDynamicLabelWidth) {
         if (!arguments.length) {
           return renderedGraphInternalsFixture.isDynamicLabelWidth;
@@ -346,6 +359,9 @@ function createAdapterHarness() {
         return undefined;
       },
       maxLabelWidth(nextMaxLabelWidthPx) {
+        if (nextMaxLabelWidthPx === undefined) {
+          return renderedGraphInternalsFixture.maxLabelWidths.at(-1) ?? 120;
+        }
         renderedGraphInternalsFixture.maxLabelWidths.push(nextMaxLabelWidthPx);
       },
       data(vowlModel) {
@@ -453,9 +469,10 @@ function createAdapterHarness() {
       renderedGraphInternalsFixture.requestedZoomScales.push(zoomScale);
     },
     modeModules: {
-      colorExternals: createFilterModuleFixture(),
+      colorExternals: createFilterModuleFixture(true),
       compactNotation: createFilterModuleFixture(),
-      nodeScaling: createFilterModuleFixture(),
+      nodeScaling: createFilterModuleFixture(true),
+      pickAndPin: createFilterModuleFixture(),
     },
     isDynamicLabelWidth: true,
     dynamicLabelWidths: [],
@@ -479,7 +496,12 @@ function createAdapterHarness() {
       renderedGraphInternalsFixture.lazyRefreshes += 1;
     },
     requestedForceLayoutDistances: [],
+    forceDistances: { classDistancePx: 200, datatypeDistancePx: 120 },
     setForceLayoutDistances(requestedDistances) {
+      Object.assign(
+        renderedGraphInternalsFixture.forceDistances,
+        requestedDistances,
+      );
       renderedGraphInternalsFixture.requestedForceLayoutDistances.push(
         requestedDistances,
       );
@@ -879,6 +901,40 @@ describe("D3 rendered graph adapter", () => {
     });
   });
 
+  test("pans without reheating the force and waits for its visible result", async () => {
+    const harness = createAdapterHarness();
+    await loadGeneration(harness, 1);
+    const translations = [];
+    harness.renderedGraphInternalsFixture.panViewport = (translation) =>
+      translations.push({ ...translation });
+    const before = harness.renderedGraphRuntime.readGraphLayoutSnapshot();
+    let completed = false;
+    const view = harness.renderedGraphRuntime
+      .applyVisualizationView({
+        loadGeneration: 1,
+        translation: { xPx: -180.5, yPx: 72 },
+      })
+      .then((value) => {
+        completed = true;
+        return value;
+      });
+    const outcome = view.catch((error) => error);
+    harness.renderedGraphTestHarness.completeVisualizationViewApplication(1);
+    for (let turn = 0; turn < 8; turn++) {
+      await Promise.resolve();
+    }
+    expect(translations).toEqual([{ xPx: -180.5, yPx: 72 }]);
+    expect(completed).toBe(false);
+    expect(
+      harness.renderedGraphTestHarness.completeVisualizationViewApplication(1),
+    ).toBe(true);
+    const result = await outcome;
+    expect(result.appliedVisualizationView).not.toHaveProperty("translation");
+    expect(harness.renderedGraphRuntime.readGraphLayoutSnapshot()).toEqual(
+      before,
+    );
+  });
+
   test("counts the current rendered projection rather than every model record", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
@@ -898,16 +954,47 @@ describe("D3 rendered graph adapter", () => {
     });
   });
 
+  test("reports label width only after the native animation and paint finish", async () => {
+    const harness = createAdapterHarness();
+    await loadGeneration(harness, 1);
+    let finishAnimation;
+    harness.renderedGraphInternalsFixture.animateDynamicLabelWidth = () =>
+      new Promise((resolve) => {
+        finishAnimation = resolve;
+      });
+    let completed = false;
+    const operation = Promise.resolve(
+      harness.renderedGraphRuntime.setVisualizationModes({
+        maxLabelWidthPx: 20,
+      }),
+    ).then((result) => {
+      completed = true;
+      return result;
+    });
+    await Promise.resolve();
+    expect(completed).toBe(false);
+    finishAnimation(true);
+    for (let turn = 0; turn < 6; turn++) {
+      await Promise.resolve();
+    }
+    expect(completed).toBe(false);
+    expect(
+      harness.renderedGraphTestHarness.completeVisualizationViewApplication(1),
+    ).toBe(true);
+    expect(await operation).toMatchObject({ modes: { maxLabelWidthPx: 20 } });
+  });
+
   test("applies each requested display mode and refreshes once", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
     const internals = adapterHarness.renderedGraphInternalsFixture;
 
-    adapterHarness.renderedGraphRuntime.setVisualizationMode({
-      colorExternals: true,
-      nodeScaling: true,
-      maxLabelWidthPx: 180,
-    });
+    const modeApplication =
+      adapterHarness.renderedGraphRuntime.setVisualizationModes({
+        colorExternals: true,
+        nodeScaling: true,
+        maxLabelWidthPx: 180,
+      });
 
     expect(internals.modeExecutions).toEqual(["colorExternals", "nodeScaling"]);
     expect(internals.modeModules.colorExternals.enabled()).toBe(true);
@@ -915,6 +1002,44 @@ describe("D3 rendered graph adapter", () => {
     expect(internals.maxLabelWidths).toEqual([180]);
     expect(internals.labelWidthAnimations).toBe(1);
     expect(internals.lazyRefreshes).toBe(1);
+    await Promise.resolve();
+    adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+      1,
+    );
+    await modeApplication;
+  });
+
+  test("publishes actual display choices after caller cancellation finishes native geometry", async () => {
+    const harness = createAdapterHarness();
+    await loadGeneration(harness, 1);
+    const events = [];
+    harness.renderedGraphRuntime.subscribeToRenderedGraphEvents((event) =>
+      events.push(event),
+    );
+    harness.renderedGraphInternalsFixture.animateDynamicLabelWidth = ({
+      signal,
+    }) =>
+      new Promise((resolve) =>
+        signal.addEventListener("abort", () => resolve(false), { once: true }),
+      );
+    const caller = new AbortController();
+    const action = harness.renderedGraphRuntime.setVisualizationModes(
+      { maxLabelWidthPx: 20 },
+      { signal: caller.signal },
+    );
+    caller.abort(new DOMException("Cancelled", "AbortError"));
+    await expect(action).rejects.toMatchObject({ name: "AbortError" });
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        kind: "visualization-view-changed",
+        loadGeneration: 1,
+        payload: expect.objectContaining({
+          appliedVisualizationView: expect.objectContaining({
+            modes: expect.objectContaining({ maxLabelWidthPx: 20 }),
+          }),
+        }),
+      }),
+    );
   });
 
   test.each([
@@ -1034,30 +1159,48 @@ describe("D3 rendered graph adapter", () => {
     // Labels already clamped to a maximum have to be animated back to their
     // full width, so switching the mode off animates just as switching it on
     // does. Skipping it would leave them clamped until something else redrew.
-    adapterHarness.renderedGraphRuntime.setVisualizationMode({
-      dynamicLabelWidth: false,
-    });
+    const modeApplication =
+      adapterHarness.renderedGraphRuntime.setVisualizationModes({
+        dynamicLabelWidth: false,
+      });
 
     expect(internals.labelWidthAnimations).toBe(1);
+    await Promise.resolve();
+    adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+      1,
+    );
+    await modeApplication;
   });
 
   test("leaves labels alone when a width changes while the mode is off", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
     const internals = adapterHarness.renderedGraphInternalsFixture;
-    adapterHarness.renderedGraphRuntime.setVisualizationMode({
-      dynamicLabelWidth: false,
-    });
+    const modeApplication =
+      adapterHarness.renderedGraphRuntime.setVisualizationModes({
+        dynamicLabelWidth: false,
+      });
+    await Promise.resolve();
+    adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+      1,
+    );
+    await modeApplication;
     internals.labelWidthAnimations = 0;
 
     // A width that no label is sizing itself to is not visible, so there is
     // nothing to animate into place.
-    adapterHarness.renderedGraphRuntime.setVisualizationMode({
-      maxLabelWidthPx: 200,
-    });
+    const widthApplication =
+      adapterHarness.renderedGraphRuntime.setVisualizationModes({
+        maxLabelWidthPx: 200,
+      });
 
     expect(internals.maxLabelWidths).toEqual([200]);
     expect(internals.labelWidthAnimations).toBe(0);
+    await Promise.resolve();
+    adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+      1,
+    );
+    await widthApplication;
   });
 
   test("holds the layout still when a view asks it to pause", async () => {
