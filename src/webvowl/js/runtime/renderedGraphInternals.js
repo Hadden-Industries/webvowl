@@ -234,6 +234,10 @@ function createGraph(graphContainerSelector) {
   let force;
   let forceLink;
   let dragBehaviour;
+  let renderInteractionEpoch = 0;
+  let hasActiveRenderInteractions = true;
+  let activeMouseDrag;
+  let activeMousePan;
   let zoomFactor = 1.0;
   let centerGraphViewOnLoad = false;
   let transformAnimation = false;
@@ -281,6 +285,7 @@ function createGraph(graphContainerSelector) {
   let showReloadButtonAfterLayoutOptimization = false;
 
   let zoom;
+  let pendingViewportTransitionCount = 0;
   //var prefixModule=require("../prefixRepresentationModule")(graph);
   let renderedGraphEventPort = {
     // Nothing is renderable until a model has been placed. This replaces the
@@ -490,7 +495,26 @@ function createGraph(graphContainerSelector) {
     continuousZoomPreviousFrameTime = undefined;
   };
 
-  graph.setSliderZoom = function (val) {
+  // D3 owns transition completion, including interruption by another gesture.
+  // Automatic framing also uses these commands without awaiting a result.
+  function completeViewportTransition(transition, signal) {
+    pendingViewportTransitionCount += 1;
+    const interruptTransition = () => transition.selection().interrupt();
+    signal?.addEventListener("abort", interruptTransition, { once: true });
+    const completion = transition.end().then(
+      () => true,
+      () => false,
+    );
+    if (signal?.aborted) {
+      interruptTransition();
+    }
+    return completion.finally(() => {
+      pendingViewportTransitionCount -= 1;
+      signal?.removeEventListener("abort", interruptTransition);
+    });
+  }
+
+  graph.setSliderZoom = function (val, { signal } = {}) {
     const targetZoom = viewportTransform.normalizeZoom(
       val,
       renderedGraphSettings.minMagnification(),
@@ -506,7 +530,8 @@ function createGraph(graphContainerSelector) {
     const eP = [cp.x, cp.y, renderedGraphSettings.height() / targetZoom];
     const pos_intp = d3.interpolateZoom(sP, eP);
 
-    graphContainer
+    const transition = graphContainer
+      .interrupt()
       .attr("transform", transform(sP, cx, cy))
       .transition()
       .duration(1)
@@ -520,7 +545,7 @@ function createGraph(graphContainerSelector) {
         syncZoomState();
         reportViewportChanged();
       });
-    return true;
+    return completeViewportTransition(transition, signal);
   };
 
   graph.setZoom = function (value) {
@@ -560,6 +585,84 @@ function createGraph(graphContainerSelector) {
   // module directly.
   graph.setRenderedGraphEventPort = function (nextPort) {
     renderedGraphEventPort = { ...renderedGraphEventPort, ...nextPort };
+  };
+
+  // Observation comes from the simulation drawing this mount. Node and label
+  // occurrence identities are separate from the ontology entities they depict.
+  graph.readLayoutState = function () {
+    const layoutElementPositions = [
+      ...(classNodes ?? []).map((node) => ({
+        stableLayoutElementKey: `node:${node.id()}`,
+        x: node.x,
+        y: node.y,
+      })),
+      ...(labelNodes ?? []).map((label) => ({
+        stableLayoutElementKey: `label:${label.property().id()}`,
+        x: label.x,
+        y: label.y,
+      })),
+    ];
+    return {
+      forceAlpha: force.alpha(),
+      hasEnded:
+        layoutElementPositions.length === 0 || force.alpha() < force.alphaMin(),
+      isPaused: paused,
+      observedAtMs: performance.now(),
+      widthPx: renderedGraphSettings.width(),
+      heightPx: renderedGraphSettings.height(),
+      layoutElementPositions,
+    };
+  };
+
+  graph.readVisibleElementIds = function () {
+    return {
+      nodeIds: (classNodes ?? []).map((node) => String(node.id())),
+      propertyIds: (properties ?? []).map((property) => String(property.id())),
+    };
+  };
+
+  graph.isReadyForPaint = function () {
+    return Boolean(
+      graphContainer &&
+      !graphContainer.classed("is-render-pending") &&
+      pendingViewportTransitionCount === 0,
+    );
+  };
+
+  graph.retireRenderGeneration = function () {
+    hasActiveRenderInteractions = false;
+    renderInteractionEpoch++;
+    releaseOwnedMouseGesture(activeMouseDrag);
+    releaseOwnedMouseGesture(activeMousePan);
+    activeMouseDrag = undefined;
+    activeMousePan = undefined;
+    force.on("tick.runtimeLayout", null).on("end.runtimeLayout", null).stop();
+    graph.stopContinuousZoom();
+    const svgRoot = graphContainer?.node()?.parentNode;
+    if (svgRoot) {
+      d3.select(svgRoot).interrupt().on(".zoom", null);
+      d3.select(svgRoot).selectAll("*").on(".drag", null);
+    }
+    graphContainer?.interrupt();
+    graphContainer?.selectAll("*").interrupt();
+    clearTimeout(delayedHider);
+    clearTimeout(nodeFreezer);
+  };
+
+  graph.clearRenderedGraph = function () {
+    renderedGraphSettings.data(undefined);
+    unfilteredData = { nodes: [], properties: [] };
+    classNodes = [];
+    labelNodes = [];
+    properties = [];
+    force.nodes([]);
+    forceLink.links([]);
+    graphContainer?.selectAll("*").remove();
+    graphContainer?.classed("is-render-pending", false);
+  };
+
+  graph.dispose = function () {
+    graph.retireRenderGeneration();
   };
 
   // Renderer-owned warning channel. Element modules raise a bounded code and
@@ -639,19 +742,61 @@ function createGraph(graphContainerSelector) {
     return false;
   }
 
-  // Initializes the graph.
-  function initializeGraph() {
-    renderedGraphSettings.graphContainerSelector(graphContainerSelector);
+  function captureMouseGesture(event, namespace) {
+    if (event.sourceEvent?.type !== "mousedown") {
+      return undefined;
+    }
+    const view = event.sourceEvent.view;
+    const selection = d3.select(view);
+    return {
+      view,
+      namespace,
+      move: selection.on(`mousemove.${namespace}`),
+      end: selection.on(`mouseup.${namespace}`),
+    };
+  }
+
+  function releaseOwnedMouseGesture(gesture) {
+    if (!gesture) {
+      return;
+    }
+    const { view, namespace, move, end } = gesture;
+    const selection = d3.select(view);
+    // A different widget may have begun a gesture on this window since ours.
+    if (
+      selection.on(`mousemove.${namespace}`) === move &&
+      selection.on(`mouseup.${namespace}`) === end
+    ) {
+      selection.on(`mousemove.${namespace} mouseup.${namespace}`, null);
+      d3.dragEnable(view);
+    }
+  }
+
+  function createInteractionBehaviours() {
     let moved = false;
-    force = d3.forceSimulation().on("tick", hiddenRecalculatePositions);
-    forceLink = d3.forceLink();
+    const interactionEpoch = renderInteractionEpoch;
+    const isCurrentInteraction = (element) =>
+      hasActiveRenderInteractions &&
+      interactionEpoch === renderInteractionEpoch &&
+      Boolean(
+        graphContainer &&
+        (element === graphContainer.node()?.parentNode ||
+          graphContainer.node()?.contains(element)),
+      );
 
     dragBehaviour = d3
       .drag()
+      .filter(function (event) {
+        return isCurrentInteraction(this) && !event.ctrlKey && !event.button;
+      })
       .subject(function (d) {
         return d;
       })
       .on("start", function (event, d) {
+        if (!isCurrentInteraction(this)) {
+          return;
+        }
+        activeMouseDrag = captureMouseGesture(event, "drag") ?? activeMouseDrag;
         if (isSolitaryLabel(d)) {
           return;
         }
@@ -710,6 +855,9 @@ function createGraph(graphContainerSelector) {
         }
       })
       .on("drag", function (event, d) {
+        if (!isCurrentInteraction(this)) {
+          return;
+        }
         if (isSolitaryLabel(d)) {
           return;
         }
@@ -747,6 +895,12 @@ function createGraph(graphContainerSelector) {
         }
       })
       .on("end", function (event, d) {
+        if (!isCurrentInteraction(this)) {
+          return;
+        }
+        if (event.sourceEvent?.type === "mouseup") {
+          activeMouseDrag = undefined;
+        }
         if (isSolitaryLabel(d)) {
           graph.ignoreOtherHoverEvents(false);
           return;
@@ -868,15 +1022,45 @@ function createGraph(graphContainerSelector) {
     // Apply the zooming factor.
     zoom = d3
       .zoom()
+      .filter(function (event) {
+        return (
+          isCurrentInteraction(this) &&
+          (!event.ctrlKey || event.type === "wheel") &&
+          !event.button
+        );
+      })
       .scaleExtent([
         renderedGraphSettings.minMagnification(),
         renderedGraphSettings.maxMagnification(),
       ])
-      .on("start", function () {
+      .on("start", function (event) {
+        if (!isCurrentInteraction(this)) {
+          return;
+        }
+        activeMousePan = captureMouseGesture(event, "zoom") ?? activeMousePan;
         clearAllHover();
       })
-      .on("zoom", zoomed);
+      .on("zoom", function (event) {
+        if (isCurrentInteraction(this)) {
+          zoomed(event);
+        }
+      })
+      .on("end", function (event) {
+        if (
+          isCurrentInteraction(this) &&
+          event.sourceEvent?.type === "mouseup"
+        ) {
+          activeMousePan = undefined;
+        }
+      });
+  }
 
+  // Initializes the graph and its first set of native interaction behaviours.
+  function initializeGraph() {
+    renderedGraphSettings.graphContainerSelector(graphContainerSelector);
+    force = d3.forceSimulation().on("tick", hiddenRecalculatePositions);
+    forceLink = d3.forceLink();
+    createInteractionBehaviours();
     draggerObjectsArray.push(classDragger);
     draggerObjectsArray.push(rangeDragger);
     draggerObjectsArray.push(domainDragger);
@@ -1520,7 +1704,7 @@ function createGraph(graphContainerSelector) {
           reportViewportChanged();
         };
       })
-      .on("end", function () {
+      .on("end interrupt cancel", function () {
         transformAnimation = false;
       })
       .attr("transform", viewportTransformString())
@@ -1537,11 +1721,12 @@ function createGraph(graphContainerSelector) {
       .classed("vowlGraph", true)
       .attr("width", renderedGraphSettings.width())
       .attr("height", renderedGraphSettings.height())
-      .call(zoom)
       .append("g");
-    // add touch and double click functions
+    bindViewportInteractions();
+  }
 
-    const svgGraph = d3.selectAll(".vowlGraph");
+  function bindViewportInteractions() {
+    const svgGraph = d3.select(graphContainer.node().parentNode).call(zoom);
     svgGraph.on("mouseleave", clearAllHover);
     svgGraph.on("pointerleave", clearAllHover);
     originalD3_dblClickFunction = svgGraph.on("dblclick.zoom");
@@ -1963,7 +2148,20 @@ function createGraph(graphContainerSelector) {
     }
   };
 
-  graph.load = function () {
+  graph.load = function (loadGeneration) {
+    // Native drag/zoom closures retain active gesture bookkeeping. Each mount
+    // owns fresh behaviours after the previous mount released its listeners.
+    hasActiveRenderInteractions = true;
+    createInteractionBehaviours();
+    redrawGraph();
+    const publishLayoutState = () =>
+      renderedGraphEventPort.publishGraphLayoutState(
+        loadGeneration,
+        graph.readLayoutState(),
+      );
+    force
+      .on("tick.runtimeLayout", publishLayoutState)
+      .on("end.runtimeLayout", publishLayoutState);
     force.stop();
     loadGraphData();
     refreshGraphData();
@@ -1978,6 +2176,23 @@ function createGraph(graphContainerSelector) {
       }
     }
     graph.update();
+    if (paused) {
+      // Pausing retains the arrangement; the new SVG can be drawn without
+      // waiting for an optimization tick that the reader has stopped.
+      updateRenderingDuringSimulation = true;
+      initialLoad = false;
+      finishedLoadingSequence = true;
+      graphContainer.classed("is-render-pending", false);
+      force.on(
+        "tick",
+        showFPS ? recalculatePositionsWithFPS : recalculatePositions,
+      );
+      renderedGraphEventPort.publishRenderProgress(100);
+      if (centerGraphViewOnLoad && force.nodes().length > 0) {
+        centerGraphViewOnLoad = false;
+        graph.zoomAndCenterGraph();
+      }
+    }
   };
 
   graph.fastUpdate = function () {
@@ -2064,6 +2279,12 @@ function createGraph(graphContainerSelector) {
     graph.updatePulseIds(nodeArrayForPulse);
     refreshGraphStyle();
     updateHaloStyles();
+    // Rebuilding the SVG must draw the current arrangement immediately. A
+    // paused graph has no future force tick to position its new elements.
+    recalculatePositions();
+    if (paused) {
+      force.stop();
+    }
   };
 
   graph.paused = function (p) {
@@ -2872,7 +3093,7 @@ function createGraph(graphContainerSelector) {
     return viewportTransformString();
   }
 
-  function targetLocationZoom(target) {
+  function targetLocationZoom(target, { signal } = {}) {
     if (
       !target ||
       !Number.isFinite(target.x) ||
@@ -2899,7 +3120,8 @@ function createGraph(graphContainerSelector) {
       lenAnimation = 2500;
     }
 
-    graphContainer
+    const transition = graphContainer
+      .interrupt()
       .attr("transform", transform(sP, cx, cy))
       .transition()
       .duration(lenAnimation)
@@ -2913,6 +3135,7 @@ function createGraph(graphContainerSelector) {
         syncZoomState();
         updateHaloRadius();
       });
+    return completeViewportTransition(transition, signal);
   }
 
   function getWorldPosFromScreen(x, y, translate, scale) {
@@ -2933,7 +3156,7 @@ function createGraph(graphContainerSelector) {
     };
   }
 
-  graph.locateSearchResult = function () {
+  graph.locateSearchResult = function (options) {
     if (pulseNodeIds && pulseNodeIds.length > 0) {
       // move the center of the viewport to this location
       if (transformAnimation === true) {
@@ -2949,7 +3172,7 @@ function createGraph(graphContainerSelector) {
         node.property().foreground();
       }
 
-      targetLocationZoom(node);
+      return targetLocationZoom(node, options);
     }
   };
 
@@ -3259,7 +3482,7 @@ function createGraph(graphContainerSelector) {
     return [pos_intp, cx, cy];
   };
 
-  graph.zoomAndCenterGraph = function (dynamic) {
+  graph.zoomAndCenterGraph = function (dynamic, { signal } = {}) {
     if (!graphContainer || !graphContainer.node()) {
       return;
     }
@@ -3347,7 +3570,8 @@ function createGraph(graphContainerSelector) {
     if (lenAnimation > 2500) {
       lenAnimation = 2500;
     }
-    graphContainer
+    const transition = graphContainer
+      .interrupt()
       .attr("transform", transform(sP, cx, cy))
       .transition()
       .duration(lenAnimation)
@@ -3370,6 +3594,7 @@ function createGraph(graphContainerSelector) {
         syncZoomState();
         reportViewportChanged();
       });
+    return completeViewportTransition(transition, signal);
   };
 
   graph.isADraggerActive = function () {

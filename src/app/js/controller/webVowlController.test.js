@@ -121,7 +121,12 @@ describe("WebVOWL controller orchestration", () => {
 
   beforeEach(() => {
     const inMemoryAdapter = createInMemoryRenderedGraphAdapter();
-    renderedGraphRuntime = inMemoryAdapter.renderedGraphRuntime;
+    renderedGraphRuntime = {
+      ...inMemoryAdapter.renderedGraphRuntime,
+      replaceVowlModel: jest.fn(
+        inMemoryAdapter.renderedGraphRuntime.replaceVowlModel,
+      ),
+    };
     renderedGraphTestHarness = inMemoryAdapter.renderedGraphTestHarness;
 
     deferredSourceLoads = [];
@@ -443,6 +448,261 @@ describe("WebVOWL controller orchestration", () => {
   });
 
   describe("caller cancellation", () => {
+    test.each(["FETCH_FAILED", "SOURCE_REJECTED"])(
+      "keeps the accepted graph usable after a coded %s before replacement",
+      async (code) => {
+        await completeLoad();
+        const failed = controller.loadOntology(SOURCE_REQUEST);
+        deferredSourceLoads.at(-1).reject(
+          Object.assign(new Error("The new source failed."), {
+            code,
+            isRetryable: false,
+            details: {},
+          }),
+        );
+        await expect(failed).rejects.toMatchObject({ code });
+        const view = controller.setVisualizationView({
+          filters: { datatypes: "hide" },
+        });
+        await flushMicrotasks(6);
+        expect(
+          renderedGraphTestHarness.completeVisualizationViewApplication(1),
+        ).toBe(true);
+        await expect(view).resolves.toMatchObject({ loadGeneration: 1 });
+        controller.setGraphLayoutPaused({ isPaused: true });
+        expect(controller.getState()).toMatchObject({
+          loadGeneration: 1,
+          layout: { status: "paused" },
+          view: { filters: { datatypes: "hide" } },
+        });
+      },
+    );
+
+    test.each(["first-paint", "initial-view"])(
+      "restores the accepted model after cancellation during %s",
+      async (phase) => {
+        const accepted = createSourceLoadRecord({
+          vowlModel: {
+            header: { title: { en: "Accepted" } },
+            class: [{ id: "person", type: "owl:Class" }],
+            classAttribute: [
+              { id: "person", iri: "https://example.test/Person" },
+            ],
+          },
+        });
+        await completeLoad(1, {}, {}, accepted);
+        renderedGraphTestHarness.publishRenderedGraphEvent({
+          kind: "viewport-changed",
+          loadGeneration: 1,
+          payload: { zoomScale: 1.5, translationXPx: 20, translationYPx: -5 },
+        });
+        const priorState = controller.getState();
+        const caller = new AbortController();
+        const loading = controller.loadOntology(SOURCE_REQUEST, {
+          signal: caller.signal,
+        });
+        const outcome = loading.catch((error) => error);
+        deferredSourceLoads.at(-1).resolve(
+          createSourceLoadRecord({
+            vowlModel: {
+              header: { title: { en: "Cancelled" } },
+              class: [{ id: "other", type: "owl:Class" }],
+            },
+          }),
+        );
+        await flushMicrotasks(6);
+        expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(2);
+        if (phase === "initial-view") {
+          expect(renderedGraphTestHarness.completeInitialPaint(2)).toBe(true);
+          await flushMicrotasks(6);
+        }
+        caller.abort();
+        await flushMicrotasks(12);
+        expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(3);
+        expect(
+          renderedGraphRuntime.replaceVowlModel.mock.calls[2][0].vowlModel,
+        ).toEqual(accepted.vowlModel);
+        expect(renderedGraphTestHarness.completeInitialPaint(3)).toBe(true);
+        await flushMicrotasks(6);
+        renderedGraphTestHarness.publishRenderedGraphEvent({
+          kind: "viewport-changed",
+          loadGeneration: 3,
+          payload: { zoomScale: 1.5, translationXPx: 40, translationYPx: 50 },
+        });
+        expect(
+          renderedGraphTestHarness.completeVisualizationViewApplication(3),
+        ).toBe(true);
+        expect(await outcome).toMatchObject({ code: "LOAD_ABORTED" });
+        expect(controller.getState().source).toEqual(priorState.source);
+        expect(controller.getState().loadGeneration).toBe(3);
+        expect(controller.getState().translation).toEqual({ xPx: 40, yPx: 50 });
+        expect(
+          controller.findOntologyElements({ query: "Person" }).matches,
+        ).toHaveLength(1);
+        expect(
+          renderedGraphRuntime.readGraphLayoutSnapshot().loadGeneration,
+        ).toBe(3);
+      },
+    );
+
+    test("a newer load supersedes recovery without restoring stale ontology state", async () => {
+      await completeLoad();
+      const caller = new AbortController();
+      const cancelled = controller
+        .loadOntology(SOURCE_REQUEST, { signal: caller.signal })
+        .catch((error) => error);
+      deferredSourceLoads.at(-1).resolve(createSourceLoadRecord());
+      await flushMicrotasks(6);
+      caller.abort();
+      await flushMicrotasks(12);
+      expect(controller.getState().loadGeneration).toBe(3);
+      const newestRecord = createSourceLoadRecord({
+        sourceProvenance: {
+          kind: "ontology-document-iri",
+          identity: "https://example.test/newest.owl",
+          sha256Hex: "c".repeat(64),
+        },
+      });
+      const newest = completeLoad(4, {}, {}, newestRecord);
+      expect(await cancelled).toMatchObject({ code: "LOAD_ABORTED" });
+      await newest;
+      expect(controller.getState().loadGeneration).toBe(4);
+      expect(controller.getState().source.identity).toBe(
+        "https://example.test/newest.owl",
+      );
+      expect(renderedGraphTestHarness.completeInitialPaint(3)).toBe(false);
+    });
+
+    test("clears the candidate when the first load is cancelled during its initial view", async () => {
+      const caller = new AbortController();
+      const loading = controller.loadOntology(SOURCE_REQUEST, {
+        signal: caller.signal,
+      });
+      const outcome = loading.catch((error) => error);
+      deferredSourceLoads.at(-1).resolve(createSourceLoadRecord());
+      await flushMicrotasks(6);
+      expect(renderedGraphTestHarness.completeInitialPaint(1)).toBe(true);
+      await flushMicrotasks(6);
+      caller.abort();
+      await outcome;
+      expect(controller.getState().status).toBe("idle");
+      expect(() =>
+        renderedGraphRuntime.readVisibleRenderedGraphSnapshot(),
+      ).toThrow();
+      expect(() => controller.getOntologySummary()).toThrow(
+        expect.objectContaining({ code: "NO_ONTOLOGY" }),
+      );
+    });
+
+    test.each(["cancelled", "failed"])(
+      "redraws the accepted ontology when a request that interrupted recovery is %s before mounting",
+      async (outcomeKind) => {
+        const accepted = createSourceLoadRecord();
+        await completeLoad(1, {}, {}, accepted);
+        const firstCaller = new AbortController();
+        const firstOutcome = controller
+          .loadOntology(SOURCE_REQUEST, { signal: firstCaller.signal })
+          .catch((error) => error);
+        deferredSourceLoads.at(-1).resolve(createSourceLoadRecord());
+        await flushMicrotasks(6);
+        firstCaller.abort();
+        await flushMicrotasks(12);
+        expect(controller.getState().loadGeneration).toBe(3);
+
+        const nextCaller = new AbortController();
+        const nextOutcome = controller
+          .loadOntology(SOURCE_REQUEST, { signal: nextCaller.signal })
+          .catch((error) => error);
+        if (outcomeKind === "cancelled") {
+          nextCaller.abort();
+        }
+        deferredSourceLoads.at(-1).reject(
+          outcomeKind === "cancelled"
+            ? new DOMException("cancelled", "AbortError")
+            : Object.assign(new Error("The source could not be fetched."), {
+                code: "FETCH_FAILED",
+                isRetryable: false,
+                details: {},
+              }),
+        );
+        await flushMicrotasks(16);
+
+        expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(4);
+        expect(
+          renderedGraphRuntime.replaceVowlModel.mock.calls[3][0],
+        ).toMatchObject({
+          loadGeneration: 5,
+          vowlModel: accepted.vowlModel,
+        });
+        expect(renderedGraphTestHarness.completeInitialPaint(5)).toBe(true);
+        await flushMicrotasks(6);
+        expect(
+          renderedGraphTestHarness.completeVisualizationViewApplication(5),
+        ).toBe(true);
+        expect(await nextOutcome).toMatchObject({
+          code: outcomeKind === "cancelled" ? "LOAD_ABORTED" : "FETCH_FAILED",
+        });
+        await firstOutcome;
+        expect(controller.getState()).toMatchObject({
+          loadGeneration: 5,
+          source: accepted.sourceProvenance,
+          status: "relaxing",
+        });
+        expect(
+          renderedGraphRuntime.readVisibleRenderedGraphSnapshot()
+            .loadGeneration,
+        ).toBe(5);
+      },
+    );
+
+    test("does not republish an accepted ontology after recovery has failed and cleared it", async () => {
+      await completeLoad();
+      const caller = new AbortController();
+      const outcome = controller
+        .loadOntology(SOURCE_REQUEST, { signal: caller.signal })
+        .catch((error) => error);
+      deferredSourceLoads.at(-1).resolve(createSourceLoadRecord());
+      await flushMicrotasks(6);
+      renderedGraphRuntime.replaceVowlModel.mockRejectedValueOnce(
+        new Error("Recovery rendering failed."),
+      );
+      caller.abort();
+      await outcome;
+      expect(controller.getState().status).toBe("error");
+
+      const nextCaller = new AbortController();
+      const nextOutcome = controller
+        .loadOntology(SOURCE_REQUEST, { signal: nextCaller.signal })
+        .catch((error) => error);
+      nextCaller.abort();
+      deferredSourceLoads
+        .at(-1)
+        .reject(new DOMException("cancelled", "AbortError"));
+      await nextOutcome;
+      expect(controller.getState()).toMatchObject({
+        status: "idle",
+        loadGeneration: 0,
+        source: null,
+      });
+      expect(() => controller.getOntologySummary()).toThrow(
+        expect.objectContaining({ code: "NO_ONTOLOGY" }),
+      );
+    });
+
+    test("never reuses a cancelled request generation", async () => {
+      const caller = new AbortController();
+      const loading = controller.loadOntology(SOURCE_REQUEST, {
+        signal: caller.signal,
+      });
+      caller.abort();
+      deferredSourceLoads
+        .at(-1)
+        .reject(new DOMException("cancelled", "AbortError"));
+      await expect(loading).rejects.toMatchObject({ code: "LOAD_ABORTED" });
+      await completeLoad(2);
+      expect(controller.getState().loadGeneration).toBe(2);
+    });
+
     test("returns to idle when the first load is cancelled", async () => {
       const cancellationController = new AbortController();
       const loadPromise = controller.loadOntology(SOURCE_REQUEST, {

@@ -81,3 +81,45 @@ full/manual proof obligations directly.
 The owner explicitly authorised independent read-only review and the scoped native
 Codex Security workflow, including review workers. Implementation remains serial.
 Tests/build do not establish browser behavior, deployment or release acceptance.
+
+## Actual renderer observation and cancellation
+
+The resumed audit found a synthetic layout simulation behind the observation
+contract, stale all-model visibility counts and early viewport completion. Remove
+that second simulation. The renderer owns actual force alpha, node/property-label
+positions, filtered drawn identities, and viewport transition completion. The
+adapter translates these observations into the established immutable contracts.
+[D3 transition completion](https://d3js.org/d3-transition/control-flow#transition_end)
+and native AbortSignal composition supply the mechanism; no compatibility layer
+is required. Drawing after a paused recomputation must position its SVG elements
+immediately, without waiting for a force tick that pause prevents.
+
+Readiness is established before the final browser paint observation. The browser
+observer uses two animation frames with cancellation of the outstanding callback;
+a single callback occurs before its frame is painted. A retained pause must not
+deadlock a replacement behind hidden layout optimization.
+
+The controller retains the last accepted VOWL model for recovery. Cancellation
+before replacement leaves the prior mount alone; cancellation after replacement
+re-renders the accepted model and standing view in a fresh, monotonically allocated
+generation. Anonymous references are rebound to that mount. Recovery can itself be
+superseded by a newer load. A failed first candidate is cleared through the runtime
+lifecycle operation `clearRenderedGraph`. This is restoration of a usable accepted
+ontology, not a guarantee of byte-identical SVG geometry. Report actual recovered
+viewport observations. Disposal retires native drawing activity and application
+resize observers/listeners as well as registrations.
+
+Mount validity survives request cancellation chains. If a newer request interrupts
+recovery and then fails before mounting, recovery must run again; republishing the
+old controller state cannot restore an absent graph. Failed recovery clears both
+the rendered graph and the last accepted controller-state baseline. Coded fetch or
+parse failures that precede replacement reactivate the retained mount's generation,
+so its view operations and events remain usable.
+
+Native mouse drag and pan listeners live on their originating window during a
+gesture. Retirement releases only the listener functions captured for this graph
+and restores native selection through [D3 dragEnable](https://d3js.org/d3-drag#dragEnable).
+Callbacks from retired interaction epochs cannot mutate the current simulation.
+Each replacement owns a fresh SVG root and native drag/zoom behaviours; retaining
+the previous root would retain D3's unfinished zoom gesture state and could disable
+wheel zoom. No code rewrites D3's private gesture bookkeeping.

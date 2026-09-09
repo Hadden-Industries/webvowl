@@ -57,9 +57,10 @@ and [D3 simulation documentation](https://d3js.org/d3-force/simulation), retriev
 WebVOWL-owned. Installed D3 is 7.9.0 under its inspected ISC licence; the existing
 AGPL-3.0-only application licence and notices remain in force.
 
-- [ ] Correct command/state contracts with observed failing tests, then migrate the
+- [x] Correct command/state contracts with observed failing tests, then migrate the
   D3 adapter, in-memory test adapter, serializer, protocol descriptions and fixtures
   together. Preserve omission, human pause/resume, and renderer-state publication.
+  Signed commit: `efb7f9f682e831a1c29ac47bebdeabba82c522b9`.
 - [ ] Complete Task 13 through model-selected native WebMCP calls in real Chrome,
   using the available CUA browser/CDP developer capability. The old named
   `browser-testing-with-devtools` skill is unavailable in this session; its absence
@@ -76,6 +77,23 @@ New retained evidence belongs under `.sdlc/runtime/webmcp-resumption/`; disposab
 probes belong under `.sdlc/tmp/webmcp-resumption/`. Both roots were absent at start.
 `node_modules` pre-exists and remains reusable dependency state. Inventory any
 development/build output before cleanup and preserve pre-existing contents.
+
+The resumed Task 9 audit also found that its adapter observed a separate synthetic
+simulation and projected all model records as visible. Completion must use the
+actual drawing simulation and its filtered occurrences. Native viewport transitions
+must complete or report interruption, and first-paint readiness must precede an
+observed paint boundary. Cancelling a candidate mount must retire its force,
+transitions and callbacks. If replacement has begun, restore the last accepted
+model and standing view in a fresh generation; a newer request can supersede that
+recovery. The controller owns this recovery, with `clearRenderedGraph` as the
+runtime lifecycle operation for a failed first candidate. Never reuse a generation
+number or restore stale controller coordinates over observed viewport values.
+
+The resumed lifecycle slice now implements those corrections, including cancellation
+chains, coded pre-mount failures and failed recovery. Native gesture retirement
+releases this graph's active mouse listeners; each replacement owns a fresh SVG
+root so a retired pan cannot capture the next wheel gesture. The evaluation document
+records focused browser RED/GREEN evidence separately from the remaining twenty jobs.
 
 ### Owner's action-parity amendment
 

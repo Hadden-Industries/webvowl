@@ -1,5 +1,6 @@
 import { registerApplicationUiModule } from "./ui/applicationUiRegistry.js";
 import { createControllerStatePresenter } from "./ui/controllerStatePresenter.js";
+import { createBrowserPaintObserver } from "./ui/browserPaintObserver.js";
 import { createD3RenderedGraphAdapter } from "../../webvowl/js/runtime/d3RenderedGraphAdapter.js";
 import { createRenderedGraphConfiguration } from "../../webvowl/js/runtime/renderedGraphConfiguration.js";
 import { createGraphLayoutSettler } from "./controller/graphLayoutSettler.js";
@@ -110,14 +111,16 @@ export function createWebVowlApplication() {
   });
   // One production rendering path: the adapter owns the renderer implementation
   const renderedGraphConfiguration = createRenderedGraphConfiguration();
+  const waitForBrowserPaint = createBrowserPaintObserver({
+    requestAnimationFrame: globalThis.requestAnimationFrame.bind(globalThis),
+    cancelAnimationFrame: globalThis.cancelAnimationFrame.bind(globalThis),
+  });
   // and publishes it as the RenderedGraphRuntime the controller consumes.
   const { renderedGraphRuntime } = createD3RenderedGraphAdapter({
     renderedGraphInternals: graph,
     graphContainerElement: document.querySelector(GRAPH_SELECTOR),
-    observeNextPaint: () =>
-      new Promise((resolveFrame) =>
-        globalThis.requestAnimationFrame(() => resolveFrame()),
-      ),
+    observeNextPaint: (_loadGeneration, options) =>
+      waitForBrowserPaint(options),
     renderedGraphConfiguration,
   });
 
@@ -146,10 +149,7 @@ export function createWebVowlApplication() {
       svgArtifactPublicationPort: svgArtifactDownloadAdapter,
     }),
     waitForDocumentFonts: () => document.fonts?.ready ?? Promise.resolve(),
-    waitForBrowserPaint: () =>
-      new Promise((resolveFrame) =>
-        globalThis.requestAnimationFrame(() => resolveFrame()),
-      ),
+    waitForBrowserPaint,
   });
 
   // Menus that command the controller are constructed once it exists.
@@ -198,11 +198,20 @@ export function createWebVowlApplication() {
     return webMcpRegistration;
   };
 
+  let resizeAnimationFrame;
+  let graphResizeObserver;
+
   app.dispose = function () {
     // Withdraw the tools before the controller they call goes away, so no
     // registration can outlive what answers it.
     webMcpRegistration.dispose();
     viewControlsLifecycleController.abort();
+    graphResizeObserver?.disconnect();
+    graphResizeObserver = undefined;
+    if (resizeAnimationFrame !== undefined) {
+      cancelAnimationFrame(resizeAnimationFrame);
+      resizeAnimationFrame = undefined;
+    }
     unsubscribeFromControllerState?.();
     unsubscribeFromControllerState = undefined;
     webVowlController.dispose();
@@ -214,8 +223,6 @@ export function createWebVowlApplication() {
   let wasMessageToShow = false;
   let firstTime = false;
   let initialTouchZoomHandled = false;
-  let resizeAnimationFrame;
-  let graphResizeObserver;
 
   function addFileDropEvents(selector) {
     const node = document.querySelector(selector);
@@ -399,7 +406,9 @@ export function createWebVowlApplication() {
     renderedGraphSettings.filterModules().push(compactNotationSwitch);
     renderedGraphSettings.filterModules().push(colorExternalsSwitch);
 
-    window.addEventListener("resize", scheduleSizeAdjustment);
+    window.addEventListener("resize", scheduleSizeAdjustment, {
+      signal: viewControlsLifecycleController.signal,
+    });
 
     const graphHost = document.querySelector(GRAPH_SELECTOR);
     if (
@@ -734,6 +743,9 @@ export function createWebVowlApplication() {
   };
 
   function scheduleSizeAdjustment() {
+    if (viewControlsLifecycleController.signal.aborted) {
+      return;
+    }
     if (resizeAnimationFrame !== undefined) {
       cancelAnimationFrame(resizeAnimationFrame);
     }

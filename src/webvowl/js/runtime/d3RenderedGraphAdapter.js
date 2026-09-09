@@ -54,9 +54,7 @@ function assertPlainRecord(candidate, description) {
 function assertExactDependencyFieldNames(dependencies) {
   assertPlainRecord(dependencies, "D3 rendered graph adapter dependencies");
   // The renderer resolves its own D3 value so no application module names it.
-  const actualFieldNames = Object.keys(dependencies)
-    .filter((fieldName) => fieldName !== "d3")
-    .sort();
+  const actualFieldNames = Object.keys(dependencies).sort();
   const expectedFieldNames = [
     ...D3_RENDERED_GRAPH_ADAPTER_DEPENDENCY_FIELD_NAMES,
   ].sort();
@@ -90,25 +88,20 @@ function createAbortError(message) {
   return new DOMException(message, "AbortError");
 }
 
-function vowlBaseRecords(vowlModelCollection) {
-  return Array.isArray(vowlModelCollection) ? vowlModelCollection : [];
-}
-
 function projectVisibleRenderedGraphSnapshot(
   ontologyElementReferencesByVowlElementId,
   loadGeneration,
+  { nodeIds, propertyIds },
 ) {
-  const drawnReferences = [
-    ...ontologyElementReferencesByVowlElementId.values(),
-  ];
-  // Individuals are drawn inside the class that declares them rather than as
-  // nodes of their own, so they are not part of the visible element set.
-  const visibleElementReferences = drawnReferences
-    .filter(({ kind }) => kind === "class" || kind === "datatype")
-    .map((ontologyElementReference) => ({ ...ontologyElementReference }));
-  const visibleRelationshipReferences = drawnReferences
-    .filter(({ kind }) => kind === "property")
-    .map((ontologyElementReference) => ({ ...ontologyElementReference }));
+  const resolveDrawnReferences = (ids) =>
+    ids.flatMap((id) => {
+      const reference = ontologyElementReferencesByVowlElementId.get(
+        String(id),
+      );
+      return reference === undefined ? [] : [{ ...reference }];
+    });
+  const visibleElementReferences = resolveDrawnReferences(nodeIds);
+  const visibleRelationshipReferences = resolveDrawnReferences(propertyIds);
 
   return createVisibleRenderedGraphSnapshot({
     loadGeneration,
@@ -142,7 +135,6 @@ function groupRendererElementIdsByReferenceKey(
 export function createD3RenderedGraphAdapter(dependencies) {
   assertExactDependencyFieldNames(dependencies);
   const {
-    d3 = globalThis.d3,
     renderedGraphInternals,
     graphContainerElement,
     observeNextPaint,
@@ -155,22 +147,14 @@ export function createD3RenderedGraphAdapter(dependencies) {
   if (typeof renderedGraphInternals?.load !== "function") {
     throw new TypeError("renderedGraphInternals.load must be a function.");
   }
-  if (typeof d3?.forceSimulation !== "function") {
-    throw new TypeError("d3.forceSimulation must be a function.");
-  }
-
   let isDisposed = false;
   let activeLoadGeneration = null;
   let hasBuiltRenderedGraphRoot = false;
   let rendererElementIdsByOntologyElementReferenceKey = new Map();
   let ontologyElementReferencesByRendererElementId = new Map();
-  let activeForceSimulation = null;
-  let visibleRenderedGraphSnapshot = null;
   let appliedVisualizationView = DEFAULT_APPLIED_VISUALIZATION_VIEW;
-  let forceAlpha = 1;
-  let hasForceEnded = false;
-  let isGraphLayoutPaused = false;
   let activeGenerationAbortController = null;
+  let activeViewAbortController = null;
   const renderedGraphEventSubscribers = new Set();
 
   function assertNotDisposed() {
@@ -184,12 +168,7 @@ export function createD3RenderedGraphAdapter(dependencies) {
       activeGenerationAbortController.abort(retirementReason);
       activeGenerationAbortController = null;
     }
-    if (activeForceSimulation !== null) {
-      activeForceSimulation.on("tick", null);
-      activeForceSimulation.on("end", null);
-      activeForceSimulation.stop();
-      activeForceSimulation = null;
-    }
+    renderedGraphInternals.retireRenderGeneration();
   }
 
   function publishRenderedGraphEvent(candidateEvent) {
@@ -202,11 +181,6 @@ export function createD3RenderedGraphAdapter(dependencies) {
       return false;
     }
     const renderedGraphEvent = createRenderedGraphEvent(candidateEvent);
-    if (renderedGraphEvent.kind === "graph-layout-state-changed") {
-      forceAlpha = renderedGraphEvent.payload.forceAlpha;
-      hasForceEnded = renderedGraphEvent.payload.hasEnded;
-      isGraphLayoutPaused = renderedGraphEvent.payload.isPaused;
-    }
     for (const renderedGraphEventSubscriber of [
       ...renderedGraphEventSubscribers,
     ]) {
@@ -215,58 +189,37 @@ export function createD3RenderedGraphAdapter(dependencies) {
     return true;
   }
 
-  async function awaitObservedPaint(loadGeneration, callerSignal) {
-    const generationAbortController = new AbortController();
-    activeGenerationAbortController = generationAbortController;
-
+  async function awaitObservedPaint(loadGeneration, signal) {
+    signal.throwIfAborted();
+    let rejectWithAbort;
     const abandonmentPromise = new Promise((_resolve, reject) => {
-      const rejectWithGenerationRetirement = () => {
-        reject(
-          generationAbortController.signal.reason ??
-            createAbortError("The load generation was retired."),
-        );
-      };
-      const rejectWithCallerAbort = () => reject(callerSignal.reason);
-
-      if (generationAbortController.signal.aborted) {
-        rejectWithGenerationRetirement();
-        return;
-      }
-      generationAbortController.signal.addEventListener(
-        "abort",
-        rejectWithGenerationRetirement,
-        { once: true },
-      );
-      if (callerSignal !== undefined) {
-        if (callerSignal.aborted) {
-          rejectWithCallerAbort();
-          return;
-        }
-        callerSignal.addEventListener("abort", rejectWithCallerAbort, {
-          once: true,
-        });
-      }
+      rejectWithAbort = () => reject(signal.reason);
+      signal.addEventListener("abort", rejectWithAbort, { once: true });
     });
 
     try {
       await Promise.race([
-        observeNextPaint(loadGeneration, {
-          signal: generationAbortController.signal,
-        }),
+        observeNextPaint(loadGeneration, { signal }),
         abandonmentPromise,
       ]);
-    } catch (abandonmentError) {
-      generationAbortController.abort(abandonmentError);
-      throw abandonmentError;
     } finally {
-      if (activeGenerationAbortController === generationAbortController) {
-        activeGenerationAbortController = null;
-      }
+      signal.removeEventListener("abort", rejectWithAbort);
     }
+    signal.throwIfAborted();
   }
 
   // Renderer warnings and progress reach the runtime as structured events.
   renderedGraphInternals.setRenderedGraphEventPort?.({
+    publishGraphLayoutState: (
+      loadGeneration,
+      { forceAlpha, hasEnded, isPaused },
+    ) => {
+      publishRenderedGraphEvent({
+        kind: "graph-layout-state-changed",
+        loadGeneration,
+        payload: { forceAlpha, hasEnded, isPaused },
+      });
+    },
     // The renderer can report progress before any model has been placed, so a
     // generation-less report is dropped rather than published as generation 0.
     publishRenderProgress: (percentValue) => {
@@ -341,39 +294,6 @@ export function createD3RenderedGraphAdapter(dependencies) {
     },
   });
 
-  function startForceSimulation(loadGeneration, layoutElementKeys) {
-    // A layout element is a drawn node, and several drawn nodes legitimately
-    // share one ontology IRI (owl:Thing appears once per usage), so the key
-    // comes from the model's own element id rather than the IRI.
-    const simulationNodes = layoutElementKeys.map(
-      (layoutElementKey, recordIndex) => ({
-        stableLayoutElementKey: layoutElementKey,
-        x: recordIndex * renderedGraphConfiguration.classDistance,
-        y: recordIndex * renderedGraphConfiguration.classDistance,
-      }),
-    );
-    const forceSimulation = d3.forceSimulation();
-    forceSimulation.nodes(simulationNodes);
-    forceSimulation.on("tick", () => {
-      if (loadGeneration !== activeLoadGeneration || isDisposed) {
-        return;
-      }
-      forceAlpha = forceSimulation.alpha();
-    });
-    forceSimulation.on("end", () => {
-      if (loadGeneration !== activeLoadGeneration || isDisposed) {
-        return;
-      }
-      hasForceEnded = true;
-      publishRenderedGraphEvent({
-        kind: "graph-layout-state-changed",
-        loadGeneration,
-        payload: { forceAlpha: 0, hasEnded: true, isPaused: false },
-      });
-    });
-    activeForceSimulation = forceSimulation;
-  }
-
   // Each display mode the interface can address, paired with the renderer
   // module that draws it. Dynamic label width is absent because it is a
   // setting rather than a module.
@@ -395,6 +315,26 @@ export function createD3RenderedGraphAdapter(dependencies) {
     setOperators: (settings) => settings.setOperatorFilter(),
     subclasses: (settings) => settings.subclassFilter(),
   });
+
+  function readAppliedVisualizationView() {
+    const settings = renderedGraphInternals.options();
+    const degreeFilter = settings.nodeDegreeFilter();
+    return {
+      language: renderedGraphInternals.language(),
+      focus: appliedVisualizationView.focus,
+      filters: {
+        ...Object.fromEntries(
+          Object.entries(VISIBILITY_FILTER_MODULE_READERS).map(
+            ([name, readModule]) => [
+              name,
+              readModule(settings).enabled() ? "hide" : "show",
+            ],
+          ),
+        ),
+        minDegree: degreeFilter.enabled() ? degreeFilter.minDegree() : 0,
+      },
+    };
+  }
 
   // One normalized batch: every field the view changed is written to the
   // renderer before a single recomputation runs.
@@ -457,6 +397,18 @@ export function createD3RenderedGraphAdapter(dependencies) {
   }
 
   const renderedGraphRuntime = Object.freeze({
+    clearRenderedGraph() {
+      assertNotDisposed();
+      retireActiveGeneration(
+        createAbortError("The rendered graph was cleared."),
+      );
+      activeLoadGeneration = null;
+      ontologyElementReferencesByRendererElementId.clear();
+      rendererElementIdsByOntologyElementReferenceKey.clear();
+      appliedVisualizationView = DEFAULT_APPLIED_VISUALIZATION_VIEW;
+      renderedGraphInternals.clearRenderedGraph();
+    },
+
     async replaceVowlModel(request, { signal } = {}) {
       assertNotDisposed();
       const replacementRequest = createVowlModelReplacementRequest(request);
@@ -469,9 +421,11 @@ export function createD3RenderedGraphAdapter(dependencies) {
         ),
       );
       activeLoadGeneration = loadGeneration;
-      forceAlpha = 1;
-      hasForceEnded = false;
-      isGraphLayoutPaused = false;
+      activeGenerationAbortController = new AbortController();
+      const replacementSignal = AbortSignal.any([
+        activeGenerationAbortController.signal,
+        ...(signal === undefined ? [] : [signal]),
+      ]);
       appliedVisualizationView = DEFAULT_APPLIED_VISUALIZATION_VIEW;
 
       ontologyElementReferencesByRendererElementId =
@@ -483,33 +437,31 @@ export function createD3RenderedGraphAdapter(dependencies) {
         groupRendererElementIdsByReferenceKey(
           ontologyElementReferencesByRendererElementId,
         );
-      visibleRenderedGraphSnapshot = projectVisibleRenderedGraphSnapshot(
-        ontologyElementReferencesByRendererElementId,
-        loadGeneration,
-      );
-      // The renderer draws the graph; the adapter must not touch its container.
-      startForceSimulation(
-        loadGeneration,
-        vowlBaseRecords(replacementRequest.vowlModel.class).map(
-          (vowlRecord, recordIndex) =>
-            String(vowlRecord.id ?? `anonymous-${recordIndex}`),
-        ),
-      );
+      try {
+        // The renderer parses and mutates the model as it builds the graph, so
+        // it receives its own copy. Start builds the SVG root before receiving
+        // data; a native failure in either step retires this candidate too.
+        if (!hasBuiltRenderedGraphRoot) {
+          renderedGraphInternals.start();
+          hasBuiltRenderedGraphRoot = true;
+        }
+        renderedGraphInternals
+          .options()
+          .data(structuredClone(replacementRequest.vowlModel));
+        renderedGraphInternals.load(loadGeneration);
 
-      // The renderer parses and mutates the model as it builds the graph, so it
-      // receives its own copy rather than the controller's frozen one.
-      // Only the renderer's start builds its SVG root, and it skips parsing
-      // while no model is present, so it runs before the model is supplied.
-      if (!hasBuiltRenderedGraphRoot) {
-        renderedGraphInternals.start();
-        hasBuiltRenderedGraphRoot = true;
+        while (!renderedGraphInternals.isReadyForPaint()) {
+          await awaitObservedPaint(loadGeneration, replacementSignal);
+        }
+        // The observer now waits for a paint after geometry is known ready.
+        await awaitObservedPaint(loadGeneration, replacementSignal);
+      } catch (error) {
+        if (loadGeneration === activeLoadGeneration) {
+          retireActiveGeneration(error);
+          activeLoadGeneration = null;
+        }
+        throw error;
       }
-      renderedGraphInternals
-        .options()
-        .data(structuredClone(replacementRequest.vowlModel));
-      renderedGraphInternals.load();
-
-      await awaitObservedPaint(loadGeneration, signal);
       if (isDisposed) {
         throw createAbortError("The D3 rendered graph runtime was disposed.");
       }
@@ -534,21 +486,26 @@ export function createD3RenderedGraphAdapter(dependencies) {
         );
       }
 
+      activeViewAbortController?.abort(
+        createAbortError("The view request was superseded by a newer view."),
+      );
+      activeViewAbortController = new AbortController();
+      const viewSignal = AbortSignal.any([
+        activeGenerationAbortController.signal,
+        activeViewAbortController.signal,
+        ...(signal === undefined ? [] : [signal]),
+      ]);
+
       const requestedView = Object.fromEntries(
         Object.entries(viewApplicationRequest).filter(
           ([fieldName]) => fieldName !== "loadGeneration",
         ),
       );
-      const nextAppliedVisualizationView = {
-        language: requestedView.language ?? appliedVisualizationView.language,
-        focus: requestedView.focus ?? appliedVisualizationView.focus,
-        filters: {
-          ...appliedVisualizationView.filters,
-          ...requestedView.filters,
-        },
-      };
-
       applyVisualizationViewToRenderer(requestedView);
+      appliedVisualizationView = {
+        ...readAppliedVisualizationView(),
+        focus: requestedView.focus ?? appliedVisualizationView.focus,
+      };
       // Both input routes apply the same simulation action.
       if (requestedView.layout !== undefined) {
         renderedGraphRuntime.setGraphLayoutPaused({
@@ -557,7 +514,7 @@ export function createD3RenderedGraphAdapter(dependencies) {
         });
       }
 
-      await awaitObservedPaint(loadGeneration, signal);
+      await awaitObservedPaint(loadGeneration, viewSignal);
       if (isDisposed) {
         throw createAbortError("The D3 rendered graph runtime was disposed.");
       }
@@ -569,32 +526,54 @@ export function createD3RenderedGraphAdapter(dependencies) {
       // A requested magnification is applied before a directive, so a control
       // that writes both gets the directive's framing rather than the level.
       if (requestedView.zoomScale !== undefined) {
-        renderedGraphInternals.setSliderZoom(requestedView.zoomScale);
+        const completed = await renderedGraphInternals.setSliderZoom(
+          requestedView.zoomScale,
+          { signal: viewSignal },
+        );
+        viewSignal.throwIfAborted();
+        if (completed === false) {
+          throw createAbortError("The viewport zoom was interrupted.");
+        }
       }
       // Moving the viewport needs the geometry the recomputation produced.
       if (requestedView.viewport === "zoom-and-center") {
-        renderedGraphInternals.zoomAndCenterGraph();
+        const completed = await renderedGraphInternals.zoomAndCenterGraph(
+          false,
+          { signal: viewSignal },
+        );
+        if (completed === false) {
+          throw createAbortError("Zoom and center was interrupted.");
+        }
       } else if (requestedView.viewport === "focus-next") {
-        renderedGraphInternals.locateSearchResult();
+        const completed = await renderedGraphInternals.locateSearchResult({
+          signal: viewSignal,
+        });
+        if (completed === false) {
+          throw createAbortError("Focus next was interrupted.");
+        }
       }
+      viewSignal.throwIfAborted();
 
       const viewApplicationResult = createVisualizationViewApplicationResult({
-        appliedVisualizationView: nextAppliedVisualizationView,
+        appliedVisualizationView: readAppliedVisualizationView(),
         loadGeneration,
-        visibleRenderedGraphSnapshot,
+        visibleRenderedGraphSnapshot:
+          renderedGraphRuntime.readVisibleRenderedGraphSnapshot(),
       });
       appliedVisualizationView = viewApplicationResult.appliedVisualizationView;
-      visibleRenderedGraphSnapshot =
-        viewApplicationResult.visibleRenderedGraphSnapshot;
       return viewApplicationResult;
     },
 
     readVisibleRenderedGraphSnapshot() {
       assertNotDisposed();
-      if (visibleRenderedGraphSnapshot === null) {
+      if (activeLoadGeneration === null) {
         throw new Error("No completed visible rendered graph snapshot exists.");
       }
-      return createVisibleRenderedGraphSnapshot(visibleRenderedGraphSnapshot);
+      return projectVisibleRenderedGraphSnapshot(
+        ontologyElementReferencesByRendererElementId,
+        activeLoadGeneration,
+        renderedGraphInternals.readVisibleElementIds(),
+      );
     },
 
     readGraphLayoutSnapshot() {
@@ -604,19 +583,7 @@ export function createD3RenderedGraphAdapter(dependencies) {
       }
       return createGraphLayoutSnapshot({
         loadGeneration: activeLoadGeneration,
-        observedAtMs: 0,
-        forceAlpha,
-        hasEnded: hasForceEnded,
-        isPaused: isGraphLayoutPaused,
-        widthPx: renderedGraphConfiguration.widthPx,
-        heightPx: renderedGraphConfiguration.heightPx,
-        layoutElementPositions: (activeForceSimulation?.nodes() ?? []).map(
-          (simulationNode) => ({
-            stableLayoutElementKey: simulationNode.stableLayoutElementKey,
-            x: simulationNode.x,
-            y: simulationNode.y,
-          }),
-        ),
+        ...renderedGraphInternals.readLayoutState(),
       });
     },
 
@@ -632,22 +599,15 @@ export function createD3RenderedGraphAdapter(dependencies) {
         );
       }
 
-      isGraphLayoutPaused = pauseRequest.isPaused;
-      renderedGraphInternals.paused?.(pauseRequest.isPaused);
-      if (pauseRequest.isPaused) {
-        activeForceSimulation?.stop();
-      } else {
-        forceAlpha = 1;
-        hasForceEnded = false;
-        activeForceSimulation?.alpha(1).restart();
-      }
+      renderedGraphInternals.paused(pauseRequest.isPaused);
+      const { hasEnded } = renderedGraphInternals.readLayoutState();
 
       return createGraphLayoutPauseResult({
         loadGeneration: pauseRequest.loadGeneration,
         isPaused: pauseRequest.isPaused,
         layoutStatus: pauseRequest.isPaused
           ? "paused"
-          : hasForceEnded
+          : hasEnded
             ? "settled"
             : "relaxing",
       });
@@ -811,9 +771,9 @@ export function createD3RenderedGraphAdapter(dependencies) {
       retireActiveGeneration(
         createAbortError("The D3 rendered graph runtime was disposed."),
       );
+      renderedGraphInternals.dispose();
       renderedGraphEventSubscribers.clear();
       activeLoadGeneration = null;
-      visibleRenderedGraphSnapshot = null;
     },
   });
 

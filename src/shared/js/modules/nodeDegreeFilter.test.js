@@ -63,4 +63,27 @@ describe("node degree filter minimum degree", () => {
 
     expect(filter.minDegree()).toBe(4);
   });
+
+  test("reports the degree supplied by its connected control before an explicit choice", () => {
+    const filter = createNodeDegreeFilter();
+    filter.setDegreeGetter(() => "4");
+    expect(filter.minDegree()).toBe(4);
+  });
+
+  test("reports the zero degree actually used when the empty-result fallback restores the graph", () => {
+    const filter = createNodeDegreeFilter();
+    let displayedDegree;
+    filter.setDegreeSetter((value) => {
+      displayedDegree = value;
+    });
+    const nodes = [
+      createNodeFixture("isolated", 0),
+      createNodeFixture("connected", 1),
+    ];
+    filter.minDegree(5);
+    filter.filter(nodes, []);
+    expect(filter.filteredNodes()).toEqual(nodes);
+    expect(displayedDegree).toBe(0);
+    expect(filter.minDegree()).toBe(0);
+  });
 });

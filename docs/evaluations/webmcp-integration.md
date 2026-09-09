@@ -27,6 +27,48 @@ This checkpoint does not complete the twenty-job evaluation or all-action parity
 The audit still needs to complete the remaining non-editing cutovers, await actual
 viewport transition completion, and rerun the final browser and scope obligations.
 
+### Renderer lifecycle checkpoint
+
+The next slice removes synthetic force observation and all-model visibility counts.
+Snapshots now report the force and filtered occurrences that the renderer actually
+draws. Native viewport transitions resolve on completion or reject on interruption;
+readiness precedes the final two-frame browser paint observation. Paused redraws
+position their SVG elements immediately, and retained pause no longer deadlocks a
+new load behind hidden optimization.
+
+Cancellation after replacement restores the last accepted model and standing view
+in a fresh generation. Coverage includes interruption during recovery, another
+request failing before mounting, failed recovery clearing its stale baseline,
+synchronous renderer failures and genuine coded fetch/parse errors. Retained mounts
+remain usable after pre-mount failure. Disposal releases force, transitions, pending
+paint callbacks, native mouse gestures and application resize observers/listeners.
+Fresh SVG roots isolate D3 gesture state between mounts.
+
+The final slice passed **100 suites / 1,567 tests** in 91.182 seconds and the
+production build with formatting and lint prechecks. Evidence is retained under
+`.sdlc/runtime/webmcp-resumption/`:
+
+- `renderer-lifecycle-final-suite.log` and `renderer-lifecycle-final-build.log`.
+- `recovery-chain-red.log`, `coded-source-failure-red.log` and
+  `synchronous-mount-failure-red.log` preserve independently expected failures;
+  their focused GREEN logs and final suite confirm the corrections.
+- `renderer-lifecycle-browser-green.json` records native pause/filter/center,
+  retained-pause loading, cancelled SIOC-to-FOAF recovery, interrupted wheel/locate
+  completion and unchanged force alpha after disposal plus resize.
+- `active-drag-red.json`, `active-pan-red.json` and `retired-pan-wheel-red.json`
+  preserve real D3 failures. `gesture-retirement-browser-green.json` records
+  released listeners, unchanged retired node/viewport state, working new gestures,
+  and successful native WebMCP view application after `PARSE_FAILED`.
+
+The browser checks used real Chrome and native WebMCP registration/execution.
+CUA/CDP also dispatched mouse/wheel events through actual D3 handlers and invoked
+controller cancellation/disposal where those lifecycle controls were under test.
+These focused regressions do not count as the twenty model-selected jobs. The
+independent reviewer reported no remaining findings in the frozen lifecycle slice
+after the recorded corrections, based on source and test-oracle review; they did
+not independently execute tests or use Chrome. Broader action parity and the final
+scoped native security review remain outstanding.
+
 ## Original evaluation scope
 
 Records whether the five agent tools accomplish complete user work, not merely

@@ -239,6 +239,7 @@ describe("rendered graph runtime interface", () => {
   test("declares the exact application-facing runtime method vocabulary", () => {
     expect(RENDERED_GRAPH_RUNTIME_METHOD_NAMES).toEqual([
       "replaceVowlModel",
+      "clearRenderedGraph",
       "applyVisualizationView",
       "readVisibleRenderedGraphSnapshot",
       "readGraphLayoutSnapshot",

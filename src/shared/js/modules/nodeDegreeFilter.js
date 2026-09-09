@@ -19,7 +19,7 @@ export function createNodeDegreeFilter(menu) {
 
   filter.initialize = function (nodes, properties) {
     const maxLinkCount = findMaxLinkCount(nodes);
-    if (maxDegreeSetter instanceof Function) {
+    if (typeof maxDegreeSetter === "function") {
       maxDegreeSetter(maxLinkCount);
     }
 
@@ -27,7 +27,7 @@ export function createNodeDegreeFilter(menu) {
       findAutoDefaultDegree(nodes, properties, maxLinkCount),
     );
     const defaultDegree = findDefaultDegree(maxLinkCount);
-    if (degreeSetter instanceof Function) {
+    if (typeof degreeSetter === "function") {
       degreeSetter(defaultDegree);
       if (defaultDegree > 0) {
         menu.highlightForDegreeSlider(true);
@@ -75,7 +75,7 @@ export function createNodeDegreeFilter(menu) {
     if (this.enabled()) {
       if (requestedMinimumDegree !== undefined) {
         filterByNodeDegreeAndApply(requestedMinimumDegree);
-      } else if (degreeGetter instanceof Function) {
+      } else if (typeof degreeGetter === "function") {
         filterByNodeDegreeAndApply(degreeGetter());
       } else {
         console.error("No degree query function set.");
@@ -86,7 +86,7 @@ export function createNodeDegreeFilter(menu) {
     filteredProperties = properties;
 
     if (filteredNodes.length === 0) {
-      degreeSetter(0);
+      filter.minDegree(0);
       filteredNodes = untouchedNodes;
       filteredProperties = untouchedProperties;
     }
@@ -130,10 +130,10 @@ export function createNodeDegreeFilter(menu) {
 
   filter.minDegree = function (nextMinimumDegree) {
     if (!arguments.length) {
-      return requestedMinimumDegree;
+      return requestedMinimumDegree ?? Number(degreeGetter?.() ?? 0);
     }
     requestedMinimumDegree = nextMinimumDegree;
-    if (degreeSetter instanceof Function) {
+    if (typeof degreeSetter === "function") {
       degreeSetter(nextMinimumDegree);
     }
     return filter;

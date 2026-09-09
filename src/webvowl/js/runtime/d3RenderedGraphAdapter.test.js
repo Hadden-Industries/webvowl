@@ -231,6 +231,9 @@ function createForceSimulationFixture() {
       return isStopped;
     },
     emit(eventName) {
+      if (eventName === "end") {
+        alphaValue = 0;
+      }
       registeredListeners.get(eventName)?.();
     },
     listenerCount() {
@@ -242,7 +245,7 @@ function createForceSimulationFixture() {
   return forceSimulation;
 }
 
-function createD3Fixture() {
+function createRendererSimulationFixture() {
   const createdSimulations = [];
   return {
     createdSimulations,
@@ -264,11 +267,11 @@ function createAdapterHarness() {
     SVG_NAMESPACE_IRI,
     "svg",
   );
-  const d3Fixture = createD3Fixture();
+  const rendererSimulationFixture = createRendererSimulationFixture();
   // The adapter owns the renderer implementation; the test supplies a
   // deterministic stand-in rather than a live D3 graph.
   function createFilterModuleFixture() {
-    let enabledState = true;
+    let enabledState = false;
     return {
       enabled(nextEnabledState) {
         if (nextEnabledState === undefined) {
@@ -289,10 +292,18 @@ function createAdapterHarness() {
         enabledStates: [],
         minDegreeValues: [],
         enabled(nextEnabledState) {
+          if (nextEnabledState === undefined) {
+            return this.enabledStates.at(-1) ?? false;
+          }
           this.enabledStates.push(nextEnabledState);
+          return undefined;
         },
         minDegree(value) {
+          if (value === undefined) {
+            return this.minDegreeValues.at(-1) ?? 0;
+          }
           this.minDegreeValues.push(value);
+          return undefined;
         },
       },
       objectProperties: createFilterModuleFixture(),
@@ -349,12 +360,71 @@ function createAdapterHarness() {
         documentObject.createElementNS(SVG_NAMESPACE_IRI, "svg"),
       );
     },
-    load() {
+    load(loadGeneration) {
       renderedGraphInternalsFixture.callOrder.push("load");
       renderedGraphInternalsFixture.loadCallCount += 1;
+      const simulation = rendererSimulationFixture.forceSimulation();
+      const model = renderedGraphInternalsFixture.suppliedVowlModels.at(-1);
+      simulation.nodes([
+        ...(model.class ?? []).map(({ id }, index) => ({
+          stableLayoutElementKey: `node:${id}`,
+          x: 30 + index * 7,
+          y: 41 - index * 5,
+        })),
+        ...(model.property ?? []).map(({ id }, index) => ({
+          stableLayoutElementKey: `label:${id}`,
+          x: 44 + index * 6,
+          y: 29,
+        })),
+      ]);
+      const publish = () =>
+        renderedGraphInternalsFixture.installedEventPort.publishGraphLayoutState(
+          loadGeneration,
+          renderedGraphInternalsFixture.readLayoutState(),
+        );
+      simulation.on("end", publish).on("tick", publish);
+      renderedGraphInternalsFixture.isPaused = false;
     },
     paused(isPaused) {
       renderedGraphInternalsFixture.pauseStates.push(isPaused);
+      renderedGraphInternalsFixture.isPaused = isPaused;
+      const simulation = rendererSimulationFixture.createdSimulations.at(-1);
+      if (isPaused) {
+        simulation.stop();
+      } else {
+        simulation.alpha(1).restart();
+      }
+    },
+    readLayoutState() {
+      const simulation = rendererSimulationFixture.createdSimulations.at(-1);
+      return {
+        forceAlpha: simulation.alpha(),
+        hasEnded: simulation.alpha() === 0,
+        isPaused: renderedGraphInternalsFixture.isPaused,
+        widthPx: 800,
+        heightPx: 600,
+        observedAtMs: 123,
+        layoutElementPositions: simulation.nodes().map((node) => ({ ...node })),
+      };
+    },
+    readVisibleElementIds() {
+      const model = renderedGraphInternalsFixture.suppliedVowlModels.at(-1);
+      return {
+        nodeIds: (model.class ?? []).map(({ id }) => id),
+        propertyIds: (model.property ?? []).map(({ id }) => id),
+      };
+    },
+    isReadyForPaint: () => true,
+    clearRenderedGraph() {
+      graphContainerElement.replaceChildren();
+    },
+    dispose() {},
+    retireRenderGeneration() {
+      rendererSimulationFixture.createdSimulations
+        .at(-1)
+        ?.on("tick", null)
+        .on("end", null)
+        .stop();
     },
     setRenderedGraphEventPort(nextPort) {
       renderedGraphInternalsFixture.installedEventPort = nextPort;
@@ -364,7 +434,13 @@ function createAdapterHarness() {
     updateCallCount: 0,
     relocationRequests: 0,
     language(nextLanguage) {
+      if (nextLanguage === undefined) {
+        return (
+          renderedGraphInternalsFixture.appliedLanguages.at(-1) ?? "default"
+        );
+      }
       renderedGraphInternalsFixture.appliedLanguages.push(nextLanguage);
+      return undefined;
     },
     update() {
       renderedGraphInternalsFixture.updateCallCount += 1;
@@ -439,7 +515,6 @@ function createAdapterHarness() {
 
   const { renderedGraphRuntime, renderedGraphInteractionPort } =
     createD3RenderedGraphAdapter({
-      d3: d3Fixture,
       renderedGraphInternals: renderedGraphInternalsFixture,
       graphContainerElement,
       observeNextPaint: (loadGeneration, { signal } = {}) =>
@@ -474,7 +549,7 @@ function createAdapterHarness() {
   }
 
   return {
-    d3Fixture,
+    rendererSimulationFixture,
     documentObject,
     renderedGraphInternalsFixture,
     graphContainerElement,
@@ -545,7 +620,8 @@ describe("D3 rendered graph adapter", () => {
   test("stops the retired generation's simulation when superseded", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
-    const retiredSimulation = adapterHarness.d3Fixture.createdSimulations[0];
+    const retiredSimulation =
+      adapterHarness.rendererSimulationFixture.createdSimulations[0];
 
     const replacementPromise =
       adapterHarness.renderedGraphRuntime.replaceVowlModel(
@@ -559,10 +635,43 @@ describe("D3 rendered graph adapter", () => {
     expect(retiredSimulation.listenerCount()).toBe(0);
   });
 
+  test("does not complete a load while the renderer still hides its initial geometry", async () => {
+    const adapterHarness = createAdapterHarness();
+    let isReadyForPaint = false;
+    adapterHarness.renderedGraphInternalsFixture.isReadyForPaint = () =>
+      isReadyForPaint;
+    const replacement = adapterHarness.renderedGraphRuntime.replaceVowlModel(
+      replacementRequest(1),
+      {},
+    );
+    let hasCompleted = false;
+    void replacement.then(() => {
+      hasCompleted = true;
+    });
+    adapterHarness.renderedGraphTestHarness.completeInitialPaint(1);
+    for (let turn = 0; turn < 6; turn += 1) {
+      await Promise.resolve();
+    }
+    expect(hasCompleted).toBe(false);
+    isReadyForPaint = true;
+    expect(
+      adapterHarness.renderedGraphTestHarness.completeInitialPaint(1),
+    ).toBe(true);
+    for (let turn = 0; turn < 6; turn += 1) {
+      await Promise.resolve();
+    }
+    expect(hasCompleted).toBe(false);
+    expect(
+      adapterHarness.renderedGraphTestHarness.completeInitialPaint(1),
+    ).toBe(true);
+    await replacement;
+  });
+
   test("publishes no event from a retired generation's force end", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
-    const retiredSimulation = adapterHarness.d3Fixture.createdSimulations[0];
+    const retiredSimulation =
+      adapterHarness.rendererSimulationFixture.createdSimulations[0];
     const publishedEvents = [];
     adapterHarness.renderedGraphRuntime.subscribeToRenderedGraphEvents(
       (event) => publishedEvents.push(event.kind),
@@ -572,6 +681,31 @@ describe("D3 rendered graph adapter", () => {
     retiredSimulation.emit("end");
 
     expect(publishedEvents).toEqual([]);
+  });
+
+  test("retires the actual renderer when its caller cancels before first paint", async () => {
+    const harness = createAdapterHarness();
+    const caller = new AbortController();
+    const events = [];
+    harness.renderedGraphRuntime.subscribeToRenderedGraphEvents((event) =>
+      events.push(event),
+    );
+    const replacement = harness.renderedGraphRuntime.replaceVowlModel(
+      replacementRequest(1),
+      { signal: caller.signal },
+    );
+    const simulation =
+      harness.rendererSimulationFixture.createdSimulations.at(-1);
+    expect(simulation.isStopped).toBe(false);
+    caller.abort();
+    await expect(replacement).rejects.toMatchObject({ name: "AbortError" });
+    expect(simulation.isStopped).toBe(true);
+    expect(simulation.listenerCount()).toBe(0);
+    harness.renderedGraphInternalsFixture.installedEventPort.publishGraphLayoutState(
+      1,
+      { forceAlpha: 0.1, hasEnded: false, isPaused: false },
+    );
+    expect(events).toEqual([]);
   });
 
   test("rejects a snapshot request for a superseded generation", async () => {
@@ -592,10 +726,30 @@ describe("D3 rendered graph adapter", () => {
     ).toThrow(expect.objectContaining({ name: "AbortError" }));
   });
 
+  test("retires native drawing when model mounting throws synchronously", async () => {
+    const harness = createAdapterHarness();
+    const nativeLoad = harness.renderedGraphInternalsFixture.load;
+    harness.renderedGraphInternalsFixture.load = (generation) => {
+      nativeLoad(generation);
+      throw new Error("The native renderer failed while drawing.");
+    };
+    await expect(
+      harness.renderedGraphRuntime.replaceVowlModel(replacementRequest(1)),
+    ).rejects.toThrow("The native renderer failed while drawing.");
+    const simulation =
+      harness.rendererSimulationFixture.createdSimulations.at(-1);
+    expect(simulation.isStopped).toBe(true);
+    expect(simulation.listenerCount()).toBe(0);
+    expect(() =>
+      harness.renderedGraphRuntime.readGraphLayoutSnapshot(),
+    ).toThrow("No completed graph layout snapshot exists.");
+  });
+
   test("resumes a layout that had not finished", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
-    const forceSimulation = adapterHarness.d3Fixture.createdSimulations.at(-1);
+    const forceSimulation =
+      adapterHarness.rendererSimulationFixture.createdSimulations.at(-1);
 
     adapterHarness.renderedGraphRuntime.setGraphLayoutPaused({
       loadGeneration: 1,
@@ -615,7 +769,8 @@ describe("D3 rendered graph adapter", () => {
   test("reheats a finished layout when the reader resumes it", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
-    const forceSimulation = adapterHarness.d3Fixture.createdSimulations.at(-1);
+    const forceSimulation =
+      adapterHarness.rendererSimulationFixture.createdSimulations.at(-1);
     // The layout reaches its own end, as it does once a graph settles.
     forceSimulation.emit("end");
 
@@ -692,6 +847,57 @@ describe("D3 rendered graph adapter", () => {
     ).toEqual([2.5]);
   });
 
+  test("observes the drawing's positions, energy and measured viewport", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+    adapterHarness.renderedGraphInternalsFixture.readLayoutState = () => ({
+      forceAlpha: 0.27,
+      hasEnded: false,
+      isPaused: false,
+      widthPx: 1234,
+      heightPx: 567,
+      observedAtMs: 321,
+      layoutElementPositions: [
+        { stableLayoutElementKey: "node:Person", x: 37, y: -81 },
+        { stableLayoutElementKey: "label:knows", x: 101, y: 42 },
+      ],
+    });
+    expect(
+      adapterHarness.renderedGraphRuntime.readGraphLayoutSnapshot(),
+    ).toEqual({
+      loadGeneration: 1,
+      forceAlpha: 0.27,
+      hasEnded: false,
+      isPaused: false,
+      widthPx: 1234,
+      heightPx: 567,
+      observedAtMs: 321,
+      layoutElementPositions: [
+        { stableLayoutElementKey: "node:Person", x: 37, y: -81 },
+        { stableLayoutElementKey: "label:knows", x: 101, y: 42 },
+      ],
+    });
+  });
+
+  test("counts the current rendered projection rather than every model record", async () => {
+    const adapterHarness = createAdapterHarness();
+    await loadGeneration(adapterHarness, 1);
+    adapterHarness.renderedGraphInternalsFixture.readVisibleElementIds =
+      () => ({
+        nodeIds: ["Person"],
+        propertyIds: [],
+      });
+    expect(
+      adapterHarness.renderedGraphRuntime.readVisibleRenderedGraphSnapshot(),
+    ).toMatchObject({
+      visibleGraphCounts: { visibleNodeCount: 1, visiblePropertyCount: 0 },
+      visibleElementReferences: [
+        { kind: "class", iri: "https://example.test/Person" },
+      ],
+      visibleRelationshipReferences: [],
+    });
+  });
+
   test("applies each requested display mode and refreshes once", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
@@ -709,6 +915,115 @@ describe("D3 rendered graph adapter", () => {
     expect(internals.maxLabelWidths).toEqual([180]);
     expect(internals.labelWidthAnimations).toBe(1);
     expect(internals.lazyRefreshes).toBe(1);
+  });
+
+  test.each([
+    ["zoomAndCenterGraph", { viewport: "zoom-and-center" }],
+    ["locateSearchResult", { viewport: "focus-next" }],
+    ["setSliderZoom", { zoomScale: 2 }],
+  ])(
+    "waits for %s to finish before reporting the view applied",
+    async (method, request) => {
+      const adapterHarness = createAdapterHarness();
+      await loadGeneration(adapterHarness, 1);
+      let finishTransition;
+      adapterHarness.renderedGraphInternalsFixture[method] = () =>
+        new Promise((resolve) => {
+          finishTransition = resolve;
+        });
+      const application =
+        adapterHarness.renderedGraphRuntime.applyVisualizationView({
+          loadGeneration: 1,
+          ...request,
+        });
+      let hasCompleted = false;
+      void application.then(() => {
+        hasCompleted = true;
+      });
+      adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+        1,
+      );
+      for (let turn = 0; turn < 6; turn += 1) {
+        await Promise.resolve();
+      }
+      expect(typeof finishTransition).toBe("function");
+      expect(hasCompleted).toBe(false);
+      finishTransition(true);
+      await application;
+    },
+  );
+
+  test.each(["caller", "replacement", "newer-view", "disposal"])(
+    "cancels a viewport transition on %s retirement",
+    async (retirement) => {
+      const harness = createAdapterHarness();
+      await loadGeneration(harness, 1);
+      const caller = new AbortController();
+      let transitionSignal;
+      harness.renderedGraphInternalsFixture.zoomAndCenterGraph = (
+        _dynamic,
+        options,
+      ) => {
+        transitionSignal = options?.signal;
+        return new Promise((resolve) => {
+          transitionSignal?.addEventListener("abort", () => resolve(false), {
+            once: true,
+          });
+        });
+      };
+      const application = harness.renderedGraphRuntime.applyVisualizationView(
+        { loadGeneration: 1, viewport: "zoom-and-center" },
+        { signal: caller.signal },
+      );
+      const outcome = application.then(
+        () => "completed",
+        (error) => error.name,
+      );
+      harness.renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      for (let turn = 0; turn < 6; turn += 1) {
+        await Promise.resolve();
+      }
+      expect(transitionSignal).toBeInstanceOf(AbortSignal);
+      if (retirement === "caller") {
+        caller.abort();
+      }
+      if (retirement === "replacement") {
+        await loadGeneration(harness, 2);
+      }
+      if (retirement === "disposal") {
+        harness.renderedGraphRuntime.dispose();
+      }
+      if (retirement === "newer-view") {
+        const nextView = harness.renderedGraphRuntime.applyVisualizationView({
+          loadGeneration: 1,
+          focus: [],
+        });
+        harness.renderedGraphTestHarness.completeVisualizationViewApplication(
+          1,
+        );
+        await nextView;
+      }
+      expect(transitionSignal.aborted).toBe(true);
+      expect(await outcome).toBe("AbortError");
+    },
+  );
+
+  test("reports the renderer's retained view choices after a replacement", async () => {
+    const harness = createAdapterHarness();
+    await loadGeneration(harness, 1);
+    harness.renderedGraphInternalsFixture.filterModules.datatypes.enabled(true);
+    harness.renderedGraphInternalsFixture.filterModules.minDegree.enabled(true);
+    harness.renderedGraphInternalsFixture.filterModules.minDegree.minDegree(3);
+    harness.renderedGraphInternalsFixture.language("en");
+    await loadGeneration(harness, 2);
+    const application = harness.renderedGraphRuntime.applyVisualizationView({
+      loadGeneration: 2,
+    });
+    harness.renderedGraphTestHarness.completeVisualizationViewApplication(2);
+    const { appliedVisualizationView } = await application;
+    expect(appliedVisualizationView.language).toBe("en");
+    expect(appliedVisualizationView.filters.datatypes).toBe("hide");
+    expect(appliedVisualizationView.filters.minDegree).toBe(3);
   });
 
   test("animates labels back when dynamic label width is switched off", async () => {
@@ -748,7 +1063,8 @@ describe("D3 rendered graph adapter", () => {
   test("holds the layout still when a view asks it to pause", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
-    const forceSimulation = adapterHarness.d3Fixture.createdSimulations.at(-1);
+    const forceSimulation =
+      adapterHarness.rendererSimulationFixture.createdSimulations.at(-1);
 
     const viewApplication =
       adapterHarness.renderedGraphRuntime.applyVisualizationView({
@@ -774,7 +1090,8 @@ describe("D3 rendered graph adapter", () => {
   test("sets the layout running again when a view asks it to resume", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
-    const forceSimulation = adapterHarness.d3Fixture.createdSimulations.at(-1);
+    const forceSimulation =
+      adapterHarness.rendererSimulationFixture.createdSimulations.at(-1);
     adapterHarness.renderedGraphRuntime.setGraphLayoutPaused({
       loadGeneration: 1,
       isPaused: true,

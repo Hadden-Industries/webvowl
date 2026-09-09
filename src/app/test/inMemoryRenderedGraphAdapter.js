@@ -243,6 +243,18 @@ export function createInMemoryRenderedGraphAdapter() {
 
   const renderedGraphRuntime = assertRenderedGraphRuntime(
     Object.freeze({
+      clearRenderedGraph() {
+        assertNotDisposed();
+        const reason = createAbortError("The rendered graph was cleared.");
+        rejectPendingReplacement(reason);
+        rejectPendingViewApplication(reason);
+        activeLoadGeneration = null;
+        visibleRenderedGraphSnapshot = null;
+        graphLayoutSnapshot = null;
+        renderedSvgSnapshot = null;
+        appliedVisualizationView = createDefaultAppliedVisualizationView();
+      },
+
       async replaceVowlModel(request, options) {
         assertNotDisposed();
         const replacementRequest = createVowlModelReplacementRequest(request);

@@ -189,7 +189,10 @@ export function createWebVowlController(dependencies) {
   let controllerState = createWebVowlControllerState(IDLE_CONTROLLER_STATE);
   let lastValidControllerState = controllerState;
   let activeLoadGeneration = 0;
+  let lastIssuedLoadGeneration = 0;
   let currentOntologyGeneration = 0;
+  let currentVowlModel = null;
+  let hasAcceptedRenderedMount = false;
   let activeLoadAbortController;
   let backgroundObservationController;
   let currentSourceProvenance = null;
@@ -408,12 +411,19 @@ export function createWebVowlController(dependencies) {
     };
   }
 
-  function restoreStateAfterFailedLoad(loadGeneration, operationError) {
+  function restoreStateAfterFailedLoad(
+    loadGeneration,
+    operationError,
+    previousOntology,
+  ) {
     if (!isCurrentGeneration(loadGeneration)) {
       return;
     }
+    activeLoadGeneration = currentOntologyGeneration;
+    lastValidControllerState =
+      previousOntology?.state ??
+      createWebVowlControllerState(IDLE_CONTROLLER_STATE);
     if (isAbortError(operationError)) {
-      activeLoadGeneration = currentOntologyGeneration;
       publishControllerState(
         lastValidControllerState,
         WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES,
@@ -424,7 +434,7 @@ export function createWebVowlController(dependencies) {
       {
         ...lastValidControllerState,
         status: "error",
-        loadGeneration,
+        loadGeneration: currentOntologyGeneration,
         error: publicErrorProjection(operationError),
       },
       WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES,
@@ -445,6 +455,96 @@ export function createWebVowlController(dependencies) {
     return viewApplicationResult;
   }
 
+  async function restorePreviousRenderedOntology(
+    previousOntology,
+    recoverySignal,
+  ) {
+    hasAcceptedRenderedMount = false;
+    if (previousOntology === null) {
+      renderedGraphRuntime.clearRenderedGraph();
+      currentVowlModel = null;
+      currentOntologyInspectionSnapshot = null;
+      currentSourceProvenance = null;
+      currentOntologyGeneration = 0;
+      currentWarnings = [];
+      activeLoadGeneration = 0;
+      lastValidControllerState = createWebVowlControllerState(
+        IDLE_CONTROLLER_STATE,
+      );
+      publishControllerState(
+        lastValidControllerState,
+        WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES,
+      );
+      return;
+    }
+
+    const recoveryGeneration = ++lastIssuedLoadGeneration;
+    activeLoadGeneration = recoveryGeneration;
+    const { model, state } = previousOntology;
+    // Anonymous references name a mount. Recovery draws the same accepted
+    // ontology in a fresh mount, so those references receive its generation.
+    const rebindReference = (reference) =>
+      "loadGeneration" in reference
+        ? { ...reference, loadGeneration: recoveryGeneration }
+        : reference;
+    const recoveredView = {
+      ...state.view,
+      focus: state.view.focus.map(rebindReference),
+    };
+    publishForGeneration(recoveryGeneration, {
+      ...GENERATION_SCOPED_CONTROLLER_STATE_FIELDS,
+      status: "rendering",
+      loadGeneration: recoveryGeneration,
+      source: state.source,
+      error: null,
+    });
+    await renderedGraphRuntime.replaceVowlModel(
+      {
+        loadGeneration: recoveryGeneration,
+        vowlModel: model,
+        displayName: state.source.identity,
+      },
+      { signal: recoverySignal },
+    );
+    throwWhenSuperseded(recoveryGeneration, recoverySignal);
+    const applied = await applyRuntimeVisualizationView(
+      recoveryGeneration,
+      {
+        ...recoveredView,
+        layout: state.layout.status === "paused" ? "pause" : "resume",
+        ...(state.zoomScale === null ? {} : { zoomScale: state.zoomScale }),
+      },
+      recoverySignal,
+    );
+    throwWhenSuperseded(recoveryGeneration, recoverySignal);
+    currentVowlModel = model;
+    hasAcceptedRenderedMount = true;
+    currentOntologyGeneration = recoveryGeneration;
+    currentOntologyInspectionSnapshot =
+      vowlModelInspectionProjector.projectOntologyInspectionSnapshot(
+        model,
+        recoveryGeneration,
+      );
+    currentSourceProvenance = state.source;
+    currentWarnings = [...state.warnings];
+    const layout = readGraphLayoutSnapshot();
+    publishForGeneration(recoveryGeneration, {
+      ...state,
+      loadGeneration: recoveryGeneration,
+      zoomScale: controllerState.zoomScale,
+      translation: controllerState.translation,
+      view: applied.appliedVisualizationView,
+      selection: state.selection.map(rebindReference),
+      layout: { status: layoutStatusFromSnapshot(layout) },
+      status: layout.isPaused || layout.hasEnded ? "ready" : "relaxing",
+      error: null,
+    });
+    lastValidControllerState = controllerState;
+    if (!layout.isPaused && !layout.hasEnded) {
+      startBackgroundLayoutObservation(recoveryGeneration);
+    }
+  }
+
   return Object.freeze({
     async loadOntology(sourceRequest, { signal } = {}) {
       if (isDisposed) {
@@ -453,8 +553,20 @@ export function createWebVowlController(dependencies) {
       activeLoadAbortController?.abort();
       abortBackgroundLayoutObservation();
 
-      activeLoadGeneration += 1;
+      activeLoadGeneration = ++lastIssuedLoadGeneration;
       const loadGeneration = activeLoadGeneration;
+      const previousOntology =
+        currentVowlModel === null
+          ? null
+          : {
+              model: currentVowlModel,
+              state:
+                controllerState.loadGeneration === currentOntologyGeneration &&
+                ["ready", "relaxing"].includes(controllerState.status)
+                  ? controllerState
+                  : lastValidControllerState,
+            };
+      let hasStartedModelReplacement = false;
       const loadAbortController = new AbortController();
       activeLoadAbortController = loadAbortController;
       const linkedAbortSignal = createLinkedAbortSignal(
@@ -494,6 +606,8 @@ export function createWebVowlController(dependencies) {
         throwWhenSuperseded(loadGeneration, linkedAbortSignal.signal);
 
         publishForGeneration(loadGeneration, { status: "rendering" });
+        hasStartedModelReplacement = true;
+        hasAcceptedRenderedMount = false;
         await renderedGraphRuntime.replaceVowlModel(
           {
             loadGeneration,
@@ -504,6 +618,14 @@ export function createWebVowlController(dependencies) {
         );
         throwWhenSuperseded(loadGeneration, linkedAbortSignal.signal);
 
+        const viewApplicationResult = await applyRuntimeVisualizationView(
+          loadGeneration,
+          {},
+          linkedAbortSignal.signal,
+        );
+        const graphLayoutSnapshot = readGraphLayoutSnapshot();
+        currentVowlModel = structuredClone(sourceLoadRecord.vowlModel);
+        hasAcceptedRenderedMount = true;
         currentOntologyGeneration = loadGeneration;
         currentOntologyInspectionSnapshot = ontologyInspectionSnapshot;
         currentSourceProvenance = sourceLoadRecord.sourceProvenance;
@@ -514,15 +636,11 @@ export function createWebVowlController(dependencies) {
           WEB_VOWL_OPERATION_LIMITS.maxWarnings,
         ).retainedEntries;
 
-        const viewApplicationResult = await applyRuntimeVisualizationView(
-          loadGeneration,
-          {},
-          linkedAbortSignal.signal,
-        );
-        const graphLayoutSnapshot = readGraphLayoutSnapshot();
-
         publishForGeneration(loadGeneration, {
-          status: graphLayoutSnapshot.hasEnded ? "ready" : "relaxing",
+          status:
+            graphLayoutSnapshot.isPaused || graphLayoutSnapshot.hasEnded
+              ? "ready"
+              : "relaxing",
           loadGeneration,
           source: { ...currentSourceProvenance },
           warnings: [...currentWarnings],
@@ -532,7 +650,7 @@ export function createWebVowlController(dependencies) {
         });
         lastValidControllerState = controllerState;
 
-        if (!graphLayoutSnapshot.hasEnded) {
+        if (!graphLayoutSnapshot.isPaused && !graphLayoutSnapshot.hasEnded) {
           startBackgroundLayoutObservation(loadGeneration);
         }
         return controllerState;
@@ -540,7 +658,47 @@ export function createWebVowlController(dependencies) {
         const operationError = isExpectedOperationError(error)
           ? error
           : createLoadAbortedError(error);
-        restoreStateAfterFailedLoad(loadGeneration, operationError);
+        if (
+          isCurrentGeneration(loadGeneration) &&
+          (hasStartedModelReplacement ||
+            (previousOntology !== null && !hasAcceptedRenderedMount))
+        ) {
+          try {
+            // Caller cancellation ends the candidate. A new request or
+            // disposal can still abort recovery through the load owner.
+            await restorePreviousRenderedOntology(
+              previousOntology,
+              loadAbortController.signal,
+            );
+          } catch (recoveryError) {
+            if (!loadAbortController.signal.aborted && !isDisposed) {
+              renderedGraphRuntime.clearRenderedGraph();
+              currentVowlModel = null;
+              hasAcceptedRenderedMount = false;
+              currentOntologyInspectionSnapshot = null;
+              currentSourceProvenance = null;
+              currentOntologyGeneration = 0;
+              currentWarnings = [];
+              lastValidControllerState = createWebVowlControllerState(
+                IDLE_CONTROLLER_STATE,
+              );
+              publishForGeneration(activeLoadGeneration, {
+                ...IDLE_CONTROLLER_STATE,
+                status: "error",
+                loadGeneration: activeLoadGeneration,
+                error: publicErrorProjection(
+                  createLoadAbortedError(recoveryError),
+                ),
+              });
+            }
+          }
+          throw operationError;
+        }
+        restoreStateAfterFailedLoad(
+          loadGeneration,
+          operationError,
+          previousOntology,
+        );
         throw operationError;
       } finally {
         linkedAbortSignal.dispose();

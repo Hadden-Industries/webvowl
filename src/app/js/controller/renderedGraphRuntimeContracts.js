@@ -2,6 +2,7 @@ import { createOntologyElementReference } from "./webVowlControllerContracts.js"
 
 export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "replaceVowlModel",
+  "clearRenderedGraph",
   "applyVisualizationView",
   "readVisibleRenderedGraphSnapshot",
   "readGraphLayoutSnapshot",
