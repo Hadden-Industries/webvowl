@@ -1,5 +1,34 @@
 # WebMCP integration evaluation
 
+## Resumption evidence — 2026-09-09
+
+This is a new implementation checkpoint; historical evaluations below retain
+their original action names and limitations. Current semantics use `pause` and
+`resume`, with omission leaving automatic motion unchanged, and
+`viewport: "zoom-and-center"` matching the human control. Applied-view recipes
+contain standing choices rather than prior commands.
+
+The first resumption slice passed **99 suites / 1,539 tests**, plus production
+build with formatting and lint prechecks. Retained logs are under
+`.sdlc/runtime/webmcp-resumption/`: `semantics-full-suite-green.log` and
+`semantics-build.log`. Earlier failures remain available, including independent
+review regressions for cross-caller pause toggling and export settlement timing.
+
+In real Chrome with native `document.modelContext`, five registrations were
+discovered. This host returns registered tool objects from asynchronous
+`getTools()` and accepts those objects in `executeTool(tool, JSON.stringify(input))`.
+The native summary reported the shipped FOAF source and 48 classes / 74 properties.
+Calling `set_visualization_view` with `layout: "pause"` returned a paused layout
+and displayed the human Resume button. Clicking that actual button published a
+relaxing layout. The browser was controlled through CUA/CDP; the tool call was to
+the native WebMCP host, with no stub registration.
+
+This checkpoint does not complete the twenty-job evaluation or all-action parity.
+The audit still needs to complete the remaining non-editing cutovers, await actual
+viewport transition completion, and rerun the final browser and scope obligations.
+
+## Original evaluation scope
+
 Records whether the five agent tools accomplish complete user work, not merely
 whether their callbacks succeed. A tool that returns `isSuccess: true` while the
 reader ends up with the wrong graph, an SVG they cannot open, or a claim the

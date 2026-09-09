@@ -195,16 +195,16 @@ describe("native visualization view controls", () => {
     });
   });
 
-  test("requests relaxation and viewport fitting as separate view actions", () => {
+  test("requests resume and zoom-and-center as separate view actions", () => {
     connectAdapter();
     controlElement("relaxLayoutButton").emit("click");
-    controlElement("fitViewportButton").emit("click");
+    controlElement("zoomAndCenterViewportButton").emit("click");
 
     expect(controller.setVisualizationView).toHaveBeenNthCalledWith(1, {
       layout: "resume",
     });
     expect(controller.setVisualizationView).toHaveBeenNthCalledWith(2, {
-      viewport: "fit",
+      viewport: "zoom-and-center",
     });
   });
 
@@ -222,6 +222,21 @@ describe("native visualization view controls", () => {
       isPaused: false,
     });
     expect(controller.setVisualizationView).not.toHaveBeenCalled();
+  });
+
+  test("resumes on the next human click after another caller pauses", () => {
+    connectAdapter();
+    const onStateChanged = controller.subscribeToState.mock.calls[0][0];
+    onStateChanged({ layout: { status: "paused" }, view: null });
+    controlElement("graphLayoutPauseButton").emit("click");
+    expect(controller.setGraphLayoutPaused).toHaveBeenLastCalledWith({
+      isPaused: false,
+    });
+    onStateChanged({ layout: { status: "relaxing" }, view: null });
+    controlElement("graphLayoutPauseButton").emit("click");
+    expect(controller.setGraphLayoutPaused).toHaveBeenLastCalledWith({
+      isPaused: true,
+    });
   });
 
   test("searches ontology elements from the search input", () => {

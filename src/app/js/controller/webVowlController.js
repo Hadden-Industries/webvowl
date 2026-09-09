@@ -705,8 +705,7 @@ export function createWebVowlController(dependencies) {
       );
       abortBackgroundLayoutObservation();
 
-      const priorGraphLayoutSnapshot = readGraphLayoutSnapshot();
-      const priorPauseState = priorGraphLayoutSnapshot.isPaused;
+      let priorPauseState;
       let didPauseForExport = false;
 
       try {
@@ -730,7 +729,9 @@ export function createWebVowlController(dependencies) {
         // achieves nothing and the restore afterwards would re-energise it —
         // which is right when a reader resumes, and wrong as a side effect of
         // exporting a graph they had watched come to rest.
-        if (!priorGraphLayoutSnapshot.hasEnded) {
+        const graphLayoutSnapshotBeforeCapture = readGraphLayoutSnapshot();
+        priorPauseState = graphLayoutSnapshotBeforeCapture.isPaused;
+        if (!graphLayoutSnapshotBeforeCapture.hasEnded && !priorPauseState) {
           renderedGraphRuntime.setGraphLayoutPaused({
             loadGeneration,
             isPaused: true,

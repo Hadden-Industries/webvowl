@@ -61,10 +61,17 @@ document that embeds it.
 **What an agent can change, and what it cannot.** Every change a tool makes is
 one the reader can see in the visualization and undo through the ordinary
 controls: a language, the visibility filters, which elements are focused,
-whether the layout relaxes, and the viewport. There is no tool for pausing the
-layout, tuning force distances, or switching display modes; those are
-controller-domain operations the interface uses and the agent surface
-deliberately does not expose.
+whether automatic layout motion is paused or resumed, and the viewport.
+`layout: "pause"` retains the arrangement by stopping motion; `"resume"`
+restarts it. Omitting `layout` leaves the current choice alone.
+`viewport: "zoom-and-center"` performs the same zoom and pan as the human
+**Zoom and center graph** button. It does not rearrange nodes. The earlier
+`preserve` and `fit` names have no compatibility aliases.
+
+The [action-parity amendment](docs/designs/2026-09-09-webmcp-action-parity.md)
+requires the remaining non-editing workflows, including display modes, force
+distances, reset and other exports, to use the same action surface. Those
+remaining cutovers are tracked in the implementation plan.
 
 **What it accepts as a source.** An ontology document IRI over HTTP(S), a VOWL
 JSON URL over HTTP(S), or ontology text supplied directly with its syntax named.

@@ -15,7 +15,7 @@ export const VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS = Object.freeze({
   ontologySearchResultList: "visualizationOntologySearchResultList",
   // No relax-only control ships yet; the adapter skips absent controls.
   relaxLayoutButton: "visualizationRelaxLayoutButton",
-  fitViewportButton: "centerGraphButton",
+  zoomAndCenterViewportButton: "centerGraphButton",
   graphLayoutPauseButton: "pause-button",
   graphLayoutStatusOutput: "visualizationGraphLayoutStatusOutput",
 });
@@ -190,8 +190,8 @@ export function createVisualizationViewControlsAdapter(dependencies) {
     requestVisualizationView({ layout: "resume" });
   });
 
-  listenOnControl("fitViewportButton", "click", () => {
-    requestVisualizationView({ viewport: "fit" });
+  listenOnControl("zoomAndCenterViewportButton", "click", () => {
+    requestVisualizationView({ viewport: "zoom-and-center" });
   });
 
   listenOnControl("graphLayoutPauseButton", "click", () => {
@@ -241,6 +241,7 @@ export function createVisualizationViewControlsAdapter(dependencies) {
   function onControllerStateChanged(controllerState) {
     isPresentingControllerState = true;
     try {
+      isGraphLayoutPaused = controllerState.layout.status === "paused";
       presentControlText(
         "graphLayoutStatusOutput",
         controllerState.layout.status,

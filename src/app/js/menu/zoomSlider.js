@@ -224,7 +224,7 @@ export function createZoomSlider({
       }
       hideNavigationMenus();
     });
-    centerGraphButton.setAttribute("title", "center graph");
+    centerGraphButton.setAttribute("title", "Zoom and center graph");
   };
 
   zoomSlider.showSlider = function (val) {

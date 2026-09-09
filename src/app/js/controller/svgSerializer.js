@@ -1,6 +1,6 @@
 import {
   createRenderedSvgSnapshot,
-  createVisualizationViewApplicationRequest,
+  createAppliedVisualizationView,
 } from "./renderedGraphRuntimeContracts.js";
 
 const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
@@ -16,14 +16,6 @@ const SVG_VIEW_RECIPE_FIELD_NAMES = Object.freeze([
   "appliedVisualizationView",
   "viewportDimensions",
   "layoutOutcome",
-]);
-const APPLIED_VISUALIZATION_VIEW_FIELD_NAMES = Object.freeze([
-  "language",
-  "filters",
-  "focus",
-  "layout",
-  "viewport",
-  "zoomScale",
 ]);
 const SOURCE_PROVENANCE_FIELD_NAMES = Object.freeze([
   "kind",
@@ -157,32 +149,6 @@ function createSourceProvenance(source) {
   return Object.freeze(normalizedSource);
 }
 
-function createAppliedVisualizationView(
-  appliedVisualizationView,
-  loadGeneration,
-) {
-  assertExactFieldNames(
-    appliedVisualizationView,
-    APPLIED_VISUALIZATION_VIEW_FIELD_NAMES,
-    "applied visualization view",
-  );
-  const normalizedApplicationRequest =
-    createVisualizationViewApplicationRequest({
-      ...appliedVisualizationView,
-      loadGeneration,
-    });
-  const {
-    loadGeneration: normalizedLoadGeneration,
-    ...normalizedVisualizationView
-  } = normalizedApplicationRequest;
-  if (normalizedLoadGeneration !== loadGeneration) {
-    throw new RangeError(
-      "The applied visualization view loadGeneration must match its view recipe.",
-    );
-  }
-  return Object.freeze(normalizedVisualizationView);
-}
-
 function createViewportDimensions(viewportDimensions) {
   assertExactFieldNames(
     viewportDimensions,
@@ -238,7 +204,6 @@ export function createSvgViewRecipe(viewRecipe) {
     loadGeneration: viewRecipe.loadGeneration,
     appliedVisualizationView: createAppliedVisualizationView(
       viewRecipe.appliedVisualizationView,
-      viewRecipe.loadGeneration,
     ),
     viewportDimensions: createViewportDimensions(viewRecipe.viewportDimensions),
     layoutOutcome: createLayoutOutcome(viewRecipe.layoutOutcome),

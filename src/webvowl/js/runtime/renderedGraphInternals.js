@@ -944,10 +944,10 @@ function createGraph(graphContainerSelector) {
 
         if (centerGraphViewOnLoad === true && force.nodes().length > 0) {
           if (force.nodes().length < 10) {
-            graph.forceRelocationEvent(true);
+            graph.zoomAndCenterGraph(true);
           } // uses dynamic zoomer;
           else {
-            graph.forceRelocationEvent();
+            graph.zoomAndCenterGraph();
           }
           centerGraphViewOnLoad = false;
           // console.log("--------------------------------------")
@@ -1896,12 +1896,6 @@ function createGraph(graphContainerSelector) {
         "The rendered graph could not be drawn.",
       );
     }
-  };
-
-  // Updates only the style of the graph.
-  // Relax: let the existing layout settle further without rebuilding it.
-  graph.restartForceLayout = function () {
-    force.alpha(1).restart();
   };
 
   // The charge a force simulation needs is derived from the distances it is
@@ -3265,7 +3259,7 @@ function createGraph(graphContainerSelector) {
     return [pos_intp, cx, cy];
   };
 
-  graph.forceRelocationEvent = function (dynamic) {
+  graph.zoomAndCenterGraph = function (dynamic) {
     if (!graphContainer || !graphContainer.node()) {
       return;
     }

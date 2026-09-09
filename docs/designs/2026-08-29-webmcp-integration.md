@@ -1,5 +1,9 @@
 # WebMCP Integration Design
 
+The [2026-09-09 action-parity amendment](2026-09-09-webmcp-action-parity.md)
+supersedes this baseline's five-tool ceiling and its exclusions for non-editing
+human workflows. It also defines pause/resume and Zoom and center precisely.
+
 - **Date:** 2026-08-29
 - **Status:** Proposed for implementation planning
 - **Branch:** `feature/webmcp-integration`

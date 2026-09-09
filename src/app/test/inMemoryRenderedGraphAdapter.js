@@ -110,9 +110,6 @@ function createDefaultAppliedVisualizationView() {
     }),
     focus: Object.freeze([]),
     language: "default",
-    layout: "preserve",
-    viewport: "preserve",
-    zoomScale: null,
   });
 }
 
@@ -358,6 +355,7 @@ export function createInMemoryRenderedGraphAdapter() {
         graphLayoutSnapshot = createGraphLayoutSnapshot({
           ...graphLayoutSnapshot,
           isPaused: pauseRequest.isPaused,
+          ...(pauseRequest.isPaused ? {} : { forceAlpha: 1, hasEnded: false }),
         });
         const layoutStatus = pauseRequest.isPaused
           ? "paused"
@@ -547,8 +545,11 @@ export function createInMemoryRenderedGraphAdapter() {
       );
       const nextAppliedVisualizationView =
         overrides.appliedVisualizationView ?? {
-          ...appliedVisualizationView,
-          ...requestedVisualizationView,
+          language:
+            requestedVisualizationView.language ??
+            appliedVisualizationView.language,
+          focus:
+            requestedVisualizationView.focus ?? appliedVisualizationView.focus,
           filters: {
             ...appliedVisualizationView.filters,
             ...requestedVisualizationView.filters,
@@ -561,6 +562,12 @@ export function createInMemoryRenderedGraphAdapter() {
         loadGeneration,
         visibleRenderedGraphSnapshot: nextVisibleRenderedGraphSnapshot,
       });
+      if (viewApplicationRequest.layout !== undefined) {
+        renderedGraphRuntime.setGraphLayoutPaused({
+          loadGeneration,
+          isPaused: viewApplicationRequest.layout === "pause",
+        });
+      }
       appliedVisualizationView = result.appliedVisualizationView;
       visibleRenderedGraphSnapshot = result.visibleRenderedGraphSnapshot;
       pendingViewApplication = null;

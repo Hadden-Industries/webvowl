@@ -369,7 +369,7 @@ function createAdapterHarness() {
     update() {
       renderedGraphInternalsFixture.updateCallCount += 1;
     },
-    forceRelocationEvent() {
+    zoomAndCenterGraph() {
       renderedGraphInternalsFixture.relocationRequests += 1;
     },
     requestedZoomScales: [],
@@ -433,9 +433,6 @@ function createAdapterHarness() {
     visualizationResets: 0,
     resetVisualization() {
       renderedGraphInternalsFixture.visualizationResets += 1;
-    },
-    restartForceLayout() {
-      renderedGraphInternalsFixture.callOrder.push("relax");
     },
   };
   const pendingPaintObservations = [];
@@ -615,7 +612,7 @@ describe("D3 rendered graph adapter", () => {
     expect(forceSimulation.isStopped).toBe(false);
   });
 
-  test("leaves a finished layout alone when it is resumed", async () => {
+  test("reheats a finished layout when the reader resumes it", async () => {
     const adapterHarness = createAdapterHarness();
     await loadGeneration(adapterHarness, 1);
     const forceSimulation = adapterHarness.d3Fixture.createdSimulations.at(-1);
@@ -626,14 +623,23 @@ describe("D3 rendered graph adapter", () => {
       loadGeneration: 1,
       isPaused: true,
     });
-    adapterHarness.renderedGraphRuntime.setGraphLayoutPaused({
-      loadGeneration: 1,
-      isPaused: false,
-    });
+    const resumeResult =
+      adapterHarness.renderedGraphRuntime.setGraphLayoutPaused({
+        loadGeneration: 1,
+        isPaused: false,
+      });
 
-    // Exporting pauses and resumes. Restarting here would set a settled graph
-    // moving again every time a reader exported it.
-    expect(forceSimulation.isStopped).toBe(true);
+    // Resume means the same action after natural settlement as during motion.
+    // Export avoids asking for resume when the layout had already ended.
+    expect(forceSimulation.isStopped).toBe(false);
+    expect(resumeResult.layoutStatus).toBe("relaxing");
+    expect(
+      adapterHarness.renderedGraphRuntime.readGraphLayoutSnapshot(),
+    ).toMatchObject({
+      isPaused: false,
+      hasEnded: false,
+      forceAlpha: 1,
+    });
   });
 
   test("projects deeply frozen snapshots that no caller can mutate", async () => {
@@ -964,8 +970,7 @@ describe("D3 rendered graph adapter", () => {
         loadGeneration: 1,
         filters: { datatypes: "hide", minDegree: 3 },
         language: "en",
-        viewport: "fit",
-        zoomScale: null,
+        viewport: "zoom-and-center",
       });
     adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
       1,

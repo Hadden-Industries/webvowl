@@ -367,14 +367,9 @@ describe("set_visualization_view input schema", () => {
     });
     // The same two acts the reader's own pause control performs, under the
     // same names, so one page does not describe one action two ways.
-    expect(inputSchema.properties.layout.enum).toEqual([
-      "preserve",
-      "pause",
-      "resume",
-    ]);
+    expect(inputSchema.properties.layout.enum).toEqual(["pause", "resume"]);
     expect(inputSchema.properties.viewport.enum).toEqual([
-      "preserve",
-      "fit",
+      "zoom-and-center",
       "focus-next",
     ]);
     expect(inputSchema.properties.zoomScale).toMatchObject({
@@ -404,7 +399,7 @@ describe("set_visualization_view input schema", () => {
     });
   });
 
-  test("never advertises a pause, a force distance or a display mode", () => {
+  test("keeps the separate pause predicate and renderer tuning out of tool inputs", () => {
     const serialisedSchema = JSON.stringify(
       toolDefinitionNamed("set_visualization_view").inputSchema,
     );
@@ -698,7 +693,7 @@ describe("set_visualization_view input normalization", () => {
         filters: { datatypes: "hide", minDegree: 2 },
         focus: [{ kind: "class", iri: "https://example.test/Person" }],
         layout: "resume",
-        viewport: "fit",
+        viewport: "zoom-and-center",
         zoomScale: 1.5,
       }),
     ).toEqual({
@@ -706,7 +701,7 @@ describe("set_visualization_view input normalization", () => {
       filters: { datatypes: "hide", minDegree: 2 },
       focus: [{ kind: "class", iri: "https://example.test/Person" }],
       layout: "resume",
-      viewport: "fit",
+      viewport: "zoom-and-center",
       zoomScale: 1.5,
     });
   });

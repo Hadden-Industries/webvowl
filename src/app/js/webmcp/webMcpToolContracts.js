@@ -1,5 +1,9 @@
 import { OWLDocumentFormats } from "owlapi/formats";
 import {
+  VISUALIZATION_LAYOUT_ACTIONS,
+  VISUALIZATION_VIEWPORT_ACTIONS,
+} from "../controller/renderedGraphRuntimeContracts.js";
+import {
   WEB_VOWL_OPERATION_LIMITS,
   normalizeSvgFilename,
 } from "../controller/webVowlControllerContracts.js";
@@ -272,21 +276,21 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
         filters: VISIBILITY_FILTERS_SCHEMA,
         focus: Object.freeze({
           type: "array",
-          description: "Elements to highlight and centre on.",
+          description: "Entities to highlight; use viewport to move the view.",
           items: ONTOLOGY_ELEMENT_REFERENCE_SCHEMA,
           maxItems: MAXIMUM_FOCUS_REFERENCE_COUNT,
         }),
         layout: Object.freeze({
           type: "string",
           description:
-            "Keep the layout as it is, hold it still, or set it running.",
-          enum: Object.freeze(["preserve", "pause", "resume"]),
+            "Pause to retain the arrangement or resume automatic motion. Omit to leave the running/paused state unchanged.",
+          enum: VISUALIZATION_LAYOUT_ACTIONS,
         }),
         viewport: Object.freeze({
           type: "string",
           description:
-            "Keep the view, fit the graph, or move to the next focus.",
-          enum: Object.freeze(["preserve", "fit", "focus-next"]),
+            "Zoom and center the visible graph, or locate the next focus. Omit to leave zoom and pan unchanged.",
+          enum: VISUALIZATION_VIEWPORT_ACTIONS,
         }),
         zoomScale: Object.freeze({
           type: "number",
@@ -734,14 +738,14 @@ export function normalizeSetVisualizationViewToolInput(toolInput = {}) {
     visualizationViewRequest.layout = assertEnumMember(
       toolInput.layout,
       "layout",
-      ["preserve", "pause", "resume"],
+      VISUALIZATION_LAYOUT_ACTIONS,
     );
   }
   if (toolInput.viewport !== undefined) {
     visualizationViewRequest.viewport = assertEnumMember(
       toolInput.viewport,
       "viewport",
-      ["preserve", "fit", "focus-next"],
+      VISUALIZATION_VIEWPORT_ACTIONS,
     );
   }
   if (toolInput.zoomScale !== undefined) {

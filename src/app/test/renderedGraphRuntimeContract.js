@@ -140,7 +140,7 @@ export async function assertRenderedGraphRuntimeContract({
           language: "en",
           layout: "resume",
           loadGeneration: 1,
-          viewport: "fit",
+          viewport: "zoom-and-center",
         },
         { signal: viewAbortController.signal },
       );
@@ -163,15 +163,45 @@ export async function assertRenderedGraphRuntimeContract({
         },
         focus: [{ kind: "class", iri: "https://example.test/Person" }],
         language: "en",
-        layout: "resume",
-        viewport: "fit",
-        zoomScale: null,
       },
       loadGeneration: 1,
       visibleRenderedGraphSnapshot:
         adapterHarness.renderedGraphRuntime.readVisibleRenderedGraphSnapshot(),
     });
     expect(Object.isFrozen(viewApplicationResult)).toBe(true);
+
+    adapterHarness.renderedGraphRuntime.setGraphLayoutPaused({
+      loadGeneration: 1,
+      isPaused: true,
+    });
+    expect(
+      adapterHarness.renderedGraphRuntime.readGraphLayoutSnapshot().isPaused,
+    ).toBe(true);
+    for (const [viewRequest, expectedPauseState] of [
+      [{ layout: "resume" }, false],
+      [{ layout: "pause" }, true],
+      [{}, true],
+    ]) {
+      const application =
+        adapterHarness.renderedGraphRuntime.applyVisualizationView(
+          { loadGeneration: 1, ...viewRequest },
+          { signal: new AbortController().signal },
+        );
+      expect(
+        adapterHarness.renderedGraphTestHarness.completeVisualizationViewApplication(
+          1,
+        ),
+      ).toBe(true);
+      const result = await application;
+      expect(
+        adapterHarness.renderedGraphRuntime.readGraphLayoutSnapshot().isPaused,
+      ).toBe(expectedPauseState);
+      expect(Object.keys(result.appliedVisualizationView).sort()).toEqual([
+        "filters",
+        "focus",
+        "language",
+      ]);
+    }
 
     adapterHarness.renderedGraphRuntime.dispose();
   }

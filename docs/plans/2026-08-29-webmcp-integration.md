@@ -10,6 +10,111 @@
 
 **Spec:** [`docs/designs/2026-08-29-webmcp-integration.md`](../designs/2026-08-29-webmcp-integration.md)
 
+## Resumption decision — 2026-09-09
+
+The repository owner requested completion from the implementer's handoff, authorised
+SDLC-driven plan corrections and detailed per-file signed commits, and clarified:
+"We should maintain the `preserve` but rename it to `pause` to match human actions."
+This authority supersedes the handoff's earlier deferral and the per-commit approval
+questions below. Push and publication remain separate decisions. Implementation
+is serial. The owner subsequently authorised an independent read-only reviewer
+and the scoped native Codex Security workflow, including its review workers.
+The clean starting revision is `20b49405`; the merged SDLC is part of that baseline.
+
+**Pause** is the action that stops automatic layout motion so the reader's current
+arrangement is retained. **Resume** restarts that motion, including reheating the
+simulation as the human Resume control does. Omitting `layout` issues neither action:
+a running layout keeps running and a paused layout stays paused. There is one
+`pause` action, with no `preserve` synonym or compatibility alias. For the viewport,
+`zoom-and-center` performs the same zoom and pan as the human **Zoom and center
+graph** control (`#centerGraphButton`); it does not rearrange nodes. The former
+`fit` designation is retired without an alias. `focus-next` brings the next highlighted occurrence into
+view; omission issues neither action. Focus itself highlights entities; it does not
+move the viewport. Positive pause instance: a moving graph stops. Negative instance:
+resuming a held graph. Near miss: omitting `layout` while already paused yields the
+same visible stillness but does not request a pause. Disposition: Formulate these
+application definitions from the owner's decision and the existing human controls.
+
+An applied visualization view contains the standing choices `language`, `filters`
+and `focus`. The transient `layout` and `viewport` commands and the requested
+`zoomScale` do not belong in it. Current layout status and actual zoom/translation
+remain renderer facts published into controller state. SVG recipes retain standing
+choices and the actual export dimensions/outcome, rather than stale command echoes.
+Use the runtime contract's constructor for those choices in the serializer as well.
+
+The bounded correction to these unreleased page-local tools follows R1: existing
+accepted task intent, affected verification, ordinary independent review, and the
+plan's stronger full-suite/browser obligations. No persistent data, deployed client,
+new authority or network policy changes are introduced. Reassess the route if the
+audit uncovers changes to those boundaries. The purpose is predictable shared
+human/agent control and truthful exported provenance. Full implementation evidence
+does not grant production acceptance or replace the independent reviewer.
+
+This is corrective work using the existing renderer and native browser facilities,
+with no new dependency. The [WebMCP draft](https://webmachinelearning.github.io/webmcp/)
+and [D3 simulation documentation](https://d3js.org/d3-force/simulation), retrieved
+2026-09-09, inform the protocol/mechanism boundary; application action names remain
+WebVOWL-owned. Installed D3 is 7.9.0 under its inspected ISC licence; the existing
+AGPL-3.0-only application licence and notices remain in force.
+
+- [ ] Correct command/state contracts with observed failing tests, then migrate the
+  D3 adapter, in-memory test adapter, serializer, protocol descriptions and fixtures
+  together. Preserve omission, human pause/resume, and renderer-state publication.
+- [ ] Complete Task 13 through model-selected native WebMCP calls in real Chrome,
+  using the available CUA browser/CDP developer capability. The old named
+  `browser-testing-with-devtools` skill is unavailable in this session; its absence
+  does not substitute for the required browser evidence. Retain prompt decisions,
+  outputs, independent SVG checks, supersession and separate unsupported/iframe runs.
+- [ ] Complete Task 14 against the integrated branch, distinguishing this task's
+  changes from already merged, separately approved SDLC configuration. Run the exact
+  checks and inspect diagrams, names, ownership and prohibited effects.
+- [ ] Commit coherent verified slices with detailed per-file messages using the
+  approved committing workflow. Record independent review and deployment gaps
+  truthfully; remove spent task-owned scratch and retain raw failure/run evidence.
+
+New retained evidence belongs under `.sdlc/runtime/webmcp-resumption/`; disposable
+probes belong under `.sdlc/tmp/webmcp-resumption/`. Both roots were absent at start.
+`node_modules` pre-exists and remains reusable dependency state. Inventory any
+development/build output before cleanup and preserve pre-existing contents.
+
+### Owner's action-parity amendment
+
+The owner clarified that WebMCP users must have the same set of application
+actions as human users: **all except experimental ontology editing**. This
+supersedes the original five-tool ceiling and the exclusions for display modes,
+force distances, reset and non-SVG exports below. Interface gestures (holding a
+zoom button, opening a menu or choosing a file) express the same domain requests
+through their respective input adapters; they do not require an agent to simulate
+clicks. Domain effects, accepted values, completion and published state must agree.
+
+| Human workflow | Shared domain responsibility | Required agent access |
+| --- | --- | --- |
+| Preset, URL/IRI, file and pasted-text loading | Load and validate one ontology source; preserve the previous valid graph on failure | Load all corresponding source forms |
+| Search, result focus, locate and details | Query the ontology, highlight references, locate a drawn occurrence and describe selection | Search, focus/locate and inspect selection/details |
+| Language and visibility filters | Apply standing view choices and publish their actual values | The same choices, including degree filtering |
+| Pause / Resume | Stop / restart automatic layout motion | `layout: pause` / `resume`; omission leaves motion alone |
+| Zoom buttons/slider, pan, Zoom and center | Set magnification/translation or frame the drawn graph | Explicit viewport operations, independent of layout motion |
+| Display modes and label width | Configure drawing and publish applied choices | The same mode values and width limits |
+| Class/datatype distances | Configure force distances | The same accepted distances |
+| Drag, pin and unpin | Arrange drawn occurrences without editing ontology facts | Generation-scoped arrangement requests |
+| Reset | Restore the same visualization defaults and clear selection | One shared reset operation |
+| SVG, VOWL JSON, Turtle and LaTeX export | Create browser-local artifacts through shared owners | Each supported format with bounded artifact descriptions |
+| Share URL | Describe a remotely reloadable source and its view choices | The same shareable URL and honest local-source limitation |
+
+The original handoff's completion claims are not acceptance evidence. The audit
+has found unfinished Task 9 routes: non-SVG exporters and some composition/UI
+dependencies still reach concrete renderer objects. Finish those cutovers and
+delete replaced routes; do not conceal them behind additional forwarding APIs.
+Experimental editing remains outside the agent surface. There is no active
+server-upload human workflow in the inspected current UI; verify reachability
+before treating old conversion helpers as a supported action.
+
+For the expanded external input contract, reassess the broader parity slice as
+R2 using the previously accepted, committed design/plan and this owner amendment.
+Keep the smaller R1 semantic correction's evidence separately attributable.
+Independent review, input-boundary security review, full repository checks and
+real-browser parity evidence are required before claiming implementation complete.
+
 ## Global Constraints
 
 - Implement only on `feature/webmcp-integration` in its isolated worktree. Before every editing session, verify the branch, worktree path, clean/expected status, and current `HEAD`; never switch another checkout or move uncommitted work between branches.
@@ -370,14 +475,14 @@ The initial view request is deliberately smaller than the existing UI:
     { kind: "class", iri: "http://xmlns.com/foaf/0.1/Person" },
   ],
   layout: "resume",
-  viewport: "fit",
+  viewport: "zoom-and-center",
   zoomScale: 1.5,
 }
 ```
 
-Every field is optional. Filter values are `show` or `hide`; `minDegree` is an integer from 0 through 100; `focus` contains at most 25 references; `layout` is `preserve`, `pause`, or `resume`; `viewport` is `preserve`, `fit`, or `focus-next`; and `zoomScale` is a finite number within the renderer's configured magnification bounds, currently 0.01 through 4. Omitted fields preserve current visible state.
+Every field is optional. Filter values are `show` or `hide`; `minDegree` is an integer from 0 through 100; `focus` contains at most 25 references; `layout` is `pause` or `resume`; `viewport` is `zoom-and-center` or `focus-next`; and `zoomScale` is a finite number within the renderer's configured magnification bounds, currently 0.01 through 4. Omission leaves the corresponding choice unchanged. An applied view records standing language, filters and focus; current layout and viewport are observed state, not echoes of these commands.
 
-`zoomScale` and the `viewport` directives are the write half of one channel whose read half is the `viewport-changed` event. A zoom control writes `zoomScale`, a fit control writes `viewport: "fit"`, and both read the resulting `state.zoomScale` back. This is deliberately a continuous value rather than a step directive: the existing slider must track pinch and wheel gestures the reader performs directly on the visualization, and a stepped vocabulary cannot express that. `zoomScale` is the exact spelling `viewport-changed` already uses, so the two halves share one name.
+`zoomScale` and the `viewport` actions are the write half of one channel whose read half is the `viewport-changed` event. A zoom control writes `zoomScale`, the Zoom and center control writes `viewport: "zoom-and-center"`, and both read the resulting `state.zoomScale` back. The existing slider also tracks pinch and wheel gestures on the visualization. `zoomScale` is the spelling `viewport-changed` uses, so both directions share one name.
 
 `layout` names the two acts the reader's own pause control performs, using the same words. An agent asks for `pause` or `resume`; a reader clicks Pause or Resume; both reach the same renderer members. This replaces an earlier `relax` directive, which was resume under a second name — the same call, `alpha(1).restart()`, described twice. One page describing one action two ways is a vocabulary defect under §1.7, and it had a consequence: an agent could clear a hold a reader had deliberately set, and could not put it back, because `relax` was available and pausing was not.
 
@@ -806,7 +911,7 @@ Every task inherits §1.9. For a task with a checkpoint commit, its final operat
 - [ ] Split `options.js` by ownership. Move only force/dimension/renderer settings to native-ESM `RenderedGraphConfiguration`; move reversible visualization-view state to controller/runtime contracts; keep presentation-only state in UI adapters; and inject source/artifact/application state into its actual owner. Delete `options.js` and migrate every caller without an alias, generic replacement registry, or transitional ESM wrapper.
 - [ ] Implement generation-aware `replaceVowlModel`. On every replacement: mark the old generation inactive; stop its simulation; detach namespaced D3 and DOM listeners; cancel supported timers/transitions; fence every closure by generation and signal; construct the new graph; and resolve only after geometry is present and a `requestAnimationFrame`/paint observation proves the new generation was painted.
 - [ ] Implement structured runtime events. Replace every graph call into loading, sidebar, search, selection-details, statistics, zoom-slider, warning, or other presentation objects with immutable `RenderedGraphEvent`; let the controller reduce those events and UI presentation adapters render controller state.
-- [ ] Implement runtime view application as one normalized batch. Filter/language/focus changes produce at most one graph recomputation; `layout: "relax"` restarts only the active generation; `viewport: "fit"` runs after geometry updates. The runtime returns a frozen `VisualizationViewApplicationResult` plus `VisibleRenderedGraphSnapshot`, not mutable arrays.
+- [ ] Implement runtime view application as one normalized batch. Filter/language changes produce at most one graph recomputation; highlighting alone does not reheat the simulation. `layout: "resume"` restarts only the active generation; `viewport: "zoom-and-center"` runs after geometry updates. The runtime returns a frozen `VisualizationViewApplicationResult` plus `VisibleRenderedGraphSnapshot`, not mutable arrays.
 - [ ] Implement the three snapshot readers and clone-only `createRenderedSvgSnapshot` exactly as tested. Keep D3 selections, force objects/nodes, mutable element instances, and the live SVG behind the runtime seam.
 - [ ] Convert `src/webvowl/js/entry.js` to native ESM and expose only the semantically named D3-adapter construction needed by the composition root. Remove `webvowl.graph`, `webvowl.options`, and public renderer-module exports that bypass `RenderedGraphRuntime`; do not retain a CommonJS entry, default namespace object, deprecated alias, or dual export.
 - [ ] Add embedding contract tests for `app.getWebVowlController()` and document the intentional removal of direct renderer entry points. Do not change the published package version or another release setting without separate explicit approval for that exact configuration change.

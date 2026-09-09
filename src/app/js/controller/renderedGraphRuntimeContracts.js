@@ -44,10 +44,13 @@ const VISUALIZATION_FILTER_FIELD_NAMES = Object.freeze([
   ...VISIBILITY_FILTER_FIELD_NAMES,
   "minDegree",
 ]);
-const VISUALIZATION_VIEW_FIELD_NAMES = Object.freeze([
+const APPLIED_VISUALIZATION_VIEW_FIELD_NAMES = Object.freeze([
   "language",
   "filters",
   "focus",
+]);
+const VISUALIZATION_VIEW_REQUEST_FIELD_NAMES = Object.freeze([
+  ...APPLIED_VISUALIZATION_VIEW_FIELD_NAMES,
   "layout",
   "viewport",
   "zoomScale",
@@ -971,21 +974,24 @@ function createVisualizationFocus(focus) {
   );
 }
 
-// preserve leaves the layout as it is; pause holds it still; resume sets it
-// running again. These are the two acts the reader's own pause control
-// performs, named the same way, so one page never describes one action twice.
-const LAYOUT_DIRECTIVES = Object.freeze(["preserve", "pause", "resume"]);
+// Pause preserves the current arrangement by stopping automatic motion;
+// resume restarts it. Omission requests neither action.
+export const VISUALIZATION_LAYOUT_ACTIONS = Object.freeze(["pause", "resume"]);
 
 function assertLayoutDirective(layout) {
-  if (!LAYOUT_DIRECTIVES.includes(layout)) {
-    throw new TypeError(`layout must be ${LAYOUT_DIRECTIVES.join(", ")}.`);
+  if (!VISUALIZATION_LAYOUT_ACTIONS.includes(layout)) {
+    throw new TypeError(
+      `layout must be ${VISUALIZATION_LAYOUT_ACTIONS.join(", ")}.`,
+    );
   }
 }
 
-// preserve leaves the viewport alone, fit frames the whole graph, and
-// focus-next brings one focused element into view, advancing through them on
-// repeat so a reader can step through every match.
-const VIEWPORT_DIRECTIVES = Object.freeze(["preserve", "fit", "focus-next"]);
+// Zoom and center changes magnification and pan to frame the visible graph.
+// Focus-next brings the next highlighted occurrence into view.
+export const VISUALIZATION_VIEWPORT_ACTIONS = Object.freeze([
+  "zoom-and-center",
+  "focus-next",
+]);
 
 // A held zoom control reports that a gesture started and that it ended. The
 // renderer owns the animation between those two facts, because the viewport is
@@ -1092,27 +1098,14 @@ export function createContinuousZoomRequest(request) {
 }
 
 function assertViewportDirective(viewport) {
-  if (!VIEWPORT_DIRECTIVES.includes(viewport)) {
+  if (!VISUALIZATION_VIEWPORT_ACTIONS.includes(viewport)) {
     throw new TypeError(
-      `viewport must be one of ${VIEWPORT_DIRECTIVES.join(", ")}.`,
+      `viewport must be one of ${VISUALIZATION_VIEWPORT_ACTIONS.join(", ")}.`,
     );
   }
 }
 
-function createVisualizationView(view, { requireEveryField }) {
-  if (requireEveryField) {
-    assertExactFieldNames(
-      view,
-      VISUALIZATION_VIEW_FIELD_NAMES,
-      "applied visualization view",
-    );
-  } else {
-    assertAllowedFieldNames(
-      view,
-      VISUALIZATION_VIEW_FIELD_NAMES,
-      "visualization view application request",
-    );
-  }
+function createVisualizationViewSettings(view, { requireEveryField }) {
   const normalizedView = {};
   if (view.language !== undefined || requireEveryField) {
     assertNonEmptyString(view.language, "language");
@@ -1126,34 +1119,22 @@ function createVisualizationView(view, { requireEveryField }) {
   if (view.focus !== undefined || requireEveryField) {
     normalizedView.focus = createVisualizationFocus(view.focus);
   }
-  if (view.layout !== undefined || requireEveryField) {
-    assertLayoutDirective(view.layout);
-    normalizedView.layout = view.layout;
-  }
-  if (view.viewport !== undefined || requireEveryField) {
-    assertViewportDirective(view.viewport);
-    normalizedView.viewport = view.viewport;
-  }
-  // The magnification a control writes, and the read half of the same channel
-  // is the viewport-changed event. Bounds belong to the renderer, which
-  // rejects a value outside its configured magnification range.
-  // Null states that no magnification was requested, matching how the applied
-  // view reports one that has never been set.
-  if (view.zoomScale !== undefined && view.zoomScale !== null) {
-    assertFiniteNumber(view.zoomScale, "zoomScale", {
-      minimum: Number.MIN_VALUE,
-    });
-    normalizedView.zoomScale = view.zoomScale;
-  } else if (requireEveryField || view.zoomScale === null) {
-    normalizedView.zoomScale = null;
-  }
   return Object.freeze(normalizedView);
+}
+
+export function createAppliedVisualizationView(view) {
+  assertExactFieldNames(
+    view,
+    APPLIED_VISUALIZATION_VIEW_FIELD_NAMES,
+    "applied visualization view",
+  );
+  return createVisualizationViewSettings(view, { requireEveryField: true });
 }
 
 export function createVisualizationViewApplicationRequest(request) {
   assertAllowedFieldNames(
     request,
-    ["loadGeneration", ...VISUALIZATION_VIEW_FIELD_NAMES],
+    ["loadGeneration", ...VISUALIZATION_VIEW_REQUEST_FIELD_NAMES],
     "visualization view application request",
   );
   if (!("loadGeneration" in request)) {
@@ -1162,13 +1143,27 @@ export function createVisualizationViewApplicationRequest(request) {
     );
   }
   assertPositiveLoadGeneration(request.loadGeneration);
-  const { loadGeneration, ...visualizationView } = request;
-  return Object.freeze({
-    ...createVisualizationView(visualizationView, {
+  const normalizedRequest = {
+    ...createVisualizationViewSettings(request, {
       requireEveryField: false,
     }),
-    loadGeneration,
-  });
+    loadGeneration: request.loadGeneration,
+  };
+  if (request.layout !== undefined) {
+    assertLayoutDirective(request.layout);
+    normalizedRequest.layout = request.layout;
+  }
+  if (request.viewport !== undefined) {
+    assertViewportDirective(request.viewport);
+    normalizedRequest.viewport = request.viewport;
+  }
+  if (request.zoomScale !== undefined) {
+    assertFiniteNumber(request.zoomScale, "zoomScale", {
+      minimum: Number.MIN_VALUE,
+    });
+    normalizedRequest.zoomScale = request.zoomScale;
+  }
+  return Object.freeze(normalizedRequest);
 }
 
 export function createVisualizationViewApplicationResult(result) {
@@ -1192,9 +1187,8 @@ export function createVisualizationViewApplicationResult(result) {
   }
   return Object.freeze({
     loadGeneration: result.loadGeneration,
-    appliedVisualizationView: createVisualizationView(
+    appliedVisualizationView: createAppliedVisualizationView(
       result.appliedVisualizationView,
-      { requireEveryField: true },
     ),
     visibleRenderedGraphSnapshot,
   });

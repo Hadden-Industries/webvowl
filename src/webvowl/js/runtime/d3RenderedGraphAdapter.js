@@ -39,9 +39,6 @@ const DEFAULT_APPLIED_VISUALIZATION_VIEW = Object.freeze({
   }),
   focus: Object.freeze([]),
   language: "default",
-  layout: "preserve",
-  viewport: "preserve",
-  zoomScale: null,
 });
 
 function assertPlainRecord(candidate, description) {
@@ -437,21 +434,6 @@ export function createD3RenderedGraphAdapter(dependencies) {
     if (requiresRecomputation) {
       renderedGraphInternals.update();
     }
-    // Whichever route asks, pausing and resuming reach the simulation the same
-    // way the reader's own control does.
-    if (requestedView.layout === "resume") {
-      isGraphLayoutPaused = false;
-      renderedGraphInternals.paused?.(false);
-      renderedGraphInternals.restartForceLayout();
-      forceAlpha = 1;
-      hasForceEnded = false;
-      activeForceSimulation?.alpha(1).restart();
-    } else if (requestedView.layout === "pause") {
-      isGraphLayoutPaused = true;
-      renderedGraphInternals.paused?.(true);
-      activeForceSimulation?.stop();
-    }
-
     // The caller reports which elements were selected; the runtime decides
     // that focusing means highlighting them and moving the viewport there.
     if (requestedView.focus !== undefined) {
@@ -558,8 +540,8 @@ export function createD3RenderedGraphAdapter(dependencies) {
         ),
       );
       const nextAppliedVisualizationView = {
-        ...appliedVisualizationView,
-        ...requestedView,
+        language: requestedView.language ?? appliedVisualizationView.language,
+        focus: requestedView.focus ?? appliedVisualizationView.focus,
         filters: {
           ...appliedVisualizationView.filters,
           ...requestedView.filters,
@@ -567,6 +549,13 @@ export function createD3RenderedGraphAdapter(dependencies) {
       };
 
       applyVisualizationViewToRenderer(requestedView);
+      // Both input routes apply the same simulation action.
+      if (requestedView.layout !== undefined) {
+        renderedGraphRuntime.setGraphLayoutPaused({
+          loadGeneration,
+          isPaused: requestedView.layout === "pause",
+        });
+      }
 
       await awaitObservedPaint(loadGeneration, signal);
       if (isDisposed) {
@@ -583,8 +572,8 @@ export function createD3RenderedGraphAdapter(dependencies) {
         renderedGraphInternals.setSliderZoom(requestedView.zoomScale);
       }
       // Moving the viewport needs the geometry the recomputation produced.
-      if (requestedView.viewport === "fit") {
-        renderedGraphInternals.forceRelocationEvent();
+      if (requestedView.viewport === "zoom-and-center") {
+        renderedGraphInternals.zoomAndCenterGraph();
       } else if (requestedView.viewport === "focus-next") {
         renderedGraphInternals.locateSearchResult();
       }
@@ -647,8 +636,10 @@ export function createD3RenderedGraphAdapter(dependencies) {
       renderedGraphInternals.paused?.(pauseRequest.isPaused);
       if (pauseRequest.isPaused) {
         activeForceSimulation?.stop();
-      } else if (!hasForceEnded) {
-        activeForceSimulation?.restart();
+      } else {
+        forceAlpha = 1;
+        hasForceEnded = false;
+        activeForceSimulation?.alpha(1).restart();
       }
 
       return createGraphLayoutPauseResult({

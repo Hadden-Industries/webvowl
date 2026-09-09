@@ -544,7 +544,9 @@ describe("WebVOWL controller orchestration", () => {
       const appliedView = controller.getState().view;
       expect(appliedView.language).toBe("de");
       expect(appliedView.filters.minDegree).toBe(0);
-      expect(appliedView.viewport).toBe("preserve");
+      expect(appliedView).not.toHaveProperty("viewport");
+      expect(appliedView).not.toHaveProperty("layout");
+      expect(appliedView).not.toHaveProperty("zoomScale");
     });
 
     test("returns to relaxing and restarts observation on a relax view change", async () => {
@@ -1015,6 +1017,54 @@ describe("WebVOWL controller orchestration", () => {
       expect(
         renderedGraphTestHarness.readGraphLayoutPauseRequests().length,
       ).toBe(pauseStatesBefore);
+    });
+
+    test("does not restart a layout that ends while export is settling", async () => {
+      await completeLoad();
+      const exportPromise = exportVisualization({ filename: "ended.svg" });
+      await flushMicrotasks(2);
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "graph-layout-state-changed",
+        loadGeneration: 1,
+        payload: { forceAlpha: 0, hasEnded: true, isPaused: false },
+      });
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+      await exportPromise;
+      expect(renderedGraphTestHarness.readGraphLayoutPauseRequests()).toEqual(
+        [],
+      );
+      expect(renderedGraphRuntime.readGraphLayoutSnapshot()).toMatchObject({
+        forceAlpha: 0,
+        hasEnded: true,
+        isPaused: false,
+      });
+    });
+
+    test("captures and restores the reader's pause choice made during settlement", async () => {
+      await completeLoad();
+      controller.setGraphLayoutPaused({ isPaused: true });
+      const exportPromise = exportVisualization({ filename: "changed.svg" });
+      await flushMicrotasks(2);
+      controller.setGraphLayoutPaused({ isPaused: false });
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "stable-frames",
+      });
+      await exportPromise;
+      expect(renderedGraphTestHarness.readGraphLayoutPauseRequests()).toEqual([
+        true,
+        false,
+        true,
+        false,
+      ]);
+      expect(renderedGraphRuntime.readGraphLayoutSnapshot().isPaused).toBe(
+        false,
+      );
     });
 
     test("holds a still-relaxing layout still and restores it afterwards", async () => {

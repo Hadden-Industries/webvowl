@@ -812,8 +812,7 @@ describe("rendered graph requests and results", () => {
       language: "en",
       layout: "resume",
       loadGeneration: 3,
-      viewport: "fit",
-      zoomScale: null,
+      viewport: "zoom-and-center",
     });
 
     expect(request).toEqual({
@@ -822,10 +821,29 @@ describe("rendered graph requests and results", () => {
       language: "en",
       layout: "resume",
       loadGeneration: 3,
-      viewport: "fit",
-      zoomScale: null,
+      viewport: "zoom-and-center",
     });
     expectPlainDataDeeplyFrozen(request);
+  });
+
+  test.each([
+    { layout: "preserve" },
+    { viewport: "preserve" },
+    { viewport: "fit" },
+    { zoomScale: null },
+  ])("rejects redundant or misleading view directives: %j", (directive) => {
+    expect(() =>
+      createVisualizationViewApplicationRequest({
+        loadGeneration: 3,
+        ...directive,
+      }),
+    ).toThrow();
+  });
+
+  test("omission requests no layout or viewport action", () => {
+    expect(
+      createVisualizationViewApplicationRequest({ loadGeneration: 3 }),
+    ).toEqual({ loadGeneration: 3 });
   });
 
   test("rejects an out-of-range visualization minimum degree", () => {
@@ -850,9 +868,6 @@ describe("rendered graph requests and results", () => {
         },
         focus: [{ kind: "class", iri: "https://example.test/Person" }],
         language: "en",
-        layout: "resume",
-        viewport: "fit",
-        zoomScale: null,
       },
       loadGeneration: 3,
       visibleRenderedGraphSnapshot: {
@@ -870,6 +885,11 @@ describe("rendered graph requests and results", () => {
 
     expect(result.loadGeneration).toBe(3);
     expect(result.appliedVisualizationView.language).toBe("en");
+    expect(Object.keys(result.appliedVisualizationView).sort()).toEqual([
+      "filters",
+      "focus",
+      "language",
+    ]);
     expect(result.visibleRenderedGraphSnapshot.visibleGraphCounts).toEqual({
       visibleNodeCount: 1,
       visiblePropertyCount: 0,
@@ -891,9 +911,6 @@ describe("rendered graph requests and results", () => {
           },
           focus: [],
           language: "en",
-          layout: "preserve",
-          viewport: "preserve",
-          zoomScale: null,
         },
         loadGeneration: 3,
         visibleRenderedGraphSnapshot: {
