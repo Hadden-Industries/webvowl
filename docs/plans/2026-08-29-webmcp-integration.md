@@ -2,13 +2,38 @@
 
 > **For implementers:** Execute this plan task-by-task. Use the repository's test-driven-development, browser-testing, and committing workflow where each task requires it. Per the implementation owner's explicit direction, do not invoke the verification-before-completion skill; run each specified verification command directly and retain its evidence. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add an optional WebMCP surface that lets a browser agent load, inspect, restyle, settle, and export the live WebVOWL graph while the normal interface uses the same agent-neutral application controller.
+**Goal:** Let a reader obtain a source-grounded ontology figure through an agent that uses WebVOWL to load, inspect, frame and export the actual graph, with the normal interface sharing the same agent-neutral application controller.
 
 **Architecture:** Introduce one deep, promise-based `WebVowlController` that owns source loading, canonical ontology inspection, view application, layout settlement, and browser-local SVG artifacts. Make `RenderedGraphRuntime` the controller's only graph-behavior dependency and `D3RenderedGraphAdapter` its sole production implementation. Migrate UI DOM work off global D3, remove graph-to-UI references, and cut all human controls over to controller operations. Keep WebMCP in a thin top-level protocol adapter that validates five bounded tools and delegates to the same controller. Author every new or materially reshaped module as native ESM, with only a fixed shrinking allowlist of untouched CommonJS renderer leaves private beneath the D3 adapter. Every cutover deletes the concrete graph/options/callback route it replaces; there are no shims or parallel production paths.
 
 **Tech Stack:** Native ESM for the complete new application/runtime seam and every materially changed owner, the existing native-ESM OWL ingestion modules, a fixed shrinking allowlist of untouched private CommonJS renderer leaves handled only by the repository's current build, the exact D3 runtime established by Task 1, browser-native DOM/EventTarget interfaces, `AbortController`, Fetch, Web Crypto, `Blob`, object URLs, `XMLSerializer`, imperative `document.modelContext`, Jest 30, ESLint, dependency-cruiser 18 for test-only module-graph discovery, Prettier, HTML Validate, Stylelint, Vite 8, and Chromium browser evaluation. The separately approved Task 2 amendment adds only dependency-cruiser and its lockfile entries; any other dependency or configuration repair still requires separate approval.
 
 **Spec:** [`docs/designs/2026-08-29-webmcp-integration.md`](../designs/2026-08-29-webmcp-integration.md)
+
+## Purpose and acceptance clarification — 2026-09-09
+
+The owner's account of an agent inventing a "Fishing Vessel" class while drawing
+AQFO supplies the missing motivation for this pre-SDLC plan. The
+[design's motivation](../designs/2026-08-29-webmcp-integration.md#motivation-and-intended-outcome--2026-09-09)
+is the purpose reference for remaining implementation and review. This documentation
+clarification is R0; it does not reclassify the current implementation route or
+retroactively certify earlier work under the current SDLC.
+
+The flagship outcome is an actual SVG of the requested region around AQFO's
+`http://w3id.org/aqfo/aqfo_00002008` (`person`), produced by the live application
+and delivered with truthful source, view and limitation information. The agent
+chooses the view; it does not construct a plausible substitute ontology diagram.
+Task 13 must execute the [AQFO acceptance scenario](../evaluations/webmcp-integration.md#motivating-aqfo-acceptance-scenario)
+in addition to the existing twenty jobs. Task 14 and final outcome review consume
+that evidence; prior fixture or parity passes do not satisfy this new real-source
+acceptance case.
+
+Each remaining slice must establish which part of that job it advances: source
+identity and diagnostics; source-grounded inspection; shared, observable view
+control; faithful export; or artifact delivery. All-action parity remains accepted
+scope, with the AQFO job providing the cross-component outcome check. Do not infer
+pixel-identical layout replay, semantic completeness or lower reasoning cost from
+deterministic test doubles, byte digests or successful tool callbacks.
 
 ## Resumption decision — 2026-09-09
 
@@ -1156,6 +1181,7 @@ await documentObject.modelContext.registerTool(
 
 - [x] Add a small deterministic Turtle fixture with `Person`, `Organization`, `Publication`, object properties connecting them, one datatype property, English and German labels, and no external imports. Keep it under 20 KiB and serve it through the existing Vite application data path; do not change Vite configuration.
 - [x] Create the evaluation document with fields for date, browser/client/version, WebMCP enablement method, model, source, prompt ID, tools selected, completion without manual clicking, source correctness, view correctness, warning correctness, load latency, artifact latency, serialized result size, SVG retrieval, conversation attachment, unsupported semantic claims, console errors, and notes.
+- [ ] Run the motivating AQFO acceptance scenario against the pinned document recorded in the evaluation. Retain independently checked source identities and relationships, the exact-IRI lookup, the actual viewport around `person`, the independently opened SVG and its digest, warning/coverage information, and separate page-download/client-delivery results. Verify that descriptive mentions of fishing vessels do not become an invented named class. Run this through model-selected native WebMCP calls; source inspection alone is not a browser pass.
 - [~] Put these 20 job-oriented prompts in the matrix and run them in order. The matrix is written and native WebMCP is now available in Chrome; complete the runs against the integrated implementation:
 
   1. “Load the evaluation ontology, use English labels, hide datatype nodes, focus on Person and Organization, relax the graph, export `person-organization.svg`, and report warnings.”
@@ -1381,7 +1407,7 @@ This is the authoritative completion inventory, incorporating the owner's action
 - Strict export waits for the agreed stability contract; best-effort output occurs only when explicitly requested.
 - SVG export has one production implementation: the runtime creates a detached styled `RenderedSvgSnapshot`, the D3-free serializer leaves the live SVG unchanged, and the artifact service creates a valid local Blob with matching visible download, metadata, byte length, and SHA-256; obsolete object URLs are revoked, and missing required browser primitives produce `EXPORT_FAILED` rather than a legacy transport fallback.
 - Tool results never contain ontology source, VOWL JSON, SVG source, download URLs, credentials, stack traces, or unbounded derived content.
-- The twenty-prompt evaluation and full automated verification pass or record an explicitly accepted client limitation.
+- The motivating AQFO acceptance scenario, twenty-prompt evaluation and full automated verification pass or record an explicitly accepted client limitation. Source-grounded structure, actual framing around the requested IRI, independently inspected SVG and truthful delivery must be demonstrated; an accepted attachment limitation does not waive content fidelity.
 - No deferred product capability, new dependency, configuration change, external upload, branch mutation, or push has been introduced without its own approval.
 - No controller method forwards to a retired callback, and no compatibility shim, alias, duplicate loader/exporter, or old/new runtime switch remains.
 - `graph.js`, `options.js`, `webvowl.graph`, `webvowl.options`, live-SVG export mutation, and every direct UI-to-renderer path are absent rather than deprecated.

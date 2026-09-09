@@ -9,6 +9,60 @@ human workflows. It also defines pause/resume and Zoom and center precisely.
 - **Branch:** `feature/webmcp-integration`
 - **Scope:** Agent-assisted ontology exploration, visualization, diagnostics, and SVG export in the live WebVOWL page
 
+## Motivation and intended outcome — 2026-09-09
+
+The owner supplied this motivation on 2026-09-09. The original implementation
+plan predates the current repository SDLC; this records its purpose now rather
+than claiming that the earlier plan already met that workflow.
+
+A colleague questioned whether WebVOWL remained useful when an AI agent could
+visualize an ontology itself. According to the owner's account, they tested that
+claim using the [WorldFish AQFO ontology](https://github.com/WorldFishCenter/fish-ontology/blob/main/aquaculture_small_scale_fisheries_ontology.owl).
+The agent produced a Mermaid-style diagram containing a "Fishing Vessel" node.
+When challenged, it acknowledged inventing that class because it seemed plausible
+in a fishing ontology. This is an owner-reported motivating incident, not a
+reproduced benchmark or evidence that every agent-generated diagram fails.
+
+The desired outcome is a source-grounded ontology figure that a reader can inspect
+and trust for what it actually represents. An agent interprets the reader's request
+and chooses a view; WebVOWL loads the supplied ontology, resolves entity identities,
+renders its supported representation and exports the observed diagram. WebMCP
+makes those existing application capabilities discoverable and callable from the
+live page. The agent should not need to reconstruct the graph in generated diagram
+code or invent domain entities to complete the picture.
+
+The motivating user job is to visit WebVOWL, discover its tools, load AQFO, locate
+`http://w3id.org/aqfo/aqfo_00002008` (`person`), adjust the viewport around that
+entity, export SVG and present the actual artifact to the reader. The independent
+source observations and required end-to-end evidence are recorded in the
+[AQFO acceptance scenario](../evaluations/webmcp-integration.md#motivating-aqfo-acceptance-scenario).
+
+Trust here means traceable structural fidelity, truthful presentation and explicit
+limits. Named domain entities and relationships must be grounded in the loaded
+source and its resolved imports. Supported VOWL transformations, anonymous
+expressions and built-in vocabulary must remain distinguishable from declared
+named classes. Descriptive text mentioning a concept is not itself a class
+declaration. Import failures, conversion omissions, filters and cropped regions
+must not be disguised as a complete representation of the ontology; visual
+proximity supplies no additional OWL assertion. Fidelity does not certify that the
+source ontology's own assertions are correct.
+
+The requested determinism concerns deriving graph content from ontology data and
+exporting the actual applied view without generative additions. Identical node
+coordinates or SVG bytes across independent force-layout runs remain a separate,
+deferred requirement. A source/artifact digest establishes byte identity, not
+semantic fidelity; the exported SVG also needs independent content and visual
+inspection. Reducing the agent's graph-construction reasoning is a product
+objective; a claimed cost or latency improvement needs measured comparative
+evidence.
+
+Human/agent action parity supports this outcome: a reader must be able to inspect,
+adjust and export the same application state the agent used. Parity, successful
+tool calls and passing tests alone do not establish that the reader received a
+faithful figure. Apply the repository's
+[OUT-01 outcome check](../sdlc/engineering-principles.md#out-01--recheck-the-higher-level-outcome)
+to each remaining slice using this purpose and the AQFO acceptance evidence.
+
 ## Decision summary
 
 WebVOWL will expose a small set of WebMCP tools as an optional browser capability. The tools will delegate to an agent-neutral, promise-based `WebVowlController` module that owns loading, inspection, view changes, layout settlement, and export. The normal WebVOWL interface will use the same controller and will remain complete and usable when WebMCP is absent.
@@ -74,17 +128,25 @@ The following valuable jobs require new capabilities beyond the first WebMCP int
 
 ## Flagship end-to-end workflow
 
-The primary acceptance scenario is:
+The primary acceptance scenario is the motivating AQFO job:
 
-> Open WebVOWL, load a supplied ontology document IRI, use English labels, hide datatype nodes, focus on Person and Organization, let the layout settle, export SVG, and report import warnings.
+> Open WebVOWL, load the supplied AQFO ontology, show the region around
+> `http://w3id.org/aqfo/aqfo_00002008` (`person`), and give me the exported SVG.
+> Use the ontology's entities and relationships, and explain any warnings or
+> limits on what the figure shows.
 
 The browser agent composes the request internally:
 
-1. Call `load_ontology` and wait for the active generation to render.
-2. Use the bounded load result or call `get_ontology_summary` for structural context and warnings.
-3. Call `set_visualization_view` once with the desired language, filters, focus, and viewport state.
-4. Call `export_visualization`; that tool waits for settlement and creates the artifact.
-5. Use the visible download when the client can retrieve files, while reporting artifact metadata in every client.
+1. Visit the live WebVOWL page and discover its registered tools.
+2. Call `load_ontology` with the actual ontology document URL and wait for the active generation to render. The GitHub HTML page is a source reference, not the RDF/XML document.
+3. Use the load result or `get_ontology_summary` for source identity, structural context and warnings; resolve the exact `person` IRI with `find_ontology_elements` rather than substituting a plausible label match.
+4. Apply focus and the necessary viewport actions through the shared application controls. Under the current action-parity amendment, focus highlights; viewport location, zoom and pan must actually bring the requested region into view.
+5. Call `export_visualization`; that tool owns the required settlement and snapshot work. Inspect the resulting figure against the source and the visible view.
+6. Present the actual SVG when the client can retrieve it. Otherwise report the available page download and the delivery limitation without claiming a conversation attachment or replacing it with a generated reconstruction.
+
+The small Person/Organization fixture remains useful for controlled regression
+tests and the existing twenty-job matrix. It does not replace the real AQFO
+acceptance scenario or its negative check for an invented "Fishing Vessel" class.
 
 The user issues one natural-language request. WebVOWL will not expose a polling-oriented `wait_for_layout` tool, and the first release will not expose a monolithic `create_visualization` tool that hides all intermediate visible state. The five tools remain composable for other jobs while `export_visualization` owns the wait necessary for a correct export.
 

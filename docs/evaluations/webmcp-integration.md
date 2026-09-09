@@ -1,5 +1,111 @@
 # WebMCP integration evaluation
 
+## Motivating AQFO acceptance scenario
+
+Added 2026-09-09 from the [owner's motivation](../designs/2026-08-29-webmcp-integration.md#motivation-and-intended-outcome--2026-09-09).
+This is required in addition to the historical twenty-job matrix. The reported
+agent-generated "Fishing Vessel" node is the motivating incident; its original
+conversation and exact source revision have not been independently reproduced.
+
+### Source reference checked on 2026-09-09
+
+- Repository revision: [`dee2aa72ba268473cd60a18b62f1ae941eee7dec`](https://github.com/WorldFishCenter/fish-ontology/commit/dee2aa72ba268473cd60a18b62f1ae941eee7dec), resolved from `main` through the GitHub MCP server.
+- Ontology document to load: [AQFO RDF/XML at that revision](https://raw.githubusercontent.com/WorldFishCenter/fish-ontology/dee2aa72ba268473cd60a18b62f1ae941eee7dec/aquaculture_small_scale_fisheries_ontology.owl). The GitHub `/blob/` page is HTML and is not the ontology input.
+- Retrieved document: 398,529 bytes; SHA-256 `0a35e466d5765b56ed66777e4ead6359410eef0b688f0c6e9eeeb41405258b6c`.
+- Explicit class `http://w3id.org/aqfo/aqfo_00002008` has label `person` and `rdfs:subClassOf` target `http://w3id.org/aqfo/aqfo_00002214`, labelled `household member`. Preserve that asserted direction even if a reader expects a different modelling choice.
+- No explicit `owl:Class` element has an `rdfs:label` equal to `Fishing Vessel`, ignoring case and surrounding whitespace. The phrase does occur in descriptive annotations; a text search hit is not evidence of a class declaration.
+- No `owl:imports` elements were present in these bytes. This says nothing about completeness of the VOWL conversion or filtered view.
+
+The file was inspected through GitHub MCP and independently retrieved and parsed
+with Python's standard XML parser in this checkout's `.venv`; the digest was
+computed over the retrieved bytes. These are source observations, not a WebVOWL
+load, OWL-conversion, native WebMCP or SVG result. The pinned revision establishes
+a repeatable future input, not the source revision used in the original incident.
+
+### User job and required evidence
+
+Give the browser agent the pinned ontology document link above and this request:
+
+> Open WebVOWL, load this ontology, show the region around
+> `http://w3id.org/aqfo/aqfo_00002008` (`person`), and give me the exported SVG.
+> Use the ontology's entities and relationships, and explain any warnings or
+> limits on what the figure shows.
+
+Then ask: "Does this ontology declare a class labelled Fishing Vessel? Explain
+the evidence, and do not add a class to the diagram merely because the concept
+is mentioned in a description."
+
+Before running, record the WebVOWL revision and uncommitted inputs, browser/client
+and model versions, native WebMCP availability and source digest. Inspect source
+declarations and relevant relationships independently of the model-to-view code;
+do not generate expected results from the converter, inspector or SVG being tested.
+During the run retain the model's tool choices, outputs, warnings, timings, final
+visible view and exported file. Use the source's available labels; do not require
+an English language option merely because untagged labels read as English.
+
+| Criterion | Evidence required | Current result |
+| --- | --- | --- |
+| Discover and load | Agent visits the live page, discovers native tools and loads the pinned RDF/XML; source identity agrees with the retrieved bytes. Network/parse/conversion failures remain failures with diagnostics. | Failed: native discovery and HTTP retrieval succeed; inspection projection rejects the absent version and the tool reports `LOAD_ABORTED` |
+| Resolve and frame `person` | Exact IRI resolves to the source entity. Focus and actual zoom/pan place the requested region legibly in view; highlighting alone is insufficient. Human controls and reported state agree. | Pending browser run |
+| Preserve ontology structure | Map displayed domain entities and relationships to independently checked source facts, with the asserted subclass direction preserved. Identify VOWL presentation constructs separately. Descriptive mentions do not become a fabricated `Fishing Vessel` class. | Pending browser and artifact inspection |
+| State coverage honestly | Record conversion/import warnings, filters and viewport limits. A cropped or lossy representation is not presented as the complete ontology; visual proximity is not an asserted relationship. | Pending browser run |
+| Export the observed view | Independently open the actual SVG; check legibility, labels, relationships, framing and styling against the live view. Check metadata, dimensions and SHA-256 separately. Export must preserve the live arrangement and user state. | Pending artifact inspection |
+| Deliver the artifact | Record page export, SVG retrieval and presentation in the conversation separately. If attachment is unsupported, identify the real page download and limitation; do not claim delivery or substitute a freshly generated diagram. | Pending client run |
+| Assess effort and repeatability | Record tool-call count and elapsed time; record model reasoning/token use only if available. No comparative saving is claimed without a measured baseline. Coordinate or byte equality across independent layouts is not required. | Two failed native loads recorded; no completed-job timing or comparative saving |
+
+The small synthetic fixture remains the controlled regression input. This case
+checks the real ontology and the reader's full job. Passing callbacks, a valid
+digest, or existing fixture results cannot mark this scenario complete.
+
+### AQFO browser attempt — 2026-09-09
+
+**Outcome: failed before the AQFO graph was drawn.** Chrome DevTools controlled
+a separate browser context at `http://127.0.0.1:8000/`, using Chrome 153.0.0.0
+with native `document.modelContext`. The page discovered 14 registered tools.
+The two model-selected `load_ontology` calls used the pinned document IRI above;
+both HTTP requests returned 200, but the tools returned `LOAD_ABORTED` after
+approximately 1,798 ms and 333 ms. A native state read after the first failure
+still reported FOAF, generation 1. No AQFO SVG was created or delivered.
+
+Read-only diagnostic calls isolated the failing boundary:
+
+1. The production source loader, called separately from the controller and
+   WebMCP host, succeeded with the expected source digest, 347 classes,
+   358 property records and no loader diagnostics. Those property records
+   include VOWL relationships; they are not a count of declared OWL properties.
+2. The source declares no ontology version information. The existing VOWL
+   builder represents this as `header.version: ""`.
+3. `projectOntologyInspectionSnapshot` passes that empty string to
+   `ontologyHeaderRecord.versionInformationText`. Its consuming snapshot
+   constructor accepts `null` or a non-empty string, and throws
+   `TypeError: ontologyHeaderRecord.versionInformationText must be a non-empty string.`
+4. The controller's replacement catch converts an uncoded exception into
+   `LOAD_ABORTED`. The resulting cancellation message does not describe this
+   projection failure. The source-loader and projection diagnostics did not
+   invoke the native tool and are not successful end-to-end runs.
+
+The repair needs an independent regression for a valid unversioned VOWL model
+at the projector boundary, using the existing optional-version contract, and
+truthful classification of unexpected load failures in the controller. Neither
+ontology invention nor a browser capability workaround is involved.
+
+The implementation files were concurrently changing during this attempt.
+Startup initially failed with lint errors, became usable, and later failed
+again after further controller edits. This validation task made no application
+source edits. It cannot qualify an integrated final revision until the
+implementation owner provides a stable checkpoint.
+
+Evidence is retained in `.sdlc/runtime/webmcp-aqfo/`: the starting input hashes
+and patch, native-run input hashes, `startup-lint.log`,
+`startup-browser-failure.json`, `native-load-attempts.json`,
+`source-loader-diagnostic.json`, `inspection-projection-diagnostic.json`,
+`converted-header-diagnostic.json`, and the pinned `aqfo-source.owl` plus
+`source-oracle.json`. `controller-diagnostic.json` records a failed diagnostic
+module import during the concurrent startup changes, not a controller pass.
+The source oracle independently records the asserted directions for `person`,
+`household member`, `man`, `woman` and `child`. The remaining view, content,
+artifact and delivery criteria above are still pending.
+
 ## Resumption evidence — 2026-09-09
 
 This is a new implementation checkpoint; historical evaluations below retain

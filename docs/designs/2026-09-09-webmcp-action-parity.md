@@ -5,6 +5,16 @@ human reader and a WebMCP caller. This amends the accepted 2026-08-29 design and
 plan. It does not authorise ontology editing, publication or additional network
 retrieval policies. Browser artifacts remain local to the page.
 
+The [motivating outcome](2026-08-29-webmcp-integration.md#motivation-and-intended-outcome--2026-09-09)
+is a source-grounded ontology figure produced through WebVOWL after an agent's
+AQFO diagram invented a "Fishing Vessel" class, as reported by the owner. Action
+parity makes the agent's chosen view inspectable and adjustable by the reader.
+The parity inventory serves that outcome; completing it must also satisfy the
+[AQFO acceptance scenario](../evaluations/webmcp-integration.md#motivating-aqfo-acceptance-scenario),
+including exact-IRI resolution, actual viewport framing, faithful SVG content and
+honest artifact delivery. Its result remains pending independently of earlier
+parity checkpoints.
+
 [ADR 0012](../adr/0012-human-and-agent-visualization-action-parity.md) records
 the superseded ownership restrictions and distinct identity boundaries.
 
