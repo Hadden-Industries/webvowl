@@ -9,7 +9,7 @@ let assertCurrentOntologyElementReference;
 let createOntologyElementReference;
 let createWebVowlControllerState;
 let freezeWebVowlControllerState;
-let normalizeSvgFilename;
+let normalizeVisualizationFilename;
 let toPublicWebVowlError;
 let truncateOntologyDerivedText;
 let truncateResultCollection;
@@ -32,7 +32,7 @@ beforeAll(async () => {
     createOntologyElementReference,
     createWebVowlControllerState,
     freezeWebVowlControllerState,
-    normalizeSvgFilename,
+    normalizeVisualizationFilename,
     toPublicWebVowlError,
     truncateOntologyDerivedText,
     truncateResultCollection,
@@ -43,6 +43,7 @@ const APPROVED_WEB_VOWL_OPERATION_ERROR_CODES = Object.freeze([
   "NO_ONTOLOGY",
   "SOURCE_REJECTED",
   "LOAD_ABORTED",
+  "LOAD_FAILED",
   "FETCH_FAILED",
   "PARSE_FAILED",
   "IMPORT_FAILED",
@@ -69,28 +70,28 @@ function captureThrownError(operation) {
 }
 
 describe("WebVOWL operation limits", () => {
+  test("normalizes filenames for each supported artifact format", () => {
+    expect(normalizeVisualizationFilename("../CON.JSON", "vowl-json")).toBe(
+      "-CON.json",
+    );
+    expect(normalizeVisualizationFilename("", "turtle")).toBe(
+      "webvowl-visualization.ttl",
+    );
+    expect(normalizeVisualizationFilename("diagram.TEX.tex", "latex")).toBe(
+      "diagram.tex",
+    );
+    expect(() =>
+      normalizeVisualizationFilename("output", "executable"),
+    ).toThrow();
+  });
   test("publishes the exact shared controller-domain limits", () => {
     expect(WEB_VOWL_OPERATION_LIMITS).toEqual({
       maxRemoteSourceLocationCharacters: 2048,
-      maxInlineDocumentBytes: 1024 * 1024,
       maxFocusReferences: 25,
       maxWarnings: 10,
       maxOntologyDerivedTextCharacters: 256,
     });
     expect(Object.isFrozen(WEB_VOWL_OPERATION_LIMITS)).toBe(true);
-  });
-
-  test("names inline ontology capacity in UTF-8 bytes rather than string length", () => {
-    const multibyteOntologyText = "€".repeat(
-      Math.floor(WEB_VOWL_OPERATION_LIMITS.maxInlineDocumentBytes / 3) + 1,
-    );
-
-    expect(multibyteOntologyText.length).toBeLessThan(
-      WEB_VOWL_OPERATION_LIMITS.maxInlineDocumentBytes,
-    );
-    expect(
-      new TextEncoder().encode(multibyteOntologyText).byteLength,
-    ).toBeGreaterThan(WEB_VOWL_OPERATION_LIMITS.maxInlineDocumentBytes);
   });
 });
 
@@ -361,7 +362,7 @@ describe("SVG filename normalization", () => {
     ["report.svg.svg.", "report.svg"],
     ["   ", "webvowl-visualization.svg"],
   ])("normalizes %p to %s", (filename, expectedFilename) => {
-    expect(normalizeSvgFilename(filename)).toBe(expectedFilename);
+    expect(normalizeVisualizationFilename(filename)).toBe(expectedFilename);
   });
 
   test.each([
@@ -377,19 +378,19 @@ describe("SVG filename normalization", () => {
   ])(
     "prefixes the Windows-reserved device basename %p",
     (filename, expectedFilename) => {
-      expect(normalizeSvgFilename(filename)).toBe(expectedFilename);
+      expect(normalizeVisualizationFilename(filename)).toBe(expectedFilename);
     },
   );
 
   test("caps the complete filename at 128 JavaScript characters", () => {
-    const normalizedFilename = normalizeSvgFilename("a".repeat(200));
+    const normalizedFilename = normalizeVisualizationFilename("a".repeat(200));
 
     expect(normalizedFilename).toHaveLength(128);
     expect(normalizedFilename).toBe(`${"a".repeat(124)}.svg`);
   });
 
   test("does not manufacture a duplicate SVG suffix while truncating", () => {
-    expect(normalizeSvgFilename(`${"a".repeat(120)}.svgx`)).toBe(
+    expect(normalizeVisualizationFilename(`${"a".repeat(120)}.svgx`)).toBe(
       `${"a".repeat(120)}.svg`,
     );
   });
@@ -532,6 +533,7 @@ const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "translation",
   "layout",
   "selection",
+  "selectedDocumentRecord",
   "renderProgress",
   "degreeFilterRange",
   "editorMode",
@@ -548,6 +550,7 @@ const IDLE_CONTROLLER_STATE_FIELDS = Object.freeze({
   translation: null,
   layout: { status: "unavailable" },
   selection: [],
+  selectedDocumentRecord: null,
   renderProgress: null,
   degreeFilterRange: null,
   editorMode: null,

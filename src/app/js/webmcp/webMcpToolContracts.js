@@ -7,10 +7,7 @@ import {
   createVisualizationModesRequest,
   createForceLayoutDistancesRequest,
 } from "../controller/renderedGraphRuntimeContracts.js";
-import {
-  WEB_VOWL_OPERATION_LIMITS,
-  normalizeSvgFilename,
-} from "../controller/webVowlControllerContracts.js";
+import { normalizeVisualizationFilename } from "../controller/webVowlControllerContracts.js";
 
 // The agent-facing surface of this page. Each tool is a
 // bounded operation over the ontology the controller holds, never a generic
@@ -41,6 +38,7 @@ const MAXIMUM_LOCATION_LENGTH = 2048;
 // One megabyte of ontology text. The byte length is enforced again at runtime,
 // because a schema counts characters and a limit that matters is in bytes.
 const MAXIMUM_DOCUMENT_TEXT_LENGTH = 1048576;
+const MAXIMUM_TOOL_DOCUMENT_BYTES = 1048576;
 const MAXIMUM_ANONYMOUS_LOCAL_ID_LENGTH = 256;
 const MAXIMUM_FOCUS_REFERENCE_COUNT = 25;
 
@@ -218,6 +216,35 @@ const VISIBILITY_FILTERS_SCHEMA = closedObjectSchema({
   },
 });
 
+import {
+  createRenderedArrangementQuery,
+  createRenderedArrangementRequest,
+  createRenderedOccurrenceSelectionRequest,
+} from "../controller/renderedArrangementContracts.js";
+
+const RENDERED_OCCURRENCE_REFERENCE_SCHEMA = closedObjectSchema({
+  required: ["loadGeneration", "occurrenceId"],
+  properties: {
+    loadGeneration: Object.freeze({
+      type: "integer",
+      minimum: 1,
+      maximum: Number.MAX_SAFE_INTEGER,
+    }),
+    occurrenceId: Object.freeze({
+      type: "string",
+      minLength: 1,
+      maxLength: 128,
+      description:
+        "Opaque drawing identity returned by get_visualization_arrangement.",
+    }),
+  },
+});
+const ARRANGEMENT_COORDINATE_SCHEMA = Object.freeze({
+  type: "number",
+  minimum: -Number.MAX_SAFE_INTEGER,
+  maximum: Number.MAX_SAFE_INTEGER,
+});
+
 export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
   Object.freeze({
     name: "load_ontology",
@@ -353,16 +380,23 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
   Object.freeze({
     name: "export_visualization",
     description:
-      "Wait for the visible graph to settle and create a browser-local downloadable SVG with provenance metadata.",
+      "Create a browser-local SVG, VOWL JSON, Turtle or LaTeX artifact. SVG and LaTeX wait for layout settlement; JSON saves the current document and view, and Turtle uses the existing exporter without waiting for motion to end.",
     annotations: Object.freeze({
       readOnlyHint: false,
       untrustedContentHint: true,
     }),
     inputSchema: closedObjectSchema({
       properties: {
+        format: Object.freeze({
+          type: "string",
+          enum: Object.freeze(["svg", "vowl-json", "turtle", "latex"]),
+          default: "svg",
+          description: "Artifact format, matching the Export menu.",
+        }),
         filename: Object.freeze({
           type: "string",
-          description: "Name for the exported file, normalized to one .svg.",
+          description:
+            "Name for the exported file, using the selected format suffix.",
           minLength: 1,
           maxLength: 128,
         }),
@@ -391,6 +425,87 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
       untrustedContentHint: true,
     }),
     inputSchema: closedObjectSchema({}),
+  }),
+  Object.freeze({
+    name: "get_visualization_arrangement",
+    description:
+      "Read a page of drawn occurrences, their positions in graph pixels, pin state and movement capabilities. References expire on ontology replacement.",
+    annotations: Object.freeze({
+      readOnlyHint: true,
+      untrustedContentHint: true,
+    }),
+    inputSchema: closedObjectSchema({
+      properties: {
+        offset: Object.freeze({
+          type: "integer",
+          minimum: 0,
+          maximum: Number.MAX_SAFE_INTEGER,
+          default: 0,
+        }),
+        limit: Object.freeze({
+          type: "integer",
+          minimum: 1,
+          maximum: 100,
+          default: 25,
+        }),
+        ontologyElementReference: ONTOLOGY_ELEMENT_REFERENCE_SCHEMA,
+      },
+    }),
+  }),
+  Object.freeze({
+    name: "set_visualization_arrangement",
+    description:
+      "Move, pin or unpin specific drawn occurrences without editing ontology facts. Coordinates use graph pixels; automatic motion retains its current state.",
+    annotations: Object.freeze({
+      readOnlyHint: false,
+      untrustedContentHint: true,
+    }),
+    inputSchema: closedObjectSchema({
+      required: ["changes"],
+      properties: {
+        changes: Object.freeze({
+          type: "array",
+          minItems: 1,
+          maxItems: 100,
+          items: Object.freeze({
+            ...closedObjectSchema({
+              required: ["reference"],
+              properties: {
+                reference: RENDERED_OCCURRENCE_REFERENCE_SCHEMA,
+                xPx: ARRANGEMENT_COORDINATE_SCHEMA,
+                yPx: ARRANGEMENT_COORDINATE_SCHEMA,
+                isPinned: Object.freeze({ type: "boolean" }),
+              },
+            }),
+            anyOf: Object.freeze([
+              { required: ["xPx", "yPx"] },
+              { required: ["isPinned"] },
+            ]),
+            dependentRequired: Object.freeze({ xPx: ["yPx"], yPx: ["xPx"] }),
+          }),
+        }),
+      },
+    }),
+  }),
+  Object.freeze({
+    name: "select_visualization_element",
+    description:
+      "Select a drawn occurrence and show its details as a human click does, or clear selection with a null reference. This does not edit ontology facts.",
+    annotations: Object.freeze({
+      readOnlyHint: false,
+      untrustedContentHint: true,
+    }),
+    inputSchema: closedObjectSchema({
+      required: ["reference"],
+      properties: {
+        reference: Object.freeze({
+          oneOf: [
+            RENDERED_OCCURRENCE_REFERENCE_SCHEMA,
+            Object.freeze({ type: "null" }),
+          ],
+        }),
+      },
+    }),
   }),
   Object.freeze({
     name: "reset_visualization",
@@ -456,6 +571,77 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
         ),
       }),
       minProperties: 1,
+    }),
+  }),
+  Object.freeze({
+    name: "get_ontology_element_details",
+    description:
+      "Read the same ontology element description as the selection sidebar. Large descriptions return exact JSON text pages; continue with nextOffset to read every fact.",
+    annotations: Object.freeze({
+      readOnlyHint: true,
+      untrustedContentHint: true,
+    }),
+    inputSchema: Object.freeze({
+      ...closedObjectSchema({
+        required: ["reference"],
+        properties: {
+          reference: ONTOLOGY_ELEMENT_REFERENCE_SCHEMA,
+          offset: Object.freeze({
+            type: "integer",
+            minimum: 0,
+            maximum: Number.MAX_SAFE_INTEGER,
+            description:
+              "JSON text offset from nextOffset. Supply the returned loadGeneration when continuing.",
+          }),
+          loadGeneration: Object.freeze({
+            type: "integer",
+            minimum: 1,
+            maximum: Number.MAX_SAFE_INTEGER,
+            description:
+              "Generation returned with the first page; prevents mixing different ontologies.",
+          }),
+          language: Object.freeze({
+            type: ["string", "null"],
+            minLength: 1,
+            maxLength: 35,
+            description:
+              "Language returned with the first page; prevents mixing translated descriptions.",
+          }),
+        },
+      }),
+      dependentRequired: Object.freeze({
+        offset: Object.freeze(["loadGeneration", "language"]),
+      }),
+    }),
+  }),
+  Object.freeze({
+    name: "get_visualization_share_link",
+    description:
+      "Read a share URL for the accepted remote ontology and current view, as in the Export menu. Local documents require JSON export. Continue long URLs using the returned continuation.",
+    annotations: Object.freeze({
+      readOnlyHint: true,
+      untrustedContentHint: true,
+    }),
+    inputSchema: closedObjectSchema({
+      properties: {
+        continuation: closedObjectSchema({
+          required: ["pageToken", "offset"],
+          properties: {
+            pageToken: Object.freeze({
+              type: "string",
+              minLength: 1,
+              maxLength: 128,
+              description:
+                "Opaque reference to one of the four most recently captured share URLs.",
+            }),
+            offset: Object.freeze({
+              type: "integer",
+              minimum: 0,
+              maximum: Number.MAX_SAFE_INTEGER,
+            }),
+          },
+        }),
+      },
     }),
   }),
 ]);
@@ -591,10 +777,8 @@ const DOCUMENT_TEXT_ENCODER = new TextEncoder();
 function assertBoundedDocumentText(candidateValue) {
   assertBoundedString(candidateValue, "text", MAXIMUM_DOCUMENT_TEXT_LENGTH);
   const encodedByteLength = DOCUMENT_TEXT_ENCODER.encode(candidateValue).length;
-  if (encodedByteLength > WEB_VOWL_OPERATION_LIMITS.maxInlineDocumentBytes) {
-    refuse(
-      `text must encode to at most ${WEB_VOWL_OPERATION_LIMITS.maxInlineDocumentBytes} bytes.`,
-    );
+  if (encodedByteLength > MAXIMUM_TOOL_DOCUMENT_BYTES) {
+    refuse(`text must encode to at most ${MAXIMUM_TOOL_DOCUMENT_BYTES} bytes.`);
   }
   return candidateValue;
 }
@@ -779,7 +963,7 @@ function normalizeVisibilityFilters(requestedFilters) {
             requestedFilters.minDegree,
             "minDegree",
             0,
-            100,
+            Number.MAX_SAFE_INTEGER,
           )
         : assertEnumMember(
             requestedFilters[filterName],
@@ -940,6 +1124,7 @@ export function normalizeSetVisualizationViewToolInput(toolInput = {}) {
 }
 
 const EXPORT_VISUALIZATION_FIELD_NAMES = Object.freeze([
+  "format",
   "filename",
   "settleTimeoutMs",
   "onTimeout",
@@ -952,30 +1137,53 @@ export function normalizeExportVisualizationToolInput(toolInput = {}) {
     "export_visualization input",
   );
 
-  const exportRequest = {
-    settleTimeoutMs:
-      toolInput.settleTimeoutMs === undefined
-        ? 12000
-        : assertWholeNumberInRange(
-            toolInput.settleTimeoutMs,
-            "settleTimeoutMs",
-            1000,
-            30000,
-          ),
-    onTimeout:
-      toolInput.onTimeout === undefined
-        ? "fail"
-        : assertEnumMember(toolInput.onTimeout, "onTimeout", [
-            "fail",
-            "best-effort",
-          ]),
-  };
+  const format =
+    toolInput.format === undefined
+      ? "svg"
+      : assertEnumMember(toolInput.format, "format", [
+          "svg",
+          "vowl-json",
+          "turtle",
+          "latex",
+        ]);
+  const exportRequest =
+    format === "svg" || format === "latex"
+      ? {
+          settleTimeoutMs:
+            toolInput.settleTimeoutMs === undefined
+              ? 12000
+              : assertWholeNumberInRange(
+                  toolInput.settleTimeoutMs,
+                  "settleTimeoutMs",
+                  1000,
+                  30000,
+                ),
+          onTimeout:
+            toolInput.onTimeout === undefined
+              ? "fail"
+              : assertEnumMember(toolInput.onTimeout, "onTimeout", [
+                  "fail",
+                  "best-effort",
+                ]),
+        }
+      : {};
+  if (toolInput.format !== undefined) {
+    exportRequest.format = format;
+  }
+  if (
+    (format === "vowl-json" || format === "turtle") &&
+    (toolInput.settleTimeoutMs !== undefined ||
+      toolInput.onTimeout !== undefined)
+  ) {
+    refuse("Layout settlement options apply to SVG and LaTeX exports.");
+  }
 
   if (toolInput.filename !== undefined) {
     // A filename becomes a saved file, so it is reduced to a safe basename by
     // the controller-domain rule rather than trusted as given.
-    exportRequest.filename = normalizeSvgFilename(
+    exportRequest.filename = normalizeVisualizationFilename(
       assertBoundedString(toolInput.filename, "filename", 128),
+      format,
     );
   }
 
@@ -1005,6 +1213,8 @@ const INTERNAL_FIELD_NAMES_NEVER_PROJECTED = Object.freeze([
   "stack",
   "svgText",
   "vowlModel",
+  "recordTargets",
+  "selectedDocumentRecord",
 ]);
 
 // Collections are trimmed from the end in this order, so a caller that sees a
@@ -1024,6 +1234,7 @@ const ACCEPTED_DOMAIN_ERROR_CODES = Object.freeze([
   "NO_ONTOLOGY",
   "SOURCE_REJECTED",
   "LOAD_ABORTED",
+  "LOAD_FAILED",
   "FETCH_FAILED",
   "PARSE_FAILED",
   "IMPORT_FAILED",
@@ -1168,6 +1379,40 @@ export function projectWebMcpToolSuccess(toolName, controllerResult) {
     ...projectedJsonValue(controllerResult ?? {}),
     isTruncated: false,
   };
+  if (Array.isArray(toolResult.occurrences)) {
+    const originalCount = toolResult.occurrences.length;
+    while (
+      serializedLength({ isSuccess: true, toolResult }) >
+        WEB_MCP_TOOL_RESULT_CHARACTER_CEILING &&
+      toolResult.occurrences.length > 1
+    ) {
+      toolResult.occurrences.pop();
+      toolResult.isTruncated = true;
+    }
+    const single = toolResult.occurrences[0];
+    if (
+      single &&
+      serializedLength({ isSuccess: true, toolResult }) >
+        WEB_MCP_TOOL_RESULT_CHARACTER_CEILING
+    ) {
+      single.ontologyElementReferenceCount =
+        single.ontologyElementReferences.length;
+      while (
+        single.ontologyElementReferences.length > 0 &&
+        serializedLength({ isSuccess: true, toolResult }) >
+          WEB_MCP_TOOL_RESULT_CHARACTER_CEILING
+      ) {
+        single.ontologyElementReferences.pop();
+        toolResult.isTruncated = true;
+      }
+    }
+    if (
+      toolName === "get_visualization_arrangement" &&
+      toolResult.occurrences.length < originalCount
+    ) {
+      toolResult.nextOffset = toolResult.offset + toolResult.occurrences.length;
+    }
+  }
   if (
     serializedLength({ isSuccess: true, toolResult }) <=
     WEB_MCP_TOOL_RESULT_CHARACTER_CEILING
@@ -1273,6 +1518,140 @@ export function projectWebMcpToolFailure(toolName, thrownError) {
 // map is the whole routing table: a tool with no entry cannot be called, and a
 // controller operation with no entry is not reachable from an agent.
 const WEB_MCP_TOOL_ROUTES = Object.freeze({
+  get_visualization_share_link: Object.freeze({
+    normalizeToolInput: (input = {}) => {
+      assertOnlyAllowedFieldNames(
+        input,
+        ["continuation"],
+        "get_visualization_share_link input",
+      );
+      if (input.continuation === undefined) {
+        return Object.freeze({});
+      }
+      assertOnlyAllowedFieldNames(
+        input.continuation,
+        ["pageToken", "offset"],
+        "share-link continuation",
+      );
+      assertRequiredFieldNames(
+        input.continuation,
+        ["pageToken", "offset"],
+        "share-link continuation",
+      );
+      return Object.freeze({
+        continuation: Object.freeze({
+          pageToken: assertBoundedString(
+            input.continuation.pageToken,
+            "pageToken",
+            128,
+          ),
+          offset: assertWholeNumberInRange(
+            input.continuation.offset,
+            "offset",
+            0,
+            Number.MAX_SAFE_INTEGER,
+          ),
+        }),
+      });
+    },
+    controllerOperationName: "getVisualizationShareLink",
+  }),
+  get_ontology_element_details: Object.freeze({
+    normalizeToolInput: (input) => {
+      assertOnlyAllowedFieldNames(
+        input,
+        ["reference", "offset", "loadGeneration", "language"],
+        "get_ontology_element_details input",
+      );
+      assertRequiredFieldNames(
+        input,
+        [
+          "reference",
+          ...(input.offset === undefined ? [] : ["loadGeneration", "language"]),
+        ],
+        "get_ontology_element_details input",
+      );
+      return Object.freeze({
+        reference: normalizeOntologyElementReference(input.reference),
+        offset:
+          input.offset === undefined
+            ? 0
+            : assertWholeNumberInRange(
+                input.offset,
+                "offset",
+                0,
+                Number.MAX_SAFE_INTEGER,
+              ),
+        ...(input.loadGeneration === undefined
+          ? {}
+          : {
+              loadGeneration: assertWholeNumberInRange(
+                input.loadGeneration,
+                "loadGeneration",
+                1,
+                Number.MAX_SAFE_INTEGER,
+              ),
+            }),
+        ...(input.language === undefined
+          ? {}
+          : {
+              language:
+                input.language === null
+                  ? null
+                  : assertBoundedString(input.language, "language", 35),
+            }),
+      });
+    },
+    controllerOperationName: "describeOntologyElements",
+    createControllerRequest: (input) => ({
+      ontologyElementReferences: [input.reference],
+    }),
+    projectControllerResult: projectOntologyDetailsPage,
+  }),
+  get_visualization_arrangement: Object.freeze({
+    normalizeToolInput: (input = {}) => {
+      try {
+        assertOnlyAllowedFieldNames(
+          input,
+          ["offset", "limit", "ontologyElementReference"],
+          "get_visualization_arrangement input",
+        );
+        return createRenderedArrangementQuery({
+          ...input,
+          ...(input.ontologyElementReference === undefined
+            ? {}
+            : {
+                ontologyElementReference: normalizeOntologyElementReference(
+                  input.ontologyElementReference,
+                ),
+              }),
+        });
+      } catch (error) {
+        refuse(error.message);
+      }
+    },
+    controllerOperationName: "getVisualizationArrangement",
+  }),
+  set_visualization_arrangement: Object.freeze({
+    normalizeToolInput: (input) => {
+      try {
+        return createRenderedArrangementRequest(input);
+      } catch (error) {
+        refuse(error.message);
+      }
+    },
+    controllerOperationName: "setVisualizationArrangement",
+  }),
+  select_visualization_element: Object.freeze({
+    normalizeToolInput: (input) => {
+      try {
+        return createRenderedOccurrenceSelectionRequest(input);
+      } catch (error) {
+        refuse(error.message);
+      }
+    },
+    controllerOperationName: "selectVisualizationElement",
+  }),
   reset_visualization: Object.freeze({
     normalizeToolInput: (input = {}) => {
       assertOnlyAllowedFieldNames(input, [], "reset_visualization input");
@@ -1326,6 +1705,18 @@ const WEB_MCP_TOOL_ROUTES = Object.freeze({
   export_visualization: Object.freeze({
     normalizeToolInput: normalizeExportVisualizationToolInput,
     controllerOperationName: "exportVisualization",
+    projectControllerResult: (metadata) => ({
+      format: metadata.format,
+      filename: metadata.filename,
+      mediaType: metadata.mediaType,
+      byteLength: metadata.byteLength,
+      sha256Hex: metadata.sha256Hex,
+      loadGeneration:
+        metadata.loadGeneration ?? metadata.viewRecipe?.loadGeneration,
+      ...(metadata.pageLocalViewRecipeId === undefined
+        ? {}
+        : { pageLocalViewRecipeId: metadata.pageLocalViewRecipeId }),
+    }),
   }),
 });
 
@@ -1336,6 +1727,14 @@ function assertReferencesBelongToCurrentLoad(
   controllerRequest,
   currentLoadGeneration,
 ) {
+  if (
+    controllerRequest.loadGeneration !== undefined &&
+    controllerRequest.loadGeneration !== currentLoadGeneration
+  ) {
+    refuse(
+      "This page belongs to a different ontology load. Start again with the current generation.",
+    );
+  }
   if (!Array.isArray(controllerRequest.focus)) {
     return;
   }
@@ -1362,31 +1761,182 @@ export function createWebMcpToolDispatch({ webVowlController }) {
     );
   }
 
+  const capturedShareLinks = new Map();
+  let shareLinkSequence = 0;
+
+  function readShareLinkPage(captured, pageToken, offset) {
+    if (captured === undefined || offset > captured.url.length) {
+      refuse(
+        "The share-link continuation has expired or has an invalid offset. Request a new link.",
+      );
+    }
+    let end = Math.min(captured.url.length, offset + 1000);
+    let result;
+    do {
+      result = {
+        loadGeneration: captured.loadGeneration,
+        offset,
+        urlFragment: captured.url.slice(offset, end),
+        continuation:
+          end < captured.url.length ? { pageToken, offset: end } : null,
+      };
+      if (
+        serializedLength({
+          isSuccess: true,
+          toolResult: {
+            operation: "get_visualization_share_link",
+            ...result,
+            isTruncated: false,
+          },
+        }) <= WEB_MCP_TOOL_RESULT_CHARACTER_CEILING
+      ) {
+        return result;
+      }
+      end -= Math.max(1, Math.ceil((end - offset) / 8));
+    } while (end > offset);
+    throw new Error("The share-link page envelope exceeds the response limit.");
+  }
+
   return Object.freeze({
     async callWebMcpTool(toolName, toolInput, { signal } = {}) {
       assertKnownToolName(toolName);
-      const { normalizeToolInput, controllerOperationName } =
-        WEB_MCP_TOOL_ROUTES[toolName];
+      const {
+        normalizeToolInput,
+        controllerOperationName,
+        createControllerRequest = (input) => input,
+        projectControllerResult = (result) => result,
+      } = WEB_MCP_TOOL_ROUTES[toolName];
 
       let controllerRequest;
+      const requestState = webVowlController.getState();
       try {
         controllerRequest = normalizeToolInput(toolInput);
         assertReferencesBelongToCurrentLoad(
           controllerRequest,
-          webVowlController.getState().loadGeneration,
+          requestState.loadGeneration,
         );
+        if (
+          toolName === "get_ontology_element_details" &&
+          Object.hasOwn(controllerRequest, "language") &&
+          controllerRequest.language !== (requestState.view?.language ?? null)
+        ) {
+          refuse(
+            "The detail language has changed. Start again with the current language.",
+          );
+        }
       } catch (inputError) {
         return projectWebMcpToolFailure(toolName, inputError);
       }
 
       try {
+        if (
+          toolName === "get_visualization_share_link" &&
+          controllerRequest.continuation
+        ) {
+          const { pageToken, offset } = controllerRequest.continuation;
+          return projectWebMcpToolSuccess(
+            toolName,
+            readShareLinkPage(
+              capturedShareLinks.get(pageToken),
+              pageToken,
+              offset,
+            ),
+          );
+        }
         const controllerResult = await webVowlController[
           controllerOperationName
-        ](controllerRequest, { signal });
-        return projectWebMcpToolSuccess(toolName, controllerResult);
+        ](createControllerRequest(controllerRequest), { signal });
+        if (
+          toolName === "get_visualization_share_link" &&
+          serializedLength({
+            isSuccess: true,
+            toolResult: {
+              operation: toolName,
+              ...controllerResult,
+              isTruncated: false,
+            },
+          }) > WEB_MCP_TOOL_RESULT_CHARACTER_CEILING
+        ) {
+          const pageToken = `share-link-${++shareLinkSequence}`;
+          capturedShareLinks.set(
+            pageToken,
+            Object.freeze({ ...controllerResult }),
+          );
+          if (capturedShareLinks.size > 4) {
+            capturedShareLinks.delete(capturedShareLinks.keys().next().value);
+          }
+          return projectWebMcpToolSuccess(
+            toolName,
+            readShareLinkPage(controllerResult, pageToken, 0),
+          );
+        }
+        return projectWebMcpToolSuccess(
+          toolName,
+          projectControllerResult(
+            controllerResult,
+            controllerRequest,
+            requestState,
+          ),
+        );
       } catch (operationError) {
         return projectWebMcpToolFailure(toolName, operationError);
       }
     },
   });
+}
+
+function projectOntologyDetailsPage(
+  { loadGeneration, elementDescriptions },
+  { offset },
+  requestState,
+) {
+  const elementDescription = elementDescriptions[0];
+  if (elementDescription === undefined) {
+    throw {
+      code: "ELEMENT_NOT_FOUND",
+      message: "The ontology does not contain this element.",
+      isRetryable: false,
+    };
+  }
+  const operation = "get_ontology_element_details";
+  const language = requestState.view?.language ?? null;
+  const structuredResult = { loadGeneration, language, elementDescription };
+  if (
+    offset === 0 &&
+    serializedLength({
+      isSuccess: true,
+      toolResult: { operation, ...structuredResult, isTruncated: false },
+    }) <= WEB_MCP_TOOL_RESULT_CHARACTER_CEILING
+  ) {
+    return structuredResult;
+  }
+  // Native JSON owns escaping. These are fragments of one immutable description,
+  // never shortened IRIs or silently discarded annotation/relationship records.
+  const jsonText = JSON.stringify(elementDescription);
+  if (offset > jsonText.length) {
+    refuse("The detail offset is beyond the end of this description.");
+  }
+  let end = Math.min(jsonText.length, offset + 1000);
+  let page;
+  do {
+    page = {
+      loadGeneration,
+      language,
+      encoding: "json",
+      offset,
+      nextOffset: end === jsonText.length ? null : end,
+      totalCharacterCount: jsonText.length,
+      jsonFragment: jsonText.slice(offset, end),
+    };
+    if (
+      serializedLength({
+        isSuccess: true,
+        toolResult: { operation, ...page, isTruncated: false },
+      }) <= WEB_MCP_TOOL_RESULT_CHARACTER_CEILING
+    ) {
+      return page;
+    }
+    end -= Math.max(1, Math.ceil((end - offset) / 8));
+  } while (end > offset);
+  throw new Error("The detail page envelope exceeds the response limit.");
 }

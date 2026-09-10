@@ -49,6 +49,20 @@ beforeAll(async () => {
   });
   await renderedGraphRuntimeContractsModule.evaluate();
 
+  const renderedArrangementContractsModule = createSourceTextModule(
+    new URL(
+      "../js/controller/renderedArrangementContracts.js",
+      import.meta.url,
+    ),
+  );
+  await renderedArrangementContractsModule.link((specifier) => {
+    if (specifier === "./webVowlControllerContracts.js") {
+      return webVowlControllerContractsModule;
+    }
+    throw new Error(`Unexpected arrangement-contract dependency: ${specifier}`);
+  });
+  await renderedArrangementContractsModule.evaluate();
+
   const inMemoryRenderedGraphAdapterModule = createSourceTextModule(
     IN_MEMORY_RENDERED_GRAPH_ADAPTER_MODULE_URL,
   );
@@ -56,6 +70,9 @@ beforeAll(async () => {
     RENDERED_GRAPH_RUNTIME_CONTRACT_MODULE_URL,
   );
   const linkTaskFourTestModule = (specifier) => {
+    if (specifier === "../js/controller/renderedArrangementContracts.js") {
+      return renderedArrangementContractsModule;
+    }
     if (specifier === "../js/controller/renderedGraphRuntimeContracts.js") {
       return renderedGraphRuntimeContractsModule;
     }

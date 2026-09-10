@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { createHash, webcrypto } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { SourceTextModule } from "node:vm";
 import { OWLDocumentFormats } from "owlapi/formats";
@@ -17,6 +18,8 @@ let createOntologyInspector;
 let vowlModelInspectionProjector;
 let createWebVowlController;
 let createWebMcpToolDispatch;
+let createVisualizationArtifactService;
+let decodeVowlVisualizationSettings;
 
 const CONTROLLER_MODULE_URL = new URL(
   "./webVowlController.js",
@@ -82,6 +85,14 @@ beforeAll(async () => {
     import.meta.url,
     { "owlapi/formats": { OWLDocumentFormats } },
   ));
+  ({ createVisualizationArtifactService } = await loadEsmModuleForTest(
+    new URL("./visualizationArtifactService.js", import.meta.url),
+    import.meta.url,
+  ));
+  ({ decodeVowlVisualizationSettings } = await loadEsmModuleForTest(
+    new URL("./vowlVisualizationSettings.js", import.meta.url),
+    import.meta.url,
+  ));
 });
 
 function createSourceLoadRecord(overrides = {}) {
@@ -123,7 +134,7 @@ describe("WebVOWL controller orchestration", () => {
   let renderedGraphRuntime;
   let renderedGraphTestHarness;
   let settlementRequests;
-  let svgArtifactService;
+  let visualizationArtifactService;
   let waitForBrowserPaint;
   let waitForDocumentFonts;
 
@@ -168,28 +179,32 @@ describe("WebVOWL controller orchestration", () => {
       ),
     };
 
-    svgArtifactService = {
-      createSvgArtifact: jest.fn(async ({ filename, viewRecipe }) => ({
-        pageLocalArtifactId: "svg-artifact-1-1",
-        filename,
-        mediaType: "image/svg+xml",
-        byteLength: 128,
-        sha256Hex: "b".repeat(64),
-        pageLocalViewRecipeId: "svg-view-recipe-1-1",
-        viewRecipe,
-      })),
+    visualizationArtifactService = {
+      dispose: jest.fn(),
+      createVisualizationArtifact: jest.fn(
+        async ({ filename, viewRecipe }) => ({
+          pageLocalArtifactId: "svg-artifact-1-1",
+          filename,
+          mediaType: "image/svg+xml",
+          byteLength: 128,
+          sha256Hex: "b".repeat(64),
+          pageLocalViewRecipeId: "svg-view-recipe-1-1",
+          viewRecipe,
+        }),
+      ),
     };
 
     waitForDocumentFonts = jest.fn(async () => undefined);
     waitForBrowserPaint = jest.fn(async () => undefined);
 
     controller = createWebVowlController({
+      applicationUrl: "https://viewer.test/?view=1#stale",
       ontologySourceLoader,
       vowlModelInspectionProjector,
       renderedGraphRuntime,
       ontologyInspector: createOntologyInspector(),
       graphLayoutSettler,
-      svgArtifactService,
+      visualizationArtifactService,
       waitForDocumentFonts,
       waitForBrowserPaint,
     });
@@ -239,6 +254,465 @@ describe("WebVOWL controller orchestration", () => {
     await flushMicrotasks(3);
     return loadPromise;
   }
+
+  test("shares the accepted remote source and applied view through the controller", async () => {
+    await completeLoad();
+    renderedGraphTestHarness.publishRenderedGraphEvent({
+      kind: "viewport-changed",
+      loadGeneration: 1,
+      payload: { zoomScale: 1, translationXPx: 0, translationYPx: 0 },
+    });
+    const result = controller.getVisualizationShareLink({
+      presentation: { sidebar: 0, editorMode: false },
+    });
+    expect(result.loadGeneration).toBe(1);
+    expect(result.url).toContain("https://viewer.test/?view=1#opts=");
+    expect(result.url).toContain(
+      "#iri=https%3A%2F%2Fexample.test%2Fontology.owl",
+    );
+    expect(result.url).toContain("sidebar=0");
+    expect(result.url).toContain("editorMode=false");
+    expect(result.url).not.toContain("stale");
+    expect(Object.isFrozen(result)).toBe(true);
+    expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(1);
+    await completeLoad(
+      2,
+      {},
+      {},
+      createSourceLoadRecord({
+        sourceProvenance: {
+          kind: "vowl-json-text",
+          displayName: "local.json",
+          sha256Hex: "b".repeat(64),
+        },
+      }),
+    );
+    expect(() => controller.getVisualizationShareLink()).toThrow("Export JSON");
+  });
+
+  describe("document and visualization actions", () => {
+    test.each(["replacement", "disposal"])(
+      "retires an in-flight JSON artifact before publication on %s",
+      async (ending) => {
+        await loadEditableOntology();
+        renderedGraphTestHarness.publishRenderedGraphEvent({
+          kind: "viewport-changed",
+          loadGeneration: 1,
+          payload: { zoomScale: 1, translationXPx: 0, translationYPx: 0 },
+        });
+        let completeDigest;
+        const publishPageLocalArtifact = jest.fn();
+        const createObjectURL = jest.fn(() => "blob:retired");
+        const service = createVisualizationArtifactService({
+          svgSerializer: { serializeRenderedSvgSnapshot: jest.fn() },
+          webCrypto: {
+            subtle: {
+              digest: () =>
+                new Promise((resolve) => {
+                  completeDigest = resolve;
+                }),
+            },
+          },
+          BlobConstructor: Blob,
+          objectUrlApi: { createObjectURL, revokeObjectURL: jest.fn() },
+          visualizationArtifactPublicationPort: { publishPageLocalArtifact },
+        });
+        visualizationArtifactService.createVisualizationArtifact.mockImplementation(
+          service.createVisualizationArtifact,
+        );
+        visualizationArtifactService.dispose.mockImplementation(
+          service.dispose,
+        );
+        const exporting = controller.exportVisualization({
+          format: "vowl-json",
+        });
+        const outcome = exporting.catch((error) => error);
+        let retiredOutcome;
+        outcome.then((result) => {
+          retiredOutcome = result;
+        });
+        await flushMicrotasks(20);
+        expect(typeof completeDigest).toBe("function");
+        if (ending === "replacement") {
+          controller.loadOntology(SOURCE_REQUEST).catch(() => {});
+        } else {
+          controller.dispose();
+        }
+        await flushMicrotasks(20);
+        expect(retiredOutcome).toMatchObject({ code: "LOAD_ABORTED" });
+        completeDigest(new Uint8Array(32).buffer);
+        expect(await outcome).toMatchObject({ code: "LOAD_ABORTED" });
+        expect(publishPageLocalArtifact).not.toHaveBeenCalled();
+        expect(createObjectURL).not.toHaveBeenCalled();
+      },
+    );
+    test("exports JSON from the accepted document, exact arrangement and current applied settings", async () => {
+      await loadEditableOntology();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "viewport-changed",
+        loadGeneration: 1,
+        payload: {
+          zoomScale: 0.38125,
+          translationXPx: 0,
+          translationYPx: -20.125,
+        },
+      });
+      const reference =
+        controller.getVisualizationArrangement().occurrences[0].reference;
+      await controller.setVisualizationArrangement({
+        changes: [{ reference, xPx: 0, yPx: 120.125, isPinned: true }],
+      });
+      const documentBefore = controller.getOntologyDocument();
+      let artifactBlob;
+      const sourceService = createVisualizationArtifactService({
+        svgSerializer: {
+          serializeRenderedSvgSnapshot: () => {
+            throw new Error("JSON needs no SVG snapshot.");
+          },
+        },
+        webCrypto: webcrypto,
+        BlobConstructor: Blob,
+        objectUrlApi: {
+          createObjectURL: (blob) => {
+            artifactBlob = blob;
+            return "blob:json-export";
+          },
+          revokeObjectURL: () => {},
+        },
+        visualizationArtifactPublicationPort: {
+          publishPageLocalArtifact: () => {},
+        },
+      });
+      visualizationArtifactService.createVisualizationArtifact.mockImplementation(
+        sourceService.createVisualizationArtifact,
+      );
+      const pendingSettlementsBefore = settlementRequests.length;
+      const metadata = await controller.exportVisualization({
+        format: "vowl-json",
+      });
+      const bytes = await artifactBlob.text();
+      const parsed = JSON.parse(bytes);
+      expect(parsed.header).toEqual(documentBefore.vowlModel.header);
+      expect(
+        parsed.classAttribute.find((record) => record.id === "a"),
+      ).toMatchObject({ pos: [0, 120.125], pinned: true });
+      expect(decodeVowlVisualizationSettings(parsed.settings)).toEqual({
+        view: {
+          language: controller.getState().view.language,
+          layout:
+            controller.getState().layout.status === "paused"
+              ? "pause"
+              : "resume",
+          filters: controller.getState().view.filters,
+          zoomScale: 0.38125,
+          translation: { xPx: 0, yPx: -20.125 },
+        },
+        modes: controller.getState().view.modes,
+        forceDistances: controller.getState().view.forceDistances,
+      });
+      expect(metadata).toMatchObject({
+        filename: "webvowl-visualization.json",
+        mediaType: "application/json",
+        sha256Hex: createHash("sha256").update(bytes).digest("hex"),
+      });
+      expect(settlementRequests).toHaveLength(pendingSettlementsBefore);
+      expect(controller.getOntologyDocument()).toEqual(documentBefore);
+    });
+    test("moves, pins and selects one drawing occurrence without changing ontology records", async () => {
+      await loadEditableOntology();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "editor-mode-changed",
+        loadGeneration: 1,
+        payload: { isEditorMode: false },
+      });
+      const before = controller.getOntologyDocument();
+      const firstPage = controller.getVisualizationArrangement({ limit: 1 });
+      expect(firstPage).toMatchObject({
+        loadGeneration: 1,
+        offset: 0,
+        nextOffset: 1,
+        occurrenceCount: 2,
+      });
+      const reference = firstPage.occurrences[0].reference;
+      const moved = await controller.setVisualizationArrangement({
+        changes: [{ reference, xPx: 120, yPx: 0, isPinned: true }],
+      });
+      expect(moved.occurrences).toHaveLength(1);
+      expect(moved.changedOccurrenceCount).toBe(1);
+      expect(moved.occurrences[0]).toMatchObject({
+        xPx: 120,
+        yPx: 0,
+        isPinned: true,
+      });
+      expect(
+        controller.getVisualizationArrangement({ offset: 1 }).occurrences[0],
+      ).toMatchObject({ xPx: 400, yPx: 99 });
+      await controller.selectVisualizationElement({ reference });
+      expect(controller.getState().selection).toEqual([
+        { kind: "class", iri: "https://example.test/Person" },
+      ]);
+      expect(controller.getState().selectedDocumentRecord).toEqual({
+        collection: "class",
+        recordId: "a",
+      });
+      expect(controller.getOntologyDocument()).toEqual(before);
+      await controller.selectVisualizationElement({ reference: null });
+      expect(controller.getState().selection).toEqual([]);
+      await expect(
+        controller.setVisualizationArrangement({
+          changes: [
+            { reference: { ...reference, loadGeneration: 2 }, isPinned: false },
+          ],
+        }),
+      ).rejects.toMatchObject({ code: "VIEW_REJECTED" });
+    });
+    function editableDrawing(generation) {
+      const reference = { kind: "class", iri: "https://example.test/Person" };
+      return {
+        visibleRenderedGraphSnapshot: {
+          loadGeneration: generation,
+          visibleElementReferences: [reference, reference],
+          visibleRelationshipReferences: [],
+          visibleGraphCounts: { visibleNodeCount: 2, visiblePropertyCount: 0 },
+        },
+        renderedArrangement: {
+          loadGeneration: generation,
+          occurrences: ["a", "b"].map((recordId, index) => ({
+            reference: {
+              loadGeneration: generation,
+              occurrenceId: `drawn-${index + 1}`,
+            },
+            recordTargets: [{ collection: "class", recordId }],
+            ontologyElementReferences: [reference],
+            kind: "node",
+            xPx: index === 0 ? 0 : 400,
+            yPx: index === 0 ? -12 : 99,
+            isPinned: index === 0,
+            canMove: true,
+            canPin: true,
+          })),
+        },
+      };
+    }
+    test("accepts native inline label submissions through the same document revision path", async () => {
+      await loadEditableOntology();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "record-label-edit-requested",
+        loadGeneration: 1,
+        payload: {
+          recordTarget: { collection: "class", recordId: "a" },
+          text: "From canvas",
+          deriveIriFromLabel: false,
+        },
+      });
+      await flushMicrotasks();
+      expect(
+        controller.getOntologyDocument().vowlModel.classAttribute[0].label.en,
+      ).toBe("Person");
+      renderedGraphTestHarness.completeInitialPaint(2, editableDrawing(2));
+      await flushMicrotasks();
+      renderedGraphTestHarness.completeVisualizationViewApplication(2);
+      await flushMicrotasks(16);
+      expect(
+        controller.getOntologyDocument().vowlModel.classAttribute[0].label,
+      ).toEqual({ en: "From canvas", de: "Person DE" });
+      expect(controller.getState().selectedDocumentRecord).toEqual({
+        collection: "class",
+        recordId: "a",
+      });
+    });
+    async function completeDocumentRevision(promise, generation) {
+      await flushMicrotasks();
+      renderedGraphTestHarness.completeInitialPaint(
+        generation,
+        editableDrawing(generation),
+      );
+      await flushMicrotasks();
+      renderedGraphTestHarness.completeVisualizationViewApplication(generation);
+      await promise;
+    }
+
+    test("uses the accepted document for metadata and prefix changes as well as record edits", async () => {
+      await loadEditableOntology();
+      await completeDocumentRevision(
+        controller.editOntologyMetadata({
+          loadGeneration: 1,
+          changes: { title: { language: "en", text: "Edited ontology" } },
+        }),
+        2,
+      );
+      expect(controller.getOntologyDocument().vowlModel.header.title).toEqual({
+        en: "Edited ontology",
+      });
+      await completeDocumentRevision(
+        controller.setOntologyPrefix({
+          loadGeneration: 2,
+          name: "ex",
+          iri: "https://example.test/",
+        }),
+        3,
+      );
+      expect(
+        controller.getOntologyDocument().vowlModel.header.prefixList,
+      ).toEqual({ ex: "https://example.test/" });
+      await completeDocumentRevision(
+        controller.removeOntologyPrefix({ loadGeneration: 3, name: "ex" }),
+        4,
+      );
+      expect(controller.getOntologyDocument().vowlModel.namespace).toEqual([]);
+      expect(ontologySourceLoader.loadOntologySource).toHaveBeenCalledTimes(1);
+    });
+
+    test("deletes only a proposal issued by this controller for the current accepted document", async () => {
+      await loadEditableOntology();
+      const proposal = controller.proposeOntologyDeletion({
+        loadGeneration: 1,
+        recordTarget: { collection: "class", recordId: "a" },
+      });
+      expect(proposal.recordTargets).toEqual([
+        { collection: "class", recordId: "a" },
+      ]);
+      expect(controller.getOntologyDocument().vowlModel.class).toHaveLength(2);
+      expect(Object.isFrozen(proposal)).toBe(true);
+      await expect(
+        controller.confirmOntologyDeletion(structuredClone(proposal)),
+      ).rejects.toMatchObject({ code: "EDIT_REJECTED" });
+      await completeDocumentRevision(
+        controller.confirmOntologyDeletion(proposal),
+        2,
+      );
+      expect(controller.getOntologyDocument().vowlModel.class).toEqual([
+        { id: "b", type: "owl:Class" },
+      ]);
+      await expect(
+        controller.confirmOntologyDeletion(proposal),
+      ).rejects.toMatchObject({ code: "EDIT_REJECTED" });
+    });
+
+    test("clears the selected document record on replacement and ignores retired selections", async () => {
+      await loadEditableOntology();
+      const selected = {
+        kind: "document-record-selection-changed",
+        loadGeneration: 1,
+        payload: { recordTarget: { collection: "class", recordId: "a" } },
+      };
+      renderedGraphTestHarness.publishRenderedGraphEvent(selected);
+      expect(controller.getState().selectedDocumentRecord).toEqual({
+        collection: "class",
+        recordId: "a",
+      });
+      await completeLoad(2);
+      renderedGraphTestHarness.publishRenderedGraphEvent(selected);
+      expect(controller.getState().selectedDocumentRecord).toBeNull();
+    });
+    async function loadEditableOntology() {
+      await completeLoad(
+        1,
+        {},
+        editableDrawing(1),
+        createSourceLoadRecord({
+          vowlModel: {
+            header: { iri: "https://example.test/" },
+            class: [
+              { id: "a", type: "owl:Class" },
+              { id: "b", type: "owl:Class" },
+            ],
+            classAttribute: [
+              {
+                id: "a",
+                iri: "https://example.test/Person",
+                label: { en: "Person", de: "Person DE" },
+              },
+              {
+                id: "b",
+                iri: "https://example.test/Person",
+                label: { en: "Peer" },
+              },
+            ],
+            settings: {
+              global: {
+                paused: true,
+                zoom: 0.5,
+                translation: [0, -20],
+                language: "en",
+              },
+            },
+          },
+        }),
+      );
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "editor-mode-changed",
+        loadGeneration: 1,
+        payload: { isEditorMode: true },
+      });
+    }
+
+    test("accepts a selected-record revision before inspection and document readers see it", async () => {
+      await loadEditableOntology();
+      const before = controller.getOntologyDocument();
+      const request = {
+        loadGeneration: 1,
+        recordTarget: { collection: "class", recordId: "a" },
+        changes: { label: { language: "en", text: "Renamed" } },
+      };
+      const editing = controller.editOntologyRecord(request);
+      request.recordTarget.recordId = "b";
+      await flushMicrotasks();
+      expect(controller.getOntologyDocument()).toEqual(before);
+      renderedGraphTestHarness.completeInitialPaint(2, editableDrawing(2));
+      await flushMicrotasks();
+      renderedGraphTestHarness.completeVisualizationViewApplication(2);
+      await editing;
+      const document = controller.getOntologyDocument();
+      expect(
+        document.vowlModel.classAttribute.map((entry) => entry.label),
+      ).toEqual([{ en: "Renamed", de: "Person DE" }, { en: "Peer" }]);
+      expect(document.loadGeneration).toBe(2);
+      expect(
+        document.vowlModel.classAttribute.map(({ pos, pinned }) => ({
+          pos,
+          pinned,
+        })),
+      ).toEqual([
+        { pos: [0, -12], pinned: true },
+        { pos: [400, 99], pinned: false },
+      ]);
+      expect(controller.getState().selection).toEqual([
+        { kind: "class", iri: "https://example.test/Person" },
+      ]);
+      expect(controller.getState().selectedDocumentRecord).toEqual({
+        collection: "class",
+        recordId: "a",
+      });
+      expect(before.vowlModel.classAttribute[0].label.en).toBe("Person");
+      expect(Object.isFrozen(document.vowlModel.classAttribute[0].label)).toBe(
+        true,
+      );
+      expect(
+        controller.findOntologyElements({ query: "Renamed" }).matches,
+      ).toHaveLength(1);
+      expect(ontologySourceLoader.loadOntologySource).toHaveBeenCalledTimes(1);
+      expect(controller.getState()).toMatchObject({
+        source: { identity: DOCUMENT_IRI, sha256Hex: "a".repeat(64) },
+        layout: { status: "paused" },
+        zoomScale: 0.5,
+        translation: { xPx: 0, yPx: -20 },
+      });
+    });
+
+    test("rejects a stale record target before changing the active drawing or source request", async () => {
+      await loadEditableOntology();
+      await expect(
+        controller.editOntologyRecord({
+          loadGeneration: 0,
+          recordTarget: { collection: "class", recordId: "a" },
+          changes: { label: { language: "en", text: "Stale" } },
+        }),
+      ).rejects.toMatchObject({ code: "EDIT_REJECTED" });
+      expect(controller.getState().loadGeneration).toBe(1);
+      expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(1);
+    });
+  });
 
   describe("load lifecycle and state machine", () => {
     test.each(["saved", "explicit"])(
@@ -399,6 +873,7 @@ describe("WebVOWL controller orchestration", () => {
         translation: null,
         layout: { status: "unavailable" },
         selection: [],
+        selectedDocumentRecord: null,
         renderProgress: null,
         degreeFilterRange: null,
         editorMode: null,
@@ -856,6 +1331,25 @@ describe("WebVOWL controller orchestration", () => {
       expect(() => controller.getOntologySummary()).toThrow(
         expect.objectContaining({ code: "NO_ONTOLOGY" }),
       );
+    });
+
+    test("reports an uncancelled loading exception as a failure and preserves the accepted ontology", async () => {
+      await completeLoad();
+      const accepted = controller.getState();
+      const outcome = controller
+        .loadOntology(SOURCE_REQUEST)
+        .catch((error) => error);
+      const failure = new TypeError("Unexpected header data");
+      expect(deferredSourceLoads.at(-1).signal.aborted).toBe(false);
+      deferredSourceLoads.at(-1).reject(failure);
+      expect(await outcome).toMatchObject({
+        code: "LOAD_FAILED",
+        cause: failure,
+      });
+      expect(controller.getState().loadGeneration).toBe(
+        accepted.loadGeneration,
+      );
+      expect(controller.getState().source).toEqual(accepted.source);
     });
 
     test("never reuses a cancelled request generation", async () => {
@@ -1575,6 +2069,130 @@ describe("WebVOWL controller orchestration", () => {
   });
 
   describe("export orchestration", () => {
+    test("rejects an already-cancelled export without starting capture or leaking a rejection", async () => {
+      await completeLoad();
+      const signal = AbortSignal.abort();
+      const requestCount = settlementRequests.length;
+      await expect(
+        controller.exportVisualization({}, { signal }),
+      ).rejects.toMatchObject({ code: "LOAD_ABORTED" });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(settlementRequests).toHaveLength(requestCount);
+      expect(
+        visualizationArtifactService.createVisualizationArtifact,
+      ).not.toHaveBeenCalled();
+    });
+
+    test("rejects a concurrent export and retains the first capture's ownership", async () => {
+      await completeLoad();
+      const first = controller.exportVisualization();
+      await flushMicrotasks(2);
+      await expect(
+        controller.exportVisualization({ format: "vowl-json" }),
+      ).rejects.toMatchObject({ code: "EXPORT_FAILED", isRetryable: true });
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "stable-frames",
+      });
+      await first;
+      expect(
+        visualizationArtifactService.createVisualizationArtifact,
+      ).toHaveBeenCalledTimes(1);
+      expect(controller.getState().layout.status).not.toBe("paused");
+    });
+
+    test.each(["reset", "view"])(
+      "restores capture's temporary pause after an invalid %s request",
+      async (operation) => {
+        await completeLoad();
+        let fontsReady;
+        waitForDocumentFonts.mockImplementation(
+          () =>
+            new Promise((resolve) => {
+              fontsReady = resolve;
+            }),
+        );
+        const exporting = controller.exportVisualization();
+        await flushMicrotasks(2);
+        settlementRequests.at(-1).resolve({
+          loadGeneration: 1,
+          status: "settled",
+          reason: "stable-frames",
+        });
+        await flushMicrotasks(6);
+        expect(controller.getState().layout.status).toBe("paused");
+        const invalidRequest =
+          operation === "reset"
+            ? controller.resetVisualization({ unsupported: true })
+            : controller.setVisualizationView({
+                layout: "resume",
+                language: "fr",
+              });
+        await expect(invalidRequest).rejects.toThrow();
+        fontsReady();
+        await exporting;
+        expect(controller.getState().layout.status).not.toBe("paused");
+      },
+    );
+
+    test("preserves a human pause requested while an export waits for fonts", async () => {
+      await completeLoad();
+      let fontsReady;
+      waitForDocumentFonts.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            fontsReady = resolve;
+          }),
+      );
+      const exporting = controller.exportVisualization();
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "stable-frames",
+      });
+      await flushMicrotasks(6);
+      expect(controller.getState().layout.status).toBe("paused");
+      controller.setGraphLayoutPaused({ isPaused: true });
+      fontsReady();
+      await exporting;
+      expect(controller.getState().layout.status).toBe("paused");
+    });
+
+    test("releases a temporary export pause before a failed replacement retains the graph", async () => {
+      await completeLoad();
+      let fontsReady;
+      waitForDocumentFonts.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            fontsReady = resolve;
+          }),
+      );
+      const exporting = controller
+        .exportVisualization()
+        .catch((error) => error);
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "stable-frames",
+      });
+      await flushMicrotasks(6);
+      expect(controller.getState().layout.status).toBe("paused");
+      const replacement = controller
+        .loadOntology(SOURCE_REQUEST)
+        .catch((error) => error);
+      await flushMicrotasks(2);
+      deferredSourceLoads.at(-1).reject(new Error("Source unavailable"));
+      await replacement;
+      fontsReady();
+      expect(await exporting).toMatchObject({ code: "LOAD_ABORTED" });
+      expect(controller.getState().layout.status).not.toBe("paused");
+      expect(renderedGraphRuntime.readGraphLayoutSnapshot().isPaused).toBe(
+        false,
+      );
+    });
     async function exportVisualization(exportRequest = {}, options = {}) {
       const exportPromise = controller.exportVisualization(
         exportRequest,
@@ -1605,6 +2223,72 @@ describe("WebVOWL controller orchestration", () => {
       expect(controller.getState().layout.status).not.toBe("paused");
     });
 
+    test("wires the existing Turtle generator to artifact publication without changing layout", async () => {
+      await completeLoad();
+      graphLayoutSettler.waitForSettledGraphLayout.mockClear();
+      const before = controller.getState().layout;
+      const turtleDocumentSnapshot = Object.freeze({
+        loadGeneration: 1,
+        turtleText: "# Existing Turtle output\r\n",
+      });
+      renderedGraphRuntime.createTurtleDocumentSnapshot = jest.fn(
+        () => turtleDocumentSnapshot,
+      );
+      visualizationArtifactService.createVisualizationArtifact.mockImplementationOnce(
+        async (request) => ({ format: request.format }),
+      );
+      const result = await controller.exportVisualization({ format: "turtle" });
+      expect(result.format).toBe("turtle");
+      expect(
+        visualizationArtifactService.createVisualizationArtifact.mock.calls.at(
+          -1,
+        )[0],
+      ).toEqual({
+        format: "turtle",
+        filename: undefined,
+        source: controller.getState().source,
+        turtleDocumentSnapshot,
+      });
+      expect(
+        graphLayoutSettler.waitForSettledGraphLayout,
+      ).not.toHaveBeenCalled();
+      expect(waitForDocumentFonts).not.toHaveBeenCalled();
+      expect(controller.getState().layout).toEqual(before);
+    });
+
+    test("settles and captures an immutable drawing for LaTeX through the shared artifact owner", async () => {
+      await completeLoad();
+      const exporting = controller.exportVisualization({
+        format: "latex",
+        filename: "drawing.tex",
+      });
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "stable-frames",
+      });
+      await exporting;
+      expect(waitForDocumentFonts).toHaveBeenCalledTimes(1);
+      expect(
+        visualizationArtifactService.createVisualizationArtifact,
+      ).toHaveBeenCalledWith(
+        {
+          format: "latex",
+          filename: "drawing.tex",
+          source: expect.objectContaining({ kind: "ontology-document-iri" }),
+          renderedDrawingSnapshot: expect.objectContaining({
+            loadGeneration: 1,
+            nodes: [],
+            propertyLabels: [],
+            links: [],
+          }),
+        },
+        { signal: expect.anything() },
+      );
+      expect(controller.getState().layout.status).not.toBe("paused");
+    });
+
     test("builds a view recipe from provenance, generation, view, and settlement", async () => {
       await completeLoad();
       const exportPromise = exportVisualization();
@@ -1618,7 +2302,8 @@ describe("WebVOWL controller orchestration", () => {
       await exportPromise;
 
       const { viewRecipe } =
-        svgArtifactService.createSvgArtifact.mock.calls[0][0];
+        visualizationArtifactService.createVisualizationArtifact.mock
+          .calls[0][0];
       expect(viewRecipe.loadGeneration).toBe(1);
       expect(viewRecipe.source).toEqual({
         kind: "ontology-document-iri",
@@ -1629,7 +2314,8 @@ describe("WebVOWL controller orchestration", () => {
       // taken from the snapshot itself. Reading it from anywhere else lets the
       // two disagree, which the serializer refuses.
       const { renderedSvgSnapshot } =
-        svgArtifactService.createSvgArtifact.mock.calls[0][0];
+        visualizationArtifactService.createVisualizationArtifact.mock
+          .calls[0][0];
       expect(viewRecipe.viewportDimensions).toEqual({
         widthPx: renderedSvgSnapshot.widthPx,
         heightPx: renderedSvgSnapshot.heightPx,
@@ -1669,7 +2355,9 @@ describe("WebVOWL controller orchestration", () => {
       await exportPromise;
 
       const { viewRecipe, renderedSvgSnapshot } =
-        svgArtifactService.createSvgArtifact.mock.calls.at(-1)[0];
+        visualizationArtifactService.createVisualizationArtifact.mock.calls.at(
+          -1,
+        )[0];
 
       expect(renderedSvgSnapshot.widthPx).toBe(1600);
       expect(viewRecipe.viewportDimensions).toEqual({
@@ -1824,7 +2512,7 @@ describe("WebVOWL controller orchestration", () => {
 
     test("reports a bounded EXPORT_FAILED when artifact creation rejects", async () => {
       await completeLoad();
-      svgArtifactService.createSvgArtifact.mockRejectedValueOnce(
+      visualizationArtifactService.createVisualizationArtifact.mockRejectedValueOnce(
         Object.assign(new Error("no blob"), {
           code: "EXPORT_FAILED",
           isRetryable: false,
@@ -1889,7 +2577,7 @@ describe("WebVOWL controller orchestration", () => {
     test("never restores pause state into a newer load generation", async () => {
       await completeLoad();
       let resolveArtifactCreation;
-      svgArtifactService.createSvgArtifact.mockReturnValueOnce(
+      visualizationArtifactService.createVisualizationArtifact.mockReturnValueOnce(
         new Promise((resolve) => {
           resolveArtifactCreation = resolve;
         }),
@@ -1966,7 +2654,7 @@ describe("WebVOWL controller orchestration", () => {
           renderedGraphRuntime,
           ontologyInspector: createOntologyInspector(),
           graphLayoutSettler,
-          svgArtifactService,
+          visualizationArtifactService,
           waitForDocumentFonts,
           waitForBrowserPaint,
           graph: { load: () => undefined },
@@ -1976,17 +2664,28 @@ describe("WebVOWL controller orchestration", () => {
 
     test("exposes exactly the documented controller operations", () => {
       expect(Object.keys(controller).sort()).toEqual([
+        "confirmOntologyDeletion",
         "describeOntologyElements",
         "dispose",
+        "editOntologyMetadata",
+        "editOntologyRecord",
         "exportVisualization",
         "findOntologyElements",
+        "getOntologyDocument",
         "getOntologySummary",
         "getState",
+        "getVisualizationArrangement",
+        "getVisualizationShareLink",
         "loadOntology",
+        "proposeOntologyDeletion",
+        "removeOntologyPrefix",
         "resetVisualization",
+        "selectVisualizationElement",
         "setContinuousZoom",
         "setForceLayoutDistances",
         "setGraphLayoutPaused",
+        "setOntologyPrefix",
+        "setVisualizationArrangement",
         "setVisualizationModes",
         "setVisualizationView",
         "subscribeToState",

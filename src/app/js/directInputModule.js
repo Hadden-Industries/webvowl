@@ -1,5 +1,3 @@
-import { WEB_VOWL_OPERATION_LIMITS } from "./controller/webVowlControllerContracts.js";
-
 const DIRECT_INPUT_DISPLAY_NAME = "Direct input";
 
 export function createDirectInputModule({ webVowlController } = {}) {
@@ -12,12 +10,6 @@ export function createDirectInputModule({ webVowlController } = {}) {
 
   // Identify the input syntax; the shared source loader validates the text.
   function directInputSource(suppliedText) {
-    if (
-      new TextEncoder().encode(suppliedText).byteLength >
-      WEB_VOWL_OPERATION_LIMITS.maxInlineDocumentBytes
-    ) {
-      throw new Error("The supplied document exceeds the 1 MiB text limit.");
-    }
     try {
       const parsedJsonValue = JSON.parse(suppliedText);
       if (

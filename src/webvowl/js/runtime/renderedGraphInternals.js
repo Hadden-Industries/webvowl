@@ -297,6 +297,7 @@ function createGraph(graphContainerSelector) {
     publishRenderedElementSelection: () => undefined,
     publishViewportChange: () => undefined,
     publishEditorModeChange: () => undefined,
+    publishRecordLabelEdit: () => undefined,
     // Presentation may interpose a confirmation; by default the renderer
     // proceeds so behaviour is unchanged until the UI supplies one.
     requestRenderedGraphConfirmation: (_code, _message, onConfirmed) =>
@@ -604,6 +605,120 @@ function createGraph(graphContainerSelector) {
     };
   };
 
+  function arrangedElements() {
+    return [
+      ...(classNodes ?? []).map((node) => ({
+        rendererKey: `node:${node.id()}`,
+        element: node,
+        position: node,
+        kind: "node",
+        canMove: true,
+        canPin: true,
+        rendererElementIds: [String(node.id())],
+      })),
+      ...(labelNodes ?? []).map((label) => {
+        const property = label.property();
+        const hasParallelLinks =
+          property
+            .domain()
+            .links()
+            .filter((link) => property.range().links().includes(link)).length >
+          1;
+        return {
+          rendererKey: `label:${property.id()}`,
+          element: property,
+          position: label,
+          kind: "property-label",
+          canMove: !isSolitaryLabel(label),
+          canPin: hasParallelLinks,
+          rendererElementIds: [
+            String(property.id()),
+            ...(property.inverse() ? [String(property.inverse().id())] : []),
+          ],
+        };
+      }),
+    ];
+  }
+
+  graph.readArrangement = function () {
+    return arrangedElements().map(({ element, position, ...description }) => ({
+      ...description,
+      xPx: position.x,
+      yPx: position.y,
+      isPinned: element.pinned() === true,
+    }));
+  };
+
+  graph.applyArrangement = function (changes) {
+    const elements = arrangedElements();
+    const resolved = changes.map((change) => {
+      const occurrence = elements.find(
+        (entry) => entry.rendererKey === change.rendererKey,
+      );
+      if (
+        !occurrence ||
+        (change.xPx !== undefined && !occurrence.canMove) ||
+        (change.isPinned === true && !occurrence.canPin)
+      ) {
+        throw new RangeError(
+          "The drawn occurrence cannot accept this arrangement change.",
+        );
+      }
+      return { change, ...occurrence };
+    });
+    for (const { change, element, position } of resolved) {
+      if (change.xPx !== undefined) {
+        position.x = change.xPx;
+        position.y = change.yPx;
+        position.px = position.x;
+        position.py = position.y;
+        position.vx = 0;
+        position.vy = 0;
+      }
+      if (
+        change.isPinned !== undefined &&
+        change.isPinned !== element.pinned()
+      ) {
+        if (change.isPinned) {
+          element.drawPin();
+          pickAndPin.addPinnedElement(element);
+        } else {
+          element.removePin();
+        }
+      }
+      if (element.pinned() || paused) {
+        position.fx = position.x;
+        position.fy = position.y;
+      } else {
+        position.fx = null;
+        position.fy = null;
+      }
+    }
+    recalculatePositions();
+    if (paused) {
+      force.stop();
+    } else {
+      force.alpha(1).restart();
+    }
+  };
+
+  graph.selectOccurrence = function (rendererKey) {
+    const occurrence =
+      rendererKey === null
+        ? null
+        : arrangedElements().find((entry) => entry.rendererKey === rendererKey);
+    if (rendererKey !== null && !occurrence) {
+      throw new RangeError("The selected occurrence is no longer drawn.");
+    }
+    focuser.reset();
+    if (occurrence) {
+      focuser.handle(undefined, occurrence.element, true);
+    } else {
+      graph.reportRenderedElementSelection([]);
+      graph.removeEditElements();
+    }
+  };
+
   graph.isReadyForPaint = function () {
     return Boolean(
       graphContainer &&
@@ -661,6 +776,27 @@ function createGraph(graphContainerSelector) {
   graph.reportRenderedElementSelection = function (selectedElementIds) {
     renderedGraphEventPort.publishRenderedElementSelection(
       Array.isArray(selectedElementIds) ? selectedElementIds : [],
+    );
+  };
+  graph.currentRenderInteractionEpoch = function () {
+    return renderInteractionEpoch;
+  };
+  graph.requestRecordLabelEdit = function (
+    recordId,
+    text,
+    deriveIriFromLabel,
+    interactionEpoch,
+  ) {
+    if (
+      !hasActiveRenderInteractions ||
+      interactionEpoch !== renderInteractionEpoch
+    ) {
+      return false;
+    }
+    return renderedGraphEventPort.publishRecordLabelEdit(
+      String(recordId),
+      text,
+      deriveIriFromLabel,
     );
   };
   // search functionality
@@ -1492,22 +1628,6 @@ function createGraph(graphContainerSelector) {
     reportInvalidGeometry(skippedUpdates);
     updateHaloRadius();
   }
-
-  graph.updatePropertyDraggerElements = function (property) {
-    if (property.type() !== "owl:DatatypeProperty") {
-      shadowClone.setParentProperty(property);
-      rangeDragger.setParentProperty(property);
-      rangeDragger.hideDragger(false);
-      rangeDragger.addMouseEvents();
-      domainDragger.setParentProperty(property);
-      domainDragger.hideDragger(false);
-      domainDragger.addMouseEvents();
-    } else {
-      rangeDragger.hideDragger(true);
-      domainDragger.hideDragger(true);
-      shadowClone.hideClone(true);
-    }
-  };
 
   function addClickEvents() {
     nodeElements.on("click", function (event, clickedNode) {
@@ -3282,113 +3402,6 @@ function createGraph(graphContainerSelector) {
     return haloElements;
   };
 
-  function nodeInViewport(node, property) {
-    const w = renderedGraphSettings.width();
-    const h = renderedGraphSettings.height();
-    const posXY = getScreenCoords(node.x, node.y, graphTranslation, zoomFactor);
-    const x = posXY.x;
-    const y = posXY.y;
-
-    const retVal = !(x < 0 || x > w || y < 0 || y > h);
-    return retVal;
-  }
-
-  graph.getBoundingBoxForTex = function () {
-    const halos = graph.hideHalos();
-    const bbox = graphContainer.node().getBoundingClientRect();
-    halos.classed("hidden", false);
-    const w = renderedGraphSettings.width();
-    const h = renderedGraphSettings.height();
-
-    // get the graph coordinates
-    const topLeft = getWorldPosFromScreen(0, 0, graphTranslation, zoomFactor);
-    const botRight = getWorldPosFromScreen(w, h, graphTranslation, zoomFactor);
-
-    const t_topLeft = getWorldPosFromScreen(
-      bbox.left,
-      bbox.top,
-      graphTranslation,
-      zoomFactor,
-    );
-    const t_botRight = getWorldPosFromScreen(
-      bbox.right,
-      bbox.bottom,
-      graphTranslation,
-      zoomFactor,
-    );
-
-    // tighten up the bounding box;
-
-    let tX = Math.max(t_topLeft.x, topLeft.x);
-    let tY = Math.max(t_topLeft.y, topLeft.y);
-
-    let bX = Math.min(t_botRight.x, botRight.x);
-    let bY = Math.min(t_botRight.y, botRight.y);
-
-    // tighten further;
-    const allForceNodes = force.nodes();
-    const numNodes = allForceNodes.length;
-    let bbx;
-
-    const contentBBox = {
-      tx: 1000000000000,
-      ty: 1000000000000,
-      bx: -1000000000000,
-      by: -1000000000000,
-    };
-
-    for (let i = 0; i < numNodes; i++) {
-      const node = allForceNodes[i];
-      if (node) {
-        if (node.property) {
-          if (nodeInViewport(node, true)) {
-            if (node.property().labelElement() === undefined) {
-              continue;
-            }
-            bbx = node.property().labelElement().node().getBoundingClientRect();
-            if (bbx) {
-              contentBBox.tx = Math.min(contentBBox.tx, bbx.left);
-              contentBBox.bx = Math.max(contentBBox.bx, bbx.right);
-              contentBBox.ty = Math.min(contentBBox.ty, bbx.top);
-              contentBBox.by = Math.max(contentBBox.by, bbx.bottom);
-            }
-          }
-        } else {
-          if (nodeInViewport(node, false)) {
-            bbx = node.nodeElement().node().getBoundingClientRect();
-            if (bbx) {
-              contentBBox.tx = Math.min(contentBBox.tx, bbx.left);
-              contentBBox.bx = Math.max(contentBBox.bx, bbx.right);
-              contentBBox.ty = Math.min(contentBBox.ty, bbx.top);
-              contentBBox.by = Math.max(contentBBox.by, bbx.bottom);
-            }
-          }
-        }
-      }
-    }
-
-    const tt_topLeft = getWorldPosFromScreen(
-      contentBBox.tx,
-      contentBBox.ty,
-      graphTranslation,
-      zoomFactor,
-    );
-    const tt_botRight = getWorldPosFromScreen(
-      contentBBox.bx,
-      contentBBox.by,
-      graphTranslation,
-      zoomFactor,
-    );
-
-    tX = Math.max(tX, tt_topLeft.x);
-    tY = Math.max(tY, tt_topLeft.y);
-
-    bX = Math.min(bX, tt_botRight.x);
-    bY = Math.min(bY, tt_botRight.y);
-    // y axis flip for tex
-    return [tX, -tY, bX, -bY];
-  };
-
   const updateTargetElement = function () {
     const bbox = graphContainer.node().getBoundingClientRect();
 
@@ -4753,11 +4766,6 @@ function createGraph(graphContainerSelector) {
       }, 1000);
     }
   }
-
-  graph.showHoverElementsAfterAnimation = function (property, inversed) {
-    setDeleteHoverElementPositionProperty(property, inversed);
-    deleteGroupElement.classed("hidden", false);
-  };
 
   function editElementHoverOnHidden() {
     classDragger.nodeElement.classed("classDraggerNodeHovered", true);

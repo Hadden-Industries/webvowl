@@ -1,5 +1,8 @@
 import { createRenderedGraphConfiguration } from "./renderedGraphConfiguration.js";
 import { createRenderedSvgExportClone } from "./renderedSvgExportClone.js";
+import { captureRenderedDrawing } from "./captureRenderedDrawing.js";
+import { serializeOntologyAsTurtle } from "./ontologyTurtleSerializer.js";
+import { createRenderedDrawingSnapshot } from "../../../app/js/controller/renderedDrawingSnapshot.js";
 import {
   indexOntologyElementReferencesByVowlElementId,
   ontologyElementReferenceKey,
@@ -24,6 +27,12 @@ import {
   createVowlModelReplacementRequest,
   createVowlModelReplacementResult,
 } from "../../../app/js/controller/renderedGraphRuntimeContracts.js";
+
+import {
+  createRenderedArrangement,
+  createRenderedOccurrenceSelectionRequest,
+  resolveRenderedArrangementChanges,
+} from "../../../app/js/controller/renderedArrangementContracts.js";
 
 const D3_RENDERED_GRAPH_ADAPTER_DEPENDENCY_FIELD_NAMES = Object.freeze([
   "renderedGraphInternals",
@@ -158,6 +167,8 @@ export function createD3RenderedGraphAdapter(dependencies) {
   let hasBuiltRenderedGraphRoot = false;
   let rendererElementIdsByOntologyElementReferenceKey = new Map();
   let ontologyElementReferencesByRendererElementId = new Map();
+  let documentRecordTargetsByRendererElementId = new Map();
+  let occurrenceIdsByRendererKey = new Map();
   let appliedVisualizationView = DEFAULT_APPLIED_VISUALIZATION_VIEW;
   let activeGenerationAbortController = null;
   let activeViewAbortController = null;
@@ -167,6 +178,62 @@ export function createD3RenderedGraphAdapter(dependencies) {
     if (isDisposed) {
       throw new Error("The D3 rendered graph runtime is disposed.");
     }
+  }
+
+  function readRenderedArrangement() {
+    assertNotDisposed();
+    if (activeLoadGeneration === null) {
+      throw new Error("No rendered arrangement is available.");
+    }
+    return createRenderedArrangement({
+      loadGeneration: activeLoadGeneration,
+      occurrences: renderedGraphInternals
+        .readArrangement()
+        .map(({ rendererKey, rendererElementIds, ...geometry }) => {
+          if (!occurrenceIdsByRendererKey.has(rendererKey)) {
+            occurrenceIdsByRendererKey.set(
+              rendererKey,
+              `occurrence-${occurrenceIdsByRendererKey.size + 1}`,
+            );
+          }
+          return {
+            ...geometry,
+            reference: {
+              loadGeneration: activeLoadGeneration,
+              occurrenceId: occurrenceIdsByRendererKey.get(rendererKey),
+            },
+            recordTargets: rendererElementIds
+              .map((id) =>
+                documentRecordTargetsByRendererElementId.get(String(id)),
+              )
+              .filter((target) => target !== null && target !== undefined),
+            ontologyElementReferences: rendererElementIds
+              .map((id) =>
+                ontologyElementReferencesByRendererElementId.get(String(id)),
+              )
+              .filter(
+                (reference) => reference !== null && reference !== undefined,
+              ),
+          };
+        }),
+    });
+  }
+
+  function rendererKeyForOccurrence(reference) {
+    const snapshot = readRenderedArrangement();
+    if (
+      reference.loadGeneration !== activeLoadGeneration ||
+      !snapshot.occurrences.some(
+        (entry) => entry.reference.occurrenceId === reference.occurrenceId,
+      )
+    ) {
+      throw new RangeError(
+        "The selection targets an absent or retired occurrence.",
+      );
+    }
+    return [...occurrenceIdsByRendererKey].find(
+      ([, id]) => id === reference.occurrenceId,
+    )[0];
   }
 
   function retireActiveGeneration(retirementReason) {
@@ -286,6 +353,34 @@ export function createD3RenderedGraphAdapter(dependencies) {
             },
           ),
         },
+      });
+      publishRenderedGraphEvent({
+        kind: "document-record-selection-changed",
+        loadGeneration: activeLoadGeneration,
+        payload: {
+          recordTarget:
+            selectedElementIds.length === 1
+              ? (documentRecordTargetsByRendererElementId.get(
+                  String(selectedElementIds[0]),
+                ) ?? null)
+              : null,
+        },
+      });
+    },
+    publishRecordLabelEdit: (recordId, text, deriveIriFromLabel) => {
+      const recordTarget =
+        documentRecordTargetsByRendererElementId.get(recordId);
+      if (
+        activeLoadGeneration === null ||
+        recordTarget === null ||
+        recordTarget === undefined
+      ) {
+        return false;
+      }
+      return publishRenderedGraphEvent({
+        kind: "record-label-edit-requested",
+        loadGeneration: activeLoadGeneration,
+        payload: { recordTarget, text, deriveIriFromLabel },
       });
     },
     publishRenderWarning: (warningCode, message) => {
@@ -516,6 +611,8 @@ export function createD3RenderedGraphAdapter(dependencies) {
       );
       activeLoadGeneration = null;
       ontologyElementReferencesByRendererElementId.clear();
+      documentRecordTargetsByRendererElementId.clear();
+      occurrenceIdsByRendererKey.clear();
       rendererElementIdsByOntologyElementReferenceKey.clear();
       appliedVisualizationView = DEFAULT_APPLIED_VISUALIZATION_VIEW;
       renderedGraphInternals.clearRenderedGraph();
@@ -540,6 +637,19 @@ export function createD3RenderedGraphAdapter(dependencies) {
       ]);
       appliedVisualizationView = DEFAULT_APPLIED_VISUALIZATION_VIEW;
 
+      occurrenceIdsByRendererKey = new Map();
+      documentRecordTargetsByRendererElementId = new Map();
+      for (const collection of ["class", "datatype", "property"]) {
+        for (const record of replacementRequest.vowlModel[collection] ?? []) {
+          const recordId = String(record.id);
+          documentRecordTargetsByRendererElementId.set(
+            recordId,
+            documentRecordTargetsByRendererElementId.has(recordId)
+              ? null
+              : { collection, recordId },
+          );
+        }
+      }
       ontologyElementReferencesByRendererElementId =
         indexOntologyElementReferencesByVowlElementId(
           replacementRequest.vowlModel,
@@ -740,6 +850,37 @@ export function createD3RenderedGraphAdapter(dependencies) {
       );
     },
 
+    readRenderedArrangement,
+
+    async setRenderedArrangement(request, { signal } = {}) {
+      assertNotDisposed();
+      signal?.throwIfAborted();
+      const changes = resolveRenderedArrangementChanges(
+        readRenderedArrangement(),
+        request,
+      );
+      const resolved = changes.map(({ reference, ...change }) => ({
+        ...change,
+        rendererKey: rendererKeyForOccurrence(reference),
+      }));
+      const loadGeneration = activeLoadGeneration;
+      const viewSignal = beginVisualizationRequest(signal);
+      renderedGraphInternals.applyArrangement(resolved);
+      await awaitObservedPaint(loadGeneration, viewSignal);
+      return readRenderedArrangement();
+    },
+
+    selectRenderedOccurrence(request) {
+      assertNotDisposed();
+      const selection = createRenderedOccurrenceSelectionRequest(request);
+      const rendererKey =
+        selection.reference === null
+          ? null
+          : rendererKeyForOccurrence(selection.reference);
+      renderedGraphInternals.selectOccurrence(rendererKey);
+      return selection.reference;
+    },
+
     readGraphLayoutSnapshot() {
       assertNotDisposed();
       if (activeLoadGeneration === null) {
@@ -871,6 +1012,75 @@ export function createD3RenderedGraphAdapter(dependencies) {
       } finally {
         publishActualVisualizationView(loadGeneration);
       }
+    },
+
+    createTurtleDocumentSnapshot(request) {
+      assertNotDisposed();
+      if (
+        request?.loadGeneration !== activeLoadGeneration ||
+        activeLoadGeneration === null
+      ) {
+        throw createAbortError(
+          "The Turtle export request targets a superseded load generation.",
+        );
+      }
+      const turtleText = serializeOntologyAsTurtle(renderedGraphInternals);
+      if (turtleText === null) {
+        throw new Error(
+          "The existing Turtle exporter does not support this ontology.",
+        );
+      }
+      return Object.freeze({
+        loadGeneration: activeLoadGeneration,
+        turtleText,
+      });
+    },
+
+    createRenderedDrawingSnapshot(request) {
+      assertNotDisposed();
+      if (
+        request?.loadGeneration !== activeLoadGeneration ||
+        activeLoadGeneration === null
+      ) {
+        throw createAbortError(
+          "The drawing snapshot request targets a superseded load generation.",
+        );
+      }
+      const svgRoot = graphContainerElement.querySelector("svg");
+      if (!svgRoot) {
+        throw createAbortError("The rendered graph has no drawing to export.");
+      }
+      const nodes = [];
+      renderedGraphInternals
+        .graphNodeElements()
+        .each((node) => nodes.push(node));
+      const [translationXPx, translationYPx] =
+        renderedGraphInternals.translation();
+      const drawing = captureRenderedDrawing({
+        svgRoot,
+        nodes,
+        propertyLabels: renderedGraphInternals.graphLabelElements(),
+        links: renderedGraphInternals.graphLinkElements(),
+        math: renderedGraphInternals.math(),
+        compactNotation: readAppliedVisualizationView().modes.compactNotation,
+        readComputedStyle: (element) =>
+          svgRoot.ownerDocument.defaultView.getComputedStyle(element),
+        viewport: {
+          widthPx:
+            readSvgLengthAttribute(svgRoot, "width") ??
+            renderedGraphConfiguration.widthPx,
+          heightPx:
+            readSvgLengthAttribute(svgRoot, "height") ??
+            renderedGraphConfiguration.heightPx,
+          zoomScale: renderedGraphInternals.scaleFactor(),
+          translationXPx,
+          translationYPx,
+        },
+      });
+      return createRenderedDrawingSnapshot({
+        loadGeneration: activeLoadGeneration,
+        ...drawing,
+      });
     },
 
     createRenderedSvgSnapshot(request) {

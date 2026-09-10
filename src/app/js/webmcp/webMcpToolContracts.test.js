@@ -46,12 +46,27 @@ const EXPECTED_TOOL_NAMES = Object.freeze([
   "set_visualization_view",
   "export_visualization",
   "get_visualization_state",
+  "get_visualization_arrangement",
+  "set_visualization_arrangement",
+  "select_visualization_element",
   "reset_visualization",
   "set_visualization_modes",
   "set_layout_distances",
+  "get_ontology_element_details",
+  "get_visualization_share_link",
 ]);
 
 const EXPECTED_TOOL_DESCRIPTIONS = Object.freeze({
+  get_visualization_share_link:
+    "Read a share URL for the accepted remote ontology and current view, as in the Export menu. Local documents require JSON export. Continue long URLs using the returned continuation.",
+  get_ontology_element_details:
+    "Read the same ontology element description as the selection sidebar. Large descriptions return exact JSON text pages; continue with nextOffset to read every fact.",
+  get_visualization_arrangement:
+    "Read a page of drawn occurrences, their positions in graph pixels, pin state and movement capabilities. References expire on ontology replacement.",
+  set_visualization_arrangement:
+    "Move, pin or unpin specific drawn occurrences without editing ontology facts. Coordinates use graph pixels; automatic motion retains its current state.",
+  select_visualization_element:
+    "Select a drawn occurrence and show its details as a human click does, or clear selection with a null reference. This does not edit ontology facts.",
   reset_visualization:
     "Restore visualization defaults, clear focus and selection, and resume layout. Retain the loaded ontology and label language.",
   load_ontology:
@@ -63,7 +78,7 @@ const EXPECTED_TOOL_DESCRIPTIONS = Object.freeze({
   set_visualization_view:
     "Apply supported language, filters, focus, layout, and viewport changes to the visible WebVOWL graph.",
   export_visualization:
-    "Wait for the visible graph to settle and create a browser-local downloadable SVG with provenance metadata.",
+    "Create a browser-local SVG, VOWL JSON, Turtle or LaTeX artifact. SVG and LaTeX wait for layout settlement; JSON saves the current document and view, and Turtle uses the existing exporter without waiting for motion to end.",
   get_visualization_state:
     "Read the current visualization choices, actual layout status, zoom, pan, selection, and load state.",
   set_visualization_modes:
@@ -73,6 +88,26 @@ const EXPECTED_TOOL_DESCRIPTIONS = Object.freeze({
 });
 
 const EXPECTED_TOOL_ANNOTATIONS = Object.freeze({
+  get_visualization_share_link: {
+    readOnlyHint: true,
+    untrustedContentHint: true,
+  },
+  get_ontology_element_details: {
+    readOnlyHint: true,
+    untrustedContentHint: true,
+  },
+  get_visualization_arrangement: {
+    readOnlyHint: true,
+    untrustedContentHint: true,
+  },
+  set_visualization_arrangement: {
+    readOnlyHint: false,
+    untrustedContentHint: true,
+  },
+  select_visualization_element: {
+    readOnlyHint: false,
+    untrustedContentHint: true,
+  },
   reset_visualization: { readOnlyHint: false, untrustedContentHint: true },
   load_ontology: { readOnlyHint: false, untrustedContentHint: true },
   get_ontology_summary: { readOnlyHint: true, untrustedContentHint: true },
@@ -104,6 +139,166 @@ function toolDefinitionNamed(toolName) {
     (toolDefinition) => toolDefinition.name === toolName,
   );
 }
+
+test("export reports exact bounded artifact metadata even with a large embedded view recipe", async () => {
+  const filename = `${"diagram-".repeat(16)}.svg`;
+  const metadata = {
+    format: "svg",
+    filename,
+    mediaType: "image/svg+xml",
+    byteLength: 65000,
+    sha256Hex: "a".repeat(64),
+    pageLocalArtifactId: "private-artifact-1",
+    pageLocalViewRecipeId: "recipe-4-1",
+    viewRecipe: {
+      loadGeneration: 4,
+      source: { identity: `https://example.test/${"long/".repeat(500)}` },
+    },
+  };
+  const dispatch = createWebMcpToolDispatch({
+    webVowlController: {
+      getState: () => ({ loadGeneration: 4 }),
+      exportVisualization: () => metadata,
+    },
+  });
+  const result = await dispatch.callWebMcpTool("export_visualization", {});
+  expect(result).toEqual({
+    isSuccess: true,
+    toolResult: {
+      operation: "export_visualization",
+      isTruncated: false,
+      format: "svg",
+      filename,
+      mediaType: "image/svg+xml",
+      byteLength: 65000,
+      sha256Hex: "a".repeat(64),
+      loadGeneration: 4,
+      pageLocalViewRecipeId: "recipe-4-1",
+    },
+  });
+  expect(JSON.stringify(result).length).toBeLessThanOrEqual(1500);
+  expect(metadata.viewRecipe.source.identity.length).toBeGreaterThan(2000);
+});
+
+test("degree input accepts the same non-negative safe integers as the human filter", () => {
+  expect(
+    normalizeSetVisualizationViewToolInput({ filters: { minDegree: 101 } }),
+  ).toEqual({ filters: { minDegree: 101 } });
+  expect(() =>
+    normalizeSetVisualizationViewToolInput({
+      filters: { minDegree: Number.MAX_SAFE_INTEGER + 1 },
+    }),
+  ).toThrow();
+});
+
+test("share URL pages retain one exact captured URL when the view changes", async () => {
+  const expectedUrl =
+    "https://viewer.test/#iri=https%3A%2F%2Fexample.test%2F" +
+    "path%20".repeat(400);
+  let reads = 0;
+  const dispatch = createWebMcpToolDispatch({
+    webVowlController: {
+      getState: () => ({ loadGeneration: reads + 1 }),
+      getVisualizationShareLink: () => ({
+        loadGeneration: ++reads,
+        url: reads === 1 ? expectedUrl : "https://viewer.test/#changed",
+      }),
+    },
+  });
+  let input = {};
+  let actualUrl = "";
+  do {
+    const result = await dispatch.callWebMcpTool(
+      "get_visualization_share_link",
+      input,
+    );
+    expect(result.isSuccess).toBe(true);
+    expect(JSON.stringify(result).length).toBeLessThanOrEqual(1500);
+    expect(result.toolResult.loadGeneration).toBe(1);
+    actualUrl += result.toolResult.urlFragment;
+    input = result.toolResult.continuation
+      ? { continuation: result.toolResult.continuation }
+      : null;
+  } while (input !== null);
+  expect(actualUrl).toBe(expectedUrl);
+  expect(reads).toBe(1);
+  const invalid = await dispatch.callWebMcpTool(
+    "get_visualization_share_link",
+    { continuation: { pageToken: "absent", offset: 10 } },
+  );
+  expect(invalid.error.code).toBe("INVALID_TOOL_INPUT");
+});
+
+test("details use the sidebar description and preserve every character over bounded pages", async () => {
+  const reference = { kind: "class", iri: "https://example.test/Person" };
+  const description = {
+    ontologyElementReference: reference,
+    displayLabel: "Person",
+    commentText: 'A person: "quoted" \\ Unicode Ω\n'.repeat(80),
+    superclassElements: [
+      {
+        ontologyElementReference: {
+          kind: "class",
+          iri: "https://example.test/Agent",
+        },
+        displayLabel: "Agent",
+      },
+    ],
+  };
+  const calls = [];
+  const dispatch = createWebMcpToolDispatch({
+    webVowlController: {
+      getState: () => ({ loadGeneration: 3 }),
+      describeOntologyElements: (request) => {
+        calls.push(request);
+        return { loadGeneration: 3, elementDescriptions: [description] };
+      },
+    },
+  });
+  let offset = 0;
+  let reconstructedJson = "";
+  do {
+    const result = await dispatch.callWebMcpTool(
+      "get_ontology_element_details",
+      { reference, offset, loadGeneration: 3, language: null },
+    );
+    expect(result.isSuccess).toBe(true);
+    expect(JSON.stringify(result).length).toBeLessThanOrEqual(1500);
+    expect(result.toolResult.offset).toBe(offset);
+    expect(result.toolResult.encoding).toBe("json");
+    reconstructedJson += result.toolResult.jsonFragment;
+    expect(
+      result.toolResult.nextOffset === null ||
+        result.toolResult.nextOffset > offset,
+    ).toBe(true);
+    offset = result.toolResult.nextOffset;
+  } while (offset !== null);
+  expect(JSON.parse(reconstructedJson)).toEqual(description);
+  expect(
+    calls.every(
+      (request) =>
+        JSON.stringify(request) ===
+        JSON.stringify({ ontologyElementReferences: [reference] }),
+    ),
+  ).toBe(true);
+  const invalid = await dispatch.callWebMcpTool(
+    "get_ontology_element_details",
+    { reference, edit: true },
+  );
+  expect(invalid.error.code).toBe("INVALID_TOOL_INPUT");
+  const stale = await dispatch.callWebMcpTool("get_ontology_element_details", {
+    reference,
+    offset: 10,
+    loadGeneration: 2,
+    language: null,
+  });
+  expect(stale.error.code).toBe("INVALID_TOOL_INPUT");
+  const translated = await dispatch.callWebMcpTool(
+    "get_ontology_element_details",
+    { reference, offset: 10, loadGeneration: 3, language: "de" },
+  );
+  expect(translated.error.code).toBe("INVALID_TOOL_INPUT");
+});
 
 // Every object schema anywhere in a definition, so a nested one cannot quietly
 // stay open while its parent is closed.
@@ -802,7 +997,13 @@ describe("set_visualization_view input normalization", () => {
   });
 
   test("refuses a minimum degree that is not a whole number in range", () => {
-    for (const rejectedMinDegree of [-1, 101, 1.5, Number.NaN, "2"]) {
+    for (const rejectedMinDegree of [
+      -1,
+      Number.MAX_SAFE_INTEGER + 1,
+      1.5,
+      Number.NaN,
+      "2",
+    ]) {
       expect(() =>
         normalizeSetVisualizationViewToolInput({
           filters: { minDegree: rejectedMinDegree },
@@ -878,6 +1079,54 @@ describe("set_visualization_view input normalization", () => {
 });
 
 describe("export_visualization input normalization", () => {
+  test("supports the human LaTeX drawing format with the same settlement contract as SVG", () => {
+    expect(
+      normalizeExportVisualizationToolInput({
+        format: "latex",
+        filename: "figure",
+      }),
+    ).toEqual({
+      format: "latex",
+      filename: "figure.tex",
+      settleTimeoutMs: 12000,
+      onTimeout: "fail",
+    });
+  });
+  test("requests Turtle without settlement and retains the Turtle filename suffix", () => {
+    expect(
+      normalizeExportVisualizationToolInput({
+        format: "turtle",
+        filename: "People",
+      }),
+    ).toEqual({
+      format: "turtle",
+      filename: "People.ttl",
+    });
+    expect(() =>
+      normalizeExportVisualizationToolInput({
+        format: "turtle",
+        onTimeout: "fail",
+      }),
+    ).toThrow();
+  });
+
+  test("requests JSON without layout settlement and normalizes its own filename suffix", () => {
+    expect(
+      normalizeExportVisualizationToolInput({
+        format: "vowl-json",
+        filename: "../People.JSON",
+      }),
+    ).toEqual({ format: "vowl-json", filename: "People.json" });
+    expect(() =>
+      normalizeExportVisualizationToolInput({
+        format: "vowl-json",
+        settleTimeoutMs: 12000,
+      }),
+    ).toThrow();
+    expect(() =>
+      normalizeExportVisualizationToolInput({ format: "html" }),
+    ).toThrow();
+  });
   test("applies the advertised defaults", () => {
     expect(normalizeExportVisualizationToolInput({})).toEqual({
       settleTimeoutMs: 12000,
@@ -1105,6 +1354,25 @@ describe("tool result projection", () => {
 });
 
 describe("tool failure projection", () => {
+  test("retains an uncancelled load failure code and its safe message", () => {
+    const failure = projectWebMcpToolFailure("load_ontology", {
+      code: "LOAD_FAILED",
+      message: "The ontology could not be loaded.",
+      isRetryable: false,
+      cause: new TypeError("Private renderer failure at /internal/source.js"),
+      stack: "private stack",
+    });
+    expect(failure).toEqual({
+      isSuccess: false,
+      error: {
+        operation: "load_ontology",
+        code: "LOAD_FAILED",
+        message: "The ontology could not be loaded.",
+        isRetryable: false,
+      },
+    });
+  });
+
   test("reports a domain error by its code without its internals", () => {
     const domainError = Object.freeze({
       code: "SOURCE_REJECTED",
@@ -1217,6 +1485,115 @@ function createControllerSpy(overrides = {}) {
 }
 
 describe("WebMCP tool dispatch", () => {
+  test("offers arrangement and selection through their shared controller operations without editor input", async () => {
+    const calls = [];
+    const { webVowlController } = createControllerSpy({
+      getVisualizationArrangement: (input) => {
+        calls.push(["read", input]);
+        return {
+          loadGeneration: 4,
+          offset: input.offset,
+          nextOffset: null,
+          occurrenceCount: 0,
+          occurrences: [],
+        };
+      },
+      setVisualizationArrangement: (input) => {
+        calls.push(["arrange", input]);
+        return { loadGeneration: 4, occurrences: [] };
+      },
+      selectVisualizationElement: (input) => {
+        calls.push(["select", input]);
+        return { loadGeneration: 4, selection: [] };
+      },
+    });
+    const dispatch = createWebMcpToolDispatch({ webVowlController });
+    const reference = { loadGeneration: 4, occurrenceId: "occurrence-1" };
+    expect(
+      (
+        await dispatch.callWebMcpTool("get_visualization_arrangement", {
+          limit: 5,
+        })
+      ).isSuccess,
+    ).toBe(true);
+    expect(
+      (
+        await dispatch.callWebMcpTool("set_visualization_arrangement", {
+          changes: [{ reference, xPx: 0, yPx: -10, isPinned: true }],
+        })
+      ).isSuccess,
+    ).toBe(true);
+    expect(
+      (
+        await dispatch.callWebMcpTool("select_visualization_element", {
+          reference,
+        })
+      ).isSuccess,
+    ).toBe(true);
+    expect(calls).toEqual([
+      ["read", { offset: 0, limit: 5 }],
+      [
+        "arrange",
+        { changes: [{ reference, xPx: 0, yPx: -10, isPinned: true }] },
+      ],
+      ["select", { reference }],
+    ]);
+    for (const [tool, input] of [
+      ["select_visualization_element", { reference, beginLabelEditing: true }],
+      [
+        "set_visualization_arrangement",
+        { changes: [{ reference, iri: "https://example.test/New" }] },
+      ],
+      ["set_visualization_arrangement", { changes: [{ reference, xPx: 5 }] }],
+      ["get_visualization_arrangement", { limit: 101 }],
+    ]) {
+      expect(await dispatch.callWebMcpTool(tool, input)).toMatchObject({
+        isSuccess: false,
+        error: { code: "INVALID_TOOL_INPUT" },
+      });
+    }
+    expect(calls).toHaveLength(3);
+  });
+
+  test("pages arrangement observations within the response limit without truncating occurrence identities", () => {
+    const occurrences = Array.from({ length: 12 }, (_, index) => ({
+      reference: { loadGeneration: 4, occurrenceId: `occurrence-${index + 1}` },
+      recordTargets: [{ collection: "class", recordId: `private-${index}` }],
+      ontologyElementReferences: [
+        {
+          kind: "class",
+          iri: `https://example.test/${"long-name-".repeat(20)}${index}`,
+        },
+      ],
+      kind: "node",
+      xPx: 120,
+      yPx: 0,
+      isPinned: true,
+      canMove: true,
+      canPin: true,
+    }));
+    const result = projectWebMcpToolSuccess("get_visualization_arrangement", {
+      loadGeneration: 4,
+      offset: 10,
+      nextOffset: 22,
+      occurrenceCount: 30,
+      occurrences,
+    });
+    expect(JSON.stringify(result).length).toBeLessThanOrEqual(
+      WEB_MCP_TOOL_RESULT_CHARACTER_CEILING,
+    );
+    expect(result.toolResult.occurrences.length).toBeGreaterThan(0);
+    expect(result.toolResult.nextOffset).toBe(
+      10 + result.toolResult.occurrences.length,
+    );
+    expect(JSON.stringify(result)).not.toContain("recordTargets");
+    expect(result.toolResult.occurrences[0].reference).toEqual(
+      occurrences[0].reference,
+    );
+    expect(
+      result.toolResult.occurrences[0].ontologyElementReferences[0],
+    ).toEqual(occurrences[0].ontologyElementReferences[0]);
+  });
   test("resets through the same controller operation and rejects reset arguments", async () => {
     const requests = [];
     const { webVowlController } = createControllerSpy({

@@ -7,9 +7,26 @@ import {
   truncateResultCollection,
   WEB_VOWL_OPERATION_LIMITS,
   WebVowlOperationError,
+  createVowlDocumentRecordTarget,
 } from "./webVowlControllerContracts.js";
-import { decodeVowlVisualizationSettings } from "./vowlVisualizationSettings.js";
-import { createInitialVisualizationRequest } from "./renderedGraphRuntimeContracts.js";
+import {
+  applyVowlDocumentRecordEdit,
+  createVowlDocumentSnapshot,
+  applyVowlOntologyMetadataEdit,
+  setVowlDocumentPrefix,
+  removeVowlDocumentPrefix,
+  describeVowlDocumentDeletion,
+  applyVowlDocumentDeletion,
+} from "./vowlDocument.js";
+import {
+  decodeVowlVisualizationSettings,
+  encodeVowlVisualizationSettings,
+} from "./vowlVisualizationSettings.js";
+import { createVisualizationShareLink } from "./visualizationShareLink.js";
+import {
+  createInitialVisualizationRequest,
+  createVisualizationViewApplicationRequest,
+} from "./renderedGraphRuntimeContracts.js";
 
 const WEB_VOWL_CONTROLLER_DEPENDENCY_FIELD_NAMES = Object.freeze([
   "ontologySourceLoader",
@@ -17,12 +34,14 @@ const WEB_VOWL_CONTROLLER_DEPENDENCY_FIELD_NAMES = Object.freeze([
   "renderedGraphRuntime",
   "ontologyInspector",
   "graphLayoutSettler",
-  "svgArtifactService",
+  "visualizationArtifactService",
   "waitForDocumentFonts",
   "waitForBrowserPaint",
+  "applicationUrl",
 ]);
 
 const EXPORT_REQUEST_FIELD_NAMES = Object.freeze([
+  "format",
   "filename",
   "settleTimeoutMs",
   "onTimeout",
@@ -31,6 +50,13 @@ const EXPORT_REQUEST_FIELD_NAMES = Object.freeze([
 const BACKGROUND_SETTLE_TIMEOUT_MS = 30000;
 const DEFAULT_EXPORT_SETTLE_TIMEOUT_MS = 12000;
 const BROWSER_PAINT_WAIT_COUNT = 2;
+
+import { retainVowlDocumentArrangement } from "./vowlDocumentArrangement.js";
+import {
+  createRenderedArrangementQuery,
+  createRenderedArrangementRequest,
+  createRenderedOccurrenceSelectionRequest,
+} from "./renderedArrangementContracts.js";
 
 const IDLE_CONTROLLER_STATE = Object.freeze({
   status: "idle",
@@ -42,6 +68,7 @@ const IDLE_CONTROLLER_STATE = Object.freeze({
   translation: null,
   layout: { status: "unavailable" },
   selection: [],
+  selectedDocumentRecord: null,
   renderProgress: null,
   degreeFilterRange: null,
   editorMode: null,
@@ -89,6 +116,24 @@ function assertPlainRecord(candidate, description) {
     Array.isArray(candidate)
   ) {
     throw new TypeError(`${description} must be a plain object.`);
+  }
+}
+
+async function awaitExportCompletion(work, signal) {
+  let onAbort;
+  const cancellation = new Promise((resolve, reject) => {
+    void resolve;
+    onAbort = () => reject(signal.reason);
+    if (signal.aborted) {
+      onAbort();
+    } else {
+      signal.addEventListener("abort", onAbort, { once: true });
+    }
+  });
+  try {
+    return await Promise.race([work, cancellation]);
+  } finally {
+    signal.removeEventListener("abort", onAbort);
   }
 }
 
@@ -153,6 +198,14 @@ function createLoadAbortedError(cause) {
   });
 }
 
+function createLoadFailedError(cause) {
+  return new WebVowlOperationError({
+    code: "LOAD_FAILED",
+    message: "The ontology could not be loaded.",
+    cause,
+  });
+}
+
 function publicErrorProjection(operationError) {
   try {
     return toPublicWebVowlError(operationError);
@@ -182,9 +235,10 @@ export function createWebVowlController(dependencies) {
     renderedGraphRuntime,
     ontologyInspector,
     graphLayoutSettler,
-    svgArtifactService,
+    visualizationArtifactService,
     waitForDocumentFonts,
     waitForBrowserPaint,
+    applicationUrl,
   } = dependencies;
 
   let isDisposed = false;
@@ -196,11 +250,20 @@ export function createWebVowlController(dependencies) {
   let currentVowlModel = null;
   let hasAcceptedRenderedMount = false;
   let activeLoadAbortController;
+  let activeExportOperation;
+  let layoutIntentSequence = 0;
+
+  function retireActiveExport() {
+    activeExportOperation?.restoreLayout?.();
+    activeExportOperation?.abortController.abort();
+    activeExportOperation = undefined;
+  }
   let backgroundObservationController;
   let currentSourceProvenance = null;
   let currentOntologyInspectionSnapshot = null;
   let currentWarnings = [];
   const stateSubscribers = new Set();
+  const deletionProposals = new WeakMap();
 
   // A writer states the fields it wrote. Narrowing that set to the fields whose
   // value actually differs happens once, here, using what the writer already
@@ -318,6 +381,60 @@ export function createWebVowlController(dependencies) {
         selection: [
           ...renderedGraphEvent.payload.selectedOntologyElementReferences,
         ],
+      });
+      return;
+    }
+    if (renderedGraphEvent.kind === "document-record-selection-changed") {
+      publishForGeneration(renderedGraphEvent.loadGeneration, {
+        selectedDocumentRecord: renderedGraphEvent.payload.recordTarget,
+      });
+      return;
+    }
+    if (renderedGraphEvent.kind === "record-label-edit-requested") {
+      const { recordTarget, text, deriveIriFromLabel } =
+        renderedGraphEvent.payload;
+      const request = {
+        loadGeneration: renderedGraphEvent.loadGeneration,
+        recordTarget,
+        changes: {
+          label: {
+            language: controllerState.view?.language ?? "default",
+            text,
+          },
+        },
+      };
+      const editing = applyHumanDocumentEdit(
+        request,
+        ["recordTarget", "changes"],
+        (model) =>
+          applyVowlDocumentRecordEdit(model, {
+            recordTarget,
+            changes: {
+              ...request.changes,
+              ...(deriveIriFromLabel
+                ? {
+                    iri: `${model.header?.iri ?? "http://www.w3.org/2002/07/owl#"}${text.replaceAll(" ", "_")}`,
+                  }
+                : {}),
+            },
+          }),
+        { selectedRecord: recordTarget },
+      );
+      const requestOwner = activeLoadAbortController;
+      void editing.catch((error) => {
+        if (
+          !isDisposed &&
+          activeLoadAbortController === requestOwner &&
+          !requestOwner?.signal.aborted
+        ) {
+          currentWarnings = truncateResultCollection(
+            [...currentWarnings, error.message],
+            WEB_VOWL_OPERATION_LIMITS.maxWarnings,
+          ).retainedEntries;
+          publishForGeneration(activeLoadGeneration, {
+            warnings: currentWarnings,
+          });
+        }
       });
       return;
     }
@@ -577,218 +694,737 @@ export function createWebVowlController(dependencies) {
     }
   }
 
-  return Object.freeze({
-    async loadOntology(
-      sourceRequest,
-      { signal, initialVisualization: requestedInitialVisualization } = {},
+  function assertCurrentDrawing() {
+    assertOntologyPresent();
+    if (
+      !hasAcceptedRenderedMount ||
+      activeLoadGeneration !== currentOntologyGeneration ||
+      ["loading", "parsing", "rendering"].includes(controllerState.status)
     ) {
-      if (isDisposed) {
-        throw createLoadAbortedError();
-      }
-      let initialChoices;
+      throw new WebVowlOperationError({
+        code: "VIEW_REJECTED",
+        message:
+          "Wait for the current ontology drawing before changing its arrangement or selection.",
+      });
+    }
+  }
+
+  async function replaceOntologyDocument(
+    prepareSourceLoad,
+    { signal, initialVisualization: requestedInitialVisualization } = {},
+  ) {
+    if (isDisposed) {
+      throw createLoadAbortedError();
+    }
+    let initialChoices;
+    try {
+      initialChoices = createInitialVisualizationRequest(
+        requestedInitialVisualization ?? {},
+      );
+    } catch (cause) {
+      throw new WebVowlOperationError({
+        code: "VIEW_REJECTED",
+        message: "The initial visualization choices are invalid.",
+        cause,
+      });
+    }
+    retireActiveExport();
+    activeLoadAbortController?.abort();
+    abortBackgroundLayoutObservation();
+
+    activeLoadGeneration = ++lastIssuedLoadGeneration;
+    const loadGeneration = activeLoadGeneration;
+    const previousOntology =
+      currentVowlModel === null
+        ? null
+        : {
+            model: currentVowlModel,
+            state:
+              controllerState.loadGeneration === currentOntologyGeneration &&
+              ["ready", "relaxing"].includes(controllerState.status)
+                ? controllerState
+                : lastValidControllerState,
+          };
+    let hasStartedModelReplacement = false;
+    const loadAbortController = new AbortController();
+    activeLoadAbortController = loadAbortController;
+    const cancellationSignal = AbortSignal.any(
+      signal === undefined
+        ? [loadAbortController.signal]
+        : [signal, loadAbortController.signal],
+    );
+
+    try {
+      publishForGeneration(loadGeneration, {
+        ...GENERATION_SCOPED_CONTROLLER_STATE_FIELDS,
+        status: "loading",
+        loadGeneration,
+        error: null,
+      });
+
+      const sourceLoadRecord = await prepareSourceLoad({
+        onPhaseChange: (loadPhase) => {
+          if (loadPhase === "parsing") {
+            publishForGeneration(loadGeneration, { status: "parsing" });
+          }
+        },
+        signal: cancellationSignal,
+      });
+      throwWhenSuperseded(loadGeneration, cancellationSignal);
+
+      let initialVisualization;
       try {
-        initialChoices = createInitialVisualizationRequest(
-          requestedInitialVisualization ?? {},
+        initialVisualization = decodeVowlVisualizationSettings(
+          sourceLoadRecord.vowlModel.settings,
         );
+        const mergedChoices = {};
+        for (const section of ["view", "modes", "forceDistances"]) {
+          if (
+            initialVisualization[section] !== undefined ||
+            initialChoices[section] !== undefined
+          ) {
+            mergedChoices[section] = {
+              ...initialVisualization[section],
+              ...initialChoices[section],
+            };
+          }
+        }
+        if (
+          initialVisualization.view?.filters !== undefined ||
+          initialChoices.view?.filters !== undefined
+        ) {
+          mergedChoices.view.filters = {
+            ...initialVisualization.view?.filters,
+            ...initialChoices.view?.filters,
+          };
+        }
+        initialVisualization = createInitialVisualizationRequest(mergedChoices);
       } catch (cause) {
         throw new WebVowlOperationError({
-          code: "VIEW_REJECTED",
-          message: "The initial visualization choices are invalid.",
+          code: "PARSE_FAILED",
+          message: "Saved visualization settings are invalid.",
           cause,
         });
       }
-      activeLoadAbortController?.abort();
-      abortBackgroundLayoutObservation();
 
-      activeLoadGeneration = ++lastIssuedLoadGeneration;
-      const loadGeneration = activeLoadGeneration;
-      const previousOntology =
-        currentVowlModel === null
-          ? null
-          : {
-              model: currentVowlModel,
-              state:
-                controllerState.loadGeneration === currentOntologyGeneration &&
-                ["ready", "relaxing"].includes(controllerState.status)
-                  ? controllerState
-                  : lastValidControllerState,
-            };
-      let hasStartedModelReplacement = false;
-      const loadAbortController = new AbortController();
-      activeLoadAbortController = loadAbortController;
-      const cancellationSignal = AbortSignal.any(
-        signal === undefined
-          ? [loadAbortController.signal]
-          : [signal, loadAbortController.signal],
-      );
-
-      try {
-        publishForGeneration(loadGeneration, {
-          ...GENERATION_SCOPED_CONTROLLER_STATE_FIELDS,
-          status: "loading",
+      // Projected before the renderer is asked to draw, so a semantic
+      // question is answerable as soon as the model exists.
+      const ontologyInspectionSnapshot =
+        vowlModelInspectionProjector.projectOntologyInspectionSnapshot(
+          sourceLoadRecord.vowlModel,
           loadGeneration,
-          error: null,
-        });
-
-        const sourceLoadRecord = await ontologySourceLoader.loadOntologySource(
-          sourceRequest,
-          {
-            onPhaseChange: (loadPhase) => {
-              if (loadPhase === "parsing") {
-                publishForGeneration(loadGeneration, { status: "parsing" });
-              }
-            },
-            signal: cancellationSignal,
-          },
         );
-        throwWhenSuperseded(loadGeneration, cancellationSignal);
+      assertRequestedLanguageIsCarried(
+        initialVisualization.view?.language,
+        ontologyInspectionSnapshot,
+      );
+      throwWhenSuperseded(loadGeneration, cancellationSignal);
 
-        let initialVisualization;
+      publishForGeneration(loadGeneration, { status: "rendering" });
+      hasStartedModelReplacement = true;
+      hasAcceptedRenderedMount = false;
+      await renderedGraphRuntime.replaceVowlModel(
+        {
+          loadGeneration,
+          vowlModel: sourceLoadRecord.vowlModel,
+          ...(Object.keys(initialVisualization).length === 0
+            ? {}
+            : { initialVisualization }),
+        },
+        { signal: cancellationSignal },
+      );
+      throwWhenSuperseded(loadGeneration, cancellationSignal);
+
+      const viewApplicationResult = await applyRuntimeVisualizationView(
+        loadGeneration,
+        {},
+        cancellationSignal,
+      );
+      const graphLayoutSnapshot = readGraphLayoutSnapshot();
+      currentVowlModel = structuredClone(sourceLoadRecord.vowlModel);
+      hasAcceptedRenderedMount = true;
+      currentOntologyGeneration = loadGeneration;
+      currentOntologyInspectionSnapshot = ontologyInspectionSnapshot;
+      currentSourceProvenance = sourceLoadRecord.sourceProvenance;
+      currentWarnings = truncateResultCollection(
+        sourceLoadRecord.diagnostics.map(
+          (diagnostic) => diagnostic.message ?? String(diagnostic),
+        ),
+        WEB_VOWL_OPERATION_LIMITS.maxWarnings,
+      ).retainedEntries;
+
+      publishForGeneration(loadGeneration, {
+        status:
+          graphLayoutSnapshot.isPaused || graphLayoutSnapshot.hasEnded
+            ? "ready"
+            : "relaxing",
+        loadGeneration,
+        source: { ...currentSourceProvenance },
+        warnings: [...currentWarnings],
+        view: viewApplicationResult.appliedVisualizationView,
+        layout: { status: layoutStatusFromSnapshot(graphLayoutSnapshot) },
+        error: null,
+      });
+      lastValidControllerState = controllerState;
+
+      if (!graphLayoutSnapshot.isPaused && !graphLayoutSnapshot.hasEnded) {
+        startBackgroundLayoutObservation(loadGeneration);
+      }
+      return controllerState;
+    } catch (error) {
+      const operationError = isExpectedOperationError(error)
+        ? error
+        : cancellationSignal.aborted ||
+            !isCurrentGeneration(loadGeneration) ||
+            isAbortError(error)
+          ? createLoadAbortedError(error)
+          : createLoadFailedError(error);
+      if (
+        isCurrentGeneration(loadGeneration) &&
+        (hasStartedModelReplacement ||
+          (previousOntology !== null && !hasAcceptedRenderedMount))
+      ) {
         try {
-          initialVisualization = decodeVowlVisualizationSettings(
-            sourceLoadRecord.vowlModel.settings,
+          // Caller cancellation ends the candidate. A new request or
+          // disposal can still abort recovery through the load owner.
+          await restorePreviousRenderedOntology(
+            previousOntology,
+            loadAbortController.signal,
           );
-          const mergedChoices = {};
-          for (const section of ["view", "modes", "forceDistances"]) {
-            if (
-              initialVisualization[section] !== undefined ||
-              initialChoices[section] !== undefined
-            ) {
-              mergedChoices[section] = {
-                ...initialVisualization[section],
-                ...initialChoices[section],
-              };
-            }
+        } catch (recoveryError) {
+          if (!loadAbortController.signal.aborted && !isDisposed) {
+            renderedGraphRuntime.clearRenderedGraph();
+            currentVowlModel = null;
+            hasAcceptedRenderedMount = false;
+            currentOntologyInspectionSnapshot = null;
+            currentSourceProvenance = null;
+            currentOntologyGeneration = 0;
+            currentWarnings = [];
+            lastValidControllerState = createWebVowlControllerState(
+              IDLE_CONTROLLER_STATE,
+            );
+            publishForGeneration(activeLoadGeneration, {
+              ...IDLE_CONTROLLER_STATE,
+              status: "error",
+              loadGeneration: activeLoadGeneration,
+              error: publicErrorProjection(
+                createLoadFailedError(recoveryError),
+              ),
+            });
           }
-          if (
-            initialVisualization.view?.filters !== undefined ||
-            initialChoices.view?.filters !== undefined
-          ) {
-            mergedChoices.view.filters = {
-              ...initialVisualization.view?.filters,
-              ...initialChoices.view?.filters,
-            };
-          }
-          initialVisualization =
-            createInitialVisualizationRequest(mergedChoices);
+        }
+        throw operationError;
+      }
+      restoreStateAfterFailedLoad(
+        loadGeneration,
+        operationError,
+        previousOntology,
+      );
+      throw operationError;
+    }
+  }
+
+  function assertCurrentEditableDocument(request, allowedFields) {
+    assertOntologyPresent();
+    assertAllowedFieldNames(
+      request,
+      ["loadGeneration", ...allowedFields],
+      "Ontology edit",
+    );
+    if (
+      request.loadGeneration !== currentOntologyGeneration ||
+      !["ready", "relaxing"].includes(controllerState.status) ||
+      controllerState.editorMode?.isEditorMode !== true
+    ) {
+      throw new WebVowlOperationError({
+        code: "EDIT_REJECTED",
+        message:
+          "The edit must target the current ontology in the enabled editor.",
+      });
+    }
+  }
+
+  async function commitEditedDocument(
+    editedModel,
+    { signal, selectedRecord = controllerState.selectedDocumentRecord } = {},
+  ) {
+    if (signal?.aborted) {
+      throw createLoadAbortedError(signal.reason);
+    }
+    selectedRecord =
+      selectedRecord === null
+        ? null
+        : createVowlDocumentRecordTarget(selectedRecord);
+    const state = controllerState;
+    const candidate = {
+      vowlModel: retainVowlDocumentArrangement(
+        editedModel,
+        renderedGraphRuntime.readRenderedArrangement(),
+      ),
+      sourceProvenance: currentSourceProvenance,
+      diagnostics: currentWarnings.map((message) => ({ message })),
+    };
+    const nextGeneration = lastIssuedLoadGeneration + 1;
+    await replaceOntologyDocument(async () => candidate, {
+      signal,
+      initialVisualization: {
+        view: {
+          language: state.view.language,
+          filters: state.view.filters,
+          focus: state.view.focus.map((reference) =>
+            "loadGeneration" in reference
+              ? { ...reference, loadGeneration: nextGeneration }
+              : reference,
+          ),
+          layout: state.layout.status === "paused" ? "pause" : "resume",
+          ...(state.zoomScale === null ? {} : { zoomScale: state.zoomScale }),
+          ...(state.translation === null
+            ? {}
+            : { translation: state.translation }),
+        },
+        modes: state.view.modes,
+        forceDistances: state.view.forceDistances,
+      },
+    });
+    if (isCurrentGeneration(nextGeneration)) {
+      if (controllerState.selectedDocumentRecord === null) {
+        const occurrence =
+          selectedRecord === null
+            ? null
+            : renderedGraphRuntime
+                .readRenderedArrangement()
+                .occurrences.find((entry) =>
+                  entry.recordTargets.some(
+                    (target) =>
+                      target.collection === selectedRecord.collection &&
+                      target.recordId === selectedRecord.recordId,
+                  ),
+                );
+        renderedGraphRuntime.selectRenderedOccurrence({
+          reference: occurrence?.reference ?? null,
+        });
+      }
+      lastValidControllerState = controllerState;
+    }
+    return controllerState;
+  }
+
+  async function applyHumanDocumentEdit(
+    request,
+    fields,
+    editDocument,
+    options,
+  ) {
+    let editedModel;
+    try {
+      assertCurrentEditableDocument(request, fields);
+      editedModel = editDocument(currentVowlModel);
+    } catch (cause) {
+      if (isExpectedOperationError(cause)) {
+        throw cause;
+      }
+      throw new WebVowlOperationError({
+        code: "EDIT_REJECTED",
+        message: cause.message,
+        cause,
+      });
+    }
+    return commitEditedDocument(editedModel, options);
+  }
+
+  async function exportCurrentVisualization(
+    exportRequest,
+    cancellationSignal,
+    exportOperation,
+  ) {
+    assertCurrentDrawing();
+    assertAllowedFieldNames(
+      exportRequest,
+      EXPORT_REQUEST_FIELD_NAMES,
+      "export request",
+    );
+    const loadGeneration = currentOntologyGeneration;
+    const format = exportRequest.format ?? "svg";
+    if (!["svg", "vowl-json", "turtle", "latex"].includes(format)) {
+      throw new TypeError("Unsupported visualization export format.");
+    }
+    throwWhenSuperseded(loadGeneration, cancellationSignal);
+    if (format === "vowl-json" || format === "turtle") {
+      if (
+        exportRequest.settleTimeoutMs !== undefined ||
+        exportRequest.onTimeout !== undefined
+      ) {
+        throw new TypeError(
+          "Layout settlement options apply to SVG and LaTeX exports.",
+        );
+      }
+      if (format === "turtle") {
+        try {
+          const turtleDocumentSnapshot =
+            renderedGraphRuntime.createTurtleDocumentSnapshot({
+              loadGeneration,
+            });
+          return await visualizationArtifactService.createVisualizationArtifact(
+            {
+              format,
+              filename: exportRequest.filename,
+              source: { ...currentSourceProvenance },
+              turtleDocumentSnapshot,
+            },
+            { signal: cancellationSignal },
+          );
         } catch (cause) {
+          if (isExpectedOperationError(cause) || isAbortError(cause)) {
+            throw cause;
+          }
           throw new WebVowlOperationError({
-            code: "PARSE_FAILED",
-            message: "Saved visualization settings are invalid.",
+            code: "EXPORT_FAILED",
+            message: "The ontology could not be exported as Turtle.",
             cause,
           });
         }
+      }
+      const arrangedModel = retainVowlDocumentArrangement(
+        currentVowlModel,
+        renderedGraphRuntime.readRenderedArrangement({ loadGeneration }),
+      );
+      const vowlDocument = Object.freeze({
+        loadGeneration,
+        source: currentSourceProvenance,
+        vowlModel: createVowlDocumentSnapshot({
+          ...arrangedModel,
+          settings: encodeVowlVisualizationSettings(controllerState),
+        }),
+      });
+      return visualizationArtifactService.createVisualizationArtifact(
+        { format, filename: exportRequest.filename, vowlDocument },
+        { signal: cancellationSignal },
+      );
+    }
+    abortBackgroundLayoutObservation();
 
-        // Projected before the renderer is asked to draw, so a semantic
-        // question is answerable as soon as the model exists.
-        const ontologyInspectionSnapshot =
-          vowlModelInspectionProjector.projectOntologyInspectionSnapshot(
-            sourceLoadRecord.vowlModel,
-            loadGeneration,
-          );
-        assertRequestedLanguageIsCarried(
-          initialVisualization.view?.language,
-          ontologyInspectionSnapshot,
+    let priorPauseState;
+    let didPauseForExport = false;
+    let pauseIntentSequence;
+    exportOperation.restoreLayout = () => {
+      if (
+        didPauseForExport &&
+        !isDisposed &&
+        loadGeneration === currentOntologyGeneration &&
+        loadGeneration === activeLoadGeneration &&
+        pauseIntentSequence === layoutIntentSequence
+      ) {
+        const restoredPauseResult = renderedGraphRuntime.setGraphLayoutPaused({
+          loadGeneration,
+          isPaused: priorPauseState,
+        });
+        publishForGeneration(loadGeneration, {
+          layout: { status: restoredPauseResult.layoutStatus },
+        });
+      }
+      didPauseForExport = false;
+    };
+
+    try {
+      const layoutOutcome = await graphLayoutSettler.waitForSettledGraphLayout(
+        {
+          loadGeneration,
+          readGraphLayoutSnapshot,
+          subscribeToGraphLayoutEvents,
+          settleTimeoutMs:
+            exportRequest.settleTimeoutMs ?? DEFAULT_EXPORT_SETTLE_TIMEOUT_MS,
+          onTimeout: exportRequest.onTimeout ?? "fail",
+        },
+        { signal: cancellationSignal },
+      );
+      throwWhenSuperseded(loadGeneration, cancellationSignal);
+
+      // Holding the layout still keeps the snapshot matching what settled.
+      // A layout that has already ended is still by itself, so pausing it
+      // achieves nothing and the restore afterwards would re-energise it —
+      // which is right when a reader resumes, and wrong as a side effect of
+      // exporting a graph they had watched come to rest.
+      const graphLayoutSnapshotBeforeCapture = readGraphLayoutSnapshot();
+      priorPauseState = graphLayoutSnapshotBeforeCapture.isPaused;
+      if (!graphLayoutSnapshotBeforeCapture.hasEnded && !priorPauseState) {
+        pauseIntentSequence = layoutIntentSequence;
+        renderedGraphRuntime.setGraphLayoutPaused({
+          loadGeneration,
+          isPaused: true,
+        });
+        didPauseForExport = true;
+      }
+
+      await awaitExportCompletion(waitForDocumentFonts(), cancellationSignal);
+      for (
+        let paintIndex = 0;
+        paintIndex < BROWSER_PAINT_WAIT_COUNT;
+        paintIndex += 1
+      ) {
+        await awaitExportCompletion(
+          waitForBrowserPaint({ signal: cancellationSignal }),
+          cancellationSignal,
         );
-        throwWhenSuperseded(loadGeneration, cancellationSignal);
+      }
+      throwWhenSuperseded(loadGeneration, cancellationSignal);
 
-        publishForGeneration(loadGeneration, { status: "rendering" });
-        hasStartedModelReplacement = true;
-        hasAcceptedRenderedMount = false;
-        await renderedGraphRuntime.replaceVowlModel(
+      if (format === "latex") {
+        return await visualizationArtifactService.createVisualizationArtifact(
           {
-            loadGeneration,
-            vowlModel: sourceLoadRecord.vowlModel,
-            ...(Object.keys(initialVisualization).length === 0
-              ? {}
-              : { initialVisualization }),
+            format,
+            filename: exportRequest.filename,
+            source: { ...currentSourceProvenance },
+            renderedDrawingSnapshot:
+              renderedGraphRuntime.createRenderedDrawingSnapshot({
+                loadGeneration,
+              }),
           },
           { signal: cancellationSignal },
         );
-        throwWhenSuperseded(loadGeneration, cancellationSignal);
+      }
 
-        const viewApplicationResult = await applyRuntimeVisualizationView(
-          loadGeneration,
-          {},
-          cancellationSignal,
+      const renderedSvgSnapshot =
+        renderedGraphRuntime.createRenderedSvgSnapshot({ loadGeneration });
+
+      return await visualizationArtifactService.createVisualizationArtifact(
+        {
+          renderedSvgSnapshot,
+          filename: exportRequest.filename,
+          viewRecipe: {
+            source: { ...currentSourceProvenance },
+            loadGeneration,
+            appliedVisualizationView: controllerState.view,
+            // The viewport the artifact was framed on, read from the
+            // snapshot itself. Taking it from the layout instead lets the
+            // recipe and the artifact disagree about the same picture.
+            viewportDimensions: {
+              widthPx: renderedSvgSnapshot.widthPx,
+              heightPx: renderedSvgSnapshot.heightPx,
+            },
+            layoutOutcome: {
+              status: layoutOutcome.status,
+              reason: layoutOutcome.reason,
+            },
+          },
+        },
+        { signal: cancellationSignal },
+      );
+    } catch (error) {
+      if (isExpectedOperationError(error)) {
+        throw error;
+      }
+      throw error;
+    } finally {
+      exportOperation.restoreLayout();
+    }
+  }
+
+  return Object.freeze({
+    loadOntology(sourceRequest, options) {
+      return replaceOntologyDocument(
+        (loadOptions) =>
+          ontologySourceLoader.loadOntologySource(sourceRequest, loadOptions),
+        options,
+      );
+    },
+
+    getOntologyDocument() {
+      assertOntologyPresent();
+      return Object.freeze({
+        loadGeneration: currentOntologyGeneration,
+        vowlModel: createVowlDocumentSnapshot(currentVowlModel),
+      });
+    },
+
+    async editOntologyRecord(request, { signal } = {}) {
+      return applyHumanDocumentEdit(
+        request,
+        ["recordTarget", "changes"],
+        (model) =>
+          applyVowlDocumentRecordEdit(model, {
+            recordTarget: request.recordTarget,
+            changes: request.changes,
+          }),
+        { signal, selectedRecord: request?.recordTarget },
+      );
+    },
+
+    editOntologyMetadata(request, options) {
+      return applyHumanDocumentEdit(
+        request,
+        ["changes"],
+        (model) => applyVowlOntologyMetadataEdit(model, request.changes),
+        options,
+      );
+    },
+    setOntologyPrefix(request, options) {
+      return applyHumanDocumentEdit(
+        request,
+        ["previousName", "name", "iri"],
+        (model) =>
+          setVowlDocumentPrefix(model, {
+            ...(request.previousName === undefined
+              ? {}
+              : { previousName: request.previousName }),
+            name: request.name,
+            iri: request.iri,
+          }),
+        options,
+      );
+    },
+    removeOntologyPrefix(request, options) {
+      return applyHumanDocumentEdit(
+        request,
+        ["name"],
+        (model) => removeVowlDocumentPrefix(model, request.name),
+        options,
+      );
+    },
+    proposeOntologyDeletion(request) {
+      try {
+        assertCurrentEditableDocument(request, ["recordTarget"]);
+        const description = describeVowlDocumentDeletion(
+          currentVowlModel,
+          request.recordTarget,
         );
-        const graphLayoutSnapshot = readGraphLayoutSnapshot();
-        currentVowlModel = structuredClone(sourceLoadRecord.vowlModel);
-        hasAcceptedRenderedMount = true;
-        currentOntologyGeneration = loadGeneration;
-        currentOntologyInspectionSnapshot = ontologyInspectionSnapshot;
-        currentSourceProvenance = sourceLoadRecord.sourceProvenance;
-        currentWarnings = truncateResultCollection(
-          sourceLoadRecord.diagnostics.map(
-            (diagnostic) => diagnostic.message ?? String(diagnostic),
-          ),
-          WEB_VOWL_OPERATION_LIMITS.maxWarnings,
-        ).retainedEntries;
-
-        publishForGeneration(loadGeneration, {
-          status:
-            graphLayoutSnapshot.isPaused || graphLayoutSnapshot.hasEnded
-              ? "ready"
-              : "relaxing",
-          loadGeneration,
-          source: { ...currentSourceProvenance },
-          warnings: [...currentWarnings],
-          view: viewApplicationResult.appliedVisualizationView,
-          layout: { status: layoutStatusFromSnapshot(graphLayoutSnapshot) },
-          error: null,
+        const proposal = Object.freeze({
+          loadGeneration: currentOntologyGeneration,
+          ...description,
         });
-        lastValidControllerState = controllerState;
-
-        if (!graphLayoutSnapshot.isPaused && !graphLayoutSnapshot.hasEnded) {
-          startBackgroundLayoutObservation(loadGeneration);
-        }
-        return controllerState;
-      } catch (error) {
-        const operationError = isExpectedOperationError(error)
-          ? error
-          : createLoadAbortedError(error);
-        if (
-          isCurrentGeneration(loadGeneration) &&
-          (hasStartedModelReplacement ||
-            (previousOntology !== null && !hasAcceptedRenderedMount))
-        ) {
-          try {
-            // Caller cancellation ends the candidate. A new request or
-            // disposal can still abort recovery through the load owner.
-            await restorePreviousRenderedOntology(
-              previousOntology,
-              loadAbortController.signal,
-            );
-          } catch (recoveryError) {
-            if (!loadAbortController.signal.aborted && !isDisposed) {
-              renderedGraphRuntime.clearRenderedGraph();
-              currentVowlModel = null;
-              hasAcceptedRenderedMount = false;
-              currentOntologyInspectionSnapshot = null;
-              currentSourceProvenance = null;
-              currentOntologyGeneration = 0;
-              currentWarnings = [];
-              lastValidControllerState = createWebVowlControllerState(
-                IDLE_CONTROLLER_STATE,
-              );
-              publishForGeneration(activeLoadGeneration, {
-                ...IDLE_CONTROLLER_STATE,
-                status: "error",
-                loadGeneration: activeLoadGeneration,
-                error: publicErrorProjection(
-                  createLoadAbortedError(recoveryError),
-                ),
-              });
-            }
-          }
-          throw operationError;
-        }
-        restoreStateAfterFailedLoad(
-          loadGeneration,
-          operationError,
-          previousOntology,
+        deletionProposals.set(
+          proposal,
+          applyVowlDocumentDeletion(currentVowlModel, request.recordTarget),
         );
-        throw operationError;
+        return proposal;
+      } catch (cause) {
+        if (isExpectedOperationError(cause)) {
+          throw cause;
+        }
+        throw new WebVowlOperationError({
+          code: "EDIT_REJECTED",
+          message: cause.message,
+          cause,
+        });
+      }
+    },
+    async confirmOntologyDeletion(proposal, options) {
+      const editedModel = deletionProposals.get(proposal);
+      if (editedModel === undefined) {
+        throw new WebVowlOperationError({
+          code: "EDIT_REJECTED",
+          message:
+            "This deletion proposal was not issued here or has already been used.",
+        });
+      }
+      assertCurrentEditableDocument(
+        { loadGeneration: proposal.loadGeneration },
+        [],
+      );
+      deletionProposals.delete(proposal);
+      return commitEditedDocument(editedModel, {
+        ...options,
+        selectedRecord: null,
+      });
+    },
+
+    getVisualizationArrangement(request = {}) {
+      assertCurrentDrawing();
+      try {
+        const { offset, limit, ontologyElementReference } =
+          createRenderedArrangementQuery(request);
+        const snapshot = renderedGraphRuntime.readRenderedArrangement();
+        if (
+          ontologyElementReference?.loadGeneration !== undefined &&
+          ontologyElementReference.loadGeneration !== currentOntologyGeneration
+        ) {
+          throw new RangeError(
+            "The ontology reference belongs to a retired load generation.",
+          );
+        }
+        const sameReference = (reference) =>
+          reference.kind === ontologyElementReference.kind &&
+          (ontologyElementReference.iri !== undefined
+            ? reference.iri === ontologyElementReference.iri
+            : reference.localId === ontologyElementReference.localId &&
+              reference.loadGeneration ===
+                ontologyElementReference.loadGeneration);
+        const occurrences =
+          ontologyElementReference === undefined
+            ? snapshot.occurrences
+            : snapshot.occurrences.filter((entry) =>
+                entry.ontologyElementReferences.some(sameReference),
+              );
+        return Object.freeze({
+          loadGeneration: snapshot.loadGeneration,
+          offset,
+          occurrenceCount: occurrences.length,
+          nextOffset:
+            offset + limit < occurrences.length ? offset + limit : null,
+          occurrences: Object.freeze(occurrences.slice(offset, offset + limit)),
+        });
+      } catch (cause) {
+        throw new WebVowlOperationError({
+          code: "VIEW_REJECTED",
+          message: cause.message,
+          cause,
+        });
+      }
+    },
+
+    async setVisualizationArrangement(request, { signal } = {}) {
+      assertCurrentDrawing();
+      const loadGeneration = currentOntologyGeneration;
+      try {
+        const arrangementRequest = createRenderedArrangementRequest(request);
+        const requestedIds = new Set(
+          arrangementRequest.changes.map(
+            ({ reference }) => reference.occurrenceId,
+          ),
+        );
+        const result = await renderedGraphRuntime.setRenderedArrangement(
+          arrangementRequest,
+          { signal },
+        );
+        throwWhenSuperseded(loadGeneration, signal);
+        return Object.freeze({
+          loadGeneration,
+          changedOccurrenceCount: requestedIds.size,
+          occurrences: Object.freeze(
+            result.occurrences.filter(({ reference }) =>
+              requestedIds.has(reference.occurrenceId),
+            ),
+          ),
+        });
+      } catch (cause) {
+        if (isAbortError(cause)) {
+          throw createLoadAbortedError(cause);
+        }
+        throw new WebVowlOperationError({
+          code: "VIEW_REJECTED",
+          message: cause.message,
+          cause,
+        });
+      }
+    },
+
+    async selectVisualizationElement(request, { signal } = {}) {
+      assertCurrentDrawing();
+      try {
+        signal?.throwIfAborted();
+        renderedGraphRuntime.selectRenderedOccurrence(
+          createRenderedOccurrenceSelectionRequest(request),
+        );
+        lastValidControllerState = controllerState;
+        return controllerState;
+      } catch (cause) {
+        if (isAbortError(cause)) {
+          throw createLoadAbortedError(cause);
+        }
+        throw new WebVowlOperationError({
+          code: "VIEW_REJECTED",
+          message: cause.message,
+          cause,
+        });
       }
     },
 
@@ -823,6 +1459,28 @@ export function createWebVowlController(dependencies) {
       });
     },
 
+    getVisualizationShareLink(request = {}) {
+      assertCurrentDrawing();
+      assertAllowedFieldNames(request, ["presentation"], "share-link request");
+      try {
+        return Object.freeze({
+          loadGeneration: currentOntologyGeneration,
+          url: createVisualizationShareLink(
+            applicationUrl,
+            controllerState,
+            request.presentation,
+          ),
+        });
+      } catch (error) {
+        throw new WebVowlOperationError({
+          code: "VIEW_REJECTED",
+          message: error.message,
+          cause: error,
+          isRetryable: false,
+        });
+      }
+    },
+
     async setVisualizationView(visualizationViewRequest, { signal } = {}) {
       assertOntologyPresent();
       const loadGeneration = currentOntologyGeneration;
@@ -845,13 +1503,21 @@ export function createWebVowlController(dependencies) {
           ];
         }
 
-        if (visualizationViewRequest?.layout === "resume") {
+        const validatedView = createVisualizationViewApplicationRequest({
+          loadGeneration,
+          ...resolvedVisualizationView,
+        });
+        throwWhenSuperseded(loadGeneration, cancellationSignal);
+        if (validatedView.layout !== undefined) {
+          layoutIntentSequence += 1;
+        }
+        if (validatedView.layout === "resume") {
           abortBackgroundLayoutObservation();
         }
 
         const viewApplicationResult = await applyRuntimeVisualizationView(
           loadGeneration,
-          resolvedVisualizationView,
+          validatedView,
           cancellationSignal,
         );
         const graphLayoutSnapshot = readGraphLayoutSnapshot();
@@ -892,6 +1558,7 @@ export function createWebVowlController(dependencies) {
         loadGeneration,
         isPaused: pauseRequest?.isPaused,
       });
+      layoutIntentSequence += 1;
       publishForGeneration(loadGeneration, {
         layout: { status: graphLayoutPauseResult.layoutStatus },
       });
@@ -962,6 +1629,7 @@ export function createWebVowlController(dependencies) {
           isRetryable: true,
         });
       }
+      layoutIntentSequence += 1;
       abortBackgroundLayoutObservation();
       try {
         const view = await renderedGraphRuntime.resetVisualization({ signal });
@@ -1010,106 +1678,38 @@ export function createWebVowlController(dependencies) {
     },
 
     async exportVisualization(exportRequest = {}, { signal } = {}) {
-      assertOntologyPresent();
-      assertAllowedFieldNames(
-        exportRequest,
-        EXPORT_REQUEST_FIELD_NAMES,
-        "export request",
-      );
-      const loadGeneration = currentOntologyGeneration;
-      const cancellationSignal = AbortSignal.any(
-        signal === undefined ? [] : [signal],
-      );
-      abortBackgroundLayoutObservation();
-
-      let priorPauseState;
-      let didPauseForExport = false;
-
+      if (activeExportOperation !== undefined) {
+        throw new WebVowlOperationError({
+          code: "EXPORT_FAILED",
+          message:
+            "An export is already in progress. Wait for it to finish before exporting again.",
+          isRetryable: true,
+        });
+      }
+      const exportOperation = { abortController: new AbortController() };
+      activeExportOperation = exportOperation;
+      const cancellationSignal = AbortSignal.any([
+        exportOperation.abortController.signal,
+        ...(signal === undefined ? [] : [signal]),
+      ]);
       try {
-        const layoutOutcome =
-          await graphLayoutSettler.waitForSettledGraphLayout(
-            {
-              loadGeneration,
-              readGraphLayoutSnapshot,
-              subscribeToGraphLayoutEvents,
-              settleTimeoutMs:
-                exportRequest.settleTimeoutMs ??
-                DEFAULT_EXPORT_SETTLE_TIMEOUT_MS,
-              onTimeout: exportRequest.onTimeout ?? "fail",
-            },
-            { signal: cancellationSignal },
-          );
-        throwWhenSuperseded(loadGeneration, cancellationSignal);
-
-        // Holding the layout still keeps the snapshot matching what settled.
-        // A layout that has already ended is still by itself, so pausing it
-        // achieves nothing and the restore afterwards would re-energise it —
-        // which is right when a reader resumes, and wrong as a side effect of
-        // exporting a graph they had watched come to rest.
-        const graphLayoutSnapshotBeforeCapture = readGraphLayoutSnapshot();
-        priorPauseState = graphLayoutSnapshotBeforeCapture.isPaused;
-        if (!graphLayoutSnapshotBeforeCapture.hasEnded && !priorPauseState) {
-          renderedGraphRuntime.setGraphLayoutPaused({
-            loadGeneration,
-            isPaused: true,
-          });
-          didPauseForExport = true;
-        }
-
-        await waitForDocumentFonts();
-        for (
-          let paintIndex = 0;
-          paintIndex < BROWSER_PAINT_WAIT_COUNT;
-          paintIndex += 1
-        ) {
-          await waitForBrowserPaint();
-        }
-        throwWhenSuperseded(loadGeneration, cancellationSignal);
-
-        const renderedSvgSnapshot =
-          renderedGraphRuntime.createRenderedSvgSnapshot({ loadGeneration });
-
-        return await svgArtifactService.createSvgArtifact(
-          {
-            renderedSvgSnapshot,
-            filename: exportRequest.filename,
-            viewRecipe: {
-              source: { ...currentSourceProvenance },
-              loadGeneration,
-              appliedVisualizationView: controllerState.view,
-              // The viewport the artifact was framed on, read from the
-              // snapshot itself. Taking it from the layout instead lets the
-              // recipe and the artifact disagree about the same picture.
-              viewportDimensions: {
-                widthPx: renderedSvgSnapshot.widthPx,
-                heightPx: renderedSvgSnapshot.heightPx,
-              },
-              layoutOutcome: {
-                status: layoutOutcome.status,
-                reason: layoutOutcome.reason,
-              },
-            },
-          },
-          { signal: cancellationSignal },
+        return await awaitExportCompletion(
+          exportCurrentVisualization(
+            exportRequest,
+            cancellationSignal,
+            exportOperation,
+          ),
+          cancellationSignal,
         );
       } catch (error) {
-        if (isExpectedOperationError(error)) {
-          throw error;
+        if (cancellationSignal.aborted || isAbortError(error)) {
+          throw createLoadAbortedError(error);
         }
         throw error;
       } finally {
-        if (
-          didPauseForExport &&
-          !isDisposed &&
-          loadGeneration === currentOntologyGeneration &&
-          loadGeneration === activeLoadGeneration
-        ) {
-          const restoredPauseResult = renderedGraphRuntime.setGraphLayoutPaused(
-            { loadGeneration, isPaused: priorPauseState },
-          );
-          publishForGeneration(loadGeneration, {
-            layout: { status: restoredPauseResult.layoutStatus },
-          });
+        exportOperation.restoreLayout?.();
+        if (activeExportOperation === exportOperation) {
+          activeExportOperation = undefined;
         }
       }
     },
@@ -1140,11 +1740,13 @@ export function createWebVowlController(dependencies) {
         return;
       }
       isDisposed = true;
+      retireActiveExport();
       activeLoadAbortController?.abort();
       abortBackgroundLayoutObservation();
       unsubscribeFromRenderedGraphEvents();
       stateSubscribers.clear();
       renderedGraphRuntime.dispose();
+      visualizationArtifactService.dispose();
     },
   });
 }

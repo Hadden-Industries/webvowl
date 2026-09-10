@@ -3,11 +3,11 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { SourceTextModule } from "node:vm";
 
-let SVG_ARTIFACT_DOWNLOAD_ELEMENT_IDS;
-let createSvgArtifactDownloadAdapter;
+let VISUALIZATION_ARTIFACT_DOWNLOAD_ELEMENT_IDS;
+let createVisualizationArtifactDownloadAdapter;
 
 const ADAPTER_MODULE_URL = new URL(
-  "./svgArtifactDownloadAdapter.js",
+  "./visualizationArtifactDownloadAdapter.js",
   import.meta.url,
 );
 
@@ -21,8 +21,10 @@ beforeAll(async () => {
   });
   await adapterModule.evaluate();
 
-  ({ SVG_ARTIFACT_DOWNLOAD_ELEMENT_IDS, createSvgArtifactDownloadAdapter } =
-    adapterModule.namespace);
+  ({
+    VISUALIZATION_ARTIFACT_DOWNLOAD_ELEMENT_IDS,
+    createVisualizationArtifactDownloadAdapter,
+  } = adapterModule.namespace);
 });
 
 class DownloadElementFixture {
@@ -67,6 +69,7 @@ class DownloadDocumentFixture {
 
 function createArtifactMetadata(overrides = {}) {
   return {
+    format: "svg",
     pageLocalArtifactId: "svg-artifact-1-1",
     filename: "person-organization.svg",
     mediaType: "image/svg+xml",
@@ -77,43 +80,83 @@ function createArtifactMetadata(overrides = {}) {
   };
 }
 
-describe("page-local SVG artifact download presentation", () => {
+describe("page-local Visualization artifact download presentation", () => {
   let documentObject;
-  let svgArtifactDownloadAdapter;
+  let visualizationArtifactDownloadAdapter;
 
   beforeEach(() => {
     documentObject = new DownloadDocumentFixture(
-      Object.values(SVG_ARTIFACT_DOWNLOAD_ELEMENT_IDS),
+      Object.values(VISUALIZATION_ARTIFACT_DOWNLOAD_ELEMENT_IDS),
     );
-    svgArtifactDownloadAdapter = createSvgArtifactDownloadAdapter({
-      documentObject,
-    });
+    visualizationArtifactDownloadAdapter =
+      createVisualizationArtifactDownloadAdapter({
+        documentObject,
+      });
   });
 
   function downloadElement(controlName) {
     return documentObject.getElementById(
-      SVG_ARTIFACT_DOWNLOAD_ELEMENT_IDS[controlName],
+      VISUALIZATION_ARTIFACT_DOWNLOAD_ELEMENT_IDS[controlName],
     );
   }
 
   test("publishes the object URL and filename onto the native download link", () => {
     const metadata = createArtifactMetadata();
 
-    svgArtifactDownloadAdapter.publishPageLocalSvgArtifact({
+    visualizationArtifactDownloadAdapter.publishPageLocalArtifact({
       metadata,
       objectUrl: "blob:webvowl-svg-1",
     });
 
-    expect(downloadElement("downloadLink").getAttribute("href")).toBe(
+    expect(downloadElement("svgDownloadLink").getAttribute("href")).toBe(
       "blob:webvowl-svg-1",
     );
-    expect(downloadElement("downloadLink").getAttribute("download")).toBe(
+    expect(downloadElement("svgDownloadLink").getAttribute("download")).toBe(
       "person-organization.svg",
     );
   });
 
+  test("publishes each format while keeping idle export links keyboard actionable", () => {
+    const controls = new DownloadDocumentFixture([
+      "exportSvg",
+      "exportJson",
+      "exportTurtle",
+      "exportTex",
+      "artifactPublicationStatus",
+    ]);
+    const adapter = createVisualizationArtifactDownloadAdapter({
+      documentObject: controls,
+    });
+    adapter.publishPageLocalArtifact({
+      metadata: createArtifactMetadata(),
+      objectUrl: "blob:svg",
+    });
+    adapter.publishPageLocalArtifact({
+      metadata: createArtifactMetadata({
+        format: "vowl-json",
+        mediaType: "application/json",
+        filename: "people.json",
+      }),
+      objectUrl: "blob:json",
+    });
+    for (const id of ["exportSvg", "exportTurtle", "exportTex"]) {
+      expect(controls.getElementById(id).getAttribute("href")).toBe("#");
+      expect(controls.getElementById(id).getAttribute("download")).toBeNull();
+    }
+    expect(controls.getElementById("exportJson").getAttribute("href")).toBe(
+      "blob:json",
+    );
+    expect(controls.getElementById("exportJson").getAttribute("download")).toBe(
+      "people.json",
+    );
+    adapter.dispose();
+    expect(
+      controls.getElementById("exportJson").getAttribute("href"),
+    ).toBeNull();
+  });
+
   test("shows a bounded status without interpreting it as markup", () => {
-    svgArtifactDownloadAdapter.publishPageLocalSvgArtifact({
+    visualizationArtifactDownloadAdapter.publishPageLocalArtifact({
       metadata: createArtifactMetadata({
         filename: "<img src=x onerror=alert(1)>.svg",
       }),
@@ -129,11 +172,11 @@ describe("page-local SVG artifact download presentation", () => {
   });
 
   test("replaces the previous artifact presentation without revoking its URL", () => {
-    svgArtifactDownloadAdapter.publishPageLocalSvgArtifact({
+    visualizationArtifactDownloadAdapter.publishPageLocalArtifact({
       metadata: createArtifactMetadata(),
       objectUrl: "blob:webvowl-svg-1",
     });
-    svgArtifactDownloadAdapter.publishPageLocalSvgArtifact({
+    visualizationArtifactDownloadAdapter.publishPageLocalArtifact({
       metadata: createArtifactMetadata({
         pageLocalArtifactId: "svg-artifact-1-2",
         filename: "second.svg",
@@ -141,21 +184,23 @@ describe("page-local SVG artifact download presentation", () => {
       objectUrl: "blob:webvowl-svg-2",
     });
 
-    expect(downloadElement("downloadLink").getAttribute("href")).toBe(
+    expect(downloadElement("svgDownloadLink").getAttribute("href")).toBe(
       "blob:webvowl-svg-2",
     );
-    expect(downloadElement("downloadLink").getAttribute("download")).toBe(
+    expect(downloadElement("svgDownloadLink").getAttribute("download")).toBe(
       "second.svg",
     );
-    expect(svgArtifactDownloadAdapter).not.toHaveProperty("revokeObjectURL");
+    expect(visualizationArtifactDownloadAdapter).not.toHaveProperty(
+      "revokeObjectURL",
+    );
   });
 
   test("presents a bounded failure as text and clears the stale download", () => {
-    svgArtifactDownloadAdapter.publishPageLocalSvgArtifact({
+    visualizationArtifactDownloadAdapter.publishPageLocalArtifact({
       metadata: createArtifactMetadata(),
       objectUrl: "blob:webvowl-svg-1",
     });
-    svgArtifactDownloadAdapter.presentSvgArtifactFailure({
+    visualizationArtifactDownloadAdapter.presentArtifactFailure({
       code: "EXPORT_FAILED",
       message: "The SVG artifact could not be created in this browser.",
     });
@@ -166,31 +211,41 @@ describe("page-local SVG artifact download presentation", () => {
       "The SVG artifact could not be created in this browser.",
     );
     expect(statusElement.assignedInnerHtml).toBeNull();
-    expect(downloadElement("downloadLink").getAttribute("href")).toBeNull();
+    for (const name of [
+      "svgDownloadLink",
+      "turtleDownloadLink",
+      "vowlJsonDownloadLink",
+      "latexDownloadLink",
+    ]) {
+      expect(downloadElement(name).getAttribute("href")).toBe("#");
+      expect(downloadElement(name).getAttribute("download")).toBeNull();
+    }
   });
 
   test("hides its status and clears the link on disposal, idempotently", () => {
-    svgArtifactDownloadAdapter.publishPageLocalSvgArtifact({
+    visualizationArtifactDownloadAdapter.publishPageLocalArtifact({
       metadata: createArtifactMetadata(),
       objectUrl: "blob:webvowl-svg-1",
     });
 
-    svgArtifactDownloadAdapter.dispose();
-    svgArtifactDownloadAdapter.dispose();
+    visualizationArtifactDownloadAdapter.dispose();
+    visualizationArtifactDownloadAdapter.dispose();
 
-    expect(downloadElement("downloadLink").getAttribute("href")).toBeNull();
-    expect(downloadElement("downloadLink").getAttribute("download")).toBeNull();
+    expect(downloadElement("svgDownloadLink").getAttribute("href")).toBeNull();
+    expect(
+      downloadElement("svgDownloadLink").getAttribute("download"),
+    ).toBeNull();
     expect(downloadElement("publicationStatus").hidden).toBe(true);
   });
 
   test("tolerates a page that provides no export controls", () => {
     const emptyDocument = new DownloadDocumentFixture([]);
-    const detachedAdapter = createSvgArtifactDownloadAdapter({
+    const detachedAdapter = createVisualizationArtifactDownloadAdapter({
       documentObject: emptyDocument,
     });
 
     expect(() =>
-      detachedAdapter.publishPageLocalSvgArtifact({
+      detachedAdapter.publishPageLocalArtifact({
         metadata: createArtifactMetadata(),
         objectUrl: "blob:webvowl-svg-1",
       }),
@@ -200,9 +255,9 @@ describe("page-local SVG artifact download presentation", () => {
 
   test("rejects dependencies outside the presentation interface", () => {
     expect(() =>
-      createSvgArtifactDownloadAdapter({
+      createVisualizationArtifactDownloadAdapter({
         documentObject,
-        svgArtifactService: {},
+        visualizationArtifactService: {},
       }),
     ).toThrow("invalid dependency field set");
   });

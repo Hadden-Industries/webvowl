@@ -4,6 +4,9 @@ import {
   truncateResultCollection,
   WEB_VOWL_OPERATION_LIMITS,
 } from "./webVowlControllerContracts.js";
+import { createLanguageTools } from "../../../shared/js/util/languageTools.js";
+
+const languageTools = createLanguageTools();
 
 const SEARCHABLE_ONTOLOGY_ELEMENT_KINDS = Object.freeze([
   "class",
@@ -146,14 +149,13 @@ function createVisibleReferenceKeySet(visibleRenderedGraphSnapshot) {
 }
 
 function selectLocalizedText(localizedTextRecords, selectedLanguage) {
-  if (localizedTextRecords.length === 0) {
-    return null;
-  }
-  const selectedRecord =
-    localizedTextRecords.find(
-      ({ languageTag }) => languageTag === selectedLanguage,
-    ) ?? localizedTextRecords[0];
-  return selectedRecord.text;
+  const textByLanguage = Object.fromEntries(
+    localizedTextRecords.map(({ languageTag, text }) => [
+      languageTag ?? "undefined",
+      text,
+    ]),
+  );
+  return languageTools.textInLanguage(textByLanguage, selectedLanguage) ?? null;
 }
 
 function boundOntologyDerivedText(ontologyDerivedText, truncationTracker) {

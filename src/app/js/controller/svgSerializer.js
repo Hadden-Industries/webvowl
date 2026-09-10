@@ -20,6 +20,7 @@ const SVG_VIEW_RECIPE_FIELD_NAMES = Object.freeze([
 const SOURCE_PROVENANCE_FIELD_NAMES = Object.freeze([
   "kind",
   "identity",
+  "displayName",
   "sha256Hex",
 ]);
 const VIEWPORT_DIMENSION_FIELD_NAMES = Object.freeze(["widthPx", "heightPx"]);
@@ -130,16 +131,20 @@ function createSourceProvenance(source) {
     SOURCE_PROVENANCE_FIELD_NAMES,
     "view recipe source",
   );
-  if (!("kind" in source) || !("identity" in source)) {
-    throw new TypeError("view recipe source requires kind and identity.");
+  if (!("kind" in source)) {
+    throw new TypeError("view recipe source requires its source kind.");
   }
   assertNonEmptyString(source.kind, "source.kind");
-  assertNonEmptyString(source.identity, "source.identity");
 
   const normalizedSource = {
     kind: source.kind,
-    identity: source.identity,
   };
+  for (const name of ["identity", "displayName"]) {
+    if (source[name] !== undefined) {
+      assertNonEmptyString(source[name], `source.${name}`);
+      normalizedSource[name] = source[name];
+    }
+  }
   if (source.sha256Hex !== undefined) {
     if (typeof source.sha256Hex !== "string") {
       throw new TypeError("source.sha256Hex must be a string when provided.");

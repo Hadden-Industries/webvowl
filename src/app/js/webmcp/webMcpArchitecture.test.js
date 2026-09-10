@@ -49,7 +49,7 @@ const WEB_MCP_TOOL_NAMES = Object.freeze([
 const SINGLE_IMPLEMENTATION_FACTORY_NAMES = Object.freeze([
   "createWebVowlController",
   "createOntologySourceLoader",
-  "createSvgArtifactService",
+  "createVisualizationArtifactService",
   "registerWebMcpTools",
 ]);
 

@@ -2,8 +2,8 @@ import { createOntologyInspectionSnapshot } from "./renderedGraphRuntimeContract
 
 // VOWL states a subclass or disjointness relation as a property record whose
 // domain and range name the two classes, rather than as a field on the class.
-const SUBCLASS_PROPERTY_TYPE = "rdfs:subClassOf";
-const DISJOINT_PROPERTY_TYPE = "owl:disjointWith";
+const SUBCLASS_PROPERTY_TYPE = "rdfs:subclassof";
+const DISJOINT_PROPERTY_TYPE = "owl:disjointwith";
 
 function vowlBaseRecords(vowlModelCollection) {
   return Array.isArray(vowlModelCollection) ? vowlModelCollection : [];
@@ -243,9 +243,12 @@ function collectClassRelationEdges(mergedProperties) {
     if (domainId === undefined || rangeId === undefined) {
       continue;
     }
-    if (mergedProperty.type === SUBCLASS_PROPERTY_TYPE) {
+    // VOWL's renderer matches its type tokens without case distinctions. This
+    // does not normalize the IRIs identifying ontology elements.
+    const propertyType = mergedProperty.type?.toLowerCase();
+    if (propertyType === SUBCLASS_PROPERTY_TYPE) {
       addEdge(superclassIdsBySubclassId, domainId, rangeId);
-    } else if (mergedProperty.type === DISJOINT_PROPERTY_TYPE) {
+    } else if (propertyType === DISJOINT_PROPERTY_TYPE) {
       addEdge(disjointIdsByClassId, domainId, rangeId);
       addEdge(disjointIdsByClassId, rangeId, domainId);
     }
@@ -393,7 +396,9 @@ export function projectOntologyInspectionSnapshot(vowlModel, loadGeneration) {
     loadGeneration,
     ontologyHeaderRecord: {
       ontologyIri:
-        typeof ontologyHeader.iri === "string" ? ontologyHeader.iri : null,
+        typeof ontologyHeader.iri === "string" && ontologyHeader.iri.length > 0
+          ? ontologyHeader.iri
+          : null,
       versionInformationText:
         typeof ontologyHeader.version === "string"
           ? ontologyHeader.version

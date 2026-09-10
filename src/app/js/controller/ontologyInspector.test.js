@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { SourceTextModule } from "node:vm";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let WEB_VOWL_OPERATION_LIMITS;
 let createOntologyInspectionSnapshot;
@@ -54,25 +55,13 @@ beforeAll(async () => {
   });
   await renderedGraphContractsModule.evaluate();
 
-  const inspectorModule = new SourceTextModule(
-    readFileSync(fileURLToPath(INSPECTOR_MODULE_URL), "utf8"),
-    { identifier: INSPECTOR_MODULE_URL.href },
-  );
-  await inspectorModule.link((specifier) => {
-    if (specifier === "./renderedGraphRuntimeContracts.js") {
-      return renderedGraphContractsModule;
-    }
-    if (specifier === "./webVowlControllerContracts.js") {
-      return webVowlContractsModule;
-    }
-    throw new Error(`Unexpected ontology inspector dependency: ${specifier}`);
-  });
-  await inspectorModule.evaluate();
-
   ({ WEB_VOWL_OPERATION_LIMITS } = webVowlContractsModule.namespace);
   ({ createOntologyInspectionSnapshot, createVisibleRenderedGraphSnapshot } =
     renderedGraphContractsModule.namespace);
-  ({ createOntologyInspector } = inspectorModule.namespace);
+  ({ createOntologyInspector } = await loadEsmModuleForTest(
+    INSPECTOR_MODULE_URL,
+    import.meta.url,
+  ));
 });
 
 function englishLabel(text) {
@@ -498,6 +487,34 @@ describe("ontology element search", () => {
       createSearchRequest(overrides),
     );
   }
+
+  test.each([
+    ["en", "person"],
+    ["default", "person"],
+    ["IRI-based", "aqfo_00002008"],
+  ])(
+    "uses the human label fallback for language %s",
+    (language, expectedLabel) => {
+      const result = findMatches({
+        query: "person",
+        language,
+        ontologyInspectionSnapshot: createInspectionSnapshot({
+          classRecords: [
+            classRecord({
+              iri: PERSON_IRI,
+              labelRecords: [
+                { languageTag: "IRI-based", text: "aqfo_00002008" },
+                { languageTag: null, text: "person" },
+              ],
+            }),
+          ],
+        }),
+      });
+      expect(
+        result.matches.find((match) => match.iri === PERSON_IRI).displayLabel,
+      ).toBe(expectedLabel);
+    },
+  );
 
   test("ranks exact label, label prefix, label contains, then IRI contains", () => {
     const searchResult = findMatches({ query: "Person" });

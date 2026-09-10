@@ -83,7 +83,7 @@ module.exports = [
   // opened outside this page carries no stylesheet with it.
   {
     files: ["src/**/*.js"],
-    ignores: ["**/*.test.js", "src/app/js/menu/exportMenu.js", "src/webvowl/js/runtime/renderedSvgExportClone.js"],
+    ignores: ["**/*.test.js", "src/app/js/controller/tikzSerializer.js", "src/webvowl/js/runtime/renderedSvgExportClone.js"],
     rules: {
       "no-restricted-syntax": [
         "error",
@@ -123,7 +123,7 @@ module.exports = [
     }
   },
   {
-    files: ["src/app/js/menu/exportMenu.js", "src/webvowl/js/runtime/renderedSvgExportClone.js"],
+    files: ["src/app/js/controller/tikzSerializer.js", "src/webvowl/js/runtime/renderedSvgExportClone.js"],
     rules: {
       "no-restricted-syntax": [
         "error",

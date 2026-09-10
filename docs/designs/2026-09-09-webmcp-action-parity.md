@@ -51,7 +51,9 @@ Turtle has no native browser serializer. The pinned owlapi public exports explic
 defer concrete storers (`node_modules/owlapi/index.js`); importing its private or
 transitive implementation would violate application dependency ownership. The
 current UI exporter hand-builds Turtle and mutates renderer elements to store prefix
-representations. Moving that code alone would retain unnecessary format policy.
+representations. The owner explicitly directed preservation of that generation logic
+on 2026-09-09: this initiative wires Turtle export only. Its content correctness and
+eventual replacement by a public owlapi storer are separate work.
 
 The maintained [N3.js writer](https://github.com/rdfjs/N3.js#writing) accepts RDF/JS
 terms and owns Turtle serialization and escaping. Registry lookup on 2026-09-09
@@ -62,17 +64,17 @@ of the copyright and permission notice. This is compatible with retaining this
 application's AGPL terms; no relicensing is proposed. Browser bundling and actual
 installed notice retention still require verification after installation.
 
-**Proposed smallest configuration change, pending exact owner approval:** add
-`"n3": "2.7.12"` under `package.json` dependencies and let npm update only the
-corresponding root dependency and necessary resolution entries in `package-lock.json`.
-Install from the registry with lifecycle scripts disabled. Retain the owlapi pin,
-its independently resolved dependencies, all scripts and bundler settings.
+The N3 research above is retained as an evaluated alternative. The proposed N3
+dependency and new VOWL-to-RDF/JS mapping are withdrawn under that owner decision;
+neither package.json nor package-lock.json changes for Turtle wiring.
 
-The residual custom work is WebVOWL's mapping from a validated ontology snapshot
-to RDF/JS terms. Test independent expected triples, including Unicode/escaping,
-anonymous identity and class/property relationships; validate the emitted Turtle
-through owlapi's public parser. A serializer cannot recover ontology facts that
-were never represented in a VOWL model; retain truthful export provenance.
+Move the existing generation code to `runtime/ontologyTurtleSerializer.js` beneath
+the renderer boundary, preserving its content-generating helpers. The runtime's
+`createTurtleDocumentSnapshot` returns only generation and generated text. The
+controller routes human and WebMCP requests to the same artifact publication owner,
+which hashes and publishes those bytes verbatim, without layout settlement. This
+does not certify the existing Turtle as semantically complete or syntactically valid
+for every ontology. Preserve the original generation test and source evidence.
 
 LaTeX remains WebVOWL-specific TikZ drawing output. Preserve the existing drawing
 semantics while extracting immutable rendered geometry under the renderer owner;
@@ -148,7 +150,10 @@ The renderer replacement contract takes the generation, model and optional
 initial visualization choices. Loading and recovery must work for local sources
 without a remote identity or a name.
 Ontology summaries retain the actual optional identity/name from provenance.
-The shared `maxInlineDocumentBytes` limit is 1 MiB of UTF-8 for either text kind.
+Human document input uses the pinned owlapi parser's native input-byte limit
+(currently 32 MiB), including VOWL JSON text. WebMCP separately limits supplied
+text to 1 MiB of UTF-8. That agent input ceiling must not reject an otherwise
+supported human file or pasted document.
 Pasted JSON-LD remains ontology syntax text. Direct input labels the action Load.
 
 Source adapters retain the accepted drawing while the controller validates a
@@ -213,6 +218,39 @@ and label width. Native URL and URLSearchParams parsing preserves an ontology IR
 fragment. Links name the accepted remote source, rather than the location left by
 an earlier load; local documents require a file export to share their content.
 Experimental editor and sidebar presentation options remain human UI concerns.
+
+## Artifact capture and publication
+
+SVG, VOWL JSON and LaTeX use `visualizationArtifactService` for native Blob
+creation, exact-byte SHA-256, single-current object URL ownership and publication.
+The menu and agent caller invoke the same controller export operation. JSON
+serializes a detached canonical document with the current arrangement and applied
+settings; it neither waits for settlement nor changes layout motion. SVG and
+LaTeX wait for settlement, fonts and paint before taking a detached snapshot.
+The runtime captures LaTeX drawing values in graph pixels; `tikzSerializer`
+retains WebVOWL's established shapes and link presentation while escaping labels
+as text. It reads no renderer objects or live DOM.
+
+Only one export owns capture at a time. Replacement, disposal and caller
+cancellation retire it before obsolete bytes can be published. A temporary
+capture pause is restored only in its own generation and only if no validated
+layout intent has replaced it. A rejected view/reset request is not such an
+intent. Native browser checks on FOAF verified exact SVG, JSON and LaTeX hashes,
+JSON saved pause, SVG XML parsing and finite TikZ output. This does not establish
+TeX-engine compilation or a downloaded local file.
+
+The owner approved moving the two existing export exception paths in
+`eslint.config.js` from the menu to the TikZ serializer on 2026-09-09. This
+restores the normal style restrictions on the menu; the serializer's TeX
+`/.style` declarations are not HTML style attributes.
+
+The existing TikZ consumer remains PGF/TikZ. The current
+[CTAN package](https://ctan.org/pkg/pgf) is 3.1.12; its listed distribution terms
+are LPPL 1.3c, GPL-2.0 and FDL for the corresponding package components. No PGF
+code is bundled or installed by this application change. The generated file
+retains the existing TikZ/LaTeX package requirements, including graphicx for
+resizebox. No `pdflatex` executable was found on the verification host's PATH;
+actual TeX compilation remains an explicit verification gap.
 
 The node-degree algorithm owns its observed maximum, automatic minimum and applied
 minimum. A degree is a non-negative safe integer; the former agent-only cap of 100

@@ -7,11 +7,11 @@ import { createGraphLayoutSettler } from "./controller/graphLayoutSettler.js";
 import { createOntologyInspector } from "./controller/ontologyInspector.js";
 import { createOntologySourceLoader } from "./controller/ontologySourceLoader.js";
 import { vowlModelInspectionProjector } from "./controller/vowlModelInspectionProjector.js";
-import { createSvgArtifactService } from "./controller/svgArtifactService.js";
+import { createVisualizationArtifactService } from "./controller/visualizationArtifactService.js";
 import { createSvgSerializer } from "./controller/svgSerializer.js";
 import { createWebVowlController } from "./controller/webVowlController.js";
 import { registerWebMcpTools } from "./webmcp/webMcpAdapter.js";
-import { createSvgArtifactDownloadAdapter } from "./ui/svgArtifactDownloadAdapter.js";
+import { createVisualizationArtifactDownloadAdapter } from "./ui/visualizationArtifactDownloadAdapter.js";
 import { createColorExternalsSwitch } from "../../webvowl/js/runtime/colorExternalsSwitch.js";
 import { createCompactNotationSwitch } from "../../shared/js/modules/compactNotationSwitch.js";
 import { createConstants } from "../../shared/js/util/constants.js";
@@ -106,9 +106,10 @@ export function createWebVowlApplication() {
 
   // Agent-neutral controller. Embedding hosts and WebMCP reach WebVOWL through
   // this interface rather than through the renderer.
-  const svgArtifactDownloadAdapter = createSvgArtifactDownloadAdapter({
-    documentObject: document,
-  });
+  const visualizationArtifactDownloadAdapter =
+    createVisualizationArtifactDownloadAdapter({
+      documentObject: document,
+    });
   // One production rendering path: the adapter owns the renderer implementation
   const renderedGraphConfiguration = createRenderedGraphConfiguration();
   const waitForBrowserPaint = createBrowserPaintObserver({
@@ -126,6 +127,7 @@ export function createWebVowlApplication() {
 
   let unsubscribeFromControllerState;
   const webVowlController = createWebVowlController({
+    applicationUrl: globalThis.location.href,
     ontologySourceLoader: createOntologySourceLoader(),
     vowlModelInspectionProjector,
     renderedGraphRuntime,
@@ -137,7 +139,7 @@ export function createWebVowlApplication() {
         globalThis.cancelAnimationFrame(frameHandle),
       nowMs: () => globalThis.performance.now(),
     }),
-    svgArtifactService: createSvgArtifactService({
+    visualizationArtifactService: createVisualizationArtifactService({
       svgSerializer: createSvgSerializer({
         XMLSerializerConstructor: globalThis.XMLSerializer,
         documentObject: document,
@@ -146,7 +148,8 @@ export function createWebVowlApplication() {
       webCrypto: globalThis.crypto,
       BlobConstructor: globalThis.Blob,
       objectUrlApi: globalThis.URL,
-      svgArtifactPublicationPort: svgArtifactDownloadAdapter,
+      visualizationArtifactPublicationPort:
+        visualizationArtifactDownloadAdapter,
     }),
     waitForDocumentFonts: () => document.fonts?.ready ?? Promise.resolve(),
     waitForBrowserPaint,
@@ -170,7 +173,10 @@ export function createWebVowlApplication() {
     graphWidthPx: renderedGraphConfiguration.width,
     graphHeightPx: renderedGraphConfiguration.height,
   });
-  const exportMenu = createExportMenu(graph, { webVowlController });
+  const exportMenu = createExportMenu(graph, {
+    webVowlController,
+    visualizationArtifactDownloadAdapter,
+  });
   const searchMenu = createSearchMenu(graph, { webVowlController });
   const resetMenu = createResetMenu({ webVowlController });
   const ontologyMenu = createOntologyMenu(graph, { webVowlController });
@@ -216,7 +222,7 @@ export function createWebVowlApplication() {
     unsubscribeFromControllerState?.();
     unsubscribeFromControllerState = undefined;
     webVowlController.dispose();
-    svgArtifactDownloadAdapter.dispose();
+    visualizationArtifactDownloadAdapter.dispose();
   };
   // app.afterInitializationCallback=undefined;
 

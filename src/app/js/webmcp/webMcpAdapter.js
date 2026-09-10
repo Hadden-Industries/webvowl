@@ -3,7 +3,7 @@ import {
   createWebMcpToolDispatch,
 } from "./webMcpToolContracts.js";
 
-// Registers this page's five tools with the host, and withdraws them when the
+// Registers this page's declared tools with the host, and withdraws them when the
 // page is done. Everything an agent can reach goes through the controller, so
 // this module knows nothing about the renderer, the DOM of the visualization,
 // or how a graph is drawn.

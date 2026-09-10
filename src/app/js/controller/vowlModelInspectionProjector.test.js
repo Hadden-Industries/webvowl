@@ -58,6 +58,53 @@ function countPopulated(elementRecords, relationFieldName) {
 }
 
 describe("projection of a shipped VOWL model", () => {
+  test.each(["rdfs:SubClassOf", "rdfs:subClassOf"])(
+    "projects %s using the same type matching as the renderer",
+    (type) => {
+      const snapshot = projectOntologyInspectionSnapshot(
+        {
+          class: [
+            { id: "118", type: "owl:Class" },
+            { id: "231", type: "owl:Class" },
+          ],
+          classAttribute: [
+            { id: "118", iri: "http://w3id.org/aqfo/aqfo_00002008" },
+            { id: "231", iri: "http://w3id.org/aqfo/aqfo_00002214" },
+          ],
+          property: [{ id: "476", type }],
+          propertyAttribute: [{ id: "476", domain: "118", range: "231" }],
+        },
+        2,
+      );
+      // This direction is asserted in the pinned AQFO RDF/XML, even if unexpected.
+      expect(snapshot.classRecords[0].superclassReferences).toEqual([
+        { kind: "class", iri: "http://w3id.org/aqfo/aqfo_00002214" },
+      ]);
+      expect(snapshot.classRecords[1].superclassReferences).toEqual([]);
+    },
+  );
+
+  test.each(["", "Version 1"])(
+    "preserves version text %p including the converter's empty default",
+    (version) => {
+      const model = structuredClone(FOAF_VOWL_MODEL);
+      model.header.version = version;
+      const snapshot = projectOntologyInspectionSnapshot(model, 1);
+      expect(snapshot.ontologyHeaderRecord.versionInformationText).toBe(
+        version,
+      );
+    },
+  );
+
+  test("treats an empty ontology IRI sentinel as unnamed, without erasing empty version text", () => {
+    const model = structuredClone(FOAF_VOWL_MODEL);
+    model.header.iri = "";
+    model.header.version = "";
+    const snapshot = projectOntologyInspectionSnapshot(model, 1);
+    expect(snapshot.ontologyHeaderRecord.ontologyIri).toBeNull();
+    expect(snapshot.ontologyHeaderRecord.versionInformationText).toBe("");
+  });
+
   test("recovers identity and labels the model keeps in its attribute lists", () => {
     const snapshot = projectOntologyInspectionSnapshot(FOAF_VOWL_MODEL, 1);
 

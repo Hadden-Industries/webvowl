@@ -82,6 +82,37 @@ beforeAll(async () => {
   } = renderedGraphRuntimeContractsModule.namespace);
 });
 
+test("reports the selected document record independently of semantic IRI selection", () => {
+  const source = {
+    kind: "document-record-selection-changed",
+    loadGeneration: 3,
+    payload: { recordTarget: { collection: "class", recordId: "a" } },
+  };
+  const event = createRenderedGraphEvent(source);
+  source.payload.recordTarget.recordId = "b";
+  expect(event.payload.recordTarget).toEqual({
+    collection: "class",
+    recordId: "a",
+  });
+  expect(Object.isFrozen(event.payload.recordTarget)).toBe(true);
+  expect(
+    createRenderedGraphEvent({ ...source, payload: { recordTarget: null } })
+      .payload.recordTarget,
+  ).toBeNull();
+  expect(() =>
+    createRenderedGraphEvent({
+      ...source,
+      payload: {
+        recordTarget: {
+          collection: "class",
+          recordId: "a",
+          iri: "https://example.test/",
+        },
+      },
+    }),
+  ).toThrow();
+});
+
 const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
 
 // Every element record carries the same descriptive fields; a fixture only
@@ -245,12 +276,17 @@ describe("rendered graph runtime interface", () => {
       "applyVisualizationView",
       "readVisibleRenderedGraphSnapshot",
       "readGraphLayoutSnapshot",
+      "readRenderedArrangement",
+      "setRenderedArrangement",
+      "selectRenderedOccurrence",
       "setGraphLayoutPaused",
       "setContinuousZoom",
       "setForceLayoutDistances",
       "setVisualizationModes",
       "resetVisualization",
       "createRenderedSvgSnapshot",
+      "createRenderedDrawingSnapshot",
+      "createTurtleDocumentSnapshot",
       "subscribeToRenderedGraphEvents",
       "dispose",
     ]);
@@ -358,6 +394,8 @@ describe("rendered graph events", () => {
       "render-progress-changed",
       "render-warning-raised",
       "rendered-element-selection-changed",
+      "document-record-selection-changed",
+      "record-label-edit-requested",
       "viewport-changed",
       "visualization-view-changed",
       "degree-filter-range-changed",

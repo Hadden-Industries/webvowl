@@ -55,13 +55,8 @@ const BaseProperty = (function () {
     let shapeElement;
     let textElement;
     let parent_labelObject;
-    let backupFullIri;
 
     let redundantProperties = [];
-
-    this.existingPropertyIRI = function (url) {
-      return graph.options().editSidebar().checkForExistingURL(url);
-    };
 
     this.getHalos = function () {
       return haloGroupElement;
@@ -921,7 +916,7 @@ const BaseProperty = (function () {
       if (fobj !== undefined) {
         that.labelElement().selectAll(".foreignelements").remove();
       }
-      backupFullIri = undefined;
+      const labelEditEpoch = graph.currentRenderInteractionEpoch();
       graph.dispatchEvent(
         new CustomEvent("elementfocused", { detail: { element: undefined } }),
       );
@@ -1000,37 +995,12 @@ const BaseProperty = (function () {
         .on("keydown", function (event) {
           if (event.key === "Enter") {
             this.blur();
-            that.frozen(false); // << releases the not after selection
-            that.locked(false);
           }
         })
-        .on("keyup", function (event) {
-          let syncedIRI = null;
-          if (forceIRISync) {
-            const labelName = editText.node().value;
-            const resourceName = labelName.replaceAll(" ", "_");
-            syncedIRI = that.baseIri() + resourceName;
-            backupFullIri = syncedIRI;
+        .on("blur", function () {
+          if (!that.editingTextElement) {
+            return;
           }
-          let prefixedIri = null;
-          if (forceIRISync) {
-            prefixedIri = graph
-              .ontologyEditingState()
-              .prefixModule()
-              .getPrefixRepresentationForFullURI(syncedIRI);
-          }
-          graph.dispatchEvent(
-            new CustomEvent("editor-element-keyup", {
-              detail: {
-                element: that,
-                label: editText.node().value,
-                syncedIRI: forceIRISync ? syncedIRI : null,
-                prefixedIri: prefixedIri,
-              },
-            }),
-          );
-        })
-        .on("blur", function (event) {
           that.editingTextElement = false;
           ignoreLocalHoverEvents = false;
           that
@@ -1039,70 +1009,24 @@ const BaseProperty = (function () {
             .classed("hoveredForEditing", false);
           const newLabel = editText.node().value;
           that.labelElement().selectAll(".foreignelements").remove();
-          // that.setLabelForCurrentLanguage(classNameConvention(editText.node().value));
-          that.label(newLabel);
-          that.backupLabel(newLabel);
-          that.redrawLabelText();
-          if (graph !== undefined) {
-            graph.dispatchEvent(new CustomEvent("dictionarychange"));
-          }
-          updateHoverElements(true);
-          graph.showHoverElementsAfterAnimation(that, false);
-          graph.ignoreOtherHoverEvents(false);
-
           that.frozen(graph.paused());
           that.locked(graph.paused());
           that.domain().frozen(graph.paused());
           that.domain().locked(graph.paused());
           that.range().frozen(graph.paused());
           that.range().locked(graph.paused());
+          graph.ignoreOtherHoverEvents(false);
           graph.removeEditElements();
-          if (backupFullIri) {
-            // console.log("Checking if element is Identical ?");
-            const sanityCheckResult = graph
-              .options()
-              .editSidebar()
-              .checkProperIriChange(that, backupFullIri);
-            if (sanityCheckResult !== false) {
-              graph.raiseRenderWarning(
-                "DUPLICATE_PROPERTY_IRI",
-                "Input IRI: " +
-                  backupFullIri +
-                  " for element: " +
-                  that.labelForCurrentLanguage() +
-                  " already been set. Continuing with duplicate property!",
-              );
-            }
-            that.iri(backupFullIri);
-          }
-          graph.dispatchEvent(
-            new CustomEvent("elementfocused", {
-              detail: { element: undefined },
-            }),
+          // The application validates and accepts this revision. The drawn
+          // record remains a projection of the previously accepted document.
+          graph.requestRecordLabelEdit(
+            that.id(),
+            newLabel,
+            forceIRISync === true,
+            labelEditEpoch,
           );
-          graph.dispatchEvent(
-            new CustomEvent("elementfocused", { detail: { element: that } }),
-          );
-          graph.updatePropertyDraggerElements(that);
         }); // add a foreiner element to this thing;
     };
-
-    // update hover elements
-    function updateHoverElements(enable) {
-      if (graph.ignoreOtherHoverEvents() === false) {
-        let inversed = false;
-        if (
-          that.inverse() &&
-          that.labelElement() &&
-          that.labelElement().attr("transform") === "translate(0,15)"
-        ) {
-          inversed = true;
-        }
-        if (enable === true) {
-          graph.activateHoverElementsForProperties(enable, that, inversed);
-        }
-      }
-    }
 
     that.copyInformation = function (other) {
       that.label(other.label());

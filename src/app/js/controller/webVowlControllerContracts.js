@@ -2,10 +2,12 @@ const WEB_VOWL_OPERATION_ERROR_CODES = Object.freeze([
   "NO_ONTOLOGY",
   "SOURCE_REJECTED",
   "LOAD_ABORTED",
+  "LOAD_FAILED",
   "FETCH_FAILED",
   "PARSE_FAILED",
   "IMPORT_FAILED",
   "VIEW_REJECTED",
+  "EDIT_REJECTED",
   "ELEMENT_NOT_FOUND",
   "LAYOUT_TIMEOUT",
   "EXPORT_FAILED",
@@ -21,6 +23,7 @@ export const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "translation",
   "layout",
   "selection",
+  "selectedDocumentRecord",
   "renderProgress",
   "degreeFilterRange",
   "editorMode",
@@ -32,6 +35,7 @@ export const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
 // ontology.
 export const GENERATION_SCOPED_CONTROLLER_STATE_FIELDS = Object.freeze({
   selection: Object.freeze([]),
+  selectedDocumentRecord: null,
   renderProgress: null,
   degreeFilterRange: null,
   zoomScale: null,
@@ -45,9 +49,17 @@ const ONTOLOGY_ELEMENT_KINDS = Object.freeze([
   "property",
 ]);
 
-const DEFAULT_SVG_FILENAME = "webvowl-visualization.svg";
-const SVG_FILENAME_SUFFIX = ".svg";
-const MAX_NORMALIZED_SVG_FILENAME_CHARACTERS = 128;
+const DEFAULT_VISUALIZATION_BASENAME = "webvowl-visualization";
+const MAX_NORMALIZED_VISUALIZATION_FILENAME_CHARACTERS = 128;
+export const VISUALIZATION_ARTIFACT_FORMATS = Object.freeze({
+  svg: Object.freeze({ suffix: ".svg", mediaType: "image/svg+xml" }),
+  "vowl-json": Object.freeze({
+    suffix: ".json",
+    mediaType: "application/json",
+  }),
+  turtle: Object.freeze({ suffix: ".ttl", mediaType: "text/turtle" }),
+  latex: Object.freeze({ suffix: ".tex", mediaType: "application/x-tex" }),
+});
 const MAX_PUBLIC_ERROR_DETAIL_FIELD_COUNT = 10;
 const MAX_PUBLIC_ERROR_DETAIL_FIELD_NAME_CHARACTERS = 64;
 const PORTABLE_FILENAME_UNSAFE_PUNCTUATION = '<>:"|?*';
@@ -58,7 +70,6 @@ const validatedWebVowlOperationErrorInstances = new WeakSet();
 
 export const WEB_VOWL_OPERATION_LIMITS = Object.freeze({
   maxRemoteSourceLocationCharacters: 2048,
-  maxInlineDocumentBytes: 1024 * 1024,
   // Focus is a domain limit: the visible graph focuses at most this many
   // elements. Bounding *search results* is a protocol concern and belongs to
   // the WebMCP tool contract, so the interface can list every match.
@@ -230,13 +241,13 @@ export function toPublicWebVowlError(operationError) {
   });
 }
 
-function normalizedSvgBasename(filename) {
+function normalizedVisualizationBasename(filename, suffixPattern) {
   const pathSegments = filename.normalize("NFC").split(/[\\/]/u);
   const finalPathSegment = pathSegments.at(-1) ?? "";
-  const basenameWithoutSvgSuffix = finalPathSegment
+  const basenameWithoutSuffix = finalPathSegment
     .trim()
-    .replace(/(?:\.svg|[ .])+$/iu, "");
-  return [...basenameWithoutSvgSuffix]
+    .replace(suffixPattern, "");
+  return [...basenameWithoutSuffix]
     .map((character) => {
       const characterCodePoint = character.codePointAt(0);
       const isControlCharacter =
@@ -255,30 +266,40 @@ function prefixWindowsReservedDeviceBasename(basename) {
     : basename;
 }
 
-export function normalizeSvgFilename(filename = DEFAULT_SVG_FILENAME) {
+export function normalizeVisualizationFilename(
+  filename = DEFAULT_VISUALIZATION_BASENAME,
+  format = "svg",
+) {
+  if (!Object.hasOwn(VISUALIZATION_ARTIFACT_FORMATS, format)) {
+    throw new TypeError("Unsupported visualization artifact format.");
+  }
+  const { suffix } = VISUALIZATION_ARTIFACT_FORMATS[format];
+  const suffixPattern = new RegExp(`(?:\\${suffix}|[ .])+$`, "iu");
   if (typeof filename !== "string") {
-    throw new TypeError("An SVG filename must be a string when provided.");
+    throw new TypeError(
+      "A visualization filename must be a string when provided.",
+    );
   }
 
-  let basename = normalizedSvgBasename(filename);
+  let basename = normalizedVisualizationBasename(filename, suffixPattern);
   if (basename === "" || basename === "." || basename === "..") {
-    basename = DEFAULT_SVG_FILENAME.slice(0, -SVG_FILENAME_SUFFIX.length);
+    basename = DEFAULT_VISUALIZATION_BASENAME;
   }
   basename = prefixWindowsReservedDeviceBasename(basename);
 
   const maximumBasenameCharacters =
-    MAX_NORMALIZED_SVG_FILENAME_CHARACTERS - SVG_FILENAME_SUFFIX.length;
+    MAX_NORMALIZED_VISUALIZATION_FILENAME_CHARACTERS - suffix.length;
   basename = truncateWithoutSplittingSurrogatePair(
     basename,
     maximumBasenameCharacters,
-  ).replace(/(?:\.svg|[ .])+$/iu, "");
+  ).replace(suffixPattern, "");
 
   if (basename === "") {
-    basename = DEFAULT_SVG_FILENAME.slice(0, -SVG_FILENAME_SUFFIX.length);
+    basename = DEFAULT_VISUALIZATION_BASENAME;
   }
   basename = prefixWindowsReservedDeviceBasename(basename);
 
-  return `${basename}${SVG_FILENAME_SUFFIX}`;
+  return `${basename}${suffix}`;
 }
 
 function assertOntologyElementKind(kind) {
@@ -464,4 +485,22 @@ export function createWebVowlControllerState(controllerState) {
     throw new TypeError("The controller state has an invalid field set.");
   }
   return freezeWebVowlControllerState(controllerState);
+}
+
+export function createVowlDocumentRecordTarget(target) {
+  if (
+    !isPlainRecord(target) ||
+    Object.keys(target).length !== 2 ||
+    !["class", "datatype", "property"].includes(target.collection) ||
+    typeof target.recordId !== "string" ||
+    target.recordId.length === 0
+  ) {
+    throw new TypeError(
+      "A VOWL document record target requires exactly its collection and record ID.",
+    );
+  }
+  return Object.freeze({
+    collection: target.collection,
+    recordId: target.recordId,
+  });
 }

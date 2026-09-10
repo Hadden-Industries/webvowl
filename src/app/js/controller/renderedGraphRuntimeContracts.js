@@ -1,4 +1,7 @@
-import { createOntologyElementReference } from "./webVowlControllerContracts.js";
+import {
+  createOntologyElementReference,
+  createVowlDocumentRecordTarget,
+} from "./webVowlControllerContracts.js";
 
 export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "replaceVowlModel",
@@ -6,12 +9,17 @@ export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "applyVisualizationView",
   "readVisibleRenderedGraphSnapshot",
   "readGraphLayoutSnapshot",
+  "readRenderedArrangement",
+  "setRenderedArrangement",
+  "selectRenderedOccurrence",
   "setGraphLayoutPaused",
   "setContinuousZoom",
   "setForceLayoutDistances",
   "setVisualizationModes",
   "resetVisualization",
   "createRenderedSvgSnapshot",
+  "createRenderedDrawingSnapshot",
+  "createTurtleDocumentSnapshot",
   "subscribeToRenderedGraphEvents",
   "dispose",
 ]);
@@ -27,6 +35,8 @@ export const RENDERED_GRAPH_EVENT_KINDS = Object.freeze([
   "render-progress-changed",
   "render-warning-raised",
   "rendered-element-selection-changed",
+  "document-record-selection-changed",
+  "record-label-edit-requested",
   "viewport-changed",
   "visualization-view-changed",
   "degree-filter-range-changed",
@@ -228,10 +238,14 @@ function createOntologyHeaderRecord(ontologyHeaderRecord) {
     ontologyHeaderRecord.ontologyIri,
     "ontologyHeaderRecord.ontologyIri",
   );
-  assertNullableNonEmptyString(
-    ontologyHeaderRecord.versionInformationText,
-    "ontologyHeaderRecord.versionInformationText",
-  );
+  if (
+    ontologyHeaderRecord.versionInformationText !== null &&
+    typeof ontologyHeaderRecord.versionInformationText !== "string"
+  ) {
+    throw new TypeError(
+      "ontologyHeaderRecord.versionInformationText must be a string or null.",
+    );
+  }
   if (!Array.isArray(ontologyHeaderRecord.authorNames)) {
     throw new TypeError("ontologyHeaderRecord.authorNames must be an array.");
   }
@@ -1432,6 +1446,33 @@ function createRenderedGraphEventPayload(kind, payload) {
           ["class", "datatype", "individual", "property"],
           "selectedOntologyElementReferences",
         ),
+      });
+    case "document-record-selection-changed":
+      assertExactFieldNames(payload, ["recordTarget"], `${kind} payload`);
+      return Object.freeze({
+        recordTarget:
+          payload.recordTarget === null
+            ? null
+            : createVowlDocumentRecordTarget(payload.recordTarget),
+      });
+    case "record-label-edit-requested":
+      assertExactFieldNames(
+        payload,
+        ["recordTarget", "text", "deriveIriFromLabel"],
+        `${kind} payload`,
+      );
+      if (
+        typeof payload.text !== "string" ||
+        typeof payload.deriveIriFromLabel !== "boolean"
+      ) {
+        throw new TypeError(
+          "An inline label edit requires text and an explicit IRI derivation choice.",
+        );
+      }
+      return Object.freeze({
+        recordTarget: createVowlDocumentRecordTarget(payload.recordTarget),
+        text: payload.text,
+        deriveIriFromLabel: payload.deriveIriFromLabel,
       });
     case "editor-mode-changed":
       assertExactFieldNames(payload, ["isEditorMode"], `${kind} payload`);

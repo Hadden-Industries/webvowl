@@ -1,18 +1,16 @@
 import { beforeAll, beforeEach, describe, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
+import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
-let exportTTLModuleFactory;
+let serializeOntologyAsTurtle;
 
 beforeAll(async () => {
-  ({ createExportTtlModule: exportTTLModuleFactory } =
-    await loadEsmModuleForTest(
-      new URL("./exportTTLModule.js", import.meta.url),
-      import.meta.url,
-    ));
+  ({ serializeOntologyAsTurtle } = await loadEsmModuleForTest(
+    new URL("./ontologyTurtleSerializer.js", import.meta.url),
+    import.meta.url,
+  ));
 });
 
-describe("exportTTLModule", () => {
-  let exportTTLModule;
+describe("existing Turtle serialization", () => {
   let mockGraph;
   let mockNodes;
   let mockProps;
@@ -125,15 +123,11 @@ describe("exportTTLModule", () => {
         properties: mockProps,
       }),
     };
-
-    exportTTLModule = exportTTLModuleFactory(mockGraph);
   });
 
   test("properly formats modern TLD absolute IRIs with <...> and prefixed IRIs without brackets in TTL", () => {
-    const success = exportTTLModule.requestExport();
-    expect(success).toBe(true);
-
-    const ttlContent = exportTTLModule.resultingTTL_Content();
+    const ttlContent = serializeOntologyAsTurtle(mockGraph);
+    expect(typeof ttlContent).toBe("string");
 
     // Node 1 has IRI https://example.tech/ontology#Item (no prefix defined for example.tech)
     // It must be formatted with angle brackets <https://example.tech/ontology#Item>

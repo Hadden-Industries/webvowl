@@ -3,8 +3,7 @@ import { createPrefixRepresentationModule } from "../../../shared/js/util/prefix
  * Contains the logic for the export button.
  * @returns {{}}
  */
-export function createExportTtlModule(graph) {
-  const exportTTLModule = {};
+export function serializeOntologyAsTurtle(graph) {
   let resultingTTLContent = "";
   let currentNodes;
   let currentProperties;
@@ -12,7 +11,7 @@ export function createExportTtlModule(graph) {
   let Map_ID2Prop = {};
   const prefixModule = createPrefixRepresentationModule(graph);
 
-  exportTTLModule.requestExport = function () {
+  function generateTurtle() {
     prefixModule.updatePrefixModel();
     resultingTTLContent = "";
     currentNodes = graph.getClassDataForTtlExport();
@@ -42,7 +41,7 @@ export function createExportTtlModule(graph) {
       return false;
     }
     return true;
-  };
+  }
 
   function preparePrefixRepresentation() {
     let i;
@@ -464,10 +463,6 @@ export function createExportTtlModule(graph) {
     return objectDef;
   }
 
-  exportTTLModule.resultingTTL_Content = function () {
-    return resultingTTLContent;
-  };
-
   function getIndent(name) {
     if (name === undefined) {
       return "WHYEMPTYNAME?";
@@ -720,5 +715,5 @@ export function createExportTtlModule(graph) {
     }
   }
 
-  return exportTTLModule;
+  return generateTurtle() ? resultingTTLContent : null;
 }

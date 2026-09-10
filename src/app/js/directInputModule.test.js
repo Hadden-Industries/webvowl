@@ -189,11 +189,13 @@ describe("direct ontology input controls", () => {
     expect(controls.get("#DirectInputContent").classes).toContain("hidden");
   });
 
-  test("bounds pasted UTF-8 data before syntax selection or loading", async () => {
+  test("delegates a large human document to the source loader without an agent message limit", async () => {
     controls.get("#directInputTextArea").value = "😀".repeat(262145);
     await directInputModule.loadPastedDocument();
-    expect(webVowlController.loadOntology).not.toHaveBeenCalled();
-    expect(controls.get("#Error_onLoad").textContent).toContain("1 MiB");
+    expect(webVowlController.loadOntology).toHaveBeenCalledTimes(1);
+    expect(requestedLoads[0].source.text).toBe(
+      controls.get("#directInputTextArea").value,
+    );
   });
 
   test("disposal detaches both owned click listeners and is idempotent", () => {

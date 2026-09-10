@@ -25,6 +25,11 @@ const ONTOLOGY_TEXT_PRIMARY_MEDIA_TYPE_BY_FORMAT_KEY = new Map(
   ]),
 );
 
+// Reuse the consuming parser's input capacity for both local document forms.
+// The agent transport has its own smaller message bound in the WebMCP adapter.
+const MAXIMUM_DOCUMENT_INPUT_BYTES =
+  OWLOntologyLoaderConfiguration.defaults().maxInputBytes;
+
 const VOWL_COLLECTION_FIELD_NAMES = Object.freeze([
   "namespace",
   "class",
@@ -260,11 +265,11 @@ function validateOntologySourceRequest(request, textEncoder) {
       }
       if (
         textEncoder.encode(source.text).byteLength >
-        WEB_VOWL_OPERATION_LIMITS.maxInlineDocumentBytes
+        MAXIMUM_DOCUMENT_INPUT_BYTES
       ) {
         throw rejectOntologySource(
           sourceKind,
-          "The inline ontology source exceeds the UTF-8 byte limit.",
+          "The document exceeds the parser's UTF-8 input byte limit.",
         );
       }
       break;

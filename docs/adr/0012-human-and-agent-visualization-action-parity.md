@@ -30,6 +30,9 @@ Three identities have distinct meanings:
   ontology fact and cannot be used as an ontology-editing authority.
 
 Experimental editing remains available to humans and has no WebMCP registration.
+The owner's subsequent clarification limits this work to preserving existing
+human behavior: retain completed useful work, add no editor capabilities, and do
+not expand this integration into an editor redesign or general editor repair.
 Preserving it during the ownership cutover requires application-owned document
 updates, immutable editor descriptions, explicit operations and confirmed deletion
 proposals. Inspection, recovery and semantic exports must observe accepted human

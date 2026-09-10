@@ -192,6 +192,25 @@ Experimental editing remains outside the agent surface. There is no active
 server-upload human workflow in the inspected current UI; verify reachability
 before treating old conversion helpers as a supported action.
 
+On 2026-09-09 the owner narrowed Turtle work to wiring: retain the existing content
+generation unchanged and defer serialization replacement until owlapi offers its
+intended public capability. Withdraw the N3 dependency proposal and custom RDF/JS
+mapping. Move the existing generator beneath the renderer boundary, share the
+controller/artifact route between human and agent exports, and verify byte preservation,
+generation fencing and native downloads. Existing Turtle correctness is not newly
+certified by these wiring tests.
+
+The four export formats now share controller and artifact publication ownership.
+The preserved Turtle generator lives below the runtime boundary. Connected native
+AQFO exports produced matching Blob byte counts and SHA-256 values for Turtle,
+SVG and LaTeX; the human Turtle download matched the agent artifact on disk.
+Native SVG parsing succeeded. The same real-source job also corrected empty
+version metadata, shared language fallback, subclass type-token matching and
+truthful load-failure classification. Evidence and original failing results are
+retained in `.sdlc/runtime/webmcp-resumption/review-and-turtle-wiring-evidence.md`.
+This closes export wiring, not the remaining composition/UI ownership cutover,
+the complete twenty-job evaluation or final independent security review.
+
 For the expanded external input contract, reassess the broader parity slice as
 R2 using the previously accepted, committed design/plan and this owner amendment.
 Keep the smaller R1 semantic correction's evidence separately attributable.
@@ -1386,6 +1405,18 @@ The original conversation’s complete product reasoning has an implementation h
 ---
 
 ## 5. Completion definition
+
+### Scope clarification: experimental editing
+
+The owner reaffirmed that experimental ontology editing is excluded, that this
+integration must avoid breaking the existing editor, and that hard-won work must
+be retained. No new editor capability, editor redesign, or WebMCP editing action
+is authorized. Retain useful implementation already completed. Finish only the
+ownership/wiring and preservation checks necessary for existing human behavior
+to survive the integration. Do not treat general editor improvements or unrelated
+editor bugs as prerequisites for WebMCP completion. Regressions introduced by this
+integration remain in scope and must be corrected. Arrangement, pinning, selection
+and exports remain non-editing visualization actions.
 
 This is the authoritative completion inventory, incorporating the owner's action-parity amendment and subsequent commit/push approvals. Earlier task records retain historical evidence; their five-tool ceiling and occurrence exclusions are superseded. This plan is complete only when all of the following are true:
 

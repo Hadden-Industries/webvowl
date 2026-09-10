@@ -429,6 +429,27 @@ describe("canonical ontology source loading", () => {
     expect(Object.values(result)).not.toContain(text);
   });
 
+  test("loads a human document larger than the agent message ceiling within the parser input capacity", async () => {
+    const model = {
+      header: { title: { en: "Large local document" } },
+      class: [{ id: "person", type: "owl:Class" }],
+      classAttribute: [{ id: "person", label: { en: "Person" } }],
+    };
+    const text = JSON.stringify(model) + " ".repeat(1112426);
+    expect(Buffer.byteLength(text)).toBeGreaterThan(1024 * 1024);
+    expect(Buffer.byteLength(text)).toBeLessThan(32 * 1024 * 1024);
+    const result = await createOntologySourceLoader({
+      computeSha256Hex: async (bytes) =>
+        createHash("sha256").update(bytes).digest("hex"),
+    }).loadOntologySource({
+      source: { kind: "vowl-json-text", text, displayName: "large.json" },
+    });
+    expect(result.vowlModel).toEqual(model);
+    expect(result.sourceProvenance.sha256Hex).toBe(
+      createHash("sha256").update(text).digest("hex"),
+    );
+  });
+
   test.each([undefined, "local.json"])(
     "loads and recovers local VOWL text through the controller without a remote identity: %s",
     async (displayName) => {
@@ -439,6 +460,7 @@ describe("canonical ontology source loading", () => {
           createHash("sha256").update(bytes).digest("hex"),
       });
       const controller = createWebVowlController({
+        applicationUrl: "https://viewer.test/",
         ontologySourceLoader: loader,
         vowlModelInspectionProjector,
         renderedGraphRuntime,
@@ -446,7 +468,10 @@ describe("canonical ontology source loading", () => {
         graphLayoutSettler: {
           waitForSettledGraphLayout: () => new Promise(() => {}),
         },
-        svgArtifactService: { createSvgArtifact: jest.fn() },
+        visualizationArtifactService: {
+          createVisualizationArtifact: jest.fn(),
+          dispose: jest.fn(),
+        },
         waitForDocumentFonts: async () => {},
         waitForBrowserPaint: async () => {},
       });
@@ -523,8 +548,8 @@ describe("canonical ontology source loading", () => {
     },
   );
 
-  test("rejects local VOWL JSON over the UTF-8 budget before parsing", async () => {
-    const text = '{"header":{"title":"' + "😀".repeat(262144) + '"}}';
+  test("rejects local VOWL JSON over the native parser input capacity before parsing", async () => {
+    const text = '{"header":{"title":"' + "😀".repeat(8388608) + '"}}';
     await expect(
       createOntologySourceLoader().loadOntologySource({
         source: { kind: "vowl-json-text", text },
@@ -823,9 +848,9 @@ describe("canonical ontology source loading", () => {
     expect(createImportResolver).not.toHaveBeenCalled();
   });
 
-  test("rejects inline ontology content over the UTF-8 byte limit", async () => {
+  test("rejects a human document over the native parser UTF-8 input capacity", async () => {
     const oversizedMultibyteText = "€".repeat(
-      Math.floor((1024 * 1024) / 3) + 1,
+      Math.floor((32 * 1024 * 1024) / 3) + 1,
     );
     const loadWithImports = jest.fn();
     const ontologySourceLoader = createOntologySourceLoader({

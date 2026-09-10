@@ -68,6 +68,12 @@ function createDetachedSvgRootFixture(loadGeneration) {
   };
 }
 
+import {
+  createRenderedArrangement,
+  createRenderedOccurrenceSelectionRequest,
+  resolveRenderedArrangementChanges,
+} from "../js/controller/renderedArrangementContracts.js";
+
 function createDefaultVisibleRenderedGraphSnapshot(loadGeneration) {
   return createVisibleRenderedGraphSnapshot({
     loadGeneration,
@@ -131,6 +137,7 @@ function assertSnapshotOverrides(snapshotOverrides) {
     "visibleRenderedGraphSnapshot",
     "graphLayoutSnapshot",
     "renderedSvgSnapshot",
+    "renderedArrangement",
   ];
   const unexpectedFieldName = Object.keys(snapshotOverrides).find(
     (fieldName) => !allowedFieldNames.includes(fieldName),
@@ -182,6 +189,7 @@ export function createInMemoryRenderedGraphAdapter() {
   let visibleRenderedGraphSnapshot = null;
   let graphLayoutSnapshot = null;
   let renderedSvgSnapshot = null;
+  let renderedArrangement = null;
   let appliedVisualizationView = createDefaultAppliedVisualizationView();
   let viewportState = { zoomScale: 1, translationXPx: 0, translationYPx: 0 };
   const requestedContinuousZoomDirections = [];
@@ -262,6 +270,7 @@ export function createInMemoryRenderedGraphAdapter() {
         visibleRenderedGraphSnapshot = null;
         graphLayoutSnapshot = null;
         renderedSvgSnapshot = null;
+        renderedArrangement = null;
         appliedVisualizationView = createAppliedVisualizationView({
           ...createDefaultAppliedVisualizationView(),
           modes: appliedVisualizationView.modes,
@@ -291,6 +300,7 @@ export function createInMemoryRenderedGraphAdapter() {
         visibleRenderedGraphSnapshot = null;
         graphLayoutSnapshot = null;
         renderedSvgSnapshot = null;
+        renderedArrangement = null;
         appliedVisualizationView = createAppliedVisualizationView({
           ...createDefaultAppliedVisualizationView(),
           modes: appliedVisualizationView.modes,
@@ -361,6 +371,72 @@ export function createInMemoryRenderedGraphAdapter() {
           createVisibleRenderedGraphSnapshot,
           "visible rendered graph snapshot",
         );
+      },
+
+      readRenderedArrangement() {
+        return readCompletedSnapshot(
+          renderedArrangement,
+          createRenderedArrangement,
+          "rendered arrangement",
+        );
+      },
+
+      async setRenderedArrangement(request, { signal } = {}) {
+        assertNotDisposed();
+        signal?.throwIfAborted();
+        const changes = resolveRenderedArrangementChanges(
+          renderedGraphRuntime.readRenderedArrangement(),
+          request,
+        );
+        renderedArrangement = createRenderedArrangement({
+          ...renderedArrangement,
+          occurrences: renderedArrangement.occurrences.map((entry) => {
+            const change = changes.find(
+              (candidate) =>
+                candidate.reference.occurrenceId ===
+                entry.reference.occurrenceId,
+            );
+            return change === undefined ? entry : { ...entry, ...change };
+          }),
+        });
+        return renderedArrangement;
+      },
+
+      selectRenderedOccurrence(request) {
+        assertNotDisposed();
+        const selection = createRenderedOccurrenceSelectionRequest(request);
+        const snapshot = renderedGraphRuntime.readRenderedArrangement();
+        const occurrence =
+          selection.reference === null
+            ? null
+            : snapshot.occurrences.find(
+                (entry) =>
+                  entry.reference.occurrenceId ===
+                  selection.reference.occurrenceId,
+              );
+        if (
+          selection.reference !== null &&
+          (selection.reference.loadGeneration !== activeLoadGeneration ||
+            occurrence === undefined)
+        ) {
+          throw new RangeError(
+            "The selection targets an absent or retired occurrence.",
+          );
+        }
+        publishRenderedGraphEvent({
+          kind: "rendered-element-selection-changed",
+          loadGeneration: activeLoadGeneration,
+          payload: {
+            selectedOntologyElementReferences:
+              occurrence?.ontologyElementReferences ?? [],
+          },
+        });
+        publishRenderedGraphEvent({
+          kind: "document-record-selection-changed",
+          loadGeneration: activeLoadGeneration,
+          payload: { recordTarget: occurrence?.recordTargets[0] ?? null },
+        });
+        return selection.reference;
       },
 
       readGraphLayoutSnapshot() {
@@ -473,6 +549,33 @@ export function createInMemoryRenderedGraphAdapter() {
         return appliedVisualizationView;
       },
 
+      createTurtleDocumentSnapshot(request) {
+        assertNotDisposed();
+        assertActiveGeneration(request.loadGeneration, activeLoadGeneration);
+        return Object.freeze({
+          loadGeneration: activeLoadGeneration,
+          turtleText: "# In-memory test runtime Turtle document.\n",
+        });
+      },
+
+      createRenderedDrawingSnapshot(request) {
+        assertNotDisposed();
+        assertActiveGeneration(request.loadGeneration, activeLoadGeneration);
+        return Object.freeze({
+          loadGeneration: activeLoadGeneration,
+          bounds: Object.freeze({
+            leftPx: 0,
+            topPx: 0,
+            rightPx: 800,
+            bottomPx: 600,
+          }),
+          compactNotation: appliedVisualizationView.modes.compactNotation,
+          nodes: Object.freeze([]),
+          propertyLabels: Object.freeze([]),
+          links: Object.freeze([]),
+        });
+      },
+
       createRenderedSvgSnapshot(request) {
         assertNotDisposed();
         const snapshotRequest = createRenderedSvgSnapshotRequest(request);
@@ -520,6 +623,7 @@ export function createInMemoryRenderedGraphAdapter() {
         visibleRenderedGraphSnapshot = null;
         graphLayoutSnapshot = null;
         renderedSvgSnapshot = null;
+        renderedArrangement = null;
       },
     }),
   );
@@ -580,10 +684,17 @@ export function createInMemoryRenderedGraphAdapter() {
         snapshotOverrides.renderedSvgSnapshot ??
           createDefaultRenderedSvgSnapshot(loadGeneration),
       );
+      const nextRenderedArrangement = createRenderedArrangement(
+        snapshotOverrides.renderedArrangement ?? {
+          loadGeneration,
+          occurrences: [],
+        },
+      );
       for (const snapshot of [
         nextVisibleRenderedGraphSnapshot,
         nextGraphLayoutSnapshot,
         nextRenderedSvgSnapshot,
+        nextRenderedArrangement,
       ]) {
         if (snapshot.loadGeneration !== loadGeneration) {
           throw new RangeError(
@@ -595,6 +706,7 @@ export function createInMemoryRenderedGraphAdapter() {
       visibleRenderedGraphSnapshot = nextVisibleRenderedGraphSnapshot;
       graphLayoutSnapshot = nextGraphLayoutSnapshot;
       renderedSvgSnapshot = nextRenderedSvgSnapshot;
+      renderedArrangement = nextRenderedArrangement;
       if (
         initialView.zoomScale !== undefined ||
         initialView.translation !== undefined

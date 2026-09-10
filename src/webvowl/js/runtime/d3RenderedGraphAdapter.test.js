@@ -1,7 +1,8 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { SourceTextModule } from "node:vm";
+import { SourceTextModule, SyntheticModule } from "node:vm";
+import { color } from "d3";
 
 let assertRenderedGraphRuntimeContract;
 let createD3RenderedGraphAdapter;
@@ -39,11 +40,16 @@ function instantiateRepositoryModule(moduleUrl) {
 
 async function loadRepositoryModule(moduleUrl) {
   const rootModule = instantiateRepositoryModule(moduleUrl);
-  await rootModule.link((specifier, referencingModule) =>
-    instantiateRepositoryModule(
+  await rootModule.link((specifier, referencingModule) => {
+    if (specifier === "d3") {
+      return new SyntheticModule(["color"], function () {
+        this.setExport("color", color);
+      });
+    }
+    return instantiateRepositoryModule(
       new URL(specifier, referencingModule.identifier),
-    ),
-  );
+    );
+  });
   await rootModule.evaluate();
   return rootModule;
 }
@@ -422,6 +428,10 @@ function createAdapterHarness() {
     },
     scaleFactor: () => 1,
     translation: () => [0, 0],
+    graphNodeElements: () => ({ each() {} }),
+    graphLabelElements: () => [],
+    graphLinkElements: () => [],
+    math: () => ({}),
     viewportTransforms: [],
     setViewportTransform(scale, translation) {
       renderedGraphInternalsFixture.viewportTransforms.push({
@@ -468,6 +478,54 @@ function createAdapterHarness() {
         nodeIds: (model.class ?? []).map(({ id }) => id),
         propertyIds: (model.property ?? []).map(({ id }) => id),
       };
+    },
+    pinnedRendererKeys: new Set(),
+    readArrangement() {
+      return this.readLayoutState().layoutElementPositions.map(
+        ({ stableLayoutElementKey, x, y }) => ({
+          rendererKey: stableLayoutElementKey,
+          rendererElementIds: [
+            stableLayoutElementKey.slice(
+              stableLayoutElementKey.indexOf(":") + 1,
+            ),
+          ],
+          kind: stableLayoutElementKey.startsWith("node:")
+            ? "node"
+            : "property-label",
+          xPx: x,
+          yPx: y,
+          isPinned: this.pinnedRendererKeys.has(stableLayoutElementKey),
+          canMove: true,
+          canPin: true,
+        }),
+      );
+    },
+    applyArrangement(changes) {
+      const positions = rendererSimulationFixture.createdSimulations
+        .at(-1)
+        .nodes();
+      for (const change of changes) {
+        const position = positions.find(
+          (entry) => entry.stableLayoutElementKey === change.rendererKey,
+        );
+        if (change.xPx !== undefined) {
+          position.x = change.xPx;
+          position.y = change.yPx;
+        }
+        if (change.isPinned === true) {
+          this.pinnedRendererKeys.add(change.rendererKey);
+        }
+        if (change.isPinned === false) {
+          this.pinnedRendererKeys.delete(change.rendererKey);
+        }
+      }
+    },
+    selectOccurrence(rendererKey) {
+      this.installedEventPort.publishRenderedElementSelection(
+        rendererKey === null
+          ? []
+          : [rendererKey.slice(rendererKey.indexOf(":") + 1)],
+      );
     },
     isReadyForPaint: () => true,
     clearRenderedGraph() {
@@ -726,6 +784,112 @@ describe("D3 rendered graph adapter", () => {
     adapterHarness.renderedGraphTestHarness.completeInitialPaint(generation);
     await replacementPromise;
   }
+
+  test("arranges only the addressed current occurrence and preserves zero coordinates and pins", async () => {
+    const harness = createAdapterHarness();
+    await loadGeneration(harness, 1);
+    const runtime = harness.renderedGraphRuntime;
+    const before = runtime.readRenderedArrangement();
+    const person = before.occurrences.find(
+      (entry) => entry.recordTargets[0]?.recordId === "Person",
+    );
+    const moving = runtime.setRenderedArrangement({
+      changes: [
+        { reference: person.reference, xPx: 0, yPx: -12, isPinned: true },
+      ],
+    });
+    harness.renderedGraphTestHarness.completeVisualizationViewApplication(1);
+    const after = await moving;
+    expect(
+      after.occurrences.find(
+        (entry) =>
+          entry.reference.occurrenceId === person.reference.occurrenceId,
+      ),
+    ).toMatchObject({
+      xPx: 0,
+      yPx: -12,
+      isPinned: true,
+    });
+    expect(
+      before.occurrences.find(
+        (entry) => entry.recordTargets[0]?.recordId === "Person",
+      ),
+    ).toMatchObject({ xPx: 30, yPx: 41, isPinned: false });
+    expect(Object.isFrozen(before.occurrences[0].reference)).toBe(true);
+    expect(
+      after.occurrences.find(
+        (entry) => entry.recordTargets[0]?.recordId === "AnonymousClass1",
+      ),
+    ).toMatchObject({ xPx: 37, yPx: 36 });
+    const unpinning = runtime.setRenderedArrangement({
+      changes: [{ reference: person.reference, isPinned: false }],
+    });
+    harness.renderedGraphTestHarness.completeVisualizationViewApplication(1);
+    expect((await unpinning).occurrences[0].isPinned).toBe(false);
+  });
+
+  test("rejects a whole arrangement request before mutation when any occurrence is absent or retired", async () => {
+    const harness = createAdapterHarness();
+    await loadGeneration(harness, 1);
+    const runtime = harness.renderedGraphRuntime;
+    const before = runtime.readRenderedArrangement();
+    const reference = before.occurrences[0].reference;
+    await expect(
+      runtime.setRenderedArrangement({
+        changes: [
+          { reference, xPx: 400, yPx: 500 },
+          {
+            reference: { ...reference, occurrenceId: "absent" },
+            isPinned: true,
+          },
+        ],
+      }),
+    ).rejects.toThrow();
+    expect(runtime.readRenderedArrangement()).toEqual(before);
+    await loadGeneration(harness, 2);
+    const next = runtime.readRenderedArrangement();
+    await expect(
+      runtime.setRenderedArrangement({
+        changes: [{ reference, isPinned: true }],
+      }),
+    ).rejects.toThrow();
+    expect(runtime.readRenderedArrangement()).toEqual(next);
+  });
+
+  test("selects a drawn occurrence through the same native focus and selection events", async () => {
+    const harness = createAdapterHarness();
+    await loadGeneration(harness, 1);
+    const runtime = harness.renderedGraphRuntime;
+    const events = [];
+    runtime.subscribeToRenderedGraphEvents((event) => events.push(event));
+    const person = runtime
+      .readRenderedArrangement()
+      .occurrences.find(
+        (entry) => entry.recordTargets[0]?.recordId === "Person",
+      );
+    await runtime.selectRenderedOccurrence({ reference: person.reference });
+    expect(
+      events.findLast(
+        (event) => event.kind === "document-record-selection-changed",
+      )?.payload.recordTarget,
+    ).toEqual({ collection: "class", recordId: "Person" });
+    expect(
+      events.findLast(
+        (event) => event.kind === "rendered-element-selection-changed",
+      )?.payload.selectedOntologyElementReferences,
+    ).toEqual([{ kind: "class", iri: "https://example.test/Person" }]);
+    await runtime.selectRenderedOccurrence({ reference: null });
+    expect(
+      events.findLast(
+        (event) => event.kind === "document-record-selection-changed",
+      )?.payload.recordTarget,
+    ).toBeNull();
+    expect(
+      events.findLast(
+        (event) => event.kind === "rendered-element-selection-changed",
+      )?.payload.selectedOntologyElementReferences,
+    ).toEqual([]);
+  });
 
   test("stops the retired generation's simulation when superseded", async () => {
     const adapterHarness = createAdapterHarness();
@@ -1669,6 +1833,100 @@ describe("D3 rendered graph adapter", () => {
     // drawn node the renderer knows. Highlighting does not move the viewport.
     expect(internals.highlightedElementIds).toEqual([["Person"]]);
     expect(internals.locateRequests).toBe(0);
+  });
+
+  test("captures the existing Turtle serialization as a generation-scoped document", async () => {
+    const harness = createAdapterHarness();
+    await loadGeneration(harness, 1);
+    const internals = harness.renderedGraphInternalsFixture;
+    const header = {
+      iri: "https://example.test/ontology",
+      title: "Original title",
+    };
+    internals.ontologyEditingState = () => ({
+      prefixList: () => ({
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        owl: "http://www.w3.org/2002/07/owl#",
+        dc: "http://purl.org/dc/elements/1.1/",
+      }),
+      getGeneralMetaObjectProperty: (field) => header[field],
+    });
+    internals.getClassDataForTtlExport = () => [];
+    internals.getPropertyDataForTtlExport = () => [];
+    internals.getUnfilteredData = () => ({ nodes: [], properties: [] });
+    const snapshot = harness.renderedGraphRuntime.createTurtleDocumentSnapshot({
+      loadGeneration: 1,
+    });
+    expect(snapshot.loadGeneration).toBe(1);
+    expect(snapshot.turtleText).toContain(
+      "<https://example.test/ontology> rdf:type owl:Ontology",
+    );
+    expect(snapshot.turtleText).toContain('dc:title "Original title"@en');
+    expect(Object.isFrozen(snapshot)).toBe(true);
+    header.title = "Later title";
+    expect(snapshot.turtleText).not.toContain("Later title");
+    expect(() =>
+      harness.renderedGraphRuntime.createTurtleDocumentSnapshot({
+        loadGeneration: 2,
+      }),
+    ).toThrow();
+    harness.renderedGraphRuntime.dispose();
+    expect(() =>
+      harness.renderedGraphRuntime.createTurtleDocumentSnapshot({
+        loadGeneration: 1,
+      }),
+    ).toThrow();
+  });
+
+  test("captures detached drawing geometry in the current viewport and fences its generation", async () => {
+    const harness = createAdapterHarness();
+    await loadGeneration(harness, 1);
+    const internals = harness.renderedGraphInternalsFixture;
+    const node = {
+      x: 10,
+      y: 20,
+      labelForCurrentLanguage: () => "Person",
+      type: () => "owl:Class",
+      attributes: () => [],
+      backgroundColor: () => "#acf",
+      actualRadius: () => 50,
+    };
+    internals.graphNodeElements = () => ({ each: (visit) => visit(node) });
+    internals.scaleFactor = () => 0.5;
+    internals.translation = () => [40, -20];
+    const svgRoot = harness.graphContainerElement.querySelector("svg");
+    svgRoot.getBoundingClientRect = () => ({ left: 0, top: 0 });
+    svgRoot.querySelectorAll = () => [
+      {
+        closest: () => null,
+        getBoundingClientRect: () => ({
+          left: 20,
+          top: -35,
+          right: 70,
+          bottom: 15,
+        }),
+      },
+    ];
+    const snapshot = harness.renderedGraphRuntime.createRenderedDrawingSnapshot(
+      { loadGeneration: 1 },
+    );
+    expect(snapshot.bounds.leftPx).toBe(-40);
+    expect(snapshot.bounds.topPx).toBe(40);
+    expect(snapshot.nodes[0]).toMatchObject({
+      x: 10,
+      y: 20,
+      label: "Person",
+      backgroundColor: "#aaccff",
+      widthPx: 100,
+    });
+    node.x = 1000;
+    expect(snapshot.nodes[0].x).toBe(10);
+    expect(Object.isFrozen(snapshot.nodes[0])).toBe(true);
+    expect(() =>
+      harness.renderedGraphRuntime.createRenderedDrawingSnapshot({
+        loadGeneration: 2,
+      }),
+    ).toThrow();
   });
 
   test("advances the viewport to the next focused element on request", async () => {
