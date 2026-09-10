@@ -526,7 +526,9 @@ describe("ontology-element references", () => {
 const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "status",
   "loadGeneration",
+  "documentRevision",
   "source",
+  "hasReusedCachedVisualization",
   "warnings",
   "view",
   "zoomScale",
@@ -542,9 +544,11 @@ const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
 ]);
 
 const IDLE_CONTROLLER_STATE_FIELDS = Object.freeze({
+  documentRevision: 0,
   status: "idle",
   loadGeneration: 0,
   source: null,
+  hasReusedCachedVisualization: false,
   warnings: [],
   view: null,
   zoomScale: null,

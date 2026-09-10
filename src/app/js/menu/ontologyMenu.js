@@ -56,7 +56,7 @@ function createOntologyMenu({
   locationObject = globalThis.location,
   webVowlController,
   loadOntologyFromLocation,
-  loadDroppedFile,
+  loadLocalFile,
   createNewOntology,
   scrollLoadingDetails,
   hideNavigationMenus,
@@ -81,7 +81,10 @@ function createOntologyMenu({
     });
   };
 
-  ontologyMenu.renderOntologySource = function (source) {
+  ontologyMenu.renderSourceReloadControl = function (
+    source,
+    { hasReusedCachedVisualization = false } = {},
+  ) {
     const reloadButton = documentObject.getElementById("reloadOntologySource");
     if (!reloadButton) {
       return;
@@ -89,11 +92,12 @@ function createOntologyMenu({
     const remote = ["ontology-document-iri", "vowl-json-url"].includes(
       source?.kind,
     );
-    reloadButton.disabled = !remote;
+    const canReloadSource = remote && hasReusedCachedVisualization;
+    reloadButton.disabled = !canReloadSource;
     reloadButton.title = remote
       ? "Retrieve the original ontology again and replace its cached visualization"
       : "Select the local file again to reload its original content";
-    reloadButton.classList.toggle("hidden", !source);
+    reloadButton.classList.toggle("hidden", !canReloadSource);
   };
 
   ontologyMenu.setup = function () {
@@ -338,13 +342,7 @@ function createOntologyMenu({
       if (!selectedFile) {
         return false;
       }
-      // The selected file itself is the source; the route only records it.
-      windowObject.history.pushState(
-        null,
-        "",
-        "#file=" + encodeURIComponent(selectedFile.name),
-      );
-      loadDroppedFile(selectedFile);
+      loadLocalFile(selectedFile);
     });
   }
 

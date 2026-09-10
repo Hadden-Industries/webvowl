@@ -7,6 +7,7 @@ import { color } from "d3";
 let assertRenderedGraphRuntimeContract;
 let createD3RenderedGraphAdapter;
 let createRenderedGraphConfiguration;
+let createNodeDegreeFilter;
 
 const ADAPTER_MODULE_URL = new URL(
   "./d3RenderedGraphAdapter.js",
@@ -62,6 +63,14 @@ async function loadRepositoryModule(moduleUrl) {
 }
 
 beforeAll(async () => {
+  ({ createNodeDegreeFilter } = (
+    await loadRepositoryModule(
+      new URL(
+        "../../../shared/js/modules/nodeDegreeFilter.js",
+        import.meta.url,
+      ),
+    )
+  ).namespace);
   ({ createRenderedGraphConfiguration } = (
     await loadRepositoryModule(CONFIGURATION_MODULE_URL)
   ).namespace);
@@ -321,6 +330,10 @@ function createAdapterHarness() {
         }),
         enabledStates: [],
         minDegreeValues: [],
+        useAutomaticMinimumDegree() {
+          this.enabled(true);
+          this.minDegree(0);
+        },
         enabled(nextEnabledState) {
           if (nextEnabledState === undefined) {
             return this.enabledStates.at(-1) ?? false;
@@ -342,6 +355,9 @@ function createAdapterHarness() {
     },
     callOrder: [],
     loadCallCount: 0,
+    applyVowlModelRevision: jest.fn(function (vowlModel) {
+      this.suppliedVowlModels.push(vowlModel);
+    }),
     pauseStates: [],
     suppliedVowlModels: [],
     options: () => ({
@@ -705,6 +721,64 @@ function createAdapterHarness() {
 }
 
 describe("D3 rendered graph adapter", () => {
+  test("selects automatic collapse on a new ontology after an explicit zero on the previous one", async () => {
+    const harness = createAdapterHarness();
+    const renderer = harness.renderedGraphInternalsFixture;
+    const filter = createNodeDegreeFilter();
+    renderer.filterModules.minDegree = filter;
+    const nodes = Array.from({ length: 52 }, (_, id) => {
+      const links = [];
+      return {
+        id: () => String(id),
+        type: () => "owl:Class",
+        links: () => links,
+      };
+    });
+    // A star with 51 leaves: degree 0 or 1 shows 52 nodes; degree 2 shows
+    // only its center. The real degree filter chooses and applies the cutoff.
+    const properties = nodes.slice(1).map((node, index) => {
+      const property = {
+        id: () => `property-${index}`,
+        type: () => "owl:ObjectProperty",
+        domain: () => nodes[0],
+        range: () => node,
+      };
+      const link = { property: () => property };
+      nodes[0].links().push(link);
+      node.links().push(link);
+      return property;
+    });
+    expect(nodes[0].links()).toHaveLength(51);
+    expect(nodes.slice(1).every((node) => node.links().length === 1)).toBe(
+      true,
+    );
+    const loadDrawingFixture = renderer.load;
+    renderer.load = (...args) => {
+      loadDrawingFixture(...args);
+      filter.initialize(nodes, properties);
+      filter.filter(nodes, properties);
+    };
+
+    await loadGeneration(harness, 1);
+    expect(filter.minDegree()).toBe(2);
+    expect(filter.filteredNodes()).toEqual([nodes[0]]);
+
+    const explicitZeroLoad = harness.renderedGraphRuntime.replaceVowlModel({
+      ...replacementRequest(2),
+      initialVisualization: { view: { filters: { minDegree: 0 } } },
+    });
+    harness.renderedGraphTestHarness.completeInitialPaint(2);
+    await explicitZeroLoad;
+    expect(filter.minDegree()).toBe(0);
+    expect(filter.filteredNodes()).toHaveLength(52);
+
+    await loadGeneration(harness, 3);
+    expect(filter.readDegreeRange().automaticMinimumDegree).toBe(2);
+    expect(filter.enabled()).toBe(true);
+    expect(filter.minDegree()).toBe(2);
+    expect(filter.filteredNodes()).toEqual([nodes[0]]);
+  });
+
   test("applies initial view values before first paint without UI callbacks or redraws of retired data", async () => {
     const harness = createAdapterHarness();
     const { renderedGraphRuntime, renderedGraphInternalsFixture: renderer } =
@@ -802,6 +876,39 @@ describe("D3 rendered graph adapter", () => {
     adapterHarness.renderedGraphTestHarness.completeInitialPaint(generation);
     await replacementPromise;
   }
+
+  test("revises native document records within the same load and rejects obsolete revisions", async () => {
+    const harness = createAdapterHarness();
+    await loadGeneration(harness, 1);
+    const runtime = harness.renderedGraphRuntime;
+    const renderer = harness.renderedGraphInternalsFixture;
+    const before = runtime.readRenderedArrangement();
+    const model = replacementRequest(1).vowlModel;
+    model.classAttribute[0].iri = "https://example.test/Renamed";
+    const result = runtime.applyVowlModelRevision({
+      loadGeneration: 1,
+      vowlModel: model,
+    });
+    expect(renderer.loadCallCount).toBe(1);
+    expect(renderer.applyVowlModelRevision).toHaveBeenCalledTimes(1);
+    expect(renderer.applyVowlModelRevision.mock.calls[0][0]).not.toBe(model);
+    expect(result.loadGeneration).toBe(1);
+    expect(
+      result.visibleRenderedGraphSnapshot.visibleElementReferences,
+    ).toContainEqual({ kind: "class", iri: "https://example.test/Renamed" });
+    expect(runtime.readRenderedArrangement().occurrences[0].reference).toEqual(
+      before.occurrences[0].reference,
+    );
+    expect(
+      runtime.readRenderedArrangement().occurrences[0]
+        .ontologyElementReferences,
+    ).toContainEqual({ kind: "class", iri: "https://example.test/Renamed" });
+    expect(() =>
+      runtime.applyVowlModelRevision({ loadGeneration: 2, vowlModel: model }),
+    ).toThrow(/superseded/);
+    expect(renderer.applyVowlModelRevision).toHaveBeenCalledTimes(1);
+    runtime.dispose();
+  });
 
   test("arranges only the addressed current occurrence and preserves zero coordinates and pins", async () => {
     const harness = createAdapterHarness();
@@ -1485,14 +1592,19 @@ describe("D3 rendered graph adapter", () => {
     },
   );
 
-  test("reports the renderer's retained view choices after a replacement", async () => {
+  test("reports retained view choices and an explicitly saved degree after a replacement", async () => {
     const harness = createAdapterHarness();
     await loadGeneration(harness, 1);
     harness.renderedGraphInternalsFixture.filterModules.datatypes.enabled(true);
     harness.renderedGraphInternalsFixture.filterModules.minDegree.enabled(true);
     harness.renderedGraphInternalsFixture.filterModules.minDegree.minDegree(3);
     harness.renderedGraphInternalsFixture.language("en");
-    await loadGeneration(harness, 2);
+    const replacement = harness.renderedGraphRuntime.replaceVowlModel({
+      ...replacementRequest(2),
+      initialVisualization: { view: { filters: { minDegree: 3 } } },
+    });
+    harness.renderedGraphTestHarness.completeInitialPaint(2);
+    await replacement;
     const application = harness.renderedGraphRuntime.applyVisualizationView({
       loadGeneration: 2,
     });
@@ -1778,6 +1890,8 @@ describe("D3 rendered graph adapter", () => {
     await loadGeneration(adapterHarness, 1);
     const internals = adapterHarness.renderedGraphInternalsFixture;
     const updateCountBefore = internals.updateCallCount;
+    internals.filterModules.minDegree.minDegreeValues.length = 0;
+    internals.filterModules.minDegree.enabledStates.length = 0;
 
     const viewApplication =
       adapterHarness.renderedGraphRuntime.applyVisualizationView({

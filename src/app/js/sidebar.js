@@ -1190,9 +1190,10 @@ export function createSidebar({
       { signal: lifecycleAbortController.signal },
     );
 
-    if (window.innerWidth <= 1024) {
-      sidebar.showSidebar(0, true);
-    }
+    sidebar.showSidebar(
+      window.innerWidth <= 1024 ? 0 : Number(sidebar.getSidebarVisibility()),
+      true,
+    );
   };
 
   sidebar.dispose = function () {

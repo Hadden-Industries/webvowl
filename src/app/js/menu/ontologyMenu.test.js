@@ -250,7 +250,7 @@ describe("ontology menu actions", () => {
     loadingModule = {
       createNewOntology,
       loadOntologyFromLocation: jest.fn(() => Promise.resolve()),
-      loadDroppedFile: jest.fn(() => Promise.resolve()),
+      loadLocalFile: jest.fn(() => Promise.resolve()),
     };
 
     ontologyMenu = createOntologyMenu({
@@ -297,10 +297,12 @@ describe("ontology menu actions", () => {
       .element.dispatchEvent({ type: "click" });
     await Promise.resolve();
 
-    expect(loadingModule.loadDroppedFile).toHaveBeenCalledTimes(1);
-    expect(loadingModule.loadDroppedFile).toHaveBeenCalledWith(file);
+    expect(loadingModule.loadLocalFile).toHaveBeenCalledTimes(1);
+    expect(loadingModule.loadLocalFile).toHaveBeenCalledWith(file);
     expect(loadingModule.loadOntologyFromLocation).not.toHaveBeenCalled();
-    expect(currentHash).toBe("#file=my%20ontology%231.rdf");
+    // The common file loader owns the route for both selection and dropping.
+    expect(global.window.history.pushState).not.toHaveBeenCalled();
+    expect(currentHash).toBe("#file=foaf.rdf.json");
   });
 
   test("reload retrieves the controller's accepted source even when the location names another ontology", async () => {
@@ -424,27 +426,38 @@ describe("ontology menu actions", () => {
     expect(hideAllMenus).not.toHaveBeenCalled();
   });
 
-  test("manages native disabled property and title on the reloadOntologySource button", () => {
+  test("shows source reload only for a reused remote visualization", () => {
     const reloadButton =
       selections.get("#reloadOntologySource") || new MockSelection();
     selections.set("#reloadOntologySource", reloadButton);
 
     global.location.hash = "#iri=https://example.org/test.owl";
-    ontologyMenu.renderOntologySource({
+    const remoteSource = {
       kind: "ontology-document-iri",
       identity: "https://example.org/test.owl",
+    };
+    ontologyMenu.renderSourceReloadControl(remoteSource, {
+      hasReusedCachedVisualization: false,
     });
+    expect(reloadButton.element.classList.contains("hidden")).toBe(true);
+    expect(reloadButton.element.disabled).toBe(true);
+
+    ontologyMenu.renderSourceReloadControl(remoteSource, {
+      hasReusedCachedVisualization: true,
+    });
+    expect(reloadButton.element.classList.contains("hidden")).toBe(false);
     expect(reloadButton.element.disabled).toBe(false);
     expect(reloadButton.element.title).toContain(
       "replace its cached visualization",
     );
 
     global.location.hash = "#file=test.json";
-    ontologyMenu.renderOntologySource({
+    ontologyMenu.renderSourceReloadControl({
       kind: "vowl-json-text",
       displayName: "test.json",
     });
     expect(reloadButton.element.disabled).toBe(true);
+    expect(reloadButton.element.classList.contains("hidden")).toBe(true);
     expect(reloadButton.element.title).toContain("Select the local file again");
   });
 });

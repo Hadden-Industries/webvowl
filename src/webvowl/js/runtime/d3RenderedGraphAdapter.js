@@ -30,6 +30,7 @@ import {
   createVisualizationViewApplicationRequest,
   createVisualizationViewApplicationResult,
   createVowlModelReplacementRequest,
+  createVowlModelRevisionRequest,
   createVowlModelReplacementResult,
 } from "../../../app/js/controller/renderedGraphRuntimeContracts.js";
 
@@ -245,6 +246,27 @@ export function createD3RenderedGraphAdapter(dependencies) {
     return [...occurrenceIdsByRendererKey].find(
       ([, id]) => id === reference.occurrenceId,
     )[0];
+  }
+
+  function indexDocumentRecords(vowlModel, loadGeneration) {
+    documentRecordTargetsByRendererElementId = new Map();
+    for (const collection of ["class", "datatype", "property"]) {
+      for (const record of vowlModel[collection] ?? []) {
+        const recordId = String(record.id);
+        documentRecordTargetsByRendererElementId.set(
+          recordId,
+          documentRecordTargetsByRendererElementId.has(recordId)
+            ? null
+            : { collection, recordId },
+        );
+      }
+    }
+    ontologyElementReferencesByRendererElementId =
+      indexOntologyElementReferencesByVowlElementId(vowlModel, loadGeneration);
+    rendererElementIdsByOntologyElementReferenceKey =
+      groupRendererElementIdsByReferenceKey(
+        ontologyElementReferencesByRendererElementId,
+      );
   }
 
   function retireActiveGeneration(retirementReason) {
@@ -743,27 +765,7 @@ export function createD3RenderedGraphAdapter(dependencies) {
       appliedVisualizationView = DEFAULT_APPLIED_VISUALIZATION_VIEW;
 
       occurrenceIdsByRendererKey = new Map();
-      documentRecordTargetsByRendererElementId = new Map();
-      for (const collection of ["class", "datatype", "property"]) {
-        for (const record of replacementRequest.vowlModel[collection] ?? []) {
-          const recordId = String(record.id);
-          documentRecordTargetsByRendererElementId.set(
-            recordId,
-            documentRecordTargetsByRendererElementId.has(recordId)
-              ? null
-              : { collection, recordId },
-          );
-        }
-      }
-      ontologyElementReferencesByRendererElementId =
-        indexOntologyElementReferencesByVowlElementId(
-          replacementRequest.vowlModel,
-          loadGeneration,
-        );
-      rendererElementIdsByOntologyElementReferenceKey =
-        groupRendererElementIdsByReferenceKey(
-          ontologyElementReferencesByRendererElementId,
-        );
+      indexDocumentRecords(replacementRequest.vowlModel, loadGeneration);
       try {
         // The renderer parses and mutates the model as it builds the graph, so
         // it receives its own copy before its first root is drawn.
@@ -777,6 +779,12 @@ export function createD3RenderedGraphAdapter(dependencies) {
         }
         const initial = replacementRequest.initialVisualization ?? {};
         const initialView = initial.view ?? {};
+        if (initialView.filters?.minDegree === undefined) {
+          renderedGraphInternals
+            .options()
+            .nodeDegreeFilter()
+            .useAutomaticMinimumDegree();
+        }
         // Data interpretation happened in the application. Apply its semantic
         // choices before drawing, without running modules on a retired model.
         applyVisualizationViewToRenderer(
@@ -850,6 +858,45 @@ export function createD3RenderedGraphAdapter(dependencies) {
       }
 
       return createVowlModelReplacementResult({ loadGeneration });
+    },
+
+    applyVowlModelRevision(request) {
+      assertNotDisposed();
+      const revision = createVowlModelRevisionRequest(request);
+      if (revision.loadGeneration !== activeLoadGeneration) {
+        throw createAbortError(
+          "The document revision targets a superseded load generation.",
+        );
+      }
+      const retainedView = readAppliedVisualizationView();
+      renderedGraphInternals.applyVowlModelRevision(
+        structuredClone(revision.vowlModel),
+      );
+      indexDocumentRecords(revision.vowlModel, activeLoadGeneration);
+      const focus = retainedView.focus.filter((reference) =>
+        rendererElementIdsByOntologyElementReferenceKey.has(
+          ontologyElementReferenceKey(reference),
+        ),
+      );
+      applyVisualizationViewToRenderer({ focus });
+      appliedVisualizationView = createAppliedVisualizationView({
+        ...readAppliedVisualizationView(),
+        focus,
+      });
+      publishRenderedGraphEvent({
+        kind: "degree-filter-range-changed",
+        loadGeneration: activeLoadGeneration,
+        payload: renderedGraphInternals
+          .options()
+          .nodeDegreeFilter()
+          .readDegreeRange(),
+      });
+      return createVisualizationViewApplicationResult({
+        loadGeneration: activeLoadGeneration,
+        appliedVisualizationView,
+        visibleRenderedGraphSnapshot:
+          renderedGraphRuntime.readVisibleRenderedGraphSnapshot(),
+      });
     },
 
     async applyVisualizationView(request, { signal } = {}) {

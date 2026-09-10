@@ -242,6 +242,81 @@ function captureRejectedError(promise) {
 }
 
 describe("canonical ontology source loading", () => {
+  test("loads the bundled MUTO JSON on an uncached request", async () => {
+    const text = readFileSync(
+      new URL("../../data/muto.json", import.meta.url),
+      "utf8",
+    );
+    const fetchImpl = jest.fn(async () =>
+      createFetchResponse(text, {
+        contentType: "application/json",
+      }),
+    );
+    const loader = createOntologySourceLoader({
+      computeSha256Hex: async (bytes) =>
+        createHash("sha256").update(bytes).digest("hex"),
+      createImportResolver: () => createRealImportResolver(fetchImpl),
+    });
+    const result = await loader.loadOntologySource({
+      source: {
+        kind: "vowl-json-url",
+        url: "http://localhost:8000/data/muto.json",
+      },
+    });
+    expect(result.vowlModel.header.iri).toBe("http://purl.org/muto/core");
+    expect(result.vowlModel.class).toHaveLength(16);
+    expect(result.vowlModel.property).toHaveLength(26);
+    const { renderedGraphRuntime, renderedGraphTestHarness } =
+      createInMemoryRenderedGraphAdapter();
+    const controller = createWebVowlController({
+      applicationUrl: "http://localhost:8000/#muto",
+      ontologySourceLoader: loader,
+      vowlModelInspectionProjector,
+      renderedGraphRuntime,
+      ontologyInspector: createOntologyInspector(),
+      graphLayoutSettler: {
+        waitForSettledGraphLayout: () => new Promise(() => {}),
+      },
+      visualizationArtifactService: {
+        createVisualizationArtifact: jest.fn(),
+        dispose: jest.fn(),
+      },
+      waitForDocumentFonts: async () => {},
+      waitForBrowserPaint: async () => {},
+    });
+    try {
+      const accepted = controller
+        .loadOntology({
+          source: {
+            kind: "vowl-json-url",
+            url: "http://localhost:8000/data/muto.json",
+          },
+        })
+        .catch((error) => error);
+      await flushSourceMicrotasks();
+      expect(renderedGraphTestHarness.completeInitialPaint(1)).toBe(true);
+      await flushSourceMicrotasks();
+      renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      expect(await accepted).toMatchObject({ loadGeneration: 1 });
+      expect(controller.getState().error).toBeNull();
+      expect(controller.getOntologyDocument().vowlModel.class).toHaveLength(16);
+    } finally {
+      controller.dispose();
+    }
+  });
+
+  test("keeps a bounded JSON parse explanation for the loading details panel", async () => {
+    const loader = createOntologySourceLoader();
+    const error = await captureRejectedError(
+      loader.loadOntologySource({
+        source: { kind: "vowl-json-text", text: "<html>Not JSON</html>" },
+      }),
+    );
+    expect(error.details.reason).toContain("Unexpected token");
+    expect(error.details.reason).toEqual(error.cause.message);
+    expect(error.details).not.toHaveProperty("stack");
+  });
+
   test("loads a remote ontology document through the canonical resolver and parser policies", async () => {
     const ontologyText = "@prefix : <https://example.com/> .";
     const fetchImpl = jest.fn(async () =>

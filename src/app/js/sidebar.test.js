@@ -357,6 +357,33 @@ describe("sidebar native language and lifecycle controls", () => {
     );
   });
 
+  test.each([
+    [1280, false, true],
+    [1280, true, false],
+    [800, false, false],
+  ])(
+    "initial width %i and hidden state %s reserve canvas and control space for sidebar visibility %s",
+    (width, initiallyHidden, expectedVisible) => {
+      sidebarModuleContext.window.innerWidth = width;
+      controls.get("#detailsArea").classList.toggle("hidden", initiallyHidden);
+
+      sidebar.setup();
+
+      expect(sidebar.isSidebarVisible()).toBe(expectedVisible);
+      expect(
+        controls.get("#canvasArea").classList.contains("sidebar-visible"),
+      ).toBe(expectedVisible);
+      expect(
+        controls.get("#zoomSlider").classList.contains("aligned-to-sidebar"),
+      ).toBe(expectedVisible);
+      expect(
+        controls
+          .get("#sidebarExpandButton")
+          .classList.contains("aligned-to-sidebar"),
+      ).toBe(expectedVisible);
+    },
+  );
+
   test("setup is idempotent and disposal detaches the sidebar toggle", () => {
     sidebar.setup();
     sidebar.setup();

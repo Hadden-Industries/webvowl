@@ -263,6 +263,129 @@ receipts are retained under `.sdlc/runtime/repair-production-preview/`, alongsid
 the original RED, the production negative control, artifact inventories and the
 bounded independent review. These supplement the earlier implementation evidence.
 
+## Viewing-control preservation repairs
+
+The owner's follow-up selected cached-view-only visibility for Reload source.
+The earlier menu cache was page-local and retained converted VOWL plus view
+settings; the remote Java converter could supply content but did not own that
+cache. The controller now reports `hasReusedCachedVisualization`, and both its
+human presenter and WebMCP state expose the same distinction. Fresh retrieval
+hides the control; cached navigation shows it. Failed retrieval and existing
+local document changes retain the accepted cache status.
+
+Continuous zoom previously reported a new scale without applying it to the SVG.
+The existing viewport setter now updates the drawing and D3 transform together,
+preserving the world point at the viewport center. A real D3/SVG regression fails
+in both directions before the correction. Initial wide-screen sidebar setup also
+omitted the existing canvas/control positioning classes, allowing the sidebar to
+cover zoom controls; initialization now applies the existing visibility operation.
+
+Fresh ontology replacement now re-enables automatic degree selection when no
+explicit minimum degree is supplied. A regression with the real degree filter
+loads a 52-node star, explicitly chooses zero, then loads without an override:
+the automatic choice returns to 2 and displays its single highly connected node.
+Explicit saved zero and positive values retain their meaning. The supplied large
+reference-data ontology has not been rerun after this correction.
+
+The repairs use the R1 accepted brief without configuration changes. Focused
+tests established RED before each production change. CUA's in-app Chromium
+browser, using the normal production preview, confirmed actual zoom changes
+with matching SVG/slider values, fresh FOAF/SIOC hiding Reload source, cached FOAF
+showing it, and a human reload hiding it again. Browser inspection also identified
+the initial sidebar overlap. The owner requested a lighter verification workflow;
+further browser inspection stopped. Final sidebar positioning and the owner's
+large-ontology scenario remain explicit human acceptance checks, separate from
+the automated regression results. No experimental editing or Turtle capability
+was added or redesigned.
+
+Focused failures, independent review and repository verification receipts are
+retained under `.sdlc/runtime/repair-view-controls/`. Independent review caught the
+local-document cache-status preservation case; its regression and correction are
+included. Final verification uses the normal `npm run sdlc -- verify` route.
+
+## Owner-reported editing and cold-load repairs
+
+The next owner acceptance run exposed editing preservation failures. Local edits
+incorrectly used whole-ontology replacement, and tests expected that reload.
+The controller now advances `documentRevision` within the existing `loadGeneration`;
+the runtime revises the drawing without replacing its viewport or entering initial
+loading. Summaries, search and editor controls consume document revisions. Cached
+source provenance, pause state and arrangement remain current. New elements enter
+the visible drawing as in the former editor, so load-time filtering does not
+immediately discard an isolated `owl:Thing`. Deletion proposals and retired inline
+inputs cannot apply to a later revision.
+
+Native property constructors emit `owl:ObjectProperty` and `owl:DatatypeProperty`.
+The document insertion validator rejected those spellings while tests supplied
+different tokens. Validation now uses the existing canonical VOWL interpretation
+and retains the native record spelling. Regressions exercise both constructors and
+the actual datatype-plus handler. Native drag callbacks reproduce and now correct
+the detached add/delete circles; this hover defect also exists in the inspected
+pre-cutover revision. An independent source review identified stale inline edits
+and overwritten loop positions in the proposed revision path; native regressions
+then reproduced both and verified their corrections.
+
+The owner's exact cold-load address is `http://localhost:8000/#muto`. The currently
+served JSON matches the bundled document. Source-loader/controller and native
+renderer characterizations accept its 16 classes and 26 properties. The reported
+browser parse failure remains unreproduced. Its blank Details panel was a separate
+confirmed defect: errors appended to a nonexistent progress bullet. Errors now
+create their own text-only entries and carry the bounded parser explanation.
+
+Eleven affected suites pass (439 tests, 2.252 seconds). The previously failing
+renderer-member reachability check passes separately after removal of the unused
+zoom reporter (one test, 0.247 seconds). The normal production build passes format,
+HTML/CSS/JavaScript lint and bundling. Logs, original RED results and fixture setup
+failures remain distinguished under `.sdlc/runtime/repair-view-controls/`.
+No browser inspection, broad suite or new security scan was run for these repairs.
+The owner explicitly requires another manual app test before heavy verification;
+release acceptance, final SDLC verification and the next signed/pushed checkpoint
+remain pending. Experimental editing was repaired, not added to WebMCP. Turtle
+generation and configuration were not changed.
+
+The owner subsequently clarified the MUTO reproduction: select the local
+`universal-ontology/dist/external/muto.rdf`, then hard-reload at `#file=muto.rdf`.
+The startup interpreter stripped `file=` and requested `data/muto.rdf.json`,
+which does not exist. The live preview returned HTTP 200 `text/html` containing
+the app page; JSON parsing failed on its opening `<`. This explains the reported
+failure and supersedes the earlier unreproduced assessment for `#muto` alone.
+Local-file routes now prompt reselection without requesting a fabricated remote
+document. Selection and dropping share `loadLocalFile`, which records the route
+using `pushState` after a current file read. No persistent file storage was added.
+Navigation to an unavailable file also supersedes pending local reads, preventing
+an earlier upload from overwriting the new route. Two affected suites pass
+(53 tests, 0.426 seconds); the focused RED and live HTTP
+evidence are retained with the existing repair record. Owner preview acceptance
+and the deferred broader checks remain outstanding.
+
+The next owner screenshot exposed duplicate summary text in Details. The loading
+presenter now emits the explanation once, retains separate error codes and parser
+reasons, and hides the empty Details section for summary-only errors. Subsequent
+loads and diagnostics restore it. The two focused suites pass (54 tests, 0.437
+seconds), and the normal preview build passes. This is focused verification;
+browser acceptance and the deferred broader checks remain pending.
+
+The owner also requested correction of a brief unstyled first paint. The live
+localhost page was served by Vite development mode, with no stylesheet links;
+application-entry JavaScript imported the CSS after the HTML could paint.
+`src/index.html` now owns the two native head stylesheet links in their existing
+cascade order, and the application entry no longer imports them. Stylesheet
+contents and renderer-package styling remain unchanged. This uses the browser's
+native render-blocking CSS behavior, documented by
+[MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/link#blocking).
+The HTML consumer regression passes (one test, 0.452 seconds). Served stylesheet
+requests with `Accept: text/css` return HTTP 200 `text/css`; the production build
+still emits a head stylesheet link. Formatting, lint and the normal build pass.
+The initial build's sandbox permission failure is retained separately from its
+successful retry. No browser inspection was performed; first-paint acceptance
+remains with the owner. Additional command-guard evidence was appended to existing
+[SDLC issue #30](https://github.com/Hadden-Industries/universal-ontology/issues/30#issuecomment-5626733413).
+
+The owner requested a signed checkpoint of the accumulated repairs after this
+app-testing round. That checkpoint records the focused results above; it does
+not establish completion of the deferred broad verification, remaining browser
+acceptance or release qualification. The implementation task remains incomplete.
+
 ## Evidence retention
 
 The implementation owner retains `.sdlc/runtime/webmcp-resumption/` and

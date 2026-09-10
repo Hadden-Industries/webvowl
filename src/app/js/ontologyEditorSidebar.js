@@ -300,7 +300,7 @@ export function createOntologyEditorSidebar({
     }
     snapshot = webVowlController.getOntologyDocument();
     language = state.view?.language ?? "default";
-    const metadataKey = `${snapshot.loadGeneration}:${language}`;
+    const metadataKey = `${snapshot.loadGeneration}:${state.documentRevision}:${language}`;
     if (force || presentedMetadataKey !== metadataKey) {
       for (const [id, field] of [
         ["titleEditor", "title"],
@@ -326,6 +326,7 @@ export function createOntologyEditorSidebar({
         : describeVowlDocumentRecord(snapshot.vowlModel, selectedTarget);
     const selectionKey = JSON.stringify([
       snapshot.loadGeneration,
+      state.documentRevision,
       language,
       selectedTarget,
     ]);
@@ -485,6 +486,7 @@ export function createOntologyEditorSidebar({
           [
             "status",
             "loadGeneration",
+            "documentRevision",
             "selectedDocumentRecord",
             "view",
             "editorMode",

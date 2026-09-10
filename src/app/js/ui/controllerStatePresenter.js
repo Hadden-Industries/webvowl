@@ -29,6 +29,7 @@ const LOAD_STATE_FIELD_NAMES = Object.freeze([
   "status",
   "loadGeneration",
   "source",
+  "hasReusedCachedVisualization",
   "warnings",
   "renderProgress",
   "error",
@@ -39,6 +40,7 @@ const LOAD_STATE_FIELD_NAMES = Object.freeze([
 // without a presentation fails a test rather than going quietly uncollected.
 export const PRESENTED_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   ...LOAD_STATE_FIELD_NAMES,
+  "documentRevision",
   "layout",
   "selection",
   "zoomScale",
@@ -120,7 +122,11 @@ export function createControllerStatePresenter(dependencies) {
         renderGraphLayoutPaused(controllerState.layout?.status === "paused");
       }
 
-      if (changedFields.has("selection") || languageChanged) {
+      if (
+        changedFields.has("selection") ||
+        languageChanged ||
+        changedFields.has("documentRevision")
+      ) {
         const selection = Array.isArray(controllerState.selection)
           ? controllerState.selection
           : [];
@@ -162,7 +168,7 @@ export function createControllerStatePresenter(dependencies) {
         (changedFields.has("status") &&
           controllerState.status === "ready" &&
           controllerState.loadGeneration !== summarisedLoadGeneration) ||
-        (languageChanged &&
+        ((languageChanged || changedFields.has("documentRevision")) &&
           controllerState.loadGeneration > 0 &&
           ["ready", "relaxing", "exporting"].includes(controllerState.status))
       ) {

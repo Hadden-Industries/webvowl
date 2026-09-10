@@ -5,6 +5,14 @@ import {
   ontologyLifecycleCapabilitiesFor,
 } from "./ontologyLifecycle.js";
 
+class LocalOntologyFileUnavailableError extends Error {
+  constructor(fileName) {
+    super(
+      `Select ${JSON.stringify(fileName)} again in the Ontology menu, or drop it onto the page. Local files are not retained after a page reload.`,
+    );
+  }
+}
+
 export function createLoadingModule({
   webVowlController,
   ontologyMenu,
@@ -226,6 +234,7 @@ export function createLoadingModule({
   };
 
   loadingModule.expandDetails = function () {
+    document.querySelector("#loadingInfo_msgBox").hidden = false;
     showLoadingDetails = true;
     loadingInfoContainer.classList.toggle("hidden", !showLoadingDetails);
     detailsButton.classList.toggle(
@@ -251,6 +260,7 @@ export function createLoadingModule({
 
   loadingModule.setBusyMode = function () {
     presentLoadingError();
+    document.querySelector("#loadingInfo_msgBox").hidden = false;
     document.querySelector("#currentLoadingStep").className = "step-busy";
     document.querySelector("#currentLoadingStep").textContent =
       "Loading ontology";
@@ -274,6 +284,7 @@ export function createLoadingModule({
   };
 
   loadingModule.setPercentMode = function () {
+    document.querySelector("#loadingInfo_msgBox").hidden = false;
     document.querySelector("#currentLoadingStep").className = "step-busy";
     document.querySelector("#currentLoadingStep").textContent =
       "Layout optimization";
@@ -321,6 +332,13 @@ export function createLoadingModule({
   // A location names a source. Validated models and their original provenance
   // are retained by the controller, shared with every other input adapter.
   function ontologySourceForIdentifier(ontologyIdentifier) {
+    if (ontologyIdentifier.startsWith("file=")) {
+      const fileName = decodeURIComponent(ontologyIdentifier.slice(5));
+      if (fileName.length === 0) {
+        throw new TypeError("A local file route requires a file name.");
+      }
+      throw new LocalOntologyFileUnavailableError(fileName);
+    }
     if (ontologyIdentifier.startsWith("url=")) {
       return {
         kind: "vowl-json-url",
@@ -333,12 +351,10 @@ export function createLoadingModule({
         documentIri: decodeURIComponent(ontologyIdentifier.slice(4)),
       };
     }
-    const presetIdentifier = ontologyIdentifier.startsWith("file=")
-      ? ontologyIdentifier.slice("file=".length)
-      : ontologyIdentifier;
     return {
       kind: "vowl-json-url",
-      url: new URL("data/" + presetIdentifier + ".json", document.baseURI).href,
+      url: new URL("data/" + ontologyIdentifier + ".json", document.baseURI)
+        .href,
     };
   }
 
@@ -357,16 +373,20 @@ export function createLoadingModule({
   loadingModule.loadOntologyFromLocation = async function ({
     reuseCachedOntology = true,
   } = {}) {
+    // A newer navigation supersedes a file read even when its route cannot load.
+    fileReadSequence += 1;
     let request;
     try {
       request = loadingModule.ontologyLoadRequestFromLocation();
-    } catch {
+    } catch (error) {
       loadingModule.renderControllerState({
         ...webVowlController.getState(),
         status: "error",
         error: {
           message:
-            "The visualization link contains invalid options or an invalid ontology address.",
+            error instanceof LocalOntologyFileUnavailableError
+              ? error.message
+              : "The visualization link contains invalid options or an invalid ontology address.",
         },
       });
       return undefined;
@@ -430,7 +450,7 @@ export function createLoadingModule({
   };
 
   // The one route for a file the reader dropped or selected.
-  loadingModule.loadDroppedFile = async function (file) {
+  loadingModule.loadLocalFile = async function (file) {
     const currentFileRead = ++fileReadSequence;
     const isCurrentFileRead = () =>
       currentFileRead === fileReadSequence &&
@@ -454,6 +474,13 @@ export function createLoadingModule({
       return undefined;
     }
 
+    // Both file selection and dropping identify a local source. Recording the
+    // route with pushState avoids a hashchange that would supersede this load.
+    window.history.pushState(
+      null,
+      "",
+      "#file=" + encodeURIComponent(file.name),
+    );
     if (fileExtensionOf(file.name) === "json") {
       return loadOntologyThroughController({
         kind: "vowl-json-text",
@@ -508,10 +535,21 @@ export function createLoadingModule({
       loadingModule.showLoadingIndicator();
       if (controllerState.error) {
         presentLoadingError(controllerState.error.message);
-        ontologyMenu?.append_message_toLastBulletPoint(
-          controllerState.error.message,
-          { tone: "error", breakBefore: true },
+        const error = controllerState.error;
+        const detailMessages = [error.code, error.details?.reason].filter(
+          (message) =>
+            typeof message === "string" &&
+            message.trim().length > 0 &&
+            message !== error.message,
         );
+        document.querySelector("#loadingInfo_msgBox").hidden =
+          detailMessages.length === 0;
+        for (const message of detailMessages) {
+          ontologyMenu?.append_message(message, {
+            tone: "error",
+            block: true,
+          });
+        }
       }
       return;
     }

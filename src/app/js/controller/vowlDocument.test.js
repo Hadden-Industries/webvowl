@@ -8,6 +8,8 @@ let removeVowlDocumentPrefix;
 let describeVowlDocumentDeletion;
 let applyVowlDocumentDeletion;
 let insertVowlDocumentRecords;
+let OwlObjectProperty;
+let OwlDatatypeProperty;
 beforeAll(async () => {
   ({
     applyVowlDocumentRecordEdit,
@@ -19,6 +21,20 @@ beforeAll(async () => {
     insertVowlDocumentRecords,
   } = await loadEsmModuleForTest(
     new URL("./vowlDocument.js", import.meta.url),
+    import.meta.url,
+  ));
+  ({ OwlObjectProperty } = await loadEsmModuleForTest(
+    new URL(
+      "../../../webvowl/js/elements/properties/implementations/OwlObjectProperty.js",
+      import.meta.url,
+    ),
+    import.meta.url,
+  ));
+  ({ OwlDatatypeProperty } = await loadEsmModuleForTest(
+    new URL(
+      "../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty.js",
+      import.meta.url,
+    ),
     import.meta.url,
   ));
 });
@@ -106,6 +122,31 @@ describe("application-owned VOWL record editing", () => {
       });
     },
   );
+  test.each(["object", "datatype"])(
+    "accepts the native %s property constructor's record type",
+    (kind) => {
+      const Constructor =
+        kind === "object" ? OwlObjectProperty : OwlDatatypeProperty;
+      const property = new Constructor({});
+      const record = {
+        collection: "property",
+        id: "created",
+        type: property.type(),
+        label: "Created relation",
+        iri: "https://example.test/created",
+        baseIri: "https://example.test/",
+        domain: "a",
+        range: "b",
+        pos: [100, 50],
+      };
+      const result = insertVowlDocumentRecords(documentFixture(), [record]);
+      expect(result.property.at(-1)).toEqual({
+        id: "created",
+        type: kind === "object" ? "owl:ObjectProperty" : "owl:DatatypeProperty",
+      });
+    },
+  );
+
   test("retains native datatype creation as one atomic document insertion", () => {
     const original = documentFixture();
     const records = [

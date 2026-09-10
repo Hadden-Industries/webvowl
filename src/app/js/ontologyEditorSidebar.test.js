@@ -159,6 +159,7 @@ describe("ontology editor sidebar through application document operations", () =
     state = {
       status: "ready",
       loadGeneration: 1,
+      documentRevision: 1,
       selectedDocumentRecord: target,
       editorMode: { isEditorMode: true },
       view: { language: "en" },
@@ -166,8 +167,8 @@ describe("ontology editor sidebar through application document operations", () =
     subscribers = new Set();
     const accepted = (changedModel) => {
       model = changedModel;
-      state = { ...state, loadGeneration: state.loadGeneration + 1 };
-      subscribers.forEach((listener) => listener(state, ["loadGeneration"]));
+      state = { ...state, documentRevision: state.documentRevision + 1 };
+      subscribers.forEach((listener) => listener(state, ["documentRevision"]));
       return Promise.resolve(state);
     };
     controller = {

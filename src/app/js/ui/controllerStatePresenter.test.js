@@ -30,7 +30,9 @@ function createControllerState(overrides = {}) {
   return Object.freeze({
     status: "ready",
     loadGeneration: 1,
+    documentRevision: 1,
     source: null,
+    hasReusedCachedVisualization: false,
     warnings: [],
     view: null,
     zoomScale: null,
@@ -72,6 +74,36 @@ function mountPresenter(initialStateOverrides = {}) {
 }
 
 describe("controller state presentation", () => {
+  test("refreshes document content after an edit without presenting a source load", () => {
+    const { presenter, presentationSpies } = mountPresenter({
+      selection: [PERSON_REFERENCE],
+    });
+    presenter.present(
+      createControllerState({
+        documentRevision: 2,
+        selection: [PERSON_REFERENCE],
+      }),
+      ["documentRevision"],
+    );
+    expect(presentationSpies.renderOntologySummary).toHaveBeenCalledTimes(1);
+    expect(presentationSpies.describeOntologyElements).toHaveBeenCalledWith({
+      ontologyElementReferences: [PERSON_REFERENCE],
+    });
+    expect(presentationSpies.renderLoadState).not.toHaveBeenCalled();
+    expect(presentationSpies.renderViewport).not.toHaveBeenCalled();
+  });
+
+  test("refreshes source controls when only cached-view reuse changes", () => {
+    const { presenter, presentationSpies } = mountPresenter();
+    const state = createControllerState({ hasReusedCachedVisualization: true });
+    presenter.present(state, ["hasReusedCachedVisualization"]);
+    expect(presentationSpies.renderLoadState).toHaveBeenCalledWith(state);
+    expect(presentationSpies.renderViewport).not.toHaveBeenCalled();
+    expect(
+      presentationSpies.renderSelectedOntologyElementDetails,
+    ).not.toHaveBeenCalled();
+  });
+
   test("presents every slice for the first state it receives", () => {
     const presentationSpies = createPresentationSpies();
     const presenter = createControllerStatePresenter(presentationSpies);
@@ -185,9 +217,9 @@ describe("controller state presentation", () => {
   });
 
   test("summarises once per loaded ontology rather than once per publication", () => {
-    const { presentationSpies, presenter } = mountPresenter({
-      status: "relaxing",
-    });
+    const presentationSpies = createPresentationSpies();
+    const presenter = createControllerStatePresenter(presentationSpies);
+    presenter.present(createControllerState({ status: "relaxing" }), []);
 
     presenter.present(createControllerState({ status: "ready" }), ["status"]);
     presenter.present(createControllerState({ status: "ready" }), ["layout"]);

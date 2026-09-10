@@ -260,6 +260,61 @@ describe("loading presentation listener ownership", () => {
   let controls;
   let loadingModule;
 
+  test("keeps distinct parser diagnostics available after a summary-only error", () => {
+    const append_message = jest.fn();
+    loadingModule.dispose();
+    loadingModule = createLoadingModule({
+      ontologyMenu: {
+        append_message,
+        append_message_toLastBulletPoint: jest.fn(),
+      },
+    });
+    const detailsContainer = global.document.querySelector(
+      "#loadingInfo_msgBox",
+    );
+    loadingModule.renderControllerState({
+      status: "error",
+      error: { message: "Select the local file again." },
+    });
+    expect(detailsContainer.hidden).toBe(true);
+    loadingModule.renderControllerState({
+      status: "error",
+      loadGeneration: 1,
+      error: {
+        code: "PARSE_FAILED",
+        message: "The ontology source could not be parsed.",
+        details: { reason: "Unexpected token '<'" },
+      },
+    });
+    expect(controls.get("#loadingErrorMessage").textContent).toBe(
+      "The ontology source could not be parsed.",
+    );
+    expect(detailsContainer.hidden).toBe(false);
+    expect(append_message).toHaveBeenCalledTimes(2);
+    expect(append_message).toHaveBeenNthCalledWith(1, "PARSE_FAILED", {
+      tone: "error",
+      block: true,
+    });
+    expect(append_message).toHaveBeenCalledWith("Unexpected token '<'", {
+      tone: "error",
+      block: true,
+    });
+  });
+
+  test("does not repeat the summary when a cause supplies the same explanation", () => {
+    const append_message = jest.fn();
+    loadingModule.dispose();
+    loadingModule = createLoadingModule({ ontologyMenu: { append_message } });
+    const message = "The selected file could not be read.";
+    loadingModule.renderControllerState({
+      status: "error",
+      error: { message, details: { reason: message } },
+    });
+    expect(controls.get("#loadingErrorMessage").textContent).toBe(message);
+    expect(append_message).not.toHaveBeenCalled();
+    expect(controls.get("#loadingInfo_msgBox").hidden).toBe(true);
+  });
+
   beforeEach(() => {
     controls = new Map();
     global.document = {
@@ -460,6 +515,8 @@ describe("loading module canonical controller sources", () => {
       querySelectorAll: () => [],
     };
     loadingModuleContext.document = global.document;
+    global.window = { history: { pushState: jest.fn() } };
+    loadingModuleContext.window = global.window;
   });
 
   afterEach(() => {
@@ -539,7 +596,7 @@ describe("loading module canonical controller sources", () => {
         "https://example.test/webvowl/#opts=doc=1.5;#foaf",
         state,
         {
-          append_message_toLastBulletPoint: (message) => messages.push(message),
+          append_message: (message) => messages.push(message),
         },
       );
       const inlineError = global.document.querySelector("#loadingErrorMessage");
@@ -548,12 +605,12 @@ describe("loading module canonical controller sources", () => {
         loadingModule.loadOntologyFromLocation(),
       ).resolves.toBeUndefined();
       expect(requestedLoads).toEqual([]);
-      expect(messages).toEqual([
-        "The visualization link contains invalid options or an invalid ontology address.",
-      ]);
+      expect(messages).toEqual([]);
       // Standalone errors have no preceding loading-details bullet. The
       // visible status must carry the explanation independently of that list.
-      expect(inlineError.textContent).toBe(messages[0]);
+      expect(inlineError.textContent).toBe(
+        "The visualization link contains invalid options or an invalid ontology address.",
+      );
       expect(inlineError.hidden).toBe(false);
       expect(controls.get("#currentLoadingStep").textContent).toBe(
         "Loading failed",
@@ -606,13 +663,42 @@ describe("loading module canonical controller sources", () => {
     ]);
   });
 
+  test.each(["muto.rdf", "my ontology#1.rdf"])(
+    "asks for local file %s again after reload instead of fetching an invented JSON URL",
+    async (fileName) => {
+      const messages = [];
+      global.document.baseURI = "http://localhost:8000/";
+      loadingModule = createLoadingModuleForLocation(
+        "http://localhost:8000/#file=" + encodeURIComponent(fileName),
+        { status: "idle", loadGeneration: 0 },
+        {
+          append_message: (message) => messages.push(message),
+          clearDetailInformation: () => {
+            messages.length = 0;
+          },
+        },
+      );
+      await loadingModule.loadOntologyFromLocation();
+      expect(requestedLoads).toEqual([]);
+      expect(messages).toEqual([]);
+      expect(controls.get("#loadingErrorMessage").textContent).toBe(
+        `Select ${JSON.stringify(fileName)} again in the Ontology menu, or drop it onto the page. Local files are not retained after a page reload.`,
+      );
+      expect(controls.get("#loadingErrorMessage").hidden).toBe(false);
+      expect(controls.get("#loadingInfo_msgBox").hidden).toBe(true);
+      expect(loadingModule.state()).toBe("error");
+      loadingModule.renderControllerState({ status: "loading" });
+      expect(controls.get("#loadingInfo_msgBox").hidden).toBe(false);
+    },
+  );
+
   test("routes dropped JSON text to the controller for parsing", async () => {
     loadingModule = createLoadingModuleForLocation(
       "https://example.test/webvowl/#foaf",
     );
     const vowlModel = { header: { title: { undefined: "Dropped" } } };
 
-    await loadingModule.loadDroppedFile({
+    await loadingModule.loadLocalFile({
       name: "dropped.json",
       text: () => Promise.resolve(JSON.stringify(vowlModel)),
     });
@@ -633,10 +719,16 @@ describe("loading module canonical controller sources", () => {
       "https://example.test/webvowl/#foaf",
     );
 
-    await loadingModule.loadDroppedFile({
+    await loadingModule.loadLocalFile({
       name: "dropped.ttl",
       text: () => Promise.resolve("@prefix ex: <http://example.test/> ."),
     });
+
+    expect(global.window.history.pushState).toHaveBeenCalledWith(
+      null,
+      "",
+      "#file=dropped.ttl",
+    );
 
     expect(requestedLoads).toEqual([
       {
@@ -678,7 +770,7 @@ describe("loading module canonical controller sources", () => {
           },
         });
       } else {
-        await loadingModule.loadDroppedFile({
+        await loadingModule.loadLocalFile({
           name: "bad.json",
           text: async () => "{",
         });
@@ -702,7 +794,7 @@ describe("loading module canonical controller sources", () => {
       },
     });
     await expect(
-      loadingModule.loadDroppedFile({
+      loadingModule.loadLocalFile({
         name: "unreadable.json",
         text: async () => {
           throw new Error("read failed");
@@ -718,14 +810,14 @@ describe("loading module canonical controller sources", () => {
       "https://example.test/webvowl/#foaf",
     );
     let finishEarlierRead;
-    const earlier = loadingModule.loadDroppedFile({
+    const earlier = loadingModule.loadLocalFile({
       name: "earlier.json",
       text: () =>
         new Promise((resolve) => {
           finishEarlierRead = resolve;
         }),
     });
-    await loadingModule.loadDroppedFile({
+    await loadingModule.loadLocalFile({
       name: "newer.json",
       text: async () => '{"header":{}}',
     });
@@ -741,7 +833,7 @@ describe("loading module canonical controller sources", () => {
       "https://example.test/webvowl/#foaf",
     );
     let finishRead;
-    const pending = loadingModule.loadDroppedFile({
+    const pending = loadingModule.loadLocalFile({
       name: "earlier.json",
       text: () =>
         new Promise((resolve) => {
@@ -756,6 +848,31 @@ describe("loading module canonical controller sources", () => {
     await pending;
     expect(requestedLoads).toEqual([]);
     expect(loadingModule.state()).toBe("loading");
+  });
+
+  test("navigation to an unavailable local file supersedes an earlier file read", async () => {
+    loadingModule = createLoadingModuleForLocation(
+      "http://localhost:8000/#muto",
+    );
+    let finishEarlierRead;
+    const earlier = loadingModule.loadLocalFile({
+      name: "earlier.rdf",
+      text: () =>
+        new Promise((resolve) => {
+          finishEarlierRead = resolve;
+        }),
+    });
+    loadingModuleContext.location = new URL(
+      "http://localhost:8000/#file=later.rdf",
+    );
+    await loadingModule.loadOntologyFromLocation();
+    finishEarlierRead("<rdf:RDF/>");
+    await earlier;
+    expect(requestedLoads).toEqual([]);
+    expect(global.window.history.pushState).not.toHaveBeenCalled();
+    expect(controls.get("#loadingErrorMessage").textContent).toContain(
+      '"later.rdf"',
+    );
   });
 });
 

@@ -6,6 +6,7 @@ import { createVowlDocumentInsertionRecords } from "./vowlDocument.js";
 
 export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "replaceVowlModel",
+  "applyVowlModelRevision",
   "clearRenderedGraph",
   "applyVisualizationView",
   "readVisibleRenderedGraphSnapshot",
@@ -930,6 +931,32 @@ function deepFreezePlainData(plainDataValue, ancestorObjects = new WeakSet()) {
   return Object.freeze(plainDataValue);
 }
 
+function createOwnedVowlModel(vowlModel) {
+  assertPlainRecord(vowlModel, "vowlModel");
+  let ownedVowlModel;
+  try {
+    ownedVowlModel = structuredClone(vowlModel);
+  } catch (error) {
+    throw new TypeError("vowlModel must be structured-cloneable.", {
+      cause: error,
+    });
+  }
+  return deepFreezePlainData(ownedVowlModel);
+}
+
+export function createVowlModelRevisionRequest(request) {
+  assertExactFieldNames(
+    request,
+    ["loadGeneration", "vowlModel"],
+    "VOWL model revision request",
+  );
+  assertPositiveLoadGeneration(request.loadGeneration);
+  return Object.freeze({
+    loadGeneration: request.loadGeneration,
+    vowlModel: createOwnedVowlModel(request.vowlModel),
+  });
+}
+
 export function createVowlModelReplacementRequest(request) {
   assertAllowedFieldNames(
     request,
@@ -937,18 +964,9 @@ export function createVowlModelReplacementRequest(request) {
     "VOWL model replacement request",
   );
   assertPositiveLoadGeneration(request.loadGeneration);
-  assertPlainRecord(request.vowlModel, "vowlModel");
-  let ownedVowlModel;
-  try {
-    ownedVowlModel = structuredClone(request.vowlModel);
-  } catch (error) {
-    throw new TypeError("vowlModel must be structured-cloneable.", {
-      cause: error,
-    });
-  }
   return Object.freeze({
     loadGeneration: request.loadGeneration,
-    vowlModel: deepFreezePlainData(ownedVowlModel),
+    vowlModel: createOwnedVowlModel(request.vowlModel),
     ...(request.initialVisualization === undefined
       ? {}
       : {

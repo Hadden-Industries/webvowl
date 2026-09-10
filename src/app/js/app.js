@@ -145,7 +145,7 @@ export function createWebVowlApplication() {
     webVowlController,
     loadOntologyFromLocation: (options) =>
       loadingModule.loadOntologyFromLocation(options),
-    loadDroppedFile: (file) => loadingModule.loadDroppedFile(file),
+    loadLocalFile: (file) => loadingModule.loadLocalFile(file),
     createNewOntology: () => loadingModule.createNewOntology(),
     scrollLoadingDetails: () => loadingModule.scrollDownDetails(),
     hideNavigationMenus: () => navigationMenu.hideAllMenus(),
@@ -288,7 +288,7 @@ export function createWebVowlApplication() {
           if (ev.dataTransfer.items.length === 1) {
             if (ev.dataTransfer.items[0].kind === "file") {
               const file = ev.dataTransfer.items[0].getAsFile();
-              loadingModule.loadDroppedFile(file);
+              loadingModule.loadLocalFile(file);
             }
           } else {
             //  >> WARNING not multiple file uploaded;
@@ -435,7 +435,10 @@ export function createWebVowlApplication() {
     const controllerStatePresenter = createControllerStatePresenter({
       renderLoadState: (controllerState) => {
         loadingModule.renderControllerState(controllerState);
-        ontologyMenu.renderOntologySource(controllerState.source);
+        ontologyMenu.renderSourceReloadControl(controllerState.source, {
+          hasReusedCachedVisualization:
+            controllerState.hasReusedCachedVisualization,
+        });
       },
       renderGraphLayoutPaused: (isPaused) =>
         pauseMenu.renderGraphLayoutPaused(isPaused),
@@ -465,7 +468,9 @@ export function createWebVowlApplication() {
         }
         if (
           changedFieldNames.some((fieldName) =>
-            ["status", "loadGeneration", "view"].includes(fieldName),
+            ["status", "loadGeneration", "documentRevision", "view"].includes(
+              fieldName,
+            ),
           )
         ) {
           searchMenu.renderVisualizationFocus(

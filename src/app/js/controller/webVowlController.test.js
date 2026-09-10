@@ -262,6 +262,7 @@ describe("WebVOWL controller orchestration", () => {
   test("revisits a cached source without exchanging its model or provenance with the next source", async () => {
     const firstRecord = createSourceLoadRecord();
     await completeLoad(1, {}, {}, firstRecord);
+    expect(controller.getState().hasReusedCachedVisualization).toBe(false);
     const secondRequest = {
       source: { kind: "vowl-json-url", url: DOCUMENT_IRI },
     };
@@ -298,6 +299,7 @@ describe("WebVOWL controller orchestration", () => {
       en: "Example",
     });
     expect(controller.getState().source).toEqual(firstRecord.sourceProvenance);
+    expect(controller.getState().hasReusedCachedVisualization).toBe(true);
     renderedGraphTestHarness.publishRenderedGraphEvent({
       kind: "viewport-changed",
       loadGeneration: 3,
@@ -306,6 +308,12 @@ describe("WebVOWL controller orchestration", () => {
     expect(controller.getVisualizationShareLink().url).toContain(
       "#iri=https%3A%2F%2Fexample.test%2Fontology.owl",
     );
+    await completeLoad(4, {}, {}, firstRecord, {
+      ...SOURCE_REQUEST,
+      reuseCachedOntology: false,
+    });
+    expect(controller.getState().hasReusedCachedVisualization).toBe(false);
+    expect(ontologySourceLoader.loadOntologySource).toHaveBeenCalledTimes(3);
   });
 
   test("a failed fresh retrieval retains the accepted cache and drawing", async () => {
@@ -333,10 +341,19 @@ describe("WebVOWL controller orchestration", () => {
     await flushMicrotasks(3);
     renderedGraphTestHarness.completeVisualizationViewApplication(3);
     await cached;
+    expect(controller.getState().hasReusedCachedVisualization).toBe(true);
     expect(controller.getOntologyDocument().vowlModel.header.title).toEqual({
       en: "Example",
     });
     expect(controller.getState().source).toEqual(accepted.sourceProvenance);
+    const failedRefresh = controller
+      .loadOntology({ ...SOURCE_REQUEST, reuseCachedOntology: false })
+      .catch((error) => error);
+    expect(controller.getState().hasReusedCachedVisualization).toBe(false);
+    await flushMicrotasks(2);
+    deferredSourceLoads.at(-1).reject(new Error("Still unavailable"));
+    expect((await failedRefresh).code).toBe("LOAD_FAILED");
+    expect(controller.getState().hasReusedCachedVisualization).toBe(true);
   });
 
   test("shares the accepted remote source and applied view through the controller", async () => {
@@ -589,13 +606,6 @@ describe("WebVOWL controller orchestration", () => {
           deriveIriFromLabel: false,
         },
       });
-      await flushMicrotasks();
-      expect(
-        controller.getOntologyDocument().vowlModel.classAttribute[0].label.en,
-      ).toBe("Person");
-      renderedGraphTestHarness.completeInitialPaint(2, editableDrawing(2));
-      await flushMicrotasks();
-      renderedGraphTestHarness.completeVisualizationViewApplication(2);
       await flushMicrotasks(16);
       expect(
         controller.getOntologyDocument().vowlModel.classAttribute[0].label,
@@ -605,7 +615,7 @@ describe("WebVOWL controller orchestration", () => {
         recordId: "a",
       });
     });
-    async function completeDocumentRevision(promise, generation) {
+    async function completeCachedLoad(promise, generation) {
       await flushMicrotasks();
       renderedGraphTestHarness.completeInitialPaint(
         generation,
@@ -618,33 +628,51 @@ describe("WebVOWL controller orchestration", () => {
 
     test("uses the accepted document for metadata and prefix changes as well as record edits", async () => {
       await loadEditableOntology();
-      await completeDocumentRevision(
-        controller.editOntologyMetadata({
-          loadGeneration: 1,
-          changes: { title: { language: "en", text: "Edited ontology" } },
-        }),
-        2,
-      );
+      await controller.editOntologyMetadata({
+        loadGeneration: 1,
+        changes: { title: { language: "en", text: "Edited ontology" } },
+      });
       expect(controller.getOntologyDocument().vowlModel.header.title).toEqual({
         en: "Edited ontology",
       });
-      await completeDocumentRevision(
-        controller.setOntologyPrefix({
-          loadGeneration: 2,
-          name: "ex",
-          iri: "https://example.test/",
-        }),
-        3,
-      );
+      await controller.setOntologyPrefix({
+        loadGeneration: 1,
+        name: "ex",
+        iri: "https://example.test/",
+      });
       expect(
         controller.getOntologyDocument().vowlModel.header.prefixList,
       ).toEqual({ ex: "https://example.test/" });
-      await completeDocumentRevision(
-        controller.removeOntologyPrefix({ loadGeneration: 3, name: "ex" }),
-        4,
-      );
+      await controller.removeOntologyPrefix({ loadGeneration: 1, name: "ex" });
       expect(controller.getOntologyDocument().vowlModel.namespace).toEqual([]);
       expect(ontologySourceLoader.loadOntologySource).toHaveBeenCalledTimes(1);
+      expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(1);
+      expect(controller.getState()).toMatchObject({
+        loadGeneration: 1,
+        documentRevision: 4,
+      });
+    });
+
+    test("retains cached-view provenance through an existing local document change", async () => {
+      await loadEditableOntology();
+      await completeCachedLoad(
+        controller.loadOntology({
+          ...SOURCE_REQUEST,
+          reuseCachedOntology: true,
+        }),
+        2,
+      );
+      expect(controller.getState().hasReusedCachedVisualization).toBe(true);
+
+      await controller.editOntologyMetadata({
+        loadGeneration: 2,
+        changes: { title: { language: "en", text: "Edited cached view" } },
+      });
+      expect(controller.getState().hasReusedCachedVisualization).toBe(true);
+      expect(ontologySourceLoader.loadOntologySource).toHaveBeenCalledTimes(1);
+
+      await completeLoad(3);
+      expect(controller.getState().hasReusedCachedVisualization).toBe(false);
     });
 
     test("deletes only a proposal issued by this controller for the current accepted document", async () => {
@@ -661,10 +689,7 @@ describe("WebVOWL controller orchestration", () => {
       await expect(
         controller.confirmOntologyDeletion(structuredClone(proposal)),
       ).rejects.toMatchObject({ code: "EDIT_REJECTED" });
-      await completeDocumentRevision(
-        controller.confirmOntologyDeletion(proposal),
-        2,
-      );
+      await controller.confirmOntologyDeletion(proposal);
       expect(controller.getOntologyDocument().vowlModel.class).toEqual([
         { id: "b", type: "owl:Class" },
       ]);
@@ -688,6 +713,26 @@ describe("WebVOWL controller orchestration", () => {
       await completeLoad(2);
       renderedGraphTestHarness.publishRenderedGraphEvent(selected);
       expect(controller.getState().selectedDocumentRecord).toBeNull();
+    });
+
+    test("rejects a pending deletion after another edit revises the same loaded document", async () => {
+      await loadEditableOntology();
+      const proposal = controller.proposeOntologyDeletion({
+        loadGeneration: 1,
+        recordTarget: { collection: "class", recordId: "a" },
+      });
+      await controller.editOntologyMetadata({
+        loadGeneration: 1,
+        changes: { title: { language: "en", text: "Revised" } },
+      });
+      await expect(
+        controller.confirmOntologyDeletion(proposal),
+      ).rejects.toMatchObject({ code: "EDIT_REJECTED" });
+      expect(controller.getOntologyDocument().vowlModel.class).toHaveLength(2);
+      expect(controller.getState()).toMatchObject({
+        loadGeneration: 1,
+        documentRevision: 2,
+      });
     });
     async function loadEditableOntology(modelOverrides = {}) {
       await completeLoad(
@@ -732,7 +777,45 @@ describe("WebVOWL controller orchestration", () => {
       });
     }
 
-    test("accepts native creation atomically and ignores a repeated retired gesture", async () => {
+    test("adds a canvas node without replacing the loaded graph", async () => {
+      await loadEditableOntology();
+      const observedStatuses = [];
+      const unsubscribe = controller.subscribeToState((state) =>
+        observedStatuses.push(state.status),
+      );
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "record-creation-requested",
+        loadGeneration: 1,
+        payload: {
+          records: [
+            {
+              collection: "class",
+              id: "Class0",
+              type: "owl:Thing",
+              label: "Thing",
+              iri: "http://www.w3.org/2002/07/owl#Thing",
+              baseIri: "http://www.w3.org/2002/07/owl#",
+              pos: [37, -24],
+            },
+          ],
+          selectedRecord: { collection: "class", recordId: "Class0" },
+          editLabel: false,
+        },
+      });
+      await flushMicrotasks(16);
+      expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(1);
+      expect(controller.getState().loadGeneration).toBe(1);
+      expect(observedStatuses).not.toContain("loading");
+      expect(observedStatuses).not.toContain("rendering");
+      expect(controller.getState().warnings).toEqual([]);
+      expect(controller.getOntologyDocument().vowlModel.class).toContainEqual({
+        id: "Class0",
+        type: "owl:Thing",
+      });
+      unsubscribe();
+    });
+
+    test("accepts native creation atomically and rejects a repeated record insertion", async () => {
       await loadEditableOntology();
       const event = {
         kind: "record-creation-requested",
@@ -754,8 +837,7 @@ describe("WebVOWL controller orchestration", () => {
         },
       };
       renderedGraphTestHarness.publishRenderedGraphEvent(event);
-      expect(controller.getOntologyDocument().vowlModel.class).toHaveLength(2);
-      await completeDocumentRevision(Promise.resolve(), 2);
+      expect(controller.getOntologyDocument().vowlModel.class).toHaveLength(3);
       await flushMicrotasks(16);
       const accepted = controller.getOntologyDocument();
       expect(accepted.vowlModel.class.at(-1)).toEqual({
@@ -798,7 +880,6 @@ describe("WebVOWL controller orchestration", () => {
       expect(controller.getOntologyDocument()).toEqual(before);
       requestOntologyDeletionConfirmation.mockResolvedValueOnce(true);
       renderedGraphTestHarness.publishRenderedGraphEvent(event);
-      await completeDocumentRevision(Promise.resolve(), 2);
       await flushMicrotasks(16);
       expect(controller.getOntologyDocument().vowlModel.class).toEqual([
         { id: "b", type: "owl:Class" },
@@ -816,17 +897,13 @@ describe("WebVOWL controller orchestration", () => {
       };
       const editing = controller.editOntologyRecord(request);
       request.recordTarget.recordId = "b";
-      await flushMicrotasks();
-      expect(controller.getOntologyDocument()).toEqual(before);
-      renderedGraphTestHarness.completeInitialPaint(2, editableDrawing(2));
-      await flushMicrotasks();
-      renderedGraphTestHarness.completeVisualizationViewApplication(2);
       await editing;
       const document = controller.getOntologyDocument();
       expect(
         document.vowlModel.classAttribute.map((entry) => entry.label),
       ).toEqual([{ en: "Renamed", de: "Person DE" }, { en: "Peer" }]);
-      expect(document.loadGeneration).toBe(2);
+      expect(document.loadGeneration).toBe(1);
+      expect(controller.getState().documentRevision).toBe(2);
       expect(
         document.vowlModel.classAttribute.map(({ pos, pinned }) => ({
           pos,
@@ -1025,7 +1102,9 @@ describe("WebVOWL controller orchestration", () => {
       expect(controllerState).toEqual({
         status: "idle",
         loadGeneration: 0,
+        documentRevision: 0,
         source: null,
+        hasReusedCachedVisualization: false,
         warnings: [],
         view: null,
         zoomScale: null,

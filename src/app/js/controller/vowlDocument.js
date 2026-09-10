@@ -114,7 +114,8 @@ export function createVowlDocumentInsertionRecords(records) {
             "rdfs:Datatype",
           ];
     if (
-      !allowedTypes.includes(record.type) ||
+      typeof record.type !== "string" ||
+      !allowedTypes.includes(canonicalVowlType(record.type)) ||
       typeof record.label !== "string"
     ) {
       throw new TypeError(

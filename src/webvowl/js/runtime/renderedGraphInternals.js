@@ -411,10 +411,6 @@ function createGraph(
     return editMode;
   };
 
-  graph.updateZoomSliderValueFromOutside = function () {
-    reportViewportChanged();
-  };
-
   graph.ontologyEditingState = function () {
     return ontologyEditingState;
   };
@@ -461,8 +457,18 @@ function createGraph(
         maximumMagnification,
       },
     );
-    updateViewportState(graphTranslation, nextZoom);
-    graph.updateZoomSliderValueFromOutside();
+    const centerX = renderedGraphSettings.width() / 2;
+    const centerY = renderedGraphSettings.height() / 2;
+    const worldCenter = getWorldPosFromScreen(
+      centerX,
+      centerY,
+      graphTranslation,
+      zoomFactor,
+    );
+    graph.setViewportTransform(nextZoom, [
+      centerX - worldCenter.x * nextZoom,
+      centerY - worldCenter.y * nextZoom,
+    ]);
     return !hasReachedBoundary;
   }
 
@@ -1026,6 +1032,8 @@ function createGraph(
           moved = true;
           if (d.renderType && d.renderType() === "round") {
             classDragger.setParentNode(d);
+            setDeleteHoverElementPosition(d);
+            setAddDataPropertyHoverElementPosition(d);
           }
         }
       })
@@ -2291,6 +2299,58 @@ function createGraph(
     }
   };
 
+  graph.applyVowlModelRevision = function (vowlModel) {
+    // Keep the mounted viewport and load generation. Parsing a document
+    // revision must not enter the initial loading/centering sequence.
+    const previousNodeIds = new Set(
+      unfilteredData.nodes.map((node) => node.id()),
+    );
+    const previousPropertyIds = new Set(
+      unfilteredData.properties.map((property) => property.id()),
+    );
+    const visibleNodeIds = new Set(classNodes.map((node) => node.id()));
+    const visiblePropertyIds = new Set(
+      properties.map((property) => property.id()),
+    );
+    parser.parse(vowlModel);
+    // Old inputs and gestures belong to retired elements, even though the
+    // ontology load and its viewport remain current.
+    renderInteractionEpoch++;
+    releaseOwnedMouseGesture(activeMouseDrag);
+    releaseOwnedMouseGesture(activeMousePan);
+    activeMouseDrag = undefined;
+    activeMousePan = undefined;
+    createInteractionBehaviours();
+    bindViewportInteractions();
+    clearAllHover();
+    removeEditElements();
+    renderedGraphSettings.data(vowlModel);
+    unfilteredData = { nodes: parser.nodes(), properties: parser.properties() };
+    refreshOntologyMetadata();
+    renderedGraphSettings
+      .nodeDegreeFilter()
+      .minDegree(renderedGraphSettings.nodeDegreeFilter().minDegree());
+    let initializationData = _.clone(unfilteredData);
+    renderedGraphSettings.filterModules().forEach(function (module) {
+      initializationData = filterFunction(module, initializationData, true);
+    });
+    generateDictionary(unfilteredData);
+    // Existing editing adds new elements directly to the visible drawing.
+    // Reapplying source-load filters here would immediately hide an isolated
+    // Thing or any new class while a positive collapsing degree is selected.
+    classNodes = unfilteredData.nodes.filter(
+      (node) =>
+        visibleNodeIds.has(node.id()) || !previousNodeIds.has(node.id()),
+    );
+    properties = unfilteredData.properties.filter(
+      (property) =>
+        visiblePropertyIds.has(property.id()) ||
+        !previousPropertyIds.has(property.id()),
+    );
+    refreshLinksAndLabels();
+    drawCurrentGraphData();
+  };
+
   function updateNodeMap() {
     nodeMap = [];
     let node;
@@ -2355,6 +2415,10 @@ function createGraph(
     }
 
     refreshGraphData();
+    drawCurrentGraphData();
+  };
+
+  function drawCurrentGraphData() {
     // update node map
     updateNodeMap();
 
@@ -2369,7 +2433,7 @@ function createGraph(
     if (paused) {
       force.stop();
     }
-  };
+  }
 
   graph.paused = function (p) {
     if (!arguments.length) {
@@ -2558,8 +2622,17 @@ function createGraph(
         "The ontology could not be rendered.",
       );
     }
-    // update prefixList(
-    // update general MetaOBJECT
+    refreshOntologyMetadata();
+    // Initialize filters with data to replicate consecutive filtering.
+    let initializationData = _.clone(unfilteredData);
+    renderedGraphSettings.filterModules().forEach(function (module) {
+      initializationData = filterFunction(module, initializationData, true);
+    });
+    generateDictionary(unfilteredData);
+    centerGraphViewOnLoad = centerViewport;
+  }
+
+  function refreshOntologyMetadata() {
     ontologyEditingState.clearMetaObject();
     ontologyEditingState.clearGeneralMetaObject();
     if (renderedGraphSettings.data() !== undefined) {
@@ -2620,16 +2693,6 @@ function createGraph(
         }
       }
     }
-    // update more meta OBJECT
-    // Initialize filters with data to replicate consecutive filtering
-    let initializationData = _.clone(unfilteredData);
-    renderedGraphSettings.filterModules().forEach(function (module) {
-      initializationData = filterFunction(module, initializationData, true);
-    });
-    // generate dictionary here ;
-    generateDictionary(unfilteredData);
-
-    centerGraphViewOnLoad = centerViewport;
   }
 
   //Applies the data of the graph options object and parses it. The graph is not redrawn.
@@ -2649,6 +2712,10 @@ function createGraph(
     renderedGraphSettings.focuserModule().handle(null, undefined, true);
     classNodes = preprocessedData.nodes;
     properties = preprocessedData.properties;
+    refreshLinksAndLabels();
+  }
+
+  function refreshLinksAndLabels() {
     links = linkCreator.createLinks(properties);
     labelNodes = links.map(function (link) {
       return link.label();
@@ -2715,6 +2782,9 @@ function createGraph(
   // their position information. With this hack the position of old labels is copied to the new labels.
   function setPositionOfOldLabelsOnNewLabels(oldLabelNodes, labelNodes) {
     labelNodes.forEach(function (labelNode) {
+      if (Number.isFinite(labelNode.x) && Number.isFinite(labelNode.y)) {
+        return;
+      }
       for (let i = 0; i < oldLabelNodes.length; i++) {
         const oldNode = oldLabelNodes[i];
         if (oldNode.equals(labelNode)) {

@@ -17,6 +17,7 @@ import {
   createVisualizationViewApplicationRequest,
   createVisualizationViewApplicationResult,
   createVowlModelReplacementRequest,
+  createVowlModelRevisionRequest,
   createVowlModelReplacementResult,
 } from "../js/controller/renderedGraphRuntimeContracts.js";
 
@@ -336,6 +337,17 @@ export function createInMemoryRenderedGraphAdapter() {
         pendingOperation.replacementRequest = replacementRequest;
         pendingReplacement = pendingOperation;
         return pendingOperation.promise;
+      },
+
+      applyVowlModelRevision(request) {
+        assertNotDisposed();
+        const revision = createVowlModelRevisionRequest(request);
+        assertActiveGeneration(revision.loadGeneration, activeLoadGeneration);
+        return createVisualizationViewApplicationResult({
+          loadGeneration: activeLoadGeneration,
+          appliedVisualizationView,
+          visibleRenderedGraphSnapshot,
+        });
       },
 
       async applyVisualizationView(request, options) {

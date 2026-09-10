@@ -68,7 +68,9 @@ import {
 const IDLE_CONTROLLER_STATE = Object.freeze({
   status: "idle",
   loadGeneration: 0,
+  documentRevision: 0,
   source: null,
+  hasReusedCachedVisualization: false,
   warnings: [],
   view: null,
   zoomScale: null,
@@ -982,6 +984,9 @@ export function createWebVowlController(dependencies) {
             : "relaxing",
         loadGeneration,
         source: { ...currentSourceProvenance },
+        documentRevision: 1,
+        hasReusedCachedVisualization:
+          sourceLoadRecord.hasReusedCachedVisualization === true,
         warnings: [...currentWarnings],
         editorMode: { isEditorMode: ontologyEditorOptions.isEditorMode },
         view: viewApplicationResult.appliedVisualizationView,
@@ -1078,10 +1083,13 @@ export function createWebVowlController(dependencies) {
         loadGeneration: currentOntologyGeneration,
         ...description,
       });
-      deletionProposals.set(
-        proposal,
-        applyVowlDocumentDeletion(currentVowlModel, request.recordTarget),
-      );
+      deletionProposals.set(proposal, {
+        baseModel: currentVowlModel,
+        editedModel: applyVowlDocumentDeletion(
+          currentVowlModel,
+          request.recordTarget,
+        ),
+      });
       return proposal;
     } catch (cause) {
       if (isExpectedOperationError(cause)) {
@@ -1095,8 +1103,11 @@ export function createWebVowlController(dependencies) {
     }
   }
   async function confirmOntologyDeletion(proposal, options) {
-    const editedModel = deletionProposals.get(proposal);
-    if (editedModel === undefined) {
+    const pendingDeletion = deletionProposals.get(proposal);
+    if (
+      pendingDeletion === undefined ||
+      pendingDeletion.baseModel !== currentVowlModel
+    ) {
       throw new WebVowlOperationError({
         code: "EDIT_REJECTED",
         message:
@@ -1108,7 +1119,7 @@ export function createWebVowlController(dependencies) {
       [],
     );
     deletionProposals.delete(proposal);
-    return commitEditedDocument(editedModel, {
+    return commitEditedDocument(pendingDeletion.editedModel, {
       ...options,
       selectedRecord: null,
     });
@@ -1164,56 +1175,53 @@ export function createWebVowlController(dependencies) {
         attributes.pos = [positionOverride.xPx, positionOverride.yPx];
       }
     }
-    const candidate = {
-      vowlModel: createVowlDocumentSnapshot(arrangedModel),
-      sourceProvenance: currentSourceProvenance,
-      diagnostics: currentWarnings.map((message) => ({ message })),
-      sourceCacheKey: currentSourceCacheKey,
-    };
-    const nextGeneration = lastIssuedLoadGeneration + 1;
-    await replaceOntologyDocument(async () => candidate, {
-      signal,
-      initialVisualization: {
-        view: {
-          language: state.view.language,
-          filters: state.view.filters,
-          focus: state.view.focus.map((reference) =>
-            "loadGeneration" in reference
-              ? { ...reference, loadGeneration: nextGeneration }
-              : reference,
-          ),
-          layout: state.layout.status === "paused" ? "pause" : "resume",
-          ...(state.zoomScale === null ? {} : { zoomScale: state.zoomScale }),
-          ...(state.translation === null
-            ? {}
-            : { translation: state.translation }),
-        },
-        modes: state.view.modes,
-        forceDistances: state.view.forceDistances,
-      },
+    const loadGeneration = currentOntologyGeneration;
+    const revisedModel = createVowlDocumentSnapshot(arrangedModel);
+    const inspection =
+      vowlModelInspectionProjector.projectOntologyInspectionSnapshot(
+        revisedModel,
+        loadGeneration,
+      );
+    retireActiveExport();
+    const revisionResult = renderedGraphRuntime.applyVowlModelRevision({
+      loadGeneration,
+      vowlModel: revisedModel,
     });
-    if (isCurrentGeneration(nextGeneration)) {
-      if (controllerState.selectedDocumentRecord === null) {
-        const occurrence =
-          selectedRecord === null
-            ? null
-            : renderedGraphRuntime
-                .readRenderedArrangement()
-                .occurrences.find((entry) =>
-                  entry.recordTargets.some(
-                    (target) =>
-                      target.collection === selectedRecord.collection &&
-                      target.recordId === selectedRecord.recordId,
-                  ),
-                );
-        renderedGraphRuntime.selectRenderedOccurrence(
-          {
-            reference: occurrence?.reference ?? null,
-          },
-          { editLabel },
-        );
-      }
-      lastValidControllerState = controllerState;
+    currentVowlModel = revisedModel;
+    currentOntologyInspectionSnapshot = inspection;
+    const layoutSnapshot = readGraphLayoutSnapshot();
+    publishForGeneration(loadGeneration, {
+      documentRevision: state.documentRevision + 1,
+      selection: [],
+      selectedDocumentRecord: null,
+      view: revisionResult.appliedVisualizationView,
+      status:
+        layoutSnapshot.isPaused || layoutSnapshot.hasEnded
+          ? "ready"
+          : "relaxing",
+      layout: { status: layoutStatusFromSnapshot(layoutSnapshot) },
+    });
+    const occurrence =
+      selectedRecord === null
+        ? null
+        : renderedGraphRuntime
+            .readRenderedArrangement()
+            .occurrences.find((entry) =>
+              entry.recordTargets.some(
+                (target) =>
+                  target.collection === selectedRecord.collection &&
+                  target.recordId === selectedRecord.recordId,
+              ),
+            );
+    renderedGraphRuntime.selectRenderedOccurrence(
+      {
+        reference: occurrence?.reference ?? null,
+      },
+      { editLabel },
+    );
+    lastValidControllerState = controllerState;
+    if (!layoutSnapshot.isPaused && !layoutSnapshot.hasEnded) {
+      startBackgroundLayoutObservation(loadGeneration);
     }
     return controllerState;
   }
@@ -1498,13 +1506,15 @@ export function createWebVowlController(dependencies) {
           : undefined;
       return replaceOntologyDocument(
         async (loadOptions) =>
-          cachedSource ?? {
-            ...(await ontologySourceLoader.loadOntologySource(
-              { source: sourceRequest.source },
-              loadOptions,
-            )),
-            sourceCacheKey,
-          },
+          cachedSource
+            ? { ...cachedSource, hasReusedCachedVisualization: true }
+            : {
+                ...(await ontologySourceLoader.loadOntologySource(
+                  { source: sourceRequest.source },
+                  loadOptions,
+                )),
+                sourceCacheKey,
+              },
         options,
       );
     },

@@ -118,6 +118,15 @@ export function createNodeDegreeFilter() {
     return Object.freeze({ maximumDegree, automaticMinimumDegree });
   };
 
+  // A new ontology without a saved degree gets its own automatic choice.
+  // An explicit choice remains in force for updates within the current load.
+  filter.useAutomaticMinimumDegree = function () {
+    requestedMinimumDegree = undefined;
+    minimumDegree = automaticMinimumDegree;
+    enabled = true;
+    return filter;
+  };
+
   filter.enabled = function (p) {
     if (!arguments.length) {
       return enabled;

@@ -85,7 +85,12 @@ function createSourceLoadError(code, sourceKind, cause) {
   return new WebVowlOperationError({
     cause,
     code,
-    details: sourceKindDetails(sourceKind),
+    details: {
+      ...sourceKindDetails(sourceKind),
+      ...(code === "PARSE_FAILED" && typeof cause?.message === "string"
+        ? { reason: cause.message }
+        : {}),
+    },
     isRetryable: errorDefinition.isRetryable,
     message: errorDefinition.message,
   });

@@ -16,7 +16,9 @@ const WEB_VOWL_OPERATION_ERROR_CODES = Object.freeze([
 export const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "status",
   "loadGeneration",
+  "documentRevision",
   "source",
+  "hasReusedCachedVisualization",
   "warnings",
   "view",
   "zoomScale",
@@ -35,6 +37,8 @@ export const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
 // resets them, so no published field can name an element of a retired
 // ontology.
 export const GENERATION_SCOPED_CONTROLLER_STATE_FIELDS = Object.freeze({
+  documentRevision: 0,
+  hasReusedCachedVisualization: false,
   selection: Object.freeze([]),
   selectedDocumentRecord: null,
   renderProgress: null,

@@ -434,6 +434,7 @@ The controller receives one `renderedGraphRuntime` dependency. It does not recei
 
 ```js
 replaceVowlModel(request, { signal }) -> Promise<RenderedGraphReplacementResult>
+applyVowlModelRevision(request) -> VisualizationViewApplicationResult
 applyVisualizationView(request, { signal }) -> Promise<VisualizationViewApplicationResult>
 readVisibleRenderedGraphSnapshot() -> VisibleRenderedGraphSnapshot
 readGraphLayoutSnapshot() -> GraphLayoutSnapshot
@@ -450,6 +451,8 @@ All arguments, results, snapshots, and events crossing this interface are plain 
 `RenderedGraphEvent` is a closed discriminated union whose kinds are `render-progress-changed`, `render-warning-raised`, `rendered-element-selection-changed`, `viewport-changed`, `graph-layout-state-changed`, and `editor-mode-changed`. Every kind is published by the production adapter; `viewport-changed` is the sole route by which a zoom control learns the current magnification, so no control reads the renderer to position itself. The controller subscribes through the interface, rejects events from a non-current generation, and derives a new immutable controller-state snapshot. The graph adapter never calls a menu, sidebar, loading indicator, or other presentation object.
 
 `D3RenderedGraphAdapter.createRenderedSvgSnapshot` is called only after the controller has frozen the graph and completed the required font and paint waits. It clones the live SVG into a detached tree, removes interaction-only content from the clone, resolves computed visual styles onto the clone, and returns it without mutating or restoring the live SVG. A D3-free `SvgSerializer` inserts metadata with DOM APIs and text content, serializes the detached clone with `XMLSerializer`, and returns bytes to `SvgArtifactService`. The artifact service alone owns `Blob` creation, object-URL lifecycle, hashing, filenames, and artifact handles; it publishes the current page-local download through `VisualizationArtifactPublicationPort`, whose native-DOM adapter owns only presentation.
+
+Existing human editing uses `applyVowlModelRevision({ loadGeneration, vowlModel })` to draw a revised document synchronously within the current load. It retains the mounted viewport, pause state and arrangement, updates record/reference indexes, and expires interactions belonging to replaced elements. Newly created elements enter the visible drawing as in the earlier editor; editing does not rerun the initial-load filtering or centering sequence. Controller state reports `documentRevision` (zero without a document, one on source acceptance, incremented by each local edit), allowing summaries, search and editor controls to refresh without inventing another source load. Deletion confirmation belongs to the exact document revision that issued it. This preserves experimental human editing; it adds no WebMCP editing action.
 
 ### WebMCP adapter
 
