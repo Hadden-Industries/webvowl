@@ -223,6 +223,46 @@ Explicit limits on broader release qualification:
 - The fresh API-absent Edge and iframe runs pass; this does not certify every browser/client or automatic conversation attachment.
 - No production origin-trial, hosting, upload, package-module-format or deployment change was made. No release qualification or merge approval is inferred from this implementation.
 
+## Production-preview correction
+
+The owner's subsequent `npm run build` / `npm run preview` report exposed a gap
+in the earlier browser qualification: those jobs used the development server.
+At checkpoint `8beb49ed6d3c8a1ee7c85e810475e552fb65d585`, the production entry
+retained a bare `d3` import from drawing capture. The classic D3 script cannot
+resolve an ES-module package import. Startup consequently failed before ontology
+loading and popover positioning handlers were installed; SIOC changed the hash
+without drawing a graph. This was reproduced against the built application.
+
+The owner approved removing `build.rollupOptions.external: ["d3"]` and its
+obsolete `output.globals.d3` mapping from `vite.config.mjs`. The four-line removal
+bundles the required exports from the existing dependency. The classic renderer
+asset remains in the build. No CSS, dependency, editing or Turtle changes are
+required. This is a bounded R1 repair of existing behavior.
+
+The new production-bundle regression runs the actual Vite module transformations
+in a normal Node process, asserts production mode and natively links every emitted
+JavaScript chunk using only shipped modules. An in-memory negative control with
+the former external setting fails with `Unshipped module "d3"`; the corrected
+configuration passes. The test excludes only filesystem timestamp/deletion hooks
+that still run with `write: false`. Independent review identified this isolation
+need and the inherited Jest environment, then cleared both corrections. Measured
+paths, lengths, timestamps and SHA-256 hashes of all 50 existing build files are
+unchanged across the focused test. Normal production builds exercise all hooks.
+
+CUA's in-app Chromium browser then checked the normal preview on port 8011:
+default FOAF loads 47 drawn nodes, human SIOC selection loads 50 nodes and shows
+`http://rdfs.org/sioc/ns#`. Ontology and Filter popovers align exactly with their
+launchers at x=357.65625 and x=575.9296875 respectively, 16 px above the toolbar.
+Native WebMCP SVG export reports success with 529,549 bytes and settled/native-end
+layout. No console errors were observed. This verifies production startup and
+these affected workflows; it does not repeat the earlier twenty-job qualification.
+
+The focused test passes in 1.065 seconds, and `npm run build` passes its normal
+format/lint prechecks and bundling. The final repository verification and handoff
+receipts are retained under `.sdlc/runtime/repair-production-preview/`, alongside
+the original RED, the production negative control, artifact inventories and the
+bounded independent review. These supplement the earlier implementation evidence.
+
 ## Evidence retention
 
 The implementation owner retains `.sdlc/runtime/webmcp-resumption/` and

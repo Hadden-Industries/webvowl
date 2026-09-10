@@ -316,11 +316,7 @@ export default defineConfig(({ mode }) => {
       cssMinify: true,
       sourcemap: !isProd, // Source maps in dev only
       rollupOptions: {
-        external: ["d3"],
         output: {
-          globals: {
-            d3: "d3"
-          },
           // Rolldown / Oxc native option to strip legal comments
           comments: {
             legal: false
