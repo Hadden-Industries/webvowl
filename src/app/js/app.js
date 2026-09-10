@@ -1,4 +1,3 @@
-import { registerApplicationUiModule } from "./ui/applicationUiRegistry.js";
 import { createControllerStatePresenter } from "./ui/controllerStatePresenter.js";
 import { createBrowserPaintObserver } from "./ui/browserPaintObserver.js";
 import { createD3RenderedGraphAdapter } from "../../webvowl/js/runtime/d3RenderedGraphAdapter.js";
@@ -12,21 +11,8 @@ import { createSvgSerializer } from "./controller/svgSerializer.js";
 import { createWebVowlController } from "./controller/webVowlController.js";
 import { registerWebMcpTools } from "./webmcp/webMcpAdapter.js";
 import { createVisualizationArtifactDownloadAdapter } from "./ui/visualizationArtifactDownloadAdapter.js";
-import { createColorExternalsSwitch } from "../../webvowl/js/runtime/colorExternalsSwitch.js";
-import { createCompactNotationSwitch } from "../../shared/js/modules/compactNotationSwitch.js";
 import { createConstants } from "../../shared/js/util/constants.js";
-import { createDatatypeFilter } from "../../shared/js/modules/datatypeFilter.js";
-import { createDisjointFilter } from "../../shared/js/modules/disjointFilter.js";
-import { createElementTools } from "../../shared/js/util/elementTools.js";
-import { createEmptyLiteralFilter } from "../../shared/js/modules/emptyLiteralFilter.js";
 import { createLanguageTools } from "../../shared/js/util/languageTools.js";
-import { createNodeDegreeFilter } from "../../shared/js/modules/nodeDegreeFilter.js";
-import { createNodeScalingSwitch } from "../../shared/js/modules/nodeScalingSwitch.js";
-import { createObjectPropertyFilter } from "../../shared/js/modules/objectPropertyFilter.js";
-import { createPrefixRepresentationModule } from "../../shared/js/util/prefixRepresentationModule.js";
-import { createSetOperatorFilter } from "../../shared/js/modules/setOperatorFilter.js";
-import { createStatistics } from "../../shared/js/modules/statistics.js";
-import { createSubclassFilter } from "../../shared/js/modules/subclassFilter.js";
 import { createConfigMenu } from "./menu/configMenu.js";
 import { createDebugMenu } from "./menu/debugMenu.js";
 import { createExportMenu } from "./menu/exportMenu.js";
@@ -37,72 +23,37 @@ import { createNavigationMenu } from "./menu/navigationMenu.js";
 import { createOntologyMenu } from "./menu/ontologyMenu.js";
 import { createPauseMenu } from "./menu/pauseMenu.js";
 import { createVisualizationViewControlsAdapter } from "./ui/visualizationViewControlsAdapter.js";
-import { createRenderedGraphInternals } from "../../webvowl/js/runtime/renderedGraphInternals.js";
 import { createResetMenu } from "./menu/resetMenu.js";
 import { createSearchMenu } from "./menu/searchMenu.js";
 import { createZoomSlider } from "./menu/zoomSlider.js";
 
 const nativeApplicationUiModuleNamespacesPromise = Promise.all([
   import("./directInputModule.js"),
-  import("./editSidebar.js"),
+  import("./ontologyEditorSidebar.js"),
   import("./leftSidebar.js"),
   import("./loadingModule.js"),
   import("./sidebar.js"),
   import("./warningModule.js"),
 ]);
 
-String.prototype.replaceAll = function (search, replacement) {
-  const target = this;
-  return target.split(search).join(replacement);
-};
 export function createWebVowlApplication() {
-  const app = {},
-    graph = createRenderedGraphInternals(),
-    renderedGraphSettings = graph.graphOptions(),
-    ontologyEditingState = graph.ontologyEditingState(),
-    languageTools = createLanguageTools(),
-    elementTools = createElementTools(),
-    webVowlConstants = createConstants(),
-    languageConstants = {
-      iriBasedLanguage: webVowlConstants.LANG_IRIBASED,
-      undefinedLanguage: webVowlConstants.LANG_UNDEFINED,
-    },
-    prefixModule = createPrefixRepresentationModule(graph),
-    GRAPH_SELECTOR = "#graph",
-    // Modules for the webvowl app
-    degreeFilterControl = createDegreeFilterControl(),
-    debugMenu = createDebugMenu(graph),
-    pauseMenu = createPauseMenu({ documentObject: document }),
-    navigationMenu = createNavigationMenu(graph),
-    // Graph modules
-    colorExternalsSwitch = createColorExternalsSwitch(graph),
-    compactNotationSwitch = createCompactNotationSwitch(graph),
-    datatypeFilter = createDatatypeFilter(),
-    disjointFilter = createDisjointFilter(),
-    emptyLiteralFilter = createEmptyLiteralFilter(),
-    nodeDegreeFilter = createNodeDegreeFilter(),
-    nodeScalingSwitch = createNodeScalingSwitch(graph),
-    objectPropertyFilter = createObjectPropertyFilter(),
-    statistics = createStatistics(),
-    subclassFilter = createSubclassFilter(),
-    setOperatorFilter = createSetOperatorFilter();
+  const app = {};
+  const GRAPH_SELECTOR = "#graph";
+  const languageTools = createLanguageTools();
+  const webVowlConstants = createConstants();
+  const languageConstants = {
+    iriBasedLanguage: webVowlConstants.LANG_IRIBASED,
+    undefinedLanguage: webVowlConstants.LANG_UNDEFINED,
+  };
+  const degreeFilterControl = createDegreeFilterControl();
+  const pauseMenu = createPauseMenu({ documentObject: document });
 
   let directInputModule;
-  let editSidebar;
+  let ontologyEditorSidebar;
   let leftSidebar;
   let loadingModule;
   let sidebar;
   let warningModule;
-
-  app.getRenderedGraphSettings = function () {
-    return renderedGraphSettings;
-  };
-  app.getOntologyEditingState = function () {
-    return ontologyEditingState;
-  };
-  app.getGraph = function () {
-    return graph;
-  };
 
   // Agent-neutral controller. Embedding hosts and WebMCP reach WebVOWL through
   // this interface rather than through the renderer.
@@ -118,7 +69,6 @@ export function createWebVowlApplication() {
   });
   // and publishes it as the RenderedGraphRuntime the controller consumes.
   const { renderedGraphRuntime } = createD3RenderedGraphAdapter({
-    renderedGraphInternals: graph,
     graphContainerElement: document.querySelector(GRAPH_SELECTOR),
     observeNextPaint: (_loadGeneration, options) =>
       waitForBrowserPaint(options),
@@ -127,6 +77,8 @@ export function createWebVowlApplication() {
 
   let unsubscribeFromControllerState;
   const webVowlController = createWebVowlController({
+    requestOntologyDeletionConfirmation: (proposal, options) =>
+      warningModule.confirmOntologyDeletion(proposal, options),
     applicationUrl: globalThis.location.href,
     ontologySourceLoader: createOntologySourceLoader(),
     vowlModelInspectionProjector,
@@ -156,7 +108,8 @@ export function createWebVowlApplication() {
   });
 
   // Menus that command the controller are constructed once it exists.
-  const modeMenu = createModeMenu(graph, { webVowlController });
+  const debugMenu = createDebugMenu({ webVowlController });
+  const modeMenu = createModeMenu({ webVowlController });
   const configMenu = createConfigMenu({
     webVowlController,
     maxLabelWidthPx: renderedGraphConfiguration.maxLabelWidth,
@@ -166,20 +119,45 @@ export function createWebVowlApplication() {
     classDistancePx: renderedGraphConfiguration.classDistance,
     datatypeDistancePx: renderedGraphConfiguration.datatypeDistance,
   });
-  const zoomSlider = createZoomSlider({
-    webVowlController,
-    minimumMagnification: renderedGraphConfiguration.minMagnification,
-    maximumMagnification: renderedGraphConfiguration.maxMagnification,
-    graphWidthPx: renderedGraphConfiguration.width,
-    graphHeightPx: renderedGraphConfiguration.height,
-  });
-  const exportMenu = createExportMenu(graph, {
+  const exportMenu = createExportMenu({
     webVowlController,
     visualizationArtifactDownloadAdapter,
+    readShareLinkPresentation: () => ({
+      sidebar: Number(sidebar.getSidebarVisibility()),
+      editorMode:
+        webVowlController.getState().editorMode?.isEditorMode === true,
+      debugFeatures: debugMenu.isVisible(),
+    }),
   });
-  const searchMenu = createSearchMenu(graph, { webVowlController });
-  const resetMenu = createResetMenu({ webVowlController });
-  const ontologyMenu = createOntologyMenu(graph, { webVowlController });
+  const navigationMenu = createNavigationMenu({
+    onExportMenuOpened: () => exportMenu.exportAsUrl(),
+  });
+  const zoomSlider = createZoomSlider({
+    webVowlController,
+    hideNavigationMenus: () => navigationMenu.hideAllMenus(),
+    onControlsVisibilityChanged: () => sidebar?.updateDockedControlsPosition(),
+    minimumMagnification: renderedGraphConfiguration.minMagnification,
+    maximumMagnification: renderedGraphConfiguration.maxMagnification,
+    graphWidthPx: renderedGraphConfiguration.widthPx,
+    graphHeightPx: renderedGraphConfiguration.heightPx,
+  });
+  const ontologyMenu = createOntologyMenu({
+    webVowlController,
+    loadOntologyFromLocation: (options) =>
+      loadingModule.loadOntologyFromLocation(options),
+    loadDroppedFile: (file) => loadingModule.loadDroppedFile(file),
+    createNewOntology: () => loadingModule.createNewOntology(),
+    scrollLoadingDetails: () => loadingModule.scrollDownDetails(),
+    hideNavigationMenus: () => navigationMenu.hideAllMenus(),
+  });
+  const searchMenu = createSearchMenu({
+    webVowlController,
+    onOntologyIriEntered: (iri) => ontologyMenu.setIriText(iri),
+  });
+  const resetMenu = createResetMenu({
+    webVowlController,
+    clearSearchPresentation: () => searchMenu.clearText(),
+  });
   const viewControlsLifecycleController = new AbortController();
   createVisualizationViewControlsAdapter({
     controller: webVowlController,
@@ -213,6 +191,8 @@ export function createWebVowlApplication() {
     webMcpRegistration.dispose();
     viewControlsLifecycleController.abort();
     degreeFilterControl.dispose();
+    ontologyEditorSidebar?.dispose();
+    debugMenu.dispose();
     graphResizeObserver?.disconnect();
     graphResizeObserver = undefined;
     if (resizeAnimationFrame !== undefined) {
@@ -239,8 +219,12 @@ export function createWebVowlApplication() {
 
       document.querySelector("#dragDropContainer").classList.remove("hidden");
       // get svg size
-      const w = graph.options().width();
-      const h = graph.options().height();
+      const w = document
+        .querySelector(GRAPH_SELECTOR)
+        .getBoundingClientRect().width;
+      const h = document
+        .querySelector(GRAPH_SELECTOR)
+        .getBoundingClientRect().height;
 
       // get event position; (using clientX and clientY);
       const cx = e.clientX;
@@ -316,8 +300,12 @@ export function createWebVowlApplication() {
     };
 
     node.ondragleave = function (e) {
-      const w = graph.options().width();
-      const h = graph.options().height();
+      const w = document
+        .querySelector(GRAPH_SELECTOR)
+        .getBoundingClientRect().width;
+      const h = document
+        .querySelector(GRAPH_SELECTOR)
+        .getBoundingClientRect().height;
 
       // get event position; (using clientX and clientY);
       const cx = e.clientX;
@@ -340,10 +328,7 @@ export function createWebVowlApplication() {
         .querySelector("#loading-info")
         .classList.toggle("hidden", !wasMessageToShow); // show it again
       // check if it should be visible
-      const should_show = graph
-        .options()
-        .loadingModule()
-        .getMessageVisibilityStatus();
+      const should_show = loadingModule.getMessageVisibilityStatus();
       if (should_show === false) {
         document.querySelector("#loading-info").classList.add("hidden"); // hide it
       }
@@ -359,17 +344,17 @@ export function createWebVowlApplication() {
       sidebar.showSidebar(sidebarVisibility, true);
     }
     if (editorMode !== undefined) {
-      graph.editorMode(editorMode);
+      webVowlController.setOntologyEditorOptions({ isEditorMode: editorMode });
     }
     if (debugFeatures !== undefined) {
-      graph.ontologyEditingState().setDebugFeaturesVisible(debugFeatures);
+      debugMenu.setVisible(debugFeatures);
     }
   }
 
   async function initializeNativeApplicationUiModules() {
     const [
       { createDirectInputModule },
-      { createEditSidebar },
+      { createOntologyEditorSidebar },
       { createLeftSidebar },
       { createLoadingModule },
       { createSidebar },
@@ -379,58 +364,50 @@ export function createWebVowlApplication() {
     directInputModule = createDirectInputModule({
       webVowlController,
     });
-    editSidebar = createEditSidebar(graph, {
-      elementTools,
-      languageTools,
-      prefixModule,
-    });
-    leftSidebar = createLeftSidebar(graph);
-    loadingModule = createLoadingModule(graph, {
+    ontologyEditorSidebar = createOntologyEditorSidebar({
       webVowlController,
+      documentObject: document,
+      showWarning: (message) =>
+        warningModule.showWarning(
+          "Editing could not be completed",
+          message,
+          "Check the entered value and try again.",
+          1,
+        ),
+    });
+    leftSidebar = createLeftSidebar({
+      webVowlController,
+      hideNavigationMenus: () => navigationMenu.hideAllMenus(),
+      onViewportGeometryChanged: scheduleSizeAdjustment,
+      updateNavigationOverflow: () =>
+        navigationMenu.updateScrollButtonVisibility(),
+    });
+    loadingModule = createLoadingModule({
+      webVowlController,
+      ontologyMenu,
+      hideNavigationMenus: () => navigationMenu.hideAllMenus(),
+      onGraphControlAvailabilityChanged: (enabled) => {
+        for (const control of [resetMenu, pauseMenu, zoomSlider, searchMenu]) {
+          control.setMenuMode(enabled);
+        }
+      },
       onShareLinkPresentation: applyShareLinkPresentation,
     });
-    sidebar = createSidebar(graph, {
-      elementTools,
+    sidebar = createSidebar({
       languageConstants,
       languageTools,
       webVowlController,
+      onViewportGeometryChanged: scheduleSizeAdjustment,
+      hideNavigationMenus: () => navigationMenu.hideAllMenus(),
+      updateNavigationOverflow: () =>
+        navigationMenu.updateScrollButtonVisibility(),
     });
-    warningModule = createWarningModule(graph, { webVowlController });
+    warningModule = createWarningModule({ webVowlController });
   }
 
   app.initialize = async function () {
     await initializeNativeApplicationUiModules();
     addFileDropEvents(GRAPH_SELECTOR);
-
-    window.requestAnimationFrame =
-      window.requestAnimationFrame ||
-      window.mozRequestAnimationFrame ||
-      window.webkitRequestAnimationFrame ||
-      window.msRequestAnimationFrame ||
-      function (f) {
-        return setTimeout(f, 1000 / 60);
-      }; // simulate calling code 60
-    window.cancelAnimationFrame =
-      window.cancelAnimationFrame ||
-      window.mozCancelAnimationFrame ||
-      function (requestID) {
-        clearTimeout(requestID);
-      }; //fall back
-
-    renderedGraphSettings.graphContainerSelector(GRAPH_SELECTOR);
-
-    renderedGraphSettings.filterModules().push(emptyLiteralFilter);
-    renderedGraphSettings.filterModules().push(statistics);
-
-    renderedGraphSettings.filterModules().push(nodeDegreeFilter);
-    renderedGraphSettings.filterModules().push(datatypeFilter);
-    renderedGraphSettings.filterModules().push(objectPropertyFilter);
-    renderedGraphSettings.filterModules().push(subclassFilter);
-    renderedGraphSettings.filterModules().push(disjointFilter);
-    renderedGraphSettings.filterModules().push(setOperatorFilter);
-    renderedGraphSettings.filterModules().push(nodeScalingSwitch);
-    renderedGraphSettings.filterModules().push(compactNotationSwitch);
-    renderedGraphSettings.filterModules().push(colorExternalsSwitch);
 
     window.addEventListener("resize", scheduleSizeAdjustment, {
       signal: viewControlsLifecycleController.signal,
@@ -446,77 +423,22 @@ export function createWebVowlApplication() {
       graphResizeObserver.observe(graphHost);
     }
 
-    graph.addEventListener("dictionarychange", () =>
-      searchMenu.requestDictionaryUpdate(),
-    );
-    graph.addEventListener("updatelocatebutton", (e) =>
-      searchMenu.updateLocateButtonVisibility(e.detail.visible),
-    );
-    graph.addEventListener("editorchange", (e) => {
-      const isEditMode = e.detail.value;
-      modeMenu.syncEditorState(isEditMode);
-      if (isEditMode) {
-        leftSidebar.hideCollapseButton(false);
-        leftSidebar.showSidebar(1);
-        editSidebar.updatePrefixUi();
-        editSidebar.updateElementWidth();
-      } else {
-        leftSidebar.showSidebar(0);
-        leftSidebar.hideCollapseButton(true);
-      }
-      sidebar.updateShowedInformation();
-      editSidebar.updateElementWidth();
-    });
-
-    graph.addEventListener("fpsupdate", (e) => {
-      const debugContainer = document.querySelector("#FPS_Statistics");
-      if (debugContainer) {
-        debugContainer.innerHTML =
-          "FPS: " +
-          e.detail.fps +
-          "<br>" +
-          "Nodes: " +
-          e.detail.nodes +
-          "<br>" +
-          "Links: " +
-          e.detail.links;
-      }
-    });
-    graph.addEventListener("editor-element-keyup", (e) => {
-      if (e.detail.syncedIRI !== null) {
-        document.querySelector("#element_iriEditor").title = e.detail.syncedIRI;
-        document.querySelector("#element_iriEditor").value =
-          e.detail.prefixedIri || e.detail.syncedIRI;
-      }
-      document.querySelector("#element_labelEditor").value = e.detail.label;
-    });
-    renderedGraphSettings.pausedMenu(pauseMenu);
-    renderedGraphSettings.resetMenu(resetMenu);
-
     exportMenu.setup();
     gravityMenu.setup();
     degreeFilterControl.setup();
     modeMenu.setup();
-    registerApplicationUiModule("loadingModule", loadingModule);
-    registerApplicationUiModule("warningModule", warningModule);
-    registerApplicationUiModule("sidebar", sidebar);
-    registerApplicationUiModule("ontologyMenu", ontologyMenu);
-    registerApplicationUiModule("exportMenu", exportMenu);
-    registerApplicationUiModule("searchMenu", searchMenu);
-    registerApplicationUiModule("zoomSlider", zoomSlider);
-    registerApplicationUiModule("directInputModule", directInputModule);
     pauseMenu.setup();
     sidebar.setup();
     loadingModule.setup();
     // Presentation modules render controller state rather than being called
     // from inside the renderer, and each runs only when its own slice changed.
     const controllerStatePresenter = createControllerStatePresenter({
-      renderLoadState: (controllerState) =>
-        loadingModule.renderControllerState(controllerState),
+      renderLoadState: (controllerState) => {
+        loadingModule.renderControllerState(controllerState);
+        ontologyMenu.renderOntologySource(controllerState.source);
+      },
       renderGraphLayoutPaused: (isPaused) =>
         pauseMenu.renderGraphLayoutPaused(isPaused),
-      renderSelectedOntologyElements: (ontologyElementReferences) =>
-        searchMenu.renderSelectedOntologyElements(ontologyElementReferences),
       // Details are described from the ontology the controller holds, so the
       // sidebar never reads a drawn element for a semantic fact.
       renderSelectedOntologyElementDetails: (elementDescriptions) =>
@@ -524,8 +446,13 @@ export function createWebVowlApplication() {
       renderOntologySummary: (ontologySummary) =>
         sidebar.renderOntologySummary(ontologySummary),
       renderViewport: (zoomScale) => zoomSlider.renderViewport(zoomScale),
-      renderEditorMode: (isEditorMode) =>
-        sidebar.renderEditorMode(isEditorMode),
+      renderEditorMode: (isEditorMode) => {
+        sidebar.renderEditorMode(isEditorMode);
+        ontologyMenu.renderEditorMode(isEditorMode);
+        modeMenu.syncEditorState(isEditorMode);
+        leftSidebar.hideCollapseButton(!isEditorMode);
+        leftSidebar.showSidebar(isEditorMode ? 1 : 0);
+      },
       describeOntologyElements: (descriptionRequest) =>
         webVowlController.describeOntologyElements(descriptionRequest),
       readOntologySummary: () => webVowlController.getOntologySummary(),
@@ -533,6 +460,18 @@ export function createWebVowlApplication() {
     unsubscribeFromControllerState = webVowlController.subscribeToState(
       (controllerState, changedFieldNames) => {
         controllerStatePresenter.present(controllerState, changedFieldNames);
+        if (changedFieldNames.includes("loadGeneration")) {
+          searchMenu.clearText();
+        }
+        if (
+          changedFieldNames.some((fieldName) =>
+            ["status", "loadGeneration", "view"].includes(fieldName),
+          )
+        ) {
+          searchMenu.renderVisualizationFocus(
+            webVowlController.getVisualizationFocus(),
+          );
+        }
         if (
           changedFieldNames.includes("degreeFilterRange") ||
           changedFieldNames.includes("view")
@@ -545,36 +484,14 @@ export function createWebVowlApplication() {
       },
     );
     leftSidebar.setup();
-    editSidebar.setup();
+    ontologyEditorSidebar.setup();
     debugMenu.setup();
     document.querySelector("#logo").classList.remove("hidden");
-    // Focus is reset by the renderer as part of returning the visualization to
-    // its defaults, so it is no longer a resettable module the interface holds.
+    // Reset uses the controller's visualization defaults and focus state.
     resetMenu.setup();
     searchMenu.setup();
     navigationMenu.setup();
     zoomSlider.setup();
-
-    // give the options the pointer to the some menus for import and export
-    renderedGraphSettings.literalFilter(emptyLiteralFilter);
-    renderedGraphSettings.nodeDegreeFilter(nodeDegreeFilter);
-    renderedGraphSettings.modeMenu(modeMenu);
-    renderedGraphSettings.gravityMenu(gravityMenu);
-    renderedGraphSettings.pausedMenu(pauseMenu);
-    renderedGraphSettings.resetMenu(resetMenu);
-    renderedGraphSettings.navigationMenu(navigationMenu);
-    renderedGraphSettings.leftSidebar(leftSidebar);
-    renderedGraphSettings.editSidebar(editSidebar);
-    renderedGraphSettings.graphObject(graph);
-    renderedGraphSettings.datatypeFilter(datatypeFilter);
-    renderedGraphSettings.objectPropertyFilter(objectPropertyFilter);
-    renderedGraphSettings.subclassFilter(subclassFilter);
-    renderedGraphSettings.setOperatorFilter(setOperatorFilter);
-    renderedGraphSettings.disjointPropertyFilter(disjointFilter);
-
-    renderedGraphSettings.colorExternalsModule(colorExternalsSwitch);
-    renderedGraphSettings.compactNotationModule(compactNotationSwitch);
-    renderedGraphSettings.nodeScalingModule(nodeScalingSwitch);
 
     ontologyMenu.setup();
     configMenu.setup(zoomSlider);
@@ -583,22 +500,7 @@ export function createWebVowlApplication() {
     leftSidebar.showSidebar(0);
     leftSidebar.hideCollapseButton(true);
 
-    graph.start();
-
     adjustSize();
-    const w = graph.options().width();
-    const h = graph.options().height();
-    const defZoom = Math.min(w, h) / 1000;
-
-    const hideDebugOptions = true;
-    if (hideDebugOptions === false) {
-      graph.setForceTickFunctionWithFPS();
-    }
-
-    graph.setDefaultZoom(defZoom);
-    document
-      .querySelectorAll(".debugOption")
-      .forEach((el) => el.classList.toggle("hidden", hideDebugOptions));
 
     // prevent backspace reloading event
     const htmlBody = document.querySelector("body");
@@ -614,21 +516,10 @@ export function createWebVowlApplication() {
         event.key &&
         event.key.toLowerCase() === "d"
       ) {
-        graph.ontologyEditingState().executeHiddenDebugFeatuers();
+        debugMenu.setVisible(!debugMenu.isVisible());
         event.preventDefault();
       }
     });
-    if (document.querySelector("#maxLabelWidthSliderOption")) {
-      const setValue = !graph.options().dynamicLabelWidth();
-      document.querySelector("#maxLabelWidthSlider").disabled = setValue;
-      document
-        .querySelector("#maxLabelWidthSliderValue")
-        .classList.toggle("disabledLabelForSlider", setValue);
-      document
-        .querySelector("#maxLabelWidthDescriptionLabel")
-        .classList.toggle("disabledLabelForSlider", setValue);
-    }
-
     const blockGraphInteractions = document.querySelector(
       "#blockGraphInteractions",
     );
@@ -650,28 +541,10 @@ export function createWebVowlApplication() {
         directInputModule.setDirectInputMode();
       });
     }
-    ontologyEditingState.prefixModule(prefixModule);
     adjustSize();
-    sidebar.updateOntologyInformation(undefined, statistics);
     // The location names the ontology to show; the controller loads it.
     loadingModule.loadOntologyFromLocation();
-    renderedGraphSettings.debugMenu(debugMenu);
-    debugMenu.updateSettings();
 
-    // connect the reloadCachedVersionButton
-    const reloadCachedOntologyBtn = document.getElementById(
-      "reloadCachedOntology",
-    );
-    if (reloadCachedOntologyBtn) {
-      reloadCachedOntologyBtn.addEventListener("click", function () {
-        if (reloadCachedOntologyBtn.disabled) {
-          ontologyMenu.clearCachedVersion();
-          return;
-        }
-        reloadCachedOntologyBtn.classList.add("hidden");
-        ontologyMenu.reloadCachedOntology();
-      });
-    }
     // add the initialized objects
   };
 
@@ -690,37 +563,36 @@ export function createWebVowlApplication() {
 
   function adjustSize() {
     directInputModule.updateLayout();
-    const viewport = graph.updateCanvasContainerSize();
-
-    graph.updateStyle();
-
-    if (isTouchDevice() === true) {
-      if (graph.isEditorMode() === true) {
-        document.querySelector("#modeOfOperationString").innerHTML =
-          "touch able device detected";
-      }
-      graph.setTouchDevice(true);
-
-      if (!initialTouchZoomHandled && isMultiTouchZoomDevice()) {
-        initialTouchZoomHandled = true;
-        configMenu.setCheckBoxValue("showZoomSliderConfigCheckbox", false);
-      }
-    } else {
-      if (graph.isEditorMode() === true) {
-        document.querySelector("#modeOfOperationString").innerHTML =
-          "point & click device detected";
-      }
-      graph.setTouchDevice(false);
+    const bounds = document
+      .querySelector(GRAPH_SELECTOR)
+      .getBoundingClientRect();
+    const viewport = { width: bounds.width, height: bounds.height };
+    const isTouch = Boolean(isTouchDevice());
+    const occludedLeftWidthPx = leftSidebar.isSidebarVisible()
+      ? Math.min(
+          bounds.width,
+          document
+            .querySelector("#containerForLeftSideBar")
+            .getBoundingClientRect().width,
+        )
+      : 0;
+    webVowlController.resizeVisualizationViewport({
+      widthPx: bounds.width,
+      heightPx: bounds.height,
+      occludedLeftWidthPx,
+      isTouchDevice: isTouch,
+    });
+    debugMenu.renderInputModality(isTouch);
+    if (isTouch && !initialTouchZoomHandled && isMultiTouchZoomDevice()) {
+      initialTouchZoomHandled = true;
+      configMenu.setCheckBoxValue("showZoomSliderConfigCheckbox", false);
     }
 
-    loadingModule.checkForScreenSize();
+    loadingModule.checkForScreenSize(viewport);
 
     adjustSliderSize(viewport.height);
 
     navigationMenu.updateScrollButtonVisibility();
-
-    // adjust height of the leftSidebar element;
-    editSidebar.updateElementWidth();
 
     const dragMsg = document.querySelector("#drag_msg");
     if (dragMsg) {

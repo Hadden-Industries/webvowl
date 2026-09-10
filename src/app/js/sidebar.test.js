@@ -101,8 +101,14 @@ class SidebarElement extends EventTarget {
     return new SidebarElement();
   }
 
-  querySelectorAll() {
-    return [];
+  querySelectorAll(selector) {
+    return this.children.flatMap((child) => [
+      ...(selector.startsWith(".") &&
+      child.classList.contains(selector.slice(1))
+        ? [child]
+        : []),
+      ...child.querySelectorAll(selector),
+    ]);
   }
 
   remove() {
@@ -121,18 +127,6 @@ class SidebarElement extends EventTarget {
   setAttribute(name, value) {
     this.attributes[name] = value;
   }
-}
-
-function createStatistics() {
-  return {
-    classCount: () => 0,
-    datatypePropertyCount: () => 0,
-    edgeCount: () => 0,
-    individualCount: () => 0,
-    nodeCount: () => 0,
-    objectPropertyCount: () => 0,
-    totalIndividualCount: () => 0,
-  };
 }
 
 describe("sidebar ontology IRI links", () => {
@@ -239,7 +233,17 @@ describe("sidebar native language and lifecycle controls", () => {
       }),
       updateCanvasContainerSize: jest.fn(),
     };
-    sidebar = createSidebar(graph, {
+    sidebar = createSidebar({
+      onViewportGeometryChanged: graph.updateCanvasContainerSize,
+      webVowlController: {
+        setVisualizationView: jest.fn(),
+        getState: () => ({ view: { language } }),
+        getOntologyDocument: () => ({
+          vowlModel: {
+            header: graph.ontologyEditingState().getGeneralMetaObject?.(),
+          },
+        }),
+      },
       elementTools: {
         isNode: () => false,
         isProperty: () => false,
@@ -270,20 +274,12 @@ describe("sidebar native language and lifecycle controls", () => {
 
   test("renders native option elements without setting the renderer language", () => {
     sidebar.setup();
-    sidebar.updateOntologyInformation(
-      {
-        header: {
-          author: [],
-          description: "Description",
-          languages: ["fr", "en"],
-          other: [],
-          title: "Title",
-        },
-      },
-      createStatistics(),
+    sidebar.renderOntologySummary(
+      summaryFixture({ availableLabelLanguages: ["fr", "en"] }),
     );
     const languageSelect = controls.get("#language");
     expect(languageSelect.children.map(({ value }) => value)).toEqual([
+      "default",
       "en",
       "fr",
     ]);
@@ -300,16 +296,16 @@ describe("sidebar native language and lifecycle controls", () => {
   });
 
   test("renders ontology metadata as inert text", () => {
-    graph.ontologyEditingState = () => ({
-      getGeneralMetaObject: () => ({
-        author: '<img src="invalid" onerror="alert(1)">',
-        description: "<script>unexpected()</script>",
-        title: "<strong>Ontology title</strong>",
-        version: "<em>1.0</em>",
+    sidebar.renderOntologySummary(
+      summaryFixture({
+        ontologyHeader: {
+          authorNames: ['<img src="invalid" onerror="alert(1)">'],
+          description: "<script>unexpected()</script>",
+          title: "<strong>Ontology title</strong>",
+          versionInformationText: "<em>1.0</em>",
+        },
       }),
-    });
-
-    sidebar.updateGeneralOntologyInfo();
+    );
 
     expect(controls.get("#title").textContent).toBe(
       "<strong>Ontology title</strong>",
@@ -361,22 +357,14 @@ describe("sidebar native language and lifecycle controls", () => {
     );
   });
 
-  test("setup is idempotent and disposal detaches the language listener", () => {
+  test("setup is idempotent and disposal detaches the sidebar toggle", () => {
     sidebar.setup();
     sidebar.setup();
-    sidebar.updateOntologyInformation(
-      { header: { languages: ["en", "fr"], other: [] } },
-      createStatistics(),
-    );
-    const languageSelect = controls.get("#language");
-    graph.language.mockClear();
+    graph.updateCanvasContainerSize.mockClear();
     sidebar.dispose();
     sidebar.dispose();
-
-    languageSelect.value = "fr";
-    languageSelect.dispatchEvent(new Event("change"));
-
-    expect(graph.language).not.toHaveBeenCalled();
+    global.document.querySelector("#sidebarExpandButton").click();
+    expect(graph.updateCanvasContainerSize).not.toHaveBeenCalled();
   });
 
   test("replaces and disposes pending transition-suppression frames", () => {
@@ -408,6 +396,30 @@ describe("sidebar native language and lifecycle controls", () => {
   });
 });
 
+function summaryFixture(overrides = {}) {
+  return {
+    ontologyHeader: {
+      title: "Title",
+      description: "Description",
+      ontologyIri: null,
+      versionInformationText: null,
+      authorNames: [],
+      annotationRecords: [],
+    },
+    elementCounts: {
+      classCount: 2,
+      propertyCount: 3,
+      objectPropertyCount: 1,
+      datatypePropertyCount: 2,
+      datatypeCount: 1,
+      individualCount: 0,
+    },
+    availableLabelLanguages: ["en"],
+    selectedLanguage: null,
+    ...overrides,
+  };
+}
+
 describe("sidebar ontology summary presentation", () => {
   let controls;
   let sidebar;
@@ -422,6 +434,8 @@ describe("sidebar ontology summary presentation", () => {
     };
     global.document = {
       createElement: (tagName) => new SidebarElement(tagName),
+      createTextNode: (text) =>
+        Object.assign(new SidebarElement("#text"), { textContent: text }),
       querySelector: controlFor,
       querySelectorAll: () => [],
     };
@@ -436,27 +450,17 @@ describe("sidebar ontology summary presentation", () => {
     sidebarModuleContext.navigator = global.navigator;
     sidebarModuleContext.requestAnimationFrame = global.requestAnimationFrame;
     sidebarModuleContext.window = { innerWidth: 1280 };
-    sidebar = createSidebar(
-      {
-        language: () => "undefined",
-        options: () => ({ sidebar: () => ({ showSidebar: jest.fn() }) }),
-        ontologyEditingState: () => ({
-          sidebar: () => ({ showSidebar: jest.fn() }),
-        }),
-        updateCanvasContainerSize: jest.fn(),
+    sidebar = createSidebar({
+      elementTools: { isNode: () => false, isProperty: () => false },
+      languageConstants: {
+        iriBasedLanguage: "id",
+        undefinedLanguage: "undefined",
       },
-      {
-        elementTools: { isNode: () => false, isProperty: () => false },
-        languageConstants: {
-          iriBasedLanguage: "id",
-          undefinedLanguage: "undefined",
-        },
-        languageTools: {
-          textInLanguage: (localizedText) =>
-            typeof localizedText === "string" ? localizedText : undefined,
-        },
+      languageTools: {
+        textInLanguage: (localizedText) =>
+          typeof localizedText === "string" ? localizedText : undefined,
       },
-    );
+    });
   });
 
   afterEach(() => {
@@ -498,6 +502,34 @@ describe("sidebar ontology summary presentation", () => {
     // Nothing else reveals it, so selection details would stay invisible.
     expect(detailsSection.classList.contains("hidden")).toBe(false);
     expect(editingDetailsSection.classList.contains("hidden")).toBe(true);
+  });
+
+  test("presents explicit property counts and literal ontology annotations", () => {
+    const summary = summaryFixture();
+    summary.ontologyHeader.annotationRecords = [
+      {
+        propertyIri: "https://example.test/__proto__",
+        localName: "__proto__",
+        valueKind: "literal",
+        languageTag: null,
+        text: "<script>plain text</script>",
+      },
+    ];
+    sidebar.renderOntologySummary(summary);
+    expect(controls.get("#objectPropertyCount").textContent).toBe(1);
+    expect(controls.get("#datatypePropertyCount").textContent).toBe(2);
+    const metadata = controls.get("#ontology-metadata");
+    const rows = metadata.querySelectorAll(".annotation");
+    expect(rows).toHaveLength(1);
+    expect(rows[0].children.at(-1).textContent).toBe(
+      "<script>plain text</script>",
+    );
+    expect(rows[0].children.at(-1).children).toEqual([]);
+    expect(
+      metadata.children.some(
+        (child) => child.textContent === "No annotations available.",
+      ),
+    ).toBe(false);
   });
 
   test("shows the editing details when the reported editor mode changes", () => {
@@ -607,33 +639,24 @@ describe("sidebar preferred language reporting", () => {
     sidebarModuleContext.requestAnimationFrame = global.requestAnimationFrame;
     sidebarModuleContext.window = { innerWidth: 1280 };
     viewRequests = [];
-    sidebar = createSidebar(
-      {
-        language: () => "undefined",
-        options: () => ({ sidebar: () => ({ showSidebar: jest.fn() }) }),
-        ontologyEditingState: () => ({
-          sidebar: () => ({ showSidebar: jest.fn() }),
-        }),
-        updateCanvasContainerSize: jest.fn(),
+    sidebar = createSidebar({
+      elementTools: { isNode: () => false, isProperty: () => false },
+      languageConstants: {
+        iriBasedLanguage: "id",
+        undefinedLanguage: "undefined",
       },
-      {
-        elementTools: { isNode: () => false, isProperty: () => false },
-        languageConstants: {
-          iriBasedLanguage: "id",
-          undefinedLanguage: "undefined",
-        },
-        languageTools: {
-          textInLanguage: (localizedText) =>
-            typeof localizedText === "string" ? localizedText : undefined,
-        },
-        webVowlController: {
-          setVisualizationView: (request) => {
-            viewRequests.push(request);
-            return Promise.resolve({});
-          },
+      languageTools: {
+        textInLanguage: (localizedText) =>
+          typeof localizedText === "string" ? localizedText : undefined,
+      },
+      webVowlController: {
+        getState: () => ({ view: { language: "default" } }),
+        setVisualizationView: (request) => {
+          viewRequests.push(request);
+          return Promise.resolve({});
         },
       },
-    );
+    });
   });
 
   afterEach(() => {
@@ -671,6 +694,15 @@ describe("sidebar preferred language reporting", () => {
 
     // A fact: this is the language the reader's browser prefers.
     expect(viewRequests).toEqual([{ language: "en" }]);
+  });
+
+  test("offers the shared default label choice even when no language-tagged labels exist", () => {
+    sidebar.renderOntologySummary(summaryWithLanguages(["id"], "default"));
+    expect(
+      controls.get("#language").children.map(({ value }) => value),
+    ).toContain("default");
+    expect(controls.get("#language").value).toBe("default");
+    expect(viewRequests).toEqual([]);
   });
 
   test("stays silent when the controller already holds a language", () => {

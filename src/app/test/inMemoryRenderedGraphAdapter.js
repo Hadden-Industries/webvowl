@@ -261,6 +261,17 @@ export function createInMemoryRenderedGraphAdapter() {
 
   const renderedGraphRuntime = assertRenderedGraphRuntime(
     Object.freeze({
+      setRenderingDiagnosticsEnabled() {
+        assertNotDisposed();
+      },
+      setOntologyEditorOptions(request) {
+        assertNotDisposed();
+        return Object.freeze({ ...request });
+      },
+      resizeVisualizationViewport(request) {
+        assertNotDisposed();
+        return Object.freeze({ ...request });
+      },
       clearRenderedGraph() {
         assertNotDisposed();
         const reason = createAbortError("The rendered graph was cleared.");

@@ -79,10 +79,103 @@ export function createVowlDocumentSnapshot(vowlModel) {
   return freezeDocument(structuredClone(vowlModel));
 }
 
+export function createVowlDocumentInsertionRecords(records) {
+  if (!Array.isArray(records) || records.length < 1 || records.length > 2) {
+    throw new TypeError(
+      "A canvas creation inserts one element or one datatype/property pair.",
+    );
+  }
+  for (const record of records) {
+    assertFields(
+      record,
+      [
+        "collection",
+        "id",
+        "type",
+        "label",
+        "iri",
+        "baseIri",
+        "pos",
+        "domain",
+        "range",
+      ],
+      "Created record",
+    );
+    createVowlDocumentRecordTarget({
+      collection: record.collection,
+      recordId: record.id,
+    });
+    const allowedTypes =
+      record.collection === "property"
+        ? VOWL_EDITOR_PROPERTY_TYPES
+        : [
+            ...(record.collection === "class" ? VOWL_EDITOR_CLASS_TYPES : []),
+            "rdfs:Literal",
+            "rdfs:Datatype",
+          ];
+    if (
+      !allowedTypes.includes(record.type) ||
+      typeof record.label !== "string"
+    ) {
+      throw new TypeError(
+        "Created records require a supported editor type and a label.",
+      );
+    }
+    assertResourceIri(record.iri);
+    assertResourceIri(record.baseIri);
+    if (
+      !Array.isArray(record.pos) ||
+      record.pos.length !== 2 ||
+      !record.pos.every(Number.isFinite)
+    ) {
+      throw new TypeError("Created records require a finite drawing position.");
+    }
+    if (record.collection === "property") {
+      if (
+        typeof record.domain !== "string" ||
+        typeof record.range !== "string"
+      ) {
+        throw new TypeError(
+          "A created property requires its relationship endpoints.",
+        );
+      }
+    } else if (record.domain !== undefined || record.range !== undefined) {
+      throw new TypeError(
+        "Only created properties have relationship endpoints.",
+      );
+    }
+  }
+  return createVowlDocumentSnapshot(records);
+}
+
+export function insertVowlDocumentRecords(vowlModel, records) {
+  records = createVowlDocumentInsertionRecords(records);
+  const model = structuredClone(vowlModel);
+  const ids = new Set(
+    [...RECORD_COLLECTIONS].flatMap((collection) =>
+      (model[collection] ?? []).map((record) => String(record.id)),
+    ),
+  );
+  for (const { collection, id, type, ...attributes } of records) {
+    if (ids.has(id)) {
+      throw new RangeError("The created record ID is already present.");
+    }
+    ids.add(id);
+    (model[collection] ??= []).push({ id, type });
+    (model[`${collection}Attribute`] ??= []).push({ id, ...attributes });
+  }
+  for (const record of records.filter(
+    (record) => record.collection === "property",
+  )) {
+    assertPropertyRelationship(model, record);
+  }
+  return freezeDocument(model);
+}
+
 export function describeVowlDocumentDeletion(vowlModel, target) {
   locateRecord(vowlModel, target);
   const targets = [{ ...target }];
-  const properties = mergedRecords(vowlModel, "property");
+  const properties = resolvedPropertyRecords(vowlModel);
   const removedProperties = properties.filter((property) =>
     target.collection === "property"
       ? String(property.id) === target.recordId
@@ -138,6 +231,7 @@ export function describeVowlDocumentDeletion(vowlModel, target) {
 export function applyVowlDocumentDeletion(vowlModel, target) {
   const { recordTargets } = describeVowlDocumentDeletion(vowlModel, target);
   const model = structuredClone(vowlModel);
+  retainResolvedPropertyEndpoints(model);
   const removedIds = new Set(recordTargets.map(({ recordId }) => recordId));
   for (const collection of RECORD_COLLECTIONS) {
     const collectionIds = new Set(
@@ -404,6 +498,51 @@ function mergedRecords(model, collection) {
   });
 }
 
+// Saved VOWL may put the inverse link and both endpoints on only one partner.
+// Preserve the same opposite endpoints the renderer's parser supplies before
+// either record is detached or removed from that pair.
+function resolvedPropertyRecords(model) {
+  const records = mergedRecords(model, "property");
+  return records.map((record) => {
+    const partner =
+      records.find(
+        (other) =>
+          record.inverse !== undefined &&
+          String(other.id) === String(record.inverse),
+      ) ?? records.find((other) => String(other.inverse) === String(record.id));
+    return {
+      ...record,
+      domain: record.domain ?? partner?.range,
+      range: record.range ?? partner?.domain,
+    };
+  });
+}
+
+function retainResolvedPropertyEndpoints(model) {
+  for (const resolved of resolvedPropertyRecords(model)) {
+    const { record, attributes } = locateRecord(model, {
+      collection: "property",
+      recordId: String(resolved.id),
+    });
+    const missing = ["domain", "range"].filter(
+      (field) =>
+        attributes?.[field] === undefined &&
+        record[field] === undefined &&
+        resolved[field] !== undefined,
+    );
+    if (missing.length === 0) {
+      continue;
+    }
+    const changed = attributes ?? { id: record.id };
+    if (!attributes) {
+      (model.propertyAttribute ??= []).push(changed);
+    }
+    for (const field of missing) {
+      changed[field] = resolved[field];
+    }
+  }
+}
+
 function requireNode(model, recordId) {
   const matches = ["class", "datatype"]
     .flatMap((collection) => mergedRecords(model, collection))
@@ -482,6 +621,9 @@ export function applyVowlDocumentRecordEdit(vowlModel, request) {
     throw new TypeError("A document edit requires at least one change.");
   }
   const model = structuredClone(vowlModel);
+  if (request.recordTarget?.collection === "property") {
+    retainResolvedPropertyEndpoints(model);
+  }
   const { record, attributes } = locateRecord(model, request.recordTarget);
   const changedAttributes = attributes ?? { id: record.id };
   if (attributes === undefined) {
@@ -581,6 +723,26 @@ export function applyVowlDocumentRecordEdit(vowlModel, request) {
         );
       }
       changedAttributes[attribute] = requireNode(model, changes[field]).id;
+    }
+  }
+  if (
+    isProperty &&
+    ["domainRecordId", "rangeRecordId"].some(
+      (field) => changes[field] !== undefined,
+    )
+  ) {
+    const inverseId = changedAttributes.inverse ?? record.inverse;
+    for (const entry of [
+      ...(model.property ?? []),
+      ...(model.propertyAttribute ?? []),
+    ]) {
+      if (
+        String(entry.id) === String(record.id) ||
+        String(entry.id) === String(inverseId) ||
+        String(entry.inverse) === String(record.id)
+      ) {
+        delete entry.inverse;
+      }
     }
   }
   if (

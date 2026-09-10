@@ -97,12 +97,18 @@ function descendantsWithClass(element, className) {
 describe("warning presentation listener ownership", () => {
   let messageList;
   let warningModule;
+  let interactionBlock;
 
   beforeEach(() => {
     messageList = new WarningElement();
+    interactionBlock = new WarningElement();
+    interactionBlock.classList.add("hidden");
     global.document = {
       createElement: (tagName) => new WarningElement(tagName),
       querySelector: (selector) => {
+        if (selector === "#blockGraphInteractions") {
+          return interactionBlock;
+        }
         if (selector === "#WarningErrorMessages") {
           return messageList;
         }
@@ -134,6 +140,36 @@ describe("warning presentation listener ownership", () => {
     closeButton.dispatchEvent(new Event("click"));
 
     expect(messageContainer.classes).toContain("warn-collapsed");
+  });
+
+  test.each([true, false])(
+    "settles the existing native deletion dialog with accepted=%s",
+    async (accepted) => {
+      const confirmation = warningModule.confirmOntologyDeletion({
+        recordTargets: [
+          { collection: "class", recordId: "a" },
+          { collection: "property", recordId: "p" },
+        ],
+      });
+      expect(interactionBlock.classes).not.toContain("hidden");
+      findDescendantById(
+        messageList,
+        accepted ? "killWarningErrorMessages_0" : "cancelButton_0",
+      ).dispatchEvent(new Event("click"));
+      await expect(confirmation).resolves.toBe(accepted);
+      expect(interactionBlock.classes).toContain("hidden");
+    },
+  );
+
+  test("cancels a deletion dialog when its document generation is retired", async () => {
+    const generation = new AbortController();
+    const confirmation = warningModule.confirmOntologyDeletion(
+      { recordTargets: [{ collection: "class", recordId: "a" }] },
+      { signal: generation.signal },
+    );
+    generation.abort();
+    await expect(confirmation).resolves.toBe(false);
+    expect(interactionBlock.classes).toContain("hidden");
   });
 
   test("disposal detaches dynamic warning listeners and is idempotent", () => {

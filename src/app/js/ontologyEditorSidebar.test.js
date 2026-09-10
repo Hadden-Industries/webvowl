@@ -109,7 +109,6 @@ describe("ontology editor sidebar through application document operations", () =
     controller,
     sidebar,
     warning,
-    confirmDeletion,
     subscribers;
   const target = { collection: "class", recordId: "a" };
   beforeEach(() => {
@@ -213,15 +212,60 @@ describe("ontology editor sidebar through application document operations", () =
       confirmOntologyDeletion: jest.fn(async () => state),
     };
     warning = jest.fn();
-    confirmDeletion = jest.fn(async () => false);
     sidebar = createOntologyEditorSidebar({
       webVowlController: controller,
       documentObject: document,
       showWarning: warning,
-      confirmDeletion,
     });
   });
   afterEach(() => sidebar?.dispose());
+
+  test("restores control availability after a failed load of the same document", () => {
+    sidebar.setup();
+    const title = document.getElementById("titleEditor");
+    const description = document.getElementById("descriptionEditor");
+    const prefix = document.getElementById("addPrefixButton");
+    const fixedControl = document.getElementById("element_datatypeEditor");
+    fixedControl.disabled = true;
+    document.getElementById("generalDetailsEdit").querySelectorAll = () => [
+      title,
+      description,
+      prefix,
+      fixedControl,
+    ];
+    subscribers.forEach((listener) =>
+      listener({ ...state, status: "loading" }, ["status"]),
+    );
+    expect(
+      [title, description, prefix].every((control) => control.disabled),
+    ).toBe(true);
+    subscribers.forEach((listener) => listener(state, ["status"]));
+    expect(
+      [title, description, prefix].every((control) => !control.disabled),
+    ).toBe(true);
+    expect(fixedControl.disabled).toBe(true);
+  });
+
+  test("preserves author arrays and multiline description input", async () => {
+    model.header.author = ["Ada", "Grace"];
+    const description = document.getElementById("descriptionEditor");
+    description.tagName = "TEXTAREA";
+    sidebar.setup();
+    expect(document.getElementById("authorsEditor").value).toBe("Ada,Grace");
+    description.value = "First line\nSecond line";
+    const enter = keyboardEvent("Enter");
+    description.dispatchEvent(enter);
+    expect(enter.defaultPrevented).toBe(false);
+    expect(controller.editOntologyMetadata).not.toHaveBeenCalled();
+    description.dispatchEvent(new Event("change"));
+    await flushOperations();
+    expect(controller.editOntologyMetadata).toHaveBeenCalledWith({
+      loadGeneration: 1,
+      changes: {
+        description: { language: "en", text: "First line\nSecond line" },
+      },
+    });
+  });
 
   test("edits the selected record while preserving another occurrence and other label languages", async () => {
     sidebar.setup();
@@ -346,20 +390,6 @@ describe("ontology editor sidebar through application document operations", () =
     expect(trigger.role).toBe("button");
     expect(trigger.classes).toContain("accordion-trigger-active");
     expect(event.defaultPrevented).toBe(true);
-  });
-
-  test("requests confirmation before submitting a deletion proposal", async () => {
-    sidebar.setup();
-    document.getElementById("class_deleteButton").click();
-    await flushOperations();
-    expect(confirmDeletion).toHaveBeenCalledTimes(1);
-    expect(controller.confirmOntologyDeletion).not.toHaveBeenCalled();
-    confirmDeletion.mockResolvedValueOnce(true);
-    document.getElementById("class_deleteButton").click();
-    await flushOperations();
-    expect(controller.confirmOntologyDeletion).toHaveBeenCalledWith(
-      controller.proposeOntologyDeletion.mock.results[1].value,
-    );
   });
 
   test("setup is idempotent and disposal detaches listeners and subscriptions", () => {

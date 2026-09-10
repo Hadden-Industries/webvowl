@@ -41,6 +41,11 @@ const RETIRED_SOURCE_IDENTIFIERS = Object.freeze([
   "from_presetOntology",
   "loadFromOWL2VOWL",
   "getLoadingFunction",
+  "loadConvertedVowlModel",
+  "callbackLoadFromOntology",
+  "callbackLoad_Ontology_FromIRI",
+  "callbackLoad_Ontology_From_DirectInput",
+  "callbackLoad_JSON_FromURL",
   "setController",
   "btoa",
 ]);
@@ -58,9 +63,6 @@ const RENDERER_LOCAL_SELECTION_IDENTIFIERS = Object.freeze([
   "pickAndPinModule",
 ]);
 const APPLICATION_INTERFACE_SOURCE_DIRECTORY = "src/app/js";
-// The editing surface is outside this migration's scope, so its remaining
-// reach into the focus module is recorded debt rather than a new violation.
-const EDITING_SURFACE_MODULE_PATH = "src/app/js/editSidebar.js";
 
 const RENDERED_GRAPH_INTERNALS_PATH =
   "src/webvowl/js/runtime/renderedGraphInternals.js";
@@ -78,6 +80,14 @@ const USER_INTERFACE_IDENTIFIERS = Object.freeze([
   "warningModule",
   "directInputModule",
   "zoomSlider",
+  "leftSidebar",
+  "editSidebar",
+  "debugMenu",
+  "gravityMenu",
+  "modeMenu",
+  "pausedMenu",
+  "resetMenu",
+  "navigationMenu",
 ]);
 
 function collectAuthoredJavaScriptModulePaths(relativeDirectoryPath) {
@@ -369,9 +379,6 @@ describe("rendered graph decoupling", () => {
     for (const modulePath of collectAuthoredJavaScriptModulePaths(
       APPLICATION_INTERFACE_SOURCE_DIRECTORY,
     )) {
-      if (modulePath === EDITING_SURFACE_MODULE_PATH) {
-        continue;
-      }
       const moduleSource = readModuleSource(modulePath);
       for (const rendererLocalIdentifier of RENDERER_LOCAL_SELECTION_IDENTIFIERS) {
         if (namesIdentifier(moduleSource, rendererLocalIdentifier)) {
@@ -381,6 +388,21 @@ describe("rendered graph decoupling", () => {
     }
 
     expect(violations).toEqual([]);
+  });
+
+  test("only the D3 adapter constructs concrete renderer internals", () => {
+    const owners = everyAuthoredModulePath()
+      .filter((modulePath) => !modulePath.endsWith(".test.js"))
+      .filter((modulePath) =>
+        /from\s+["'][^"']*renderedGraphInternals\.js["']/u.test(
+          readModuleSource(modulePath),
+        ),
+      );
+    expect(owners).toEqual([D3_RENDERED_GRAPH_ADAPTER_PATH]);
+    for (const modulePath of applicationModulePaths()) {
+      const source = readModuleSource(modulePath);
+      expect(source).not.toMatch(/applicationUiRegistry|createGraph\s*\(/u);
+    }
   });
 
   test("defines each renderer member exactly once", () => {

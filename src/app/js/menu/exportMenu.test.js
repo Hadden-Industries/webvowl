@@ -138,10 +138,6 @@ describe("export menu share-link presentation", () => {
         { value: "", textContent: "", classList: { toggle: jest.fn() } },
       ]),
     );
-    const graph = {
-      editorMode: () => false,
-      ontologyEditingState: () => ({ getHideDebugFeatures: () => true }),
-    };
     const state = { source: { kind: "vowl-json-url" } };
     const getVisualizationShareLink = jest.fn(() => {
       if (state.source.kind === "vowl-json-text") {
@@ -151,7 +147,11 @@ describe("export menu share-link presentation", () => {
         url: "https://viewer.test/#url=https%3A%2F%2Fexample.test%2Faccepted.json",
       };
     });
-    const menu = exportMenuFactory.createExportMenu(graph, {
+    const menu = exportMenuFactory.createExportMenu({
+      readShareLinkPresentation: () => ({
+        editorMode: false,
+        debugFeatures: false,
+      }),
       documentObject: { querySelector: (id) => controls.get(id) },
       locationObject: "https://viewer.test/#stale",
       webVowlController: { getVisualizationShareLink },
@@ -233,24 +233,18 @@ describe("export menu SVG artifact route", () => {
     };
     exportRequests = [];
     hideAllMenus = jest.fn();
-    exportMenu = exportMenuFactory.createExportMenu(
-      {
-        options: () => ({ navigationMenu: () => ({ hideAllMenus }) }),
-        ontologyEditingState: () => ({ getHideDebugFeatures: () => true }),
+    exportMenu = exportMenuFactory.createExportMenu({
+      documentObject: global.document,
+      locationObject: { href: "https://example.test/" },
+      webVowlController: {
+        exportVisualization: jest.fn((exportRequest) => {
+          exportRequests.push(exportRequest);
+          return Promise.resolve({
+            artifactMetadata: { filename: "graph.svg", byteLength: 12 },
+          });
+        }),
       },
-      {
-        documentObject: global.document,
-        locationObject: { href: "https://example.test/" },
-        webVowlController: {
-          exportVisualization: jest.fn((exportRequest) => {
-            exportRequests.push(exportRequest);
-            return Promise.resolve({
-              artifactMetadata: { filename: "graph.svg", byteLength: 12 },
-            });
-          }),
-        },
-      },
-    );
+    });
   });
 
   afterEach(() => {
@@ -328,26 +322,20 @@ describe("export menu SVG artifact route", () => {
   test("does not click the link when the export fails", async () => {
     const downloadLink = controlFor("#exportSvg");
     const presentArtifactFailure = jest.fn();
-    exportMenu = exportMenuFactory.createExportMenu(
-      {
-        options: () => ({ navigationMenu: () => ({ hideAllMenus }) }),
-        ontologyEditingState: () => ({ getHideDebugFeatures: () => true }),
+    exportMenu = exportMenuFactory.createExportMenu({
+      documentObject: global.document,
+      visualizationArtifactDownloadAdapter: { presentArtifactFailure },
+      locationObject: { href: "https://example.test/" },
+      webVowlController: {
+        exportVisualization: () =>
+          Promise.reject(
+            new WebVowlOperationError({
+              code: "NO_ONTOLOGY",
+              message: "no ontology",
+            }),
+          ),
       },
-      {
-        documentObject: global.document,
-        visualizationArtifactDownloadAdapter: { presentArtifactFailure },
-        locationObject: { href: "https://example.test/" },
-        webVowlController: {
-          exportVisualization: () =>
-            Promise.reject(
-              new WebVowlOperationError({
-                code: "NO_ONTOLOGY",
-                message: "no ontology",
-              }),
-            ),
-        },
-      },
-    );
+    });
 
     await exportMenu.exportVisualizationArtifact({ preventDefault: jest.fn() });
 

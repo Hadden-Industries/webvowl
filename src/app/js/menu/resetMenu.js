@@ -1,4 +1,3 @@
-import { applicationUiModule } from "../ui/applicationUiRegistry.js";
 import { runVisualizationControlAction } from "../ui/visualizationControlAction.js";
 
 /**
@@ -14,6 +13,7 @@ import { runVisualizationControlAction } from "../ui/visualizationControlAction.
 export function createResetMenu({
   clearTimeout: clearFlashTimer = globalThis.clearTimeout,
   documentObject = globalThis.document,
+  clearSearchPresentation,
   requestAnimationFrame:
     requestNextAnimationFrame = globalThis.requestAnimationFrame,
   setTimeout: scheduleFlashTimer = globalThis.setTimeout,
@@ -54,8 +54,7 @@ export function createResetMenu({
     //                                    animate independently.
     requestNextAnimationFrame(function () {
       requestNextAnimationFrame(function () {
-        const searchMenu = applicationUiModule("searchMenu");
-        searchMenu?.clearText();
+        clearSearchPresentation?.();
         void runVisualizationControlAction(async () => {
           try {
             await webVowlController.resetVisualization();

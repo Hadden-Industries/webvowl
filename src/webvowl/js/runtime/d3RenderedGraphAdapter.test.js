@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, test } from "@jest/globals";
+import { beforeAll, describe, expect, jest, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { SourceTextModule, SyntheticModule } from "node:vm";
@@ -41,6 +41,13 @@ function instantiateRepositoryModule(moduleUrl) {
 async function loadRepositoryModule(moduleUrl) {
   const rootModule = instantiateRepositoryModule(moduleUrl);
   await rootModule.link((specifier, referencingModule) => {
+    if (specifier === "./renderedGraphInternals.js") {
+      return new SyntheticModule(["createRenderedGraphInternals"], function () {
+        this.setExport("createRenderedGraphInternals", () => {
+          throw new Error("Use the focused renderer fixture.");
+        });
+      });
+    }
     if (specifier === "d3") {
       return new SyntheticModule(["color"], function () {
         this.setExport("color", color);
@@ -297,6 +304,12 @@ function createAdapterHarness() {
   }
 
   const renderedGraphInternalsFixture = {
+    editorMode: () => false,
+    ontologyEditingState: () => ({}),
+    resizeViewport: jest.fn(),
+    setRenderingDiagnosticsEnabled: jest.fn(),
+    showEditorHintIfNeeded: jest.fn(),
+    updateDraggerElements: jest.fn(),
     focuserModule: { handle: () => undefined },
     filterModules: {
       datatypes: createFilterModuleFixture(),
@@ -388,8 +401,8 @@ function createAdapterHarness() {
         renderedGraphInternalsFixture.suppliedVowlModels.push(vowlModel);
       },
     }),
-    start() {
-      renderedGraphInternalsFixture.callOrder.push("start");
+    initializeSvgRoot() {
+      renderedGraphInternalsFixture.callOrder.push("initializeSvgRoot");
       // The renderer builds its SVG root inside the container.
       graphContainerElement.replaceChildren(
         documentObject.createElementNS(SVG_NAMESPACE_IRI, "svg"),
@@ -614,9 +627,13 @@ function createAdapterHarness() {
       renderedGraphInternalsFixture.continuousZoomDirections.push(0);
     },
     highlightedElementIds: [],
+    currentHighlightIds: new Set(),
     locateRequests: 0,
     highLightNodes(elementIds) {
       renderedGraphInternalsFixture.highlightedElementIds.push(elementIds);
+      for (const id of elementIds) {
+        renderedGraphInternalsFixture.currentHighlightIds.add(id);
+      }
     },
     locateSearchResult() {
       renderedGraphInternalsFixture.locateRequests += 1;
@@ -624,6 +641,7 @@ function createAdapterHarness() {
     highlightResets: 0,
     resetSearchHighlight() {
       renderedGraphInternalsFixture.highlightResets += 1;
+      renderedGraphInternalsFixture.currentHighlightIds.clear();
     },
     visualizationResets: 0,
     resetVisualization() {
@@ -634,7 +652,7 @@ function createAdapterHarness() {
 
   const { renderedGraphRuntime, renderedGraphInteractionPort } =
     createD3RenderedGraphAdapter({
-      renderedGraphInternals: renderedGraphInternalsFixture,
+      createRenderer: () => renderedGraphInternalsFixture,
       graphContainerElement,
       observeNextPaint: (loadGeneration, { signal } = {}) =>
         new Promise((resolve) => {
@@ -1667,21 +1685,21 @@ describe("D3 rendered graph adapter", () => {
   test("builds the renderer graph root once and reloads it for later models", async () => {
     const adapterHarness = createAdapterHarness();
 
-    // Only the renderer's start builds its SVG root, and it must run before a
+    // Only the renderer initializes its SVG root, and it must run before a
     // model is present so it constructs the container without parsing.
     await loadGeneration(adapterHarness, 1);
 
     expect(adapterHarness.renderedGraphInternalsFixture.callOrder).toEqual([
-      "start",
       "data",
+      "initializeSvgRoot",
       "load",
     ]);
 
     await loadGeneration(adapterHarness, 2);
 
     expect(adapterHarness.renderedGraphInternalsFixture.callOrder).toEqual([
-      "start",
       "data",
+      "initializeSvgRoot",
       "load",
       "data",
       "load",
@@ -1833,6 +1851,41 @@ describe("D3 rendered graph adapter", () => {
     // drawn node the renderer knows. Highlighting does not move the viewport.
     expect(internals.highlightedElementIds).toEqual([["Person"]]);
     expect(internals.locateRequests).toBe(0);
+  });
+
+  test("replaces focus membership and reapplies retained focus after a language redraw", async () => {
+    const harness = createAdapterHarness();
+    await loadGeneration(harness, 1);
+    const internals = harness.renderedGraphInternalsFixture;
+    async function apply(view) {
+      const applying = harness.renderedGraphRuntime.applyVisualizationView({
+        loadGeneration: 1,
+        ...view,
+      });
+      harness.renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      return applying;
+    }
+    await apply({
+      focus: [{ kind: "class", iri: "https://example.test/Person" }],
+    });
+    await apply({
+      focus: [{ kind: "property", iri: "https://example.test/knows" }],
+    });
+    expect([...internals.currentHighlightIds]).toEqual(["knows"]);
+    // The production language redraw clears its old DOM halos. This fixture
+    // models that observed behavior; the native SVG reproduction is retained.
+    const language = internals.language;
+    internals.language = (nextLanguage) => {
+      if (nextLanguage !== undefined) {
+        internals.currentHighlightIds.clear();
+      }
+      return language(nextLanguage);
+    };
+    const result = await apply({ language: "de" });
+    expect([...internals.currentHighlightIds]).toEqual(["knows"]);
+    expect(result.appliedVisualizationView.focus).toEqual([
+      { kind: "property", iri: "https://example.test/knows" },
+    ]);
   });
 
   test("captures the existing Turtle serialization as a generation-scoped document", async () => {

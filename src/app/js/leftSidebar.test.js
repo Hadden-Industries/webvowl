@@ -83,7 +83,7 @@ describe("left sidebar native controls", () => {
   let accordionPanel;
   let accordionTrigger;
   let controls;
-  let graph;
+  let controller;
   let leftSidebar;
 
   beforeEach(() => {
@@ -125,21 +125,24 @@ describe("left sidebar native controls", () => {
       hideAllMenus: jest.fn(),
       updateScrollButtonVisibility: jest.fn(),
     };
-    const graphOptions = {
-      defaultClass: jest.fn(),
-      defaultDatatype: jest.fn(),
-      defaultProperty: jest.fn(),
-      navigationMenu: () => navigationMenu,
-      supportedClasses: () => ["owl:Class"],
-      supportedDatatypes: () => ["rdfs:Literal"],
-      supportedProperties: () => ["owl:objectProperty"],
+    controller = {
+      setOntologyEditorOptions: jest.fn(),
+      getOntologyEditorOptions: () => ({
+        defaultClass: "owl:Class",
+        defaultDatatype: "rdfs:Literal",
+        defaultProperty: "owl:objectProperty",
+        supportedClasses: ["owl:Class"],
+        supportedDatatypes: ["rdfs:Literal"],
+        supportedProperties: ["owl:objectProperty"],
+      }),
+      onViewportGeometryChanged: jest.fn(),
     };
-    graph = {
-      options: () => graphOptions,
-      ontologyEditingState: () => graphOptions,
-      updateCanvasContainerSize: jest.fn(),
-    };
-    leftSidebar = createLeftSidebar(graph);
+    leftSidebar = createLeftSidebar({
+      webVowlController: controller,
+      onViewportGeometryChanged: controller.onViewportGeometryChanged,
+      hideNavigationMenus: navigationMenu.hideAllMenus,
+      updateNavigationOverflow: navigationMenu.updateScrollButtonVisibility,
+    });
   });
 
   afterEach(() => {
@@ -167,9 +170,9 @@ describe("left sidebar native controls", () => {
     expect(simulatedClick).not.toHaveBeenCalled();
     expect(accordionTrigger.classes).toContain("accordion-trigger-active");
     expect(accordionPanel.classes).not.toContain("hidden");
-    expect(graph.ontologyEditingState().defaultClass).toHaveBeenCalledWith(
-      "owl:Class",
-    );
+    expect(controller.setOntologyEditorOptions).toHaveBeenCalledWith({
+      defaultClass: "owl:Class",
+    });
   });
 
   test("owns only accordion triggers inside the left sidebar", () => {
@@ -197,8 +200,8 @@ describe("left sidebar native controls", () => {
       .dispatchEvent(new Event("click"));
     classSelection.dispatchEvent(new Event("click"));
 
-    expect(graph.updateCanvasContainerSize).not.toHaveBeenCalled();
-    expect(graph.ontologyEditingState().defaultClass).not.toHaveBeenCalled();
+    expect(controller.onViewportGeometryChanged).not.toHaveBeenCalled();
+    expect(controller.setOntologyEditorOptions).not.toHaveBeenCalled();
   });
 
   test("replaces and disposes pending transition-suppression frames", () => {

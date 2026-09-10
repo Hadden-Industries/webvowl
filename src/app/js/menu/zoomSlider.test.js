@@ -11,15 +11,10 @@ import * as d3 from "d3";
 import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let zoomSliderFactory;
-let registerApplicationUiModule;
 
 beforeAll(async () => {
   // The registry is loaded first so the slider links the same instance rather
   // than a second copy the test could not reach.
-  ({ registerApplicationUiModule } = await loadEsmModuleForTest(
-    new URL("../ui/applicationUiRegistry.js", import.meta.url),
-    import.meta.url,
-  ));
   ({ createZoomSlider: zoomSliderFactory } = await loadEsmModuleForTest(
     new URL("./zoomSlider.js", import.meta.url),
     import.meta.url,
@@ -178,7 +173,6 @@ describe("zoomSlider input handling", () => {
     const minimumMagnification = options.minMagnification || 0.1;
     const maximumMagnification = options.maxMagnification || 4;
     const hideAllMenus = jest.fn();
-    registerApplicationUiModule("navigationMenu", { hideAllMenus });
 
     // The control reports intent; the controller publishes the magnification
     // the renderer actually reached, which the control then presents.
@@ -200,6 +194,7 @@ describe("zoomSlider input handling", () => {
     }
 
     const zoomSlider = zoomSliderFactory({
+      hideNavigationMenus: hideAllMenus,
       webVowlController,
       minimumMagnification,
       maximumMagnification,

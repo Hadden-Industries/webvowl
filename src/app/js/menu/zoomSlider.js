@@ -1,7 +1,8 @@
-import { applicationUiModule } from "../ui/applicationUiRegistry.js";
 /** The zoom Slider **/
 export function createZoomSlider({
   webVowlController,
+  hideNavigationMenus = () => {},
+  onControlsVisibilityChanged,
   minimumMagnification,
   maximumMagnification,
   graphWidthPx,
@@ -20,10 +21,6 @@ export function createZoomSlider({
   let showSlider = true;
   let controlsEnabled = true;
   let slider;
-
-  function hideNavigationMenus() {
-    applicationUiModule("navigationMenu")?.hideAllMenus();
-  }
 
   function requestMagnification(nextZoomValue) {
     webVowlController?.setVisualizationView({ zoomScale: nextZoomValue });
@@ -240,9 +237,7 @@ export function createZoomSlider({
       sliderContainer.classList.add("hidden");
     }
     showSlider = val;
-    if (applicationUiModule("sidebar")) {
-      applicationUiModule("sidebar").updateDockedControlsPosition();
-    }
+    onControlsVisibilityChanged?.();
   };
 
   zoomSlider.zooming = function () {

@@ -15,8 +15,6 @@ import {
 
 let createLoadingModule;
 let loadingModuleContext;
-// Interface modules collaborate through the application registry.
-const registeredUiModulesForTest = new Map();
 
 class LoadingControl extends EventTarget {
   constructor() {
@@ -120,29 +118,13 @@ beforeAll(async () => {
     if (specifier === "./ontologyLifecycle.js") {
       return lifecycleModuleSource;
     }
-    if (specifier.endsWith("applicationUiRegistry.js")) {
-      return new SyntheticModule(
-        ["applicationUiModule", "registerApplicationUiModule"],
-        function provideApplicationUiRegistry() {
-          this.setExport("applicationUiModule", (moduleName) =>
-            registeredUiModulesForTest.get(moduleName),
-          );
-          this.setExport(
-            "registerApplicationUiModule",
-            (moduleName, uiModule) =>
-              registeredUiModulesForTest.set(moduleName, uiModule),
-          );
-        },
-        { context: loadingModuleContext, identifier: specifier },
-      );
-    }
     throw new Error(`Unexpected loading-module dependency: ${specifier}`);
   });
   await loadingModuleSource.evaluate();
   ({ createLoadingModule } = loadingModuleSource.namespace);
 });
 describe("loading module create-new command", () => {
-  let graph;
+  let presentEditorMode;
   let loadingModule;
   let pushedRoutes;
   let requestedLoads;
@@ -162,13 +144,10 @@ describe("loading module create-new command", () => {
     loadingModuleContext.location = global.location;
     loadingModuleContext.window = global.window;
 
-    graph = {
-      clearAllGraphData: jest.fn(),
-      editorMode: jest.fn(),
-      options: () => ({}),
-    };
+    presentEditorMode = jest.fn();
     requestedLoads = [];
-    loadingModule = createLoadingModule(graph, {
+    loadingModule = createLoadingModule({
+      onShareLinkPresentation: presentEditorMode,
       webVowlController: {
         loadOntology(loadRequest) {
           requestedLoads.push(loadRequest);
@@ -191,17 +170,19 @@ describe("loading module create-new command", () => {
       "#opts=editorMode=true;#new_ontology1",
       "#opts=editorMode=true;#new_ontology2",
     ]);
-    expect(graph.editorMode).toHaveBeenCalledTimes(2);
-    expect(graph.editorMode).toHaveBeenNthCalledWith(1, true);
+    expect(presentEditorMode).toHaveBeenCalledTimes(2);
+    expect(presentEditorMode).toHaveBeenNthCalledWith(1, { editorMode: true });
     // The empty preset document reaches the controller like any other source.
     expect(requestedLoads).toEqual([
       {
+        reuseCachedOntology: false,
         source: {
           kind: "vowl-json-url",
           url: "https://example.test/webvowl/data/new_ontology.json",
         },
       },
       {
+        reuseCachedOntology: false,
         source: {
           kind: "vowl-json-url",
           url: "https://example.test/webvowl/data/new_ontology.json",
@@ -229,17 +210,14 @@ describe("loading module remote source derivation", () => {
       toString: () => locationHref,
     };
     loadingModuleContext.location = global.location;
-    return createLoadingModule(
-      { options: () => ({}), clearAllGraphData() {}, clearGraphData() {} },
-      {
-        webVowlController: {
-          loadOntology(loadRequest) {
-            requestedLoads.push(loadRequest);
-            return Promise.resolve({ status: "ready" });
-          },
+    return createLoadingModule({
+      webVowlController: {
+        loadOntology(loadRequest) {
+          requestedLoads.push(loadRequest);
+          return Promise.resolve({ status: "ready" });
         },
       },
-    );
+    });
   }
 
   beforeEach(() => {
@@ -294,7 +272,7 @@ describe("loading presentation listener ownership", () => {
       querySelectorAll: () => [],
     };
     loadingModuleContext.document = global.document;
-    loadingModule = createLoadingModule({ options: () => ({}) });
+    loadingModule = createLoadingModule({});
   });
 
   afterEach(() => {
@@ -333,7 +311,7 @@ describe("loading module controller state presentation", () => {
       querySelectorAll: () => [],
     };
     loadingModuleContext.document = global.document;
-    loadingModule = createLoadingModule({ options: () => ({}) });
+    loadingModule = createLoadingModule({});
   });
 
   afterEach(() => {
@@ -372,11 +350,8 @@ describe("loading module controller state presentation", () => {
     const actionAvailability = [];
     loadingModule.dispose();
     loadingModule = createLoadingModule({
-      options: () => ({
-        resetMenu: () => ({
-          setMenuMode: (enabled) => actionAvailability.push(enabled),
-        }),
-      }),
+      onGraphControlAvailabilityChanged: (enabled) =>
+        actionAvailability.push(enabled),
     });
     loadingModule.renderControllerState({
       status: "rendering",
@@ -447,6 +422,7 @@ describe("loading module canonical controller sources", () => {
   function createLoadingModuleForLocation(
     locationHref,
     controllerState = { status: "idle" },
+    ontologyMenu,
   ) {
     global.location = {
       hash: locationHref.slice(locationHref.indexOf("#")),
@@ -454,20 +430,18 @@ describe("loading module canonical controller sources", () => {
       toString: () => locationHref,
     };
     loadingModuleContext.location = global.location;
-    return createLoadingModule(
-      { options: () => ({}), clearAllGraphData() {}, clearGraphData() {} },
-      {
-        onShareLinkPresentation: (value) => presentedRoutes.push(value),
-        webVowlController: {
-          getState: () => controllerState,
-          loadOntology(loadRequest, loadOptions) {
-            requestedLoads.push(loadRequest);
-            requestedLoadOptions.push(loadOptions);
-            return Promise.resolve({ status: "ready", loadGeneration: 1 });
-          },
+    return createLoadingModule({
+      ontologyMenu,
+      onShareLinkPresentation: (value) => presentedRoutes.push(value),
+      webVowlController: {
+        getState: () => controllerState,
+        loadOntology(loadRequest, loadOptions) {
+          requestedLoads.push(loadRequest);
+          requestedLoadOptions.push(loadOptions);
+          return Promise.resolve({ status: "ready", loadGeneration: 1 });
         },
       },
-    );
+    });
   }
 
   beforeEach(() => {
@@ -505,6 +479,7 @@ describe("loading module canonical controller sources", () => {
 
     expect(requestedLoads).toEqual([
       {
+        reuseCachedOntology: true,
         source: {
           kind: "vowl-json-url",
           url: "https://example.test/foaf.json",
@@ -526,6 +501,7 @@ describe("loading module canonical controller sources", () => {
     await loadingModule.loadRemoteSource(request);
     expect(requestedLoads).toEqual([
       {
+        reuseCachedOntology: true,
         source: {
           kind: "vowl-json-url",
           url: "https://example.test/webvowl/data/foaf.json",
@@ -558,16 +534,16 @@ describe("loading module canonical controller sources", () => {
   ])(
     "presents malformed $scenario options without rejecting initialization or replacing the drawing",
     async ({ state, expectedState }) => {
+      const messages = [];
       loadingModule = createLoadingModuleForLocation(
         "https://example.test/webvowl/#opts=doc=1.5;#foaf",
         state,
+        {
+          append_message_toLastBulletPoint: (message) => messages.push(message),
+        },
       );
-      const messages = [];
       const inlineError = global.document.querySelector("#loadingErrorMessage");
       inlineError.hidden = true;
-      loadingModule.setOntologyMenu({
-        append_message_toLastBulletPoint: (message) => messages.push(message),
-      });
       await expect(
         loadingModule.loadOntologyFromLocation(),
       ).resolves.toBeUndefined();
@@ -601,6 +577,7 @@ describe("loading module canonical controller sources", () => {
 
     expect(requestedLoads).toEqual([
       {
+        reuseCachedOntology: true,
         source: {
           kind: "ontology-document-iri",
           documentIri: "http://xmlns.com/foaf/0.1/",
@@ -620,6 +597,7 @@ describe("loading module canonical controller sources", () => {
 
     expect(requestedLoads).toEqual([
       {
+        reuseCachedOntology: true,
         source: {
           kind: "vowl-json-url",
           url: "https://example.test/webvowl/data/foaf.json",
@@ -683,20 +661,15 @@ describe("loading module canonical controller sources", () => {
         layout: { status: "paused" },
         error: { message: "Bad source" },
       };
-      loadingModule = createLoadingModule(
-        {
-          options: () => ({}),
-          clearAllGraphData: () => drawnNodes.splice(0),
-        },
-        {
-          webVowlController: {
-            getState: () => state,
-            loadOntology: async () => {
-              throw new Error("Bad source");
-            },
+      loadingModule = createLoadingModule({
+        webVowlController: {
+          getOntologyDocument: () => ({ vowlModel: { header: {} } }),
+          getState: () => state,
+          loadOntology: async () => {
+            throw new Error("Bad source");
           },
         },
-      );
+      });
       if (inputKind === "remote") {
         await loadingModule.loadRemoteSource({
           source: {
@@ -721,10 +694,13 @@ describe("loading module canonical controller sources", () => {
       source: { kind: "vowl-json-url" },
       layout: { status: "paused" },
     };
-    loadingModule = createLoadingModule(
-      { options: () => ({}) },
-      { webVowlController: { getState: () => state, loadOntology: jest.fn() } },
-    );
+    loadingModule = createLoadingModule({
+      webVowlController: {
+        getOntologyDocument: () => ({ vowlModel: { header: {} } }),
+        getState: () => state,
+        loadOntology: jest.fn(),
+      },
+    });
     await expect(
       loadingModule.loadDroppedFile({
         name: "unreadable.json",
@@ -801,20 +777,18 @@ describe("loading module control availability", () => {
     };
     loadingModuleContext.document = global.document;
     zoomSliderMenuModes = [];
-    registeredUiModulesForTest.clear();
-    registeredUiModulesForTest.set("zoomSlider", {
-      setMenuMode: (enabled) => zoomSliderMenuModes.push(enabled),
+    loadingModule = createLoadingModule({
+      onGraphControlAvailabilityChanged: (enabled) =>
+        zoomSliderMenuModes.push(enabled),
     });
-    loadingModule = createLoadingModule({ options: () => ({}) });
   });
 
   afterEach(() => {
     loadingModule?.dispose();
     loadingModuleContext.document = undefined;
-    registeredUiModulesForTest.clear();
   });
 
-  test("enables graph controls through the interface registry when ready", () => {
+  test("reports graph controls available when ready", () => {
     loadingModule.markReady();
 
     // The renderer settings object no longer carries interface modules, so a

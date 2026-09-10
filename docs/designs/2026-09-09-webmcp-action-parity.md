@@ -12,8 +12,9 @@ parity makes the agent's chosen view inspectable and adjustable by the reader.
 The parity inventory serves that outcome; completing it must also satisfy the
 [AQFO acceptance scenario](../evaluations/webmcp-integration.md#motivating-aqfo-acceptance-scenario),
 including exact-IRI resolution, actual viewport framing, faithful SVG content and
-honest artifact delivery. Its result remains pending independently of earlier
-parity checkpoints.
+honest artifact delivery. The [2026-09-10 completion record](../evaluations/2026-09-10-webmcp-completion.md)
+records the native AQFO result, independent SVG inspection, twenty jobs and
+remaining platform qualification limits separately from earlier checkpoints.
 
 [ADR 0012](../adr/0012-human-and-agent-visualization-action-parity.md) records
 the superseded ownership restrictions and distinct identity boundaries.

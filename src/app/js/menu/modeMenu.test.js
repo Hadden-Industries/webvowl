@@ -56,7 +56,7 @@ class MockElement {
 }
 
 describe("mode menu bug fixes", () => {
-  let mockGraph, modeMenu, setVisualizationModes, webVowlController;
+  let modeMenu, setVisualizationModes, webVowlController;
   let dynamicLabelWidthContainer,
     editModeContainer,
     pickAndPinContainer,
@@ -114,16 +114,14 @@ describe("mode menu bug fixes", () => {
       }),
     };
 
-    // Editor mode is the one renderer call this menu still makes; the plan
-    // records that as a deliberate exception.
-    mockGraph = {
-      editorMode: jest.fn().mockReturnValue(false),
-      showEditorHintIfNeeded: jest.fn(),
-    };
     setVisualizationModes = jest.fn();
-    webVowlController = { setVisualizationModes };
+    webVowlController = {
+      setVisualizationModes,
+      getOntologyEditorOptions: () => ({ isEditorMode: false }),
+      setOntologyEditorOptions: jest.fn(),
+    };
 
-    modeMenu = modeMenuFactory(mockGraph, {
+    modeMenu = modeMenuFactory({
       webVowlController,
       documentObject: global.document,
       windowObject: global.window,
@@ -171,7 +169,7 @@ describe("mode menu bug fixes", () => {
     const documentWithoutOptionalContainers = {
       querySelector: () => null,
     };
-    const menuWithoutOptionalContainers = modeMenuFactory(mockGraph, {
+    const menuWithoutOptionalContainers = modeMenuFactory({
       webVowlController,
       documentObject: documentWithoutOptionalContainers,
       windowObject: global.window,

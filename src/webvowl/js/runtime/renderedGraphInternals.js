@@ -13,6 +13,17 @@ import { createShadowClone } from "../shadowClone.js";
 import { nextContinuousZoomScale } from "../../../shared/js/util/continuousZoomRamp.js";
 import { createFocuser } from "../../../shared/js/modules/focuser.js";
 import { createPickAndPin } from "../../../shared/js/modules/pickAndPin.js";
+import { createColorExternalsSwitch } from "./colorExternalsSwitch.js";
+import { createCompactNotationSwitch } from "../../../shared/js/modules/compactNotationSwitch.js";
+import { createDatatypeFilter } from "../../../shared/js/modules/datatypeFilter.js";
+import { createDisjointFilter } from "../../../shared/js/modules/disjointFilter.js";
+import { createEmptyLiteralFilter } from "../../../shared/js/modules/emptyLiteralFilter.js";
+import { createNodeDegreeFilter } from "../../../shared/js/modules/nodeDegreeFilter.js";
+import { createNodeScalingSwitch } from "../../../shared/js/modules/nodeScalingSwitch.js";
+import { createObjectPropertyFilter } from "../../../shared/js/modules/objectPropertyFilter.js";
+import { createSetOperatorFilter } from "../../../shared/js/modules/setOperatorFilter.js";
+import { createStatistics } from "../../../shared/js/modules/statistics.js";
+import { createSubclassFilter } from "../../../shared/js/modules/subclassFilter.js";
 import _ from "lodash/core";
 import { createMath as createMathModule } from "../../../shared/js/util/math.js";
 const math = createMathModule();
@@ -187,7 +198,10 @@ function measureViewportElement(element, fallbackWidth, fallbackHeight) {
   };
 }
 
-function createGraph(graphContainerSelector) {
+function createGraph(
+  graphContainerElement,
+  configuration = RENDERED_GRAPH_CONFIGURATION_DEFAULTS,
+) {
   const graph = new EventTarget();
   const reportInvalidGeometry = createInvalidGeometryReporter(
     (warningCode, message) => graph.raiseRenderWarning(warningCode, message),
@@ -195,6 +209,30 @@ function createGraph(graphContainerSelector) {
   const CARDINALITY_HDISTANCE = 20;
   const CARDINALITY_VDISTANCE = 10;
   const renderedGraphSettings = createRenderedGraphSettings();
+  for (const [name, value] of Object.entries(configuration)) {
+    renderedGraphSettings[
+      name === "widthPx" ? "width" : name === "heightPx" ? "height" : name
+    ](value);
+  }
+  const filterModules = [
+    ["literalFilter", createEmptyLiteralFilter()],
+    [null, createStatistics()],
+    ["nodeDegreeFilter", createNodeDegreeFilter()],
+    ["datatypeFilter", createDatatypeFilter()],
+    ["objectPropertyFilter", createObjectPropertyFilter()],
+    ["subclassFilter", createSubclassFilter()],
+    ["disjointPropertyFilter", createDisjointFilter()],
+    ["setOperatorFilter", createSetOperatorFilter()],
+    ["nodeScalingModule", createNodeScalingSwitch(graph)],
+    ["compactNotationModule", createCompactNotationSwitch(graph)],
+    ["colorExternalsModule", createColorExternalsSwitch(graph)],
+  ];
+  for (const [setting, module] of filterModules) {
+    renderedGraphSettings.filterModules().push(module);
+    if (setting !== null) {
+      renderedGraphSettings[setting](module);
+    }
+  }
   // Focus and pinning last only as long as this mount, so the renderer builds
   // them rather than accepting them from the application. The selection they
   // respond to is published as a fact and reaches the interface through
@@ -251,6 +289,8 @@ function createGraph(graphContainerSelector) {
   let defaultZoom = 1.0;
   const defaultTargetZoom = 0.8;
   let touchDevice = false;
+  let occludedLeftWidthPx = 0;
+  let hasMeasuredViewport = false;
   let last_canvas_touch_time = 0;
   let last_element_tap_time = 0;
   let originalD3_dblClickFunction = null;
@@ -263,7 +303,6 @@ function createGraph(graphContainerSelector) {
   let draggerLayer = null;
   const draggerObjectsArray = [];
   let delayedHider;
-  let nodeFreezer;
   let hoveredNodeElement = null;
   let hoveredPropertyElement = null;
   let draggingStarted = false;
@@ -281,7 +320,6 @@ function createGraph(graphContainerSelector) {
   let then; // used for fps computation
   let showFPS = false;
   let seenEditorHint = false;
-  let showReloadButtonAfterLayoutOptimization = false;
 
   let zoom;
   let pendingViewportTransitionCount = 0;
@@ -298,10 +336,6 @@ function createGraph(graphContainerSelector) {
     publishViewportChange: () => undefined,
     publishEditorModeChange: () => undefined,
     publishRecordLabelEdit: () => undefined,
-    // Presentation may interpose a confirmation; by default the renderer
-    // proceeds so behaviour is unchanged until the UI supplies one.
-    requestRenderedGraphConfirmation: (_code, _message, onConfirmed) =>
-      onConfirmed(),
   };
 
   // Several animated zoom paths set the transform through a d3 transition and
@@ -379,23 +413,6 @@ function createGraph(graphContainerSelector) {
 
   graph.updateZoomSliderValueFromOutside = function () {
     reportViewportChanged();
-  };
-
-  graph.setDefaultZoom = function (val) {
-    const normalized = viewportTransform.normalizeZoom(
-      val,
-      renderedGraphSettings.minMagnification(),
-      renderedGraphSettings.maxMagnification(),
-    );
-    if (normalized === undefined) {
-      return false;
-    }
-    defaultZoom = normalized;
-    graph.reset();
-    return true;
-  };
-  graph.graphOptions = function () {
-    return renderedGraphSettings;
   };
 
   graph.ontologyEditingState = function () {
@@ -702,7 +719,7 @@ function createGraph(graphContainerSelector) {
     }
   };
 
-  graph.selectOccurrence = function (rendererKey) {
+  graph.selectOccurrence = function (rendererKey, { editLabel = false } = {}) {
     const occurrence =
       rendererKey === null
         ? null
@@ -713,6 +730,9 @@ function createGraph(graphContainerSelector) {
     focuser.reset();
     if (occurrence) {
       focuser.handle(undefined, occurrence.element, true);
+      if (editLabel && editMode) {
+        occurrence.element.enableEditing(true);
+      }
     } else {
       graph.reportRenderedElementSelection([]);
       graph.removeEditElements();
@@ -744,7 +764,6 @@ function createGraph(graphContainerSelector) {
     graphContainer?.interrupt();
     graphContainer?.selectAll("*").interrupt();
     clearTimeout(delayedHider);
-    clearTimeout(nodeFreezer);
   };
 
   graph.clearRenderedGraph = function () {
@@ -800,9 +819,6 @@ function createGraph(graphContainerSelector) {
     );
   };
   // search functionality
-  graph.getUpdateDictionary = function () {
-    return parser.getDictionary();
-  };
 
   graph.language = function (newLanguage) {
     if (!arguments.length) {
@@ -814,7 +830,7 @@ function createGraph(graphContainerSelector) {
       language = newLanguage || "default";
       redrawContent();
       recalculatePositions();
-      graph.dispatchEvent(new CustomEvent("dictionarychange"));
+
       graph.resetSearchHighlight();
     }
     return graph;
@@ -1176,7 +1192,7 @@ function createGraph(graphContainerSelector) {
 
   // Initializes the graph and its first set of native interaction behaviours.
   function initializeGraph() {
-    renderedGraphSettings.graphContainerSelector(graphContainerSelector);
+    renderedGraphSettings.graphContainerElement(graphContainerElement);
     force = d3.forceSimulation().on("tick", hiddenRecalculatePositions);
     forceLink = d3.forceLink();
     createInteractionBehaviours();
@@ -1190,10 +1206,6 @@ function createGraph(graphContainerSelector) {
   graph.lazyRefresh = function () {
     redrawContent();
     recalculatePositions();
-  };
-
-  graph.showReloadButtonAfterLayoutOptimization = function (show) {
-    showReloadButtonAfterLayoutOptimization = show;
   };
 
   function hiddenRecalculatePositions() {
@@ -1218,15 +1230,6 @@ function createGraph(graphContainerSelector) {
         if (graphContainer) {
           graphContainer.classed("is-render-pending", false);
           renderedGraphEventPort.publishRenderProgress(100);
-          const reloadCachedOntologyBtn = document.getElementById(
-            "reloadCachedOntology",
-          );
-          if (reloadCachedOntologyBtn) {
-            reloadCachedOntologyBtn.classList.toggle(
-              "hidden",
-              !showReloadButtonAfterLayoutOptimization,
-            );
-          }
         }
 
         if (initialLoad) {
@@ -1279,10 +1282,14 @@ function createGraph(graphContainerSelector) {
     }
   };
 
-  graph.setForceTickFunctionWithFPS = function () {
-    showFPS = true;
+  graph.setRenderingDiagnosticsEnabled = function (enabled) {
+    showFPS = enabled;
+    then = Date.now();
     if (force && finishedLoadingSequence === true) {
-      force.on("tick", recalculatePositionsWithFPS);
+      force.on(
+        "tick",
+        enabled ? recalculatePositionsWithFPS : recalculatePositions,
+      );
     }
   };
   function recalculatePositionsWithFPS() {
@@ -1291,17 +1298,12 @@ function createGraph(graphContainerSelector) {
     recalculatePositions();
     now = Date.now();
     const diff = now - then;
-    const fps = (1000 / diff).toFixed(2);
-
-    graph.dispatchEvent(
-      new CustomEvent("fpsupdate", {
-        detail: {
-          fps: fps,
-          nodes: force.nodes().length,
-          links: forceLink.links().length,
-        },
-      }),
-    );
+    const fps = diff > 0 ? Number((1000 / diff).toFixed(2)) : 0;
+    renderedGraphEventPort.publishRenderingStatistics({
+      framesPerSecond: fps,
+      nodeCount: force.nodes().length,
+      linkCount: forceLink.links().length,
+    });
     then = Date.now();
   }
 
@@ -1819,7 +1821,7 @@ function createGraph(graphContainerSelector) {
     remove();
 
     graphContainer = d3
-      .selectAll(renderedGraphSettings.graphContainerSelector())
+      .select(renderedGraphSettings.graphContainerElement())
       .append("svg")
       .classed("vowlGraph", true)
       .attr("width", renderedGraphSettings.width())
@@ -2146,23 +2148,21 @@ function createGraph(graphContainerSelector) {
 
   initializeGraph(); // << call the initialization function
 
-  graph.updateCanvasContainerSize = function () {
-    if (graphContainer) {
-      const svgElement = d3.selectAll(".vowlGraph");
-      const svgNode = svgElement.node();
-      const graphHost = svgNode ? svgNode.parentNode : null;
-      const measuredViewport = measureViewportElement(
-        graphHost,
-        renderedGraphSettings.width(),
-        renderedGraphSettings.height(),
-      );
-
-      renderedGraphSettings.width(measuredViewport.width);
-      renderedGraphSettings.height(measuredViewport.height);
-
+  graph.resizeViewport = function (viewport) {
+    renderedGraphSettings.width(viewport.widthPx);
+    renderedGraphSettings.height(viewport.heightPx);
+    occludedLeftWidthPx = viewport.occludedLeftWidthPx;
+    touchDevice = viewport.isTouchDevice;
+    if (!hasMeasuredViewport && viewport.widthPx > 0 && viewport.heightPx > 0) {
+      defaultZoom = Math.min(viewport.widthPx, viewport.heightPx) / 1000;
+      hasMeasuredViewport = true;
+    }
+    if (graphContainer?.node()) {
+      const svgElement = d3.select(graphContainer.node().parentNode);
       svgElement.attr("width", renderedGraphSettings.width());
       svgElement.attr("height", renderedGraphSettings.height());
       graphContainer.attr("transform", viewportTransformString());
+      graph.updateStyle();
     }
 
     return {
@@ -2171,19 +2171,9 @@ function createGraph(graphContainerSelector) {
     };
   };
 
-  // Loads all settings, removes the old graph (if it exists) and draws a new one.
-  graph.start = function () {
+  graph.initializeSvgRoot = function () {
     force.stop();
-    loadGraphData(true);
     redrawGraph();
-    graph.update(true);
-
-    if (renderedGraphEventPort.isOntologyRenderable() === false) {
-      renderedGraphEventPort.publishRenderWarning(
-        "RENDER_FAILED",
-        "The rendered graph could not be drawn.",
-      );
-    }
   };
 
   // The charge a force simulation needs is derived from the distances it is
@@ -2301,18 +2291,6 @@ function createGraph(graphContainerSelector) {
     }
   };
 
-  graph.fastUpdate = function () {
-    // fast update function for editor calls;
-    // -- experimental ;
-    quick_refreshGraphData();
-    updateNodeMap();
-    force.alpha(1).restart();
-    redrawContent();
-    graph.updatePulseIds(nodeArrayForPulse);
-    refreshGraphStyle();
-    updateHaloStyles();
-  };
-
   function updateNodeMap() {
     nodeMap = [];
     let node;
@@ -2424,11 +2402,6 @@ function createGraph(graphContainerSelector) {
   /** -- data related handling                               -- **/
   /** --------------------------------------------------------- **/
 
-  const cachedJsonOBJ = null;
-  graph.getCachedJsonObj = function () {
-    return cachedJsonOBJ;
-  };
-
   // removes data when data could not be loaded
   graph.clearGraphData = function () {
     force.stop();
@@ -2484,7 +2457,6 @@ function createGraph(graphContainerSelector) {
     }
     // tell the parser that the dictionary is updated
     parser.setDictionary(newDict);
-    graph.dispatchEvent(new CustomEvent("dictionarychange"));
   }
 
   graph.updateProgressBarMode = function () {
@@ -2590,7 +2562,6 @@ function createGraph(graphContainerSelector) {
     // update general MetaOBJECT
     ontologyEditingState.clearMetaObject();
     ontologyEditingState.clearGeneralMetaObject();
-    renderedGraphSettings.editSidebar().clearMetaObjectValue();
     if (renderedGraphSettings.data() !== undefined) {
       const header = renderedGraphSettings.data().header;
       if (header) {
@@ -2659,35 +2630,6 @@ function createGraph(graphContainerSelector) {
     generateDictionary(unfilteredData);
 
     centerGraphViewOnLoad = centerViewport;
-    graph.dispatchEvent(new CustomEvent("dictionarychange"));
-    renderedGraphSettings.editSidebar().updateGeneralOntologyInfo();
-    renderedGraphSettings.editSidebar().updatePrefixUi();
-    renderedGraphSettings.editSidebar().updateElementWidth();
-  }
-
-  graph.handleOnLoadingError = function () {
-    force.stop();
-    graph.clearGraphData();
-    renderedGraphEventPort.publishRenderWarning(
-      "RENDER_FAILED",
-      "The ontology could not be rendered.",
-    );
-    if (renderedGraphSettings.resetMenu()) {
-      renderedGraphSettings.resetMenu().setMenuMode(false);
-    }
-    if (renderedGraphSettings.pausedMenu()) {
-      renderedGraphSettings.pausedMenu().setMenuMode(false);
-    }
-  };
-
-  function quick_refreshGraphData() {
-    links = linkCreator.createLinks(properties);
-    labelNodes = links.map(function (link) {
-      return link.label();
-    });
-
-    storeLinksOnNodes(classNodes, links);
-    setForceLayoutData(classNodes, labelNodes, links);
   }
 
   //Applies the data of the graph options object and parses it. The graph is not redrawn.
@@ -3322,11 +3264,6 @@ function createGraph(graphContainerSelector) {
       }
     }
     locationId = 0;
-    graph.dispatchEvent(
-      new CustomEvent("updatelocatebutton", {
-        detail: { visible: pulseNodeIds.length > 0 },
-      }),
-    );
   };
 
   graph.highLightNodes = function (nodeIdArray) {
@@ -3388,11 +3325,6 @@ function createGraph(graphContainerSelector) {
       }
     }
     locationId = 0;
-    graph.dispatchEvent(
-      new CustomEvent("updatelocatebutton", {
-        detail: { visible: missedIds.length < nodeIdArray.length },
-      }),
-    );
     updateHaloRadius();
   };
 
@@ -3421,9 +3353,7 @@ function createGraph(graphContainerSelector) {
     );
 
     let w = renderedGraphSettings.width();
-    if (renderedGraphSettings.leftSidebar().isSidebarVisible() === true) {
-      w -= 200;
-    }
+    w -= occludedLeftWidthPx;
     const h = renderedGraphSettings.height();
     topLeft.x += bboxOffset;
     topLeft.y -= bboxOffset;
@@ -3439,9 +3369,7 @@ function createGraph(graphContainerSelector) {
     let cx = 0.5 * w;
     const cy = 0.5 * h;
 
-    if (renderedGraphSettings.leftSidebar().isSidebarVisible() === true) {
-      cx += 200;
-    }
+    cx += occludedLeftWidthPx;
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
 
     // zoom factor calculations and fail safes;
@@ -3496,9 +3424,7 @@ function createGraph(graphContainerSelector) {
     );
 
     let w = renderedGraphSettings.width();
-    if (renderedGraphSettings.leftSidebar().isSidebarVisible() === true) {
-      w -= 200;
-    }
+    w -= occludedLeftWidthPx;
     const h = renderedGraphSettings.height();
     topLeft.x += bboxOffset;
     topLeft.y -= bboxOffset;
@@ -3526,9 +3452,7 @@ function createGraph(graphContainerSelector) {
     let cx = 0.5 * w;
     const cy = 0.5 * h;
 
-    if (renderedGraphSettings.leftSidebar().isSidebarVisible() === true) {
-      cx += 200;
-    }
+    cx += occludedLeftWidthPx;
     const cp = getWorldPosFromScreen(cx, cy, graphTranslation, zoomFactor);
 
     // zoom factor calculations and fail safes;
@@ -3601,166 +3525,6 @@ function createGraph(graphContainerSelector) {
   /** -- VOWL EDITOR  create/ edit /delete functions --         **/
   /** --------------------------------------------------------- **/
 
-  graph.changeNodeType = function (element, typeString) {
-    if (graph.classesSanityCheck(element, typeString) === false) {
-      // call reselection to restore previous type selection
-      renderedGraphSettings.editSidebar().updateSelectionInformation(element);
-      return;
-    }
-
-    const prototype = NodePrototypeMap.get(typeString.toLowerCase());
-    const aNode = new prototype(graph);
-
-    aNode.x = element.x;
-    aNode.y = element.y;
-    aNode.px = element.x;
-    aNode.py = element.y;
-    aNode.id(element.id());
-    aNode.copyInformation(element);
-
-    if (typeString === "owl:Thing") {
-      aNode.label("Thing");
-    } else if (elementTools.isDatatype(element) === false) {
-      if (element.backupLabel() !== undefined) {
-        aNode.label(element.backupLabel());
-      } else if (aNode.backupLabel() !== undefined) {
-        aNode.label(aNode.backupLabel());
-      } else {
-        aNode.label("NewClass");
-      }
-    }
-
-    if (typeString === "rdfs:Datatype") {
-      if (aNode.dType() === "undefined") {
-        aNode.label("undefined");
-      } else {
-        const identifier = aNode.dType().split(":")[1];
-        aNode.label(identifier);
-      }
-    }
-    let i;
-    // updates the property domain and range
-    for (i = 0; i < unfilteredData.properties.length; i++) {
-      if (unfilteredData.properties[i].domain() === element) {
-        //  unfilteredData.properties[i].toString();
-        unfilteredData.properties[i].domain(aNode);
-      }
-      if (unfilteredData.properties[i].range() === element) {
-        unfilteredData.properties[i].range(aNode);
-        //  unfilteredData.properties[i].toString();
-      }
-    }
-
-    // update for fastUpdate:
-    for (i = 0; i < properties.length; i++) {
-      if (properties[i].domain() === element) {
-        //  unfilteredData.properties[i].toString();
-        properties[i].domain(aNode);
-      }
-      if (properties[i].range() === element) {
-        properties[i].range(aNode);
-        //  unfilteredData.properties[i].toString();
-      }
-    }
-
-    let remId = unfilteredData.nodes.indexOf(element);
-    if (remId !== -1) {
-      unfilteredData.nodes.splice(remId, 1);
-    }
-    remId = classNodes.indexOf(element);
-    if (remId !== -1) {
-      classNodes.splice(remId, 1);
-    }
-    // very important thing for selection!;
-    addNewNodeElement(aNode);
-    // handle focuser!
-    renderedGraphSettings.focuserModule().handle(null, aNode);
-    generateDictionary(unfilteredData);
-    graph.getUpdateDictionary();
-  };
-
-  graph.changePropertyType = function (element, typeString) {
-    // create warning
-    if (
-      graph.sanityCheckProperty(
-        element.domain(),
-        element.range(),
-        typeString,
-      ) === false
-    ) {
-      return false;
-    }
-
-    const propPrototype = PropertyPrototypeMap.get(typeString.toLowerCase());
-    const aProp = new propPrototype(graph);
-    aProp.copyInformation(element);
-    aProp.id(element.id());
-
-    element.domain().removePropertyElement(element);
-    element.range().removePropertyElement(element);
-    aProp.domain(element.domain());
-    aProp.range(element.range());
-
-    if (element.backupLabel() !== undefined) {
-      aProp.label(element.backupLabel());
-    } else {
-      aProp.label("newObjectProperty");
-    }
-
-    if (aProp.type() === "rdfs:subClassOf") {
-      aProp.iri("http://www.w3.org/2000/01/rdf-schema#subClassOf");
-    } else {
-      if (element.iri() === "http://www.w3.org/2000/01/rdf-schema#subClassOf") {
-        aProp.iri(
-          ontologyEditingState.getGeneralMetaObjectProperty("iri") + aProp.id(),
-        );
-      }
-    }
-
-    if (
-      graph.propertyCheckExistenceChecker(
-        aProp,
-        element.domain(),
-        element.range(),
-      ) === false
-    ) {
-      renderedGraphSettings.editSidebar().updateSelectionInformation(element);
-      return;
-    }
-    // // TODO: change its base IRI to proper value
-    // var ontoIRI="http://someTest.de";
-    // aProp.baseIri(ontoIRI);
-    // aProp.iri(aProp.baseIri()+aProp.id());
-
-    // add this to the data;
-    unfilteredData.properties.push(aProp);
-    if (properties.indexOf(aProp) === -1) {
-      properties.push(aProp);
-    }
-    let remId = unfilteredData.properties.indexOf(element);
-    if (remId !== -1) {
-      unfilteredData.properties.splice(remId, 1);
-    }
-    if (properties.indexOf(aProp) === -1) {
-      properties.push(aProp);
-    }
-    remId = properties.indexOf(element);
-    if (remId !== -1) {
-      properties.splice(remId, 1);
-    }
-    graph.fastUpdate();
-    aProp.domain().addProperty(aProp);
-    aProp.range().addProperty(aProp);
-    if (element.labelObject() && aProp.labelObject()) {
-      aProp.labelObject().x = element.labelObject().x;
-      aProp.labelObject().px = element.labelObject().px;
-      aProp.labelObject().y = element.labelObject().y;
-      aProp.labelObject().py = element.labelObject().py;
-    }
-
-    renderedGraphSettings.focuserModule().handle(null, aProp);
-  };
-
   graph.removeEditElements = function () {
     // just added to be called form outside
     removeEditElements();
@@ -3799,9 +3563,6 @@ function createGraph(graphContainerSelector) {
     }
 
     editMode = Boolean(val);
-    graph.dispatchEvent(
-      new CustomEvent("editorchange", { detail: { value: editMode } }),
-    );
     renderedGraphEventPort.publishEditorModeChange(editMode);
     ontologyEditingState.setEditorModeForDefaultObject(editMode);
     if (editMode === false) {
@@ -3847,27 +3608,85 @@ function createGraph(graphContainerSelector) {
     aNode.y = pos.y;
     aNode.px = aNode.x;
     aNode.py = aNode.y;
-    aNode.id("Class" + eN++);
+    aNode.id(nextCanvasRecordId("Class"));
     // aNode.paused(true);
 
     aNode.baseIri(ontologyEditingState.baseIri());
     aNode.iri(aNode.baseIri() + aNode.id());
-    addNewNodeElement(aNode);
-    renderedGraphSettings.focuserModule().handle(null, aNode, true);
-    aNode.frozen(graph.paused());
-    aNode.locked(graph.paused());
-    aNode.enableEditing(autoEditElement);
+    publishCreatedElements(
+      [{ element: aNode, collection: "class", pos: [pos.x, pos.y] }],
+      aNode.id(),
+      autoEditElement,
+    );
   }
 
-  function addNewNodeElement(element) {
-    unfilteredData.nodes.push(element);
-    if (classNodes.indexOf(element) === -1) {
-      classNodes.push(element);
-    }
+  function publishCreatedElements(elements, selectedId, editLabel) {
+    const records = elements.map(({ element, collection, pos }) => ({
+      collection,
+      id: String(element.id()),
+      type: element.type(),
+      label: element.labelForCurrentLanguage(),
+      iri: element.iri(),
+      baseIri: element.baseIri(),
+      pos,
+      ...(collection === "property"
+        ? {
+            domain: String(element.domain().id()),
+            range: String(element.range().id()),
+          }
+        : {}),
+    }));
+    const selected = records.find((record) => record.id === selectedId);
+    renderedGraphEventPort.publishRecordCreation({
+      records,
+      selectedRecord: selected
+        ? { collection: selected.collection, recordId: selected.id }
+        : null,
+      editLabel,
+    });
+  }
 
-    generateDictionary(unfilteredData);
-    graph.getUpdateDictionary();
-    graph.fastUpdate();
+  function nextCanvasRecordId(prefix, isProperty = false) {
+    const ids = new Set(
+      [
+        ...(unfilteredData.nodes ?? []),
+        ...(unfilteredData.properties ?? []),
+      ].map((element) => String(element.id())),
+    );
+    let id;
+    do {
+      id = prefix + (isProperty ? eP++ : eN++);
+    } while (ids.has(id));
+    return id;
+  }
+
+  graph.requestPropertyEndpointEdit = function (
+    property,
+    endpoint,
+    node,
+    labelPosition,
+  ) {
+    if (!canEditCurrentElements(property, node)) {
+      return false;
+    }
+    renderedGraphEventPort.publishRecordEndpointEdit(
+      String(property.id()),
+      endpoint,
+      String(node.id()),
+      labelPosition,
+    );
+  };
+
+  function canEditCurrentElements(...elements) {
+    return (
+      hasActiveRenderInteractions &&
+      editMode &&
+      elements.every(
+        (element) =>
+          unfilteredData.nodes.includes(element) ||
+          unfilteredData.properties.includes(element),
+      )
+    );
   }
 
   graph.getTargetNode = function (position) {
@@ -3968,66 +3787,6 @@ function createGraph(graphContainerSelector) {
     }
 
     return true; // we can Change the domain or range
-  };
-
-  graph.checkIfIriClassAlreadyExist = function (url) {
-    // search for a class node with this url
-    const allNodes = unfilteredData.nodes;
-    for (let i = 0; i < allNodes.length; i++) {
-      if (
-        elementTools.isDatatype(allNodes[i]) === true ||
-        allNodes[i].type() === "owl:Thing"
-      ) {
-        continue;
-      }
-
-      // now we are a real class;
-      //get class IRI
-      const classIRI = allNodes[i].iri();
-
-      // this gives me the node for halo
-      if (url === classIRI) {
-        return allNodes[i];
-      }
-    }
-    return false;
-  };
-
-  graph.classesSanityCheck = function (classElement, targetType) {
-    // this is added due to someValuesFrom properties
-    // we should not be able to change a classElement to a owl:Thing
-    // when it has a property attached to it that uses these restrictions
-    //
-
-    if (targetType === "owl:Class") {
-      return true;
-    } else {
-      // collect all properties which have that one as a domain or range
-      const allProps = unfilteredData.properties;
-      for (let i = 0; i < allProps.length; i++) {
-        if (
-          allProps[i].range() === classElement ||
-          allProps[i].domain() === classElement
-        ) {
-          // check for the type of that property
-          if (allProps[i].type() === "owl:someValuesFrom") {
-            renderedGraphEventPort.publishRenderWarning(
-              "GRAPH_EDIT_REJECTED",
-              "The element has a property that is of type owl:someValuesFrom",
-            );
-            return false;
-          }
-          if (allProps[i].type() === "owl:allValuesFrom") {
-            renderedGraphEventPort.publishRenderWarning(
-              "GRAPH_EDIT_REJECTED",
-              "The element has a property that is of type owl:allValuesFrom",
-            );
-            return false;
-          }
-        }
-      }
-    }
-    return true;
   };
 
   graph.propertyCheckExistenceChecker = function (property, domain, range) {
@@ -4162,6 +3921,9 @@ function createGraph(graphContainerSelector) {
   };
 
   function createNewObjectProperty(domain, range, draggerEndposition) {
+    if (!canEditCurrentElements(domain, range)) {
+      return false;
+    }
     // check type of the property that we want to create;
 
     const defaultPropertyName = ontologyEditingState.defaultProperty();
@@ -4177,7 +3939,7 @@ function createGraph(graphContainerSelector) {
       defaultPropertyName.toLowerCase(),
     );
     const aProp = new propPrototype(graph);
-    aProp.id("objectProperty" + eP++);
+    aProp.id(nextCanvasRecordId("objectProperty", true));
     aProp.domain(domain);
     aProp.range(range);
     aProp.label("newObjectProperty");
@@ -4221,40 +3983,18 @@ function createGraph(graphContainerSelector) {
       pY = domain.y + offset * ny;
     }
 
-    // add this property to domain and range;
-    domain.addProperty(aProp);
-    range.addProperty(aProp);
-
-    // add this to the data;
-    unfilteredData.properties.push(aProp);
-    if (properties.indexOf(aProp) === -1) {
-      properties.push(aProp);
-    }
-    graph.fastUpdate();
-    aProp.labelObject().x = pX;
-    aProp.labelObject().px = pX;
-    aProp.labelObject().y = pY;
-    aProp.labelObject().py = pY;
-
-    aProp.frozen(graph.paused());
-    aProp.locked(graph.paused());
-    domain.frozen(graph.paused());
-    domain.locked(graph.paused());
-    range.frozen(graph.paused());
-    range.locked(graph.paused());
-
-    generateDictionary(unfilteredData);
-    graph.getUpdateDictionary();
-
-    renderedGraphSettings.focuserModule().handle(null, aProp);
-    graph.activateHoverElementsForProperties(true, aProp, false, touchDevice);
-    aProp.labelObject().increasedLoopAngle = true;
-    aProp.enableEditing(autoEditElement);
+    publishCreatedElements(
+      [{ element: aProp, collection: "property", pos: [pX, pY] }],
+      aProp.id(),
+      autoEditElement,
+    );
   }
 
   graph.createDataTypeProperty = function (node) {
+    if (!canEditCurrentElements(node)) {
+      return;
+    }
     // random postion issues;
-    clearTimeout(nodeFreezer);
     // tells user when element is filtered out
     if (renderedGraphSettings.datatypeFilter().enabled() === true) {
       renderedGraphEventPort.publishRenderWarning(
@@ -4302,17 +4042,11 @@ function createGraph(graphContainerSelector) {
     aNode.y = nY;
     aNode.px = aNode.x;
     aNode.py = aNode.y;
-    aNode.id("NodeId" + eN++);
-    // add this property to the nodes;
-    unfilteredData.nodes.push(aNode);
-    if (classNodes.indexOf(aNode) === -1) {
-      classNodes.push(aNode);
-    }
-
+    aNode.id(nextCanvasRecordId("NodeId"));
     // add also the datatype Property to it
     const propPrototype = PropertyPrototypeMap.get("owl:datatypeproperty");
     const aProp = new propPrototype(graph);
-    aProp.id("datatypeProperty" + eP++);
+    aProp.id(nextCanvasRecordId("datatypeProperty", true));
 
     // create the connection
     aProp.domain(node);
@@ -4323,179 +4057,32 @@ function createGraph(graphContainerSelector) {
     const ontoIri = ontologyEditingState.baseIri();
     aProp.baseIri(ontoIri);
     aProp.iri(ontoIri + aProp.id());
-    // add this to the data;
-    unfilteredData.properties.push(aProp);
-    if (properties.indexOf(aProp) === -1) {
-      properties.push(aProp);
-    }
-    graph.fastUpdate();
-    generateDictionary(unfilteredData);
-    graph.getUpdateDictionary();
-
-    nodeFreezer = setTimeout(function () {
-      if (
-        node &&
-        node.frozen() === true &&
-        node.pinned() === false &&
-        graph.paused() === false
-      ) {
-        node.frozen(graph.paused());
-        node.locked(graph.paused());
-      }
-    }, 1000);
-    renderedGraphSettings.focuserModule().handle(null, undefined);
-    if (node) {
-      node.frozen(true);
-      node.locked(true);
-    }
-  };
-
-  graph.removeNodesViaResponse = function (nodesToRemove, propsToRemove) {
-    let i, remId;
-    // splice them;
-    for (i = 0; i < propsToRemove.length; i++) {
-      remId = unfilteredData.properties.indexOf(propsToRemove[i]);
-      if (remId !== -1) {
-        unfilteredData.properties.splice(remId, 1);
-      }
-      remId = properties.indexOf(propsToRemove[i]);
-      if (remId !== -1) {
-        properties.splice(remId, 1);
-      }
-      propsToRemove[i] = null;
-    }
-    for (i = 0; i < nodesToRemove.length; i++) {
-      remId = unfilteredData.nodes.indexOf(nodesToRemove[i]);
-      if (remId !== -1) {
-        unfilteredData.nodes.splice(remId, 1);
-      }
-      remId = classNodes.indexOf(nodesToRemove[i]);
-      if (remId !== -1) {
-        classNodes.splice(remId, 1);
-      }
-      nodesToRemove[i] = null;
-    }
-    graph.fastUpdate();
-    generateDictionary(unfilteredData);
-    graph.getUpdateDictionary();
-    renderedGraphSettings.focuserModule().handle(null, undefined);
+    publishCreatedElements(
+      [
+        { element: aNode, collection: "class", pos: [nX, nY] },
+        {
+          element: aProp,
+          collection: "property",
+          pos: [0.49 * (node.x + nX), 0.49 * (node.y + nY)],
+        },
+      ],
+      null,
+      false,
+    );
   };
 
   graph.removeNodeViaEditor = function (node) {
-    const propsToRemove = [];
-    const nodesToRemove = [];
-    let datatypes = 0;
-
-    let remId;
-
-    nodesToRemove.push(node);
-    for (let i = 0; i < unfilteredData.properties.length; i++) {
-      if (
-        unfilteredData.properties[i].domain() === node ||
-        unfilteredData.properties[i].range() === node
-      ) {
-        propsToRemove.push(unfilteredData.properties[i]);
-        if (
-          unfilteredData.properties[i].type().toLocaleLowerCase() ===
-            "owl:datatypeproperty" &&
-          unfilteredData.properties[i].range() !== node
-        ) {
-          nodesToRemove.push(unfilteredData.properties[i].range());
-          datatypes++;
-        }
-      }
+    if (!canEditCurrentElements(node)) {
+      return;
     }
-    const removedItems = propsToRemove.length + nodesToRemove.length;
-    if (removedItems > 2) {
-      let text =
-        "You are about to delete 1 class and " +
-        propsToRemove.length +
-        " properties";
-      if (datatypes !== 0) {
-        text =
-          "You are about to delete 1 class, " +
-          datatypes +
-          " datatypes  and " +
-          propsToRemove.length +
-          " properties";
-      }
-
-      renderedGraphEventPort.requestRenderedGraphConfirmation(
-        "REMOVE_ELEMENTS",
-        text,
-        () => graph.removeNodesViaResponse([nodesToRemove, propsToRemove]),
-      );
-
-      //
-      // if (confirm("Remove :\n"+propsToRemove.length + " properties\n"+nodesToRemove.length+" classes? ")===false){
-      //     return;
-      // }else{
-      //     // todo : store for undo delete button ;
-      // }
-    } else {
-      // splice them;
-      for (let i = 0; i < propsToRemove.length; i++) {
-        remId = unfilteredData.properties.indexOf(propsToRemove[i]);
-        if (remId !== -1) {
-          unfilteredData.properties.splice(remId, 1);
-        }
-        remId = properties.indexOf(propsToRemove[i]);
-        if (remId !== -1) {
-          properties.splice(remId, 1);
-        }
-        propsToRemove[i] = null;
-      }
-      for (let i = 0; i < nodesToRemove.length; i++) {
-        remId = unfilteredData.nodes.indexOf(nodesToRemove[i]);
-        if (remId !== -1) {
-          unfilteredData.nodes.splice(remId, 1);
-        }
-        remId = classNodes.indexOf(nodesToRemove[i]);
-        if (remId !== -1) {
-          classNodes.splice(remId, 1);
-        }
-        nodesToRemove[i] = null;
-      }
-      graph.fastUpdate();
-      generateDictionary(unfilteredData);
-      graph.getUpdateDictionary();
-      renderedGraphSettings.focuserModule().handle(null, undefined);
-    }
+    renderedGraphEventPort.publishRecordDeletion(String(node.id()));
   };
 
   graph.removePropertyViaEditor = function (property) {
-    property.domain().removePropertyElement(property);
-    property.range().removePropertyElement(property);
-    let remId;
-
-    if (property.type().toLocaleLowerCase() === "owl:datatypeproperty") {
-      remId = unfilteredData.nodes.indexOf(property.range());
-      if (remId !== -1) {
-        unfilteredData.nodes.splice(remId, 1);
-      }
-      remId = classNodes.indexOf(property.range());
-      if (remId !== -1) {
-        classNodes.splice(remId, 1);
-      }
+    if (!canEditCurrentElements(property)) {
+      return;
     }
-    remId = unfilteredData.properties.indexOf(property);
-    if (remId !== -1) {
-      unfilteredData.properties.splice(remId, 1);
-    }
-    remId = properties.indexOf(property);
-    if (remId !== -1) {
-      properties.splice(remId, 1);
-    }
-    if (property.inverse()) {
-      // so we have inverse
-      property.inverse().inverse(0);
-    }
-
-    hoveredPropertyElement = undefined;
-    graph.fastUpdate();
-    generateDictionary(unfilteredData);
-    graph.getUpdateDictionary();
-    renderedGraphSettings.focuserModule().handle(null, undefined);
+    renderedGraphEventPort.publishRecordDeletion(String(property.id()));
   };
 
   graph.executeColorExternalsModule = function () {
@@ -4568,15 +4155,14 @@ function createGraph(graphContainerSelector) {
   /** -- Touch behaviour functions --                   **/
   /** --------------------------------------------------------- **/
 
-  graph.setTouchDevice = function (val) {
-    touchDevice = val;
-  };
-
   graph.isTouchDevice = function () {
     return touchDevice;
   };
 
   graph.modified_dblClickFunction = function (event) {
+    if (!isCurrentCanvasCreationEvent(event)) {
+      return;
+    }
     event.stopPropagation();
     event.preventDefault();
     // get position where we want to add the node;
@@ -4653,6 +4239,9 @@ function createGraph(graphContainerSelector) {
   }
 
   graph.modified_dblTouchFunction = function (event) {
+    if (!isCurrentCanvasCreationEvent(event)) {
+      return;
+    }
     event.stopPropagation();
     event.preventDefault();
     let xy;
@@ -4667,6 +4256,18 @@ function createGraph(graphContainerSelector) {
     );
     createNewNodeAtPosition(grPos);
   };
+
+  function isCurrentCanvasCreationEvent(event) {
+    const svgRoot = graphContainer?.node()?.parentNode;
+    return (
+      hasActiveRenderInteractions &&
+      editMode &&
+      svgRoot &&
+      (event.currentTarget === svgRoot ||
+        event.target === svgRoot ||
+        svgRoot.contains(event.target))
+    );
+  }
 
   /** --------------------------------------------------------- **/
   /** -- Hover and Selection functions, adding edit elements --  **/
@@ -4788,7 +4389,6 @@ function createGraph(graphContainerSelector) {
 
   graph.killDelayedTimer = function () {
     clearTimeout(delayedHider);
-    clearTimeout(nodeFreezer);
   };
 
   function editElementHoverOut(tbh) {
@@ -5058,7 +4658,6 @@ function createGraph(graphContainerSelector) {
       }
       // make them visible
       clearTimeout(delayedHider);
-      clearTimeout(nodeFreezer);
       if (hoveredPropertyElement) {
         if (typeof hoveredPropertyElement.setHighlighting === "function") {
           hoveredPropertyElement.setHighlighting(false);

@@ -81,14 +81,12 @@ const RoundNode = (function () {
       return availableWidth;
     };
 
-    this.toggleFocus = function () {
+    this.toggleSelection = function () {
       that.focused(!that.focused());
       if (that.nodeElement()) {
         that.nodeElement().select("circle").classed("focused", that.focused());
       }
-      graph.resetSearchHighlight();
-      // Report which drawn nodes are selected now; what that means for the
-      // search box is decided outside the renderer.
+      // Selection styling and details do not change the requested search focus.
       graph.reportRenderedElementSelection(that.focused() ? [that.id()] : []);
     };
 

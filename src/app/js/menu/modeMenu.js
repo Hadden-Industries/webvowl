@@ -3,17 +3,13 @@ import { runVisualizationControlAction } from "../ui/visualizationControlAction.
 /**
  * Contains the logic for connecting the modes with the website.
  *
- * @param graph the graph that belongs to these controls
  * @returns {{}}
  */
-export function createModeMenu(
-  graph,
-  {
-    webVowlController,
-    documentObject = globalThis.document,
-    windowObject = globalThis.window,
-  } = {},
-) {
+export function createModeMenu({
+  webVowlController,
+  documentObject = globalThis.document,
+  windowObject = globalThis.window,
+} = {}) {
   // The states the renderer's own modules start from. Supplied here rather
   // than read back out of the renderer, which is what let this menu drop its
   // module references.
@@ -84,7 +80,7 @@ export function createModeMenu(
       "#dynamicLabelWidth",
       dynamicLabelWidthDefault,
     );
-    addCheckBox("editorMode", "Editing ", "#editMode", graph.editorMode);
+    connectEditorMode();
     addModeItem(
       "pickAndPin",
       DEFAULT_DISPLAY_MODES.pickAndPin,
@@ -152,25 +148,29 @@ export function createModeMenu(
     dynamicLabelWidthCheckBox = moduleCheckbox;
   }
 
-  function addCheckBox(identifier, modeName, selector, onChangeFunc) {
-    const moduleOptionContainer = documentObject.querySelector(selector);
+  function connectEditorMode() {
+    const moduleOptionContainer = documentObject.querySelector("#editMode");
     if (!moduleOptionContainer) {
       return;
     }
     const moduleCheckbox = moduleOptionContainer.querySelector(
-      "#" + identifier + "ModuleCheckbox",
+      "#editorModeModuleCheckbox",
     );
     if (!moduleCheckbox) {
       return;
     }
-    moduleCheckbox.checked = onChangeFunc();
+    moduleCheckbox.checked =
+      webVowlController.getOntologyEditorOptions().isEditorMode;
 
     moduleCheckbox.addEventListener("click", function () {
       const isEnabled = moduleCheckbox.checked;
-      onChangeFunc(isEnabled);
-      if (isEnabled === true) {
-        graph.showEditorHintIfNeeded();
-      }
+      void runVisualizationControlAction(
+        () =>
+          webVowlController.setOntologyEditorOptions({
+            isEditorMode: isEnabled,
+          }),
+        documentObject,
+      );
     });
   }
 

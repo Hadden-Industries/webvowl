@@ -1,61 +1,25 @@
 import { beforeAll, beforeEach, describe, expect, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { SourceTextModule } from "node:vm";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let createGraphLayoutSettler;
 let createGraphLayoutSnapshot;
 
 const SETTLER_MODULE_URL = new URL("./graphLayoutSettler.js", import.meta.url);
-const RENDERED_GRAPH_CONTRACTS_MODULE_URL = new URL(
-  "./renderedGraphRuntimeContracts.js",
-  import.meta.url,
-);
-const WEB_VOWL_CONTRACTS_MODULE_URL = new URL(
-  "./webVowlControllerContracts.js",
-  import.meta.url,
-);
-
 const LOAD_GENERATION = 3;
 const SETTLE_TIMEOUT_MS = 12000;
 const REQUIRED_STABLE_FRAME_COUNT = 8;
 
 beforeAll(async () => {
-  const webVowlContractsModule = new SourceTextModule(
-    readFileSync(fileURLToPath(WEB_VOWL_CONTRACTS_MODULE_URL), "utf8"),
-    { identifier: WEB_VOWL_CONTRACTS_MODULE_URL.href },
-  );
-  await webVowlContractsModule.link((specifier) => {
-    throw new Error(`Unexpected layout contract dependency: ${specifier}`);
-  });
-  await webVowlContractsModule.evaluate();
-
-  const renderedGraphContractsModule = new SourceTextModule(
-    readFileSync(fileURLToPath(RENDERED_GRAPH_CONTRACTS_MODULE_URL), "utf8"),
-    { identifier: RENDERED_GRAPH_CONTRACTS_MODULE_URL.href },
-  );
-  await renderedGraphContractsModule.link((specifier) => {
-    if (specifier === "./webVowlControllerContracts.js") {
-      return webVowlContractsModule;
-    }
-    throw new Error(`Unexpected rendered-graph dependency: ${specifier}`);
-  });
-  await renderedGraphContractsModule.evaluate();
-
-  const settlerModule = new SourceTextModule(
-    readFileSync(fileURLToPath(SETTLER_MODULE_URL), "utf8"),
-    { identifier: SETTLER_MODULE_URL.href },
-  );
-  await settlerModule.link((specifier) => {
-    if (specifier === "./webVowlControllerContracts.js") {
-      return webVowlContractsModule;
-    }
-    throw new Error(`Unexpected graph layout settler dependency: ${specifier}`);
-  });
-  await settlerModule.evaluate();
-
-  ({ createGraphLayoutSnapshot } = renderedGraphContractsModule.namespace);
-  ({ createGraphLayoutSettler } = settlerModule.namespace);
+  ({ createGraphLayoutSettler } = await loadEsmModuleForTest(
+    new URL("./graphLayoutSettler.js", import.meta.url),
+    import.meta.url,
+  ));
+  ({ createGraphLayoutSnapshot } = await loadEsmModuleForTest(
+    new URL("./renderedGraphRuntimeContracts.js", import.meta.url),
+    import.meta.url,
+  ));
 });
 
 function layoutSnapshot({

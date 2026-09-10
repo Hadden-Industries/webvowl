@@ -1,96 +1,18 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { SourceTextModule } from "node:vm";
+import loadEsmModuleForTest from "./loadEsmModuleForTest.js";
 
 let assertRenderedGraphRuntimeContract;
 let createInMemoryRenderedGraphAdapter;
 
-const WEB_VOWL_CONTROLLER_CONTRACTS_MODULE_URL = new URL(
-  "../js/controller/webVowlControllerContracts.js",
-  import.meta.url,
-);
-const RENDERED_GRAPH_RUNTIME_CONTRACTS_MODULE_URL = new URL(
-  "../js/controller/renderedGraphRuntimeContracts.js",
-  import.meta.url,
-);
-const IN_MEMORY_RENDERED_GRAPH_ADAPTER_MODULE_URL = new URL(
-  "./inMemoryRenderedGraphAdapter.js",
-  import.meta.url,
-);
-const RENDERED_GRAPH_RUNTIME_CONTRACT_MODULE_URL = new URL(
-  "./renderedGraphRuntimeContract.js",
-  import.meta.url,
-);
-
-function createSourceTextModule(moduleUrl) {
-  return new SourceTextModule(readFileSync(fileURLToPath(moduleUrl), "utf8"), {
-    identifier: moduleUrl.href,
-  });
-}
-
 beforeAll(async () => {
-  const webVowlControllerContractsModule = createSourceTextModule(
-    WEB_VOWL_CONTROLLER_CONTRACTS_MODULE_URL,
-  );
-  await webVowlControllerContractsModule.link((specifier) => {
-    throw new Error(`Unexpected controller-contract dependency: ${specifier}`);
-  });
-  await webVowlControllerContractsModule.evaluate();
-
-  const renderedGraphRuntimeContractsModule = createSourceTextModule(
-    RENDERED_GRAPH_RUNTIME_CONTRACTS_MODULE_URL,
-  );
-  await renderedGraphRuntimeContractsModule.link((specifier) => {
-    if (specifier === "./webVowlControllerContracts.js") {
-      return webVowlControllerContractsModule;
-    }
-    throw new Error(`Unexpected rendered-graph dependency: ${specifier}`);
-  });
-  await renderedGraphRuntimeContractsModule.evaluate();
-
-  const renderedArrangementContractsModule = createSourceTextModule(
-    new URL(
-      "../js/controller/renderedArrangementContracts.js",
-      import.meta.url,
-    ),
-  );
-  await renderedArrangementContractsModule.link((specifier) => {
-    if (specifier === "./webVowlControllerContracts.js") {
-      return webVowlControllerContractsModule;
-    }
-    throw new Error(`Unexpected arrangement-contract dependency: ${specifier}`);
-  });
-  await renderedArrangementContractsModule.evaluate();
-
-  const inMemoryRenderedGraphAdapterModule = createSourceTextModule(
-    IN_MEMORY_RENDERED_GRAPH_ADAPTER_MODULE_URL,
-  );
-  const renderedGraphRuntimeContractModule = createSourceTextModule(
-    RENDERED_GRAPH_RUNTIME_CONTRACT_MODULE_URL,
-  );
-  const linkTaskFourTestModule = (specifier) => {
-    if (specifier === "../js/controller/renderedArrangementContracts.js") {
-      return renderedArrangementContractsModule;
-    }
-    if (specifier === "../js/controller/renderedGraphRuntimeContracts.js") {
-      return renderedGraphRuntimeContractsModule;
-    }
-    throw new Error(`Unexpected Task 4 test dependency: ${specifier}`);
-  };
-  await Promise.all([
-    inMemoryRenderedGraphAdapterModule.link(linkTaskFourTestModule),
-    renderedGraphRuntimeContractModule.link(linkTaskFourTestModule),
-  ]);
-  await Promise.all([
-    inMemoryRenderedGraphAdapterModule.evaluate(),
-    renderedGraphRuntimeContractModule.evaluate(),
-  ]);
-
-  ({ createInMemoryRenderedGraphAdapter } =
-    inMemoryRenderedGraphAdapterModule.namespace);
-  ({ assertRenderedGraphRuntimeContract } =
-    renderedGraphRuntimeContractModule.namespace);
+  ({ createInMemoryRenderedGraphAdapter } = await loadEsmModuleForTest(
+    new URL("./inMemoryRenderedGraphAdapter.js", import.meta.url),
+    import.meta.url,
+  ));
+  ({ assertRenderedGraphRuntimeContract } = await loadEsmModuleForTest(
+    new URL("./renderedGraphRuntimeContract.js", import.meta.url),
+    import.meta.url,
+  ));
 });
 
 function createReplacementRequest(loadGeneration) {

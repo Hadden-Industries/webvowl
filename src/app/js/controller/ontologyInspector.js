@@ -381,10 +381,33 @@ export function createOntologyInspector() {
               boundOntologyDerivedText(authorName, truncationTracker),
             ),
           ),
+          annotationRecords: Object.freeze(
+            ontologyHeaderRecord.annotationRecords.map((record) =>
+              Object.freeze({
+                ...record,
+                localName: boundOntologyDerivedText(
+                  record.localName,
+                  truncationTracker,
+                ),
+                text: boundOntologyDerivedText(record.text, truncationTracker),
+              }),
+            ),
+          ),
         }),
         elementCounts: Object.freeze({
           classCount: ontologyInspectionSnapshot.classRecords.length,
           propertyCount: ontologyInspectionSnapshot.propertyRecords.length,
+          objectPropertyCount:
+            ontologyInspectionSnapshot.propertyRecords.filter(
+              (record) =>
+                record.elementTypeName?.toLowerCase() === "owl:objectproperty",
+            ).length,
+          datatypePropertyCount:
+            ontologyInspectionSnapshot.propertyRecords.filter(
+              (record) =>
+                record.elementTypeName?.toLowerCase() ===
+                "owl:datatypeproperty",
+            ).length,
           datatypeCount: ontologyInspectionSnapshot.datatypeRecords.length,
           individualCount: ontologyInspectionSnapshot.individualRecords.length,
         }),

@@ -1,9 +1,13 @@
 /**
  * Contains the logic for the sidebar.
- * @param graph the graph that belongs to these controls
  * @returns {{}}
  */
-export function createLeftSidebar(graph) {
+export function createLeftSidebar({
+  webVowlController,
+  hideNavigationMenus,
+  onViewportGeometryChanged,
+  updateNavigationOverflow,
+}) {
   const leftSidebar = {};
   const lifecycleAbortController = new AbortController();
   const sidebarCollapseButton = document.querySelector(
@@ -29,7 +33,7 @@ export function createLeftSidebar(graph) {
     sidebarCollapseButton.addEventListener(
       "click",
       function () {
-        graph.options().navigationMenu().hideAllMenus();
+        hideNavigationMenus();
         const currentVisibilityValue = Number.parseInt(
           leftSidebar.getSidebarVisibility(),
           10,
@@ -73,17 +77,17 @@ export function createLeftSidebar(graph) {
     let elementDescription = "";
     if (defaultOptionName === "defaultClass") {
       elementDescription = "Class: ";
-      graph.ontologyEditingState().defaultClass(selectedControl.textContent);
     }
     if (defaultOptionName === "defaultDatatype") {
       elementDescription = "Datatype: ";
-      graph.ontologyEditingState().defaultDatatype(selectedControl.textContent);
     }
     if (defaultOptionName === "defaultProperty") {
       elementDescription = "Property: ";
-      graph.ontologyEditingState().defaultProperty(selectedControl.textContent);
     }
 
+    webVowlController.setOntologyEditorOptions({
+      [defaultOptionName]: selectedControl.textContent,
+    });
     const defaultOptionHeading = document.querySelector(
       "#" + defaultOptionName,
     );
@@ -119,17 +123,14 @@ export function createLeftSidebar(graph) {
     const propertyContainer = document.querySelector("#propertyContainer");
     // create the supported elements
 
-    const defaultClass = "owl:Class";
-    const defaultDatatype = "rdfs:Literal";
-    const defaultProperty = "owl:objectProperty";
-
-    const supportedClasses = graph.ontologyEditingState().supportedClasses();
-    const supportedDatatypes = graph
-      .ontologyEditingState()
-      .supportedDatatypes();
-    const supportedProperties = graph
-      .ontologyEditingState()
-      .supportedProperties();
+    const {
+      defaultClass,
+      defaultDatatype,
+      defaultProperty,
+      supportedClasses,
+      supportedDatatypes,
+      supportedProperties,
+    } = webVowlController.getOntologyEditorOptions();
     for (const supportedClass of supportedClasses) {
       const classSelectionControl = document.createElement("div");
       classContainer.appendChild(classSelectionControl);
@@ -281,8 +282,8 @@ export function createLeftSidebar(graph) {
       .querySelector("#WarningErrorMessages")
       .classList.toggle("aligned-to-left-sidebar", isVisible);
 
-    graph.updateCanvasContainerSize();
-    graph.options().navigationMenu().updateScrollButtonVisibility();
+    onViewportGeometryChanged();
+    updateNavigationOverflow();
 
     if (shouldSuppressInitialTransition === true) {
       removeNoTransitionClassAnimationFrame = requestAnimationFrame(

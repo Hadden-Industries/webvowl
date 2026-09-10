@@ -15,7 +15,6 @@ export function createOntologyEditorSidebar({
   webVowlController,
   documentObject,
   showWarning,
-  confirmDeletion,
 }) {
   const document = documentObject;
   const languageTools = createLanguageTools();
@@ -34,6 +33,7 @@ export function createOntologyEditorSidebar({
   let presentedSelectionKey;
   let presentedPrefixKey;
   let presentedMetadataKey;
+  const availabilityBeforeLoading = new Map();
 
   function localizedText(value) {
     return languageTools.textInLanguage(value, language) ?? "";
@@ -67,7 +67,11 @@ export function createOntologyEditorSidebar({
       "keydown",
       (event) => {
         event.stopPropagation();
-        if (event.key === "Enter" && !element.disabled) {
+        if (
+          event.key === "Enter" &&
+          element.tagName.toLowerCase() !== "textarea" &&
+          !element.disabled
+        ) {
           event.preventDefault();
           void perform(operation);
         }
@@ -277,11 +281,20 @@ export function createOntologyEditorSidebar({
     if (isBusy) {
       for (const input of document
         .getElementById("generalDetailsEdit")
-        .querySelectorAll("input, select, button")) {
+        .querySelectorAll(
+          "input, select, textarea, button, svg[role=button]",
+        )) {
+        if (!availabilityBeforeLoading.has(input)) {
+          availabilityBeforeLoading.set(input, input.disabled);
+        }
         input.disabled = true;
       }
       return;
     }
+    for (const [input, disabled] of availabilityBeforeLoading) {
+      input.disabled = disabled;
+    }
+    availabilityBeforeLoading.clear();
     if (state.loadGeneration === 0) {
       return;
     }
@@ -297,7 +310,11 @@ export function createOntologyEditorSidebar({
         ["descriptionEditor", "description"],
       ]) {
         const input = document.getElementById(id);
-        input.value = localizedText(snapshot.vowlModel.header?.[field]);
+        const value = snapshot.vowlModel.header?.[field];
+        input.value =
+          field === "author" && Array.isArray(value)
+            ? value.join(",")
+            : localizedText(value);
         input.disabled = false;
       }
       presentedMetadataKey = metadataKey;
@@ -441,30 +458,6 @@ export function createOntologyEditorSidebar({
       },
       { signal: lifecycle.signal },
     );
-    for (const id of [
-      "class_deleteButton",
-      "property_deleteButton",
-      "datatype_deleteButton",
-    ]) {
-      document.getElementById(id)?.addEventListener(
-        "click",
-        () => {
-          void perform(async () => {
-            if (!selectedTarget) {
-              return;
-            }
-            const proposal = webVowlController.proposeOntologyDeletion({
-              loadGeneration: snapshot.loadGeneration,
-              recordTarget: selectedTarget,
-            });
-            if (await confirmDeletion(proposal)) {
-              await webVowlController.confirmOntologyDeletion(proposal);
-            }
-          });
-        },
-        { signal: lifecycle.signal },
-      );
-    }
     for (const trigger of document
       .getElementById("generalDetailsEdit")
       .querySelectorAll(".accordion-trigger")) {

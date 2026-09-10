@@ -30,13 +30,6 @@ beforeAll(async () => {
   ({ createResetMenu } = await loadEsmModuleForTest(
     new URL("./resetMenu.js", import.meta.url),
     import.meta.url,
-    {
-      "../ui/applicationUiRegistry.js": {
-        applicationUiModule: (moduleName) =>
-          globalThis.__resetMenuUiModules?.get(moduleName),
-        registerApplicationUiModule: () => undefined,
-      },
-    },
   ));
 });
 
@@ -51,16 +44,6 @@ function createResetMenuHarness() {
   global.document = { getElementById: controlFor };
 
   const clearedSelectionReports = [];
-  globalThis.__resetMenuUiModules = new Map([
-    [
-      "searchMenu",
-      {
-        clearText: () => clearedSelectionReports.push("presentation-cleared"),
-        reportClearedOntologySelection: () =>
-          clearedSelectionReports.push("cleared"),
-      },
-    ],
-  ]);
 
   const pauseRequests = [];
   const visualizationResets = [];
@@ -68,6 +51,8 @@ function createResetMenuHarness() {
   // asked for defaults back, and what that means for the drawn graph is the
   // renderer's business.
   const resetMenu = createResetMenu({
+    clearSearchPresentation: () =>
+      clearedSelectionReports.push("presentation-cleared"),
     clearTimeout: () => undefined,
     documentObject: global.document,
     requestAnimationFrame: (frameCallback) => frameCallback(),

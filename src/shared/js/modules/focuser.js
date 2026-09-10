@@ -10,17 +10,16 @@ export function createFocuser(graph) {
     }
 
     if (focusedElement !== undefined) {
-      focusedElement.toggleFocus();
+      focusedElement.toggleSelection();
     }
 
     if (focusedElement !== selectedElement && selectedElement) {
-      selectedElement.toggleFocus();
+      selectedElement.toggleSelection();
       focusedElement = selectedElement;
     } else {
       focusedElement = undefined;
     }
     if (focusedElement && focusedElement.focused()) {
-      graph.options().editSidebar().updateSelectionInformation(focusedElement);
       if (elementTools.isProperty(selectedElement) === true) {
         let inversed = false;
         if (
@@ -44,7 +43,6 @@ export function createFocuser(graph) {
         );
       }
     } else {
-      graph.options().editSidebar().updateSelectionInformation(undefined);
       graph.removeEditElements();
     }
   };
@@ -54,7 +52,7 @@ export function createFocuser(graph) {
    */
   focuser.reset = function () {
     if (focusedElement) {
-      focusedElement.toggleFocus();
+      focusedElement.toggleSelection();
       focusedElement = undefined;
     }
   };

@@ -72,34 +72,11 @@ export function createRangeDragger(graph) {
     if (Range_dragger.parent.labelElement() === undefined) {
       return;
     }
-    if (
-      Range_dragger.parent.labelElement().attr("transform") ===
-        "translate(0,15)" ||
-      Range_dragger.parent.labelElement().attr("transform") ===
-        "translate(0,-15)"
-    ) {
-      const prop = Range_dragger.parent;
-      Range_dragger.parent.inverse().inverse(null);
-      Range_dragger.parent.inverse(null);
-      prop.range(newRange);
-    } else {
-      Range_dragger.parent.range(newRange);
-    }
-    // update the position of the new range
-    const rX = newRange.x;
-    const rY = newRange.y;
-
-    const dX = Range_dragger.parent.domain().x;
-    const dY = Range_dragger.parent.domain().y;
-
-    // center
-    const cX = 0.49 * (dX + rX);
-    const cY = 0.49 * (dY + rY);
-    // put position there;
-    Range_dragger.parent.labelElement().x = cX;
-    Range_dragger.parent.labelElement().px = cX;
-    Range_dragger.parent.labelElement().y = cY;
-    Range_dragger.parent.labelElement().py = cY;
+    const other = Range_dragger.parent.domain();
+    graph.requestPropertyEndpointEdit(Range_dragger.parent, "range", newRange, {
+      xPx: 0.49 * (other.x + newRange.x),
+      yPx: 0.49 * (other.y + newRange.y),
+    });
   };
 
   Range_dragger.setParentProperty = function (parentProperty, inversed) {

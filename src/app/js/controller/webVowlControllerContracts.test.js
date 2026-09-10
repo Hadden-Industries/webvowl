@@ -537,6 +537,7 @@ const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "renderProgress",
   "degreeFilterRange",
   "editorMode",
+  "renderingStatistics",
   "error",
 ]);
 
@@ -554,6 +555,7 @@ const IDLE_CONTROLLER_STATE_FIELDS = Object.freeze({
   renderProgress: null,
   degreeFilterRange: null,
   editorMode: null,
+  renderingStatistics: null,
   error: null,
 });
 

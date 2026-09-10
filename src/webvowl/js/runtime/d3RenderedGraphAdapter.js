@@ -1,4 +1,9 @@
 import { createRenderedGraphConfiguration } from "./renderedGraphConfiguration.js";
+import { createRenderedGraphInternals } from "./renderedGraphInternals.js";
+import {
+  createOntologyEditorOptionsRequest,
+  createVisualizationViewportSize,
+} from "../../../app/js/controller/rendererInteractionContracts.js";
 import { createRenderedSvgExportClone } from "./renderedSvgExportClone.js";
 import { captureRenderedDrawing } from "./captureRenderedDrawing.js";
 import { serializeOntologyAsTurtle } from "./ontologyTurtleSerializer.js";
@@ -35,7 +40,6 @@ import {
 } from "../../../app/js/controller/renderedArrangementContracts.js";
 
 const D3_RENDERED_GRAPH_ADAPTER_DEPENDENCY_FIELD_NAMES = Object.freeze([
-  "renderedGraphInternals",
   "graphContainerElement",
   "observeNextPaint",
   "renderedGraphConfiguration",
@@ -72,6 +76,9 @@ function assertExactDependencyFieldNames(dependencies) {
   const actualFieldNames = Object.keys(dependencies).sort();
   const expectedFieldNames = [
     ...D3_RENDERED_GRAPH_ADAPTER_DEPENDENCY_FIELD_NAMES,
+    ...(Object.hasOwn(dependencies, "createRenderer")
+      ? ["createRenderer"]
+      : []),
   ].sort();
   if (
     actualFieldNames.length !== expectedFieldNames.length ||
@@ -150,11 +157,15 @@ function groupRendererElementIdsByReferenceKey(
 export function createD3RenderedGraphAdapter(dependencies) {
   assertExactDependencyFieldNames(dependencies);
   const {
-    renderedGraphInternals,
+    createRenderer = createRenderedGraphInternals,
     graphContainerElement,
     observeNextPaint,
     renderedGraphConfiguration = createRenderedGraphConfiguration(),
   } = dependencies;
+  const renderedGraphInternals = createRenderer(
+    graphContainerElement,
+    renderedGraphConfiguration,
+  );
 
   if (typeof observeNextPaint !== "function") {
     throw new TypeError("observeNextPaint must be a function.");
@@ -283,6 +294,51 @@ export function createD3RenderedGraphAdapter(dependencies) {
 
   // Renderer warnings and progress reach the runtime as structured events.
   renderedGraphInternals.setRenderedGraphEventPort?.({
+    publishRecordCreation: (payload) => {
+      if (activeLoadGeneration !== null) {
+        publishRenderedGraphEvent({
+          kind: "record-creation-requested",
+          loadGeneration: activeLoadGeneration,
+          payload,
+        });
+      }
+    },
+    publishRecordEndpointEdit: (
+      recordId,
+      endpoint,
+      nodeRecordId,
+      labelPosition,
+    ) => {
+      const recordTarget =
+        documentRecordTargetsByRendererElementId.get(recordId);
+      if (activeLoadGeneration !== null && recordTarget) {
+        publishRenderedGraphEvent({
+          kind: "record-endpoint-edit-requested",
+          loadGeneration: activeLoadGeneration,
+          payload: { recordTarget, endpoint, nodeRecordId, labelPosition },
+        });
+      }
+    },
+    publishRecordDeletion: (recordId) => {
+      const recordTarget =
+        documentRecordTargetsByRendererElementId.get(recordId);
+      if (activeLoadGeneration !== null && recordTarget) {
+        publishRenderedGraphEvent({
+          kind: "record-deletion-requested",
+          loadGeneration: activeLoadGeneration,
+          payload: { recordTarget },
+        });
+      }
+    },
+    publishRenderingStatistics: (payload) => {
+      if (activeLoadGeneration !== null) {
+        publishRenderedGraphEvent({
+          kind: "rendering-statistics-changed",
+          loadGeneration: activeLoadGeneration,
+          payload,
+        });
+      }
+    },
     publishGraphLayoutState: (
       loadGeneration,
       { forceAlpha, hasEnded, isPaused },
@@ -496,14 +552,13 @@ export function createD3RenderedGraphAdapter(dependencies) {
     ) {
       renderedGraphInternals.update();
     }
-    // The caller reports which elements were selected; the runtime decides
-    // that focusing means highlighting them and moving the viewport there.
-    if (requestedView.focus !== undefined) {
-      if (requestedView.focus.length === 0) {
-        // Nothing is selected, so nothing should still be pulsing.
-        renderedGraphInternals.resetSearchHighlight();
-      } else {
-        const focusedElementIds = requestedView.focus.flatMap(
+    // Focus replaces the previous membership. A redraw may remove its halos,
+    // so restore the standing focus even when this request omitted that field.
+    if (requestedView.focus !== undefined || requiresRecomputation) {
+      renderedGraphInternals.resetSearchHighlight();
+      const focus = requestedView.focus ?? appliedVisualizationView.focus;
+      if (focus.length > 0) {
+        const focusedElementIds = focus.flatMap(
           (ontologyElementReference) =>
             rendererElementIdsByOntologyElementReferenceKey.get(
               ontologyElementReferenceKey(ontologyElementReference),
@@ -604,6 +659,56 @@ export function createD3RenderedGraphAdapter(dependencies) {
   }
 
   const renderedGraphRuntime = Object.freeze({
+    setRenderingDiagnosticsEnabled(isEnabled) {
+      assertNotDisposed();
+      if (typeof isEnabled !== "boolean") {
+        throw new TypeError("Rendering diagnostics requires a boolean.");
+      }
+      renderedGraphInternals.setRenderingDiagnosticsEnabled(isEnabled);
+    },
+    setOntologyEditorOptions(request) {
+      assertNotDisposed();
+      const options = createOntologyEditorOptionsRequest(request);
+      const settings = renderedGraphInternals.options();
+      for (const name of [
+        "defaultClass",
+        "defaultDatatype",
+        "defaultProperty",
+      ]) {
+        if (options[name] !== undefined) {
+          renderedGraphInternals.ontologyEditingState()[name](options[name]);
+        }
+      }
+      for (const name of ["useAccuracyHelper", "showDraggerObject"]) {
+        if (options[name] !== undefined) {
+          settings[name](options[name]);
+        }
+      }
+      if (options.isEditorMode !== undefined) {
+        renderedGraphInternals.editorMode(options.isEditorMode);
+        if (options.isEditorMode) {
+          renderedGraphInternals.showEditorHintIfNeeded();
+        }
+        publishActualVisualizationView(activeLoadGeneration);
+      }
+      if (
+        activeLoadGeneration !== null &&
+        (options.useAccuracyHelper !== undefined ||
+          options.showDraggerObject !== undefined)
+      ) {
+        renderedGraphInternals.lazyRefresh();
+        renderedGraphInternals.updateDraggerElements();
+      }
+      return options;
+    },
+
+    resizeVisualizationViewport(request) {
+      assertNotDisposed();
+      const viewport = createVisualizationViewportSize(request);
+      renderedGraphInternals.resizeViewport(viewport);
+      return viewport;
+    },
+
     clearRenderedGraph() {
       assertNotDisposed();
       retireActiveGeneration(
@@ -661,15 +766,15 @@ export function createD3RenderedGraphAdapter(dependencies) {
         );
       try {
         // The renderer parses and mutates the model as it builds the graph, so
-        // it receives its own copy. Start builds the SVG root before receiving
-        // data; a native failure in either step retires this candidate too.
-        if (!hasBuiltRenderedGraphRoot) {
-          renderedGraphInternals.start();
-          hasBuiltRenderedGraphRoot = true;
-        }
+        // it receives its own copy before its first root is drawn.
+        // A native failure in either step retires this candidate too.
         renderedGraphInternals
           .options()
           .data(structuredClone(replacementRequest.vowlModel));
+        if (!hasBuiltRenderedGraphRoot) {
+          renderedGraphInternals.initializeSvgRoot();
+          hasBuiltRenderedGraphRoot = true;
+        }
         const initial = replacementRequest.initialVisualization ?? {};
         const initialView = initial.view ?? {};
         // Data interpretation happened in the application. Apply its semantic
@@ -870,14 +975,17 @@ export function createD3RenderedGraphAdapter(dependencies) {
       return readRenderedArrangement();
     },
 
-    selectRenderedOccurrence(request) {
+    selectRenderedOccurrence(request, { editLabel = false } = {}) {
       assertNotDisposed();
+      if (typeof editLabel !== "boolean") {
+        throw new TypeError("Inline label editing must be Boolean.");
+      }
       const selection = createRenderedOccurrenceSelectionRequest(request);
       const rendererKey =
         selection.reference === null
           ? null
           : rendererKeyForOccurrence(selection.reference);
-      renderedGraphInternals.selectOccurrence(rendererKey);
+      renderedGraphInternals.selectOccurrence(rendererKey, { editLabel });
       return selection.reference;
     },
 

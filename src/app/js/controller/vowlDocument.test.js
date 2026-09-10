@@ -7,6 +7,7 @@ let setVowlDocumentPrefix;
 let removeVowlDocumentPrefix;
 let describeVowlDocumentDeletion;
 let applyVowlDocumentDeletion;
+let insertVowlDocumentRecords;
 beforeAll(async () => {
   ({
     applyVowlDocumentRecordEdit,
@@ -15,6 +16,7 @@ beforeAll(async () => {
     removeVowlDocumentPrefix,
     describeVowlDocumentDeletion,
     applyVowlDocumentDeletion,
+    insertVowlDocumentRecords,
   } = await loadEsmModuleForTest(
     new URL("./vowlDocument.js", import.meta.url),
     import.meta.url,
@@ -52,6 +54,126 @@ function documentFixture() {
 }
 
 describe("application-owned VOWL record editing", () => {
+  test("deletes inherited-endpoint relationships with a class and preserves an inverse survivor's endpoints", () => {
+    const original = documentFixture();
+    original.propertyAttribute[0].inverse = "q";
+    original.property.push({ id: "q", type: "owl:objectProperty" });
+    const cascade = describeVowlDocumentDeletion(original, {
+      collection: "class",
+      recordId: "a",
+    });
+    expect(cascade.recordTargets).toEqual([
+      { collection: "class", recordId: "a" },
+      { collection: "property", recordId: "p" },
+      { collection: "property", recordId: "q" },
+    ]);
+    const changed = applyVowlDocumentDeletion(original, {
+      collection: "property",
+      recordId: "p",
+    });
+    expect(changed.property).toEqual([{ id: "q", type: "owl:objectProperty" }]);
+    expect(changed.propertyAttribute).toEqual([
+      { id: "q", domain: "b", range: "a" },
+    ]);
+  });
+  test.each([false, true])(
+    "splits a one-sided inverse with inherited endpoints=%s",
+    (inheritedEndpoints) => {
+      const original = documentFixture();
+      original.class.push({ id: "c", type: "owl:Class" });
+      original.property.push({
+        id: "q",
+        type: "owl:objectProperty",
+        inverse: "p",
+      });
+      original.propertyAttribute.push({ id: "q", domain: "b", range: "a" });
+      if (inheritedEndpoints) {
+        delete original.propertyAttribute[0].domain;
+        delete original.propertyAttribute[0].range;
+      }
+      const changed = applyVowlDocumentRecordEdit(original, {
+        recordTarget: { collection: "property", recordId: "p" },
+        changes: { rangeRecordId: "c" },
+      });
+      expect(changed.propertyAttribute[0]).toMatchObject({
+        domain: "a",
+        range: "c",
+      });
+      expect(changed.property[1]).not.toHaveProperty("inverse");
+      expect(changed.propertyAttribute[1]).toMatchObject({
+        domain: "b",
+        range: "a",
+      });
+    },
+  );
+  test("retains native datatype creation as one atomic document insertion", () => {
+    const original = documentFixture();
+    const records = [
+      {
+        collection: "class",
+        id: "NodeId0",
+        type: "rdfs:Literal",
+        label: "Literal",
+        iri: "http://www.w3.org/2000/01/rdf-schema#Literal",
+        baseIri: "http://www.w3.org/2000/01/rdf-schema#",
+        pos: [-150, 160],
+      },
+      {
+        collection: "property",
+        id: "datatypeProperty0",
+        type: "owl:datatypeProperty",
+        label: "newDatatypeProperty",
+        iri: "https://example.test/datatypeProperty0",
+        baseIri: "https://example.test/",
+        domain: "a",
+        range: "NodeId0",
+        pos: [-75, 85],
+      },
+    ];
+    const changed = insertVowlDocumentRecords(original, records);
+    expect(changed.class.at(-1)).toEqual({
+      id: "NodeId0",
+      type: "rdfs:Literal",
+    });
+    expect(changed.propertyAttribute.at(-1)).toMatchObject({
+      id: "datatypeProperty0",
+      domain: "a",
+      range: "NodeId0",
+      pos: [-75, 85],
+    });
+    expect(changed.classAttribute.at(-1).pos).toEqual([-150, 160]);
+    expect(original.class).toHaveLength(2);
+    expect(Object.isFrozen(changed.classAttribute.at(-1))).toBe(true);
+    expect(() => insertVowlDocumentRecords(original, [records[1]])).toThrow(
+      /endpoint/,
+    );
+    expect(() => insertVowlDocumentRecords(changed, records)).toThrow(/ID/);
+    expect(original.property).toHaveLength(1);
+  });
+
+  test("splits both inverse links when the human moves one relationship endpoint", () => {
+    const original = documentFixture();
+    original.class.push({ id: "c", type: "owl:Class" });
+    original.property.push({
+      id: "q",
+      type: "owl:objectProperty",
+      inverse: "p",
+    });
+    original.propertyAttribute[0].inverse = "q";
+    original.propertyAttribute.push({ id: "q", domain: "b", range: "a" });
+    const changed = applyVowlDocumentRecordEdit(original, {
+      recordTarget: { collection: "property", recordId: "p" },
+      changes: { rangeRecordId: "c" },
+    });
+    expect(changed.propertyAttribute[0].range).toBe("c");
+    expect(changed.propertyAttribute[0]).not.toHaveProperty("inverse");
+    expect(changed.property[1]).not.toHaveProperty("inverse");
+    expect(changed.propertyAttribute[1]).toMatchObject({
+      domain: "b",
+      range: "a",
+    });
+    expect(original.propertyAttribute[0].inverse).toBe("q");
+  });
   test("prefix changes preserve absolute IRIs and unrelated header-only prefix names", () => {
     const original = documentFixture();
     original.header.prefixList = {

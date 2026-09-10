@@ -1,21 +1,15 @@
-import { applicationUiModule } from "../ui/applicationUiRegistry.js";
 /**
- * Contains the search "engine"
- *
- * @param graph the associated webvowl graph
- * @returns {{}}
+ * Presents ontology search results and requests visualization focus.
  */
-export function createSearchMenu(
-  graph,
-  {
-    documentObject = globalThis.document,
-    webVowlController,
-    windowObject = globalThis.window,
-  } = {},
-) {
+export function createSearchMenu({
+  documentObject = globalThis.document,
+  onOntologyIriEntered,
+  webVowlController,
+  windowObject = globalThis.window,
+} = {}) {
   const searchMenu = {};
   let focusableElementCountsBySearchEntry = [];
-  let hasReportedOntologySelection = false;
+  let hasVisualizationFocus = false;
   let dictionary = [];
   let entryNames = [];
   let searchLineEdit;
@@ -31,21 +25,6 @@ export function createSearchMenu(
   let resultID = [];
   const c_locate = documentObject.getElementById("locateSearchResult");
   const listbox = documentObject.getElementById("search-results-listbox");
-
-  String.prototype.beginsWith = function (string) {
-    return this.indexOf(string) === 0;
-  };
-
-  searchMenu.requestDictionaryUpdate = function () {
-    if (listbox) {
-      while (listbox.children.length > 0) {
-        listbox.children[0].remove();
-      }
-    }
-    if (searchLineEdit) {
-      searchLineEdit.value = "";
-    }
-  };
 
   // The controller owns element identity and visibility, so the dropdown is
   // built from what it reports rather than from the renderer's own dictionary.
@@ -94,9 +73,7 @@ export function createSearchMenu(
   }
 
   function setLocateButtonState(enabled) {
-    const hasSearchText =
-      searchLineEdit && searchLineEdit.value.trim().length > 0;
-    locateAvailable = Boolean(enabled) && hasSearchText;
+    locateAvailable = Boolean(enabled);
     const effectiveEnabled = menuEnabled && locateAvailable;
     if (c_locate) {
       if (effectiveEnabled) {
@@ -106,7 +83,7 @@ export function createSearchMenu(
       }
       c_locate.disabled = !effectiveEnabled;
       const titleText = effectiveEnabled
-        ? "Locate search term"
+        ? "Locate focused element"
         : "Nothing to locate";
       c_locate.title = titleText;
       c_locate.setAttribute("aria-label", titleText);
@@ -229,7 +206,7 @@ export function createSearchMenu(
         event.stopPropagation();
       }
       searchMenu.clearText();
-      searchMenu.reportClearedOntologySelection();
+      searchMenu.clearVisualizationFocus();
       if (searchLineEdit) {
         searchLineEdit.focus();
       }
@@ -333,12 +310,6 @@ export function createSearchMenu(
     }
   };
 
-  function ValidURL(str) {
-    const urlregex =
-      /^(https?|ftp):\/\/([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(:[0-9]+)*(\/($|[a-zA-Z0-9.,?'\\+&%$#=~_-]+))*$/;
-    return urlregex.test(str);
-  }
-
   function updateSelectionStatusFlags() {
     if (searchLineEdit.value.length === 0) {
       createSearchEntries();
@@ -381,23 +352,20 @@ export function createSearchMenu(
         selectSearchResult(parseInt(elementId, 10), event);
         searchMenu.hideSearchEntries();
       } else if (numEntries === 0) {
-        inputText = searchLineEdit.value;
-        let clearedText = inputText.replace(/%20/g, " ");
-        while (clearedText.beginsWith(" ")) {
-          clearedText = clearedText.substr(1, clearedText.length);
+        let ontologyUrl;
+        try {
+          ontologyUrl = new URL(
+            searchLineEdit.value.replace(/%20/g, " ").trim(),
+          );
+        } catch {
+          return;
         }
-        while (clearedText.endsWith(" ")) {
-          clearedText = clearedText.substr(0, clearedText.length - 1);
-        }
-        const iri = clearedText.replace(/ /g, "%20");
-
-        const valid = ValidURL(iri);
-        if (valid) {
-          const ontM = applicationUiModule("ontologyMenu");
-          ontM.setIriText(iri);
+        if (
+          ["http:", "https:"].includes(ontologyUrl.protocol) &&
+          onOntologyIriEntered
+        ) {
+          onOntologyIriEntered(ontologyUrl.href);
           searchLineEdit.value = "";
-        } else {
-          console.warn(iri + " is not a valid URL!");
         }
       }
       return;
@@ -462,17 +430,23 @@ export function createSearchMenu(
   }
 
   function highlightQueryMatch(fullText, query) {
-    if (!query) {
-      return fullText;
-    }
+    const label = documentObject.createElement("span");
     const idx = fullText.toLowerCase().indexOf(query.toLowerCase());
-    if (idx === -1) {
-      return fullText;
+    if (!query || idx === -1) {
+      label.textContent = fullText;
+      return label;
     }
-    const before = fullText.substring(0, idx);
-    const match = fullText.substring(idx, idx + query.length);
-    const after = fullText.substring(idx + query.length);
-    return before + '<mark class="search-match">' + match + "</mark>" + after;
+    label.appendChild(
+      documentObject.createTextNode(fullText.substring(0, idx)),
+    );
+    const match = documentObject.createElement("mark");
+    match.classList.add("search-match");
+    match.textContent = fullText.substring(idx, idx + query.length);
+    label.appendChild(match);
+    label.appendChild(
+      documentObject.createTextNode(fullText.substring(idx + query.length)),
+    );
+    return label;
   }
 
   function createDropDownElements() {
@@ -518,20 +492,14 @@ export function createSearchMenu(
 
       const rawTitle = newResults[i];
       const queryStr = searchLineEdit.value;
-      const matchHtml = highlightQueryMatch(rawTitle, queryStr);
-      let badgeHtml = "";
+      testEntry.appendChild(highlightQueryMatch(rawTitle, queryStr));
 
       if (eLen > 1 && allSame === false) {
-        if (eLen !== visible) {
-          badgeHtml =
-            '<span class="search-count-badge">' +
-            visible +
-            "/" +
-            eLen +
-            " visible</span>";
-        } else {
-          badgeHtml = '<span class="search-count-badge">' + eLen + "</span>";
-        }
+        const badge = documentObject.createElement("span");
+        badge.classList.add("search-count-badge");
+        badge.textContent =
+          eLen !== visible ? `${visible}/${eLen} visible` : String(eLen);
+        testEntry.appendChild(badge);
       }
 
       if (eLen === 1 || allSame === true) {
@@ -554,7 +522,6 @@ export function createSearchMenu(
         }
       }
 
-      testEntry.innerHTML = "<span>" + matchHtml + "</span>" + badgeHtml;
       listbox.appendChild(testEntry);
     }
   }
@@ -569,7 +536,7 @@ export function createSearchMenu(
     const clearBtn = documentObject.getElementById("search-clear-btn");
     if (clearBtn) {
       const hasValue = searchLineEdit && searchLineEdit.value.length > 0;
-      if (!hasValue) {
+      if (!hasValue && !hasVisualizationFocus) {
         clearBtn.classList.add("hidden");
       } else {
         clearBtn.classList.remove("hidden");
@@ -580,7 +547,7 @@ export function createSearchMenu(
   function userInput() {
     setLocateButtonState(false);
 
-    searchMenu.reportClearedOntologySelection();
+    searchMenu.clearVisualizationFocus();
 
     // The controller answers each query, so there is no dictionary to
     // populate ahead of time and nothing to guard against here.
@@ -602,42 +569,38 @@ export function createSearchMenu(
     };
   }
 
-  // Presentation of the controller's selection. Rendering never reports, so a
-  // selection the renderer originated cannot echo back as a new fact.
-  searchMenu.renderSelectedOntologyElements = function (
-    selectedOntologyElementReferences,
-  ) {
-    if (selectedOntologyElementReferences.length > 0) {
-      return;
-    }
-    hasReportedOntologySelection = false;
-    searchMenu.clearText();
+  // The same standing focus drives these controls regardless of its caller.
+  // Query text and the details-panel selection are independent of that focus.
+  searchMenu.renderVisualizationFocus = function ({
+    focus,
+    focusableElementCount,
+  }) {
+    hasVisualizationFocus = focus.length > 0;
+    setLocateButtonState(focusableElementCount > 0);
+    updateClearButtonVisibility();
   };
 
-  // Reporting that nothing is selected is as much a fact as reporting a
-  // selection, so the runtime clears its own highlight. Applying that change
-  // makes the renderer announce the cleared search, which the application
-  // routes back into clearText, so only a real change is reported.
-  searchMenu.reportClearedOntologySelection = function () {
-    if (hasReportedOntologySelection === false) {
+  // Clearing highlights is a controller action; presenting its resulting state
+  // does not issue another request or change the detail selection.
+  searchMenu.clearVisualizationFocus = function () {
+    if (hasVisualizationFocus === false) {
       return undefined;
     }
-    hasReportedOntologySelection = false;
+    hasVisualizationFocus = false;
+    setLocateButtonState(false);
+    updateClearButtonVisibility();
     return webVowlController?.setVisualizationView({ focus: [] });
   };
 
-  // The menu reports which ontology element the reader picked. What focusing
-  // means for the visible graph is the runtime's decision, not this module's.
-  searchMenu.reportSelectedOntologyElements = function (
-    ontologyElementReferences,
-  ) {
+  // Both human search results and agent references use the same focus action.
+  searchMenu.focusOntologyElements = function (ontologyElementReferences) {
     if (
       webVowlController === undefined ||
       ontologyElementReferences.length === 0
     ) {
       return undefined;
     }
-    hasReportedOntologySelection = true;
+    hasVisualizationFocus = true;
     return webVowlController.setVisualizationView({
       focus: [...ontologyElementReferences],
     });
@@ -665,7 +628,7 @@ export function createSearchMenu(
     // which is what the controller reports through isFocusable.
     setLocateButtonState((focusableElementCountsBySearchEntry[id] ?? 0) > 0);
     if (correspondingIds) {
-      searchMenu.reportSelectedOntologyElements(correspondingIds);
+      searchMenu.focusOntologyElements(correspondingIds);
     }
     if (autoComStr !== inputText) {
       handleAutoCompletion();
@@ -686,10 +649,6 @@ export function createSearchMenu(
         htmlCollection[0].remove();
       }
     }
-  };
-
-  searchMenu.updateLocateButtonVisibility = function (hasVisibleNodes) {
-    setLocateButtonState(hasVisibleNodes);
   };
 
   searchMenu.setMenuMode = function (enabled) {

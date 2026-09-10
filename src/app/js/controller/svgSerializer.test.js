@@ -1,64 +1,17 @@
 import { beforeAll, beforeEach, describe, expect, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { SourceTextModule } from "node:vm";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let createSvgSerializer;
 
 const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
 const SERIALIZER_MODULE_URL = new URL("./svgSerializer.js", import.meta.url);
-const RENDERED_GRAPH_CONTRACTS_MODULE_URL = new URL(
-  "./renderedGraphRuntimeContracts.js",
-  import.meta.url,
-);
-const WEB_VOWL_CONTRACTS_MODULE_URL = new URL(
-  "./webVowlControllerContracts.js",
-  import.meta.url,
-);
-
-async function createDependencyFreeModule(moduleUrl) {
-  const sourceModule = new SourceTextModule(
-    readFileSync(fileURLToPath(moduleUrl), "utf8"),
-    { identifier: moduleUrl.href },
-  );
-  await sourceModule.link((specifier) => {
-    throw new Error(`Unexpected SVG contract dependency: ${specifier}`);
-  });
-  await sourceModule.evaluate();
-  return sourceModule;
-}
-
 beforeAll(async () => {
-  const webVowlContractsModule = await createDependencyFreeModule(
-    WEB_VOWL_CONTRACTS_MODULE_URL,
-  );
-  const renderedGraphContractsModule = new SourceTextModule(
-    readFileSync(fileURLToPath(RENDERED_GRAPH_CONTRACTS_MODULE_URL), "utf8"),
-    { identifier: RENDERED_GRAPH_CONTRACTS_MODULE_URL.href },
-  );
-  await renderedGraphContractsModule.link((specifier) => {
-    if (specifier === "./webVowlControllerContracts.js") {
-      return webVowlContractsModule;
-    }
-    throw new Error(`Unexpected rendered-SVG dependency: ${specifier}`);
-  });
-  await renderedGraphContractsModule.evaluate();
-
-  const serializerModule = new SourceTextModule(
-    readFileSync(fileURLToPath(SERIALIZER_MODULE_URL), "utf8"),
-    { identifier: SERIALIZER_MODULE_URL.href },
-  );
-  await serializerModule.link((specifier) => {
-    if (specifier === "./renderedGraphRuntimeContracts.js") {
-      return renderedGraphContractsModule;
-    }
-    if (specifier === "./webVowlControllerContracts.js") {
-      return webVowlContractsModule;
-    }
-    throw new Error(`Unexpected SVG serializer dependency: ${specifier}`);
-  });
-  await serializerModule.evaluate();
-  ({ createSvgSerializer } = serializerModule.namespace);
+  ({ createSvgSerializer } = await loadEsmModuleForTest(
+    new URL("./svgSerializer.js", import.meta.url),
+    import.meta.url,
+  ));
 });
 
 function escapeXmlText(text) {

@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { SourceTextModule, SyntheticModule } from "node:vm";
+import { SourceTextModule } from "node:vm";
 
-// Interface modules collaborate through the application registry.
-const registeredUiModulesForTest = new Map();
+// Explicit application connections used by the ontology input.
+let loadingModule;
 import {
   beforeAll,
   beforeEach,
@@ -24,20 +24,13 @@ beforeAll(async () => {
     { identifier: ONTOLOGY_MENU_MODULE_URL.href },
   );
   await ontologyMenuModule.link((specifier) => {
-    if (specifier.endsWith("applicationUiRegistry.js")) {
-      return new SyntheticModule(
-        ["applicationUiModule", "registerApplicationUiModule"],
-        function provideApplicationUiRegistry() {
-          this.setExport("applicationUiModule", (moduleName) =>
-            registeredUiModulesForTest.get(moduleName),
-          );
-          this.setExport(
-            "registerApplicationUiModule",
-            (moduleName, uiModule) =>
-              registeredUiModulesForTest.set(moduleName, uiModule),
-          );
+    if (specifier === "../ui/visualizationControlAction.js") {
+      const moduleUrl = new URL(specifier, ONTOLOGY_MENU_MODULE_URL);
+      return new SourceTextModule(
+        readFileSync(fileURLToPath(moduleUrl), "utf8"),
+        {
+          identifier: moduleUrl.href,
         },
-        { identifier: specifier },
       );
     }
     throw new Error(`Unexpected ontology menu dependency: ${specifier}`);
@@ -234,6 +227,7 @@ describe("ontology menu actions", () => {
     global.location = { hash: "#file=foaf.rdf.json" };
     global.window = {
       addEventListener: jest.fn(),
+      history: { pushState: jest.fn() },
     };
     global.document = {
       getElementById: (id) => selectionFor("#" + id).element,
@@ -247,28 +241,21 @@ describe("ontology menu actions", () => {
     hideAllMenus = jest.fn();
     requestedLoads = [];
     webVowlController = {
+      getState: () => ({ editorMode: { isEditorMode: false } }),
       loadOntology: jest.fn((loadRequest) => {
         requestedLoads.push(loadRequest);
         return Promise.resolve({ status: "ready" });
       }),
     };
-    const loadingModule = {
+    loadingModule = {
       createNewOntology,
-      setOntologyMenu: jest.fn(),
       loadOntologyFromLocation: jest.fn(() => Promise.resolve()),
-    };
-    // The ontology menu reaches the loading module through the registry.
-    registeredUiModulesForTest.set("loadingModule", loadingModule);
-    const graph = {
-      options: () => ({
-        navigationMenu: () => ({ hideAllMenus }),
-      }),
-      editorMode: jest.fn().mockReturnValue(false),
-      addEventListener: jest.fn(),
-      showReloadButtonAfterLayoutOptimization: jest.fn(),
+      loadDroppedFile: jest.fn(() => Promise.resolve()),
     };
 
-    ontologyMenu = createOntologyMenu(graph, {
+    ontologyMenu = createOntologyMenu({
+      ...loadingModule,
+      hideNavigationMenus: hideAllMenus,
       documentObject: global.document,
       locationObject: global.location,
       webVowlController,
@@ -282,13 +269,58 @@ describe("ontology menu actions", () => {
     iriForm = selectionFor("#iri-converter-form");
   });
 
-  test("reload delegates replacement without requiring a graph-clearing route", () => {
-    expect(() => ontologyMenu.reloadCachedOntology()).not.toThrow();
-    expect(
-      registeredUiModulesForTest.get("loadingModule").loadOntologyFromLocation,
-    ).toHaveBeenCalledWith({
-      shouldCache: false,
+  test("a selected file loads once without a hash navigation superseding its read", async () => {
+    const file = { name: "my ontology#1.rdf" };
+    selections.get("#file-converter-input").element.files = [file];
+    let currentHash = global.location.hash;
+    const hashChange = global.window.addEventListener.mock.calls.find(
+      ([eventName]) => eventName === "hashchange",
+    )[1];
+    Object.defineProperty(global.location, "hash", {
+      get: () => currentHash,
+      set: (value) => {
+        const oldURL = "https://example.test/" + currentHash;
+        currentHash = value;
+        queueMicrotask(() =>
+          hashChange({ oldURL, newURL: "https://example.test/#" + value }),
+        );
+      },
     });
+    global.window.history.pushState.mockImplementation(
+      (_state, _title, route) => {
+        currentHash = route;
+      },
+    );
+
+    selections
+      .get("#file-converter-button")
+      .element.dispatchEvent({ type: "click" });
+    await Promise.resolve();
+
+    expect(loadingModule.loadDroppedFile).toHaveBeenCalledTimes(1);
+    expect(loadingModule.loadDroppedFile).toHaveBeenCalledWith(file);
+    expect(loadingModule.loadOntologyFromLocation).not.toHaveBeenCalled();
+    expect(currentHash).toBe("#file=my%20ontology%231.rdf");
+  });
+
+  test("reload retrieves the controller's accepted source even when the location names another ontology", async () => {
+    webVowlController.getState = () => ({
+      source: {
+        kind: "ontology-document-iri",
+        identity: "https://example.test/agent-loaded.owl",
+      },
+    });
+    await ontologyMenu.reloadOntologySource();
+    expect(requestedLoads).toEqual([
+      {
+        source: {
+          kind: "ontology-document-iri",
+          documentIri: "https://example.test/agent-loaded.owl",
+        },
+        reuseCachedOntology: false,
+      },
+    ]);
+    expect(loadingModule.loadOntologyFromLocation).not.toHaveBeenCalled();
   });
 
   test("enables the visualize button only for a URL that can be normalized", () => {
@@ -392,105 +424,27 @@ describe("ontology menu actions", () => {
     expect(hideAllMenus).not.toHaveBeenCalled();
   });
 
-  test("manages native disabled property and title on the reloadCachedOntology button", () => {
+  test("manages native disabled property and title on the reloadOntologySource button", () => {
     const reloadButton =
-      selections.get("#reloadCachedOntology") || new MockSelection();
-    selections.set("#reloadCachedOntology", reloadButton);
-
-    ontologyMenu.setCachedOntology("testOnto", { data: 1 });
+      selections.get("#reloadOntologySource") || new MockSelection();
+    selections.set("#reloadOntologySource", reloadButton);
 
     global.location.hash = "#iri=https://example.org/test.owl";
-    ontologyMenu.cachedOntology("testOnto");
+    ontologyMenu.renderOntologySource({
+      kind: "ontology-document-iri",
+      identity: "https://example.org/test.owl",
+    });
     expect(reloadButton.element.disabled).toBe(false);
-    expect(reloadButton.element.title).toContain("overwrite cached ontology");
+    expect(reloadButton.element.title).toContain(
+      "replace its cached visualization",
+    );
 
     global.location.hash = "#file=test.json";
-    ontologyMenu.cachedOntology("testOnto");
-    expect(reloadButton.element.disabled).toBe(true);
-    expect(reloadButton.element.title).toContain(
-      "reloading original version not possible",
-    );
-  });
-});
-
-describe("ontology menu converter responses", () => {
-  let ontologyMenu;
-  let requestedLoads;
-  let webVowlController;
-
-  beforeEach(() => {
-    const selections = new Map();
-    const selectionFor = (key) => {
-      if (!selections.has(key)) {
-        selections.set(key, new MockSelection());
-      }
-      return selections.get(key);
-    };
-    global.location = { hash: "#foaf" };
-    global.window = { addEventListener: jest.fn() };
-    global.document = {
-      getElementById: (id) => selectionFor("#" + id).element,
-    };
-    global.d3 = { select: selectionFor, selectAll: selectionFor };
-
-    requestedLoads = [];
-    webVowlController = {
-      loadOntology: jest.fn((loadRequest) => {
-        requestedLoads.push(loadRequest);
-        return Promise.resolve({ status: "ready" });
-      }),
-    };
-    registeredUiModulesForTest.set("loadingModule", {
-      createNewOntology: jest.fn(),
-      setOntologyMenu: jest.fn(),
-      loadOntologyFromLocation: jest.fn(() => Promise.resolve()),
+    ontologyMenu.renderOntologySource({
+      kind: "vowl-json-text",
+      displayName: "test.json",
     });
-    ontologyMenu = createOntologyMenu(
-      {
-        options: () => ({
-          navigationMenu: () => ({ hideAllMenus: jest.fn() }),
-        }),
-        editorMode: jest.fn().mockReturnValue(false),
-        addEventListener: jest.fn(),
-        showReloadButtonAfterLayoutOptimization: jest.fn(),
-      },
-      {
-        documentObject: global.document,
-        locationObject: global.location,
-        webVowlController,
-        windowObject: global.window,
-      },
-    );
-    ontologyMenu.setup();
-  });
-
-  test("sends a converted VOWL model straight to the controller", async () => {
-    const vowlModel = { class: [{ id: "1", type: "owl:Class" }] };
-
-    await ontologyMenu.loadConvertedVowlModel(
-      JSON.stringify(vowlModel),
-      "example.owl",
-    );
-
-    expect(requestedLoads).toEqual([
-      {
-        source: {
-          kind: "vowl-model",
-          model: vowlModel,
-          displayName: "example.owl",
-        },
-      },
-    ]);
-  });
-
-  test("caches the converted model itself rather than its serialization", async () => {
-    const vowlModel = { class: [{ id: "1", type: "owl:Class" }] };
-
-    await ontologyMenu.loadConvertedVowlModel(
-      JSON.stringify(vowlModel),
-      "example.owl",
-    );
-
-    expect(ontologyMenu.cachedOntology("example.owl")).toEqual(vowlModel);
+    expect(reloadButton.element.disabled).toBe(true);
+    expect(reloadButton.element.title).toContain("Select the local file again");
   });
 });

@@ -256,6 +256,11 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
     }),
     inputSchema: closedObjectSchema({
       properties: {
+        reuseCachedOntology: Object.freeze({
+          type: "boolean",
+          description:
+            "Reuse a cached remote ontology and visualization if available. False or omission retrieves the original again, like Reload source.",
+        }),
         source: Object.freeze({
           description: "Where the ontology comes from.",
           oneOf: ONTOLOGY_SOURCE_BRANCH_SCHEMAS,
@@ -792,8 +797,21 @@ const ONTOLOGY_SOURCE_FIELD_NAMES_BY_KIND = Object.freeze({
 
 export function normalizeLoadOntologyToolInput(toolInput) {
   assertRequiredFieldNames(toolInput, ["source"], "load_ontology input");
-  assertOnlyAllowedFieldNames(toolInput, ["source"], "load_ontology input");
+  assertOnlyAllowedFieldNames(
+    toolInput,
+    ["source", "reuseCachedOntology"],
+    "load_ontology input",
+  );
 
+  const cacheChoice =
+    toolInput.reuseCachedOntology === undefined
+      ? {}
+      : {
+          reuseCachedOntology: assertBooleanPredicate(
+            toolInput.reuseCachedOntology,
+            "reuseCachedOntology",
+          ),
+        };
   const requestedSource = toolInput.source;
   ownFieldNames(requestedSource, "ontology source");
   const sourceFieldNames =
@@ -818,6 +836,7 @@ export function normalizeLoadOntologyToolInput(toolInput) {
 
   if (requestedSource.kind === "ontology-document-iri") {
     return Object.freeze({
+      ...cacheChoice,
       source: Object.freeze({
         kind: "ontology-document-iri",
         documentIri: assertRetrievableLocation(
@@ -829,6 +848,7 @@ export function normalizeLoadOntologyToolInput(toolInput) {
   }
   if (requestedSource.kind === "vowl-json-url") {
     return Object.freeze({
+      ...cacheChoice,
       source: Object.freeze({
         kind: "vowl-json-url",
         url: assertRetrievableLocation(requestedSource.url, "url"),
@@ -837,6 +857,7 @@ export function normalizeLoadOntologyToolInput(toolInput) {
   }
   if (requestedSource.kind === "vowl-json-text") {
     return Object.freeze({
+      ...cacheChoice,
       source: Object.freeze({
         kind: "vowl-json-text",
         text: assertBoundedDocumentText(requestedSource.text),
@@ -853,6 +874,7 @@ export function normalizeLoadOntologyToolInput(toolInput) {
     });
   }
   return Object.freeze({
+    ...cacheChoice,
     source: Object.freeze({
       kind: "ontology-text",
       text: assertBoundedDocumentText(requestedSource.text),
@@ -1716,6 +1738,12 @@ const WEB_MCP_TOOL_ROUTES = Object.freeze({
       ...(metadata.pageLocalViewRecipeId === undefined
         ? {}
         : { pageLocalViewRecipeId: metadata.pageLocalViewRecipeId }),
+      ...(metadata.viewRecipe?.viewportDimensions === undefined
+        ? {}
+        : { viewportDimensions: metadata.viewRecipe.viewportDimensions }),
+      ...(metadata.viewRecipe?.layoutOutcome === undefined
+        ? {}
+        : { layoutOutcome: metadata.viewRecipe.layoutOutcome }),
     }),
   }),
 });

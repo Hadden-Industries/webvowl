@@ -100,12 +100,10 @@ const RectangularNode = (function () {
     this.textWidth = function () {
       return that.width();
     };
-    this.toggleFocus = function () {
+    this.toggleSelection = function () {
       that.focused(!that.focused());
       that.nodeElement().select("rect").classed("focused", that.focused());
-      graph.resetSearchHighlight();
-      // Report which drawn elements are selected now; what that means for the
-      // search box is decided outside the renderer.
+      // Selection styling and details do not change the requested search focus.
       graph.reportRenderedElementSelection(that.focused() ? [that.id()] : []);
     };
 

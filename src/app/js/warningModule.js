@@ -1,4 +1,4 @@
-export function createWarningModule(graph, { webVowlController } = {}) {
+export function createWarningModule({ webVowlController } = {}) {
   /** variable defs **/
   const warningModule = {};
   const lifecycleAbortController = new AbortController();
@@ -7,6 +7,7 @@ export function createWarningModule(graph, { webVowlController } = {}) {
   const _visibleStatus = [];
 
   let _messageId = -1;
+  let cancelConfirmation;
 
   warningModule.addMessageBox = function () {
     // add a container;
@@ -174,14 +175,27 @@ export function createWarningModule(graph, { webVowlController } = {}) {
     );
   };
 
-  warningModule.responseWarning = function (
-    header,
-    reason,
-    action,
-    callback,
-    parameterArray,
-    forcedWarning,
-  ) {
+  warningModule.confirmOntologyDeletion = function (proposal, { signal } = {}) {
+    cancelConfirmation?.();
+    if (signal?.aborted || lifecycleAbortController.signal.aborted) {
+      return Promise.resolve(false);
+    }
+    const header = "Delete ontology elements";
+    const counts = proposal.recordTargets.reduce((result, target) => {
+      result[target.collection] = (result[target.collection] ?? 0) + 1;
+      return result;
+    }, {});
+    const reason = `This removes ${Object.entries(counts)
+      .map(
+        ([kind, count]) =>
+          `${count} ${kind === "property" ? "properties" : kind === "class" ? "classes" : "datatypes"}`,
+      )
+      .join(", ")}.`;
+    const action = "Continue to delete these elements, or cancel to keep them.";
+    let resolveConfirmation;
+    const confirmation = new Promise((resolve) => {
+      resolveConfirmation = resolve;
+    });
     const id = warningModule.addMessageBox();
     const warningContainer = _messageContext[id];
     const moduleContainer = _messageContainers[id];
@@ -189,6 +203,24 @@ export function createWarningModule(graph, { webVowlController } = {}) {
     document
       .querySelector("#blockGraphInteractions")
       .classList.remove("hidden");
+    function finish(accepted) {
+      warningModule.closeMessage(id);
+      document.querySelector("#blockGraphInteractions").classList.add("hidden");
+      signal?.removeEventListener("abort", cancel);
+      lifecycleAbortController.signal.removeEventListener("abort", cancel);
+      if (cancelConfirmation === cancel) {
+        cancelConfirmation = undefined;
+      }
+      resolveConfirmation(accepted);
+    }
+    function cancel() {
+      finish(false);
+    }
+    cancelConfirmation = cancel;
+    signal?.addEventListener("abort", cancel, { once: true });
+    lifecycleAbortController.signal.addEventListener("abort", cancel, {
+      once: true,
+    });
 
     if (header.length > 0) {
       const head = document.createElement("div");
@@ -235,22 +267,9 @@ export function createWarningModule(graph, { webVowlController } = {}) {
     gotItButton.setAttribute("type", "button");
     gotItButton.id = "killWarningErrorMessages_" + id;
     gotItButton.innerHTML = "Continue";
-    gotItButton.addEventListener(
-      "click",
-      function (event) {
-        warningModule.closeMessage(event.currentTarget.id);
-        document
-          .querySelector("#blockGraphInteractions")
-          .classList.add("hidden");
-        callback(
-          parameterArray[0],
-          parameterArray[1],
-          parameterArray[2],
-          parameterArray[3],
-        );
-      },
-      { signal: lifecycleAbortController.signal },
-    );
+    gotItButton.addEventListener("click", () => finish(true), {
+      signal: lifecycleAbortController.signal,
+    });
 
     const spanNode = document.createElement("span");
     warningContainer.appendChild(spanNode);
@@ -261,19 +280,13 @@ export function createWarningModule(graph, { webVowlController } = {}) {
     cancelButton.setAttribute("type", "button");
     cancelButton.id = "cancelButton_" + id;
     cancelButton.innerHTML = "Cancel";
-    cancelButton.addEventListener(
-      "click",
-      function (event) {
-        warningModule.closeMessage(event.currentTarget.id);
-        document
-          .querySelector("#blockGraphInteractions")
-          .classList.add("hidden");
-      },
-      { signal: lifecycleAbortController.signal },
-    );
+    cancelButton.addEventListener("click", cancel, {
+      signal: lifecycleAbortController.signal,
+    });
 
     moduleContainer.classList.remove("hidden");
     moduleContainer.classList.add("warn-expanded");
+    return confirmation;
   };
 
   warningModule.showMultiFileUploadWarning = function () {

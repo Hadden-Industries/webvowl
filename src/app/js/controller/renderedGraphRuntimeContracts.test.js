@@ -1,7 +1,5 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { SourceTextModule } from "node:vm";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let RENDERED_GRAPH_EVENT_KINDS;
 let RENDERED_GRAPH_RUNTIME_METHOD_NAMES;
@@ -27,38 +25,8 @@ const RENDERED_GRAPH_RUNTIME_CONTRACTS_MODULE_URL = new URL(
   "./renderedGraphRuntimeContracts.js",
   import.meta.url,
 );
-const WEB_VOWL_CONTROLLER_CONTRACTS_MODULE_URL = new URL(
-  "./webVowlControllerContracts.js",
-  import.meta.url,
-);
 
 beforeAll(async () => {
-  const webVowlControllerContractsModule = new SourceTextModule(
-    readFileSync(
-      fileURLToPath(WEB_VOWL_CONTROLLER_CONTRACTS_MODULE_URL),
-      "utf8",
-    ),
-    { identifier: WEB_VOWL_CONTROLLER_CONTRACTS_MODULE_URL.href },
-  );
-  await webVowlControllerContractsModule.link((specifier) => {
-    throw new Error(`Unexpected controller-contract dependency: ${specifier}`);
-  });
-  await webVowlControllerContractsModule.evaluate();
-
-  const renderedGraphRuntimeContractsModule = new SourceTextModule(
-    readFileSync(
-      fileURLToPath(RENDERED_GRAPH_RUNTIME_CONTRACTS_MODULE_URL),
-      "utf8",
-    ),
-    { identifier: RENDERED_GRAPH_RUNTIME_CONTRACTS_MODULE_URL.href },
-  );
-  await renderedGraphRuntimeContractsModule.link((specifier) => {
-    if (specifier === "./webVowlControllerContracts.js") {
-      return webVowlControllerContractsModule;
-    }
-    throw new Error(`Unexpected rendered-graph dependency: ${specifier}`);
-  });
-  await renderedGraphRuntimeContractsModule.evaluate();
   ({
     RENDERED_GRAPH_EVENT_KINDS,
     RENDERED_GRAPH_RUNTIME_METHOD_NAMES,
@@ -79,7 +47,10 @@ beforeAll(async () => {
     createVisualizationViewApplicationResult,
     createVowlModelReplacementRequest,
     createVowlModelReplacementResult,
-  } = renderedGraphRuntimeContractsModule.namespace);
+  } = await loadEsmModuleForTest(
+    RENDERED_GRAPH_RUNTIME_CONTRACTS_MODULE_URL,
+    import.meta.url,
+  ));
 });
 
 test("reports the selected document record independently of semantic IRI selection", () => {
@@ -201,6 +172,7 @@ function createOntologyInspectionSnapshotSource() {
     loadGeneration: 3,
     namespaceRecords: [{ prefix: "ex", namespaceIri: "https://example.test/" }],
     ontologyHeaderRecord: {
+      annotationRecords: [],
       ontologyIri: "https://example.test/ontology",
       versionInformationText: "Version 1.0",
       titleRecords: [{ languageTag: "en", text: "Example ontology" }],
@@ -284,6 +256,9 @@ describe("rendered graph runtime interface", () => {
       "setForceLayoutDistances",
       "setVisualizationModes",
       "resetVisualization",
+      "setOntologyEditorOptions",
+      "resizeVisualizationViewport",
+      "setRenderingDiagnosticsEnabled",
       "createRenderedSvgSnapshot",
       "createRenderedDrawingSnapshot",
       "createTurtleDocumentSnapshot",
@@ -396,11 +371,15 @@ describe("rendered graph events", () => {
       "rendered-element-selection-changed",
       "document-record-selection-changed",
       "record-label-edit-requested",
+      "record-creation-requested",
+      "record-endpoint-edit-requested",
+      "record-deletion-requested",
       "viewport-changed",
       "visualization-view-changed",
       "degree-filter-range-changed",
       "graph-layout-state-changed",
       "editor-mode-changed",
+      "rendering-statistics-changed",
     ]);
   });
 

@@ -351,68 +351,42 @@ The following diagram is the required dependency structure after the cutover. So
 
 ```mermaid
 flowchart LR
-    subgraph Callers[Callers]
-        Human[Human user]
-        Agent[Browser agent]
+    Human[Human reader] --> UI[Native DOM controls]
+    Agent[Browser agent] --> WebMCP[Fourteen WebMCP tools]
+    UI --> Controller[WebVowlController]
+    WebMCP --> Controller
+    Controller --> Document[Application-owned VOWL document]
+    Controller --> Loader[OntologySourceLoader]
+    Controller --> Inspector[OntologyInspector and snapshot projector]
+    Controller --> State[Immutable controller state]
+    State --> Presentation[Native DOM presentation]
+    Controller --> Settler[GraphLayoutSettler]
+    Controller --> Artifacts[VisualizationArtifactService]
+    Artifacts --> Serializers[Detached SVG and TikZ serializers]
+    Artifacts --> Publication[VisualizationArtifactPublicationPort]
+    Download[Native artifact download adapter] -. implements .-> Publication
+    Controller --> Runtime[RenderedGraphRuntime interface]
+    Settler --> Runtime
+    InMemory[Test-only in-memory adapter] -. implements .-> Runtime
+    subgraph PrivateRenderer[Private renderer]
+        Adapter[D3RenderedGraphAdapter]
+        Settings[RenderedGraphSettings]
+        Internals[RenderedGraphInternals and element modules]
+        Turtle[Existing Turtle generator]
+        D3[D3 7.9.0]
+        SVG[Live SVG]
+        Adapter --> Settings
+        Adapter --> Internals
+        Adapter --> Turtle
+        Internals --> D3
+        Internals --> SVG
+        Adapter --> D3
+        Adapter --> SVG
     end
-
-    subgraph UiAdapters[UI adapters — native DOM and native ESM]
-        UiInput[UI input adapters]
-        UiPresentation[UI presentation adapters]
-        SvgDownload[SvgArtifactDownloadAdapter]
-    end
-
-    subgraph Application[Agent-neutral application — native ESM]
-        WebMcp[WebMCP adapter]
-        Controller[WebVowlController]
-        ControllerState[Immutable controller state]
-        SourceLoader[OntologySourceLoader]
-        Projector[VowlModelInspectionProjector]
-        Inspector[OntologyInspector]
-        LayoutSettler[GraphLayoutSettler]
-        ArtifactService[SvgArtifactService]
-        ArtifactPublication[SvgArtifactPublicationPort]
-        SvgSerializer[SvgSerializer]
-    end
-
-    subgraph RuntimeSeam[Rendered-graph seam — native ESM]
-        Runtime[RenderedGraphRuntime interface]
-        InMemoryAdapter[InMemoryRenderedGraphAdapter — tests only]
-    end
-
-    subgraph Visualization[Visualization implementation]
-        D3Adapter[D3RenderedGraphAdapter — native ESM]
-        GraphConfiguration[RenderedGraphConfiguration — native ESM]
-        LegacyCjs[Untouched private renderer leaves<br/>legacy CommonJS — fixed shrinking allowlist]
-        D3[D3]
-        LiveSvg[Live SVG]
-    end
-
-    Human --> UiInput
-    Agent --> WebMcp
-    UiInput --> Controller
-    WebMcp --> Controller
-    Controller --> SourceLoader
-    Controller --> Inspector
-    Controller --> LayoutSettler
-    Controller --> ArtifactService
-    ArtifactService --> SvgSerializer
-    ArtifactService --> ArtifactPublication
-    Controller --> Runtime
-    Controller --> ControllerState
-    ControllerState --> UiPresentation
-    D3Adapter -.->|implements| Runtime
-    InMemoryAdapter -.->|implements| Runtime
-    SvgDownload -.->|implements| ArtifactPublication
-    D3Adapter --> GraphConfiguration
-    D3Adapter --> LegacyCjs
-    D3Adapter --> D3
-    D3Adapter --> LiveSvg
-    LegacyCjs --> D3
-    LegacyCjs --> LiveSvg
+    Adapter -. implements .-> Runtime
 ```
 
-This is a complete decoupling, not merely a reduction in coupling. Production input/state UI code is native ESM and depends on native DOM interfaces and `WebVowlController`; the native download adapter implements the narrow `SvgArtifactPublicationPort`; native-ESM application code depends on the native-ESM `RenderedGraphRuntime`; only the implementation-private visualization subtree rooted at `D3RenderedGraphAdapter` depends on D3 or owns the live SVG. The deterministic in-memory adapter exists only in tests and is never a runtime switch or fallback. The diagram's sole temporary CommonJS island is a fixed, shrinking set of untouched private renderer leaves. It has no upward edge, cannot cross the runtime seam, and disappears incrementally as those leaves are materially changed.
+This is a complete decoupling, not merely a reduction in coupling. Production input/state UI code is native ESM and depends on native DOM interfaces and `WebVowlController`; the native download adapter implements the narrow `VisualizationArtifactPublicationPort`; native-ESM application code depends on the native-ESM `RenderedGraphRuntime`; only the implementation-private visualization subtree rooted at `D3RenderedGraphAdapter` depends on D3 or owns the live SVG. The deterministic in-memory adapter exists only in tests and is never a runtime switch or fallback. The final production CommonJS allowlist is empty. All renderer elements are native ESM beneath the adapter; root package/build/test declarations retain their existing module format. ADR 0012 supplies application-owned documents and generation-scoped arrangement/selection contracts. Four export formats share VisualizationArtifactService and its publication port; the existing Turtle generator stays private beneath the adapter.
 
 Removing `webvowl.graph`, `webvowl.options`, and public renderer modules that bypass this seam is an intentional breaking interface cutover for an embedding host that reached into renderer internals. In-repository callers migrate atomically; supported application-level embeddings use `app.getWebVowlController()` and semantic controller operations. No deprecated alias or compatibility façade will preserve the concrete renderer interface. If the published package version or other release configuration must change to communicate that break, that exact configuration change requires separate approval.
 
@@ -475,7 +449,7 @@ All arguments, results, snapshots, and events crossing this interface are plain 
 
 `RenderedGraphEvent` is a closed discriminated union whose kinds are `render-progress-changed`, `render-warning-raised`, `rendered-element-selection-changed`, `viewport-changed`, `graph-layout-state-changed`, and `editor-mode-changed`. Every kind is published by the production adapter; `viewport-changed` is the sole route by which a zoom control learns the current magnification, so no control reads the renderer to position itself. The controller subscribes through the interface, rejects events from a non-current generation, and derives a new immutable controller-state snapshot. The graph adapter never calls a menu, sidebar, loading indicator, or other presentation object.
 
-`D3RenderedGraphAdapter.createRenderedSvgSnapshot` is called only after the controller has frozen the graph and completed the required font and paint waits. It clones the live SVG into a detached tree, removes interaction-only content from the clone, resolves computed visual styles onto the clone, and returns it without mutating or restoring the live SVG. A D3-free `SvgSerializer` inserts metadata with DOM APIs and text content, serializes the detached clone with `XMLSerializer`, and returns bytes to `SvgArtifactService`. The artifact service alone owns `Blob` creation, object-URL lifecycle, hashing, filenames, and artifact handles; it publishes the current page-local download through `SvgArtifactPublicationPort`, whose native-DOM adapter owns only presentation.
+`D3RenderedGraphAdapter.createRenderedSvgSnapshot` is called only after the controller has frozen the graph and completed the required font and paint waits. It clones the live SVG into a detached tree, removes interaction-only content from the clone, resolves computed visual styles onto the clone, and returns it without mutating or restoring the live SVG. A D3-free `SvgSerializer` inserts metadata with DOM APIs and text content, serializes the detached clone with `XMLSerializer`, and returns bytes to `SvgArtifactService`. The artifact service alone owns `Blob` creation, object-URL lifecycle, hashing, filenames, and artifact handles; it publishes the current page-local download through `VisualizationArtifactPublicationPort`, whose native-DOM adapter owns only presentation.
 
 ### WebMCP adapter
 

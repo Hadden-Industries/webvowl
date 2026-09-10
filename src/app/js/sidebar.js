@@ -1,4 +1,3 @@
-import { applicationUiModule } from "./ui/applicationUiRegistry.js";
 const NAVIGABLE_IRI_SCHEMES = new Set(["http:", "https:", "urn:"]);
 
 export function navigableOntologyIri(value) {
@@ -42,18 +41,20 @@ export function renderOntologyIri(element, iri) {
 
 /**
  * Contains the logic for the sidebar.
- * @param graph the graph that belongs to these controls
  * @returns {{}}
  */
-export function createSidebar(
-  graph,
-  { elementTools, languageConstants, languageTools, webVowlController },
-) {
+export function createSidebar({
+  languageConstants,
+  languageTools,
+  webVowlController,
+  onViewportGeometryChanged = () => {},
+  hideNavigationMenus = () => {},
+  updateNavigationOverflow = () => {},
+}) {
   const sidebar = {};
   const lifecycleAbortController = new AbortController();
   let activeOntologySummaryLanguage = null;
   // Required for reloading when the language changes
-  let ontologyInfo;
   let isSidebarVisible = true;
   // The last editor mode the renderer reported, kept here so no presentation
   // asks the renderer which mode it is in.
@@ -195,6 +196,14 @@ export function createSidebar(
     document.querySelector("#description").textContent =
       ontologyHeader.description || "No description available.";
 
+    displayMetadata(
+      annotationGroupsFromRecords(
+        ontologyHeader.annotationRecords ?? [],
+        undefined,
+        false,
+      ),
+    );
+
     activeOntologySummaryLanguage = ontologySummary.selectedLanguage ?? null;
     setLanguages(ontologySummary.availableLabelLanguages);
 
@@ -205,25 +214,15 @@ export function createSidebar(
     document.querySelector("#classCount").textContent =
       elementCounts.classCount;
     document.querySelector("#objectPropertyCount").textContent =
-      elementCounts.propertyCount;
+      elementCounts.objectPropertyCount;
     document.querySelector("#datatypePropertyCount").textContent =
-      elementCounts.datatypeCount;
+      elementCounts.datatypePropertyCount;
     document.querySelector("#individualCount").textContent =
       elementCounts.individualCount;
     document.querySelector("#nodeCount").textContent =
       visibleGraphCounts.visibleNodeCount;
     document.querySelector("#edgeCount").textContent =
       visibleGraphCounts.visiblePropertyCount;
-  };
-
-  sidebar.updateOntologyInformation = function (data, statistics) {
-    data = data || {};
-    ontologyInfo = data.header || {};
-
-    setLanguages(ontologyInfo.languages);
-    updateGraphInformation();
-    displayGraphStatistics(undefined, statistics);
-    displayMetadata(ontologyInfo.other);
   };
 
   function getBrowserLanguages() {
@@ -320,6 +319,9 @@ export function createSidebar(
 
   function setLanguages(languages) {
     const availableLanguages = Array.isArray(languages) ? [...languages] : [];
+    if (!availableLanguages.includes("default")) {
+      availableLanguages.push("default");
+    }
 
     // Put the default and unset label on top of the selection labels
     availableLanguages.sort(function (a, b) {
@@ -368,61 +370,6 @@ export function createSidebar(
       // A fact for the controller: this is the language the reader prefers.
       webVowlController?.setVisualizationView({ language: selectedLanguage });
     }
-  }
-
-  // The language change itself reaches the controller through the
-  // view-controls adapter; this only refreshes what the sidebar shows. The
-  // selected element's details refresh when the controller republishes state
-  // for the new language, so they are not re-rendered from a stale description
-  // here.
-  function handleLanguageChange() {
-    updateGraphInformation();
-  }
-
-  function updateGraphInformation() {
-    const title = languageTools.textInLanguage(
-      ontologyInfo.title,
-      graph.language(),
-    );
-    document.querySelector("#title").textContent =
-      title || "No title available";
-    renderOntologyIri(document.querySelector("#about"), ontologyInfo.iri);
-    document.querySelector("#version").textContent =
-      ontologyInfo.version || "--";
-    const authors = ontologyInfo.author;
-    if (typeof authors === "string") {
-      // Stay compatible with author info as strings after change in january 2015
-      document.querySelector("#authors").textContent = authors;
-    } else if (authors instanceof Array) {
-      document.querySelector("#authors").textContent = authors.join(", ");
-    } else {
-      document.querySelector("#authors").textContent = "--";
-    }
-
-    const description = languageTools.textInLanguage(
-      ontologyInfo.description,
-      graph.language(),
-    );
-    document.querySelector("#description").textContent =
-      description || "No description available.";
-  }
-
-  function displayGraphStatistics(deliveredMetrics, statistics) {
-    // Metrics are optional and may be undefined
-    deliveredMetrics = deliveredMetrics || {};
-
-    document.querySelector("#classCount").textContent =
-      deliveredMetrics.classCount || statistics.classCount();
-    document.querySelector("#objectPropertyCount").textContent =
-      deliveredMetrics.objectPropertyCount || statistics.objectPropertyCount();
-    document.querySelector("#datatypePropertyCount").textContent =
-      deliveredMetrics.datatypePropertyCount ||
-      statistics.datatypePropertyCount();
-    document.querySelector("#individualCount").textContent =
-      deliveredMetrics.totalIndividualCount ||
-      statistics.totalIndividualCount();
-    document.querySelector("#nodeCount").textContent = statistics.nodeCount();
-    document.querySelector("#edgeCount").textContent = statistics.edgeCount();
   }
 
   function displayMetadata(metadata) {
@@ -676,7 +623,7 @@ export function createSidebar(
 
   function listAnnotations(container, annotationObject) {
     annotationObject = annotationObject || {};
-    const preferredLanguage = graph && graph.language ? graph.language() : null;
+    const preferredLanguage = webVowlController?.getState().view?.language;
 
     const annotations = [];
     for (const annotation in annotationObject) {
@@ -811,17 +758,25 @@ export function createSidebar(
   // VOWL groups annotations under a bare local name and the DOM helper below
   // still consumes that shape, so a description's flat annotation list is
   // regrouped here rather than duplicating the helper.
-  function annotationGroupsFromRecords(annotationRecords, displayLabel) {
-    const annotationGroups = {};
+  function annotationGroupsFromRecords(
+    annotationRecords,
+    displayLabel,
+    omitDisplayedLabel = true,
+  ) {
+    const annotationGroups = Object.create(null);
     for (const annotationRecord of annotationRecords) {
       const { localName, propertyIri, languageTag, text } = annotationRecord;
       // The preferred name is shown as Name, and a label equal to it adds
       // nothing; a differing rdfs:label is surfaced under its own heading.
-      if (localName === "prefLabel") {
+      if (omitDisplayedLabel && localName === "prefLabel") {
         continue;
       }
       const groupName = localName === "label" ? "rdfs:label" : localName;
-      if (localName === "label" && text === displayLabel) {
+      if (
+        omitDisplayedLabel &&
+        localName === "label" &&
+        text === displayLabel
+      ) {
         continue;
       }
       annotationGroups[groupName] ||= [];
@@ -1100,15 +1055,11 @@ export function createSidebar(
   };
 
   function updateNavMenuScrollButtons() {
-    if (graph.options().navigationMenu && graph.options().navigationMenu()) {
-      graph.options().navigationMenu().updateScrollButtonVisibility();
-    }
+    updateNavigationOverflow();
   }
 
   function hideNavMenus() {
-    if (graph.options().navigationMenu && graph.options().navigationMenu()) {
-      graph.options().navigationMenu().hideAllMenus();
-    }
+    hideNavigationMenus();
   }
 
   function cancelPendingNoTransitionClassRemoval() {
@@ -1158,7 +1109,7 @@ export function createSidebar(
     }
 
     sidebar.updateDockedControlsPosition();
-    graph.updateCanvasContainerSize();
+    onViewportGeometryChanged();
     updateNavMenuScrollButtons();
 
     if (shouldSuppressInitialTransition === true) {
@@ -1199,7 +1150,7 @@ export function createSidebar(
           return;
         }
         detailsSidebar.classList.toggle("hidden", !isSidebarVisible);
-        graph.updateCanvasContainerSize();
+        onViewportGeometryChanged();
         updateNavMenuScrollButtons();
       },
       { signal: lifecycleAbortController.signal },
@@ -1213,12 +1164,6 @@ export function createSidebar(
     isSetup = true;
     setupCollapsing();
     sidebar.initSideBarAnimation();
-
-    document
-      .querySelector("#language")
-      .addEventListener("change", handleLanguageChange, {
-        signal: lifecycleAbortController.signal,
-      });
 
     sidebarToggleButton.addEventListener(
       "click",
@@ -1270,55 +1215,6 @@ export function createSidebar(
   sidebar.renderEditorMode = function (nextIsEditorMode) {
     isEditorMode = nextIsEditorMode === true;
     revealDetailsSectionForCurrentMode();
-  };
-
-  sidebar.updateShowedInformation = function () {
-    revealDetailsSectionForCurrentMode();
-
-    // store the meta information in graph.options()
-
-    // todo: update edit meta info
-    graph.options().editSidebar().updateGeneralOntologyInfo();
-
-    // todo: update showed meta info;
-    applicationUiModule("sidebar")?.updateGeneralOntologyInfo();
-  };
-
-  sidebar.updateGeneralOntologyInfo = function () {
-    // get it from graph.options
-    const generalMetaObj = graph.ontologyEditingState().getGeneralMetaObject();
-    const preferredLanguage = graph && graph.language ? graph.language() : null;
-    if (Object.prototype.hasOwnProperty.call(generalMetaObj, "title")) {
-      // title has language to it -.-
-      if (typeof generalMetaObj.title === "object") {
-        document.querySelector("#title").textContent =
-          languageTools.textInLanguage(generalMetaObj.title, preferredLanguage);
-      } else {
-        document.querySelector("#title").textContent = generalMetaObj.title;
-      }
-    }
-    if (Object.prototype.hasOwnProperty.call(generalMetaObj, "iri")) {
-      renderOntologyIri(document.querySelector("#about"), generalMetaObj.iri);
-    }
-    if (Object.prototype.hasOwnProperty.call(generalMetaObj, "version")) {
-      document.querySelector("#version").textContent = generalMetaObj.version;
-    }
-    if (Object.prototype.hasOwnProperty.call(generalMetaObj, "author")) {
-      document.querySelector("#authors").textContent = generalMetaObj.author;
-    }
-    // this could also be an object >>
-    if (Object.prototype.hasOwnProperty.call(generalMetaObj, "description")) {
-      if (typeof generalMetaObj.description === "object") {
-        document.querySelector("#description").textContent =
-          languageTools.textInLanguage(
-            generalMetaObj.description,
-            preferredLanguage,
-          );
-      } else {
-        document.querySelector("#description").textContent =
-          generalMetaObj.description;
-      }
-    }
   };
 
   return sidebar;

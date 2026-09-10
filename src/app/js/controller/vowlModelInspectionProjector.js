@@ -410,7 +410,11 @@ export function projectOntologyInspectionSnapshot(vowlModel, loadGeneration) {
             (authorName) =>
               typeof authorName === "string" && authorName.length > 0,
           )
-        : [],
+        : typeof ontologyHeader.author === "string" &&
+            ontologyHeader.author.length > 0
+          ? [ontologyHeader.author]
+          : [],
+      annotationRecords: annotationRecordsFrom(ontologyHeader.other),
     },
     classRecords,
     propertyRecords,

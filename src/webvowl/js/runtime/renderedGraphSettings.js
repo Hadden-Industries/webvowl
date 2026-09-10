@@ -7,7 +7,7 @@ export function createRenderedGraphSettings() {
   // Settings-level warnings travel through a caller-supplied channel; the
   // settings object holds no presentation module of its own.
   let data,
-    graphContainerSelector,
+    graphContainerElement,
     classDistance = 200,
     datatypeDistance = 120,
     loopDistance = 150,
@@ -23,8 +23,6 @@ export function createRenderedGraphSettings() {
     dynamicLabelWidth = true,
     // some filters
     literalFilter,
-    // menus
-    graphObject,
     datatypeFilter,
     focuserModule;
   let colorExternalsModule;
@@ -43,25 +41,11 @@ export function createRenderedGraphSettings() {
   let showRenderingStatistic = true;
   let showInputModality = false;
   let nodeDegreeFilter;
-  let debugMenu;
-  let gravityMenu;
-  let modeMenu;
-  let pauseMenu;
-  let resetMenu;
-  let navigationMenu;
-  let leftSidebar;
-  let editSidebar;
   let pickAndPinModule;
 
   // Presentation supplies the channel that surfaces a rejected setting; the
   // settings object never holds a presentation module itself.
 
-  renderedGraphSettings.debugMenu = function (val) {
-    if (!arguments.length) {
-      return debugMenu;
-    }
-    debugMenu = val;
-  };
   renderedGraphSettings.datatypeFilter = function (val) {
     if (!arguments.length) {
       return datatypeFilter;
@@ -97,12 +81,6 @@ export function createRenderedGraphSettings() {
       return showInputModality;
     }
     showInputModality = val;
-  };
-  renderedGraphSettings.graphObject = function (val) {
-    if (!arguments.length) {
-      return graphObject;
-    }
-    graphObject = val;
   };
   renderedGraphSettings.drawPropertyDraggerOnHover = function (val) {
     if (!arguments.length) {
@@ -225,11 +203,11 @@ export function createRenderedGraphSettings() {
     filterModules = p;
     return renderedGraphSettings;
   };
-  renderedGraphSettings.graphContainerSelector = function (p) {
+  renderedGraphSettings.graphContainerElement = function (p) {
     if (!arguments.length) {
-      return graphContainerSelector;
+      return graphContainerElement;
     }
-    graphContainerSelector = p;
+    graphContainerElement = p;
     return renderedGraphSettings;
   };
   renderedGraphSettings.gravity = function (p) {
@@ -301,48 +279,6 @@ export function createRenderedGraphSettings() {
     }
     nodeDegreeFilter = p;
     return renderedGraphSettings;
-  };
-  renderedGraphSettings.gravityMenu = function (val) {
-    if (!arguments.length) {
-      return gravityMenu;
-    }
-    gravityMenu = val;
-  };
-  renderedGraphSettings.modeMenu = function (val) {
-    if (!arguments.length) {
-      return modeMenu;
-    }
-    modeMenu = val;
-  };
-  renderedGraphSettings.pausedMenu = function (val) {
-    if (!arguments.length) {
-      return pauseMenu;
-    }
-    pauseMenu = val;
-  };
-  renderedGraphSettings.resetMenu = function (val) {
-    if (!arguments.length) {
-      return resetMenu;
-    }
-    resetMenu = val;
-  };
-  renderedGraphSettings.navigationMenu = function (val) {
-    if (!arguments.length) {
-      return navigationMenu;
-    }
-    navigationMenu = val;
-  };
-  renderedGraphSettings.leftSidebar = function (val) {
-    if (!arguments.length) {
-      return leftSidebar;
-    }
-    leftSidebar = val;
-  };
-  renderedGraphSettings.editSidebar = function (val) {
-    if (!arguments.length) {
-      return editSidebar;
-    }
-    editSidebar = val;
   };
   renderedGraphSettings.pickAndPinModule = function (val) {
     if (!arguments.length) {

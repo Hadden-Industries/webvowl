@@ -27,6 +27,7 @@ export const WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "renderProgress",
   "degreeFilterRange",
   "editorMode",
+  "renderingStatistics",
   "error",
 ]);
 

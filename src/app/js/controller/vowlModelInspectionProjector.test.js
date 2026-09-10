@@ -43,6 +43,42 @@ beforeAll(async () => {
   ));
 });
 
+test("retains header annotations and a legacy single author for both readers", () => {
+  const snapshot = projectOntologyInspectionSnapshot(
+    {
+      header: {
+        author: "Ontology author",
+        other: {
+          creator: [
+            {
+              identifier: "creator",
+              predicateNs: "http://purl.org/dc/terms/",
+              value: "Research team",
+              language: "en",
+              type: "label",
+            },
+          ],
+        },
+      },
+      class: [],
+      property: [],
+    },
+    1,
+  );
+  expect(snapshot.ontologyHeaderRecord.authorNames).toEqual([
+    "Ontology author",
+  ]);
+  expect(snapshot.ontologyHeaderRecord.annotationRecords).toEqual([
+    {
+      localName: "creator",
+      propertyIri: "http://purl.org/dc/terms/creator",
+      languageTag: "en",
+      text: "Research team",
+      valueKind: "literal",
+    },
+  ]);
+});
+
 // VOWL states a subclass or disjointness relation as a property record whose
 // domain and range name the two classes, not as a field on the class itself.
 function countPropertyRecordsOfType(vowlModel, propertyType) {

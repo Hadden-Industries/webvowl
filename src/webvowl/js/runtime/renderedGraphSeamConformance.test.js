@@ -1,6 +1,7 @@
 import { describe, expect, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { Linter } from "eslint";
 
 // The adapter and its unit tests both speak to renderedGraphInternals through
 // doubles. Nothing in those tests compares a double's shape to the real
@@ -36,15 +37,31 @@ const FILTER_MODULE_SOURCE_PATHS = Object.freeze({
 });
 
 function membersCalledOn(moduleSource, receiverName) {
-  const memberPattern = new RegExp(
-    `(?<![A-Za-z0-9_$])${receiverName}\\s*(?:\\?\\.)?\\.\\s*([A-Za-z_$][A-Za-z0-9_$]*)`,
-    "gu",
-  );
-  return new Set(
-    [...moduleSource.matchAll(memberPattern)].map(
-      ([, memberName]) => memberName,
-    ),
-  );
+  const members = new Set();
+  const diagnostics = new Linter().verify(moduleSource, {
+    plugins: {
+      inspection: {
+        rules: {
+          members: {
+            create: () => ({
+              MemberExpression(node) {
+                if (
+                  node.object.type === "Identifier" &&
+                  node.object.name === receiverName &&
+                  !node.computed
+                ) {
+                  members.add(node.property.name);
+                }
+              },
+            }),
+          },
+        },
+      },
+    },
+    rules: { "inspection/members": "error" },
+  });
+  expect(diagnostics).toEqual([]);
+  return members;
 }
 
 function membersDeclaredOn(moduleSource, receiverName) {

@@ -1,7 +1,5 @@
 import { createHash, webcrypto } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { SourceTextModule } from "node:vm";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 import {
   beforeAll,
   beforeEach,
@@ -13,99 +11,11 @@ import {
 
 let createVisualizationArtifactService;
 
-const ARTIFACT_SERVICE_MODULE_URL = new URL(
-  "./visualizationArtifactService.js",
-  import.meta.url,
-);
-const SERIALIZER_MODULE_URL = new URL("./svgSerializer.js", import.meta.url);
-const RENDERED_GRAPH_CONTRACTS_MODULE_URL = new URL(
-  "./renderedGraphRuntimeContracts.js",
-  import.meta.url,
-);
-const WEB_VOWL_CONTRACTS_MODULE_URL = new URL(
-  "./webVowlControllerContracts.js",
-  import.meta.url,
-);
-
-async function createDependencyFreeModule(moduleUrl) {
-  const sourceModule = new SourceTextModule(
-    readFileSync(fileURLToPath(moduleUrl), "utf8"),
-    { identifier: moduleUrl.href },
-  );
-  await sourceModule.link((specifier) => {
-    throw new Error(
-      `Unexpected SVG artifact contract dependency: ${specifier}`,
-    );
-  });
-  await sourceModule.evaluate();
-  return sourceModule;
-}
-
 beforeAll(async () => {
-  const webVowlContractsModule = await createDependencyFreeModule(
-    WEB_VOWL_CONTRACTS_MODULE_URL,
-  );
-  const renderedGraphContractsModule = new SourceTextModule(
-    readFileSync(fileURLToPath(RENDERED_GRAPH_CONTRACTS_MODULE_URL), "utf8"),
-    { identifier: RENDERED_GRAPH_CONTRACTS_MODULE_URL.href },
-  );
-  await renderedGraphContractsModule.link((specifier) => {
-    if (specifier === "./webVowlControllerContracts.js") {
-      return webVowlContractsModule;
-    }
-    throw new Error(`Unexpected rendered-SVG dependency: ${specifier}`);
-  });
-  await renderedGraphContractsModule.evaluate();
-
-  const serializerModule = new SourceTextModule(
-    readFileSync(fileURLToPath(SERIALIZER_MODULE_URL), "utf8"),
-    { identifier: SERIALIZER_MODULE_URL.href },
-  );
-  await serializerModule.link((specifier) => {
-    if (specifier === "./renderedGraphRuntimeContracts.js") {
-      return renderedGraphContractsModule;
-    }
-    if (specifier === "./webVowlControllerContracts.js") {
-      return webVowlContractsModule;
-    }
-    throw new Error(`Unexpected SVG serializer dependency: ${specifier}`);
-  });
-  await serializerModule.evaluate();
-
-  const drawingModule = await createDependencyFreeModule(
-    new URL("./renderedDrawingSnapshot.js", import.meta.url),
-  );
-  const tikzUrl = new URL("./tikzSerializer.js", import.meta.url);
-  const tikzModule = new SourceTextModule(
-    readFileSync(fileURLToPath(tikzUrl), "utf8"),
-    { identifier: tikzUrl.href },
-  );
-  await tikzModule.link((specifier) => {
-    if (specifier === "./renderedDrawingSnapshot.js") {
-      return drawingModule;
-    }
-    throw new Error(`Unexpected TikZ serializer dependency: ${specifier}`);
-  });
-  await tikzModule.evaluate();
-
-  const artifactServiceModule = new SourceTextModule(
-    readFileSync(fileURLToPath(ARTIFACT_SERVICE_MODULE_URL), "utf8"),
-    { identifier: ARTIFACT_SERVICE_MODULE_URL.href },
-  );
-  await artifactServiceModule.link((specifier) => {
-    if (specifier === "./tikzSerializer.js") {
-      return tikzModule;
-    }
-    if (specifier === "./svgSerializer.js") {
-      return serializerModule;
-    }
-    if (specifier === "./webVowlControllerContracts.js") {
-      return webVowlContractsModule;
-    }
-    throw new Error(`Unexpected SVG artifact service dependency: ${specifier}`);
-  });
-  await artifactServiceModule.evaluate();
-  ({ createVisualizationArtifactService } = artifactServiceModule.namespace);
+  ({ createVisualizationArtifactService } = await loadEsmModuleForTest(
+    new URL("./visualizationArtifactService.js", import.meta.url),
+    import.meta.url,
+  ));
 });
 
 function createViewRecipe() {

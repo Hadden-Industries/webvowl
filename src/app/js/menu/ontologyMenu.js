@@ -1,4 +1,4 @@
-import { applicationUiModule } from "../ui/applicationUiRegistry.js";
+import { runVisualizationControlAction } from "../ui/visualizationControlAction.js";
 const ONTOLOGY_URL_HINT = "Enter an ontology URL";
 const ONTOLOGY_URL_ERROR = "Enter a valid HTTP or HTTPS URL";
 
@@ -51,86 +51,65 @@ function normalizeOntologyUrl(value) {
   };
 }
 
-function createOntologyMenu(
-  graph,
-  {
-    documentObject = globalThis.document,
-    locationObject = globalThis.location,
-    webVowlController,
-    windowObject = globalThis.window,
-  } = {},
-) {
+function createOntologyMenu({
+  documentObject = globalThis.document,
+  locationObject = globalThis.location,
+  webVowlController,
+  loadOntologyFromLocation,
+  loadDroppedFile,
+  createNewOntology,
+  scrollLoadingDetails,
+  hideNavigationMenus,
+  windowObject = globalThis.window,
+} = {}) {
   const ontologyMenu = {};
-  const loadingInfo = documentObject.getElementById("loading-info");
-  const loadingProgress = documentObject.getElementById("loading-progress");
 
-  let stopTimer = false;
-  const loadingError = false;
-  let loadingStatusTimer;
-  let conversion_sessionId;
-  const cachedConversions = {};
-  let loadingModule;
-  let currentLoadedOntologyName = "";
-
-  ontologyMenu.clearCachedVersion = function () {
-    if (cachedConversions[currentLoadedOntologyName]) {
-      cachedConversions[currentLoadedOntologyName] = undefined;
+  ontologyMenu.reloadOntologySource = async function () {
+    const source = webVowlController.getState().source;
+    const requestSource =
+      source?.kind === "ontology-document-iri"
+        ? { kind: source.kind, documentIri: source.identity }
+        : source?.kind === "vowl-json-url"
+          ? { kind: source.kind, url: source.identity }
+          : null;
+    if (requestSource === null) {
+      return;
     }
+    return webVowlController.loadOntology({
+      source: requestSource,
+      reuseCachedOntology: false,
+    });
   };
 
-  ontologyMenu.reloadCachedOntology = function () {
-    ontologyMenu.clearCachedVersion();
-    loadingModule.loadOntologyFromLocation({ shouldCache: false });
-  };
-
-  ontologyMenu.cachedOntology = function (ontoName) {
-    currentLoadedOntologyName = ontoName;
-    if (cachedConversions[ontoName]) {
-      const locStr = String(locationObject.hash);
-      const reloadBtn = documentObject.getElementById("reloadCachedOntology");
-      if (reloadBtn) {
-        reloadBtn.disabled = false;
-      }
-      if (typeof graph.showReloadButtonAfterLayoutOptimization === "function") {
-        graph.showReloadButtonAfterLayoutOptimization(true);
-      }
-      if (locStr.indexOf("#file") > -1) {
-        if (reloadBtn) {
-          reloadBtn.disabled = true;
-          reloadBtn.title =
-            "reloading original version not possible, please reload the file";
-        }
-      } else {
-        if (reloadBtn) {
-          reloadBtn.title =
-            "generate new visualization and overwrite cached ontology";
-        }
-      }
-    } else {
-      if (typeof graph.showReloadButtonAfterLayoutOptimization === "function") {
-        graph.showReloadButtonAfterLayoutOptimization(false);
-      }
+  ontologyMenu.renderOntologySource = function (source) {
+    const reloadButton = documentObject.getElementById("reloadOntologySource");
+    if (!reloadButton) {
+      return;
     }
-    return cachedConversions[ontoName];
-  };
-  ontologyMenu.setCachedOntology = function (ontoName, ontoContent) {
-    cachedConversions[ontoName] = ontoContent;
-    currentLoadedOntologyName = ontoName;
-  };
-
-  ontologyMenu.getErrorStatus = function () {
-    return loadingError;
+    const remote = ["ontology-document-iri", "vowl-json-url"].includes(
+      source?.kind,
+    );
+    reloadButton.disabled = !remote;
+    reloadButton.title = remote
+      ? "Retrieve the original ontology again and replace its cached visualization"
+      : "Select the local file again to reload its original content";
+    reloadButton.classList.toggle("hidden", !source);
   };
 
   ontologyMenu.setup = function () {
-    loadingModule = applicationUiModule("loadingModule");
-
     setupConverterButtons();
     setupUploadButton();
     setupEmptyButton();
+    documentObject
+      .getElementById("reloadOntologySource")
+      ?.addEventListener("click", () => {
+        void runVisualizationControlAction(
+          () => ontologyMenu.reloadOntologySource(),
+          documentObject,
+        );
+      });
 
     setupUriListener();
-    loadingModule.setOntologyMenu(ontologyMenu);
   };
 
   function setupUriListener() {
@@ -143,15 +122,10 @@ function createOntologyMenu(
         if (newURL === oldURL + "#") {
           return;
         }
-        loadingModule.loadOntologyFromLocation();
+        loadOntologyFromLocation();
       }
     });
   }
-
-  ontologyMenu.stopLoadingTimer = function () {
-    stopTimer = true;
-    clearTimeout(loadingStatusTimer);
-  };
 
   ontologyMenu.setIriText = function (text) {
     const iriInput = documentObject.getElementById("iri-converter-input");
@@ -199,7 +173,7 @@ function createOntologyMenu(
     const div = documentObject.createElement("div");
     bpContainer.appendChild(div);
     appendStructuredMessage(div, msg, options);
-    loadingModule.scrollDownDetails();
+    scrollLoadingDetails?.();
   }
 
   ontologyMenu.append_message_toLastBulletPoint = function (msg, options) {
@@ -218,7 +192,7 @@ function createOntologyMenu(
     if (lastItem >= 0) {
       appendStructuredMessage(htmlCollection[lastItem], msg, options);
     }
-    loadingModule.scrollDownDetails();
+    scrollLoadingDetails?.();
   }
 
   function append_bulletPoint(msg) {
@@ -227,7 +201,7 @@ function createOntologyMenu(
     bp.textContent = msg;
     bp_container.appendChild(bp);
     documentObject.getElementById("currentLoadingStep").textContent = msg;
-    loadingModule.scrollDownDetails();
+    scrollLoadingDetails?.();
   }
 
   function setupConverterButtons() {
@@ -355,7 +329,7 @@ function createOntologyMenu(
         uploadButton.disabled = false;
         uploadButton.click();
         // close menu;
-        graph.options().navigationMenu().hideAllMenus();
+        hideNavigationMenus?.();
       }
     });
 
@@ -365,8 +339,12 @@ function createOntologyMenu(
         return false;
       }
       // The selected file itself is the source; the route only records it.
-      locationObject.hash = "file=" + selectedFile.name;
-      loadingModule.loadDroppedFile(selectedFile);
+      windowObject.history.pushState(
+        null,
+        "",
+        "#file=" + encodeURIComponent(selectedFile.name),
+      );
+      loadDroppedFile(selectedFile);
     });
   }
 
@@ -410,6 +388,8 @@ function createOntologyMenu(
     }
   }
 
+  ontologyMenu.renderEditorMode = updateEditorModeDependentControls;
+
   function setupEmptyButton() {
     const emptyButton = documentObject.getElementById("empty");
     if (emptyButton) {
@@ -417,485 +397,13 @@ function createOntologyMenu(
         if (emptyButton.disabled) {
           return false;
         }
-        loadingModule.createNewOntology();
-        graph.options().navigationMenu().hideAllMenus();
+        createNewOntology();
+        hideNavigationMenus?.();
       });
     }
-    updateEditorModeDependentControls(graph.editorMode());
-    graph.addEventListener("editorchange", function (event) {
-      updateEditorModeDependentControls(event.detail.value);
-    });
-  }
-
-  function appendLoadingStatusText(container, message) {
-    const validatorUrl = "http://visualdataweb.de/validator/";
-    const parts = String(message).split(validatorUrl);
-    parts.forEach(function (part, index) {
-      const span = documentObject.createElement("span");
-      span.textContent = part;
-      container.appendChild(span);
-      if (index < parts.length - 1) {
-        const a = documentObject.createElement("a");
-        a.setAttribute("href", validatorUrl);
-        a.setAttribute("target", "_blank");
-        a.setAttribute("rel", "noopener noreferrer");
-        a.textContent = "OWL Validator";
-        container.appendChild(a);
-      }
-    });
-  }
-
-  function setLoadingStatusInfo(message, errorMessage) {
-    // check if there is a owl2vowl li item;
-    let o2vConverterContainer = documentObject.getElementById(
-      "o2vConverterContainer",
+    updateEditorModeDependentControls(
+      webVowlController.getState().editorMode?.isEditorMode === true,
     );
-    if (!o2vConverterContainer) {
-      const bp_container = documentObject.getElementById(
-        "bulletPoint_container",
-      );
-      const div = documentObject.createElement("div");
-      bp_container.appendChild(div);
-      o2vConverterContainer = documentObject.createElement("ul");
-      o2vConverterContainer.setAttribute("id", "o2vConverterContainer");
-      div.appendChild(o2vConverterContainer);
-    }
-    o2vConverterContainer.innerHTML = "";
-    // split tokens provided by o2v messages
-    const tokens = message.split("* ");
-    for (let t = 0; t < tokens.length; t++) {
-      const tokenMessage = tokens[t];
-      // create li for tokens;
-      if (tokenMessage.length > 0) {
-        const liForToken = documentObject.createElement("li");
-        o2vConverterContainer.appendChild(liForToken);
-        liForToken.setAttribute("type", "disc");
-        liForToken.classList.add("loading-status-entry");
-        appendLoadingStatusText(liForToken, tokenMessage);
-      }
-    }
-    if (errorMessage) {
-      const errorEntry = documentObject.createElement("li");
-      o2vConverterContainer.appendChild(errorEntry);
-      errorEntry.setAttribute("type", "disc");
-      errorEntry.classList.add("loading-status-entry");
-      errorEntry.classList.add("loading-message--error");
-      appendLoadingStatusText(errorEntry, errorMessage);
-    }
-
-    loadingModule.scrollDownDetails();
-  }
-
-  ontologyMenu.setLoadingStatusInfo = function (message) {
-    // forward call
-    setLoadingStatusInfo(message);
-  };
-
-  function getLoadingStatusOnceCallBacked(callback, parameter) {
-    fetch("loadingStatus?sessionId=" + conversion_sessionId, {
-      headers: { Accept: "application/text" },
-    })
-      .then(function (response) {
-        if (!response.ok) {
-          throw response;
-        }
-        return response.text();
-      })
-      .then(function (responseText) {
-        setLoadingStatusInfo(responseText);
-        callback(parameter);
-      })
-      .catch(function (error) {
-        console.warn(
-          "ontologyMenu getLoadingStatusOnceCallBacked throws error",
-        );
-        console.warn("---------Error -----------");
-        console.warn(error);
-        callback(parameter);
-      });
-  }
-
-  function getLoadingStatusTimeLooped() {
-    fetch("loadingStatus?sessionId=" + conversion_sessionId, {
-      headers: { Accept: "application/text" },
-    })
-      .then(function (response) {
-        if (!response.ok) {
-          throw response;
-        }
-        return response.text();
-      })
-      .then(function (responseText) {
-        if (stopTimer === false) {
-          setLoadingStatusInfo(responseText);
-          timedLoadingStatusLogger();
-        }
-      })
-      .catch(function (error) {
-        console.warn("ontologyMenu getLoadingStatusTimeLooped throws error");
-        console.warn("---------Error -----------");
-        console.warn(error);
-        if (stopTimer === false) {
-          timedLoadingStatusLogger();
-        }
-      });
-  }
-
-  function timedLoadingStatusLogger() {
-    clearTimeout(loadingStatusTimer);
-    if (stopTimer === false) {
-      loadingStatusTimer = setTimeout(function () {
-        getLoadingStatusTimeLooped();
-      }, 1000);
-    }
-  }
-
-  function callbackUpdateLoadingMessage(msg) {
-    fetch("loadingStatus", { headers: { Accept: "application/text" } })
-      .then(function (response) {
-        if (!response.ok) {
-          throw response;
-        }
-        return response.text();
-      })
-      .then(function (responseText) {
-        setLoadingStatusInfo(responseText, msg);
-      })
-      .catch(function (error) {
-        append_message(msg, { tone: "error" });
-      });
-  }
-
-  ontologyMenu.setConversionID = function (id) {
-    conversion_sessionId = id;
-  };
-
-  ontologyMenu.callbackLoad_Ontology_FromIRI = function (parameter) {
-    const relativePath = parameter[0];
-    const ontoName = parameter[1];
-    const localThreadId = parameter[2];
-    stopTimer = false;
-    timedLoadingStatusLogger();
-    fetch(relativePath, { headers: { Accept: "application/json" } })
-      .then(function (response) {
-        if (!response.ok) {
-          throw response;
-        }
-        return response.text();
-      })
-      .then(function (responseText) {
-        if (responseText.length === 0) {
-          clearTimeout(loadingStatusTimer);
-          stopTimer = true;
-          getLoadingStatusOnceCallBacked(callbackFromIRI_URL_ERROR, [
-            null,
-            { responseText: responseText },
-            localThreadId,
-          ]);
-        } else {
-          clearTimeout(loadingStatusTimer);
-          stopTimer = true;
-          const jsonText = responseText;
-          getLoadingStatusOnceCallBacked(callbackFromIRI_Success, [
-            jsonText,
-            ontoName,
-            localThreadId,
-          ]);
-        }
-      })
-      .catch(function (error) {
-        clearTimeout(loadingStatusTimer);
-        stopTimer = true;
-        getLoadingStatusOnceCallBacked(callbackFromIRI_URL_ERROR, [
-          error,
-          null,
-          localThreadId,
-        ]);
-      });
-  };
-
-  ontologyMenu.callbackLoad_Ontology_From_DirectInput = function (
-    text,
-    parameter,
-  ) {
-    const input = text;
-    const sessionId = parameter[1];
-    stopTimer = false;
-    timedLoadingStatusLogger();
-
-    const formData = new FormData();
-    formData.append("input", input);
-    formData.append("sessionId", sessionId);
-    const xhr = new XMLHttpRequest();
-
-    xhr.open("POST", "directInput", true);
-    xhr.onload = function () {
-      clearTimeout(loadingStatusTimer);
-      stopTimer = true;
-      getLoadingStatusOnceCallBacked(callbackForConvert, [
-        xhr,
-        input,
-        sessionId,
-      ]);
-    };
-    timedLoadingStatusLogger();
-    xhr.send(formData);
-  };
-  function callbackFromIRI_Success(parameter) {
-    const local_conversionId = parameter[2];
-    if (local_conversionId !== conversion_sessionId) {
-      console.warn(
-        "The conversion process for file:" +
-          parameter[1] +
-          " has been canceled!",
-      );
-      ontologyMenu.conversionFinished(local_conversionId);
-      return;
-    }
-    ontologyMenu.loadConvertedVowlModel(parameter[0], parameter[1]);
-    ontologyMenu.conversionFinished();
-  }
-
-  // A converter response is VOWL JSON. It is parsed once here and enters the
-  // controller as a model, never as text forwarded through another module.
-  ontologyMenu.loadConvertedVowlModel = async function (
-    vowlJsonText,
-    displayName,
-  ) {
-    let vowlModel;
-    try {
-      vowlModel = JSON.parse(vowlJsonText);
-    } catch (parseError) {
-      ontologyMenu.append_message_toLastBulletPoint("failed", {
-        tone: "error",
-      });
-      ontologyMenu.append_bulletPoint(
-        "The conversion result is not valid VOWL JSON: " + parseError.message,
-      );
-      return;
-    }
-    ontologyMenu.setCachedOntology(displayName, vowlModel);
-    await webVowlController.loadOntology({
-      source: { kind: "vowl-model", model: vowlModel, displayName },
-    });
-  };
-
-  ontologyMenu.getConversionId = function () {
-    return conversion_sessionId;
-  };
-
-  ontologyMenu.callbackLoad_JSON_FromURL = function (parameter) {
-    const relativePath = parameter[0];
-    const ontoName = parameter[1];
-    const local_conversionId = parameter[2];
-    stopTimer = false;
-    timedLoadingStatusLogger();
-    fetch(relativePath, { headers: { Accept: "application/json" } })
-      .then(function (response) {
-        if (!response.ok) {
-          throw response;
-        }
-        return response.text();
-      })
-      .then(function (responseText) {
-        if (responseText.length === 0) {
-          clearTimeout(loadingStatusTimer);
-          stopTimer = true;
-          getLoadingStatusOnceCallBacked(callbackFromJSON_URL_ERROR, [
-            null,
-            { responseText: responseText },
-            local_conversionId,
-          ]);
-        } else {
-          clearTimeout(loadingStatusTimer);
-          stopTimer = true;
-          const jsonText = responseText;
-          getLoadingStatusOnceCallBacked(callbackFromJSON_Success, [
-            jsonText,
-            ontoName,
-            local_conversionId,
-          ]);
-        }
-      })
-      .catch(function (error) {
-        clearTimeout(loadingStatusTimer);
-        stopTimer = true;
-        getLoadingStatusOnceCallBacked(callbackFromJSON_URL_ERROR, [
-          error,
-          null,
-          local_conversionId,
-        ]);
-      });
-  };
-
-  function callbackFromJSON_Success(parameter) {
-    const local_conversionId = parameter[2];
-    if (local_conversionId !== conversion_sessionId) {
-      console.warn(
-        "The conversion process for file:" +
-          parameter[1] +
-          " has been canceled!",
-      );
-      return;
-    }
-    ontologyMenu.loadConvertedVowlModel(parameter[0], parameter[1]);
-  }
-
-  function callbackFromJSON_URL_ERROR(parameter) {
-    const error = parameter[0];
-    const request = parameter[1];
-    const local_conversionId = parameter[2];
-    if (local_conversionId !== conversion_sessionId) {
-      console.warn("This thread has been canceled!!");
-      ontologyMenu.conversionFinished(local_conversionId);
-      return;
-    }
-    callbackUpdateLoadingMessage(
-      "Failed to convert the file. Ontology could not be loaded. " +
-        "Is it a valid OWL ontology? Check with http://visualdataweb.de/validator/",
-    );
-
-    if (error !== null && error.status === 500) {
-      append_message("Could not find ontology at the URL", { tone: "error" });
-    }
-    if (request && request.responseText.length === 0) {
-      append_message("Received empty graph", { tone: "error" });
-    }
-    graph.handleOnLoadingError();
-    ontologyMenu.conversionFinished();
-  }
-
-  function callbackFromIRI_URL_ERROR(parameter) {
-    const error = parameter[0];
-    const request = parameter[1];
-    const local_conversionId = parameter[2];
-    if (local_conversionId !== conversion_sessionId) {
-      console.warn("This thread has been canceled!!");
-      ontologyMenu.conversionFinished(local_conversionId);
-      return;
-    }
-    callbackUpdateLoadingMessage(
-      "Failed to convert the file. Ontology could not be loaded. " +
-        "Is it a valid OWL ontology? Check with http://visualdataweb.de/validator/",
-    );
-
-    if (error !== null && error.status === 500) {
-      append_message("Could not find ontology at the URL", { tone: "error" });
-    }
-    if (request && request.responseText.length === 0) {
-      append_message("Received empty graph", { tone: "error" });
-    }
-    graph.handleOnLoadingError();
-    ontologyMenu.conversionFinished();
-  }
-
-  ontologyMenu.callbackLoadFromOntology = function (
-    selectedFile,
-    filename,
-    local_threadId,
-  ) {
-    callbackLoadFromOntology(selectedFile, filename, local_threadId);
-  };
-
-  function callbackLoadFromOntology(selectedFile, filename, local_threadId) {
-    stopTimer = false;
-    timedLoadingStatusLogger();
-
-    const formData = new FormData();
-    formData.append("ontology", selectedFile);
-    formData.append("sessionId", local_threadId);
-    const xhr = new XMLHttpRequest();
-
-    xhr.open("POST", "convert", true);
-    xhr.onload = function () {
-      clearTimeout(loadingStatusTimer);
-      stopTimer = true;
-      console.warn(xhr);
-      getLoadingStatusOnceCallBacked(callbackForConvert, [
-        xhr,
-        filename,
-        local_threadId,
-      ]);
-    };
-    timedLoadingStatusLogger();
-    xhr.send(formData);
-  }
-
-  function callbackForConvert(parameter) {
-    const xhr = parameter[0];
-    const filename = parameter[1];
-    const local_threadId = parameter[2];
-    if (local_threadId !== conversion_sessionId) {
-      console.warn(
-        "The conversion process for file:" + filename + " has been canceled!",
-      );
-      ontologyMenu.conversionFinished(local_threadId);
-      return;
-    }
-    if (xhr.status === 200) {
-      ontologyMenu.loadConvertedVowlModel(xhr.responseText, filename);
-      ontologyMenu.conversionFinished();
-    } else {
-      const uglyJson = xhr.responseText;
-      const jsonResut = JSON.parse(uglyJson);
-      const niceJSON = JSON.stringify(jsonResut, null, 2);
-      callbackUpdateLoadingMessage(
-        "Failed to convert the file.\nServer answer:\n" +
-          niceJSON +
-          "\nOntology could not be loaded. Is it a valid OWL ontology? " +
-          "Check with http://visualdataweb.de/validator/",
-      );
-
-      graph.handleOnLoadingError();
-      ontologyMenu.conversionFinished();
-    }
-  }
-
-  ontologyMenu.conversionFinished = function (id) {
-    let local_id = conversion_sessionId;
-    if (id) {
-      local_id = id;
-    }
-    fetch("conversionDone?sessionId=" + local_id, {
-      headers: { Accept: "application/text" },
-    })
-      .then(function (response) {
-        if (!response.ok) {
-          throw response;
-        }
-        return response.text();
-      })
-      .catch(function (error) {
-        console.warn("ontologyMenu conversionFinished throws error");
-        console.warn("---------Error -----------");
-        console.warn(error);
-      });
-  };
-
-  ontologyMenu.showLoadingStatus = function (visible) {
-    if (visible === true) {
-      displayLoadingIndicators();
-    } else {
-      hideLoadingInformations();
-    }
-  };
-
-  function displayLoadingIndicators() {
-    documentObject
-      .getElementById("layoutLoadingProgressBarContainer")
-      .classList.remove("hidden");
-    if (loadingInfo) {
-      loadingInfo.classList.remove("hidden");
-    }
-    if (loadingProgress) {
-      loadingProgress.classList.remove("hidden");
-    }
-  }
-
-  function hideLoadingInformations() {
-    if (loadingInfo) {
-      loadingInfo.classList.add("hidden");
-    }
   }
 
   return ontologyMenu;

@@ -48,7 +48,6 @@ function createPresentationSpies() {
   return {
     renderLoadState: jest.fn(),
     renderGraphLayoutPaused: jest.fn(),
-    renderSelectedOntologyElements: jest.fn(),
     renderSelectedOntologyElementDetails: jest.fn(),
     renderOntologySummary: jest.fn(),
     renderViewport: jest.fn(),
@@ -84,7 +83,7 @@ describe("controller state presentation", () => {
       false,
     );
     expect(
-      presentationSpies.renderSelectedOntologyElements,
+      presentationSpies.renderSelectedOntologyElementDetails,
     ).toHaveBeenCalledTimes(1);
     expect(presentationSpies.renderOntologySummary).toHaveBeenCalledTimes(1);
   });
@@ -108,9 +107,6 @@ describe("controller state presentation", () => {
     expect(presentationSpies.describeOntologyElements).not.toHaveBeenCalled();
     expect(
       presentationSpies.renderSelectedOntologyElementDetails,
-    ).not.toHaveBeenCalled();
-    expect(
-      presentationSpies.renderSelectedOntologyElements,
     ).not.toHaveBeenCalled();
     expect(presentationSpies.renderLoadState).not.toHaveBeenCalled();
     expect(presentationSpies.renderGraphLayoutPaused).not.toHaveBeenCalled();
@@ -148,6 +144,31 @@ describe("controller state presentation", () => {
       presentationSpies.renderSelectedOntologyElementDetails,
     ).not.toHaveBeenCalled();
     expect(presentationSpies.renderGraphLayoutPaused).toHaveBeenCalledTimes(1);
+  });
+
+  test("refreshes descriptions and the summary for a changed label language only", () => {
+    const { presentationSpies, presenter } = mountPresenter({
+      selection: [PERSON_REFERENCE],
+      view: { language: "en" },
+    });
+    presenter.present(
+      createControllerState({
+        selection: [PERSON_REFERENCE],
+        view: { language: "fr" },
+      }),
+      ["view"],
+    );
+    expect(presentationSpies.describeOntologyElements).toHaveBeenCalledTimes(1);
+    expect(presentationSpies.readOntologySummary).toHaveBeenCalledTimes(1);
+    presenter.present(
+      createControllerState({
+        selection: [PERSON_REFERENCE],
+        view: { language: "fr", focus: [PERSON_REFERENCE] },
+      }),
+      ["view"],
+    );
+    expect(presentationSpies.describeOntologyElements).toHaveBeenCalledTimes(1);
+    expect(presentationSpies.readOntologySummary).toHaveBeenCalledTimes(1);
   });
 
   test("presents the pause state when the layout field changes", () => {

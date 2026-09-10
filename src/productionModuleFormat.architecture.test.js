@@ -23,8 +23,8 @@ const ARCHITECTURE_TEST_MODULE_PATH =
 const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/app/js/directInputModule.js",
   "src/app/js/directInputModule.test.js",
-  "src/app/js/editSidebar.js",
-  "src/app/js/editSidebar.test.js",
+  "src/app/js/ontologyEditorSidebar.js",
+  "src/app/js/ontologyEditorSidebar.test.js",
   "src/app/js/leftSidebar.js",
   "src/app/js/leftSidebar.test.js",
   "src/app/js/loadingModule.js",
@@ -111,7 +111,7 @@ const APPLICATION_D3_MIGRATION_SOURCE_PATHS = Object.freeze([
 
 const TASK_5_NATIVE_UI_PRODUCTION_MODULE_PATHS = Object.freeze([
   "src/app/js/directInputModule.js",
-  "src/app/js/editSidebar.js",
+  "src/app/js/ontologyEditorSidebar.js",
   "src/app/js/leftSidebar.js",
   "src/app/js/loadingModule.js",
   "src/app/js/sidebar.js",

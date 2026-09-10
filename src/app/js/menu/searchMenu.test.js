@@ -1,5 +1,4 @@
 import { beforeAll, beforeEach, describe, expect, test } from "@jest/globals";
-import * as d3 from "d3";
 import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let searchMenuFactory;
@@ -130,6 +129,22 @@ class MockElement {
     return child;
   }
 
+  set textContent(value) {
+    this.children = [];
+    this.ownText = String(value);
+  }
+
+  get textContent() {
+    return (
+      (this.ownText ?? "") +
+      this.children.map((child) => child.textContent).join("")
+    );
+  }
+
+  set innerHTML(value) {
+    this.assignedMarkup = value;
+  }
+
   remove() {
     if (this.parentNode && this.parentNode.children) {
       const idx = this.parentNode.children.indexOf(this);
@@ -176,6 +191,10 @@ class MockDocument {
     return new MockElement("", "", tagName);
   }
 
+  createTextNode(text) {
+    return { nodeType: 3, textContent: String(text) };
+  }
+
   getElementById(id) {
     return this.elements[id] || null;
   }
@@ -211,7 +230,6 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
   let sharedSearchController;
   let sharedViewRequests;
   let mockDoc;
-  let mockGraph;
   let cSearch;
   let mobileToggleBtn;
   let searchInput;
@@ -289,7 +307,6 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     mockDoc.elements["scrollLeftButton"] = scrollLeft;
     mockDoc.elements["scrollRightButton"] = scrollRight;
 
-    global.d3 = d3;
     sharedViewRequests = [];
     sharedSearchController = {
       findOntologyElements: ({ query }) => ({
@@ -311,33 +328,82 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
         return Promise.resolve({});
       },
     };
-    mockGraph = {
-      getUpdateDictionary: () => [
-        {
-          labelForCurrentLanguage: () => "Person",
-          id: () => "1",
-          equivalents: () => [],
-          equivalentsString: () => "",
-        },
-      ],
-      locateSearchResult: () => {},
-      resetSearchHighlight: () => {},
-      highLightNodes: () => {
-        if (mockGraph.searchMenu) {
-          mockGraph.searchMenu.updateLocateButtonVisibility(true);
-        }
-      },
-    };
   });
 
+  test.each([
+    '<img src=x onerror="alert(1)">Person',
+    "Person & <script>alert(1)</script>",
+    "An ordinary Person label",
+  ])(
+    "renders the literal ontology label and a native query highlight: %s",
+    (label) => {
+      sharedSearchController.findOntologyElements = () => ({
+        matches: [
+          {
+            displayLabel: label,
+            isFocusable: true,
+            ontologyElementReference: {
+              kind: "class",
+              iri: "https://example.test/Person",
+            },
+          },
+        ],
+      });
+      const menu = searchMenuFactory({
+        documentObject: mockDoc,
+        windowObject: global.window,
+        webVowlController: sharedSearchController,
+      });
+      menu.setup();
+      searchInput.value = "Person";
+      searchInput.dispatchEvent({ type: "input", target: searchInput });
+      const option = listbox.children[0];
+      expect(option.assignedMarkup).toBeUndefined();
+      expect(option.textContent).toBe(label);
+      expect(
+        option.children[0].children.find((child) => child.tagName === "MARK")
+          .textContent,
+      ).toBe("Person");
+    },
+  );
+
+  test.each([
+    ["  https://example.test/ontology  ", "https://example.test/ontology"],
+    [
+      "http://localhost:8000/ontology.owl",
+      "http://localhost:8000/ontology.owl",
+    ],
+    ["http://[::1]:8000/ontology.owl", "http://[::1]:8000/ontology.owl"],
+  ])(
+    "offers an entered ontology URL to the ontology menu: %s",
+    (input, expected) => {
+      const offeredIris = [];
+      const menu = searchMenuFactory({
+        documentObject: mockDoc,
+        windowObject: global.window,
+        webVowlController: sharedSearchController,
+        onOntologyIriEntered: (iri) => offeredIris.push(iri),
+      });
+      menu.setup();
+      searchInput.value = input;
+      searchInput.dispatchEvent({
+        type: "keydown",
+        key: "Enter",
+        target: searchInput,
+      });
+      expect(offeredIris).toEqual([expected]);
+      expect(searchInput.value).toBe("");
+      expect(sharedViewRequests).toEqual([]);
+    },
+  );
+
   test("expands mobile search overlay when mobile toggle button is clicked", () => {
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
       webVowlController: sharedSearchController,
     });
-    mockGraph.searchMenu = searchMenu;
     searchMenu.setup();
 
     expect(cSearch.classList.contains("search-expanded")).toBe(false);
@@ -347,10 +413,35 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     expect(cSearch.classList.contains("search-expanded")).toBe(true);
   });
 
+  test("allows a human to locate and clear focus applied by another controller caller", () => {
+    const menu = searchMenuFactory({
+      documentObject: mockDoc,
+      windowObject: global.window,
+      webVowlController: sharedSearchController,
+    });
+    menu.setup();
+    menu.renderVisualizationFocus({
+      focus: [{ kind: "class", iri: "http://xmlns.com/foaf/0.1/Person" }],
+      focusableElementCount: 1,
+    });
+    expect(searchInput.value).toBe("");
+    expect(mockDoc.elements.locateSearchResult.disabled).toBe(false);
+    expect(clearBtn.classList.contains("hidden")).toBe(false);
+    mockDoc.elements.locateSearchResult.click();
+    clearBtn.click();
+    expect(sharedViewRequests).toEqual([
+      { viewport: "focus-next" },
+      { focus: [] },
+    ]);
+    menu.renderVisualizationFocus({ focus: [], focusableElementCount: 0 });
+    expect(mockDoc.elements.locateSearchResult.disabled).toBe(true);
+    expect(clearBtn.classList.contains("hidden")).toBe(true);
+  });
+
   test("portals search results outside the clipped toolbar before interaction", () => {
     expect(listbox.parentNode).toBe(cSearch);
 
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
@@ -372,7 +463,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
       },
     };
 
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
@@ -408,7 +499,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
   });
 
   test("disables search and locate controls when no rendered ontology is available", () => {
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
@@ -431,7 +522,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
   });
 
   test("shows clear button on user input and clears text when clear button is clicked", () => {
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
@@ -457,7 +548,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
   });
 
   test("keeps portaled results open for option interaction and dismisses them outside", () => {
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
@@ -482,7 +573,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
   });
 
   test("accepts a typing keyup without throwing", () => {
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
@@ -500,7 +591,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
   });
 
   test("collapses mobile overlay and hides listbox on Escape key press", () => {
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
@@ -518,7 +609,7 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
   });
 
   test("moves through search suggestions with ArrowDown", () => {
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
@@ -541,13 +632,12 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
   });
 
   test("selects the active search suggestion with Enter", () => {
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
       webVowlController: sharedSearchController,
     });
-    mockGraph.searchMenu = searchMenu;
     searchMenu.setup();
     searchInput.value = "Per";
     searchInput.dispatchEvent({ type: "input", target: searchInput });
@@ -569,18 +659,12 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
   });
 
   test("synchronizes locate button title, aria-label, and disabled state on search result selection and clearing", () => {
-    let locateCount = 0;
-    mockGraph.locateSearchResult = () => {
-      locateCount++;
-    };
-
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
       webVowlController: sharedSearchController,
     });
-    mockGraph.searchMenu = searchMenu;
     searchMenu.setup();
 
     const locateBtn = mockDoc.elements["locateSearchResult"];
@@ -591,7 +675,9 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     expect(locateBtn.classList.contains("highlighted")).toBe(false);
 
     locateBtn.click();
-    expect(locateCount).toBe(0);
+    expect(
+      sharedViewRequests.filter((request) => request.viewport === "focus-next"),
+    ).toHaveLength(0);
 
     searchInput.value = "Person";
     searchInput.dispatchEvent({ type: "input", target: searchInput });
@@ -612,14 +698,14 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     });
 
     expect(locateBtn.disabled).toBe(false);
-    expect(locateBtn.title).toBe("Locate search term");
-    expect(locateBtn.getAttribute("aria-label")).toBe("Locate search term");
+    expect(locateBtn.title).toBe("Locate focused element");
+    expect(locateBtn.getAttribute("aria-label")).toBe("Locate focused element");
     expect(locateBtn.classList.contains("highlighted")).toBe(true);
 
     // Locating reports the selection to the controller; it never drives the
     // renderer from here.
     locateBtn.click();
-    expect(locateCount).toBe(0);
+    expect(sharedViewRequests.at(-1)).toEqual({ viewport: "focus-next" });
 
     // Clear search
     searchMenu.clearText();
@@ -630,13 +716,12 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
   });
 
   test("keeps the search term and only highlights when a result is chosen", () => {
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
       webVowlController: sharedSearchController,
     });
-    mockGraph.searchMenu = searchMenu;
     searchMenu.setup();
 
     const searchInput = mockDoc.elements["search-input-text"];
@@ -655,13 +740,12 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
   });
 
   test("clearing search or loading new ontology resets locateAvailable so setMenuMode(true) does not re-highlight locate button", () => {
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
       webVowlController: sharedSearchController,
     });
-    mockGraph.searchMenu = searchMenu;
     const locateBtn = mockDoc.elements["locateSearchResult"];
 
     searchMenu.setup();
@@ -697,13 +781,12 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
   });
 
   test("automatically disables and unhighlights locateSearchResult whenever search input text becomes empty", () => {
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
       webVowlController: sharedSearchController,
     });
-    mockGraph.searchMenu = searchMenu;
     const locateBtn = mockDoc.elements["locateSearchResult"];
 
     searchMenu.setup();
@@ -733,8 +816,8 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     expect(locateBtn.title).toBe("Nothing to locate");
   });
 
-  test("requestDictionaryUpdate completely removes all items from listbox", () => {
-    const searchMenu = searchMenuFactory(mockGraph, {
+  test("clearing search text completely removes all items from listbox", () => {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
@@ -748,22 +831,15 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     }
     expect(listbox.children.length).toBe(10);
 
-    searchMenu.requestDictionaryUpdate();
+    searchMenu.clearText();
     expect(listbox.children.length).toBe(0);
   });
 });
 
 describe("searchMenu selection reporting", () => {
   test("reports the selected element to the controller instead of driving the graph", () => {
-    const highlightCalls = [];
     const viewRequests = [];
-    const mockGraph = {
-      getUpdateDictionary: () => [],
-      highLightNodes: (ids) => highlightCalls.push(ids),
-      resetSearchHighlight: () => {},
-      locateSearchResult: () => {},
-    };
-    const searchMenu = searchMenuFactory(mockGraph, {
+    const searchMenu = searchMenuFactory({
       documentObject: global.document,
       windowObject: global.window,
       locationObject: global.location,
@@ -795,7 +871,7 @@ describe("searchMenu selection reporting", () => {
       },
     });
 
-    searchMenu.reportSelectedOntologyElements([
+    searchMenu.focusOntologyElements([
       { kind: "class", iri: "http://xmlns.com/foaf/0.1/Person" },
     ]);
 
@@ -806,56 +882,45 @@ describe("searchMenu selection reporting", () => {
         focus: [{ kind: "class", iri: "http://xmlns.com/foaf/0.1/Person" }],
       },
     ]);
-    expect(highlightCalls).toEqual([]);
   });
 
   test("reports a cleared selection only when one was reported", () => {
-    const highlightCalls = [];
     const viewRequests = [];
-    const searchMenu = searchMenuFactory(
-      {
-        getUpdateDictionary: () => [],
-        resetSearchHighlight: () => highlightCalls.push("reset"),
-        highLightNodes: (ids) => highlightCalls.push(ids),
-        locateSearchResult: () => highlightCalls.push("locate"),
-      },
-      {
-        documentObject: global.document,
-        windowObject: global.window,
-        locationObject: global.location,
-        webVowlController: {
-          findOntologyElements: () => ({
-            matches: [
-              {
-                displayLabel: "Person",
-                isFocusable: true,
-                ontologyElementReference: {
-                  kind: "class",
-                  iri: "http://xmlns.com/foaf/0.1/Person",
-                },
+    const searchMenu = searchMenuFactory({
+      documentObject: global.document,
+      windowObject: global.window,
+      locationObject: global.location,
+      webVowlController: {
+        findOntologyElements: () => ({
+          matches: [
+            {
+              displayLabel: "Person",
+              isFocusable: true,
+              ontologyElementReference: {
+                kind: "class",
+                iri: "http://xmlns.com/foaf/0.1/Person",
               },
-            ],
-          }),
-          setVisualizationView: (request) => {
-            viewRequests.push(request);
-            return Promise.resolve({});
-          },
+            },
+          ],
+        }),
+        setVisualizationView: (request) => {
+          viewRequests.push(request);
+          return Promise.resolve({});
         },
       },
-    );
+    });
 
     // With nothing selected there is no change to report.
-    searchMenu.reportClearedOntologySelection();
+    searchMenu.clearVisualizationFocus();
     expect(viewRequests).toEqual([]);
 
-    searchMenu.reportSelectedOntologyElements([
+    searchMenu.focusOntologyElements([
       { kind: "class", iri: "http://xmlns.com/foaf/0.1/Person" },
     ]);
-    searchMenu.reportClearedOntologySelection();
+    searchMenu.clearVisualizationFocus();
 
     // Clearing after a selection is the fact that nothing is selected now.
     expect(viewRequests.at(-1)).toEqual({ focus: [] });
-    expect(highlightCalls).toEqual([]);
   });
 
   test("does not recurse when the runtime clears the search in response", () => {
@@ -882,69 +947,56 @@ describe("searchMenu selection reporting", () => {
         return Promise.resolve({});
       },
     };
-    searchMenuHolder.instance = searchMenuFactory(
-      {
-        getUpdateDictionary: () => [],
-        highLightNodes: () => {},
-        resetSearchHighlight: () => {},
-        locateSearchResult: () => {},
-      },
-      {
-        documentObject: global.document,
-        windowObject: global.window,
-        locationObject: global.location,
-        webVowlController: reentrantController,
-      },
-    );
+    searchMenuHolder.instance = searchMenuFactory({
+      documentObject: global.document,
+      windowObject: global.window,
+      locationObject: global.location,
+      webVowlController: reentrantController,
+    });
 
     expect(() =>
-      searchMenuHolder.instance.reportSelectedOntologyElements([
+      searchMenuHolder.instance.focusOntologyElements([
         { kind: "class", iri: "http://xmlns.com/foaf/0.1/Person" },
       ]),
     ).not.toThrow();
     expect(viewRequests).toHaveLength(1);
   });
 
-  test("clears its own presentation when the controller reports no selection", () => {
+  test("renders a cleared focus without reporting it back to the controller", () => {
     const viewRequests = [];
-    const searchMenu = searchMenuFactory(
-      {
-        getUpdateDictionary: () => [],
-        highLightNodes: () => {},
-        resetSearchHighlight: () => {},
-        locateSearchResult: () => {},
-      },
-      {
-        documentObject: global.document,
-        windowObject: global.window,
-        locationObject: global.location,
-        webVowlController: {
-          findOntologyElements: () => ({
-            matches: [
-              {
-                displayLabel: "Person",
-                isFocusable: true,
-                ontologyElementReference: {
-                  kind: "class",
-                  iri: "http://xmlns.com/foaf/0.1/Person",
-                },
+    const searchMenu = searchMenuFactory({
+      documentObject: global.document,
+      windowObject: global.window,
+      locationObject: global.location,
+      webVowlController: {
+        findOntologyElements: () => ({
+          matches: [
+            {
+              displayLabel: "Person",
+              isFocusable: true,
+              ontologyElementReference: {
+                kind: "class",
+                iri: "http://xmlns.com/foaf/0.1/Person",
               },
-            ],
-          }),
-          setVisualizationView: (request) => {
-            viewRequests.push(request);
-            return Promise.resolve({});
-          },
+            },
+          ],
+        }),
+        setVisualizationView: (request) => {
+          viewRequests.push(request);
+          return Promise.resolve({});
         },
       },
-    );
+    });
     searchMenu.setup();
-    searchMenu.reportSelectedOntologyElements([
+    searchMenu.focusOntologyElements([
       { kind: "class", iri: "http://xmlns.com/foaf/0.1/Person" },
     ]);
     const reportedRequestCount = viewRequests.length;
 
-    searchMenu.renderSelectedOntologyElements([]);
+    searchMenu.renderVisualizationFocus({
+      focus: [],
+      focusableElementCount: 0,
+    });
 
     // Rendering state is presentation: it must not report a change back.
     expect(viewRequests).toHaveLength(reportedRequestCount);
@@ -953,26 +1005,18 @@ describe("searchMenu selection reporting", () => {
 
   test("advances the viewport when the locate control is used", () => {
     const viewRequests = [];
-    const searchMenu = searchMenuFactory(
-      {
-        getUpdateDictionary: () => [],
-        highLightNodes: () => {},
-        resetSearchHighlight: () => {},
-        locateSearchResult: () => {},
-      },
-      {
-        documentObject: global.document,
-        windowObject: global.window,
-        locationObject: global.location,
-        webVowlController: {
-          findOntologyElements: () => ({ matches: [] }),
-          setVisualizationView: (request) => {
-            viewRequests.push(request);
-            return Promise.resolve({});
-          },
+    const searchMenu = searchMenuFactory({
+      documentObject: global.document,
+      windowObject: global.window,
+      locationObject: global.location,
+      webVowlController: {
+        findOntologyElements: () => ({ matches: [] }),
+        setVisualizationView: (request) => {
+          viewRequests.push(request);
+          return Promise.resolve({});
         },
       },
-    );
+    });
     searchMenu.setup();
 
     searchMenu.advanceToNextFocusedElement();

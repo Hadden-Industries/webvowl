@@ -1,4 +1,3 @@
-import { applicationUiModule } from "../ui/applicationUiRegistry.js";
 /**
  * Contains the logic for the export button.
  * @returns {{}}
@@ -85,14 +84,12 @@ function nextCopyFeedback(copied, successfulCopyCount = 0) {
   };
 }
 
-function createExportMenu(
-  graph,
-  {
-    documentObject = globalThis.document,
-    webVowlController,
-    visualizationArtifactDownloadAdapter,
-  } = {},
-) {
+function createExportMenu({
+  documentObject = globalThis.document,
+  readShareLinkPresentation = () => ({}),
+  webVowlController,
+  visualizationArtifactDownloadAdapter,
+} = {}) {
   const exportMenu = {};
 
   /**
@@ -170,13 +167,8 @@ function createExportMenu(
       return;
     }
     try {
-      const sidebar = applicationUiModule("sidebar")?.getSidebarVisibility();
       urlInput.value = webVowlController.getVisualizationShareLink({
-        presentation: {
-          ...(sidebar === undefined ? {} : { sidebar: Number(sidebar) }),
-          editorMode: graph.editorMode(),
-          debugFeatures: !graph.ontologyEditingState().getHideDebugFeatures(),
-        },
+        presentation: readShareLinkPresentation(),
       }).url;
       urlInput.title = urlInput.value;
       if (copyButton) {

@@ -191,6 +191,35 @@ test("degree input accepts the same non-negative safe integers as the human filt
   ).toThrow();
 });
 
+test("SVG export reports its actual dimensions and best-effort settlement outcome", async () => {
+  const { callWebMcpTool } = createWebMcpToolDispatch({
+    webVowlController: {
+      getState: () => ({ loadGeneration: 4 }),
+      exportVisualization: () => ({
+        format: "svg",
+        filename: "view.svg",
+        mediaType: "image/svg+xml",
+        byteLength: 27000,
+        sha256Hex: "a".repeat(64),
+        viewRecipe: {
+          loadGeneration: 4,
+          viewportDimensions: { widthPx: 1920, heightPx: 901 },
+          layoutOutcome: { status: "best-effort", reason: "timeout" },
+        },
+      }),
+    },
+  });
+  const result = await callWebMcpTool("export_visualization", {
+    onTimeout: "best-effort",
+  });
+  expect(result.toolResult).toMatchObject({
+    viewportDimensions: { widthPx: 1920, heightPx: 901 },
+    layoutOutcome: { status: "best-effort", reason: "timeout" },
+    isTruncated: false,
+  });
+  expect(JSON.stringify(result).length).toBeLessThanOrEqual(1500);
+});
+
 test("share URL pages retain one exact captured URL when the view changes", async () => {
   const expectedUrl =
     "https://viewer.test/#iri=https%3A%2F%2Fexample.test%2F" +
@@ -696,6 +725,24 @@ describe("export_visualization input schema", () => {
 });
 
 describe("load_ontology input normalization", () => {
+  test.each([true, false])(
+    "carries the explicit cache reuse choice: %s",
+    (reuseCachedOntology) => {
+      const input = {
+        source: {
+          kind: "vowl-json-url",
+          url: "https://example.test/model.json",
+        },
+        reuseCachedOntology,
+      };
+      expect(normalizeLoadOntologyToolInput(input)).toEqual(input);
+      expect(
+        toolDefinitionNamed("load_ontology").inputSchema.properties
+          .reuseCachedOntology.type,
+      ).toBe("boolean");
+    },
+  );
+
   test("produces the controller-domain request for each advertised source", () => {
     expect(
       normalizeLoadOntologyToolInput({

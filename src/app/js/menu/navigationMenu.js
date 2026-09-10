@@ -1,18 +1,12 @@
-import { applicationUiModule } from "../ui/applicationUiRegistry.js";
 /**
- * Contains the navigation "engine"
- *
- * @param graph the associated webvowl graph
- * @returns {{}}
+ * Presents navigation popovers and their keyboard and pointer interactions.
  */
-export function createNavigationMenu(
-  graph,
-  {
-    documentObject = globalThis.document,
-    windowObject = globalThis.window,
-    requestAnimationFrameFunction = globalThis.requestAnimationFrame,
-  } = {},
-) {
+export function createNavigationMenu({
+  documentObject = globalThis.document,
+  onExportMenuOpened,
+  windowObject = globalThis.window,
+  requestAnimationFrameFunction = globalThis.requestAnimationFrame,
+} = {}) {
   const navigationMenu = {};
   const scrollContainer = documentObject.querySelector("#menuElementContainer");
   const menuContainer = documentObject.querySelector("#menuContainer");
@@ -471,7 +465,7 @@ export function createNavigationMenu(
               );
             }
             if (menuId === "m_export") {
-              applicationUiModule("exportMenu")?.exportAsUrl();
+              onExportMenuOpened?.();
             }
             updateMenuPosition(controllerId);
           } else {

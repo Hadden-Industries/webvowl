@@ -3,7 +3,8 @@
 //
 // The controller states which fields it wrote and narrows that set to the ones
 // whose value actually differs, so nothing is compared here. A presentation
-// runs when the producer says its field changed, and not otherwise.
+// runs when the producer says its field changed. Within the shared view field,
+// label language is tracked separately to avoid rebuilding details for focus.
 //
 // This matters to a reader rather than only to a profiler. A held zoom button
 // reports a magnification on every animation frame; re-rendering the selection
@@ -14,7 +15,6 @@
 const CONTROLLER_STATE_PRESENTER_DEPENDENCY_FIELD_NAMES = Object.freeze([
   "renderLoadState",
   "renderGraphLayoutPaused",
-  "renderSelectedOntologyElements",
   "renderSelectedOntologyElementDetails",
   "renderOntologySummary",
   "renderViewport",
@@ -53,6 +53,7 @@ export const SEPARATELY_PRESENTED_CONTROLLER_STATE_FIELD_NAMES = Object.freeze([
   "translation",
   "degreeFilterRange",
   "selectedDocumentRecord",
+  "renderingStatistics",
 ]);
 
 function assertExactDependencyFieldNames(dependencies) {
@@ -79,7 +80,6 @@ export function createControllerStatePresenter(dependencies) {
   const {
     renderLoadState,
     renderGraphLayoutPaused,
-    renderSelectedOntologyElements,
     renderSelectedOntologyElementDetails,
     renderOntologySummary,
     renderViewport,
@@ -93,6 +93,7 @@ export function createControllerStatePresenter(dependencies) {
   // consumer keeping its copy of what applies to it, not a diff of the
   // producer's payload.
   let summarisedLoadGeneration = 0;
+  let presentedLanguage;
 
   return Object.freeze({
     present(controllerState, changedFieldNames = []) {
@@ -102,6 +103,12 @@ export function createControllerStatePresenter(dependencies) {
         hasPresentedAnyState ? changedFieldNames : Object.keys(controllerState),
       );
       hasPresentedAnyState = true;
+      const languageChanged =
+        changedFields.has("view") &&
+        controllerState.view?.language !== presentedLanguage;
+      if (changedFields.has("view")) {
+        presentedLanguage = controllerState.view?.language;
+      }
 
       if (
         LOAD_STATE_FIELD_NAMES.some((fieldName) => changedFields.has(fieldName))
@@ -113,11 +120,10 @@ export function createControllerStatePresenter(dependencies) {
         renderGraphLayoutPaused(controllerState.layout?.status === "paused");
       }
 
-      if (changedFields.has("selection")) {
+      if (changedFields.has("selection") || languageChanged) {
         const selection = Array.isArray(controllerState.selection)
           ? controllerState.selection
           : [];
-        renderSelectedOntologyElements(selection);
         // Describing an element reads the loaded ontology, so it is skipped
         // entirely before one exists.
         const hasDescribableSelection =
@@ -153,9 +159,12 @@ export function createControllerStatePresenter(dependencies) {
       // A load reaches ready either when it completes or later when background
       // settlement finishes, and only one of those writes the generation.
       if (
-        changedFields.has("status") &&
-        controllerState.status === "ready" &&
-        controllerState.loadGeneration !== summarisedLoadGeneration
+        (changedFields.has("status") &&
+          controllerState.status === "ready" &&
+          controllerState.loadGeneration !== summarisedLoadGeneration) ||
+        (languageChanged &&
+          controllerState.loadGeneration > 0 &&
+          ["ready", "relaxing", "exporting"].includes(controllerState.status))
       ) {
         summarisedLoadGeneration = controllerState.loadGeneration;
         renderOntologySummary(readOntologySummary());

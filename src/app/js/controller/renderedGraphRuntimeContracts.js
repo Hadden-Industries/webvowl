@@ -2,6 +2,7 @@ import {
   createOntologyElementReference,
   createVowlDocumentRecordTarget,
 } from "./webVowlControllerContracts.js";
+import { createVowlDocumentInsertionRecords } from "./vowlDocument.js";
 
 export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "replaceVowlModel",
@@ -17,6 +18,9 @@ export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "setForceLayoutDistances",
   "setVisualizationModes",
   "resetVisualization",
+  "setOntologyEditorOptions",
+  "resizeVisualizationViewport",
+  "setRenderingDiagnosticsEnabled",
   "createRenderedSvgSnapshot",
   "createRenderedDrawingSnapshot",
   "createTurtleDocumentSnapshot",
@@ -37,11 +41,15 @@ export const RENDERED_GRAPH_EVENT_KINDS = Object.freeze([
   "rendered-element-selection-changed",
   "document-record-selection-changed",
   "record-label-edit-requested",
+  "record-creation-requested",
+  "record-endpoint-edit-requested",
+  "record-deletion-requested",
   "viewport-changed",
   "visualization-view-changed",
   "degree-filter-range-changed",
   "graph-layout-state-changed",
   "editor-mode-changed",
+  "rendering-statistics-changed",
 ]);
 
 const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
@@ -222,7 +230,10 @@ function createLocalizedTextRecordCollection(records, fieldName) {
   );
 }
 
-function createOntologyHeaderRecord(ontologyHeaderRecord) {
+function createOntologyHeaderRecord({
+  annotationRecords = [],
+  ...ontologyHeaderRecord
+}) {
   assertExactFieldNames(
     ontologyHeaderRecord,
     [
@@ -265,6 +276,10 @@ function createOntologyHeaderRecord(ontologyHeaderRecord) {
       "ontologyHeaderRecord.descriptionRecords",
     ),
     authorNames: Object.freeze(authorNames),
+    annotationRecords: createAnnotationRecordCollection(
+      annotationRecords,
+      "ontology header annotations",
+    ),
   });
 }
 
@@ -1455,6 +1470,76 @@ function createRenderedGraphEventPayload(kind, payload) {
             ? null
             : createVowlDocumentRecordTarget(payload.recordTarget),
       });
+    case "record-deletion-requested":
+      assertExactFieldNames(payload, ["recordTarget"], `${kind} payload`);
+      return Object.freeze({
+        recordTarget: createVowlDocumentRecordTarget(payload.recordTarget),
+      });
+    case "record-creation-requested": {
+      assertExactFieldNames(
+        payload,
+        ["records", "selectedRecord", "editLabel"],
+        `${kind} payload`,
+      );
+      if (typeof payload.editLabel !== "boolean") {
+        throw new TypeError(
+          "Creation must state whether to begin inline label editing.",
+        );
+      }
+      const records = createVowlDocumentInsertionRecords(payload.records);
+      const selectedRecord =
+        payload.selectedRecord === null
+          ? null
+          : createVowlDocumentRecordTarget(payload.selectedRecord);
+      if (
+        selectedRecord &&
+        !records.some(
+          (record) =>
+            record.collection === selectedRecord.collection &&
+            record.id === selectedRecord.recordId,
+        )
+      ) {
+        throw new TypeError("Creation can select only one of its new records.");
+      }
+      return Object.freeze({
+        records,
+        selectedRecord,
+        editLabel: payload.editLabel,
+      });
+    }
+    case "record-endpoint-edit-requested": {
+      assertExactFieldNames(
+        payload,
+        ["recordTarget", "endpoint", "nodeRecordId", "labelPosition"],
+        `${kind} payload`,
+      );
+      const recordTarget = createVowlDocumentRecordTarget(payload.recordTarget);
+      if (
+        recordTarget.collection !== "property" ||
+        !["domain", "range"].includes(payload.endpoint) ||
+        typeof payload.nodeRecordId !== "string"
+      ) {
+        throw new TypeError(
+          "An endpoint edit requires a property and its new node.",
+        );
+      }
+      assertExactFieldNames(
+        payload.labelPosition,
+        ["xPx", "yPx"],
+        "Label position",
+      );
+      if (
+        !Number.isFinite(payload.labelPosition.xPx) ||
+        !Number.isFinite(payload.labelPosition.yPx)
+      ) {
+        throw new TypeError("Label position must be finite.");
+      }
+      return Object.freeze({
+        ...payload,
+        recordTarget,
+        labelPosition: Object.freeze({ ...payload.labelPosition }),
+      });
+    }
     case "record-label-edit-requested":
       assertExactFieldNames(
         payload,
@@ -1474,6 +1559,21 @@ function createRenderedGraphEventPayload(kind, payload) {
         text: payload.text,
         deriveIriFromLabel: payload.deriveIriFromLabel,
       });
+    case "rendering-statistics-changed":
+      assertExactFieldNames(
+        payload,
+        ["framesPerSecond", "nodeCount", "linkCount"],
+        `${kind} payload`,
+      );
+      if (
+        !Number.isFinite(payload.framesPerSecond) ||
+        payload.framesPerSecond < 0
+      ) {
+        throw new TypeError("framesPerSecond must be nonnegative and finite.");
+      }
+      assertNonNegativeInteger(payload.nodeCount, "nodeCount");
+      assertNonNegativeInteger(payload.linkCount, "linkCount");
+      return Object.freeze({ ...payload });
     case "editor-mode-changed":
       assertExactFieldNames(payload, ["isEditorMode"], `${kind} payload`);
       if (typeof payload.isEditorMode !== "boolean") {

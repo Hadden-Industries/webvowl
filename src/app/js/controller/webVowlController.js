@@ -1,4 +1,10 @@
 import {
+  createOntologyEditorOptionsRequest,
+  createVisualizationViewportSize,
+  DEFAULT_ONTOLOGY_EDITOR_OPTIONS,
+  ONTOLOGY_CREATION_TYPES,
+} from "./rendererInteractionContracts.js";
+import {
   createWebVowlControllerState,
   WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES,
   GENERATION_SCOPED_CONTROLLER_STATE_FIELDS,
@@ -17,6 +23,7 @@ import {
   removeVowlDocumentPrefix,
   describeVowlDocumentDeletion,
   applyVowlDocumentDeletion,
+  insertVowlDocumentRecords,
 } from "./vowlDocument.js";
 import {
   decodeVowlVisualizationSettings,
@@ -72,6 +79,7 @@ const IDLE_CONTROLLER_STATE = Object.freeze({
   renderProgress: null,
   degreeFilterRange: null,
   editorMode: null,
+  renderingStatistics: null,
   error: null,
 });
 
@@ -139,7 +147,9 @@ async function awaitExportCompletion(work, signal) {
 
 function assertExactDependencyFieldNames(dependencies) {
   assertPlainRecord(dependencies, "WebVOWL controller dependencies");
-  const actualFieldNames = Object.keys(dependencies).sort();
+  const actualFieldNames = Object.keys(dependencies)
+    .filter((name) => name !== "requestOntologyDeletionConfirmation")
+    .sort();
   const expectedFieldNames = [
     ...WEB_VOWL_CONTROLLER_DEPENDENCY_FIELD_NAMES,
   ].sort();
@@ -152,6 +162,12 @@ function assertExactDependencyFieldNames(dependencies) {
     throw new TypeError(
       "WebVOWL controller dependencies have an invalid dependency field set.",
     );
+  }
+  if (
+    dependencies.requestOntologyDeletionConfirmation !== undefined &&
+    typeof dependencies.requestOntologyDeletionConfirmation !== "function"
+  ) {
+    throw new TypeError("Deletion confirmation must be a function.");
   }
 }
 
@@ -239,6 +255,7 @@ export function createWebVowlController(dependencies) {
     waitForDocumentFonts,
     waitForBrowserPaint,
     applicationUrl,
+    requestOntologyDeletionConfirmation = async () => false,
   } = dependencies;
 
   let isDisposed = false;
@@ -248,7 +265,10 @@ export function createWebVowlController(dependencies) {
   let lastIssuedLoadGeneration = 0;
   let currentOntologyGeneration = 0;
   let currentVowlModel = null;
+  let currentSourceCacheKey = null;
+  const cachedOntologySources = new Map();
   let hasAcceptedRenderedMount = false;
+  let ontologyEditorOptions = DEFAULT_ONTOLOGY_EDITOR_OPTIONS;
   let activeLoadAbortController;
   let activeExportOperation;
   let layoutIntentSequence = 0;
@@ -264,6 +284,55 @@ export function createWebVowlController(dependencies) {
   let currentWarnings = [];
   const stateSubscribers = new Set();
   const deletionProposals = new WeakMap();
+
+  function sourceCacheKeyFor(source) {
+    if (!["ontology-document-iri", "vowl-json-url"].includes(source?.kind)) {
+      return null;
+    }
+    // Include every supplied field. Only a request previously accepted by the
+    // source loader can hit; malformed or extended input still reaches its
+    // authoritative validation. Property order has no semantic significance.
+    return JSON.stringify(source, Object.keys(source).sort());
+  }
+
+  function retainCurrentOntologyForNavigation() {
+    if (
+      currentSourceCacheKey === null ||
+      currentVowlModel === null ||
+      !hasAcceptedRenderedMount
+    ) {
+      return;
+    }
+    const arrangedModel = retainVowlDocumentArrangement(
+      currentVowlModel,
+      renderedGraphRuntime.readRenderedArrangement({
+        loadGeneration: currentOntologyGeneration,
+      }),
+    );
+    const acceptedState =
+      controllerState.loadGeneration === currentOntologyGeneration
+        ? controllerState
+        : lastValidControllerState;
+    const sourceRecord = Object.freeze({
+      vowlModel: createVowlDocumentSnapshot({
+        ...arrangedModel,
+        ...(acceptedState.zoomScale === null ||
+        acceptedState.translation === null
+          ? {}
+          : { settings: encodeVowlVisualizationSettings(acceptedState) }),
+      }),
+      sourceProvenance: currentSourceProvenance,
+      diagnostics: currentWarnings.map((message) => ({ message })),
+      sourceCacheKey: currentSourceCacheKey,
+    });
+    cachedOntologySources.delete(currentSourceCacheKey);
+    cachedOntologySources.set(currentSourceCacheKey, sourceRecord);
+    // Keep a small recent navigation history rather than every ontology ever
+    // opened in a long-lived page. A miss simply reloads through the source owner.
+    if (cachedOntologySources.size > 4) {
+      cachedOntologySources.delete(cachedOntologySources.keys().next().value);
+    }
+  }
 
   // A writer states the fields it wrote. Narrowing that set to the fields whose
   // value actually differs happens once, here, using what the writer already
@@ -390,6 +459,60 @@ export function createWebVowlController(dependencies) {
       });
       return;
     }
+    if (renderedGraphEvent.kind === "record-creation-requested") {
+      const { records, selectedRecord, editLabel } = renderedGraphEvent.payload;
+      observeHumanEdit(
+        applyHumanDocumentEdit(
+          { loadGeneration: renderedGraphEvent.loadGeneration, records },
+          ["records"],
+          (model) => insertVowlDocumentRecords(model, records),
+          { selectedRecord, editLabel },
+        ),
+      );
+      return;
+    }
+    if (renderedGraphEvent.kind === "record-endpoint-edit-requested") {
+      const { recordTarget, endpoint, nodeRecordId, labelPosition } =
+        renderedGraphEvent.payload;
+      observeHumanEdit(
+        applyHumanDocumentEdit(
+          { loadGeneration: renderedGraphEvent.loadGeneration, recordTarget },
+          ["recordTarget"],
+          (model) =>
+            applyVowlDocumentRecordEdit(model, {
+              recordTarget,
+              changes: { [`${endpoint}RecordId`]: nodeRecordId },
+            }),
+          {
+            selectedRecord: recordTarget,
+            positionOverride: { recordTarget, ...labelPosition },
+          },
+        ),
+      );
+      return;
+    }
+    if (renderedGraphEvent.kind === "record-deletion-requested") {
+      observeHumanEdit(
+        (async () => {
+          const proposal = proposeOntologyDeletion({
+            loadGeneration: renderedGraphEvent.loadGeneration,
+            recordTarget: renderedGraphEvent.payload.recordTarget,
+          });
+          // Preserve the canvas rule: only cascades of more than two records ask.
+          if (
+            proposal.recordTargets.length > 2 &&
+            !(await requestOntologyDeletionConfirmation(proposal, {
+              signal: activeLoadAbortController.signal,
+            }))
+          ) {
+            deletionProposals.delete(proposal);
+            return;
+          }
+          await confirmOntologyDeletion(proposal);
+        })(),
+      );
+      return;
+    }
     if (renderedGraphEvent.kind === "record-label-edit-requested") {
       const { recordTarget, text, deriveIriFromLabel } =
         renderedGraphEvent.payload;
@@ -420,22 +543,7 @@ export function createWebVowlController(dependencies) {
           }),
         { selectedRecord: recordTarget },
       );
-      const requestOwner = activeLoadAbortController;
-      void editing.catch((error) => {
-        if (
-          !isDisposed &&
-          activeLoadAbortController === requestOwner &&
-          !requestOwner?.signal.aborted
-        ) {
-          currentWarnings = truncateResultCollection(
-            [...currentWarnings, error.message],
-            WEB_VOWL_OPERATION_LIMITS.maxWarnings,
-          ).retainedEntries;
-          publishForGeneration(activeLoadGeneration, {
-            warnings: currentWarnings,
-          });
-        }
-      });
+      observeHumanEdit(editing);
       return;
     }
     if (renderedGraphEvent.kind === "render-progress-changed") {
@@ -480,7 +588,17 @@ export function createWebVowlController(dependencies) {
       });
       return;
     }
+    if (renderedGraphEvent.kind === "rendering-statistics-changed") {
+      publishForGeneration(renderedGraphEvent.loadGeneration, {
+        renderingStatistics: renderedGraphEvent.payload,
+      });
+      return;
+    }
     if (renderedGraphEvent.kind === "editor-mode-changed") {
+      ontologyEditorOptions = Object.freeze({
+        ...ontologyEditorOptions,
+        isEditorMode: renderedGraphEvent.payload.isEditorMode,
+      });
       publishForGeneration(renderedGraphEvent.loadGeneration, {
         editorMode: { isEditorMode: renderedGraphEvent.payload.isEditorMode },
       });
@@ -603,6 +721,7 @@ export function createWebVowlController(dependencies) {
     if (previousOntology === null) {
       renderedGraphRuntime.clearRenderedGraph();
       currentVowlModel = null;
+      currentSourceCacheKey = null;
       currentOntologyInspectionSnapshot = null;
       currentSourceProvenance = null;
       currentOntologyGeneration = 0;
@@ -667,6 +786,7 @@ export function createWebVowlController(dependencies) {
     );
     throwWhenSuperseded(recoveryGeneration, recoverySignal);
     currentVowlModel = model;
+    currentSourceCacheKey = previousOntology.sourceCacheKey;
     hasAcceptedRenderedMount = true;
     currentOntologyGeneration = recoveryGeneration;
     currentOntologyInspectionSnapshot =
@@ -739,6 +859,7 @@ export function createWebVowlController(dependencies) {
         ? null
         : {
             model: currentVowlModel,
+            sourceCacheKey: currentSourceCacheKey,
             state:
               controllerState.loadGeneration === currentOntologyGeneration &&
               ["ready", "relaxing"].includes(controllerState.status)
@@ -846,6 +967,7 @@ export function createWebVowlController(dependencies) {
       currentOntologyGeneration = loadGeneration;
       currentOntologyInspectionSnapshot = ontologyInspectionSnapshot;
       currentSourceProvenance = sourceLoadRecord.sourceProvenance;
+      currentSourceCacheKey = sourceLoadRecord.sourceCacheKey ?? null;
       currentWarnings = truncateResultCollection(
         sourceLoadRecord.diagnostics.map(
           (diagnostic) => diagnostic.message ?? String(diagnostic),
@@ -861,6 +983,7 @@ export function createWebVowlController(dependencies) {
         loadGeneration,
         source: { ...currentSourceProvenance },
         warnings: [...currentWarnings],
+        editorMode: { isEditorMode: ontologyEditorOptions.isEditorMode },
         view: viewApplicationResult.appliedVisualizationView,
         layout: { status: layoutStatusFromSnapshot(graphLayoutSnapshot) },
         error: null,
@@ -944,9 +1067,79 @@ export function createWebVowlController(dependencies) {
     }
   }
 
+  function proposeOntologyDeletion(request) {
+    try {
+      assertCurrentEditableDocument(request, ["recordTarget"]);
+      const description = describeVowlDocumentDeletion(
+        currentVowlModel,
+        request.recordTarget,
+      );
+      const proposal = Object.freeze({
+        loadGeneration: currentOntologyGeneration,
+        ...description,
+      });
+      deletionProposals.set(
+        proposal,
+        applyVowlDocumentDeletion(currentVowlModel, request.recordTarget),
+      );
+      return proposal;
+    } catch (cause) {
+      if (isExpectedOperationError(cause)) {
+        throw cause;
+      }
+      throw new WebVowlOperationError({
+        code: "EDIT_REJECTED",
+        message: cause.message,
+        cause,
+      });
+    }
+  }
+  async function confirmOntologyDeletion(proposal, options) {
+    const editedModel = deletionProposals.get(proposal);
+    if (editedModel === undefined) {
+      throw new WebVowlOperationError({
+        code: "EDIT_REJECTED",
+        message:
+          "This deletion proposal was not issued here or has already been used.",
+      });
+    }
+    assertCurrentEditableDocument(
+      { loadGeneration: proposal.loadGeneration },
+      [],
+    );
+    deletionProposals.delete(proposal);
+    return commitEditedDocument(editedModel, {
+      ...options,
+      selectedRecord: null,
+    });
+  }
+  function observeHumanEdit(editing) {
+    const requestOwner = activeLoadAbortController;
+    void editing.catch((error) => {
+      if (
+        !isDisposed &&
+        activeLoadAbortController === requestOwner &&
+        !requestOwner?.signal.aborted
+      ) {
+        currentWarnings = truncateResultCollection(
+          [...currentWarnings, error.message],
+          WEB_VOWL_OPERATION_LIMITS.maxWarnings,
+        ).retainedEntries;
+        publishForGeneration(activeLoadGeneration, {
+          warnings: currentWarnings,
+        });
+      }
+    });
+  }
+
   async function commitEditedDocument(
     editedModel,
-    { signal, selectedRecord = controllerState.selectedDocumentRecord } = {},
+    {
+      signal,
+      selectedRecord = controllerState.selectedDocumentRecord,
+      editLabel = false,
+      positionOverride,
+    } = {},
   ) {
     if (signal?.aborted) {
       throw createLoadAbortedError(signal.reason);
@@ -956,13 +1149,26 @@ export function createWebVowlController(dependencies) {
         ? null
         : createVowlDocumentRecordTarget(selectedRecord);
     const state = controllerState;
-    const candidate = {
-      vowlModel: retainVowlDocumentArrangement(
+    const arrangedModel = structuredClone(
+      retainVowlDocumentArrangement(
         editedModel,
         renderedGraphRuntime.readRenderedArrangement(),
       ),
+    );
+    if (positionOverride) {
+      const { collection, recordId } = positionOverride.recordTarget;
+      const attributes = arrangedModel[`${collection}Attribute`]?.find(
+        (record) => String(record.id) === recordId,
+      );
+      if (attributes) {
+        attributes.pos = [positionOverride.xPx, positionOverride.yPx];
+      }
+    }
+    const candidate = {
+      vowlModel: createVowlDocumentSnapshot(arrangedModel),
       sourceProvenance: currentSourceProvenance,
       diagnostics: currentWarnings.map((message) => ({ message })),
+      sourceCacheKey: currentSourceCacheKey,
     };
     const nextGeneration = lastIssuedLoadGeneration + 1;
     await replaceOntologyDocument(async () => candidate, {
@@ -1000,9 +1206,12 @@ export function createWebVowlController(dependencies) {
                       target.recordId === selectedRecord.recordId,
                   ),
                 );
-        renderedGraphRuntime.selectRenderedOccurrence({
-          reference: occurrence?.reference ?? null,
-        });
+        renderedGraphRuntime.selectRenderedOccurrence(
+          {
+            reference: occurrence?.reference ?? null,
+          },
+          { editLabel },
+        );
       }
       lastValidControllerState = controllerState;
     }
@@ -1220,12 +1429,104 @@ export function createWebVowlController(dependencies) {
   }
 
   return Object.freeze({
+    getOntologyEditorOptions() {
+      return Object.freeze({
+        ...ontologyEditorOptions,
+        ...ONTOLOGY_CREATION_TYPES,
+      });
+    },
+
+    setOntologyEditorOptions(request) {
+      if (isDisposed) {
+        throw createLoadAbortedError();
+      }
+      const changes = createOntologyEditorOptionsRequest(request);
+      const accepted = renderedGraphRuntime.setOntologyEditorOptions(changes);
+      ontologyEditorOptions = Object.freeze({
+        ...ontologyEditorOptions,
+        ...accepted,
+      });
+      publishControllerState(
+        {
+          ...controllerState,
+          editorMode: { isEditorMode: ontologyEditorOptions.isEditorMode },
+        },
+        ["editorMode"],
+      );
+      return ontologyEditorOptions;
+    },
+
+    resizeVisualizationViewport(request) {
+      if (isDisposed) {
+        throw createLoadAbortedError();
+      }
+      return renderedGraphRuntime.resizeVisualizationViewport(
+        createVisualizationViewportSize(request),
+      );
+    },
+
+    setRenderingDiagnosticsEnabled(isEnabled) {
+      if (isDisposed) {
+        throw createLoadAbortedError();
+      }
+      if (typeof isEnabled !== "boolean") {
+        throw new TypeError("Rendering diagnostics requires a boolean.");
+      }
+      renderedGraphRuntime.setRenderingDiagnosticsEnabled(isEnabled);
+    },
+
     loadOntology(sourceRequest, options) {
+      if (isDisposed) {
+        return Promise.reject(createLoadAbortedError());
+      }
+      assertAllowedFieldNames(
+        sourceRequest,
+        ["source", "reuseCachedOntology"],
+        "ontology load request",
+      );
+      if (
+        sourceRequest.reuseCachedOntology !== undefined &&
+        typeof sourceRequest.reuseCachedOntology !== "boolean"
+      ) {
+        throw new TypeError("reuseCachedOntology must be a boolean.");
+      }
+      retainCurrentOntologyForNavigation();
+      const sourceCacheKey = sourceCacheKeyFor(sourceRequest.source);
+      const cachedSource =
+        sourceRequest.reuseCachedOntology === true
+          ? cachedOntologySources.get(sourceCacheKey)
+          : undefined;
       return replaceOntologyDocument(
-        (loadOptions) =>
-          ontologySourceLoader.loadOntologySource(sourceRequest, loadOptions),
+        async (loadOptions) =>
+          cachedSource ?? {
+            ...(await ontologySourceLoader.loadOntologySource(
+              { source: sourceRequest.source },
+              loadOptions,
+            )),
+            sourceCacheKey,
+          },
         options,
       );
+    },
+
+    getVisualizationFocus() {
+      const focus =
+        !isDisposed &&
+        hasAcceptedRenderedMount &&
+        currentOntologyGeneration === controllerState.loadGeneration
+          ? (controllerState.view?.focus ?? [])
+          : [];
+      const focusableElementCount =
+        focus.length === 0
+          ? 0
+          : ontologyInspector.resolveFocusableOntologyElementReferences({
+              ...readInspectionRequestSnapshots(),
+              ontologyElementReferences: focus,
+            }).focusableReferences.length;
+      return Object.freeze({
+        focus: Object.freeze([...focus]),
+        focusableElementCount,
+      });
     },
 
     getOntologyDocument() {
@@ -1280,52 +1581,8 @@ export function createWebVowlController(dependencies) {
         options,
       );
     },
-    proposeOntologyDeletion(request) {
-      try {
-        assertCurrentEditableDocument(request, ["recordTarget"]);
-        const description = describeVowlDocumentDeletion(
-          currentVowlModel,
-          request.recordTarget,
-        );
-        const proposal = Object.freeze({
-          loadGeneration: currentOntologyGeneration,
-          ...description,
-        });
-        deletionProposals.set(
-          proposal,
-          applyVowlDocumentDeletion(currentVowlModel, request.recordTarget),
-        );
-        return proposal;
-      } catch (cause) {
-        if (isExpectedOperationError(cause)) {
-          throw cause;
-        }
-        throw new WebVowlOperationError({
-          code: "EDIT_REJECTED",
-          message: cause.message,
-          cause,
-        });
-      }
-    },
-    async confirmOntologyDeletion(proposal, options) {
-      const editedModel = deletionProposals.get(proposal);
-      if (editedModel === undefined) {
-        throw new WebVowlOperationError({
-          code: "EDIT_REJECTED",
-          message:
-            "This deletion proposal was not issued here or has already been used.",
-        });
-      }
-      assertCurrentEditableDocument(
-        { loadGeneration: proposal.loadGeneration },
-        [],
-      );
-      deletionProposals.delete(proposal);
-      return commitEditedDocument(editedModel, {
-        ...options,
-        selectedRecord: null,
-      });
-    },
+    proposeOntologyDeletion,
+    confirmOntologyDeletion,
 
     getVisualizationArrangement(request = {}) {
       assertCurrentDrawing();
@@ -1745,6 +2002,7 @@ export function createWebVowlController(dependencies) {
       abortBackgroundLayoutObservation();
       unsubscribeFromRenderedGraphEvents();
       stateSubscribers.clear();
+      cachedOntologySources.clear();
       renderedGraphRuntime.dispose();
       visualizationArtifactService.dispose();
     },
