@@ -234,6 +234,7 @@ def ensure_generated_roots_are_safe(repo: Path, roots: tuple[Path, ...]) -> None
     """
     Require generated roots to be untracked and ignored before rebuilding them.
     """
+    repo = repo.resolve()
     for root in roots:
         relative = root.relative_to(repo).as_posix()
 
@@ -927,6 +928,7 @@ def repair_non_self_contained_skills(
     lock_before_sync: dict[str, Any],
     agents: tuple[str, ...],
 ) -> None:
+    repo = repo.resolve()
     skills: dict[str, dict[str, Any]] = lock_before_sync["skills"]
 
     candidates: list[str] = []
@@ -1033,6 +1035,7 @@ def verify_lock_skill_set_unchanged(repo: Path, expected_skills: set[str]) -> No
 
 def preflight_local_skill_activation(repo: Path, agents: tuple[str, ...]) -> dict[str, Path]:
     """Check local prerequisites before a caller publishes repository configuration."""
+    repo = repo.resolve()
     require_python_version()
     import yaml
     _, lock, _ = load_lock(repo, allow_empty=True)
@@ -1064,6 +1067,7 @@ def ensure_agent_skills(repo: Path, agents: tuple[str, ...], *, local_only: bool
     Returns the declared skill names, so a caller sequencing several setup steps
     can report them without re-reading the lock.
     """
+    repo = repo.resolve()
     require_python_version()
     require_command("git")
     import yaml  # Preflight the existing native metadata parser before writes.
