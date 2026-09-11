@@ -21,6 +21,7 @@ export const CHECK_INPUTS = {
     ".python-version", "requirements-sdlc.txt", "skills-lock.json",
     ".gitignore", ".github",
     "util/_commands.py", "util/_repository.py", "util/_configuration_transaction.py", "util/_sdlc_state.py",
+    "util/_sdlc_baseline.py", "util/_sdlc_resource_disposition.py",
     "util/bootstrap_github_sdlc.py", "util/probe_dcg_hook_protocol.py",
     "util/runRepositoryPython.mjs", "util/sdlc.py", "util/sdlc_stop_gate.py",
     "util/validate_sdlc_pr.py", "util/set_up_sdlc.py", "util/set_up_agent_skills.py",

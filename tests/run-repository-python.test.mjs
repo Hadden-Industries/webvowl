@@ -32,7 +32,7 @@ test.each(["win32", "linux"])(
     ).toBe(7);
     expect(spawn).toHaveBeenCalledWith(
       executable,
-      ["-B", "util/file with spaces.py", "literal;argument"],
+      ["-B", "-X", "utf8", "util/file with spaces.py", "literal;argument"],
       {
         cwd: root,
         stdio: "inherit",

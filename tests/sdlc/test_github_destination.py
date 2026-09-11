@@ -16,7 +16,7 @@ ORIGIN = "https://github.com/Hadden-Industries/webvowl.git"
 
 class GitHubDestinationTests(unittest.TestCase):
     def test_labels_use_the_explicit_origin(self):
-        with patch.object(bootstrap, "derive_repo_from_script", return_value=Path("fixture")), patch.object(bootstrap, "require_command", return_value="gh"), patch.object(bootstrap, "git_output", return_value=ORIGIN, create=True), patch.object(bootstrap, "run") as run:
+        with patch.object(sys, "argv", ["bootstrap_github_sdlc.py"]), patch.object(bootstrap, "derive_repo_from_script", return_value=Path("fixture")), patch.object(bootstrap, "require_command", return_value="gh"), patch.object(bootstrap, "git_output", return_value=ORIGIN, create=True), patch.object(bootstrap, "run") as run:
             self.assertEqual(bootstrap.main(), 0)
         self.assertEqual(run.call_count, 14)
         for call in run.call_args_list:
