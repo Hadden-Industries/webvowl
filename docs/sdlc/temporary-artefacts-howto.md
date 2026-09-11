@@ -91,6 +91,21 @@ A partial or failed read returns nonzero while retaining the available report.
 Neither exit status means that implementation is verified or cleanup complete.
 The verification and Stop controls keep their separate existing responsibilities.
 
+## Evidence and test discovery
+
+The normal Jest configuration excludes only the repository-root `.sdlc/runtime/`
+and `.sdlc/tmp/` evidence directories in addition to dependencies. Git ignore
+rules alone do not control test discovery. Keep maintained regressions in the
+normal source/test locations; preserve retained diagnostics and review snapshots.
+The native discovery regression checks that product tests remain selected and
+source-named evidence copies remain present without becoming product test inputs.
+
+For an intentional diagnostic run, explicitly select its file and override the
+ignore list for that invocation, for example:
+`npm test -- --runInBand --runTestsByPath .sdlc/tmp/my-task/probe.test.js --testPathIgnorePatterns=/node_modules/`.
+Such a diagnostic is separate from product qualification; retain its actual
+result and keep the normal discovery configuration in place.
+
 ## Practical example (illustrative, not executed)
 
 Issue #123 adds a tenant-disclosure rule. The implementation has been committed;

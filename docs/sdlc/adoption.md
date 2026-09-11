@@ -100,6 +100,13 @@ changes preapproved. The unchanged [accepted WP8 plan](../plans/2026-09-11-sdlc-
 remains the programme baseline. This section describes the selected port; original
 bootstrap results above retain their historical scope.
 
+The first port lands through [Issue 18](https://github.com/Hadden-Industries/webvowl/issues/18)
+and its [prior native snapshot](baselines/issue-18/v1.json), because the original
+trusted R2 consumer supports Issue snapshots only. That actual policy-change
+record maps the unchanged selected WP8 criteria; it does not invent new product
+requirements or downgrade the implementation risk. Subsequent accepted-plan work
+uses the newly supported trusted reader after its policy revision has landed.
+
 Qualified Universal Ontology source `777cddda00ec1536c56ce7dc64f933c2cd20bd1c`
 and merged source `557d4bb3e4013b34a95ad8be6189b975222fb47e` share tree
 `3947463190c0188ce74eac558e2b2d942dfd0438`. The supplemental update in
