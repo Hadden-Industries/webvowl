@@ -182,6 +182,8 @@ describe("native Git PR check selection", () => {
     ["docs/sdlc/baselines/issue-1/v1.json", []],
     ["docs/sdlc/verification.md", []],
     ["util/set_up_sdlc.py", ["sdlc"]],
+    ["util/_sdlc_baseline.py", ["sdlc"]],
+    ["util/_sdlc_resource_disposition.py", ["sdlc"]],
     ["util/validate_sdlc_pr.py", ["sdlc"]],
     ["util/setUpDevelopmentEnvironment.mjs", ["sdlc"]],
     [".codex/agents/verifier.toml", ["sdlc"]],

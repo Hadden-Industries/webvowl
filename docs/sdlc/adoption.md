@@ -91,3 +91,56 @@ up-to-date branches. The existing Phase 19A tag ruleset is preserved. Real PRs
 [5](https://github.com/Hadden-Industries/webvowl/pull/5) qualified trusted-base linkage.
 PACKAGE_STATUS.json records this qualified local adoption as deployed=true.
 This does not promote SDLC version/status or establish WebVOWL product acceptance.
+
+## WP8 selective source adoption, 2026-09-11
+
+Max directed porting the selected improvements into this repository's main branch,
+with related commits, pushes, GitHub interactions and proportional configuration
+changes preapproved. The unchanged [accepted WP8 plan](../plans/2026-09-11-sdlc-wp8-adoption.md)
+remains the programme baseline. This section describes the selected port; original
+bootstrap results above retain their historical scope.
+
+The first port lands through [Issue 18](https://github.com/Hadden-Industries/webvowl/issues/18)
+and its [prior native snapshot](baselines/issue-18/v1.json), because the original
+trusted R2 consumer supports Issue snapshots only. That actual policy-change
+record maps the unchanged selected WP8 criteria; it does not invent new product
+requirements or downgrade the implementation risk. Subsequent accepted-plan work
+uses the newly supported trusted reader after its policy revision has landed.
+
+Qualified Universal Ontology source `777cddda00ec1536c56ce7dc64f933c2cd20bd1c`
+and merged source `557d4bb3e4013b34a95ad8be6189b975222fb47e` share tree
+`3947463190c0188ce74eac558e2b2d942dfd0438`. The supplemental update in
+[UPSTREAM.json](../../.sdlc/UPSTREAM.json) identifies source and adapted bytes;
+original import entries, licences and SOURCE_PACKAGE identity are retained.
+
+Selected changes comprise strict UTF-8 process boundaries and version 3 receipts
+with raw failure retention; exclusive task starts and explicit scope amendments;
+resource-disposition metadata and read-only status; native Git-object baseline
+validation and Issue readiness; proportional verification cadence and semantic
+naming guidance. Local Git selectors include the new baseline/resource modules.
+
+Three-way reconciliation preserves explicit origin targeting, native module paths,
+configuration transactions and product-specific full/affected profiles. Existing
+plan and GitHub-target fixtures retain their assertions while using the strengthened
+native representation. No package/status promotion, dependency upgrade, copied UO
+product pipeline or inherited current success is introduced. Historical version 2
+receipts remain evidence; current verification writes and consumes version 3.
+
+The launcher and native scope-selection regressions failed on each recipient's
+old behavior and passed after the focused corrections. Imported source contracts
+use preservation and consumer-adaptation evidence; this is not a claim that the
+already-qualified source was written test-first in this checkout. The complete
+frozen port still requires this repository's native full profile, actual hosted
+checks and the accepted independent assurance. Those revision-bound results belong
+to the implementation PR and native run records, not this self-referential input.
+
+The existing setup transaction activates approved local projections. Generated
+bytes and deterministic checks alone do not establish new native hook trust,
+runtime guard coverage or product release acceptance. Keep the package deployment
+status unchanged and rely only on applicable actual host evidence.
+
+Task-owned adaptation and failed fixture evidence remains with the WP8 coordinator
+through final review, main integration and any remaining originating consumers.
+No other task's files, recovery archive or worktree are disposed by this port.
+The programme's unfinished combined MCP/SHACL object remains a separate pending
+obligation; it does not make these selected controls a combined-product pass.

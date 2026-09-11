@@ -7,6 +7,10 @@ Baseline-only: no
 New functionality: select yes/no
 Software selection: none
 
+<!-- For an accepted committed plan, add exactly one Baseline acceptance: field
+with the owner decision reference. Acceptance IDs implemented is a JSON array of
+distinct exact lines from that unchanged prior plan. Otherwise omit this field. -->
+
 ## Problem and resulting behavior
 
 Describe the accepted task, affected user and intended outcome. R0/R1 can use this
@@ -19,6 +23,10 @@ tests and build checks, relevant SDLC/setup controls, and any missing evidence.
 For browser behavior, state the browser, scenario, observed result and limitations.
 For converter/export work, identify the input/output contract and independent oracle.
 A build is not browser acceptance, deployment or publication.
+
+State the required final checks, representative consumer outcome and material
+rerun triggers in this brief. Use focused checks during editing and one complete
+assurance pass on the frozen change; retain failures with their original scope.
 
 ## Principles and review
 

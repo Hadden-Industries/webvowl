@@ -645,5 +645,227 @@
       "integration": "extract lock and transaction preservation tests; adapt document fixture"
     }
   ],
-  "qualification": "Source and adapted file hashes are provenance only. WebVOWL verification and activation boundaries are in docs/sdlc/adoption.md and verification.md."
+  "qualification": "Source and adapted file hashes are provenance only. WebVOWL verification and activation boundaries are in docs/sdlc/adoption.md and verification.md.",
+  "updates": [
+    {
+      "sourceRepository": "https://github.com/Hadden-Industries/universal-ontology",
+      "sourceCommit": "777cddda00ec1536c56ce7dc64f933c2cd20bd1c",
+      "mergedSourceCommit": "557d4bb3e4013b34a95ad8be6189b975222fb47e",
+      "sourceTree": "3947463190c0188ce74eac558e2b2d942dfd0438",
+      "recordedAt": "2026-09-11",
+      "scope": "Selective WP8 SDLC port; source qualification and recipient qualification remain distinct.",
+      "files": [
+        {
+          "path": ".github/pull_request_template.md",
+          "sourcePath": ".github/PULL_REQUEST_TEMPLATE.md",
+          "sourceSha256": "807f35dd79955e8a6bf5b3bb0ab79fc50d1e7a56791b5bf195c2b868eee3bbae",
+          "adoptedSha256": "fc3ae4a4d8fd4342e4e54b8b11e3d29b5ac259452bc647bcf2556c22664d22e2"
+        },
+        {
+          "path": ".sdlc/schemas/resource-disposition.schema.json",
+          "sourcePath": ".sdlc/schemas/resource-disposition.schema.json",
+          "sourceSha256": "2a5a0f38a532d52010ae502b6cfe9318ca9533bff9add246724ea3c66869eafb",
+          "adoptedSha256": "2a5a0f38a532d52010ae502b6cfe9318ca9533bff9add246724ea3c66869eafb"
+        },
+        {
+          "path": ".sdlc/schemas/verification-run.schema.json",
+          "sourcePath": ".sdlc/schemas/verification-run.schema.json",
+          "sourceSha256": "af0ab4a271e938bece719f7502afb729f45c532797a25c2812dfcd4ed3914d28",
+          "adoptedSha256": "af0ab4a271e938bece719f7502afb729f45c532797a25c2812dfcd4ed3914d28"
+        },
+        {
+          "path": ".sdlc/skills/sdlc-route/SKILL.md",
+          "sourcePath": ".sdlc/skills/sdlc-route/SKILL.md",
+          "sourceSha256": "861cf7488376e48a252af2d8b3a1f1eebda9f5e54099b7ce18c2f5b62e0328c5",
+          "adoptedSha256": "861cf7488376e48a252af2d8b3a1f1eebda9f5e54099b7ce18c2f5b62e0328c5"
+        },
+        {
+          "path": ".sdlc/skills/test-driven-development/references/evidence-and-handoffs.md",
+          "sourcePath": ".sdlc/skills/test-driven-development/references/evidence-and-handoffs.md",
+          "sourceSha256": "afd270d49596a0ceafaa3c3e867afdb9c954fec4b089dbae36ab66dc44896767",
+          "adoptedSha256": "afd270d49596a0ceafaa3c3e867afdb9c954fec4b089dbae36ab66dc44896767"
+        },
+        {
+          "path": "docs/sdlc/codex-security.md",
+          "sourcePath": "docs/sdlc/codex-security.md",
+          "sourceSha256": "4f4110653119dbf5bca895301057404e9ad54f1876c727c8ac5dd311a9e172dd",
+          "adoptedSha256": "4f4110653119dbf5bca895301057404e9ad54f1876c727c8ac5dd311a9e172dd"
+        },
+        {
+          "path": "docs/sdlc/command-safety.md",
+          "sourcePath": "docs/sdlc/command-safety.md",
+          "sourceSha256": "2075426d6ed9a342b07f71ac77b924636ae59b493d80ceb07bfe515ecdf22117",
+          "adoptedSha256": "dc79f58421dfdde3ab358c863c4f0267b6e857d08809a2c5d4c12d7dca79f401"
+        },
+        {
+          "path": "docs/sdlc/engineering-principles.md",
+          "sourcePath": "docs/sdlc/engineering-principles.md",
+          "sourceSha256": "eac761cf44809e5a93abc0174b1ccf15bfb45e3de49ce34df8f1058e4900abd8",
+          "adoptedSha256": "eac761cf44809e5a93abc0174b1ccf15bfb45e3de49ce34df8f1058e4900abd8"
+        },
+        {
+          "path": "docs/sdlc/github-governance.md",
+          "sourcePath": "docs/sdlc/github-governance.md",
+          "sourceSha256": "09e69cfb87406cfd1c7b6a7187d529a8b6ad26424b8a6651bcf6d49e6f97427f",
+          "adoptedSha256": "281c28bc7bec8f8044227c05990b8ae5678f57a66359804512b36f8ee59298a8"
+        },
+        {
+          "path": "docs/sdlc/howto.md",
+          "sourcePath": "docs/sdlc/howto.md",
+          "sourceSha256": "da5c7ccfefe28b8dda1a7e4b53f0ee02dd5ca4c158ac922f33dfcf9cb69579f6",
+          "adoptedSha256": "6baa77d4b26fb1f8fd0e6cfe3d957feea07a36a6338cbf52574578fa49c69559"
+        },
+        {
+          "path": "docs/sdlc/proportional-workflow.md",
+          "sourcePath": "docs/sdlc/proportional-workflow.md",
+          "sourceSha256": "359f3be039ead2c3780af8372e36e9131ce48f6c46ed384c9016a30b78643305",
+          "adoptedSha256": "359f3be039ead2c3780af8372e36e9131ce48f6c46ed384c9016a30b78643305"
+        },
+        {
+          "path": "docs/sdlc/subagent-playbook.md",
+          "sourcePath": "docs/sdlc/subagent-playbook.md",
+          "sourceSha256": "a12f4449658bae1f837342fa5968ddbd100aaa1f74e63eb6ebfb8cd3c829a066",
+          "adoptedSha256": "a12f4449658bae1f837342fa5968ddbd100aaa1f74e63eb6ebfb8cd3c829a066"
+        },
+        {
+          "path": "docs/sdlc/temporary-artefacts-howto.md",
+          "sourcePath": "docs/sdlc/temporary-artefacts-howto.md",
+          "sourceSha256": "64f32b0a7ec00567492bc1ac0989d8313da227aef8b5afd5cc652c0f18dbca2c",
+          "adoptedSha256": "4d9774d201e28e4662c42d033254597c5a09799f03435779259d0f27d686d62b"
+        },
+        {
+          "path": "docs/sdlc/temporary-artefacts.md",
+          "sourcePath": "docs/sdlc/temporary-artefacts.md",
+          "sourceSha256": "1894d43bd75766ac48095a2d9e8371b34097264240ba3209e89deaf210479c19",
+          "adoptedSha256": "1894d43bd75766ac48095a2d9e8371b34097264240ba3209e89deaf210479c19"
+        },
+        {
+          "path": "tests/pr-check-scopes.test.mjs",
+          "sourcePath": "tests/pr-check-scopes.test.js",
+          "sourceSha256": "f3465862043679a96ca3535e35f98f55b3e1fa91e93dcaee32ae821270d51186",
+          "adoptedSha256": "ca7029754c44b552b71dabe74789a499c5a76e2769e8bc16f1f73dde1b32bff1"
+        },
+        {
+          "path": "tests/run-repository-python.test.mjs",
+          "sourcePath": "tests/run-repository-python.test.js",
+          "sourceSha256": "54a38934b05194db1a68763661a4933e67cbadc652ee7116d4dd056c3ac83e89",
+          "adoptedSha256": "398249a8b4210f8a5ad3b0c0ac847be4b316a658b9420e48fc8ec07133a7a3bb"
+        },
+        {
+          "path": "tests/sdlc/fixtures/concurrent_lifecycle_child.py",
+          "sourcePath": "tests/sdlc/fixtures/concurrent_lifecycle_child.py",
+          "sourceSha256": "2ee7a04b3e3d414a975053b9ae56a2c26fdbc00d39a720fb9c0d10557104b19e",
+          "adoptedSha256": "0a24e869f002e2ddbf40212f1279dfd51d38debf99f4211123bfb2ea0dd2358d"
+        },
+        {
+          "path": "tests/sdlc/fixtures/verification_process.py",
+          "sourcePath": "tests/sdlc/fixtures/verification_process.py",
+          "sourceSha256": "65b3365b927f586800ba74ecfc3df3ad52a213b653f5f39a616f7632ef682423",
+          "adoptedSha256": "65b3365b927f586800ba74ecfc3df3ad52a213b653f5f39a616f7632ef682423"
+        },
+        {
+          "path": "tests/sdlc/test_github_destination.py",
+          "sourcePath": null,
+          "sourceSha256": null,
+          "adoptedSha256": "379eff49f5860e81add5f9b0848c73853959be741d9f9a39265131af707fccae"
+        },
+        {
+          "path": "tests/sdlc/test_github_readiness.py",
+          "sourcePath": "tests/sdlc/test_github_readiness.py",
+          "sourceSha256": "cb8b05fbcd7e42fa3d94dc2da4b55e8b610a7f307578563eb231bd03b57e640e",
+          "adoptedSha256": "a47089b1ec4c8e3acafa476bf34b9f9f9ac2a8bc11a861c72f318f22ffa6ef9b"
+        },
+        {
+          "path": "tests/sdlc/test_pipeline_controls.py",
+          "sourcePath": "tests/sdlc/test_pipeline_controls.py",
+          "sourceSha256": "99972894c22b142cf20b09d82cec3f2abf417e7ba473488570d540c97198258d",
+          "adoptedSha256": "5e01379379ce69bc84e64647c03fcd93cddf3c25cd9d3dbee3a01e14ec0ddb16"
+        },
+        {
+          "path": "tests/sdlc/test_plan_baselines.py",
+          "sourcePath": "tests/sdlc/test_plan_baselines.py",
+          "sourceSha256": "c9f3f0804ac21938ade5d35be445ac3c7e7fbdd860a83db5ce08257826af8a9e",
+          "adoptedSha256": "387ecf87b88198199911f42f2ca7df1dcc61182a908347f8f28fa49de4ab89d7"
+        },
+        {
+          "path": "tests/sdlc/test_repository_integration.py",
+          "sourcePath": "tests/sdlc/test_repository_integration.py",
+          "sourceSha256": "999eff118af46f7be291ff8b202d0bc4d68fb47aca9399240b00297004645605",
+          "adoptedSha256": "60016e3114e49a4bc04b54f4f51229085911d0d26d66a67386846c85143f7e77"
+        },
+        {
+          "path": "tests/sdlc/test_resource_dispositions.py",
+          "sourcePath": "tests/sdlc/test_resource_dispositions.py",
+          "sourceSha256": "5f74a628349da1911e01bbe08cff08a3843b5848fa72548148afebe0165f27dd",
+          "adoptedSha256": "36e61e3ba77331ee8cb7a93ec3ac59ab7b2660931c5ecb0ff42ff9ff4103f322"
+        },
+        {
+          "path": "util/_commands.py",
+          "sourcePath": "scripts/_commands.py",
+          "sourceSha256": "603d21afea41e360d1fa8ec1722c5e6889d42fdb965e14535b004b5635496cdd",
+          "adoptedSha256": "603d21afea41e360d1fa8ec1722c5e6889d42fdb965e14535b004b5635496cdd"
+        },
+        {
+          "path": "util/_sdlc_baseline.py",
+          "sourcePath": "scripts/_sdlc_baseline.py",
+          "sourceSha256": "eda7d519be78c7bb9274a0f7502fe76f763d2696ee92ee904ebb49575c092aa2",
+          "adoptedSha256": "eda7d519be78c7bb9274a0f7502fe76f763d2696ee92ee904ebb49575c092aa2"
+        },
+        {
+          "path": "util/_sdlc_resource_disposition.py",
+          "sourcePath": "scripts/_sdlc_resource_disposition.py",
+          "sourceSha256": "736aa7b2a56792744120d60bc7a4eb13f84408dabe44b8ab77376cfbe8aed577",
+          "adoptedSha256": "736aa7b2a56792744120d60bc7a4eb13f84408dabe44b8ab77376cfbe8aed577"
+        },
+        {
+          "path": "util/_sdlc_state.py",
+          "sourcePath": "scripts/_sdlc_state.py",
+          "sourceSha256": "718441af182a4ff80798214c8d99adc680df681fe072efaf28e39c4bf0c997f7",
+          "adoptedSha256": "718441af182a4ff80798214c8d99adc680df681fe072efaf28e39c4bf0c997f7"
+        },
+        {
+          "path": "util/bootstrap_github_sdlc.py",
+          "sourcePath": "scripts/bootstrap_github_sdlc.py",
+          "sourceSha256": "49e6b4ead66eaf9ad66985a02dc3bc630dbcfe5360bc3f4a2dc6bb34a9c0c169",
+          "adoptedSha256": "eb8ed68711b386666ea7d962641a2e3952d6c019a73f112ef3a14e3d92570622"
+        },
+        {
+          "path": "util/runRepositoryPython.mjs",
+          "sourcePath": "scripts/runRepositoryPython.js",
+          "sourceSha256": "6f8d5f2a71cf3639e7c968eea96772963895ae1e642b1eaf3fb9a63d2d24dff4",
+          "adoptedSha256": "6f8d5f2a71cf3639e7c968eea96772963895ae1e642b1eaf3fb9a63d2d24dff4"
+        },
+        {
+          "path": "util/sdlc.py",
+          "sourcePath": "scripts/sdlc.py",
+          "sourceSha256": "0d555f0c0f2634b74a67e1e245546b8417a9bc270f468ff39ec15cf602c17c2a",
+          "adoptedSha256": "aa38c338ce60891d20a20622d3250a41507d0a63a4056653747baab6f528bb78"
+        },
+        {
+          "path": "util/selectPullRequestChecks.mjs",
+          "sourcePath": "scripts/selectPullRequestChecks.js",
+          "sourceSha256": "f2aaf3a5ef5a22c741ebc6ed5774e838b50d3ba502c8d894bee6011c29fe39af",
+          "adoptedSha256": "731ef6eab618e96ecd9033fc559df926937c18a7f802598379a9f23526bf42b7"
+        },
+        {
+          "path": "util/set_up_agent_skills.py",
+          "sourcePath": "scripts/set_up_agent_skills.py",
+          "sourceSha256": "eddf6720bf3c5d8918929b3f2b230e2f8123bd9edc3f21922ccd9b3374355b3d",
+          "adoptedSha256": "ed0d4c828245bf32436b3fb3c6d3f9fe359af9763dc2f1fde538358ea17ce70a"
+        },
+        {
+          "path": "util/test_sdlc_skill_activation.py",
+          "sourcePath": "tests/test_set_up_agent_skills.py",
+          "sourceSha256": "fc9b7356280dba13edd13c9471e154da81a65e7ca3b3437ba0735cc215e6e4a3",
+          "adoptedSha256": "3e6ec6ef45a20de5320db1768838e5081207a9f07522641b29b890721fee4b60"
+        },
+        {
+          "path": "util/validate_sdlc_pr.py",
+          "sourcePath": "scripts/validate_sdlc_pr.py",
+          "sourceSha256": "89dad5f68c97033908977ad1a9c92aa99db8f9de8a713b27ce43d70e97648137",
+          "adoptedSha256": "89dad5f68c97033908977ad1a9c92aa99db8f9de8a713b27ce43d70e97648137"
+        }
+      ]
+    }
+  ]
 }

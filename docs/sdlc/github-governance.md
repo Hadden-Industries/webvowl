@@ -73,3 +73,31 @@ executed, generated oracle output changed, network fallback added or test skippe
 The referenced repository retains its licence and per-ontology source notices.
 Local full corpus verification likewise requires this sibling corpus. A clean
 checkout without it must report the missing input rather than a reduced pass.
+
+## Accepted-plan linkage and actual execution evidence
+
+The committed-plan route supplements the existing Issue snapshot route. Use the
+unchanged accepted UTF-8 Markdown file under docs/plans/ already present as a
+regular file in the trusted PR base. Add one `Baseline acceptance:` field identifying
+the inspectable owner decision. `Acceptance IDs implemented:` is then a nonempty
+JSON array of distinct exact lines occurring once in that plan. These references
+link evidence; they do not authenticate acceptance or prove implementation.
+
+The native reader acquires pinned commit/tree/blob objects, checks regular file
+mode and object identity, bounds transport and decodes strictly. Candidate code
+is never executed by the trusted metadata check. Preserve complete change and
+rename coverage, exact base/head identities and movement detection. An unchanged
+plan in Git is not permission to change its accepted scope.
+
+Use `npm run setup:sdlc:github -- --check-issue-readiness` for the read-only Issue
+availability prerequisite. It targets this repository's explicit origin and
+installs no labels. Disabled Issues blocks the Issue route, not the supported
+plan route; settings changes retain their separate authority. Label installation
+without that option remains a separately authorized operation.
+
+Read the actual event, checked-out policy revision, candidate/merge revision,
+run/attempt and relevant job results. A rerun of an older event does not select
+new policy. Required skipped or missing checks remain gaps. Retain a failing
+trusted-policy run while diagnosing its boundary; do not execute candidate policy
+with privileged credentials, change acceptance metadata to manufacture a pass,
+or bypass branch protection.
