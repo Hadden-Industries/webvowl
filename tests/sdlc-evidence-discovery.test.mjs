@@ -3,6 +3,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -23,8 +24,10 @@ const jestExecutable = join(
 );
 
 test("product discovery includes source tests and excludes retained SDLC evidence", () => {
-  const temporaryRoot = resolve(tmpdir());
-  const fixture = mkdtempSync(join(temporaryRoot, "webvowl-discovery-"));
+  const temporaryRoot = realpathSync.native(tmpdir());
+  const fixture = realpathSync.native(
+    mkdtempSync(join(temporaryRoot, "webvowl-discovery-")),
+  );
   const productPaths = [
     "src/product.test.js",
     "tests/control.test.js",
