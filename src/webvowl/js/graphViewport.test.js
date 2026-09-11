@@ -1,7 +1,105 @@
-global.d3 = require("d3");
-const graphModule = require("./graph");
-const viewportTransform = graphModule.viewportTransform;
-const measureViewportElement = graphModule.measureViewportElement;
+import * as d3 from "d3";
+import { DOMImplementation } from "@xmldom/xmldom";
+import { beforeAll, jest } from "@jest/globals";
+import { runInThisContext } from "node:vm";
+import loadEsmModuleForTest from "../../app/test/loadEsmModuleForTest.js";
+
+const graphModule = {};
+
+let viewportTransform;
+let measureViewportElement;
+
+beforeAll(async () => {
+  Object.assign(
+    graphModule,
+    await loadEsmModuleForTest(
+      new URL("./runtime/renderedGraphInternals.js", import.meta.url),
+      import.meta.url,
+    ),
+  );
+  viewportTransform = graphModule.viewportTransform;
+  measureViewportElement = graphModule.measureViewportElement;
+});
+
+globalThis.d3 = d3;
+
+describe("continuous graph zoom rendering", () => {
+  test.each([1, -1])(
+    "draws the magnification reported for direction %s and retains the viewport center",
+    (direction) => {
+      const moduleGlobals = runInThisContext("globalThis");
+      const originalGlobals = new Map(
+        ["d3", "requestAnimationFrame", "cancelAnimationFrame"].map((name) => [
+          name,
+          Object.getOwnPropertyDescriptor(moduleGlobals, name),
+        ]),
+      );
+      const document = new DOMImplementation().createDocument(
+        "http://www.w3.org/1999/xhtml",
+        "div",
+      );
+      const createElementNS = document.createElementNS.bind(document);
+      document.createElementNS = (...args) => {
+        const element = createElementNS(...args);
+        // The XML DOM stores the real SVG tree. Browser event installation is
+        // outside this test; the renderer's held-zoom command is invoked below.
+        element.addEventListener = () => {};
+        element.removeEventListener = () => {};
+        return element;
+      };
+      const frames = new Map();
+      let nextFrameId = 0;
+      moduleGlobals.d3 = d3;
+      moduleGlobals.requestAnimationFrame = (callback) => {
+        frames.set(++nextFrameId, callback);
+        return nextFrameId;
+      };
+      moduleGlobals.cancelAnimationFrame = (id) => frames.delete(id);
+      let graph;
+      try {
+        graph = graphModule.createRenderedGraphInternals(
+          document.documentElement,
+          { widthPx: 800, heightPx: 600 },
+        );
+        graph.initializeSvgRoot();
+        graph.setViewportTransform(1, [100, 50]);
+        const svg = document.documentElement.firstChild;
+        const drawing = svg.firstChild;
+        expect(drawing.getAttribute("transform")).toBe(
+          "translate(100,50)scale(1)",
+        );
+        const publishViewportChange = jest.fn();
+        graph.setRenderedGraphEventPort({ publishViewportChange });
+
+        graph.startContinuousZoom(direction);
+
+        const scale = graph.scaleFactor();
+        expect(direction > 0 ? scale > 1 : scale < 1).toBe(true);
+        const [x, y] = graph.translation();
+        expect(drawing.getAttribute("transform")).toBe(
+          `translate(${x},${y})scale(${scale})`,
+        );
+        // At the initial transform, world point (300, 250) is the viewport
+        // center (400, 300); changing magnification must keep it there.
+        expect(x + 300 * scale).toBeCloseTo(400);
+        expect(y + 250 * scale).toBeCloseTo(300);
+        expect(svg.__zoom.k).toBe(scale);
+        expect(publishViewportChange).toHaveBeenLastCalledWith(scale, x, y);
+        expect(frames.size).toBe(1);
+      } finally {
+        graph?.stopContinuousZoom();
+        for (const [name, descriptor] of originalGlobals) {
+          if (descriptor) {
+            Object.defineProperty(moduleGlobals, name, descriptor);
+          } else {
+            delete moduleGlobals[name];
+          }
+        }
+        expect(frames.size).toBe(0);
+      }
+    },
+  );
+});
 
 describe("graph viewport transform normalization", () => {
   test.each([

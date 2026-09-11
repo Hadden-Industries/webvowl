@@ -1,9 +1,11 @@
-const SetOperatorNode = require("../../../webvowl/js/elements/nodes/SetOperatorNode");
-const OwlThing = require("../../../webvowl/js/elements/nodes/implementations/OwlThing");
-const OwlNothing = require("../../../webvowl/js/elements/nodes/implementations/OwlNothing");
-const elementTools = require("../util/elementTools")();
+import { createSet as createElementSet } from "../util/set.js";
+import { SetOperatorNode } from "../../../webvowl/js/elements/nodes/SetOperatorNode.js";
+import { OwlThing } from "../../../webvowl/js/elements/nodes/implementations/OwlThing.js";
+import { OwlNothing } from "../../../webvowl/js/elements/nodes/implementations/OwlNothing.js";
+import { createElementTools as elementToolsFactory } from "../util/elementTools.js";
+const elementTools = elementToolsFactory();
 
-module.exports = function () {
+export function createStatistics() {
   const statistics = {};
   let nodeCount;
   const occurencesOfClassAndDatatypeTypes = {};
@@ -51,7 +53,7 @@ module.exports = function () {
   function storeTotalCounts(classesAndDatatypes, properties) {
     nodeCount = classesAndDatatypes.length;
 
-    const seenProperties = require("../util/set")();
+    const seenProperties = createElementSet();
     let i, l, property;
     for (i = 0, l = properties.length; i < l; i++) {
       property = properties[i];
@@ -210,4 +212,4 @@ module.exports = function () {
   };
 
   return statistics;
-};
+}

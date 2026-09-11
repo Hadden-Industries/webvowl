@@ -1,0 +1,3044 @@
+import { readFileSync } from "node:fs";
+import { createHash, webcrypto } from "node:crypto";
+import { fileURLToPath } from "node:url";
+import { SourceTextModule } from "node:vm";
+import { OWLDocumentFormats } from "owlapi/formats";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
+import {
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  jest,
+  test,
+} from "@jest/globals";
+
+let createInMemoryRenderedGraphAdapter;
+let createOntologyInspector;
+let vowlModelInspectionProjector;
+let createWebVowlController;
+let createWebMcpToolDispatch;
+let createVisualizationArtifactService;
+let decodeVowlVisualizationSettings;
+
+const CONTROLLER_MODULE_URL = new URL(
+  "./webVowlController.js",
+  import.meta.url,
+);
+const INSPECTOR_MODULE_URL = new URL("./ontologyInspector.js", import.meta.url);
+const IN_MEMORY_ADAPTER_MODULE_URL = new URL(
+  "../../test/inMemoryRenderedGraphAdapter.js",
+  import.meta.url,
+);
+
+const DOCUMENT_IRI = "https://example.test/ontology.owl";
+const SOURCE_REQUEST = Object.freeze({
+  source: Object.freeze({
+    kind: "ontology-document-iri",
+    documentIri: DOCUMENT_IRI,
+  }),
+});
+
+const repositoryModulesByUrl = new Map();
+
+function instantiateRepositoryModule(moduleUrl) {
+  const moduleIdentifier = moduleUrl.href;
+  if (repositoryModulesByUrl.has(moduleIdentifier)) {
+    return repositoryModulesByUrl.get(moduleIdentifier);
+  }
+  const repositoryModule = new SourceTextModule(
+    readFileSync(fileURLToPath(moduleUrl), "utf8"),
+    { identifier: moduleIdentifier },
+  );
+  repositoryModulesByUrl.set(moduleIdentifier, repositoryModule);
+  return repositoryModule;
+}
+
+async function loadRepositoryModule(moduleUrl) {
+  const rootModule = instantiateRepositoryModule(moduleUrl);
+  await rootModule.link((specifier, referencingModule) =>
+    instantiateRepositoryModule(
+      new URL(specifier, referencingModule.identifier),
+    ),
+  );
+  await rootModule.evaluate();
+  return rootModule;
+}
+
+beforeAll(async () => {
+  ({ createOntologyInspector } = (
+    await loadRepositoryModule(INSPECTOR_MODULE_URL)
+  ).namespace);
+  ({ createInMemoryRenderedGraphAdapter } = (
+    await loadRepositoryModule(IN_MEMORY_ADAPTER_MODULE_URL)
+  ).namespace);
+  ({ vowlModelInspectionProjector } = (
+    await loadRepositoryModule(
+      new URL("./vowlModelInspectionProjector.js", import.meta.url),
+    )
+  ).namespace);
+  ({ createWebVowlController } = (
+    await loadRepositoryModule(CONTROLLER_MODULE_URL)
+  ).namespace);
+  ({ createWebMcpToolDispatch } = await loadEsmModuleForTest(
+    new URL("../webmcp/webMcpToolContracts.js", import.meta.url),
+    import.meta.url,
+    { "owlapi/formats": { OWLDocumentFormats } },
+  ));
+  ({ createVisualizationArtifactService } = await loadEsmModuleForTest(
+    new URL("./visualizationArtifactService.js", import.meta.url),
+    import.meta.url,
+  ));
+  ({ decodeVowlVisualizationSettings } = await loadEsmModuleForTest(
+    new URL("./vowlVisualizationSettings.js", import.meta.url),
+    import.meta.url,
+  ));
+});
+
+function createSourceLoadRecord(overrides = {}) {
+  return {
+    vowlModel: {
+      header: { title: { en: "Example" } },
+      class: [],
+      property: [],
+    },
+    diagnostics: [],
+    sourceProvenance: {
+      kind: "ontology-document-iri",
+      identity: DOCUMENT_IRI,
+      sha256Hex: "a".repeat(64),
+    },
+    structuralCounts: {
+      classCount: 0,
+      datatypeCount: 0,
+      individualCount: 0,
+      propertyCount: 0,
+    },
+    ...overrides,
+  };
+}
+
+async function flushMicrotasks(turnCount = 6) {
+  for (let turn = 0; turn < turnCount; turn += 1) {
+    await Promise.resolve();
+  }
+}
+
+describe("WebVOWL controller orchestration", () => {
+  let controller;
+  let deferredSourceLoads;
+  let graphLayoutSettler;
+  let ontologySourceLoader;
+  let publishedStates;
+  let publishedChangeSets;
+  let renderedGraphRuntime;
+  let renderedGraphTestHarness;
+  let settlementRequests;
+  let visualizationArtifactService;
+  let waitForBrowserPaint;
+  let waitForDocumentFonts;
+  let requestOntologyDeletionConfirmation;
+
+  beforeEach(() => {
+    const inMemoryAdapter = createInMemoryRenderedGraphAdapter();
+    renderedGraphRuntime = {
+      ...inMemoryAdapter.renderedGraphRuntime,
+      replaceVowlModel: jest.fn(
+        inMemoryAdapter.renderedGraphRuntime.replaceVowlModel,
+      ),
+    };
+    renderedGraphTestHarness = inMemoryAdapter.renderedGraphTestHarness;
+
+    deferredSourceLoads = [];
+    ontologySourceLoader = {
+      loadOntologySource: jest.fn(
+        (request, { onPhaseChange, signal } = {}) =>
+          new Promise((resolve, reject) => {
+            deferredSourceLoads.push({
+              onPhaseChange,
+              reject,
+              request,
+              resolve,
+              signal,
+            });
+          }),
+      ),
+    };
+
+    settlementRequests = [];
+    graphLayoutSettler = {
+      waitForSettledGraphLayout: jest.fn(
+        (settlementRequest, options = {}) =>
+          new Promise((resolve, reject) => {
+            settlementRequests.push({
+              options,
+              reject,
+              resolve,
+              settlementRequest,
+            });
+          }),
+      ),
+    };
+
+    visualizationArtifactService = {
+      dispose: jest.fn(),
+      createVisualizationArtifact: jest.fn(
+        async ({ filename, viewRecipe }) => ({
+          pageLocalArtifactId: "svg-artifact-1-1",
+          filename,
+          mediaType: "image/svg+xml",
+          byteLength: 128,
+          sha256Hex: "b".repeat(64),
+          pageLocalViewRecipeId: "svg-view-recipe-1-1",
+          viewRecipe,
+        }),
+      ),
+    };
+
+    waitForDocumentFonts = jest.fn(async () => undefined);
+    waitForBrowserPaint = jest.fn(async () => undefined);
+    requestOntologyDeletionConfirmation = jest.fn(async () => false);
+
+    controller = createWebVowlController({
+      applicationUrl: "https://viewer.test/?view=1#stale",
+      ontologySourceLoader,
+      vowlModelInspectionProjector,
+      renderedGraphRuntime,
+      ontologyInspector: createOntologyInspector(),
+      graphLayoutSettler,
+      visualizationArtifactService,
+      waitForDocumentFonts,
+      waitForBrowserPaint,
+      requestOntologyDeletionConfirmation,
+    });
+
+    publishedStates = [];
+    publishedChangeSets = [];
+    controller.subscribeToState((controllerState, changedFieldNames) => {
+      publishedStates.push(controllerState);
+      publishedChangeSets.push(changedFieldNames);
+    });
+  });
+
+  function createDetachedSvgRootFixture() {
+    return {
+      localName: "svg",
+      namespaceURI: "http://www.w3.org/2000/svg",
+      parentNode: null,
+      cloneNode(includeDescendants) {
+        if (includeDescendants !== true) {
+          throw new TypeError("Rendered SVG snapshots require a deep clone.");
+        }
+        return createDetachedSvgRootFixture();
+      },
+    };
+  }
+
+  async function completeLoad(
+    loadGeneration = 1,
+    loadOptions = {},
+    snapshotOverrides = {},
+    sourceLoadRecord = createSourceLoadRecord(),
+    sourceRequest = SOURCE_REQUEST,
+  ) {
+    const loadPromise = controller.loadOntology(sourceRequest, loadOptions);
+    await flushMicrotasks(2);
+    const deferredLoad = deferredSourceLoads.at(-1);
+    deferredLoad.onPhaseChange?.("parsing");
+    deferredLoad.resolve(sourceLoadRecord);
+    await flushMicrotasks(3);
+    renderedGraphTestHarness.completeInitialPaint(
+      loadGeneration,
+      snapshotOverrides,
+    );
+    await flushMicrotasks(3);
+    renderedGraphTestHarness.completeVisualizationViewApplication(
+      loadGeneration,
+    );
+    await flushMicrotasks(3);
+    return loadPromise;
+  }
+
+  test("revisits a cached source without exchanging its model or provenance with the next source", async () => {
+    const firstRecord = createSourceLoadRecord();
+    await completeLoad(1, {}, {}, firstRecord);
+    expect(controller.getState().hasReusedCachedVisualization).toBe(false);
+    const secondRequest = {
+      source: { kind: "vowl-json-url", url: DOCUMENT_IRI },
+    };
+    await completeLoad(
+      2,
+      {},
+      {},
+      createSourceLoadRecord({
+        vowlModel: {
+          header: { title: { en: "Second ontology" } },
+          class: [],
+          property: [],
+        },
+        sourceProvenance: {
+          kind: "vowl-json-url",
+          identity: secondRequest.source.url,
+          sha256Hex: "b".repeat(64),
+        },
+      }),
+      secondRequest,
+    );
+
+    const revisiting = controller.loadOntology({
+      ...SOURCE_REQUEST,
+      reuseCachedOntology: true,
+    });
+    await flushMicrotasks(3);
+    expect(ontologySourceLoader.loadOntologySource).toHaveBeenCalledTimes(2);
+    renderedGraphTestHarness.completeInitialPaint(3);
+    await flushMicrotasks(3);
+    renderedGraphTestHarness.completeVisualizationViewApplication(3);
+    await revisiting;
+    expect(controller.getOntologyDocument().vowlModel.header.title).toEqual({
+      en: "Example",
+    });
+    expect(controller.getState().source).toEqual(firstRecord.sourceProvenance);
+    expect(controller.getState().hasReusedCachedVisualization).toBe(true);
+    renderedGraphTestHarness.publishRenderedGraphEvent({
+      kind: "viewport-changed",
+      loadGeneration: 3,
+      payload: { zoomScale: 1, translationXPx: 0, translationYPx: 0 },
+    });
+    expect(controller.getVisualizationShareLink().url).toContain(
+      "#iri=https%3A%2F%2Fexample.test%2Fontology.owl",
+    );
+    await completeLoad(4, {}, {}, firstRecord, {
+      ...SOURCE_REQUEST,
+      reuseCachedOntology: false,
+    });
+    expect(controller.getState().hasReusedCachedVisualization).toBe(false);
+    expect(ontologySourceLoader.loadOntologySource).toHaveBeenCalledTimes(3);
+  });
+
+  test("a failed fresh retrieval retains the accepted cache and drawing", async () => {
+    const accepted = createSourceLoadRecord();
+    await completeLoad(1, {}, {}, accepted);
+    const refreshing = controller
+      .loadOntology({
+        ...SOURCE_REQUEST,
+        reuseCachedOntology: false,
+      })
+      .catch((error) => error);
+    await flushMicrotasks(2);
+    deferredSourceLoads.at(-1).reject(new Error("Network unavailable"));
+    expect((await refreshing).code).toBe("LOAD_FAILED");
+    expect(controller.getState().loadGeneration).toBe(1);
+    expect(controller.getState().source).toEqual(accepted.sourceProvenance);
+
+    const cached = controller.loadOntology({
+      ...SOURCE_REQUEST,
+      reuseCachedOntology: true,
+    });
+    await flushMicrotasks(3);
+    expect(ontologySourceLoader.loadOntologySource).toHaveBeenCalledTimes(2);
+    renderedGraphTestHarness.completeInitialPaint(3);
+    await flushMicrotasks(3);
+    renderedGraphTestHarness.completeVisualizationViewApplication(3);
+    await cached;
+    expect(controller.getState().hasReusedCachedVisualization).toBe(true);
+    expect(controller.getOntologyDocument().vowlModel.header.title).toEqual({
+      en: "Example",
+    });
+    expect(controller.getState().source).toEqual(accepted.sourceProvenance);
+    const failedRefresh = controller
+      .loadOntology({ ...SOURCE_REQUEST, reuseCachedOntology: false })
+      .catch((error) => error);
+    expect(controller.getState().hasReusedCachedVisualization).toBe(false);
+    await flushMicrotasks(2);
+    deferredSourceLoads.at(-1).reject(new Error("Still unavailable"));
+    expect((await failedRefresh).code).toBe("LOAD_FAILED");
+    expect(controller.getState().hasReusedCachedVisualization).toBe(true);
+  });
+
+  test("shares the accepted remote source and applied view through the controller", async () => {
+    await completeLoad();
+    renderedGraphTestHarness.publishRenderedGraphEvent({
+      kind: "viewport-changed",
+      loadGeneration: 1,
+      payload: { zoomScale: 1, translationXPx: 0, translationYPx: 0 },
+    });
+    const result = controller.getVisualizationShareLink({
+      presentation: { sidebar: 0, editorMode: false },
+    });
+    expect(result.loadGeneration).toBe(1);
+    expect(result.url).toContain("https://viewer.test/?view=1#opts=");
+    expect(result.url).toContain(
+      "#iri=https%3A%2F%2Fexample.test%2Fontology.owl",
+    );
+    expect(result.url).toContain("sidebar=0");
+    expect(result.url).toContain("editorMode=false");
+    expect(result.url).not.toContain("stale");
+    expect(Object.isFrozen(result)).toBe(true);
+    expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(1);
+    await completeLoad(
+      2,
+      {},
+      {},
+      createSourceLoadRecord({
+        sourceProvenance: {
+          kind: "vowl-json-text",
+          displayName: "local.json",
+          sha256Hex: "b".repeat(64),
+        },
+      }),
+    );
+    expect(() => controller.getVisualizationShareLink()).toThrow("Export JSON");
+  });
+
+  describe("document and visualization actions", () => {
+    test.each(["replacement", "disposal"])(
+      "retires an in-flight JSON artifact before publication on %s",
+      async (ending) => {
+        await loadEditableOntology();
+        renderedGraphTestHarness.publishRenderedGraphEvent({
+          kind: "viewport-changed",
+          loadGeneration: 1,
+          payload: { zoomScale: 1, translationXPx: 0, translationYPx: 0 },
+        });
+        let completeDigest;
+        const publishPageLocalArtifact = jest.fn();
+        const createObjectURL = jest.fn(() => "blob:retired");
+        const service = createVisualizationArtifactService({
+          svgSerializer: { serializeRenderedSvgSnapshot: jest.fn() },
+          webCrypto: {
+            subtle: {
+              digest: () =>
+                new Promise((resolve) => {
+                  completeDigest = resolve;
+                }),
+            },
+          },
+          BlobConstructor: Blob,
+          objectUrlApi: { createObjectURL, revokeObjectURL: jest.fn() },
+          visualizationArtifactPublicationPort: { publishPageLocalArtifact },
+        });
+        visualizationArtifactService.createVisualizationArtifact.mockImplementation(
+          service.createVisualizationArtifact,
+        );
+        visualizationArtifactService.dispose.mockImplementation(
+          service.dispose,
+        );
+        const exporting = controller.exportVisualization({
+          format: "vowl-json",
+        });
+        const outcome = exporting.catch((error) => error);
+        let retiredOutcome;
+        outcome.then((result) => {
+          retiredOutcome = result;
+        });
+        await flushMicrotasks(20);
+        expect(typeof completeDigest).toBe("function");
+        if (ending === "replacement") {
+          controller.loadOntology(SOURCE_REQUEST).catch(() => {});
+        } else {
+          controller.dispose();
+        }
+        await flushMicrotasks(20);
+        expect(retiredOutcome).toMatchObject({ code: "LOAD_ABORTED" });
+        completeDigest(new Uint8Array(32).buffer);
+        expect(await outcome).toMatchObject({ code: "LOAD_ABORTED" });
+        expect(publishPageLocalArtifact).not.toHaveBeenCalled();
+        expect(createObjectURL).not.toHaveBeenCalled();
+      },
+    );
+    test("exports JSON from the accepted document, exact arrangement and current applied settings", async () => {
+      await loadEditableOntology();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "viewport-changed",
+        loadGeneration: 1,
+        payload: {
+          zoomScale: 0.38125,
+          translationXPx: 0,
+          translationYPx: -20.125,
+        },
+      });
+      const reference =
+        controller.getVisualizationArrangement().occurrences[0].reference;
+      await controller.setVisualizationArrangement({
+        changes: [{ reference, xPx: 0, yPx: 120.125, isPinned: true }],
+      });
+      const documentBefore = controller.getOntologyDocument();
+      let artifactBlob;
+      const sourceService = createVisualizationArtifactService({
+        svgSerializer: {
+          serializeRenderedSvgSnapshot: () => {
+            throw new Error("JSON needs no SVG snapshot.");
+          },
+        },
+        webCrypto: webcrypto,
+        BlobConstructor: Blob,
+        objectUrlApi: {
+          createObjectURL: (blob) => {
+            artifactBlob = blob;
+            return "blob:json-export";
+          },
+          revokeObjectURL: () => {},
+        },
+        visualizationArtifactPublicationPort: {
+          publishPageLocalArtifact: () => {},
+        },
+      });
+      visualizationArtifactService.createVisualizationArtifact.mockImplementation(
+        sourceService.createVisualizationArtifact,
+      );
+      const pendingSettlementsBefore = settlementRequests.length;
+      const metadata = await controller.exportVisualization({
+        format: "vowl-json",
+      });
+      const bytes = await artifactBlob.text();
+      const parsed = JSON.parse(bytes);
+      expect(parsed.header).toEqual(documentBefore.vowlModel.header);
+      expect(
+        parsed.classAttribute.find((record) => record.id === "a"),
+      ).toMatchObject({ pos: [0, 120.125], pinned: true });
+      expect(decodeVowlVisualizationSettings(parsed.settings)).toEqual({
+        view: {
+          language: controller.getState().view.language,
+          layout:
+            controller.getState().layout.status === "paused"
+              ? "pause"
+              : "resume",
+          filters: controller.getState().view.filters,
+          zoomScale: 0.38125,
+          translation: { xPx: 0, yPx: -20.125 },
+        },
+        modes: controller.getState().view.modes,
+        forceDistances: controller.getState().view.forceDistances,
+      });
+      expect(metadata).toMatchObject({
+        filename: "webvowl-visualization.json",
+        mediaType: "application/json",
+        sha256Hex: createHash("sha256").update(bytes).digest("hex"),
+      });
+      expect(settlementRequests).toHaveLength(pendingSettlementsBefore);
+      expect(controller.getOntologyDocument()).toEqual(documentBefore);
+    });
+    test("moves, pins and selects one drawing occurrence without changing ontology records", async () => {
+      await loadEditableOntology();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "editor-mode-changed",
+        loadGeneration: 1,
+        payload: { isEditorMode: false },
+      });
+      const before = controller.getOntologyDocument();
+      const firstPage = controller.getVisualizationArrangement({ limit: 1 });
+      expect(firstPage).toMatchObject({
+        loadGeneration: 1,
+        offset: 0,
+        nextOffset: 1,
+        occurrenceCount: 2,
+      });
+      const reference = firstPage.occurrences[0].reference;
+      const moved = await controller.setVisualizationArrangement({
+        changes: [{ reference, xPx: 120, yPx: 0, isPinned: true }],
+      });
+      expect(moved.occurrences).toHaveLength(1);
+      expect(moved.changedOccurrenceCount).toBe(1);
+      expect(moved.occurrences[0]).toMatchObject({
+        xPx: 120,
+        yPx: 0,
+        isPinned: true,
+      });
+      expect(
+        controller.getVisualizationArrangement({ offset: 1 }).occurrences[0],
+      ).toMatchObject({ xPx: 400, yPx: 99 });
+      await controller.selectVisualizationElement({ reference });
+      expect(controller.getState().selection).toEqual([
+        { kind: "class", iri: "https://example.test/Person" },
+      ]);
+      expect(controller.getState().selectedDocumentRecord).toEqual({
+        collection: "class",
+        recordId: "a",
+      });
+      expect(controller.getOntologyDocument()).toEqual(before);
+      await controller.selectVisualizationElement({ reference: null });
+      expect(controller.getState().selection).toEqual([]);
+      await expect(
+        controller.setVisualizationArrangement({
+          changes: [
+            { reference: { ...reference, loadGeneration: 2 }, isPinned: false },
+          ],
+        }),
+      ).rejects.toMatchObject({ code: "VIEW_REJECTED" });
+    });
+    function editableDrawing(generation) {
+      const reference = { kind: "class", iri: "https://example.test/Person" };
+      return {
+        visibleRenderedGraphSnapshot: {
+          loadGeneration: generation,
+          visibleElementReferences: [reference, reference],
+          visibleRelationshipReferences: [],
+          visibleGraphCounts: { visibleNodeCount: 2, visiblePropertyCount: 0 },
+        },
+        renderedArrangement: {
+          loadGeneration: generation,
+          occurrences: ["a", "b"].map((recordId, index) => ({
+            reference: {
+              loadGeneration: generation,
+              occurrenceId: `drawn-${index + 1}`,
+            },
+            recordTargets: [{ collection: "class", recordId }],
+            ontologyElementReferences: [reference],
+            kind: "node",
+            xPx: index === 0 ? 0 : 400,
+            yPx: index === 0 ? -12 : 99,
+            isPinned: index === 0,
+            canMove: true,
+            canPin: true,
+          })),
+        },
+      };
+    }
+    test("accepts native inline label submissions through the same document revision path", async () => {
+      await loadEditableOntology();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "record-label-edit-requested",
+        loadGeneration: 1,
+        payload: {
+          recordTarget: { collection: "class", recordId: "a" },
+          text: "From canvas",
+          deriveIriFromLabel: false,
+        },
+      });
+      await flushMicrotasks(16);
+      expect(
+        controller.getOntologyDocument().vowlModel.classAttribute[0].label,
+      ).toEqual({ en: "From canvas", de: "Person DE" });
+      expect(controller.getState().selectedDocumentRecord).toEqual({
+        collection: "class",
+        recordId: "a",
+      });
+    });
+    async function completeCachedLoad(promise, generation) {
+      await flushMicrotasks();
+      renderedGraphTestHarness.completeInitialPaint(
+        generation,
+        editableDrawing(generation),
+      );
+      await flushMicrotasks();
+      renderedGraphTestHarness.completeVisualizationViewApplication(generation);
+      await promise;
+    }
+
+    test("uses the accepted document for metadata and prefix changes as well as record edits", async () => {
+      await loadEditableOntology();
+      await controller.editOntologyMetadata({
+        loadGeneration: 1,
+        changes: { title: { language: "en", text: "Edited ontology" } },
+      });
+      expect(controller.getOntologyDocument().vowlModel.header.title).toEqual({
+        en: "Edited ontology",
+      });
+      await controller.setOntologyPrefix({
+        loadGeneration: 1,
+        name: "ex",
+        iri: "https://example.test/",
+      });
+      expect(
+        controller.getOntologyDocument().vowlModel.header.prefixList,
+      ).toEqual({ ex: "https://example.test/" });
+      await controller.removeOntologyPrefix({ loadGeneration: 1, name: "ex" });
+      expect(controller.getOntologyDocument().vowlModel.namespace).toEqual([]);
+      expect(ontologySourceLoader.loadOntologySource).toHaveBeenCalledTimes(1);
+      expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(1);
+      expect(controller.getState()).toMatchObject({
+        loadGeneration: 1,
+        documentRevision: 4,
+      });
+    });
+
+    test("retains cached-view provenance through an existing local document change", async () => {
+      await loadEditableOntology();
+      await completeCachedLoad(
+        controller.loadOntology({
+          ...SOURCE_REQUEST,
+          reuseCachedOntology: true,
+        }),
+        2,
+      );
+      expect(controller.getState().hasReusedCachedVisualization).toBe(true);
+
+      await controller.editOntologyMetadata({
+        loadGeneration: 2,
+        changes: { title: { language: "en", text: "Edited cached view" } },
+      });
+      expect(controller.getState().hasReusedCachedVisualization).toBe(true);
+      expect(ontologySourceLoader.loadOntologySource).toHaveBeenCalledTimes(1);
+
+      await completeLoad(3);
+      expect(controller.getState().hasReusedCachedVisualization).toBe(false);
+    });
+
+    test("deletes only a proposal issued by this controller for the current accepted document", async () => {
+      await loadEditableOntology();
+      const proposal = controller.proposeOntologyDeletion({
+        loadGeneration: 1,
+        recordTarget: { collection: "class", recordId: "a" },
+      });
+      expect(proposal.recordTargets).toEqual([
+        { collection: "class", recordId: "a" },
+      ]);
+      expect(controller.getOntologyDocument().vowlModel.class).toHaveLength(2);
+      expect(Object.isFrozen(proposal)).toBe(true);
+      await expect(
+        controller.confirmOntologyDeletion(structuredClone(proposal)),
+      ).rejects.toMatchObject({ code: "EDIT_REJECTED" });
+      await controller.confirmOntologyDeletion(proposal);
+      expect(controller.getOntologyDocument().vowlModel.class).toEqual([
+        { id: "b", type: "owl:Class" },
+      ]);
+      await expect(
+        controller.confirmOntologyDeletion(proposal),
+      ).rejects.toMatchObject({ code: "EDIT_REJECTED" });
+    });
+
+    test("clears the selected document record on replacement and ignores retired selections", async () => {
+      await loadEditableOntology();
+      const selected = {
+        kind: "document-record-selection-changed",
+        loadGeneration: 1,
+        payload: { recordTarget: { collection: "class", recordId: "a" } },
+      };
+      renderedGraphTestHarness.publishRenderedGraphEvent(selected);
+      expect(controller.getState().selectedDocumentRecord).toEqual({
+        collection: "class",
+        recordId: "a",
+      });
+      await completeLoad(2);
+      renderedGraphTestHarness.publishRenderedGraphEvent(selected);
+      expect(controller.getState().selectedDocumentRecord).toBeNull();
+    });
+
+    test("rejects a pending deletion after another edit revises the same loaded document", async () => {
+      await loadEditableOntology();
+      const proposal = controller.proposeOntologyDeletion({
+        loadGeneration: 1,
+        recordTarget: { collection: "class", recordId: "a" },
+      });
+      await controller.editOntologyMetadata({
+        loadGeneration: 1,
+        changes: { title: { language: "en", text: "Revised" } },
+      });
+      await expect(
+        controller.confirmOntologyDeletion(proposal),
+      ).rejects.toMatchObject({ code: "EDIT_REJECTED" });
+      expect(controller.getOntologyDocument().vowlModel.class).toHaveLength(2);
+      expect(controller.getState()).toMatchObject({
+        loadGeneration: 1,
+        documentRevision: 2,
+      });
+    });
+    async function loadEditableOntology(modelOverrides = {}) {
+      await completeLoad(
+        1,
+        {},
+        editableDrawing(1),
+        createSourceLoadRecord({
+          vowlModel: {
+            header: { iri: "https://example.test/" },
+            class: [
+              { id: "a", type: "owl:Class" },
+              { id: "b", type: "owl:Class" },
+            ],
+            classAttribute: [
+              {
+                id: "a",
+                iri: "https://example.test/Person",
+                label: { en: "Person", de: "Person DE" },
+              },
+              {
+                id: "b",
+                iri: "https://example.test/Person",
+                label: { en: "Peer" },
+              },
+            ],
+            settings: {
+              global: {
+                paused: true,
+                zoom: 0.5,
+                translation: [0, -20],
+                language: "en",
+              },
+            },
+            ...modelOverrides,
+          },
+        }),
+      );
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "editor-mode-changed",
+        loadGeneration: 1,
+        payload: { isEditorMode: true },
+      });
+    }
+
+    test("adds a canvas node without replacing the loaded graph", async () => {
+      await loadEditableOntology();
+      const observedStatuses = [];
+      const unsubscribe = controller.subscribeToState((state) =>
+        observedStatuses.push(state.status),
+      );
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "record-creation-requested",
+        loadGeneration: 1,
+        payload: {
+          records: [
+            {
+              collection: "class",
+              id: "Class0",
+              type: "owl:Thing",
+              label: "Thing",
+              iri: "http://www.w3.org/2002/07/owl#Thing",
+              baseIri: "http://www.w3.org/2002/07/owl#",
+              pos: [37, -24],
+            },
+          ],
+          selectedRecord: { collection: "class", recordId: "Class0" },
+          editLabel: false,
+        },
+      });
+      await flushMicrotasks(16);
+      expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(1);
+      expect(controller.getState().loadGeneration).toBe(1);
+      expect(observedStatuses).not.toContain("loading");
+      expect(observedStatuses).not.toContain("rendering");
+      expect(controller.getState().warnings).toEqual([]);
+      expect(controller.getOntologyDocument().vowlModel.class).toContainEqual({
+        id: "Class0",
+        type: "owl:Thing",
+      });
+      unsubscribe();
+    });
+
+    test("accepts native creation atomically and rejects a repeated record insertion", async () => {
+      await loadEditableOntology();
+      const event = {
+        kind: "record-creation-requested",
+        loadGeneration: 1,
+        payload: {
+          records: [
+            {
+              collection: "class",
+              id: "Class0",
+              type: "owl:Class",
+              label: "NewClass",
+              iri: "https://example.test/Class0",
+              baseIri: "https://example.test/",
+              pos: [37, -24],
+            },
+          ],
+          selectedRecord: { collection: "class", recordId: "Class0" },
+          editLabel: true,
+        },
+      };
+      renderedGraphTestHarness.publishRenderedGraphEvent(event);
+      expect(controller.getOntologyDocument().vowlModel.class).toHaveLength(3);
+      await flushMicrotasks(16);
+      const accepted = controller.getOntologyDocument();
+      expect(accepted.vowlModel.class.at(-1)).toEqual({
+        id: "Class0",
+        type: "owl:Class",
+      });
+      expect(accepted.vowlModel.classAttribute.at(-1)).toMatchObject({
+        iri: "https://example.test/Class0",
+        pos: [37, -24],
+      });
+      expect(controller.getState().layout.status).toBe("paused");
+      renderedGraphTestHarness.publishRenderedGraphEvent(event);
+      await flushMicrotasks();
+      expect(controller.getOntologyDocument()).toEqual(accepted);
+    });
+
+    test("keeps a canvas cascade until its confirmation is accepted", async () => {
+      await loadEditableOntology({
+        property: [
+          { id: "p", type: "owl:objectProperty" },
+          { id: "q", type: "owl:objectProperty" },
+        ],
+        propertyAttribute: [
+          { id: "p", domain: "a", range: "b" },
+          { id: "q", domain: "b", range: "a" },
+        ],
+      });
+      const event = {
+        kind: "record-deletion-requested",
+        loadGeneration: 1,
+        payload: { recordTarget: { collection: "class", recordId: "a" } },
+      };
+      const before = controller.getOntologyDocument();
+      renderedGraphTestHarness.publishRenderedGraphEvent(event);
+      await flushMicrotasks();
+      expect(requestOntologyDeletionConfirmation).toHaveBeenCalledTimes(1);
+      expect(
+        requestOntologyDeletionConfirmation.mock.calls[0][0].recordTargets,
+      ).toHaveLength(3);
+      expect(controller.getOntologyDocument()).toEqual(before);
+      requestOntologyDeletionConfirmation.mockResolvedValueOnce(true);
+      renderedGraphTestHarness.publishRenderedGraphEvent(event);
+      await flushMicrotasks(16);
+      expect(controller.getOntologyDocument().vowlModel.class).toEqual([
+        { id: "b", type: "owl:Class" },
+      ]);
+      expect(controller.getOntologyDocument().vowlModel.property).toEqual([]);
+    });
+
+    test("accepts a selected-record revision before inspection and document readers see it", async () => {
+      await loadEditableOntology();
+      const before = controller.getOntologyDocument();
+      const request = {
+        loadGeneration: 1,
+        recordTarget: { collection: "class", recordId: "a" },
+        changes: { label: { language: "en", text: "Renamed" } },
+      };
+      const editing = controller.editOntologyRecord(request);
+      request.recordTarget.recordId = "b";
+      await editing;
+      const document = controller.getOntologyDocument();
+      expect(
+        document.vowlModel.classAttribute.map((entry) => entry.label),
+      ).toEqual([{ en: "Renamed", de: "Person DE" }, { en: "Peer" }]);
+      expect(document.loadGeneration).toBe(1);
+      expect(controller.getState().documentRevision).toBe(2);
+      expect(
+        document.vowlModel.classAttribute.map(({ pos, pinned }) => ({
+          pos,
+          pinned,
+        })),
+      ).toEqual([
+        { pos: [0, -12], pinned: true },
+        { pos: [400, 99], pinned: false },
+      ]);
+      expect(controller.getState().selection).toEqual([
+        { kind: "class", iri: "https://example.test/Person" },
+      ]);
+      expect(controller.getState().selectedDocumentRecord).toEqual({
+        collection: "class",
+        recordId: "a",
+      });
+      expect(before.vowlModel.classAttribute[0].label.en).toBe("Person");
+      expect(Object.isFrozen(document.vowlModel.classAttribute[0].label)).toBe(
+        true,
+      );
+      expect(
+        controller.findOntologyElements({ query: "Renamed" }).matches,
+      ).toHaveLength(1);
+      expect(ontologySourceLoader.loadOntologySource).toHaveBeenCalledTimes(1);
+      expect(controller.getState()).toMatchObject({
+        source: { identity: DOCUMENT_IRI, sha256Hex: "a".repeat(64) },
+        layout: { status: "paused" },
+        zoomScale: 0.5,
+        translation: { xPx: 0, yPx: -20 },
+      });
+    });
+
+    test("rejects a stale record target before changing the active drawing or source request", async () => {
+      await loadEditableOntology();
+      await expect(
+        controller.editOntologyRecord({
+          loadGeneration: 0,
+          recordTarget: { collection: "class", recordId: "a" },
+          changes: { label: { language: "en", text: "Stale" } },
+        }),
+      ).rejects.toMatchObject({ code: "EDIT_REJECTED" });
+      expect(controller.getState().loadGeneration).toBe(1);
+      expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("load lifecycle and state machine", () => {
+    test.each(["saved", "explicit"])(
+      "rejects an absent %s language before replacing the accepted drawing",
+      async (choiceSource) => {
+        await completeLoad();
+        const loading = controller.loadOntology(
+          SOURCE_REQUEST,
+          choiceSource === "explicit"
+            ? { initialVisualization: { view: { language: "fr" } } }
+            : {},
+        );
+        const outcome = loading.catch((error) => error);
+        const record = createSourceLoadRecord();
+        if (choiceSource === "saved") {
+          record.vowlModel.settings = { global: { language: "fr" } };
+        }
+        deferredSourceLoads.at(-1).resolve(record);
+        await flushMicrotasks(12);
+        expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(1);
+        expect(await outcome).toMatchObject({ code: "VIEW_REJECTED" });
+        expect(controller.getState().source.identity).toBe(DOCUMENT_IRI);
+      },
+    );
+
+    test("validates initial language against the candidate ontology rather than the preceding ontology", async () => {
+      await completeLoad();
+      const record = createSourceLoadRecord({
+        vowlModel: {
+          header: { title: { fr: "Exemple" } },
+          class: [{ id: "c1", type: "owl:Class" }],
+          classAttribute: [
+            {
+              id: "c1",
+              iri: "https://example.test/Person",
+              label: { fr: "Personne" },
+            },
+          ],
+          property: [],
+          settings: { global: { language: "fr", paused: true } },
+        },
+      });
+      await completeLoad(2, {}, {}, record);
+      expect(controller.getState().view.language).toBe("fr");
+    });
+
+    test("loads saved view choices through the runtime without menu side effects", async () => {
+      const record = createSourceLoadRecord({
+        vowlModel: {
+          header: {},
+          class: [],
+          settings: {
+            global: { paused: true, zoom: 0.5, translation: [0, -20] },
+            gravity: { classDistance: 300, datatypeDistance: 180 },
+            filter: {
+              degreeSliderValue: "0",
+              checkBox: [{ id: "disjointFilterCheckbox", checked: false }],
+            },
+            modes: {
+              colorSwitchState: false,
+              checkBox: [{ id: "nodescalingModuleCheckbox", checked: false }],
+            },
+          },
+        },
+      });
+      await completeLoad(1, {}, {}, record);
+      expect(controller.getState()).toMatchObject({
+        status: "ready",
+        layout: { status: "paused" },
+        zoomScale: 0.5,
+        translation: { xPx: 0, yPx: -20 },
+        view: {
+          filters: { minDegree: 0, disjointness: "show" },
+          modes: { nodeScaling: false, colorExternalsMode: "same" },
+          forceDistances: { classDistancePx: 300, datatypeDistancePx: 180 },
+        },
+      });
+      expect(
+        renderedGraphRuntime.replaceVowlModel.mock.calls[0][0]
+          .initialVisualization,
+      ).toEqual({
+        view: {
+          layout: "pause",
+          zoomScale: 0.5,
+          translation: { xPx: 0, yPx: -20 },
+          filters: { minDegree: 0, disjointness: "show" },
+        },
+        modes: { nodeScaling: false, colorExternalsMode: "same" },
+        forceDistances: { classDistancePx: 300, datatypeDistancePx: 180 },
+      });
+    });
+
+    test("rejects invalid saved choices before replacing the accepted drawing", async () => {
+      await completeLoad();
+      const loading = controller.loadOntology(SOURCE_REQUEST);
+      const outcome = loading.catch((error) => error);
+      deferredSourceLoads.at(-1).resolve(
+        createSourceLoadRecord({
+          vowlModel: { header: {}, settings: { global: { zoom: 20 } } },
+        }),
+      );
+      await flushMicrotasks(12);
+      expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(1);
+      expect(await outcome).toMatchObject({ code: "PARSE_FAILED" });
+      expect(controller.getState().source.identity).toBe(DOCUMENT_IRI);
+    });
+
+    test("applies explicit load choices over saved settings and captures them before asynchronous work", async () => {
+      const choices = {
+        view: { filters: { minDegree: 0 }, layout: "pause" },
+        modes: { nodeScaling: false },
+      };
+      const loading = controller.loadOntology(SOURCE_REQUEST, {
+        initialVisualization: choices,
+      });
+      choices.view.filters.minDegree = 10;
+      choices.modes.nodeScaling = true;
+      const record = createSourceLoadRecord();
+      record.vowlModel.settings = {
+        global: { zoom: 0.5, translation: [0, -20], paused: false },
+        filter: { degreeSliderValue: 3 },
+        modes: { colorSwitchState: true },
+      };
+      deferredSourceLoads.at(-1).resolve(record);
+      await flushMicrotasks(6);
+      expect(
+        renderedGraphRuntime.replaceVowlModel.mock.calls.at(-1)[0]
+          .initialVisualization,
+      ).toEqual({
+        view: {
+          filters: { minDegree: 0 },
+          layout: "pause",
+          zoomScale: 0.5,
+          translation: { xPx: 0, yPx: -20 },
+        },
+        modes: { nodeScaling: false, colorExternalsMode: "gradient" },
+      });
+      expect(renderedGraphTestHarness.completeInitialPaint(1)).toBe(true);
+      await flushMicrotasks(6);
+      expect(
+        renderedGraphTestHarness.completeVisualizationViewApplication(1),
+      ).toBe(true);
+      await loading;
+      expect(controller.getState().layout.status).toBe("paused");
+      expect(controller.getState().view.filters.minDegree).toBe(0);
+    });
+
+    test("starts idle with a frozen empty state", () => {
+      const controllerState = controller.getState();
+
+      expect(controllerState).toEqual({
+        status: "idle",
+        loadGeneration: 0,
+        documentRevision: 0,
+        source: null,
+        hasReusedCachedVisualization: false,
+        warnings: [],
+        view: null,
+        zoomScale: null,
+        translation: null,
+        layout: { status: "unavailable" },
+        selection: [],
+        selectedDocumentRecord: null,
+        renderProgress: null,
+        degreeFilterRange: null,
+        editorMode: null,
+        renderingStatistics: null,
+        error: null,
+      });
+      expect(Object.isFrozen(controllerState)).toBe(true);
+      expect(Object.isFrozen(controllerState.layout)).toBe(true);
+    });
+
+    test("advances through loading, parsing, rendering, and relaxing", async () => {
+      await completeLoad();
+
+      expect(publishedStates.map(({ status }) => status)).toEqual([
+        "loading",
+        "parsing",
+        "rendering",
+        "relaxing",
+      ]);
+      expect(controller.getState().loadGeneration).toBe(1);
+      expect(controller.getState().source).toEqual({
+        kind: "ontology-document-iri",
+        identity: DOCUMENT_IRI,
+        sha256Hex: "a".repeat(64),
+      });
+    });
+
+    test("reaches ready when background settlement reports a settled layout", async () => {
+      await completeLoad();
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+      await flushMicrotasks();
+
+      expect(controller.getState().status).toBe("ready");
+      expect(controller.getState().layout).toEqual({ status: "settled" });
+    });
+
+    test("observes layout in the background without blocking the load", async () => {
+      await completeLoad();
+
+      expect(
+        graphLayoutSettler.waitForSettledGraphLayout,
+      ).toHaveBeenCalledTimes(1);
+      const { settlementRequest } = settlementRequests.at(-1);
+      expect(settlementRequest.loadGeneration).toBe(1);
+      expect(settlementRequest.settleTimeoutMs).toBe(30000);
+      expect(settlementRequest.onTimeout).toBe("best-effort");
+    });
+
+    test("publishes a bounded expected error and enters the error status", async () => {
+      const loadPromise = controller.loadOntology(SOURCE_REQUEST);
+      await flushMicrotasks(2);
+      deferredSourceLoads.at(-1).reject(
+        Object.assign(new Error("bad ontology"), {
+          code: "PARSE_FAILED",
+          isRetryable: false,
+          details: {},
+        }),
+      );
+
+      await expect(loadPromise).rejects.toEqual(
+        expect.objectContaining({ code: "PARSE_FAILED" }),
+      );
+      expect(controller.getState().status).toBe("error");
+      expect(controller.getState().error).toEqual(
+        expect.objectContaining({ code: "PARSE_FAILED" }),
+      );
+    });
+
+    test("tells a subscriber which fields it wrote, narrowed to real changes", async () => {
+      await completeLoad();
+      const changeSetsDuringLoad = publishedChangeSets.slice();
+
+      expect(changeSetsDuringLoad[0]).toEqual(
+        expect.arrayContaining(["status", "loadGeneration"]),
+      );
+      // A publication reports only the fields it wrote, never the whole shape.
+      for (const changedFieldNames of changeSetsDuringLoad) {
+        expect(Array.isArray(changedFieldNames)).toBe(true);
+        expect(Object.isFrozen(changedFieldNames)).toBe(true);
+      }
+      expect(
+        changeSetsDuringLoad.filter((fields) => fields.includes("editorMode")),
+      ).toHaveLength(1);
+
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: 1,
+        payload: {
+          selectedOntologyElementReferences: [
+            { kind: "class", iri: "https://example.test/Person" },
+          ],
+        },
+      });
+      await flushMicrotasks();
+
+      expect(publishedChangeSets.at(-1)).toEqual(["selection"]);
+    });
+
+    test("omits a written field whose value did not actually change", async () => {
+      await completeLoad();
+      const publicationCount = publishedChangeSets.length;
+
+      // Selecting nothing when nothing is selected writes the field without
+      // changing it, so no subscriber is told anything changed.
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: 1,
+        payload: { selectedOntologyElementReferences: [] },
+      });
+      await flushMicrotasks();
+
+      expect(publishedChangeSets.length).toBe(publicationCount + 1);
+      expect(publishedChangeSets.at(-1)).toEqual([]);
+    });
+
+    test("notifies subscribers in order and stops after unsubscribe", async () => {
+      const secondSubscriberStates = [];
+      const unsubscribe = controller.subscribeToState((controllerState) => {
+        secondSubscriberStates.push(controllerState.status);
+      });
+
+      await completeLoad();
+      const observedBeforeUnsubscribe = secondSubscriberStates.length;
+      unsubscribe();
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+      await flushMicrotasks();
+
+      expect(observedBeforeUnsubscribe).toBeGreaterThan(0);
+      expect(secondSubscriberStates).toHaveLength(observedBeforeUnsubscribe);
+    });
+
+    test("disposes idempotently and stops publishing state", async () => {
+      await completeLoad();
+      const publishedStateCount = publishedStates.length;
+
+      controller.dispose();
+      controller.dispose();
+
+      expect(publishedStates).toHaveLength(publishedStateCount);
+    });
+  });
+
+  describe("load generation fencing", () => {
+    test("rejects a superseded generation and never overwrites newer state", async () => {
+      const firstLoadPromise = controller.loadOntology(SOURCE_REQUEST);
+      await flushMicrotasks(2);
+      const firstLoad = deferredSourceLoads.at(-1);
+
+      const secondLoadPromise = controller.loadOntology(SOURCE_REQUEST);
+      await flushMicrotasks(2);
+      const secondLoad = deferredSourceLoads.at(-1);
+
+      firstLoad.onPhaseChange?.("parsing");
+      firstLoad.resolve(createSourceLoadRecord());
+      await flushMicrotasks(3);
+
+      await expect(firstLoadPromise).rejects.toEqual(
+        expect.objectContaining({ code: "LOAD_ABORTED" }),
+      );
+
+      secondLoad.resolve(createSourceLoadRecord());
+      await flushMicrotasks(3);
+      renderedGraphTestHarness.completeInitialPaint(2);
+      await flushMicrotasks(3);
+      renderedGraphTestHarness.completeVisualizationViewApplication(2);
+      await flushMicrotasks(3);
+      await secondLoadPromise;
+
+      expect(controller.getState().loadGeneration).toBe(2);
+      expect(controller.getState().status).toBe("relaxing");
+    });
+
+    test("aborts the previous generation source load before starting a newer one", async () => {
+      controller.loadOntology(SOURCE_REQUEST).catch(() => undefined);
+      await flushMicrotasks(2);
+      const firstLoad = deferredSourceLoads.at(-1);
+
+      controller.loadOntology(SOURCE_REQUEST).catch(() => undefined);
+      await flushMicrotasks(2);
+
+      expect(firstLoad.signal.aborted).toBe(true);
+    });
+
+    test("ignores a rendered graph event published for a stale generation", async () => {
+      await completeLoad();
+      const publishedStateCount = publishedStates.length;
+
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "render-warning-raised",
+        loadGeneration: 99,
+        payload: { warningCode: "STALE_WARNING", message: "stale" },
+      });
+      await flushMicrotasks();
+
+      expect(publishedStates).toHaveLength(publishedStateCount);
+    });
+  });
+
+  describe("caller cancellation", () => {
+    test.each(["FETCH_FAILED", "SOURCE_REJECTED"])(
+      "keeps the accepted graph usable after a coded %s before replacement",
+      async (code) => {
+        await completeLoad();
+        const failed = controller.loadOntology(SOURCE_REQUEST);
+        deferredSourceLoads.at(-1).reject(
+          Object.assign(new Error("The new source failed."), {
+            code,
+            isRetryable: false,
+            details: {},
+          }),
+        );
+        await expect(failed).rejects.toMatchObject({ code });
+        const view = controller.setVisualizationView({
+          filters: { datatypes: "hide" },
+        });
+        await flushMicrotasks(6);
+        expect(
+          renderedGraphTestHarness.completeVisualizationViewApplication(1),
+        ).toBe(true);
+        await expect(view).resolves.toMatchObject({ loadGeneration: 1 });
+        controller.setGraphLayoutPaused({ isPaused: true });
+        expect(controller.getState()).toMatchObject({
+          loadGeneration: 1,
+          layout: { status: "paused" },
+          view: { filters: { datatypes: "hide" } },
+        });
+      },
+    );
+
+    test.each(["first-paint", "initial-view"])(
+      "restores the accepted model after cancellation during %s",
+      async (phase) => {
+        const accepted = createSourceLoadRecord({
+          vowlModel: {
+            header: { title: { en: "Accepted" } },
+            class: [{ id: "person", type: "owl:Class" }],
+            classAttribute: [
+              { id: "person", iri: "https://example.test/Person" },
+            ],
+          },
+        });
+        await completeLoad(1, {}, {}, accepted);
+        renderedGraphTestHarness.publishRenderedGraphEvent({
+          kind: "viewport-changed",
+          loadGeneration: 1,
+          payload: { zoomScale: 1.5, translationXPx: 20, translationYPx: -5 },
+        });
+        const priorState = controller.getState();
+        const caller = new AbortController();
+        const loading = controller.loadOntology(SOURCE_REQUEST, {
+          signal: caller.signal,
+        });
+        const outcome = loading.catch((error) => error);
+        deferredSourceLoads.at(-1).resolve(
+          createSourceLoadRecord({
+            vowlModel: {
+              header: { title: { en: "Cancelled" } },
+              class: [{ id: "other", type: "owl:Class" }],
+            },
+          }),
+        );
+        await flushMicrotasks(6);
+        expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(2);
+        if (phase === "initial-view") {
+          expect(renderedGraphTestHarness.completeInitialPaint(2)).toBe(true);
+          await flushMicrotasks(6);
+        }
+        caller.abort();
+        await flushMicrotasks(12);
+        expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(3);
+        expect(
+          renderedGraphRuntime.replaceVowlModel.mock.calls[2][0].vowlModel,
+        ).toEqual(accepted.vowlModel);
+        expect(
+          renderedGraphRuntime.replaceVowlModel.mock.calls[2][0]
+            .initialVisualization,
+        ).toEqual({
+          view: {
+            language: priorState.view.language,
+            filters: priorState.view.filters,
+            focus: priorState.view.focus,
+            layout: "resume",
+            zoomScale: 1.5,
+            translation: { xPx: 20, yPx: -5 },
+          },
+          modes: priorState.view.modes,
+          forceDistances: priorState.view.forceDistances,
+        });
+        expect(renderedGraphTestHarness.completeInitialPaint(3)).toBe(true);
+        await flushMicrotasks(6);
+        renderedGraphTestHarness.publishRenderedGraphEvent({
+          kind: "viewport-changed",
+          loadGeneration: 3,
+          payload: { zoomScale: 1.5, translationXPx: 40, translationYPx: 50 },
+        });
+        expect(
+          renderedGraphTestHarness.completeVisualizationViewApplication(3),
+        ).toBe(true);
+        expect(await outcome).toMatchObject({ code: "LOAD_ABORTED" });
+        expect(controller.getState().source).toEqual(priorState.source);
+        expect(controller.getState().loadGeneration).toBe(3);
+        expect(controller.getState().translation).toEqual({ xPx: 40, yPx: 50 });
+        expect(
+          controller.findOntologyElements({ query: "Person" }).matches,
+        ).toHaveLength(1);
+        expect(
+          renderedGraphRuntime.readGraphLayoutSnapshot().loadGeneration,
+        ).toBe(3);
+      },
+    );
+
+    test("a newer load supersedes recovery without restoring stale ontology state", async () => {
+      await completeLoad();
+      const caller = new AbortController();
+      const cancelled = controller
+        .loadOntology(SOURCE_REQUEST, { signal: caller.signal })
+        .catch((error) => error);
+      deferredSourceLoads.at(-1).resolve(createSourceLoadRecord());
+      await flushMicrotasks(6);
+      caller.abort();
+      await flushMicrotasks(12);
+      expect(controller.getState().loadGeneration).toBe(3);
+      const newestRecord = createSourceLoadRecord({
+        sourceProvenance: {
+          kind: "ontology-document-iri",
+          identity: "https://example.test/newest.owl",
+          sha256Hex: "c".repeat(64),
+        },
+      });
+      const newest = completeLoad(4, {}, {}, newestRecord);
+      expect(await cancelled).toMatchObject({ code: "LOAD_ABORTED" });
+      await newest;
+      expect(controller.getState().loadGeneration).toBe(4);
+      expect(controller.getState().source.identity).toBe(
+        "https://example.test/newest.owl",
+      );
+      expect(renderedGraphTestHarness.completeInitialPaint(3)).toBe(false);
+    });
+
+    test("clears the candidate when the first load is cancelled during its initial view", async () => {
+      const caller = new AbortController();
+      const loading = controller.loadOntology(SOURCE_REQUEST, {
+        signal: caller.signal,
+      });
+      const outcome = loading.catch((error) => error);
+      deferredSourceLoads.at(-1).resolve(createSourceLoadRecord());
+      await flushMicrotasks(6);
+      expect(renderedGraphTestHarness.completeInitialPaint(1)).toBe(true);
+      await flushMicrotasks(6);
+      caller.abort();
+      await outcome;
+      expect(controller.getState().status).toBe("idle");
+      expect(() =>
+        renderedGraphRuntime.readVisibleRenderedGraphSnapshot(),
+      ).toThrow();
+      expect(() => controller.getOntologySummary()).toThrow(
+        expect.objectContaining({ code: "NO_ONTOLOGY" }),
+      );
+    });
+
+    test.each(["cancelled", "failed"])(
+      "redraws the accepted ontology when a request that interrupted recovery is %s before mounting",
+      async (outcomeKind) => {
+        const accepted = createSourceLoadRecord();
+        await completeLoad(1, {}, {}, accepted);
+        const firstCaller = new AbortController();
+        const firstOutcome = controller
+          .loadOntology(SOURCE_REQUEST, { signal: firstCaller.signal })
+          .catch((error) => error);
+        deferredSourceLoads.at(-1).resolve(createSourceLoadRecord());
+        await flushMicrotasks(6);
+        firstCaller.abort();
+        await flushMicrotasks(12);
+        expect(controller.getState().loadGeneration).toBe(3);
+
+        const nextCaller = new AbortController();
+        const nextOutcome = controller
+          .loadOntology(SOURCE_REQUEST, { signal: nextCaller.signal })
+          .catch((error) => error);
+        if (outcomeKind === "cancelled") {
+          nextCaller.abort();
+        }
+        deferredSourceLoads.at(-1).reject(
+          outcomeKind === "cancelled"
+            ? new DOMException("cancelled", "AbortError")
+            : Object.assign(new Error("The source could not be fetched."), {
+                code: "FETCH_FAILED",
+                isRetryable: false,
+                details: {},
+              }),
+        );
+        await flushMicrotasks(16);
+
+        expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(4);
+        expect(
+          renderedGraphRuntime.replaceVowlModel.mock.calls[3][0],
+        ).toMatchObject({
+          loadGeneration: 5,
+          vowlModel: accepted.vowlModel,
+        });
+        expect(renderedGraphTestHarness.completeInitialPaint(5)).toBe(true);
+        await flushMicrotasks(6);
+        expect(
+          renderedGraphTestHarness.completeVisualizationViewApplication(5),
+        ).toBe(true);
+        expect(await nextOutcome).toMatchObject({
+          code: outcomeKind === "cancelled" ? "LOAD_ABORTED" : "FETCH_FAILED",
+        });
+        await firstOutcome;
+        expect(controller.getState()).toMatchObject({
+          loadGeneration: 5,
+          source: accepted.sourceProvenance,
+          status: "relaxing",
+        });
+        expect(
+          renderedGraphRuntime.readVisibleRenderedGraphSnapshot()
+            .loadGeneration,
+        ).toBe(5);
+      },
+    );
+
+    test("does not republish an accepted ontology after recovery has failed and cleared it", async () => {
+      await completeLoad();
+      const caller = new AbortController();
+      const outcome = controller
+        .loadOntology(SOURCE_REQUEST, { signal: caller.signal })
+        .catch((error) => error);
+      deferredSourceLoads.at(-1).resolve(createSourceLoadRecord());
+      await flushMicrotasks(6);
+      renderedGraphRuntime.replaceVowlModel.mockRejectedValueOnce(
+        new Error("Recovery rendering failed."),
+      );
+      caller.abort();
+      await outcome;
+      expect(controller.getState().status).toBe("error");
+
+      const nextCaller = new AbortController();
+      const nextOutcome = controller
+        .loadOntology(SOURCE_REQUEST, { signal: nextCaller.signal })
+        .catch((error) => error);
+      nextCaller.abort();
+      deferredSourceLoads
+        .at(-1)
+        .reject(new DOMException("cancelled", "AbortError"));
+      await nextOutcome;
+      expect(controller.getState()).toMatchObject({
+        status: "idle",
+        loadGeneration: 0,
+        source: null,
+      });
+      expect(() => controller.getOntologySummary()).toThrow(
+        expect.objectContaining({ code: "NO_ONTOLOGY" }),
+      );
+    });
+
+    test("reports an uncancelled loading exception as a failure and preserves the accepted ontology", async () => {
+      await completeLoad();
+      const accepted = controller.getState();
+      const outcome = controller
+        .loadOntology(SOURCE_REQUEST)
+        .catch((error) => error);
+      const failure = new TypeError("Unexpected header data");
+      expect(deferredSourceLoads.at(-1).signal.aborted).toBe(false);
+      deferredSourceLoads.at(-1).reject(failure);
+      expect(await outcome).toMatchObject({
+        code: "LOAD_FAILED",
+        cause: failure,
+      });
+      expect(controller.getState().loadGeneration).toBe(
+        accepted.loadGeneration,
+      );
+      expect(controller.getState().source).toEqual(accepted.source);
+    });
+
+    test("never reuses a cancelled request generation", async () => {
+      const caller = new AbortController();
+      const loading = controller.loadOntology(SOURCE_REQUEST, {
+        signal: caller.signal,
+      });
+      caller.abort();
+      deferredSourceLoads
+        .at(-1)
+        .reject(new DOMException("cancelled", "AbortError"));
+      await expect(loading).rejects.toMatchObject({ code: "LOAD_ABORTED" });
+      await completeLoad(2);
+      expect(controller.getState().loadGeneration).toBe(2);
+    });
+
+    test("returns to idle when the first load is cancelled", async () => {
+      const cancellationController = new AbortController();
+      const loadPromise = controller.loadOntology(SOURCE_REQUEST, {
+        signal: cancellationController.signal,
+      });
+      await flushMicrotasks(2);
+      cancellationController.abort();
+      deferredSourceLoads.at(-1).reject(
+        Object.assign(new Error("aborted"), {
+          code: "LOAD_ABORTED",
+          isRetryable: false,
+          details: {},
+        }),
+      );
+
+      await expect(loadPromise).rejects.toEqual(
+        expect.objectContaining({ code: "LOAD_ABORTED" }),
+      );
+      expect(controller.getState().status).toBe("idle");
+      expect(controller.getState().loadGeneration).toBe(0);
+    });
+
+    test("restores the previous valid state when a replacement load is cancelled", async () => {
+      await completeLoad();
+      const validState = controller.getState();
+
+      const cancellationController = new AbortController();
+      const replacementPromise = controller.loadOntology(SOURCE_REQUEST, {
+        signal: cancellationController.signal,
+      });
+      await flushMicrotasks(2);
+      cancellationController.abort();
+      deferredSourceLoads.at(-1).reject(
+        Object.assign(new Error("aborted"), {
+          code: "LOAD_ABORTED",
+          isRetryable: false,
+          details: {},
+        }),
+      );
+
+      await expect(replacementPromise).rejects.toEqual(
+        expect.objectContaining({ code: "LOAD_ABORTED" }),
+      );
+      expect(controller.getState().loadGeneration).toBe(
+        validState.loadGeneration,
+      );
+      expect(controller.getState().status).toBe(validState.status);
+    });
+  });
+
+  describe("ontology inspection and view control", () => {
+    test("publishes the current generation's degree filter range", async () => {
+      await completeLoad();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "degree-filter-range-changed",
+        loadGeneration: 1,
+        payload: { maximumDegree: 125, automaticMinimumDegree: 2 },
+      });
+      expect(controller.getState().degreeFilterRange).toEqual({
+        maximumDegree: 125,
+        automaticMinimumDegree: 2,
+      });
+      expect(Object.isFrozen(controller.getState().degreeFilterRange)).toBe(
+        true,
+      );
+      expect(
+        renderedGraphTestHarness.publishRenderedGraphEvent({
+          kind: "degree-filter-range-changed",
+          loadGeneration: 9,
+          payload: { maximumDegree: 1, automaticMinimumDegree: 0 },
+        }),
+      ).toBe(false);
+      expect(controller.getState().degreeFilterRange.maximumDegree).toBe(125);
+    });
+
+    test("publishes pan independently of the standing view and preserves magnification", async () => {
+      await completeLoad();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "viewport-changed",
+        loadGeneration: 1,
+        payload: { zoomScale: 1.5, translationXPx: 10, translationYPx: 20 },
+      });
+      const view = controller.setVisualizationView({
+        translation: { xPx: -180.5, yPx: 72 },
+      });
+      await flushMicrotasks(6);
+      renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      expect(await view).toMatchObject({
+        zoomScale: 1.5,
+        translation: { xPx: -180.5, yPx: 72 },
+      });
+      expect(controller.getState().view).not.toHaveProperty("translation");
+    });
+
+    test("rejects inspection before an ontology exists", () => {
+      expect(() => controller.getOntologySummary()).toThrow(
+        expect.objectContaining({ code: "NO_ONTOLOGY" }),
+      );
+      expect(() =>
+        controller.findOntologyElements({ query: "person" }),
+      ).toThrow(expect.objectContaining({ code: "NO_ONTOLOGY" }));
+    });
+
+    test("summarises from fresh runtime snapshots", async () => {
+      await completeLoad();
+      const summary = controller.getOntologySummary();
+
+      expect(summary.loadGeneration).toBe(1);
+      expect(summary.source).toEqual({
+        kind: "ontology-document-iri",
+        identity: DOCUMENT_IRI,
+        sha256Hex: "a".repeat(64),
+      });
+      expect(summary.selectedLanguage).toBe("default");
+    });
+
+    test("reports standing focus and its currently visible membership for either caller", async () => {
+      const person = { kind: "class", iri: "https://example.test/Person" };
+      expect(controller.getVisualizationFocus()).toEqual({
+        focus: [],
+        focusableElementCount: 0,
+      });
+      await completeLoad(
+        1,
+        {},
+        {
+          visibleRenderedGraphSnapshot: {
+            loadGeneration: 1,
+            visibleElementReferences: [person],
+            visibleRelationshipReferences: [],
+            visibleGraphCounts: {
+              visibleNodeCount: 1,
+              visiblePropertyCount: 0,
+            },
+          },
+        },
+        createSourceLoadRecord({
+          vowlModel: {
+            header: { title: { en: "Example" } },
+            class: [{ id: "c1", type: "owl:Class" }],
+            classAttribute: [{ id: "c1", iri: person.iri }],
+            property: [],
+          },
+        }),
+      );
+      const focusRequest = controller.setVisualizationView({ focus: [person] });
+      await flushMicrotasks(2);
+      renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      await focusRequest;
+      expect(controller.getVisualizationFocus()).toEqual({
+        focus: [person],
+        focusableElementCount: 1,
+      });
+
+      const filterRequest = controller.setVisualizationView({
+        filters: { minDegree: 5 },
+      });
+      await flushMicrotasks(2);
+      renderedGraphTestHarness.completeVisualizationViewApplication(1, {
+        visibleRenderedGraphSnapshot: {
+          loadGeneration: 1,
+          visibleElementReferences: [],
+          visibleRelationshipReferences: [],
+          visibleGraphCounts: { visibleNodeCount: 0, visiblePropertyCount: 0 },
+        },
+      });
+      await filterRequest;
+      expect(controller.getVisualizationFocus()).toEqual({
+        focus: [person],
+        focusableElementCount: 0,
+      });
+      controller.dispose();
+      expect(controller.getVisualizationFocus()).toEqual({
+        focus: [],
+        focusableElementCount: 0,
+      });
+    });
+
+    test("applies one runtime view request and preserves omitted fields", async () => {
+      await completeLoad(
+        1,
+        {},
+        {},
+        createSourceLoadRecord({
+          vowlModel: {
+            header: { title: { en: "Example" } },
+            class: [{ id: "c1", type: "owl:Class" }],
+            classAttribute: [
+              {
+                id: "c1",
+                iri: "https://example.test/Person",
+                label: { de: "Person" },
+              },
+            ],
+            property: [],
+          },
+        }),
+      );
+      const viewPromise = controller.setVisualizationView({ language: "de" });
+      await flushMicrotasks(2);
+      renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      await viewPromise;
+
+      const appliedView = controller.getState().view;
+      expect(appliedView.language).toBe("de");
+      expect(appliedView.filters.minDegree).toBe(0);
+      expect(appliedView).not.toHaveProperty("viewport");
+      expect(appliedView).not.toHaveProperty("layout");
+      expect(appliedView).not.toHaveProperty("zoomScale");
+    });
+
+    test("returns to relaxing and restarts observation on a relax view change", async () => {
+      await completeLoad();
+      const backgroundSettlement = settlementRequests.at(-1);
+      const viewPromise = controller.setVisualizationView({ layout: "resume" });
+      await flushMicrotasks(2);
+      renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      await viewPromise;
+      await flushMicrotasks();
+
+      expect(backgroundSettlement.options.signal.aborted).toBe(true);
+      expect(
+        graphLayoutSettler.waitForSettledGraphLayout,
+      ).toHaveBeenCalledTimes(2);
+      expect(controller.getState().status).toBe("relaxing");
+    });
+
+    test("pauses and resumes layout as a controller-owned operation", async () => {
+      await completeLoad();
+
+      const pauseResult = controller.setGraphLayoutPaused({ isPaused: true });
+      expect(pauseResult).toEqual({
+        loadGeneration: 1,
+        isPaused: true,
+        layoutStatus: "paused",
+      });
+      expect(controller.getState().layout).toEqual({ status: "paused" });
+
+      const resumeResult = controller.setGraphLayoutPaused({ isPaused: false });
+      expect(resumeResult.isPaused).toBe(false);
+    });
+
+    test("reduces a rendered graph warning event into controller state", async () => {
+      await completeLoad();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "render-warning-raised",
+        loadGeneration: 1,
+        payload: {
+          warningCode: "LABEL_TRUNCATED",
+          message: "One label was truncated.",
+        },
+      });
+      await flushMicrotasks();
+
+      expect(controller.getState().warnings).toContain(
+        "One label was truncated.",
+      );
+    });
+
+    test("reduces render progress published while the load is still in flight", async () => {
+      const loadPromise = controller.loadOntology(SOURCE_REQUEST);
+      await flushMicrotasks(2);
+      const deferredLoad = deferredSourceLoads.at(-1);
+      deferredLoad.resolve(createSourceLoadRecord());
+      await flushMicrotasks(3);
+
+      // The renderer reports layout progress before the first paint resolves.
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "render-progress-changed",
+        loadGeneration: 1,
+        payload: {
+          completedRenderedElementCount: 60,
+          totalRenderedElementCount: 100,
+        },
+      });
+      await flushMicrotasks();
+
+      expect(controller.getState().renderProgress).toEqual({
+        completedRenderedElementCount: 60,
+        totalRenderedElementCount: 100,
+      });
+
+      renderedGraphTestHarness.completeInitialPaint(1);
+      await flushMicrotasks(3);
+      renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      await flushMicrotasks(3);
+      await loadPromise;
+    });
+
+    test("reduces a rendered element selection into controller state", async () => {
+      await completeLoad();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: 1,
+        payload: {
+          selectedOntologyElementReferences: [
+            { kind: "class", iri: "https://example.test/Person" },
+          ],
+        },
+      });
+      await flushMicrotasks();
+
+      expect(controller.getState().selection).toEqual([
+        { kind: "class", iri: "https://example.test/Person" },
+      ]);
+
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: 1,
+        payload: { selectedOntologyElementReferences: [] },
+      });
+      await flushMicrotasks();
+
+      expect(controller.getState().selection).toEqual([]);
+    });
+
+    test("clears a selection made in a superseded load generation", async () => {
+      await completeLoad(1);
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: 1,
+        payload: {
+          selectedOntologyElementReferences: [
+            { kind: "class", iri: "https://example.test/Person" },
+          ],
+        },
+      });
+      await flushMicrotasks();
+      expect(controller.getState().selection).toHaveLength(1);
+
+      await completeLoad(2);
+
+      expect(controller.getState().loadGeneration).toBe(2);
+      expect(controller.getState().selection).toEqual([]);
+    });
+
+    test("clears in-flight render progress when a new load begins", async () => {
+      await completeLoad(1);
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "render-progress-changed",
+        loadGeneration: 1,
+        payload: {
+          completedRenderedElementCount: 40,
+          totalRenderedElementCount: 100,
+        },
+      });
+      await flushMicrotasks();
+      expect(controller.getState().renderProgress).not.toBeNull();
+
+      const loadPromise = controller.loadOntology(SOURCE_REQUEST);
+      await flushMicrotasks(2);
+
+      expect(controller.getState().status).toBe("loading");
+      expect(controller.getState().renderProgress).toBeNull();
+
+      deferredSourceLoads.at(-1).resolve(createSourceLoadRecord());
+      await flushMicrotasks(3);
+      renderedGraphTestHarness.completeInitialPaint(2);
+      await flushMicrotasks(3);
+      renderedGraphTestHarness.completeVisualizationViewApplication(2);
+      await flushMicrotasks(3);
+      await loadPromise;
+    });
+
+    test("describes the elements state reports as selected", async () => {
+      await completeLoad();
+      const descriptionResult = controller.describeOntologyElements({
+        ontologyElementReferences: [],
+      });
+
+      expect(descriptionResult.loadGeneration).toBe(1);
+      expect(descriptionResult.elementDescriptions).toEqual([]);
+    });
+
+    test("retains display and distance choices made before loading", async () => {
+      // Display modes, force distances and zoom configure how a graph is drawn.
+      // They are meaningful for an empty graph and persist across loads, so
+      // unlike pausing a layout they do not require an ontology.
+      await controller.setVisualizationModes({
+        nodeScaling: false,
+        maxLabelWidthPx: 80,
+      });
+      await controller.setForceLayoutDistances({ classDistancePx: 240 });
+      expect(controller.getState().view).toMatchObject({
+        modes: { nodeScaling: false, maxLabelWidthPx: 80 },
+        forceDistances: { classDistancePx: 240 },
+      });
+      await completeLoad();
+      expect(controller.getState().view).toMatchObject({
+        modes: { nodeScaling: false, maxLabelWidthPx: 80 },
+        forceDistances: { classDistancePx: 240 },
+      });
+      expect(controller.setContinuousZoom({ zoomDirection: "none" })).toBe(
+        "none",
+      );
+    });
+
+    test("returns and publishes visualization defaults without an ontology", async () => {
+      // Resetting configures how a graph is drawn, so like the other renderer
+      // tuning operations it does not require one to be loaded.
+      await controller.setVisualizationModes({
+        compactNotation: true,
+        maxLabelWidthPx: 80,
+      });
+      await controller.setForceLayoutDistances({ classDistancePx: 300 });
+      const result = await controller.resetVisualization();
+      expect(result).toEqual(controller.getState());
+      expect(result.view).toMatchObject({
+        modes: { compactNotation: false, maxLabelWidthPx: 120 },
+        forceDistances: { classDistancePx: 200, datatypeDistancePx: 120 },
+        filters: { minDegree: 0, disjointness: "hide" },
+        focus: [],
+      });
+      expect(result.layout.status).toBe("unavailable");
+      expect(renderedGraphTestHarness.readVisualizationResetCount()).toBe(1);
+    });
+
+    test("reset clears selection and focus, resumes layout and retains the accepted ontology", async () => {
+      await completeLoad();
+      const source = controller.getState().source;
+      controller.setGraphLayoutPaused({ isPaused: true });
+      await controller.setVisualizationModes({
+        compactNotation: true,
+        maxLabelWidthPx: 80,
+      });
+      await controller.setForceLayoutDistances({ datatypeDistancePx: 200 });
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: 1,
+        payload: {
+          selectedOntologyElementReferences: [
+            { kind: "class", iri: "https://example.test/Person" },
+          ],
+        },
+      });
+      const state = await controller.resetVisualization();
+      expect(state).toMatchObject({
+        status: "relaxing",
+        loadGeneration: 1,
+        source,
+        selection: [],
+        layout: { status: "relaxing" },
+        view: {
+          focus: [],
+          modes: { compactNotation: false, maxLabelWidthPx: 120 },
+          forceDistances: { datatypeDistancePx: 120 },
+        },
+      });
+      expect(renderedGraphRuntime.replaceVowlModel).toHaveBeenCalledTimes(1);
+    });
+
+    test("continues observing the resumed layout when reset waiting is cancelled", async () => {
+      await completeLoad();
+      const previousObservation = settlementRequests.at(-1);
+      const cancellation = new AbortController();
+      const reset = controller.resetVisualization(
+        {},
+        { signal: cancellation.signal },
+      );
+      cancellation.abort();
+      await expect(reset).rejects.toMatchObject({ code: "LOAD_ABORTED" });
+
+      const resumedObservation = settlementRequests.at(-1);
+      expect(resumedObservation).not.toBe(previousObservation);
+      expect(resumedObservation.options.signal.aborted).toBe(false);
+      resumedObservation.resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+      await flushMicrotasks();
+      expect(controller.getState()).toMatchObject({
+        status: "ready",
+        layout: { status: "settled" },
+      });
+    });
+
+    test.each(["loading", "parsing", "rendering"])(
+      "rejects reset during %s without altering the pending load",
+      async (phase) => {
+        const pendingLoad = controller.loadOntology(SOURCE_REQUEST);
+        await flushMicrotasks(2);
+        const sourceLoad = deferredSourceLoads.at(-1);
+        if (phase === "parsing") {
+          sourceLoad.onPhaseChange("parsing");
+        }
+        if (phase === "rendering") {
+          sourceLoad.resolve(createSourceLoadRecord());
+          await flushMicrotasks(3);
+        }
+        await expect(controller.resetVisualization()).rejects.toMatchObject({
+          code: "VIEW_REJECTED",
+        });
+        expect(controller.getState().status).toBe(phase);
+        expect(renderedGraphTestHarness.readVisualizationResetCount()).toBe(0);
+        controller.dispose();
+        sourceLoad.resolve(createSourceLoadRecord());
+        await expect(pendingLoad).rejects.toMatchObject({
+          code: "LOAD_ABORTED",
+        });
+      },
+    );
+
+    test("rejects reset of a retained mount during replacement fetching", async () => {
+      await completeLoad();
+      controller.setGraphLayoutPaused({ isPaused: true });
+      await controller.setVisualizationModes({ maxLabelWidthPx: 80 });
+      const previous = controller.getState();
+      const pendingLoad = controller.loadOntology(SOURCE_REQUEST);
+      await flushMicrotasks(2);
+      await expect(controller.resetVisualization()).rejects.toMatchObject({
+        code: "VIEW_REJECTED",
+      });
+      expect(controller.getState().status).toBe("loading");
+      expect(renderedGraphTestHarness.readVisualizationResetCount()).toBe(0);
+      deferredSourceLoads.at(-1).reject(
+        Object.assign(new Error("fetch failed"), {
+          code: "FETCH_FAILED",
+          isRetryable: true,
+          details: {},
+        }),
+      );
+      await expect(pendingLoad).rejects.toMatchObject({ code: "FETCH_FAILED" });
+      expect(controller.getState().view).toEqual(previous.view);
+      expect(renderedGraphRuntime.readGraphLayoutSnapshot().isPaused).toBe(
+        true,
+      );
+    });
+
+    test("retains a human selection made after reset effects while paint is pending", async () => {
+      await completeLoad();
+      const resetRuntime = renderedGraphRuntime.resetVisualization;
+      let finishPaint;
+      const paint = new Promise((resolve) => {
+        finishPaint = resolve;
+      });
+      renderedGraphRuntime.resetVisualization = async (options) => {
+        const view = await resetRuntime(options);
+        await paint;
+        return view;
+      };
+      const reset = controller.resetVisualization();
+      await flushMicrotasks();
+      const selection = [{ kind: "class", iri: "https://example.test/Person" }];
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "rendered-element-selection-changed",
+        loadGeneration: 1,
+        payload: { selectedOntologyElementReferences: selection },
+      });
+      finishPaint();
+      await reset;
+      expect(controller.getState().selection).toEqual(selection);
+    });
+
+    test("publishes applied display modes to human and agent observers", async () => {
+      await completeLoad();
+
+      const observed = [];
+      controller.subscribeToState((state, fields) => {
+        if (fields.includes("view")) {
+          observed.push(state.view.modes);
+        }
+      });
+      const result = await controller.setVisualizationModes({
+        nodeScaling: false,
+        compactNotation: true,
+      });
+      expect(result).toEqual(controller.getState());
+      expect(controller.getState().view.modes).toMatchObject({
+        nodeScaling: false,
+        compactNotation: true,
+      });
+      expect(observed.at(-1)).toMatchObject({
+        nodeScaling: false,
+        compactNotation: true,
+      });
+    });
+
+    test("publishes applied force distances", async () => {
+      await completeLoad();
+
+      const result = await controller.setForceLayoutDistances({
+        classDistancePx: 240,
+      });
+      expect(result).toEqual(controller.getState());
+      expect(result.view.forceDistances).toEqual({
+        classDistancePx: 240,
+        datatypeDistancePx: 120,
+      });
+    });
+
+    test("observes actual standing choices even when their requesting caller cancelled", async () => {
+      await completeLoad();
+      const view = {
+        ...controller.getState().view,
+        modes: { ...controller.getState().view.modes, maxLabelWidthPx: 20 },
+      };
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "visualization-view-changed",
+        loadGeneration: 1,
+        payload: { appliedVisualizationView: view },
+      });
+      expect(controller.getState().view.modes.maxLabelWidthPx).toBe(20);
+    });
+
+    test("reports superseded display requests as ordinary cancellation through tool dispatch", async () => {
+      await completeLoad();
+      const applyModes = renderedGraphRuntime.setVisualizationModes;
+      let rejectFirst;
+      renderedGraphRuntime.setVisualizationModes = jest
+        .fn()
+        .mockImplementationOnce(
+          () =>
+            new Promise((_resolve, reject) => {
+              rejectFirst = reject;
+            }),
+        )
+        .mockImplementationOnce((request) => {
+          rejectFirst(new DOMException("Newer display choice", "AbortError"));
+          return applyModes(request);
+        });
+      const dispatch = createWebMcpToolDispatch({
+        webVowlController: controller,
+      });
+      const first = dispatch.callWebMcpTool("set_visualization_modes", {
+        maxLabelWidthPx: 20,
+      });
+      const second = await dispatch.callWebMcpTool("set_visualization_modes", {
+        maxLabelWidthPx: 80,
+      });
+      expect(second.isSuccess).toBe(true);
+      expect(await first).toMatchObject({
+        isSuccess: false,
+        error: { code: "LOAD_ABORTED" },
+      });
+      expect(controller.getState().view.modes.maxLabelWidthPx).toBe(80);
+    });
+
+    test("passes a held zoom gesture to the runtime rather than a magnification", async () => {
+      await completeLoad();
+
+      expect(controller.setContinuousZoom({ zoomDirection: "in" })).toBe("in");
+      expect(controller.setContinuousZoom({ zoomDirection: "none" })).toBe(
+        "none",
+      );
+    });
+
+    test("reduces a viewport change into controller state", async () => {
+      await completeLoad();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "viewport-changed",
+        loadGeneration: 1,
+        payload: { zoomScale: 1.75, translationXPx: -40, translationYPx: 12 },
+      });
+      await flushMicrotasks();
+
+      expect(controller.getState().zoomScale).toBe(1.75);
+      expect(controller.getState().translation).toEqual({
+        xPx: -40,
+        yPx: 12,
+      });
+    });
+
+    test("reduces an editor mode change into controller state", async () => {
+      await completeLoad();
+      expect(controller.getState().editorMode).toEqual({ isEditorMode: false });
+
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "editor-mode-changed",
+        loadGeneration: 1,
+        payload: { isEditorMode: true },
+      });
+      await flushMicrotasks();
+
+      expect(controller.getState().editorMode).toEqual({ isEditorMode: true });
+    });
+
+    test("reduces a render progress event into controller state", async () => {
+      await completeLoad();
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "render-progress-changed",
+        loadGeneration: 1,
+        payload: {
+          completedRenderedElementCount: 40,
+          totalRenderedElementCount: 100,
+        },
+      });
+      await flushMicrotasks();
+
+      expect(controller.getState().renderProgress).toEqual({
+        completedRenderedElementCount: 40,
+        totalRenderedElementCount: 100,
+      });
+    });
+  });
+
+  describe("visualization language", () => {
+    function createLabelledSourceLoadRecord() {
+      return createSourceLoadRecord({
+        vowlModel: {
+          header: { title: { en: "Example" } },
+          class: [{ id: "c1", type: "owl:Class" }],
+          classAttribute: [
+            {
+              id: "c1",
+              iri: "https://example.test/Person",
+              label: { en: "Person" },
+            },
+          ],
+          property: [],
+        },
+      });
+    }
+
+    test("refuses a language the loaded ontology does not carry", async () => {
+      // Accepting it would report a language as selected while every label on
+      // screen stayed as it was, so an agent would tell a reader the graph had
+      // switched when it had not.
+      await completeLoad();
+      const viewBefore = controller.getState().view;
+
+      await expect(
+        controller.setVisualizationView({ language: "en" }),
+      ).rejects.toMatchObject({ code: "VIEW_REJECTED" });
+
+      expect(controller.getState().view).toEqual(viewBefore);
+    });
+
+    test("names the languages the ontology does carry", async () => {
+      await completeLoad(1, {}, {}, createLabelledSourceLoadRecord());
+
+      await expect(
+        controller.setVisualizationView({ language: "fr" }),
+      ).rejects.toMatchObject({
+        code: "VIEW_REJECTED",
+        message: expect.stringContaining("en"),
+      });
+    });
+
+    test("accepts a language the ontology carries", async () => {
+      await completeLoad(1, {}, {}, createLabelledSourceLoadRecord());
+
+      const viewPromise = controller.setVisualizationView({ language: "en" });
+      await flushMicrotasks(2);
+      renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      await viewPromise;
+
+      expect(controller.getState().view.language).toBe("en");
+    });
+
+    test("accepts the default language, which names no choice at all", async () => {
+      await completeLoad();
+
+      const viewPromise = controller.setVisualizationView({
+        language: "default",
+      });
+      await flushMicrotasks(2);
+      renderedGraphTestHarness.completeVisualizationViewApplication(1);
+      await viewPromise;
+
+      expect(controller.getState().view.language).toBe("default");
+    });
+  });
+
+  describe("export orchestration", () => {
+    test("rejects an already-cancelled export without starting capture or leaking a rejection", async () => {
+      await completeLoad();
+      const signal = AbortSignal.abort();
+      const requestCount = settlementRequests.length;
+      await expect(
+        controller.exportVisualization({}, { signal }),
+      ).rejects.toMatchObject({ code: "LOAD_ABORTED" });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(settlementRequests).toHaveLength(requestCount);
+      expect(
+        visualizationArtifactService.createVisualizationArtifact,
+      ).not.toHaveBeenCalled();
+    });
+
+    test("rejects a concurrent export and retains the first capture's ownership", async () => {
+      await completeLoad();
+      const first = controller.exportVisualization();
+      await flushMicrotasks(2);
+      await expect(
+        controller.exportVisualization({ format: "vowl-json" }),
+      ).rejects.toMatchObject({ code: "EXPORT_FAILED", isRetryable: true });
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "stable-frames",
+      });
+      await first;
+      expect(
+        visualizationArtifactService.createVisualizationArtifact,
+      ).toHaveBeenCalledTimes(1);
+      expect(controller.getState().layout.status).not.toBe("paused");
+    });
+
+    test.each(["reset", "view"])(
+      "restores capture's temporary pause after an invalid %s request",
+      async (operation) => {
+        await completeLoad();
+        let fontsReady;
+        waitForDocumentFonts.mockImplementation(
+          () =>
+            new Promise((resolve) => {
+              fontsReady = resolve;
+            }),
+        );
+        const exporting = controller.exportVisualization();
+        await flushMicrotasks(2);
+        settlementRequests.at(-1).resolve({
+          loadGeneration: 1,
+          status: "settled",
+          reason: "stable-frames",
+        });
+        await flushMicrotasks(6);
+        expect(controller.getState().layout.status).toBe("paused");
+        const invalidRequest =
+          operation === "reset"
+            ? controller.resetVisualization({ unsupported: true })
+            : controller.setVisualizationView({
+                layout: "resume",
+                language: "fr",
+              });
+        await expect(invalidRequest).rejects.toThrow();
+        fontsReady();
+        await exporting;
+        expect(controller.getState().layout.status).not.toBe("paused");
+      },
+    );
+
+    test("preserves a human pause requested while an export waits for fonts", async () => {
+      await completeLoad();
+      let fontsReady;
+      waitForDocumentFonts.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            fontsReady = resolve;
+          }),
+      );
+      const exporting = controller.exportVisualization();
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "stable-frames",
+      });
+      await flushMicrotasks(6);
+      expect(controller.getState().layout.status).toBe("paused");
+      controller.setGraphLayoutPaused({ isPaused: true });
+      fontsReady();
+      await exporting;
+      expect(controller.getState().layout.status).toBe("paused");
+    });
+
+    test("releases a temporary export pause before a failed replacement retains the graph", async () => {
+      await completeLoad();
+      let fontsReady;
+      waitForDocumentFonts.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            fontsReady = resolve;
+          }),
+      );
+      const exporting = controller
+        .exportVisualization()
+        .catch((error) => error);
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "stable-frames",
+      });
+      await flushMicrotasks(6);
+      expect(controller.getState().layout.status).toBe("paused");
+      const replacement = controller
+        .loadOntology(SOURCE_REQUEST)
+        .catch((error) => error);
+      await flushMicrotasks(2);
+      deferredSourceLoads.at(-1).reject(new Error("Source unavailable"));
+      await replacement;
+      fontsReady();
+      expect(await exporting).toMatchObject({ code: "LOAD_ABORTED" });
+      expect(controller.getState().layout.status).not.toBe("paused");
+      expect(renderedGraphRuntime.readGraphLayoutSnapshot().isPaused).toBe(
+        false,
+      );
+    });
+    async function exportVisualization(exportRequest = {}, options = {}) {
+      const exportPromise = controller.exportVisualization(
+        exportRequest,
+        options,
+      );
+      await flushMicrotasks(2);
+      return exportPromise;
+    }
+
+    test("settles strictly, pauses, awaits paint, and restores the prior pause state", async () => {
+      await completeLoad();
+      const exportPromise = exportVisualization({ filename: "diagram.svg" });
+      await flushMicrotasks(2);
+
+      const strictSettlement = settlementRequests.at(-1);
+      expect(strictSettlement.settlementRequest.onTimeout).toBe("fail");
+      strictSettlement.resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+      await flushMicrotasks(6);
+
+      const artifactMetadata = await exportPromise;
+      expect(artifactMetadata.filename).toBe("diagram.svg");
+      expect(waitForDocumentFonts).toHaveBeenCalledTimes(1);
+      expect(waitForBrowserPaint).toHaveBeenCalledTimes(2);
+      expect(controller.getState().layout.status).not.toBe("paused");
+    });
+
+    test("wires the existing Turtle generator to artifact publication without changing layout", async () => {
+      await completeLoad();
+      graphLayoutSettler.waitForSettledGraphLayout.mockClear();
+      const before = controller.getState().layout;
+      const turtleDocumentSnapshot = Object.freeze({
+        loadGeneration: 1,
+        turtleText: "# Existing Turtle output\r\n",
+      });
+      renderedGraphRuntime.createTurtleDocumentSnapshot = jest.fn(
+        () => turtleDocumentSnapshot,
+      );
+      visualizationArtifactService.createVisualizationArtifact.mockImplementationOnce(
+        async (request) => ({ format: request.format }),
+      );
+      const result = await controller.exportVisualization({ format: "turtle" });
+      expect(result.format).toBe("turtle");
+      expect(
+        visualizationArtifactService.createVisualizationArtifact.mock.calls.at(
+          -1,
+        )[0],
+      ).toEqual({
+        format: "turtle",
+        filename: undefined,
+        source: controller.getState().source,
+        turtleDocumentSnapshot,
+      });
+      expect(
+        graphLayoutSettler.waitForSettledGraphLayout,
+      ).not.toHaveBeenCalled();
+      expect(waitForDocumentFonts).not.toHaveBeenCalled();
+      expect(controller.getState().layout).toEqual(before);
+    });
+
+    test("settles and captures an immutable drawing for LaTeX through the shared artifact owner", async () => {
+      await completeLoad();
+      const exporting = controller.exportVisualization({
+        format: "latex",
+        filename: "drawing.tex",
+      });
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "stable-frames",
+      });
+      await exporting;
+      expect(waitForDocumentFonts).toHaveBeenCalledTimes(1);
+      expect(
+        visualizationArtifactService.createVisualizationArtifact,
+      ).toHaveBeenCalledWith(
+        {
+          format: "latex",
+          filename: "drawing.tex",
+          source: expect.objectContaining({ kind: "ontology-document-iri" }),
+          renderedDrawingSnapshot: expect.objectContaining({
+            loadGeneration: 1,
+            nodes: [],
+            propertyLabels: [],
+            links: [],
+          }),
+        },
+        { signal: expect.anything() },
+      );
+      expect(controller.getState().layout.status).not.toBe("paused");
+    });
+
+    test("builds a view recipe from provenance, generation, view, and settlement", async () => {
+      await completeLoad();
+      const exportPromise = exportVisualization();
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "stable-frames",
+      });
+      await flushMicrotasks(6);
+      await exportPromise;
+
+      const { viewRecipe } =
+        visualizationArtifactService.createVisualizationArtifact.mock
+          .calls[0][0];
+      expect(viewRecipe.loadGeneration).toBe(1);
+      expect(viewRecipe.source).toEqual({
+        kind: "ontology-document-iri",
+        identity: DOCUMENT_IRI,
+        sha256Hex: "a".repeat(64),
+      });
+      // The recipe states the viewport the artifact was actually framed on,
+      // taken from the snapshot itself. Reading it from anywhere else lets the
+      // two disagree, which the serializer refuses.
+      const { renderedSvgSnapshot } =
+        visualizationArtifactService.createVisualizationArtifact.mock
+          .calls[0][0];
+      expect(viewRecipe.viewportDimensions).toEqual({
+        widthPx: renderedSvgSnapshot.widthPx,
+        heightPx: renderedSvgSnapshot.heightPx,
+      });
+      expect(viewRecipe.layoutOutcome).toEqual({
+        status: "settled",
+        reason: "stable-frames",
+      });
+    });
+
+    test("states the viewport the artifact was framed on, not the layout's", async () => {
+      // The artifact is framed on the viewport the reader is looking at, which
+      // need not be the configured canvas the layout reports. The recipe must
+      // state the viewport the artifact actually used, or the serializer
+      // refuses the pair as inconsistent.
+      await completeLoad(
+        1,
+        {},
+        {
+          renderedSvgSnapshot: {
+            detachedSvgRoot: createDetachedSvgRootFixture(),
+            heightPx: 845,
+            loadGeneration: 1,
+            widthPx: 1600,
+          },
+        },
+      );
+
+      const exportPromise = exportVisualization({ filename: "framed.svg" });
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+      await flushMicrotasks(6);
+      await exportPromise;
+
+      const { viewRecipe, renderedSvgSnapshot } =
+        visualizationArtifactService.createVisualizationArtifact.mock.calls.at(
+          -1,
+        )[0];
+
+      expect(renderedSvgSnapshot.widthPx).toBe(1600);
+      expect(viewRecipe.viewportDimensions).toEqual({
+        widthPx: 1600,
+        heightPx: 845,
+      });
+    });
+
+    test("never disturbs a layout that has already come to rest", async () => {
+      // Exporting holds the graph still so the snapshot matches what settled.
+      // A layout that has ended is already still, so pausing it achieves
+      // nothing and the resume afterwards would re-energise it — which is
+      // right when a reader resumes, and wrong as a side effect of exporting.
+      await completeLoad(
+        1,
+        {},
+        {
+          graphLayoutSnapshot: {
+            forceAlpha: 0,
+            hasEnded: true,
+            heightPx: 600,
+            isPaused: false,
+            layoutElementPositions: [],
+            loadGeneration: 1,
+            observedAtMs: 1,
+            widthPx: 800,
+          },
+        },
+      );
+      const pauseStatesBefore =
+        renderedGraphTestHarness.readGraphLayoutPauseRequests().length;
+
+      const exportPromise = exportVisualization({ filename: "still.svg" });
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+      await flushMicrotasks(6);
+      await exportPromise;
+
+      expect(
+        renderedGraphTestHarness.readGraphLayoutPauseRequests().length,
+      ).toBe(pauseStatesBefore);
+    });
+
+    test("does not restart a layout that ends while export is settling", async () => {
+      await completeLoad();
+      const exportPromise = exportVisualization({ filename: "ended.svg" });
+      await flushMicrotasks(2);
+      renderedGraphTestHarness.publishRenderedGraphEvent({
+        kind: "graph-layout-state-changed",
+        loadGeneration: 1,
+        payload: { forceAlpha: 0, hasEnded: true, isPaused: false },
+      });
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+      await exportPromise;
+      expect(renderedGraphTestHarness.readGraphLayoutPauseRequests()).toEqual(
+        [],
+      );
+      expect(renderedGraphRuntime.readGraphLayoutSnapshot()).toMatchObject({
+        forceAlpha: 0,
+        hasEnded: true,
+        isPaused: false,
+      });
+    });
+
+    test("captures and restores the reader's pause choice made during settlement", async () => {
+      await completeLoad();
+      controller.setGraphLayoutPaused({ isPaused: true });
+      const exportPromise = exportVisualization({ filename: "changed.svg" });
+      await flushMicrotasks(2);
+      controller.setGraphLayoutPaused({ isPaused: false });
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "stable-frames",
+      });
+      await exportPromise;
+      expect(renderedGraphTestHarness.readGraphLayoutPauseRequests()).toEqual([
+        true,
+        false,
+        true,
+        false,
+      ]);
+      expect(renderedGraphRuntime.readGraphLayoutSnapshot().isPaused).toBe(
+        false,
+      );
+    });
+
+    test("holds a still-relaxing layout still and restores it afterwards", async () => {
+      await completeLoad();
+
+      const exportPromise = exportVisualization({ filename: "moving.svg" });
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "stable-frames",
+      });
+      await flushMicrotasks(6);
+      await exportPromise;
+
+      expect(renderedGraphTestHarness.readGraphLayoutPauseRequests()).toEqual([
+        true,
+        false,
+      ]);
+    });
+
+    test("accepts an explicit best-effort settlement outcome", async () => {
+      await completeLoad();
+      const exportPromise = exportVisualization({ onTimeout: "best-effort" });
+      await flushMicrotasks(2);
+      expect(settlementRequests.at(-1).settlementRequest.onTimeout).toBe(
+        "best-effort",
+      );
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "best-effort",
+        reason: "timeout",
+      });
+      await flushMicrotasks(6);
+
+      const artifactMetadata = await exportPromise;
+      expect(artifactMetadata.viewRecipe.layoutOutcome).toEqual({
+        status: "best-effort",
+        reason: "timeout",
+      });
+    });
+
+    test("restores a previously paused layout after export", async () => {
+      await completeLoad();
+      controller.setGraphLayoutPaused({ isPaused: true });
+
+      const exportPromise = exportVisualization();
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+      await flushMicrotasks(6);
+      await exportPromise;
+
+      expect(controller.getState().layout).toEqual({ status: "paused" });
+    });
+
+    test("reports a bounded EXPORT_FAILED when artifact creation rejects", async () => {
+      await completeLoad();
+      visualizationArtifactService.createVisualizationArtifact.mockRejectedValueOnce(
+        Object.assign(new Error("no blob"), {
+          code: "EXPORT_FAILED",
+          isRetryable: false,
+          details: { exportStage: "blob-creation" },
+        }),
+      );
+
+      const exportPromise = exportVisualization();
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+
+      await expect(exportPromise).rejects.toEqual(
+        expect.objectContaining({ code: "EXPORT_FAILED" }),
+      );
+      expect(controller.getState().layout.status).not.toBe("paused");
+    });
+
+    test("fails the export when strict settlement times out", async () => {
+      await completeLoad();
+      const exportPromise = exportVisualization({ onTimeout: "fail" });
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).reject(
+        Object.assign(new Error("layout timeout"), {
+          code: "LAYOUT_TIMEOUT",
+          isRetryable: false,
+          details: { settleTimeoutMs: 12000 },
+        }),
+      );
+
+      await expect(exportPromise).rejects.toEqual(
+        expect.objectContaining({ code: "LAYOUT_TIMEOUT" }),
+      );
+    });
+
+    test("stops the export when the caller cancels during settlement", async () => {
+      await completeLoad();
+      const cancellationController = new AbortController();
+      const exportPromise = controller.exportVisualization(
+        {},
+        { signal: cancellationController.signal },
+      );
+      await flushMicrotasks(2);
+      cancellationController.abort();
+      settlementRequests.at(-1).reject(
+        Object.assign(new Error("cancelled"), {
+          code: "LOAD_ABORTED",
+          isRetryable: false,
+          details: {},
+        }),
+      );
+
+      await expect(exportPromise).rejects.toEqual(
+        expect.objectContaining({ code: "LOAD_ABORTED" }),
+      );
+      expect(controller.getState().layout.status).not.toBe("paused");
+    });
+
+    test("never restores pause state into a newer load generation", async () => {
+      await completeLoad();
+      let resolveArtifactCreation;
+      visualizationArtifactService.createVisualizationArtifact.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveArtifactCreation = resolve;
+        }),
+      );
+
+      const exportPromise = controller.exportVisualization({});
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+      await flushMicrotasks(6);
+
+      const replacementLoadPromise = controller
+        .loadOntology(SOURCE_REQUEST)
+        .catch(() => undefined);
+      await flushMicrotasks(2);
+      resolveArtifactCreation({ pageLocalArtifactId: "svg-artifact-1-1" });
+
+      await expect(exportPromise).rejects.toEqual(
+        expect.objectContaining({ code: "LOAD_ABORTED" }),
+      );
+
+      deferredSourceLoads.at(-1).resolve(createSourceLoadRecord());
+      await flushMicrotasks(3);
+      renderedGraphTestHarness.completeInitialPaint(2);
+      await flushMicrotasks(3);
+      renderedGraphTestHarness.completeVisualizationViewApplication(2);
+      await flushMicrotasks(3);
+      await replacementLoadPromise;
+
+      expect(controller.getState().loadGeneration).toBe(2);
+      expect(controller.getState().layout.status).not.toBe("paused");
+    });
+
+    test("re-throws a programming defect instead of normalising it", async () => {
+      await completeLoad();
+      const programmingDefect = new TypeError("waitForDocumentFonts is broken");
+      waitForDocumentFonts.mockRejectedValueOnce(programmingDefect);
+
+      const exportPromise = controller.exportVisualization({});
+      await flushMicrotasks(2);
+      settlementRequests.at(-1).resolve({
+        loadGeneration: 1,
+        status: "settled",
+        reason: "native-end",
+      });
+
+      await expect(exportPromise).rejects.toBe(programmingDefect);
+      expect(controller.getState().layout.status).not.toBe("paused");
+    });
+
+    test("rejects an export request field outside the documented surface", async () => {
+      await completeLoad();
+
+      await expect(
+        controller.exportVisualization({ scaleFactor: 2 }),
+      ).rejects.toThrow("scaleFactor");
+    });
+
+    test("rejects export before an ontology exists", async () => {
+      await expect(controller.exportVisualization({})).rejects.toEqual(
+        expect.objectContaining({ code: "NO_ONTOLOGY" }),
+      );
+    });
+  });
+
+  describe("controller boundary", () => {
+    test("rejects dependencies outside the documented module surface", () => {
+      expect(() =>
+        createWebVowlController({
+          ontologySourceLoader,
+          renderedGraphRuntime,
+          ontologyInspector: createOntologyInspector(),
+          graphLayoutSettler,
+          visualizationArtifactService,
+          waitForDocumentFonts,
+          waitForBrowserPaint,
+          graph: { load: () => undefined },
+        }),
+      ).toThrow("invalid dependency field set");
+    });
+
+    test("exposes exactly the documented controller operations", () => {
+      expect(Object.keys(controller).sort()).toEqual([
+        "confirmOntologyDeletion",
+        "describeOntologyElements",
+        "dispose",
+        "editOntologyMetadata",
+        "editOntologyRecord",
+        "exportVisualization",
+        "findOntologyElements",
+        "getOntologyDocument",
+        "getOntologyEditorOptions",
+        "getOntologySummary",
+        "getState",
+        "getVisualizationArrangement",
+        "getVisualizationFocus",
+        "getVisualizationShareLink",
+        "loadOntology",
+        "proposeOntologyDeletion",
+        "removeOntologyPrefix",
+        "resetVisualization",
+        "resizeVisualizationViewport",
+        "selectVisualizationElement",
+        "setContinuousZoom",
+        "setForceLayoutDistances",
+        "setGraphLayoutPaused",
+        "setOntologyEditorOptions",
+        "setOntologyPrefix",
+        "setRenderingDiagnosticsEnabled",
+        "setVisualizationArrangement",
+        "setVisualizationModes",
+        "setVisualizationView",
+        "subscribeToState",
+      ]);
+    });
+
+    test("never exposes source text, models, graphs, or object URLs in state", async () => {
+      await completeLoad();
+      const serialisedState = JSON.stringify(controller.getState());
+
+      for (const forbiddenFragment of [
+        "vowlModel",
+        "objectUrl",
+        "blob:",
+        "detachedSvgRoot",
+        "<svg",
+        "stack",
+      ]) {
+        expect(serialisedState).not.toContain(forbiddenFragment);
+      }
+    });
+
+    test("names no D3, WebMCP, or legacy operation identifier in its source", () => {
+      const controllerSource = readFileSync(
+        fileURLToPath(CONTROLLER_MODULE_URL),
+        "utf8",
+      );
+
+      for (const forbiddenIdentifier of [
+        "d3",
+        "modelContext",
+        "registerTool",
+        "load_ontology",
+        "export_visualization",
+        "loadOntologyFromText",
+        "exportSvg",
+      ]) {
+        expect(controllerSource).not.toMatch(
+          new RegExp(
+            `(?<![A-Za-z0-9_$])${forbiddenIdentifier}(?![A-Za-z0-9_$])`,
+            "u",
+          ),
+        );
+      }
+    });
+  });
+});

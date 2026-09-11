@@ -1,6 +1,6 @@
-const RoundNode = require("../RoundNode");
+import { RoundNode } from "../RoundNode.js";
 
-module.exports = (function () {
+const RdfsClass = (function () {
   const o = function (graph) {
     RoundNode.apply(this, arguments);
 
@@ -11,3 +11,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { RdfsClass };

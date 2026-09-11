@@ -1,152 +1,128 @@
-module.exports = function (graph) {
-  const debugMenu = {},
-    checkboxes = [];
+import { runVisualizationControlAction } from "../ui/visualizationControlAction.js";
 
-  debugMenu.setup = function () {
-    addCheckBox(
-      "useAccuracyHelper",
-      "Use accuracy helper",
-      "#useAccuracyHelper",
-      graph.options().useAccuracyHelper,
-      function (enabled, silent) {
-        if (!enabled) {
-          document
-            .querySelector("#showDraggerObject")
-            .classList.add("disabled");
-          document.querySelector("#showDraggerObjectConfigCheckbox").checked =
-            false;
-        } else {
-          document
-            .querySelector("#showDraggerObject")
-            .classList.remove("disabled");
-        }
+// Hidden diagnostic presentation stays in the UI; rendering and native editing
+// helpers receive their own plain controller requests.
+export function createDebugMenu({
+  webVowlController,
+  documentObject = globalThis.document,
+}) {
+  const lifecycle = new AbortController();
+  let visible = false;
+  let showStatistics = true;
+  let showInputModality = false;
+  let isSetup = false;
+  let unsubscribe;
+  const control = (id) => documentObject.querySelector(`#${id}ConfigCheckbox`);
 
-        if (silent === true) {
-          return;
-        }
-        graph.lazyRefresh();
-        graph.updateDraggerElements();
-      },
-    );
-    addCheckBox(
-      "showDraggerObject",
-      "Show accuracy helper",
-      "#showDraggerObject",
-      graph.options().showDraggerObject,
-      function (enabled, silent) {
-        if (silent === true) {
-          return;
-        }
-        graph.lazyRefresh();
-        graph.updateDraggerElements();
-      },
-    );
-    addCheckBox(
-      "showFPS_Statistics",
-      "Show rendering statistics",
-      "#showFPS_Statistics",
-      graph.options().showRenderingStatistic,
-      function (enabled, silent) {
-        if (graph.options().getHideDebugFeatures() === false) {
-          document
-            .querySelector("#FPS_Statistics")
-            .classList.toggle("hidden", !enabled);
-        } else {
-          document.querySelector("#FPS_Statistics").classList.add("hidden");
-        }
-      },
-    );
-    addCheckBox(
-      "showModeOfOperation",
-      "Show input modality",
-      "#showModeOfOperation",
-      graph.options().showInputModality,
-      function (enabled) {
-        if (graph.options().getHideDebugFeatures() === false) {
-          document
-            .querySelector("#modeOfOperationString")
-            .classList.toggle("hidden", !enabled);
-        } else {
-          document
-            .querySelector("#modeOfOperationString")
-            .classList.add("hidden");
-        }
-      },
-    );
-  };
-
-  function addCheckBox(
-    identifier,
-    modeName,
-    selector,
-    onChangeFunc,
-    _callbackFunction,
-  ) {
-    const configOptionContainer = document.querySelector(selector);
-    const configCheckbox = configOptionContainer.querySelector(
-      "#" + identifier + "ConfigCheckbox",
-    );
-    configCheckbox.checked = onChangeFunc();
-
-    const clickHandler = function (arg1, arg2) {
-      const isEnabled = configCheckbox.checked;
-      onChangeFunc(isEnabled);
-      const silent =
-        typeof arg1 === "boolean"
-          ? arg1
-          : typeof arg2 === "boolean"
-            ? arg2
-            : false;
-      _callbackFunction(isEnabled, silent);
-    };
-
-    configCheckbox.addEventListener("click", clickHandler);
-    checkboxes.push({
-      id: configCheckbox.id,
-      element: configCheckbox,
-      update: clickHandler,
+  function renderAvailability() {
+    const options = webVowlController.getOntologyEditorOptions();
+    documentObject.querySelectorAll(".debugOption").forEach((element) => {
+      element.classList.toggle("hidden", !visible);
     });
-
-    return configCheckbox;
+    for (const id of ["useAccuracyHelper", "showDraggerObject"]) {
+      const enabled =
+        options.isEditorMode &&
+        (id !== "showDraggerObject" || options.useAccuracyHelper);
+      control(id).disabled = !enabled;
+      control(id).checked = options[id];
+      documentObject
+        .querySelector(`#${id}`)
+        .classList.toggle("disabled", !enabled);
+    }
+    documentObject
+      .querySelector("#FPS_Statistics")
+      .classList.toggle("hidden", !visible || !showStatistics);
+    documentObject
+      .querySelector("#modeOfOperationString")
+      .classList.toggle("hidden", !visible || !showInputModality);
   }
 
-  debugMenu.setCheckBoxValue = function (identifier, value) {
-    for (let i = 0; i < checkboxes.length; i++) {
-      const item = checkboxes[i];
-      if (item.id === identifier) {
-        item.element.checked = value;
-        break;
+  function reportStatisticsChoice() {
+    webVowlController.setRenderingDiagnosticsEnabled(visible && showStatistics);
+    renderAvailability();
+  }
+
+  return Object.freeze({
+    setup() {
+      if (isSetup || lifecycle.signal.aborted) {
+        return;
       }
-    }
-  };
-
-  debugMenu.getCheckBoxValue = function (id) {
-    for (let i = 0; i < checkboxes.length; i++) {
-      const item = checkboxes[i];
-      if (item.id === id) {
-        return item.element.checked;
+      isSetup = true;
+      for (const id of ["useAccuracyHelper", "showDraggerObject"]) {
+        control(id).addEventListener(
+          "click",
+          () => {
+            const enabled = control(id).checked;
+            void runVisualizationControlAction(
+              () =>
+                webVowlController.setOntologyEditorOptions({
+                  [id]: enabled,
+                  ...(id === "useAccuracyHelper" && !enabled
+                    ? { showDraggerObject: false }
+                    : {}),
+                }),
+              documentObject,
+            ).then(renderAvailability);
+          },
+          { signal: lifecycle.signal },
+        );
       }
-    }
-  };
-
-  debugMenu.updateSettings = function () {
-    const debugOptions = document.querySelectorAll(".debugOption");
-    const hideDebug = graph.options().getHideDebugFeatures();
-    debugOptions.forEach(function (option) {
-      option.classList.toggle("hidden", hideDebug);
-    });
-
-    const silent = true;
-    checkboxes.forEach(function (item) {
-      item.update(silent);
-    });
-    if (graph.editorMode() === false) {
-      document.querySelector("#useAccuracyHelper").classList.add("disabled");
-      document.querySelector("#showDraggerObject").classList.add("disabled");
-    } else {
-      document.querySelector("#useAccuracyHelper").classList.remove("disabled");
-    }
-  };
-
-  return debugMenu;
-};
+      control("showFPS_Statistics").checked = showStatistics;
+      control("showFPS_Statistics").addEventListener(
+        "click",
+        () => {
+          showStatistics = control("showFPS_Statistics").checked;
+          reportStatisticsChoice();
+        },
+        { signal: lifecycle.signal },
+      );
+      control("showModeOfOperation").checked = showInputModality;
+      control("showModeOfOperation").addEventListener(
+        "click",
+        () => {
+          showInputModality = control("showModeOfOperation").checked;
+          renderAvailability();
+        },
+        { signal: lifecycle.signal },
+      );
+      unsubscribe = webVowlController.subscribeToState((state, fields) => {
+        if (fields.includes("editorMode")) {
+          renderAvailability();
+        }
+        if (
+          fields.includes("renderingStatistics") &&
+          state.renderingStatistics !== null
+        ) {
+          const statistics = state.renderingStatistics;
+          documentObject
+            .querySelector("#FPS_Statistics")
+            .replaceChildren(
+              `FPS: ${statistics.framesPerSecond}`,
+              documentObject.createElement("br"),
+              `Nodes: ${statistics.nodeCount}`,
+              documentObject.createElement("br"),
+              `Links: ${statistics.linkCount}`,
+            );
+        }
+      });
+      reportStatisticsChoice();
+    },
+    isVisible: () => visible,
+    setVisible(value) {
+      visible = Boolean(value);
+      if (isSetup) {
+        reportStatisticsChoice();
+      }
+    },
+    renderInputModality(isTouchDevice) {
+      documentObject.querySelector("#modeOfOperationString").textContent =
+        isTouchDevice
+          ? "touch able device detected"
+          : "point & click device detected";
+    },
+    dispose() {
+      lifecycle.abort();
+      unsubscribe?.();
+    },
+  });
+}

@@ -2,7 +2,7 @@
  * Contains a collection of mathematical functions with some additional data
  * used for WebVOWL.
  */
-module.exports = (function () {
+const createMath = (function () {
   const DEFAULT_CURVE_TENSION = 0.7;
   const TANGENT_EPSILON_SQUARED = 1e-12;
   const math = {};
@@ -306,3 +306,5 @@ module.exports = (function () {
     return math;
   };
 })();
+
+export { createMath };

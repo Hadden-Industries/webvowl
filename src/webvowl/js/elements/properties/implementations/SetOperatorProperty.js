@@ -1,6 +1,6 @@
-const BaseProperty = require("../BaseProperty");
+import { BaseProperty } from "../BaseProperty.js";
 
-module.exports = (function () {
+const SetOperatorProperty = (function () {
   const o = function (graph) {
     BaseProperty.apply(this, arguments);
 
@@ -15,3 +15,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { SetOperatorProperty };

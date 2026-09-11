@@ -307,7 +307,7 @@ html {
   padding-left: 60px;
 }
 
-#reloadCachedOntology {
+#reloadOntologySource {
   cursor: pointer;
 
   display: inline-flex;
@@ -331,18 +331,18 @@ html {
     opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-#reloadCachedOntology:hover:not(:disabled) {
+#reloadOntologySource:hover:not(:disabled) {
   border-color: var(--theme-color-accent, #d90);
   color: #fff;
   background: #2c3e50;
 }
 
-#reloadCachedOntology:focus-visible {
+#reloadOntologySource:focus-visible {
   outline: 2px solid var(--theme-color-accent, #d90);
   outline-offset: 2px;
 }
 
-#reloadCachedOntology:disabled {
+#reloadOntologySource:disabled {
   cursor: not-allowed;
 
   border-color: #4a5568;
@@ -354,7 +354,7 @@ html {
   box-shadow: none;
 }
 
-#reloadCachedOntology.hidden {
+#reloadOntologySource.hidden {
   display: none !important;
 }
 
@@ -377,8 +377,8 @@ html {
   border: 1px solid #34495e;
 }
 
-#directUploadBtn,
-#close_directUploadBtn {
+#loadDirectInputButton,
+#closeDirectInputButton {
   cursor: pointer;
   width: 100%;
   margin-top: 5px;
@@ -2059,6 +2059,20 @@ main {
   background-color: rgb(24 32 42);
 }
 
+#visualizationActionStatus {
+  position: absolute;
+  z-index: 10;
+  inset-block-start: 5rem;
+  inset-inline: 1rem;
+
+  padding: 0.5rem;
+  border: 1px solid #b71c1c;
+
+  color: #b71c1c;
+
+  background: white;
+}
+
 #loading-info {
   pointer-events: none;
 
@@ -2760,7 +2774,7 @@ main {
   white-space: nowrap;
 }
 
-.reloadCachedOntologyIcon {
+.reloadOntologySourceIcon {
   flex-shrink: 0;
   width: 16px;
   height: 16px;

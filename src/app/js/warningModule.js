@@ -1,11 +1,15 @@
-module.exports = function (graph) {
+import { runVisualizationControlAction } from "./ui/visualizationControlAction.js";
+
+export function createWarningModule({ webVowlController } = {}) {
   /** variable defs **/
   const warningModule = {};
+  const lifecycleAbortController = new AbortController();
   const _messageContainers = [];
   const _messageContext = [];
   const _visibleStatus = [];
 
   let _messageId = -1;
+  let cancelConfirmation;
 
   warningModule.addMessageBox = function () {
     // add a container;
@@ -29,6 +33,7 @@ module.exports = function (graph) {
     messageContainer.addEventListener(
       "animationend",
       _msgContainer_animationEnd,
+      { signal: lifecycleAbortController.signal },
     );
 
     // set visible flag that is used in end of animation
@@ -36,8 +41,8 @@ module.exports = function (graph) {
     return _messageId;
   };
 
-  function _msgContainer_animationEnd() {
-    const containerId = this.id;
+  function _msgContainer_animationEnd(event) {
+    const containerId = event.currentTarget.id;
     const tokens = containerId.split("_")[1];
     const mContainer = document.querySelector("#" + containerId);
     // get number of children
@@ -88,7 +93,9 @@ module.exports = function (graph) {
     gotItButton.setAttribute("type", "button");
     gotItButton.id = "killWarningErrorMessages_" + id;
     gotItButton.innerHTML = "Got It";
-    gotItButton.addEventListener("click", warningModule.closeMessage);
+    gotItButton.addEventListener("click", warningModule.closeMessage, {
+      signal: lifecycleAbortController.signal,
+    });
 
     moduleContainer.classList.remove("hidden");
     moduleContainer.classList.add("warn-expanded");
@@ -100,11 +107,14 @@ module.exports = function (graph) {
     moduleContainer.classList.add("warn-expanded");
   };
 
-  warningModule.closeMessage = function (id) {
+  warningModule.closeMessage = function (messageIdentifierOrEvent) {
     let nId;
-    let targetId = typeof id === "string" ? id : this && this.id ? this.id : "";
-    if (typeof id === "number") {
-      targetId = String(id);
+    let targetId =
+      typeof messageIdentifierOrEvent === "string"
+        ? messageIdentifierOrEvent
+        : (messageIdentifierOrEvent?.currentTarget?.id ?? "");
+    if (typeof messageIdentifierOrEvent === "number") {
+      targetId = String(messageIdentifierOrEvent);
     }
     if (targetId && targetId.indexOf("_") !== -1) {
       nId = targetId.split("_")[1];
@@ -140,14 +150,16 @@ module.exports = function (graph) {
     for (let fc = 0; fc < followingChildren.length; fc++) {
       const child = document.querySelector("#" + followingChildren[fc]);
       child.classList.add("msg-collapsed");
-      child.addEventListener("animationend", _child_animationEnd);
+      child.addEventListener("animationend", _child_animationEnd, {
+        signal: lifecycleAbortController.signal,
+      });
     }
   };
 
-  function _child_animationEnd() {
-    const c = this;
-    c.classList.remove("msg-collapsed");
-    c.removeEventListener("animationend", _child_animationEnd);
+  function _child_animationEnd(event) {
+    const animatedChild = event.currentTarget;
+    animatedChild.classList.remove("msg-collapsed");
+    animatedChild.removeEventListener("animationend", _child_animationEnd);
   }
 
   warningModule.showEditorHint = function () {
@@ -165,14 +177,27 @@ module.exports = function (graph) {
     );
   };
 
-  warningModule.responseWarning = function (
-    header,
-    reason,
-    action,
-    callback,
-    parameterArray,
-    forcedWarning,
-  ) {
+  warningModule.confirmOntologyDeletion = function (proposal, { signal } = {}) {
+    cancelConfirmation?.();
+    if (signal?.aborted || lifecycleAbortController.signal.aborted) {
+      return Promise.resolve(false);
+    }
+    const header = "Delete ontology elements";
+    const counts = proposal.recordTargets.reduce((result, target) => {
+      result[target.collection] = (result[target.collection] ?? 0) + 1;
+      return result;
+    }, {});
+    const reason = `This removes ${Object.entries(counts)
+      .map(
+        ([kind, count]) =>
+          `${count} ${kind === "property" ? "properties" : kind === "class" ? "classes" : "datatypes"}`,
+      )
+      .join(", ")}.`;
+    const action = "Continue to delete these elements, or cancel to keep them.";
+    let resolveConfirmation;
+    const confirmation = new Promise((resolve) => {
+      resolveConfirmation = resolve;
+    });
     const id = warningModule.addMessageBox();
     const warningContainer = _messageContext[id];
     const moduleContainer = _messageContainers[id];
@@ -180,6 +205,24 @@ module.exports = function (graph) {
     document
       .querySelector("#blockGraphInteractions")
       .classList.remove("hidden");
+    function finish(accepted) {
+      warningModule.closeMessage(id);
+      document.querySelector("#blockGraphInteractions").classList.add("hidden");
+      signal?.removeEventListener("abort", cancel);
+      lifecycleAbortController.signal.removeEventListener("abort", cancel);
+      if (cancelConfirmation === cancel) {
+        cancelConfirmation = undefined;
+      }
+      resolveConfirmation(accepted);
+    }
+    function cancel() {
+      finish(false);
+    }
+    cancelConfirmation = cancel;
+    signal?.addEventListener("abort", cancel, { once: true });
+    lifecycleAbortController.signal.addEventListener("abort", cancel, {
+      once: true,
+    });
 
     if (header.length > 0) {
       const head = document.createElement("div");
@@ -192,7 +235,7 @@ module.exports = function (graph) {
       const msgHeader = document.createElement("div");
       head.appendChild(msgHeader);
       msgHeader.classList.add("warning-msg-content");
-      msgHeader.innerHTML = header;
+      msgHeader.textContent = header;
     }
     if (reason.length > 0) {
       const reasonContainer = document.createElement("div");
@@ -205,7 +248,7 @@ module.exports = function (graph) {
       const msgReason = document.createElement("div");
       reasonContainer.appendChild(msgReason);
       msgReason.classList.add("warning-msg-content");
-      msgReason.innerHTML = reason;
+      msgReason.textContent = reason;
     }
     if (action.length > 0) {
       const actionContainer = document.createElement("div");
@@ -218,7 +261,7 @@ module.exports = function (graph) {
       const msgAction = document.createElement("div");
       actionContainer.appendChild(msgAction);
       msgAction.classList.add("warning-msg-content");
-      msgAction.innerHTML = action;
+      msgAction.textContent = action;
     }
 
     const gotItButton = document.createElement("button");
@@ -226,15 +269,8 @@ module.exports = function (graph) {
     gotItButton.setAttribute("type", "button");
     gotItButton.id = "killWarningErrorMessages_" + id;
     gotItButton.innerHTML = "Continue";
-    gotItButton.addEventListener("click", function () {
-      warningModule.closeMessage(this.id);
-      document.querySelector("#blockGraphInteractions").classList.add("hidden");
-      callback(
-        parameterArray[0],
-        parameterArray[1],
-        parameterArray[2],
-        parameterArray[3],
-      );
+    gotItButton.addEventListener("click", () => finish(true), {
+      signal: lifecycleAbortController.signal,
     });
 
     const spanNode = document.createElement("span");
@@ -246,13 +282,13 @@ module.exports = function (graph) {
     cancelButton.setAttribute("type", "button");
     cancelButton.id = "cancelButton_" + id;
     cancelButton.innerHTML = "Cancel";
-    cancelButton.addEventListener("click", function () {
-      warningModule.closeMessage(this.id);
-      document.querySelector("#blockGraphInteractions").classList.add("hidden");
+    cancelButton.addEventListener("click", cancel, {
+      signal: lifecycleAbortController.signal,
     });
 
     moduleContainer.classList.remove("hidden");
     moduleContainer.classList.add("warn-expanded");
+    return confirmation;
   };
 
   warningModule.showMultiFileUploadWarning = function () {
@@ -273,7 +309,9 @@ module.exports = function (graph) {
     gotItButton.setAttribute("type", "button");
     gotItButton.id = "killFilterMessages_" + id;
     gotItButton.innerHTML = "Got It";
-    gotItButton.addEventListener("click", warningModule.closeMessage);
+    gotItButton.addEventListener("click", warningModule.closeMessage, {
+      signal: lifecycleAbortController.signal,
+    });
 
     moduleContainer.classList.remove("hidden");
     moduleContainer.classList.add("warn-expanded");
@@ -285,7 +323,7 @@ module.exports = function (graph) {
     action,
     type,
     forcedWarning,
-    additionalOpts,
+    focusableElementReference,
   ) {
     const id = warningModule.addMessageBox();
     const warningContainer = _messageContext[id];
@@ -303,7 +341,7 @@ module.exports = function (graph) {
       const msgHeader = document.createElement("div");
       head.appendChild(msgHeader);
       msgHeader.classList.add("warning-msg-content");
-      msgHeader.innerHTML = header;
+      msgHeader.textContent = header;
     }
     if (reason.length > 0) {
       const reasonContainer = document.createElement("div");
@@ -316,7 +354,7 @@ module.exports = function (graph) {
       const msgReason = document.createElement("div");
       reasonContainer.appendChild(msgReason);
       msgReason.classList.add("warning-msg-content");
-      msgReason.innerHTML = reason;
+      msgReason.textContent = reason;
     }
     if (action.length > 0) {
       const actionContainer = document.createElement("div");
@@ -329,7 +367,7 @@ module.exports = function (graph) {
       const msgAction = document.createElement("div");
       actionContainer.appendChild(msgAction);
       msgAction.classList.add("warning-msg-content");
-      msgAction.innerHTML = action;
+      msgAction.textContent = action;
     }
 
     let gotItButton;
@@ -339,7 +377,9 @@ module.exports = function (graph) {
       gotItButton.setAttribute("type", "button");
       gotItButton.id = "killWarningErrorMessages_" + id;
       gotItButton.innerHTML = "Got It";
-      gotItButton.addEventListener("click", warningModule.closeMessage);
+      gotItButton.addEventListener("click", warningModule.closeMessage, {
+        signal: lifecycleAbortController.signal,
+      });
     }
 
     if (type === 2) {
@@ -348,44 +388,45 @@ module.exports = function (graph) {
       gotItButton.setAttribute("type", "button");
       gotItButton.id = "killWarningErrorMessages_" + id;
       gotItButton.innerHTML = "Got It";
-      gotItButton.addEventListener("click", warningModule.closeMessage);
+      gotItButton.addEventListener("click", warningModule.closeMessage, {
+        signal: lifecycleAbortController.signal,
+      });
 
       const spanNode1 = document.createElement("span");
       warningContainer.appendChild(spanNode1);
       spanNode1.innerHTML = "|";
 
-      const zoomToElementButton = document.createElement("button");
-      warningContainer.appendChild(zoomToElementButton);
-      zoomToElementButton.setAttribute("type", "button");
-      zoomToElementButton.id = "zoomElementThing_" + id;
-      zoomToElementButton.innerHTML = "Zoom to element ";
-      zoomToElementButton.addEventListener("click", function () {
-        graph.zoomToElementInGraph(additionalOpts);
-      });
-
-      const spanNode2 = document.createElement("span");
-      warningContainer.appendChild(spanNode2);
-      spanNode2.innerHTML = "|";
-
-      const ShowElementButton = document.createElement("button");
-      warningContainer.appendChild(ShowElementButton);
-      ShowElementButton.setAttribute("type", "button");
-      ShowElementButton.id = "showElementThing_" + id;
-      ShowElementButton.innerHTML = "Indicate element";
-      ShowElementButton.addEventListener("click", function () {
-        if (additionalOpts.halo() === false) {
-          additionalOpts.drawHalo();
-          graph.updatePulseIds([additionalOpts.id()]);
-        } else {
-          additionalOpts.removeHalo();
-          additionalOpts.drawHalo();
-          graph.updatePulseIds([additionalOpts.id()]);
-        }
-      });
+      // The warning reports which element it is about; the runtime decides
+      // how to surface it. This module never draws on a renderer element.
+      const showElementButton = document.createElement("button");
+      warningContainer.appendChild(showElementButton);
+      showElementButton.setAttribute("type", "button");
+      showElementButton.id = "showElementThing_" + id;
+      showElementButton.textContent = "Show element in graph";
+      showElementButton.addEventListener(
+        "click",
+        function () {
+          if (focusableElementReference === undefined) {
+            return;
+          }
+          runVisualizationControlAction(
+            () =>
+              webVowlController?.setVisualizationView({
+                focus: [focusableElementReference],
+              }),
+            document,
+          );
+        },
+        { signal: lifecycleAbortController.signal },
+      );
     }
     moduleContainer.classList.remove("hidden");
     moduleContainer.classList.add("warn-expanded");
   };
 
+  warningModule.dispose = function () {
+    lifecycleAbortController.abort();
+  };
+
   return warningModule;
-};
+}

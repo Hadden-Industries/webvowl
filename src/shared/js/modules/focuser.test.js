@@ -1,24 +1,28 @@
-jest.mock("../util/elementTools", () => {
-  return () => ({
-    isProperty: (elem) => elem && elem.isProperty === true,
-  });
-});
+import { beforeAll, jest } from "@jest/globals";
+import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
-const focuserFactory = require("./focuser");
+let focuserFactory;
+
+beforeAll(async () => {
+  ({ createFocuser: focuserFactory } = await loadEsmModuleForTest(
+    new URL("./focuser.js", import.meta.url),
+    import.meta.url,
+    {
+      "../util/elementTools.js": {
+        createElementTools: () => ({
+          isProperty: (elem) => elem && elem.isProperty === true,
+        }),
+      },
+    },
+  ));
+});
 
 describe("Focuser Module Unit Tests", () => {
   let graphMock;
   let focuser;
-  let updateSelectionInformationMock;
 
   beforeEach(() => {
-    updateSelectionInformationMock = jest.fn();
     graphMock = {
-      options: () => ({
-        editSidebar: () => ({
-          updateSelectionInformation: updateSelectionInformationMock,
-        }),
-      }),
       isTouchDevice: () => false,
       activateHoverElementsForProperties: jest.fn(),
       activateHoverElements: jest.fn(),
@@ -33,7 +37,7 @@ describe("Focuser Module Unit Tests", () => {
     const propertyMock = {
       isProperty: true,
       focused: () => focused,
-      toggleFocus: () => {
+      toggleSelection: () => {
         focused = !focused;
       },
       inverse: () => ({}),
@@ -44,7 +48,6 @@ describe("Focuser Module Unit Tests", () => {
 
     focuser.handle({}, propertyMock);
 
-    expect(updateSelectionInformationMock).toHaveBeenCalledWith(propertyMock);
     expect(graphMock.activateHoverElementsForProperties).toHaveBeenCalledWith(
       true,
       propertyMock,
@@ -58,7 +61,7 @@ describe("Focuser Module Unit Tests", () => {
     const propertyMock = {
       isProperty: true,
       focused: () => focused,
-      toggleFocus: () => {
+      toggleSelection: () => {
         focused = !focused;
       },
       inverse: () => ({}),

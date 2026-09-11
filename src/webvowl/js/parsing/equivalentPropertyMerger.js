@@ -1,11 +1,12 @@
-const OwlThing = require("../elements/nodes/implementations/OwlThing");
-const RdfsLiteral = require("../elements/nodes/implementations/RdfsLiteral");
-const elementTools = require("../../../shared/js/util/elementTools")();
+import { createElementTools } from "../../../shared/js/util/elementTools.js";
+import { OwlThing } from "../elements/nodes/implementations/OwlThing.js";
+import { RdfsLiteral } from "../elements/nodes/implementations/RdfsLiteral.js";
+const elementTools = createElementTools();
 
 const equivalentPropertyMerger = {};
-module.exports = function () {
+export function createEquivalentPropertyMerger() {
   return equivalentPropertyMerger;
-};
+}
 
 const PREFIX = "GENERATED-MERGED_RANGE-";
 const OBJECT_PROPERTY_DEFAULT_RANGE_TYPE = "owl:Thing";

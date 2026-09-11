@@ -1,7 +1,8 @@
-const RoundNode = require("../RoundNode");
-const drawTools = require("../../drawTools")();
+import { RoundNode } from "../RoundNode.js";
+import { createDrawTools as drawToolsFactory } from "../../drawTools.js";
+const drawTools = drawToolsFactory();
 
-module.exports = (function () {
+const OwlEquivalentClass = (function () {
   const o = function (graph) {
     RoundNode.apply(this, arguments);
 
@@ -114,3 +115,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { OwlEquivalentClass };

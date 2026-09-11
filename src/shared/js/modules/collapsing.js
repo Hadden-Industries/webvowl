@@ -1,6 +1,7 @@
-const elementTools = require("../util/elementTools")();
+import { createElementTools as elementToolsFactory } from "../util/elementTools.js";
+const elementTools = elementToolsFactory();
 
-module.exports = function () {
+export function createCollapsing() {
   const collapsing = {};
   let enabled = false;
   let filteredNodes;
@@ -42,4 +43,4 @@ module.exports = function () {
   };
 
   return collapsing;
-};
+}

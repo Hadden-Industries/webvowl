@@ -1,7 +1,8 @@
-const _ = require("lodash/array");
-const elementTools = require("../util/elementTools")();
+import _ from "lodash/array.js";
+import { createElementTools as elementToolsFactory } from "../util/elementTools.js";
+const elementTools = elementToolsFactory();
 
-module.exports = function () {
+export function createPickAndPin() {
   const pap = {};
   let enabled = false;
   const pinnedElements = [];
@@ -66,4 +67,4 @@ module.exports = function () {
   };
 
   return pap;
-};
+}

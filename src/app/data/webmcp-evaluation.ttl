@@ -1,0 +1,84 @@
+@prefix : <https://webvowl.test/evaluation#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# A small, deterministic ontology for evaluating the WebMCP tools.
+#
+# It is deliberately self-contained: no owl:imports, no external vocabulary
+# beyond OWL and RDFS themselves, and no blank-node class expressions. An
+# evaluation that depends on a remote document would measure the network as
+# much as the tools.
+#
+# Labels are given in English and German so a language request has something
+# to change, and one datatype property gives the datatype filter something to
+# hide.
+
+<https://webvowl.test/evaluation> a owl:Ontology ;
+    rdfs:label "WebMCP Evaluation Ontology"@en ;
+    rdfs:label "WebMCP-Evaluationsontologie"@de ;
+    rdfs:comment "A small self-contained ontology used to evaluate the WebVOWL agent tools."@en ;
+    rdfs:comment "Eine kleine, in sich geschlossene Ontologie zur Evaluierung der WebVOWL-Agentenwerkzeuge."@de ;
+    owl:versionInfo "1.0.0" .
+
+:Person a owl:Class ;
+    rdfs:label "Person"@en ;
+    rdfs:label "Person"@de ;
+    rdfs:comment "Someone who may work for an organization and write publications."@en ;
+    rdfs:comment "Jemand, der für eine Organisation arbeiten und Publikationen verfassen kann."@de .
+
+:Organization a owl:Class ;
+    rdfs:label "Organization"@en ;
+    rdfs:label "Organisation"@de ;
+    rdfs:comment "A body that people work for and that publications may be attributed to."@en ;
+    rdfs:comment "Eine Einrichtung, für die Personen arbeiten und der Publikationen zugeordnet sein können."@de .
+
+:Publication a owl:Class ;
+    rdfs:label "Publication"@en ;
+    rdfs:label "Publikation"@de ;
+    rdfs:comment "A written work with one or more authors."@en ;
+    rdfs:comment "Ein Schriftwerk mit einem oder mehreren Autoren."@de .
+
+:Person owl:disjointWith :Organization .
+
+:worksFor a owl:ObjectProperty ;
+    rdfs:label "works for"@en ;
+    rdfs:label "arbeitet für"@de ;
+    rdfs:domain :Person ;
+    rdfs:range :Organization .
+
+:employs a owl:ObjectProperty ;
+    rdfs:label "employs"@en ;
+    rdfs:label "beschäftigt"@de ;
+    rdfs:domain :Organization ;
+    rdfs:range :Person ;
+    owl:inverseOf :worksFor .
+
+:authorOf a owl:ObjectProperty ;
+    rdfs:label "author of"@en ;
+    rdfs:label "Autor von"@de ;
+    rdfs:domain :Person ;
+    rdfs:range :Publication .
+
+:publishedBy a owl:ObjectProperty ;
+    rdfs:label "published by"@en ;
+    rdfs:label "veröffentlicht von"@de ;
+    rdfs:domain :Publication ;
+    rdfs:range :Organization .
+
+:title a owl:DatatypeProperty ;
+    rdfs:label "title"@en ;
+    rdfs:label "Titel"@de ;
+    rdfs:domain :Publication ;
+    rdfs:range xsd:string .
+
+:AdaLovelace a owl:NamedIndividual, :Person ;
+    rdfs:label "Ada Lovelace"@en ;
+    rdfs:label "Ada Lovelace"@de .
+
+:AnalyticalEngineNotes a owl:NamedIndividual, :Publication ;
+    rdfs:label "Notes on the Analytical Engine"@en ;
+    rdfs:label "Notizen zur Analytical Engine"@de ;
+    :title "Notes on the Analytical Engine" .
+
+:AdaLovelace :authorOf :AnalyticalEngineNotes .

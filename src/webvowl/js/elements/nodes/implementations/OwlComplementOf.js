@@ -1,6 +1,6 @@
-const SetOperatorNode = require("../SetOperatorNode");
+import { SetOperatorNode } from "../SetOperatorNode.js";
 
-module.exports = (function () {
+const OwlComplementOf = (function () {
   const o = function (graph) {
     SetOperatorNode.apply(this, arguments);
 
@@ -42,3 +42,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { OwlComplementOf };

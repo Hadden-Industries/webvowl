@@ -1,7 +1,38 @@
-const OwlClass = require("../../../webvowl/js/elements/nodes/implementations/OwlClass");
-const RdfsDatatype = require("../../../webvowl/js/elements/nodes/implementations/RdfsDatatype");
-const DatatypeProperty = require("../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty");
-const datatypeFilterFactory = require("./datatypeFilter");
+import { beforeAll } from "@jest/globals";
+import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
+
+let OwlClass;
+let RdfsDatatype;
+let DatatypeProperty;
+let datatypeFilterFactory;
+
+beforeAll(async () => {
+  ({ OwlClass } = await loadEsmModuleForTest(
+    new URL(
+      "../../../webvowl/js/elements/nodes/implementations/OwlClass.js",
+      import.meta.url,
+    ),
+    import.meta.url,
+  ));
+  ({ RdfsDatatype } = await loadEsmModuleForTest(
+    new URL(
+      "../../../webvowl/js/elements/nodes/implementations/RdfsDatatype.js",
+      import.meta.url,
+    ),
+    import.meta.url,
+  ));
+  ({ OwlDatatypeProperty: DatatypeProperty } = await loadEsmModuleForTest(
+    new URL(
+      "../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty.js",
+      import.meta.url,
+    ),
+    import.meta.url,
+  ));
+  ({ createDatatypeFilter: datatypeFilterFactory } = await loadEsmModuleForTest(
+    new URL("./datatypeFilter.js", import.meta.url),
+    import.meta.url,
+  ));
+});
 
 describe("Collapsing of datatypes filter", () => {
   let filter;

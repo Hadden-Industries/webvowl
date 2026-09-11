@@ -1,7 +1,7 @@
 /**
  * Contains reusable function for drawing nodes.
  */
-module.exports = (function () {
+const createDrawTools = (function () {
   const tools = {};
 
   /**
@@ -232,3 +232,5 @@ module.exports = (function () {
     return tools;
   };
 })();
+
+export { createDrawTools };

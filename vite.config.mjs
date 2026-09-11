@@ -1,4 +1,4 @@
-import { defineConfig, normalizePath } from "vite";
+import { defineConfig, normalizePath, send } from "vite";
 import { dirname, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -182,45 +182,89 @@ function d3InjectScriptPlugin() {
 }
 
 /**
- * Verifies that production builds copy the external D3 runtime byte-for-byte.
+ * Serves external D3 during development, then copies and verifies it in builds.
  */
-function d3CopyVerificationPlugin(mode) {
-  let outputDirectory;
+function d3DistributionPlugin(mode) {
+  const d3DistributionFilePath = resolve(
+    configDir,
+    "node_modules/d3/dist/d3.min.js"
+  );
+  let buildOutputDirectoryPath;
 
   return {
-    name: "d3-copy-verification",
-    apply: "build",
+    name: "d3-distribution",
     configResolved(config) {
-      outputDirectory = resolve(config.root, config.build.outDir);
+      buildOutputDirectoryPath = resolve(config.root, config.build.outDir);
+    },
+    configureServer(server) {
+      const d3BrowserAssetPath = `${server.config.base}js/d3.min.js`;
+
+      server.middlewares.use(function serveD3DevelopmentAsset(
+        request,
+        response,
+        next
+      ) {
+        const requestPathname = request.url?.split(/[?#]/, 1)[0];
+        const isAssetRetrievalRequest =
+          request.method === "GET" || request.method === "HEAD";
+
+        if (
+          !isAssetRetrievalRequest ||
+          requestPathname !== d3BrowserAssetPath
+        ) {
+          next();
+          return;
+        }
+
+        const d3DistributionBytes = readFileSync(d3DistributionFilePath);
+
+        send(request, response, d3DistributionBytes, "js", {
+          cacheControl: "no-cache",
+          headers: {
+            ...server.config.server.headers,
+            "Content-Length": d3DistributionBytes.byteLength
+          },
+          map: { mappings: "" }
+        });
+      });
     },
     writeBundle() {
-      const sourcePath = resolve(configDir, "node_modules/d3/dist/d3.min.js");
-      const outputPath = resolve(outputDirectory, "js/d3.min.js");
-      const displayPath = relative(configDir, outputPath).replace(/\\/g, "/");
+      const builtD3DistributionFilePath = resolve(
+        buildOutputDirectoryPath,
+        "js/d3.min.js"
+      );
+      const builtD3DistributionDisplayPath = relative(
+        configDir,
+        builtD3DistributionFilePath
+      ).replace(/\\/g, "/");
 
       // Own copying and verification in one ordered hook. Separate closeBundle
       // hooks may run concurrently, which previously made a clean build depend
       // on whether deploy/js/d3.min.js happened to exist from an earlier build.
-      mkdirSync(dirname(outputPath), { recursive: true });
-      copyFileSync(sourcePath, outputPath);
+      mkdirSync(dirname(builtD3DistributionFilePath), { recursive: true });
+      copyFileSync(d3DistributionFilePath, builtD3DistributionFilePath);
 
       if (mode !== "production") return;
 
-      if (!existsSync(outputPath)) {
-        throw new Error(`[webvowl-build] Missing ${displayPath}`);
+      if (!existsSync(builtD3DistributionFilePath)) {
+        throw new Error(
+          `[webvowl-build] Missing ${builtD3DistributionDisplayPath}`
+        );
       }
 
-      const source = readFileSync(sourcePath);
-      const output = readFileSync(outputPath);
+      const expectedD3DistributionBytes = readFileSync(d3DistributionFilePath);
+      const builtD3DistributionBytes = readFileSync(
+        builtD3DistributionFilePath
+      );
 
-      if (!source.equals(output)) {
+      if (!expectedD3DistributionBytes.equals(builtD3DistributionBytes)) {
         throw new Error(
-          `[webvowl-build] ${displayPath} differs from node_modules/d3/dist/d3.min.js`
+          `[webvowl-build] ${builtD3DistributionDisplayPath} differs from node_modules/d3/dist/d3.min.js`
         );
       }
 
       console.log(
-        `[webvowl-build] Verified ${displayPath} (${output.byteLength} bytes)`
+        `[webvowl-build] Verified ${builtD3DistributionDisplayPath} (${builtD3DistributionBytes.byteLength} bytes)`
       );
     }
   };
@@ -272,11 +316,7 @@ export default defineConfig(({ mode }) => {
       cssMinify: true,
       sourcemap: !isProd, // Source maps in dev only
       rollupOptions: {
-        external: ["d3"],
         output: {
-          globals: {
-            d3: "d3"
-          },
           // Rolldown / Oxc native option to strip legal comments
           comments: {
             legal: false
@@ -345,7 +385,7 @@ export default defineConfig(({ mode }) => {
           }
         ]
       }),
-      d3CopyVerificationPlugin(mode),
+      d3DistributionPlugin(mode),
       // ESLint integration during dev and build
       eslintPlugin({
         lintOnStart: true,

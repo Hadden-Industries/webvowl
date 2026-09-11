@@ -1,15 +1,17 @@
 /**
- * Contains the navigation "engine"
- *
- * @param graph the associated webvowl graph
- * @returns {{}}
+ * Presents navigation popovers and their keyboard and pointer interactions.
  */
-module.exports = function (graph) {
+export function createNavigationMenu({
+  documentObject = globalThis.document,
+  onExportMenuOpened,
+  windowObject = globalThis.window,
+  requestAnimationFrameFunction = globalThis.requestAnimationFrame,
+} = {}) {
   const navigationMenu = {};
-  const scrollContainer = document.querySelector("#menuElementContainer");
-  const menuContainer = document.querySelector("#menuContainer");
-  const leftButton = document.querySelector("#scrollLeftButton");
-  const rightButton = document.querySelector("#scrollRightButton");
+  const scrollContainer = documentObject.querySelector("#menuElementContainer");
+  const menuContainer = documentObject.querySelector("#menuContainer");
+  const leftButton = documentObject.querySelector("#scrollLeftButton");
+  const rightButton = documentObject.querySelector("#scrollRightButton");
   let currentlyVisibleMenu;
   let currentlyHoveredEntry;
   let t_scrollLeft;
@@ -39,7 +41,7 @@ module.exports = function (graph) {
       // `display-mode` limits the workaround to installed/home-screen apps;
       // the input-capability checks exclude desktop Safari and hybrid devices
       // whose primary interaction still provides hover and a fine pointer.
-      return window.matchMedia(
+      return windowObject.matchMedia(
         "(display-mode: standalone) and (hover: none) and (pointer: coarse)",
       ).matches;
     } catch {
@@ -62,12 +64,12 @@ module.exports = function (graph) {
       return;
     }
 
-    const activeElement = document.activeElement;
+    const activeElement = documentObject.activeElement;
     const focusStayedInPopover =
       activeElement &&
       typeof popoverNode.contains === "function" &&
       popoverNode.contains(activeElement);
-    if (activeElement !== document.body && !focusStayedInPopover) {
+    if (activeElement !== documentObject.body && !focusStayedInPopover) {
       return;
     }
 
@@ -83,11 +85,11 @@ module.exports = function (graph) {
       return;
     }
 
-    document
+    documentObject
       .querySelectorAll(".navButton[popovertarget]")
       .forEach(function (openerNode) {
         const popoverId = openerNode.getAttribute("popovertarget");
-        const popoverNode = document.getElementById(popoverId);
+        const popoverNode = documentObject.getElementById(popoverId);
         if (!popoverId || !popoverNode) {
           return;
         }
@@ -175,7 +177,7 @@ module.exports = function (graph) {
       clearAllTimers();
       return;
     }
-    t_scrollRight = requestAnimationFrame(timed_scrollRight);
+    t_scrollRight = requestAnimationFrameFunction(timed_scrollRight);
   }
 
   function timed_scrollLeft() {
@@ -185,7 +187,7 @@ module.exports = function (graph) {
       clearAllTimers();
       return;
     }
-    t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
+    t_scrollLeft = requestAnimationFrameFunction(timed_scrollLeft);
   }
 
   // collect all menu entries and stuff;
@@ -237,9 +239,9 @@ module.exports = function (graph) {
     });
 
     // bind global release listeners
-    window.addEventListener("mouseup", clearAllTimers);
-    window.addEventListener("touchend", clearAllTimers);
-    window.addEventListener("resize", function () {
+    windowObject.addEventListener("mouseup", clearAllTimers);
+    windowObject.addEventListener("touchend", clearAllTimers);
+    windowObject.addEventListener("resize", function () {
       navigationMenu.updateScrollButtonVisibility();
       updateMenuPosition();
     });
@@ -247,7 +249,7 @@ module.exports = function (graph) {
     // connect scrollIndicator Buttons;
     rightButton.addEventListener("mousedown", function () {
       navigationMenu.hideAllMenus();
-      t_scrollRight = requestAnimationFrame(timed_scrollRight);
+      t_scrollRight = requestAnimationFrameFunction(timed_scrollRight);
     });
     rightButton.addEventListener(
       "touchstart",
@@ -256,7 +258,7 @@ module.exports = function (graph) {
           event.preventDefault();
         }
         navigationMenu.hideAllMenus();
-        t_scrollRight = requestAnimationFrame(timed_scrollRight);
+        t_scrollRight = requestAnimationFrameFunction(timed_scrollRight);
       },
       { passive: false },
     );
@@ -275,7 +277,7 @@ module.exports = function (graph) {
 
     leftButton.addEventListener("mousedown", function () {
       navigationMenu.hideAllMenus();
-      t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
+      t_scrollLeft = requestAnimationFrameFunction(timed_scrollLeft);
     });
     leftButton.addEventListener(
       "touchstart",
@@ -284,7 +286,7 @@ module.exports = function (graph) {
           event.preventDefault();
         }
         navigationMenu.hideAllMenus();
-        t_scrollLeft = requestAnimationFrame(timed_scrollLeft);
+        t_scrollLeft = requestAnimationFrameFunction(timed_scrollLeft);
       },
       { passive: false },
     );
@@ -301,7 +303,7 @@ module.exports = function (graph) {
     leftButton.addEventListener("touchend", clearAllTimers);
     leftButton.addEventListener("touchcancel", clearAllTimers);
 
-    document.querySelectorAll(".navButton").forEach(function (btn) {
+    documentObject.querySelectorAll(".navButton").forEach(function (btn) {
       btn.addEventListener("contextmenu", function (event) {
         if (event) {
           event.preventDefault();
@@ -318,7 +320,7 @@ module.exports = function (graph) {
 
   function updateMenuPosition(controllerID) {
     if (controllerID) {
-      currentlyHoveredEntry = document.querySelector("#" + controllerID);
+      currentlyHoveredEntry = documentObject.querySelector("#" + controllerID);
     }
     if (!currentlyVisibleMenu) {
       return;
@@ -327,7 +329,7 @@ module.exports = function (graph) {
     const menuNode = currentlyVisibleMenu;
 
     // On mobile screen widths, clear desktop positioning so bottom-sheet rules govern.
-    if (window.innerWidth <= 768) {
+    if (windowObject.innerWidth <= 768) {
       clearPopoverInlineStart(menuNode);
       return;
     }
@@ -338,8 +340,8 @@ module.exports = function (graph) {
       const buttonRect = targetNode.getBoundingClientRect();
       let finalOffset = buttonRect.left;
 
-      let maxRightBoundary = window.innerWidth - 16;
-      const detailArea = document.querySelector("#detailsArea");
+      let maxRightBoundary = windowObject.innerWidth - 16;
+      const detailArea = documentObject.querySelector("#detailsArea");
       if (detailArea && !detailArea.classList.contains("hidden")) {
         const sidebarLeft = detailArea.getBoundingClientRect().left;
         if (sidebarLeft > 0) {
@@ -360,15 +362,17 @@ module.exports = function (graph) {
   navigationMenu.updateMenuPosition = updateMenuPosition;
 
   navigationMenu.hideAllMenus = function () {
-    document.querySelectorAll(".modern-popover").forEach(function (popover) {
-      try {
-        if (popover.matches(":popover-open")) {
-          popover.hidePopover();
+    documentObject
+      .querySelectorAll(".modern-popover")
+      .forEach(function (popover) {
+        try {
+          if (popover.matches(":popover-open")) {
+            popover.hidePopover();
+          }
+        } catch {
+          /* ignore */
         }
-      } catch {
-        /* ignore */
-      }
-    });
+      });
   };
 
   navigationMenu.updateScrollButtonVisibility = function () {
@@ -392,7 +396,7 @@ module.exports = function (graph) {
     setupControlsAndMenus();
     setupStandalonePopoverFocusWorkaround();
     // Allow popover light-dismiss natively on click; avoid closing on hover across graph gap
-    const graphElement = document.querySelector("#graph");
+    const graphElement = documentObject.querySelector("#graph");
     if (graphElement) {
       graphElement.addEventListener(
         "touchstart",
@@ -402,7 +406,7 @@ module.exports = function (graph) {
         { passive: true },
       );
     }
-    const generalDetails = document.querySelector("#generalDetails");
+    const generalDetails = documentObject.querySelector("#generalDetails");
     if (generalDetails) {
       generalDetails.addEventListener(
         "touchstart",
@@ -414,75 +418,79 @@ module.exports = function (graph) {
     }
 
     // Sync active-menu-item class, positioning, and export state when popovers toggle
-    document.querySelectorAll(".modern-popover").forEach(function (popover) {
-      popover.addEventListener("toggle", function (event) {
-        const menuId = this.id;
-        const controllerIdx = m_select.indexOf(menuId);
-        const controllerId =
-          controllerIdx > -1 ? c_select[controllerIdx] : null;
+    documentObject
+      .querySelectorAll(".modern-popover")
+      .forEach(function (popover) {
+        popover.addEventListener("toggle", function (event) {
+          const menuId = this.id;
+          const controllerIdx = m_select.indexOf(menuId);
+          const controllerId =
+            controllerIdx > -1 ? c_select[controllerIdx] : null;
 
-        const isOpen =
-          event && event.newState
-            ? event.newState === "open"
-            : this.matches(":popover-open");
-        const standaloneOpener = standalonePopoverOpeners.get(this);
-        if (standaloneOpener) {
-          // Native `popovertarget` normally exposes this relationship. The
-          // standalone workaround removed that attribute, so mirror the real
-          // toggle state rather than predicting it in the click handler.
-          standaloneOpener.setAttribute(
-            "aria-expanded",
-            isOpen ? "true" : "false",
-          );
-        }
-
-        // Reset drag classes and runtime positioning data when state changes.
-        this.classList.remove(
-          "dragging",
-          "has-dragged",
-          "snap-back",
-          "sheet-dismissing",
-        );
-        clearSheetDragY(this);
-
-        if (isOpen) {
-          if (controllerId && controllerId !== "c_search") {
-            const ctrlEl = document.querySelector("#" + controllerId);
-            if (ctrlEl) {
-              ctrlEl.classList.add("active-menu-item");
-            }
-          }
-          currentlyVisibleMenu = document.querySelector("#" + menuId);
-          if (controllerId) {
-            currentlyHoveredEntry = document.querySelector("#" + controllerId);
-          }
-          if (menuId === "m_export") {
-            graph.options().exportMenu().exportAsUrl();
-          }
-          updateMenuPosition(controllerId);
-        } else {
-          if (controllerId && controllerId !== "c_search") {
-            const ctrlEl = document.querySelector("#" + controllerId);
-            if (ctrlEl) {
-              ctrlEl.classList.remove("active-menu-item");
-            }
-          }
+          const isOpen =
+            event && event.newState
+              ? event.newState === "open"
+              : this.matches(":popover-open");
+          const standaloneOpener = standalonePopoverOpeners.get(this);
           if (standaloneOpener) {
-            restoreStandalonePopoverFocus(this, standaloneOpener);
-            standalonePopoverOpeners.delete(this);
-            if (activeStandalonePopoverOpener === standaloneOpener) {
-              activeStandalonePopoverOpener = undefined;
+            // Native `popovertarget` normally exposes this relationship. The
+            // standalone workaround removed that attribute, so mirror the real
+            // toggle state rather than predicting it in the click handler.
+            standaloneOpener.setAttribute(
+              "aria-expanded",
+              isOpen ? "true" : "false",
+            );
+          }
+
+          // Reset drag classes and runtime positioning data when state changes.
+          this.classList.remove(
+            "dragging",
+            "has-dragged",
+            "snap-back",
+            "sheet-dismissing",
+          );
+          clearSheetDragY(this);
+
+          if (isOpen) {
+            if (controllerId && controllerId !== "c_search") {
+              const ctrlEl = documentObject.querySelector("#" + controllerId);
+              if (ctrlEl) {
+                ctrlEl.classList.add("active-menu-item");
+              }
+            }
+            currentlyVisibleMenu = documentObject.querySelector("#" + menuId);
+            if (controllerId) {
+              currentlyHoveredEntry = documentObject.querySelector(
+                "#" + controllerId,
+              );
+            }
+            if (menuId === "m_export") {
+              onExportMenuOpened?.();
+            }
+            updateMenuPosition(controllerId);
+          } else {
+            if (controllerId && controllerId !== "c_search") {
+              const ctrlEl = documentObject.querySelector("#" + controllerId);
+              if (ctrlEl) {
+                ctrlEl.classList.remove("active-menu-item");
+              }
+            }
+            if (standaloneOpener) {
+              restoreStandalonePopoverFocus(this, standaloneOpener);
+              standalonePopoverOpeners.delete(this);
+              if (activeStandalonePopoverOpener === standaloneOpener) {
+                activeStandalonePopoverOpener = undefined;
+              }
             }
           }
-        }
+        });
       });
-    });
 
     // Contain user interactions inside popovers so they don't propagate to background graph canvas
     const popoverElements =
-      typeof document !== "undefined" &&
-      typeof document.querySelectorAll === "function"
-        ? document.querySelectorAll(".modern-popover")
+      typeof documentObject !== "undefined" &&
+      typeof documentObject.querySelectorAll === "function"
+        ? documentObject.querySelectorAll(".modern-popover")
         : [];
     const interactionEvents = [
       "click",
@@ -511,7 +519,7 @@ module.exports = function (graph) {
   };
 
   function setupMobileSheetDragDismiss() {
-    document
+    documentObject
       .querySelectorAll(".modern-popover")
       .forEach(function (popoverNode) {
         if (!popoverNode.querySelectorAll) {
@@ -527,7 +535,7 @@ module.exports = function (graph) {
         let isDragging = false;
 
         function onTouchStart(event) {
-          if (window.innerWidth > 768) {
+          if (windowObject.innerWidth > 768) {
             return;
           }
           // Don't start drag gesture if tapping close button
@@ -549,7 +557,7 @@ module.exports = function (graph) {
         }
 
         function onTouchMove(event) {
-          if (!isDragging || window.innerWidth > 768) {
+          if (!isDragging || windowObject.innerWidth > 768) {
             return;
           }
           if (event.touches && event.touches.length === 1) {
@@ -625,4 +633,4 @@ module.exports = function (graph) {
   }
 
   return navigationMenu;
-};
+}

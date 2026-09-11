@@ -1,14 +1,15 @@
-const ArrowLink = require("../elements/links/ArrowLink");
-const BoxArrowLink = require("../elements/links/BoxArrowLink");
-const PlainLink = require("../elements/links/PlainLink");
-const OwlDisjointWith = require("../elements/properties/implementations/OwlDisjointWith");
-const SetOperatorProperty = require("../elements/properties/implementations/SetOperatorProperty");
+import { createSet as addedPropertiesFactory } from "../../../shared/js/util/set.js";
+import { ArrowLink } from "../elements/links/ArrowLink.js";
+import { BoxArrowLink } from "../elements/links/BoxArrowLink.js";
+import { PlainLink } from "../elements/links/PlainLink.js";
+import { OwlDisjointWith } from "../elements/properties/implementations/OwlDisjointWith.js";
+import { SetOperatorProperty } from "../elements/properties/implementations/SetOperatorProperty.js";
 
 /**
  * Stores the passed properties in links.
  * @returns {Function}
  */
-module.exports = (function () {
+const createLinkCreator = (function () {
   const linkCreator = {};
 
   /**
@@ -36,7 +37,7 @@ module.exports = (function () {
   function groupPropertiesToLinks(properties) {
     const links = [];
     let property;
-    const addedProperties = require("../../../shared/js/util/set")();
+    const addedProperties = addedPropertiesFactory();
 
     for (let i = 0, l = properties.length; i < l; i++) {
       property = properties[i];
@@ -134,3 +135,5 @@ module.exports = (function () {
     return linkCreator;
   };
 })();
+
+export { createLinkCreator };

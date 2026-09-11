@@ -1,6 +1,7 @@
-const elementTools = require("../util/elementTools")();
+import { createElementTools as elementToolsFactory } from "../util/elementTools.js";
+const elementTools = elementToolsFactory();
 
-module.exports = function () {
+export function createObjectPropertyFilter() {
   const filter = {};
   let nodes;
   let properties;
@@ -76,4 +77,4 @@ module.exports = function () {
   };
 
   return filter;
-};
+}

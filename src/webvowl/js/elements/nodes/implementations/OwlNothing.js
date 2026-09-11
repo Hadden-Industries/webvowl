@@ -1,6 +1,6 @@
-const OwlThing = require("./OwlThing");
+import { OwlThing } from "./OwlThing.js";
 
-module.exports = (function () {
+const OwlNothing = (function () {
   const o = function (graph) {
     OwlThing.apply(this, arguments);
 
@@ -13,3 +13,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { OwlNothing };

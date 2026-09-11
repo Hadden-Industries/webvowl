@@ -1,6 +1,6 @@
-const SetOperatorNode = require("../SetOperatorNode");
+import { SetOperatorNode } from "../SetOperatorNode.js";
 
-module.exports = (function () {
+const OwlIntersectionOf = (function () {
   const o = function (graph) {
     SetOperatorNode.apply(this, arguments);
 
@@ -96,3 +96,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { OwlIntersectionOf };

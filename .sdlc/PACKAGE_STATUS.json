@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "status": "pre-release",
-  "deployed": false,
-  "deploymentConfirmation": "WebVOWL adoption is scoped by the owner's approved plan. Local verification and GitHub delivery evidence are recorded in docs/sdlc/verification.md and the bootstrap PR. Native WebVOWL Stop-hook loading/trust remains unverified, so deployed remains false. Repository integration does not establish browser or product acceptance.",
+  "deployed": true,
+  "deploymentConfirmation": "Owner-approved local adoption was qualified on 2026-09-09 in the normal WebVOWL checkout and SDLC worktree with Codex Desktop 0.153.4: native Stop execution blocks missing evidence and permits current evidence, six local skills and project policy load, repository checks pass, and the four qualified main checks are enforced. See docs/sdlc/adoption.md and verification.md for scope and retained evidence. This does not establish browser/product acceptance or promote SDLC version/status.",
   "versionPolicy": "Keep SDLC 1.0.0 pre-release unless Max explicitly approves a version/status change. Repository integration does not publish a product or establish hook trust."
 }

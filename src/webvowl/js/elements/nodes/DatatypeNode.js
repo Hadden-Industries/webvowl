@@ -1,6 +1,6 @@
-const RectangularNode = require("./RectangularNode");
+import { RectangularNode } from "./RectangularNode.js";
 
-module.exports = (function () {
+const DatatypeNode = (function () {
   const o = function (graph) {
     RectangularNode.apply(this, arguments);
   };
@@ -9,3 +9,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { DatatypeNode };

@@ -3,7 +3,7 @@
  *
  * @returns {{}}
  */
-module.exports = function (graph) {
+export function createNodeScalingSwitch(graph) {
   const DEFAULT_STATE = true;
 
   const filter = {};
@@ -50,4 +50,4 @@ module.exports = function (graph) {
   };
 
   return filter;
-};
+}

@@ -1,10 +1,19 @@
-const BaseNode = require("./BaseNode");
-const CenteringTextElement = require("../../../../shared/js/util/CenteringTextElement");
-const textTools = require("../../../../shared/js/util/textTools")();
-const drawTools = require("../drawTools")();
-const rectangularElementTools = require("../rectangularElementTools")();
+import { createDrawTools as drawToolsFactory } from "../drawTools.js";
+import { createRectangularElementTools as rectangularElementToolsFactory } from "../rectangularElementTools.js";
+import { BaseNode } from "./BaseNode.js";
+import { CenteringTextElement } from "../../../../shared/js/util/CenteringTextElement.js";
+import { createTextTools as textToolsFactory } from "../../../../shared/js/util/textTools.js";
+const textTools = textToolsFactory();
+const drawTools = drawToolsFactory();
+const rectangularElementTools = rectangularElementToolsFactory();
 
-module.exports = (function () {
+// Linear easing is the identity function; keeping it local removes this
+// renderer element's dependency on an ambient force-layout global.
+function linearEasing(normalizedTime) {
+  return +normalizedTime;
+}
+
+const RectangularNode = (function () {
   const o = function (graph) {
     BaseNode.apply(this, arguments);
 
@@ -91,11 +100,11 @@ module.exports = (function () {
     this.textWidth = function () {
       return that.width();
     };
-    this.toggleFocus = function () {
+    this.toggleSelection = function () {
       that.focused(!that.focused());
       that.nodeElement().select("rect").classed("focused", that.focused());
-      graph.resetSearchHighlight();
-      graph.dispatchEvent(new CustomEvent("searchcleared"));
+      // Selection styling and details do not change the requested search focus.
+      graph.reportRenderedElementSelection(that.focused() ? [that.id()] : []);
     };
 
     /**
@@ -229,55 +238,65 @@ module.exports = (function () {
     };
 
     this.animateDynamicLabelWidth = function (dynamic) {
-      that.removeHalo();
       const height = that.height();
-      if (dynamic === true) {
-        labelWidth = Math.min(
-          that.getMyWidth(),
-          graph.options().maxLabelWidth(),
-        );
+      labelWidth =
+        dynamic === true
+          ? Math.min(that.getMyWidth(), graph.options().maxLabelWidth())
+          : defaultWidth;
+      const targetWidth = labelWidth;
+      const finishLabelGeometry = () => {
         shapeElement
-          .transition()
-          .tween("attr", function () {})
-          .ease(d3.easeLinear)
-          .duration(100)
-          .attr({
-            x: -labelWidth / 2,
-            y: -height / 2,
-            width: labelWidth,
-            height: height,
-          })
-          .on("end", function () {
-            that.updateTextElement();
-          });
-      } else {
-        labelWidth = defaultWidth;
+          .attr("x", -targetWidth / 2)
+          .attr("y", -height / 2)
+          .attr("width", targetWidth)
+          .attr("height", height);
         that.updateTextElement();
+        if (that.halo()) {
+          that.removeHalo();
+          that.drawHalo(false);
+        }
+      };
+      const transitions = [
         shapeElement
           .transition()
-          .tween("attr", function () {})
-          .ease(d3.easeLinear)
+          .ease(linearEasing)
           .duration(100)
-          .attr({
-            x: -labelWidth / 2,
-            y: -height / 2,
-            width: labelWidth,
-            height: height,
-          });
-      }
+          .attr("x", -labelWidth / 2)
+          .attr("y", -height / 2)
+          .attr("width", labelWidth)
+          .attr("height", height)
+          .on("end interrupt cancel", finishLabelGeometry),
+      ];
 
       // for the pin we dont need to differ between different widths -- they are already set
       if (that.pinned() === true && pinGroupElement) {
         const dx = 0.5 * labelWidth - 10,
           dy = -1.1 * height;
 
-        pinGroupElement
-          .transition()
-          .tween("attr.translate", function () {})
-          .attr("transform", "translate(" + dx + "," + dy + ")")
-          .ease(d3.easeLinear)
-          .duration(100);
+        transitions.push(
+          pinGroupElement
+            .transition()
+            .attr("transform", "translate(" + dx + "," + dy + ")")
+            .ease(linearEasing)
+            .duration(100)
+            .on("end interrupt cancel", () =>
+              pinGroupElement.attr(
+                "transform",
+                "translate(" + dx + "," + dy + ")",
+              ),
+            ),
+        );
       }
+      // Some renderer callers deliberately do not wait; interruption is an
+      // observed incomplete animation, not an unhandled promise rejection.
+      return Promise.all(
+        transitions.map((transition) =>
+          transition.end().then(
+            () => true,
+            () => false,
+          ),
+        ),
+      ).then((outcomes) => outcomes.every(Boolean));
     };
 
     this.addTextLabelElement = function () {
@@ -294,3 +313,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { RectangularNode };

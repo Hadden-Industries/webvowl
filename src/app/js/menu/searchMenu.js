@@ -1,19 +1,23 @@
+import { runVisualizationControlAction } from "../ui/visualizationControlAction.js";
+
 /**
- * Contains the search "engine"
- *
- * @param graph the associated webvowl graph
- * @returns {{}}
+ * Presents ontology search results and requests visualization focus.
  */
-module.exports = function (graph) {
+export function createSearchMenu({
+  documentObject = globalThis.document,
+  onOntologyIriEntered,
+  webVowlController,
+  windowObject = globalThis.window,
+} = {}) {
   const searchMenu = {};
+  let focusableElementCountsBySearchEntry = [];
+  let hasVisualizationFocus = false;
   let dictionary = [];
   let entryNames = [];
   let searchLineEdit;
   let mergedStringsList;
   let mergedIdList;
   const maxEntries = 6;
-  let dictionaryUpdateRequired = true;
-  let labelDictionary;
   let inputText;
   let menuEnabled = true;
   let locateAvailable = false;
@@ -21,91 +25,57 @@ module.exports = function (graph) {
 
   let results = [];
   let resultID = [];
-  const c_locate = document.getElementById("locateSearchResult");
-  const listbox = document.getElementById("search-results-listbox");
+  const c_locate = documentObject.getElementById("locateSearchResult");
+  const listbox = documentObject.getElementById("search-results-listbox");
 
-  String.prototype.beginsWith = function (string) {
-    return this.indexOf(string) === 0;
-  };
-
-  searchMenu.requestDictionaryUpdate = function () {
-    dictionaryUpdateRequired = true;
-    if (listbox) {
-      while (listbox.children.length > 0) {
-        listbox.children[0].remove();
-      }
-    }
-    if (searchLineEdit) {
-      searchLineEdit.value = "";
-    }
-  };
-
-  function updateSearchDictionary() {
-    labelDictionary = graph.getUpdateDictionary();
-    dictionaryUpdateRequired = false;
-    dictionary = [];
-    entryNames = [];
-    const idList = [];
-    const stringList = [];
-
-    let i;
-    for (i = 0; i < labelDictionary.length; i++) {
-      const lEntry = labelDictionary[i].labelForCurrentLanguage();
-      idList.push(labelDictionary[i].id());
-      stringList.push(lEntry);
-      // add all equivalents to the search space;
-      if (
-        labelDictionary[i].equivalents &&
-        labelDictionary[i].equivalents().length > 0
-      ) {
-        const eqs = labelDictionary[i].equivalentsString();
-        const eqsLabels = eqs.split(", ");
-        for (let e = 0; e < eqsLabels.length; e++) {
-          idList.push(labelDictionary[i].id());
-          stringList.push(eqsLabels[e]);
-        }
-      }
-    }
-
+  // The controller owns element identity and visibility, so the dropdown is
+  // built from what it reports rather than from the renderer's own dictionary.
+  function loadSearchResultsForQuery(queryText) {
     mergedStringsList = [];
     mergedIdList = [];
-    let indexInStringList;
-    let currentString;
-    let currentObjectId;
-
-    for (i = 0; i < stringList.length; i++) {
-      if (i === 0) {
-        // just add the elements
-        mergedStringsList.push(stringList[i]);
-        mergedIdList.push([]);
-        mergedIdList[0].push(idList[i]);
-        continue;
-      } else {
-        currentString = stringList[i];
-        currentObjectId = idList[i];
-        indexInStringList = mergedStringsList.indexOf(currentString);
-      }
-      if (indexInStringList === -1) {
-        mergedStringsList.push(stringList[i]);
-        mergedIdList.push([]);
-        const lastEntry = mergedIdList.length;
-        mergedIdList[lastEntry - 1].push(currentObjectId);
-      } else {
-        mergedIdList[indexInStringList].push(currentObjectId);
-      }
+    focusableElementCountsBySearchEntry = [];
+    dictionary = [];
+    entryNames = [];
+    if (webVowlController === undefined || queryText.length === 0) {
+      return;
     }
 
-    for (i = 0; i < mergedStringsList.length; i++) {
-      const aString = mergedStringsList[i];
-      dictionary.push(aString);
-      entryNames.push(aString);
+    let searchResult;
+    try {
+      // The reader sees every match, as before; bounding belongs to the agent
+      // protocol rather than to this control.
+      searchResult = webVowlController.findOntologyElements({
+        query: queryText,
+      });
+    } catch {
+      // No ontology is loaded, so there is nothing to offer.
+      return;
+    }
+
+    const groupsByLabel = new Map();
+    for (const ontologyElementMatch of searchResult.matches) {
+      const group = groupsByLabel.get(ontologyElementMatch.displayLabel) ?? {
+        references: [],
+        focusableCount: 0,
+      };
+      group.references.push(ontologyElementMatch.ontologyElementReference);
+      if (ontologyElementMatch.isFocusable) {
+        group.focusableCount += 1;
+      }
+      groupsByLabel.set(ontologyElementMatch.displayLabel, group);
+    }
+
+    for (const [displayLabel, group] of groupsByLabel) {
+      mergedStringsList.push(displayLabel);
+      mergedIdList.push(group.references);
+      focusableElementCountsBySearchEntry.push(group.focusableCount);
+      dictionary.push(displayLabel);
+      entryNames.push(displayLabel);
     }
   }
 
   function setLocateButtonState(enabled) {
-    const hasSearchText =
-      searchLineEdit && searchLineEdit.value.trim().length > 0;
-    locateAvailable = Boolean(enabled) && hasSearchText;
+    locateAvailable = Boolean(enabled);
     const effectiveEnabled = menuEnabled && locateAvailable;
     if (c_locate) {
       if (effectiveEnabled) {
@@ -115,7 +85,7 @@ module.exports = function (graph) {
       }
       c_locate.disabled = !effectiveEnabled;
       const titleText = effectiveEnabled
-        ? "Locate search term"
+        ? "Locate focused element"
         : "Nothing to locate";
       c_locate.title = titleText;
       c_locate.setAttribute("aria-label", titleText);
@@ -123,44 +93,46 @@ module.exports = function (graph) {
   }
 
   function expandMobileSearch() {
-    document.getElementById("c_search").classList.add("search-expanded");
-    document
+    documentObject.getElementById("c_search").classList.add("search-expanded");
+    documentObject
       .getElementById("scrollLeftButton")
       .classList.add("hidden-by-search");
-    document
+    documentObject
       .getElementById("scrollRightButton")
       .classList.add("hidden-by-search");
     updateClearButtonVisibility();
   }
 
   function collapseMobileSearch() {
-    document.getElementById("c_search").classList.remove("search-expanded");
-    document
+    documentObject
+      .getElementById("c_search")
+      .classList.remove("search-expanded");
+    documentObject
       .getElementById("scrollLeftButton")
       .classList.remove("hidden-by-search");
-    document
+    documentObject
       .getElementById("scrollRightButton")
       .classList.remove("hidden-by-search");
   }
 
   function updateVisualViewportMetrics() {
     if (
-      !window.visualViewport ||
-      !document.documentElement ||
-      !document.documentElement.style
+      !windowObject.visualViewport ||
+      !documentObject.documentElement ||
+      !documentObject.documentElement.style
     ) {
       return;
     }
 
     const updateMetrics = function () {
       visualViewportAnimationFrame = undefined;
-      document.documentElement.style.setProperty(
+      documentObject.documentElement.style.setProperty(
         "--visual-viewport-height",
-        window.visualViewport.height + "px",
+        windowObject.visualViewport.height + "px",
       );
-      document.documentElement.style.setProperty(
+      documentObject.documentElement.style.setProperty(
         "--visual-viewport-offset-top",
-        window.visualViewport.offsetTop + "px",
+        windowObject.visualViewport.offsetTop + "px",
       );
     };
 
@@ -178,7 +150,9 @@ module.exports = function (graph) {
   }
 
   function portalSearchResults() {
-    const overlayLayer = document.getElementById("applicationOverlayLayer");
+    const overlayLayer = documentObject.getElementById(
+      "applicationOverlayLayer",
+    );
     const listboxNode = listbox;
     if (
       overlayLayer &&
@@ -197,7 +171,7 @@ module.exports = function (graph) {
 
     setLocateButtonState(false);
 
-    searchLineEdit = document.getElementById("search-input-text");
+    searchLineEdit = documentObject.getElementById("search-input-text");
 
     searchLineEdit.addEventListener("input", userInput);
     searchLineEdit.addEventListener("keydown", userNavigation);
@@ -207,7 +181,9 @@ module.exports = function (graph) {
     });
     searchLineEdit.addEventListener("focus", hoverSearchEntryView);
 
-    const mobileToggleBtn = document.getElementById("mobile-search-toggle-btn");
+    const mobileToggleBtn = documentObject.getElementById(
+      "mobile-search-toggle-btn",
+    );
     mobileToggleBtn.addEventListener("click", function (event) {
       if (!menuEnabled) {
         return;
@@ -223,7 +199,7 @@ module.exports = function (graph) {
       searchMenu.showSearchEntries();
     });
 
-    const clearBtn = document.getElementById("search-clear-btn");
+    const clearBtn = documentObject.getElementById("search-clear-btn");
     clearBtn.addEventListener("click", function (event) {
       if (!menuEnabled) {
         return;
@@ -232,6 +208,7 @@ module.exports = function (graph) {
         event.stopPropagation();
       }
       searchMenu.clearText();
+      searchMenu.clearVisualizationFocus();
       if (searchLineEdit) {
         searchLineEdit.focus();
       }
@@ -240,16 +217,16 @@ module.exports = function (graph) {
     if (c_locate) {
       c_locate.addEventListener("click", function () {
         if (c_locate.classList.contains("highlighted")) {
-          graph.locateSearchResult();
+          searchMenu.advanceToNextFocusedElement();
         }
       });
     }
 
     // Light dismiss: Close search listbox & mobile overlay when tapping outside c_search or search-results-listbox
     const dismissSearchOnOutsideTap = function (event) {
-      const cSearchNode = document.getElementById("c_search");
+      const cSearchNode = documentObject.getElementById("c_search");
       const listboxNode = listbox;
-      const cLocateNode = document.getElementById("c_locate");
+      const cLocateNode = documentObject.getElementById("c_locate");
       if (event && event.target) {
         if (cSearchNode && cSearchNode.contains(event.target)) {
           return;
@@ -265,9 +242,9 @@ module.exports = function (graph) {
       collapseMobileSearch();
     };
 
-    document.addEventListener("click", dismissSearchOnOutsideTap);
-    document.addEventListener("pointerdown", dismissSearchOnOutsideTap);
-    document.addEventListener("touchstart", dismissSearchOnOutsideTap);
+    documentObject.addEventListener("click", dismissSearchOnOutsideTap);
+    documentObject.addEventListener("pointerdown", dismissSearchOnOutsideTap);
+    documentObject.addEventListener("touchstart", dismissSearchOnOutsideTap);
 
     if (listbox) {
       listbox.addEventListener("click", function (event) {
@@ -289,7 +266,7 @@ module.exports = function (graph) {
       });
     }
 
-    if (window.visualViewport) {
+    if (windowObject.visualViewport) {
       const handleVisualViewportChange = function () {
         updateVisualViewportMetrics();
         if (listbox && !listbox.classList.contains("hidden")) {
@@ -298,11 +275,11 @@ module.exports = function (graph) {
       };
 
       updateVisualViewportMetrics();
-      window.visualViewport.addEventListener(
+      windowObject.visualViewport.addEventListener(
         "resize",
         handleVisualViewportChange,
       );
-      window.visualViewport.addEventListener(
+      windowObject.visualViewport.addEventListener(
         "scroll",
         handleVisualViewportChange,
       );
@@ -335,12 +312,6 @@ module.exports = function (graph) {
     }
   };
 
-  function ValidURL(str) {
-    const urlregex =
-      /^(https?|ftp):\/\/([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.(com|edu|gov|int|mil|net|org|biz|arpa|info|name|pro|aero|coop|museum|[a-zA-Z]{2}))(:[0-9]+)*(\/($|[a-zA-Z0-9.,?'\\+&%$#=~_-]+))*$/;
-    return urlregex.test(str);
-  }
-
   function updateSelectionStatusFlags() {
     if (searchLineEdit.value.length === 0) {
       createSearchEntries();
@@ -350,10 +321,6 @@ module.exports = function (graph) {
   }
 
   function userNavigation(event) {
-    if (dictionaryUpdateRequired) {
-      updateSearchDictionary();
-    }
-
     if (event.key === "Escape") {
       event.preventDefault();
       searchMenu.hideSearchEntries();
@@ -387,23 +354,20 @@ module.exports = function (graph) {
         selectSearchResult(parseInt(elementId, 10), event);
         searchMenu.hideSearchEntries();
       } else if (numEntries === 0) {
-        inputText = searchLineEdit.value;
-        let clearedText = inputText.replace(/%20/g, " ");
-        while (clearedText.beginsWith(" ")) {
-          clearedText = clearedText.substr(1, clearedText.length);
+        let ontologyUrl;
+        try {
+          ontologyUrl = new URL(
+            searchLineEdit.value.replace(/%20/g, " ").trim(),
+          );
+        } catch {
+          return;
         }
-        while (clearedText.endsWith(" ")) {
-          clearedText = clearedText.substr(0, clearedText.length - 1);
-        }
-        const iri = clearedText.replace(/ /g, "%20");
-
-        const valid = ValidURL(iri);
-        if (valid) {
-          const ontM = graph.options().ontologyMenu();
-          ontM.setIriText(iri);
+        if (
+          ["http:", "https:"].includes(ontologyUrl.protocol) &&
+          onOntologyIriEntered
+        ) {
+          onOntologyIriEntered(ontologyUrl.href);
           searchLineEdit.value = "";
-        } else {
-          console.warn(iri + " is not a valid URL!");
         }
       }
       return;
@@ -459,69 +423,44 @@ module.exports = function (graph) {
 
   function createSearchEntries() {
     inputText = searchLineEdit.value;
-    let i;
-    const lc_text = inputText.toLowerCase();
-    let token;
-
-    for (i = 0; i < dictionary.length; i++) {
-      const tokenElement = dictionary[i];
-      if (tokenElement === undefined) {
-        continue;
-      }
-      token = dictionary[i].toLowerCase();
-      if (token.indexOf(lc_text) > -1) {
-        results.push(dictionary[i]);
-        resultID.push(i);
-      }
+    // The controller already matched the query, so every entry is a result.
+    loadSearchResultsForQuery(inputText);
+    for (let i = 0; i < dictionary.length; i++) {
+      results.push(dictionary[i]);
+      resultID.push(i);
     }
   }
 
   function highlightQueryMatch(fullText, query) {
-    if (!query) {
-      return fullText;
-    }
+    const label = documentObject.createElement("span");
     const idx = fullText.toLowerCase().indexOf(query.toLowerCase());
-    if (idx === -1) {
-      return fullText;
+    if (!query || idx === -1) {
+      label.textContent = fullText;
+      return label;
     }
-    const before = fullText.substring(0, idx);
-    const match = fullText.substring(idx, idx + query.length);
-    const after = fullText.substring(idx + query.length);
-    return before + '<mark class="search-match">' + match + "</mark>" + after;
+    label.appendChild(
+      documentObject.createTextNode(fullText.substring(0, idx)),
+    );
+    const match = documentObject.createElement("mark");
+    match.classList.add("search-match");
+    match.textContent = fullText.substring(idx, idx + query.length);
+    label.appendChild(match);
+    label.appendChild(
+      documentObject.createTextNode(fullText.substring(idx + query.length)),
+    );
+    return label;
   }
 
   function createDropDownElements() {
     if (!listbox) {
       return;
     }
-    const copyRes = [];
+    // The controller ranks matches by relevance (exact label, then prefix,
+    // then containment), so the dropdown presents them in that order.
+    const newResults = [...results];
+    const newResultsIds = [...resultID];
+
     let i;
-    for (i = 0; i < results.length; i++) {
-      copyRes.push(results[i]);
-    }
-
-    const newResults = [];
-    const newResultsIds = [];
-
-    while (copyRes.length > 0) {
-      let minLen = Number.MAX_VALUE;
-      let minIdx = -1;
-      for (i = 0; i < copyRes.length; i++) {
-        if (copyRes[i] !== "") {
-          if (copyRes[i].length < minLen) {
-            minLen = copyRes[i].length;
-            minIdx = i;
-          }
-        }
-      }
-      if (minIdx === -1) {
-        break;
-      }
-      newResults.push(copyRes[minIdx]);
-      newResultsIds.push(resultID[minIdx]);
-      copyRes[minIdx] = "";
-    }
-
     let numEntries = newResults.length;
     if (numEntries > maxEntries) {
       numEntries = maxEntries;
@@ -529,7 +468,7 @@ module.exports = function (graph) {
 
     for (i = 0; i < numEntries; i++) {
       const optionId = "search-option-" + i;
-      const testEntry = document.createElement("li");
+      const testEntry = documentObject.createElement("li");
       testEntry.setAttribute("id", optionId);
       testEntry.setAttribute("role", "option");
       testEntry.setAttribute("aria-selected", "false");
@@ -540,44 +479,33 @@ module.exports = function (graph) {
       const entries = mergedIdList[newResultsIds[i]];
       const eLen = entries.length;
 
-      const el0 = entries[0];
+      const referenceKeyOf = (elementReference) =>
+        elementReference.iri ?? elementReference.localId;
+      const el0 = referenceKeyOf(entries[0]);
       let allSame = true;
-      const nodeMap = graph.getNodeMapForSearch();
-      let visible = eLen;
-      if (eLen > 1) {
-        for (let q = 0; q < eLen; q++) {
-          if (nodeMap[entries[q]] === undefined) {
-            visible--;
-          }
-        }
-      }
+      const visible =
+        focusableElementCountsBySearchEntry[newResultsIds[i]] ?? 0;
 
       for (let a = 0; a < eLen; a++) {
-        if (el0 !== entries[a]) {
+        if (el0 !== referenceKeyOf(entries[a])) {
           allSame = false;
         }
       }
 
       const rawTitle = newResults[i];
       const queryStr = searchLineEdit.value;
-      const matchHtml = highlightQueryMatch(rawTitle, queryStr);
-      let badgeHtml = "";
+      testEntry.appendChild(highlightQueryMatch(rawTitle, queryStr));
 
       if (eLen > 1 && allSame === false) {
-        if (eLen !== visible) {
-          badgeHtml =
-            '<span class="search-count-badge">' +
-            visible +
-            "/" +
-            eLen +
-            " visible</span>";
-        } else {
-          badgeHtml = '<span class="search-count-badge">' + eLen + "</span>";
-        }
+        const badge = documentObject.createElement("span");
+        badge.classList.add("search-count-badge");
+        badge.textContent =
+          eLen !== visible ? `${visible}/${eLen} visible` : String(eLen);
+        testEntry.appendChild(badge);
       }
 
       if (eLen === 1 || allSame === true) {
-        if (nodeMap[entries[0]] === undefined) {
+        if (visible < 1) {
           testEntry.classList.add("search-entry-disabled");
           testEntry.title = rawTitle + "\nElement is filtered out.";
           testEntry.onclick = function () {};
@@ -596,7 +524,6 @@ module.exports = function (graph) {
         }
       }
 
-      testEntry.innerHTML = "<span>" + matchHtml + "</span>" + badgeHtml;
       listbox.appendChild(testEntry);
     }
   }
@@ -608,10 +535,10 @@ module.exports = function (graph) {
   }
 
   function updateClearButtonVisibility() {
-    const clearBtn = document.getElementById("search-clear-btn");
+    const clearBtn = documentObject.getElementById("search-clear-btn");
     if (clearBtn) {
       const hasValue = searchLineEdit && searchLineEdit.value.length > 0;
-      if (!hasValue) {
+      if (!hasValue && !hasVisualizationFocus) {
         clearBtn.classList.add("hidden");
       } else {
         clearBtn.classList.remove("hidden");
@@ -622,15 +549,10 @@ module.exports = function (graph) {
   function userInput() {
     setLocateButtonState(false);
 
-    if (dictionaryUpdateRequired) {
-      updateSearchDictionary();
-    }
-    graph.resetSearchHighlight();
+    searchMenu.clearVisualizationFocus();
 
-    if (dictionary.length === 0) {
-      console.warn("dictionary is empty");
-      return;
-    }
+    // The controller answers each query, so there is no dictionary to
+    // populate ahead of time and nothing to guard against here.
     inputText = searchLineEdit.value;
     updateClearButtonVisibility();
 
@@ -649,6 +571,59 @@ module.exports = function (graph) {
     };
   }
 
+  // The same standing focus drives these controls regardless of its caller.
+  // Query text and the details-panel selection are independent of that focus.
+  searchMenu.renderVisualizationFocus = function ({
+    focus,
+    focusableElementCount,
+  }) {
+    hasVisualizationFocus = focus.length > 0;
+    setLocateButtonState(focusableElementCount > 0);
+    updateClearButtonVisibility();
+  };
+
+  // Clearing highlights is a controller action; presenting its resulting state
+  // does not issue another request or change the detail selection.
+  searchMenu.clearVisualizationFocus = function () {
+    if (hasVisualizationFocus === false) {
+      return undefined;
+    }
+    hasVisualizationFocus = false;
+    setLocateButtonState(false);
+    updateClearButtonVisibility();
+    return runVisualizationControlAction(
+      () => webVowlController?.setVisualizationView({ focus: [] }),
+      documentObject,
+    );
+  };
+
+  // Both human search results and agent references use the same focus action.
+  searchMenu.focusOntologyElements = function (ontologyElementReferences) {
+    if (
+      webVowlController === undefined ||
+      ontologyElementReferences.length === 0
+    ) {
+      return undefined;
+    }
+    hasVisualizationFocus = true;
+    return runVisualizationControlAction(
+      () =>
+        webVowlController.setVisualizationView({
+          focus: [...ontologyElementReferences],
+        }),
+      documentObject,
+    );
+  };
+
+  // Locating is its own action: the reader asks to see the next element among
+  // those already highlighted, and the runtime decides how to move the view.
+  searchMenu.advanceToNextFocusedElement = function () {
+    return runVisualizationControlAction(
+      () => webVowlController?.setVisualizationView({ viewport: "focus-next" }),
+      documentObject,
+    );
+  };
+
   function selectSearchResult(elementId, event) {
     if (event && event.stopPropagation) {
       event.stopPropagation();
@@ -661,11 +636,11 @@ module.exports = function (graph) {
     }
     updateClearButtonVisibility();
 
-    if (correspondingIds && graph) {
-      graph.resetSearchHighlight();
-      graph.highLightNodes(correspondingIds);
-    } else {
-      setLocateButtonState(true);
+    // Locating is offered only when at least one match is actually drawn,
+    // which is what the controller reports through isFocusable.
+    setLocateButtonState((focusableElementCountsBySearchEntry[id] ?? 0) > 0);
+    if (correspondingIds) {
+      searchMenu.focusOntologyElements(correspondingIds);
     }
     if (autoComStr !== inputText) {
       handleAutoCompletion();
@@ -676,9 +651,6 @@ module.exports = function (graph) {
   searchMenu.clearText = function () {
     if (searchLineEdit) {
       searchLineEdit.value = "";
-    }
-    if (graph && graph.resetSearchHighlight) {
-      graph.resetSearchHighlight();
     }
     setLocateButtonState(false);
     updateClearButtonVisibility();
@@ -691,15 +663,12 @@ module.exports = function (graph) {
     }
   };
 
-  searchMenu.updateLocateButtonVisibility = function (hasVisibleNodes) {
-    setLocateButtonState(hasVisibleNodes);
-  };
-
   searchMenu.setMenuMode = function (enabled) {
     menuEnabled = Boolean(enabled);
-    document.getElementById("search-input-text").disabled = !menuEnabled;
-    document.getElementById("mobile-search-toggle-btn").disabled = !menuEnabled;
-    document.getElementById("search-clear-btn").disabled = !menuEnabled;
+    documentObject.getElementById("search-input-text").disabled = !menuEnabled;
+    documentObject.getElementById("mobile-search-toggle-btn").disabled =
+      !menuEnabled;
+    documentObject.getElementById("search-clear-btn").disabled = !menuEnabled;
     setLocateButtonState(locateAvailable);
     if (!menuEnabled) {
       searchMenu.hideSearchEntries();
@@ -708,4 +677,4 @@ module.exports = function (graph) {
   };
 
   return searchMenu;
-};
+}

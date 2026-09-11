@@ -1,4 +1,4 @@
-module.exports = function (graph) {
+export function createClassDragger(graph) {
   /** variable defs **/
   const Class_dragger = {};
   Class_dragger.nodeId = 10001;
@@ -256,4 +256,4 @@ module.exports = function (graph) {
     // Class_dragger.nodeElement.classed(name,val);
   };
   return Class_dragger;
-};
+}

@@ -1,5 +1,15 @@
-import { beforeEach, describe, expect, test } from "@jest/globals";
-import prefixRepresentationModule from "./prefixRepresentationModule.js";
+import { beforeAll, beforeEach, describe, expect, test } from "@jest/globals";
+import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
+
+let prefixRepresentationModule;
+
+beforeAll(async () => {
+  ({ createPrefixRepresentationModule: prefixRepresentationModule } =
+    await loadEsmModuleForTest(
+      new URL("./prefixRepresentationModule.js", import.meta.url),
+      import.meta.url,
+    ));
+});
 
 describe("prefixRepresentationModule", () => {
   let moduleInstance;

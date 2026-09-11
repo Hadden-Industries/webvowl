@@ -38,6 +38,53 @@ approval request. Preserve the operator's DCG and trust settings. The documented
 native `/hooks` interface belongs to a CLI launched in the target checkout; do not
 assume the PATH CLI is the same version as the desktop host.
 
+On Windows, Codex launches command hooks through cmd.exe; the generated Stop
+command explicitly selects PowerShell before running its existing body. Qualify
+through the native host, since directly invoking the body in PowerShell misses
+that integration boundary. In a linked worktree, native discovery may select the
+normal checkout's hook file. Inspect the actual source/hash in each context; the
+command resolves the session's Git root and uses that checkout's evidence.
+
+The [local adoption record](adoption.md#operational-activation) identifies the
+qualified host and checkouts. Hooks still require review after their definition
+changes. An empty inventory, installed files or a trusted hash alone is not evidence
+that the Stop gate executed.
+
+## Inspect the runtime before native hook qualification
+
+After installing/updating Codex, and before qualifying hooks in a selected host,
+run the read-only runtime check through the existing npm entry point:
+
+```text
+npm run check:sdlc -- --runtime
+npm run check:sdlc -- --runtime --codex-executable "<absolute Codex executable path>"
+```
+
+The first command selects the PATH CLI; the second inspects the named launcher or
+binary. Use the running host's actual executable when qualifying that host, and
+resolve it again after application updates. A CLI pass does not describe a different
+desktop process. Do not persist an application bundle's version-specific path as a
+general PATH entry.
+
+The report includes the launcher, native executable/version/install method, stable
+enabled hooks, native update advice and scoped failures. Native doctor owns
+installation/configuration/update diagnostics; native features list owns capability
+recognition and effective state. No repository version comparator or release pin
+forces independently updated frontends to match.
+
+Exit zero means the selected runtime prerequisites passed. The native doctor's
+overall status and other finding IDs remain visible, including a noninteractive
+terminal failure. Update warnings require maintenance through the reported installer;
+the prerequisite result is not a freshness or whole-host-health certification.
+Hook acceptance stays not-assessed: inspect the exact definitions and project trust
+through the target host's native interface.
+
+This opt-in check invokes native diagnostic commands with a 30-second limit each.
+Codex doctor can read local state and probe provider/update endpoints; it submits no
+model task here. The repository check installs nothing, changes no trust/configuration
+and writes no report file. Capture its output in ignored task evidence if needed.
+Ordinary check:sdlc and CI remain independent of a logged-in Codex installation.
+
 ## Start and verify actual work
 
 R0/R1 can use an accepted task/PR brief. Ordinary R2/R3 work needs a previously

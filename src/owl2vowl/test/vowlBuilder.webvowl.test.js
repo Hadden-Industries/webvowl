@@ -1,10 +1,16 @@
-import { createRequire } from "node:module";
+import loadEsmModuleForTest from "../../app/test/loadEsmModuleForTest.js";
 import { readFileSync } from "node:fs";
 
 import owl2vowl from "../js/index.js";
 
-const require = createRequire(import.meta.url);
-const createWebVowlParser = require("../../webvowl/js/parser.js");
+let createWebVowlParser;
+
+beforeAll(async () => {
+  ({ createParser: createWebVowlParser } = await loadEsmModuleForTest(
+    new URL("../../webvowl/js/parser.js", import.meta.url),
+    import.meta.url,
+  ));
+});
 
 const graphStub = () => ({
   options: () => ({

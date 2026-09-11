@@ -1,18 +1,32 @@
+import { OwlAllValuesFromProperty } from "./implementations/OwlAllValuesFromProperty.js";
+import { OwlDatatypeProperty } from "./implementations/OwlDatatypeProperty.js";
+import { OwlDeprecatedProperty } from "./implementations/OwlDeprecatedProperty.js";
+import { OwlDisjointWith } from "./implementations/OwlDisjointWith.js";
+import { OwlEquivalentProperty } from "./implementations/OwlEquivalentProperty.js";
+import { OwlFunctionalProperty } from "./implementations/OwlFunctionalProperty.js";
+import { OwlInverseFunctionalProperty } from "./implementations/OwlInverseFunctionalProperty.js";
+import { OwlObjectProperty } from "./implementations/OwlObjectProperty.js";
+import { OwlSomeValuesFromProperty } from "./implementations/OwlSomeValuesFromProperty.js";
+import { OwlSymmetricProperty } from "./implementations/OwlSymmetricProperty.js";
+import { OwlTransitiveProperty } from "./implementations/OwlTransitiveProperty.js";
+import { RdfProperty } from "./implementations/RdfProperty.js";
+import { RdfsSubClassOf } from "./implementations/RdfsSubClassOf.js";
+import { SetOperatorProperty } from "./implementations/SetOperatorProperty.js";
 const properties = [];
-properties.push(require("./implementations/OwlAllValuesFromProperty"));
-properties.push(require("./implementations/OwlDatatypeProperty"));
-properties.push(require("./implementations/OwlDeprecatedProperty"));
-properties.push(require("./implementations/OwlDisjointWith"));
-properties.push(require("./implementations/OwlEquivalentProperty"));
-properties.push(require("./implementations/OwlFunctionalProperty"));
-properties.push(require("./implementations/OwlInverseFunctionalProperty"));
-properties.push(require("./implementations/OwlObjectProperty"));
-properties.push(require("./implementations/OwlSomeValuesFromProperty"));
-properties.push(require("./implementations/OwlSymmetricProperty"));
-properties.push(require("./implementations/OwlTransitiveProperty"));
-properties.push(require("./implementations/RdfProperty"));
-properties.push(require("./implementations/RdfsSubClassOf"));
-properties.push(require("./implementations/SetOperatorProperty"));
+properties.push(OwlAllValuesFromProperty);
+properties.push(OwlDatatypeProperty);
+properties.push(OwlDeprecatedProperty);
+properties.push(OwlDisjointWith);
+properties.push(OwlEquivalentProperty);
+properties.push(OwlFunctionalProperty);
+properties.push(OwlInverseFunctionalProperty);
+properties.push(OwlObjectProperty);
+properties.push(OwlSomeValuesFromProperty);
+properties.push(OwlSymmetricProperty);
+properties.push(OwlTransitiveProperty);
+properties.push(RdfProperty);
+properties.push(RdfsSubClassOf);
+properties.push(SetOperatorProperty);
 
 const map = new Map(
   properties.map(function (Prototype) {
@@ -20,6 +34,6 @@ const map = new Map(
   }),
 );
 
-module.exports = function () {
+export function createPropertyMap() {
   return map;
-};
+}

@@ -1,6 +1,24 @@
-import { describe, test, expect, beforeEach, jest } from "@jest/globals";
+import {
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  jest,
+  test,
+} from "@jest/globals";
 import * as d3 from "d3";
-import navigationMenuFactory from "./navigationMenu.js";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
+
+let navigationMenuFactory;
+
+beforeAll(async () => {
+  // The loader shares one module cache, so the registry the menu imports is
+  // the same instance this test registers into.
+  ({ createNavigationMenu: navigationMenuFactory } = await loadEsmModuleForTest(
+    new URL("./navigationMenu.js", import.meta.url),
+    import.meta.url,
+  ));
+});
 
 const HTML_NAMESPACE = "http://www.w3.org/1999/xhtml";
 
@@ -304,14 +322,12 @@ describe("navigationMenu and popover event listeners", () => {
   });
 
   test("suppresses contextmenu on scroll buttons and navButtons", () => {
-    const mockGraph = {
-      options: () => ({
-        navigationMenu: () => ({ hideAllMenus: () => {} }),
-      }),
-      scaleFactor: () => 1.0,
-    };
-
-    const navMenu = navigationMenuFactory(mockGraph);
+    const navMenu = navigationMenuFactory({
+      documentObject: global.document,
+      windowObject: global.window,
+      locationObject: global.location,
+      requestAnimationFrameFunction: () => 0,
+    });
     navMenu.setup();
 
     const scrollRightBtn = document.getElementById("scrollRightButton");
@@ -355,13 +371,12 @@ describe("navigationMenu and popover event listeners", () => {
   });
 
   test("keeps scroll-button visibility in sync with the menu viewport", () => {
-    const mockGraph = {
-      options: () => ({
-        navigationMenu: () => ({ hideAllMenus: () => {} }),
-      }),
-      scaleFactor: () => 1.0,
-    };
-    const navMenu = navigationMenuFactory(mockGraph);
+    const navMenu = navigationMenuFactory({
+      documentObject: global.document,
+      windowObject: global.window,
+      locationObject: global.location,
+      requestAnimationFrameFunction: () => 0,
+    });
     const scrollContainer = document.getElementById("menuElementContainer");
     const leftButton = document.getElementById("scrollLeftButton");
     const rightButton = document.getElementById("scrollRightButton");
@@ -392,17 +407,16 @@ describe("navigationMenu and popover event listeners", () => {
   describe("standalone touch popover focus workaround", () => {
     test("opens without an invoker source and maintains expanded state", () => {
       global.window.matchMedia = jest.fn(() => ({ matches: true }));
-      const mockGraph = {
-        options: () => ({
-          navigationMenu: () => ({ hideAllMenus: () => {} }),
-          exportMenu: () => ({ exportAsUrl: jest.fn() }),
-        }),
-      };
       const popover = getOrCreateElement("m_export");
       const nativeShowPopover = popover.showPopover.bind(popover);
       popover.showPopover = jest.fn(nativeShowPopover);
 
-      navigationMenuFactory(mockGraph).setup();
+      navigationMenuFactory({
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        requestAnimationFrameFunction: () => 0,
+      }).setup();
 
       const opener = getOrCreateElement("exportMenuButton");
       opener.dispatchEvent(new CustomEvent("click", { cancelable: true }));
@@ -423,18 +437,17 @@ describe("navigationMenu and popover event listeners", () => {
 
     test("restores focus to the opener when a focused popover closes", () => {
       global.window.matchMedia = jest.fn(() => ({ matches: true }));
-      const mockGraph = {
-        options: () => ({
-          navigationMenu: () => ({ hideAllMenus: () => {} }),
-          exportMenu: () => ({ exportAsUrl: jest.fn() }),
-        }),
-      };
       const popover = getOrCreateElement("m_export");
       const input = new MockElement("exportedUrl", "", "input");
       input.ownerDocument = global.document;
       popover.appendChild(input);
 
-      navigationMenuFactory(mockGraph).setup();
+      navigationMenuFactory({
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        requestAnimationFrameFunction: () => 0,
+      }).setup();
 
       const opener = getOrCreateElement("exportMenuButton");
       opener.dispatchEvent(new CustomEvent("click", { cancelable: true }));
@@ -449,16 +462,15 @@ describe("navigationMenu and popover event listeners", () => {
 
     test("does not steal focus from an external control after light dismiss", () => {
       global.window.matchMedia = jest.fn(() => ({ matches: true }));
-      const mockGraph = {
-        options: () => ({
-          navigationMenu: () => ({ hideAllMenus: () => {} }),
-          exportMenu: () => ({ exportAsUrl: jest.fn() }),
-        }),
-      };
       const popover = getOrCreateElement("m_export");
       const externalControl = getOrCreateElement("sidebarExpandButton");
 
-      navigationMenuFactory(mockGraph).setup();
+      navigationMenuFactory({
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        requestAnimationFrameFunction: () => 0,
+      }).setup();
 
       const opener = getOrCreateElement("exportMenuButton");
       opener.dispatchEvent(new CustomEvent("click", { cancelable: true }));
@@ -473,15 +485,15 @@ describe("navigationMenu and popover event listeners", () => {
     });
 
     test("leaves declarative popover invocation untouched on desktop", () => {
-      const mockGraph = {
-        options: () => ({
-          navigationMenu: () => ({ hideAllMenus: () => {} }),
-        }),
-      };
       const popover = getOrCreateElement("m_export");
       popover.showPopover = jest.fn(popover.showPopover.bind(popover));
 
-      navigationMenuFactory(mockGraph).setup();
+      navigationMenuFactory({
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        requestAnimationFrameFunction: () => 0,
+      }).setup();
 
       const opener = getOrCreateElement("exportMenuButton");
       opener.dispatchEvent(new CustomEvent("click", { cancelable: true }));
@@ -495,15 +507,14 @@ describe("navigationMenu and popover event listeners", () => {
   describe("Popover toggle event synchronization", () => {
     test("sets active-menu-item and triggers exportAsUrl when toggle opens export popover", () => {
       const exportAsUrlMock = jest.fn();
-      const mockGraph = {
-        options: () => ({
-          navigationMenu: () => ({ hideAllMenus: () => {} }),
-          exportMenu: () => ({ exportAsUrl: exportAsUrlMock }),
-        }),
-        scaleFactor: () => 1.0,
-      };
 
-      const navMenu = navigationMenuFactory(mockGraph);
+      const navMenu = navigationMenuFactory({
+        onExportMenuOpened: exportAsUrlMock,
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        requestAnimationFrameFunction: () => 0,
+      });
       navMenu.setup();
 
       const popover = getOrCreateElement("m_export");
@@ -525,14 +536,12 @@ describe("navigationMenu and popover event listeners", () => {
     });
 
     test("removes active-menu-item when toggle closes popover", () => {
-      const mockGraph = {
-        options: () => ({
-          navigationMenu: () => ({ hideAllMenus: () => {} }),
-        }),
-        scaleFactor: () => 1.0,
-      };
-
-      const navMenu = navigationMenuFactory(mockGraph);
+      const navMenu = navigationMenuFactory({
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        requestAnimationFrameFunction: () => 0,
+      });
       navMenu.setup();
 
       const controller = getOrCreateElement("c_select");
@@ -552,13 +561,12 @@ describe("navigationMenu and popover event listeners", () => {
     });
 
     test("does not throw error in updateMenuPosition when mouseout occurs", () => {
-      const mockGraph = {
-        options: () => ({
-          navigationMenu: () => ({ hideAllMenus: () => {} }),
-        }),
-      };
-
-      const navMenu = navigationMenuFactory(mockGraph);
+      const navMenu = navigationMenuFactory({
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        requestAnimationFrameFunction: () => 0,
+      });
       navMenu.setup();
 
       const controller = getOrCreateElement("c_select");
@@ -578,13 +586,12 @@ describe("navigationMenu and popover event listeners", () => {
     test("tracks downward touch displacement and dismisses when drag exceeds threshold on mobile viewport", (done) => {
       global.window.innerWidth = 480;
 
-      const mockGraph = {
-        options: () => ({
-          navigationMenu: () => ({ hideAllMenus: () => {} }),
-        }),
-      };
-
-      const navMenu = navigationMenuFactory(mockGraph);
+      const navMenu = navigationMenuFactory({
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        requestAnimationFrameFunction: () => 0,
+      });
       navMenu.setup();
 
       const popover = getOrCreateElement("m_select");
@@ -622,13 +629,12 @@ describe("navigationMenu and popover event listeners", () => {
     test("snaps back and maintains has-dragged class when drag is below threshold to prevent double bounce-back", (done) => {
       global.window.innerWidth = 480;
 
-      const mockGraph = {
-        options: () => ({
-          navigationMenu: () => ({ hideAllMenus: () => {} }),
-        }),
-      };
-
-      const navMenu = navigationMenuFactory(mockGraph);
+      const navMenu = navigationMenuFactory({
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        requestAnimationFrameFunction: () => 0,
+      });
       navMenu.setup();
 
       const popover = getOrCreateElement("m_select");
@@ -670,13 +676,12 @@ describe("navigationMenu and popover event listeners", () => {
     test("clamps upward dragging (dy < 0) to translateY(0px) to prevent tearing from bottom of screen", () => {
       global.window.innerWidth = 480;
 
-      const mockGraph = {
-        options: () => ({
-          navigationMenu: () => ({ hideAllMenus: () => {} }),
-        }),
-      };
-
-      const navMenu = navigationMenuFactory(mockGraph);
+      const navMenu = navigationMenuFactory({
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        requestAnimationFrameFunction: () => 0,
+      });
       navMenu.setup();
 
       const popover = getOrCreateElement("m_select");
@@ -703,13 +708,12 @@ describe("navigationMenu and popover event listeners", () => {
     test("ignores drag initialization when target is close button", () => {
       global.window.innerWidth = 480;
 
-      const mockGraph = {
-        options: () => ({
-          navigationMenu: () => ({ hideAllMenus: () => {} }),
-        }),
-      };
-
-      const navMenu = navigationMenuFactory(mockGraph);
+      const navMenu = navigationMenuFactory({
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        requestAnimationFrameFunction: () => 0,
+      });
       navMenu.setup();
 
       const popover = getOrCreateElement("m_select");
@@ -741,13 +745,12 @@ describe("navigationMenu and popover event listeners", () => {
 
   describe("Popover event containment", () => {
     test("stops propagation of interaction events originating inside modern-popover", () => {
-      const mockGraph = {
-        options: () => ({
-          navigationMenu: () => ({ hideAllMenus: () => {} }),
-        }),
-      };
-
-      const navMenu = navigationMenuFactory(mockGraph);
+      const navMenu = navigationMenuFactory({
+        documentObject: global.document,
+        windowObject: global.window,
+        locationObject: global.location,
+        requestAnimationFrameFunction: () => 0,
+      });
       navMenu.setup();
 
       const popover = getOrCreateElement("m_select");

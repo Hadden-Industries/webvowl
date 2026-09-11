@@ -1,37 +1,33 @@
-const elementTools = require("../util/elementTools")();
-const filterTools = require("../util/filterTools")();
+import { createFilterTools as filterToolsFactory } from "../util/filterTools.js";
+import { createElementTools as elementToolsFactory } from "../util/elementTools.js";
+const elementTools = elementToolsFactory();
+const filterTools = filterToolsFactory();
 
-module.exports = function (menu) {
+export function createNodeDegreeFilter() {
   const filter = {};
   let nodes;
   let properties;
   let enabled = true;
   let filteredNodes;
   let filteredProperties;
-  let maxDegreeSetter;
-  let degreeGetter;
-  let degreeSetter;
+  let requestedMinimumDegree;
+  let minimumDegree = 0;
+  let maximumDegree = 0;
+  let automaticMinimumDegree = 0;
 
   const NODE_COUNT_LIMIT_FOR_AUTO_ENABLING = 50;
 
   filter.initialize = function (nodes, properties) {
-    const maxLinkCount = findMaxLinkCount(nodes);
-    if (maxDegreeSetter instanceof Function) {
-      maxDegreeSetter(maxLinkCount);
-    }
-
-    menu.setDefaultDegreeValue(
-      findAutoDefaultDegree(nodes, properties, maxLinkCount),
+    maximumDegree = findMaxLinkCount(nodes);
+    automaticMinimumDegree = findAutoDefaultDegree(
+      nodes,
+      properties,
+      maximumDegree,
     );
-    const defaultDegree = findDefaultDegree(maxLinkCount);
-    if (degreeSetter instanceof Function) {
-      degreeSetter(defaultDegree);
-      if (defaultDegree > 0) {
-        menu.highlightForDegreeSlider(true);
-      }
-    } else {
-      console.error("No degree setter function set.");
-    }
+    minimumDegree = Math.min(
+      requestedMinimumDegree ?? automaticMinimumDegree,
+      maximumDegree,
+    );
   };
 
   function findAutoDefaultDegree(nodes, properties, maxDegree) {
@@ -45,19 +41,6 @@ module.exports = function (menu) {
     return 0;
   }
 
-  function findDefaultDegree(maxDegree) {
-    const globalDegOfFilter = menu.getGraphObject().getGlobalDOF();
-    if (globalDegOfFilter >= 0) {
-      if (globalDegOfFilter <= maxDegree) {
-        return globalDegOfFilter;
-      } else {
-        menu.getGraphObject().setGlobalDOF(maxDegree);
-        return maxDegree;
-      }
-    }
-    return menu.getDefaultDegreeValue();
-  }
-
   /**
    * If enabled, all nodes are filter by their node degree.
    * @param untouchedNodes
@@ -68,18 +51,14 @@ module.exports = function (menu) {
     properties = untouchedProperties;
 
     if (this.enabled()) {
-      if (degreeGetter instanceof Function) {
-        filterByNodeDegreeAndApply(degreeGetter());
-      } else {
-        console.error("No degree query function set.");
-      }
+      filterByNodeDegreeAndApply(minimumDegree);
     }
 
     filteredNodes = nodes;
     filteredProperties = properties;
 
     if (filteredNodes.length === 0) {
-      degreeSetter(0);
+      filter.minDegree(0);
       filteredNodes = untouchedNodes;
       filteredProperties = untouchedProperties;
     }
@@ -121,16 +100,31 @@ module.exports = function (menu) {
     };
   }
 
-  filter.setMaxDegreeSetter = function (_maxDegreeSetter) {
-    maxDegreeSetter = _maxDegreeSetter;
+  filter.minDegree = function (nextMinimumDegree) {
+    if (!arguments.length) {
+      return minimumDegree;
+    }
+    if (!Number.isSafeInteger(nextMinimumDegree) || nextMinimumDegree < 0) {
+      throw new RangeError(
+        "Minimum node degree must be a non-negative safe integer.",
+      );
+    }
+    requestedMinimumDegree = nextMinimumDegree;
+    minimumDegree = nextMinimumDegree;
+    return filter;
   };
 
-  filter.setDegreeGetter = function (_degreeGetter) {
-    degreeGetter = _degreeGetter;
+  filter.readDegreeRange = function () {
+    return Object.freeze({ maximumDegree, automaticMinimumDegree });
   };
 
-  filter.setDegreeSetter = function (_degreeSetter) {
-    degreeSetter = _degreeSetter;
+  // A new ontology without a saved degree gets its own automatic choice.
+  // An explicit choice remains in force for updates within the current load.
+  filter.useAutomaticMinimumDegree = function () {
+    requestedMinimumDegree = undefined;
+    minimumDegree = automaticMinimumDegree;
+    enabled = true;
+    return filter;
   };
 
   filter.enabled = function (p) {
@@ -151,4 +145,4 @@ module.exports = function (menu) {
   };
 
   return filter;
-};
+}

@@ -1,8 +1,9 @@
-const BaseNode = require("./BaseNode");
-const CenteringTextElement = require("../../../../shared/js/util/CenteringTextElement");
-const drawTools = require("../drawTools")();
+import { BaseNode } from "./BaseNode.js";
+import { CenteringTextElement } from "../../../../shared/js/util/CenteringTextElement.js";
+import { createDrawTools as drawToolsFactory } from "../drawTools.js";
+const drawTools = drawToolsFactory();
 
-module.exports = (function () {
+const RoundNode = (function () {
   const o = function (graph) {
     BaseNode.apply(this, arguments);
 
@@ -80,13 +81,13 @@ module.exports = (function () {
       return availableWidth;
     };
 
-    this.toggleFocus = function () {
+    this.toggleSelection = function () {
       that.focused(!that.focused());
       if (that.nodeElement()) {
         that.nodeElement().select("circle").classed("focused", that.focused());
       }
-      graph.resetSearchHighlight();
-      graph.dispatchEvent(new CustomEvent("searchcleared"));
+      // Selection styling and details do not change the requested search focus.
+      graph.reportRenderedElementSelection(that.focused() ? [that.id()] : []);
     };
 
     this.actualRadius = function () {
@@ -340,3 +341,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { RoundNode };

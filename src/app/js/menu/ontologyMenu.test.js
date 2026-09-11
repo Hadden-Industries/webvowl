@@ -1,5 +1,43 @@
-import { beforeEach, describe, expect, jest, test } from "@jest/globals";
-import ontologyMenuFactory from "./ontologyMenu.js";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { SourceTextModule } from "node:vm";
+
+// Explicit application connections used by the ontology input.
+let loadingModule;
+import {
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  jest,
+  test,
+} from "@jest/globals";
+
+let createOntologyMenu;
+let normalizeOntologyUrl;
+
+const ONTOLOGY_MENU_MODULE_URL = new URL("./ontologyMenu.js", import.meta.url);
+
+beforeAll(async () => {
+  const ontologyMenuModule = new SourceTextModule(
+    readFileSync(fileURLToPath(ONTOLOGY_MENU_MODULE_URL), "utf8"),
+    { identifier: ONTOLOGY_MENU_MODULE_URL.href },
+  );
+  await ontologyMenuModule.link((specifier) => {
+    if (specifier === "../ui/visualizationControlAction.js") {
+      const moduleUrl = new URL(specifier, ONTOLOGY_MENU_MODULE_URL);
+      return new SourceTextModule(
+        readFileSync(fileURLToPath(moduleUrl), "utf8"),
+        {
+          identifier: moduleUrl.href,
+        },
+      );
+    }
+    throw new Error(`Unexpected ontology menu dependency: ${specifier}`);
+  });
+  await ontologyMenuModule.evaluate();
+  ({ createOntologyMenu, normalizeOntologyUrl } = ontologyMenuModule.namespace);
+});
 
 class MockSelection {
   constructor(node = {}) {
@@ -109,7 +147,8 @@ class MockSelection {
 }
 
 describe("ontology URL normalization", () => {
-  const normalize = ontologyMenuFactory.normalizeOntologyUrl;
+  const normalize = (...normalizationArguments) =>
+    normalizeOntologyUrl(...normalizationArguments);
 
   test("adds HTTPS when the protocol is omitted", () => {
     expect(normalize("example.org/ontology.owl")).toMatchObject({
@@ -173,6 +212,8 @@ describe("ontology menu actions", () => {
   let ontologyMenu;
   let createNewOntology;
   let hideAllMenus;
+  let requestedLoads;
+  let webVowlController;
 
   beforeEach(() => {
     selections = new Map();
@@ -186,6 +227,7 @@ describe("ontology menu actions", () => {
     global.location = { hash: "#file=foaf.rdf.json" };
     global.window = {
       addEventListener: jest.fn(),
+      history: { pushState: jest.fn() },
     };
     global.document = {
       getElementById: (id) => selectionFor("#" + id).element,
@@ -197,28 +239,90 @@ describe("ontology menu actions", () => {
 
     createNewOntology = jest.fn();
     hideAllMenus = jest.fn();
-    const loadingModule = {
-      createNewOntology,
-      setOntologyMenu: jest.fn(),
-      parseUrlAndLoadOntology: jest.fn(),
-    };
-    const graph = {
-      options: () => ({
-        loadingModule: () => loadingModule,
-        navigationMenu: () => ({ hideAllMenus }),
+    requestedLoads = [];
+    webVowlController = {
+      getState: () => ({ editorMode: { isEditorMode: false } }),
+      loadOntology: jest.fn((loadRequest) => {
+        requestedLoads.push(loadRequest);
+        return Promise.resolve({ status: "ready" });
       }),
-      editorMode: jest.fn().mockReturnValue(false),
-      addEventListener: jest.fn(),
-      showReloadButtonAfterLayoutOptimization: jest.fn(),
+    };
+    loadingModule = {
+      createNewOntology,
+      loadOntologyFromLocation: jest.fn(() => Promise.resolve()),
+      loadLocalFile: jest.fn(() => Promise.resolve()),
     };
 
-    ontologyMenu = ontologyMenuFactory(graph);
+    ontologyMenu = createOntologyMenu({
+      ...loadingModule,
+      hideNavigationMenus: hideAllMenus,
+      documentObject: global.document,
+      locationObject: global.location,
+      webVowlController,
+      windowObject: global.window,
+    });
     ontologyMenu.setup(jest.fn());
     emptyButton = selectionFor("#empty");
     iriInput = selectionFor("#iri-converter-input");
     iriButton = selectionFor("#iri-converter-button");
     iriHint = selectionFor("#iri-converter-hint");
     iriForm = selectionFor("#iri-converter-form");
+  });
+
+  test("a selected file loads once without a hash navigation superseding its read", async () => {
+    const file = { name: "my ontology#1.rdf" };
+    selections.get("#file-converter-input").element.files = [file];
+    let currentHash = global.location.hash;
+    const hashChange = global.window.addEventListener.mock.calls.find(
+      ([eventName]) => eventName === "hashchange",
+    )[1];
+    Object.defineProperty(global.location, "hash", {
+      get: () => currentHash,
+      set: (value) => {
+        const oldURL = "https://example.test/" + currentHash;
+        currentHash = value;
+        queueMicrotask(() =>
+          hashChange({ oldURL, newURL: "https://example.test/#" + value }),
+        );
+      },
+    });
+    global.window.history.pushState.mockImplementation(
+      (_state, _title, route) => {
+        currentHash = route;
+      },
+    );
+
+    selections
+      .get("#file-converter-button")
+      .element.dispatchEvent({ type: "click" });
+    await Promise.resolve();
+
+    expect(loadingModule.loadLocalFile).toHaveBeenCalledTimes(1);
+    expect(loadingModule.loadLocalFile).toHaveBeenCalledWith(file);
+    expect(loadingModule.loadOntologyFromLocation).not.toHaveBeenCalled();
+    // The common file loader owns the route for both selection and dropping.
+    expect(global.window.history.pushState).not.toHaveBeenCalled();
+    expect(currentHash).toBe("#file=foaf.rdf.json");
+  });
+
+  test("reload retrieves the controller's accepted source even when the location names another ontology", async () => {
+    webVowlController.getState = () => ({
+      source: {
+        kind: "ontology-document-iri",
+        identity: "https://example.test/agent-loaded.owl",
+      },
+    });
+    await ontologyMenu.reloadOntologySource();
+    expect(requestedLoads).toEqual([
+      {
+        source: {
+          kind: "ontology-document-iri",
+          documentIri: "https://example.test/agent-loaded.owl",
+        },
+        reuseCachedOntology: false,
+      },
+    ]);
+    expect(loadingModule.loadOntologyFromLocation).not.toHaveBeenCalled();
   });
 
   test("enables the visualize button only for a URL that can be normalized", () => {
@@ -322,23 +426,38 @@ describe("ontology menu actions", () => {
     expect(hideAllMenus).not.toHaveBeenCalled();
   });
 
-  test("manages native disabled property and title on the reloadCachedOntology button", () => {
+  test("shows source reload only for a reused remote visualization", () => {
     const reloadButton =
-      selections.get("#reloadCachedOntology") || new MockSelection();
-    selections.set("#reloadCachedOntology", reloadButton);
-
-    ontologyMenu.setCachedOntology("testOnto", { data: 1 });
+      selections.get("#reloadOntologySource") || new MockSelection();
+    selections.set("#reloadOntologySource", reloadButton);
 
     global.location.hash = "#iri=https://example.org/test.owl";
-    ontologyMenu.cachedOntology("testOnto");
+    const remoteSource = {
+      kind: "ontology-document-iri",
+      identity: "https://example.org/test.owl",
+    };
+    ontologyMenu.renderSourceReloadControl(remoteSource, {
+      hasReusedCachedVisualization: false,
+    });
+    expect(reloadButton.element.classList.contains("hidden")).toBe(true);
+    expect(reloadButton.element.disabled).toBe(true);
+
+    ontologyMenu.renderSourceReloadControl(remoteSource, {
+      hasReusedCachedVisualization: true,
+    });
+    expect(reloadButton.element.classList.contains("hidden")).toBe(false);
     expect(reloadButton.element.disabled).toBe(false);
-    expect(reloadButton.element.title).toContain("overwrite cached ontology");
+    expect(reloadButton.element.title).toContain(
+      "replace its cached visualization",
+    );
 
     global.location.hash = "#file=test.json";
-    ontologyMenu.cachedOntology("testOnto");
+    ontologyMenu.renderSourceReloadControl({
+      kind: "vowl-json-text",
+      displayName: "test.json",
+    });
     expect(reloadButton.element.disabled).toBe(true);
-    expect(reloadButton.element.title).toContain(
-      "reloading original version not possible",
-    );
+    expect(reloadButton.element.classList.contains("hidden")).toBe(true);
+    expect(reloadButton.element.title).toContain("Select the local file again");
   });
 });

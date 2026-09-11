@@ -2,24 +2,33 @@ const ADDITIONAL_TEXT_SPACE = 4;
 
 const tools = {};
 
-function measureTextWidth(text, textStyle) {
+function measureTextWidth(
+  text,
+  textStyle,
+  documentObject = globalThis.document,
+) {
   // Set a default value
   if (!textStyle) {
     textStyle = "text";
   }
-  const d = d3
-      .select("body")
-      .append("div")
-      .attr("class", textStyle + " text-measurement-probe")
-      .text(text),
-    w = d.node().offsetWidth;
-  d.remove();
-  return w;
+  const measurementProbe = documentObject.createElement("div");
+  measurementProbe.setAttribute("class", textStyle + " text-measurement-probe");
+  measurementProbe.textContent = text;
+  documentObject.body.appendChild(measurementProbe);
+  const measuredWidth = measurementProbe.offsetWidth;
+  measurementProbe.remove();
+  return measuredWidth;
 }
 
 tools.measureTextWidth = measureTextWidth;
 
-tools.truncate = function (text, maxWidth, textStyle, additionalTextSpace) {
+tools.truncate = function (
+  text,
+  maxWidth,
+  textStyle,
+  additionalTextSpace,
+  documentObject = globalThis.document,
+) {
   maxWidth -= isNaN(additionalTextSpace)
     ? ADDITIONAL_TEXT_SPACE
     : additionalTextSpace;
@@ -33,7 +42,7 @@ tools.truncate = function (text, maxWidth, textStyle, additionalTextSpace) {
     ratio;
 
   while (true) {
-    textWidth = measureTextWidth(truncatedText, textStyle);
+    textWidth = measureTextWidth(truncatedText, textStyle, documentObject);
     if (textWidth <= maxWidth) {
       break;
     }
@@ -55,6 +64,6 @@ tools.truncate = function (text, maxWidth, textStyle, additionalTextSpace) {
   return text;
 };
 
-module.exports = function () {
+export function createTextTools() {
   return tools;
-};
+}
