@@ -1,13 +1,14 @@
-const SetOperatorNode = require("../../../webvowl/js/elements/nodes/SetOperatorNode");
+import { createFilterTools } from "../util/filterTools.js";
+import { SetOperatorNode } from "../../../webvowl/js/elements/nodes/SetOperatorNode.js";
 
-module.exports = function () {
+export function createSetOperatorFilter() {
   const filter = {};
   let nodes;
   let properties;
   let enabled = false;
   let filteredNodes;
   let filteredProperties;
-  const filterTools = require("../util/filterTools")();
+  const filterTools = createFilterTools();
 
   /**
    * If enabled, all set operators including connected properties are filtered.
@@ -59,4 +60,4 @@ module.exports = function () {
   };
 
   return filter;
-};
+}

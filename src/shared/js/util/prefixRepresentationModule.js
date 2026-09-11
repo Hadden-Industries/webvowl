@@ -1,4 +1,4 @@
-module.exports = function prefixRepresentationModule(graph) {
+export function createPrefixRepresentationModule(graph) {
   /** variable defs **/
   const prefixRepresentationModule = {};
 
@@ -6,7 +6,7 @@ module.exports = function prefixRepresentationModule(graph) {
 
   prefixRepresentationModule.updatePrefixModel = function () {
     if (graph && typeof graph.options === "function") {
-      currentPrefixModel = graph.options().prefixList();
+      currentPrefixModel = graph.ontologyEditingState().prefixList();
     }
   };
 
@@ -110,7 +110,10 @@ module.exports = function prefixRepresentationModule(graph) {
       resource = fullURL.substring(fullURL.lastIndexOf("#") + 1);
       base = fullURL.substring(0, fullURL.length - resource.length);
       // overwrite base if it is ontologyIri;
-      if (base === graph.options().getGeneralMetaObjectProperty("iri")) {
+      if (
+        base ===
+        graph.ontologyEditingState().getGeneralMetaObjectProperty("iri")
+      ) {
         base = ":";
       }
       splitedURL.base = base;
@@ -119,7 +122,10 @@ module.exports = function prefixRepresentationModule(graph) {
       resource = fullURL.substring(fullURL.lastIndexOf("/") + 1);
       base = fullURL.substring(0, fullURL.length - resource.length);
       // overwrite base if it is ontologyIri;
-      if (base === graph.options().getGeneralMetaObjectProperty("iri")) {
+      if (
+        base ===
+        graph.ontologyEditingState().getGeneralMetaObjectProperty("iri")
+      ) {
         base = ":";
       }
       splitedURL.base = base;
@@ -153,4 +159,4 @@ module.exports = function prefixRepresentationModule(graph) {
   };
 
   return prefixRepresentationModule;
-};
+}

@@ -1,9 +1,10 @@
-const AbsoluteTextElement = require("../../../../shared/js/util/AbsoluteTextElement");
-const BoxArrowLink = require("../links/BoxArrowLink");
-const RoundNode = require("./RoundNode");
-const drawTools = require("../drawTools")();
+import { AbsoluteTextElement } from "../../../../shared/js/util/AbsoluteTextElement.js";
+import { BoxArrowLink } from "../links/BoxArrowLink.js";
+import { RoundNode } from "./RoundNode.js";
+import { createDrawTools as drawToolsFactory } from "../drawTools.js";
+const drawTools = drawToolsFactory();
 
-module.exports = (function () {
+const SetOperatorNode = (function () {
   const o = function (graph) {
     RoundNode.apply(this, arguments);
 
@@ -80,3 +81,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { SetOperatorNode };

@@ -1,6 +1,8 @@
+import { runVisualizationControlAction } from "./ui/visualizationControlAction.js";
+
 const NAVIGABLE_IRI_SCHEMES = new Set(["http:", "https:", "urn:"]);
 
-function navigableIri(value) {
+export function navigableOntologyIri(value) {
   if (typeof value !== "string") {
     return undefined;
   }
@@ -20,7 +22,7 @@ function navigableIri(value) {
 }
 
 function appendIriLabel(element, name, iri) {
-  const href = navigableIri(iri);
+  const href = navigableOntologyIri(iri);
   const tag = document.createElement(href ? "a" : "span");
   element.appendChild(tag);
 
@@ -32,7 +34,7 @@ function appendIriLabel(element, name, iri) {
   tag.textContent = name;
 }
 
-function renderOntologyIri(element, iri) {
+export function renderOntologyIri(element, iri) {
   element.textContent = "";
   const label =
     typeof iri === "string" && iri.trim() ? iri.trim() : "not given";
@@ -41,32 +43,74 @@ function renderOntologyIri(element, iri) {
 
 /**
  * Contains the logic for the sidebar.
- * @param graph the graph that belongs to these controls
  * @returns {{}}
  */
-function createSidebar(graph) {
+export function createSidebar({
+  languageConstants,
+  languageTools,
+  webVowlController,
+  onViewportGeometryChanged = () => {},
+  hideNavigationMenus = () => {},
+  updateNavigationOverflow = () => {},
+}) {
   const sidebar = {};
-  const languageTools = require("../../shared/js/util/languageTools")();
-  const elementTools = require("../../shared/js/util/elementTools")();
+  const lifecycleAbortController = new AbortController();
+  let activeOntologySummaryLanguage = null;
   // Required for reloading when the language changes
-  let ontologyInfo;
-  let visibleSidebar = 1;
-  let lastSelectedElement;
+  let isSidebarVisible = true;
+  // The last editor mode the renderer reported, kept here so no presentation
+  // asks the renderer which mode it is in.
+  let isEditorMode = false;
+  let isSetup = false;
+  let isSidebarAnimationInitialized = false;
+  let removeNoTransitionClassAnimationFrame;
+  let ownsNoTransitionClass = false;
 
-  const detailArea = document.querySelector("#detailsArea");
-  const graphArea = document.querySelector("#canvasArea");
-  const collapseButton = document.querySelector("#sidebarExpandButton");
+  const detailsSidebar = document.querySelector("#detailsArea");
+  const documentBody = document.querySelector("body");
+  const graphCanvasArea = document.querySelector("#canvasArea");
+  const sidebarToggleButton = document.querySelector("#sidebarExpandButton");
 
   /**
    * Setup the menu bar.
    */
 
+  function toggleOntologyDetailsAccordionTrigger(selectedTrigger) {
+    const ontologyDetailsSection = document.querySelector("#generalDetails");
+    const activeTriggers = ontologyDetailsSection.querySelectorAll(
+      ".accordion-trigger-active",
+    );
+
+    if (selectedTrigger.classList.contains("accordion-trigger-active")) {
+      if (selectedTrigger.nextElementSibling) {
+        selectedTrigger.nextElementSibling.classList.add("hidden");
+      }
+      selectedTrigger.classList.remove("accordion-trigger-active");
+      return;
+    }
+
+    ontologyDetailsSection
+      .querySelectorAll(".accordion-trigger-active + div")
+      .forEach(function (element) {
+        element.classList.add("hidden");
+      });
+    activeTriggers.forEach(function (activeTrigger) {
+      activeTrigger.classList.remove("accordion-trigger-active");
+    });
+    if (selectedTrigger.nextElementSibling) {
+      selectedTrigger.nextElementSibling.classList.remove("hidden");
+    }
+    selectedTrigger.classList.add("accordion-trigger-active");
+  }
+
   function setupCollapsing() {
     // adapted version of this example: http://www.normansblog.de/simple-jquery-accordion/
-    const triggers = document.querySelectorAll(".accordion-trigger");
+    const ontologyDetailsSection = document.querySelector("#generalDetails");
+    const triggers =
+      ontologyDetailsSection.querySelectorAll(".accordion-trigger");
 
     // Collapse all inactive triggers on startup
-    document
+    ontologyDetailsSection
       .querySelectorAll(
         ".accordion-trigger:not(.accordion-trigger-active) + div",
       )
@@ -77,42 +121,24 @@ function createSidebar(graph) {
     triggers.forEach(function (trigger) {
       trigger.setAttribute("tabindex", "0");
       trigger.setAttribute("role", "button");
-      trigger.addEventListener("keydown", function (event) {
-        const evt = event || window.event;
-        if (evt && (evt.key === "Enter" || evt.key === " ")) {
-          evt.preventDefault();
-          this.click();
-        }
-      });
-
-      trigger.addEventListener("click", function () {
-        const activeTriggers = document.querySelectorAll(
-          ".accordion-trigger-active",
-        );
-
-        if (this.classList.contains("accordion-trigger-active")) {
-          // Collapse the active (which is also the selected) trigger
-          if (this.nextElementSibling) {
-            this.nextElementSibling.classList.add("hidden");
+      trigger.addEventListener(
+        "keydown",
+        function (event) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            toggleOntologyDetailsAccordionTrigger(event.currentTarget);
           }
-          this.classList.remove("accordion-trigger-active");
-        } else {
-          // Collapse the other trigger ...
-          document
-            .querySelectorAll(".accordion-trigger-active + div")
-            .forEach(function (el) {
-              el.classList.add("hidden");
-            });
-          activeTriggers.forEach(function (el) {
-            el.classList.remove("accordion-trigger-active");
-          });
-          // ... and expand the selected one
-          if (this.nextElementSibling) {
-            this.nextElementSibling.classList.remove("hidden");
-          }
-          this.classList.add("accordion-trigger-active");
-        }
-      });
+        },
+        { signal: lifecycleAbortController.signal },
+      );
+
+      trigger.addEventListener(
+        "click",
+        function (event) {
+          toggleOntologyDetailsAccordionTrigger(event.currentTarget);
+        },
+        { signal: lifecycleAbortController.signal },
+      );
     });
   }
 
@@ -137,8 +163,9 @@ function createSidebar(graph) {
       .querySelector("#selection-details-trigger")
       .classList.contains("accordion-trigger-active");
     if (isTriggerActive) {
-      // close accordion
-      document.querySelector("#selection-details-trigger").click();
+      toggleOntologyDetailsAccordionTrigger(
+        document.querySelector("#selection-details-trigger"),
+      );
     }
     showSelectionAdvice();
   };
@@ -148,17 +175,56 @@ function createSidebar(graph) {
    * @param data the graph data
    * @param statistics the statistics module
    */
-  sidebar.updateOntologyInformation = function (data, statistics) {
-    data = data || {};
-    ontologyInfo = data.header || {};
+  // Controller state, not renderer internals, drives the ontology panel.
+  sidebar.renderOntologySummary = function (ontologySummary) {
+    // Presenting a summary is what makes the ontology details readable; the
+    // section ships hidden and nothing else reveals it.
+    revealDetailsSectionForCurrentMode();
+    const ontologyHeader = ontologySummary.ontologyHeader;
+    const elementCounts = ontologySummary.elementCounts;
 
-    setLanguages(ontologyInfo.languages);
-    updateGraphInformation();
-    displayGraphStatistics(undefined, statistics);
-    displayMetadata(ontologyInfo.other);
+    document.querySelector("#title").textContent =
+      ontologyHeader.title || "No title available";
+    renderOntologyIri(
+      document.querySelector("#about"),
+      ontologyHeader.ontologyIri,
+    );
+    document.querySelector("#version").textContent =
+      ontologyHeader.versionInformationText || "--";
+    document.querySelector("#authors").textContent =
+      ontologyHeader.authorNames.length > 0
+        ? ontologyHeader.authorNames.join(", ")
+        : "--";
+    document.querySelector("#description").textContent =
+      ontologyHeader.description || "No description available.";
 
-    // Reset the sidebar selection
-    sidebar.updateSelectionInformation(undefined);
+    displayMetadata(
+      annotationGroupsFromRecords(
+        ontologyHeader.annotationRecords ?? [],
+        undefined,
+        false,
+      ),
+    );
+
+    activeOntologySummaryLanguage = ontologySummary.selectedLanguage ?? null;
+    setLanguages(ontologySummary.availableLabelLanguages);
+
+    const visibleGraphCounts = ontologySummary.visibleGraphCounts ?? {
+      visibleNodeCount: 0,
+      visiblePropertyCount: 0,
+    };
+    document.querySelector("#classCount").textContent =
+      elementCounts.classCount;
+    document.querySelector("#objectPropertyCount").textContent =
+      elementCounts.objectPropertyCount;
+    document.querySelector("#datatypePropertyCount").textContent =
+      elementCounts.datatypePropertyCount;
+    document.querySelector("#individualCount").textContent =
+      elementCounts.individualCount;
+    document.querySelector("#nodeCount").textContent =
+      visibleGraphCounts.visibleNodeCount;
+    document.querySelector("#edgeCount").textContent =
+      visibleGraphCounts.visiblePropertyCount;
   };
 
   function getBrowserLanguages() {
@@ -238,14 +304,13 @@ function createSidebar(graph) {
     }
 
     // 4. Fallback: LANG_UNDEFINED ("undefined")
-    const langUndefined = require("../../shared/js/util/constants")()
-      .LANG_UNDEFINED;
+    const langUndefined = languageConstants.undefinedLanguage;
     if (languages.indexOf(langUndefined) >= 0) {
       return langUndefined;
     }
 
     // 5. Fallback: LANG_IRIBASED ("id")
-    const langIri = require("../../shared/js/util/constants")().LANG_IRIBASED;
+    const langIri = languageConstants.iriBasedLanguage;
     if (languages.indexOf(langIri) >= 0) {
       return langIri;
     }
@@ -255,105 +320,64 @@ function createSidebar(graph) {
   }
 
   function setLanguages(languages) {
-    languages = languages || [];
+    const availableLanguages = Array.isArray(languages) ? [...languages] : [];
+    if (!availableLanguages.includes("default")) {
+      availableLanguages.push("default");
+    }
 
     // Put the default and unset label on top of the selection labels
-    languages.sort(function (a, b) {
-      if (a === require("../../shared/js/util/constants")().LANG_IRIBASED) {
+    availableLanguages.sort(function (a, b) {
+      if (a === languageConstants.iriBasedLanguage) {
         return -1;
-      } else if (
-        b === require("../../shared/js/util/constants")().LANG_IRIBASED
-      ) {
+      } else if (b === languageConstants.iriBasedLanguage) {
         return 1;
       }
-      if (a === require("../../shared/js/util/constants")().LANG_UNDEFINED) {
+      if (a === languageConstants.undefinedLanguage) {
         return -1;
-      } else if (
-        b === require("../../shared/js/util/constants")().LANG_UNDEFINED
-      ) {
+      } else if (b === languageConstants.undefinedLanguage) {
         return 1;
       }
       return a.localeCompare(b);
     });
 
-    const languageSelection = d3
-      .select("#language")
-      .on("change", function (event) {
-        graph.language(event.target.value);
-        updateGraphInformation();
-        sidebar.updateSelectionInformation(lastSelectedElement);
-      });
+    const languageSelect = document.querySelector("#language");
+    const languageOptions = availableLanguages.map(function (language) {
+      const option = document.createElement("option");
+      option.value = language;
+      option.textContent = language;
+      return option;
+    });
+    languageSelect.replaceChildren(...languageOptions);
 
-    languageSelection.selectAll("option").remove();
-    languageSelection
-      .selectAll("option")
-      .data(languages)
-      .enter()
-      .append("option")
-      .attr("value", function (d) {
-        return d;
-      })
-      .text(function (d) {
-        return d;
-      });
+    // The controller's own language wins; the sidebar only proposes the
+    // reader's preferred one when the controller is not holding a choice.
+    if (typeof activeOntologySummaryLanguage === "string") {
+      const activeIndex = availableLanguages.indexOf(
+        activeOntologySummaryLanguage,
+      );
+      if (activeIndex >= 0) {
+        languageSelect.selectedIndex = activeIndex;
+      }
+      languageSelect.value = activeOntologySummaryLanguage;
+      return;
+    }
 
-    const selectedLanguage = findBestMatchingLanguage(languages);
+    const selectedLanguage = findBestMatchingLanguage(availableLanguages);
     if (selectedLanguage) {
-      const langIndex = languages.indexOf(selectedLanguage);
+      const langIndex = availableLanguages.indexOf(selectedLanguage);
       if (langIndex >= 0) {
-        languageSelection.property("selectedIndex", langIndex);
+        languageSelect.selectedIndex = langIndex;
       }
-      if (languageSelection.node()) {
-        languageSelection.node().value = selectedLanguage;
-      }
-      graph.language(selectedLanguage);
+      languageSelect.value = selectedLanguage;
+      // A fact for the controller: this is the language the reader prefers.
+      runVisualizationControlAction(
+        () =>
+          webVowlController?.setVisualizationView({
+            language: selectedLanguage,
+          }),
+        document,
+      );
     }
-  }
-
-  function updateGraphInformation() {
-    const title = languageTools.textInLanguage(
-      ontologyInfo.title,
-      graph.language(),
-    );
-    document.querySelector("#title").textContent =
-      title || "No title available";
-    renderOntologyIri(document.querySelector("#about"), ontologyInfo.iri);
-    document.querySelector("#version").textContent =
-      ontologyInfo.version || "--";
-    const authors = ontologyInfo.author;
-    if (typeof authors === "string") {
-      // Stay compatible with author info as strings after change in january 2015
-      document.querySelector("#authors").textContent = authors;
-    } else if (authors instanceof Array) {
-      document.querySelector("#authors").textContent = authors.join(", ");
-    } else {
-      document.querySelector("#authors").textContent = "--";
-    }
-
-    const description = languageTools.textInLanguage(
-      ontologyInfo.description,
-      graph.language(),
-    );
-    document.querySelector("#description").textContent =
-      description || "No description available.";
-  }
-
-  function displayGraphStatistics(deliveredMetrics, statistics) {
-    // Metrics are optional and may be undefined
-    deliveredMetrics = deliveredMetrics || {};
-
-    document.querySelector("#classCount").textContent =
-      deliveredMetrics.classCount || statistics.classCount();
-    document.querySelector("#objectPropertyCount").textContent =
-      deliveredMetrics.objectPropertyCount || statistics.objectPropertyCount();
-    document.querySelector("#datatypePropertyCount").textContent =
-      deliveredMetrics.datatypePropertyCount ||
-      statistics.datatypePropertyCount();
-    document.querySelector("#individualCount").textContent =
-      deliveredMetrics.totalIndividualCount ||
-      statistics.totalIndividualCount();
-    document.querySelector("#nodeCount").textContent = statistics.nodeCount();
-    document.querySelector("#edgeCount").textContent = statistics.edgeCount();
   }
 
   function displayMetadata(metadata) {
@@ -560,9 +584,8 @@ function createSidebar(graph) {
     const universalEntries = [];
     const languageEntries = [];
 
-    const langUndefined = require("../../shared/js/util/constants")()
-      .LANG_UNDEFINED;
-    const langIri = require("../../shared/js/util/constants")().LANG_IRIBASED;
+    const langUndefined = languageConstants.undefinedLanguage;
+    const langIri = languageConstants.iriBasedLanguage;
 
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
@@ -608,7 +631,7 @@ function createSidebar(graph) {
 
   function listAnnotations(container, annotationObject) {
     annotationObject = annotationObject || {};
-    const preferredLanguage = graph && graph.language ? graph.language() : null;
+    const preferredLanguage = webVowlController?.getState().view?.language;
 
     const annotations = [];
     for (const annotation in annotationObject) {
@@ -689,32 +712,34 @@ function createSidebar(graph) {
    * Update the information of the selected node.
    * @param selectedElement the selection or null if nothing is selected
    */
-  sidebar.updateSelectionInformation = function (
-    selectedElement,
-    event,
-    forced,
+  // Presentation only: the controller decides what is selected, this renders
+  // the description it published. Nothing here reads a drawn element.
+  // Presentation only. Selection is cleared by the controller when a load
+  // begins, so nothing here clears it as a side effect of summarising.
+  sidebar.renderSelectedOntologyElementDetails = function (
+    elementDescriptions,
   ) {
-    lastSelectedElement = selectedElement;
-
-    // Click event was prevented when dragging
-    if (event && event.defaultPrevented && !forced) {
-      return;
-    }
+    const [elementDescription] = elementDescriptions ?? [];
 
     const isTriggerActive = document
       .querySelector("#selection-details-trigger")
       .classList.contains("accordion-trigger-active");
-    if (selectedElement && !isTriggerActive) {
-      document.querySelector("#selection-details-trigger").click();
-    } else if (!selectedElement && isTriggerActive) {
+    if (elementDescription && !isTriggerActive) {
+      toggleOntologyDetailsAccordionTrigger(
+        document.querySelector("#selection-details-trigger"),
+      );
+    } else if (!elementDescription && isTriggerActive) {
       showSelectionAdvice();
       return;
     }
+    if (!elementDescription) {
+      return;
+    }
 
-    if (elementTools.isProperty(selectedElement)) {
-      displayPropertyInformation(selectedElement);
-    } else if (elementTools.isNode(selectedElement)) {
-      displayNodeInformation(selectedElement);
+    if (elementDescription.kind === "property") {
+      displayPropertyInformation(elementDescription);
+    } else {
+      displayNodeInformation(elementDescription);
     }
   };
 
@@ -738,129 +763,148 @@ function createSidebar(graph) {
       .classList.toggle("hidden", !showAdvice);
   }
 
-  function displayPropertyInformation(property) {
+  // VOWL groups annotations under a bare local name and the DOM helper below
+  // still consumes that shape, so a description's flat annotation list is
+  // regrouped here rather than duplicating the helper.
+  function annotationGroupsFromRecords(
+    annotationRecords,
+    displayLabel,
+    omitDisplayedLabel = true,
+  ) {
+    const annotationGroups = Object.create(null);
+    for (const annotationRecord of annotationRecords) {
+      const { localName, propertyIri, languageTag, text } = annotationRecord;
+      // The preferred name is shown as Name, and a label equal to it adds
+      // nothing; a differing rdfs:label is surfaced under its own heading.
+      if (omitDisplayedLabel && localName === "prefLabel") {
+        continue;
+      }
+      const groupName = localName === "label" ? "rdfs:label" : localName;
+      if (
+        omitDisplayedLabel &&
+        localName === "label" &&
+        text === displayLabel
+      ) {
+        continue;
+      }
+      annotationGroups[groupName] ||= [];
+      annotationGroups[groupName].push({
+        identifier: groupName,
+        value: text,
+        type: annotationRecord.valueKind === "iri" ? "iri" : "label",
+        language: languageTag ?? "undefined",
+        predicateNs:
+          propertyIri === null
+            ? undefined
+            : propertyIri.slice(0, propertyIri.length - localName.length),
+      });
+    }
+    return annotationGroups;
+  }
+
+  function displayElementAttributes(elementDescription, textSpan) {
+    // Both lists describe the element; VOWL's own type markers add nothing a
+    // reader can act on and were already suppressed before this migration.
+    displayAttributes(
+      [
+        ...elementDescription.characteristicNames,
+        ...elementDescription.unclassifiedAttributeNames,
+      ],
+      textSpan,
+    );
+  }
+
+  function displayPropertyInformation(propertyDescription) {
     showPropertyInformations();
 
     setIriLabel(
       document.querySelector("#propname"),
-      property.labelForCurrentLanguage(),
-      property.iri(),
+      propertyDescription.displayLabel,
+      propertyDescription.iri,
     );
 
-    document.querySelector("#typeProp").textContent = property.type();
+    document.querySelector("#typeProp").textContent =
+      propertyDescription.elementTypeName ?? "";
 
-    if (property.inverse() !== undefined) {
+    const [inverseElement] = propertyDescription.inversePropertyElements;
+    if (inverseElement !== undefined) {
       document.querySelector("#inverse").classList.remove("hidden");
       setIriLabel(
         document.querySelector("#inverse span"),
-        property.inverse().labelForCurrentLanguage(),
-        property.inverse().iri(),
+        inverseElement.displayLabel,
+        inverseElement.iri,
       );
     } else {
       document.querySelector("#inverse").classList.add("hidden");
     }
 
-    const equivalentIriSpan = document.querySelector("#propEquivUri");
-    listNodeArray(equivalentIriSpan, property.equivalents());
-
+    listNodeArray(
+      document.querySelector("#propEquivUri"),
+      propertyDescription.equivalentPropertyElements,
+    );
     listNodeArray(
       document.querySelector("#subproperties"),
-      property.subproperties(),
+      propertyDescription.subpropertyElements,
     );
     listNodeArray(
       document.querySelector("#superproperties"),
-      property.superproperties(),
+      propertyDescription.superpropertyElements,
     );
 
-    if (property.minCardinality() !== undefined) {
+    const { exact, minimum, maximum } = propertyDescription.cardinalityRecord;
+    if (minimum !== null) {
       document.querySelector("#infoCardinality").classList.add("hidden");
       document.querySelector("#minCardinality").classList.remove("hidden");
-      document.querySelector("#minCardinality span").textContent =
-        property.minCardinality();
+      document.querySelector("#minCardinality span").textContent = minimum;
       document.querySelector("#maxCardinality").classList.remove("hidden");
-
-      if (property.maxCardinality() !== undefined) {
-        document.querySelector("#maxCardinality span").textContent =
-          property.maxCardinality();
-      } else {
-        document.querySelector("#maxCardinality span").textContent = "*";
-      }
-    } else if (property.cardinality() !== undefined) {
+      // An absent upper bound is unbounded, which VOWL and the reader both
+      // write as an asterisk.
+      document.querySelector("#maxCardinality span").textContent =
+        maximum === null ? "*" : maximum;
+    } else if (exact !== null) {
       document.querySelector("#minCardinality").classList.add("hidden");
       document.querySelector("#maxCardinality").classList.add("hidden");
       document.querySelector("#infoCardinality").classList.remove("hidden");
-      document.querySelector("#infoCardinality span").textContent =
-        property.cardinality();
+      document.querySelector("#infoCardinality span").textContent = exact;
     } else {
       document.querySelector("#infoCardinality").classList.add("hidden");
       document.querySelector("#minCardinality").classList.add("hidden");
       document.querySelector("#maxCardinality").classList.add("hidden");
     }
 
+    const [domainElement] = propertyDescription.domainElements;
+    const [rangeElement] = propertyDescription.rangeElements;
     setIriLabel(
       document.querySelector("#domain"),
-      property.domain().labelForCurrentLanguage(),
-      property.domain().iri(),
+      domainElement?.displayLabel,
+      domainElement?.iri,
     );
     setIriLabel(
       document.querySelector("#range"),
-      property.range().labelForCurrentLanguage(),
-      property.range().iri(),
+      rangeElement?.displayLabel,
+      rangeElement?.iri,
     );
 
-    displayAttributes(
-      property.attributes(),
+    displayElementAttributes(
+      propertyDescription,
       document.querySelector("#propAttributes"),
     );
 
     setTextAndVisibility(
       document.querySelector("#propDescription"),
-      property.descriptionForCurrentLanguage(),
+      propertyDescription.descriptionText,
     );
     setTextAndVisibility(
       document.querySelector("#propComment"),
-      property.commentForCurrentLanguage(),
+      propertyDescription.commentText,
     );
-
-    const annotations = property.annotations();
-    const filteredAnnotations = {};
-    if (annotations) {
-      for (const key in annotations) {
-        // Skip prefLabel (shown as Name) and raw "label" key (handled below as rdfs:label)
-        if (
-          Object.prototype.hasOwnProperty.call(annotations, key) &&
-          key !== "prefLabel" &&
-          key !== "label"
-        ) {
-          filteredAnnotations[key] = annotations[key];
-        }
-      }
-    }
-
-    // Surface rdfs:label values that differ from the preferred display name
-    const prefName = property.labelForCurrentLanguage();
-    const allRdfsLabels =
-      annotations && annotations["label"] ? annotations["label"] : [];
-    const rdfsLabels = allRdfsLabels
-      .filter(function (entry) {
-        return entry.value !== prefName;
-      })
-      .map(function (entry) {
-        return {
-          identifier: "rdfs:label",
-          value: entry.value,
-          type: "label",
-          predicateNs: "http://www.w3.org/2000/01/rdf-schema#",
-          language: entry.language,
-        };
-      });
-    if (rdfsLabels.length > 0) {
-      filteredAnnotations["rdfs:label"] = rdfsLabels;
-    }
 
     listAnnotations(
       document.querySelector("#propertySelectionInformation"),
-      filteredAnnotations,
+      annotationGroupsFromRecords(
+        propertyDescription.annotationRecords,
+        propertyDescription.displayLabel,
+      ),
     );
     sortDetailsPane("#propertySelectionInformation");
   }
@@ -907,100 +951,70 @@ function createSidebar(graph) {
     }
   }
 
-  function displayNodeInformation(node) {
+  function displayNodeInformation(classDescription) {
     showClassInformations();
 
     setIriLabel(
       document.querySelector("#name"),
-      node.labelForCurrentLanguage(),
-      node.iri(),
+      classDescription.displayLabel,
+      classDescription.iri,
     );
 
-    /* Equivalent stuff. */
-    const equivalentIriSpan = document.querySelector("#classEquivUri");
-    listNodeArray(equivalentIriSpan, node.equivalents());
+    listNodeArray(
+      document.querySelector("#classEquivUri"),
+      classDescription.equivalentClassElements,
+    );
 
-    document.querySelector("#typeNode").textContent = node.type();
-    listNodeArray(document.querySelector("#individuals"), node.individuals());
+    document.querySelector("#typeNode").textContent =
+      classDescription.elementTypeName ?? "";
+    listNodeArray(
+      document.querySelector("#individuals"),
+      classDescription.individualElements,
+    );
 
-    /* Disjoint stuff. */
     const disjointNodes = document.querySelector("#disjointNodes");
     const disjointNodesParent = disjointNodes.parentNode;
-
-    if (node.disjointWith() !== undefined) {
+    if (classDescription.disjointClassElements.length > 0) {
       disjointNodes.innerHTML = "";
-
-      node.disjointWith().forEach(function (element, index) {
-        if (index > 0) {
-          const s = document.createElement("span");
-          s.textContent = ", ";
-          disjointNodes.appendChild(s);
-        }
-        appendIriLabel(
-          disjointNodes,
-          element.labelForCurrentLanguage(),
-          element.iri(),
-        );
-      });
-
+      classDescription.disjointClassElements.forEach(
+        function (disjointElement, elementIndex) {
+          if (elementIndex > 0) {
+            const separator = document.createElement("span");
+            separator.textContent = ", ";
+            disjointNodes.appendChild(separator);
+          }
+          appendIriLabel(
+            disjointNodes,
+            disjointElement.displayLabel,
+            disjointElement.iri,
+          );
+        },
+      );
       disjointNodesParent.classList.remove("hidden");
     } else {
       disjointNodesParent.classList.add("hidden");
     }
 
-    displayAttributes(
-      node.attributes(),
+    displayElementAttributes(
+      classDescription,
       document.querySelector("#classAttributes"),
     );
 
     setTextAndVisibility(
       document.querySelector("#nodeDescription"),
-      node.descriptionForCurrentLanguage(),
+      classDescription.descriptionText,
     );
     setTextAndVisibility(
       document.querySelector("#nodeComment"),
-      node.commentForCurrentLanguage(),
+      classDescription.commentText,
     );
-
-    const annotations = node.annotations();
-    const filteredAnnotations = {};
-    if (annotations) {
-      for (const key in annotations) {
-        // Skip prefLabel (shown as Name) and raw "label" key (handled below as rdfs:label)
-        if (
-          Object.prototype.hasOwnProperty.call(annotations, key) &&
-          key !== "prefLabel" &&
-          key !== "label"
-        ) {
-          filteredAnnotations[key] = annotations[key];
-        }
-      }
-    }
-
-    // Surface rdfs:label values that differ from the preferred display name
-    const prefName = node.labelForCurrentLanguage();
-    const allRdfsLabels =
-      annotations && annotations["label"] ? annotations["label"] : [];
-    const rdfsLabels = allRdfsLabels
-      .filter(function (entry) {
-        return entry.value !== prefName;
-      })
-      .map(function (entry) {
-        return {
-          identifier: "rdfs:label",
-          value: entry.value,
-          type: "label",
-          predicateNs: "http://www.w3.org/2000/01/rdf-schema#",
-          language: entry.language,
-        };
-      });
-    if (rdfsLabels.length > 0) {
-      filteredAnnotations["rdfs:label"] = rdfsLabels;
-    }
 
     listAnnotations(
       document.querySelector("#classSelectionInformation"),
-      filteredAnnotations,
+      annotationGroupsFromRecords(
+        classDescription.annotationRecords,
+        classDescription.displayLabel,
+      ),
     );
     sortDetailsPane("#classSelectionInformation");
   }
@@ -1020,11 +1034,7 @@ function createSidebar(graph) {
           s.textContent = ", ";
           textSpan.appendChild(s);
         }
-        appendIriLabel(
-          textSpan,
-          element.labelForCurrentLanguage(),
-          element.iri(),
-        );
+        appendIriLabel(textSpan, element.displayLabel, element.iri);
       });
 
       spanParent.classList.remove("hidden");
@@ -1045,176 +1055,176 @@ function createSidebar(graph) {
   /** Collapsible Sidebar functions; **/
 
   sidebar.updateDockedControlsPosition = function () {
-    const isHidden = detailArea.classList.contains("hidden");
+    const isHidden = detailsSidebar.classList.contains("hidden");
     const zoomSlider = document.querySelector("#zoomSlider");
-    const collapseButton = document.querySelector("#sidebarExpandButton");
 
     zoomSlider.classList.toggle("aligned-to-sidebar", !isHidden);
-    collapseButton.classList.toggle("aligned-to-sidebar", !isHidden);
+    sidebarToggleButton.classList.toggle("aligned-to-sidebar", !isHidden);
   };
 
   function updateNavMenuScrollButtons() {
-    if (graph.options().navigationMenu && graph.options().navigationMenu()) {
-      graph.options().navigationMenu().updateScrollButtonVisibility();
-    }
+    updateNavigationOverflow();
   }
 
   function hideNavMenus() {
-    if (graph.options().navigationMenu && graph.options().navigationMenu()) {
-      graph.options().navigationMenu().hideAllMenus();
-    }
+    hideNavigationMenus();
   }
 
-  sidebar.showSidebar = function (val, init) {
-    if (init === true) {
-      document.querySelector("body").classList.add("no-transition");
+  function cancelPendingNoTransitionClassRemoval() {
+    if (
+      removeNoTransitionClassAnimationFrame !== undefined &&
+      typeof cancelAnimationFrame === "function"
+    ) {
+      cancelAnimationFrame(removeNoTransitionClassAnimationFrame);
+    }
+    removeNoTransitionClassAnimationFrame = undefined;
+  }
+
+  function removeOwnedNoTransitionClass() {
+    if (!ownsNoTransitionClass) {
+      return;
+    }
+    documentBody.classList.remove("no-transition");
+    ownsNoTransitionClass = false;
+  }
+
+  sidebar.showSidebar = function (
+    requestedVisibilityValue,
+    shouldSuppressInitialTransition,
+  ) {
+    if (shouldSuppressInitialTransition === true) {
+      cancelPendingNoTransitionClassRemoval();
+      documentBody.classList.add("no-transition");
+      ownsNoTransitionClass = true;
     }
 
-    if (val === 1) {
-      visibleSidebar = true;
-      collapseButton.innerHTML = ">";
-      detailArea.classList.remove("hidden");
-      graphArea.classList.add("sidebar-visible");
+    if (requestedVisibilityValue === 1) {
+      isSidebarVisible = true;
+      sidebarToggleButton.textContent = ">";
+      detailsSidebar.classList.remove("hidden");
+      graphCanvasArea.classList.add("sidebar-visible");
       document
         .querySelector("#WarningErrorMessagesContainer")
         .classList.add("sidebar-visible");
     } else {
-      visibleSidebar = false;
-      collapseButton.innerHTML = "<";
-      detailArea.classList.add("hidden");
-      graphArea.classList.remove("sidebar-visible");
+      isSidebarVisible = false;
+      sidebarToggleButton.textContent = "<";
+      detailsSidebar.classList.add("hidden");
+      graphCanvasArea.classList.remove("sidebar-visible");
       document
         .querySelector("#WarningErrorMessagesContainer")
         .classList.remove("sidebar-visible");
     }
 
     sidebar.updateDockedControlsPosition();
-    graph.updateCanvasContainerSize();
+    onViewportGeometryChanged();
     updateNavMenuScrollButtons();
 
-    if (init === true) {
-      requestAnimationFrame(function () {
-        document.querySelector("body").classList.remove("no-transition");
-      });
+    if (shouldSuppressInitialTransition === true) {
+      removeNoTransitionClassAnimationFrame = requestAnimationFrame(
+        function () {
+          removeNoTransitionClassAnimationFrame = undefined;
+          removeOwnedNoTransitionClass();
+        },
+      );
     }
   };
 
   sidebar.isSidebarVisible = function () {
-    return visibleSidebar;
+    return isSidebarVisible;
   };
 
-  sidebar.updateSideBarVis = function (init) {
-    const vis = sidebar.getSidebarVisibility();
-    sidebar.showSidebar(parseInt(vis), init);
+  sidebar.updateSideBarVis = function (shouldSuppressInitialTransition) {
+    const storedVisibilityValue = sidebar.getSidebarVisibility();
+    sidebar.showSidebar(
+      Number.parseInt(storedVisibilityValue, 10),
+      shouldSuppressInitialTransition,
+    );
   };
 
   sidebar.getSidebarVisibility = function () {
-    const isHidden = detailArea.classList.contains("hidden");
-    if (isHidden === false) {
-      return String(1);
-    }
-    if (isHidden === true) {
-      return String(0);
-    }
+    return detailsSidebar.classList.contains("hidden") ? "0" : "1";
   };
 
   sidebar.initSideBarAnimation = function () {
-    graphArea.addEventListener("transitionend", function (event) {
-      if (event.propertyName !== "width") {
-        return;
-      }
-      detailArea.classList.toggle("hidden", !visibleSidebar);
-      graph.updateCanvasContainerSize();
-      updateNavMenuScrollButtons();
-    });
+    if (isSidebarAnimationInitialized) {
+      return;
+    }
+    isSidebarAnimationInitialized = true;
+    graphCanvasArea.addEventListener(
+      "transitionend",
+      function (event) {
+        if (event.propertyName !== "width") {
+          return;
+        }
+        detailsSidebar.classList.toggle("hidden", !isSidebarVisible);
+        onViewportGeometryChanged();
+        updateNavMenuScrollButtons();
+      },
+      { signal: lifecycleAbortController.signal },
+    );
   };
 
   sidebar.setup = function () {
+    if (isSetup) {
+      return;
+    }
+    isSetup = true;
     setupCollapsing();
     sidebar.initSideBarAnimation();
 
-    collapseButton.addEventListener("click", function () {
-      hideNavMenus();
-      const settingValue = parseInt(sidebar.getSidebarVisibility());
-      if (settingValue === 1) {
-        sidebar.showSidebar(0);
-      } else {
-        sidebar.showSidebar(1);
-      }
-    });
+    sidebarToggleButton.addEventListener(
+      "click",
+      function () {
+        hideNavMenus();
+        const currentVisibilityValue = Number.parseInt(
+          sidebar.getSidebarVisibility(),
+          10,
+        );
+        if (currentVisibilityValue === 1) {
+          sidebar.showSidebar(0);
+        } else {
+          sidebar.showSidebar(1);
+        }
+      },
+      { signal: lifecycleAbortController.signal },
+    );
 
-    collapseButton.addEventListener("contextmenu", function (event) {
-      if (event) {
+    sidebarToggleButton.addEventListener(
+      "contextmenu",
+      function (event) {
         event.preventDefault();
-      }
-    });
+      },
+      { signal: lifecycleAbortController.signal },
+    );
 
-    if (window.innerWidth <= 1024) {
-      sidebar.showSidebar(0, true);
-    }
+    sidebar.showSidebar(
+      window.innerWidth <= 1024 ? 0 : Number(sidebar.getSidebarVisibility()),
+      true,
+    );
   };
 
-  sidebar.updateShowedInformation = function () {
-    const editMode = graph.editorMode();
+  sidebar.dispose = function () {
+    lifecycleAbortController.abort();
+    cancelPendingNoTransitionClassRemoval();
+    removeOwnedNoTransitionClass();
+  };
+
+  function revealDetailsSectionForCurrentMode() {
     document
       .querySelector("#generalDetails")
-      .classList.toggle("hidden", editMode);
+      .classList.toggle("hidden", isEditorMode);
     document
       .querySelector("#generalDetailsEdit")
-      .classList.toggle("hidden", !editMode);
+      .classList.toggle("hidden", !isEditorMode);
+  }
 
-    // store the meta information in graph.options()
-
-    // todo: update edit meta info
-    graph.options().editSidebar().updateGeneralOntologyInfo();
-
-    // todo: update showed meta info;
-    graph.options().sidebar().updateGeneralOntologyInfo();
-  };
-
-  sidebar.updateGeneralOntologyInfo = function () {
-    // get it from graph.options
-    const generalMetaObj = graph.options().getGeneralMetaObject();
-    const preferredLanguage = graph && graph.language ? graph.language() : null;
-    if (Object.prototype.hasOwnProperty.call(generalMetaObj, "title")) {
-      // title has language to it -.-
-      if (typeof generalMetaObj.title === "object") {
-        document.querySelector("#title").value = languageTools.textInLanguage(
-          generalMetaObj.title,
-          preferredLanguage,
-        );
-      } else {
-        document.querySelector("#title").innerHTML = generalMetaObj.title;
-      }
-    }
-    if (Object.prototype.hasOwnProperty.call(generalMetaObj, "iri")) {
-      renderOntologyIri(document.querySelector("#about"), generalMetaObj.iri);
-    }
-    if (Object.prototype.hasOwnProperty.call(generalMetaObj, "version")) {
-      document.querySelector("#version").innerHTML = generalMetaObj.version;
-    }
-    if (Object.prototype.hasOwnProperty.call(generalMetaObj, "author")) {
-      document.querySelector("#authors").innerHTML = generalMetaObj.author;
-    }
-    // this could also be an object >>
-    if (Object.prototype.hasOwnProperty.call(generalMetaObj, "description")) {
-      if (typeof generalMetaObj.description === "object") {
-        document.querySelector("#description").innerHTML =
-          languageTools.textInLanguage(
-            generalMetaObj.description,
-            preferredLanguage,
-          );
-      } else {
-        document.querySelector("#description").innerHTML =
-          generalMetaObj.description;
-      }
-    }
+  // The renderer publishes which mode it is in; this module keeps its own copy
+  // of the last reported mode rather than asking the renderer for it.
+  sidebar.renderEditorMode = function (nextIsEditorMode) {
+    isEditorMode = nextIsEditorMode === true;
+    revealDetailsSectionForCurrentMode();
   };
 
   return sidebar;
 }
-
-createSidebar.navigableIri = navigableIri;
-createSidebar.renderOntologyIri = renderOntologyIri;
-
-module.exports = createSidebar;

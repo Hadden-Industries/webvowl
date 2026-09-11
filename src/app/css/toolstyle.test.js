@@ -240,9 +240,9 @@ describe("SVG icon symbol reuse", () => {
     );
   });
 
-  test("uses icon-arrow-clockwise by reference in #reloadCachedOntology button", () => {
+  test("uses icon-arrow-clockwise by reference in #reloadOntologySource button", () => {
     expect(markup).toMatch(
-      /<button\s+id="reloadCachedOntology"[\s\S]*?<use\s+href="#icon-arrow-clockwise">\s*<\/use>/,
+      /<button\s+id="reloadOntologySource"[\s\S]*?<use\s+href="#icon-arrow-clockwise">\s*<\/use>/,
     );
   });
 
@@ -253,9 +253,9 @@ describe("SVG icon symbol reuse", () => {
   });
 });
 
-describe("reloadCachedOntology accessibility contrast", () => {
+describe("reloadOntologySource accessibility contrast", () => {
   test("uses high-contrast solid surface styling over graph canvas", () => {
-    const reloadRule = stylesheet.match(/#reloadCachedOntology\s*\{([^{}]+)\}/);
+    const reloadRule = stylesheet.match(/#reloadOntologySource\s*\{([^{}]+)\}/);
 
     expect(reloadRule).not.toBeNull();
     expect(reloadRule[1]).toContain("color: #fff");

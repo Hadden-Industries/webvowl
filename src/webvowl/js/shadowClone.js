@@ -1,8 +1,11 @@
-const CenteringTextElement = require("../../shared/js/util/CenteringTextElement");
-const elementTools = require("../../shared/js/util/elementTools")();
-const math = require("../../shared/js/util/math")();
-const drawTools = require("./elements/drawTools")();
-module.exports = function (graph) {
+import { createMath as mathFactory } from "../../shared/js/util/math.js";
+import { createDrawTools as drawToolsFactory } from "./elements/drawTools.js";
+import { createElementTools } from "../../shared/js/util/elementTools.js";
+import { CenteringTextElement } from "../../shared/js/util/CenteringTextElement.js";
+const elementTools = createElementTools();
+const math = mathFactory();
+const drawTools = drawToolsFactory();
+export function createShadowClone(graph) {
   /** variable defs **/
   const ShadowClone = {};
   ShadowClone.nodeId = 10003;
@@ -309,4 +312,4 @@ module.exports = function (graph) {
   /** MOUSE HANDLING FUNCTIONS ------------------------------------------------- **/
 
   return ShadowClone;
-};
+}

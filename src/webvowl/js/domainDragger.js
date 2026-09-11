@@ -1,4 +1,4 @@
-module.exports = function (graph) {
+export function createDomainDragger(graph) {
   /** variable defs **/
   const Domain_dragger = {};
   Domain_dragger.nodeId = 10002;
@@ -62,36 +62,16 @@ module.exports = function (graph) {
       Domain_dragger.updateElement();
       return;
     }
-    if (
-      Domain_dragger.parent.labelElement().attr("transform") ===
-        "translate(0,15)" ||
-      Domain_dragger.parent.labelElement().attr("transform") ===
-        "translate(0,-15)"
-    ) {
-      const prop = Domain_dragger.parent;
-      Domain_dragger.parent.inverse().inverse(null);
-      Domain_dragger.parent.inverse(null);
-      console.warn("SPLITTING ITEMS!");
-      prop.domain(newDomain);
-    } else {
-      Domain_dragger.parent.domain(newDomain);
-    }
-
-    // update the position of the new range
-    const rX = Domain_dragger.parent.range().x;
-    const rY = Domain_dragger.parent.range().y;
-    const dX = newDomain.x;
-    const dY = newDomain.y;
-
-    // center
-    const cX = 0.49 * (dX + rX);
-    const cY = 0.49 * (dY + rY);
-    // put position there;
-    Domain_dragger.parent.labelObject().x = cX;
-    Domain_dragger.parent.labelObject().px = cX;
-    Domain_dragger.parent.labelObject().y = cY;
-    Domain_dragger.parent.labelObject().py = cY;
-    Domain_dragger.updateElement();
+    const other = Domain_dragger.parent.range();
+    graph.requestPropertyEndpointEdit(
+      Domain_dragger.parent,
+      "domain",
+      newDomain,
+      {
+        xPx: 0.49 * (other.x + newDomain.x),
+        yPx: 0.49 * (other.y + newDomain.y),
+      },
+    );
   };
 
   Domain_dragger.setParentProperty = function (parentProperty, inverted) {
@@ -404,4 +384,4 @@ module.exports = function (graph) {
     // Class_dragger.nodeElement.classed(name,val);
   };
   return Domain_dragger;
-};
+}

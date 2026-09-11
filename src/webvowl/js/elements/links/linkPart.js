@@ -1,17 +1,17 @@
 /**
  * A linkPart connects two force layout nodes.
- * It reprents a link which can be used in d3's force layout.
+ * It represents a link which can be used in the force layout.
  * @param _domain
  * @param _range
  * @param _link
  */
-module.exports = function (_domain, _range, _link) {
+export function createLinkPart(_domain, _range, _link) {
   const linkPart = {},
     domain = _domain,
     link = _link,
     range = _range;
 
-  // Define d3 properties
+  // Define force layout properties
   Object.defineProperties(linkPart, {
     source: { value: domain, writable: true },
     target: { value: range, writable: true },
@@ -30,4 +30,4 @@ module.exports = function (_domain, _range, _link) {
   };
 
   return linkPart;
-};
+}

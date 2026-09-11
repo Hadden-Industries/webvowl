@@ -1,8 +1,8 @@
 /**
- * A simple incomplete encapsulation of the d3 set, which is able to store webvowl
+ * A simple incomplete encapsulation of a set, which is able to store webvowl
  * elements by using their id.
  */
-module.exports = function (array) {
+export function createSet(array) {
   const set = {},
     d3Set = new Set(array);
 
@@ -27,4 +27,4 @@ module.exports = function (array) {
   };
 
   return set;
-};
+}

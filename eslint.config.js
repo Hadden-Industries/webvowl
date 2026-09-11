@@ -78,11 +78,12 @@ module.exports = [
   },
 
   // Keep presentation in stylesheets. Runtime data may cross the boundary only
-  // through literal CSS custom properties; exportMenu's detached clone is the
-  // documented exception for standalone SVG serialization.
+  // through literal CSS custom properties; the detached export clone is the
+  // documented exception for standalone SVG serialization, because a file
+  // opened outside this page carries no stylesheet with it.
   {
     files: ["src/**/*.js"],
-    ignores: ["**/*.test.js", "src/app/js/menu/exportMenu.js", "src/app/js/menu/svgExportStyles.js"],
+    ignores: ["**/*.test.js", "src/app/js/controller/tikzSerializer.js", "src/webvowl/js/runtime/renderedSvgExportClone.js"],
     rules: {
       "no-restricted-syntax": [
         "error",
@@ -122,7 +123,7 @@ module.exports = [
     }
   },
   {
-    files: ["src/app/js/menu/exportMenu.js", "src/app/js/menu/svgExportStyles.js"],
+    files: ["src/app/js/controller/tikzSerializer.js", "src/webvowl/js/runtime/renderedSvgExportClone.js"],
     rules: {
       "no-restricted-syntax": [
         "error",

@@ -1,35 +1,25 @@
 /**
- * Unified application entry point for Vite.
+ * Composition entry point.
  *
- * Replaces the two separate webpack entry points (src/webvowl/js/entry.js and
- * src/app/js/entry.js) with a single module entry that imports both libraries,
- * assigns them to the expected window globals, and initializes the application.
- *
- * CSS imports are pulled in transitively through the entry modules:
- *   - webvowl/js/entry.js imports ../css/vowl.css
- *   - app/js/entry.js imports ../css/toolstyle.css
+ * Constructs the application once, keeps it in module scope, and releases
+ * its load generations and SVG artifacts when the page goes away. No
+ * renderer global is published; embedding hosts use the exported
+ * application entry and its controller accessor.
  */
+import { createWebVowlApplication } from "./app/js/entry.js";
 
-// Conditionally import Popover API polyfill for non-Baseline browsers
 if (!("popover" in HTMLElement.prototype)) {
   await import("@oddbird/popover-polyfill");
 }
 
-// Import both library entry points (CJS, transformed by vite-plugin-commonjs)
-const webvowl = require("./webvowl/js/entry");
-const app = require("./app/js/entry");
+const application = createWebVowlApplication();
 
-// Assign to window globals to replicate webpack library.type: "assign" behaviour.
-// webpack output did:
-//   webvowl = <exports>            (from entry "webvowl")
-//   webvowl.app = <exports>        (from entry "webvowl.app" with dotted name)
-// The HTML initialization script expects webvowl.app() to be callable.
-// Global reference for debugging or legacy reasons removed as part of UI decoupling
-webvowl.app = app;
-const application = webvowl.app();
-
-// Initialize the application on page load.
-// Replaces the inline <script>window.onload = webvowl.app().initialize;</script> from index.html.
-window.onload = function () {
+window.addEventListener("load", () => {
   application.initialize();
-};
+});
+
+window.addEventListener("pagehide", () => {
+  application.dispose();
+});
+
+export { application };

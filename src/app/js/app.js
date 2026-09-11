@@ -1,64 +1,208 @@
-String.prototype.replaceAll = function (search, replacement) {
-  const target = this;
-  return target.split(search).join(replacement);
-};
-module.exports = function () {
-  const app = {},
-    graph = require("../../webvowl/js/graph")(),
-    options = graph.graphOptions(),
-    languageTools = require("../../shared/js/util/languageTools")(),
-    GRAPH_SELECTOR = "#graph",
-    // Modules for the webvowl app
-    exportMenu = require("./menu/exportMenu")(graph),
-    filterMenu = require("./menu/filterMenu")(graph),
-    gravityMenu = require("./menu/gravityMenu")(graph),
-    modeMenu = require("./menu/modeMenu")(graph),
-    debugMenu = require("./menu/debugMenu")(graph),
-    ontologyMenu = require("./menu/ontologyMenu")(graph),
-    pauseMenu = require("./menu/pauseMenu")(graph),
-    resetMenu = require("./menu/resetMenu")(graph),
-    searchMenu = require("./menu/searchMenu")(graph),
-    navigationMenu = require("./menu/navigationMenu")(graph),
-    zoomSlider = require("./menu/zoomSlider")(graph),
-    sidebar = require("./sidebar")(graph),
-    leftSidebar = require("./leftSidebar")(graph),
-    editSidebar = require("./editSidebar")(graph),
-    configMenu = require("./menu/configMenu")(graph),
-    loadingModule = require("./loadingModule")(graph),
-    warningModule = require("./warningModule")(graph),
-    directInputMod = require("./directInputModule")(graph),
-    // Graph modules
-    colorExternalsSwitch =
-      require("../../shared/js/modules/colorExternalsSwitch")(graph),
-    compactNotationSwitch =
-      require("../../shared/js/modules/compactNotationSwitch")(graph),
-    datatypeFilter = require("../../shared/js/modules/datatypeFilter")(),
-    disjointFilter = require("../../shared/js/modules/disjointFilter")(),
-    focuser = require("../../shared/js/modules/focuser")(graph),
-    emptyLiteralFilter =
-      require("../../shared/js/modules/emptyLiteralFilter")(),
-    nodeDegreeFilter = require("../../shared/js/modules/nodeDegreeFilter")(
-      filterMenu,
-    ),
-    nodeScalingSwitch = require("../../shared/js/modules/nodeScalingSwitch")(
-      graph,
-    ),
-    objectPropertyFilter =
-      require("../../shared/js/modules/objectPropertyFilter")(),
-    pickAndPin = require("../../shared/js/modules/pickAndPin")(),
-    selectionDetailDisplayer =
-      require("../../shared/js/modules/selectionDetailsDisplayer")(
-        sidebar.updateSelectionInformation,
-      ),
-    statistics = require("../../shared/js/modules/statistics")(),
-    subclassFilter = require("../../shared/js/modules/subclassFilter")(),
-    setOperatorFilter = require("../../shared/js/modules/setOperatorFilter")();
+import { createControllerStatePresenter } from "./ui/controllerStatePresenter.js";
+import { createBrowserPaintObserver } from "./ui/browserPaintObserver.js";
+import { createD3RenderedGraphAdapter } from "../../webvowl/js/runtime/d3RenderedGraphAdapter.js";
+import { createRenderedGraphConfiguration } from "../../webvowl/js/runtime/renderedGraphConfiguration.js";
+import { createGraphLayoutSettler } from "./controller/graphLayoutSettler.js";
+import { createOntologyInspector } from "./controller/ontologyInspector.js";
+import { createOntologySourceLoader } from "./controller/ontologySourceLoader.js";
+import { vowlModelInspectionProjector } from "./controller/vowlModelInspectionProjector.js";
+import { createVisualizationArtifactService } from "./controller/visualizationArtifactService.js";
+import { createSvgSerializer } from "./controller/svgSerializer.js";
+import { createWebVowlController } from "./controller/webVowlController.js";
+import { registerWebMcpTools } from "./webmcp/webMcpAdapter.js";
+import { createVisualizationArtifactDownloadAdapter } from "./ui/visualizationArtifactDownloadAdapter.js";
+import { createConstants } from "../../shared/js/util/constants.js";
+import { createLanguageTools } from "../../shared/js/util/languageTools.js";
+import { createConfigMenu } from "./menu/configMenu.js";
+import { createDebugMenu } from "./menu/debugMenu.js";
+import { createExportMenu } from "./menu/exportMenu.js";
+import { createDegreeFilterControl } from "./ui/degreeFilterControl.js";
+import { createGravityMenu } from "./menu/gravityMenu.js";
+import { createModeMenu } from "./menu/modeMenu.js";
+import { createNavigationMenu } from "./menu/navigationMenu.js";
+import { createOntologyMenu } from "./menu/ontologyMenu.js";
+import { createPauseMenu } from "./menu/pauseMenu.js";
+import { createVisualizationViewControlsAdapter } from "./ui/visualizationViewControlsAdapter.js";
+import { createResetMenu } from "./menu/resetMenu.js";
+import { createSearchMenu } from "./menu/searchMenu.js";
+import { createZoomSlider } from "./menu/zoomSlider.js";
 
-  app.getOptions = function () {
-    return options;
+const nativeApplicationUiModuleNamespacesPromise = Promise.all([
+  import("./directInputModule.js"),
+  import("./ontologyEditorSidebar.js"),
+  import("./leftSidebar.js"),
+  import("./loadingModule.js"),
+  import("./sidebar.js"),
+  import("./warningModule.js"),
+]);
+
+export function createWebVowlApplication() {
+  const app = {};
+  const GRAPH_SELECTOR = "#graph";
+  const languageTools = createLanguageTools();
+  const webVowlConstants = createConstants();
+  const languageConstants = {
+    iriBasedLanguage: webVowlConstants.LANG_IRIBASED,
+    undefinedLanguage: webVowlConstants.LANG_UNDEFINED,
   };
-  app.getGraph = function () {
-    return graph;
+  const degreeFilterControl = createDegreeFilterControl();
+  const pauseMenu = createPauseMenu({ documentObject: document });
+
+  let directInputModule;
+  let ontologyEditorSidebar;
+  let leftSidebar;
+  let loadingModule;
+  let sidebar;
+  let warningModule;
+
+  // Agent-neutral controller. Embedding hosts and WebMCP reach WebVOWL through
+  // this interface rather than through the renderer.
+  const visualizationArtifactDownloadAdapter =
+    createVisualizationArtifactDownloadAdapter({
+      documentObject: document,
+    });
+  // One production rendering path: the adapter owns the renderer implementation
+  const renderedGraphConfiguration = createRenderedGraphConfiguration();
+  const waitForBrowserPaint = createBrowserPaintObserver({
+    requestAnimationFrame: globalThis.requestAnimationFrame.bind(globalThis),
+    cancelAnimationFrame: globalThis.cancelAnimationFrame.bind(globalThis),
+  });
+  // and publishes it as the RenderedGraphRuntime the controller consumes.
+  const { renderedGraphRuntime } = createD3RenderedGraphAdapter({
+    graphContainerElement: document.querySelector(GRAPH_SELECTOR),
+    observeNextPaint: (_loadGeneration, options) =>
+      waitForBrowserPaint(options),
+    renderedGraphConfiguration,
+  });
+
+  let unsubscribeFromControllerState;
+  const webVowlController = createWebVowlController({
+    requestOntologyDeletionConfirmation: (proposal, options) =>
+      warningModule.confirmOntologyDeletion(proposal, options),
+    applicationUrl: globalThis.location.href,
+    ontologySourceLoader: createOntologySourceLoader(),
+    vowlModelInspectionProjector,
+    renderedGraphRuntime,
+    ontologyInspector: createOntologyInspector(),
+    graphLayoutSettler: createGraphLayoutSettler({
+      requestAnimationFrame: (frameCallback) =>
+        globalThis.requestAnimationFrame(frameCallback),
+      cancelAnimationFrame: (frameHandle) =>
+        globalThis.cancelAnimationFrame(frameHandle),
+      nowMs: () => globalThis.performance.now(),
+    }),
+    visualizationArtifactService: createVisualizationArtifactService({
+      svgSerializer: createSvgSerializer({
+        XMLSerializerConstructor: globalThis.XMLSerializer,
+        documentObject: document,
+        webVowlVersion: webVowlConstants.WEBVOWL_VERSION,
+      }),
+      webCrypto: globalThis.crypto,
+      BlobConstructor: globalThis.Blob,
+      objectUrlApi: globalThis.URL,
+      visualizationArtifactPublicationPort:
+        visualizationArtifactDownloadAdapter,
+    }),
+    waitForDocumentFonts: () => document.fonts?.ready ?? Promise.resolve(),
+    waitForBrowserPaint,
+  });
+
+  // Menus that command the controller are constructed once it exists.
+  const debugMenu = createDebugMenu({ webVowlController });
+  const modeMenu = createModeMenu({ webVowlController });
+  const configMenu = createConfigMenu({
+    webVowlController,
+    maxLabelWidthPx: renderedGraphConfiguration.maxLabelWidth,
+  });
+  const gravityMenu = createGravityMenu({
+    webVowlController,
+    classDistancePx: renderedGraphConfiguration.classDistance,
+    datatypeDistancePx: renderedGraphConfiguration.datatypeDistance,
+  });
+  const exportMenu = createExportMenu({
+    webVowlController,
+    visualizationArtifactDownloadAdapter,
+    readShareLinkPresentation: () => ({
+      sidebar: Number(sidebar.getSidebarVisibility()),
+      editorMode:
+        webVowlController.getState().editorMode?.isEditorMode === true,
+      debugFeatures: debugMenu.isVisible(),
+    }),
+  });
+  const navigationMenu = createNavigationMenu({
+    onExportMenuOpened: () => exportMenu.exportAsUrl(),
+  });
+  const zoomSlider = createZoomSlider({
+    webVowlController,
+    hideNavigationMenus: () => navigationMenu.hideAllMenus(),
+    onControlsVisibilityChanged: () => sidebar?.updateDockedControlsPosition(),
+    minimumMagnification: renderedGraphConfiguration.minMagnification,
+    maximumMagnification: renderedGraphConfiguration.maxMagnification,
+    graphWidthPx: renderedGraphConfiguration.widthPx,
+    graphHeightPx: renderedGraphConfiguration.heightPx,
+  });
+  const ontologyMenu = createOntologyMenu({
+    webVowlController,
+    loadOntologyFromLocation: (options) =>
+      loadingModule.loadOntologyFromLocation(options),
+    loadLocalFile: (file) => loadingModule.loadLocalFile(file),
+    createNewOntology: () => loadingModule.createNewOntology(),
+    scrollLoadingDetails: () => loadingModule.scrollDownDetails(),
+    hideNavigationMenus: () => navigationMenu.hideAllMenus(),
+  });
+  const searchMenu = createSearchMenu({
+    webVowlController,
+    onOntologyIriEntered: (iri) => ontologyMenu.setIriText(iri),
+  });
+  const resetMenu = createResetMenu({
+    webVowlController,
+    clearSearchPresentation: () => searchMenu.clearText(),
+  });
+  const viewControlsLifecycleController = new AbortController();
+  createVisualizationViewControlsAdapter({
+    controller: webVowlController,
+    documentObject: document,
+    lifecycleSignal: viewControlsLifecycleController.signal,
+  });
+
+  // The agent surface is registered once the controller exists, because every
+  // tool is an operation on it. A page that cannot offer tools carries on as an
+  // ordinary WebVOWL page.
+  const webMcpRegistration = registerWebMcpTools({
+    controller: webVowlController,
+    documentObject: document,
+    windowObject: window,
+  });
+
+  app.getWebVowlController = function () {
+    return webVowlController;
+  };
+
+  app.getWebMcpRegistration = function () {
+    return webMcpRegistration;
+  };
+
+  let resizeAnimationFrame;
+  let graphResizeObserver;
+
+  app.dispose = function () {
+    // Withdraw the tools before the controller they call goes away, so no
+    // registration can outlive what answers it.
+    webMcpRegistration.dispose();
+    viewControlsLifecycleController.abort();
+    degreeFilterControl.dispose();
+    ontologyEditorSidebar?.dispose();
+    debugMenu.dispose();
+    graphResizeObserver?.disconnect();
+    graphResizeObserver = undefined;
+    if (resizeAnimationFrame !== undefined) {
+      cancelAnimationFrame(resizeAnimationFrame);
+      resizeAnimationFrame = undefined;
+    }
+    unsubscribeFromControllerState?.();
+    unsubscribeFromControllerState = undefined;
+    webVowlController.dispose();
+    visualizationArtifactDownloadAdapter.dispose();
   };
   // app.afterInitializationCallback=undefined;
 
@@ -66,8 +210,6 @@ module.exports = function () {
   let wasMessageToShow = false;
   let firstTime = false;
   let initialTouchZoomHandled = false;
-  let resizeAnimationFrame;
-  let graphResizeObserver;
 
   function addFileDropEvents(selector) {
     const node = document.querySelector(selector);
@@ -77,8 +219,12 @@ module.exports = function () {
 
       document.querySelector("#dragDropContainer").classList.remove("hidden");
       // get svg size
-      const w = graph.options().width();
-      const h = graph.options().height();
+      const w = document
+        .querySelector(GRAPH_SELECTOR)
+        .getBoundingClientRect().width;
+      const h = document
+        .querySelector(GRAPH_SELECTOR)
+        .getBoundingClientRect().height;
 
       // get event position; (using clientX and clientY);
       const cx = e.clientX;
@@ -121,12 +267,6 @@ module.exports = function () {
         document.querySelector("#drag_msg_text").innerHTML = "Drop it here.";
         document.querySelector("#drag_msg").classList.add("drag-over");
         executeFileDrop = true;
-        // d3.select("#drag_svg").transition()
-        //   .duration(100)
-        //   // .attr("-webkit-transform", "rotate(90)")
-        //   // .attr("-moz-transform",    "rotate(90)")
-        //   // .attr("-o-transform",      "rotate(90)")
-        //   .attr("transform",         "rotate(90)");
 
         document.querySelector("#drag_icon").classList.add("hidden");
         document.querySelector("#drag_icon_drop").classList.remove("hidden");
@@ -138,14 +278,6 @@ module.exports = function () {
 
         document.querySelector("#drag_icon").classList.remove("hidden");
         document.querySelector("#drag_icon_drop").classList.add("hidden");
-
-        // d3.select("#drag_svg").transition()
-        //   .duration(100)
-        //   // .attr("-webkit-transform", "rotate(0)")
-        //   // .attr("-moz-transform",    "rotate(0)")
-        //   // .attr("-o-transform",      "rotate(0)")
-        //   .attr("transform",         "rotate(0)");
-        //
       }
     };
     node.ondrop = function (ev) {
@@ -156,7 +288,7 @@ module.exports = function () {
           if (ev.dataTransfer.items.length === 1) {
             if (ev.dataTransfer.items[0].kind === "file") {
               const file = ev.dataTransfer.items[0].getAsFile();
-              loadingModule.fromFileDrop(file.name, file);
+              loadingModule.loadLocalFile(file);
             }
           } else {
             //  >> WARNING not multiple file uploaded;
@@ -168,8 +300,12 @@ module.exports = function () {
     };
 
     node.ondragleave = function (e) {
-      const w = graph.options().width();
-      const h = graph.options().height();
+      const w = document
+        .querySelector(GRAPH_SELECTOR)
+        .getBoundingClientRect().width;
+      const h = document
+        .querySelector(GRAPH_SELECTOR)
+        .getBoundingClientRect().height;
 
       // get event position; (using clientX and clientY);
       const cx = e.clientX;
@@ -192,53 +328,90 @@ module.exports = function () {
         .querySelector("#loading-info")
         .classList.toggle("hidden", !wasMessageToShow); // show it again
       // check if it should be visible
-      const should_show = graph
-        .options()
-        .loadingModule()
-        .getMessageVisibilityStatus();
+      const should_show = loadingModule.getMessageVisibilityStatus();
       if (should_show === false) {
         document.querySelector("#loading-info").classList.add("hidden"); // hide it
       }
     };
   }
 
-  app.initialize = function () {
+  function applyShareLinkPresentation({
+    sidebar: sidebarVisibility,
+    editorMode,
+    debugFeatures,
+  }) {
+    if (sidebarVisibility !== undefined) {
+      sidebar.showSidebar(sidebarVisibility, true);
+    }
+    if (editorMode !== undefined) {
+      webVowlController.setOntologyEditorOptions({ isEditorMode: editorMode });
+    }
+    if (debugFeatures !== undefined) {
+      debugMenu.setVisible(debugFeatures);
+    }
+  }
+
+  async function initializeNativeApplicationUiModules() {
+    const [
+      { createDirectInputModule },
+      { createOntologyEditorSidebar },
+      { createLeftSidebar },
+      { createLoadingModule },
+      { createSidebar },
+      { createWarningModule },
+    ] = await nativeApplicationUiModuleNamespacesPromise;
+
+    directInputModule = createDirectInputModule({
+      webVowlController,
+    });
+    ontologyEditorSidebar = createOntologyEditorSidebar({
+      webVowlController,
+      documentObject: document,
+      showWarning: (message) =>
+        warningModule.showWarning(
+          "Editing could not be completed",
+          message,
+          "Check the entered value and try again.",
+          1,
+        ),
+    });
+    leftSidebar = createLeftSidebar({
+      webVowlController,
+      hideNavigationMenus: () => navigationMenu.hideAllMenus(),
+      onViewportGeometryChanged: scheduleSizeAdjustment,
+      updateNavigationOverflow: () =>
+        navigationMenu.updateScrollButtonVisibility(),
+    });
+    loadingModule = createLoadingModule({
+      webVowlController,
+      ontologyMenu,
+      hideNavigationMenus: () => navigationMenu.hideAllMenus(),
+      onGraphControlAvailabilityChanged: (enabled) => {
+        for (const control of [resetMenu, pauseMenu, zoomSlider, searchMenu]) {
+          control.setMenuMode(enabled);
+        }
+      },
+      onShareLinkPresentation: applyShareLinkPresentation,
+    });
+    sidebar = createSidebar({
+      languageConstants,
+      languageTools,
+      webVowlController,
+      onViewportGeometryChanged: scheduleSizeAdjustment,
+      hideNavigationMenus: () => navigationMenu.hideAllMenus(),
+      updateNavigationOverflow: () =>
+        navigationMenu.updateScrollButtonVisibility(),
+    });
+    warningModule = createWarningModule({ webVowlController });
+  }
+
+  app.initialize = async function () {
+    await initializeNativeApplicationUiModules();
     addFileDropEvents(GRAPH_SELECTOR);
 
-    window.requestAnimationFrame =
-      window.requestAnimationFrame ||
-      window.mozRequestAnimationFrame ||
-      window.webkitRequestAnimationFrame ||
-      window.msRequestAnimationFrame ||
-      function (f) {
-        return setTimeout(f, 1000 / 60);
-      }; // simulate calling code 60
-    window.cancelAnimationFrame =
-      window.cancelAnimationFrame ||
-      window.mozCancelAnimationFrame ||
-      function (requestID) {
-        clearTimeout(requestID);
-      }; //fall back
-
-    options.graphContainerSelector(GRAPH_SELECTOR);
-    options.selectionModules().push(focuser);
-    options.selectionModules().push(selectionDetailDisplayer);
-    options.selectionModules().push(pickAndPin);
-
-    options.filterModules().push(emptyLiteralFilter);
-    options.filterModules().push(statistics);
-
-    options.filterModules().push(nodeDegreeFilter);
-    options.filterModules().push(datatypeFilter);
-    options.filterModules().push(objectPropertyFilter);
-    options.filterModules().push(subclassFilter);
-    options.filterModules().push(disjointFilter);
-    options.filterModules().push(setOperatorFilter);
-    options.filterModules().push(nodeScalingSwitch);
-    options.filterModules().push(compactNotationSwitch);
-    options.filterModules().push(colorExternalsSwitch);
-
-    window.addEventListener("resize", scheduleSizeAdjustment);
+    window.addEventListener("resize", scheduleSizeAdjustment, {
+      signal: viewControlsLifecycleController.signal,
+    });
 
     const graphHost = document.querySelector(GRAPH_SELECTOR);
     if (
@@ -250,246 +423,89 @@ module.exports = function () {
       graphResizeObserver.observe(graphHost);
     }
 
-    graph.addEventListener("zoomchange", (e) =>
-      zoomSlider.updateZoomSliderValue(e.detail.value),
-    );
-    graph.addEventListener("dictionarychange", () =>
-      searchMenu.requestDictionaryUpdate(),
-    );
-    graph.addEventListener("searchcleared", () => searchMenu.clearText());
-    graph.addEventListener("updatelocatebutton", (e) =>
-      searchMenu.updateLocateButtonVisibility(e.detail.visible),
-    );
-    graph.addEventListener("elementfocused", (e) =>
-      focuser.handle(e.detail.element),
-    );
-    graph.addEventListener("editorchange", (e) => {
-      const isEditMode = e.detail.value;
-      modeMenu.syncEditorState(isEditMode);
-      if (isEditMode) {
-        leftSidebar.hideCollapseButton(false);
-        leftSidebar.showSidebar(1);
-        editSidebar.updatePrefixUi();
-        editSidebar.updateElementWidth();
-      } else {
-        leftSidebar.showSidebar(0);
-        leftSidebar.hideCollapseButton(true);
-      }
-      sidebar.updateShowedInformation();
-      editSidebar.updateElementWidth();
-    });
-    graph.addEventListener("urloptions", (e) => {
-      const opts = e.detail.opts;
-      const changeEditFlag = e.detail.changeEditFlag;
-
-      if (opts.sidebar !== undefined) {
-        sidebar.showSidebar(parseInt(opts.sidebar), true);
-      }
-      if (opts.doc) {
-        const asInt = parseInt(opts.doc);
-        filterMenu.setDegreeSliderValue(asInt);
-        graph.options().setGlobalDOF(asInt);
-      }
-      let settingFlag;
-      if (opts.editorMode) {
-        settingFlag = opts.editorMode === "true";
-        const editorCheckbox = document.querySelector(
-          "#editorModeModuleCheckbox",
-        );
-        if (editorCheckbox) {
-          editorCheckbox.checked = settingFlag;
-        }
-        if (changeEditFlag) {
-          graph.editorMode(settingFlag);
-        }
-      }
-      if (opts.cd) {
-        graph.options().classDistance(opts.cd);
-      }
-      if (opts.dd) {
-        graph.options().datatypeDistance(opts.dd);
-      }
-
-      if (opts.filter_datatypes) {
-        settingFlag = opts.filter_datatypes === "true";
-        filterMenu.setCheckBoxValue("datatypeFilterCheckbox", settingFlag);
-      }
-      if (opts.debugFeatures) {
-        settingFlag = opts.debugFeatures === "true";
-        graph.options().setHideDebugFeatures(settingFlag);
-        if (graph.options().getHideDebugFeatures() === false) {
-          graph.options().executeHiddenDebugFeatures();
-        }
-      }
-
-      if (opts.filter_objectProperties) {
-        settingFlag = opts.filter_objectProperties === "true";
-        filterMenu.setCheckBoxValue(
-          "objectPropertyFilterCheckbox",
-          settingFlag,
-        );
-      }
-      if (opts.filter_sco) {
-        settingFlag = opts.filter_sco === "true";
-        filterMenu.setCheckBoxValue("subclassFilterCheckbox", settingFlag);
-      }
-      if (opts.filter_disjoint) {
-        settingFlag = opts.filter_disjoint === "true";
-        filterMenu.setCheckBoxValue("disjointFilterCheckbox", settingFlag);
-      }
-      if (opts.filter_setOperator) {
-        settingFlag = opts.filter_setOperator === "true";
-        filterMenu.setCheckBoxValue("setoperatorFilterCheckbox", settingFlag);
-      }
-      filterMenu.updateSettings();
-
-      if (opts.mode_dynamic) {
-        settingFlag = opts.mode_dynamic === "true";
-        modeMenu.setDynamicLabelWidth(settingFlag);
-        graph.options().dynamicLabelWidth(settingFlag);
-      }
-      if (opts.mode_pnp) {
-        settingFlag = opts.mode_pnp === "true";
-        modeMenu.setCheckBoxValue("pickandpinModuleCheckbox", settingFlag);
-      }
-      if (opts.mode_scaling) {
-        settingFlag = opts.mode_scaling === "true";
-        modeMenu.setCheckBoxValue("nodescalingModuleCheckbox", settingFlag);
-      }
-      if (opts.mode_compact) {
-        settingFlag = opts.mode_compact === "true";
-        modeMenu.setCheckBoxValue("compactnotationModuleCheckbox", settingFlag);
-      }
-      if (opts.mode_colorExt) {
-        settingFlag = opts.mode_colorExt === "true";
-        modeMenu.setCheckBoxValue("colorexternalsModuleCheckbox", settingFlag);
-      }
-      if (opts.mode_multiColor) {
-        settingFlag = opts.mode_multiColor === "true";
-        modeMenu.setColorSwitchStateUsingURL(settingFlag);
-      }
-      modeMenu.updateSettingsUsingURL();
-      graph.options().rectangularRepresentation(opts.rect);
-    });
-
-    graph.addEventListener("fpsupdate", (e) => {
-      const debugContainer = document.querySelector("#FPS_Statistics");
-      if (debugContainer) {
-        debugContainer.innerHTML =
-          "FPS: " +
-          e.detail.fps +
-          "<br>" +
-          "Nodes: " +
-          e.detail.nodes +
-          "<br>" +
-          "Links: " +
-          e.detail.links;
-      }
-    });
-    graph.addEventListener("editor-element-keyup", (e) => {
-      if (e.detail.syncedIRI !== null) {
-        document.querySelector("#element_iriEditor").title = e.detail.syncedIRI;
-        document.querySelector("#element_iriEditor").value =
-          e.detail.prefixedIri || e.detail.syncedIRI;
-      }
-      document.querySelector("#element_labelEditor").value = e.detail.label;
-    });
-
-    options.searchMenu(searchMenu);
-    options.focuserModule(focuser);
-    options.zoomSlider(zoomSlider);
-    options.pausedMenu(pauseMenu);
-    options.resetMenu(resetMenu);
-
     exportMenu.setup();
     gravityMenu.setup();
-    filterMenu.setup(
-      datatypeFilter,
-      objectPropertyFilter,
-      subclassFilter,
-      disjointFilter,
-      setOperatorFilter,
-      nodeDegreeFilter,
-    );
-    modeMenu.setup(
-      pickAndPin,
-      nodeScalingSwitch,
-      compactNotationSwitch,
-      colorExternalsSwitch,
-    );
+    degreeFilterControl.setup();
+    modeMenu.setup();
     pauseMenu.setup();
     sidebar.setup();
     loadingModule.setup();
+    // Presentation modules render controller state rather than being called
+    // from inside the renderer, and each runs only when its own slice changed.
+    const controllerStatePresenter = createControllerStatePresenter({
+      renderLoadState: (controllerState) => {
+        loadingModule.renderControllerState(controllerState);
+        ontologyMenu.renderSourceReloadControl(controllerState.source, {
+          hasReusedCachedVisualization:
+            controllerState.hasReusedCachedVisualization,
+        });
+      },
+      renderGraphLayoutPaused: (isPaused) =>
+        pauseMenu.renderGraphLayoutPaused(isPaused),
+      // Details are described from the ontology the controller holds, so the
+      // sidebar never reads a drawn element for a semantic fact.
+      renderSelectedOntologyElementDetails: (elementDescriptions) =>
+        sidebar.renderSelectedOntologyElementDetails(elementDescriptions),
+      renderOntologySummary: (ontologySummary) =>
+        sidebar.renderOntologySummary(ontologySummary),
+      renderViewport: (zoomScale) => zoomSlider.renderViewport(zoomScale),
+      renderEditorMode: (isEditorMode) => {
+        sidebar.renderEditorMode(isEditorMode);
+        ontologyMenu.renderEditorMode(isEditorMode);
+        modeMenu.syncEditorState(isEditorMode);
+        leftSidebar.hideCollapseButton(!isEditorMode);
+        leftSidebar.showSidebar(isEditorMode ? 1 : 0);
+      },
+      describeOntologyElements: (descriptionRequest) =>
+        webVowlController.describeOntologyElements(descriptionRequest),
+      readOntologySummary: () => webVowlController.getOntologySummary(),
+    });
+    unsubscribeFromControllerState = webVowlController.subscribeToState(
+      (controllerState, changedFieldNames) => {
+        controllerStatePresenter.present(controllerState, changedFieldNames);
+        if (changedFieldNames.includes("loadGeneration")) {
+          searchMenu.clearText();
+        }
+        if (
+          changedFieldNames.some((fieldName) =>
+            ["status", "loadGeneration", "documentRevision", "view"].includes(
+              fieldName,
+            ),
+          )
+        ) {
+          searchMenu.renderVisualizationFocus(
+            webVowlController.getVisualizationFocus(),
+          );
+        }
+        if (
+          changedFieldNames.includes("degreeFilterRange") ||
+          changedFieldNames.includes("view")
+        ) {
+          degreeFilterControl.renderDegreeFilterRange(
+            controllerState.degreeFilterRange,
+            controllerState.view?.filters.minDegree ?? 0,
+          );
+        }
+      },
+    );
     leftSidebar.setup();
-    editSidebar.setup();
+    ontologyEditorSidebar.setup();
     debugMenu.setup();
     document.querySelector("#logo").classList.remove("hidden");
-    resetMenu.setup([
-      gravityMenu,
-      filterMenu,
-      modeMenu,
-      focuser,
-      selectionDetailDisplayer,
-      pauseMenu,
-    ]);
+    // Reset uses the controller's visualization defaults and focus state.
+    resetMenu.setup();
     searchMenu.setup();
     navigationMenu.setup();
     zoomSlider.setup();
 
-    // give the options the pointer to the some menus for import and export
-    options.literalFilter(emptyLiteralFilter);
-    options.nodeDegreeFilter(nodeDegreeFilter);
-    options.loadingModule(loadingModule);
-    options.filterMenu(filterMenu);
-    options.modeMenu(modeMenu);
-    options.gravityMenu(gravityMenu);
-    options.pausedMenu(pauseMenu);
-    options.pickAndPinModule(pickAndPin);
-    options.resetMenu(resetMenu);
-
-    options.ontologyMenu(ontologyMenu);
-    options.navigationMenu(navigationMenu);
-    options.sidebar(sidebar);
-    options.leftSidebar(leftSidebar);
-    options.editSidebar(editSidebar);
-    options.exportMenu(exportMenu);
-    options.graphObject(graph);
-
-    options.warningModule(warningModule);
-    options.directInputModule(directInputMod);
-    options.datatypeFilter(datatypeFilter);
-    options.objectPropertyFilter(objectPropertyFilter);
-    options.subclassFilter(subclassFilter);
-    options.setOperatorFilter(setOperatorFilter);
-    options.disjointPropertyFilter(disjointFilter);
-
-    options.colorExternalsModule(colorExternalsSwitch);
-    options.compactNotationModule(compactNotationSwitch);
-    options.nodeScalingModule(nodeScalingSwitch);
-
-    ontologyMenu.setup(loadOntologyFromText);
+    ontologyMenu.setup();
     configMenu.setup(zoomSlider);
     loadingModule.refreshControlAvailability();
 
     leftSidebar.showSidebar(0);
     leftSidebar.hideCollapseButton(true);
 
-    graph.start();
-
     adjustSize();
-    const w = graph.options().width();
-    const h = graph.options().height();
-    const defZoom = Math.min(w, h) / 1000;
-
-    const hideDebugOptions = true;
-    if (hideDebugOptions === false) {
-      graph.setForceTickFunctionWithFPS();
-    }
-
-    graph.setDefaultZoom(defZoom);
-    document
-      .querySelectorAll(".debugOption")
-      .forEach((el) => el.classList.toggle("hidden", hideDebugOptions));
 
     // prevent backspace reloading event
     const htmlBody = document.querySelector("body");
@@ -505,21 +521,10 @@ module.exports = function () {
         event.key &&
         event.key.toLowerCase() === "d"
       ) {
-        graph.options().executeHiddenDebugFeatuers();
+        debugMenu.setVisible(!debugMenu.isVisible());
         event.preventDefault();
       }
     });
-    if (document.querySelector("#maxLabelWidthSliderOption")) {
-      const setValue = !graph.options().dynamicLabelWidth();
-      document.querySelector("#maxLabelWidthSlider").disabled = setValue;
-      document
-        .querySelector("#maxLabelWidthSliderValue")
-        .classList.toggle("disabledLabelForSlider", setValue);
-      document
-        .querySelector("#maxLabelWidthDescriptionLabel")
-        .classList.toggle("disabledLabelForSlider", setValue);
-    }
-
     const blockGraphInteractions = document.querySelector(
       "#blockGraphInteractions",
     );
@@ -538,121 +543,20 @@ module.exports = function () {
     const directTextInput = document.querySelector("#direct-text-input");
     if (directTextInput) {
       directTextInput.addEventListener("click", function () {
-        directInputMod.setDirectInputMode();
+        directInputModule.setDirectInputMode();
       });
     }
-    options.prefixModule(
-      require("../../shared/js/util/prefixRepresentationModule")(graph),
-    );
     adjustSize();
-    sidebar.updateOntologyInformation(undefined, statistics);
-    loadingModule.parseUrlAndLoadOntology(); // loads automatically the ontology provided by the parameters
-    options.debugMenu(debugMenu);
-    debugMenu.updateSettings();
+    // The location names the ontology to show; the controller loads it.
+    loadingModule.loadOntologyFromLocation();
 
-    // connect the reloadCachedVersionButton
-    const reloadCachedOntologyBtn = document.getElementById(
-      "reloadCachedOntology",
-    );
-    if (reloadCachedOntologyBtn) {
-      reloadCachedOntologyBtn.addEventListener("click", function () {
-        if (reloadCachedOntologyBtn.disabled) {
-          ontologyMenu.clearCachedVersion();
-          return;
-        }
-        reloadCachedOntologyBtn.classList.add("hidden");
-        ontologyMenu.reloadCachedOntology();
-      });
-    }
     // add the initialized objects
   };
 
-  function loadOntologyFromText(jsonText, filename, alternativeFilename) {
-    const reloadCachedOntologyBtn = document.getElementById(
-      "reloadCachedOntology",
-    );
-    if (reloadCachedOntologyBtn) {
-      reloadCachedOntologyBtn.classList.add("hidden");
-    }
-    pauseMenu.reset();
-    navigationMenu.hideAllMenus();
-
-    if (
-      (jsonText === undefined && filename === undefined) ||
-      jsonText.length === 0
-    ) {
-      loadingModule.notValidJsonFile();
+  function scheduleSizeAdjustment() {
+    if (viewControlsLifecycleController.signal.aborted) {
       return;
     }
-    let data;
-    if (jsonText) {
-      // validate JSON FILE
-      let validJSON;
-      try {
-        data = JSON.parse(jsonText);
-        validJSON = true;
-      } catch (_e) {
-        validJSON = false;
-      }
-      if (validJSON === false) {
-        // the server output is not a valid json file
-        loadingModule.notValidJsonFile();
-        return;
-      }
-
-      if (!filename) {
-        // First look if an ontology title exists, otherwise take the alternative filename
-        const ontologyNames = data.header ? data.header.title : undefined;
-        const ontologyName = languageTools.textInLanguage(ontologyNames);
-
-        if (ontologyName) {
-          filename = ontologyName;
-        } else {
-          filename = alternativeFilename;
-        }
-      }
-    }
-
-    // check if we have graph data
-    let classCount = 0;
-    if (data.class !== undefined) {
-      classCount = data.class.length;
-    }
-
-    let loadEmptyOntologyForEditing = false;
-    if (location.hash.indexOf("#new_ontology") !== -1) {
-      loadEmptyOntologyForEditing = true;
-    }
-    if (
-      classCount === 0 &&
-      graph.editorMode() === false &&
-      loadEmptyOntologyForEditing === false
-    ) {
-      // generate message for the user;
-      loadingModule.emptyGraphContentError();
-    } else {
-      ontologyMenu.setCachedOntology(filename, jsonText);
-      exportMenu.setJsonText(jsonText);
-      options.data(data);
-      loadingModule.validJsonFile();
-      loadingModule.setPercentMode();
-      if (loadEmptyOntologyForEditing === true) {
-        graph.editorMode(true);
-      }
-      graph.load();
-      sidebar.updateOntologyInformation(data, statistics);
-      exportMenu.setFilename(filename);
-      graph.updateZoomSliderValueFromOutside();
-      adjustSize();
-
-      const flagOfCheckBox = document.querySelector(
-        "#editorModeModuleCheckbox",
-      ).checked;
-      graph.editorMode(flagOfCheckBox); // update gui
-    }
-  }
-
-  function scheduleSizeAdjustment() {
     if (resizeAnimationFrame !== undefined) {
       cancelAnimationFrame(resizeAnimationFrame);
     }
@@ -663,38 +567,37 @@ module.exports = function () {
   }
 
   function adjustSize() {
-    directInputMod.updateLayout();
-    const viewport = graph.updateCanvasContainerSize();
-
-    graph.updateStyle();
-
-    if (isTouchDevice() === true) {
-      if (graph.isEditorMode() === true) {
-        document.querySelector("#modeOfOperationString").innerHTML =
-          "touch able device detected";
-      }
-      graph.setTouchDevice(true);
-
-      if (!initialTouchZoomHandled && isMultiTouchZoomDevice()) {
-        initialTouchZoomHandled = true;
-        configMenu.setCheckBoxValue("showZoomSliderConfigCheckbox", false);
-      }
-    } else {
-      if (graph.isEditorMode() === true) {
-        document.querySelector("#modeOfOperationString").innerHTML =
-          "point & click device detected";
-      }
-      graph.setTouchDevice(false);
+    directInputModule.updateLayout();
+    const bounds = document
+      .querySelector(GRAPH_SELECTOR)
+      .getBoundingClientRect();
+    const viewport = { width: bounds.width, height: bounds.height };
+    const isTouch = Boolean(isTouchDevice());
+    const occludedLeftWidthPx = leftSidebar.isSidebarVisible()
+      ? Math.min(
+          bounds.width,
+          document
+            .querySelector("#containerForLeftSideBar")
+            .getBoundingClientRect().width,
+        )
+      : 0;
+    webVowlController.resizeVisualizationViewport({
+      widthPx: bounds.width,
+      heightPx: bounds.height,
+      occludedLeftWidthPx,
+      isTouchDevice: isTouch,
+    });
+    debugMenu.renderInputModality(isTouch);
+    if (isTouch && !initialTouchZoomHandled && isMultiTouchZoomDevice()) {
+      initialTouchZoomHandled = true;
+      configMenu.setCheckBoxValue("showZoomSliderConfigCheckbox", false);
     }
 
-    loadingModule.checkForScreenSize();
+    loadingModule.checkForScreenSize(viewport);
 
     adjustSliderSize(viewport.height);
 
     navigationMenu.updateScrollButtonVisibility();
-
-    // adjust height of the leftSidebar element;
-    editSidebar.updateElementWidth();
 
     const dragMsg = document.querySelector("#drag_msg");
     if (dragMsg) {
@@ -743,4 +646,4 @@ module.exports = function () {
   }
 
   return app;
-};
+}

@@ -1,3 +1,1 @@
-import "../css/toolstyle.css";
-
-module.exports = require("./app");
+export { createWebVowlApplication } from "./app.js";

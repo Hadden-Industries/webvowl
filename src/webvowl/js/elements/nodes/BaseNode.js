@@ -1,7 +1,8 @@
-const BaseElement = require("../BaseElement");
-const forceLayoutNodeFunctions = require("../forceLayoutNodeFunctions")();
+import { BaseElement } from "../BaseElement.js";
+import { createForceLayoutNodeFunctions as forceLayoutNodeFunctionsFactory } from "../forceLayoutNodeFunctions.js";
+const forceLayoutNodeFunctions = forceLayoutNodeFunctionsFactory();
 
-module.exports = (function () {
+const BaseNode = (function () {
   const Base = function (graph) {
     BaseElement.apply(this, arguments);
 
@@ -19,7 +20,6 @@ module.exports = (function () {
     let maxIndividualCount;
     let fobj; // foreigner object for editing
     let ignoreLocalHoverEvents = false;
-    let backupFullIri;
     // Element containers
     let nodeElement;
 
@@ -48,17 +48,6 @@ module.exports = (function () {
           ) {
             return true;
           }
-        }
-      }
-      return false;
-    };
-
-    this.existingPropertyIRI = function (url) {
-      // this goes via IRIS
-      for (let i = 0; i < assignedProperties.length; i++) {
-        const iriEl = assignedProperties[i].iri();
-        if (iriEl === url) {
-          return true;
         }
       }
       return false;
@@ -110,7 +99,11 @@ module.exports = (function () {
     };
 
     this.raiseDoubleClickEdit = function (forceIRISync, event) {
-      d3.selectAll(".foreignelements").remove();
+      for (const foreignElement of document.querySelectorAll(
+        ".foreignelements",
+      )) {
+        foreignElement.remove();
+      }
       if (
         nodeElement === undefined ||
         this.type() === "owl:Thing" ||
@@ -123,7 +116,7 @@ module.exports = (function () {
         nodeElement.selectAll(".foreignelements").remove();
       }
 
-      backupFullIri = undefined;
+      const labelEditEpoch = graph.currentRenderInteractionEpoch();
       graph.dispatchEvent(
         new CustomEvent("elementfocused", { detail: { element: undefined } }),
       );
@@ -185,37 +178,12 @@ module.exports = (function () {
           event.stopPropagation();
           if (event.key === "Enter") {
             this.blur();
-            that.frozen(false); // << releases the not after selection
-            that.locked(false);
           }
         })
-        .on("keyup", function (event) {
-          let syncedIRI = null;
-          if (forceIRISync) {
-            const labelName = editText.node().value;
-            const resourceName = labelName.replaceAll(" ", "_");
-            syncedIRI = that.baseIri() + resourceName;
-            backupFullIri = syncedIRI;
+        .on("blur", function () {
+          if (!that.editingTextElement) {
+            return;
           }
-          let prefixedIri = null;
-          if (forceIRISync) {
-            prefixedIri = graph
-              .options()
-              .prefixModule()
-              .getPrefixRepresentationForFullURI(syncedIRI);
-          }
-          graph.dispatchEvent(
-            new CustomEvent("editor-element-keyup", {
-              detail: {
-                element: that,
-                label: editText.node().value,
-                syncedIRI: forceIRISync ? syncedIRI : null,
-                prefixedIri: prefixedIri,
-              },
-            }),
-          );
-        })
-        .on("blur", function (event) {
           that.editingTextElement = false;
           ignoreLocalHoverEvents = false;
           that
@@ -223,52 +191,19 @@ module.exports = (function () {
             .selectAll("circle")
             .classed("hoveredForEditing", false);
           const newLabel = editText.node().value;
-          nodeElement.selectAll(".foreignelements").remove();
-          // that.setLabelForCurrentLanguage(classNameConvention(editText.node().value));
-          that.label(newLabel);
-          that.backupLabel(newLabel);
-          that.redrawLabelText();
-          if (graph !== undefined) {
-            graph.dispatchEvent(new CustomEvent("dictionarychange"));
-          }
+          that.nodeElement().selectAll(".foreignelements").remove();
           that.frozen(graph.paused());
           that.locked(graph.paused());
           graph.ignoreOtherHoverEvents(false);
-          // console.log("Calling blur on Node!");
-          if (backupFullIri) {
-            const sanityCheckResult =
-              graph.checkIfIriClassAlreadyExist(backupFullIri);
-            if (sanityCheckResult === false) {
-              that.iri(backupFullIri);
-            } else {
-              // throw warnign
-              graph
-                .options()
-                .warningModule()
-                .showWarning(
-                  "Already seen this class",
-                  "Input IRI: " +
-                    backupFullIri +
-                    " for element: " +
-                    that.labelForCurrentLanguage() +
-                    " already been set",
-                  "Restoring previous IRI for Element : " + that.iri(),
-                  2,
-                  false,
-                  sanityCheckResult,
-                );
-            }
-          }
-          if (graph.isADraggerActive() === false) {
-            graph.dispatchEvent(
-              new CustomEvent("elementfocused", {
-                detail: { element: undefined },
-              }),
-            );
-            graph.dispatchEvent(
-              new CustomEvent("elementfocused", { detail: { element: that } }),
-            );
-          }
+          graph.removeEditElements();
+          // The application validates and accepts this revision. The drawn
+          // record remains a projection of the previously accepted document.
+          graph.requestRecordLabelEdit(
+            that.id(),
+            newLabel,
+            forceIRISync === true,
+            labelEditEpoch,
+          );
         }); // add a foreiner element to this thing;
     };
 
@@ -481,3 +416,5 @@ module.exports = (function () {
 
   return Base;
 })();
+
+export { BaseNode };

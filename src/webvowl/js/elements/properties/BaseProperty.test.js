@@ -1,4 +1,14 @@
-const BaseProperty = require("./BaseProperty");
+import { beforeAll, jest } from "@jest/globals";
+import loadEsmModuleForTest from "../../../../app/test/loadEsmModuleForTest.js";
+
+let BaseProperty;
+
+beforeAll(async () => {
+  ({ BaseProperty } = await loadEsmModuleForTest(
+    new URL("./BaseProperty.js", import.meta.url),
+    import.meta.url,
+  ));
+});
 
 describe("BaseProperty Unit Tests", () => {
   let graphMock;

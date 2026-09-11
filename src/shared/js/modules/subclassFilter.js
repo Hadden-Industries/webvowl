@@ -1,6 +1,8 @@
-const elementTools = require("../util/elementTools")();
+import { createSet as createElementSet } from "../util/set.js";
+import { createElementTools as elementToolsFactory } from "../util/elementTools.js";
+const elementTools = elementToolsFactory();
 
-module.exports = function () {
+export function createSubclassFilter() {
   const filter = {};
   let nodes;
   let properties;
@@ -91,7 +93,7 @@ module.exports = function () {
         // Look only for subclass properties, because these are the relevant properties
         if (elementTools.isRdfsSubClassOf(property)) {
           const domain = property.domain();
-          visitedNodes = visitedNodes || require("../util/set")();
+          visitedNodes = visitedNodes || createElementSet();
 
           // If we have the range, there might be a nested property on the domain
           if (node === property.range() && !visitedNodes.has(domain)) {
@@ -181,4 +183,4 @@ module.exports = function () {
   };
 
   return filter;
-};
+}

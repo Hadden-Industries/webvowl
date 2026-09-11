@@ -1,9 +1,10 @@
-const constants = require("./constants")();
+import { createConstants as constantsFactory } from "./constants.js";
+const constants = constantsFactory();
 
 /**
  * Encapsulates methods which return a label in a specific language for a preferred language.
  */
-module.exports = (function () {
+const createLanguageTools = (function () {
   const languageTools = {};
 
   languageTools.textInLanguage = function (textObject, preferredLanguage) {
@@ -51,3 +52,5 @@ module.exports = (function () {
     return languageTools;
   };
 })();
+
+export { createLanguageTools };

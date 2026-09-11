@@ -1,11 +1,21 @@
-const BaseElement = require("../BaseElement");
-const CenteringTextElement = require("../../../../shared/js/util/CenteringTextElement");
-const textTools = require("../../../../shared/js/util/textTools")();
-const drawTools = require("../drawTools")();
-const forceLayoutNodeFunctions = require("../forceLayoutNodeFunctions")();
-const rectangularElementTools = require("../rectangularElementTools")();
+import { createDrawTools as drawToolsFactory } from "../drawTools.js";
+import { createForceLayoutNodeFunctions as forceLayoutNodeFunctionsFactory } from "../forceLayoutNodeFunctions.js";
+import { createRectangularElementTools as rectangularElementToolsFactory } from "../rectangularElementTools.js";
+import { BaseElement } from "../BaseElement.js";
+import { CenteringTextElement } from "../../../../shared/js/util/CenteringTextElement.js";
+import { createTextTools as textToolsFactory } from "../../../../shared/js/util/textTools.js";
+const textTools = textToolsFactory();
+const drawTools = drawToolsFactory();
+const forceLayoutNodeFunctions = forceLayoutNodeFunctionsFactory();
+const rectangularElementTools = rectangularElementToolsFactory();
 
-module.exports = (function () {
+// Linear easing is the identity function; keeping it local removes this
+// renderer element's dependency on an ambient force-layout global.
+function linearEasing(normalizedTime) {
+  return +normalizedTime;
+}
+
+const BaseProperty = (function () {
   // Static variables
   const labelHeight = 28,
     labelWidth = 80,
@@ -45,18 +55,8 @@ module.exports = (function () {
     let shapeElement;
     let textElement;
     let parent_labelObject;
-    let backupFullIri;
 
     let redundantProperties = [];
-
-    this.existingPropertyIRI = function (url) {
-      // Emit an event that the app could respond to, though this is a synchronous return value.
-      // For now, we leave the direct call intact, but emit the event for future async migration.
-      graph.dispatchEvent(
-        new CustomEvent("urlcheckrequested", { detail: { url: url } }),
-      );
-      return graph.options().editSidebar().checkForExistingURL(url);
-    };
 
     this.getHalos = function () {
       return haloGroupElement;
@@ -233,11 +233,11 @@ module.exports = (function () {
       return "marker" + that.id();
     };
 
-    this.toggleFocus = function () {
+    this.toggleSelection = function () {
       that.focused(!that.focused());
       labelElement.select("rect").classed("focused", that.focused());
-      graph.resetSearchHighlight();
-      graph.dispatchEvent(new CustomEvent("searchcleared"));
+      // Selection styling and details do not change the requested search focus.
+      graph.reportRenderedElementSelection(that.focused() ? [that.id()] : []);
     };
     this.getShapeElement = function () {
       return shapeElement;
@@ -800,45 +800,65 @@ module.exports = (function () {
     };
 
     this.animateDynamicLabelWidth = function (dynamic) {
-      that.removeHalo();
       if (shapeElement === undefined) {
         // this handles setOperatorProperties which dont have a shapeElement!
         return;
       }
 
       const h = that.height();
-      if (dynamic === true) {
-        myWidth = Math.min(that.getMyWidth(), graph.options().maxLabelWidth());
+      myWidth =
+        dynamic === true
+          ? Math.min(that.getMyWidth(), graph.options().maxLabelWidth())
+          : defaultWidth;
+      const targetWidth = myWidth;
+      const finishLabelGeometry = () => {
         shapeElement
-          .transition()
-          .tween("attr", function () {})
-          .ease(d3.easeLinear)
-          .duration(100)
-          .attr({ x: -myWidth / 2, y: -h / 2, width: myWidth, height: h })
-          .on("end", function () {
-            that.updateTextElement();
-          });
-      } else {
-        // Static width for property labels = 80
-        myWidth = defaultWidth;
+          .attr("x", -targetWidth / 2)
+          .attr("y", -h / 2)
+          .attr("width", targetWidth)
+          .attr("height", h);
         that.updateTextElement();
+        if (that.halo()) {
+          that.removeHalo();
+          that.drawHalo(false);
+        }
+      };
+      const transitions = [
         shapeElement
           .transition()
-          .tween("attr", function () {})
-          .ease(d3.easeLinear)
+          .ease(linearEasing)
           .duration(100)
-          .attr({ x: -myWidth / 2, y: -h / 2, width: myWidth, height: h });
-      }
+          .attr("x", -myWidth / 2)
+          .attr("y", -h / 2)
+          .attr("width", myWidth)
+          .attr("height", h)
+          .on("end interrupt cancel", finishLabelGeometry),
+      ];
       if (that.pinned() === true && pinGroupElement) {
         const dx = -0.5 * myWidth + 10,
           dy = -25;
-        pinGroupElement
-          .transition()
-          .tween("attr.translate", function () {})
-          .attr("transform", "translate(" + dx + "," + dy + ")")
-          .ease(d3.easeLinear)
-          .duration(100);
+        transitions.push(
+          pinGroupElement
+            .transition()
+            .attr("transform", "translate(" + dx + "," + dy + ")")
+            .ease(linearEasing)
+            .duration(100)
+            .on("end interrupt cancel", () =>
+              pinGroupElement.attr(
+                "transform",
+                "translate(" + dx + "," + dy + ")",
+              ),
+            ),
+        );
       }
+      return Promise.all(
+        transitions.map((transition) =>
+          transition.end().then(
+            () => true,
+            () => false,
+          ),
+        ),
+      ).then((outcomes) => outcomes.every(Boolean));
     };
 
     this.redrawLabelText = function () {
@@ -878,7 +898,11 @@ module.exports = (function () {
     };
 
     this.raiseDoubleClickEdit = function (forceIRISync, event) {
-      d3.selectAll(".foreignelements").remove();
+      for (const foreignElement of document.querySelectorAll(
+        ".foreignelements",
+      )) {
+        foreignElement.remove();
+      }
       if (
         that.labelElement() === undefined ||
         this.type() === "owl:disjointWith" ||
@@ -890,7 +914,7 @@ module.exports = (function () {
       if (fobj !== undefined) {
         that.labelElement().selectAll(".foreignelements").remove();
       }
-      backupFullIri = undefined;
+      const labelEditEpoch = graph.currentRenderInteractionEpoch();
       graph.dispatchEvent(
         new CustomEvent("elementfocused", { detail: { element: undefined } }),
       );
@@ -969,37 +993,12 @@ module.exports = (function () {
         .on("keydown", function (event) {
           if (event.key === "Enter") {
             this.blur();
-            that.frozen(false); // << releases the not after selection
-            that.locked(false);
           }
         })
-        .on("keyup", function (event) {
-          let syncedIRI = null;
-          if (forceIRISync) {
-            const labelName = editText.node().value;
-            const resourceName = labelName.replaceAll(" ", "_");
-            syncedIRI = that.baseIri() + resourceName;
-            backupFullIri = syncedIRI;
+        .on("blur", function () {
+          if (!that.editingTextElement) {
+            return;
           }
-          let prefixedIri = null;
-          if (forceIRISync) {
-            prefixedIri = graph
-              .options()
-              .prefixModule()
-              .getPrefixRepresentationForFullURI(syncedIRI);
-          }
-          graph.dispatchEvent(
-            new CustomEvent("editor-element-keyup", {
-              detail: {
-                element: that,
-                label: editText.node().value,
-                syncedIRI: forceIRISync ? syncedIRI : null,
-                prefixedIri: prefixedIri,
-              },
-            }),
-          );
-        })
-        .on("blur", function (event) {
           that.editingTextElement = false;
           ignoreLocalHoverEvents = false;
           that
@@ -1008,77 +1007,24 @@ module.exports = (function () {
             .classed("hoveredForEditing", false);
           const newLabel = editText.node().value;
           that.labelElement().selectAll(".foreignelements").remove();
-          // that.setLabelForCurrentLanguage(classNameConvention(editText.node().value));
-          that.label(newLabel);
-          that.backupLabel(newLabel);
-          that.redrawLabelText();
-          if (graph !== undefined) {
-            graph.dispatchEvent(new CustomEvent("dictionarychange"));
-          }
-          updateHoverElements(true);
-          graph.showHoverElementsAfterAnimation(that, false);
-          graph.ignoreOtherHoverEvents(false);
-
           that.frozen(graph.paused());
           that.locked(graph.paused());
           that.domain().frozen(graph.paused());
           that.domain().locked(graph.paused());
           that.range().frozen(graph.paused());
           that.range().locked(graph.paused());
+          graph.ignoreOtherHoverEvents(false);
           graph.removeEditElements();
-          if (backupFullIri) {
-            // console.log("Checking if element is Identical ?");
-            const sanityCheckResult = graph
-              .options()
-              .editSidebar()
-              .checkProperIriChange(that, backupFullIri);
-            if (sanityCheckResult !== false) {
-              graph
-                .options()
-                .warningModule()
-                .showWarning(
-                  "Already seen this property",
-                  "Input IRI: " +
-                    backupFullIri +
-                    " for element: " +
-                    that.labelForCurrentLanguage() +
-                    " already been set",
-                  "Continuing with duplicate property!",
-                  1,
-                  false,
-                  sanityCheckResult,
-                );
-            }
-            that.iri(backupFullIri);
-          }
-          graph.dispatchEvent(
-            new CustomEvent("elementfocused", {
-              detail: { element: undefined },
-            }),
+          // The application validates and accepts this revision. The drawn
+          // record remains a projection of the previously accepted document.
+          graph.requestRecordLabelEdit(
+            that.id(),
+            newLabel,
+            forceIRISync === true,
+            labelEditEpoch,
           );
-          graph.dispatchEvent(
-            new CustomEvent("elementfocused", { detail: { element: that } }),
-          );
-          graph.updatePropertyDraggerElements(that);
         }); // add a foreiner element to this thing;
     };
-
-    // update hover elements
-    function updateHoverElements(enable) {
-      if (graph.ignoreOtherHoverEvents() === false) {
-        let inversed = false;
-        if (
-          that.inverse() &&
-          that.labelElement() &&
-          that.labelElement().attr("transform") === "translate(0,15)"
-        ) {
-          inversed = true;
-        }
-        if (enable === true) {
-          graph.activateHoverElementsForProperties(enable, that, inversed);
-        }
-      }
-    }
 
     that.copyInformation = function (other) {
       that.label(other.label());
@@ -1118,3 +1064,5 @@ module.exports = (function () {
 
   return Base;
 })();
+
+export { BaseProperty };

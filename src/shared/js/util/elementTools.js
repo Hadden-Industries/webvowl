@@ -1,16 +1,16 @@
-const BaseProperty = require("../../../webvowl/js/elements/properties/BaseProperty");
-const BaseNode = require("../../../webvowl/js/elements/nodes/BaseNode");
-const DatatypeNode = require("../../../webvowl/js/elements/nodes/DatatypeNode");
-const Thing = require("../../../webvowl/js/elements/nodes/implementations/OwlThing");
-const ObjectProperty = require("../../../webvowl/js/elements/properties/implementations/OwlObjectProperty");
-const DatatypeProperty = require("../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty");
-const RdfsSubClassOf = require("../../../webvowl/js/elements/properties/implementations/RdfsSubClassOf");
-const Label = require("../../../webvowl/js/elements/links/Label");
+import { BaseProperty } from "../../../webvowl/js/elements/properties/BaseProperty.js";
+import { BaseNode } from "../../../webvowl/js/elements/nodes/BaseNode.js";
+import { DatatypeNode } from "../../../webvowl/js/elements/nodes/DatatypeNode.js";
+import { OwlThing as Thing } from "../../../webvowl/js/elements/nodes/implementations/OwlThing.js";
+import { OwlObjectProperty as ObjectProperty } from "../../../webvowl/js/elements/properties/implementations/OwlObjectProperty.js";
+import { OwlDatatypeProperty as DatatypeProperty } from "../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty.js";
+import { RdfsSubClassOf } from "../../../webvowl/js/elements/properties/implementations/RdfsSubClassOf.js";
+import { Label } from "../../../webvowl/js/elements/links/Label.js";
 
 const tools = {};
-module.exports = function () {
+export function createElementTools() {
   return tools;
-};
+}
 
 tools.isLabel = function (element) {
   return element instanceof Label;

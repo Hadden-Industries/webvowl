@@ -1,68 +1,29 @@
 import {
   afterEach,
+  beforeAll,
   beforeEach,
   describe,
   expect,
   jest,
   test,
 } from "@jest/globals";
-import exportMenuFactory from "./exportMenu.js";
+import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
-describe("export menu downloads", () => {
-  let anchor;
-  let originalDocument;
-  let originalUrl;
+const exportMenuFactory = {};
+let WebVowlOperationError;
 
-  beforeEach(() => {
-    jest.useFakeTimers();
-    originalDocument = global.document;
-    originalUrl = global.URL;
-    anchor = {
-      click: jest.fn(),
-      download: "",
-      hidden: false,
-      href: "",
-      remove: jest.fn(),
-    };
-    global.document = {
-      body: { appendChild: jest.fn() },
-      createElement: jest.fn(() => anchor),
-    };
-    global.URL = {
-      createObjectURL: jest.fn(() => "blob:webvowl-export"),
-      revokeObjectURL: jest.fn(),
-    };
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-    global.document = originalDocument;
-    global.URL = originalUrl;
-  });
-
-  test("downloads generated content through a temporary object URL", async () => {
-    exportMenuFactory.downloadFile(
-      "ontology content",
-      "text/turtle;charset=utf-8",
-      "ontology.ttl",
-    );
-
-    expect(document.createElement).toHaveBeenCalledWith("a");
-    expect(document.body.appendChild).toHaveBeenCalledWith(anchor);
-    expect(anchor.href).toBe("blob:webvowl-export");
-    expect(anchor.download).toBe("ontology.ttl");
-    expect(anchor.hidden).toBe(true);
-    expect(anchor.click).toHaveBeenCalledTimes(1);
-    expect(anchor.remove).toHaveBeenCalledTimes(1);
-
-    const blob = URL.createObjectURL.mock.calls[0][0];
-    expect(blob.type).toBe("text/turtle;charset=utf-8");
-    await expect(blob.text()).resolves.toBe("ontology content");
-
-    expect(URL.revokeObjectURL).not.toHaveBeenCalled();
-    jest.runOnlyPendingTimers();
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:webvowl-export");
-  });
+beforeAll(async () => {
+  ({ WebVowlOperationError } = await loadEsmModuleForTest(
+    new URL("../controller/webVowlControllerContracts.js", import.meta.url),
+    import.meta.url,
+  ));
+  Object.assign(
+    exportMenuFactory,
+    await loadEsmModuleForTest(
+      new URL("./exportMenu.js", import.meta.url),
+      import.meta.url,
+    ),
+  );
 });
 
 describe("export menu clipboard copying", () => {
@@ -169,281 +130,218 @@ describe("export menu clipboard copying", () => {
   });
 });
 
-describe("export menu json deterministic export", () => {
-  let originalWebVowl;
+describe("export menu share-link presentation", () => {
+  test("publishes the accepted source link and explains when a local document cannot be shared as a URL", () => {
+    const controls = new Map(
+      ["#exportedUrl", "#copyBt", "#exportUrlError"].map((id) => [
+        id,
+        { value: "", textContent: "", classList: { toggle: jest.fn() } },
+      ]),
+    );
+    const state = { source: { kind: "vowl-json-url" } };
+    const getVisualizationShareLink = jest.fn(() => {
+      if (state.source.kind === "vowl-json-text") {
+        throw new Error("Export JSON to share a local document.");
+      }
+      return {
+        url: "https://viewer.test/#url=https%3A%2F%2Fexample.test%2Faccepted.json",
+      };
+    });
+    const menu = exportMenuFactory.createExportMenu({
+      readShareLinkPresentation: () => ({
+        editorMode: false,
+        debugFeatures: false,
+      }),
+      documentObject: { querySelector: (id) => controls.get(id) },
+      locationObject: "https://viewer.test/#stale",
+      webVowlController: { getVisualizationShareLink },
+    });
+    menu.exportAsUrl();
+    expect(controls.get("#exportedUrl").value).toContain(
+      "#url=https%3A%2F%2Fexample.test%2Faccepted.json",
+    );
+    expect(controls.get("#copyBt").disabled).toBe(false);
+    expect(getVisualizationShareLink).toHaveBeenCalledWith({
+      presentation: { editorMode: false, debugFeatures: false },
+    });
+    state.source = { kind: "vowl-json-text", displayName: "local.json" };
+    expect(() => menu.exportAsUrl()).not.toThrow();
+    expect(controls.get("#exportedUrl").value).toBe("");
+    expect(controls.get("#copyBt").disabled).toBe(true);
+    expect(controls.get("#exportUrlError").textContent).toContain(
+      "Export JSON",
+    );
+  });
+});
+
+async function flushPendingWork() {
+  for (let round = 0; round < 20; round += 1) {
+    await Promise.resolve();
+  }
+}
+
+describe("export menu SVG artifact route", () => {
+  let originalDocument;
+  let controls;
+  let exportMenu;
+  let exportRequests;
+  let hideAllMenus;
+
+  function controlFor(selector) {
+    if (!controls.has(selector)) {
+      const control = {
+        addEventListener(eventName, listener) {
+          this.listeners = this.listeners ?? {};
+          this.listeners[eventName] = listener;
+        },
+        listeners: {},
+        defaultActionCount: 0,
+        clickCount: 0,
+        getAttribute: (name) => controls.get(selector)[name] ?? null,
+        matches: () => selector === "#m_export",
+        hidePopover: () => hideAllMenus(),
+      };
+      // Dispatches to its own listener the way a real element does, so a
+      // handler that clicks the element it is bound to re-enters itself here
+      // as it would in a browser.
+      control.click = jest.fn(function performClick() {
+        control.clickCount += 1;
+        let isDefaultPrevented = false;
+        const clickEvent = {
+          preventDefault() {
+            isDefaultPrevented = true;
+          },
+        };
+        control.listeners?.click?.(clickEvent);
+        if (!isDefaultPrevented) {
+          // What a browser would do: follow the link and save the file.
+          control.defaultActionCount += 1;
+        }
+      });
+      controls.set(selector, control);
+    }
+    return controls.get(selector);
+  }
 
   beforeEach(() => {
-    originalWebVowl = global.webvowl;
-    global.webvowl = {
-      util: { prefixTools: () => ({ updatePrefixModel: () => {} }) },
-      version: "2.0.0",
+    originalDocument = global.document;
+    controls = new Map();
+    global.document = {
+      querySelector: controlFor,
+      querySelectorAll: () => [],
+      getElementById: (id) => controlFor("#" + id),
     };
+    exportRequests = [];
+    hideAllMenus = jest.fn();
+    exportMenu = exportMenuFactory.createExportMenu({
+      documentObject: global.document,
+      locationObject: { href: "https://example.test/" },
+      webVowlController: {
+        exportVisualization: jest.fn((exportRequest) => {
+          exportRequests.push(exportRequest);
+          return Promise.resolve({
+            artifactMetadata: { filename: "graph.svg", byteLength: 12 },
+          });
+        }),
+      },
+    });
   });
 
   afterEach(() => {
-    global.webvowl = originalWebVowl;
+    global.document = originalDocument;
   });
 
-  function createMockNode(id, iri, type = "owl:Class") {
-    return {
-      id: () => id,
-      iri: () => iri,
-      baseIri: () => iri,
-      type: () => type,
-      label: () => "Label",
-      attributes: () => ["deprecated", "abstract"],
-      comment: () => "comment",
-      annotations: () => ({ b: ["val2"], a: ["val1"] }),
-      description: () => "desc",
-      individuals: () => [],
-      equivalents: () => [],
-    };
-  }
+  test("asks the controller for the artifact instead of serializing inline", async () => {
+    const exportEvent = { preventDefault: jest.fn() };
 
-  function createMockProperty(id, iri) {
-    return {
-      id: () => id,
-      iri: () => iri,
-      baseIri: () => iri,
-      type: () => "owl:ObjectProperty",
-      label: () => "PropLabel",
-      attributes: () => [],
-      comment: () => "",
-      annotations: () => undefined,
-      maxCardinality: () => undefined,
-      minCardinality: () => undefined,
-      cardinality: () => undefined,
-      description: () => undefined,
-      domain: () => ({ id: () => "domainId" }),
-      range: () => ({ id: () => "rangeId" }),
-      subproperties: () => [{ id: () => "sub2" }, { id: () => "sub1" }],
-      superproperties: () => [{ id: () => "sup2" }, { id: () => "sup1" }],
-      inverse: () => undefined,
-    };
-  }
+    await exportMenu.exportVisualizationArtifact(exportEvent);
 
-  function createMockGraph(nodes, properties) {
-    return {
-      options: () => ({
-        data: () => ({
-          _comment: "Test",
-          header: {},
-          namespace: [
-            { prefix: "b", iri: "http://b" },
-            { prefix: "a", iri: "http://a" },
-          ],
-          metrics: {},
-        }),
-        getGeneralMetaObject: () => ({}),
-        filterMenu: () => ({
-          getCheckBoxContainer: () => [
-            { checkbox: { checked: true, id: "chk2" } },
-            { checkbox: { checked: false, id: "chk1" } },
-          ],
-          getDegreeSliderValue: () => 0,
-        }),
-        modeMenu: () => ({
-          getCheckBoxContainer: () => [
-            { element: { checked: true }, id: "mode2" },
-            { element: { checked: false }, id: "mode1" },
-          ],
-          colorModeState: () => false,
-        }),
-        classDistance: () => 10,
-        datatypeDistance: () => 10,
-      }),
-      getUnfilteredData: () => ({ nodes, properties }),
-      graphNodeElements: () => ({ each: () => {} }),
-      graphLabelElements: () => [],
-      scaleFactor: () => 1,
-      paused: () => false,
-      translation: () => [0, 0],
-    };
-  }
+    // The link must not navigate before the artifact URL is published.
+    expect(exportEvent.preventDefault).toHaveBeenCalledTimes(1);
+    expect(exportRequests).toEqual([{ format: "svg" }]);
+    expect(hideAllMenus).toHaveBeenCalledTimes(1);
+  });
 
-  test("produces deterministic JSON regardless of array order", () => {
-    const nodeA = createMockNode("id3", "http://A");
-    const nodeB = createMockNode("id1", "http://B");
-    const nodeC = createMockNode("id2", undefined); // No IRI
-    const nodeD = createMockNode("id4", undefined);
-
-    const propA = createMockProperty("p3", "http://propA");
-    const propB = createMockProperty("p1", "http://propB");
-
-    // Two graphs with elements in different orders
-    const graph1 = createMockGraph(
-      [nodeB, nodeA, nodeD, nodeC],
-      [propB, propA],
+  test("uses the shared JSON export and its matching download control", async () => {
+    const link = controlFor("#exportJson");
+    link.href = "blob:people-json";
+    await exportMenu.exportVisualizationArtifact(
+      { preventDefault: jest.fn() },
+      "vowl-json",
     );
-    const graph2 = createMockGraph(
-      [nodeD, nodeC, nodeA, nodeB],
-      [propA, propB],
+    expect(exportRequests).toEqual([{ format: "vowl-json" }]);
+    expect(link.click).toHaveBeenCalledTimes(1);
+  });
+
+  test("routes the human LaTeX click to the shared drawing export", async () => {
+    const link = controlFor("#exportTex");
+    link.href = "blob:drawing-tex";
+    exportMenu.setup();
+    link.click();
+    await flushPendingWork();
+    expect(exportRequests).toEqual([{ format: "latex" }]);
+    expect(link.defaultActionCount).toBe(1);
+  });
+
+  test("routes the human Turtle click to the same controller artifact action", async () => {
+    const link = controlFor("#exportTurtle");
+    link.href = "blob:ontology-turtle";
+    exportMenu.setup();
+    link.click();
+    await flushPendingWork();
+    expect(exportRequests).toEqual([{ format: "turtle" }]);
+    expect(link.defaultActionCount).toBe(1);
+  });
+
+  test("triggers exactly one programmatic download once the link is published", async () => {
+    const downloadLink = controlFor("#exportSvg");
+    downloadLink.href = "blob:webvowl-artifact";
+
+    await exportMenu.exportVisualizationArtifact({ preventDefault: jest.fn() });
+
+    expect(downloadLink.click).toHaveBeenCalledTimes(1);
+  });
+
+  test("downloads once for a reader's click without re-entering itself", async () => {
+    const downloadLink = controlFor("#exportSvg");
+    downloadLink.href = "blob:webvowl-artifact";
+    exportMenu.setup();
+
+    // What a reader does: one click on the export entry.
+    downloadLink.click();
+    await flushPendingWork();
+
+    // One export, one saved file, and the menus hidden once. Clicking the very
+    // element the handler is bound to previously re-entered it without end,
+    // which prevented every download and hid the menus on every pass.
+    expect(exportRequests).toHaveLength(1);
+    expect(downloadLink.defaultActionCount).toBe(1);
+    expect(hideAllMenus).toHaveBeenCalledTimes(1);
+  });
+
+  test("does not click the link when the export fails", async () => {
+    const downloadLink = controlFor("#exportSvg");
+    const presentArtifactFailure = jest.fn();
+    exportMenu = exportMenuFactory.createExportMenu({
+      documentObject: global.document,
+      visualizationArtifactDownloadAdapter: { presentArtifactFailure },
+      locationObject: { href: "https://example.test/" },
+      webVowlController: {
+        exportVisualization: () =>
+          Promise.reject(
+            new WebVowlOperationError({
+              code: "NO_ONTOLOGY",
+              message: "no ontology",
+            }),
+          ),
+      },
+    });
+
+    await exportMenu.exportVisualizationArtifact({ preventDefault: jest.fn() });
+
+    expect(downloadLink.click).not.toHaveBeenCalled();
+    expect(presentArtifactFailure).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "no ontology" }),
     );
-
-    const menu1 = exportMenuFactory(graph1);
-    const menu2 = exportMenuFactory(graph2);
-
-    const json1 = JSON.stringify(menu1.createJSON_exportObject());
-    const json2 = JSON.stringify(menu2.createJSON_exportObject());
-
-    expect(json1).toEqual(json2);
-
-    const obj = JSON.parse(json1);
-
-    // Verify sorting rules were applied
-    // Namespaces sorted by prefix
-    expect(obj.namespace[0].prefix).toBe("a");
-    // Classes sorted by IRI then ID
-    // empty IRI (undefined) comes before populated IRI
-    expect(obj.class[0].id).toBe("id2"); // undefined IRI, id2
-    expect(obj.class[1].id).toBe("id4"); // undefined IRI, id4
-    expect(obj.class[2].id).toBe("id3"); // http://A
-    expect(obj.class[3].id).toBe("id1"); // http://B
-    // Attributes sorted
-    expect(obj.classAttribute[0].attributes).toEqual([
-      "abstract",
-      "deprecated",
-    ]);
-    // Subproperties sorted
-    expect(obj.propertyAttribute[0].subproperty).toEqual(["sub1", "sub2"]);
-    // Filter settings sorted
-    expect(obj.settings.filter.checkBox[0].id).toBe("chk1");
-  });
-
-  test("exports JSON with native DOM checkbox objects from filterMenu and modeMenu", () => {
-    const nodeA = createMockNode("id1", "http://A");
-    const propA = createMockProperty("p1", "http://propA");
-
-    const graph = {
-      options: () => ({
-        data: () => ({
-          _comment: "Test",
-          header: {},
-          namespace: [],
-          metrics: {},
-        }),
-        getGeneralMetaObject: () => ({}),
-        filterMenu: () => ({
-          getCheckBoxContainer: () => [
-            { checkbox: { id: "datatypeFilterCheckbox", checked: true } },
-            { checkbox: { id: "subclassFilterCheckbox", checked: false } },
-          ],
-          getDegreeSliderValue: () => 2,
-        }),
-        modeMenu: () => ({
-          getCheckBoxContainer: () => [
-            {
-              id: "nodescalingModuleCheckbox",
-              element: { id: "nodescalingModuleCheckbox", checked: true },
-            },
-            {
-              id: "compactnotationModuleCheckbox",
-              element: { id: "compactnotationModuleCheckbox", checked: false },
-            },
-          ],
-          colorModeState: () => false,
-        }),
-        classDistance: () => 10,
-        datatypeDistance: () => 10,
-      }),
-      getUnfilteredData: () => ({ nodes: [nodeA], properties: [propA] }),
-      graphNodeElements: () => ({ each: () => {} }),
-      graphLabelElements: () => [],
-      scaleFactor: () => 1,
-      paused: () => false,
-      translation: () => [0, 0],
-    };
-
-    const menu = exportMenuFactory(graph);
-    const exportObj = menu.createJSON_exportObject();
-
-    expect(exportObj.settings.filter.checkBox).toEqual([
-      { checked: true, id: "datatypeFilterCheckbox" },
-      { checked: false, id: "subclassFilterCheckbox" },
-    ]);
-    expect(exportObj.settings.filter.degreeSliderValue).toBe(2);
-    expect(exportObj.settings.modes.checkBox).toEqual([
-      { checked: false, id: "compactnotationModuleCheckbox" },
-      { checked: true, id: "nodescalingModuleCheckbox" },
-    ]);
-  });
-
-  test("exported settings can be round-tripped into filterMenu and modeMenu setCheckBoxValue targets", () => {
-    const nodeA = createMockNode("id1", "http://A");
-    const propA = createMockProperty("p1", "http://propA");
-
-    const sourceGraph = {
-      options: () => ({
-        data: () => ({
-          _comment: "Test",
-          header: {},
-          namespace: [],
-          metrics: {},
-        }),
-        getGeneralMetaObject: () => ({}),
-        filterMenu: () => ({
-          getCheckBoxContainer: () => [
-            { checkbox: { checked: true, id: "datatypeFilterCheckbox" } },
-            { checkbox: { checked: false, id: "subclassFilterCheckbox" } },
-            { checkbox: { checked: true, id: "disjointFilterCheckbox" } },
-          ],
-          getDegreeSliderValue: () => 3,
-        }),
-        modeMenu: () => ({
-          getCheckBoxContainer: () => [
-            {
-              element: { checked: true },
-              id: "nodescalingModuleCheckbox",
-            },
-            {
-              element: { checked: false },
-              id: "compactnotationModuleCheckbox",
-            },
-            {
-              element: { checked: true },
-              id: "pickandpinModuleCheckbox",
-            },
-          ],
-          colorModeState: () => true,
-        }),
-        classDistance: () => 200,
-        datatypeDistance: () => 120,
-      }),
-      getUnfilteredData: () => ({ nodes: [nodeA], properties: [propA] }),
-      graphNodeElements: () => ({ each: () => {} }),
-      graphLabelElements: () => [],
-      scaleFactor: () => 1.5,
-      paused: () => true,
-      translation: () => [100, 200],
-    };
-
-    const menu = exportMenuFactory(sourceGraph);
-    const exportedJson = menu.createJSON_exportObject();
-
-    // Target state receivers
-    const targetFilterState = {};
-    const targetModeState = {};
-
-    exportedJson.settings.filter.checkBox.forEach((item) => {
-      targetFilterState[item.id] = item.checked;
-    });
-    exportedJson.settings.modes.checkBox.forEach((item) => {
-      targetModeState[item.id] = item.checked;
-    });
-
-    expect(targetFilterState).toEqual({
-      datatypeFilterCheckbox: true,
-      disjointFilterCheckbox: true,
-      subclassFilterCheckbox: false,
-    });
-    expect(targetModeState).toEqual({
-      compactnotationModuleCheckbox: false,
-      nodescalingModuleCheckbox: true,
-      pickandpinModuleCheckbox: true,
-    });
-    expect(exportedJson.settings.gravity.classDistance).toBe(200);
-    expect(exportedJson.settings.gravity.datatypeDistance).toBe(120);
-    expect(exportedJson.settings.global.zoom).toBe(1.5);
-    expect(exportedJson.settings.global.paused).toBe(true);
   });
 });

@@ -1,6 +1,6 @@
-const DatatypeNode = require("../DatatypeNode");
+import { DatatypeNode } from "../DatatypeNode.js";
 
-module.exports = (function () {
+const RdfsDatatype = (function () {
   const o = function (graph) {
     DatatypeNode.apply(this, arguments);
     let dTypeString = "undefined";
@@ -17,3 +17,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { RdfsDatatype };

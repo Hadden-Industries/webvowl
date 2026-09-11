@@ -6,7 +6,7 @@ function protocolOf(baseUrl) {
   }
 }
 
-function resolveFetchUrl(resourceUrl, baseUrl = globalThis.location) {
+export function resolveFetchUrl(resourceUrl, baseUrl = globalThis.location) {
   if (protocolOf(baseUrl) !== "https:") {
     return resourceUrl;
   }
@@ -22,5 +22,3 @@ function resolveFetchUrl(resourceUrl, baseUrl = globalThis.location) {
   }
   return resourceUrl;
 }
-
-module.exports = resolveFetchUrl;

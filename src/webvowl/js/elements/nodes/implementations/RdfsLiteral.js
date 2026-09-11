@@ -1,6 +1,6 @@
-const DatatypeNode = require("../DatatypeNode");
+import { DatatypeNode } from "../DatatypeNode.js";
 
-module.exports = (function () {
+const RdfsLiteral = (function () {
   const o = function (graph) {
     DatatypeNode.apply(this, arguments);
 
@@ -29,3 +29,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { RdfsLiteral };

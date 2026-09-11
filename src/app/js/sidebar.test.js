@@ -1,56 +1,144 @@
-import { describe, expect, test, jest } from "@jest/globals";
-import sidebarFactory from "./sidebar.js";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
 
-class MockElement {
-  constructor(tag = "div") {
-    this.tag = tag;
+// Interface modules collaborate through the application registry.
+const registeredUiModulesForTest = new Map();
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  jest,
+  test,
+} from "@jest/globals";
+
+let createSidebar;
+let navigableOntologyIri;
+let renderOntologyIri;
+let sidebarModuleContext;
+
+beforeAll(async () => {
+  const moduleUrl = new URL("./sidebar.js", import.meta.url);
+  sidebarModuleContext = createContext({
+    AbortController,
+    URL,
+    cancelAnimationFrame: undefined,
+    document: undefined,
+    navigator: undefined,
+    requestAnimationFrame: undefined,
+    window: undefined,
+  });
+  const sourceModule = new SourceTextModule(
+    readFileSync(fileURLToPath(moduleUrl), "utf8"),
+    { context: sidebarModuleContext, identifier: moduleUrl.href },
+  );
+  await sourceModule.link(async (specifier) => {
+    if (specifier === "./ui/visualizationControlAction.js") {
+      const actionUrl = new URL(specifier, moduleUrl);
+      const actionModule = new SourceTextModule(
+        readFileSync(fileURLToPath(actionUrl), "utf8"),
+        { context: sidebarModuleContext, identifier: actionUrl.href },
+      );
+      await actionModule.link(() => {
+        throw new Error("Unexpected visualization action dependency");
+      });
+      return actionModule;
+    }
+    if (specifier.endsWith("applicationUiRegistry.js")) {
+      return new SyntheticModule(
+        ["applicationUiModule", "registerApplicationUiModule"],
+        function provideApplicationUiRegistry() {
+          this.setExport("applicationUiModule", (moduleName) =>
+            registeredUiModulesForTest.get(moduleName),
+          );
+          this.setExport(
+            "registerApplicationUiModule",
+            (moduleName, uiModule) =>
+              registeredUiModulesForTest.set(moduleName, uiModule),
+          );
+        },
+        { context: sidebarModuleContext, identifier: specifier },
+      );
+    }
+    throw new Error(`Unexpected sidebar dependency: ${specifier}`);
+  });
+  await sourceModule.evaluate();
+  ({ createSidebar, navigableOntologyIri, renderOntologyIri } =
+    sourceModule.namespace);
+});
+
+class SidebarElement extends EventTarget {
+  constructor(tagName = "div") {
+    super();
+    this.tagName = tagName.toUpperCase();
     this.attributes = {};
     this.children = [];
+    this.innerHTML = "";
+    this.nextElementSibling = null;
+    this.parentNode = null;
+    this.selectedIndex = -1;
     this.textContent = "";
-    this._classList = new Set();
-    this.listeners = {};
-  }
-  setAttribute(name, val) {
-    this.attributes[name] = val;
-  }
-  appendChild(child) {
-    this.children.push(child);
-  }
-  addEventListener(type, fn) {
-    if (!this.listeners[type]) {
-      this.listeners[type] = [];
-    }
-    this.listeners[type].push(fn);
-  }
-  get classList() {
-    return {
-      add: (c) => this._classList.add(c),
-      remove: (c) => this._classList.delete(c),
-      toggle: (c, state) =>
-        state ? this._classList.add(c) : this._classList.delete(c),
-      contains: (c) => this._classList.has(c),
+    this.value = "";
+    this.classes = new Set();
+    this.classList = {
+      add: (...classNames) =>
+        classNames.forEach((className) => this.classes.add(className)),
+      contains: (className) => this.classes.has(className),
+      remove: (...classNames) =>
+        classNames.forEach((className) => this.classes.delete(className)),
+      toggle: (className, isPresent) => {
+        if (isPresent) {
+          this.classes.add(className);
+        } else {
+          this.classes.delete(className);
+        }
+      },
     };
   }
+
+  appendChild(child) {
+    child.parentNode = this;
+    this.children.push(child);
+    return child;
+  }
+
+  click() {
+    this.dispatchEvent(new Event("click"));
+  }
+
+  querySelector() {
+    return new SidebarElement();
+  }
+
+  querySelectorAll(selector) {
+    return this.children.flatMap((child) => [
+      ...(selector.startsWith(".") &&
+      child.classList.contains(selector.slice(1))
+        ? [child]
+        : []),
+      ...child.querySelectorAll(selector),
+    ]);
+  }
+
+  remove() {
+    const childIndex = this.parentNode?.children.indexOf(this) ?? -1;
+    if (childIndex >= 0) {
+      this.parentNode.children.splice(childIndex, 1);
+    }
+    this.parentNode = null;
+  }
+
+  replaceChildren(...children) {
+    this.children = [];
+    children.forEach((child) => this.appendChild(child));
+  }
+
+  setAttribute(name, value) {
+    this.attributes[name] = value;
+  }
 }
-
-global.document = {
-  createElement: (tag) => new MockElement(tag),
-  querySelector: jest.fn().mockReturnValue(new MockElement()),
-  querySelectorAll: jest.fn().mockReturnValue([]),
-};
-global.window = {
-  innerWidth: 1024,
-  event: null,
-};
-
-// Mock webvowl global structure which sidebar relies on
-global.webvowl = {
-  util: {
-    languageTools: () => ({}),
-    elementTools: () => ({}),
-  },
-};
-global.requestAnimationFrame = jest.fn((cb) => cb());
 
 describe("sidebar ontology IRI links", () => {
   test.each([
@@ -59,7 +147,7 @@ describe("sidebar ontology IRI links", () => {
     ["urn:isbn:9780141036144", "urn:isbn:9780141036144"],
     ["  urn:example:ontology  ", "urn:example:ontology"],
   ])("allows an explicitly supported IRI scheme for %p", (iri, expected) => {
-    expect(sidebarFactory.navigableIri(iri)).toBe(expected);
+    expect(navigableOntologyIri(iri)).toBe(expected);
   });
 
   test.each([
@@ -75,14 +163,24 @@ describe("sidebar ontology IRI links", () => {
     null,
     undefined,
   ])("rejects unsupported or invalid IRI %p", (iri) => {
-    expect(sidebarFactory.navigableIri(iri)).toBeUndefined();
+    expect(navigableOntologyIri(iri)).toBeUndefined();
   });
 
   test("replaces placeholder text with a link for an allowed IRI", () => {
-    const container = new MockElement("p");
+    const container = new SidebarElement("p");
     container.textContent = "not given";
+    const originalDocument = global.document;
+    global.document = {
+      createElement: (tagName) => new SidebarElement(tagName),
+    };
+    sidebarModuleContext.document = global.document;
 
-    sidebarFactory.renderOntologyIri(container, "urn:example:ontology");
+    try {
+      renderOntologyIri(container, "urn:example:ontology");
+    } finally {
+      sidebarModuleContext.document = undefined;
+      global.document = originalDocument;
+    }
 
     expect(container.textContent).toBe("");
     expect(container.children).toHaveLength(1);
@@ -92,38 +190,580 @@ describe("sidebar ontology IRI links", () => {
         target: "_blank",
         title: "urn:example:ontology",
       },
-      tag: "a",
+      tagName: "A",
       textContent: "urn:example:ontology",
     });
     expect(container.children[0].attributes.rel).toBeUndefined();
   });
+});
 
-  test("renders unsupported IRIs as plain text", () => {
-    const container = new MockElement("p");
-    container.textContent = "not given";
+describe("sidebar native language and lifecycle controls", () => {
+  let controls;
+  let graph;
+  let language;
+  let sidebar;
 
-    sidebarFactory.renderOntologyIri(container, "javascript:alert(1)");
-
-    expect(container.children).toHaveLength(1);
-    expect(container.children[0]).toMatchObject({
-      attributes: {},
-      tag: "span",
-      textContent: "javascript:alert(1)",
+  beforeEach(() => {
+    controls = new Map();
+    const controlFor = (selector) => {
+      if (!controls.has(selector)) {
+        controls.set(selector, new SidebarElement());
+      }
+      return controls.get(selector);
+    };
+    global.document = {
+      createElement: (tagName) => new SidebarElement(tagName),
+      querySelector: controlFor,
+      querySelectorAll: () => [],
+      getElementById: (id) => controlFor(`#${id}`),
+    };
+    Object.defineProperty(global, "navigator", {
+      configurable: true,
+      value: { language: "en-US", languages: ["en-US"] },
     });
+    global.requestAnimationFrame = jest.fn((callback) => callback());
+    global.cancelAnimationFrame = jest.fn();
+    sidebarModuleContext.cancelAnimationFrame = global.cancelAnimationFrame;
+    sidebarModuleContext.document = global.document;
+    sidebarModuleContext.navigator = global.navigator;
+    sidebarModuleContext.requestAnimationFrame = global.requestAnimationFrame;
+    sidebarModuleContext.window = { innerWidth: 1280 };
+    language = "undefined";
+    const languageOperation = jest.fn((nextLanguage) => {
+      if (nextLanguage !== undefined) {
+        language = nextLanguage;
+      }
+      return language;
+    });
+    graph = {
+      language: languageOperation,
+      options: () => ({
+        sidebar: () => ({ showSidebar: jest.fn() }),
+      }),
+      ontologyEditingState: () => ({
+        sidebar: () => ({ showSidebar: jest.fn() }),
+      }),
+      updateCanvasContainerSize: jest.fn(),
+    };
+    sidebar = createSidebar({
+      onViewportGeometryChanged: graph.updateCanvasContainerSize,
+      webVowlController: {
+        setVisualizationView: jest.fn(),
+        getState: () => ({ view: { language } }),
+        getOntologyDocument: () => ({
+          vowlModel: {
+            header: graph.ontologyEditingState().getGeneralMetaObject?.(),
+          },
+        }),
+      },
+      elementTools: {
+        isNode: () => false,
+        isProperty: () => false,
+      },
+      languageConstants: {
+        iriBasedLanguage: "id",
+        undefinedLanguage: "undefined",
+      },
+      languageTools: {
+        textInLanguage: (localizedText) =>
+          typeof localizedText === "string" ? localizedText : undefined,
+      },
+    });
+  });
+
+  afterEach(() => {
+    sidebar?.dispose();
+    sidebarModuleContext.document = undefined;
+    sidebarModuleContext.cancelAnimationFrame = undefined;
+    sidebarModuleContext.navigator = undefined;
+    sidebarModuleContext.requestAnimationFrame = undefined;
+    sidebarModuleContext.window = undefined;
+    delete global.document;
+    delete global.cancelAnimationFrame;
+    delete global.navigator;
+    delete global.requestAnimationFrame;
+  });
+
+  test("renders native option elements without setting the renderer language", () => {
+    sidebar.setup();
+    sidebar.renderOntologySummary(
+      summaryFixture({ availableLabelLanguages: ["fr", "en"] }),
+    );
+    const languageSelect = controls.get("#language");
+    expect(languageSelect.children.map(({ value }) => value)).toEqual([
+      "default",
+      "en",
+      "fr",
+    ]);
+    expect(languageSelect.value).toBe("en");
+
+    // Neither populating the list nor changing it touches the renderer: the
+    // controller owns the language.
+    expect(language).toBe("undefined");
+
+    languageSelect.value = "fr";
+    languageSelect.dispatchEvent(new Event("change"));
+
+    expect(language).toBe("undefined");
+  });
+
+  test("renders ontology metadata as inert text", () => {
+    sidebar.renderOntologySummary(
+      summaryFixture({
+        ontologyHeader: {
+          authorNames: ['<img src="invalid" onerror="alert(1)">'],
+          description: "<script>unexpected()</script>",
+          title: "<strong>Ontology title</strong>",
+          versionInformationText: "<em>1.0</em>",
+        },
+      }),
+    );
+
+    expect(controls.get("#title").textContent).toBe(
+      "<strong>Ontology title</strong>",
+    );
+    expect(controls.get("#version").textContent).toBe("<em>1.0</em>");
+    expect(controls.get("#authors").textContent).toBe(
+      '<img src="invalid" onerror="alert(1)">',
+    );
+    expect(controls.get("#description").textContent).toBe(
+      "<script>unexpected()</script>",
+    );
+  });
+
+  test("owns only accordion triggers inside the ontology details section", () => {
+    const ontologyDetailsSection =
+      global.document.querySelector("#generalDetails");
+    const ontologyDetailsTrigger = new SidebarElement("h3");
+    ontologyDetailsTrigger.nextElementSibling = new SidebarElement();
+    const editingDetailsTrigger = new SidebarElement("h3");
+    editingDetailsTrigger.nextElementSibling = new SidebarElement();
+    ontologyDetailsSection.querySelectorAll = jest.fn((selector) => {
+      if (selector === ".accordion-trigger") {
+        return [ontologyDetailsTrigger];
+      }
+      return [];
+    });
+    global.document.querySelectorAll = jest.fn((selector) => {
+      if (selector === ".accordion-trigger") {
+        return [ontologyDetailsTrigger, editingDetailsTrigger];
+      }
+      return [];
+    });
+
+    sidebar.setup();
+
+    const simulatedClick = jest.spyOn(ontologyDetailsTrigger, "click");
+    const keyboardActivationEvent = new Event("keydown", {
+      cancelable: true,
+    });
+    Object.defineProperty(keyboardActivationEvent, "key", { value: "Enter" });
+    ontologyDetailsTrigger.dispatchEvent(keyboardActivationEvent);
+
+    expect(ontologyDetailsTrigger.attributes.role).toBe("button");
+    expect(editingDetailsTrigger.attributes.role).toBeUndefined();
+    expect(keyboardActivationEvent.defaultPrevented).toBe(true);
+    expect(simulatedClick).not.toHaveBeenCalled();
+    expect(ontologyDetailsTrigger.classes).toContain(
+      "accordion-trigger-active",
+    );
+  });
+
+  test.each([
+    [1280, false, true],
+    [1280, true, false],
+    [800, false, false],
+  ])(
+    "initial width %i and hidden state %s reserve canvas and control space for sidebar visibility %s",
+    (width, initiallyHidden, expectedVisible) => {
+      sidebarModuleContext.window.innerWidth = width;
+      controls.get("#detailsArea").classList.toggle("hidden", initiallyHidden);
+
+      sidebar.setup();
+
+      expect(sidebar.isSidebarVisible()).toBe(expectedVisible);
+      expect(
+        controls.get("#canvasArea").classList.contains("sidebar-visible"),
+      ).toBe(expectedVisible);
+      expect(
+        controls.get("#zoomSlider").classList.contains("aligned-to-sidebar"),
+      ).toBe(expectedVisible);
+      expect(
+        controls
+          .get("#sidebarExpandButton")
+          .classList.contains("aligned-to-sidebar"),
+      ).toBe(expectedVisible);
+    },
+  );
+
+  test("setup is idempotent and disposal detaches the sidebar toggle", () => {
+    sidebar.setup();
+    sidebar.setup();
+    graph.updateCanvasContainerSize.mockClear();
+    sidebar.dispose();
+    sidebar.dispose();
+    global.document.querySelector("#sidebarExpandButton").click();
+    expect(graph.updateCanvasContainerSize).not.toHaveBeenCalled();
+  });
+
+  test("replaces and disposes pending transition-suppression frames", () => {
+    let nextAnimationFrameId = 0;
+    const pendingAnimationFrames = new Map();
+    global.requestAnimationFrame = jest.fn((callback) => {
+      nextAnimationFrameId += 1;
+      pendingAnimationFrames.set(nextAnimationFrameId, callback);
+      return nextAnimationFrameId;
+    });
+    global.cancelAnimationFrame = jest.fn((animationFrameId) => {
+      pendingAnimationFrames.delete(animationFrameId);
+    });
+    sidebarModuleContext.requestAnimationFrame = global.requestAnimationFrame;
+    sidebarModuleContext.cancelAnimationFrame = global.cancelAnimationFrame;
+    const pageBody = global.document.querySelector("body");
+
+    sidebar.showSidebar(0, true);
+    sidebar.showSidebar(1, true);
+
+    expect(global.cancelAnimationFrame).toHaveBeenCalledWith(1);
+    expect(pageBody.classList.contains("no-transition")).toBe(true);
+
+    sidebar.dispose();
+
+    expect(global.cancelAnimationFrame).toHaveBeenCalledWith(2);
+    expect(pendingAnimationFrames).toEqual(new Map());
+    expect(pageBody.classList.contains("no-transition")).toBe(false);
   });
 });
 
-describe("sidebar initialization", () => {
-  test("setup() executes without throwing errors from improper DOM event chaining", () => {
-    const mockGraph = {
-      updateCanvasContainerSize: jest.fn(),
-      options: () => ({
-        sidebar: () => ({
-          showSidebar: jest.fn(),
-        }),
-      }),
+function summaryFixture(overrides = {}) {
+  return {
+    ontologyHeader: {
+      title: "Title",
+      description: "Description",
+      ontologyIri: null,
+      versionInformationText: null,
+      authorNames: [],
+      annotationRecords: [],
+    },
+    elementCounts: {
+      classCount: 2,
+      propertyCount: 3,
+      objectPropertyCount: 1,
+      datatypePropertyCount: 2,
+      datatypeCount: 1,
+      individualCount: 0,
+    },
+    availableLabelLanguages: ["en"],
+    selectedLanguage: null,
+    ...overrides,
+  };
+}
+
+describe("sidebar ontology summary presentation", () => {
+  let controls;
+  let sidebar;
+
+  beforeEach(() => {
+    controls = new Map();
+    const controlFor = (selector) => {
+      if (!controls.has(selector)) {
+        controls.set(selector, new SidebarElement());
+      }
+      return controls.get(selector);
     };
-    const sidebar = sidebarFactory(mockGraph);
-    expect(() => sidebar.setup()).not.toThrow();
+    global.document = {
+      createElement: (tagName) => new SidebarElement(tagName),
+      createTextNode: (text) =>
+        Object.assign(new SidebarElement("#text"), { textContent: text }),
+      querySelector: controlFor,
+      querySelectorAll: () => [],
+      getElementById: (id) => controlFor(`#${id}`),
+    };
+    Object.defineProperty(global, "navigator", {
+      configurable: true,
+      value: { language: "en-US", languages: ["en-US"] },
+    });
+    global.requestAnimationFrame = jest.fn((callback) => callback());
+    global.cancelAnimationFrame = jest.fn();
+    sidebarModuleContext.cancelAnimationFrame = global.cancelAnimationFrame;
+    sidebarModuleContext.document = global.document;
+    sidebarModuleContext.navigator = global.navigator;
+    sidebarModuleContext.requestAnimationFrame = global.requestAnimationFrame;
+    sidebarModuleContext.window = { innerWidth: 1280 };
+    sidebar = createSidebar({
+      elementTools: { isNode: () => false, isProperty: () => false },
+      languageConstants: {
+        iriBasedLanguage: "id",
+        undefinedLanguage: "undefined",
+      },
+      languageTools: {
+        textInLanguage: (localizedText) =>
+          typeof localizedText === "string" ? localizedText : undefined,
+      },
+    });
+  });
+
+  afterEach(() => {
+    sidebar?.dispose();
+    sidebarModuleContext.document = undefined;
+    sidebarModuleContext.cancelAnimationFrame = undefined;
+    sidebarModuleContext.navigator = undefined;
+    sidebarModuleContext.requestAnimationFrame = undefined;
+    sidebarModuleContext.window = undefined;
+    delete global.document;
+  });
+
+  test("reveals the ontology details section when a summary is presented", () => {
+    const detailsSection = global.document.querySelector("#generalDetails");
+    const editingDetailsSection = global.document.querySelector(
+      "#generalDetailsEdit",
+    );
+    detailsSection.classList.add("hidden");
+    editingDetailsSection.classList.remove("hidden");
+
+    sidebar.renderOntologySummary({
+      ontologyHeader: {
+        ontologyIri: "http://xmlns.com/foaf/0.1/",
+        versionInformationText: null,
+        title: "Friend of a Friend",
+        description: null,
+        authorNames: [],
+      },
+      elementCounts: {
+        classCount: 21,
+        propertyCount: 44,
+        datatypeCount: 6,
+        individualCount: 0,
+      },
+      availableLabelLanguages: [],
+      selectedLanguage: null,
+    });
+
+    // Nothing else reveals it, so selection details would stay invisible.
+    expect(detailsSection.classList.contains("hidden")).toBe(false);
+    expect(editingDetailsSection.classList.contains("hidden")).toBe(true);
+  });
+
+  test("presents explicit property counts and literal ontology annotations", () => {
+    const summary = summaryFixture();
+    summary.ontologyHeader.annotationRecords = [
+      {
+        propertyIri: "https://example.test/__proto__",
+        localName: "__proto__",
+        valueKind: "literal",
+        languageTag: null,
+        text: "<script>plain text</script>",
+      },
+    ];
+    sidebar.renderOntologySummary(summary);
+    expect(controls.get("#objectPropertyCount").textContent).toBe(1);
+    expect(controls.get("#datatypePropertyCount").textContent).toBe(2);
+    const metadata = controls.get("#ontology-metadata");
+    const rows = metadata.querySelectorAll(".annotation");
+    expect(rows).toHaveLength(1);
+    expect(rows[0].children.at(-1).textContent).toBe(
+      "<script>plain text</script>",
+    );
+    expect(rows[0].children.at(-1).children).toEqual([]);
+    expect(
+      metadata.children.some(
+        (child) => child.textContent === "No annotations available.",
+      ),
+    ).toBe(false);
+  });
+
+  test("shows the editing details when the reported editor mode changes", () => {
+    // The renderer publishes editor mode as a fact, so this module keeps its
+    // own copy of the last reported mode instead of asking which mode it is in.
+    const detailsSection = global.document.querySelector("#generalDetails");
+    const editingDetailsSection = global.document.querySelector(
+      "#generalDetailsEdit",
+    );
+
+    sidebar.renderEditorMode(true);
+
+    expect(detailsSection.classList.contains("hidden")).toBe(true);
+    expect(editingDetailsSection.classList.contains("hidden")).toBe(false);
+
+    sidebar.renderEditorMode(false);
+
+    expect(detailsSection.classList.contains("hidden")).toBe(false);
+    expect(editingDetailsSection.classList.contains("hidden")).toBe(true);
+  });
+
+  test("renders the header and element counts from a controller summary", () => {
+    sidebar.renderOntologySummary({
+      ontologyHeader: {
+        ontologyIri: "http://xmlns.com/foaf/0.1/",
+        versionInformationText: "0.99",
+        title: "Friend of a Friend",
+        description: "The FOAF vocabulary.",
+        authorNames: ["Dan Brickley", "Libby Miller"],
+      },
+      elementCounts: {
+        classCount: 21,
+        propertyCount: 44,
+        datatypeCount: 6,
+        individualCount: 0,
+      },
+      availableLabelLanguages: ["en", "undefined"],
+      selectedLanguage: "en",
+    });
+
+    expect(controls.get("#title").textContent).toBe("Friend of a Friend");
+    expect(controls.get("#version").textContent).toBe("0.99");
+    expect(controls.get("#authors").textContent).toBe(
+      "Dan Brickley, Libby Miller",
+    );
+    expect(controls.get("#description").textContent).toBe(
+      "The FOAF vocabulary.",
+    );
+    expect(controls.get("#classCount").textContent).toBe(21);
+  });
+
+  test("falls back to placeholders when the summary omits header text", () => {
+    sidebar.renderOntologySummary({
+      ontologyHeader: {
+        ontologyIri: null,
+        versionInformationText: null,
+        title: null,
+        description: null,
+        authorNames: [],
+      },
+      elementCounts: {
+        classCount: 0,
+        propertyCount: 0,
+        datatypeCount: 0,
+        individualCount: 0,
+      },
+      availableLabelLanguages: [],
+      selectedLanguage: null,
+    });
+
+    expect(controls.get("#title").textContent).toBe("No title available");
+    expect(controls.get("#version").textContent).toBe("--");
+    expect(controls.get("#authors").textContent).toBe("--");
+    expect(controls.get("#description").textContent).toBe(
+      "No description available.",
+    );
+  });
+});
+
+describe("sidebar preferred language reporting", () => {
+  let controls;
+  let sidebar;
+  let viewRequests;
+  let setVisualizationView;
+
+  beforeEach(() => {
+    controls = new Map();
+    const controlFor = (selector) => {
+      if (!controls.has(selector)) {
+        controls.set(selector, new SidebarElement());
+      }
+      return controls.get(selector);
+    };
+    global.document = {
+      createElement: (tagName) => new SidebarElement(tagName),
+      querySelector: controlFor,
+      getElementById: (id) => controlFor(`#${id}`),
+      querySelectorAll: () => [],
+    };
+    Object.defineProperty(global, "navigator", {
+      configurable: true,
+      value: { language: "en-US", languages: ["en-US"] },
+    });
+    global.requestAnimationFrame = jest.fn((callback) => callback());
+    global.cancelAnimationFrame = jest.fn();
+    sidebarModuleContext.cancelAnimationFrame = global.cancelAnimationFrame;
+    sidebarModuleContext.document = global.document;
+    sidebarModuleContext.navigator = global.navigator;
+    sidebarModuleContext.requestAnimationFrame = global.requestAnimationFrame;
+    sidebarModuleContext.window = { innerWidth: 1280 };
+    viewRequests = [];
+    setVisualizationView = jest.fn((request) => {
+      viewRequests.push(request);
+      return Promise.resolve({});
+    });
+    sidebar = createSidebar({
+      elementTools: { isNode: () => false, isProperty: () => false },
+      languageConstants: {
+        iriBasedLanguage: "id",
+        undefinedLanguage: "undefined",
+      },
+      languageTools: {
+        textInLanguage: (localizedText) =>
+          typeof localizedText === "string" ? localizedText : undefined,
+      },
+      webVowlController: {
+        getState: () => ({ view: { language: "default" } }),
+        setVisualizationView,
+      },
+    });
+  });
+
+  afterEach(() => {
+    sidebar?.dispose();
+    sidebarModuleContext.document = undefined;
+    sidebarModuleContext.cancelAnimationFrame = undefined;
+    sidebarModuleContext.navigator = undefined;
+    sidebarModuleContext.requestAnimationFrame = undefined;
+    sidebarModuleContext.window = undefined;
+    delete global.document;
+  });
+
+  function summaryWithLanguages(availableLabelLanguages, selectedLanguage) {
+    return {
+      ontologyHeader: {
+        ontologyIri: null,
+        versionInformationText: null,
+        title: null,
+        description: null,
+        authorNames: [],
+      },
+      elementCounts: {
+        classCount: 0,
+        propertyCount: 0,
+        datatypeCount: 0,
+        individualCount: 0,
+      },
+      availableLabelLanguages,
+      selectedLanguage,
+    };
+  }
+
+  test("reports the reader's preferred language when the controller has none", () => {
+    sidebar.renderOntologySummary(summaryWithLanguages(["fr", "en"], null));
+
+    // A fact: this is the language the reader's browser prefers.
+    expect(viewRequests).toEqual([{ language: "en" }]);
+  });
+
+  test("consumes cancellation when the preferred language request is superseded", async () => {
+    setVisualizationView.mockRejectedValue(
+      Object.assign(new Error("superseded"), { code: "LOAD_ABORTED" }),
+    );
+    sidebar.renderOntologySummary(summaryWithLanguages(["fr", "en"], null));
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(setVisualizationView).toHaveBeenCalledWith({ language: "en" });
+    expect(document.getElementById("visualizationActionStatus").hidden).toBe(
+      true,
+    );
+  });
+
+  test("offers the shared default label choice even when no language-tagged labels exist", () => {
+    sidebar.renderOntologySummary(summaryWithLanguages(["id"], "default"));
+    expect(
+      controls.get("#language").children.map(({ value }) => value),
+    ).toContain("default");
+    expect(controls.get("#language").value).toBe("default");
+    expect(viewRequests).toEqual([]);
+  });
+
+  test("stays silent when the controller already holds a language", () => {
+    sidebar.renderOntologySummary(summaryWithLanguages(["fr", "en"], "fr"));
+
+    expect(viewRequests).toEqual([]);
+    expect(controls.get("#language").value).toBe("fr");
   });
 });

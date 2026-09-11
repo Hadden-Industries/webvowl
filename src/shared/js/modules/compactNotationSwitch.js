@@ -4,7 +4,7 @@
  * @returns {{}}
  */
 
-module.exports = function (graph) {
+export function createCompactNotationSwitch(graph) {
   const DEFAULT_STATE = false;
 
   const filter = {};
@@ -49,4 +49,4 @@ module.exports = function (graph) {
   };
 
   return filter;
-};
+}

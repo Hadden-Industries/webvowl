@@ -1,7 +1,8 @@
-module.exports = function (graph) {
+import { createElementTools } from "../util/elementTools.js";
+export function createFocuser(graph) {
   const focuser = {};
   let focusedElement;
-  const elementTools = require("../util/elementTools")();
+  const elementTools = createElementTools();
   focuser.handle = function (event, selectedElement, forced) {
     // Don't display details on a drag event, which will be prevented
     if (event && event.defaultPrevented && !forced) {
@@ -9,17 +10,16 @@ module.exports = function (graph) {
     }
 
     if (focusedElement !== undefined) {
-      focusedElement.toggleFocus();
+      focusedElement.toggleSelection();
     }
 
     if (focusedElement !== selectedElement && selectedElement) {
-      selectedElement.toggleFocus();
+      selectedElement.toggleSelection();
       focusedElement = selectedElement;
     } else {
       focusedElement = undefined;
     }
     if (focusedElement && focusedElement.focused()) {
-      graph.options().editSidebar().updateSelectionInformation(focusedElement);
       if (elementTools.isProperty(selectedElement) === true) {
         let inversed = false;
         if (
@@ -43,7 +43,6 @@ module.exports = function (graph) {
         );
       }
     } else {
-      graph.options().editSidebar().updateSelectionInformation(undefined);
       graph.removeEditElements();
     }
   };
@@ -53,10 +52,10 @@ module.exports = function (graph) {
    */
   focuser.reset = function () {
     if (focusedElement) {
-      focusedElement.toggleFocus();
+      focusedElement.toggleSelection();
       focusedElement = undefined;
     }
   };
 
   return focuser;
-};
+}

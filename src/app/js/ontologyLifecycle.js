@@ -1,4 +1,4 @@
-const STATES = Object.freeze({
+export const ONTOLOGY_LIFECYCLE_STATES = Object.freeze({
   IDLE: "idle",
   LOADING: "loading",
   MODEL_READY: "model-ready",
@@ -7,35 +7,33 @@ const STATES = Object.freeze({
   ERROR: "error",
 });
 
-const VALID_STATES = new Set(Object.values(STATES));
+const VALID_ONTOLOGY_LIFECYCLE_STATES = new Set(
+  Object.values(ONTOLOGY_LIFECYCLE_STATES),
+);
 
-function isModelAvailable(state) {
+export function isOntologyModelAvailable(ontologyLifecycleState) {
   return (
-    state === STATES.MODEL_READY ||
-    state === STATES.RENDERING ||
-    state === STATES.READY
+    ontologyLifecycleState === ONTOLOGY_LIFECYCLE_STATES.MODEL_READY ||
+    ontologyLifecycleState === ONTOLOGY_LIFECYCLE_STATES.RENDERING ||
+    ontologyLifecycleState === ONTOLOGY_LIFECYCLE_STATES.READY
   );
 }
 
-function capabilitiesFor(state) {
-  if (!VALID_STATES.has(state)) {
-    throw new TypeError("Unknown ontology lifecycle state: " + state);
+export function ontologyLifecycleCapabilitiesFor(ontologyLifecycleState) {
+  if (!VALID_ONTOLOGY_LIFECYCLE_STATES.has(ontologyLifecycleState)) {
+    throw new TypeError(
+      "Unknown ontology lifecycle state: " + ontologyLifecycleState,
+    );
   }
 
   const busy =
-    state === STATES.LOADING ||
-    state === STATES.MODEL_READY ||
-    state === STATES.RENDERING;
+    ontologyLifecycleState === ONTOLOGY_LIFECYCLE_STATES.LOADING ||
+    ontologyLifecycleState === ONTOLOGY_LIFECYCLE_STATES.MODEL_READY ||
+    ontologyLifecycleState === ONTOLOGY_LIFECYCLE_STATES.RENDERING;
   return Object.freeze({
-    graphControls: state === STATES.READY,
+    graphControls: ontologyLifecycleState === ONTOLOGY_LIFECYCLE_STATES.READY,
     ontologySource: !busy,
     editorMode: !busy,
-    dataModes: state === STATES.READY,
+    dataModes: ontologyLifecycleState === ONTOLOGY_LIFECYCLE_STATES.READY,
   });
 }
-
-module.exports = {
-  STATES,
-  capabilitiesFor,
-  isModelAvailable,
-};

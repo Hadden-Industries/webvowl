@@ -1,4 +1,4 @@
-module.exports = (function () {
+const createConstants = (function () {
   const constants = {};
 
   constants.LANG_IRIBASED = "IRI-based";
@@ -11,3 +11,5 @@ module.exports = (function () {
     return constants;
   };
 })();
+
+export { createConstants };

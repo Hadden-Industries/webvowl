@@ -1,51 +1,61 @@
-const owl2vowlModule = require("../../owl2vowl/js/index.js");
-const owl2vowl = owl2vowlModule.default || owl2vowlModule;
-if (!owl2vowl.loadWithImports && owl2vowlModule.loadWithImports) {
-  owl2vowl.loadWithImports = owl2vowlModule.loadWithImports;
-}
+const DIRECT_INPUT_DISPLAY_NAME = "Direct input";
 
-module.exports = function (graph) {
+export function createDirectInputModule({ webVowlController } = {}) {
   /** variable defs **/
   const directInputModule = {};
   const inputContainer = document.querySelector("#DirectInputContent");
   const textArea = document.querySelector("#directInputTextArea");
-  let visibleContainer = false;
+  const lifecycleAbortController = new AbortController();
+  let isInputContainerVisible = false;
+
+  // Identify the input syntax; the shared source loader validates the text.
+  function directInputSource(suppliedText) {
+    try {
+      const parsedJsonValue = JSON.parse(suppliedText);
+      if (
+        parsedJsonValue !== null &&
+        typeof parsedJsonValue === "object" &&
+        !Array.isArray(parsedJsonValue) &&
+        (Object.hasOwn(parsedJsonValue, "header") ||
+          Array.isArray(parsedJsonValue.class) ||
+          Array.isArray(parsedJsonValue.property)) &&
+        !["@context", "@graph", "@id", "@type"].some((key) =>
+          Object.hasOwn(parsedJsonValue, key),
+        )
+      ) {
+        return {
+          kind: "vowl-json-text",
+          text: suppliedText,
+          displayName: DIRECT_INPUT_DISPLAY_NAME,
+        };
+      }
+    } catch {
+      // Ontology documents are not VOWL JSON; the controller converts them.
+    }
+    return {
+      kind: "ontology-text",
+      text: suppliedText,
+      displayName: DIRECT_INPUT_DISPLAY_NAME,
+    };
+  }
+
+  function reportDirectInputFailure(failureMessage) {
+    const errorOnLoadElement = document.querySelector("#Error_onLoad");
+    errorOnLoadElement.classList.remove("hidden");
+    errorOnLoadElement.textContent =
+      "The input could not be loaded. " + failureMessage;
+  }
 
   // connect upload and close button;
-  directInputModule.handleDirectUpload = function () {
-    const text = textArea.value;
-    const loadingModule = graph.options().loadingModule();
-    loadingModule.initializeLoader();
-    let jsonOBJ;
+  directInputModule.loadPastedDocument = async function () {
     try {
-      jsonOBJ = JSON.parse(text);
-      loadingModule.directInput(text);
-      // close if successful
-      if (Array.isArray(jsonOBJ.class) && jsonOBJ.class.length > 0) {
-        directInputModule.setDirectInputMode(false);
-      }
-    } catch (_e) {
-      try {
-        owl2vowl
-          .loadWithImports(text)
-          .then(function (vowlJson) {
-            loadingModule.directInput(JSON.stringify(vowlJson));
-            directInputModule.setDirectInputMode(false);
-          })
-          .catch(function (error2) {
-            console.warn("Error " + error2);
-            document.querySelector("#Error_onLoad").classList.remove("hidden");
-            document.querySelector("#Error_onLoad").innerHTML =
-              "Failed to convert the input! " + error2.message;
-            graph.handleOnLoadingError();
-          });
-      } catch (error2) {
-        console.warn("Error " + error2);
-        document.querySelector("#Error_onLoad").classList.remove("hidden");
-        document.querySelector("#Error_onLoad").innerHTML =
-          "Failed to convert the input! " + error2.message;
-        graph.handleOnLoadingError();
-      }
+      await webVowlController.loadOntology({
+        source: directInputSource(textArea.value),
+      });
+      directInputModule.setDirectInputMode(false);
+    } catch (loadError) {
+      console.warn("Error " + loadError);
+      reportDirectInputFailure(loadError?.message ?? String(loadError));
     }
   };
 
@@ -55,24 +65,32 @@ module.exports = function (graph) {
 
   directInputModule.updateLayout = function () {};
 
-  directInputModule.setDirectInputMode = function (val) {
-    if (!val) {
-      visibleContainer = !visibleContainer;
+  directInputModule.setDirectInputMode = function (shouldShowInputContainer) {
+    if (shouldShowInputContainer === undefined) {
+      isInputContainerVisible = !isInputContainerVisible;
     } else {
-      visibleContainer = val;
+      isInputContainerVisible = shouldShowInputContainer;
     }
     // update visibility;
     directInputModule.updateLayout();
     document.querySelector("#Error_onLoad").classList.add("hidden");
-    inputContainer.classList.toggle("hidden", !visibleContainer);
+    inputContainer.classList.toggle("hidden", !isInputContainerVisible);
+  };
+
+  directInputModule.dispose = function () {
+    lifecycleAbortController.abort();
   };
 
   document
-    .querySelector("#directUploadBtn")
-    .addEventListener("click", directInputModule.handleDirectUpload);
+    .querySelector("#loadDirectInputButton")
+    .addEventListener("click", directInputModule.loadPastedDocument, {
+      signal: lifecycleAbortController.signal,
+    });
   document
-    .querySelector("#close_directUploadBtn")
-    .addEventListener("click", directInputModule.handleCloseButton);
+    .querySelector("#closeDirectInputButton")
+    .addEventListener("click", directInputModule.handleCloseButton, {
+      signal: lifecycleAbortController.signal,
+    });
 
   return directInputModule;
-};
+}

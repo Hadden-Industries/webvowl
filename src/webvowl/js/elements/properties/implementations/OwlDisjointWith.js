@@ -1,7 +1,7 @@
-const BaseProperty = require("../BaseProperty");
-const CenteringTextElement = require("../../../../../shared/js/util/CenteringTextElement");
+import { BaseProperty } from "../BaseProperty.js";
+import { CenteringTextElement } from "../../../../../shared/js/util/CenteringTextElement.js";
 
-module.exports = (function () {
+const OwlDisjointWith = (function () {
   const o = function (graph) {
     BaseProperty.apply(this, arguments);
 
@@ -57,3 +57,5 @@ module.exports = (function () {
 
   return o;
 })();
+
+export { OwlDisjointWith };

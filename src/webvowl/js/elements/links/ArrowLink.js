@@ -1,6 +1,6 @@
-const PlainLink = require("./PlainLink");
+import { PlainLink } from "./PlainLink.js";
 
-module.exports = ArrowLink;
+export { ArrowLink };
 
 function ArrowLink(domain, range, property) {
   PlainLink.apply(this, arguments);
