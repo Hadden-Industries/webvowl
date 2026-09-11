@@ -1401,6 +1401,15 @@ export function projectWebMcpToolSuccess(toolName, controllerResult) {
     ...projectedJsonValue(controllerResult ?? {}),
     isTruncated: false,
   };
+  if (
+    controllerResult?.error !== undefined &&
+    controllerResult.error !== null
+  ) {
+    // State reads succeed even when the preceding load failed. Apply the same
+    // closed error boundary used for a failed tool call; parser diagnostics
+    // remain available to the human loading panel through controller state.
+    toolResult.error = projectWebMcpDomainError(controllerResult.error);
+  }
   if (Array.isArray(toolResult.occurrences)) {
     const originalCount = toolResult.occurrences.length;
     while (
@@ -1486,6 +1495,34 @@ export function projectWebMcpToolSuccess(toolName, controllerResult) {
   });
 }
 
+function projectWebMcpDomainError(thrownError) {
+  const hasRecognisedDomainShape =
+    thrownError !== null &&
+    typeof thrownError === "object" &&
+    ACCEPTED_DOMAIN_ERROR_CODES.includes(thrownError.code) &&
+    typeof thrownError.message === "string" &&
+    typeof thrownError.isRetryable === "boolean";
+
+  // An unrecognised failure may carry a path, a host, or a credential in its
+  // message, so none of it is passed on.
+  return Object.freeze(
+    hasRecognisedDomainShape
+      ? {
+          code: thrownError.code,
+          message: thrownError.message.slice(
+            0,
+            MAXIMUM_PROJECTED_TEXT_CHARACTERS,
+          ),
+          isRetryable: thrownError.isRetryable,
+        }
+      : {
+          code: "TOOL_FAILED",
+          message: "The operation could not be completed.",
+          isRetryable: false,
+        },
+  );
+}
+
 export function projectWebMcpToolFailure(toolName, thrownError) {
   assertKnownToolName(toolName);
 
@@ -1504,35 +1541,12 @@ export function projectWebMcpToolFailure(toolName, thrownError) {
     });
   }
 
-  const hasRecognisedDomainShape =
-    thrownError !== null &&
-    typeof thrownError === "object" &&
-    ACCEPTED_DOMAIN_ERROR_CODES.includes(thrownError.code) &&
-    typeof thrownError.message === "string" &&
-    typeof thrownError.isRetryable === "boolean";
-
-  // An unrecognised failure may carry a path, a host, or a credential in its
-  // message, so none of it is passed on.
   return Object.freeze({
     isSuccess: false,
-    error: Object.freeze(
-      hasRecognisedDomainShape
-        ? {
-            operation: toolName,
-            code: thrownError.code,
-            message: thrownError.message.slice(
-              0,
-              MAXIMUM_PROJECTED_TEXT_CHARACTERS,
-            ),
-            isRetryable: thrownError.isRetryable,
-          }
-        : {
-            operation: toolName,
-            code: "TOOL_FAILED",
-            message: "The operation could not be completed.",
-            isRetryable: false,
-          },
-    ),
+    error: Object.freeze({
+      operation: toolName,
+      ...projectWebMcpDomainError(thrownError),
+    }),
   });
 }
 

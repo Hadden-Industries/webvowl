@@ -330,6 +330,47 @@ describe("searchMenu responsive controls, clear button, and mobile overlay state
     };
   });
 
+  test.each(["result", "clear", "query", "locate"])(
+    "consumes a cancelled focus request from the native %s control",
+    async (action) => {
+      const status = new MockElement("visualizationActionStatus");
+      status.hidden = true;
+      mockDoc.elements.visualizationActionStatus = status;
+      sharedSearchController.setVisualizationView = (request) => {
+        sharedViewRequests.push(request);
+        return Promise.reject(
+          Object.assign(new Error("superseded"), { code: "LOAD_ABORTED" }),
+        );
+      };
+      const menu = searchMenuFactory({
+        documentObject: mockDoc,
+        windowObject: global.window,
+        webVowlController: sharedSearchController,
+      });
+      menu.setup();
+      if (action !== "result") {
+        menu.renderVisualizationFocus({
+          focus: [{ kind: "class", iri: "https://example.test/Person" }],
+          focusableElementCount: 1,
+        });
+      }
+      if (action === "result" || action === "query") {
+        searchInput.value = "Person";
+        searchInput.dispatchEvent({ type: "input", target: searchInput });
+        if (action === "result") {
+          listbox.children[0].onclick({ stopPropagation() {} });
+        }
+      } else if (action === "clear") {
+        clearBtn.click();
+      } else {
+        mockDoc.elements.locateSearchResult.click();
+      }
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(sharedViewRequests).toHaveLength(1);
+      expect(status.hidden).toBe(true);
+    },
+  );
+
   test.each([
     '<img src=x onerror="alert(1)">Person',
     "Person & <script>alert(1)</script>",

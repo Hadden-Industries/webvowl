@@ -34,7 +34,18 @@ beforeAll(async () => {
     readFileSync(fileURLToPath(moduleUrl), "utf8"),
     { context: sidebarModuleContext, identifier: moduleUrl.href },
   );
-  await sourceModule.link((specifier) => {
+  await sourceModule.link(async (specifier) => {
+    if (specifier === "./ui/visualizationControlAction.js") {
+      const actionUrl = new URL(specifier, moduleUrl);
+      const actionModule = new SourceTextModule(
+        readFileSync(fileURLToPath(actionUrl), "utf8"),
+        { context: sidebarModuleContext, identifier: actionUrl.href },
+      );
+      await actionModule.link(() => {
+        throw new Error("Unexpected visualization action dependency");
+      });
+      return actionModule;
+    }
     if (specifier.endsWith("applicationUiRegistry.js")) {
       return new SyntheticModule(
         ["applicationUiModule", "registerApplicationUiModule"],
@@ -204,6 +215,7 @@ describe("sidebar native language and lifecycle controls", () => {
       createElement: (tagName) => new SidebarElement(tagName),
       querySelector: controlFor,
       querySelectorAll: () => [],
+      getElementById: (id) => controlFor(`#${id}`),
     };
     Object.defineProperty(global, "navigator", {
       configurable: true,
@@ -465,6 +477,7 @@ describe("sidebar ontology summary presentation", () => {
         Object.assign(new SidebarElement("#text"), { textContent: text }),
       querySelector: controlFor,
       querySelectorAll: () => [],
+      getElementById: (id) => controlFor(`#${id}`),
     };
     Object.defineProperty(global, "navigator", {
       configurable: true,
@@ -640,6 +653,7 @@ describe("sidebar preferred language reporting", () => {
   let controls;
   let sidebar;
   let viewRequests;
+  let setVisualizationView;
 
   beforeEach(() => {
     controls = new Map();
@@ -652,6 +666,7 @@ describe("sidebar preferred language reporting", () => {
     global.document = {
       createElement: (tagName) => new SidebarElement(tagName),
       querySelector: controlFor,
+      getElementById: (id) => controlFor(`#${id}`),
       querySelectorAll: () => [],
     };
     Object.defineProperty(global, "navigator", {
@@ -666,6 +681,10 @@ describe("sidebar preferred language reporting", () => {
     sidebarModuleContext.requestAnimationFrame = global.requestAnimationFrame;
     sidebarModuleContext.window = { innerWidth: 1280 };
     viewRequests = [];
+    setVisualizationView = jest.fn((request) => {
+      viewRequests.push(request);
+      return Promise.resolve({});
+    });
     sidebar = createSidebar({
       elementTools: { isNode: () => false, isProperty: () => false },
       languageConstants: {
@@ -678,10 +697,7 @@ describe("sidebar preferred language reporting", () => {
       },
       webVowlController: {
         getState: () => ({ view: { language: "default" } }),
-        setVisualizationView: (request) => {
-          viewRequests.push(request);
-          return Promise.resolve({});
-        },
+        setVisualizationView,
       },
     });
   });
@@ -721,6 +737,18 @@ describe("sidebar preferred language reporting", () => {
 
     // A fact: this is the language the reader's browser prefers.
     expect(viewRequests).toEqual([{ language: "en" }]);
+  });
+
+  test("consumes cancellation when the preferred language request is superseded", async () => {
+    setVisualizationView.mockRejectedValue(
+      Object.assign(new Error("superseded"), { code: "LOAD_ABORTED" }),
+    );
+    sidebar.renderOntologySummary(summaryWithLanguages(["fr", "en"], null));
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(setVisualizationView).toHaveBeenCalledWith({ language: "en" });
+    expect(document.getElementById("visualizationActionStatus").hidden).toBe(
+      true,
+    );
   });
 
   test("offers the shared default label choice even when no language-tagged labels exist", () => {

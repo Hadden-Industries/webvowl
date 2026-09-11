@@ -1737,6 +1737,41 @@ describe("WebMCP tool dispatch", () => {
       },
     });
   });
+  test("reads a failed load state without exposing the human parser diagnostic", async () => {
+    const state = {
+      status: "error",
+      loadGeneration: 4,
+      error: {
+        code: "PARSE_FAILED",
+        message: "The ontology source could not be parsed.",
+        isRetryable: false,
+        details: { reason: 'Unexpected token in "SOURCE_CREDENTIAL_SENTINEL"' },
+      },
+    };
+    const { webVowlController } = createControllerSpy({
+      getState: () => state,
+    });
+    const result = await createWebMcpToolDispatch({
+      webVowlController,
+    }).callWebMcpTool("get_visualization_state", {});
+
+    expect(result).toMatchObject({
+      isSuccess: true,
+      toolResult: {
+        status: "error",
+        loadGeneration: 4,
+        error: {
+          code: "PARSE_FAILED",
+          message: "The ontology source could not be parsed.",
+          isRetryable: false,
+        },
+      },
+    });
+    expect(JSON.stringify(result)).not.toContain("SOURCE_CREDENTIAL_SENTINEL");
+    expect(result.toolResult.error).not.toHaveProperty("details");
+    expect(state.error.details.reason).toContain("SOURCE_CREDENTIAL_SENTINEL");
+  });
+
   test("retains core visualization values when a full focused selection exceeds the result ceiling", async () => {
     const focus = Array.from({ length: 25 }, (_, index) => ({
       kind: "class",

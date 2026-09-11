@@ -1,3 +1,5 @@
+import { runVisualizationControlAction } from "../ui/visualizationControlAction.js";
+
 /**
  * Presents ontology search results and requests visualization focus.
  */
@@ -589,7 +591,10 @@ export function createSearchMenu({
     hasVisualizationFocus = false;
     setLocateButtonState(false);
     updateClearButtonVisibility();
-    return webVowlController?.setVisualizationView({ focus: [] });
+    return runVisualizationControlAction(
+      () => webVowlController?.setVisualizationView({ focus: [] }),
+      documentObject,
+    );
   };
 
   // Both human search results and agent references use the same focus action.
@@ -601,15 +606,22 @@ export function createSearchMenu({
       return undefined;
     }
     hasVisualizationFocus = true;
-    return webVowlController.setVisualizationView({
-      focus: [...ontologyElementReferences],
-    });
+    return runVisualizationControlAction(
+      () =>
+        webVowlController.setVisualizationView({
+          focus: [...ontologyElementReferences],
+        }),
+      documentObject,
+    );
   };
 
   // Locating is its own action: the reader asks to see the next element among
   // those already highlighted, and the runtime decides how to move the view.
   searchMenu.advanceToNextFocusedElement = function () {
-    return webVowlController?.setVisualizationView({ viewport: "focus-next" });
+    return runVisualizationControlAction(
+      () => webVowlController?.setVisualizationView({ viewport: "focus-next" }),
+      documentObject,
+    );
   };
 
   function selectSearchResult(elementId, event) {

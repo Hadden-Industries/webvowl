@@ -23,7 +23,18 @@ beforeAll(async () => {
     readFileSync(fileURLToPath(moduleUrl), "utf8"),
     { context: warningModuleContext, identifier: moduleUrl.href },
   );
-  await sourceModule.link((specifier) => {
+  await sourceModule.link(async (specifier) => {
+    if (specifier === "./ui/visualizationControlAction.js") {
+      const actionUrl = new URL(specifier, moduleUrl);
+      const actionModule = new SourceTextModule(
+        readFileSync(fileURLToPath(actionUrl), "utf8"),
+        { context: warningModuleContext, identifier: actionUrl.href },
+      );
+      await actionModule.link(() => {
+        throw new Error("Unexpected visualization action dependency");
+      });
+      return actionModule;
+    }
     throw new Error(`Unexpected warning-module dependency: ${specifier}`);
   });
   await sourceModule.evaluate();
@@ -98,13 +109,20 @@ describe("warning presentation listener ownership", () => {
   let messageList;
   let warningModule;
   let interactionBlock;
+  let actionStatus;
 
   beforeEach(() => {
     messageList = new WarningElement();
     interactionBlock = new WarningElement();
     interactionBlock.classList.add("hidden");
+    actionStatus = new WarningElement();
+    actionStatus.hidden = true;
     global.document = {
       createElement: (tagName) => new WarningElement(tagName),
+      getElementById: (id) =>
+        id === "visualizationActionStatus"
+          ? actionStatus
+          : findDescendantById(messageList, id),
       querySelector: (selector) => {
         if (selector === "#blockGraphInteractions") {
           return interactionBlock;
@@ -140,6 +158,35 @@ describe("warning presentation listener ownership", () => {
     closeButton.dispatchEvent(new Event("click"));
 
     expect(messageContainer.classes).toContain("warn-collapsed");
+  });
+
+  test("consumes cancellation when showing a warning's element is superseded", async () => {
+    const requests = [];
+    const reference = { kind: "class", iri: "https://example.test/Thing" };
+    warningModule = createWarningModule({
+      webVowlController: {
+        setVisualizationView: (request) => {
+          requests.push(request);
+          return Promise.reject(
+            Object.assign(new Error("superseded"), { code: "LOAD_ABORTED" }),
+          );
+        },
+      },
+    });
+    warningModule.showWarning(
+      "Warning",
+      "Reason",
+      "Action",
+      2,
+      false,
+      reference,
+    );
+    findDescendantById(messageList, "showElementThing_0").dispatchEvent(
+      new Event("click"),
+    );
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(requests).toEqual([{ focus: [reference] }]);
+    expect(actionStatus.hidden).toBe(true);
   });
 
   test.each([true, false])(

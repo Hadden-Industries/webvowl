@@ -1,3 +1,5 @@
+import { runVisualizationControlAction } from "./ui/visualizationControlAction.js";
+
 const NAVIGABLE_IRI_SCHEMES = new Set(["http:", "https:", "urn:"]);
 
 export function navigableOntologyIri(value) {
@@ -368,7 +370,13 @@ export function createSidebar({
       }
       languageSelect.value = selectedLanguage;
       // A fact for the controller: this is the language the reader prefers.
-      webVowlController?.setVisualizationView({ language: selectedLanguage });
+      runVisualizationControlAction(
+        () =>
+          webVowlController?.setVisualizationView({
+            language: selectedLanguage,
+          }),
+        document,
+      );
     }
   }
 

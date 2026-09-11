@@ -10,9 +10,10 @@
 
 **Spec:** [`docs/designs/2026-08-29-webmcp-integration.md`](../designs/2026-08-29-webmcp-integration.md)
 
-## Completion disposition — 2026-09-10
+## Completion disposition — 2026-09-11
 
-The accepted action-parity implementation and AQFO outcome are complete. See the
+The accepted action-parity implementation and AQFO outcome are complete, including
+the owner-reported preservation repairs and final cancellation correction. See the
 [completion evidence](../evaluations/2026-09-10-webmcp-completion.md) for the twenty
 native jobs, independently opened artifacts, reviews and explicit platform limits.
 Tasks 1–12 below retain the original execution instructions and historical checkbox
@@ -41,6 +42,17 @@ independent reviewer covered all 247 paths and found no actionable vulnerability
 This is not a successful native scan. The accepted broader scope remains R2 despite
 the runtime's original R1 record and missing reclassification operation; the
 completion record and upstream issues explain that tooling discrepancy honestly.
+
+The owner confirmed all reported editing actions work after checkpoint `fdf61748`.
+That checkpoint passed 113 suites / 1,785 tests and the normal build. Its final
+correction adds native cancellation handling, preserves D3 pan/zoom through a
+document revision and closes the parser-diagnostic projection gap in WebMCP state
+reads. The eight focused suites pass 205 tests; the separately invoked module-format
+suite passes 272 tests. Final automatic verification, review supplements and signed
+backup are bound to their native records rather than historical checkboxes. The
+retained complete-diff alternative and checkpoint delta cover the 251-path union;
+the final correction receives bounded supplements. This does not claim an additional
+browser paint test, successful native security scan, merge or deployment.
 
 ## Purpose and acceptance clarification — 2026-09-09
 

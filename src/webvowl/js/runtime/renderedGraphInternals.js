@@ -913,7 +913,7 @@ function createGraph(
     }
   }
 
-  function createInteractionBehaviours() {
+  function createInteractionBehaviours(viewportZoom = d3.zoom()) {
     let moved = false;
     const interactionEpoch = renderInteractionEpoch;
     const isCurrentInteraction = (element) =>
@@ -1163,8 +1163,7 @@ function createGraph(
       });
 
     // Apply the zooming factor.
-    zoom = d3
-      .zoom()
+    zoom = viewportZoom
       .filter(function (event) {
         return (
           isCurrentInteraction(this) &&
@@ -2313,14 +2312,12 @@ function createGraph(
       properties.map((property) => property.id()),
     );
     parser.parse(vowlModel);
-    // Old inputs and gestures belong to retired elements, even though the
-    // ontology load and its viewport remain current.
+    // Element inputs and drags belong to retired records. The mounted viewport
+    // and its native pan/zoom gesture remain current until D3 ends the gesture.
     renderInteractionEpoch++;
     releaseOwnedMouseGesture(activeMouseDrag);
-    releaseOwnedMouseGesture(activeMousePan);
     activeMouseDrag = undefined;
-    activeMousePan = undefined;
-    createInteractionBehaviours();
+    createInteractionBehaviours(zoom);
     bindViewportInteractions();
     clearAllHover();
     removeEditElements();

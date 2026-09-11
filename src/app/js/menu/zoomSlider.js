@@ -1,4 +1,6 @@
 /** The zoom Slider **/
+import { runVisualizationControlAction } from "../ui/visualizationControlAction.js";
+
 export function createZoomSlider({
   webVowlController,
   hideNavigationMenus = () => {},
@@ -23,7 +25,11 @@ export function createZoomSlider({
   let slider;
 
   function requestMagnification(nextZoomValue) {
-    webVowlController?.setVisualizationView({ zoomScale: nextZoomValue });
+    return runVisualizationControlAction(
+      () =>
+        webVowlController?.setVisualizationView({ zoomScale: nextZoomValue }),
+      documentObject,
+    );
   }
 
   function stopContinuousZoom() {

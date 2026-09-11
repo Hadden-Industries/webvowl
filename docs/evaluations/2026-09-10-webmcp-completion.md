@@ -386,6 +386,65 @@ app-testing round. That checkpoint records the focused results above; it does
 not establish completion of the deferred broad verification, remaining browser
 acceptance or release qualification. The implementation task remains incomplete.
 
+## Final preservation and cancellation correction — 2026-09-11
+
+The owner confirmed that the reported editing actions now work: adding/deleting
+nodes, creating relations, datatype plus, and dragging node controls. Signed
+checkpoint `fdf61748868cd98baedf95280bbbe72a5e19ec77` was backed up to
+`origin/feature/webmcp-integration`. Its resumed repository gate passed all
+113 suites / 1,785 tests, format/lint and production build. That result describes
+the checkpoint, not the subsequent correction below.
+
+The next owner report identified an unhandled `LOAD_ABORTED` rejection; its exact
+human trigger is unknown. A deterministic slider-input reproduction exposed the
+same failure. Zoom, search/locate/clear, warning focus and preferred-language
+requests now use the existing native action-feedback boundary. Superseded requests
+settle quietly, genuine failures retain safe visible feedback, and the controller
+and WebMCP still report cancellation to their callers. This is a caller repair;
+it does not remove generation cancellation or add a global rejection suppressor.
+
+Independent correction review found a second preservation defect: replacing D3's
+zoom behavior during a document revision could orphan a pan on the retained SVG.
+Revisions now preserve that viewport behavior and native mouseup completion while
+renewing element drag callbacks. The maintained native-D3 regression advances the
+renderer viewport after the gesture. Replaying it against a disposable copy of
+`fdf61748` failed because renderer scale stayed at 1 while D3 advanced. Its initial
+draft incorrectly expected a completed SVG animation in a non-browser fixture;
+the corrected boundary checks immediate renderer state and does not claim paint
+verification. Both disposable copies were removed after the recorded replay.
+
+Security delta review identified parser diagnostics reaching WebMCP through a
+successful state read after a failed load. A common closed error projection now
+serves failure envelopes and state errors. The dispatch regression excludes an
+embedded source/credential sentinel while proving the human controller diagnostic
+is retained. This completes the existing tool-output boundary without changing
+parser behavior or hiding the human explanation.
+
+The final correction passes eight focused suites / 205 tests. The separately
+invoked production-module-format suite passes 272 tests. Final source hashes,
+captured RED/GREEN excerpts and bounded review supplements are retained in
+`.sdlc/runtime/repair-view-controls/`. The final `npm run sdlc -- verify` receipt
+and native handoff bind the actual automatic test/build outcome after these edits;
+their results are not inferred from the focused checks. Reviews reuse unchanged
+coverage and the earlier twenty native jobs instead of restarting them.
+
+Both source reviews resolve their earlier product findings without identifying
+another material defect. The correctness reviewer also corrected the state-test
+fixture to the controller's actual `"error"` status; all 98 WebMCP contract tests
+pass after that correction. The in-flight final gate was stopped before this
+last test edit and restarted afterward. The original review target remains
+retained alongside the two-line fixture correction and its new hash.
+
+The earlier complete-diff alternative plus its checkpoint delta covers the
+251-path feature union. Native inventory failures remain failures; independent
+review is the approved alternative. No experimental agent editing, Turtle
+generation rewrite, configuration change, deployment or merge is included.
+Client-specific qualification limits above remain explicit. The owner's editor
+confirmation does not establish an unperformed browser paint test for the final
+pan correction. These corrections complete the accepted implementation scope;
+the native final gate, review supplements and signed backup retain their own
+completion records.
+
 ## Evidence retention
 
 The implementation owner retains `.sdlc/runtime/webmcp-resumption/` and

@@ -1,3 +1,5 @@
+import { runVisualizationControlAction } from "./ui/visualizationControlAction.js";
+
 export function createWarningModule({ webVowlController } = {}) {
   /** variable defs **/
   const warningModule = {};
@@ -407,9 +409,13 @@ export function createWarningModule({ webVowlController } = {}) {
           if (focusableElementReference === undefined) {
             return;
           }
-          webVowlController?.setVisualizationView({
-            focus: [focusableElementReference],
-          });
+          runVisualizationControlAction(
+            () =>
+              webVowlController?.setVisualizationView({
+                focus: [focusableElementReference],
+              }),
+            document,
+          );
         },
         { signal: lifecycleAbortController.signal },
       );

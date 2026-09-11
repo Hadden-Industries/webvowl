@@ -383,6 +383,62 @@ describe("zoomSlider input handling", () => {
     expect(setVisualizationView).toHaveBeenCalledWith({ zoomScale: 2.5 });
   });
 
+  test("consumes cancellation of a slider request superseded by the next input", async () => {
+    const { setVisualizationView, zoomSliderElement } = mountZoomSlider();
+    let cancelPreviousRequest;
+    setVisualizationView
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve, reject) => {
+            cancelPreviousRequest = reject;
+          }),
+      )
+      .mockResolvedValueOnce({});
+    zoomSliderElement.value = 1;
+    zoomSliderElement.dispatchEvent(new MockEvent("input"));
+    zoomSliderElement.value = 2;
+    zoomSliderElement.dispatchEvent(new MockEvent("input"));
+
+    const status = document.getElementById("visualizationActionStatus");
+    status.hidden = false;
+    status.textContent = "Feedback for the newer request";
+    cancelPreviousRequest(
+      Object.assign(
+        new Error("The requested load generation was superseded or cancelled."),
+        {
+          name: "WebVowlOperationError",
+          code: "LOAD_ABORTED",
+        },
+      ),
+    );
+    // Native event dispatch discards returned promises. Allow rejected requests
+    // to settle so Jest detects an unhandled rejection from the real listener.
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(setVisualizationView.mock.calls).toEqual([
+      [{ zoomScale: 1 }],
+      [{ zoomScale: 2 }],
+    ]);
+    expect(status.hidden).toBe(false);
+    expect(status.textContent).toBe("Feedback for the newer request");
+  });
+
+  test("shows safe feedback when keyboard zoom fails", async () => {
+    const { setVisualizationView, zoomOutButton } = mountZoomSlider();
+    setVisualizationView.mockRejectedValue(
+      new Error("private renderer detail"),
+    );
+
+    zoomOutButton.dispatchEvent(new MockEvent("click", { detail: 0 }));
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const status = document.getElementById("visualizationActionStatus");
+    expect(status.hidden).toBe(false);
+    expect(status.textContent).toBe(
+      "The visualization could not be updated. Please try again.",
+    );
+  });
+
   test("exposes the vertical zoom range with an accessible name and value", () => {
     const { zoomSlider, zoomSliderElement } = mountZoomSlider();
 

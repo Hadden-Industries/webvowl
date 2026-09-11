@@ -78,6 +78,9 @@ function mountGraph(model) {
   document.querySelector = (selector) =>
     document.querySelectorAll(selector)[0] ?? null;
   const window = {
+    document,
+    addEventListener() {},
+    removeEventListener() {},
     getComputedStyle: () => ({
       getPropertyValue: (name) => (name === "font-size" ? "12px" : ""),
     }),
@@ -284,6 +287,52 @@ test("expires inline label submissions when their rendered document is revised",
       "Current label",
       false,
     );
+  } finally {
+    dispose();
+  }
+});
+
+test("applies native wheel magnification after a document revision during a pan", () => {
+  const { graph, document, dispose } = mountGraph(MODEL);
+  try {
+    graph.setViewportTransform(1, [0, 0]);
+    const svg = document.querySelector("svg");
+    const window = document.defaultView;
+    const event = (type, extra = {}) => ({
+      type,
+      currentTarget: svg,
+      view: window,
+      button: 0,
+      clientX: 100,
+      clientY: 100,
+      pageX: 100,
+      pageY: 100,
+      preventDefault() {},
+      stopImmediatePropagation() {},
+      ...extra,
+    });
+    d3.select(svg).on("mousedown.zoom").call(svg, event("mousedown"));
+    const mouseup = d3.select(window).on("mouseup.zoom");
+    expect(typeof mouseup).toBe("function");
+    expect(svg.__zooming).toBeDefined();
+
+    // Committing a sidebar field can revise the model after canvas mousedown.
+    graph.applyVowlModelRevision(structuredClone(MODEL));
+    d3.select(window).on("mouseup.zoom")?.call(window, event("mouseup"));
+    const panEnded = svg.__zooming === undefined;
+    d3.select(svg)
+      .on("wheel.zoom")
+      .call(svg, event("wheel", { deltaY: -100, deltaMode: 0 }));
+
+    expect(document.querySelector("svg")).toBe(svg);
+    expect(svg.__zoom.k).toBeGreaterThan(1);
+    // D3's own magnification must reach the renderer. Animation/paint needs a
+    // browser SVG DOM; this fixture checks the immediate viewport state.
+    expect(graph.scaleFactor()).toBeGreaterThan(1);
+    expect(graph.scaleFactor()).toBe(svg.__zoom.k);
+    expect(graph.translation()).toEqual([svg.__zoom.x, svg.__zoom.y]);
+    expect(panEnded).toBe(true);
+    expect(d3.select(window).on("mouseup.zoom")).toBeUndefined();
   } finally {
     dispose();
   }
