@@ -1,0 +1,23 @@
+{
+  "acceptedAt": "2026-09-11T16:40:10Z",
+  "acceptedBy": "MaksymShostak",
+  "capturedAt": "2026-09-11T16:41:34.011699Z",
+  "issue": {
+    "author": "MaksymShostak",
+    "body": "## Accepted policy-change scope\n\nAdopt the source-qualified WP8 SDLC controls in WebVOWL main. The owner explicitly directed \"port the improvements into the `main` branches\" on 2026-09-11, with standing authority for related commits, pushes, GitHub interactions and proportional configuration changes. The unchanged accepted programme plan is already retained by PR #17 at `docs/plans/2026-09-11-sdlc-wp8-adoption.md`.\n\nThis is the actual SDLC policy change required by WebVOWL's current trusted consumer, which accepts only native Issue snapshots for R2. It records the selected requirements below for that existing route; it neither changes the accepted WP8 plan nor turns the converter or visualization work into a new policy requirement. The original plan remains authoritative for broader programme obligations.\n\nQualified source: Hadden-Industries/universal-ontology `777cddda00ec1536c56ce7dc64f933c2cd20bd1c`, merged as `557d4bb3e4013b34a95ad8be6189b975222fb47e`, identical qualified tree. Retain the original import lineage and MIT attribution, WebVOWL's util/mjs adaptation, native setup transaction, product profiles, AGPL licence and pinned dependencies.\n\n## Acceptance references\n\nThese local IDs identify the corresponding unchanged WP8 criteria; they add no requirements.\n\n- AC-801 / WP8 AC8-04: Deliver a coherent, selective adopter delta. Three-way file mapping, dependency closure, retained overlays/licences, no wholesale runtime/configuration copy.\n- AC-802 / WP8 AC8-10: Reject incompatible previous evidence and qualify actual used hosts/trusted consumers. Current writer/reader/schema, input identities, effective host coverage, real remote policy/attempt where in scope.\n- AC-803 / WP8 AC8-11: Stop failed propagation and retain recoverable evidence/resources. Scoped hold or authorised compatible recovery; failed and old state preserved; consumers and next actor known.\n- AC-804 / WP8 AC8-12: Make final acceptance precise and retrievable. Existing adoption/product records state exact fixes/hosts/outcomes, source provenance, readback and residual obligations; no \"fixed everywhere\" declaration.\n\n## Verification and boundaries\n\nUse the existing R2 full relevant profile and one final independent assurance of the complete frozen port. Source qualification is prior evidence, while actual recipient consumer checks are fresh. Native Git selection, UTF-8 output, retained failed receipts, exclusive lifecycle transitions, baseline provenance and resource metadata are the affected contracts. Required hosted checks and trusted-base validation remain enforced.\n\nNo product feature repair, dependency upgrade, deployment, SDLC version/status promotion, global hook change or cleanup of another task is authorized by this record. AQFO visual acceptance and ONI installed-consumer evidence remain separately scoped. The unfinished combined MCP/SHACL obligation stays pending.\n",
+    "bodySha256": "07cd0ab699bba953393dc0d48d32d5c4e254feedec2eec49b6ec35e168c39053",
+    "createdAt": "2026-09-11T16:40:10Z",
+    "labels": [
+      "risk:R2",
+      "sdlc:change",
+      "state:ready-to-baseline"
+    ],
+    "number": 18,
+    "title": "Adopt source-qualified WP8 SDLC controls and accepted-plan linkage",
+    "updatedAt": "2026-09-11T16:40:10Z",
+    "url": "https://github.com/Hadden-Industries/webvowl/issues/18"
+  },
+  "repository": "Hadden-Industries/webvowl",
+  "schemaVersion": 1,
+  "version": 1
+}
