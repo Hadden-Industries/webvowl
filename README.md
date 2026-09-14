@@ -1,121 +1,67 @@
 # WebVOWL
 
-> [!CAUTION]
-> The URL https://visualdataweb.org/ is no longer owned by VisualDataWeb and is not related to WebVOWL.
-> The current public WebVOWL service is <https://service.tib.eu/webvowl/>.
+**Explore ontologies as interactive graphs.** WebVOWL visualizes classes, properties, and relationships using the Visual Notation for OWL (VOWL). Load an ontology, inspect its structure, and export a figure for a paper, lecture, or discussion.
 
-This repository was ported from an internal SVN repository to GitHub after the release of WebVOWL 0.4.0. Due to historical cleanups with `git filter-branch`, the early commit history may show unusual effects.
+**[Open WebVOWL](https://haddenindustries.com/webvowl/)** · [Work with an agent](#work-with-an-agent) · [Run locally](#run-locally) · [Get help](#help-and-contributing)
 
-WebVOWL now performs ontology ingestion and VOWL conversion in JavaScript. Local development and production builds do not require a Java OWL2VOWL service or Docker.
+![WebVOWL displaying the MUTO tagging ontology, with connected classes and properties, ontology details, and exploration controls.](docs/images/webvowl-muto.png)
 
-## Requirements
+_The bundled MUTO example in the hosted application._
 
-- A current [Node.js long-term support release](https://nodejs.org/en/about/previous-releases)
-- The npm version bundled with that Node.js release
+## Try it
 
-## Development setup
+1. Open **Ontology** and choose an example, upload a file, or enter an ontology URL.
+2. Search for a class or property, select it to inspect its details, and use **Filter** and zoom to explore the graph.
+3. Use **Export** to save SVG for a figure or VOWL JSON for reopening the visualization. Turtle and LaTeX exports are also available, marked **alpha**.
 
-Install the exact dependency graph recorded in `package-lock.json`:
+> [!TIP]
+> If a remote ontology cannot load because its host blocks browser requests (CORS), download the file and upload it through **Ontology**.
 
-```bash
-npm ci
-```
+## Why JavaScript?
 
-Start the Vite development server. The command prints the local URL and opens it in the default browser:
+This Hadden Industries continuation moves ontology ingestion and VOWL conversion into the browser, using the JavaScript [owlapi](https://github.com/Hadden-Industries/owlapi) library. The application can therefore run on **purely static hosting**: a university ontologist can publish it on an existing static website without asking IT to provision and maintain a dedicated Java backend. No Java conversion service, Docker, or server-side Node.js process is required to serve the built application. Local files are parsed in the browser; URL loading still depends on the source host's access rules.
 
-```bash
-npm run dev
-```
+## Work with an agent
 
-Run the complete Jest suite serially:
+WebVOWL exposes **14 structured tools** through [WebMCP](https://developer.chrome.com/docs/ai/webmcp), letting a compatible browser agent load, summarize, search, inspect, frame, arrange, and export the same graph you see. Human controls and agent tools share the same application operations, so you can continue exploring the result yourself.
 
-```bash
-npm test -- --runInBand
-```
+Ask your agent to:
 
-Create the production build in `deploy/`:
+- “Open FOAF, find Person, and explain its declared relationships.”
+- “Hide datatypes, focus on the classes we discussed, and prepare an SVG for my lecture.”
+- “Inspect this ontology's classes and properties, then show me the relevant part of the graph.”
 
-```bash
-npm run build
-```
+This can shorten the path from an unfamiliar ontology to a useful explanation or figure by combining exploration and presentation steps in one request. Ontology editing remains human-only.
 
-Preview the production build locally:
+> [!NOTE]
+> WebMCP is experimental and requires a compatible browser and agent client. Open WebVOWL as a top-level page; embedded iframes do not register tools. Ordinary browsing needs no agent. Exports are downloaded from the page; attaching them to a conversation depends on the client.
 
-```bash
-npm run preview
-```
+See [WebMCP usage and limits](docs/webmcp.md) and the [recorded browser qualification](docs/evaluations/2026-09-10-webmcp-completion.md).
 
-## Optional WebMCP integration
+## Run locally
 
-On a browser that offers the experimental WebMCP host API, a WebVOWL page
-registers fourteen tools an agent can call. They share the human interface's
-non-editing actions: load, summarize, search, inspect details, select and arrange
-drawn elements, change the view, tune display modes and distances, reset, share
-the view settings, and export SVG, saved VOWL JSON, Turtle or LaTeX.
+Clone this repository, then use its selected **Node.js** ([version](.node-version)), **npm** ([`packageManager`](package.json)), and **Python** ([version](.python-version)). Follow the [development setup guide](docs/sdlc/howto.md#set-up-this-checkout); setup installs dependencies, prepares a local Python environment, and activates local agent/SDLC configuration.
 
-This is experimental and entirely optional. A browser without the API is an
-ordinary WebVOWL page with nothing missing and nothing logged, because an absent
-API is not a fault. Only a top-level page registers anything: a WebVOWL page
-inside an iframe does not read the API at all, and never inspects or proxies the
-document that embeds it.
+| Command                   | Purpose                                                                                                         |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`             | Start development and open the local URL.                                                                       |
+| `npm test -- --runInBand` | Run the Jest suite; requires the [sibling ontology corpus](docs/sdlc/howto.md#application-corpus-prerequisite). |
+| `npm run build`           | Check formatting/lint and build static files into `deploy/`.                                                    |
+| `npm run preview`         | Preview the production build locally.                                                                           |
 
-**What an agent can change, and what it cannot.** Every change a tool makes is
-one the reader can see in the visualization and undo through the ordinary
-controls: a language, the visibility filters, which elements are focused,
-whether automatic layout motion is paused or resumed, and the viewport.
-`layout: "pause"` retains the arrangement by stopping motion; `"resume"`
-restarts it. Omitting `layout` leaves the current choice alone.
-`viewport: "zoom-and-center"` performs the same zoom and pan as the human
-**Zoom and center graph** button. It does not rearrange nodes. The earlier
-`preserve` and `fit` names have no compatibility aliases.
+## Help and contributing
 
-Selection and focus are separate: selecting an element displays its details;
-focus highlights the requested entities until changed or cleared. Arrangement
-addresses generation-scoped drawn occurrences, including position and pinning.
-Experimental ontology editing remains human-only. Turtle export uses the
-existing generator; this integration does not certify or rewrite its RDF content.
+[Report a bug or request a feature](https://github.com/Hadden-Industries/webvowl/issues), including reproduction steps, browser details, and a shareable example ontology. Contributors should read the [SDLC guide](docs/sdlc/howto.md) and [review guidance](REVIEW.md).
 
-**What it accepts as a source.** An ontology document IRI over HTTP(S), a VOWL
-JSON URL over HTTP(S), ontology text supplied directly with its syntax named,
-or supplied VOWL JSON text. A location using any other scheme, or carrying
-credentials, is refused. Human users can still choose or drop a local file;
-WebMCP has no filesystem-path access.
+<details>
+<summary>Project history and legacy links</summary>
 
-**Privacy and artifacts.** Ontology content is fetched and parsed by the page in
-your browser; nothing is uploaded anywhere by this application. An export
-is a browser-local artifact reachable through an object URL that the page
-retires when it is superseded or the page goes away. Retrieving the file is a
-manual download, and whether a particular agent client can attach that download
-to its conversation is that client's behaviour, not something this page can
-promise. Only the latest export remains available. Tool results contain bounded
-metadata, never document content or object URLs. SVG results include dimensions,
-layout outcome, source identity and SHA-256.
+This project continues [VisualDataWeb/WebVOWL](https://github.com/VisualDataWeb/WebVOWL). Its early history was imported from SVN after version 0.4.0; historical Git cleanup can make early commits look unusual. The legacy `visualdataweb.org` domain is no longer associated with the project. [TIB hosts a separate WebVOWL service](https://service.tib.eu/webvowl/).
 
-**One implementation, no fallback.** The tools and the human interface call the
-same `WebVowlController`. There is no legacy callback route, no compatibility
-adapter, and no second transport for loading or exporting; an architecture test
-fails the build if one appears.
-
-For an application-level embedding, `app.getWebVowlController()` returns the
-controller. The concrete renderer and options entry points were removed
-deliberately and have no aliases.
-
-The modules added or materially changed by this work are native ESM with named
-exports and explicit relative `.js` specifiers. The package as a whole is not
-ESM: the root package declaration and build/test infrastructure retain their
-existing module format. The production CommonJS renderer allowlist is now empty.
-
-See the [design record](docs/designs/2026-09-03-ontology-model-ownership.md) and
-the [completed qualification](docs/evaluations/2026-09-10-webmcp-completion.md).
-
-## Additional information
-
-SVG export captures computed styles into a detached clone through the rendered
-graph adapter. CSS changes should be checked against an independently opened
-export; exporting does not rewrite the live SVG or require regenerated D3 rules.
+</details>
 
 ## License
 
-Copyright © 2014-2026 Vincent Link, Steffen Lohmann, Eduard Marbach, Stefan Negru, Vitalis Wiens, Maksym Shostak
+Copyright © 2014–2026 Vincent Link, Steffen Lohmann, Eduard Marbach, Stefan Negru, Vitalis Wiens, Maksym Shostak.
 
-This project is licensed under the GNU Affero General Public License version 3 only (`AGPL-3.0-only`). See [LICENSE](LICENSE) for the full license text.
+Licensed under **GNU AGPL version 3 only** (`AGPL-3.0-only`). See [LICENSE](LICENSE).
