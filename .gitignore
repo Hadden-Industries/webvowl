@@ -38,7 +38,7 @@ __pycache__/
 .stylelintcache
 .eslintcache
 
-# Repository-local SDLC activation and retained evidence
+# Local configuration and retained historical evidence
 /.codex/agents/
 /.codex/rules/
 /.codex/hooks.json

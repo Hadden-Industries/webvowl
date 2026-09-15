@@ -24,7 +24,14 @@ const nodeVersionDescriptor = Object.getOwnPropertyDescriptor(
   "node",
 );
 
-test("WebVOWL setup needs only SDLC requirements and never checks AWS", () => {
+test("development setup does not activate repository workflow configuration", () => {
+  setUpDevelopmentEnvironment({ repositoryRoot });
+  expect(spawnSyncMock.mock.calls.some(([, args]) =>
+    args.some((argument) => /set_up_sdlc\.py|sdlc_stop_gate\.py/.test(argument)),
+  )).toBe(false);
+});
+
+test("WebVOWL setup needs only development requirements and never checks AWS", () => {
   rmSync(join(repositoryRoot, "requirements.txt"));
   setUpDevelopmentEnvironment({ repositoryRoot });
   expect(spawnSyncMock.mock.calls.some(([executable]) => executable === "aws")).toBe(false);
@@ -32,7 +39,7 @@ test("WebVOWL setup needs only SDLC requirements and never checks AWS", () => {
     .map(([, args]) => args)
     .filter((args) => args.includes("-r"))
     .map((args) => args.at(-1));
-  expect(installedRequirements).toEqual([join(repositoryRoot, "requirements-sdlc.txt")]);
+  expect(installedRequirements).toEqual([join(repositoryRoot, "requirements-dev.txt")]);
 });
 
 function createCommandResult(stdout = "", status = 0) {
@@ -68,7 +75,7 @@ function createPythonVirtualEnvironmentFixture() {
 
 beforeEach(() => {
   temporaryDirectoryPath = mkdtempSync(
-    join(tmpdir(), "universal-ontology-development-"),
+    join(tmpdir(), "webvowl-development-"),
   );
   repositoryRoot = join(temporaryDirectoryPath, "checkout with spaces");
   mkdirSync(repositoryRoot);
@@ -80,8 +87,8 @@ beforeEach(() => {
   writeFileSync(join(repositoryRoot, ".node-version"), "24.20.0\n");
   writeFileSync(join(repositoryRoot, ".python-version"), "3.14.7\n");
   writeFileSync(
-    join(repositoryRoot, "requirements-sdlc.txt"),
-    "jsonschema==4.26.0\n",
+    join(repositoryRoot, "requirements-dev.txt"),
+    "PyYAML==6.0.3\n",
   );
   Object.defineProperty(process.versions, "node", { value: "24.20.0" });
   writeFileSync(
@@ -130,7 +137,7 @@ afterEach(() => {
   const cleanupPath = resolve(temporaryDirectoryPath);
   if (
     dirname(cleanupPath) !== resolve(tmpdir()) ||
-    !basename(cleanupPath).startsWith("universal-ontology-development-")
+    !basename(cleanupPath).startsWith("webvowl-development-")
   ) {
     throw new Error(
       "Refusing to remove a path outside the temporary fixtures.",
@@ -186,12 +193,8 @@ test.each([
           "pip",
           "install",
           "-r",
-          join(repositoryRoot, "requirements-sdlc.txt"),
+          join(repositoryRoot, "requirements-dev.txt"),
         ],
-      ],
-      [
-        virtualEnvironmentPythonExecutablePath,
-        ["-B", join(repositoryRoot, "util", "set_up_sdlc.py")],
       ],
     ]);
     for (const [, , options] of spawnSyncMock.mock.calls) {
@@ -215,7 +218,6 @@ test("preserves an existing virtual environment and uses its interpreter", () =>
     ([executable]) => executable !== process.execPath && executable !== "aws",
   );
   expect(pythonCommands.map(([executable]) => executable)).toEqual([
-    getPythonVirtualEnvironmentExecutablePath(),
     getPythonVirtualEnvironmentExecutablePath(),
     getPythonVirtualEnvironmentExecutablePath(),
     getPythonVirtualEnvironmentExecutablePath(),
@@ -244,7 +246,7 @@ test("rejects an unusable existing virtual environment before installation", () 
 
 test.each([
   "package-lock.json",
-  "requirements-sdlc.txt",
+  "requirements-dev.txt",
   ".node-version",
   ".python-version",
 ])("rejects a missing %s before starting subprocesses", (filename) => {
@@ -306,7 +308,6 @@ test.each([
   ["virtual environment creation", "venv"],
   ["pip upgrade", "--upgrade"],
   ["Python dependency installation", "-r"],
-  ["repository SDLC configuration", "-B"],
 ])("stops after a failed %s", (_description, failingArgument) => {
   const successfulCommand = spawnSyncMock.getMockImplementation();
   spawnSyncMock.mockImplementation((executable, args, options) =>

@@ -5,6 +5,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import yaml
+
 import set_up_agent_skills as subject
 
 
@@ -74,6 +76,9 @@ class BrooksReviewInvocationPolicyTests(unittest.TestCase):
                 expected,
             )
             self.assertEqual(existing_metadata.read_bytes(), expected)
+            parsed = yaml.safe_load(existing_metadata.read_text(encoding="utf-8"))
+            self.assertIs(parsed["policy"]["allow_implicit_invocation"], False)
+            self.assertEqual(parsed["interface"]["display_name"], "Brooks Review")
 
     def test_equivalent_relative_repository_path_preserves_the_same_skill_owner(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
