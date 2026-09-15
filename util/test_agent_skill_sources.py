@@ -122,10 +122,6 @@ class SkillActivationPreservationTests(unittest.TestCase):
             lock.write_text(json.dumps({"version": 1, "skills": {
                 "external": {"source": "example/skills", "sourceType": "github",
                              "ref": "a" * 40, "computedHash": "0" * 64}}}), encoding="utf-8")
-            local = canonical / ".sdlc/skills/selected/SKILL.md"
-            local.parent.mkdir(parents=True)
-            contents = "---\nname: selected\ndescription: Fixture skill\n---\n"
-            local.write_text(contents, encoding="utf-8")
             unrelated = canonical / ".agents/skills/external/SKILL.md"
             unrelated.parent.mkdir(parents=True)
             unrelated.write_text("User-owned bytes\n", encoding="utf-8")
@@ -152,35 +148,7 @@ class SkillActivationPreservationTests(unittest.TestCase):
                     installed = setup.unique_installed_skill_dirs(repo, "external", ("codex",))
                     self.assertEqual(len(installed), 1)
                     self.assertTrue(installed[0].samefile(unrelated.parent))
-                    selected = setup.preflight_local_skill_activation(repo, ("codex",))
-                    self.assertEqual(set(selected), {"selected"})
-                    self.assertTrue(selected["selected"].samefile(local.parent))
-                    self.assertEqual(setup.ensure_agent_skills(repo, ("codex",), local_only=True),
-                                     {"selected"})
-                    self.assertEqual((canonical / ".agents/skills/selected/SKILL.md").read_text(
-                        encoding="utf-8"), contents)
                     self.assertEqual((lock.read_bytes(), unrelated.read_bytes()), before)
-
-    def test_local_only_activation_accepts_no_external_skills_and_preserves_user_skill(self):
-        with tempfile.TemporaryDirectory() as directory:
-            repo = Path(directory).resolve()
-            subprocess.run(["git", "init", "--quiet", directory], check=True, capture_output=True)
-            (repo / ".gitignore").write_text(".agents/\n", encoding="utf-8")
-            lock = repo / "skills-lock.json"
-            lock.write_text('{"version":1,"skills":{}}\n', encoding="utf-8")
-            source = repo / ".sdlc/skills/example"
-            source.mkdir(parents=True)
-            (source / "SKILL.md").write_text("---\nname: example\ndescription: Fixture\n---\n", encoding="utf-8", newline="\n")
-            retained = repo / ".agents/skills/user-owned/SKILL.md"
-            retained.parent.mkdir(parents=True)
-            retained.write_text("Preserve user-owned skill", encoding="utf-8")
-            original_lock = lock.read_bytes()
-            with patch.object(setup, "sync_source", side_effect=AssertionError("Network refresh is prohibited")):
-                selected = setup.ensure_agent_skills(repo, ("codex",), local_only=True)
-            self.assertEqual(selected, {"example"})
-            self.assertEqual((repo / ".agents/skills/example/SKILL.md").read_bytes(), (source / "SKILL.md").read_bytes())
-            self.assertEqual(retained.read_text(encoding="utf-8"), "Preserve user-owned skill")
-            self.assertEqual(lock.read_bytes(), original_lock)
 
     def test_verification_preserves_an_unrelated_standalone_skill(self):
         with tempfile.TemporaryDirectory() as directory:

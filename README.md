@@ -40,18 +40,27 @@ See [WebMCP usage and limits](docs/webmcp.md) and the [recorded browser qualific
 
 ## Run locally
 
-Clone this repository, then use its selected **Node.js** ([version](.node-version)), **npm** ([`packageManager`](package.json)), and **Python** ([version](.python-version)). Follow the [development setup guide](docs/sdlc/howto.md#set-up-this-checkout); setup installs dependencies, prepares a local Python environment, and activates local agent/SDLC configuration.
+Clone this repository, then use its selected **Node.js** ([version](.node-version)), **npm** ([`packageManager`](package.json)), and **Python** ([version](.python-version)). Run `npm run setup:development` to install locked npm dependencies with lifecycle scripts disabled and prepare `.venv` with the [Python development requirements](requirements-dev.txt). Setup preserves an existing usable environment and does not activate agent configuration.
 
 | Command                   | Purpose                                                                                                         |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `npm run dev`             | Start development and open the local URL.                                                                       |
-| `npm test -- --runInBand` | Run the Jest suite; requires the [sibling ontology corpus](docs/sdlc/howto.md#application-corpus-prerequisite). |
+| `npm test -- --runInBand` | Run the Jest suite; requires the [sibling ontology corpus](#test-corpus). |
+| `npm run test:setup`      | Check Python setup utilities using this checkout's `.venv`. |
 | `npm run build`           | Check formatting/lint and build static files into `deploy/`.                                                    |
 | `npm run preview`         | Preview the production build locally.                                                                           |
 
+### Test corpus
+
+The corpus tests read `../universal-ontology/dist` beside this checkout. CI uses [Universal Ontology at commit `b3984ff`](https://github.com/Hadden-Industries/universal-ontology/tree/b3984ffbfe9b38cca7bd4570aeb3f5bc0fa6f20e) and copies its `src/external`, `src/iso`, `src/iso-iec`, and `src/universal` directories into that repository's `dist/` directory. Prepare the same static corpus for local full-suite checks, preserving its licence and per-ontology notices. An absent corpus is a missing test prerequisite.
+
+### Agent tooling
+
+The independent `util/set_up_mcp_servers.py` and `util/set_up_agent_skills.py` utilities remain available. External skill refresh requires reviewed immutable source revisions and a pinned project-local Skills CLI; the existing lock is not permission to install or refresh tools. Generated local configuration and retained historical evidence remain ignored by Git.
+
 ## Help and contributing
 
-[Report a bug or request a feature](https://github.com/Hadden-Industries/webvowl/issues), including reproduction steps, browser details, and a shareable example ontology. Contributors should read the [SDLC guide](docs/sdlc/howto.md) and [review guidance](REVIEW.md).
+[Report a bug or request a feature](https://github.com/Hadden-Industries/webvowl/issues), including reproduction steps, browser details, and a shareable example ontology. Include relevant test/build results with changes. For browser or export changes, also record the scenario, expected result, observed behavior, and any verification limits.
 
 <details>
 <summary>Project history and legacy links</summary>

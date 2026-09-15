@@ -1,0 +1,2 @@
+# Native YAML parsing for agent skill metadata verification.
+PyYAML==6.0.3

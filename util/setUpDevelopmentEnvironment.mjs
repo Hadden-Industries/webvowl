@@ -23,7 +23,7 @@ export function setUpDevelopmentEnvironment({
   for (const filename of [
     "package.json",
     "package-lock.json",
-    "requirements-sdlc.txt",
+    "requirements-dev.txt",
     ".node-version",
     ".python-version",
   ]) {
@@ -166,21 +166,17 @@ export function setUpDevelopmentEnvironment({
     "pip",
   ]);
   runRequiredCommand(
-    "SDLC Python dependency installation",
+    "Python development dependency installation",
     virtualEnvironmentPythonExecutablePath,
     [
       "-m",
       "pip",
       "install",
       "-r",
-      join(repositoryRoot, "requirements-sdlc.txt"),
+      join(repositoryRoot, "requirements-dev.txt"),
     ],
   );
-  runRequiredCommand(
-    "Repository SDLC configuration",
-    virtualEnvironmentPythonExecutablePath,
-    ["-B", join(repositoryRoot, "util", "set_up_sdlc.py")],
-  );
+
 
   console.log("Development dependencies are installed.");
 }

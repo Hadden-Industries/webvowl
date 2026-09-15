@@ -51,15 +51,7 @@
     "predeploy": "npm run build",
     "deploy": "python ./util/upload_to_s3.py",
     "setup:development": "node util/setUpDevelopmentEnvironment.mjs",
-    "setup:sdlc": "node util/runRepositoryPython.mjs util/set_up_sdlc.py",
-    "setup:skills": "node util/runRepositoryPython.mjs util/set_up_agent_skills.py --agent codex --local-only",
-    "setup:sdlc:github": "node util/runRepositoryPython.mjs util/bootstrap_github_sdlc.py",
-    "sdlc": "node util/runRepositoryPython.mjs util/sdlc.py",
-    "check:sdlc": "node util/runRepositoryPython.mjs util/set_up_sdlc.py --check",
-    "check:affected": "node util/runAffectedChecks.mjs",
-    "test:sdlc": "node util/runRepositoryPython.mjs -m unittest discover -s tests/sdlc -v",
-    "test:setup": "node util/runRepositoryPython.mjs -m unittest discover -s util -p test_*.py",
-    "test:controls": "npm test -- --runInBand --testPathPatterns=tests/"
+    "test:setup": "node util/runRepositoryPython.mjs -m unittest discover -s util -p test_*.py"
   },
   "license": "AGPL-3.0-only",
   "private": true,
