@@ -1,0 +1,1427 @@
+{
+  "repository": "Hadden-Industries/webvowl",
+  "branch": "feature/webmcp-integration",
+  "revision": "7fe956151e3dd77a8b7e07cdee4e65d068deebc1",
+  "src_tree": "0486697a33a06033168102d885b0c37c80c00169",
+  "evidence": "Manual transcription of the complete recursive GitHub src tree; tree response truncated=false. No complete local AST scan or repository tests were executed. Reconcile paths against git ls-files before implementation.",
+  "javascript_file_count": 236,
+  "confirmed_commonjs_minimum": 2,
+  "files": [
+    {
+      "path": "src/app/css/fontDelivery.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/css/toolstyle.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/app.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/graphLayoutSettler.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/graphLayoutSettler.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/ontologyInspector.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/ontologyInspector.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/ontologySourceLoader.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/ontologySourceLoader.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/renderedGraphRuntimeContracts.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/renderedGraphRuntimeContracts.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/svgArtifactService.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/svgArtifactService.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/svgSerializer.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/svgSerializer.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/visualizationShareLink.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/visualizationShareLink.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/vowlModelInspectionProjector.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/vowlModelInspectionProjector.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/vowlVisualizationSettings.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/vowlVisualizationSettings.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/webVowlController.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/webVowlController.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/webVowlControllerContracts.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/controller/webVowlControllerContracts.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/directInputModule.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/directInputModule.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/editSidebar.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/editSidebar.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/entry.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/languageSelection.test.js",
+      "role_by_path": "test",
+      "source_classification": "confirmed-commonjs",
+      "note": "CommonJS: require(\"@jest/globals\") in executable source; independent local algorithm implementations, no production module import."
+    },
+    {
+      "path": "src/app/js/leftSidebar.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/leftSidebar.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/loadingModule.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/loadingModule.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/configMenu.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/debugMenu.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/exportMenu.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/exportMenu.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/exportTTLModule.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/exportTTLModule.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/gravityMenu.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/modeMenu.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/modeMenu.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/navigationMenu.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/navigationMenu.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/ontologyMenu.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/ontologyMenu.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/pauseMenu.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/pauseMenu.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/resetMenu.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/resetMenu.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/searchMenu.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/searchMenu.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/zoomSlider.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/menu/zoomSlider.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ontologyLifecycle.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ontologyLifecycle.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/sidebar.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/sidebar.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ui/applicationUiRegistry.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ui/browserPaintObserver.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ui/browserPaintObserver.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ui/controllerStatePresenter.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ui/controllerStatePresenter.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ui/degreeFilterControl.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ui/degreeFilterControl.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ui/svgArtifactDownloadAdapter.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ui/svgArtifactDownloadAdapter.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ui/visualizationControlAction.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ui/visualizationControlAction.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ui/visualizationViewControlsAdapter.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/ui/visualizationViewControlsAdapter.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/warningModule.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/warningModule.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/webmcp/webMcpAdapter.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/webmcp/webMcpAdapter.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/webmcp/webMcpArchitecture.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/webmcp/webMcpToolContracts.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/js/webmcp/webMcpToolContracts.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/test/inMemoryRenderedGraphAdapter.js",
+      "role_by_path": "test-support",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/test/inMemoryRenderedGraphAdapter.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/app/test/loadEsmModuleForTest.js",
+      "role_by_path": "test-support",
+      "source_classification": "confirmed-commonjs",
+      "note": "CommonJS: require(node built-ins) and module.exports; custom VM module loader."
+    },
+    {
+      "path": "src/app/test/renderedGraphRuntimeContract.js",
+      "role_by_path": "test-support",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/d3DevelopmentAssetServing.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/d3DevelopmentServer.integration.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/main.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/constants.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/constants.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/importResolver.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/importResolver.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/index.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/index.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/vowlBuilder.annotations.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/vowlBuilder.architecture.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/vowlBuilder.builtins.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/vowlBuilder.classExpressions.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/vowlBuilder.domains.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/vowlBuilder.header.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/vowlBuilder.instances.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/vowlBuilder.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/vowlBuilder.ordering.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/vowlBuilder.punning.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/vowlBuilder.splitting.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/vowlBuilder.subclasses.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/js/vowlBuilder.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/test/helpers.js",
+      "role_by_path": "test-support",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/test/productionCorpus.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/test/productionDifferential.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/test/vowlBuilder.differential.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/test/vowlBuilder.webvowl.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/test/vowlDifferential.js",
+      "role_by_path": "test-support",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/test/vowlDifferential.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/test/vowlSemanticSnapshot.js",
+      "role_by_path": "test-support",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owl2vowl/test/vowlSemanticSnapshot.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/owlapiConsumerBoundary.architecture.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/productionGraph.architecture.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/productionModuleFormat.architecture.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/renderedGraphDecoupling.architecture.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/collapsing.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/compactNotationSwitch.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/datatypeFilter.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/datatypeFilter.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/disjointFilter.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/emptyLiteralFilter.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/filterModuleTemplate.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/focuser.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/focuser.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/nodeDegreeFilter.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/nodeDegreeFilter.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/nodeScalingSwitch.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/objectPropertyFilter.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/objectPropertyFilter.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/pickAndPin.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/pickAndPin.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/setOperatorFilter.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/setOperatorFilter.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/statistics.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/subclassFilter.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/modules/subclassFilter.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/ontologyEditingState.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/ontologyEditingState.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/AbsoluteTextElement.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/AbstractTextElement.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/AbstractTextElement.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/CenteringTextElement.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/constants.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/continuousZoomRamp.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/continuousZoomRamp.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/elementTools.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/filterTools.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/languageTools.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/math.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/math.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/prefixRepresentationModule.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/prefixRepresentationModule.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/resolveFetchUrl.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/resolveFetchUrl.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/set.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/textTools.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/shared/js/util/textTools.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/testRunnerScope.architecture.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/css/vowl.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/classDragger.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/domainDragger.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/BaseElement.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/drawTools.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/drawTools.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/forceLayoutNodeFunctions.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/labelWidthTransition.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/links/ArrowLink.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/links/ArrowLink.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/links/BoxArrowLink.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/links/BoxArrowLink.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/links/Label.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/links/Label.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/links/PlainLink.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/links/linkPart.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/BaseNode.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/DatatypeNode.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/RectangularNode.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/RoundNode.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/SetOperatorNode.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/implementations/ExternalClass.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/implementations/OwlClass.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/implementations/OwlComplementOf.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/implementations/OwlDeprecatedClass.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/implementations/OwlDisjointUnionOf.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/implementations/OwlEquivalentClass.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/implementations/OwlIntersectionOf.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/implementations/OwlNothing.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/implementations/OwlThing.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/implementations/OwlUnionOf.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/implementations/RdfsClass.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/implementations/RdfsDatatype.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/implementations/RdfsLiteral.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/implementations/RdfsResource.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/nodes/nodeMap.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/BaseProperty.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/BaseProperty.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/implementations/OwlAllValuesFromProperty.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/implementations/OwlDatatypeProperty.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/implementations/OwlDeprecatedProperty.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/implementations/OwlDisjointWith.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/implementations/OwlEquivalentProperty.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/implementations/OwlFunctionalProperty.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/implementations/OwlInverseFunctionalProperty.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/implementations/OwlObjectProperty.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/implementations/OwlSomeValuesFromProperty.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/implementations/OwlSymmetricProperty.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/implementations/OwlTransitiveProperty.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/implementations/RdfProperty.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/implementations/RdfsSubClassOf.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/implementations/SetOperatorProperty.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/properties/propertyMap.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/elements/rectangularElementTools.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/entry.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/graphRendering.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/graphViewport.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/parser.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/parser.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/parsing/attributeParser.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/parsing/equivalentPropertyMerger.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/parsing/linkCreator.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/rangeDragger.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/runtime/colorExternalsSwitch.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/runtime/d3RenderedGraphAdapter.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/runtime/d3RenderedGraphAdapter.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/runtime/renderedGraphConfiguration.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/runtime/renderedGraphConfiguration.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/runtime/renderedGraphInternals.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/runtime/renderedGraphSeamConformance.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/runtime/renderedGraphSettings.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/runtime/renderedSvgExportClone.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/runtime/renderedSvgExportClone.test.js",
+      "role_by_path": "test",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    },
+    {
+      "path": "src/webvowl/js/shadowClone.js",
+      "role_by_path": "production-or-other-source",
+      "source_classification": "not-exhaustively-classified",
+      "note": "Tree enumeration is not source-syntax or runtime verification."
+    }
+  ]
+}
