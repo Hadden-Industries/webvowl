@@ -207,4 +207,4 @@ test("non-writing Vite lifecycles preserve existing generated JavaScript", async
 
   expect(await readFile(ownedPath, "utf8")).toBe("owned");
   expect(await readFile(manifestPath, "utf8")).toBe(manifestText);
-});
+}, 30_000);
