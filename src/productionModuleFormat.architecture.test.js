@@ -31,7 +31,6 @@ const REQUIRED_NATIVE_ESM_MODULE_PATHS = Object.freeze([
   "src/app/js/loadingModule.test.js",
   "src/main.js",
   "src/app/js/app.js",
-  "src/app/js/entry.js",
   "src/app/js/menu/exportMenu.js",
   "src/app/js/menu/exportMenu.test.js",
   "src/app/js/menu/ontologyMenu.js",
@@ -246,7 +245,6 @@ const RETIRED_AT_RENDERED_GRAPH_CUTOVER_PATHS = Object.freeze([
 
 const CURRENT_PUBLIC_OR_APPLICATION_COMMONJS_PATHS = Object.freeze([
   "src/app/js/app.js",
-  "src/app/js/entry.js",
   "src/main.js",
   "src/shared/js/options.js",
   "src/webvowl/js/entry.js",
@@ -7546,29 +7544,41 @@ describe("scoped production native-ESM ratchet", () => {
     ).toEqual([]);
   });
 
-  // Task 5 deferred the migrated UI modules behind one dynamic-import boundary
-  // while the composition root was still CommonJS. Task 9 converts that root to
-  // native ESM, so the boundary is now a native-ESM module that still reaches
-  // every Task 5 UI module through the same deferred specifiers.
-  test("keeps the native-ESM composition root loading every Task 5 UI module", () => {
+  // These modules are all required during application initialization. Keeping
+  // them in the static graph avoids six immediately-started dynamic requests
+  // that did not defer either download or use.
+  test("keeps every startup UI module in the static application graph", () => {
     const applicationModulePath = "src/app/js/app.js";
     const applicationSourceStructure = analyzeAuthoredJavaScriptModule(
       readFileSync(absoluteRepositoryPath(applicationModulePath), "utf8"),
       applicationModulePath,
     );
-    const expectedDynamicModuleSpecifiers =
+    const expectedStaticModuleSpecifiers =
       TASK_5_NATIVE_UI_PRODUCTION_MODULE_PATHS.map(
         (modulePath) => `./${path.posix.basename(modulePath)}`,
       );
+    const expectedStaticModuleSpecifierSet = new Set(
+      expectedStaticModuleSpecifiers,
+    );
 
     expect(applicationSourceStructure.syntaxErrorMessage).toBeUndefined();
     expect(applicationSourceStructure.hasNativeEsmDeclaration).toBe(true);
     expect(
       applicationSourceStructure.moduleSpecifierRecords
-        .filter(({ kind }) => kind === "dynamic")
+        .filter(
+          ({ kind, specifier }) =>
+            kind === "static" &&
+            expectedStaticModuleSpecifierSet.has(specifier),
+        )
         .map(({ specifier }) => specifier)
         .sort(),
-    ).toEqual([...expectedDynamicModuleSpecifiers].sort());
+    ).toEqual([...expectedStaticModuleSpecifiers].sort());
+    expect(
+      applicationSourceStructure.moduleSpecifierRecords.filter(
+        ({ kind, specifier }) =>
+          kind === "dynamic" && expectedStaticModuleSpecifierSet.has(specifier),
+      ),
+    ).toEqual([]);
     expect(
       applicationSourceStructure.prohibitedSourcePatternLabels,
     ).not.toContain("CommonJS module export");

@@ -6,7 +6,7 @@
  * renderer global is published; embedding hosts use the exported
  * application entry and its controller accessor.
  */
-import { createWebVowlApplication } from "./app/js/entry.js";
+import { createWebVowlApplication } from "./app/js/app.js";
 
 if (!("popover" in HTMLElement.prototype)) {
   await import("@oddbird/popover-polyfill");

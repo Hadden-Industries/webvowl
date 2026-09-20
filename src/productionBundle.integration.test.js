@@ -52,6 +52,61 @@ test("the production bundle links without a browser package resolver", () => {
     .flatMap((result) => result.output)
     .filter((output) => output.type === "chunk");
 
+  const bootstrapUiModulePaths = [
+    "/src/app/js/directInputModule.js",
+    "/src/app/js/ontologyEditorSidebar.js",
+    "/src/app/js/leftSidebar.js",
+    "/src/app/js/loadingModule.js",
+    "/src/app/js/sidebar.js",
+    "/src/app/js/warningModule.js",
+  ];
+  const dynamicBootstrapUiModules = chunks
+    .filter((chunk) => chunk.isDynamicEntry && chunk.facadeModuleId)
+    .map((chunk) => chunk.facadeModuleId.replaceAll("\\\\", "/"))
+    .filter((moduleId) =>
+      bootstrapUiModulePaths.some((modulePath) => moduleId.endsWith(modulePath)),
+    );
+  assert.deepEqual(
+    dynamicBootstrapUiModules,
+    [],
+    "Startup UI modules must remain in the initial application graph",
+  );
+
+  const applicationModuleIds = chunks.flatMap((chunk) =>
+    Object.keys(chunk.modules).map((moduleId) =>
+      moduleId.replaceAll("\\\\", "/"),
+    ),
+  );
+  assert(
+    applicationModuleIds.some((moduleId) =>
+      moduleId.endsWith("/src/app/js/app.js"),
+    ),
+    "Missing application composition module",
+  );
+  assert(
+    !applicationModuleIds.some((moduleId) =>
+      moduleId.endsWith("/src/app/js/entry.js"),
+    ),
+    "The production graph must not retain a forwarding-only application entry",
+  );
+
+  const vendorChunkNames = chunks
+    .filter((chunk) =>
+      Object.keys(chunk.modules).some((moduleId) =>
+        /node_modules[\\\\/]/u.test(moduleId),
+      ),
+    )
+    .map((chunk) => chunk.fileName)
+    .sort();
+  assert.deepEqual(vendorChunkNames, [
+    "js/vendor-application.js",
+    "js/vendor-parser-jsonld.js",
+    "js/vendor-parser-n3.js",
+    "js/vendor-parser-rdfxml.js",
+    "js/vendor-parser-shared.js",
+    "js/vendor-popover.js",
+  ]);
+
   assert(chunks.some((chunk) => chunk.isEntry), "Missing application entry");
   assert(chunks.length > 1, "Expected the actual split application graph");
 

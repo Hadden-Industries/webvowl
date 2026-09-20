@@ -3,20 +3,139 @@ import { dirname, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   existsSync,
+  mkdirSync,
   readFileSync,
   readdirSync,
   rmSync,
   statSync,
-  utimesSync
+  utimesSync,
+  writeFileSync,
 } from "node:fs";
 import replace from "@rollup/plugin-replace";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import eslintPlugin from "vite-plugin-eslint2";
 import stylelint from "vite-plugin-stylelint";
-import { HtmlValidate, FileSystemConfigLoader, formatterFactory } from "html-validate";
+import {
+  HtmlValidate,
+  FileSystemConfigLoader,
+  formatterFactory,
+} from "html-validate";
 
 const configDir = dirname(fileURLToPath(import.meta.url));
-const pkg = JSON.parse(readFileSync(resolve(configDir, "package.json"), "utf-8"));
+const pkg = JSON.parse(
+  readFileSync(resolve(configDir, "package.json"), "utf-8"),
+);
+
+const generatedJavaScriptManifestPath = ".vite/webvowl-generated-js.json";
+const preManifestGeneratedJavaScriptFiles = [
+  "js/d3.min.js",
+  "js/directInputModule.js",
+  "js/index.js",
+  "js/jsonld.esm.js",
+  "js/jsonld.js",
+  "js/languageTools.js",
+  "js/leftSidebar.js",
+  "js/loadingModule.js",
+  "js/n3.min.js",
+  "js/ontologyEditorSidebar.js",
+  "js/popover.js",
+  "js/rdfxml-streaming-parser.js",
+  "js/rolldown-runtime.js",
+  "js/sidebar.js",
+  "js/src.js",
+  "js/vendor~index.js",
+  "js/vendor~index2.js",
+  "js/vendor~index3.js",
+  "js/vendor~index~index.js",
+  "js/vendor~jsonld.esm.js",
+  "js/vendor~jsonld.js",
+  "js/vendor~n3.min.js",
+  "js/vendor~popover.js",
+  "js/visualizationControlAction.js",
+  "js/visualizationShareLink.js",
+  "js/vowlDocument.js",
+  "js/warningModule.js",
+];
+
+function webvowlGeneratedJavaScriptCleanupPlugin() {
+  let outputDirectory;
+  let emittedJavaScriptFiles = new Set();
+  let wroteBundle = false;
+
+  return {
+    name: "webvowl-generated-javascript-cleanup",
+    apply: "build",
+
+    configResolved(configuration) {
+      outputDirectory = configuration.build.outDir;
+    },
+
+    buildStart() {
+      emittedJavaScriptFiles = new Set();
+      wroteBundle = false;
+    },
+
+    generateBundle(_outputOptions, bundle, isWrite) {
+      wroteBundle ||= isWrite;
+      for (const output of Object.values(bundle)) {
+        if (output.type === "chunk" && output.fileName.endsWith(".js")) {
+          emittedJavaScriptFiles.add(output.fileName.replaceAll("\\", "/"));
+        }
+      }
+    },
+
+    closeBundle() {
+      if (!outputDirectory || !wroteBundle) return;
+
+      const manifestPath = resolve(
+        outputDirectory,
+        generatedJavaScriptManifestPath,
+      );
+      let previouslyGeneratedFiles = [];
+      if (existsSync(manifestPath)) {
+        const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+        if (
+          manifest.schemaVersion !== 1 ||
+          !Array.isArray(manifest.files) ||
+          !manifest.files.every((fileName) => typeof fileName === "string")
+        ) {
+          throw new Error(
+            `Invalid generated JavaScript manifest: ${manifestPath}`,
+          );
+        }
+        previouslyGeneratedFiles = manifest.files;
+      }
+
+      for (const fileName of new Set([
+        ...preManifestGeneratedJavaScriptFiles,
+        ...previouslyGeneratedFiles,
+      ])) {
+        const normalizedFileName = fileName.replaceAll("\\", "/");
+        if (
+          !/^js\/[A-Za-z0-9._~-]+\.js$/u.test(normalizedFileName) ||
+          emittedJavaScriptFiles.has(normalizedFileName)
+        ) {
+          continue;
+        }
+        rmSync(resolve(outputDirectory, normalizedFileName), { force: true });
+      }
+
+      mkdirSync(dirname(manifestPath), { recursive: true });
+      writeFileSync(
+        manifestPath,
+        `${JSON.stringify(
+          {
+            schemaVersion: 1,
+            files: [...emittedJavaScriptFiles].sort(),
+          },
+          null,
+          2,
+        )}\n`,
+        "utf8",
+      );
+    },
+  };
+}
 
 /**
  * Custom Vite plugin that handles HTML template processing and post-build cleanup.
@@ -37,7 +156,7 @@ function webvowlBuildPlugin(mode) {
       if (mode === "production") {
         processedHtml = processedHtml.replace(
           /[ \t]*<!-- build:remove release\s*-->[\s\S]*?<!-- \/build -->\s*/g,
-          ""
+          "",
         );
       }
 
@@ -61,7 +180,7 @@ function webvowlBuildPlugin(mode) {
       const filesToRemove = [
         // Remove benchmark data file (replicates grunt clean:testOntology)
         "data/benchmark.json",
-        "data/personasonto.owl.java.json"
+        "data/personasonto.owl.java.json",
       ];
 
       for (const file of filesToRemove) {
@@ -69,7 +188,9 @@ function webvowlBuildPlugin(mode) {
 
         if (existsSync(filePath)) {
           rmSync(filePath, { force: true });
-          console.log(`[webvowl-build] Removed deploy/${file} (production release)`);
+          console.log(
+            `[webvowl-build] Removed deploy/${file} (production release)`,
+          );
         }
       }
 
@@ -83,13 +204,15 @@ function webvowlBuildPlugin(mode) {
           } else if (entry.isFile() && entry.name.endsWith(".map")) {
             rmSync(fullPath, { force: true });
             const relPath = relative(configDir, fullPath).replace(/\\/g, "/");
-            console.log(`[webvowl-build] Removed ${relPath} (production release)`);
+            console.log(
+              `[webvowl-build] Removed ${relPath} (production release)`,
+            );
           }
         }
       };
 
       removeMapFiles(deployDir);
-    }
+    },
   };
 }
 
@@ -118,7 +241,7 @@ function mtimePreservePlugin() {
             fileCache.set(fullPath, {
               atime: stat.atime,
               mtime: stat.mtime,
-              content
+              content,
             });
           }
         }
@@ -132,14 +255,15 @@ function mtimePreservePlugin() {
           const currentContent = readFileSync(fullPath);
           const isIdentical =
             meta.content.equals(currentContent) ||
-            meta.content.toString().replace(/\r\n/g, "\n") === currentContent.toString().replace(/\r\n/g, "\n");
+            meta.content.toString().replace(/\r\n/g, "\n") ===
+              currentContent.toString().replace(/\r\n/g, "\n");
 
           if (isIdentical) {
             utimesSync(fullPath, meta.atime, meta.mtime);
           }
         }
       }
-    }
+    },
   };
 }
 
@@ -154,19 +278,21 @@ function htmlValidatePlugin(mode) {
       const htmlvalidate = new HtmlValidate(loader);
       const report = await htmlvalidate.validateString(
         html,
-        ctx.filename || resolve(configDir, "src/index.html")
+        ctx.filename || resolve(configDir, "src/index.html"),
       );
 
       if (!report.valid) {
         const formatter = formatterFactory("stylish");
         const formatted = formatter(report.results);
-        console.error("\n[html-validate] HTML validation errors found:\n" + formatted);
+        console.error(
+          "\n[html-validate] HTML validation errors found:\n" + formatted,
+        );
         if (mode === "production") {
           throw new Error("HTML validation failed during production build.");
         }
       }
       return html;
-    }
+    },
   };
 }
 
@@ -188,11 +314,11 @@ export default defineConfig(({ mode }) => {
       minify: isProd,
       cssMinify: true,
       sourcemap: !isProd, // Source maps in dev only
-      rollupOptions: {
+      rolldownOptions: {
         output: {
           // Rolldown / Oxc native option to strip legal comments
           comments: {
-            legal: false
+            legal: false,
           },
           // Fixed filenames without content hashes
           entryFileNames: "js/[name].js",
@@ -213,23 +339,49 @@ export default defineConfig(({ mode }) => {
           codeSplitting: {
             groups: [
               {
-                name: "vendor",
+                name: "vendor-parser-shared",
+                test: /node_modules[\\/](?:abort-controller|base64-js|buffer|core-util-is|event-target-shim|events|ieee754|inherits|isarray|process|process-nextick-args|readable-stream|safe-buffer|string_decoder|util-deprecate)(?:[\\/]|$)/u,
+                priority: 60,
+              },
+              {
+                name: "vendor-parser-jsonld",
+                test: /node_modules[\\/](?:@digitalbazaar[\\/]http-client|canonicalize|jsonld|ky|lru-cache|rdf-canonize|setimmediate|undici|yallist)(?:[\\/]|$)/u,
+                priority: 50,
+              },
+              {
+                name: "vendor-parser-n3",
+                test: /node_modules[\\/]n3(?:[\\/]|$)/u,
+                priority: 50,
+              },
+              {
+                name: "vendor-parser-rdfxml",
+                test: /node_modules[\\/](?:@rdfjs[\\/]types|@rubensworks[\\/]saxes|rdf-data-factory|rdfxml-streaming-parser|relative-to-absolute-iri|validate-iri|xmlchars)(?:[\\/]|$)/u,
+                priority: 50,
+              },
+              {
+                name: "vendor-popover",
+                test: /node_modules[\\/]@oddbird[\\/]popover-polyfill(?:[\\/]|$)/u,
+                priority: 50,
+              },
+              {
+                name: "vendor-application",
                 test: /node_modules[\\/]/u,
-                entriesAware: true
-              }
-            ]
-          }
-        }
-      }
+                priority: 1,
+              },
+            ],
+          },
+        },
+      },
     },
 
     plugins: [
+      webvowlGeneratedJavaScriptCleanupPlugin(),
       mtimePreservePlugin(),
       // Replace @@WEBVOWL_VERSION placeholder in JS source files with the package version
       replace({
         "@@WEBVOWL_VERSION": pkg.version,
         preventAssignment: true,
-        include: [resolve(configDir, "src/**/*.js")]
+        include: [resolve(configDir, "src/**/*.js")],
       }),
       // Copy static assets to deploy/
       viteStaticCopy({
@@ -237,12 +389,12 @@ export default defineConfig(({ mode }) => {
           {
             src: "app/data/*",
             dest: "data",
-            rename: { stripBase: true }
+            rename: { stripBase: true },
           },
           {
             src: "app/fonts/open-sans/OFL.txt",
             dest: "licenses/open-sans",
-            rename: { stripBase: true }
+            rename: { stripBase: true },
           },
           { src: "favicon.ico", dest: "." },
           { src: "favicon.svg", dest: "." },
@@ -251,32 +403,32 @@ export default defineConfig(({ mode }) => {
             // Bypasses the '.' collapse bug
             // as per http://gemini.google.com/app/793f7f5228862e6b
             dest: "deploy",
-            rename: { name: "license.txt" }
-          }
-        ]
+            rename: { name: "license.txt" },
+          },
+        ],
       }),
       // ESLint integration during dev and build
       eslintPlugin({
         lintOnStart: true,
-        include: [resolve(configDir, "src/**/*.js")]
+        include: [resolve(configDir, "src/**/*.js")],
       }),
       // Stylelint integration during dev and build for CSS files
       stylelint({
         lintOnStart: true,
-        include: [resolve(configDir, "src/**/*.css")]
+        include: [resolve(configDir, "src/**/*.css")],
       }),
       htmlValidatePlugin(mode),
-      webvowlBuildPlugin(mode)
+      webvowlBuildPlugin(mode),
     ],
 
     // Dev server configuration
     server: {
-      port: 8000
+      port: 8000,
     },
 
     // Preview server (serves the production build locally)
     preview: {
-      port: 8000
-    }
+      port: 8000,
+    },
   };
 });
