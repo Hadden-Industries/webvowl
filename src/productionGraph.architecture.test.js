@@ -5,9 +5,8 @@ import { fileURLToPath } from "node:url";
 const ENTRY_PATH = fileURLToPath(new URL("./main.js", import.meta.url));
 const SRC_PATH = path.dirname(ENTRY_PATH);
 
-// Both module systems are in play: the application layer is CommonJS and the
-// ingestion layer is native ESM, so a reachability gate that followed only
-// `import` would miss the entire app graph and pass vacuously.
+// The graph is native ESM. CommonJS references remain recognized so a
+// regression cannot become invisible merely by changing dependency syntax.
 const SPECIFIER_PATTERNS = [
   /(?:import|export)\s+(?:[\s\S]*?\sfrom\s*)?["']([^"']+)["']/gu,
   /\bimport\s*\(\s*["']([^"']+)["']\s*\)/gu,

@@ -1,19 +1,12 @@
-import * as d3 from "d3";
 import { beforeAll } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 let mathFactory;
 let math;
 
 beforeAll(async () => {
-  ({ createMath: mathFactory } = await loadEsmModuleForTest(
-    new URL("./math.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createMath: mathFactory } = await import("./math.js"));
   math = mathFactory();
 });
-
-globalThis.d3 = d3;
 
 function quadraticEndpointTangents(path) {
   const match = path.match(

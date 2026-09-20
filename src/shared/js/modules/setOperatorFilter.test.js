@@ -1,5 +1,4 @@
 import { beforeAll } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 let OwlClass;
 let OwlUnionOf;
@@ -8,39 +7,16 @@ let DatatypeProperty;
 let setOperatorFilterFactory;
 
 beforeAll(async () => {
-  ({ OwlClass } = await loadEsmModuleForTest(
-    new URL(
-      "../../../webvowl/js/elements/nodes/implementations/OwlClass.js",
-      import.meta.url,
-    ),
-    import.meta.url,
-  ));
-  ({ OwlUnionOf } = await loadEsmModuleForTest(
-    new URL(
-      "../../../webvowl/js/elements/nodes/implementations/OwlUnionOf.js",
-      import.meta.url,
-    ),
-    import.meta.url,
-  ));
-  ({ RdfsDatatype } = await loadEsmModuleForTest(
-    new URL(
-      "../../../webvowl/js/elements/nodes/implementations/RdfsDatatype.js",
-      import.meta.url,
-    ),
-    import.meta.url,
-  ));
-  ({ OwlDatatypeProperty: DatatypeProperty } = await loadEsmModuleForTest(
-    new URL(
-      "../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty.js",
-      import.meta.url,
-    ),
-    import.meta.url,
-  ));
+  ({ OwlClass } =
+    await import("../../../webvowl/js/elements/nodes/implementations/OwlClass.js"));
+  ({ OwlUnionOf } =
+    await import("../../../webvowl/js/elements/nodes/implementations/OwlUnionOf.js"));
+  ({ RdfsDatatype } =
+    await import("../../../webvowl/js/elements/nodes/implementations/RdfsDatatype.js"));
+  ({ OwlDatatypeProperty: DatatypeProperty } =
+    await import("../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty.js"));
   ({ createSetOperatorFilter: setOperatorFilterFactory } =
-    await loadEsmModuleForTest(
-      new URL("./setOperatorFilter.js", import.meta.url),
-      import.meta.url,
-    ));
+    await import("./setOperatorFilter.js"));
 });
 
 describe("Filtering of set operators", () => {

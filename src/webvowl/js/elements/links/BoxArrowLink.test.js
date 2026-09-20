@@ -1,15 +1,11 @@
 import * as d3 from "d3";
 import { DOMImplementation } from "@xmldom/xmldom";
 import { beforeAll, jest } from "@jest/globals";
-import loadEsmModuleForTest from "../../../../app/test/loadEsmModuleForTest.js";
 
 let BoxArrowLink;
 
 beforeAll(async () => {
-  ({ BoxArrowLink } = await loadEsmModuleForTest(
-    new URL("./BoxArrowLink.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ BoxArrowLink } = await import("./BoxArrowLink.js"));
 });
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";

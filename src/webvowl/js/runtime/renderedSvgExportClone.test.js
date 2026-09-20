@@ -1,13 +1,10 @@
 import { beforeAll } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 let createRenderedSvgExportClone;
 
 beforeAll(async () => {
-  ({ createRenderedSvgExportClone } = await loadEsmModuleForTest(
-    new URL("./renderedSvgExportClone.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createRenderedSvgExportClone } =
+    await import("./renderedSvgExportClone.js"));
 });
 
 class FakeStyle {

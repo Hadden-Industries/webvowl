@@ -1,22 +1,7 @@
 import { createHash, webcrypto } from "node:crypto";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
-import {
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  jest,
-  test,
-} from "@jest/globals";
+import { beforeEach, describe, expect, jest, test } from "@jest/globals";
 
-let createVisualizationArtifactService;
-
-beforeAll(async () => {
-  ({ createVisualizationArtifactService } = await loadEsmModuleForTest(
-    new URL("./visualizationArtifactService.js", import.meta.url),
-    import.meta.url,
-  ));
-});
+import { createVisualizationArtifactService } from "./visualizationArtifactService.js";
 
 function createViewRecipe() {
   return {

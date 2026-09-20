@@ -1,7 +1,6 @@
 import { DOMImplementation } from "@xmldom/xmldom";
 import * as d3 from "d3";
 import { beforeAll, describe, expect, jest, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 let BaseProperty;
 let RectangularNode;
@@ -15,29 +14,21 @@ class TextFixture {
     textUpdates.push(Number(rectangle.attr("width")));
   }
 }
+jest.unstable_mockModule(
+  "../../../shared/js/util/CenteringTextElement.js",
+  () => ({ CenteringTextElement: TextFixture }),
+);
+jest.unstable_mockModule("./drawTools.js", () => ({
+  createDrawTools: () => ({
+    appendRectangularClass: (_parent, width, height) =>
+      rectangle.attr("width", width).attr("height", height),
+    setBackgroundColor: () => {},
+  }),
+}));
+
 beforeAll(async () => {
-  const stubs = {
-    "../../../../shared/js/util/CenteringTextElement.js": {
-      CenteringTextElement: TextFixture,
-    },
-    "../drawTools.js": {
-      createDrawTools: () => ({
-        appendRectangularClass: (_parent, width, height) =>
-          rectangle.attr("width", width).attr("height", height),
-        setBackgroundColor: () => {},
-      }),
-    },
-  };
-  ({ BaseProperty } = await loadEsmModuleForTest(
-    new URL("./properties/BaseProperty.js", import.meta.url),
-    import.meta.url,
-    stubs,
-  ));
-  ({ RectangularNode } = await loadEsmModuleForTest(
-    new URL("./nodes/RectangularNode.js", import.meta.url),
-    import.meta.url,
-    stubs,
-  ));
+  ({ BaseProperty } = await import("./properties/BaseProperty.js"));
+  ({ RectangularNode } = await import("./nodes/RectangularNode.js"));
 });
 
 describe("native label-width transition cancellation", () => {

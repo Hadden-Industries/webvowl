@@ -7,17 +7,14 @@ import {
   test,
 } from "@jest/globals";
 import * as d3 from "d3";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let navigationMenuFactory;
 
 beforeAll(async () => {
   // The loader shares one module cache, so the registry the menu imports is
   // the same instance this test registers into.
-  ({ createNavigationMenu: navigationMenuFactory } = await loadEsmModuleForTest(
-    new URL("./navigationMenu.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createNavigationMenu: navigationMenuFactory } =
+    await import("./navigationMenu.js"));
 });
 
 const HTML_NAMESPACE = "http://www.w3.org/1999/xhtml";

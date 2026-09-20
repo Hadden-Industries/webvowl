@@ -1,7 +1,6 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 // The projection is exercised against ontologies the application ships rather
 // than a fixture written to match the code. A fixture can only show that the
@@ -37,10 +36,8 @@ const OWL_PROPERTY_CHARACTERISTIC_NAMES = Object.freeze([
 let projectOntologyInspectionSnapshot;
 
 beforeAll(async () => {
-  ({ projectOntologyInspectionSnapshot } = await loadEsmModuleForTest(
-    new URL("./vowlModelInspectionProjector.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ projectOntologyInspectionSnapshot } =
+    await import("./vowlModelInspectionProjector.js"));
 });
 
 test("retains header annotations and a legacy single author for both readers", () => {

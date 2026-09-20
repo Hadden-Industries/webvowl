@@ -1,13 +1,9 @@
 import { beforeAll, jest } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let modeMenuFactory;
 
 beforeAll(async () => {
-  ({ createModeMenu: modeMenuFactory } = await loadEsmModuleForTest(
-    new URL("./modeMenu.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createModeMenu: modeMenuFactory } = await import("./modeMenu.js"));
 });
 
 class MockElement {

@@ -1,13 +1,9 @@
 import { beforeAll } from "@jest/globals";
-import loadEsmModuleForTest from "../../../../app/test/loadEsmModuleForTest.js";
 
 let Label;
 
 beforeAll(async () => {
-  ({ Label } = await loadEsmModuleForTest(
-    new URL("./Label.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ Label } = await import("./Label.js"));
 });
 
 describe("Label Coordinate Forwarding Unit Tests", () => {

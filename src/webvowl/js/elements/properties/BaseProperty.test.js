@@ -1,13 +1,9 @@
 import { beforeAll, jest } from "@jest/globals";
-import loadEsmModuleForTest from "../../../../app/test/loadEsmModuleForTest.js";
 
 let BaseProperty;
 
 beforeAll(async () => {
-  ({ BaseProperty } = await loadEsmModuleForTest(
-    new URL("./BaseProperty.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ BaseProperty } = await import("./BaseProperty.js"));
 });
 
 describe("BaseProperty Unit Tests", () => {

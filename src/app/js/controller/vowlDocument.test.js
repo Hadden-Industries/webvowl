@@ -1,5 +1,4 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let applyVowlDocumentRecordEdit;
 let applyVowlOntologyMetadataEdit;
@@ -19,24 +18,11 @@ beforeAll(async () => {
     describeVowlDocumentDeletion,
     applyVowlDocumentDeletion,
     insertVowlDocumentRecords,
-  } = await loadEsmModuleForTest(
-    new URL("./vowlDocument.js", import.meta.url),
-    import.meta.url,
-  ));
-  ({ OwlObjectProperty } = await loadEsmModuleForTest(
-    new URL(
-      "../../../webvowl/js/elements/properties/implementations/OwlObjectProperty.js",
-      import.meta.url,
-    ),
-    import.meta.url,
-  ));
-  ({ OwlDatatypeProperty } = await loadEsmModuleForTest(
-    new URL(
-      "../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty.js",
-      import.meta.url,
-    ),
-    import.meta.url,
-  ));
+  } = await import("./vowlDocument.js"));
+  ({ OwlObjectProperty } =
+    await import("../../../webvowl/js/elements/properties/implementations/OwlObjectProperty.js"));
+  ({ OwlDatatypeProperty } =
+    await import("../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty.js"));
 });
 
 function documentFixture() {

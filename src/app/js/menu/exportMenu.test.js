@@ -7,23 +7,14 @@ import {
   jest,
   test,
 } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 const exportMenuFactory = {};
 let WebVowlOperationError;
 
 beforeAll(async () => {
-  ({ WebVowlOperationError } = await loadEsmModuleForTest(
-    new URL("../controller/webVowlControllerContracts.js", import.meta.url),
-    import.meta.url,
-  ));
-  Object.assign(
-    exportMenuFactory,
-    await loadEsmModuleForTest(
-      new URL("./exportMenu.js", import.meta.url),
-      import.meta.url,
-    ),
-  );
+  ({ WebVowlOperationError } =
+    await import("../controller/webVowlControllerContracts.js"));
+  Object.assign(exportMenuFactory, await import("./exportMenu.js"));
 });
 
 describe("export menu clipboard copying", () => {

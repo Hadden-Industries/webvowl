@@ -8,17 +8,13 @@ import {
   test,
 } from "@jest/globals";
 import * as d3 from "d3";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let zoomSliderFactory;
 
 beforeAll(async () => {
   // The registry is loaded first so the slider links the same instance rather
   // than a second copy the test could not reach.
-  ({ createZoomSlider: zoomSliderFactory } = await loadEsmModuleForTest(
-    new URL("./zoomSlider.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createZoomSlider: zoomSliderFactory } = await import("./zoomSlider.js"));
 });
 
 const HTML_NAMESPACE = "http://www.w3.org/1999/xhtml";

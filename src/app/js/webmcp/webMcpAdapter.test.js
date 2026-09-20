@@ -1,22 +1,12 @@
 import { beforeAll, describe, expect, jest, test } from "@jest/globals";
-import { OWLDocumentFormats } from "owlapi/formats";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let registerWebMcpTools;
 
 beforeAll(async () => {
   // The contracts module is loaded first so the adapter links against the same
   // instance the assertions below read.
-  await loadEsmModuleForTest(
-    new URL("./webMcpToolContracts.js", import.meta.url),
-    import.meta.url,
-    { "owlapi/formats": { OWLDocumentFormats } },
-  );
-  ({ registerWebMcpTools } = await loadEsmModuleForTest(
-    new URL("./webMcpAdapter.js", import.meta.url),
-    import.meta.url,
-    { "owlapi/formats": { OWLDocumentFormats } },
-  ));
+  await import("./webMcpToolContracts.js");
+  ({ registerWebMcpTools } = await import("./webMcpAdapter.js"));
 });
 
 const EXPECTED_TOOL_NAMES = Object.freeze([

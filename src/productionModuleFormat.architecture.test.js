@@ -234,15 +234,10 @@ const LEGACY_COMMONJS_RENDERER_LEAF_PATHS = Object.freeze([]);
 // govern any future private CommonJS leaf.
 let activeCommonJsRendererLeafPaths = LEGACY_COMMONJS_RENDERER_LEAF_PATHS;
 
-// Test infrastructure, not a production boundary. Jest runs this repository
-// without "type": "module", which the migration plan deliberately leaves
-// unchanged, so a test cannot statically import a native-ESM repository module.
-// This loader therefore has to stay CommonJS and reach node:module's
-// createRequire to link CommonJS dependencies into a vm ESM module. It is
-// reachable only from test files and never from a composition root.
-const APPROVED_TEST_INFRASTRUCTURE_COMMONJS_PATHS = Object.freeze([
-  "src/app/test/loadEsmModuleForTest.js",
-]);
+// Native ESM test loading leaves no approved first-party CommonJS
+// interoperability path. The empty set remains part of the analyzer contract
+// so any future exception requires an explicit architectural decision.
+const APPROVED_TEST_INFRASTRUCTURE_COMMONJS_PATHS = Object.freeze([]);
 
 const RETIRED_AT_RENDERED_GRAPH_CUTOVER_PATHS = Object.freeze([
   "src/shared/js/options.js",

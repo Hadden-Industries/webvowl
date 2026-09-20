@@ -1,7 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let createGraphLayoutSettler;
 let createGraphLayoutSnapshot;
@@ -12,14 +11,9 @@ const SETTLE_TIMEOUT_MS = 12000;
 const REQUIRED_STABLE_FRAME_COUNT = 8;
 
 beforeAll(async () => {
-  ({ createGraphLayoutSettler } = await loadEsmModuleForTest(
-    new URL("./graphLayoutSettler.js", import.meta.url),
-    import.meta.url,
-  ));
-  ({ createGraphLayoutSnapshot } = await loadEsmModuleForTest(
-    new URL("./renderedGraphRuntimeContracts.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createGraphLayoutSettler } = await import("./graphLayoutSettler.js"));
+  ({ createGraphLayoutSnapshot } =
+    await import("./renderedGraphRuntimeContracts.js"));
 });
 
 function layoutSnapshot({

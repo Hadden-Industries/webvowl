@@ -1,8 +1,5 @@
-import * as d3 from "d3";
 import { DOMImplementation } from "@xmldom/xmldom";
 import { beforeAll, jest } from "@jest/globals";
-import { runInThisContext } from "node:vm";
-import loadEsmModuleForTest from "../../app/test/loadEsmModuleForTest.js";
 
 const graphModule = {};
 
@@ -12,24 +9,19 @@ let measureViewportElement;
 beforeAll(async () => {
   Object.assign(
     graphModule,
-    await loadEsmModuleForTest(
-      new URL("./runtime/renderedGraphInternals.js", import.meta.url),
-      import.meta.url,
-    ),
+    await import("./runtime/renderedGraphInternals.js"),
   );
   viewportTransform = graphModule.viewportTransform;
   measureViewportElement = graphModule.measureViewportElement;
 });
 
-globalThis.d3 = d3;
-
 describe("continuous graph zoom rendering", () => {
   test.each([1, -1])(
     "draws the magnification reported for direction %s and retains the viewport center",
     (direction) => {
-      const moduleGlobals = runInThisContext("globalThis");
+      const moduleGlobals = globalThis;
       const originalGlobals = new Map(
-        ["d3", "requestAnimationFrame", "cancelAnimationFrame"].map((name) => [
+        ["requestAnimationFrame", "cancelAnimationFrame"].map((name) => [
           name,
           Object.getOwnPropertyDescriptor(moduleGlobals, name),
         ]),
@@ -49,7 +41,6 @@ describe("continuous graph zoom rendering", () => {
       };
       const frames = new Map();
       let nextFrameId = 0;
-      moduleGlobals.d3 = d3;
       moduleGlobals.requestAnimationFrame = (callback) => {
         frames.set(++nextFrameId, callback);
         return nextFrameId;

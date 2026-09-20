@@ -1,57 +1,25 @@
-import { beforeAll, describe, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
-
-let RENDERED_GRAPH_EVENT_KINDS;
-let RENDERED_GRAPH_RUNTIME_METHOD_NAMES;
-let assertRenderedGraphRuntime;
-let createContinuousZoomRequest;
-let createAppliedVisualizationView;
-let createForceLayoutDistancesRequest;
-let createVisualizationModesRequest;
-let createGraphLayoutPauseRequest;
-let createGraphLayoutPauseResult;
-let createGraphLayoutSnapshot;
-let createOntologyInspectionSnapshot;
-let createRenderedGraphEvent;
-let createRenderedSvgSnapshot;
-let createRenderedSvgSnapshotRequest;
-let createVisibleRenderedGraphSnapshot;
-let createVisualizationViewApplicationRequest;
-let createVisualizationViewApplicationResult;
-let createVowlModelReplacementRequest;
-let createVowlModelReplacementResult;
-
-const RENDERED_GRAPH_RUNTIME_CONTRACTS_MODULE_URL = new URL(
-  "./renderedGraphRuntimeContracts.js",
-  import.meta.url,
-);
-
-beforeAll(async () => {
-  ({
-    RENDERED_GRAPH_EVENT_KINDS,
-    RENDERED_GRAPH_RUNTIME_METHOD_NAMES,
-    assertRenderedGraphRuntime,
-    createContinuousZoomRequest,
-    createAppliedVisualizationView,
-    createForceLayoutDistancesRequest,
-    createVisualizationModesRequest,
-    createGraphLayoutPauseRequest,
-    createGraphLayoutPauseResult,
-    createGraphLayoutSnapshot,
-    createOntologyInspectionSnapshot,
-    createRenderedGraphEvent,
-    createRenderedSvgSnapshot,
-    createRenderedSvgSnapshotRequest,
-    createVisibleRenderedGraphSnapshot,
-    createVisualizationViewApplicationRequest,
-    createVisualizationViewApplicationResult,
-    createVowlModelReplacementRequest,
-    createVowlModelReplacementResult,
-  } = await loadEsmModuleForTest(
-    RENDERED_GRAPH_RUNTIME_CONTRACTS_MODULE_URL,
-    import.meta.url,
-  ));
-});
+import { describe, expect, test } from "@jest/globals";
+import {
+  RENDERED_GRAPH_EVENT_KINDS,
+  RENDERED_GRAPH_RUNTIME_METHOD_NAMES,
+  assertRenderedGraphRuntime,
+  createAppliedVisualizationView,
+  createContinuousZoomRequest,
+  createForceLayoutDistancesRequest,
+  createGraphLayoutPauseRequest,
+  createGraphLayoutPauseResult,
+  createGraphLayoutSnapshot,
+  createOntologyInspectionSnapshot,
+  createRenderedGraphEvent,
+  createRenderedSvgSnapshot,
+  createRenderedSvgSnapshotRequest,
+  createVisibleRenderedGraphSnapshot,
+  createVisualizationModesRequest,
+  createVisualizationViewApplicationRequest,
+  createVisualizationViewApplicationResult,
+  createVowlModelReplacementRequest,
+  createVowlModelReplacementResult,
+} from "./renderedGraphRuntimeContracts.js";
 
 test("reports the selected document record independently of semantic IRI selection", () => {
   const source = {

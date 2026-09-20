@@ -1,17 +1,10 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
+import { beforeEach, describe, expect, jest, test } from "@jest/globals";
 import {
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  jest,
-  test,
-} from "@jest/globals";
-
-let VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS;
-let createVisualizationViewControlsAdapter;
+  VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS,
+  createVisualizationViewControlsAdapter,
+} from "./visualizationViewControlsAdapter.js";
 
 const ADAPTER_MODULE_URL = new URL(
   "./visualizationViewControlsAdapter.js",
@@ -25,13 +18,6 @@ const PERSON_REFERENCE = Object.freeze({
 const ORGANISATION_REFERENCE = Object.freeze({
   kind: "class",
   iri: "http://xmlns.com/foaf/0.1/Organization",
-});
-
-beforeAll(async () => {
-  ({
-    VISUALIZATION_VIEW_CONTROL_ELEMENT_IDS,
-    createVisualizationViewControlsAdapter,
-  } = await loadEsmModuleForTest(ADAPTER_MODULE_URL, import.meta.url));
 });
 
 class ViewControlElementFixture extends EventTarget {

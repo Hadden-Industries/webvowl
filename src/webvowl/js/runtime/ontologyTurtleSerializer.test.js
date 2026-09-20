@@ -1,13 +1,10 @@
 import { beforeAll, beforeEach, describe, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 let serializeOntologyAsTurtle;
 
 beforeAll(async () => {
-  ({ serializeOntologyAsTurtle } = await loadEsmModuleForTest(
-    new URL("./ontologyTurtleSerializer.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ serializeOntologyAsTurtle } =
+    await import("./ontologyTurtleSerializer.js"));
 });
 
 describe("existing Turtle serialization", () => {

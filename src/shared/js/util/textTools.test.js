@@ -1,13 +1,9 @@
 import { beforeAll } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 let textToolsFactory;
 
 beforeAll(async () => {
-  ({ createTextTools: textToolsFactory } = await loadEsmModuleForTest(
-    new URL("./textTools.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createTextTools: textToolsFactory } = await import("./textTools.js"));
 });
 
 describe("Truncating of text", () => {

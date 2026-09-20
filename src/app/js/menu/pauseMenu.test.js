@@ -1,15 +1,11 @@
 import { beforeAll, beforeEach, describe, expect, test } from "@jest/globals";
 import fs from "node:fs";
 import * as d3 from "d3";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let pauseMenuFactory;
 
 beforeAll(async () => {
-  ({ createPauseMenu: pauseMenuFactory } = await loadEsmModuleForTest(
-    new URL("./pauseMenu.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createPauseMenu: pauseMenuFactory } = await import("./pauseMenu.js"));
 });
 
 const pauseMenuSource = fs.readFileSync(

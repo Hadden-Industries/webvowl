@@ -1,5 +1,4 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let createResetMenu;
 
@@ -27,10 +26,7 @@ class ResetControl {
 }
 
 beforeAll(async () => {
-  ({ createResetMenu } = await loadEsmModuleForTest(
-    new URL("./resetMenu.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createResetMenu } = await import("./resetMenu.js"));
 });
 
 function createResetMenuHarness() {

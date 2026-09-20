@@ -1,13 +1,9 @@
 import { beforeAll, jest } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 let pickAndPinFactory;
 
 beforeAll(async () => {
-  ({ createPickAndPin: pickAndPinFactory } = await loadEsmModuleForTest(
-    new URL("./pickAndPin.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createPickAndPin: pickAndPinFactory } = await import("./pickAndPin.js"));
 });
 
 describe("Pick and Pin Module Unit Tests", () => {

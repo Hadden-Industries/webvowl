@@ -1,5 +1,4 @@
 import { beforeAll } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 const elementConstructors = new Map();
 
@@ -9,10 +8,7 @@ beforeAll(async () => {
     ["RectangularNode", "./nodes/RectangularNode.js"],
     ["BaseProperty", "./properties/BaseProperty.js"],
   ]) {
-    const module = await loadEsmModuleForTest(
-      new URL(path, import.meta.url),
-      import.meta.url,
-    );
+    const module = await import(path);
     elementConstructors.set(name, module[name]);
   }
 });

@@ -1,14 +1,10 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let readVisualizationShareLink;
 let createVisualizationShareLink;
 beforeAll(async () => {
   ({ readVisualizationShareLink, createVisualizationShareLink } =
-    await loadEsmModuleForTest(
-      new URL("./visualizationShareLink.js", import.meta.url),
-      import.meta.url,
-    ));
+    await import("./visualizationShareLink.js"));
 });
 
 describe("visualization share-link input", () => {

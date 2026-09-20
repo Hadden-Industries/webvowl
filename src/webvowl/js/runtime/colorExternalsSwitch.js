@@ -1,4 +1,5 @@
 import _ from "lodash/core";
+import * as d3 from "d3";
 
 export function createColorExternalsSwitch() {
   const DEFAULT_STATE = true;

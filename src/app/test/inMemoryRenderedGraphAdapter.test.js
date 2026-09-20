@@ -1,18 +1,13 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "./loadEsmModuleForTest.js";
 
 let assertRenderedGraphRuntimeContract;
 let createInMemoryRenderedGraphAdapter;
 
 beforeAll(async () => {
-  ({ createInMemoryRenderedGraphAdapter } = await loadEsmModuleForTest(
-    new URL("./inMemoryRenderedGraphAdapter.js", import.meta.url),
-    import.meta.url,
-  ));
-  ({ assertRenderedGraphRuntimeContract } = await loadEsmModuleForTest(
-    new URL("./renderedGraphRuntimeContract.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createInMemoryRenderedGraphAdapter } =
+    await import("./inMemoryRenderedGraphAdapter.js"));
+  ({ assertRenderedGraphRuntimeContract } =
+    await import("./renderedGraphRuntimeContract.js"));
 });
 
 function createReplacementRequest(loadGeneration) {

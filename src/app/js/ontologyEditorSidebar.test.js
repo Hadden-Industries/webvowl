@@ -7,19 +7,13 @@ import {
   jest,
   test,
 } from "@jest/globals";
-import loadEsmModuleForTest from "../test/loadEsmModuleForTest.js";
 
 let createOntologyEditorSidebar;
 let documentOperations;
 beforeAll(async () => {
-  documentOperations = await loadEsmModuleForTest(
-    new URL("./controller/vowlDocument.js", import.meta.url),
-    import.meta.url,
-  );
-  ({ createOntologyEditorSidebar } = await loadEsmModuleForTest(
-    new URL("./ontologyEditorSidebar.js", import.meta.url),
-    import.meta.url,
-  ));
+  documentOperations = await import("./controller/vowlDocument.js");
+  ({ createOntologyEditorSidebar } =
+    await import("./ontologyEditorSidebar.js"));
 });
 
 class EditorControl extends EventTarget {

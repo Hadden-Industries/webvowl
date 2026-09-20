@@ -1,5 +1,4 @@
 import { beforeAll, describe, expect, jest, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let createControllerStatePresenter;
 let PRESENTED_CONTROLLER_STATE_FIELD_NAMES;
@@ -7,18 +6,13 @@ let SEPARATELY_PRESENTED_CONTROLLER_STATE_FIELD_NAMES;
 let WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES;
 
 beforeAll(async () => {
-  ({ WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES } = await loadEsmModuleForTest(
-    new URL("../controller/webVowlControllerContracts.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ WEB_VOWL_CONTROLLER_STATE_FIELD_NAMES } =
+    await import("../controller/webVowlControllerContracts.js"));
   ({
     createControllerStatePresenter,
     PRESENTED_CONTROLLER_STATE_FIELD_NAMES,
     SEPARATELY_PRESENTED_CONTROLLER_STATE_FIELD_NAMES,
-  } = await loadEsmModuleForTest(
-    new URL("./controllerStatePresenter.js", import.meta.url),
-    import.meta.url,
-  ));
+  } = await import("./controllerStatePresenter.js"));
 });
 
 const PERSON_REFERENCE = Object.freeze({

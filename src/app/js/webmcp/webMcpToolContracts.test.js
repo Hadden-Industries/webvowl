@@ -1,6 +1,5 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
 import { OWLDocumentFormats } from "owlapi/formats";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let WEB_MCP_TOOL_DEFINITIONS;
 let normalizeLoadOntologyToolInput;
@@ -25,11 +24,7 @@ beforeAll(async () => {
     projectWebMcpToolSuccess,
     projectWebMcpToolFailure,
     createWebMcpToolDispatch,
-  } = await loadEsmModuleForTest(
-    new URL("./webMcpToolContracts.js", import.meta.url),
-    import.meta.url,
-    { "owlapi/formats": { OWLDocumentFormats } },
-  ));
+  } = await import("./webMcpToolContracts.js"));
 });
 
 // The published ceilings a host applies to a tool listing. A definition that

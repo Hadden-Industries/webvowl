@@ -1,3 +1,4 @@
+import * as d3 from "d3";
 import { createLinkCreator as createLinkCreatorModule } from "../parsing/linkCreator.js";
 import { createElementTools as createElementToolsModule } from "../../../shared/js/util/elementTools.js";
 import { createNodeMap as createNodePrototypeMapModule } from "../elements/nodes/nodeMap.js";
@@ -323,7 +324,6 @@ function createGraph(
 
   let zoom;
   let pendingViewportTransitionCount = 0;
-  //var prefixModule=require("../prefixRepresentationModule")(graph);
   let renderedGraphEventPort = {
     // Nothing is renderable until a model has been placed. This replaces the
     // former question to the loading presentation about whether a load

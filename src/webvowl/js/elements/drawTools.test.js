@@ -1,14 +1,10 @@
 import { beforeAll } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 let drawToolsFactory;
 let drawTools;
 
 beforeAll(async () => {
-  ({ createDrawTools: drawToolsFactory } = await loadEsmModuleForTest(
-    new URL("./drawTools.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createDrawTools: drawToolsFactory } = await import("./drawTools.js"));
   drawTools = drawToolsFactory();
 });
 

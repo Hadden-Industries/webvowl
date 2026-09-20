@@ -1,18 +1,6 @@
-import { beforeAll, describe, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
-
-let serializeRenderedDrawingAsTikz;
-let createRenderedDrawingSnapshot;
-beforeAll(async () => {
-  ({ createRenderedDrawingSnapshot } = await loadEsmModuleForTest(
-    new URL("./renderedDrawingSnapshot.js", import.meta.url),
-    import.meta.url,
-  ));
-  ({ serializeRenderedDrawingAsTikz } = await loadEsmModuleForTest(
-    new URL("./tikzSerializer.js", import.meta.url),
-    import.meta.url,
-  ));
-});
+import { describe, expect, test } from "@jest/globals";
+import { createRenderedDrawingSnapshot } from "./renderedDrawingSnapshot.js";
+import { serializeRenderedDrawingAsTikz } from "./tikzSerializer.js";
 
 function drawing() {
   const appearance = {

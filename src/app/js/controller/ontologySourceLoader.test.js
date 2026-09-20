@@ -6,7 +6,6 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { SourceTextModule, SyntheticModule } from "node:vm";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 import { OWLDocumentFormats } from "owlapi/formats";
 import {
@@ -148,22 +147,12 @@ beforeAll(async () => {
   });
   await ontologySourceLoaderModule.evaluate();
   ({ createOntologySourceLoader } = ontologySourceLoaderModule.namespace);
-  ({ createWebVowlController } = await loadEsmModuleForTest(
-    new URL("./webVowlController.js", import.meta.url),
-    import.meta.url,
-  ));
-  ({ createInMemoryRenderedGraphAdapter } = await loadEsmModuleForTest(
-    new URL("../../test/inMemoryRenderedGraphAdapter.js", import.meta.url),
-    import.meta.url,
-  ));
-  ({ createOntologyInspector } = await loadEsmModuleForTest(
-    new URL("./ontologyInspector.js", import.meta.url),
-    import.meta.url,
-  ));
-  ({ vowlModelInspectionProjector } = await loadEsmModuleForTest(
-    new URL("./vowlModelInspectionProjector.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createWebVowlController } = await import("./webVowlController.js"));
+  ({ createInMemoryRenderedGraphAdapter } =
+    await import("../../test/inMemoryRenderedGraphAdapter.js"));
+  ({ createOntologyInspector } = await import("./ontologyInspector.js"));
+  ({ vowlModelInspectionProjector } =
+    await import("./vowlModelInspectionProjector.js"));
 });
 
 async function flushSourceMicrotasks() {

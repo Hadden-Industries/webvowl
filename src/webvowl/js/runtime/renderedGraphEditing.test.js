@@ -1,21 +1,25 @@
 import * as d3 from "d3";
 import { DOMImplementation } from "@xmldom/xmldom";
 import { beforeAll, expect, jest, test } from "@jest/globals";
-import { runInThisContext } from "node:vm";
 import { readFileSync } from "node:fs";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
+
+const createdDragBehaviours = [];
+jest.unstable_mockModule("d3", () => ({
+  ...d3,
+  drag: () => {
+    const behaviour = d3.drag();
+    createdDragBehaviours.push(behaviour);
+    return behaviour;
+  },
+}));
 
 let createRenderedGraphInternals;
 let createVowlDocumentInsertionRecords;
 beforeAll(async () => {
-  ({ createRenderedGraphInternals } = await loadEsmModuleForTest(
-    new URL("./renderedGraphInternals.js", import.meta.url),
-    import.meta.url,
-  ));
-  ({ createVowlDocumentInsertionRecords } = await loadEsmModuleForTest(
-    new URL("../../../app/js/controller/vowlDocument.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createRenderedGraphInternals } =
+    await import("./renderedGraphInternals.js"));
+  ({ createVowlDocumentInsertionRecords } =
+    await import("../../../app/js/controller/vowlDocument.js"));
 });
 
 // Real D3, parser and SVG elements; only browser layout metrics and event
@@ -42,6 +46,10 @@ function mountGraph(model) {
     });
   }
   function enhance(element) {
+    if (element.localName === "svg") {
+      element.width = { baseVal: { value: 800 } };
+      element.height = { baseVal: { value: 600 } };
+    }
     element.querySelectorAll = (selector) => descendants(element, selector);
     element.querySelector = (selector) =>
       element.querySelectorAll(selector)[0] ?? null;
@@ -86,30 +94,12 @@ function mountGraph(model) {
     }),
   };
   document.defaultView = window;
-  const behaviours = [];
-  const moduleGlobals = runInThisContext("globalThis");
+  createdDragBehaviours.length = 0;
+  const moduleGlobals = globalThis;
   const suppliedGlobals = {
     document,
+    SVGElement: document.documentElement.constructor,
     window,
-    d3: {
-      ...d3,
-      zoom: () =>
-        d3.zoom().extent([
-          [0, 0],
-          [800, 600],
-        ]),
-      selectAll: (selector) =>
-        d3.selectAll(
-          typeof selector === "string"
-            ? document.querySelectorAll(selector)
-            : selector,
-        ),
-      drag: () => {
-        const behaviour = d3.drag();
-        behaviours.push(behaviour);
-        return behaviour;
-      },
-    },
   };
   const originalGlobals = new Map(
     Object.keys(suppliedGlobals).map((name) => [
@@ -137,7 +127,12 @@ function mountGraph(model) {
     graph.options().data(structuredClone(model));
     graph.load(1, { isPaused: true, centerViewport: false });
     graph.editorMode(true);
-    return { graph, document, drag: behaviours.at(-1), dispose };
+    return {
+      graph,
+      document,
+      drag: createdDragBehaviours.at(-1),
+      dispose,
+    };
   } catch (error) {
     dispose();
     throw error;

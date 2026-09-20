@@ -2,8 +2,6 @@ import { readFileSync } from "node:fs";
 import { createHash, webcrypto } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { SourceTextModule } from "node:vm";
-import { OWLDocumentFormats } from "owlapi/formats";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 import {
   beforeAll,
   beforeEach,
@@ -80,19 +78,12 @@ beforeAll(async () => {
   ({ createWebVowlController } = (
     await loadRepositoryModule(CONTROLLER_MODULE_URL)
   ).namespace);
-  ({ createWebMcpToolDispatch } = await loadEsmModuleForTest(
-    new URL("../webmcp/webMcpToolContracts.js", import.meta.url),
-    import.meta.url,
-    { "owlapi/formats": { OWLDocumentFormats } },
-  ));
-  ({ createVisualizationArtifactService } = await loadEsmModuleForTest(
-    new URL("./visualizationArtifactService.js", import.meta.url),
-    import.meta.url,
-  ));
-  ({ decodeVowlVisualizationSettings } = await loadEsmModuleForTest(
-    new URL("./vowlVisualizationSettings.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createWebMcpToolDispatch } =
+    await import("../webmcp/webMcpToolContracts.js"));
+  ({ createVisualizationArtifactService } =
+    await import("./visualizationArtifactService.js"));
+  ({ decodeVowlVisualizationSettings } =
+    await import("./vowlVisualizationSettings.js"));
 });
 
 function createSourceLoadRecord(overrides = {}) {

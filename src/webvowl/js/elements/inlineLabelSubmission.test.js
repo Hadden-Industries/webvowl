@@ -6,21 +6,13 @@ import {
   jest,
   test,
 } from "@jest/globals";
-import { runInThisContext } from "node:vm";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 let BaseNode, BaseProperty;
-const moduleGlobals = runInThisContext("globalThis");
+const moduleGlobals = globalThis;
 let previousDocument;
 beforeAll(async () => {
-  ({ BaseNode } = await loadEsmModuleForTest(
-    new URL("./nodes/BaseNode.js", import.meta.url),
-    import.meta.url,
-  ));
-  ({ BaseProperty } = await loadEsmModuleForTest(
-    new URL("./properties/BaseProperty.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ BaseNode } = await import("./nodes/BaseNode.js"));
+  ({ BaseProperty } = await import("./properties/BaseProperty.js"));
 });
 beforeEach(() => {
   previousDocument = moduleGlobals.document;

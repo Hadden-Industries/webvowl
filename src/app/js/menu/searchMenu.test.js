@@ -1,13 +1,9 @@
 import { beforeAll, beforeEach, describe, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let searchMenuFactory;
 
 beforeAll(async () => {
-  ({ createSearchMenu: searchMenuFactory } = await loadEsmModuleForTest(
-    new URL("./searchMenu.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createSearchMenu: searchMenuFactory } = await import("./searchMenu.js"));
 });
 
 const HTML_NAMESPACE = "http://www.w3.org/1999/xhtml";
