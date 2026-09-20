@@ -1,9 +1,9 @@
-const compat = require("eslint-plugin-compat");
+import js from "@eslint/js";
+import { defineConfig } from "eslint/config";
+import compat from "eslint-plugin-compat";
+import globals from "globals";
 
-const js = require("@eslint/js");
-const globals = require("globals");
-
-module.exports = [
+export default defineConfig([
   // Base ESLint recommended rules
   js.configs.recommended,
 
@@ -142,4 +142,4 @@ module.exports = [
       ]
     }
   }
-];
+]);

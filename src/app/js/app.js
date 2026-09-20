@@ -26,15 +26,12 @@ import { createVisualizationViewControlsAdapter } from "./ui/visualizationViewCo
 import { createResetMenu } from "./menu/resetMenu.js";
 import { createSearchMenu } from "./menu/searchMenu.js";
 import { createZoomSlider } from "./menu/zoomSlider.js";
-
-const nativeApplicationUiModuleNamespacesPromise = Promise.all([
-  import("./directInputModule.js"),
-  import("./ontologyEditorSidebar.js"),
-  import("./leftSidebar.js"),
-  import("./loadingModule.js"),
-  import("./sidebar.js"),
-  import("./warningModule.js"),
-]);
+import { createDirectInputModule } from "./directInputModule.js";
+import { createOntologyEditorSidebar } from "./ontologyEditorSidebar.js";
+import { createLeftSidebar } from "./leftSidebar.js";
+import { createLoadingModule } from "./loadingModule.js";
+import { createSidebar } from "./sidebar.js";
+import { createWarningModule } from "./warningModule.js";
 
 export function createWebVowlApplication() {
   const app = {};
@@ -351,16 +348,7 @@ export function createWebVowlApplication() {
     }
   }
 
-  async function initializeNativeApplicationUiModules() {
-    const [
-      { createDirectInputModule },
-      { createOntologyEditorSidebar },
-      { createLeftSidebar },
-      { createLoadingModule },
-      { createSidebar },
-      { createWarningModule },
-    ] = await nativeApplicationUiModuleNamespacesPromise;
-
+  function initializeNativeApplicationUiModules() {
     directInputModule = createDirectInputModule({
       webVowlController,
     });
@@ -406,7 +394,7 @@ export function createWebVowlApplication() {
   }
 
   app.initialize = async function () {
-    await initializeNativeApplicationUiModules();
+    initializeNativeApplicationUiModules();
     addFileDropEvents(GRAPH_SELECTOR);
 
     window.addEventListener("resize", scheduleSizeAdjustment, {
