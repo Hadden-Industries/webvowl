@@ -1,13 +1,10 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let runVisualizationControlAction;
 beforeAll(
   async () =>
-    ({ runVisualizationControlAction } = await loadEsmModuleForTest(
-      new URL("./visualizationControlAction.js", import.meta.url),
-      import.meta.url,
-    )),
+    ({ runVisualizationControlAction } =
+      await import("./visualizationControlAction.js")),
 );
 
 describe("visualization control action feedback", () => {

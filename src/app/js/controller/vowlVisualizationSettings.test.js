@@ -1,14 +1,10 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let decodeVowlVisualizationSettings;
 let encodeVowlVisualizationSettings;
 beforeAll(async () => {
   ({ decodeVowlVisualizationSettings, encodeVowlVisualizationSettings } =
-    await loadEsmModuleForTest(
-      new URL("./vowlVisualizationSettings.js", import.meta.url),
-      import.meta.url,
-    ));
+    await import("./vowlVisualizationSettings.js"));
 });
 
 describe("saved VOWL visualization settings", () => {

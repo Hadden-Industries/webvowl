@@ -1,17 +1,14 @@
-import { defineConfig, normalizePath, send } from "vite";
+import { defineConfig, normalizePath } from "vite";
 import { dirname, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  copyFileSync,
   existsSync,
-  mkdirSync,
   readFileSync,
   readdirSync,
   rmSync,
   statSync,
   utimesSync
 } from "node:fs";
-import commonjs from "vite-plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import eslintPlugin from "vite-plugin-eslint2";
@@ -147,130 +144,6 @@ function mtimePreservePlugin() {
 }
 
 /**
- * Injects local `var d3 = window.d3` at top of modules to eliminate window property lookups in D3 tick loops.
- */
-function d3ProvidePlugin() {
-  return {
-    name: "d3-provide",
-    transform(code, id) {
-      if (id.includes("src") && id.endsWith(".js") && /\bd3\b/.test(code)) {
-        return {
-          code: 'var d3 = typeof window !== "undefined" ? window.d3 : globalThis.d3;\n' + code,
-          map: null
-        };
-      }
-    }
-  };
-}
-
-/**
- * Injects static d3.min.js script tag into HTML during build without Vite warning.
- */
-function d3InjectScriptPlugin() {
-  return {
-    name: "d3-inject-script",
-    transformIndexHtml() {
-      return [
-        {
-          tag: "script",
-          attrs: { src: "js/d3.min.js" },
-          injectTo: "head-prepend"
-        }
-      ];
-    }
-  };
-}
-
-/**
- * Serves external D3 during development, then copies and verifies it in builds.
- */
-function d3DistributionPlugin(mode) {
-  const d3DistributionFilePath = resolve(
-    configDir,
-    "node_modules/d3/dist/d3.min.js"
-  );
-  let buildOutputDirectoryPath;
-
-  return {
-    name: "d3-distribution",
-    configResolved(config) {
-      buildOutputDirectoryPath = resolve(config.root, config.build.outDir);
-    },
-    configureServer(server) {
-      const d3BrowserAssetPath = `${server.config.base}js/d3.min.js`;
-
-      server.middlewares.use(function serveD3DevelopmentAsset(
-        request,
-        response,
-        next
-      ) {
-        const requestPathname = request.url?.split(/[?#]/, 1)[0];
-        const isAssetRetrievalRequest =
-          request.method === "GET" || request.method === "HEAD";
-
-        if (
-          !isAssetRetrievalRequest ||
-          requestPathname !== d3BrowserAssetPath
-        ) {
-          next();
-          return;
-        }
-
-        const d3DistributionBytes = readFileSync(d3DistributionFilePath);
-
-        send(request, response, d3DistributionBytes, "js", {
-          cacheControl: "no-cache",
-          headers: {
-            ...server.config.server.headers,
-            "Content-Length": d3DistributionBytes.byteLength
-          },
-          map: { mappings: "" }
-        });
-      });
-    },
-    writeBundle() {
-      const builtD3DistributionFilePath = resolve(
-        buildOutputDirectoryPath,
-        "js/d3.min.js"
-      );
-      const builtD3DistributionDisplayPath = relative(
-        configDir,
-        builtD3DistributionFilePath
-      ).replace(/\\/g, "/");
-
-      // Own copying and verification in one ordered hook. Separate closeBundle
-      // hooks may run concurrently, which previously made a clean build depend
-      // on whether deploy/js/d3.min.js happened to exist from an earlier build.
-      mkdirSync(dirname(builtD3DistributionFilePath), { recursive: true });
-      copyFileSync(d3DistributionFilePath, builtD3DistributionFilePath);
-
-      if (mode !== "production") return;
-
-      if (!existsSync(builtD3DistributionFilePath)) {
-        throw new Error(
-          `[webvowl-build] Missing ${builtD3DistributionDisplayPath}`
-        );
-      }
-
-      const expectedD3DistributionBytes = readFileSync(d3DistributionFilePath);
-      const builtD3DistributionBytes = readFileSync(
-        builtD3DistributionFilePath
-      );
-
-      if (!expectedD3DistributionBytes.equals(builtD3DistributionBytes)) {
-        throw new Error(
-          `[webvowl-build] ${builtD3DistributionDisplayPath} differs from node_modules/d3/dist/d3.min.js`
-        );
-      }
-
-      console.log(
-        `[webvowl-build] Verified ${builtD3DistributionDisplayPath} (${builtD3DistributionBytes.byteLength} bytes)`
-      );
-    }
-  };
-}
-
-/**
  * HTML-Validate linter integration plugin for src/index.html.
  */
 function htmlValidatePlugin(mode) {
@@ -352,9 +225,6 @@ export default defineConfig(({ mode }) => {
 
     plugins: [
       mtimePreservePlugin(),
-      d3ProvidePlugin(),
-      d3InjectScriptPlugin(),
-      commonjs(),
       // Replace @@WEBVOWL_VERSION placeholder in JS source files with the package version
       replace({
         "@@WEBVOWL_VERSION": pkg.version,
@@ -385,7 +255,6 @@ export default defineConfig(({ mode }) => {
           }
         ]
       }),
-      d3DistributionPlugin(mode),
       // ESLint integration during dev and build
       eslintPlugin({
         lintOnStart: true,

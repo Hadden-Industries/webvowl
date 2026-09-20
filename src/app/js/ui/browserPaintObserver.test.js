@@ -1,12 +1,8 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let createBrowserPaintObserver;
 beforeAll(async () => {
-  ({ createBrowserPaintObserver } = await loadEsmModuleForTest(
-    new URL("./browserPaintObserver.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createBrowserPaintObserver } = await import("./browserPaintObserver.js"));
 });
 
 function createFrames() {

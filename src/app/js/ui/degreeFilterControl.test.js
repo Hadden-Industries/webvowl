@@ -1,12 +1,8 @@
 import { beforeAll, describe, expect, jest, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let createDegreeFilterControl;
 beforeAll(async () => {
-  ({ createDegreeFilterControl } = await loadEsmModuleForTest(
-    new URL("./degreeFilterControl.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createDegreeFilterControl } = await import("./degreeFilterControl.js"));
 });
 
 class ControlElement extends EventTarget {

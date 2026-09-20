@@ -1,13 +1,9 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 let nextContinuousZoomScale;
 
 beforeAll(async () => {
-  ({ nextContinuousZoomScale } = await loadEsmModuleForTest(
-    new URL("./continuousZoomRamp.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ nextContinuousZoomScale } = await import("./continuousZoomRamp.js"));
 });
 
 const MAGNIFICATION_BOUNDS = Object.freeze({

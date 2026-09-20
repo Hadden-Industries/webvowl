@@ -1,13 +1,9 @@
 import { beforeAll, describe, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 let createNodeDegreeFilter;
 
 beforeAll(async () => {
-  ({ createNodeDegreeFilter } = await loadEsmModuleForTest(
-    new URL("./nodeDegreeFilter.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createNodeDegreeFilter } = await import("./nodeDegreeFilter.js"));
 });
 
 function createNodeFixture(nodeId, linkCount) {

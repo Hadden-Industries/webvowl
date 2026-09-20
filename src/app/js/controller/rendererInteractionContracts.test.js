@@ -1,14 +1,10 @@
 import { beforeAll, expect, test } from "@jest/globals";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let createOntologyEditorOptionsRequest;
 let createVisualizationViewportSize;
 beforeAll(async () => {
   ({ createOntologyEditorOptionsRequest, createVisualizationViewportSize } =
-    await loadEsmModuleForTest(
-      new URL("./rendererInteractionContracts.js", import.meta.url),
-      import.meta.url,
-    ));
+    await import("./rendererInteractionContracts.js"));
 });
 
 test("retains the existing class palette and accuracy helper choices as plain values", () => {

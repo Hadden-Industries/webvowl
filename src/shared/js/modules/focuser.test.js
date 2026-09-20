@@ -1,20 +1,15 @@
 import { beforeAll, jest } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
+
+jest.unstable_mockModule("../util/elementTools.js", () => ({
+  createElementTools: () => ({
+    isProperty: (element) => element?.isProperty === true,
+  }),
+}));
 
 let focuserFactory;
 
 beforeAll(async () => {
-  ({ createFocuser: focuserFactory } = await loadEsmModuleForTest(
-    new URL("./focuser.js", import.meta.url),
-    import.meta.url,
-    {
-      "../util/elementTools.js": {
-        createElementTools: () => ({
-          isProperty: (elem) => elem && elem.isProperty === true,
-        }),
-      },
-    },
-  ));
+  ({ createFocuser: focuserFactory } = await import("./focuser.js"));
 });
 
 describe("Focuser Module Unit Tests", () => {

@@ -1,13 +1,9 @@
 import { beforeAll } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 let AbstractTextElement;
 
 beforeAll(async () => {
-  ({ AbstractTextElement } = await loadEsmModuleForTest(
-    new URL("./AbstractTextElement.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ AbstractTextElement } = await import("./AbstractTextElement.js"));
 });
 
 function createTextSelection() {

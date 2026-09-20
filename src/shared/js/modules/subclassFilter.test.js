@@ -1,5 +1,4 @@
 import { beforeAll } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 let OwlClass;
 let RdfsSubClassOf;
@@ -7,31 +6,14 @@ let ObjectProperty;
 let subclassFilterFactory;
 
 beforeAll(async () => {
-  ({ OwlClass } = await loadEsmModuleForTest(
-    new URL(
-      "../../../webvowl/js/elements/nodes/implementations/OwlClass.js",
-      import.meta.url,
-    ),
-    import.meta.url,
-  ));
-  ({ RdfsSubClassOf } = await loadEsmModuleForTest(
-    new URL(
-      "../../../webvowl/js/elements/properties/implementations/RdfsSubClassOf.js",
-      import.meta.url,
-    ),
-    import.meta.url,
-  ));
-  ({ OwlObjectProperty: ObjectProperty } = await loadEsmModuleForTest(
-    new URL(
-      "../../../webvowl/js/elements/properties/implementations/OwlObjectProperty.js",
-      import.meta.url,
-    ),
-    import.meta.url,
-  ));
-  ({ createSubclassFilter: subclassFilterFactory } = await loadEsmModuleForTest(
-    new URL("./subclassFilter.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ OwlClass } =
+    await import("../../../webvowl/js/elements/nodes/implementations/OwlClass.js"));
+  ({ RdfsSubClassOf } =
+    await import("../../../webvowl/js/elements/properties/implementations/RdfsSubClassOf.js"));
+  ({ OwlObjectProperty: ObjectProperty } =
+    await import("../../../webvowl/js/elements/properties/implementations/OwlObjectProperty.js"));
+  ({ createSubclassFilter: subclassFilterFactory } =
+    await import("./subclassFilter.js"));
 });
 
 describe("Collapsing of subclassOf properties", () => {

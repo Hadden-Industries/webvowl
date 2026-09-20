@@ -1,4 +1,4 @@
-const { describe, test, expect } = require("@jest/globals");
+import { describe, expect, test } from "@jest/globals";
 
 function getBrowserLanguages(nav) {
   const browserLangs = [];

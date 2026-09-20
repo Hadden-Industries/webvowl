@@ -1,20 +1,6 @@
-import { beforeAll, expect, test } from "@jest/globals";
-import { color } from "d3";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
-
-let captureRenderedDrawing;
-let serializeRenderedDrawingAsTikz;
-beforeAll(async () => {
-  ({ captureRenderedDrawing } = await loadEsmModuleForTest(
-    new URL("./captureRenderedDrawing.js", import.meta.url),
-    import.meta.url,
-    { d3: { color } },
-  ));
-  ({ serializeRenderedDrawingAsTikz } = await loadEsmModuleForTest(
-    new URL("../../../app/js/controller/tikzSerializer.js", import.meta.url),
-    import.meta.url,
-  ));
-});
+import { expect, test } from "@jest/globals";
+import { serializeRenderedDrawingAsTikz } from "../../../app/js/controller/tikzSerializer.js";
+import { captureRenderedDrawing } from "./captureRenderedDrawing.js";
 
 test("keeps a small visible drawing within TeX dimensions at minimum zoom", () => {
   const drawing = captureRenderedDrawing({

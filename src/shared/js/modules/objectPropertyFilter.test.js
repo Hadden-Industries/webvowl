@@ -1,5 +1,4 @@
 import { beforeAll } from "@jest/globals";
-import loadEsmModuleForTest from "../../../app/test/loadEsmModuleForTest.js";
 
 let OwlClass;
 let OwlThing;
@@ -9,43 +8,18 @@ let Link;
 let objectPropertyFilterFactory;
 
 beforeAll(async () => {
-  ({ OwlClass } = await loadEsmModuleForTest(
-    new URL(
-      "../../../webvowl/js/elements/nodes/implementations/OwlClass.js",
-      import.meta.url,
-    ),
-    import.meta.url,
-  ));
-  ({ OwlThing } = await loadEsmModuleForTest(
-    new URL(
-      "../../../webvowl/js/elements/nodes/implementations/OwlThing.js",
-      import.meta.url,
-    ),
-    import.meta.url,
-  ));
-  ({ OwlObjectProperty: ObjectProperty } = await loadEsmModuleForTest(
-    new URL(
-      "../../../webvowl/js/elements/properties/implementations/OwlObjectProperty.js",
-      import.meta.url,
-    ),
-    import.meta.url,
-  ));
-  ({ OwlDatatypeProperty: DatatypeProperty } = await loadEsmModuleForTest(
-    new URL(
-      "../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty.js",
-      import.meta.url,
-    ),
-    import.meta.url,
-  ));
-  ({ PlainLink: Link } = await loadEsmModuleForTest(
-    new URL("../../../webvowl/js/elements/links/PlainLink.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ OwlClass } =
+    await import("../../../webvowl/js/elements/nodes/implementations/OwlClass.js"));
+  ({ OwlThing } =
+    await import("../../../webvowl/js/elements/nodes/implementations/OwlThing.js"));
+  ({ OwlObjectProperty: ObjectProperty } =
+    await import("../../../webvowl/js/elements/properties/implementations/OwlObjectProperty.js"));
+  ({ OwlDatatypeProperty: DatatypeProperty } =
+    await import("../../../webvowl/js/elements/properties/implementations/OwlDatatypeProperty.js"));
+  ({ PlainLink: Link } =
+    await import("../../../webvowl/js/elements/links/PlainLink.js"));
   ({ createObjectPropertyFilter: objectPropertyFilterFactory } =
-    await loadEsmModuleForTest(
-      new URL("./objectPropertyFilter.js", import.meta.url),
-      import.meta.url,
-    ));
+    await import("./objectPropertyFilter.js"));
 });
 
 describe("Filtering of object properties", () => {

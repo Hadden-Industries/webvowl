@@ -15,9 +15,10 @@ export function createRenderedDrawingSnapshot(snapshot) {
       throw new TypeError("Rendered drawing measurements must be finite.");
     }
     if (value !== null && typeof value === "object") {
+      const prototype = Object.getPrototypeOf(value);
       if (
         !Array.isArray(value) &&
-        Object.getPrototypeOf(value) !== Object.prototype
+        (prototype === null || Object.getPrototypeOf(prototype) !== null)
       ) {
         throw new TypeError("Rendered drawings contain plain values only.");
       }

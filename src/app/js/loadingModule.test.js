@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
-import loadEsmModuleForTest from "../test/loadEsmModuleForTest.js";
 import { loadWithImports as productionLoadWithImports } from "../../owl2vowl/js/index.js";
 import {
   afterEach,
@@ -60,10 +59,8 @@ global.window = {
 };
 
 beforeAll(async () => {
-  const { readVisualizationShareLink } = await loadEsmModuleForTest(
-    new URL("./controller/visualizationShareLink.js", import.meta.url),
-    import.meta.url,
-  );
+  const { readVisualizationShareLink } =
+    await import("./controller/visualizationShareLink.js");
   const loadingModuleUrl = new URL("./loadingModule.js", import.meta.url);
   const lifecycleModuleUrl = new URL("./ontologyLifecycle.js", import.meta.url);
   const resolveFetchUrlModuleUrl = new URL(

@@ -1,17 +1,13 @@
 import { beforeAll, beforeEach, describe, expect, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import loadEsmModuleForTest from "../../test/loadEsmModuleForTest.js";
 
 let createSvgSerializer;
 
 const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
 const SERIALIZER_MODULE_URL = new URL("./svgSerializer.js", import.meta.url);
 beforeAll(async () => {
-  ({ createSvgSerializer } = await loadEsmModuleForTest(
-    new URL("./svgSerializer.js", import.meta.url),
-    import.meta.url,
-  ));
+  ({ createSvgSerializer } = await import("./svgSerializer.js"));
 });
 
 function escapeXmlText(text) {
