@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 r"""
 Locating and interrogating the Git working tree the setup scripts operate on.
 

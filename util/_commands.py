@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Running external commands for the repository setup scripts.
 

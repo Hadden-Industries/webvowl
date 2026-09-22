@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 r"""
 Synchronize repo-local Agent Skills from the standard npx-skills project lock.
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Python runner to upload compiled static web assets to AWS S3.
 """

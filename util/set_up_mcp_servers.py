@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 r"""
 Install repository-local MCP servers and point every supported agent host at
 them.
