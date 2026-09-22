@@ -364,7 +364,6 @@ export function createOntologyInspector() {
         throw new TypeError("Summary warnings must be an array.");
       }
 
-      const truncationTracker = createTruncationTracker();
       const selectedLanguage = appliedVisualizationView.language ?? null;
       const ontologyHeaderRecord =
         ontologyInspectionSnapshot.ontologyHeaderRecord;
@@ -372,10 +371,7 @@ export function createOntologyInspector() {
       const source = { kind: sourceProvenance.kind };
       for (const field of ["identity", "displayName"]) {
         if (sourceProvenance[field] !== undefined) {
-          source[field] = boundOntologyDerivedText(
-            sourceProvenance[field],
-            truncationTracker,
-          );
+          source[field] = sourceProvenance[field];
         }
       }
       if (sourceProvenance.sha256Hex !== undefined) {
@@ -388,34 +384,19 @@ export function createOntologyInspector() {
         ontologyHeader: Object.freeze({
           ontologyIri: ontologyHeaderRecord.ontologyIri,
           versionInformationText: ontologyHeaderRecord.versionInformationText,
-          title: boundOntologyDerivedText(
-            selectLocalizedText(
-              ontologyHeaderRecord.titleRecords,
-              selectedLanguage,
-            ),
-            truncationTracker,
+          title: selectLocalizedText(
+            ontologyHeaderRecord.titleRecords,
+            selectedLanguage,
           ),
-          description: boundOntologyDerivedText(
-            selectLocalizedText(
-              ontologyHeaderRecord.descriptionRecords,
-              selectedLanguage,
-            ),
-            truncationTracker,
+          description: selectLocalizedText(
+            ontologyHeaderRecord.descriptionRecords,
+            selectedLanguage,
           ),
-          authorNames: Object.freeze(
-            ontologyHeaderRecord.authorNames.map((authorName) =>
-              boundOntologyDerivedText(authorName, truncationTracker),
-            ),
-          ),
+          authorNames: Object.freeze([...ontologyHeaderRecord.authorNames]),
           annotationRecords: Object.freeze(
             ontologyHeaderRecord.annotationRecords.map((record) =>
               Object.freeze({
                 ...record,
-                localName: boundOntologyDerivedText(
-                  record.localName,
-                  truncationTracker,
-                ),
-                text: boundOntologyDerivedText(record.text, truncationTracker),
               }),
             ),
           ),
@@ -444,14 +425,8 @@ export function createOntologyInspector() {
           ontologyInspectionSnapshot.availableLabelLanguages,
         selectedLanguage,
         filters: Object.freeze({ ...appliedVisualizationView.filters }),
-        warnings: boundResultCollection(
-          warnings.map((warningText) =>
-            boundOntologyDerivedText(warningText, truncationTracker),
-          ),
-          WEB_VOWL_OPERATION_LIMITS.maxWarnings,
-          truncationTracker,
-        ),
-        isTruncated: truncationTracker.isTruncated,
+        warnings: Object.freeze([...warnings]),
+        isTruncated: false,
       });
     },
 

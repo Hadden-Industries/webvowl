@@ -452,7 +452,7 @@ describe("ontology summary projection", () => {
     expect(summary.isTruncated).toBe(false);
   });
 
-  test("bounds warnings and reports the truncation instead of hiding it", () => {
+  test("preserves all warnings for section pagination", () => {
     const excessiveWarnings = Array.from(
       { length: WEB_VOWL_OPERATION_LIMITS.maxWarnings + 3 },
       (_unused, warningIndex) => `Warning ${warningIndex}`,
@@ -462,13 +462,11 @@ describe("ontology summary projection", () => {
       createSummaryRequest({ warnings: excessiveWarnings }),
     );
 
-    expect(summary.warnings).toHaveLength(
-      WEB_VOWL_OPERATION_LIMITS.maxWarnings,
-    );
-    expect(summary.isTruncated).toBe(true);
+    expect(summary.warnings).toEqual(excessiveWarnings);
+    expect(summary.isTruncated).toBe(false);
   });
 
-  test("bounds every ontology-derived string it derives", () => {
+  test("preserves complete summary text for section pagination", () => {
     const overlongTitle = "T".repeat(
       WEB_VOWL_OPERATION_LIMITS.maxOntologyDerivedTextCharacters + 40,
     );
@@ -486,14 +484,12 @@ describe("ontology summary projection", () => {
       }),
     );
 
-    expect(summary.ontologyHeader.title).toHaveLength(
-      WEB_VOWL_OPERATION_LIMITS.maxOntologyDerivedTextCharacters,
-    );
+    expect(summary.ontologyHeader.title).toBe(overlongTitle);
     expect(summary.ontologyHeader.description).toBeNull();
-    expect(summary.isTruncated).toBe(true);
+    expect(summary.isTruncated).toBe(false);
   });
 
-  test("treats an injected instruction diagnostic as inert bounded text", () => {
+  test("treats an injected instruction diagnostic as inert complete text", () => {
     const injectedDiagnostic = `${INJECTION_LABEL_TEXT} ${"x".repeat(
       WEB_VOWL_OPERATION_LIMITS.maxOntologyDerivedTextCharacters,
     )}`;
@@ -505,10 +501,8 @@ describe("ontology summary projection", () => {
     );
 
     expect(summary.warnings[0]).toBe(INJECTION_LABEL_TEXT);
-    expect(summary.warnings[1]).toHaveLength(
-      WEB_VOWL_OPERATION_LIMITS.maxOntologyDerivedTextCharacters,
-    );
-    expect(summary.isTruncated).toBe(true);
+    expect(summary.warnings[1]).toBe(injectedDiagnostic);
+    expect(summary.isTruncated).toBe(false);
     expect(Object.keys(summary).sort()).toEqual([
       "availableLabelLanguages",
       "elementCounts",
