@@ -91,3 +91,16 @@ This retrieves complete summary text and collections within the same 1,500-chara
 Continuations belong to one section and bind its content digest, load generation, document revision and language.
 Changes, page reload or eviction from the eight-record continuation store require restarting the section.
 The store retains only small metadata records, not full ontology snapshots.
+
+## Detail continuation
+
+`get_ontology_element_details` still accepts an initial `{ "reference": ... }` request.
+Large descriptions return JSON fragments and `nextOffset`, plus a `continuation` token.
+For each following page, supply that token, the exact `nextOffset`, the same reference, and the returned `loadGeneration` and `language`.
+Concatenate fragments before parsing; `nextOffset` and `continuation` are both null on the last page.
+Small descriptions return `elementDescription` directly.
+
+Each response identifies `documentRevision`.
+Tokens bind the element identity, generation, revision, language and next offset.
+An edit, ontology replacement, language change, page reload or eviction after eight newer continuation records requires restarting from offset zero without a token.
+The tool rejects stale pages and changes during a read; it retains only bounded metadata rather than full descriptions.
