@@ -32,7 +32,7 @@ Ontology content is fetched and parsed by the page in your browser; nothing is u
 An export is a browser-local artifact reachable through an object URL that the page retires when it is superseded or the page goes away.
 Retrieving the file is a manual download, and whether a particular agent client can attach that download to its conversation is that client's behaviour, not something this page can promise.
 Only the latest export remains available.
-Tool results contain bounded metadata, never document content or object URLs.
+Export tool results contain bounded metadata, never exported document content or object URLs.
 SVG results include dimensions, layout outcome, source identity and SHA-256.
 
 **One implementation, no fallback.**
@@ -43,7 +43,7 @@ For an application-level embedding, `app.getWebVowlController()` returns the con
 The concrete renderer and options entry points were removed deliberately and have no aliases.
 
 The modules added or materially changed by this work are native ESM with named exports and explicit relative `.js` specifiers.
-The package as a whole is not ESM: the root package declaration and build/test infrastructure retain their existing module format.
+The root package declares `"type": "module"`; the application and build/test infrastructure use native ESM.
 The production CommonJS renderer allowlist is now empty.
 
 See the [design record](designs/2026-09-03-ontology-model-ownership.md) and the [completed qualification](evaluations/2026-09-10-webmcp-completion.md).
