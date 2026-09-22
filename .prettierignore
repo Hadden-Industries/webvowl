@@ -9,3 +9,17 @@ __pycache__
 src/app/data/
 src/owl2vowl/test/fixtures/
 *.py
+
+# Local tooling and repository policy (not authored product documentation).
+.venv/
+.agent-tools/
+.claude/skills/
+.sdlc/
+AGENTS.md
+
+# Retained archives, external reviews and recorded evaluation evidence.
+# Snapper reads these rules through Prettier; keep directory exclusions in ruff.toml aligned.
+docs/owlapi-js/
+docs/sdlc/
+docs/reviews/
+docs/evaluations/

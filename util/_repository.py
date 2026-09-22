@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 r"""
 Locating and interrogating the Git working tree the setup scripts operate on.
 
@@ -83,8 +82,7 @@ def normalize_remote(url: str) -> str:
     value = re.sub(r"^https?://", "", value)
     value = re.sub(r"^git://", "", value)
 
-    if value.endswith(".git"):
-        value = value[:-4]
+    value = value.removesuffix(".git")
 
     return value.rstrip("/")
 
@@ -98,9 +96,7 @@ def verify_repo_identity(repo: Path, expected: str) -> None:
     """
     output = git_output(repo, "remote", "-v")
     remotes = {
-        fields[1]
-        for line in output.splitlines()
-        if len(fields := line.split()) >= 2
+        fields[1] for line in output.splitlines() if len(fields := line.split()) >= 2
     }
     normalized = {normalize_remote(url) for url in remotes}
 

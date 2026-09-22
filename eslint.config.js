@@ -77,6 +77,18 @@ export default defineConfig([
     }
   },
 
+  {
+    files: ["util/**/*.{js,mjs,cjs}", "tooling/**/*.{js,mjs,cjs}"],
+    languageOptions: {
+      globals: {
+        ...Object.fromEntries(Object.keys(globals.browser).map(name => [name, "off"])),
+        ...globals.node,
+        ...globals.jest
+      }
+    },
+    rules: { "compat/compat": "off" }
+  },
+
   // Keep presentation in stylesheets. Runtime data may cross the boundary only
   // through literal CSS custom properties; the detached export clone is the
   // documented exception for standalone SVG serialization, because a file

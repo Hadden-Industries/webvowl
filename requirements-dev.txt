@@ -1,2 +1,9 @@
 # Native YAML parsing for agent skill metadata verification.
-PyYAML==6.0.3
+PyYAML>=6.0.3
+
+# Python linting/formatting and native semantic-line Markdown formatting.
+ruff>=0.16.7
+snapper-fmt>=0.11.2
+
+# Resolve reviewed, hashed installations in requirements.lock.txt.
+pip-tools>=7.6.1

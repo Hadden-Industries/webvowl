@@ -8,33 +8,23 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 SCRIPT_DIR = Path(__file__).resolve().parent
 WEBVOWL_ROOT = SCRIPT_DIR.parent
 GITHUB_ROOT = WEBVOWL_ROOT.parent
 
 DEFAULT_JAR = (
-    GITHUB_ROOT
-    / "VisualDataWeb"
-    / "OWL2VOWL"
-    / "target"
-    / "OWL2VOWL-0.3.7-shaded.jar"
+    GITHUB_ROOT / "VisualDataWeb" / "OWL2VOWL" / "target" / "OWL2VOWL-0.3.7-shaded.jar"
 )
 
-EXTERNAL_ONTOLOGY_DIRECTORY = (
-    GITHUB_ROOT
-    / "universal-ontology"
-    / "src"
-    / "external"
-)
+EXTERNAL_ONTOLOGY_DIRECTORY = GITHUB_ROOT / "universal-ontology" / "src" / "external"
 
 DEFAULT_INPUTS = [
-# Generate BenchmarkOntology.ttl's VOWL manually by changing
-# `owl:imports <http://ontovibe.visualdataweb.org/2.0/imported>` to
-# `owl:imports <https://github.com/Hadden-Industries/universal-ontology/
-# raw/refs/heads/master/src/external/BenchmarkOntologyModule.ttl>`
-# and then running `python generate-owl2vowl-java-test-fixtures.py
-# --input "..\..\universal-ontology\dist\external\BenchmarkOntology.ttl"
+    # Generate BenchmarkOntology.ttl's VOWL manually by changing
+    # `owl:imports <http://ontovibe.visualdataweb.org/2.0/imported>` to
+    # `owl:imports <https://github.com/Hadden-Industries/universal-ontology/
+    # raw/refs/heads/master/src/external/BenchmarkOntologyModule.ttl>`
+    # and then running `python generate-owl2vowl-java-test-fixtures.py
+    # --input "..\..\universal-ontology\dist\external\BenchmarkOntology.ttl"
     # EXTERNAL_ONTOLOGY_DIRECTORY / "BenchmarkOntology.ttl",
     EXTERNAL_ONTOLOGY_DIRECTORY / "BenchmarkOntologyModule.ttl",
     EXTERNAL_ONTOLOGY_DIRECTORY / "Drammar_NunnaryScene_Optimized_Rules.owl",
@@ -77,12 +67,7 @@ DEFAULT_INPUTS = [
 ]
 
 DEFAULT_OUTPUT_DIRECTORY = (
-    WEBVOWL_ROOT
-    / "src"
-    / "owl2vowl"
-    / "test"
-    / "fixtures"
-    / "java-reference-outputs"
+    WEBVOWL_ROOT / "src" / "owl2vowl" / "test" / "fixtures" / "java-reference-outputs"
 )
 
 
@@ -112,9 +97,7 @@ def find_java() -> str:
     if java:
         return java
 
-    raise RuntimeError(
-        "Java was not found. Install Java or configure JAVA_HOME/PATH."
-    )
+    raise RuntimeError("Java was not found. Install Java or configure JAVA_HOME/PATH.")
 
 
 def output_path_for(input_path: Path, output_directory: Path) -> Path:
@@ -172,8 +155,7 @@ def convert_ontology(
         command,
         cwd=SCRIPT_DIR,
         text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         check=False,
     )
 
@@ -245,8 +227,7 @@ def main() -> int:
         type=Path,
         default=DEFAULT_OUTPUT_DIRECTORY,
         help=(
-            "Directory for generated JSON files. "
-            f"Default: {DEFAULT_OUTPUT_DIRECTORY}"
+            f"Directory for generated JSON files. Default: {DEFAULT_OUTPUT_DIRECTORY}"
         ),
     )
     parser.add_argument(
@@ -258,10 +239,7 @@ def main() -> int:
     arguments = parser.parse_args()
 
     jar_path = resolve_path(arguments.jar)
-    input_paths = [
-        resolve_path(input_path)
-        for input_path in arguments.input_paths
-    ]
+    input_paths = [resolve_path(input_path) for input_path in arguments.input_paths]
     output_directory = resolve_path(arguments.output_directory)
 
     if not jar_path.is_file():
@@ -269,9 +247,7 @@ def main() -> int:
         return 1
 
     missing_inputs = [
-        input_path
-        for input_path in input_paths
-        if not input_path.is_file()
+        input_path for input_path in input_paths if not input_path.is_file()
     ]
 
     if missing_inputs:

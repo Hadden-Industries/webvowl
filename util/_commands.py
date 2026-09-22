@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Running external commands for the repository setup scripts.
 
@@ -20,8 +19,8 @@ from __future__ import annotations
 import shutil
 import subprocess
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 
 class SetupError(RuntimeError):
@@ -35,11 +34,15 @@ def write_console_diagnostic(text: str, *, stream=None) -> str:
     never use this escaping policy. Actual write/flush failures propagate.
     """
     destination = sys.stdout if stream is None else stream
-    encoding = getattr(destination, 'encoding', None)
-    displayed = text.encode(encoding, errors='backslashreplace').decode(encoding) if encoding else text
+    encoding = getattr(destination, "encoding", None)
+    displayed = (
+        text.encode(encoding, errors="backslashreplace").decode(encoding)
+        if encoding
+        else text
+    )
     destination.write(displayed)
     destination.flush()
-    return 'written' if displayed == text else 'escaped'
+    return "written" if displayed == text else "escaped"
 
 
 def run(

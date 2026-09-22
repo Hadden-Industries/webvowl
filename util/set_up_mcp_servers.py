@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 r"""
 Install repository-local MCP servers and point every supported agent host at
 them.
@@ -52,8 +51,8 @@ import tempfile
 import urllib.error
 import urllib.request
 import zipfile
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 from _commands import SetupError
 from _repository import derive_repo_from_script
@@ -332,7 +331,7 @@ def merge_codex_mcp_config(
     end = codex_marker_pattern(name, "END").search(text)
 
     if begin and end and end.end() > begin.start():
-        merged = f"{text[:begin.start()]}{block}{text[end.end():]}"
+        merged = f"{text[: begin.start()]}{block}{text[end.end() :]}"
     else:
         # TOML forbids declaring `[mcp_servers.<name>]` twice, so appending a
         # managed block beside a hand-written one would invalidate the whole
@@ -445,7 +444,9 @@ def fetch_url(url: str, *, accept: str | None = None) -> bytes:
             if exc.code in (403, 429)
             else ""
         )
-        raise SetupError(f"HTTP {exc.code} fetching {url}: {exc.reason}.{detail}") from exc
+        raise SetupError(
+            f"HTTP {exc.code} fetching {url}: {exc.reason}.{detail}"
+        ) from exc
     except urllib.error.URLError as exc:
         raise SetupError(f"Could not fetch {url}: {exc.reason}") from exc
 
@@ -481,7 +482,9 @@ def resolve_latest_github_mcp_release() -> tuple[str, dict[str, str]]:
     return tag, assets
 
 
-def verified_release_payload(tag: str, assets: dict[str, str], asset_name: str) -> bytes:
+def verified_release_payload(
+    tag: str, assets: dict[str, str], asset_name: str
+) -> bytes:
     """
     Downloads a release asset and checks it against the release's own checksum
     manifest before anything is written into the repository.
@@ -500,9 +503,7 @@ def verified_release_payload(tag: str, assets: dict[str, str], asset_name: str) 
             "verified before installation."
         )
 
-    checksums = parse_release_checksums(
-        fetch_url(assets[manifests[0]]).decode("utf-8")
-    )
+    checksums = parse_release_checksums(fetch_url(assets[manifests[0]]).decode("utf-8"))
     expected = checksums.get(asset_name)
 
     if expected is None:

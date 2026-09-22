@@ -39,7 +39,7 @@ test("WebVOWL setup needs only development requirements and never checks AWS", (
     .map(([, args]) => args)
     .filter((args) => args.includes("-r"))
     .map((args) => args.at(-1));
-  expect(installedRequirements).toEqual([join(repositoryRoot, "requirements-dev.txt")]);
+  expect(installedRequirements).toEqual([join(repositoryRoot, "requirements.lock.txt")]);
 });
 
 function createCommandResult(stdout = "", status = 0) {
@@ -88,8 +88,9 @@ beforeEach(() => {
   writeFileSync(join(repositoryRoot, ".python-version"), "3.14.7\n");
   writeFileSync(
     join(repositoryRoot, "requirements-dev.txt"),
-    "PyYAML==6.0.3\n",
+    "PyYAML>=6.0.3\n",
   );
+  writeFileSync(join(repositoryRoot, "requirements.lock.txt"), "fixture lock\n");
   Object.defineProperty(process.versions, "node", { value: "24.20.0" });
   writeFileSync(
     join(repositoryRoot, "requirements.txt"),
@@ -184,18 +185,17 @@ test.each([
       ],
       [
         virtualEnvironmentPythonExecutablePath,
-        ["-m", "pip", "install", "--upgrade", "pip"],
-      ],
-      [
-        virtualEnvironmentPythonExecutablePath,
         [
           "-m",
           "pip",
           "install",
+          "--require-hashes",
+          "--only-binary=:all:",
           "-r",
-          join(repositoryRoot, "requirements-dev.txt"),
+          join(repositoryRoot, "requirements.lock.txt"),
         ],
       ],
+      [virtualEnvironmentPythonExecutablePath, ["-m", "pip", "check"]],
     ]);
     for (const [, , options] of spawnSyncMock.mock.calls) {
       expect(options.cwd).toBe(repositoryRoot);
@@ -247,6 +247,7 @@ test("rejects an unusable existing virtual environment before installation", () 
 test.each([
   "package-lock.json",
   "requirements-dev.txt",
+  "requirements.lock.txt",
   ".node-version",
   ".python-version",
 ])("rejects a missing %s before starting subprocesses", (filename) => {
@@ -306,8 +307,8 @@ test.each([
 test.each([
   ["npm installation", "ci"],
   ["virtual environment creation", "venv"],
-  ["pip upgrade", "--upgrade"],
   ["Python dependency installation", "-r"],
+  ["Python dependency consistency check", "check"],
 ])("stops after a failed %s", (_description, failingArgument) => {
   const successfulCommand = spawnSyncMock.getMockImplementation();
   spawnSyncMock.mockImplementation((executable, args, options) =>

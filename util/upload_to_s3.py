@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Python runner to upload compiled static web assets to AWS S3.
 """
@@ -26,11 +25,14 @@ def main():
         sys.executable,
         str(upload_script),
         str(local_dir),
-        "--region", region,
-        "--bucket", bucket,
-        "--prefix", prefix,
+        "--region",
+        region,
+        "--bucket",
+        bucket,
+        "--prefix",
+        prefix,
         "--invalidate-cloudfront",
-        "--delete"
+        "--delete",
     ]
 
     try:

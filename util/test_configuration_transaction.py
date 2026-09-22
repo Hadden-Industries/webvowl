@@ -1,27 +1,21 @@
 import contextlib
-
 import io
-
-
 import os
-
 import stat
-
-
-
 import tempfile
-
 import unittest
-
 from pathlib import Path
 from unittest import mock
-import _configuration_transaction  # noqa: E402
+
+import _configuration_transaction
+
 
 def require_setup_callable(test_case: unittest.TestCase, name: str):
     """Fail as an assertion when a wished-for setup seam is still absent."""
     value = getattr(_configuration_transaction, name, None)
     test_case.assertTrue(callable(value), f"Missing setup function: {name}")
     return value
+
 
 def rendered_repository_configuration_document(
     destination_path: Path,
@@ -44,6 +38,7 @@ def rendered_repository_configuration_document(
         observed_destination_bytes=observed_destination_bytes,
     )
 
+
 class RepositoryConfigurationLockTests(unittest.TestCase):
     def test_second_setup_process_cannot_acquire_the_repository_lock(self):
         acquire_setup_lock = require_setup_callable(
@@ -54,19 +49,22 @@ class RepositoryConfigurationLockTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as scratch:
             repository_root = Path(scratch)
 
-            with acquire_setup_lock(repository_root):
-                with self.assertRaisesRegex(
+            with (
+                acquire_setup_lock(repository_root),
+                self.assertRaisesRegex(
                     _configuration_transaction.SetupError,
                     "another repository-local setup is already running",
-                ):
-                    with acquire_setup_lock(repository_root):
-                        self.fail("the second setup lock must not be acquired")
+                ),
+                acquire_setup_lock(repository_root),
+            ):
+                self.fail("the second setup lock must not be acquired")
 
             # The persistent lock file is harmless generated state; releasing
             # the OS-level lock, rather than deleting a racy sentinel, makes a
             # crash self-recovering.
             with acquire_setup_lock(repository_root):
                 pass
+
 
 class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
     def test_edit_after_rendering_aborts_without_overwriting_user_content(self):
@@ -84,7 +82,7 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
                 rendered_repository_configuration_document(
                     configuration_path, 'approval_policy = "on-request"\n', None
                 ),
-                rendered_repository_configuration_document(other_path, '{}\n', None),
+                rendered_repository_configuration_document(other_path, "{}\n", None),
             ]
             concurrent_user_contents = 'model = "user-selected-model"\n'
             configuration_path.write_text(
@@ -92,13 +90,16 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            with mock.patch.object(
-                _configuration_transaction,
-                "is_ignored",
-                return_value=True,
-            ), self.assertRaisesRegex(
-                _configuration_transaction.SetupError,
-                "changed after.*rendered|rendered.*changed",
+            with (
+                mock.patch.object(
+                    _configuration_transaction,
+                    "is_ignored",
+                    return_value=True,
+                ),
+                self.assertRaisesRegex(
+                    _configuration_transaction.SetupError,
+                    "changed after.*rendered|rendered.*changed",
+                ),
             ):
                 publish_documents(repository_root, rendered_documents)
 
@@ -144,8 +145,7 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
                 side_effect=observe_continuous_destination,
             ):
                 activated_paths = activate_replacements(
-                    root,
-                    [(destination, staged_replacement)]
+                    root, [(destination, staged_replacement)]
                 )
 
             self.assertEqual(activated_paths, [destination])
@@ -211,29 +211,30 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
                     displaced_file_path,
                 )
 
-            with mock.patch.object(
-                _configuration_transaction,
-                "_replace_existing_file_and_retain_displaced_file",
-                side_effect=replace_after_concurrent_edit,
-            ), mock.patch.object(
-                _configuration_transaction,
-                "is_ignored",
-                return_value=True,
-            ):
-                with self.assertRaisesRegex(
+            with (
+                mock.patch.object(
+                    _configuration_transaction,
+                    "_replace_existing_file_and_retain_displaced_file",
+                    side_effect=replace_after_concurrent_edit,
+                ),
+                mock.patch.object(
+                    _configuration_transaction,
+                    "is_ignored",
+                    return_value=True,
+                ),
+                self.assertRaisesRegex(
                     _configuration_transaction.SetupError,
                     r"displaced.*rendered|rendered.*displaced",
-                ):
-                    activate_replacements(
-                        root,
-                        [(destination, staged_replacement)],
-                        expected_destination_bytes_by_path={
-                            destination: b"render-time observation"
-                        },
-                        sensitive_configuration_destination_paths={
-                            destination
-                        },
-                    )
+                ),
+            ):
+                activate_replacements(
+                    root,
+                    [(destination, staged_replacement)],
+                    expected_destination_bytes_by_path={
+                        destination: b"render-time observation"
+                    },
+                    sensitive_configuration_destination_paths={destination},
+                )
 
             self.assertEqual(destination.read_bytes(), concurrent_user_contents)
             self.assertEqual(
@@ -261,20 +262,22 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
                 destination.write_bytes(concurrent_user_contents)
                 return real_link(source, target, **options)
 
-            with mock.patch.object(
-                _configuration_transaction.os,
-                "link",
-                side_effect=create_destination_then_link,
-            ):
-                with self.assertRaisesRegex(
+            with (
+                mock.patch.object(
+                    _configuration_transaction.os,
+                    "link",
+                    side_effect=create_destination_then_link,
+                ),
+                self.assertRaisesRegex(
                     _configuration_transaction.SetupError,
                     r"changed after.*rendered|rendered.*changed",
-                ):
-                    activate_replacements(
-                        root,
-                        [(destination, staged_replacement)],
-                        expected_destination_bytes_by_path={destination: None},
-                    )
+                ),
+            ):
+                activate_replacements(
+                    root,
+                    [(destination, staged_replacement)],
+                    expected_destination_bytes_by_path={destination: None},
+                )
 
             self.assertEqual(destination.read_bytes(), concurrent_user_contents)
             self.assertFalse(staged_replacement.exists())
@@ -311,31 +314,31 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
 
                 return real_replace(source, destination)
 
-            with mock.patch.object(
-                _configuration_transaction.os,
-                "replace",
-                side_effect=edit_first_destination_then_fail_second,
-            ):
-                with self.assertRaisesRegex(
+            with (
+                mock.patch.object(
+                    _configuration_transaction.os,
+                    "replace",
+                    side_effect=edit_first_destination_then_fail_second,
+                ),
+                self.assertRaisesRegex(
                     _configuration_transaction.SetupError,
                     "preserved concurrent destination change",
-                ):
-                    activate_replacements(
-                        repository_root,
-                        [
-                            (first_destination, first_staged_replacement),
-                            (second_destination, second_staged_replacement),
-                        ],
-                    )
+                ),
+            ):
+                activate_replacements(
+                    repository_root,
+                    [
+                        (first_destination, first_staged_replacement),
+                        (second_destination, second_staged_replacement),
+                    ],
+                )
 
             self.assertEqual(
                 first_destination.read_bytes(),
                 concurrent_user_contents,
             )
             self.assertEqual(second_destination.read_bytes(), b"second original")
-            recovery_backups = list(
-                repository_root.glob(".*.activation.backup")
-            )
+            recovery_backups = list(repository_root.glob(".*.activation.backup"))
             self.assertEqual(len(recovery_backups), 1)
             self.assertEqual(recovery_backups[0].read_bytes(), b"first original")
 
@@ -351,20 +354,22 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
             destination.parent.mkdir(parents=True)
             credential_bearing_contents = '{"token":"sensitive"}\n'
 
-            with mock.patch.object(
-                _configuration_transaction,
-                "is_ignored",
-                return_value=False,
-            ):
-                with self.assertRaisesRegex(
+            with (
+                mock.patch.object(
+                    _configuration_transaction,
+                    "is_ignored",
+                    return_value=False,
+                ),
+                self.assertRaisesRegex(
                     _configuration_transaction.SetupError,
                     "transaction artifact.*not ignored|not ignored.*transaction artifact",
-                ):
-                    stage_document(
-                        repository_root,
-                        destination,
-                        credential_bearing_contents,
-                    )
+                ),
+            ):
+                stage_document(
+                    repository_root,
+                    destination,
+                    credential_bearing_contents,
+                )
 
             remaining_files = [
                 path for path in repository_root.rglob("*") if path.is_file()
@@ -385,22 +390,22 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
             destination.write_bytes(b"credential-bearing original")
             staged_replacement.write_bytes(b"managed replacement")
 
-            with mock.patch.object(
-                _configuration_transaction,
-                "is_ignored",
-                return_value=False,
-            ):
-                with self.assertRaisesRegex(
+            with (
+                mock.patch.object(
+                    _configuration_transaction,
+                    "is_ignored",
+                    return_value=False,
+                ),
+                self.assertRaisesRegex(
                     _configuration_transaction.SetupError,
                     "transaction artifact.*not ignored|not ignored.*transaction artifact",
-                ):
-                    activate_replacements(
-                        repository_root,
-                        [(destination, staged_replacement)],
-                        sensitive_configuration_destination_paths={
-                            destination
-                        },
-                    )
+                ),
+            ):
+                activate_replacements(
+                    repository_root,
+                    [(destination, staged_replacement)],
+                    sensitive_configuration_destination_paths={destination},
+                )
 
             self.assertEqual(
                 destination.read_bytes(),
@@ -408,11 +413,7 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
             )
             self.assertFalse(staged_replacement.exists())
             self.assertEqual(
-                [
-                    path
-                    for path in destination.parent.iterdir()
-                    if path != destination
-                ],
+                [path for path in destination.parent.iterdir() if path != destination],
                 [],
             )
 
@@ -446,28 +447,30 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
 
                 return replacement_result
 
-            with mock.patch.object(
-                _configuration_transaction.os,
-                "replace",
-                side_effect=edit_configuration_after_program_replacement,
-            ):
-                with self.assertRaisesRegex(
+            with (
+                mock.patch.object(
+                    _configuration_transaction.os,
+                    "replace",
+                    side_effect=edit_configuration_after_program_replacement,
+                ),
+                self.assertRaisesRegex(
                     _configuration_transaction.SetupError,
                     "changed after.*rendered|rendered.*changed",
-                ):
-                    activate_replacements(
-                        root,
-                        [
-                            (program_path, staged_program_path),
-                            (
-                                configuration_path,
-                                staged_configuration_path,
-                            ),
-                        ],
-                        expected_destination_bytes_by_path={
-                            configuration_path: b"original configuration"
-                        },
-                    )
+                ),
+            ):
+                activate_replacements(
+                    root,
+                    [
+                        (program_path, staged_program_path),
+                        (
+                            configuration_path,
+                            staged_configuration_path,
+                        ),
+                    ],
+                    expected_destination_bytes_by_path={
+                        configuration_path: b"original configuration"
+                    },
+                )
 
             self.assertEqual(program_path.read_bytes(), b"old program")
             self.assertEqual(
@@ -490,9 +493,7 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
             second_path.write_text("second-original\n", encoding="utf-8")
             first_observed_bytes = first_path.read_bytes()
             second_observed_bytes = second_path.read_bytes()
-            replace_existing_file = (
-                _configuration_transaction._replace_existing_file_and_retain_displaced_file
-            )
+            replace_existing_file = _configuration_transaction._replace_existing_file_and_retain_displaced_file
             destination_replacements = 0
 
             def fail_second_destination_replacement(
@@ -512,34 +513,37 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
                     displaced_file,
                 )
 
-            with mock.patch.object(
-                _configuration_transaction,
-                "_replace_existing_file_and_retain_displaced_file",
-                side_effect=fail_second_destination_replacement,
-            ), mock.patch.object(
-                _configuration_transaction,
-                "is_ignored",
-                return_value=True,
-            ):
-                with self.assertRaisesRegex(
+            with (
+                mock.patch.object(
+                    _configuration_transaction,
+                    "_replace_existing_file_and_retain_displaced_file",
+                    side_effect=fail_second_destination_replacement,
+                ),
+                mock.patch.object(
+                    _configuration_transaction,
+                    "is_ignored",
+                    return_value=True,
+                ),
+                self.assertRaisesRegex(
                     _configuration_transaction.SetupError,
                     "simulated locked configuration",
-                ):
-                    publish_documents(
-                        repository_root,
-                        [
-                            rendered_repository_configuration_document(
-                                first_path,
-                                "first-new\n",
-                                first_observed_bytes,
-                            ),
-                            rendered_repository_configuration_document(
-                                second_path,
-                                "second-new\n",
-                                second_observed_bytes,
-                            ),
-                        ]
-                    )
+                ),
+            ):
+                publish_documents(
+                    repository_root,
+                    [
+                        rendered_repository_configuration_document(
+                            first_path,
+                            "first-new\n",
+                            first_observed_bytes,
+                        ),
+                        rendered_repository_configuration_document(
+                            second_path,
+                            "second-new\n",
+                            second_observed_bytes,
+                        ),
+                    ],
+                )
 
             self.assertEqual(
                 first_path.read_text(encoding="utf-8"),
@@ -589,34 +593,37 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
                     contents,
                 )
 
-            with mock.patch.object(
-                _configuration_transaction,
-                "_stage_repository_configuration_document",
-                side_effect=fail_second_staging_attempt,
-            ), mock.patch.object(
-                _configuration_transaction,
-                "is_ignored",
-                return_value=True,
-            ):
-                with self.assertRaisesRegex(
+            with (
+                mock.patch.object(
+                    _configuration_transaction,
+                    "_stage_repository_configuration_document",
+                    side_effect=fail_second_staging_attempt,
+                ),
+                mock.patch.object(
+                    _configuration_transaction,
+                    "is_ignored",
+                    return_value=True,
+                ),
+                self.assertRaisesRegex(
                     _configuration_transaction.SetupError,
                     "simulated staging failure",
-                ):
-                    publish_documents(
-                        repository_root,
-                        [
-                            rendered_repository_configuration_document(
-                                first_path,
-                                "first-new\n",
-                                None,
-                            ),
-                            rendered_repository_configuration_document(
-                                second_path,
-                                "second-new\n",
-                                None,
-                            ),
-                        ]
-                    )
+                ),
+            ):
+                publish_documents(
+                    repository_root,
+                    [
+                        rendered_repository_configuration_document(
+                            first_path,
+                            "first-new\n",
+                            None,
+                        ),
+                        rendered_repository_configuration_document(
+                            second_path,
+                            "second-new\n",
+                            None,
+                        ),
+                    ],
+                )
 
             self.assertFalse(first_path.exists())
             self.assertFalse(second_path.exists())
@@ -643,9 +650,7 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
             first_observed_bytes = first_configuration_path.read_bytes()
             second_observed_bytes = second_configuration_path.read_bytes()
             real_replace = os.replace
-            replace_existing_file = (
-                _configuration_transaction._replace_existing_file_and_retain_displaced_file
-            )
+            replace_existing_file = _configuration_transaction._replace_existing_file_and_retain_displaced_file
 
             def fail_second_activation(
                 destination,
@@ -673,42 +678,44 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
 
                 return real_replace(source, destination)
 
-            with mock.patch.object(
-                _configuration_transaction,
-                "_replace_existing_file_and_retain_displaced_file",
-                side_effect=fail_second_activation,
-            ), mock.patch.object(
-                _configuration_transaction.os,
-                "replace",
-                side_effect=fail_rollback,
-            ), mock.patch.object(
-                _configuration_transaction,
-                "is_ignored",
-                return_value=True,
-            ):
-                with self.assertRaisesRegex(
+            with (
+                mock.patch.object(
+                    _configuration_transaction,
+                    "_replace_existing_file_and_retain_displaced_file",
+                    side_effect=fail_second_activation,
+                ),
+                mock.patch.object(
+                    _configuration_transaction.os,
+                    "replace",
+                    side_effect=fail_rollback,
+                ),
+                mock.patch.object(
+                    _configuration_transaction,
+                    "is_ignored",
+                    return_value=True,
+                ),
+                self.assertRaisesRegex(
                     _configuration_transaction.SetupError,
                     "preserved recovery backup",
-                ):
-                    publish_documents(
-                        repository_root,
-                        [
-                            rendered_repository_configuration_document(
-                                first_configuration_path,
-                                "first-replacement\n",
-                                first_observed_bytes,
-                            ),
-                            rendered_repository_configuration_document(
-                                second_configuration_path,
-                                "second-replacement\n",
-                                second_observed_bytes,
-                            ),
-                        ]
-                    )
+                ),
+            ):
+                publish_documents(
+                    repository_root,
+                    [
+                        rendered_repository_configuration_document(
+                            first_configuration_path,
+                            "first-replacement\n",
+                            first_observed_bytes,
+                        ),
+                        rendered_repository_configuration_document(
+                            second_configuration_path,
+                            "second-replacement\n",
+                            second_observed_bytes,
+                        ),
+                    ],
+                )
 
-            recovery_backups = list(
-                repository_root.glob(".*.activation.backup")
-            )
+            recovery_backups = list(repository_root.glob(".*.activation.backup"))
             self.assertEqual(len(recovery_backups), 1)
             self.assertEqual(
                 recovery_backups[0].read_text(encoding="utf-8"),
@@ -752,15 +759,17 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
                 return real_unlink(path, missing_ok=missing_ok)
 
             standard_error = io.StringIO()
-            with mock.patch.object(
-                Path,
-                "unlink",
-                autospec=True,
-                side_effect=reject_locked_backup_cleanup,
-            ), contextlib.redirect_stderr(standard_error):
+            with (
+                mock.patch.object(
+                    Path,
+                    "unlink",
+                    autospec=True,
+                    side_effect=reject_locked_backup_cleanup,
+                ),
+                contextlib.redirect_stderr(standard_error),
+            ):
                 activated_paths = activate_replacements(
-                    root,
-                    [(destination, temporary_path)]
+                    root, [(destination, temporary_path)]
                 )
 
             self.assertEqual(activated_paths, [destination])
@@ -793,8 +802,7 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
             temporary_path.chmod(0o700)
 
             activated_paths = activate_replacements(
-                root,
-                [(destination, temporary_path)]
+                root, [(destination, temporary_path)]
             )
 
             self.assertEqual(activated_paths, [destination])
@@ -815,22 +823,24 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
             first_temporary_path.write_bytes(b"first")
             second_temporary_path.write_bytes(b"second")
 
-            with mock.patch.object(
-                _configuration_transaction,
-                "_files_have_identical_bytes",
-                side_effect=OSError("simulated preparation failure"),
-            ):
-                with self.assertRaisesRegex(
+            with (
+                mock.patch.object(
+                    _configuration_transaction,
+                    "_files_have_identical_bytes",
+                    side_effect=OSError("simulated preparation failure"),
+                ),
+                self.assertRaisesRegex(
                     _configuration_transaction.SetupError,
                     "simulated preparation failure",
-                ):
-                    activate_replacements(
-                        root,
-                        [
-                            (destination, first_temporary_path),
-                            (root / "second-destination", second_temporary_path),
-                        ]
-                    )
+                ),
+            ):
+                activate_replacements(
+                    root,
+                    [
+                        (destination, first_temporary_path),
+                        (root / "second-destination", second_temporary_path),
+                    ],
+                )
 
             self.assertEqual(destination.read_bytes(), b"original")
             self.assertFalse(first_temporary_path.exists())
@@ -860,7 +870,7 @@ class TransactionalHostConfigurationPublicationTests(unittest.TestCase):
                     [
                         (destination, first_temporary_path),
                         (destination, second_temporary_path),
-                    ]
+                    ],
                 )
 
             self.assertEqual(destination.read_bytes(), b"original")
