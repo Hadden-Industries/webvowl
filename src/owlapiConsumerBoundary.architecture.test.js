@@ -19,6 +19,15 @@ const UTILITY_PATH = path.join(ROOT, "util");
 
 const EXPECTED_GIT_SPECIFIER =
   "git+https://github.com/Hadden-Industries/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1";
+// npm can serialize a GitHub resolution with SSH transport even when the
+// manifest requests HTTPS. Keep the repository and full commit exact.
+const APPROVED_GIT_RESOLUTIONS = new Set([
+  EXPECTED_GIT_SPECIFIER,
+  EXPECTED_GIT_SPECIFIER.replace(
+    "git+https://github.com/",
+    "git+ssh://git@github.com/",
+  ),
+]);
 const EXPECTED_PACKAGE_VERSION = "0.1.0-alpha.0";
 const EXPECTED_EXPORTS = {
   ".": "./index.js",
@@ -305,8 +314,31 @@ describe("installed owlapi consumer boundary", () => {
 
     expect(lockfile.lockfileVersion).toBe(3);
     expect(rootPackage?.dependencies?.owlapi).toBe(EXPECTED_GIT_SPECIFIER);
-    expect(installedPackage?.resolved).toBe(EXPECTED_GIT_SPECIFIER);
+    expect(APPROVED_GIT_RESOLUTIONS.has(installedPackage?.resolved)).toBe(true);
     expect(installedPackage?.version).toBe(EXPECTED_PACKAGE_VERSION);
+  });
+
+  test.each([
+    "git+https://github.com/Hadden-Industries/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1",
+    "git+ssh://git@github.com/Hadden-Industries/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1",
+  ])("accepts the pinned Git resolution %s", (resolution) => {
+    expect(APPROVED_GIT_RESOLUTIONS.has(resolution)).toBe(true);
+  });
+
+  test.each([
+    undefined,
+    "",
+    "git+https://github.com/other-owner/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1",
+    "git+ssh://git@github.com/Hadden-Industries/other-repo.git#caabb1197ffdab91c1e10d596d177b5142aea5c1",
+    "git+ssh://git@other-host.example/Hadden-Industries/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1",
+    "git+https://github.com/Hadden-Industries/owlapi.git#0000000000000000000000000000000000000000",
+    "git+ssh://git@github.com/Hadden-Industries/owlapi.git#0000000000000000000000000000000000000000",
+    "git+https://github.com/Hadden-Industries/owlapi.git#main",
+    "git+ssh://git@github.com/Hadden-Industries/owlapi.git#caabb11",
+    "git+https://github.com/Hadden-Industries/owlapi.git",
+    "git+http://github.com/Hadden-Industries/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1",
+  ])("rejects an unapproved Git resolution %s", (resolution) => {
+    expect(APPROVED_GIT_RESOLUTIONS.has(resolution)).toBe(false);
   });
 
   test("observes the approved installed identity and public exports", () => {
