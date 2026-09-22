@@ -553,11 +553,14 @@ describe("load_ontology input schema", () => {
 });
 
 describe("get_ontology_summary input schema", () => {
-  test("takes nothing at all", () => {
+  test("allows optional section continuation", () => {
     const inputSchema = toolDefinitionNamed("get_ontology_summary").inputSchema;
 
     expect(inputSchema.type).toBe("object");
-    expect(inputSchema.properties).toEqual({});
+    expect(Object.keys(inputSchema.properties)).toEqual([
+      "section",
+      "continuation",
+    ]);
     expect(inputSchema.required).toEqual([]);
     expect(inputSchema.additionalProperties).toBe(false);
   });

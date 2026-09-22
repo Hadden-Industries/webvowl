@@ -75,3 +75,19 @@ Search changes neither ontology facts nor selection, layout or viewport.
 
 SVG export captures computed styles into a detached clone through the rendered graph adapter.
 CSS changes should be checked against an independently opened export; exporting does not rewrite the live SVG or require regenerated D3 rules.
+
+## Summary sections
+
+`get_ontology_summary({})` returns the full summary when it fits.
+Otherwise it preserves the exact ontology IRI and element counts, marks `sectionsOmitted: true`, and lists `availableSections`.
+An oversized required core fails explicitly; identity IRIs are never shortened.
+
+Request a section with `{ "section": "ontologyHeader" }`, then repeat that section with the returned `continuation` until it is null.
+Concatenate the `jsonFragment` strings in offset order and parse the completed JSON once.
+Sections include the header, source, visible graph counts, namespaces, imports, languages, selected language, filters and warnings.
+This retrieves complete summary text and collections within the same 1,500-character response ceiling.
+`isTruncated` on section pages reports upstream incompleteness, not whether another page exists; use `continuation` for traversal completion.
+
+Continuations belong to one section and bind its content digest, load generation, document revision and language.
+Changes, page reload or eviction from the eight-record continuation store require restarting the section.
+The store retains only small metadata records, not full ontology snapshots.

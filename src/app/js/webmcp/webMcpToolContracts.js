@@ -1,6 +1,11 @@
 import { OWLDocumentFormats } from "owlapi/formats";
 import { createOntologySearchPager } from "./ontologySearchPager.js";
 import {
+  createOntologySummaryPager,
+  projectOntologySummary,
+  ONTOLOGY_SUMMARY_SECTIONS,
+} from "./ontologySummaryPager.js";
+import {
   VISUALIZATION_LAYOUT_ACTIONS,
   VISUALIZATION_VIEWPORT_ACTIONS,
   VISUALIZATION_VIEWPORT_LIMITS,
@@ -278,7 +283,23 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
       readOnlyHint: true,
       untrustedContentHint: true,
     }),
-    inputSchema: closedObjectSchema({}),
+    inputSchema: closedObjectSchema({
+      properties: {
+        section: {
+          type: "string",
+          enum: ONTOLOGY_SUMMARY_SECTIONS,
+          description:
+            "Optional section to retrieve as complete JSON fragments. Concatenate fragments before parsing.",
+        },
+        continuation: {
+          type: "string",
+          minLength: 1,
+          maxLength: 128,
+          description:
+            "Same-section token; expires on content, revision or language changes, reload or eviction after eight records. Restart without it.",
+        },
+      },
+    }),
   }),
   Object.freeze({
     name: "find_ontology_elements",
@@ -905,8 +926,32 @@ export function normalizeLoadOntologyToolInput(toolInput) {
 }
 
 export function normalizeOntologySummaryToolInput(toolInput = {}) {
-  assertOnlyAllowedFieldNames(toolInput, [], "get_ontology_summary input");
-  return Object.freeze({});
+  assertOnlyAllowedFieldNames(
+    toolInput,
+    ["section", "continuation"],
+    "get_ontology_summary input",
+  );
+  if (
+    toolInput.section !== undefined &&
+    !ONTOLOGY_SUMMARY_SECTIONS.includes(toolInput.section)
+  ) {
+    refuse("Unknown summary section.");
+  }
+  if (toolInput.continuation !== undefined && toolInput.section === undefined) {
+    refuse("A summary continuation requires its section.");
+  }
+  return Object.freeze({
+    ...(toolInput.section === undefined ? {} : { section: toolInput.section }),
+    ...(toolInput.continuation === undefined
+      ? {}
+      : {
+          continuation: assertBoundedString(
+            toolInput.continuation,
+            "continuation",
+            128,
+          ),
+        }),
+  });
 }
 
 const FIND_ONTOLOGY_ELEMENTS_FIELD_NAMES = Object.freeze([
@@ -1412,6 +1457,12 @@ function minimalToolResultEnvelope(toolName, toolResult) {
 
 export function projectWebMcpToolSuccess(toolName, controllerResult) {
   assertKnownToolName(toolName);
+  if (toolName === "get_ontology_summary") {
+    return projectOntologySummary(projectedJsonValue(controllerResult ?? {}), {
+      ceiling: WEB_MCP_TOOL_RESULT_CHARACTER_CEILING,
+      refuse,
+    });
+  }
 
   let toolResult = {
     operation: toolName,
@@ -1821,6 +1872,10 @@ export function createWebMcpToolDispatch({ webVowlController }) {
   }
 
   const capturedShareLinks = new Map();
+  const readSummary = createOntologySummaryPager({
+    ceiling: WEB_MCP_TOOL_RESULT_CHARACTER_CEILING,
+    refuse,
+  });
   let shareLinkSequence = 0;
   const readSearchPage = createOntologySearchPager({
     ceiling: WEB_MCP_TOOL_RESULT_CHARACTER_CEILING,
@@ -1892,6 +1947,17 @@ export function createWebMcpToolDispatch({ webVowlController }) {
       }
 
       try {
+        if (toolName === "get_ontology_summary") {
+          return await readSummary({
+            request: controllerRequest,
+            state: requestState,
+            getState: () => webVowlController.getState(),
+            read: async () =>
+              projectedJsonValue(
+                await webVowlController.getOntologySummary({}, { signal }),
+              ),
+          });
+        }
         if (toolName === "find_ontology_elements") {
           return await readSearchPage({
             request: controllerRequest,
