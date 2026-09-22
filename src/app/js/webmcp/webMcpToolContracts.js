@@ -1,4 +1,5 @@
 import { OWLDocumentFormats } from "owlapi/formats";
+import { createOntologySearchPager } from "./ontologySearchPager.js";
 import {
   VISUALIZATION_LAYOUT_ACTIONS,
   VISUALIZATION_VIEWPORT_ACTIONS,
@@ -316,6 +317,13 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
           type: "boolean",
           description: "Include one-hop structural facts for each match.",
           default: true,
+        }),
+        continuation: Object.freeze({
+          type: "string",
+          description:
+            "Continue a search with its returned token and unchanged inputs. Tokens expire after eight later pages; edits require restarting.",
+          minLength: 1,
+          maxLength: 128,
         }),
       },
       required: ["query"],
@@ -906,6 +914,7 @@ const FIND_ONTOLOGY_ELEMENTS_FIELD_NAMES = Object.freeze([
   "kinds",
   "limit",
   "includeNeighborhood",
+  "continuation",
 ]);
 
 export function normalizeFindOntologyElementsToolInput(toolInput) {
@@ -946,6 +955,14 @@ export function normalizeFindOntologyElementsToolInput(toolInput) {
       refuse("kinds must name each element kind at most once.");
     }
     searchRequest.kinds = Object.freeze([...toolInput.kinds]);
+  }
+
+  if (toolInput.continuation !== undefined) {
+    searchRequest.continuation = assertBoundedString(
+      toolInput.continuation,
+      "continuation",
+      128,
+    );
   }
 
   return Object.freeze(searchRequest);
@@ -1805,6 +1822,10 @@ export function createWebMcpToolDispatch({ webVowlController }) {
 
   const capturedShareLinks = new Map();
   let shareLinkSequence = 0;
+  const readSearchPage = createOntologySearchPager({
+    ceiling: WEB_MCP_TOOL_RESULT_CHARACTER_CEILING,
+    refuse,
+  });
 
   function readShareLinkPage(captured, pageToken, offset) {
     if (captured === undefined || offset > captured.url.length) {
@@ -1871,6 +1892,19 @@ export function createWebMcpToolDispatch({ webVowlController }) {
       }
 
       try {
+        if (toolName === "find_ontology_elements") {
+          return await readSearchPage({
+            request: controllerRequest,
+            state: requestState,
+            getState: () => webVowlController.getState(),
+            find: async (request) =>
+              projectedJsonValue(
+                await webVowlController.findOntologyElements(request, {
+                  signal,
+                }),
+              ),
+          });
+        }
         if (
           toolName === "get_visualization_share_link" &&
           controllerRequest.continuation

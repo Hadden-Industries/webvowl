@@ -1873,6 +1873,7 @@ describe("WebMCP tool dispatch", () => {
       query: "Person",
       limit: 10,
       includeNeighborhood: true,
+      offset: 0,
     });
   });
 
