@@ -55,7 +55,7 @@ const EXPECTED_TOOL_DESCRIPTIONS = Object.freeze({
   get_visualization_share_link:
     "Read a share URL for the accepted remote ontology and current view, as in the Export menu. Local documents require JSON export. Continue long URLs using the returned continuation.",
   get_ontology_element_details:
-    "Read the same ontology element description as the selection sidebar. Large descriptions return exact JSON text pages; continue with nextOffset to read every fact.",
+    "Read the selection sidebar description. Large descriptions return exact JSON pages; continue with nextOffset and continuation. Edits require restarting.",
   get_visualization_arrangement:
     "Read a page of drawn occurrences, their positions in graph pixels, pin state and movement capabilities. References expire on ontology replacement.",
   set_visualization_arrangement:
@@ -280,11 +280,18 @@ test("details use the sidebar description and preserve every character over boun
     },
   });
   let offset = 0;
+  let continuation;
   let reconstructedJson = "";
   do {
     const result = await dispatch.callWebMcpTool(
       "get_ontology_element_details",
-      { reference, offset, loadGeneration: 3, language: null },
+      {
+        reference,
+        offset,
+        loadGeneration: 3,
+        language: null,
+        ...(continuation ? { continuation } : {}),
+      },
     );
     expect(result.isSuccess).toBe(true);
     expect(JSON.stringify(result).length).toBeLessThanOrEqual(1500);
@@ -296,6 +303,7 @@ test("details use the sidebar description and preserve every character over boun
         result.toolResult.nextOffset > offset,
     ).toBe(true);
     offset = result.toolResult.nextOffset;
+    continuation = result.toolResult.continuation;
   } while (offset !== null);
   expect(JSON.parse(reconstructedJson)).toEqual(description);
   expect(
@@ -310,18 +318,31 @@ test("details use the sidebar description and preserve every character over boun
     { reference, edit: true },
   );
   expect(invalid.error.code).toBe("INVALID_TOOL_INPUT");
+  const continuedDetails = await dispatch.callWebMcpTool(
+    "get_ontology_element_details",
+    { reference },
+  );
   const stale = await dispatch.callWebMcpTool("get_ontology_element_details", {
     reference,
-    offset: 10,
+    offset: continuedDetails.toolResult.nextOffset,
+    continuation: continuedDetails.toolResult.continuation,
     loadGeneration: 2,
     language: null,
   });
   expect(stale.error.code).toBe("INVALID_TOOL_INPUT");
+  expect(stale.error.message).toMatch(/generation/i);
   const translated = await dispatch.callWebMcpTool(
     "get_ontology_element_details",
-    { reference, offset: 10, loadGeneration: 3, language: "de" },
+    {
+      reference,
+      offset: continuedDetails.toolResult.nextOffset,
+      continuation: continuedDetails.toolResult.continuation,
+      loadGeneration: 3,
+      language: "de",
+    },
   );
   expect(translated.error.code).toBe("INVALID_TOOL_INPUT");
+  expect(translated.error.message).toMatch(/language/i);
 });
 
 // Every object schema anywhere in a definition, so a nested one cannot quietly
