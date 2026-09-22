@@ -287,10 +287,18 @@ const NODE_MODULE_API_SPECIFIERS = Object.freeze(["module", "node:module"]);
 
 const D3_RENDERED_GRAPH_ADAPTER_MODULE_PATH =
   "src/webvowl/js/runtime/d3RenderedGraphAdapter.js";
+const DEPENDENCY_CRUISER_PACKAGE_URL = new URL(
+  "../node_modules/dependency-cruiser/package.json",
+  import.meta.url,
+);
+const dependencyCruiserPackage = JSON.parse(
+  readFileSync(DEPENDENCY_CRUISER_PACKAGE_URL, "utf8"),
+);
+// Follow the package's public command mapping across executable renames.
 const DEPENDENCY_CRUISER_CLI_MODULE_PATH = fileURLToPath(
   new URL(
-    "../node_modules/dependency-cruiser/bin/dependency-cruise.mjs",
-    import.meta.url,
+    dependencyCruiserPackage.bin.depcruise,
+    DEPENDENCY_CRUISER_PACKAGE_URL,
   ),
 );
 const DEPENDENCY_CRUISER_JSON_MAX_BUFFER_BYTES = 16 * 1024 * 1024;

@@ -2,8 +2,8 @@
 PyYAML>=6.0.3
 
 # Python linting/formatting and native semantic-line Markdown formatting.
-ruff>=0.16.7
-snapper-fmt>=0.11.2
+ruff>=0.16.8
+snapper-fmt>=0.11.5
 
 # Resolve reviewed, hashed installations in requirements.lock.txt.
 pip-tools>=7.6.1
