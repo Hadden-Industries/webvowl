@@ -1,4 +1,10 @@
 import { OWLDocumentFormats } from "owlapi/formats";
+import { createOntologySearchPager } from "./ontologySearchPager.js";
+import {
+  createOntologySummaryPager,
+  projectOntologySummary,
+  ONTOLOGY_SUMMARY_SECTIONS,
+} from "./ontologySummaryPager.js";
 import {
   VISUALIZATION_LAYOUT_ACTIONS,
   VISUALIZATION_VIEWPORT_ACTIONS,
@@ -277,7 +283,23 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
       readOnlyHint: true,
       untrustedContentHint: true,
     }),
-    inputSchema: closedObjectSchema({}),
+    inputSchema: closedObjectSchema({
+      properties: {
+        section: {
+          type: "string",
+          enum: ONTOLOGY_SUMMARY_SECTIONS,
+          description:
+            "Optional section to retrieve as complete JSON fragments. Concatenate fragments before parsing.",
+        },
+        continuation: {
+          type: "string",
+          minLength: 1,
+          maxLength: 128,
+          description:
+            "Same-section token; expires on content, revision or language changes, reload or eviction after eight records. Restart without it.",
+        },
+      },
+    }),
   }),
   Object.freeze({
     name: "find_ontology_elements",
@@ -316,6 +338,13 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
           type: "boolean",
           description: "Include one-hop structural facts for each match.",
           default: true,
+        }),
+        continuation: Object.freeze({
+          type: "string",
+          description:
+            "Continue a search with its returned token and unchanged inputs. Tokens expire after eight later pages; edits require restarting.",
+          minLength: 1,
+          maxLength: 128,
         }),
       },
       required: ["query"],
@@ -581,7 +610,7 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
   Object.freeze({
     name: "get_ontology_element_details",
     description:
-      "Read the same ontology element description as the selection sidebar. Large descriptions return exact JSON text pages; continue with nextOffset to read every fact.",
+      "Read the selection sidebar description. Large descriptions return exact JSON pages; continue with nextOffset and continuation. Edits require restarting.",
     annotations: Object.freeze({
       readOnlyHint: true,
       untrustedContentHint: true,
@@ -596,7 +625,7 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
             minimum: 0,
             maximum: Number.MAX_SAFE_INTEGER,
             description:
-              "JSON text offset from nextOffset. Supply the returned loadGeneration when continuing.",
+              "JSON offset from nextOffset. For nonzero offsets, supply continuation, loadGeneration and language from the previous page.",
           }),
           loadGeneration: Object.freeze({
             type: "integer",
@@ -612,10 +641,18 @@ export const WEB_MCP_TOOL_DEFINITIONS = Object.freeze([
             description:
               "Language returned with the first page; prevents mixing translated descriptions.",
           }),
+          continuation: Object.freeze({
+            type: "string",
+            minLength: 1,
+            maxLength: 128,
+            description:
+              "Token bound to the element, revision, language and next offset. Expires after eight newer pages or reload; restart without it.",
+          }),
         },
       }),
       dependentRequired: Object.freeze({
         offset: Object.freeze(["loadGeneration", "language"]),
+        continuation: Object.freeze(["offset", "loadGeneration", "language"]),
       }),
     }),
   }),
@@ -897,8 +934,32 @@ export function normalizeLoadOntologyToolInput(toolInput) {
 }
 
 export function normalizeOntologySummaryToolInput(toolInput = {}) {
-  assertOnlyAllowedFieldNames(toolInput, [], "get_ontology_summary input");
-  return Object.freeze({});
+  assertOnlyAllowedFieldNames(
+    toolInput,
+    ["section", "continuation"],
+    "get_ontology_summary input",
+  );
+  if (
+    toolInput.section !== undefined &&
+    !ONTOLOGY_SUMMARY_SECTIONS.includes(toolInput.section)
+  ) {
+    refuse("Unknown summary section.");
+  }
+  if (toolInput.continuation !== undefined && toolInput.section === undefined) {
+    refuse("A summary continuation requires its section.");
+  }
+  return Object.freeze({
+    ...(toolInput.section === undefined ? {} : { section: toolInput.section }),
+    ...(toolInput.continuation === undefined
+      ? {}
+      : {
+          continuation: assertBoundedString(
+            toolInput.continuation,
+            "continuation",
+            128,
+          ),
+        }),
+  });
 }
 
 const FIND_ONTOLOGY_ELEMENTS_FIELD_NAMES = Object.freeze([
@@ -906,6 +967,7 @@ const FIND_ONTOLOGY_ELEMENTS_FIELD_NAMES = Object.freeze([
   "kinds",
   "limit",
   "includeNeighborhood",
+  "continuation",
 ]);
 
 export function normalizeFindOntologyElementsToolInput(toolInput) {
@@ -946,6 +1008,14 @@ export function normalizeFindOntologyElementsToolInput(toolInput) {
       refuse("kinds must name each element kind at most once.");
     }
     searchRequest.kinds = Object.freeze([...toolInput.kinds]);
+  }
+
+  if (toolInput.continuation !== undefined) {
+    searchRequest.continuation = assertBoundedString(
+      toolInput.continuation,
+      "continuation",
+      128,
+    );
   }
 
   return Object.freeze(searchRequest);
@@ -1395,6 +1465,12 @@ function minimalToolResultEnvelope(toolName, toolResult) {
 
 export function projectWebMcpToolSuccess(toolName, controllerResult) {
   assertKnownToolName(toolName);
+  if (toolName === "get_ontology_summary") {
+    return projectOntologySummary(projectedJsonValue(controllerResult ?? {}), {
+      ceiling: WEB_MCP_TOOL_RESULT_CHARACTER_CEILING,
+      refuse,
+    });
+  }
 
   let toolResult = {
     operation: toolName,
@@ -1596,7 +1672,7 @@ const WEB_MCP_TOOL_ROUTES = Object.freeze({
     normalizeToolInput: (input) => {
       assertOnlyAllowedFieldNames(
         input,
-        ["reference", "offset", "loadGeneration", "language"],
+        ["reference", "offset", "loadGeneration", "language", "continuation"],
         "get_ontology_element_details input",
       );
       assertRequiredFieldNames(
@@ -1604,11 +1680,24 @@ const WEB_MCP_TOOL_ROUTES = Object.freeze({
         [
           "reference",
           ...(input.offset === undefined ? [] : ["loadGeneration", "language"]),
+          ...(input.offset > 0 ? ["continuation"] : []),
+          ...(input.continuation === undefined
+            ? []
+            : ["offset", "loadGeneration", "language"]),
         ],
         "get_ontology_element_details input",
       );
       return Object.freeze({
         reference: normalizeOntologyElementReference(input.reference),
+        ...(input.continuation === undefined
+          ? {}
+          : {
+              continuation: assertBoundedString(
+                input.continuation,
+                "continuation",
+                128,
+              ),
+            }),
         offset:
           input.offset === undefined
             ? 0
@@ -1642,7 +1731,6 @@ const WEB_MCP_TOOL_ROUTES = Object.freeze({
     createControllerRequest: (input) => ({
       ontologyElementReferences: [input.reference],
     }),
-    projectControllerResult: projectOntologyDetailsPage,
   }),
   get_visualization_arrangement: Object.freeze({
     normalizeToolInput: (input = {}) => {
@@ -1804,7 +1892,23 @@ export function createWebMcpToolDispatch({ webVowlController }) {
   }
 
   const capturedShareLinks = new Map();
+  const detailContinuations = new Map();
+  const detailStateKey = (state, reference) =>
+    JSON.stringify([
+      reference,
+      state.loadGeneration,
+      state.documentRevision,
+      state.view?.language ?? null,
+    ]);
+  const readSummary = createOntologySummaryPager({
+    ceiling: WEB_MCP_TOOL_RESULT_CHARACTER_CEILING,
+    refuse,
+  });
   let shareLinkSequence = 0;
+  const readSearchPage = createOntologySearchPager({
+    ceiling: WEB_MCP_TOOL_RESULT_CHARACTER_CEILING,
+    refuse,
+  });
 
   function readShareLinkPage(captured, pageToken, offset) {
     if (captured === undefined || offset > captured.url.length) {
@@ -1871,6 +1975,84 @@ export function createWebMcpToolDispatch({ webVowlController }) {
       }
 
       try {
+        if (toolName === "get_ontology_element_details") {
+          const binding = detailStateKey(
+            requestState,
+            controllerRequest.reference,
+          );
+          if (controllerRequest.continuation !== undefined) {
+            const captured = detailContinuations.get(
+              controllerRequest.continuation,
+            );
+            if (
+              !captured ||
+              captured.binding !== binding ||
+              captured.offset !== controllerRequest.offset
+            ) {
+              refuse(
+                "Detail continuation is stale, expired or mismatched. Restart with the same reference and no offset or continuation.",
+              );
+            }
+          }
+          const result = await webVowlController.describeOntologyElements(
+            createControllerRequest(controllerRequest),
+            { signal },
+          );
+          if (
+            binding !==
+            detailStateKey(
+              webVowlController.getState(),
+              controllerRequest.reference,
+            )
+          ) {
+            refuse(
+              "The ontology changed during the detail read. Restart the details.",
+            );
+          }
+          const token = crypto.randomUUID();
+          const page = projectOntologyDetailsPage(
+            result,
+            controllerRequest,
+            requestState,
+            token,
+          );
+          if (page.continuation) {
+            detailContinuations.set(token, {
+              binding,
+              offset: page.nextOffset,
+            });
+            if (detailContinuations.size > 8) {
+              detailContinuations.delete(
+                detailContinuations.keys().next().value,
+              );
+            }
+          }
+          return projectWebMcpToolSuccess(toolName, page);
+        }
+        if (toolName === "get_ontology_summary") {
+          return await readSummary({
+            request: controllerRequest,
+            state: requestState,
+            getState: () => webVowlController.getState(),
+            read: async () =>
+              projectedJsonValue(
+                await webVowlController.getOntologySummary({}, { signal }),
+              ),
+          });
+        }
+        if (toolName === "find_ontology_elements") {
+          return await readSearchPage({
+            request: controllerRequest,
+            state: requestState,
+            getState: () => webVowlController.getState(),
+            find: async (request) =>
+              projectedJsonValue(
+                await webVowlController.findOntologyElements(request, {
+                  signal,
+                }),
+              ),
+          });
+        }
         if (
           toolName === "get_visualization_share_link" &&
           controllerRequest.continuation
@@ -1931,6 +2113,7 @@ function projectOntologyDetailsPage(
   { loadGeneration, elementDescriptions },
   { offset },
   requestState,
+  token,
 ) {
   const elementDescription = elementDescriptions[0];
   if (elementDescription === undefined) {
@@ -1942,7 +2125,14 @@ function projectOntologyDetailsPage(
   }
   const operation = "get_ontology_element_details";
   const language = requestState.view?.language ?? null;
-  const structuredResult = { loadGeneration, language, elementDescription };
+  const documentRevision = requestState.documentRevision;
+  const structuredResult = {
+    loadGeneration,
+    documentRevision,
+    language,
+    elementDescription,
+    continuation: null,
+  };
   if (
     offset === 0 &&
     serializedLength({
@@ -1963,10 +2153,12 @@ function projectOntologyDetailsPage(
   do {
     page = {
       loadGeneration,
+      documentRevision,
       language,
       encoding: "json",
       offset,
       nextOffset: end === jsonText.length ? null : end,
+      continuation: end === jsonText.length ? null : token,
       totalCharacterCount: jsonText.length,
       jsonFragment: jsonText.slice(offset, end),
     };

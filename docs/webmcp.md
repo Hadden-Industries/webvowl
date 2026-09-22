@@ -50,5 +50,57 @@ See the [design record](designs/2026-09-03-ontology-model-ownership.md) and the 
 
 ## Additional information
 
+### Complete semantic search
+
+`find_ontology_elements` returns unique semantic identities, including elements hidden by visualization filters.
+Different kinds sharing an IRI remain distinct; anonymous identities include their load generation.
+Labels and relations from repeated occurrences participate in search.
+
+Call with `query`, optional `kinds`, `limit` (1–25, default 10), and `includeNeighborhood` (default true).
+If `hasMore` is true, repeat the same inputs with the returned `continuation` string.
+The token advances past exactly the matches returned, even when the 1,500-character budget fits fewer than `limit`.
+`totalMatchCount` is the exact number of unique matches for that search.
+`continuation: null` and `hasMore: false` mark completion.
+
+Tokens bind the inputs, ontology load, document revision and label language.
+Edits, replacement loads, language changes, incompatible inputs, page reloads or token expiry require a fresh search.
+The page retains only eight continuation records; creating later continuation records evicts the oldest.
+No ontology snapshot is retained by the pager.
+
+`optionalFactsTruncated` identifies shortened display text or omitted neighborhood facts.
+`isTruncated` also preserves upstream incompleteness and signals remaining matches; it is not the terminal-page indicator.
+Exact reference IRIs are never shortened.
+A single identity that cannot fit causes an actionable failure, not an empty success or a skipped result.
+Search changes neither ontology facts nor selection, layout or viewport.
+
 SVG export captures computed styles into a detached clone through the rendered graph adapter.
 CSS changes should be checked against an independently opened export; exporting does not rewrite the live SVG or require regenerated D3 rules.
+
+## Summary sections
+
+`get_ontology_summary({})` returns the full summary when it fits.
+Otherwise it preserves the exact ontology IRI and element counts, marks `sectionsOmitted: true`, and lists `availableSections`.
+An oversized required core fails explicitly; identity IRIs are never shortened.
+
+Request a section with `{ "section": "ontologyHeader" }`, then repeat that section with the returned `continuation` until it is null.
+Concatenate the `jsonFragment` strings in offset order and parse the completed JSON once.
+Sections include the header, source, visible graph counts, namespaces, imports, languages, selected language, filters and warnings.
+This retrieves complete summary text and collections within the same 1,500-character response ceiling.
+`isTruncated` on section pages reports upstream incompleteness, not whether another page exists; use `continuation` for traversal completion.
+
+Continuations belong to one section and bind its content digest, load generation, document revision and language.
+Changes, page reload or eviction from the eight-record continuation store require restarting the section.
+The store retains only small metadata records, not full ontology snapshots.
+
+## Detail continuation
+
+`get_ontology_element_details` still accepts an initial `{ "reference": ... }` request.
+Large descriptions return JSON fragments and `nextOffset`, plus a `continuation` token.
+For each following page, supply that token, the exact `nextOffset`, the same reference, and the returned `loadGeneration` and `language`.
+Concatenate fragments before parsing; `nextOffset` and `continuation` are both null on the last page.
+Small descriptions return `elementDescription` directly.
+
+Each response identifies `documentRevision`.
+Tokens bind the element identity, generation, revision, language and next offset.
+An edit, ontology replacement, language change, page reload or eviction after eight newer continuation records requires restarting from offset zero without a token.
+The tool rejects stale pages and changes during a read; it retains only bounded metadata rather than full descriptions.

@@ -90,8 +90,6 @@ const EQUIVALENT_LABEL_RANK = 3;
 const IRI_CONTAINS_RANK = 4;
 const NO_MATCH_RANK = Number.MAX_SAFE_INTEGER;
 
-const REFERENCE_KEY_SEPARATOR = "\u0000";
-
 function assertPlainRecord(candidate, description) {
   if (
     candidate === null ||
@@ -124,15 +122,16 @@ function assertAgreeingLoadGeneration(
 
 function ontologyElementReferenceKey(ontologyElementReference) {
   if (typeof ontologyElementReference.iri === "string") {
-    return [ontologyElementReference.kind, ontologyElementReference.iri].join(
-      REFERENCE_KEY_SEPARATOR,
-    );
+    return JSON.stringify([
+      ontologyElementReference.kind,
+      ontologyElementReference.iri,
+    ]);
   }
-  return [
+  return JSON.stringify([
     ontologyElementReference.kind,
     String(ontologyElementReference.loadGeneration),
     ontologyElementReference.localId,
-  ].join(REFERENCE_KEY_SEPARATOR);
+  ]);
 }
 
 function createVisibleReferenceKeySet(visibleRenderedGraphSnapshot) {
@@ -319,6 +318,33 @@ function resolveMatchLimit(limit) {
   return limit;
 }
 
+// Drawn occurrences may repeat a semantic identity with additional labels or
+// relations. Merge those facts before matching so every alias remains searchable.
+function semanticSearchRecords(records) {
+  const merged = new Map();
+  for (const record of records) {
+    const key = ontologyElementReferenceKey(record.ontologyElementReference);
+    const previous = merged.get(key);
+    if (previous === undefined) {
+      merged.set(key, { ...record });
+      continue;
+    }
+    for (const [field, values] of Object.entries(record)) {
+      if (Array.isArray(values)) {
+        const combined =
+          field === "labelRecords"
+            ? [...values, ...(previous[field] ?? [])]
+            : [...(previous[field] ?? []), ...values];
+        const entries = new Map(
+          combined.map((value) => [JSON.stringify(value), value]),
+        );
+        previous[field] = [...entries.values()];
+      }
+    }
+  }
+  return [...merged.values()];
+}
+
 export function createOntologyInspector() {
   return Object.freeze({
     getOntologySummary({
@@ -338,7 +364,6 @@ export function createOntologyInspector() {
         throw new TypeError("Summary warnings must be an array.");
       }
 
-      const truncationTracker = createTruncationTracker();
       const selectedLanguage = appliedVisualizationView.language ?? null;
       const ontologyHeaderRecord =
         ontologyInspectionSnapshot.ontologyHeaderRecord;
@@ -346,10 +371,7 @@ export function createOntologyInspector() {
       const source = { kind: sourceProvenance.kind };
       for (const field of ["identity", "displayName"]) {
         if (sourceProvenance[field] !== undefined) {
-          source[field] = boundOntologyDerivedText(
-            sourceProvenance[field],
-            truncationTracker,
-          );
+          source[field] = sourceProvenance[field];
         }
       }
       if (sourceProvenance.sha256Hex !== undefined) {
@@ -362,34 +384,19 @@ export function createOntologyInspector() {
         ontologyHeader: Object.freeze({
           ontologyIri: ontologyHeaderRecord.ontologyIri,
           versionInformationText: ontologyHeaderRecord.versionInformationText,
-          title: boundOntologyDerivedText(
-            selectLocalizedText(
-              ontologyHeaderRecord.titleRecords,
-              selectedLanguage,
-            ),
-            truncationTracker,
+          title: selectLocalizedText(
+            ontologyHeaderRecord.titleRecords,
+            selectedLanguage,
           ),
-          description: boundOntologyDerivedText(
-            selectLocalizedText(
-              ontologyHeaderRecord.descriptionRecords,
-              selectedLanguage,
-            ),
-            truncationTracker,
+          description: selectLocalizedText(
+            ontologyHeaderRecord.descriptionRecords,
+            selectedLanguage,
           ),
-          authorNames: Object.freeze(
-            ontologyHeaderRecord.authorNames.map((authorName) =>
-              boundOntologyDerivedText(authorName, truncationTracker),
-            ),
-          ),
+          authorNames: Object.freeze([...ontologyHeaderRecord.authorNames]),
           annotationRecords: Object.freeze(
             ontologyHeaderRecord.annotationRecords.map((record) =>
               Object.freeze({
                 ...record,
-                localName: boundOntologyDerivedText(
-                  record.localName,
-                  truncationTracker,
-                ),
-                text: boundOntologyDerivedText(record.text, truncationTracker),
               }),
             ),
           ),
@@ -418,14 +425,8 @@ export function createOntologyInspector() {
           ontologyInspectionSnapshot.availableLabelLanguages,
         selectedLanguage,
         filters: Object.freeze({ ...appliedVisualizationView.filters }),
-        warnings: boundResultCollection(
-          warnings.map((warningText) =>
-            boundOntologyDerivedText(warningText, truncationTracker),
-          ),
-          WEB_VOWL_OPERATION_LIMITS.maxWarnings,
-          truncationTracker,
-        ),
-        isTruncated: truncationTracker.isTruncated,
+        warnings: Object.freeze([...warnings]),
+        isTruncated: false,
       });
     },
 
@@ -435,6 +436,7 @@ export function createOntologyInspector() {
       query,
       kinds,
       limit,
+      offset = 0,
       includeNeighborhood = false,
       language,
     }) {
@@ -445,6 +447,11 @@ export function createOntologyInspector() {
       assertNonEmptyQuery(query);
       const requestedKinds = resolveRequestedKinds(kinds);
       const matchLimit = resolveMatchLimit(limit);
+      if (!Number.isSafeInteger(offset) || offset < 0) {
+        throw new RangeError(
+          "A search offset must be a non-negative safe integer.",
+        );
+      }
       const selectedLanguage = language ?? null;
       const visibleReferenceKeys = createVisibleReferenceKeySet(
         visibleRenderedGraphSnapshot,
@@ -456,12 +463,12 @@ export function createOntologyInspector() {
         ontologyInspectionSnapshot,
       );
       const rankedMatches = [];
-      for (const kind of requestedKinds) {
+      for (const kind of new Set(requestedKinds)) {
         const elementRecords =
           ontologyInspectionSnapshot[
             RECORD_COLLECTION_FIELD_NAMES_BY_KIND[kind]
           ];
-        for (const elementRecord of elementRecords) {
+        for (const elementRecord of semanticSearchRecords(elementRecords)) {
           const matchRank = matchRankForRecord(
             elementRecord,
             normalizedQuery,
@@ -496,11 +503,12 @@ export function createOntologyInspector() {
       });
 
       const retainedMatches = boundResultCollection(
-        rankedMatches,
+        rankedMatches.slice(offset),
         matchLimit,
         truncationTracker,
       );
 
+      const optionalFactsTracker = createTruncationTracker();
       const matches = retainedMatches.map(({ elementRecord, kind }) => {
         const ontologyElementReference = elementRecord.ontologyElementReference;
         const match = {
@@ -508,7 +516,7 @@ export function createOntologyInspector() {
           kind,
           displayLabel: boundOntologyDerivedText(
             displayLabelForRecord(elementRecord, selectedLanguage),
-            truncationTracker,
+            optionalFactsTracker,
           ),
           iri: elementIri(ontologyElementReference),
           isFocusable: visibleReferenceKeys.has(
@@ -519,7 +527,7 @@ export function createOntologyInspector() {
           match.neighborhoodFacts = createNeighborhoodFacts(
             elementRecord,
             kind,
-            truncationTracker,
+            optionalFactsTracker,
           );
         }
         return Object.freeze(match);
@@ -528,7 +536,10 @@ export function createOntologyInspector() {
       return Object.freeze({
         loadGeneration,
         matches: Object.freeze(matches),
-        isTruncated: truncationTracker.isTruncated,
+        totalMatchCount: rankedMatches.length,
+        optionalFactsTruncated: optionalFactsTracker.isTruncated,
+        isTruncated:
+          truncationTracker.isTruncated || optionalFactsTracker.isTruncated,
       });
     },
 

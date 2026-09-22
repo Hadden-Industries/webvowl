@@ -230,6 +230,86 @@ function createSearchRequest(overrides = {}) {
 }
 
 describe("ontology summary projection", () => {
+  test("search does not conflate a supplied IRI with an anonymous reference key", () => {
+    const result = createOntologyInspector().findOntologyElements({
+      ontologyInspectionSnapshot: createInspectionSnapshot({
+        classRecords: [
+          classRecord({ iri: "4\u0000a", labelRecords: englishLabel("Time") }),
+          classRecord({ localId: "a", labelRecords: englishLabel("Time") }),
+        ],
+        propertyRecords: [],
+        datatypeRecords: [],
+        individualRecords: [],
+      }),
+      visibleRenderedGraphSnapshot: createVisibleSnapshot(),
+      query: "time",
+    });
+    expect(
+      result.matches.map((match) => match.ontologyElementReference),
+    ).toEqual([
+      { kind: "class", iri: "4\u0000a" },
+      { kind: "class", loadGeneration: LOAD_GENERATION, localId: "a" },
+    ]);
+  });
+  test("search merges semantic duplicates before ranking and paging", () => {
+    const snapshot = createInspectionSnapshot({
+      classRecords: [
+        classRecord({
+          iri: "urn:time",
+          labelRecords: englishLabel("Clock"),
+          superclassReferences: [{ kind: "class", iri: "urn:A" }],
+        }),
+        classRecord({
+          iri: "urn:time",
+          labelRecords: englishLabel("Time"),
+          superclassReferences: [{ kind: "class", iri: "urn:B" }],
+        }),
+        classRecord({ localId: "a", labelRecords: englishLabel("Time") }),
+        classRecord({ localId: "b", labelRecords: englishLabel("Time") }),
+      ],
+      propertyRecords: [
+        propertyRecord({ iri: "urn:time", labelRecords: englishLabel("Time") }),
+      ],
+      datatypeRecords: [],
+      individualRecords: [],
+    });
+    const request = {
+      ontologyInspectionSnapshot: snapshot,
+      visibleRenderedGraphSnapshot: createVisibleSnapshot(),
+      query: "time",
+      language: "en",
+      includeNeighborhood: true,
+    };
+    const result = createOntologyInspector().findOntologyElements(request);
+    expect(result.totalMatchCount).toBe(4);
+    expect(
+      result.matches.map((match) => match.ontologyElementReference),
+    ).toEqual([
+      { kind: "class", loadGeneration: LOAD_GENERATION, localId: "a" },
+      { kind: "class", loadGeneration: LOAD_GENERATION, localId: "b" },
+      { kind: "class", iri: "urn:time" },
+      { kind: "property", iri: "urn:time" },
+    ]);
+    expect(result.matches[2].neighborhoodFacts.superclassReferences).toEqual([
+      { kind: "class", iri: "urn:A" },
+      { kind: "class", iri: "urn:B" },
+    ]);
+    expect(
+      createOntologyInspector().findOntologyElements({
+        ...request,
+        query: "clock",
+      }).matches,
+    ).toHaveLength(1);
+    const page = createOntologyInspector().findOntologyElements({
+      ...request,
+      offset: 2,
+      limit: 1,
+    });
+    expect(page.matches.map((match) => match.ontologyElementReference)).toEqual(
+      [{ kind: "class", iri: "urn:time" }],
+    );
+    expect(page.totalMatchCount).toBe(4);
+  });
   test("distinguishes datatype properties from datatype nodes in the shared statistics", () => {
     const request = createSummaryRequest();
     const snapshot = structuredClone(request.ontologyInspectionSnapshot);
@@ -372,7 +452,7 @@ describe("ontology summary projection", () => {
     expect(summary.isTruncated).toBe(false);
   });
 
-  test("bounds warnings and reports the truncation instead of hiding it", () => {
+  test("preserves all warnings for section pagination", () => {
     const excessiveWarnings = Array.from(
       { length: WEB_VOWL_OPERATION_LIMITS.maxWarnings + 3 },
       (_unused, warningIndex) => `Warning ${warningIndex}`,
@@ -382,13 +462,11 @@ describe("ontology summary projection", () => {
       createSummaryRequest({ warnings: excessiveWarnings }),
     );
 
-    expect(summary.warnings).toHaveLength(
-      WEB_VOWL_OPERATION_LIMITS.maxWarnings,
-    );
-    expect(summary.isTruncated).toBe(true);
+    expect(summary.warnings).toEqual(excessiveWarnings);
+    expect(summary.isTruncated).toBe(false);
   });
 
-  test("bounds every ontology-derived string it derives", () => {
+  test("preserves complete summary text for section pagination", () => {
     const overlongTitle = "T".repeat(
       WEB_VOWL_OPERATION_LIMITS.maxOntologyDerivedTextCharacters + 40,
     );
@@ -406,14 +484,12 @@ describe("ontology summary projection", () => {
       }),
     );
 
-    expect(summary.ontologyHeader.title).toHaveLength(
-      WEB_VOWL_OPERATION_LIMITS.maxOntologyDerivedTextCharacters,
-    );
+    expect(summary.ontologyHeader.title).toBe(overlongTitle);
     expect(summary.ontologyHeader.description).toBeNull();
-    expect(summary.isTruncated).toBe(true);
+    expect(summary.isTruncated).toBe(false);
   });
 
-  test("treats an injected instruction diagnostic as inert bounded text", () => {
+  test("treats an injected instruction diagnostic as inert complete text", () => {
     const injectedDiagnostic = `${INJECTION_LABEL_TEXT} ${"x".repeat(
       WEB_VOWL_OPERATION_LIMITS.maxOntologyDerivedTextCharacters,
     )}`;
@@ -425,10 +501,8 @@ describe("ontology summary projection", () => {
     );
 
     expect(summary.warnings[0]).toBe(INJECTION_LABEL_TEXT);
-    expect(summary.warnings[1]).toHaveLength(
-      WEB_VOWL_OPERATION_LIMITS.maxOntologyDerivedTextCharacters,
-    );
-    expect(summary.isTruncated).toBe(true);
+    expect(summary.warnings[1]).toBe(injectedDiagnostic);
+    expect(summary.isTruncated).toBe(false);
     expect(Object.keys(summary).sort()).toEqual([
       "availableLabelLanguages",
       "elementCounts",
@@ -509,7 +583,6 @@ describe("ontology element search", () => {
       searchResult.matches.map(({ displayLabel }) => displayLabel),
     ).toEqual([
       "Person",
-      "Person (duplicate record)",
       "Anonymous Person Union",
       "member of Person",
       UNLABELLED_IRI,
@@ -574,12 +647,12 @@ describe("ontology element search", () => {
     expect(anonymousMatch.iri).toBeNull();
   });
 
-  test("keeps duplicate IRIs as separate ranked matches", () => {
+  test("returns one ranked match per semantic identity", () => {
     const personIriMatches = findMatches({ query: "Person" }).matches.filter(
       ({ iri }) => iri === PERSON_IRI,
     );
 
-    expect(personIriMatches).toHaveLength(2);
+    expect(personIriMatches).toHaveLength(1);
   });
 
   test("applies a caller limit and reports the truncation", () => {
