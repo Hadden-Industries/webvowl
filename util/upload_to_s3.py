@@ -26,11 +26,14 @@ def main():
         sys.executable,
         str(upload_script),
         str(local_dir),
-        "--region", region,
-        "--bucket", bucket,
-        "--prefix", prefix,
+        "--region",
+        region,
+        "--bucket",
+        bucket,
+        "--prefix",
+        prefix,
         "--invalidate-cloudfront",
-        "--delete"
+        "--delete",
     ]
 
     try:

@@ -1,0 +1,26 @@
+target-version = "py314"
+line-length = 88
+preview = false
+unsafe-fixes = false
+include = ["*.py", "*.pyi", "*.ipynb", "pyproject.toml"]
+extend-exclude = [
+    ".agents/skills",
+    ".claude/skills",
+    ".agent-tools",
+    ".sdlc",
+    "deploy",
+    "docs/owlapi-js",
+    "docs/sdlc",
+    "docs/reviews",
+    "docs/evaluations",
+    "src/app/data",
+    "src/owl2vowl/test/fixtures",
+]
+force-exclude = true
+cache-dir = ".venv/.ruff_cache"
+
+[lint]
+extend-select = ["I"]
+
+[format]
+line-ending = "lf"

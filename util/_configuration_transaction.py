@@ -3,8 +3,8 @@
 Extracted from the proven SDLC setup owner; no MCP installer is included.
 """
 
-
 from __future__ import annotations
+
 import hashlib
 import json
 import os
@@ -13,13 +13,13 @@ import shutil
 import stat
 import sys
 import tempfile
+from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Iterator
+
 from _commands import SetupError
 from _repository import is_ignored, tracked_paths_under
-
 
 REPOSITORY_ROOTED_NODE_ENTRY_POINT_BOOTSTRAP_SOURCE = (
     'import { execFileSync } from "node:child_process";'
@@ -42,9 +42,7 @@ REPOSITORY_ROOTED_NODE_ENTRY_POINT_BOOTSTRAP_SOURCE = (
 GENERATED_SETUP_ROOT = Path(".agent-tools")
 
 
-REPOSITORY_SETUP_LOCK_PATH = (
-    GENERATED_SETUP_ROOT / ".repository-setup.lock"
-)
+REPOSITORY_SETUP_LOCK_PATH = GENERATED_SETUP_ROOT / ".repository-setup.lock"
 
 
 POSIX_FILE_EXECUTION_PERMISSION_MASK = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
@@ -135,10 +133,7 @@ def ensure_generated_setup_root_is_safe(repo: Path) -> None:
             "real directory, not a symbolic link or junction."
         )
 
-    if (
-        generated_setup_root.exists()
-        and not generated_setup_root.is_dir()
-    ):
+    if generated_setup_root.exists() and not generated_setup_root.is_dir():
         raise SetupError(
             f"The generated setup root {generated_root} must be a "
             "directory when it exists."
@@ -162,10 +157,7 @@ def ensure_generated_setup_root_is_safe(repo: Path) -> None:
                         f"{relative_entry_path}."
                     )
 
-    ignore_probe = (
-        GENERATED_SETUP_ROOT
-        / ".repository_setup_ignore_probe"
-    ).as_posix()
+    ignore_probe = (GENERATED_SETUP_ROOT / ".repository_setup_ignore_probe").as_posix()
 
     if not is_ignored(repo, ignore_probe):
         raise SetupError(
@@ -183,10 +175,7 @@ def _path_is_symbolic_link_or_junction(path: Path) -> bool:
         return False
 
     try:
-        return (
-            path.lstat().st_reparse_tag
-            == WINDOWS_DIRECTORY_JUNCTION_REPARSE_TAG
-        )
+        return path.lstat().st_reparse_tag == WINDOWS_DIRECTORY_JUNCTION_REPARSE_TAG
     except FileNotFoundError:
         return False
 
@@ -328,8 +317,7 @@ def _parse_json_without_duplicate_object_members(
         # even though RFC 8259 JSON does not. repositorys commonly use strict
         # parsers, so retaining one would publish a document they cannot read.
         raise SetupError(
-            f"{description} contains the non-standard JSON constant "
-            f"{constant_name!r}."
+            f"{description} contains the non-standard JSON constant {constant_name!r}."
         )
 
     return json.loads(
@@ -348,10 +336,7 @@ def _repository_transaction_file_prefix(path: Path) -> str:
             f"Repository setup cannot derive a transaction file name for: {path}."
         )
 
-    return (
-        f".{destination_file_name}."
-        f"{REPOSITORY_TRANSACTION_FILE_NAME_COMPONENT}."
-    )
+    return f".{destination_file_name}.{REPOSITORY_TRANSACTION_FILE_NAME_COMPONENT}."
 
 
 def _require_repository_transaction_artifact_is_git_ignored(
@@ -435,13 +420,16 @@ def _create_activation_backup_copy(
     try:
         source_permission_bits = stat.S_IMODE(path.stat().st_mode)
 
-        with path.open("rb") as source, tempfile.NamedTemporaryFile(
-            mode="wb",
-            prefix=_repository_transaction_file_prefix(path),
-            suffix=REPOSITORY_ACTIVATION_BACKUP_FILE_SUFFIX,
-            dir=path.parent,
-            delete=False,
-        ) as backup:
+        with (
+            path.open("rb") as source,
+            tempfile.NamedTemporaryFile(
+                mode="wb",
+                prefix=_repository_transaction_file_prefix(path),
+                suffix=REPOSITORY_ACTIVATION_BACKUP_FILE_SUFFIX,
+                dir=path.parent,
+                delete=False,
+            ) as backup,
+        ):
             backup_path = Path(backup.name)
 
             if require_git_ignore_coverage:
@@ -662,9 +650,9 @@ def _files_have_identical_execution_permission_bits(
     right: Path,
 ) -> bool:
     """Compare POSIX execution bits; other staged-file metadata is incidental."""
-    return (
-        left.stat().st_mode & POSIX_FILE_EXECUTION_PERMISSION_MASK
-    ) == (right.stat().st_mode & POSIX_FILE_EXECUTION_PERMISSION_MASK)
+    return (left.stat().st_mode & POSIX_FILE_EXECUTION_PERMISSION_MASK) == (
+        right.stat().st_mode & POSIX_FILE_EXECUTION_PERMISSION_MASK
+    )
 
 
 def _read_optional_file_bytes(path: Path) -> bytes | None:
@@ -718,9 +706,7 @@ def _activate_staged_file_replacements(
 ) -> list[Path]:
     """Replace live paths continuously as one rollback-capable transaction."""
     replacement_list = list(replacements)
-    guarded_destination_bytes_by_path = dict(
-        expected_destination_bytes_by_path or {}
-    )
+    guarded_destination_bytes_by_path = dict(expected_destination_bytes_by_path or {})
     sensitive_host_configuration_destination_path_set = set(
         sensitive_configuration_destination_paths
     )
@@ -741,9 +727,7 @@ def _activate_staged_file_replacements(
 
     try:
         for destination, temporary_path in replacement_list:
-            normalized_destination = os.path.normcase(
-                os.path.abspath(destination)
-            )
+            normalized_destination = os.path.normcase(os.path.abspath(destination))
 
             if normalized_destination in normalized_destination_path_keys:
                 raise SetupError(
@@ -771,9 +755,7 @@ def _activate_staged_file_replacements(
                 continue
 
             published_destination_state = (
-                _read_optional_regular_file_content_and_permission_state(
-                    temporary_path
-                )
+                _read_optional_regular_file_content_and_permission_state(temporary_path)
             )
 
             if published_destination_state is None:
@@ -786,24 +768,19 @@ def _activate_staged_file_replacements(
 
             if destination.exists():
                 require_git_ignore_coverage = (
-                    destination
-                    in sensitive_host_configuration_destination_path_set
+                    destination in sensitive_host_configuration_destination_path_set
                 )
                 backup_path = (
                     _create_empty_activation_displaced_file_path(
                         repository_root,
                         destination,
-                        require_git_ignore_coverage=(
-                            require_git_ignore_coverage
-                        ),
+                        require_git_ignore_coverage=(require_git_ignore_coverage),
                     )
                     if destination in guarded_destination_bytes_by_path
                     else _create_activation_backup_copy(
                         repository_root,
                         destination,
-                        require_git_ignore_coverage=(
-                            require_git_ignore_coverage
-                        ),
+                        require_git_ignore_coverage=(require_git_ignore_coverage),
                     )
                 )
             prepared_file_replacements.append(
@@ -821,8 +798,7 @@ def _activate_staged_file_replacements(
 
         if unmatched_guarded_destination_paths:
             listing = ", ".join(
-                str(path)
-                for path in sorted(unmatched_guarded_destination_paths)
+                str(path) for path in sorted(unmatched_guarded_destination_paths)
             )
             raise SetupError(
                 "Repository setup received observed bytes for a destination that is not "
@@ -838,9 +814,7 @@ def _activate_staged_file_replacements(
         if unmatched_sensitive_configuration_destination_paths:
             listing = ", ".join(
                 str(path)
-                for path in sorted(
-                    unmatched_sensitive_configuration_destination_paths
-                )
+                for path in sorted(unmatched_sensitive_configuration_destination_paths)
             )
             raise SetupError(
                 "Repository setup received a sensitive host-configuration destination "
@@ -850,9 +824,10 @@ def _activate_staged_file_replacements(
         # Backup copies can take appreciable time for native programs. Recheck
         # every guarded configuration after preparation and immediately before
         # the first live path is replaced.
-        for destination, expected_destination_bytes in (
-            guarded_destination_bytes_by_path.items()
-        ):
+        for (
+            destination,
+            expected_destination_bytes,
+        ) in guarded_destination_bytes_by_path.items():
             _require_expected_destination_bytes(
                 destination,
                 expected_destination_bytes,
@@ -874,9 +849,9 @@ def _activate_staged_file_replacements(
                 )
 
             if destination in guarded_destination_bytes_by_path:
-                expected_destination_bytes = (
-                    guarded_destination_bytes_by_path[destination]
-                )
+                expected_destination_bytes = guarded_destination_bytes_by_path[
+                    destination
+                ]
 
                 if expected_destination_bytes is None:
                     try:
@@ -896,9 +871,7 @@ def _activate_staged_file_replacements(
                         ActivatedFileReplacement(
                             destination_path=destination,
                             rollback_backup_path=None,
-                            published_destination_state=(
-                                published_destination_state
-                            ),
+                            published_destination_state=(published_destination_state),
                         )
                     )
                     temporary_path.unlink()
@@ -957,9 +930,9 @@ def _activate_staged_file_replacements(
         for activated_replacement in reversed(activated_file_replacements):
             destination = activated_replacement.destination_path
             backup_path = activated_replacement.rollback_backup_path
-            current_destination_state: (
-                RegularFileContentAndPermissionState | None
-            ) = None
+            current_destination_state: RegularFileContentAndPermissionState | None = (
+                None
+            )
 
             try:
                 current_destination_state = (
@@ -990,9 +963,7 @@ def _activate_staged_file_replacements(
                 if current_destination_state is None:
                     rollback_conflict_destination_paths.append(destination)
                 else:
-                    rollback_failures.append(
-                        f"{destination}: {rollback_error}"
-                    )
+                    rollback_failures.append(f"{destination}: {rollback_error}")
 
                 if backup_path is not None and backup_path.exists():
                     preserved_recovery_backup_paths.add(backup_path)
@@ -1004,24 +975,15 @@ def _activate_staged_file_replacements(
         )
         recovery_detail = (
             " The preserved recovery backup"
-            + (
-                "s are: "
-                if len(preserved_recovery_backup_paths) != 1
-                else " is: "
-            )
-            + ", ".join(
-                str(path) for path in sorted(preserved_recovery_backup_paths)
-            )
+            + ("s are: " if len(preserved_recovery_backup_paths) != 1 else " is: ")
+            + ", ".join(str(path) for path in sorted(preserved_recovery_backup_paths))
             + "."
             if preserved_recovery_backup_paths
             else ""
         )
         rollback_conflict_detail = (
             " Rollback preserved concurrent destination changes at: "
-            + ", ".join(
-                str(path)
-                for path in rollback_conflict_destination_paths
-            )
+            + ", ".join(str(path) for path in rollback_conflict_destination_paths)
             + "."
             if rollback_conflict_destination_paths
             else ""

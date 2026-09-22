@@ -24,6 +24,7 @@ export function setUpDevelopmentEnvironment({
     "package.json",
     "package-lock.json",
     "requirements-dev.txt",
+    "requirements.lock.txt",
     ".node-version",
     ".python-version",
   ]) {
@@ -158,13 +159,6 @@ export function setUpDevelopmentEnvironment({
   }
 
   console.log("Installing Python dependencies in .venv...");
-  runRequiredCommand("pip upgrade", virtualEnvironmentPythonExecutablePath, [
-    "-m",
-    "pip",
-    "install",
-    "--upgrade",
-    "pip",
-  ]);
   runRequiredCommand(
     "Python development dependency installation",
     virtualEnvironmentPythonExecutablePath,
@@ -172,11 +166,17 @@ export function setUpDevelopmentEnvironment({
       "-m",
       "pip",
       "install",
+      "--require-hashes",
+      "--only-binary=:all:",
       "-r",
-      join(repositoryRoot, "requirements-dev.txt"),
+      join(repositoryRoot, "requirements.lock.txt"),
     ],
   );
-
+  runRequiredCommand(
+    "Python dependency consistency",
+    virtualEnvironmentPythonExecutablePath,
+    ["-m", "pip", "check"],
+  );
 
   console.log("Development dependencies are installed.");
 }

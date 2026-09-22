@@ -5,10 +5,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import yaml
-
 import set_up_agent_skills as subject
-
+import yaml
 
 EXPECTED_OPENAI_YAML = """interface:
   display_name: "Brooks Review"
@@ -44,12 +42,8 @@ class BrooksReviewInvocationPolicyTests(unittest.TestCase):
     def test_matching_locked_source_writes_exact_policy_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             repo = Path(temp)
-            codex_skill = self.create_installed_skill(
-                repo, Path(".agents") / "skills"
-            )
-            claude_skill = self.create_installed_skill(
-                repo, Path(".claude") / "skills"
-            )
+            codex_skill = self.create_installed_skill(repo, Path(".agents") / "skills")
+            claude_skill = self.create_installed_skill(repo, Path(".claude") / "skills")
             existing_metadata = claude_skill / "agents" / "openai.yaml"
             existing_metadata.parent.mkdir()
             existing_metadata.write_text(
@@ -80,7 +74,9 @@ class BrooksReviewInvocationPolicyTests(unittest.TestCase):
             self.assertIs(parsed["policy"]["allow_implicit_invocation"], False)
             self.assertEqual(parsed["interface"]["display_name"], "Brooks Review")
 
-    def test_equivalent_relative_repository_path_preserves_the_same_skill_owner(self) -> None:
+    def test_equivalent_relative_repository_path_preserves_the_same_skill_owner(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as temp:
             repo = Path(temp)
             installed = self.create_installed_skill(repo, Path(".agents") / "skills")
@@ -91,16 +87,16 @@ class BrooksReviewInvocationPolicyTests(unittest.TestCase):
                 self.assertFalse(relative_repo.is_absolute())
                 self.assertEqual(relative_repo.resolve(), repo.resolve())
                 self.assertEqual(
-                    subject.unique_installed_skill_dirs(relative_repo, "brooks-review", ("codex",)),
+                    subject.unique_installed_skill_dirs(
+                        relative_repo, "brooks-review", ("codex",)
+                    ),
                     (installed.resolve(),),
                 )
 
     def test_same_named_skill_from_another_source_is_untouched(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             repo = Path(temp)
-            skill_dir = self.create_installed_skill(
-                repo, Path(".agents") / "skills"
-            )
+            skill_dir = self.create_installed_skill(repo, Path(".agents") / "skills")
             metadata = skill_dir / "agents" / "openai.yaml"
             metadata.parent.mkdir()
             original = b"policy:\n  allow_implicit_invocation: true\n"
@@ -123,9 +119,7 @@ class BrooksReviewInvocationPolicyTests(unittest.TestCase):
     def test_absent_skill_does_not_modify_stray_installation(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             repo = Path(temp)
-            skill_dir = self.create_installed_skill(
-                repo, Path(".agents") / "skills"
-            )
+            skill_dir = self.create_installed_skill(repo, Path(".agents") / "skills")
             metadata = skill_dir / "agents" / "openai.yaml"
 
             self._apply_policy(repo, {}, ("codex",))

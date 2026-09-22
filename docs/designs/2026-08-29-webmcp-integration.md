@@ -1,8 +1,7 @@
 # WebMCP Integration Design
 
-The [2026-09-09 action-parity amendment](2026-09-09-webmcp-action-parity.md)
-supersedes this baseline's five-tool ceiling and its exclusions for non-editing
-human workflows. It also defines pause/resume and Zoom and center precisely.
+The [2026-09-09 action-parity amendment](2026-09-09-webmcp-action-parity.md) supersedes this baseline's five-tool ceiling and its exclusions for non-editing human workflows.
+It also defines pause/resume and Zoom and center precisely.
 
 - **Date:** 2026-08-29
 - **Status:** Proposed for implementation planning
@@ -11,97 +10,107 @@ human workflows. It also defines pause/resume and Zoom and center precisely.
 
 ## Motivation and intended outcome — 2026-09-09
 
-The owner supplied this motivation on 2026-09-09. The original implementation
-plan predates the current repository SDLC; this records its purpose now rather
-than claiming that the earlier plan already met that workflow.
+The owner supplied this motivation on 2026-09-09.
+The original implementation plan predates the current repository SDLC; this records its purpose now rather than claiming that the earlier plan already met that workflow.
 
-A colleague questioned whether WebVOWL remained useful when an AI agent could
-visualize an ontology itself. According to the owner's account, they tested that
-claim using the [WorldFish AQFO ontology](https://github.com/WorldFishCenter/fish-ontology/blob/main/aquaculture_small_scale_fisheries_ontology.owl).
+A colleague questioned whether WebVOWL remained useful when an AI agent could visualize an ontology itself.
+According to the owner's account, they tested that claim using the [WorldFish AQFO ontology](https://github.com/WorldFishCenter/fish-ontology/blob/main/aquaculture_small_scale_fisheries_ontology.owl).
 The agent produced a Mermaid-style diagram containing a "Fishing Vessel" node.
-When challenged, it acknowledged inventing that class because it seemed plausible
-in a fishing ontology. This is an owner-reported motivating incident, not a
-reproduced benchmark or evidence that every agent-generated diagram fails.
+When challenged, it acknowledged inventing that class because it seemed plausible in a fishing ontology.
+This is an owner-reported motivating incident, not a reproduced benchmark or evidence that every agent-generated diagram fails.
 
-The desired outcome is a source-grounded ontology figure that a reader can inspect
-and trust for what it actually represents. An agent interprets the reader's request
-and chooses a view; WebVOWL loads the supplied ontology, resolves entity identities,
-renders its supported representation and exports the observed diagram. WebMCP
-makes those existing application capabilities discoverable and callable from the
-live page. The agent should not need to reconstruct the graph in generated diagram
-code or invent domain entities to complete the picture.
+The desired outcome is a source-grounded ontology figure that a reader can inspect and trust for what it actually represents.
+An agent interprets the reader's request and chooses a view; WebVOWL loads the supplied ontology, resolves entity identities, renders its supported representation and exports the observed diagram.
+WebMCP makes those existing application capabilities discoverable and callable from the live page.
+The agent should not need to reconstruct the graph in generated diagram code or invent domain entities to complete the picture.
 
-The motivating user job is to visit WebVOWL, discover its tools, load AQFO, locate
-`http://w3id.org/aqfo/aqfo_00002008` (`person`), adjust the viewport around that
-entity, export SVG and present the actual artifact to the reader. The independent
-source observations and required end-to-end evidence are recorded in the
-[AQFO acceptance scenario](../evaluations/webmcp-integration.md#motivating-aqfo-acceptance-scenario).
+The motivating user job is to visit WebVOWL, discover its tools, load AQFO, locate `http://w3id.org/aqfo/aqfo_00002008` (`person`), adjust the viewport around that entity, export SVG and present the actual artifact to the reader.
+The independent source observations and required end-to-end evidence are recorded in the [AQFO acceptance scenario](../evaluations/webmcp-integration.md#motivating-aqfo-acceptance-scenario).
 
-Trust here means traceable structural fidelity, truthful presentation and explicit
-limits. Named domain entities and relationships must be grounded in the loaded
-source and its resolved imports. Supported VOWL transformations, anonymous
-expressions and built-in vocabulary must remain distinguishable from declared
-named classes. Descriptive text mentioning a concept is not itself a class
-declaration. Import failures, conversion omissions, filters and cropped regions
-must not be disguised as a complete representation of the ontology; visual
-proximity supplies no additional OWL assertion. Fidelity does not certify that the
-source ontology's own assertions are correct.
+Trust here means traceable structural fidelity, truthful presentation and explicit limits.
+Named domain entities and relationships must be grounded in the loaded source and its resolved imports.
+Supported VOWL transformations, anonymous expressions and built-in vocabulary must remain distinguishable from declared named classes.
+Descriptive text mentioning a concept is not itself a class declaration.
+Import failures, conversion omissions, filters and cropped regions must not be disguised as a complete representation of the ontology; visual proximity supplies no additional OWL assertion.
+Fidelity does not certify that the source ontology's own assertions are correct.
 
-The requested determinism concerns deriving graph content from ontology data and
-exporting the actual applied view without generative additions. Identical node
-coordinates or SVG bytes across independent force-layout runs remain a separate,
-deferred requirement. A source/artifact digest establishes byte identity, not
-semantic fidelity; the exported SVG also needs independent content and visual
-inspection. Reducing the agent's graph-construction reasoning is a product
-objective; a claimed cost or latency improvement needs measured comparative
-evidence.
+The requested determinism concerns deriving graph content from ontology data and exporting the actual applied view without generative additions.
+Identical node coordinates or SVG bytes across independent force-layout runs remain a separate, deferred requirement.
+A source/artifact digest establishes byte identity, not semantic fidelity; the exported SVG also needs independent content and visual inspection.
+Reducing the agent's graph-construction reasoning is a product objective; a claimed cost or latency improvement needs measured comparative evidence.
 
-Human/agent action parity supports this outcome: a reader must be able to inspect,
-adjust and export the same application state the agent used. Parity, successful
-tool calls and passing tests alone do not establish that the reader received a
-faithful figure. Apply the repository's
-[OUT-01 outcome check](../sdlc/engineering-principles.md#out-01--recheck-the-higher-level-outcome)
-to each remaining slice using this purpose and the AQFO acceptance evidence.
+Human/agent action parity supports this outcome: a reader must be able to inspect, adjust and export the same application state the agent used. Parity, successful tool calls and passing tests alone do not establish that the reader received a faithful figure. Apply the repository's [OUT-01 outcome check](../sdlc/engineering-principles.md#out-01--recheck-the-higher-level-outcome) to each remaining slice using this purpose and the AQFO acceptance evidence.
 
 ## Decision summary
 
-WebVOWL will expose a small set of WebMCP tools as an optional browser capability. The tools will delegate to an agent-neutral, promise-based `WebVowlController` module that owns loading, inspection, view changes, layout settlement, and export. The normal WebVOWL interface will use the same controller and will remain complete and usable when WebMCP is absent.
+WebVOWL will expose a small set of WebMCP tools as an optional browser capability.
+The tools will delegate to an agent-neutral, promise-based `WebVowlController` module that owns loading, inspection, view changes, layout settlement, and export.
+The normal WebVOWL interface will use the same controller and will remain complete and usable when WebMCP is absent.
 
-Application operations will depend on one `RenderedGraphRuntime` interface rather than the concrete graph object, D3 selections, force nodes, or menu-aware graph options. `D3RenderedGraphAdapter` will be the sole production adapter at that seam, and a deterministic in-memory adapter will exercise the same interface in controller tests. D3 force, selection, transition, zoom, drag, and rendering behavior will remain inside the production adapter; UI modules, controller modules, WebMCP modules, ontology inspection, and SVG serialization will not depend on D3.
+Application operations will depend on one `RenderedGraphRuntime` interface rather than the concrete graph object, D3 selections, force nodes, or menu-aware graph options.
+`D3RenderedGraphAdapter` will be the sole production adapter at that seam, and a deterministic in-memory adapter will exercise the same interface in controller tests.
+D3 force, selection, transition, zoom, drag, and rendering behavior will remain inside the production adapter; UI modules, controller modules, WebMCP modules, ontology inspection, and SVG serialization will not depend on D3.
 
-`WebVowlController` is an ownership cutover, not a compatibility shim over the current callbacks, menu handlers, or remote-loading functions. When a capability moves behind the controller, every production caller moves with it and the replaced orchestration is deleted in the same change. The design permits a thin WebMCP protocol adapter and ordinary dependency injection; it does not permit forwarding aliases, old/new runtime switching, duplicate loading or export paths, or legacy transport fallbacks.
+`WebVowlController` is an ownership cutover, not a compatibility shim over the current callbacks, menu handlers, or remote-loading functions.
+When a capability moves behind the controller, every production caller moves with it and the replaced orchestration is deleted in the same change.
+The design permits a thin WebMCP protocol adapter and ordinary dependency injection; it does not permit forwarding aliases, old/new runtime switching, duplicate loading or export paths, or legacy transport fallbacks.
 
-Every new module, interface, adapter, operation, request, result, field, event, error, and identifier will use one semantically correct and precise domain name. The implementation will distinguish ontology documents, parsed VOWL models, rendered graphs, visualization views, and SVG artifacts rather than hiding those differences behind generic or legacy vocabulary.
+Every new module, interface, adapter, operation, request, result, field, event, error, and identifier will use one semantically correct and precise domain name.
+The implementation will distinguish ontology documents, parsed VOWL models, rendered graphs, visualization views, and SVG artifacts rather than hiding those differences behind generic or legacy vocabulary.
 
-The same cutover will establish a scoped native-ESM ratchet. Every JavaScript module created by this initiative, and every existing JavaScript module whose ownership, public interface, dependency direction, or enduring responsibility is materially changed by it, will be authored as native ESM. The application/controller/UI/WebMCP side and the `RenderedGraphRuntime` seam will therefore be statically connected ESM modules. A fixed, shrinking allowlist may temporarily retain only untouched CommonJS renderer leaves that are private beneath `D3RenderedGraphAdapter`; CommonJS may not cross the rendered-graph seam or reappear through a wrapper, dual export, runtime fallback, or other compatibility shim. This is deliberately not a package-wide module-system migration.
+The same cutover will establish a scoped native-ESM ratchet.
+Every JavaScript module created by this initiative, and every existing JavaScript module whose ownership, public interface, dependency direction, or enduring responsibility is materially changed by it, will be authored as native ESM.
+The application/controller/UI/WebMCP side and the `RenderedGraphRuntime` seam will therefore be statically connected ESM modules.
+A fixed, shrinking allowlist may temporarily retain only untouched CommonJS renderer leaves that are private beneath `D3RenderedGraphAdapter`; CommonJS may not cross the rendered-graph seam or reappear through a wrapper, dual export, runtime fallback, or other compatibility shim.
+This is deliberately not a package-wide module-system migration.
 
-The first release will optimize for interactive, human-visible work in an open WebVOWL page. It will not add ontology editing, a reasoning engine, unattended batch rendering, a remote MCP server, or a server-side artifact store. Those are separate product decisions that can build on `WebVowlController` later.
+The first release will optimize for interactive, human-visible work in an open WebVOWL page.
+It will not add ontology editing, a reasoning engine, unattended batch rendering, a remote MCP server, or a server-side artifact store.
+Those are separate product decisions that can build on `WebVowlController` later.
 
 ## Context
 
-WebVOWL already lets users load ontologies, explore a force-directed graph, change presentation options, and export SVG. These capabilities are currently driven mainly by UI callbacks and click handlers. A browser agent can attempt to operate those controls through the DOM, but doing so is brittle: the graph is visually dense, application state is not fully represented by control text, and a successful click does not prove that parsing, imports, rendering, or force relaxation have finished.
+WebVOWL already lets users load ontologies, explore a force-directed graph, change presentation options, and export SVG.
+These capabilities are currently driven mainly by UI callbacks and click handlers.
+A browser agent can attempt to operate those controls through the DOM, but doing so is brittle: the graph is visually dense, application state is not fully represented by control text, and a successful click does not prove that parsing, imports, rendering, or force relaxation have finished.
 
-WebMCP lets the live page advertise structured tools with JSON-schema inputs and structured results. It is therefore a good fit for work where the user and agent should share the same visible ontology graph. WebMCP is not a replacement for a backend or remote MCP server: its tools are page-scoped, require a supporting browser agent, and do not standardize transferring a generated file into a chat attachment.
+WebMCP lets the live page advertise structured tools with JSON-schema inputs and structured results.
+It is therefore a good fit for work where the user and agent should share the same visible ontology graph.
+WebMCP is not a replacement for a backend or remote MCP server: its tools are page-scoped, require a supporting browser agent, and do not standardize transferring a generated file into a chat attachment.
 
-The architectural pattern also has a direct client-side precedent: OpenAI's Runme case study exposes an existing browser application's capabilities through WebMCP without first adding an application server. WebVOWL can obtain the same leverage while keeping its ontology-specific behavior in an agent-neutral controller.
+The architectural pattern also has a direct client-side precedent: OpenAI's Runme case study exposes an existing browser application's capabilities through WebMCP without first adding an application server.
+WebVOWL can obtain the same leverage while keeping its ontology-specific behavior in an agent-neutral controller.
 
 ## Platform snapshot and runtime assumptions
 
 This design records the platform state as of 2026-08-29 so that temporary ecosystem constraints are not mistaken for permanent WebVOWL architecture:
 
-- WebMCP is a Draft Community Group Report, not a finalized W3C Recommendation. The current browser interface exposes tools; it does not give the page MCP Resources or Prompts and does not require the browser agent to communicate over the remote MCP transport.
-- Chrome currently offers WebMCP experimentally through an origin trial and local browser support. Edge has also published an experimental origin trial. Tool schemas and browser behavior may change.
-- OpenAI Site tools currently discover tools on the live top-level page in the ChatGPT desktop browser. Registration is imperative; current Site tools do not discover declarative tools or tools registered inside iframes. Availability remains client, model, account, and rollout dependent.
-- A browser agent must visit and keep the WebVOWL page open to discover and use its tools. Tools are page-scoped and disappear when the page navigates or closes.
-- WebMCP is origin-isolated and subject to the browser's tools Permissions Policy. WebVOWL will not attempt to expose a cross-origin iframe implicitly.
+- WebMCP is a Draft Community Group Report, not a finalized W3C Recommendation.
+  The current browser interface exposes tools; it does not give the page MCP Resources or Prompts and does not require the browser agent to communicate over the remote MCP transport.
+- Chrome currently offers WebMCP experimentally through an origin trial and local browser support.
+  Edge has also published an experimental origin trial.
+  Tool schemas and browser behavior may change.
+- OpenAI Site tools currently discover tools on the live top-level page in the ChatGPT desktop browser.
+  Registration is imperative; current Site tools do not discover declarative tools or tools registered inside iframes.
+  Availability remains client, model, account, and rollout dependent.
+- A browser agent must visit and keep the WebVOWL page open to discover and use its tools.
+  Tools are page-scoped and disappear when the page navigates or closes.
+- WebMCP is origin-isolated and subject to the browser's tools Permissions Policy.
+  WebVOWL will not attempt to expose a cross-origin iframe implicitly.
 
-These facts make feature detection, top-level imperative registration, and full no-WebMCP behavior release requirements. They also mean that remote or unattended work remains a separate design rather than a fallback hidden inside this feature.
+These facts make feature detection, top-level imperative registration, and full no-WebMCP behavior release requirements.
+They also mean that remote or unattended work remains a separate design rather than a fallback hidden inside this feature.
 
 ### Repository D3 baseline gate
 
-The checked-in repository does not currently state one unambiguous D3 runtime contract. The package resolution identifies D3 7.9.0 and the Vite build injects D3, while visualization source still contains D3 v3-shaped calls such as `d3.layout.force`, `d3.behavior`, `d3.svg.line`, and `d3.event`. The implementation must not select a version from documentation or inference.
+The checked-in repository does not currently state one unambiguous D3 runtime contract.
+The package resolution identifies D3 7.9.0 and the Vite build injects D3, while visualization source still contains D3 v3-shaped calls such as `d3.layout.force`, `d3.behavior`, `d3.svg.line`, and `d3.event`.
+The implementation must not select a version from documentation or inference.
 
-Before changing graph behavior, a blocking real-browser baseline will record the D3 version actually present at runtime and exercise ontology load, initial paint, dragging, zooming, filtering, force pause/resume, and SVG export. A failing or internally inconsistent baseline blocks feature implementation until its cause is understood. If the smallest repair changes a package, lockfile, bundler setting, test setting, or any other configuration, that exact change requires separate user approval; this design does not authorize it. Once the decoupling is complete, the verified D3 version becomes an implementation detail local to `D3RenderedGraphAdapter`.
+Before changing graph behavior, a blocking real-browser baseline will record the D3 version actually present at runtime and exercise ontology load, initial paint, dragging, zooming, filtering, force pause/resume, and SVG export.
+A failing or internally inconsistent baseline blocks feature implementation until its cause is understood.
+If the smallest repair changes a package, lockfile, bundler setting, test setting, or any other configuration, that exact change requires separate user approval; this design does not authorize it.
+Once the decoupling is complete, the verified D3 version becomes an implementation detail local to `D3RenderedGraphAdapter`.
 
 ## User jobs and product value
 
@@ -117,7 +126,9 @@ The feature is intended to reduce mechanical visualization work while leaving on
 | Prepare teaching or onboarding material | “Simplify this view for someone new to the domain.”                                                                               | Guided filtering, focus, explanations, and SVG export; this complements rather than replaces accessible UI work                                      |
 | Record how an illustration was produced | “Give me the SVG and the source, filters, dimensions, and layout outcome used to make it.”                                        | Artifact metadata and a compact view recipe; exact coordinate reproducibility is deferred                                                            |
 
-WebMCP does not turn visual proximity into OWL semantics. A high-degree displayed class may be described as high-degree, not as “important,” and a visual path is not a reasoner proof or SPARQL answer. The tool descriptions and agent-facing results must preserve that distinction.
+WebMCP does not turn visual proximity into OWL semantics.
+A high-degree displayed class may be described as high-degree, not as “important,” and a visual path is not a reasoner proof or SPARQL answer.
+The tool descriptions and agent-facing results must preserve that distinction.
 
 The following valuable jobs require new capabilities beyond the first WebMCP integration:
 
@@ -130,25 +141,28 @@ The following valuable jobs require new capabilities beyond the first WebMCP int
 
 The primary acceptance scenario is the motivating AQFO job:
 
-> Open WebVOWL, load the supplied AQFO ontology, show the region around
-> `http://w3id.org/aqfo/aqfo_00002008` (`person`), and give me the exported SVG.
-> Use the ontology's entities and relationships, and explain any warnings or
-> limits on what the figure shows.
+> Open WebVOWL, load the supplied AQFO ontology, show the region around `http://w3id.org/aqfo/aqfo_00002008` (`person`), and give me the exported SVG.
+> Use the ontology's entities and relationships, and explain any warnings or limits on what the figure shows.
 
 The browser agent composes the request internally:
 
 1. Visit the live WebVOWL page and discover its registered tools.
-2. Call `load_ontology` with the actual ontology document URL and wait for the active generation to render. The GitHub HTML page is a source reference, not the RDF/XML document.
+2. Call `load_ontology` with the actual ontology document URL and wait for the active generation to render.
+   The GitHub HTML page is a source reference, not the RDF/XML document.
 3. Use the load result or `get_ontology_summary` for source identity, structural context and warnings; resolve the exact `person` IRI with `find_ontology_elements` rather than substituting a plausible label match.
-4. Apply focus and the necessary viewport actions through the shared application controls. Under the current action-parity amendment, focus highlights; viewport location, zoom and pan must actually bring the requested region into view.
-5. Call `export_visualization`; that tool owns the required settlement and snapshot work. Inspect the resulting figure against the source and the visible view.
-6. Present the actual SVG when the client can retrieve it. Otherwise report the available page download and the delivery limitation without claiming a conversation attachment or replacing it with a generated reconstruction.
+4. Apply focus and the necessary viewport actions through the shared application controls.
+   Under the current action-parity amendment, focus highlights; viewport location, zoom and pan must actually bring the requested region into view.
+5. Call `export_visualization`; that tool owns the required settlement and snapshot work.
+   Inspect the resulting figure against the source and the visible view.
+6. Present the actual SVG when the client can retrieve it.
+   Otherwise report the available page download and the delivery limitation without claiming a conversation attachment or replacing it with a generated reconstruction.
 
-The small Person/Organization fixture remains useful for controlled regression
-tests and the existing twenty-job matrix. It does not replace the real AQFO
-acceptance scenario or its negative check for an invented "Fishing Vessel" class.
+The small Person/Organization fixture remains useful for controlled regression tests and the existing twenty-job matrix.
+It does not replace the real AQFO acceptance scenario or its negative check for an invented "Fishing Vessel" class.
 
-The user issues one natural-language request. WebVOWL will not expose a polling-oriented `wait_for_layout` tool, and the first release will not expose a monolithic `create_visualization` tool that hides all intermediate visible state. The five tools remain composable for other jobs while `export_visualization` owns the wait necessary for a correct export.
+The user issues one natural-language request.
+WebVOWL will not expose a polling-oriented `wait_for_layout` tool, and the first release will not expose a monolithic `create_visualization` tool that hides all intermediate visible state.
+The five tools remain composable for other jobs while `export_visualization` owns the wait necessary for a correct export.
 
 ## Goals
 
@@ -175,10 +189,13 @@ The user issues one natural-language request. WebVOWL will not expose a polling-
 - Providing unattended rendering while no WebVOWL page is open.
 - Guaranteeing that every WebMCP client can attach the generated SVG to its conversation.
 - Sending full ontology documents, graph models, or SVG source through tool results.
-- Refactoring unrelated parser, ontology-editing, or presentation behavior. The targeted UI–D3 decoupling, graph-options split, and controller cutovers required to establish `RenderedGraphRuntime` are in scope.
-- Replacing D3 as WebVOWL's visualization implementation. This design isolates D3 so a future migration is local; it does not select or implement a replacement renderer.
+- Refactoring unrelated parser, ontology-editing, or presentation behavior.
+  The targeted UI–D3 decoupling, graph-options split, and controller cutovers required to establish `RenderedGraphRuntime` are in scope.
+- Replacing D3 as WebVOWL's visualization implementation.
+  This design isolates D3 so a future migration is local; it does not select or implement a replacement renderer.
 - Requiring a new server, dependency, build system, or deployment mode.
-- Converting every untouched repository module to ESM, declaring the entire package ESM, or changing package/build/test configuration merely to claim a repository-wide migration. Those changes require a separately approved completion milestone after the temporary CommonJS renderer allowlist is empty.
+- Converting every untouched repository module to ESM, declaring the entire package ESM, or changing package/build/test configuration merely to claim a repository-wide migration.
+  Those changes require a separately approved completion milestone after the temporary CommonJS renderer allowlist is empty.
 - Retaining callback aliases, wrapper APIs, duplicate loaders/exporters, or protocol-dependent legacy routes after their controller-owned replacements exist.
 - Preserving a vague, misleading, or obsolete name merely to reduce the size of a cutover.
 
@@ -186,25 +203,38 @@ The user issues one natural-language request. WebVOWL will not expose a polling-
 
 ### Progressive enhancement
 
-WebMCP registration will be feature-detected. If the browser does not expose `document.modelContext`, WebVOWL will behave as it does today. WebMCP-specific code must not be imported into the ontology parser or graph implementation.
+WebMCP registration will be feature-detected.
+If the browser does not expose `document.modelContext`, WebVOWL will behave as it does today.
+WebMCP-specific code must not be imported into the ontology parser or graph implementation.
 
 ### One deep, agent-neutral controller module
 
-`WebVowlController` will hide asynchronous sequencing, application state, cancellation, layout settlement, export preparation, and normalized errors behind a small interface. Callers should not need to understand loading callbacks, D3 force lifecycle details, menu state, or SVG serialization internals.
+`WebVowlController` will hide asynchronous sequencing, application state, cancellation, layout settlement, export preparation, and normalized errors behind a small interface.
+Callers should not need to understand loading callbacks, D3 force lifecycle details, menu state, or SVG serialization internals.
 
-“Agent-neutral” is an interface constraint: the controller will not import WebMCP code, use tool names, accept WebMCP request objects, return protocol envelopes, or assume that its caller is an agent. It will accept WebVOWL domain requests and return WebVOWL domain results. The normal UI and the WebMCP adapter will cross the same seam, and tests will exercise the same interface rather than reaching through it to private implementation details.
+“Agent-neutral” is an interface constraint: the controller will not import WebMCP code, use tool names, accept WebMCP request objects, return protocol envelopes, or assume that its caller is an agent.
+It will accept WebVOWL domain requests and return WebVOWL domain results.
+The normal UI and the WebMCP adapter will cross the same seam, and tests will exercise the same interface rather than reaching through it to private implementation details.
 
 ### One deep rendered-graph module
 
-`RenderedGraphRuntime` will be the single application-facing interface to rendered-graph behavior. It will hide D3 force lifecycle, selections, transitions, zoom, drag, live SVG ownership, graph-element mutation, and paint timing behind generation-aware operations, immutable semantic snapshots, and structured events. This makes the interface deep: callers express WebVOWL domain intent without coordinating renderer mechanisms themselves.
+`RenderedGraphRuntime` will be the single application-facing interface to rendered-graph behavior.
+It will hide D3 force lifecycle, selections, transitions, zoom, drag, live SVG ownership, graph-element mutation, and paint timing behind generation-aware operations, immutable semantic snapshots, and structured events.
+This makes the interface deep: callers express WebVOWL domain intent without coordinating renderer mechanisms themselves.
 
-`D3RenderedGraphAdapter` will be the sole production implementation. It is an adapter at an application seam, not a wrapper around a second public graph route: the current graph construction route and UI-aware options registry will be reshaped into this module and the replaced entry points will be deleted in the same cutover. Controller tests will use `InMemoryRenderedGraphAdapter`, a deterministic test implementation of the same interface; it will not be selectable in production.
+`D3RenderedGraphAdapter` will be the sole production implementation.
+It is an adapter at an application seam, not a wrapper around a second public graph route: the current graph construction route and UI-aware options registry will be reshaped into this module and the replaced entry points will be deleted in the same cutover.
+Controller tests will use `InMemoryRenderedGraphAdapter`, a deterministic test implementation of the same interface; it will not be selectable in production.
 
-The graph module will receive `RenderedGraphConfiguration`, containing only renderer-owned settings such as force parameters, viewport dimensions, and animation settings. It will not receive menu modules, sidebars, loading indicators, search fields, export controls, or other UI objects. UI presentation will consume immutable controller state and browser-native events. Graph-originated progress, warnings, selection, viewport, and layout changes will cross the seam as `RenderedGraphEvent` values rather than calls into UI modules.
+The graph module will receive `RenderedGraphConfiguration`, containing only renderer-owned settings such as force parameters, viewport dimensions, and animation settings.
+It will not receive menu modules, sidebars, loading indicators, search fields, export controls, or other UI objects.
+UI presentation will consume immutable controller state and browser-native events.
+Graph-originated progress, warnings, selection, viewport, and layout changes will cross the seam as `RenderedGraphEvent` values rather than calls into UI modules.
 
 ### Scoped native-ESM ratchet
 
-Module format follows the new ownership boundaries instead of being treated as an unrelated mechanical rewrite. The target side of each completed architectural cutover is native ESM:
+Module format follows the new ownership boundaries instead of being treated as an unrelated mechanical rewrite.
+The target side of each completed architectural cutover is native ESM:
 
 - every new JavaScript module and test created under `src/app/js/controller/`, `src/app/js/ui/`, `src/app/js/webmcp/`, and `src/webvowl/js/runtime/`;
 - `src/app/test/inMemoryRenderedGraphAdapter.js` and its contract tests;
@@ -212,25 +242,36 @@ Module format follows the new ownership boundaries instead of being treated as a
 - every existing UI module substantively rewritten to call the controller or native DOM interfaces; and
 - every existing visualization module moved or substantively rewritten as part of `D3RenderedGraphAdapter` ownership.
 
-An existing module is materially changed when this initiative changes its owner, public interface, dependency direction, or enduring responsibility. A comment correction or a specifier-only edit does not trigger migration by itself. Once a module enters the native-ESM set, it cannot return to CommonJS.
+An existing module is materially changed when this initiative changes its owner, public interface, dependency direction, or enduring responsibility.
+A comment correction or a specifier-only edit does not trigger migration by itself.
+Once a module enters the native-ESM set, it cannot return to CommonJS.
 
 The native-ESM contract is explicit:
 
 - Relative module specifiers include their file extension.
-- Public APIs use semantically precise named exports. A default export is exceptional and requires a documented semantic reason at its defining contract; convenience or legacy shape is not a reason.
+- Public APIs use semantically precise named exports.
+  A default export is exceptional and requires a documented semantic reason at its defining contract; convenience or legacy shape is not a reason.
 - A migrated file contains no `require`, `module.exports`, `exports.*`, mixed ESM/CommonJS syntax, `window.webvowl` publication, export-object mutation, or runtime probing such as `namespace.default || namespace`.
 - No authored CommonJS-to-ESM wrapper, ESM-to-CommonJS façade, dual production export, conditional loader, or caller-dependent module-format path is permitted.
-- `graph.js` and `options.js` are migration sources whose responsibilities are absorbed and separated during the atomic runtime cutover. They are deleted directly rather than promoted into enduring ESM public modules.
+- `graph.js` and `options.js` are migration sources whose responsibilities are absorbed and separated during the atomic runtime cutover.
+  They are deleted directly rather than promoted into enduring ESM public modules.
 
-The only temporary exception is an exact architecture-tested allowlist of pre-existing renderer implementation leaves that satisfy all of these conditions: they remain otherwise untouched, are reachable only below `D3RenderedGraphAdapter`, expose no public entry point, import no application/UI/WebMCP module, and contain no presentation responsibility. The ESM adapter may use the repository's already configured build-time CommonJS handling for those leaves, but it may not inspect `.default`, mutate a namespace, or add an authored interoperability shim. Changing an allowlisted leaf removes it from the allowlist and converts it to native ESM in the same change. The allowlist can shrink but cannot grow.
+The only temporary exception is an exact architecture-tested allowlist of pre-existing renderer implementation leaves that satisfy all of these conditions: they remain otherwise untouched, are reachable only below `D3RenderedGraphAdapter`, expose no public entry point, import no application/UI/WebMCP module, and contain no presentation responsibility.
+The ESM adapter may use the repository's already configured build-time CommonJS handling for those leaves, but it may not inspect `.default`, mutate a namespace, or add an authored interoperability shim.
+Changing an allowlisted leaf removes it from the allowlist and converts it to native ESM in the same change.
+The allowlist can shrink but cannot grow.
 
-This yields a deliberate direction: native-ESM UI and WebMCP adapters depend on the native-ESM controller; the controller depends on the native-ESM rendered-graph contract; the native-ESM D3 adapter implements that contract; and only unchanged private leaves below that adapter may remain CommonJS temporarily. The temporary module format inside that private subtree does not weaken the UI–D3 decoupling because no CommonJS edge crosses the runtime seam.
+This yields a deliberate direction: native-ESM UI and WebMCP adapters depend on the native-ESM controller; the controller depends on the native-ESM rendered-graph contract; the native-ESM D3 adapter implements that contract; and only unchanged private leaves below that adapter may remain CommonJS temporarily.
+The temporary module format inside that private subtree does not weaken the UI–D3 decoupling because no CommonJS edge crosses the runtime seam.
 
-After the last production CommonJS leaf is migrated, a separate, explicitly approved repository-level milestone may declare package-wide ESM, convert any remaining CommonJS configuration files, remove the existing CommonJS build transform and related package/lockfile entries, and reassess global D3 provisioning. This design neither requires nor authorizes those configuration changes.
+After the last production CommonJS leaf is migrated, a separate, explicitly approved repository-level milestone may declare package-wide ESM, convert any remaining CommonJS configuration files, remove the existing CommonJS build transform and related package/lockfile entries, and reassess global D3 provisioning.
+This design neither requires nor authorizes those configuration changes.
 
 ### Semantically precise domain vocabulary
 
-Naming is part of the architecture contract, not a cleanup preference. “Every new object” includes modules, interfaces, adapters, factories, functions, methods, parameters, request and result objects, schema properties, state fields, events, errors, constants, DOM identifiers, tool names, and artifact metadata. Each name must identify the represented concept and, where relevant, its role, lifecycle, state, or unit without requiring the reader to inspect its implementation.
+Naming is part of the architecture contract, not a cleanup preference.
+“Every new object” includes modules, interfaces, adapters, factories, functions, methods, parameters, request and result objects, schema properties, state fields, events, errors, constants, DOM identifiers, tool names, and artifact metadata.
+Each name must identify the represented concept and, where relevant, its role, lifecycle, state, or unit without requiring the reader to inspect its implementation.
 
 The controlled vocabulary is:
 
@@ -257,17 +298,28 @@ The controlled vocabulary is:
 | Controller-domain request/result    | Agent-neutral WebVOWL operation contract                                                                                      | WebMCP tool schema or protocol envelope                                  |
 | WebMCP tool request/result          | External protocol representation owned by the WebMCP adapter                                                                  | Controller state or internal VOWL/graph objects                          |
 
-One concept will have one canonical term, and one term will not be overloaded for different concepts. Unqualified names such as `data`, `info`, `item`, `object`, `thing`, `helper`, `util`, `manager`, `handler`, `process`, `value`, or `result` are unacceptable when a domain noun and role can state the meaning. A conventional role word such as `Controller`, `Adapter`, or `Result` is permitted only when its owning concept and interface make that role specific; `WebVowlController`, for example, denotes the application-level orchestration module, not a UI event handler.
+One concept will have one canonical term, and one term will not be overloaded for different concepts.
+Unqualified names such as `data`, `info`, `item`, `object`, `thing`, `helper`, `util`, `manager`, `handler`, `process`, `value`, or `result` are unacceptable when a domain noun and role can state the meaning.
+A conventional role word such as `Controller`, `Adapter`, or `Result` is permitted only when its owning concept and interface make that role specific; `WebVowlController`, for example, denotes the application-level orchestration module, not a UI event handler.
 
-Operations use domain verbs that describe their observable effect. Boolean state fields use a positive predicate such as `isFocusable`, `isRetryable`, or `hasEnded`; imperative request flags may use a positive verb such as `includeNeighborhood`. Quantities encode their unit or measure when it is not inherent in the type, such as `settleTimeoutMs`, `maxInlineDocumentBytes`, `maxToolNameCharacters`, `byteLength`, `widthPx`, and `heightPx`. Lifecycle-sensitive names identify the lifetime they belong to, such as `loadGeneration`, `pageLocalArtifactId`, or `objectUrl`.
+Operations use domain verbs that describe their observable effect.
+Boolean state fields use a positive predicate such as `isFocusable`, `isRetryable`, or `hasEnded`; imperative request flags may use a positive verb such as `includeNeighborhood`.
+Quantities encode their unit or measure when it is not inherent in the type, such as `settleTimeoutMs`, `maxInlineDocumentBytes`, `maxToolNameCharacters`, `byteLength`, `widthPx`, and `heightPx`.
+Lifecycle-sensitive names identify the lifetime they belong to, such as `loadGeneration`, `pageLocalArtifactId`, or `objectUrl`.
 
-Official prose uses `WebVOWL`, `WebMCP`, `OWL`, `VOWL`, `IRI`, and `SVG`. JavaScript identifiers treat initialisms as words consistently: `WebVowlController`, `webMcpAdapter`, `createSvgArtifactService`, and `documentIri`. External WebMCP tool names retain their required snake_case spelling. WebMCP vocabulary stays in the adapter; controller and application names stay in the WebVOWL domain.
+Official prose uses `WebVOWL`, `WebMCP`, `OWL`, `VOWL`, `IRI`, and `SVG`.
+JavaScript identifiers treat initialisms as words consistently: `WebVowlController`, `webMcpAdapter`, `createSvgArtifactService`, and `documentIri`.
+External WebMCP tool names retain their required snake_case spelling.
+WebMCP vocabulary stays in the adapter; controller and application names stay in the WebVOWL domain.
 
-The names fixed by this design and plan must be reviewed before implementation, not copied mechanically. If a planned name proves semantically inaccurate, the implementation must correct the defining contract and every in-repository caller in the same change. It must not retain the rejected name as an alias or shim.
+The names fixed by this design and plan must be reviewed before implementation, not copied mechanically.
+If a planned name proves semantically inaccurate, the implementation must correct the defining contract and every in-repository caller in the same change.
+It must not retain the rejected name as an alias or shim.
 
 ### No compatibility shims or parallel orchestration
 
-The controller must own the capabilities it exposes. It must not be a façade that forwards to legacy loading callbacks, invokes old menu operations, or selects between old and new implementations according to caller, browser, or WebMCP availability.
+The controller must own the capabilities it exposes.
+It must not be a façade that forwards to legacy loading callbacks, invokes old menu operations, or selects between old and new implementations according to caller, browser, or WebMCP availability.
 
 For each migrated capability, one vertical cutover will:
 
@@ -287,45 +339,67 @@ The following are explicitly prohibited:
 - switching to a legacy implementation when WebMCP is absent or when a required controller dependency fails; and
 - leaving dead legacy orchestration in place for a later cleanup phase.
 
-The thin `webMcpAdapter` is not a compatibility shim: it is the sole protocol boundary from the external WebMCP contract to the agent-neutral controller. Feature detection is also not a shim: it determines whether tools are registered, while the ordinary UI continues to call the same controller in either case. Test doubles injected through explicit constructor dependencies are permitted because they do not create an alternative production path.
+The thin `webMcpAdapter` is not a compatibility shim: it is the sole protocol boundary from the external WebMCP contract to the agent-neutral controller.
+Feature detection is also not a shim: it determines whether tools are registered, while the ordinary UI continues to call the same controller in either case.
+Test doubles injected through explicit constructor dependencies are permitted because they do not create an alternative production path.
 
-If a baseline browser lacks a required browser primitive such as `Blob`, object URLs, Web Crypto, or `AbortController`, the operation will fail explicitly through the normal bounded error and visible UI presentation. The implementation will not revive a retired data URI, XHR, callback, or other legacy route as a runtime fallback.
+If a baseline browser lacks a required browser primitive such as `Blob`, object URLs, Web Crypto, or `AbortController`, the operation will fail explicitly through the normal bounded error and visible UI presentation.
+The implementation will not revive a retired data URI, XHR, callback, or other legacy route as a runtime fallback.
 
 ### Visible, reversible collaboration
 
-Agent operations will update the live page. Human controls and agent requests for language, filters, focus, relaxation, and fit will both call `WebVowlController.setVisualizationView`; the controller will normalize each partial request, apply it once through `RenderedGraphRuntime`, and publish one immutable visualization-view state. The existing human pause/resume control will call the separate agent-neutral `WebVowlController.setGraphLayoutPaused` operation, which is not exposed as an initial WebMCP tool. `VisualizationViewControlsAdapter` will reflect controller state in native DOM controls without dispatching synthetic input events. The user can therefore inspect, refine, or undo the same reversible presentation state without creating a UI-to-graph side channel. The first release will restrict state changes to loading and reversible presentation changes.
+Agent operations will update the live page.
+Human controls and agent requests for language, filters, focus, relaxation, and fit will both call `WebVowlController.setVisualizationView`; the controller will normalize each partial request, apply it once through `RenderedGraphRuntime`, and publish one immutable visualization-view state.
+The existing human pause/resume control will call the separate agent-neutral `WebVowlController.setGraphLayoutPaused` operation, which is not exposed as an initial WebMCP tool.
+`VisualizationViewControlsAdapter` will reflect controller state in native DOM controls without dispatching synthetic input events.
+The user can therefore inspect, refine, or undo the same reversible presentation state without creating a UI-to-graph side channel.
+The first release will restrict state changes to loading and reversible presentation changes.
 
 ### Bounded structured exchange
 
-Tool inputs will be narrow and validated at runtime. Tool results will contain identifiers, counts, normalized state, warnings, and artifact metadata rather than unbounded ontology text or serialized SVG.
+Tool inputs will be narrow and validated at runtime.
+Tool results will contain identifiers, counts, normalized state, warnings, and artifact metadata rather than unbounded ontology text or serialized SVG.
 
-The initial shared limits are a 2,048-character URL, 1 MiB of inline ontology text, 25 search matches, 10 warnings, and 256 characters for each ontology-derived display string. Tool names will stay within 30 characters, tool descriptions within 500 characters, and parameter descriptions within 150 characters. Tool results will target at most 1,500 serialized characters and will set `isTruncated: true` when bounded collections or strings are omitted. Browser evaluation may lower these limits, but raising them requires review of responsiveness and agent-context impact.
+The initial shared limits are a 2,048-character URL, 1 MiB of inline ontology text, 25 search matches, 10 warnings, and 256 characters for each ontology-derived display string.
+Tool names will stay within 30 characters, tool descriptions within 500 characters, and parameter descriptions within 150 characters.
+Tool results will target at most 1,500 serialized characters and will set `isTruncated: true` when bounded collections or strings are omitted.
+Browser evaluation may lower these limits, but raising them requires review of responsiveness and agent-context impact.
 
 ## Alternatives considered
 
 ### Register tools directly over existing callbacks
 
-This is the smallest initial patch, but it would expose callback timing, menu state, and private export behavior to every tool. The same orchestration would then be duplicated in tests and future callers. This approach is rejected because it creates a shallow adapter and makes WebMCP-specific behavior responsible for application correctness.
+This is the smallest initial patch, but it would expose callback timing, menu state, and private export behavior to every tool.
+The same orchestration would then be duplicated in tests and future callers.
+This approach is rejected because it creates a shallow adapter and makes WebMCP-specific behavior responsible for application correctness.
 
 ### Introduce the agent-neutral controller, then add a thin WebMCP adapter
 
-This is the selected approach. It creates one deep `WebVowlController` module whose interface is shared by the normal UI, WebMCP, tests, and future non-agent integrations. It requires more deliberate work around existing callbacks, but concentrates cancellation, state, diagnostics, and settlement behavior in one place without coupling application behavior to an agent protocol.
+This is the selected approach.
+It creates one deep `WebVowlController` module whose interface is shared by the normal UI, WebMCP, tests, and future non-agent integrations.
+It requires more deliberate work around existing callbacks, but concentrates cancellation, state, diagnostics, and settlement behavior in one place without coupling application behavior to an agent protocol.
 
 ### Build a remote MCP server or headless renderer first
 
-This would better support batch jobs and guaranteed downloadable resources, but it would add infrastructure, duplicate browser behavior, and lose the defining benefit of a user and agent collaborating on the same visible graph. It remains a possible later module once interactive demand and artifact-delivery requirements are measured.
+This would better support batch jobs and guaranteed downloadable resources, but it would add infrastructure, duplicate browser behavior, and lose the defining benefit of a user and agent collaborating on the same visible graph.
+It remains a possible later module once interactive demand and artifact-delivery requirements are measured.
 
 ### Leave changed application modules in CommonJS
 
-This would minimize diff size, but it would carry the legacy dynamic module boundary into the new controller and runtime contracts, make dependency direction harder to verify statically, and invite every later feature to choose a module system again. It is rejected because the new seams should have one modern authored format and one unambiguous export surface.
+This would minimize diff size, but it would carry the legacy dynamic module boundary into the new controller and runtime contracts, make dependency direction harder to verify statically, and invite every later feature to choose a module system again.
+It is rejected because the new seams should have one modern authored format and one unambiguous export surface.
 
 ### Convert the entire repository and package to ESM now
 
-This would remove the final CommonJS compatibility machinery sooner, but it would mix a repository-wide build/test/configuration migration with the WebMCP and renderer-ownership work. It would also require changes to package, lockfile, bundler, and possibly test configuration that this design does not authorize. It is rejected for this initiative, not as an eventual direction.
+This would remove the final CommonJS compatibility machinery sooner, but it would mix a repository-wide build/test/configuration migration with the WebMCP and renderer-ownership work.
+It would also require changes to package, lockfile, bundler, and possibly test configuration that this design does not authorize.
+It is rejected for this initiative, not as an eventual direction.
 
 ### Ratchet new and materially reshaped modules to native ESM
 
-This is the selected module-format approach. The ESM boundary follows the controller and `RenderedGraphRuntime` ownership cutovers; untouched private renderer leaves may remain on a fixed shrinking CommonJS allowlist until later work reaches them. The result gains static, semantically named interfaces now without creating a second production route or turning the feature into an unrelated whole-repository migration.
+This is the selected module-format approach.
+The ESM boundary follows the controller and `RenderedGraphRuntime` ownership cutovers; untouched private renderer leaves may remain on a fixed shrinking CommonJS allowlist until later work reaches them.
+The result gains static, semantically named interfaces now without creating a second production route or turning the feature into an unrelated whole-repository migration.
 
 ## Existing WebVOWL seams and gaps
 
@@ -343,11 +417,14 @@ The design builds on current behavior rather than proposing a parallel applicati
 | `package.json`, lockfile, Vite configuration, and D3-shaped source calls          | They identify the candidate dependency, build injection, and concrete calls that the current application expects                                          | They disagree about the apparent D3 era. A real-browser baseline must establish the exact supported runtime before implementation; an exact configuration repair, if needed, requires separate approval                                                                                                                                              |
 | `src/app/js/menu/exportMenu.js`                                                   | Existing SVG export identifies non-exportable elements, VOWL styles, metadata, dimensions, and serialization requirements                                 | It mutates and restores the live SVG and depends on graph/D3 state. The runtime must instead create a detached `RenderedSvgSnapshot`; a D3-free serializer and artifact service consume it, and the private base64/data-URI route is deleted                                                                                                         |
 
-The implementation will extract reusable behavior rather than have `WebVowlController` invoke controls or duplicate menu code. Existing file upload remains a human UI capability; once a file is loaded, the controller can summarize, search, restyle, and export the active ontology even though WebMCP does not accept a local filesystem path.
+The implementation will extract reusable behavior rather than have `WebVowlController` invoke controls or duplicate menu code.
+Existing file upload remains a human UI capability; once a file is loaded, the controller can summarize, search, restyle, and export the active ontology even though WebMCP does not accept a local filesystem path.
 
 ## Architecture
 
-The following diagram is the required dependency structure after the cutover. Solid arrows are allowed application dependencies or control flow; dotted arrows mean “implements the interface.” There is deliberately no edge from a UI module, controller module, WebMCP module, inspection module, settlement module, or serialization module to D3 or the live SVG, and no edge from the rendered-graph implementation back to a UI module.
+The following diagram is the required dependency structure after the cutover.
+Solid arrows are allowed application dependencies or control flow; dotted arrows mean “implements the interface.”
+There is deliberately no edge from a UI module, controller module, WebMCP module, inspection module, settlement module, or serialization module to D3 or the live SVG, and no edge from the rendered-graph implementation back to a UI module.
 
 ```mermaid
 flowchart LR
@@ -386,13 +463,20 @@ flowchart LR
     Adapter -. implements .-> Runtime
 ```
 
-This is a complete decoupling, not merely a reduction in coupling. Production input/state UI code is native ESM and depends on native DOM interfaces and `WebVowlController`; the native download adapter implements the narrow `VisualizationArtifactPublicationPort`; native-ESM application code depends on the native-ESM `RenderedGraphRuntime`; only the implementation-private visualization subtree rooted at `D3RenderedGraphAdapter` depends on D3 or owns the live SVG. The deterministic in-memory adapter exists only in tests and is never a runtime switch or fallback. The final production CommonJS allowlist is empty. All renderer elements are native ESM beneath the adapter; root package/build/test declarations retain their existing module format. ADR 0012 supplies application-owned documents and generation-scoped arrangement/selection contracts. Four export formats share VisualizationArtifactService and its publication port; the existing Turtle generator stays private beneath the adapter.
+This is a complete decoupling, not merely a reduction in coupling.
+Production input/state UI code is native ESM and depends on native DOM interfaces and `WebVowlController`; the native download adapter implements the narrow `VisualizationArtifactPublicationPort`; native-ESM application code depends on the native-ESM `RenderedGraphRuntime`; only the implementation-private visualization subtree rooted at `D3RenderedGraphAdapter` depends on D3 or owns the live SVG. The deterministic in-memory adapter exists only in tests and is never a runtime switch or fallback. The final production CommonJS allowlist is empty. All renderer elements are native ESM beneath the adapter; root package/build/test declarations retain their existing module format. ADR 0012 supplies application-owned documents and generation-scoped arrangement/selection contracts.
+Four export formats share VisualizationArtifactService and its publication port; the existing Turtle generator stays private beneath the adapter.
 
-Removing `webvowl.graph`, `webvowl.options`, and public renderer modules that bypass this seam is an intentional breaking interface cutover for an embedding host that reached into renderer internals. In-repository callers migrate atomically; supported application-level embeddings use `app.getWebVowlController()` and semantic controller operations. No deprecated alias or compatibility façade will preserve the concrete renderer interface. If the published package version or other release configuration must change to communicate that break, that exact configuration change requires separate approval.
+Removing `webvowl.graph`, `webvowl.options`, and public renderer modules that bypass this seam is an intentional breaking interface cutover for an embedding host that reached into renderer internals.
+In-repository callers migrate atomically; supported application-level embeddings use `app.getWebVowlController()` and semantic controller operations.
+No deprecated alias or compatibility façade will preserve the concrete renderer interface.
+If the published package version or other release configuration must change to communicate that break, that exact configuration change requires separate approval.
 
 ### Agent-neutral `WebVowlController`
 
-`WebVowlController` is the durable application seam. It will be constructed from explicit WebVOWL dependencies and will provide the following conceptual interface. The accompanying implementation plan fixes the initial file placement, exact runtime seam, tests, and cutover order.
+`WebVowlController` is the durable application seam.
+It will be constructed from explicit WebVOWL dependencies and will provide the following conceptual interface.
+The accompanying implementation plan fixes the initial file placement, exact runtime seam, tests, and cutover order.
 
 ```js
 loadOntology(request, { signal }) -> Promise<OntologyLoadResult>
@@ -407,9 +491,11 @@ getState() -> WebVowlControllerState
 The interface includes all caller-visible invariants and error modes:
 
 - `loadOntology` resolves only for the active load generation after parsing and initial graph rendering are complete.
-- Starting a new load supersedes the previous generation. Late callbacks from an older generation cannot change state or resolve as the current result.
+- Starting a new load supersedes the previous generation.
+  Late callbacks from an older generation cannot change state or resolve as the current result.
 - Operations that can wait or perform network work accept an `AbortSignal`.
-- Summary and search consume an immutable `OntologyInspectionSnapshot` rather than scraping SVG labels or traversing mutable renderer objects. Per ADR 0010 that snapshot is built by the application's `VowlModelInspectionProjector` from the VOWL model, not obtained from `RenderedGraphRuntime`, so a semantic question is answerable before the renderer mounts.
+- Summary and search consume an immutable `OntologyInspectionSnapshot` rather than scraping SVG labels or traversing mutable renderer objects.
+  Per ADR 0010 that snapshot is built by the application's `VowlModelInspectionProjector` from the VOWL model, not obtained from `RenderedGraphRuntime`, so a semantic question is answerable before the renderer mounts.
 - `setVisualizationView` resolves after the requested view has been normalized, applied, and reflected by the graph.
 - `exportVisualization` owns layout settlement; callers do not poll a separate waiting tool.
 - Every result reports what actually happened, including bounded warnings and normalized settings.
@@ -422,15 +508,27 @@ idle → loading → parsing → rendering → relaxing → ready
           └──────────┴──────────┴───────────┴──► error
 ```
 
-Cancellation returns the controller to the most recent valid state. It is not reported as an unexpected application failure.
+Cancellation returns the controller to the most recent valid state.
+It is not reported as an unexpected application failure.
 
-Existing UI capabilities will move behind `WebVowlController` as complete vertical cutovers. A cutover may be delivered one capability at a time, but no completed slice may leave a legacy production path or forwarding shim beside the controller path. The controller will not simulate clicks or manipulate menu controls to perform work. UI-specific presentation remains in the UI, while the controller owns application operations and structured outcomes. This direction of dependency is what keeps the seam useful when WebMCP is disabled or replaced.
+Existing UI capabilities will move behind `WebVowlController` as complete vertical cutovers.
+A cutover may be delivered one capability at a time, but no completed slice may leave a legacy production path or forwarding shim beside the controller path.
+The controller will not simulate clicks or manipulate menu controls to perform work.
+UI-specific presentation remains in the UI, while the controller owns application operations and structured outcomes.
+This direction of dependency is what keeps the seam useful when WebMCP is disabled or replaced.
 
-Every in-scope human control will use that same direction. Language, class/datatype/property filters, minimum-degree filtering, search-result focus, explicit graph focus, layout relaxation, zoom magnification, and fit-to-viewport actions enter through `setVisualizationView`; pause/resume enters through `setGraphLayoutPaused`, force distances through `setForceLayoutDistances`, and display toggles through `setVisualizationMode`. None of the last three is a WebMCP tool. Search suggestions come from `findOntologyElements`; selecting one applies focus through `setVisualizationView`. UI presentation adapters write controller state to DOM properties without dispatching synthetic events, so reflecting state cannot start another controller operation. Pointer gestures performed directly on the rendered SVG remain renderer-owned interactions and are reported upward as structured events; no menu or sidebar imports D3 to implement them.
+Every in-scope human control will use that same direction.
+Language, class/datatype/property filters, minimum-degree filtering, search-result focus, explicit graph focus, layout relaxation, zoom magnification, and fit-to-viewport actions enter through `setVisualizationView`; pause/resume enters through `setGraphLayoutPaused`, force distances through `setForceLayoutDistances`, and display toggles through `setVisualizationMode`.
+None of the last three is a WebMCP tool.
+Search suggestions come from `findOntologyElements`; selecting one applies focus through `setVisualizationView`.
+UI presentation adapters write controller state to DOM properties without dispatching synthetic events, so reflecting state cannot start another controller operation.
+Pointer gestures performed directly on the rendered SVG remain renderer-owned interactions and are reported upward as structured events; no menu or sidebar imports D3 to implement them.
 
 ### `RenderedGraphRuntime` interface
 
-The controller receives one `renderedGraphRuntime` dependency. It does not receive separate graph-load, filter, focus, zoom, pause, snapshot, paint, or export callbacks. The conceptual interface is:
+The controller receives one `renderedGraphRuntime` dependency.
+It does not receive separate graph-load, filter, focus, zoom, pause, snapshot, paint, or export callbacks.
+The conceptual interface is:
 
 ```js
 replaceVowlModel(request, { signal }) -> Promise<RenderedGraphReplacementResult>
@@ -444,19 +542,36 @@ subscribeToRenderedGraphEvents(listener) -> unsubscribeFromRenderedGraphEvents
 dispose() -> void
 ```
 
-All arguments, results, snapshots, and events crossing this interface are plain immutable WebVOWL domain values. They contain stable element references, scalar metrics, coordinate records, discriminants, and generation identifiers; they never contain D3 selections, force nodes, simulations, transition objects, mutable VOWL element instances, DOM events, the live SVG, or renderer-owned arrays. `RenderedSvgSnapshot` is the sole exception to the plain-data rule because it is an explicitly typed detached DOM clone for browser serialization; it is never the live SVG and is owned by the export operation that requested it.
+All arguments, results, snapshots, and events crossing this interface are plain immutable WebVOWL domain values.
+They contain stable element references, scalar metrics, coordinate records, discriminants, and generation identifiers; they never contain D3 selections, force nodes, simulations, transition objects, mutable VOWL element instances, DOM events, the live SVG, or renderer-owned arrays.
+`RenderedSvgSnapshot` is the sole exception to the plain-data rule because it is an explicitly typed detached DOM clone for browser serialization; it is never the live SVG and is owned by the export operation that requested it.
 
-`replaceVowlModel` receives the controller-assigned `loadGeneration` with the VOWL model. On replacement, the production adapter must stop the previous simulation, detach its event listeners, cancel its timers and transitions where supported, and fence every tick, end, progress, warning, and paint callback by both generation and `AbortSignal`. Aborting or superseding a generation guarantees that it can no longer mutate the live DOM, publish an event, update controller state, or resolve as current. The replacement promise resolves only after the new generation's first graph geometry is present in the live SVG and a browser paint containing that geometry has occurred; the existing progress threshold is not this completion signal.
+`replaceVowlModel` receives the controller-assigned `loadGeneration` with the VOWL model.
+On replacement, the production adapter must stop the previous simulation, detach its event listeners, cancel its timers and transitions where supported, and fence every tick, end, progress, warning, and paint callback by both generation and `AbortSignal`.
+Aborting or superseding a generation guarantees that it can no longer mutate the live DOM, publish an event, update controller state, or resolve as current.
+The replacement promise resolves only after the new generation's first graph geometry is present in the live SVG and a browser paint containing that geometry has occurred; the existing progress threshold is not this completion signal.
 
-`RenderedGraphEvent` is a closed discriminated union whose kinds are `render-progress-changed`, `render-warning-raised`, `rendered-element-selection-changed`, `viewport-changed`, `graph-layout-state-changed`, and `editor-mode-changed`. Every kind is published by the production adapter; `viewport-changed` is the sole route by which a zoom control learns the current magnification, so no control reads the renderer to position itself. The controller subscribes through the interface, rejects events from a non-current generation, and derives a new immutable controller-state snapshot. The graph adapter never calls a menu, sidebar, loading indicator, or other presentation object.
+`RenderedGraphEvent` is a closed discriminated union whose kinds are `render-progress-changed`, `render-warning-raised`, `rendered-element-selection-changed`, `viewport-changed`, `graph-layout-state-changed`, and `editor-mode-changed`.
+Every kind is published by the production adapter; `viewport-changed` is the sole route by which a zoom control learns the current magnification, so no control reads the renderer to position itself.
+The controller subscribes through the interface, rejects events from a non-current generation, and derives a new immutable controller-state snapshot.
+The graph adapter never calls a menu, sidebar, loading indicator, or other presentation object.
 
-`D3RenderedGraphAdapter.createRenderedSvgSnapshot` is called only after the controller has frozen the graph and completed the required font and paint waits. It clones the live SVG into a detached tree, removes interaction-only content from the clone, resolves computed visual styles onto the clone, and returns it without mutating or restoring the live SVG. A D3-free `SvgSerializer` inserts metadata with DOM APIs and text content, serializes the detached clone with `XMLSerializer`, and returns bytes to `SvgArtifactService`. The artifact service alone owns `Blob` creation, object-URL lifecycle, hashing, filenames, and artifact handles; it publishes the current page-local download through `VisualizationArtifactPublicationPort`, whose native-DOM adapter owns only presentation.
+`D3RenderedGraphAdapter.createRenderedSvgSnapshot` is called only after the controller has frozen the graph and completed the required font and paint waits.
+It clones the live SVG into a detached tree, removes interaction-only content from the clone, resolves computed visual styles onto the clone, and returns it without mutating or restoring the live SVG.
+A D3-free `SvgSerializer` inserts metadata with DOM APIs and text content, serializes the detached clone with `XMLSerializer`, and returns bytes to `SvgArtifactService`.
+The artifact service alone owns `Blob` creation, object-URL lifecycle, hashing, filenames, and artifact handles; it publishes the current page-local download through `VisualizationArtifactPublicationPort`, whose native-DOM adapter owns only presentation.
 
-Existing human editing uses `applyVowlModelRevision({ loadGeneration, vowlModel })` to draw a revised document synchronously within the current load. It retains the mounted viewport, pause state and arrangement, updates record/reference indexes, and expires interactions belonging to replaced elements. Newly created elements enter the visible drawing as in the earlier editor; editing does not rerun the initial-load filtering or centering sequence. Controller state reports `documentRevision` (zero without a document, one on source acceptance, incremented by each local edit), allowing summaries, search and editor controls to refresh without inventing another source load. Deletion confirmation belongs to the exact document revision that issued it. This preserves experimental human editing; it adds no WebMCP editing action.
+Existing human editing uses `applyVowlModelRevision({ loadGeneration, vowlModel })` to draw a revised document synchronously within the current load.
+It retains the mounted viewport, pause state and arrangement, updates record/reference indexes, and expires interactions belonging to replaced elements.
+Newly created elements enter the visible drawing as in the earlier editor; editing does not rerun the initial-load filtering or centering sequence.
+Controller state reports `documentRevision` (zero without a document, one on source acceptance, incremented by each local edit), allowing summaries, search and editor controls to refresh without inventing another source load.
+Deletion confirmation belongs to the exact document revision that issued it.
+This preserves experimental human editing; it adds no WebMCP editing action.
 
 ### WebMCP adapter
 
-The WebMCP adapter will be deliberately thin. It will:
+The WebMCP adapter will be deliberately thin.
+It will:
 
 1. Feature-detect the imperative WebMCP interface.
 2. Register the supported tools from the top-level document.
@@ -465,11 +580,14 @@ The WebMCP adapter will be deliberately thin. It will:
 5. Register and unregister tools through one lifecycle-owned `AbortController`.
 6. Capture only the stable controller interface; do not capture a rendered-graph adapter, renderer configuration, UI module, or load-generation-specific snapshot.
 
-Once the controller is ready, the adapter will keep the small five-tool surface registered for the page lifetime rather than churn registrations as ontology state changes. State-dependent calls return `NO_ONTOLOGY` until data is ready. Every execute callback resolves only after the corresponding visible page state and structured controller result agree.
+Once the controller is ready, the adapter will keep the small five-tool surface registered for the page lifetime rather than churn registrations as ontology state changes.
+State-dependent calls return `NO_ONTOLOGY` until data is ready.
+Every execute callback resolves only after the corresponding visible page state and structured controller result agree.
 
 The first release will not use the declarative WebMCP form interface because the application behavior is asynchronous and stateful, and current ChatGPT Site tools support imperative, top-level registration rather than iframe-discovered declarative tools.
 
-Embedded WebVOWL instances remain usable through their normal interface. A host that wants WebMCP support for an embedded instance must register top-level proxy tools and delegate to that instance's `WebVowlController`; iframe discovery will not be assumed.
+Embedded WebVOWL instances remain usable through their normal interface.
+A host that wants WebMCP support for an embedded instance must register top-level proxy tools and delegate to that instance's `WebVowlController`; iframe discovery will not be assumed.
 
 ## Initial tool interface
 
@@ -483,13 +601,19 @@ The tool set will begin with five non-overlapping tools.
 | `set_visualization_view` | Stateful and reversible    | Apply supported language, filter, focus, layout, and viewport options                                         | Normalized applied view and affected-element counts                                            |
 | `export_visualization`   | Stateful artifact creation | Settle the current graph and produce an SVG download                                                          | Page-local artifact identifier, filename, media type, byte length, source provenance, warnings |
 
-The tool descriptions and parameter descriptions will remain concise. A generic command tool and one-tool-per-button design are explicitly rejected because they would make tool selection ambiguous and expose internal UI structure as a public interface.
+The tool descriptions and parameter descriptions will remain concise.
+A generic command tool and one-tool-per-button design are explicitly rejected because they would make tool selection ambiguous and expose internal UI structure as a public interface.
 
-`get_ontology_summary` and `find_ontology_elements` will declare `readOnlyHint: true`. The three state-changing tools will declare `readOnlyHint: false` because they load or alter the visible page or create an artifact. Every result containing ontology-derived labels, IRIs, annotations, source text, or diagnostics will declare `untrustedContentHint: true`. An annotation is a hint to the client, not a substitute for validation or bounded output.
+`get_ontology_summary` and `find_ontology_elements` will declare `readOnlyHint: true`.
+The three state-changing tools will declare `readOnlyHint: false` because they load or alter the visible page or create an artifact.
+Every result containing ontology-derived labels, IRIs, annotations, source text, or diagnostics will declare `untrustedContentHint: true`.
+An annotation is a hint to the client, not a substitute for validation or bounded output.
 
-Search and inspection remain one tool initially: each match can include bounded one-hop facts sufficient for common follow-up questions. A separate `inspect_ontology_element` tool will be added only if evaluation shows that combining those results exceeds the output budget or makes tool selection unreliable.
+Search and inspection remain one tool initially: each match can include bounded one-hop facts sufficient for common follow-up questions.
+A separate `inspect_ontology_element` tool will be added only if evaluation shows that combining those results exceeds the output budget or makes tool selection unreliable.
 
-An element reference will prefer the pair of VOWL element kind and ontology IRI rather than a transient SVG or array index. Anonymous elements receive a load-generation-scoped reference and are not represented as stable across ontology reloads.
+An element reference will prefer the pair of VOWL element kind and ontology IRI rather than a transient SVG or array index.
+Anonymous elements receive a load-generation-scoped reference and are not represented as stable across ontology reloads.
 
 ### Source handling
 
@@ -501,34 +625,50 @@ An element reference will prefer the pair of VOWL element kind and ontology IRI 
 { kind: "ontology-text", text: "...", format: "turtle" }
 ```
 
-The ordinary application also needs a first-class controller-domain source for a VOWL model already parsed from a file or cache or produced by a converter. That source is named `vowl-model`, accepts a validated in-memory `model` plus provenance, and is not exposed as a WebMCP input. Calling it `vowl-json` would incorrectly name an in-memory model after its serialization format. It is a genuine application source kind, not an alias for a retired serialized-text callback; JSON parsing occurs exactly once at the source boundary. Preset paths are resolved to absolute URLs and use `vowl-json-url`; file, cache, and converter models use `vowl-model` directly.
+The ordinary application also needs a first-class controller-domain source for a VOWL model already parsed from a file or cache or produced by a converter.
+That source is named `vowl-model`, accepts a validated in-memory `model` plus provenance, and is not exposed as a WebMCP input.
+Calling it `vowl-json` would incorrectly name an in-memory model after its serialization format.
+It is a genuine application source kind, not an alias for a retired serialized-text callback; JSON parsing occurs exactly once at the source boundary.
+Preset paths are resolved to absolute URLs and use `vowl-json-url`; file, cache, and converter models use `vowl-model` directly.
 
-Local filesystem paths will not be accepted. A file the user loaded through the existing file picker can still be summarized, searched, restyled, and exported after it becomes the active ontology.
+Local filesystem paths will not be accepted.
+A file the user loaded through the existing file picker can still be summarized, searched, restyled, and exported after it becomes the active ontology.
 
 The controller and adapter will validate the discriminated union at runtime, enforce the shared size limits, require HTTP(S) for remote sources, and report browser CORS failures as `FETCH_FAILED` rather than suggesting that the ontology is malformed.
 
 ## Layout settlement and SVG export
 
-The existing “finished loading sequence” is a UI progress milestone, not a sufficient export contract. Export requires a separate definition of stability.
+The existing “finished loading sequence” is a UI progress milestone, not a sufficient export contract.
+Export requires a separate definition of stability.
 
 `exportVisualization` will:
 
 1. Reject the request if no ontology is ready.
 2. Wait for the active generation to finish rendering.
-3. Have `GraphLayoutSettler` observe immutable `GraphLayoutSnapshot` values and structured layout events until the adapter reports its native end state or an agreed energy/displacement threshold remains satisfied for consecutive frames. The settler never receives the D3 simulation or its mutable node array.
+3. Have `GraphLayoutSettler` observe immutable `GraphLayoutSnapshot` values and structured layout events until the adapter reports its native end state or an agreed energy/displacement threshold remains satisfied for consecutive frames.
+   The settler never receives the D3 simulation or its mutable node array.
 4. Stop waiting at a configured maximum duration.
 5. On timeout, return a structured `LAYOUT_TIMEOUT` error unless the request explicitly permits exporting the best current state.
 6. Record the current generation and graph-layout pause state, pause that generation through `RenderedGraphRuntime`, and wait for document fonts plus the final required paint frames.
-7. Request a detached, fully styled `RenderedSvgSnapshot` from the runtime. The runtime creates it without mutating the live SVG.
+7. Request a detached, fully styled `RenderedSvgSnapshot` from the runtime.
+   The runtime creates it without mutating the live SVG.
 8. Pass that snapshot and compact provenance to the D3-free `SvgSerializer`, then pass the serialized bytes to `SvgArtifactService`.
 9. Create an SVG `Blob`, an object URL, and a visible download entry in the page, and return matching compact artifact metadata.
 10. In a `finally` path, restore the previous pause state only when the same generation is still current and restoration was not superseded or aborted.
 
-Serialization has a strict ownership rule: `SvgSerializer` accepts `RenderedSvgSnapshot`, metadata, and explicitly injected browser serialization primitives. It accepts no graph, D3, selection, force, menu, or live-SVG dependency. Metadata is constructed with DOM nodes and `textContent`, not interpolated into markup. Only `SvgArtifactService` creates or revokes object URLs. Export tests must prove that success, failure, timeout, cancellation, and supersession leave the live SVG byte-for-byte unchanged except for legitimate concurrent renderer activity from a newer generation.
+Serialization has a strict ownership rule: `SvgSerializer` accepts `RenderedSvgSnapshot`, metadata, and explicitly injected browser serialization primitives.
+It accepts no graph, D3, selection, force, menu, or live-SVG dependency.
+Metadata is constructed with DOM nodes and `textContent`, not interpolated into markup.
+Only `SvgArtifactService` creates or revokes object URLs.
+Export tests must prove that success, failure, timeout, cancellation, and supersession leave the live SVG byte-for-byte unchanged except for legitimate concurrent renderer activity from a newer generation.
 
-“Visually settled” and “byte-for-byte reproducible” are different guarantees. The first release guarantees visually settled output. Exact reproducibility requires fixed initial coordinates or a layout seed, fixed viewport dimensions, fixed force settings, and a stable iteration policy. Those options will be introduced only if evaluation demonstrates a user requirement for identical rerenders.
+“Visually settled” and “byte-for-byte reproducible” are different guarantees.
+The first release guarantees visually settled output.
+Exact reproducibility requires fixed initial coordinates or a layout seed, fixed viewport dimensions, fixed force settings, and a stable iteration policy.
+Those options will be introduced only if evaluation demonstrates a user requirement for identical rerenders.
 
-The generated artifact will include or be accompanied by compact provenance: source identity, source hash when available, import status, view settings, WebVOWL version, dimensions, and layout outcome. Tool output will contain metadata and an artifact handle, not the SVG document itself.
+The generated artifact will include or be accompanied by compact provenance: source identity, source hash when available, import status, view settings, WebVOWL version, dimensions, and layout outcome.
+Tool output will contain metadata and an artifact handle, not the SVG document itself.
 
 A successful bounded result has this shape conceptually:
 
@@ -551,11 +691,15 @@ A successful bounded result has this shape conceptually:
 }
 ```
 
-`pageLocalArtifactId` and `pageLocalViewRecipeId` are page-local opaque handles, not permanent URLs. The view recipe records the active source identity, source hash when available, language, filters, focused stable element references, viewport dimensions, and layout outcome. The recipe is embedded in the SVG's `<metadata>` and exposed in the page's artifact details; the opaque identifier correlates those representations. It records how the current artifact was produced without claiming byte-for-byte reproducibility.
+`pageLocalArtifactId` and `pageLocalViewRecipeId` are page-local opaque handles, not permanent URLs.
+The view recipe records the active source identity, source hash when available, language, filters, focused stable element references, viewport dimensions, and layout outcome.
+The recipe is embedded in the SVG's `<metadata>` and exposed in the page's artifact details; the opaque identifier correlates those representations.
+It records how the current artifact was produced without claiming byte-for-byte reproducibility.
 
 ## Artifact delivery
 
-The portable completion condition is that WebVOWL displays a valid downloadable SVG and returns matching metadata. Whether an agent can download that artifact and attach it to a conversation is a client capability outside the WebMCP contract.
+The portable completion condition is that WebVOWL displays a valid downloadable SVG and returns matching metadata.
+Whether an agent can download that artifact and attach it to a conversation is a client capability outside the WebMCP contract.
 
 The first release therefore uses a privacy-first browser artifact:
 
@@ -564,17 +708,23 @@ The first release therefore uses a privacy-first browser artifact:
 - The tool result identifies and verifies the artifact.
 - No ontology or SVG is uploaded automatically.
 
-The page owns each object URL. Replacing an artifact or unloading the page revokes obsolete URLs after they are no longer needed. The returned handle therefore has the same lifetime as the live page and must not be represented as durable storage.
+The page owns each object URL.
+Replacing an artifact or unloading the page revokes obsolete URLs after they are no longer needed.
+The returned handle therefore has the same lifetime as the live page and must not be represented as durable storage.
 
-In clients able to operate downloads, the agent may activate the visible download and attach or otherwise return the file. That behavior is an integration capability to verify, not a guarantee made by WebMCP or `WebVowlController`. A release can claim “SVG ready for download” once the page artifact and metadata agree; it can claim “SVG returned to the conversation” only for a separately tested client path.
+In clients able to operate downloads, the agent may activate the visible download and attach or otherwise return the file.
+That behavior is an integration capability to verify, not a guarantee made by WebMCP or `WebVowlController`.
+A release can claim “SVG ready for download” once the page artifact and metadata agree; it can claim “SVG returned to the conversation” only for a separately tested client path.
 
 A stable server URL or remote MCP resource is a future, separately approved design if guaranteed cross-client attachment or unattended rendering becomes necessary.
 
 ## Trust and security
 
-Ontology documents are untrusted input. Labels, comments, annotations, IRIs, imports, and parser diagnostics may contain text that resembles agent instructions.
+Ontology documents are untrusted input.
+Labels, comments, annotations, IRIs, imports, and parser diagnostics may contain text that resembles agent instructions.
 
-Ontology-derived text is data even when it says “ignore previous instructions,” names a tool, or requests another network action. Neither the controller nor adapter will interpret that text as control flow, and the adapter will keep it in explicitly identified structured fields.
+Ontology-derived text is data even when it says “ignore previous instructions,” names a tool, or requests another network action.
+Neither the controller nor adapter will interpret that text as control flow, and the adapter will keep it in explicitly identified structured fields.
 
 The implementation will enforce the following requirements:
 
@@ -589,11 +739,14 @@ The implementation will enforce the following requirements:
 - Register tools only from the trusted top-level WebVOWL origin and rely on the browser's origin isolation and tools Permissions Policy rather than attempting cross-origin discovery.
 - Treat a future server-side renderer as a new threat model requiring private-network and SSRF controls.
 
-Summary and search tools will be annotated read-only. Loading, view changes, and export will report their state effects accurately. WebMCP does not replace the application's existing authorization or user-consent rules.
+Summary and search tools will be annotated read-only.
+Loading, view changes, and export will report their state effects accurately.
+WebMCP does not replace the application's existing authorization or user-consent rules.
 
 ## Errors and diagnostics
 
-`WebVowlController` will normalize expected failures into stable codes with a human-readable message and bounded details. Initial codes are:
+`WebVowlController` will normalize expected failures into stable codes with a human-readable message and bounded details.
+Initial codes are:
 
 - `NO_ONTOLOGY`
 - `SOURCE_REJECTED`
@@ -606,20 +759,26 @@ Summary and search tools will be annotated read-only. Loading, view changes, and
 - `LAYOUT_TIMEOUT`
 - `EXPORT_FAILED`
 
-Import failures that do not invalidate the root ontology remain warnings. Tool results will distinguish a completed request with warnings from a failed request. Raw parser documents, stack traces, and response bodies will not be returned to the agent.
+Import failures that do not invalidate the root ontology remain warnings.
+Tool results will distinguish a completed request with warnings from a failed request.
+Raw parser documents, stack traces, and response bodies will not be returned to the agent.
 
 ## Testing and evaluation
 
 Implementation will follow test-driven development across six layers:
 
 1. **Runtime baseline tests:** a real browser records the exact D3 runtime and proves that the current load, first paint, drag, zoom, filter, force pause/resume, and export behavior works before any renderer refactor begins.
-2. **Rendered-graph contract tests:** the deterministic `InMemoryRenderedGraphAdapter` and production `D3RenderedGraphAdapter` satisfy the same generation, abort, first-paint, immutable-snapshot, structured-event, pause-restoration, and disposal contract. Production-adapter browser tests supersede work during rendering, relaxation, and export and prove that stale ticks, end callbacks, progress callbacks, and paint callbacks cannot mutate the current page.
+2. **Rendered-graph contract tests:** the deterministic `InMemoryRenderedGraphAdapter` and production `D3RenderedGraphAdapter` satisfy the same generation, abort, first-paint, immutable-snapshot, structured-event, pause-restoration, and disposal contract.
+   Production-adapter browser tests supersede work during rendering, relaxation, and export and prove that stale ticks, end callbacks, progress callbacks, and paint callbacks cannot mutate the current page.
 3. **Controller tests:** agent-neutral interface behavior, state transitions, generation supersession, cancellation, view normalization, bounded results, layout timeout, pause restoration, and export metadata use the in-memory adapter without D3 or DOM-graph fakes.
 4. **WebMCP adapter contract tests:** exact tool registration, schemas, annotations, request validation, error mapping, asynchronous visible completion, and `AbortSignal`-owned cleanup use a fake `document.modelContext`.
-5. **Application integration and architecture tests:** representative ontology text and URLs pass through source loading, rendering, inspection snapshots, controller-owned human and agent view changes, settlement, detached SVG serialization, and artifact creation. Guards prove that replaced callbacks, forwarding aliases, duplicate remote loaders, the base64 SVG route, the old concrete graph entry point, and the UI-aware options registry are absent. A production-module-format gate proves that every required new or migrated module is native ESM and that the temporary CommonJS renderer allowlist is exact, private, and non-growing.
+5. **Application integration and architecture tests:** representative ontology text and URLs pass through source loading, rendering, inspection snapshots, controller-owned human and agent view changes, settlement, detached SVG serialization, and artifact creation.
+   Guards prove that replaced callbacks, forwarding aliases, duplicate remote loaders, the base64 SVG route, the old concrete graph entry point, and the UI-aware options registry are absent.
+   A production-module-format gate proves that every required new or migrated module is native ESM and that the temporary CommonJS renderer allowlist is exact, private, and non-growing.
 6. **Browser evaluation:** supported Chromium/WebMCP environments, the normal no-WebMCP path, top-level registration, human/agent state agreement, visible state changes, downloads, console errors, and client-specific attachment behavior.
 
-Architecture tests are release gates rather than advisory lint. They must prove all of the following:
+Architecture tests are release gates rather than advisory lint.
+They must prove all of the following:
 
 - `src/app/js` controller, WebMCP, inspection, settlement, serialization, artifact, menu, sidebar, and loading modules contain no D3 import, injected D3 parameter, global `d3` read, D3 selection, or D3 event use.
 - `D3RenderedGraphAdapter` is the only production adapter implementing `RenderedGraphRuntime`, and production composition has no old graph route, adapter switch, forwarding alias, or fallback.
@@ -627,14 +786,19 @@ Architecture tests are release gates rather than advisory lint. They must prove 
 - Every in-scope human view handler calls `WebVowlController` and no handler calls a graph, runtime adapter, options registry, filter implementation, or D3 directly.
 - `OntologyInspectionSnapshot`, `VisibleRenderedGraphSnapshot`, and `GraphLayoutSnapshot` are deeply immutable plain values and contain no D3, DOM, simulation, mutable VOWL-element, or renderer-owned array references.
 - `SvgSerializer` has no graph or D3 dependency, and snapshot serialization never mutates the live SVG.
-- Every module in the scoped native-ESM set uses static ESM with explicit relative file extensions and semantically precise named exports. Those files contain no CommonJS or hybrid syntax, runtime default/namespace probing, export mutation, or `window.webvowl` publication.
+- Every module in the scoped native-ESM set uses static ESM with explicit relative file extensions and semantically precise named exports.
+  Those files contain no CommonJS or hybrid syntax, runtime default/namespace probing, export mutation, or `window.webvowl` publication.
 - Every remaining production CommonJS module is one exact, untouched implementation-private renderer leaf reachable only beneath `D3RenderedGraphAdapter`; no allowlist entry is added, no CommonJS dependency crosses upward through `RenderedGraphRuntime`, and no authored interoperability shim exists.
 
-Every layer also reviews the names it introduces against the controlled vocabulary. Contract tests assert exact externally observable tool, request, result, error, and metadata field names; architecture review checks that WebMCP terms do not leak into controller modules. Semantic precision remains a reviewer judgment and will not be reduced to an unreliable word blacklist.
+Every layer also reviews the names it introduces against the controlled vocabulary.
+Contract tests assert exact externally observable tool, request, result, error, and metadata field names; architecture review checks that WebMCP terms do not leak into controller modules.
+Semantic precision remains a reviewer judgment and will not be reduced to an unreliable word blacklist.
 
 The evaluation corpus will include small and large ontologies, imports, malformed input, unsupported sources, CORS and network failures, superseded loads, missing labels, large search result sets, layout timeout, and repeated exports.
 
-Browser evaluation will use 15–20 job-oriented prompts rather than testing only isolated tool calls. It will record task completion without manual clicking, correctness of the source and applied view, warning accuracy, time to a usable graph and artifact, successful user retrieval of the SVG, result size, stale-load safety, and whether the agent makes unsupported semantic claims. Client-specific file attachment will be reported separately from page-side export success.
+Browser evaluation will use 15–20 job-oriented prompts rather than testing only isolated tool calls.
+It will record task completion without manual clicking, correctness of the source and applied view, warning accuracy, time to a usable graph and artifact, successful user retrieval of the SVG, result size, stale-load safety, and whether the agent makes unsupported semantic claims.
+Client-specific file attachment will be reported separately from page-side export success.
 
 Release acceptance requires:
 
@@ -654,17 +818,23 @@ Release acceptance requires:
 ## Delivery sequence
 
 1. Establish and record the blocking real-browser D3 baseline and the authored CommonJS/ESM dependency inventory; obtain separate approval before any exact configuration repair it reveals.
-2. Define bounded controller-domain contracts, `RenderedGraphRuntime`, immutable snapshot/event contracts, linked cancellation, the native-ESM architecture ratchet, and the deterministic in-memory test implementation. Every new module begins as native ESM.
+2. Define bounded controller-domain contracts, `RenderedGraphRuntime`, immutable snapshot/event contracts, linked cancellation, the native-ESM architecture ratchet, and the deterministic in-memory test implementation.
+   Every new module begins as native ESM.
 3. Migrate application UI DOM/event work from global D3 to browser-native interfaces while preserving behavior, converting every substantively rewritten UI module to native ESM in the same change.
-4. Build the canonical source loader, snapshot-based inspector and settler, native view-controls adapter, clone-only serializer/artifact modules, and agent-neutral `WebVowlController` against the in-memory runtime. These modules remain disconnected from production until the cutover.
+4. Build the canonical source loader, snapshot-based inspector and settler, native view-controls adapter, clone-only serializer/artifact modules, and agent-neutral `WebVowlController` against the in-memory runtime.
+   These modules remain disconnected from production until the cutover.
 5. Perform one atomic production cutover: reshape graph/options into native-ESM `D3RenderedGraphAdapter` plus `RenderedGraphConfiguration`; convert the browser/composition entries and every materially changed renderer/application module to native ESM; connect the controller and every ordinary UI caller; remove graph-to-UI calls; route loading, human view actions, and manual export through the controller; delete concrete graph/options exports, old callbacks, `d3.xhr` source routes, live-SVG mutation, and base64 export; and freeze the exact private CommonJS renderer allowlist without adding an interoperability shim.
 6. Add the thin imperative WebMCP protocol adapter and its contract tests after controller-owned application paths are canonical.
 7. Run browser evaluations and refine schemas, descriptions, limits, and diagnostics.
 8. Audit the dependency structure, native-ESM set, private CommonJS allowlist, and complete feature vocabulary; correct any violation at its defining contract without aliases; and document availability, privacy, embedding constraints, the no-shims invariant, and the client-specific artifact handoff.
 
-Each step must leave the ordinary application working. Intermediate commits may introduce tested domain modules before their cutover, but they must not connect a second production route or preserve a forwarding shim. A production cutover and deletion of the path it replaces belong to the same commit. Any required build, package, lockfile, test-runner, CI, deployment, or other configuration change requires separate explicit approval before it is made.
+Each step must leave the ordinary application working.
+Intermediate commits may introduce tested domain modules before their cutover, but they must not connect a second production route or preserve a forwarding shim.
+A production cutover and deletion of the path it replaces belong to the same commit.
+Any required build, package, lockfile, test-runner, CI, deployment, or other configuration change requires separate explicit approval before it is made.
 
-The current build-time CommonJS handling remains solely to load the fixed untouched renderer leaves while that allowlist is non-empty. Removing that machinery, declaring package-wide ESM, or changing any package/build/test configuration is not an implicit final step of this sequence; it is a separate milestone requiring its own design evidence and exact approval.
+The current build-time CommonJS handling remains solely to load the fixed untouched renderer leaves while that allowlist is non-empty.
+Removing that machinery, declaring package-wide ESM, or changing any package/build/test configuration is not an implicit final step of this sequence; it is a separate milestone requiring its own design evidence and exact approval.
 
 ## Deferred extensions
 

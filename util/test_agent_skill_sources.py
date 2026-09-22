@@ -1,8 +1,9 @@
 """Pinned source and preservation contracts for repository skill activation."""
+
 from __future__ import annotations
 
-import json
 import ctypes
+import json
 import os
 import subprocess
 import sys
@@ -21,8 +22,12 @@ class PinnedSkillSourceTests(unittest.TestCase):
     SHA = "1234567890abcdef1234567890abcdef12345678"
 
     def entry(self, source_url=None, *, source="example/skills", source_type="github"):
-        result = {"source": source, "sourceType": source_type,
-                  "ref": self.SHA, "computedHash": "0" * 64}
+        result = {
+            "source": source,
+            "sourceType": source_type,
+            "ref": self.SHA,
+            "computedHash": "0" * 64,
+        }
         if source_url is not None:
             result["sourceUrl"] = source_url
         return result
@@ -41,15 +46,35 @@ class PinnedSkillSourceTests(unittest.TestCase):
             "https://github.com/example/skills?ref=main",
             "https://github.com/example/skills/%74ree/main",
         ):
-            with self.subTest(source_url=source_url), tempfile.TemporaryDirectory() as directory:
+            with (
+                self.subTest(source_url=source_url),
+                tempfile.TemporaryDirectory() as directory,
+            ):
                 repo = Path(directory)
-                subprocess.run(["git", "init", "--quiet", directory], check=True, capture_output=True)
+                subprocess.run(
+                    ["git", "init", "--quiet", directory],
+                    check=True,
+                    capture_output=True,
+                )
                 (repo / ".gitignore").write_text(".agents/skills/\n", encoding="utf-8")
                 lock = repo / "skills-lock.json"
-                contents = json.dumps({"version": 1, "skills": {
-                    "first-pinned": self.entry(), "selected": self.entry(source_url)}})
+                contents = json.dumps(
+                    {
+                        "version": 1,
+                        "skills": {
+                            "first-pinned": self.entry(),
+                            "selected": self.entry(source_url),
+                        },
+                    }
+                )
                 lock.write_text(contents, encoding="utf-8")
-                with patch.object(setup, "sync_source", side_effect=AssertionError("Installer ran before source preflight completed")) as install:
+                with patch.object(
+                    setup,
+                    "sync_source",
+                    side_effect=AssertionError(
+                        "Installer ran before source preflight completed"
+                    ),
+                ) as install:
                     with self.assertRaises(setup.SetupError):
                         setup.ensure_agent_skills(repo, ("codex",))
                     install.assert_not_called()
@@ -59,19 +84,57 @@ class PinnedSkillSourceTests(unittest.TestCase):
     def test_repository_root_and_recorded_commit_are_preserved(self):
         for entry, expected in (
             (self.entry(), "https://github.com/example/skills.git"),
-            (self.entry("https://github.com/example/skills"), "https://github.com/example/skills.git"),
-            (self.entry("https://github.com/example/skills.git"), "https://github.com/example/skills.git"),
-            (self.entry("https://gitlab.com/example/team/skills.git", source="example/team/skills", source_type="gitlab"), "https://gitlab.com/example/team/skills.git"),
-            (self.entry("https://git.example.org/team/skills.git", source="team/skills", source_type="git"), "https://git.example.org/team/skills.git"),
-            (self.entry("git@git.example.org:team/skills.git", source="team/skills", source_type="git"), "git@git.example.org:team/skills.git"),
-            (self.entry("ssh://git@git.example.org/team/skills.git", source="team/skills", source_type="git"), "ssh://git@git.example.org/team/skills.git"),
+            (
+                self.entry("https://github.com/example/skills"),
+                "https://github.com/example/skills.git",
+            ),
+            (
+                self.entry("https://github.com/example/skills.git"),
+                "https://github.com/example/skills.git",
+            ),
+            (
+                self.entry(
+                    "https://gitlab.com/example/team/skills.git",
+                    source="example/team/skills",
+                    source_type="gitlab",
+                ),
+                "https://gitlab.com/example/team/skills.git",
+            ),
+            (
+                self.entry(
+                    "https://git.example.org/team/skills.git",
+                    source="team/skills",
+                    source_type="git",
+                ),
+                "https://git.example.org/team/skills.git",
+            ),
+            (
+                self.entry(
+                    "git@git.example.org:team/skills.git",
+                    source="team/skills",
+                    source_type="git",
+                ),
+                "git@git.example.org:team/skills.git",
+            ),
+            (
+                self.entry(
+                    "ssh://git@git.example.org/team/skills.git",
+                    source="team/skills",
+                    source_type="git",
+                ),
+                "ssh://git@git.example.org/team/skills.git",
+            ),
         ):
             with self.subTest(entry=entry):
                 grouped = setup.group_skills_by_install_source({"selected": entry})
                 self.assertEqual(grouped, {f"{expected}#{self.SHA}": ("selected",)})
 
     def test_local_type_cannot_disguise_a_remote_source(self):
-        for source in ("https://github.com/example/skills", "example/skills", "git@example.org:skills.git"):
+        for source in (
+            "https://github.com/example/skills",
+            "example/skills",
+            "git@example.org:skills.git",
+        ):
             with self.subTest(source=source):
                 entry = self.entry(source=source, source_type="local")
                 entry.pop("ref")
@@ -79,16 +142,29 @@ class PinnedSkillSourceTests(unittest.TestCase):
                     setup.group_skills_by_install_source({"selected": entry})
 
     def test_enterprise_host_tree_cannot_override_the_commit(self):
-        entry = self.entry("https://git.example.org/team/skills/tree/main.git", source="team/skills", source_type="git")
+        entry = self.entry(
+            "https://git.example.org/team/skills/tree/main.git",
+            source="team/skills",
+            source_type="git",
+        )
         for host in ("git.example.org", " GIT.EXAMPLE.ORG/ "):
-            with self.subTest(host=host), patch.dict(os.environ, {"GH_HOST": host}):
-                with self.assertRaises(setup.SetupError):
-                    setup.group_skills_by_install_source({"selected": entry})
+            with (
+                self.subTest(host=host),
+                patch.dict(os.environ, {"GH_HOST": host}),
+                self.assertRaises(setup.SetupError),
+            ):
+                setup.group_skills_by_install_source({"selected": entry})
 
     def test_local_path_does_not_require_a_remote_commit(self):
-        entry = {"source": "./owned-skill", "sourceType": "local", "computedHash": "0" * 64}
-        self.assertEqual(setup.group_skills_by_install_source({"selected": entry}),
-                         {"./owned-skill": ("selected",)})
+        entry = {
+            "source": "./owned-skill",
+            "sourceType": "local",
+            "computedHash": "0" * 64,
+        }
+        self.assertEqual(
+            setup.group_skills_by_install_source({"selected": entry}),
+            {"./owned-skill": ("selected",)},
+        )
 
     def test_each_remote_source_requires_a_full_commit(self):
         for ref in (None, "main", "v1.0.0", self.SHA[:12], self.SHA + "@review"):
@@ -101,11 +177,16 @@ class PinnedSkillSourceTests(unittest.TestCase):
     def test_skill_grouping_keeps_different_commits_separate(self):
         other = self.entry()
         other["ref"] = "a" * 40
-        grouped = setup.group_skills_by_install_source({"first": self.entry(), "second": other})
-        self.assertEqual(grouped, {
-            f"https://github.com/example/skills.git#{self.SHA}": ("first",),
-            "https://github.com/example/skills.git#" + "a" * 40: ("second",),
-        })
+        grouped = setup.group_skills_by_install_source(
+            {"first": self.entry(), "second": other}
+        )
+        self.assertEqual(
+            grouped,
+            {
+                f"https://github.com/example/skills.git#{self.SHA}": ("first",),
+                "https://github.com/example/skills.git#" + "a" * 40: ("second",),
+            },
+        )
 
 
 class SkillActivationPreservationTests(unittest.TestCase):
@@ -115,20 +196,44 @@ class SkillActivationPreservationTests(unittest.TestCase):
             (canonical / "anchor").mkdir()
             template = canonical / "empty-template"
             template.mkdir()
-            subprocess.run(["git", "init", "--quiet", "--template=" + str(template),
-                            str(canonical)], check=True, capture_output=True)
+            subprocess.run(
+                [
+                    "git",
+                    "init",
+                    "--quiet",
+                    "--template=" + str(template),
+                    str(canonical),
+                ],
+                check=True,
+                capture_output=True,
+            )
             (canonical / ".gitignore").write_text(".agents/skills/\n", encoding="utf-8")
             lock = canonical / "skills-lock.json"
-            lock.write_text(json.dumps({"version": 1, "skills": {
-                "external": {"source": "example/skills", "sourceType": "github",
-                             "ref": "a" * 40, "computedHash": "0" * 64}}}), encoding="utf-8")
+            lock.write_text(
+                json.dumps(
+                    {
+                        "version": 1,
+                        "skills": {
+                            "external": {
+                                "source": "example/skills",
+                                "sourceType": "github",
+                                "ref": "a" * 40,
+                                "computedHash": "0" * 64,
+                            }
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
             unrelated = canonical / ".agents/skills/external/SKILL.md"
             unrelated.parent.mkdir(parents=True)
             unrelated.write_text("User-owned bytes\n", encoding="utf-8")
             before = lock.read_bytes(), unrelated.read_bytes()
             spellings = [canonical, canonical / "anchor/.."]
             if os.name == "nt":
-                native = ctypes.WinDLL("kernel32", use_last_error=True).GetShortPathNameW
+                native = ctypes.WinDLL(
+                    "kernel32", use_last_error=True
+                ).GetShortPathNameW
                 native.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32]
                 native.restype = ctypes.c_uint32
                 buffer = ctypes.create_unicode_buffer(32768)
@@ -145,10 +250,14 @@ class SkillActivationPreservationTests(unittest.TestCase):
                     setup.ensure_generated_roots_are_safe(repo, roots)
                     with self.assertRaises((ValueError, setup.SetupError)):
                         setup.ensure_generated_roots_are_safe(repo, (canonical.parent,))
-                    installed = setup.unique_installed_skill_dirs(repo, "external", ("codex",))
+                    installed = setup.unique_installed_skill_dirs(
+                        repo, "external", ("codex",)
+                    )
                     self.assertEqual(len(installed), 1)
                     self.assertTrue(installed[0].samefile(unrelated.parent))
-                    self.assertEqual((lock.read_bytes(), unrelated.read_bytes()), before)
+                    self.assertEqual(
+                        (lock.read_bytes(), unrelated.read_bytes()), before
+                    )
 
     def test_verification_preserves_an_unrelated_standalone_skill(self):
         with tempfile.TemporaryDirectory() as directory:

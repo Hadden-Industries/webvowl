@@ -1,19 +1,22 @@
 # ADR 0001: Local Docker development for WebVOWL + OWL2VOWL
 
-| Metadata | Value |
-|----------|-------|
-| **Status** | Superseded |
-| **Date** | 2026-06-04 |
-| **Deciders** | VisualDataWeb maintainers / local dev workflow |
-| **Supersedes** | wget-based root `Dockerfile` on upstream `master` |
+| Metadata          | Value                                                      |
+| ----------------- | ---------------------------------------------------------- |
+| **Status**        | Superseded                                                 |
+| **Date**          | 2026-06-04                                                 |
+| **Deciders**      | VisualDataWeb maintainers / local dev workflow             |
+| **Supersedes**    | wget-based root `Dockerfile` on upstream `master`          |
 | **Superseded by** | [ADR 0009](0009-native-node-development-without-docker.md) |
 
 > [!IMPORTANT]
-> This ADR is retained as a historical record of the former Java-backed container architecture. [ADR 0009](0009-native-node-development-without-docker.md) replaces it with the native Node.js and JavaScript ontology-processing workflow; the Docker implementation described below has been removed.
+> This ADR is retained as a historical record of the former Java-backed container architecture.
+> [ADR 0009](0009-native-node-development-without-docker.md) replaces it with the native Node.js and JavaScript ontology-processing workflow; the Docker implementation described below has been removed.
 
 ## Context
 
-WebVOWL needs a browser UI and an **OWL2VOWL** backend on the **same origin** (`/convert`, `/serverTimeStamp`). Upstream Docker docs build an image that **downloads** `webvowl_1.1.7.war` from `vowl.visualdataweb.org`. That host is compromised or unreachable (HTTP 520/403, corrupt HTML served as WAR). See [#212](https://github.com/VisualDataWeb/WebVOWL/issues/212), [#203](https://github.com/VisualDataWeb/WebVOWL/issues/203), [#180](https://github.com/VisualDataWeb/WebVOWL/issues/180).
+WebVOWL needs a browser UI and an **OWL2VOWL** backend on the **same origin** (`/convert`, `/serverTimeStamp`).
+Upstream Docker docs build an image that **downloads** `webvowl_1.1.7.war` from `vowl.visualdataweb.org`.
+That host is compromised or unreachable (HTTP 520/403, corrupt HTML served as WAR). See [#212](https://github.com/VisualDataWeb/WebVOWL/issues/212), [#203](https://github.com/VisualDataWeb/WebVOWL/issues/203), [#180](https://github.com/VisualDataWeb/WebVOWL/issues/180).
 
 Constraints:
 
@@ -23,12 +26,14 @@ Constraints:
 - **Bump only container base image tags** (Tomcat **9.0.118**, Maven **3.9.16**, Temurin **8** on Noble, Node **12** Alpine — see `docker/Dockerfile` `ARG`s).
 - **All deliverables live inside Git repositories** (WebVOWL + OWL2VOWL), not in a parent folder outside clones.
 
-**Local checkout:** WebVOWL repository only. OWL2VOWL is **not** cloned on the host.
+**Local checkout:** WebVOWL repository only.
+OWL2VOWL is **not** cloned on the host.
 
 ## Decision
 
 1. **Default**: `docker-compose.yml` + `docker/Dockerfile` (full stack).
-2. **OWL2VOWL at image build time**: `git clone` in the Maven stage (`OWL2VOWL_GIT_URL` / `OWL2VOWL_GIT_REF`, default `master`). No Compose `additional_contexts` and no sibling directory.
+2. **OWL2VOWL at image build time**: `git clone` in the Maven stage (`OWL2VOWL_GIT_URL` / `OWL2VOWL_GIT_REF`, default `master`).
+   No Compose `additional_contexts` and no sibling directory.
 3. **Multi-stage build**:
    - Maven `3.9-eclipse-temurin-8` → `owl2vowl.war`
    - Node `12-alpine` → `npm install --ignore-scripts` + `npm run release`
@@ -42,14 +47,14 @@ Constraints:
 
 ## Rationale
 
-| Approach | Why chosen / rejected |
-|----------|----------------------|
-| wget WAR | Broken ([#212](https://github.com/VisualDataWeb/WebVOWL/issues/212)). |
-| Sibling `../OWL2VOWL` checkout | Replaced by `git clone` inside `docker/Dockerfile` (network at build time). |
-| PR #215 | Correct merge model; arm64 fix: `--ignore-scripts`. |
-| PR #214 | Java 17 + nginx rejected. |
+| Approach                          | Why chosen / rejected                                                                     |
+| --------------------------------- | ----------------------------------------------------------------------------------------- |
+| wget WAR                          | Broken ([#212](https://github.com/VisualDataWeb/WebVOWL/issues/212)).                     |
+| Sibling `../OWL2VOWL` checkout    | Replaced by `git clone` inside `docker/Dockerfile` (network at build time).               |
+| PR #215                           | Correct merge model; arm64 fix: `--ignore-scripts`.                                       |
+| PR #214                           | Java 17 + nginx rejected.                                                                 |
 | Two services, two ports, no proxy | Breaks relative `/convert` ([#195](https://github.com/VisualDataWeb/WebVOWL/issues/195)). |
-| `doc/Docker` legacy | `/data` volume pattern kept; inotify batch job not ported. |
+| `doc/Docker` legacy               | `/data` volume pattern kept; inotify batch job not ported.                                |
 
 ## Consequences
 
@@ -79,61 +84,61 @@ curl -sf http://localhost:8080/serverTimeStamp
 
 ## Implementation map (WebVOWL)
 
-| Path | Role |
-|------|------|
-| `docker-compose.yml` | Full stack (OWL2VOWL cloned in build) |
-| `docker-compose.frontend.yml` | UI only |
-| `docker/Dockerfile` | Merged image |
-| `docker/Dockerfile.frontend` | Frontend-only image |
-| `docker/README.md` | Operator guide (security, GHCR) |
-| `.github/workflows/docker-ci.yml` | PR / main build + smoke test |
-| `.github/workflows/docker-release.yml` | Publish to GHCR on tag `v*` |
-| `.dockerignore` | WebVOWL build context |
-| `data/` | Host mount → `/data` |
-| `docs/adr/0001-…` | This ADR |
+| Path                                   | Role                                  |
+| -------------------------------------- | ------------------------------------- |
+| `docker-compose.yml`                   | Full stack (OWL2VOWL cloned in build) |
+| `docker-compose.frontend.yml`          | UI only                               |
+| `docker/Dockerfile`                    | Merged image                          |
+| `docker/Dockerfile.frontend`           | Frontend-only image                   |
+| `docker/README.md`                     | Operator guide (security, GHCR)       |
+| `.github/workflows/docker-ci.yml`      | PR / main build + smoke test          |
+| `.github/workflows/docker-release.yml` | Publish to GHCR on tag `v*`           |
+| `.dockerignore`                        | WebVOWL build context                 |
+| `data/`                                | Host mount → `/data`                  |
+| `docs/adr/0001-…`                      | This ADR                              |
 
 ## Implementation map (OWL2VOWL)
 
-| Path | Role |
-|------|------|
-| `doc/docker/README.md` | Sibling checkout + standalone JAR image |
-| `.dockerignore` | Exclude `ontologies/` from Docker context |
-| `Dockerfile` | Standalone converter (non-root, healthcheck) |
-| `.github/workflows/docker-ci.yml` | PR / main build + smoke test |
-| `.github/workflows/docker-release.yml` | GHCR on tag `v*` |
+| Path                                   | Role                                         |
+| -------------------------------------- | -------------------------------------------- |
+| `doc/docker/README.md`                 | Sibling checkout + standalone JAR image      |
+| `.dockerignore`                        | Exclude `ontologies/` from Docker context    |
+| `Dockerfile`                           | Standalone converter (non-root, healthcheck) |
+| `.github/workflows/docker-ci.yml`      | PR / main build + smoke test                 |
+| `.github/workflows/docker-release.yml` | GHCR on tag `v*`                             |
 
 ## Related GitHub issues (WebVOWL)
 
-| # | State | Title | Relevance |
-|---|-------|-------|-----------|
-| [212](https://github.com/VisualDataWeb/WebVOWL/issues/212) | OPEN | Docker compose: wget HTTP 520 | **Primary** |
-| [203](https://github.com/VisualDataWeb/WebVOWL/issues/203) | OPEN | README Docker instructions do not work | Fixed here |
-| [202](https://github.com/VisualDataWeb/WebVOWL/issues/202) | OPEN | Temporary fix as website is down | Same root cause |
-| [195](https://github.com/VisualDataWeb/WebVOWL/issues/195) | OPEN | Could not establish OWL2VOWL connection | Fixed with merged image |
-| [201](https://github.com/VisualDataWeb/WebVOWL/issues/201) | OPEN | OWL2VOWL service error | Related |
-| [180](https://github.com/VisualDataWeb/WebVOWL/issues/180) | CLOSED | Unable to download war release | Historical |
-| [206](https://github.com/VisualDataWeb/WebVOWL/issues/206) | CLOSED | Service is down | Domain context |
-| [183](https://github.com/VisualDataWeb/WebVOWL/issues/183) | OPEN | WebVOWL cannot be rebuild | Addressed via source build |
-| [111](https://github.com/VisualDataWeb/WebVOWL/issues/111) | OPEN | Docker Hub image | Not implemented |
-| [100](https://github.com/VisualDataWeb/WebVOWL/issues/100) | CLOSED | Add Dockerfile | Original Docker support |
+| #                                                          | State  | Title                                   | Relevance                  |
+| ---------------------------------------------------------- | ------ | --------------------------------------- | -------------------------- |
+| [212](https://github.com/VisualDataWeb/WebVOWL/issues/212) | OPEN   | Docker compose: wget HTTP 520           | **Primary**                |
+| [203](https://github.com/VisualDataWeb/WebVOWL/issues/203) | OPEN   | README Docker instructions do not work  | Fixed here                 |
+| [202](https://github.com/VisualDataWeb/WebVOWL/issues/202) | OPEN   | Temporary fix as website is down        | Same root cause            |
+| [195](https://github.com/VisualDataWeb/WebVOWL/issues/195) | OPEN   | Could not establish OWL2VOWL connection | Fixed with merged image    |
+| [201](https://github.com/VisualDataWeb/WebVOWL/issues/201) | OPEN   | OWL2VOWL service error                  | Related                    |
+| [180](https://github.com/VisualDataWeb/WebVOWL/issues/180) | CLOSED | Unable to download war release          | Historical                 |
+| [206](https://github.com/VisualDataWeb/WebVOWL/issues/206) | CLOSED | Service is down                         | Domain context             |
+| [183](https://github.com/VisualDataWeb/WebVOWL/issues/183) | OPEN   | WebVOWL cannot be rebuild               | Addressed via source build |
+| [111](https://github.com/VisualDataWeb/WebVOWL/issues/111) | OPEN   | Docker Hub image                        | Not implemented            |
+| [100](https://github.com/VisualDataWeb/WebVOWL/issues/100) | CLOSED | Add Dockerfile                          | Original Docker support    |
 
 ## Related GitHub pull requests (WebVOWL)
 
-| # | State | Title | Notes |
-|---|-------|-------|-------|
-| [215](https://github.com/VisualDataWeb/WebVOWL/pull/215) | OPEN | Build from source in Docker | Align with this ADR |
-| [214](https://github.com/VisualDataWeb/WebVOWL/pull/214) | CLOSED | Modernize Docker (Java 17, nginx) | Rejected scope |
-| [213](https://github.com/VisualDataWeb/WebVOWL/pull/213) | CLOSED | Duplicate of #214 | |
-| [114](https://github.com/VisualDataWeb/WebVOWL/pull/114) | OPEN | chore(docker): update image | wget-based; obsolete |
-| [207](https://github.com/VisualDataWeb/WebVOWL/pull/207) | DRAFT | Dockerfile page amd64 | Partial |
-| [181](https://github.com/VisualDataWeb/WebVOWL/pull/181) | MERGED | Fixed Docker File | |
-| [170](https://github.com/VisualDataWeb/WebVOWL/pull/170) | MERGED | Dockerized WebVOWL | |
-| [102](https://github.com/VisualDataWeb/WebVOWL/pull/102) | MERGED | Fix #100 Add Docker | |
+| #                                                        | State  | Title                             | Notes                |
+| -------------------------------------------------------- | ------ | --------------------------------- | -------------------- |
+| [215](https://github.com/VisualDataWeb/WebVOWL/pull/215) | OPEN   | Build from source in Docker       | Align with this ADR  |
+| [214](https://github.com/VisualDataWeb/WebVOWL/pull/214) | CLOSED | Modernize Docker (Java 17, nginx) | Rejected scope       |
+| [213](https://github.com/VisualDataWeb/WebVOWL/pull/213) | CLOSED | Duplicate of #214                 |                      |
+| [114](https://github.com/VisualDataWeb/WebVOWL/pull/114) | OPEN   | chore(docker): update image       | wget-based; obsolete |
+| [207](https://github.com/VisualDataWeb/WebVOWL/pull/207) | DRAFT  | Dockerfile page amd64             | Partial              |
+| [181](https://github.com/VisualDataWeb/WebVOWL/pull/181) | MERGED | Fixed Docker File                 |                      |
+| [170](https://github.com/VisualDataWeb/WebVOWL/pull/170) | MERGED | Dockerized WebVOWL                |                      |
+| [102](https://github.com/VisualDataWeb/WebVOWL/pull/102) | MERGED | Fix #100 Add Docker               |                      |
 
 ## Related GitHub (OWL2VOWL)
 
-| # | State | Title | Notes |
-|---|-------|-------|-------|
+| #                                                       | State  | Title     | Notes                                                                      |
+| ------------------------------------------------------- | ------ | --------- | -------------------------------------------------------------------------- |
 | [47](https://github.com/VisualDataWeb/OWL2VOWL/pull/47) | MERGED | Dockerize | Standalone `OWL2VOWL/Dockerfile`; merged build uses Maven stage in WebVOWL |
 
 ## References
