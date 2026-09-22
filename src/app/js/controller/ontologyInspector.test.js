@@ -230,6 +230,86 @@ function createSearchRequest(overrides = {}) {
 }
 
 describe("ontology summary projection", () => {
+  test("search does not conflate a supplied IRI with an anonymous reference key", () => {
+    const result = createOntologyInspector().findOntologyElements({
+      ontologyInspectionSnapshot: createInspectionSnapshot({
+        classRecords: [
+          classRecord({ iri: "4\u0000a", labelRecords: englishLabel("Time") }),
+          classRecord({ localId: "a", labelRecords: englishLabel("Time") }),
+        ],
+        propertyRecords: [],
+        datatypeRecords: [],
+        individualRecords: [],
+      }),
+      visibleRenderedGraphSnapshot: createVisibleSnapshot(),
+      query: "time",
+    });
+    expect(
+      result.matches.map((match) => match.ontologyElementReference),
+    ).toEqual([
+      { kind: "class", iri: "4\u0000a" },
+      { kind: "class", loadGeneration: LOAD_GENERATION, localId: "a" },
+    ]);
+  });
+  test("search merges semantic duplicates before ranking and paging", () => {
+    const snapshot = createInspectionSnapshot({
+      classRecords: [
+        classRecord({
+          iri: "urn:time",
+          labelRecords: englishLabel("Clock"),
+          superclassReferences: [{ kind: "class", iri: "urn:A" }],
+        }),
+        classRecord({
+          iri: "urn:time",
+          labelRecords: englishLabel("Time"),
+          superclassReferences: [{ kind: "class", iri: "urn:B" }],
+        }),
+        classRecord({ localId: "a", labelRecords: englishLabel("Time") }),
+        classRecord({ localId: "b", labelRecords: englishLabel("Time") }),
+      ],
+      propertyRecords: [
+        propertyRecord({ iri: "urn:time", labelRecords: englishLabel("Time") }),
+      ],
+      datatypeRecords: [],
+      individualRecords: [],
+    });
+    const request = {
+      ontologyInspectionSnapshot: snapshot,
+      visibleRenderedGraphSnapshot: createVisibleSnapshot(),
+      query: "time",
+      language: "en",
+      includeNeighborhood: true,
+    };
+    const result = createOntologyInspector().findOntologyElements(request);
+    expect(result.totalMatchCount).toBe(4);
+    expect(
+      result.matches.map((match) => match.ontologyElementReference),
+    ).toEqual([
+      { kind: "class", loadGeneration: LOAD_GENERATION, localId: "a" },
+      { kind: "class", loadGeneration: LOAD_GENERATION, localId: "b" },
+      { kind: "class", iri: "urn:time" },
+      { kind: "property", iri: "urn:time" },
+    ]);
+    expect(result.matches[2].neighborhoodFacts.superclassReferences).toEqual([
+      { kind: "class", iri: "urn:A" },
+      { kind: "class", iri: "urn:B" },
+    ]);
+    expect(
+      createOntologyInspector().findOntologyElements({
+        ...request,
+        query: "clock",
+      }).matches,
+    ).toHaveLength(1);
+    const page = createOntologyInspector().findOntologyElements({
+      ...request,
+      offset: 2,
+      limit: 1,
+    });
+    expect(page.matches.map((match) => match.ontologyElementReference)).toEqual(
+      [{ kind: "class", iri: "urn:time" }],
+    );
+    expect(page.totalMatchCount).toBe(4);
+  });
   test("distinguishes datatype properties from datatype nodes in the shared statistics", () => {
     const request = createSummaryRequest();
     const snapshot = structuredClone(request.ontologyInspectionSnapshot);
@@ -509,7 +589,6 @@ describe("ontology element search", () => {
       searchResult.matches.map(({ displayLabel }) => displayLabel),
     ).toEqual([
       "Person",
-      "Person (duplicate record)",
       "Anonymous Person Union",
       "member of Person",
       UNLABELLED_IRI,
@@ -574,12 +653,12 @@ describe("ontology element search", () => {
     expect(anonymousMatch.iri).toBeNull();
   });
 
-  test("keeps duplicate IRIs as separate ranked matches", () => {
+  test("returns one ranked match per semantic identity", () => {
     const personIriMatches = findMatches({ query: "Person" }).matches.filter(
       ({ iri }) => iri === PERSON_IRI,
     );
 
-    expect(personIriMatches).toHaveLength(2);
+    expect(personIriMatches).toHaveLength(1);
   });
 
   test("applies a caller limit and reports the truncation", () => {
