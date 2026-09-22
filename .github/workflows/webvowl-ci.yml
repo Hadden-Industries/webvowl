@@ -33,7 +33,8 @@ jobs:
       - name: Create isolated Python environment
         run: python -m venv .venv
       - name: Install Python tooling requirements
-        run: node util/runRepositoryPython.mjs -m pip install --require-hashes --only-binary=:all: -r requirements.lock.txt
+        run: |
+          node util/runRepositoryPython.mjs -m pip install --require-hashes --only-binary=:all: -r requirements.lock.txt
       - run: npm run check:python
 
   documentation:
@@ -58,7 +59,8 @@ jobs:
       - name: Create isolated Python environment
         run: python -m venv .venv
       - name: Install Python tooling requirements
-        run: node util/runRepositoryPython.mjs -m pip install --require-hashes --only-binary=:all: -r requirements.lock.txt
+        run: |
+          node util/runRepositoryPython.mjs -m pip install --require-hashes --only-binary=:all: -r requirements.lock.txt
       - run: npm run check:docs
 
   application:
