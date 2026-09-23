@@ -6,6 +6,10 @@ Changes limited to root Markdown files and Markdown under `docs/` use the docume
 Any other changed path, including a deleted source file or a file renamed from source into documentation, selects full checks.
 Missing history, invalid event data and manual runs also select full checks.
 
+For example, editing only `README.md` and `docs/webmcp.md` selects documentation checks.
+Adding a change to `src/`, a dependency lockfile or a workflow selects full checks instead.
+A docs-only pull request still shows successful required statuses for `WebVOWL application`, `Dependency review` and `CodeQL gate`, while application, Python tooling and CodeQL analysis jobs are skipped.
+
 Documentation-only changes run one Linux Markdown job with only Prettier and Snapper installed from the existing lockfiles.
 Both tools check only changed documents that still exist, using the existing authored-document exclusions.
 Paths are passed literally, so spaces and brackets do not become shell syntax or glob patterns.
