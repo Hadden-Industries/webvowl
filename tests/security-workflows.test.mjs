@@ -13,9 +13,12 @@ test("dependency review covers every PR and blocks high vulnerabilities in build
   const job = config.jobs.review;
   expect(job.if).toBeUndefined();
   expect(job.name).toBe("Dependency review");
-  expect(job.steps).toHaveLength(1);
-  expect(job.steps[0].uses).toMatch(/^actions\/dependency-review-action@[a-f0-9]{40}$/);
-  expect(job.steps[0].with).toMatchObject({"fail-on-severity":"high", "fail-on-scopes":"runtime, development, unknown", "vulnerability-check":true, "warn-only":false, "comment-summary-in-pr":"never"});
+  const reviews = job.steps.filter(step => step.uses?.startsWith("actions/dependency-review-action@"));
+  expect(reviews).toHaveLength(1);
+  expect(reviews[0].uses).toMatch(/^actions\/dependency-review-action@[a-f0-9]{40}$/);
+  expect(reviews[0].if).toBe("steps.scope.outputs.full == 'true'");
+  expect(job.steps.find(step => step.id === "scope").run).toBe("node util/selectCiChecks.mjs");
+  expect(reviews[0].with).toMatchObject({"fail-on-severity":"high", "fail-on-scopes":"runtime, development, unknown", "vulnerability-check":true, "warn-only":false, "comment-summary-in-pr":"never"});
 });
 
 test("CodeQL analyzes fork PRs using the unprivileged PR event and static extraction", () => {
@@ -23,7 +26,7 @@ test("CodeQL analyzes fork PRs using the unprivileged PR event and static extrac
   expect(config.on).toHaveProperty("pull_request");
   expect(config.on).not.toHaveProperty("pull_request_target");
   const job = config.jobs.analyze;
-  expect(job.if).toBeUndefined();
+  expect(job.if).toBe("needs.scope.outputs.full == 'true'");
   expect(config.permissions).toEqual({});
   expect(job.permissions).toEqual({contents:"read", "security-events":"write"});
   expect(job.steps.every(step => !step.run)).toBe(true);

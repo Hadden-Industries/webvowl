@@ -18,6 +18,22 @@ from format_docs import (
 
 
 class NativeProseFormattingTests(unittest.TestCase):
+    def test_selected_documents_do_not_check_unchanged_malformed_prose(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            (root / "docs").mkdir()
+            good = root / "docs" / "selected [1].md"
+            bad = root / "docs" / "unchanged.md"
+            good.write_text("A sentence.\n", encoding="utf8")
+            bad.write_text("First sentence. Another sentence.\n", encoding="utf8")
+            selected = authored_document_paths(root, ["docs/selected [1].md"])
+            self.assertEqual(selected, [good])
+            self.assertEqual(check_documents(selected), 0)
+            self.assertEqual(check_documents([bad]), 1)
+            self.assertEqual(authored_document_paths(root, []), [])
+            with self.assertRaises(ValueError):
+                authored_document_paths(root, ["../outside.md"])
+
     def test_long_quote_prefix_does_not_backtrack(self):
         with tempfile.TemporaryDirectory() as temporary:
             document = Path(temporary) / "guide.md"

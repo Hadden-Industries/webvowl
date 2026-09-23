@@ -20,15 +20,28 @@ EXECUTABLE = Path(sysconfig.get_path("scripts")) / (
 DOCUMENT_SELECTOR = Path(__file__).with_name("select_documents.mjs")
 
 
-def authored_document_paths(package_root: Path) -> list[Path]:
+def authored_document_paths(
+    package_root: Path, selected: list[str] | None = None
+) -> list[Path]:
     """Select root/docs Markdown using Prettier's current ignore rules."""
+    if selected is not None:
+        if not isinstance(selected, list) or not all(
+            isinstance(path, str) for path in selected
+        ):
+            raise ValueError("Expected a JSON array of document paths")
+        paths = []
+        for name in selected:
+            path = package_root / name
+            relative = path.resolve().relative_to(package_root.resolve())
+            if path.suffix != ".md" or not (
+                len(relative.parts) == 1 or relative.parts[0] == "docs"
+            ):
+                raise ValueError(f"Not an authored document: {name}")
+            paths.append(path)
+    else:
+        paths = [*package_root.glob("*.md"), *(package_root / "docs").rglob("*.md")]
     candidates = sorted(
-        path
-        for path in [
-            *package_root.glob("*.md"),
-            *(package_root / "docs").rglob("*.md"),
-        ]
-        if path.is_file() and not path.is_symlink()
+        path for path in paths if path.is_file() and not path.is_symlink()
     )
     if not candidates:
         return []
@@ -51,10 +64,12 @@ def main() -> int:
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--check", action="store_true")
     mode.add_argument("--write", action="store_true")
+    parser.add_argument("--files-from-stdin", action="store_true")
     args = parser.parse_args()
     with CONFIG.open("rb") as config:
         tomllib.load(config)
-    documents = authored_document_paths(PACKAGE_ROOT)
+    selected = json.load(sys.stdin) if args.files_from_stdin else None
+    documents = authored_document_paths(PACKAGE_ROOT, selected)
     if not documents:
         print("No authored Markdown documents selected.")
         return 0
