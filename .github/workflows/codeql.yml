@@ -16,7 +16,29 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  scope:
+    name: Select CodeQL checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      full: ${{ steps.scope.outputs.full }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - id: scope
+        run: node util/selectCiChecks.mjs
+
   analyze:
+    needs: scope
+    if: needs.scope.outputs.full == 'true'
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -42,3 +64,41 @@ jobs:
         uses: github/codeql-action/analyze@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
         with:
           category: "/language:${{ matrix.language }}"
+          wait-for-processing: true
+
+  required:
+    name: CodeQL gate
+    if: always()
+    needs: [scope, analyze]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      checks: read
+    steps:
+      - name: Require analysis or an explicit documentation-only result
+        env:
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          FULL_CHECKS: ${{ needs.scope.outputs.full }}
+          ANALYSIS_RESULT: ${{ needs.analyze.result }}
+        run: |
+          test "$SCOPE_RESULT" = success
+          case "$FULL_CHECKS" in
+            true) test "$ANALYSIS_RESULT" = success ;;
+            false) test "$ANALYSIS_RESULT" = skipped ;;
+            *) exit 1 ;;
+          esac
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: needs.scope.outputs.full == 'true' && github.event_name == 'pull_request'
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        if: needs.scope.outputs.full == 'true' && github.event_name == 'pull_request'
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - name: Preserve the external CodeQL blocking-alert verdict
+        if: needs.scope.outputs.full == 'true' && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node util/requireCodeqlVerdict.mjs
