@@ -1,4 +1,5 @@
 import { jest } from "@jest/globals";
+import { OWLDocumentFormats } from "owlapi/formats";
 import { fromOwl } from "vowl/owl";
 import { decode, encode, VowlError } from "vowl";
 
@@ -24,6 +25,8 @@ const syntaxes = [
     "application/owl+xml",
     `<Ontology xmlns="${owl}"><SubClassOf><Class IRI="urn:doc#A"/><Class IRI="urn:doc#B"/></SubClassOf></Ontology>`,
   ],
+  ["text/owl-dl", "A ⊑ B"],
+  ["text/owl-krss", "(define-primitive-concept A B)"],
   ["text/owl-krss2", "(implies A B)"],
   [
     "application/rdf+xml",
@@ -45,6 +48,14 @@ const syntaxes = [
     ]),
   ],
 ];
+
+test("format fixtures cover the owning public media-type catalogue", () => {
+  expect(new Set(syntaxes.map(([mediaType]) => mediaType))).toEqual(
+    new Set(
+      Object.values(OWLDocumentFormats).flatMap(({ mediaTypes }) => mediaTypes),
+    ),
+  );
+});
 
 test.each(syntaxes)(
   "explicit %s preserves the same retained subclass in both mapping profiles",
@@ -410,8 +421,14 @@ test.each([
   },
 );
 
-test.each(["text/owl-krss", "text/owl-dl"])(
-  "unqualified %s is rejected at root and import boundaries",
+test.each([
+  "unknown/type",
+  "application/json",
+  "text/owl-krss1",
+  "Text/Turtle",
+  "text/turtle; charset=utf-8",
+])(
+  "unknown %s is rejected at root and import boundaries",
   async (mediaType) => {
     for (const mappingProfile of [undefined, strict]) {
       await expect(
@@ -434,6 +451,158 @@ test.each(["text/owl-krss", "text/owl-dl"])(
         code: "MAPPING_MEDIA_TYPE_UNSUPPORTED",
         pointer: "/resolveImport/mediaType",
       });
+    }
+  },
+);
+
+test.each([
+  ["text/owl-dl", "A ⊑ B"],
+  ["text/owl-krss", "(define-primitive-concept A B)"],
+])(
+  "explicit imported %s preserves structure and document context",
+  async (mediaType, text) => {
+    const root = bytes("Ontology(Import(<urn:authored-import>))");
+    const load = (importText, importMediaType, mappingProfile) =>
+      fromOwl(root, {
+        ...options,
+        mappingProfile,
+        resolveImport: async (iri, context) => {
+          expect(iri).toBe("urn:authored-import");
+          expect(context.importingDocumentIri).toBe("urn:doc");
+          return {
+            bytes: bytes(importText),
+            documentIri: "urn:resolved-import",
+            mediaType: importMediaType,
+          };
+        },
+      });
+    for (const mappingProfile of [undefined, strict]) {
+      const expected = await load(
+        "Ontology(SubClassOf(<urn:resolved-import#A> <urn:resolved-import#B>))",
+        options.mediaType,
+        mappingProfile,
+      );
+      const result = await load(text, mediaType, mappingProfile);
+      expect(result.diagnostics).toEqual([]);
+      expect(result.document.structural.ontology.imports).toEqual([
+        "urn:authored-import",
+      ]);
+      expect(
+        result.document.structural.subjects.map(({ iri }) => iri).sort(),
+      ).toEqual(["urn:resolved-import#A", "urn:resolved-import#B"]);
+      expect(encode(result.document)).toEqual(encode(expected.document));
+    }
+  },
+);
+
+test.each([
+  ["0001", "integer"],
+  ["9007199254740993", "integer"],
+  ["1.00", "double"],
+  ["0.10000000000000001", "double"],
+])(
+  "DL retains exact literal %s through canonical encoding",
+  async (lexical, datatype) => {
+    const text = `exists age.{${lexical}} ⊑ Adult`;
+    const functional = `Ontology(SubClassOf(DataSomeValuesFrom(<urn:doc#age> DataOneOf("${lexical}"^^<${xsd}${datatype}>)) <urn:doc#Adult>))`;
+    for (const mappingProfile of [undefined, strict]) {
+      for (const imported of [false, true]) {
+        const load = (source, mediaType) =>
+          imported
+            ? fromOwl(bytes("Ontology(Import(<urn:doc>))"), {
+                ...options,
+                documentIri: "urn:root",
+                mappingProfile,
+                resolveImport: async () => ({
+                  bytes: bytes(source),
+                  documentIri: "urn:doc",
+                  mediaType,
+                }),
+              })
+            : fromOwl(bytes(source), { ...options, mediaType, mappingProfile });
+        const result = await load(text, "text/owl-dl");
+        expect(result.diagnostics).toEqual([]);
+        const enumeration = result.document.structural.expressions.find(
+          ({ kind }) => kind === "data-enumeration",
+        );
+        expect(enumeration?.members).toEqual([
+          { kind: "typed", lexical, datatype: xsd + datatype },
+        ]);
+        const expected = await load(functional, options.mediaType);
+        expect(encode(result.document)).toEqual(encode(expected.document));
+      }
+    }
+  },
+);
+
+test.each([
+  [
+    "(define-primitive-role p q :right-identity r)",
+    "MAPPING_UNSUPPORTED_CONSTRUCT",
+  ],
+  ["(define-primitive-role p q :right-identity)", "MAPPING_SYNTAX_INVALID"],
+])(
+  "KRSS1 rejects the clause %s without fallback or partial success",
+  async (text, code) => {
+    for (const mappingProfile of [undefined, strict]) {
+      await expect(
+        fromOwl(bytes(text), {
+          ...options,
+          mediaType: "text/owl-krss",
+          mappingProfile,
+        }),
+      ).rejects.toMatchObject({ code });
+      await expect(
+        fromOwl(bytes("Ontology(Import(<urn:import>))"), {
+          ...options,
+          mappingProfile,
+          resolveImport: async () => ({
+            bytes: bytes(text),
+            documentIri: "urn:import",
+            mediaType: "text/owl-krss",
+          }),
+        }),
+      ).rejects.toMatchObject({ code });
+    }
+  },
+);
+
+test.each([
+  ["text/owl-dl", "p(alice, 0001)", "ObjectProperty"],
+  ["text/owl-krss", "(define-primitive-role p q)", "DataProperty"],
+])(
+  "imported %s still participates in full-closure role validation",
+  async (mediaType, text, conflictingRole) => {
+    const root = bytes(
+      `Ontology(Import(<urn:import>) Declaration(${conflictingRole}(<urn:import#p>)))`,
+    );
+    const settings = {
+      ...options,
+      resolveImport: async () => ({
+        bytes: bytes(text),
+        documentIri: "urn:import",
+        mediaType,
+      }),
+    };
+    await expect(
+      fromOwl(root, { ...settings, mappingProfile: strict }),
+    ).rejects.toMatchObject({
+      code: "MAPPING_MULTIPLE_ROLES",
+    });
+    const result = await fromOwl(root, settings);
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "MAPPING_MULTIPLE_ROLES" }),
+      ]),
+    );
+    if (mediaType === "text/owl-dl") {
+      // The ABox assertion is excluded only after its role collision is checked.
+      expect(result.document.structural.constructs).toEqual([]);
+      expect(result.diagnostics).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ code: "MAPPING_EXCLUDED_AXIOM" }),
+        ]),
+      );
     }
   },
 );

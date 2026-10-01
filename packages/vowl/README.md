@@ -56,9 +56,13 @@ Both profiles validate the complete loaded closure before excluding unsupported 
 The document is structural content; the adapter does not choose artifact state.
 Source document IRIs provide parsing context and do not fill missing ontology identity.
 
-The current candidate accepts Functional Syntax, Manchester Syntax, OWL/XML, KRSS2, RDF/XML, Turtle, TriG, N-Triples, N-Quads and JSON-LD through explicit media types.
-DL Syntax and KRSS1 remain disabled after source-preservation failures in the pinned owning parser.
-See the [adapter evidence](../../docs/reviews/canonical-vowl-owl-adapter-review.md) for exact media tokens, dependency revision, observed coverage and outstanding qualification.
+Accepted media types come from the pinned dependency's public `OWLDocumentFormats` metadata in `owlapi/formats`.
+Each root or imported document must select exactly one format by an exact published media type; unknown or ambiguous types fail before parsing.
+VOWL maintains no separate format allowlist.
+The owning parser runs in `preserve` mode, and the adapter checks its source assessment over the complete closure before projecting structural OWL.
+Parser errors remain fatal: for example, KRSS1 `:right-identity` is explicitly unsupported.
+The [format admission evidence](../../docs/reviews/canonical-vowl-owl-format-admission.md) records the dependency revision, parser regressions and verification status.
+The [original adapter evidence](../../docs/reviews/canonical-vowl-owl-adapter-review.md) records the earlier qualification.
 
 The third experimental surface is explicit, one-way historical ingress:
 

@@ -5,7 +5,7 @@ The following resolved runtime dependency closure retains its original grants an
 Distinct installed versions are listed separately.
 Dependencies are installed separately; these notices do not relicense them.
 
-owlapi is selected by the immutable dependency specifier `git+https://github.com/Hadden-Industries/owlapi.git#3d1933c44f939525dd9a73afd6e7731627333ca6`.
+owlapi is selected by the immutable dependency specifier `git+https://github.com/Hadden-Industries/owlapi.git#3097c6af1e7f47f97f5d90dd23915d83a5bb1489`.
 
 ## @digitalbazaar/http-client@4.4.0
 

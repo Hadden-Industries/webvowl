@@ -18,7 +18,7 @@ const INSTALLED_PACKAGE_PATH = path.join(ROOT, "node_modules", "owlapi");
 const UTILITY_PATH = path.join(ROOT, "util");
 
 const EXPECTED_GIT_SPECIFIER =
-  "git+https://github.com/Hadden-Industries/owlapi.git#3d1933c44f939525dd9a73afd6e7731627333ca6";
+  "git+https://github.com/Hadden-Industries/owlapi.git#3097c6af1e7f47f97f5d90dd23915d83a5bb1489";
 // npm can serialize a GitHub resolution with SSH transport even when the
 // manifest requests HTTPS. Keep the repository and full commit exact.
 const APPROVED_GIT_RESOLUTIONS = new Set([
@@ -321,8 +321,8 @@ describe("installed owlapi consumer boundary", () => {
   });
 
   test.each([
-    "git+https://github.com/Hadden-Industries/owlapi.git#3d1933c44f939525dd9a73afd6e7731627333ca6",
-    "git+ssh://git@github.com/Hadden-Industries/owlapi.git#3d1933c44f939525dd9a73afd6e7731627333ca6",
+    "git+https://github.com/Hadden-Industries/owlapi.git#3097c6af1e7f47f97f5d90dd23915d83a5bb1489",
+    "git+ssh://git@github.com/Hadden-Industries/owlapi.git#3097c6af1e7f47f97f5d90dd23915d83a5bb1489",
   ])("accepts the pinned Git resolution %s", (resolution) => {
     expect(APPROVED_GIT_RESOLUTIONS.has(resolution)).toBe(true);
   });

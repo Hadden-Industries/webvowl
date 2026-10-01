@@ -7,7 +7,7 @@ import {
   documentContext,
   loadClosure,
   validateDocumentIri,
-  validateMediaType,
+  resolveDocumentFormat,
 } from "./loading.js";
 import { buildModel } from "./modelBuilder.js";
 import {
@@ -18,7 +18,7 @@ import {
 
 const optionChecks = {
   documentIri: validateDocumentIri,
-  mediaType: validateMediaType,
+  mediaType: resolveDocumentFormat,
   mappingProfile: validateMappingProfile,
   resolveImport(value) {
     if (value !== undefined && typeof value !== "function") {

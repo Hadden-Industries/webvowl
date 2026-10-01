@@ -25,19 +25,6 @@ function errorName(value) {
   }
 }
 
-// Pinned owning release inventory. Exact per-document selection disables sniffing.
-const formats = new Map([
-  ["text/owl-functional", OWLDocumentFormats.FUNCTIONAL],
-  ["text/owl-manchester", OWLDocumentFormats.MANCHESTER],
-  ["application/owl+xml", OWLDocumentFormats.OWL_XML],
-  ["text/owl-krss2", OWLDocumentFormats.KRSS2],
-  ["application/rdf+xml", OWLDocumentFormats.RDF_XML],
-  ["text/turtle", OWLDocumentFormats.TURTLE],
-  ["application/trig", OWLDocumentFormats.TRIG],
-  ["application/n-triples", OWLDocumentFormats.N_TRIPLES],
-  ["application/n-quads", OWLDocumentFormats.N_QUADS],
-  ["application/ld+json", OWLDocumentFormats.JSON_LD],
-]);
 const ambiguousReasons = new Set([
   "RDF_AMBIGUOUS_PROPERTY_ROLE",
   "RDF_AMBIGUOUS_RANGE_ROLE",
@@ -51,23 +38,28 @@ export function validateDocumentIri(documentIri, pointer = "") {
   }
 }
 
-export function validateMediaType(mediaType, pointer = "") {
+/** Select one owning format by its exact public media type, without sniffing. */
+export function resolveDocumentFormat(mediaType, pointer = "") {
   if (typeof mediaType !== "string") {
     fail("OPTION_INVALID", `${pointer}/mediaType`);
   }
-  if (!formats.has(mediaType)) {
+  const matches = Object.values(OWLDocumentFormats).filter((format) =>
+    format.mediaTypes.includes(mediaType),
+  );
+  // A shared media type cannot select an exact parser. Do not choose by order.
+  if (matches.length !== 1) {
     fail("MAPPING_MEDIA_TYPE_UNSUPPORTED", `${pointer}/mediaType`);
   }
+  return matches[0];
 }
 
 export function documentContext(documentIri, mediaType, budget, pointer = "") {
   validateDocumentIri(documentIri, pointer);
   checkString(documentIri, `${pointer}/documentIri`, budget);
-  validateMediaType(mediaType, pointer);
   return {
     documentIRI: IRI.create(documentIri),
     contentType: mediaType,
-    format: formats.get(mediaType),
+    format: resolveDocumentFormat(mediaType, pointer),
   };
 }
 
