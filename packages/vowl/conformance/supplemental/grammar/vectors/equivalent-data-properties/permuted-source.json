@@ -1,0 +1,152 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "supplement-renamed-2",
+        "kind": "label",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "to": "supplement-renamed-3",
+        "from": "supplement-renamed-6",
+        "properties": [
+          "supplement-renamed-12",
+          "supplement-renamed-13"
+        ],
+        "kind": "property-edge",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "context": {
+          "properties": [
+            "supplement-renamed-12",
+            "supplement-renamed-13"
+          ],
+          "kind": "property"
+        },
+        "target": "supplement-renamed-14",
+        "kind": "datatype-node",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "targets": [
+          "supplement-renamed-15"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-4"
+      },
+      {
+        "targets": [
+          "supplement-renamed-16"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-5"
+      },
+      {
+        "targets": [
+          "supplement-renamed-17"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-6"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "supplement-renamed-13",
+          "supplement-renamed-12"
+        ],
+        "kind": "equivalent-data-properties",
+        "id": "supplement-renamed-7"
+      },
+      {
+        "target": "supplement-renamed-14",
+        "property": "supplement-renamed-12",
+        "kind": "data-range",
+        "id": "supplement-renamed-8"
+      },
+      {
+        "target": "supplement-renamed-17",
+        "property": "supplement-renamed-12",
+        "kind": "data-domain",
+        "id": "supplement-renamed-9"
+      },
+      {
+        "target": "supplement-renamed-14",
+        "property": "supplement-renamed-13",
+        "kind": "data-range",
+        "id": "supplement-renamed-10"
+      },
+      {
+        "target": "supplement-renamed-17",
+        "property": "supplement-renamed-13",
+        "kind": "data-domain",
+        "id": "supplement-renamed-11"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "supplement-renamed-18",
+        "kind": "data-property",
+        "id": "supplement-renamed-12"
+      },
+      {
+        "subject": "supplement-renamed-19",
+        "kind": "data-property",
+        "id": "supplement-renamed-13"
+      },
+      {
+        "subject": "supplement-renamed-20",
+        "kind": "datatype",
+        "id": "supplement-renamed-14"
+      },
+      {
+        "subject": "supplement-renamed-21",
+        "kind": "class",
+        "id": "supplement-renamed-15"
+      },
+      {
+        "subject": "supplement-renamed-22",
+        "kind": "class",
+        "id": "supplement-renamed-16"
+      },
+      {
+        "subject": "supplement-renamed-23",
+        "kind": "class",
+        "id": "supplement-renamed-17"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/supplement#q",
+        "id": "supplement-renamed-18"
+      },
+      {
+        "iri": "https://example.org/supplement#p",
+        "id": "supplement-renamed-19"
+      },
+      {
+        "iri": "https://example.org/supplement#D",
+        "id": "supplement-renamed-20"
+      },
+      {
+        "iri": "https://example.org/supplement#C",
+        "id": "supplement-renamed-21"
+      },
+      {
+        "iri": "https://example.org/supplement#B",
+        "id": "supplement-renamed-22"
+      },
+      {
+        "iri": "https://example.org/supplement#A",
+        "id": "supplement-renamed-23"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

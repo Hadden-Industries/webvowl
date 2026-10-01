@@ -1,0 +1,35 @@
+{
+  "structural": {
+    "ontology": {
+      "iri": "urn:owl-seed:root",
+      "imports": [
+        "urn:owl-seed:missing"
+      ],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:A",
+        "iri": "https://example.org/owl-seed#A"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s:A"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      }
+    ]
+  }
+}

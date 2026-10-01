@@ -1,0 +1,72 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/conditional#A"
+      },
+      {
+        "id": "s-Resource",
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Resource"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "Resource",
+        "kind": "rdf-class",
+        "subject": "s-Resource"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "disjoint",
+        "kind": "disjoint-classes",
+        "members": [
+          "A",
+          "Resource"
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "generic",
+        "kind": "class-node",
+        "targets": [
+          "Resource"
+        ],
+        "context": {
+          "kind": "field-contract-invalid-token",
+          "targets": [
+            "A"
+          ]
+        }
+      },
+      {
+        "id": "disjoint-edge",
+        "kind": "disjoint-edge",
+        "construct": "disjoint",
+        "ends": [
+          "node-A",
+          "generic"
+        ]
+      }
+    ]
+  }
+}

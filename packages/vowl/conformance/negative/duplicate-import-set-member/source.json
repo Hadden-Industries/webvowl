@@ -1,0 +1,16 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [
+        "urn:example:import",
+        "urn:example:import"
+      ],
+      "annotations": []
+    },
+    "subjects": [],
+    "roles": [],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": []
+  }
+}

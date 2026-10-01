@@ -1,0 +1,4 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Ontology(
+DataPropertyAssertion(:p :i "not-an-integer"^^xsd:integer)
+)

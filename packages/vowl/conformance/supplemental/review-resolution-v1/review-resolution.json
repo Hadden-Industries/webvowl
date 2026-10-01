@@ -1,0 +1,148 @@
+{
+  "format": "canonical-vowl-review-resolution/1",
+  "status": "metadata-repair-with-three-owner-clarifications-pending",
+  "date": "2026-09-30",
+  "reviewSource": "Independent corpus review findings relayed by the parent integration task; this supplement is the independent producer's response, not a new independent review or profile-freeze approval.",
+  "scope": "Add a versioned verifier and review-status overlay; preserve every prior index, catalog, producer, manifest, input, and expected byte file.",
+  "frozenArtifactsChanged": false,
+  "productionSourceOrTestsRead": false,
+  "preservedHistory": [
+    {
+      "path": "supplemental/provenance-index.json",
+      "sha256": "8079159ae4fb579a000b109349120320e00781c5c03fa1bfa6eab75c6e394fa7",
+      "recordedArtifacts": 83
+    },
+    {
+      "path": "supplemental/conditional/provenance.json",
+      "sha256": "627672609828c58b6a5b2bdc3674cf243bde4fea062fb1b9ffe84f04a57e89f8",
+      "recordedArtifacts": 17
+    },
+    {
+      "path": "supplemental/review-corrections.json",
+      "sha256": "c44561d6e028fad0bcee589cfdb0cdb2d2eac3cc64d817384353e1269b6ca633"
+    },
+    {
+      "path": "supplemental/conditional/display-questions.json",
+      "sha256": "0c9a1bac1cfeb8807163214bb991803714ef07567bc7340848a1e0d760ef19bc"
+    },
+    {
+      "path": "supplemental/conditional/clause-inventory.json",
+      "sha256": "0071fdda5f0faf47918d8fcb27e09bc377c33aa075836ee4c2a97980b6822dcf"
+    },
+    {
+      "path": "display-vectors.json",
+      "sha256": "ca70f0f97781cbc2dd9771a8ae8f907b920346e37fbd3c3f7344662268408cca"
+    }
+  ],
+  "provenanceRepair": {
+    "historicalRunner": {
+      "path": "supplemental/derive-index.mjs",
+      "sha256": "0ff17f5f2f78b01c1e8eb9f003122302bbea7df6eb7bcd5e3225bfdb548620d4",
+      "preserved": true
+    },
+    "reviewFinding": "The historical runner recursively discovered twelve conditional scripts/manifests absent from its frozen 83-artifact index and exited 1 at the reviewed candidate. Later additions also lie outside that frozen inventory. This failure does not establish corruption of a recorded artifact.",
+    "resolution": "Verify each scope's explicit recorded entries under its pinned index identity. Never regenerate the old index from the enlarged working directory to force agreement.",
+    "verifier": {
+      "path": "supplemental/review-resolution-v1/verify-frozen-scopes.mjs",
+      "sha256": "266147fc7f99e16227b295bf22899eb4d9db5c9a7253467b4f8360218a8346aa",
+      "byteLength": 5095
+    },
+    "command": "node packages/vowl/conformance/supplemental/review-resolution-v1/verify-frozen-scopes.mjs --self-check",
+    "behavior": "Checks the two fixed index hashes, every explicitly recorded path/hash/byte-length entry, and the recorded files referenced by each indexed manifest. Traverses metadata values only; performs no filesystem discovery, producer import, golden regeneration, or writes.",
+    "limits": "File-identity verification does not execute canonicalization, validate projection semantics, or replace production comparison and independent review. Unlisted later artifacts belong to another scope and are not silently enrolled.",
+    "observedResult": {
+      "baselineRecordedArtifacts": 83,
+      "conditionalRecordedArtifacts": 17,
+      "baselineRecordedManifests": 6,
+      "conditionalRecordedManifests": 5,
+      "baselineExplicitPinChecks": 1345,
+      "conditionalExplicitPinChecks": 612,
+      "uniqueFiles": 1291,
+      "inMemoryDigestMismatchesRejected": 2,
+      "inMemoryLengthMismatchesRejected": 2,
+      "writes": 0
+    }
+  },
+  "resolvedInterpretations": [
+    {
+      "id": "DQ-UNNEEDED-DEFAULT",
+      "status": "resolved-by-existing-normative-text",
+      "authority": {
+        "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+        "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b",
+        "section": "B2.2",
+        "quotation": "The adapter includes these required builtin subjects/roles in its normalized source only when a projection needs them; they are part of the signature closure checked by the core."
+      },
+      "resolution": "An explicit undrawable range leaves the property relation details-only. Its absent domain does not by itself require an otherwise-unused builtin default role, because no projection needs that endpoint. A separately present or needed builtin role remains in the source; no default endpoint construct is asserted.",
+      "fixtures": [
+        {
+          "id": "undrawable-range-no-default-role",
+          "canonical": {
+            "path": "supplemental/grammar/vectors/undrawable-range-no-default-role/canonical.json",
+            "sha256": "6a2e77de396c7e642326c02f8288da27ffb92b5ee4cfa904166415a0eaed55fe",
+            "byteLength": 1116
+          }
+        },
+        {
+          "id": "undrawable-range-declared-thing",
+          "canonical": {
+            "path": "supplemental/grammar/vectors/undrawable-range-declared-thing/canonical.json",
+            "sha256": "7a8112b9f7a3bae0e68dc05966f9bd602ad5a70d7f6a7164a600f03635a811eb",
+            "byteLength": 1214
+          }
+        }
+      ],
+      "expectedBytesChanged": false
+    },
+    {
+      "id": "DQ-ANONYMOUS-ROOT",
+      "status": "resolved-by-existing-normative-text",
+      "authority": {
+        "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+        "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac",
+        "section": "14.3",
+        "quotation": "If the root ontology is anonymous, no subject is classified as external."
+      },
+      "resolution": "Every subject, including a named unrelated subject, is classified as local when the root ontology is anonymous. Design 14.3 supplies the explicit subject scope missing from the earlier reading of the B5 sentence alone.",
+      "fixture": "display-vectors.json#anonymous-root-local",
+      "expectedBytesChanged": false
+    }
+  ],
+  "pendingOwnerClarifications": [
+    {
+      "id": "DQ-INVERSE-DIRECTION",
+      "rules": ["B1", "B2.4"],
+      "question": "State explicitly whether inverse-edge from/to uses the selected forward partition's effective domain/range.",
+      "retainedExpectation": "Forward domain to forward range, regardless of canonical ID ordering.",
+      "historicalReferences": [
+        "supplemental/review-corrections.json#interpretationChecks",
+        "supplemental/conditional/display-questions.json#DQ-INVERSE-DIRECTION"
+      ],
+      "status": "pending-owner-normative-clarification; no decision or fixture change in this supplement"
+    },
+    {
+      "id": "DQ-OPERATOR-DIRECTION",
+      "rules": ["B1", "B2.4"],
+      "question": "State explicitly whether operator-edge from is the operator node and to is the operand occurrence.",
+      "retainedExpectation": "Operator node to operand occurrence.",
+      "historicalReferences": [
+        "supplemental/review-corrections.json#interpretationChecks",
+        "supplemental/conditional/display-questions.json#DQ-OPERATOR-DIRECTION"
+      ],
+      "status": "pending-owner-normative-clarification; no decision or fixture change in this supplement"
+    },
+    {
+      "id": "DQ-UNICODE-PRECEDENCE",
+      "rules": ["A7", "D19"],
+      "question": "State the error precedence when Unicode invalidity coexists with an invalid or incomplete envelope: A7 orders envelope checks before scalar domains, while D19 rejects Unicode during decoded-value construction before profile selection.",
+      "retainedExpectation": "The original lone-surrogate input and error remain frozen. The isolated valid-envelope case proves Unicode rejection without resolving this combined-failure precedence.",
+      "historicalReferences": [
+        "supplemental/review-corrections.json#precedenceQuestions",
+        "negative/lone-surrogate/input.bin",
+        "supplemental/negative/vectors/lone-surrogate-in-valid-envelope-and-literal/input.bin"
+      ],
+      "status": "pending-owner-normative-clarification; implementation agreement is not a specification decision"
+    }
+  ],
+  "remainingCoverageLimits": "The eleven renderer-treatment obligations and the compact-glyph/candidate-filter fixture premises remain recorded in the frozen conditional catalogs. Resolving two wording questions does not establish exhaustive conditional, display, accessibility, browser, or release qualification."
+}

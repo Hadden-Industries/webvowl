@@ -1,0 +1,82 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/conditional#A"
+      },
+      {
+        "id": "s-D",
+        "iri": "https://example.org/conditional#D"
+      },
+      {
+        "id": "s-E",
+        "iri": "https://example.org/conditional#E"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/conditional#p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "D",
+        "kind": "datatype",
+        "subject": "s-D"
+      },
+      {
+        "id": "E",
+        "kind": "datatype",
+        "subject": "s-E"
+      },
+      {
+        "id": "p",
+        "kind": "rdf-property",
+        "subject": "s-p"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "range",
+        "kind": "data-intersection",
+        "members": [
+          "D",
+          "E"
+        ]
+      }
+    ],
+    "constructs": [
+      {
+        "id": "domain-p",
+        "kind": "rdf-domain",
+        "property": "p",
+        "target": "A",
+        "value": null
+      },
+      {
+        "id": "range-p",
+        "kind": "rdf-range",
+        "property": "p",
+        "target": "range"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      }
+    ]
+  }
+}

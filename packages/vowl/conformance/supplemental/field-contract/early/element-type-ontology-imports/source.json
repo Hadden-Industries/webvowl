@@ -1,0 +1,15 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [
+        null
+      ],
+      "annotations": []
+    },
+    "subjects": [],
+    "roles": [],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": []
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:A",
+        "iri": "urn:mapping-pair:A"
+      },
+      {
+        "id": "s:B",
+        "iri": "urn:mapping-pair:B"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s:A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s:B"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-1",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      }
+    ]
+  },
+  "visualization": {
+    "placements": [
+      {
+        "occurrence": "node-0",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "pinned": false
+      },
+      {
+        "occurrence": "node-1",
+        "position": {
+          "x": 10,
+          "y": 0
+        },
+        "pinned": false
+      }
+    ],
+    "camera": {
+      "center": {
+        "x": 0,
+        "y": 0
+      },
+      "zoom": 1
+    },
+    "hidden": [],
+    "labelSelection": {
+      "mode": "iri"
+    },
+    "prefixes": [
+      {
+        "prefix": "p",
+        "iri": "urn:mapping-pair:"
+      }
+    ],
+    "display": {
+      "compactNotation": false,
+      "nodeScaling": "direct-membership",
+      "externalColoring": false
+    }
+  }
+}

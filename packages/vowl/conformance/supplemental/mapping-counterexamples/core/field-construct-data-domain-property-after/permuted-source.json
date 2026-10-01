@@ -1,0 +1,182 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "field-permutation-2",
+        "kind": "label",
+        "id": "field-permutation-1"
+      },
+      {
+        "to": "field-permutation-5",
+        "from": "field-permutation-6",
+        "properties": [
+          "field-permutation-15"
+        ],
+        "kind": "property-edge",
+        "id": "field-permutation-2"
+      },
+      {
+        "direction": "single",
+        "edge": "field-permutation-4",
+        "kind": "label",
+        "id": "field-permutation-3"
+      },
+      {
+        "to": "field-permutation-7",
+        "from": "field-permutation-8",
+        "properties": [
+          "field-permutation-16"
+        ],
+        "kind": "property-edge",
+        "id": "field-permutation-4"
+      },
+      {
+        "context": {
+          "properties": [
+            "field-permutation-15"
+          ],
+          "kind": "property"
+        },
+        "target": "field-permutation-17",
+        "kind": "datatype-node",
+        "id": "field-permutation-5"
+      },
+      {
+        "context": {
+          "properties": [
+            "field-permutation-15"
+          ],
+          "kind": "property"
+        },
+        "targets": [
+          "field-permutation-18"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-6"
+      },
+      {
+        "context": {
+          "properties": [
+            "field-permutation-16"
+          ],
+          "kind": "property"
+        },
+        "target": "field-permutation-17",
+        "kind": "datatype-node",
+        "id": "field-permutation-7"
+      },
+      {
+        "context": {
+          "properties": [
+            "field-permutation-16"
+          ],
+          "kind": "property"
+        },
+        "targets": [
+          "field-permutation-18"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-8"
+      },
+      {
+        "targets": [
+          "field-permutation-12",
+          "field-permutation-13",
+          "field-permutation-14"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-9"
+      }
+    ],
+    "constructs": [
+      {
+        "target": "field-permutation-18",
+        "property": "field-permutation-15",
+        "kind": "data-domain",
+        "id": "field-permutation-10"
+      },
+      {
+        "members": [
+          "field-permutation-12",
+          "field-permutation-13",
+          "field-permutation-14"
+        ],
+        "kind": "equivalent-classes",
+        "id": "field-permutation-11"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "field-permutation-19",
+        "kind": "class",
+        "id": "field-permutation-12"
+      },
+      {
+        "subject": "field-permutation-20",
+        "kind": "class",
+        "id": "field-permutation-13"
+      },
+      {
+        "subject": "field-permutation-21",
+        "kind": "class",
+        "id": "field-permutation-14"
+      },
+      {
+        "subject": "field-permutation-22",
+        "kind": "data-property",
+        "id": "field-permutation-15"
+      },
+      {
+        "subject": "field-permutation-23",
+        "kind": "data-property",
+        "id": "field-permutation-16"
+      },
+      {
+        "subject": "field-permutation-24",
+        "kind": "datatype",
+        "id": "field-permutation-17"
+      },
+      {
+        "subject": "field-permutation-25",
+        "kind": "class",
+        "id": "field-permutation-18"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "urn:mapping-pair:C",
+        "id": "field-permutation-19"
+      },
+      {
+        "iri": "urn:mapping-pair:B",
+        "id": "field-permutation-20"
+      },
+      {
+        "iri": "urn:mapping-pair:A",
+        "id": "field-permutation-21"
+      },
+      {
+        "iri": "urn:mapping-pair:dq",
+        "id": "field-permutation-22"
+      },
+      {
+        "iri": "urn:mapping-pair:dp",
+        "id": "field-permutation-23"
+      },
+      {
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
+        "id": "field-permutation-24"
+      },
+      {
+        "iri": "http://www.w3.org/2002/07/owl#Thing",
+        "id": "field-permutation-25"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

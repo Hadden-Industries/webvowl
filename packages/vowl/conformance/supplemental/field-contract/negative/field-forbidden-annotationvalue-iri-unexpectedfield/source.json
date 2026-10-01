@@ -1,0 +1,53 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "urn:example:source-handle",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "subject-note",
+        "iri": "https://example.org/supplement#note"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "urn:example:source-handle"
+      },
+      {
+        "id": "note",
+        "kind": "annotation-property",
+        "subject": "subject-note"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "annotation",
+        "kind": "annotation-assertion",
+        "subject": "urn:example:source-handle",
+        "predicate": "https://example.org/supplement#note",
+        "value": {
+          "kind": "iri",
+          "iri": "urn:example:source-handle",
+          "unexpectedField": null
+        }
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      }
+    ]
+  }
+}

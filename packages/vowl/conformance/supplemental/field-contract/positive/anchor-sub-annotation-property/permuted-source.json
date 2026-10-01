@@ -1,0 +1,78 @@
+{
+  "structural": {
+    "occurrences": [],
+    "constructs": [
+      {
+        "annotations": [
+          {
+            "annotations": [],
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#string",
+              "lexical": "sub-annotation-property anchor",
+              "kind": "typed"
+            },
+            "predicate": "urn:field-contract:annotation"
+          }
+        ],
+        "assertion": {
+          "super": "field-permutation-5",
+          "sub": "field-permutation-6",
+          "kind": "sub-annotation-property"
+        },
+        "kind": "assertion-anchor",
+        "id": "field-permutation-1"
+      },
+      {
+        "super": "field-permutation-5",
+        "sub": "field-permutation-6",
+        "kind": "sub-annotation-property",
+        "id": "field-permutation-2"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "field-permutation-7",
+        "kind": "datatype",
+        "id": "field-permutation-3"
+      },
+      {
+        "subject": "field-permutation-8",
+        "kind": "annotation-property",
+        "id": "field-permutation-4"
+      },
+      {
+        "subject": "field-permutation-9",
+        "kind": "annotation-property",
+        "id": "field-permutation-5"
+      },
+      {
+        "subject": "field-permutation-10",
+        "kind": "annotation-property",
+        "id": "field-permutation-6"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "http://www.w3.org/2001/XMLSchema#string",
+        "id": "field-permutation-7"
+      },
+      {
+        "iri": "urn:field-contract:annotation",
+        "id": "field-permutation-8"
+      },
+      {
+        "iri": "https://example.org/supplement#q",
+        "id": "field-permutation-9"
+      },
+      {
+        "iri": "https://example.org/supplement#p",
+        "id": "field-permutation-10"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

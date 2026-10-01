@@ -1,0 +1,5823 @@
+{
+  "format": "independent-canonical-vowl-migration-corpus-v1",
+  "scope": "Bounded independently transcribed A9.3 witnesses for one pinned historical dialect; no claim to reconstruct facts the historical exporter omitted or to qualify every possible pass-through document.",
+  "specificationRevision": [
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+      "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-30-canonical-vowl-protocol-clarifications.md",
+      "sha256": "057bd8a3a15d5a574b753683917b871bd27bf239d9fd9ffad484550361cd84b4"
+    }
+  ],
+  "migrationAuthorities": [
+    {
+      "base": "repository",
+      "path": "docs/plans/2026-09-24-canonical-vowl-implementation-plan.md",
+      "sha256": "15caf9bb9d87051a66a599e7c0d63649a8f775fb8ea4e72c02f7b6c1d6bfd740"
+    },
+    {
+      "base": "repository",
+      "path": "docs/reviews/canonical-vowl-legacy-dialect-inventory.md",
+      "sha256": "9945b689cbc8c5078d169d8797dfdfa1958f5fc3825d6675a6cf8b91c1be5b33"
+    },
+    {
+      "base": "repository",
+      "path": "docs/reviews/canonical-vowl-legacy-ingress-contract.md",
+      "sha256": "4c86970e1360b6e5702da323876dae286f85590c5e582fba31a747080b899306"
+    }
+  ],
+  "independentDependencies": [
+    {
+      "base": "conformance",
+      "path": "supplemental/amended-policy/producer.mjs",
+      "sha256": "da7936738c98cb853de7c6d6f2ae7528cbd4d47a0c1ccb1258dae7c5f7143321"
+    },
+    {
+      "base": "conformance",
+      "path": "supplemental/mapping-counterexamples/model.mjs",
+      "sha256": "3a4ebd134c1d209f84cf9c54072988a7e712f12286e95d35edec4d20f600bfc5"
+    }
+  ],
+  "historicalEvidence": {
+    "builder": {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "src/owl2vowl/js/vowlBuilder.js",
+      "gitBlob": "ae985c9479724883fa98ea08ae89f9459e4d67c3",
+      "sha256": "fe50b8c1b41ac76a23f6dd480a909ceff869eaebf299876f3980bc50430d80fe",
+      "byteLength": 67405
+    },
+    "exporter": {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "src/app/js/controller/visualizationArtifactService.js",
+      "gitBlob": "2e55d56c53e173b2230ebd3ae5907cd812538062",
+      "sha256": "317e473bd1c666b211ed6af6b2e8ebc2352e4cfd24b1f20a136a43fee0e819a7",
+      "byteLength": 14568
+    },
+    "execution": "Exact pinned builder statements and exact pinned serializer/assertPlainRecord/isPlainRecord function text; the sole builder import specifier is resolved to the installed public owlapi/model API. No current application source is imported. This is builder plus serializer input generation, not a full historical controller/browser execution or old-dependency rebuild.",
+    "publicModelDependency": {
+      "packageName": "owlapi",
+      "version": "0.1.0-rc.1",
+      "packageJsonSha256": "97700a43b5571755976cb1d531d00bc016562faf6d8ba483ef1d1ad8dc144d57",
+      "modelEntrySha256": "562e2f253f9de42688319fdfc32a626ac1b97f33f69dde5342b4feac050cc878",
+      "limitation": "Installed public model constructors author ordinary ontology objects. This is not a claim to execute the historical caabb1197ffdab91c1e10d596d177b5142aea5c1 dependency or to pin its transitive graph."
+    },
+    "serializerRanges": [
+      {
+        "startOffset": 761,
+        "endOffsetExclusive": 1258
+      },
+      {
+        "startOffset": 12811,
+        "endOffsetExclusive": 14568
+      }
+    ],
+    "groupingCollisions": [
+      {
+        "kind": "equivalence",
+        "distinctInputs": "One three-member axiom versus all three two-member axioms",
+        "equalSerializedBytes": true,
+        "outputSha256": "4a404b95840e8542c8190886a98cb3a2e7f65fb54cb3c61b043564ee22c99412",
+        "byteLength": 1771
+      },
+      {
+        "kind": "disjointness",
+        "distinctInputs": "One three-member axiom versus all three two-member axioms",
+        "equalSerializedBytes": true,
+        "outputSha256": "f59729952c380803e3bd7e9793e5bb6a044bba150b38daf0711d7493acc93f5c",
+        "byteLength": 2027
+      }
+    ]
+  },
+  "historicalSources": [
+    {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "src/owl2vowl/js/vowlBuilder.js",
+      "gitBlob": "ae985c9479724883fa98ea08ae89f9459e4d67c3",
+      "sha256": "fe50b8c1b41ac76a23f6dd480a909ceff869eaebf299876f3980bc50430d80fe",
+      "byteLength": 67405
+    },
+    {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "src/app/js/controller/visualizationArtifactService.js",
+      "gitBlob": "2e55d56c53e173b2230ebd3ae5907cd812538062",
+      "sha256": "317e473bd1c666b211ed6af6b2e8ebc2352e4cfd24b1f20a136a43fee0e819a7",
+      "byteLength": 14568
+    },
+    {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "src/app/js/controller/webVowlController.js",
+      "gitBlob": "43d908fb865b706db6709f3a459b1e22f1dfd1fa",
+      "sha256": "77f404c2f039169b184305f814d61c7d666043706f0c0b4af690362e10034e2d",
+      "byteLength": 66198
+    },
+    {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "src/app/js/controller/vowlDocumentArrangement.js",
+      "gitBlob": "5e9246ed98ce26bdd629b7bfe7db13462f24065d",
+      "sha256": "0cd6df468ae28bf267afdde2197bf1a17f2f07c56a07528ffdcd2e1d2b3f506b",
+      "byteLength": 1264
+    },
+    {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "src/app/js/controller/vowlDocument.js",
+      "gitBlob": "c4eed30f6f5a25d96fec46926a36071ec1fafb46",
+      "sha256": "1e7f01358ccf08d0fd7bfe74728015dfe2855662b314f50543d7c39b42423430",
+      "byteLength": 25052
+    },
+    {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "src/app/js/controller/vowlVisualizationSettings.js",
+      "gitBlob": "3eecab41b05fb46144d6f60cefae62f30da6f6f9",
+      "sha256": "62a87a6f2565d9ecd27f2c64128fb687a29685de970dbeee3e2993081bf5122e",
+      "byteLength": 6588
+    },
+    {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "src/webvowl/js/parser.js",
+      "gitBlob": "ba5df44f58267b976a62e89856be2f9493f1b112",
+      "sha256": "917343cd56c2be69b6db79833055c4c4eaa13a960fca29ff0fa5a811e2c52e81",
+      "byteLength": 22343
+    },
+    {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "src/webvowl/js/runtime/renderedGraphInternals.js",
+      "gitBlob": "ea704cf2399cdb433186bcfbe724f35e2126189f",
+      "sha256": "647369fa7fb3c260189bc0fc20dcbff06c8755e58a8552adc2b0bcb91de7236e",
+      "byteLength": 152585
+    },
+    {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "src/shared/js/modules/nodeDegreeFilter.js",
+      "gitBlob": "49adc8e7359e3a3c4a3ec365b67590a83b39cd0c",
+      "sha256": "6a33106b51b65543510355500c5b677cf23c3a8fee73c96143afd7c8494c9f68",
+      "byteLength": 4016
+    },
+    {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "src/shared/js/modules/subclassFilter.js",
+      "gitBlob": "4e036486f269dcfb482374069c0da431eaa2abe1",
+      "sha256": "90d5ef11945058de2e58ad8ce43bd90d0404dd0c22f14fc0dcec7cbb6b6e2c98",
+      "byteLength": 5132
+    },
+    {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "src/shared/js/util/languageTools.js",
+      "gitBlob": "b89466d5d943dbe9305ef840210ba51f60e1783e",
+      "sha256": "561f763f1bbc8fd5d7b23c22ed00762da45bc20600582b7897e1a20b485d3d74",
+      "byteLength": 1519
+    },
+    {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "src/webvowl/js/elements/BaseElement.js",
+      "gitBlob": "207972e5943ac732daeedb646368242035861715",
+      "sha256": "d49ecc57eca44dc8a2e3ef10be0b90e6d3b8765488a22d53f0d4e3f7e8618130",
+      "byteLength": 5514
+    },
+    {
+      "commit": "354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "path": "package.json",
+      "gitBlob": "34c6d549e2f5ceb34b4d0b62c86fe96b2de0a57e",
+      "sha256": "9424198c589cf29a04b05333ec00674f692260e47946a69a421b476395ff30af",
+      "byteLength": 3976
+    }
+  ],
+  "producerSources": [
+    {
+      "path": "supplemental/migration/support.mjs",
+      "sha256": "56e117a83f2867812fdacfd49d82f1d1a0e224345ee991c3215f4637683488b8",
+      "byteLength": 2899
+    },
+    {
+      "path": "supplemental/migration/historical.mjs",
+      "sha256": "b41ef11c492fa5e7a66beca25e5aee6e63e6c5d1ecd85c1dd76b3e01e91b663e",
+      "byteLength": 4321
+    },
+    {
+      "path": "supplemental/migration/cases.mjs",
+      "sha256": "3ca4e7a60a5c4aa952918f148d039d7085aae23381d802ff85b67973ff6ee2cb",
+      "byteLength": 24285
+    },
+    {
+      "path": "supplemental/migration/artifact-cases.mjs",
+      "sha256": "e4367912326f321480365ec9c87e6423e7745cfaada1eda9fcb8bdd2b4333e9a",
+      "byteLength": 12993
+    },
+    {
+      "path": "supplemental/migration/compact.mjs",
+      "sha256": "77e6f39b4fd9fe7b955fcf2dfcd213a90d14f820e20a541c0d9fecf9ff26b98b",
+      "byteLength": 3567
+    },
+    {
+      "path": "supplemental/migration/derive.mjs",
+      "sha256": "355e4853999cb3a00ef2907dc1bbc6367bb6852060704a921061cf8948c74105",
+      "byteLength": 4962
+    }
+  ],
+  "verifierSources": [
+    {
+      "path": "supplemental/migration/verify.mjs",
+      "sha256": "57865dbf01718d52e440cf7760350340f462ae706b3017481a5b968680baaac6",
+      "byteLength": 8677
+    }
+  ],
+  "inputRepresentation": {
+    "kind": "shared-json-seed-and-patches",
+    "patchOperations": [
+      "add",
+      "remove",
+      "replace"
+    ],
+    "pointerEscaping": "RFC 6901",
+    "serialization": "Preserve stored array order, recursively sort object field names in unsigned UTF-16 order, then JSON.stringify(value,null,2), without a trailing newline. Derivation checks byte equality with the pinned historical serializer for every vector."
+  },
+  "diagnosticPolicy": "Require each independently listed code and exact source location, plus a resolved-field diagnostic for every supplied resolution. English prose and unspecified diagnostic cardinality are not goldens. The entire returned envelope must be deeply frozen.",
+  "seeds": {
+    "empty": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [],
+      "classAttribute": [],
+      "header": {
+        "author": [],
+        "baseIris": [],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "No IRI set",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 0,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 0,
+        "objectPropertyCount": 0,
+        "propertyCount": 0
+      },
+      "namespace": [],
+      "property": [],
+      "propertyAttribute": []
+    },
+    "named": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:Class"
+        }
+      ],
+      "classAttribute": [
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "0",
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 1,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 1,
+        "objectPropertyCount": 0,
+        "propertyCount": 0
+      },
+      "namespace": [],
+      "property": [],
+      "propertyAttribute": []
+    },
+    "subclass": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:Class"
+        },
+        {
+          "id": "1",
+          "type": "owl:Class"
+        }
+      ],
+      "classAttribute": [
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "0",
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        },
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "1",
+          "instances": 0,
+          "iri": "https://example.org/legacy#B",
+          "label": {
+            "IRI-based": "B"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 2,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 2,
+        "objectPropertyCount": 0,
+        "propertyCount": 1
+      },
+      "namespace": [],
+      "property": [
+        {
+          "id": "2",
+          "type": "rdfs:SubClassOf"
+        }
+      ],
+      "propertyAttribute": [
+        {
+          "attributes": [
+            "transitive"
+          ],
+          "baseIri": "http://www.w3.org/2000/01/rdf-schema",
+          "domain": "0",
+          "id": "2",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "range": "1"
+        }
+      ]
+    },
+    "equivalent": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:equivalentClass"
+        },
+        {
+          "id": "1",
+          "type": "owl:equivalentClass"
+        }
+      ],
+      "classAttribute": [
+        {
+          "attributes": [
+            "equivalent"
+          ],
+          "baseIri": "https://example.org/legacy",
+          "equivalent": [
+            "1"
+          ],
+          "id": "0",
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        },
+        {
+          "attributes": [
+            "equivalent"
+          ],
+          "baseIri": "https://example.org/legacy",
+          "equivalent": [
+            "0"
+          ],
+          "id": "1",
+          "instances": 0,
+          "iri": "https://example.org/legacy#B",
+          "label": {
+            "IRI-based": "B"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 0,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 2,
+        "objectPropertyCount": 0,
+        "propertyCount": 0
+      },
+      "namespace": [],
+      "property": [],
+      "propertyAttribute": []
+    },
+    "disjoint": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:Class"
+        },
+        {
+          "id": "1",
+          "type": "owl:Class"
+        }
+      ],
+      "classAttribute": [
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "0",
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        },
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "1",
+          "instances": 0,
+          "iri": "https://example.org/legacy#B",
+          "label": {
+            "IRI-based": "B"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 2,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 2,
+        "objectPropertyCount": 0,
+        "propertyCount": 1
+      },
+      "namespace": [],
+      "property": [
+        {
+          "id": "2",
+          "type": "owl:disjointWith"
+        }
+      ],
+      "propertyAttribute": [
+        {
+          "attributes": [
+            "anonymous",
+            "object"
+          ],
+          "domain": "0",
+          "id": "2",
+          "range": "1"
+        }
+      ]
+    },
+    "equivalentChain": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:equivalentClass"
+        },
+        {
+          "id": "1",
+          "type": "owl:equivalentClass"
+        },
+        {
+          "id": "2",
+          "type": "owl:equivalentClass"
+        }
+      ],
+      "classAttribute": [
+        {
+          "attributes": [
+            "equivalent"
+          ],
+          "baseIri": "https://example.org/legacy",
+          "equivalent": [
+            "1"
+          ],
+          "id": "0",
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        },
+        {
+          "attributes": [
+            "equivalent"
+          ],
+          "baseIri": "https://example.org/legacy",
+          "equivalent": [
+            "0",
+            "2"
+          ],
+          "id": "1",
+          "instances": 0,
+          "iri": "https://example.org/legacy#B",
+          "label": {
+            "IRI-based": "B"
+          }
+        },
+        {
+          "attributes": [
+            "equivalent"
+          ],
+          "baseIri": "https://example.org/legacy",
+          "equivalent": [
+            "1"
+          ],
+          "id": "2",
+          "instances": 0,
+          "iri": "https://example.org/legacy#C",
+          "label": {
+            "IRI-based": "C"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 0,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 3,
+        "objectPropertyCount": 0,
+        "propertyCount": 0
+      },
+      "namespace": [],
+      "property": [],
+      "propertyAttribute": []
+    },
+    "membership": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:Class"
+        }
+      ],
+      "classAttribute": [
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "0",
+          "individuals": [
+            {
+              "baseIri": "https://example.org/legacy",
+              "iri": "https://example.org/legacy#i",
+              "labels": {
+                "IRI-based": "i"
+              }
+            }
+          ],
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 1,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 1,
+        "nodeCount": 1,
+        "objectPropertyCount": 0,
+        "propertyCount": 0
+      },
+      "namespace": [],
+      "property": [],
+      "propertyAttribute": []
+    },
+    "iriAnnotation": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:Class"
+        }
+      ],
+      "classAttribute": [
+        {
+          "annotations": {
+            "note": [
+              {
+                "identifier": "note",
+                "predicateNs": "https://example.org/legacy#",
+                "type": "iri",
+                "value": "urn:legacy:value:kept"
+              }
+            ]
+          },
+          "baseIri": "https://example.org/legacy",
+          "id": "0",
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 1,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 1,
+        "objectPropertyCount": 0,
+        "propertyCount": 0
+      },
+      "namespace": [],
+      "property": [],
+      "propertyAttribute": []
+    },
+    "typedAnnotation": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:Class"
+        }
+      ],
+      "classAttribute": [
+        {
+          "annotations": {
+            "note": [
+              {
+                "identifier": "note",
+                "language": "undefined",
+                "predicateNs": "https://example.org/legacy#",
+                "type": "label",
+                "value": "007"
+              }
+            ]
+          },
+          "baseIri": "https://example.org/legacy",
+          "id": "0",
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [
+          "undefined"
+        ],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 1,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 1,
+        "objectPropertyCount": 0,
+        "propertyCount": 0
+      },
+      "namespace": [],
+      "property": [],
+      "propertyAttribute": []
+    },
+    "languageAnnotation": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:Class"
+        }
+      ],
+      "classAttribute": [
+        {
+          "annotations": {
+            "note": [
+              {
+                "identifier": "note",
+                "language": "fr",
+                "predicateNs": "https://example.org/legacy#",
+                "type": "label",
+                "value": "Café"
+              }
+            ]
+          },
+          "baseIri": "https://example.org/legacy",
+          "id": "0",
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [
+          "fr"
+        ],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 1,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 1,
+        "objectPropertyCount": 0,
+        "propertyCount": 0
+      },
+      "namespace": [],
+      "property": [],
+      "propertyAttribute": []
+    },
+    "fullIriAnnotation": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:Class"
+        }
+      ],
+      "classAttribute": [
+        {
+          "annotations": {
+            "https://example.org/legacy#ending/": [
+              {
+                "identifier": "https://example.org/legacy#ending/",
+                "predicateNs": "",
+                "type": "iri",
+                "value": "urn:legacy:value:kept"
+              }
+            ]
+          },
+          "baseIri": "https://example.org/legacy",
+          "id": "0",
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 1,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 1,
+        "objectPropertyCount": 0,
+        "propertyCount": 0
+      },
+      "namespace": [],
+      "property": [],
+      "propertyAttribute": []
+    },
+    "propertyDefault": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:Thing"
+        }
+      ],
+      "classAttribute": [
+        {
+          "baseIri": "http://www.w3.org/2002/07/owl",
+          "id": "0",
+          "instances": 0,
+          "iri": "http://www.w3.org/2002/07/owl#Thing",
+          "label": {
+            "undefined": "Thing"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 0,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 1,
+        "objectPropertyCount": 1,
+        "propertyCount": 1
+      },
+      "namespace": [],
+      "property": [
+        {
+          "id": "1",
+          "type": "owl:objectProperty"
+        }
+      ],
+      "propertyAttribute": [
+        {
+          "attributes": [
+            "object"
+          ],
+          "baseIri": "https://example.org/legacy",
+          "domain": "0",
+          "id": "1",
+          "iri": "https://example.org/legacy#p",
+          "label": {
+            "IRI-based": "p"
+          },
+          "range": "0"
+        }
+      ]
+    },
+    "propertyExplicitTop": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:Thing"
+        }
+      ],
+      "classAttribute": [
+        {
+          "baseIri": "http://www.w3.org/2002/07/owl",
+          "id": "0",
+          "instances": 0,
+          "iri": "http://www.w3.org/2002/07/owl#Thing",
+          "label": {
+            "undefined": "Thing"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 0,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 1,
+        "objectPropertyCount": 1,
+        "propertyCount": 1
+      },
+      "namespace": [],
+      "property": [
+        {
+          "id": "1",
+          "type": "owl:objectProperty"
+        }
+      ],
+      "propertyAttribute": [
+        {
+          "attributes": [
+            "object"
+          ],
+          "baseIri": "https://example.org/legacy",
+          "domain": "0",
+          "id": "1",
+          "iri": "https://example.org/legacy#p",
+          "label": {
+            "IRI-based": "p"
+          },
+          "range": "0"
+        }
+      ]
+    },
+    "inverseDerived": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:Class"
+        },
+        {
+          "id": "1",
+          "type": "owl:Class"
+        }
+      ],
+      "classAttribute": [
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "0",
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        },
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "1",
+          "instances": 0,
+          "iri": "https://example.org/legacy#B",
+          "label": {
+            "IRI-based": "B"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 2,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 2,
+        "objectPropertyCount": 2,
+        "propertyCount": 2
+      },
+      "namespace": [],
+      "property": [
+        {
+          "id": "3",
+          "type": "owl:objectProperty"
+        },
+        {
+          "id": "4",
+          "type": "owl:objectProperty"
+        }
+      ],
+      "propertyAttribute": [
+        {
+          "attributes": [
+            "object"
+          ],
+          "baseIri": "https://example.org/legacy",
+          "domain": "0",
+          "id": "3",
+          "inverse": "4",
+          "iri": "https://example.org/legacy#p",
+          "label": {
+            "IRI-based": "p"
+          },
+          "range": "1"
+        },
+        {
+          "attributes": [
+            "object"
+          ],
+          "baseIri": "https://example.org/legacy",
+          "domain": "1",
+          "id": "4",
+          "inverse": "3",
+          "iri": "https://example.org/legacy#q",
+          "label": {
+            "IRI-based": "q"
+          },
+          "range": "0"
+        }
+      ]
+    },
+    "restriction": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:Thing"
+        },
+        {
+          "id": "1",
+          "type": "owl:Class"
+        }
+      ],
+      "classAttribute": [
+        {
+          "baseIri": "http://www.w3.org/2002/07/owl",
+          "id": "0",
+          "instances": 0,
+          "iri": "http://www.w3.org/2002/07/owl#Thing",
+          "label": {
+            "undefined": "Thing"
+          }
+        },
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "1",
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 1,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 2,
+        "objectPropertyCount": 1,
+        "propertyCount": 1
+      },
+      "namespace": [],
+      "property": [
+        {
+          "id": "2",
+          "type": "owl:objectProperty"
+        }
+      ],
+      "propertyAttribute": [
+        {
+          "attributes": [
+            "object"
+          ],
+          "baseIri": "https://example.org/legacy",
+          "domain": "0",
+          "id": "2",
+          "iri": "https://example.org/legacy#p",
+          "label": {
+            "IRI-based": "p"
+          },
+          "minCardinality": "2",
+          "range": "0"
+        }
+      ]
+    },
+    "operator": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:Class"
+        },
+        {
+          "id": "1",
+          "type": "owl:Class"
+        },
+        {
+          "id": "2",
+          "type": "owl:Class"
+        },
+        {
+          "id": "3",
+          "type": "owl:unionOf"
+        }
+      ],
+      "classAttribute": [
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "0",
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        },
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "1",
+          "instances": 0,
+          "iri": "https://example.org/legacy#B",
+          "label": {
+            "IRI-based": "B"
+          }
+        },
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "2",
+          "instances": 0,
+          "iri": "https://example.org/legacy#C",
+          "label": {
+            "IRI-based": "C"
+          }
+        },
+        {
+          "attributes": [
+            "union",
+            "anonymous"
+          ],
+          "id": "3",
+          "instances": 0,
+          "union": [
+            "1",
+            "2"
+          ]
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 3,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 4,
+        "objectPropertyCount": 0,
+        "propertyCount": 1
+      },
+      "namespace": [],
+      "property": [
+        {
+          "id": "4",
+          "type": "rdfs:SubClassOf"
+        }
+      ],
+      "propertyAttribute": [
+        {
+          "attributes": [
+            "transitive"
+          ],
+          "baseIri": "http://www.w3.org/2000/01/rdf-schema",
+          "domain": "0",
+          "id": "4",
+          "iri": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+          "range": "3"
+        }
+      ]
+    },
+    "datatype": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "rdfs:Datatype"
+        },
+        {
+          "id": "1",
+          "type": "owl:Thing"
+        }
+      ],
+      "classAttribute": [
+        {
+          "attributes": [
+            "datatype"
+          ],
+          "baseIri": "http://www.w3.org/2001/XMLSchema",
+          "id": "0",
+          "instances": 0,
+          "iri": "http://www.w3.org/2001/XMLSchema#integer",
+          "label": {
+            "IRI-based": "integer"
+          }
+        },
+        {
+          "baseIri": "http://www.w3.org/2002/07/owl",
+          "id": "1",
+          "instances": 0,
+          "iri": "http://www.w3.org/2002/07/owl#Thing",
+          "label": {
+            "undefined": "Thing"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 0,
+        "datatypeCount": 1,
+        "datatypePropertyCount": 1,
+        "individualCount": 0,
+        "nodeCount": 2,
+        "objectPropertyCount": 0,
+        "propertyCount": 1
+      },
+      "namespace": [],
+      "property": [
+        {
+          "id": "3",
+          "type": "owl:datatypeProperty"
+        }
+      ],
+      "propertyAttribute": [
+        {
+          "attributes": [
+            "datatype"
+          ],
+          "baseIri": "https://example.org/legacy",
+          "domain": "1",
+          "id": "3",
+          "iri": "https://example.org/legacy#age",
+          "label": {
+            "IRI-based": "age"
+          },
+          "range": "0"
+        }
+      ]
+    },
+    "equivalenceGroupingLost": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:equivalentClass"
+        },
+        {
+          "id": "1",
+          "type": "owl:equivalentClass"
+        },
+        {
+          "id": "2",
+          "type": "owl:equivalentClass"
+        }
+      ],
+      "classAttribute": [
+        {
+          "attributes": [
+            "equivalent"
+          ],
+          "baseIri": "https://example.org/legacy",
+          "equivalent": [
+            "1",
+            "2"
+          ],
+          "id": "0",
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        },
+        {
+          "attributes": [
+            "equivalent"
+          ],
+          "baseIri": "https://example.org/legacy",
+          "equivalent": [
+            "0",
+            "2"
+          ],
+          "id": "1",
+          "instances": 0,
+          "iri": "https://example.org/legacy#B",
+          "label": {
+            "IRI-based": "B"
+          }
+        },
+        {
+          "attributes": [
+            "equivalent"
+          ],
+          "baseIri": "https://example.org/legacy",
+          "equivalent": [
+            "0",
+            "1"
+          ],
+          "id": "2",
+          "instances": 0,
+          "iri": "https://example.org/legacy#C",
+          "label": {
+            "IRI-based": "C"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 0,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 3,
+        "objectPropertyCount": 0,
+        "propertyCount": 0
+      },
+      "namespace": [],
+      "property": [],
+      "propertyAttribute": []
+    },
+    "disjointnessGroupingLost": {
+      "_comment": "Created with owlapi VOWLBuilder",
+      "class": [
+        {
+          "id": "0",
+          "type": "owl:Class"
+        },
+        {
+          "id": "1",
+          "type": "owl:Class"
+        },
+        {
+          "id": "2",
+          "type": "owl:Class"
+        }
+      ],
+      "classAttribute": [
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "0",
+          "instances": 0,
+          "iri": "https://example.org/legacy#A",
+          "label": {
+            "IRI-based": "A"
+          }
+        },
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "1",
+          "instances": 0,
+          "iri": "https://example.org/legacy#B",
+          "label": {
+            "IRI-based": "B"
+          }
+        },
+        {
+          "baseIri": "https://example.org/legacy",
+          "id": "2",
+          "instances": 0,
+          "iri": "https://example.org/legacy#C",
+          "label": {
+            "IRI-based": "C"
+          }
+        }
+      ],
+      "header": {
+        "author": [],
+        "baseIris": [
+          "https://example.org/legacy"
+        ],
+        "comments": {},
+        "description": {},
+        "imports": [],
+        "iri": "https://example.org/legacy",
+        "labels": {},
+        "languages": [],
+        "other": {},
+        "prefixList": {},
+        "title": {},
+        "version": ""
+      },
+      "metrics": {
+        "classCount": 3,
+        "datatypeCount": 0,
+        "datatypePropertyCount": 0,
+        "individualCount": 0,
+        "nodeCount": 3,
+        "objectPropertyCount": 0,
+        "propertyCount": 3
+      },
+      "namespace": [],
+      "property": [
+        {
+          "id": "3",
+          "type": "owl:disjointWith"
+        },
+        {
+          "id": "4",
+          "type": "owl:disjointWith"
+        },
+        {
+          "id": "5",
+          "type": "owl:disjointWith"
+        }
+      ],
+      "propertyAttribute": [
+        {
+          "attributes": [
+            "anonymous",
+            "object"
+          ],
+          "domain": "0",
+          "id": "3",
+          "range": "1"
+        },
+        {
+          "attributes": [
+            "anonymous",
+            "object"
+          ],
+          "domain": "0",
+          "id": "4",
+          "range": "2"
+        },
+        {
+          "attributes": [
+            "anonymous",
+            "object"
+          ],
+          "domain": "1",
+          "id": "5",
+          "range": "2"
+        }
+      ]
+    }
+  },
+  "expectedBundle": {
+    "path": "supplemental/migration/expected-successes.json",
+    "sha256": "7af731ac93d6d6b30ae69ecaf221c85f42c8b03bff1080f2db44efbaa6869bf6",
+    "byteLength": 462938
+  },
+  "vectors": [
+    {
+      "id": "empty-anonymous-structural",
+      "input": {
+        "seed": "empty",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 607,
+        "sha256": "8f1ae49c11cad7148907df12d45f645e98679da2ef68221635d5237d34d42e37"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "The exact documented No IRI set placeholder represents an anonymous root. All empty semantic collections stay empty; no subject, role or occurrence is fabricated.",
+      "origin": "actual pinned VOWLBuilder plus serializeVowlJson functions; public constructor dependency separately recorded",
+      "expected": "empty-anonymous-structural",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "named-class-structural",
+      "input": {
+        "seed": "named",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 917,
+        "sha256": "de11a4a2cbb04306ee9cd61adf0f940360baa0248e5f6adbd5c5f655b801f904"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "The complete unique class/attribute join and full IRI recover one class role and its canonical singleton occurrence. IRI-based is a generated presentation label, not an rdfs:label assertion.",
+      "origin": "actual pinned VOWLBuilder plus serializeVowlJson functions; public constructor dependency separately recorded",
+      "expected": "named-class-structural",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "resolved-iri-annotation",
+      "input": {
+        "seed": "iriAnnotation",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1165,
+        "sha256": "206d093d4f470465b4233386f9713c54fcd1f84d24ed8901330789bb2c5ccf38"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "annotation-predicate",
+          "sourcePointer": "/classAttribute/0/annotations/note/0",
+          "iri": "https://example.org/legacy#%6Eote"
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "The exact per-item annotation-predicate resolution restores the percent-encoded predicate IRI. type:iri and the absolute lexical value preserve the IRI branch without inventing a literal datatype.",
+      "origin": "actual pinned VOWLBuilder plus serializeVowlJson functions; public constructor dependency separately recorded",
+      "expected": "resolved-iri-annotation",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "resolved-alternative-lexical-predicate",
+      "input": {
+        "seed": "iriAnnotation",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1165,
+        "sha256": "206d093d4f470465b4233386f9713c54fcd1f84d24ed8901330789bb2c5ccf38"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "annotation-predicate",
+          "sourcePointer": "/classAttribute/0/annotations/note/0",
+          "iri": "https://example.org/legacy#note"
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "Identical historical bytes permit more than one lexical predicate. The explicit item resolution chooses a different retained IRI and therefore different canonical bytes.",
+      "origin": "actual pinned VOWLBuilder plus serializeVowlJson functions; public constructor dependency separately recorded",
+      "expected": "resolved-alternative-lexical-predicate",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "resolved-language-annotation",
+      "input": {
+        "seed": "languageAnnotation",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1197,
+        "sha256": "5e8aeb39a947a377799d53309d50a14ea8f45666260767be5d360f5f5ded289f"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "annotation-predicate",
+          "sourcePointer": "/classAttribute/0/annotations/note/0",
+          "iri": "https://example.org/legacy#note"
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "An explicit nonempty language tag retains the language-literal branch and lexical spelling; the exact predicate is supplied at the item location.",
+      "origin": "actual pinned VOWLBuilder plus serializeVowlJson functions; public constructor dependency separately recorded",
+      "expected": "resolved-language-annotation",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "exact-full-iri-annotation-fallback",
+      "input": {
+        "seed": "fullIriAnnotation",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1198,
+        "sha256": "aac5705e6cb414599442f1b13e16223e174e56740022e59ea3bb164f288fdd57"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "For an empty suffix the pinned localName returns the complete lexical IRI and namespaceIri returns an empty string, so this particular fallback is reversible without a resolution.",
+      "origin": "actual pinned VOWLBuilder plus serializeVowlJson functions; public constructor dependency separately recorded",
+      "expected": "exact-full-iri-annotation-fallback",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "anonymous-annotation-value",
+      "input": {
+        "seed": "iriAnnotation",
+        "patches": [
+          {
+            "op": "replace",
+            "path": "/classAttribute/0/annotations/note/0/value",
+            "value": "_:one"
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 1149,
+        "sha256": "605fbe9d4d54ca96aabf13566a49d2040d3622658b8db0b6b634838db5249d59"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "annotation-predicate",
+          "sourcePointer": "/classAttribute/0/annotations/note/0",
+          "iri": "https://example.org/legacy#%6Eote"
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "A nonempty legacy blank token is retained as an anonymous subject reference, without treating _:one as an IRI or inventing an individual role.",
+      "origin": "Independently authored blank-value mutation using the exact annotationItem blank-token branch",
+      "expected": "anonymous-annotation-value",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "nested-annotation-assertion-anchor",
+      "input": {
+        "seed": "iriAnnotation",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/annotations/note/0/annotations",
+            "value": {
+              "https://example.org/legacy#ending/": [
+                {
+                  "identifier": "https://example.org/legacy#ending/",
+                  "predicateNs": "",
+                  "type": "iri",
+                  "value": "urn:annotation:review"
+                }
+              ]
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 1506,
+        "sha256": "ec10876e654fe1b1314efc17d1e481a2b2ef3b8651c4f14921b3697ef394e4fc"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "annotation-predicate",
+          "sourcePointer": "/classAttribute/0/annotations/note/0",
+          "iri": "https://example.org/legacy#%6Eote"
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "The represented nested item annotates the exact annotation assertion. Preserve it in an assertion anchor instead of attaching it to the class or dropping it.",
+      "origin": "Independently authored nested item using pinned addAnnotationItem/nestedAnnotations field shapes",
+      "expected": "nested-annotation-assertion-anchor",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "named-subclass-structural",
+      "input": {
+        "seed": "subclass",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1476,
+        "sha256": "3c2ff021e153927df84b2b2b02dc51ec60bb0b032c3b736d81c06f04e7b6a728"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "The named classes and exact named relation are represented explicitly; traversal identifiers and the redundant presentation flags do not create extra ontology facts.",
+      "origin": "actual pinned VOWLBuilder plus serializeVowlJson functions; public constructor dependency separately recorded",
+      "expected": "named-subclass-structural",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "named-equivalent-structural",
+      "input": {
+        "seed": "equivalent",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1377,
+        "sha256": "5bedf224162bb4907e3f450bd3443d094f10d843a9c99a4bee0cf4a535c5cea3"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "The named classes and exact named relation are represented explicitly; traversal identifiers and the redundant presentation flags do not create extra ontology facts.",
+      "origin": "actual pinned VOWLBuilder plus serializeVowlJson functions; public constructor dependency separately recorded",
+      "expected": "named-equivalent-structural",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "named-disjoint-structural",
+      "input": {
+        "seed": "disjoint",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1373,
+        "sha256": "264be53cab7cacf85dbb454fa8d887efa4faa9d64a08e4564a9e794d0648139a"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "The named classes and exact named relation are represented explicitly; traversal identifiers and the redundant presentation flags do not create extra ontology facts.",
+      "origin": "actual pinned VOWLBuilder plus serializeVowlJson functions; public constructor dependency separately recorded",
+      "expected": "named-disjoint-structural",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "triangle-free-equivalence-chain",
+      "input": {
+        "seed": "equivalentChain",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1745,
+        "sha256": "021776c2f82e7024c0c980af768511f33773a0bca239207c2aed5975ffeeb34b"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "A triangle-free A-B/B-C graph can only represent the two binary links. Preserve two separate assertions; canonical occurrence grouping may group all three classes without inventing a three-member assertion.",
+      "origin": "actual pinned VOWLBuilder plus serializeVowlJson functions; public constructor dependency separately recorded",
+      "expected": "triangle-free-equivalence-chain",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "named-direct-class-membership",
+      "input": {
+        "seed": "membership",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1132,
+        "sha256": "e21739ab066060c0a767a786fb72401c2ea6c70bb5fa864852c2bd6b8361a0de"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "A named individual in the explicit individuals array identifies a retained individual role and direct class membership; the unrelated zero instances count is not used as a membership list.",
+      "origin": "actual pinned VOWLBuilder plus serializeVowlJson functions; public constructor dependency separately recorded",
+      "expected": "named-direct-class-membership",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "resolved-language-title-summary",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/header/title/fr",
+            "value": "Titre conservé"
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 952,
+        "sha256": "5ab7964ddc43d05f979643933b49691b70cf475afeb292ec5fe1d8805bcde92f"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "annotation-predicate",
+          "sourcePointer": "/header/title/fr",
+          "iri": "https://example.org/legacy#title"
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "An independently edited language-tagged summary retains its literal branch, but needs its own exact predicate resolution. It becomes an ontology annotation, not an entity assertion.",
+      "origin": "Independently authored language-tagged edit to pinned builder header",
+      "expected": "resolved-language-title-summary",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "omitted-root-explicitly-resolved",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "remove",
+            "path": "/header/iri"
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 876,
+        "sha256": "3d56f3e514b600dd09679e7876a5e74ae13486743c264b0f07af5d5716a1e92a"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "ontology-iri",
+          "sourcePointer": "/header/iri",
+          "iri": "urn:resolved-legacy-root"
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "Omitted or empty root identity is unresolved rather than known anonymous. The exact ontology-iri resolution supplies it without consulting an acquisition URL.",
+      "origin": "independently authored mutation of the pinned named-class input",
+      "expected": "omitted-root-explicitly-resolved",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "omitted-root-unresolved",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "remove",
+            "path": "/header/iri"
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 876,
+        "sha256": "3d56f3e514b600dd09679e7876a5e74ae13486743c264b0f07af5d5716a1e92a"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "An omitted or empty ontology IRI is not the documented No IRI set placeholder and cannot be silently interpreted as anonymous.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "empty-root-explicitly-resolved",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "replace",
+            "path": "/header/iri",
+            "value": ""
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 891,
+        "sha256": "7981a60769e1618162039cb932efcaba762ff9286800b67fc6d7f95c72cc487f"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "ontology-iri",
+          "sourcePointer": "/header/iri",
+          "iri": "urn:resolved-legacy-root"
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "Omitted or empty root identity is unresolved rather than known anonymous. The exact ontology-iri resolution supplies it without consulting an acquisition URL.",
+      "origin": "independently authored mutation of the pinned named-class input",
+      "expected": "omitted-root-explicitly-resolved",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "empty-root-unresolved",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "replace",
+            "path": "/header/iri",
+            "value": ""
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 891,
+        "sha256": "7981a60769e1618162039cb932efcaba762ff9286800b67fc6d7f95c72cc487f"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "An omitted or empty ontology IRI is not the documented No IRI set placeholder and cannot be silently interpreted as anonymous.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "annotation-predicate-missing",
+      "input": {
+        "seed": "iriAnnotation",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1165,
+        "sha256": "206d093d4f470465b4233386f9713c54fcd1f84d24ed8901330789bb2c5ccf38"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Percent-decoding loses whether the original predicate used note, %6Eote or another equivalent lexical encoding. predicateNs plus the decoded local name is not an inverse mapping.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "annotation-datatype-lost-after-predicate-resolution",
+      "input": {
+        "seed": "typedAnnotation",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1209,
+        "sha256": "9e1cac4c66c04447502136a9fc1ccc4daf77158d2f4ad224098bab792c51894b"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "annotation-predicate",
+          "sourcePointer": "/classAttribute/0/annotations/note/0",
+          "iri": "https://example.org/legacy#note"
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "The untagged literal no longer records its datatype. A predicate resolution cannot distinguish typed integer 007 from string 007, and A9.3 has no datatype resolution kind.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "default-property-endpoints",
+      "input": {
+        "seed": "propertyDefault",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1261,
+        "sha256": "e62e04c5838ca164d3323461ce827eaa18ee05c36164686708fe5958ea025d46"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Default endpoints and explicit owl:Thing domain/range produce byte-identical historical exports. Neither interpretation is recoverable.",
+      "origin": "actual pinned builder plus serializer output",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "explicit-top-property-endpoints",
+      "input": {
+        "seed": "propertyDefault",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1261,
+        "sha256": "e62e04c5838ca164d3323461ce827eaa18ee05c36164686708fe5958ea025d46"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "An authored top domain/range cannot be distinguished from a default endpoint; identical bytes must receive identical admission.",
+      "origin": "actual pinned builder plus serializer output",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "inverse-derived-property-endpoints",
+      "input": {
+        "seed": "inverseDerived",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1867,
+        "sha256": "1a44de85d787be36396f36c99fc0652f8ae7aa26e3a61ff4b60e3dd2b408e2b7"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Inverse-derived endpoints omit their private explicit provenance. Migration must not invent domain/range constructs.",
+      "origin": "actual pinned builder plus serializer output",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "datatype-with-ambiguous-property-endpoints",
+      "input": {
+        "seed": "datatype",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1597,
+        "sha256": "1bfe07192778ca4d8b74f79ce478c2bb1cc6777348b70b8fa1f72e9b6485e12e"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "The datatype role is visible, but its complete exported document also contains a property with an unrecoverable default domain. A recoverable node does not authorize partial success.",
+      "origin": "actual pinned builder plus serializer output",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "restriction-scope-lost",
+      "input": {
+        "seed": "restriction",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1540,
+        "sha256": "6ae0d6cfef317723d0d96d17d6bba3721440a04a4186a91eb3ae609fc8f65d57"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "An unqualified minimum restriction is written on the global property's cardinality field, losing the restriction's subclass scope. The three permitted resolutions cannot repair that loss.",
+      "origin": "actual pinned builder plus serializer output",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "operator-completeness-unattested",
+      "input": {
+        "seed": "subclass",
+        "patches": [
+          {
+            "op": "replace",
+            "path": "/class",
+            "value": [
+              {
+                "id": "3",
+                "type": "owl:unionOf"
+              },
+              {
+                "id": "0",
+                "type": "owl:Class"
+              },
+              {
+                "id": "1",
+                "type": "owl:Class"
+              },
+              {
+                "id": "2",
+                "type": "owl:Class"
+              }
+            ]
+          },
+          {
+            "op": "replace",
+            "path": "/classAttribute",
+            "value": [
+              {
+                "attributes": [
+                  "anonymous",
+                  "union"
+                ],
+                "id": "3",
+                "instances": 0,
+                "union": [
+                  "1",
+                  "2"
+                ]
+              },
+              {
+                "baseIri": "https://example.org/legacy",
+                "id": "0",
+                "instances": 0,
+                "iri": "https://example.org/legacy#A",
+                "label": {
+                  "IRI-based": "A"
+                }
+              },
+              {
+                "baseIri": "https://example.org/legacy",
+                "id": "1",
+                "instances": 0,
+                "iri": "https://example.org/legacy#B",
+                "label": {
+                  "IRI-based": "B"
+                }
+              },
+              {
+                "baseIri": "https://example.org/legacy",
+                "id": "2",
+                "instances": 0,
+                "iri": "https://example.org/legacy#C",
+                "label": {
+                  "IRI-based": "C"
+                }
+              }
+            ]
+          },
+          {
+            "op": "replace",
+            "path": "/metrics/classCount",
+            "value": 3
+          },
+          {
+            "op": "replace",
+            "path": "/metrics/nodeCount",
+            "value": 4
+          },
+          {
+            "op": "replace",
+            "path": "/property/0/id",
+            "value": "4"
+          },
+          {
+            "op": "replace",
+            "path": "/propertyAttribute/0/id",
+            "value": "4"
+          },
+          {
+            "op": "replace",
+            "path": "/propertyAttribute/0/range",
+            "value": "3"
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 1954,
+        "sha256": "db81c436ff15e9e08e611f959a2513fcd2cfbe07f2944cac718c6c09371e9491"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "The historical operator branch can discard operands before export. The remaining list does not attest a complete original expression, so the qualified ingress contract rejects this branch.",
+      "origin": "actual pinned builder plus serializer output",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "equivalence-triangle-grouping-lost",
+      "input": {
+        "seed": "equivalenceGroupingLost",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1771,
+        "sha256": "4a404b95840e8542c8190886a98cb3a2e7f65fb54cb3c61b043564ee22c99412"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "One n-ary equivalence axiom and three binary axioms have byte-identical pinned output. Their retained assertion groupings differ, so neither is selected.",
+      "origin": "actual pinned builder plus serializer output",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "disjointness-triangle-grouping-lost",
+      "input": {
+        "seed": "disjointnessGroupingLost",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 2027,
+        "sha256": "f59729952c380803e3bd7e9793e5bb6a044bba150b38daf0711d7493acc93f5c"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "One n-ary disjointness axiom and three binary axioms have byte-identical pinned output. Their retained assertion groupings differ, so neither is selected.",
+      "origin": "actual pinned builder plus serializer output",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "duplicate-class-id",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "replace",
+            "path": "/class",
+            "value": [
+              {
+                "id": "0",
+                "type": "owl:Class"
+              },
+              {
+                "id": "0",
+                "type": "owl:Class"
+              }
+            ]
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 973,
+        "sha256": "82ab2700189a1dc95e275656d70fa6a650996b312ac434bb63fa57da9314390d"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "SLICE-004 rejects duplicate IDs before removing traversal IDs.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "duplicate-attribute-id",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "replace",
+            "path": "/classAttribute",
+            "value": [
+              {
+                "baseIri": "https://example.org/legacy",
+                "id": "0",
+                "instances": 0,
+                "iri": "https://example.org/legacy#A",
+                "label": {
+                  "IRI-based": "A"
+                }
+              },
+              {
+                "baseIri": "https://example.org/legacy",
+                "id": "0",
+                "instances": 0,
+                "iri": "https://example.org/legacy#A",
+                "label": {
+                  "IRI-based": "A"
+                }
+              }
+            ]
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 1111,
+        "sha256": "6b911858d5c3da20e22af7eb2870b0dd7febd254416bd362cdcbd87bc748d610"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "A duplicated attribute partner makes the join ambiguous, even when both records are equal.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "missing-attribute-partner",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "replace",
+            "path": "/classAttribute",
+            "value": []
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 721,
+        "sha256": "669f4e9920ad053cb8c754b012d6037a7f7b5100ea085c9be57b92e2f574603b"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "A class with no attribute partner has no recoverable full IRI and must not receive invented identity.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "dangling-attribute-partner",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "replace",
+            "path": "/classAttribute/0/id",
+            "value": "missing"
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 923,
+        "sha256": "a5cc7b1cb0f9605e85dcd7d163e5598fd5066056819a04ba94f6947cdb44565f"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "The attribute references no class record; both unmatched sides must be rejected.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "conflicting-record-attribute-iri",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/class/0/iri",
+            "value": "https://example.org/legacy#Different"
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 970,
+        "sha256": "30f985dbc0898472fef1a1fa2f3fcd6f1ae4d07c475135f5129028321319f695"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "The exporter can pass record fields through, but two conflicting IRIs at a join have no priority rule authorizing silent choice.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "unknown-retained-field",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/unexplainedOntologyFact",
+            "value": "retained?"
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 959,
+        "sha256": "d31f95c7192d37d71b4cef5eace379f29adeaeb1478173b074e237290678bbbf"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "A pass-through field with no known meaning cannot be relabeled a disposable session field.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "edited-header-summary-without-original",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/header/title/en",
+            "value": "Independently edited title"
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 963,
+        "sha256": "145bffca0c69b6be01a70ac7a3fb5037a4dadccec468e0a5299d5bd28ddf63b2"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Header summaries may be edited independently. No retained annotation establishes the predicate or literal branch of this text.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "nonzero-instance-count-without-members",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "replace",
+            "path": "/classAttribute/0/instances",
+            "value": 2
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 917,
+        "sha256": "cfb1a17a6ac4d138a2077d64cd731098170a7c4c524b18684827c639f926e868"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "A numeric instance count cannot identify the missing class-membership assertions or individuals.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "unused-predicate-resolution",
+      "input": {
+        "seed": "named",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 917,
+        "sha256": "de11a4a2cbb04306ee9cd61adf0f940360baa0248e5f6adbd5c5f655b801f904"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "annotation-predicate",
+          "sourcePointer": "/classAttribute/0/annotations/note/0",
+          "iri": "https://example.org/legacy#%6Eote"
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "The pointer identifies no unresolved item in this source.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_RESOLUTION_INVALID"
+    },
+    {
+      "id": "wrong-annotation-bucket-pointer",
+      "input": {
+        "seed": "iriAnnotation",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1165,
+        "sha256": "206d093d4f470465b4233386f9713c54fcd1f84d24ed8901330789bb2c5ccf38"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "annotation-predicate",
+          "sourcePointer": "/classAttribute/0/annotations/note",
+          "iri": "https://example.org/legacy#%6Eote"
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "An array bucket is not the exact unresolved annotation item.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_RESOLUTION_INVALID"
+    },
+    {
+      "id": "duplicate-resolution-key",
+      "input": {
+        "seed": "iriAnnotation",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1165,
+        "sha256": "206d093d4f470465b4233386f9713c54fcd1f84d24ed8901330789bb2c5ccf38"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "annotation-predicate",
+          "sourcePointer": "/classAttribute/0/annotations/note/0",
+          "iri": "https://example.org/legacy#%6Eote"
+        },
+        {
+          "kind": "annotation-predicate",
+          "sourcePointer": "/classAttribute/0/annotations/note/0",
+          "iri": "https://example.org/legacy#%6Eote"
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Resolution records are unique by kind and sourcePointer, even when their values agree.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_RESOLUTION_INVALID"
+    },
+    {
+      "id": "conflicting-resolution-key",
+      "input": {
+        "seed": "iriAnnotation",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1165,
+        "sha256": "206d093d4f470465b4233386f9713c54fcd1f84d24ed8901330789bb2c5ccf38"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "annotation-predicate",
+          "sourcePointer": "/classAttribute/0/annotations/note/0",
+          "iri": "https://example.org/legacy#%6Eote"
+        },
+        {
+          "kind": "annotation-predicate",
+          "sourcePointer": "/classAttribute/0/annotations/note/0",
+          "iri": "https://example.org/legacy#other"
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Two IRIs for one resolution key conflict.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_RESOLUTION_INVALID"
+    },
+    {
+      "id": "unsupported-datatype-resolution",
+      "input": {
+        "seed": "typedAnnotation",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 1209,
+        "sha256": "9e1cac4c66c04447502136a9fc1ccc4daf77158d2f4ad224098bab792c51894b"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "literal-datatype",
+          "sourcePointer": "/classAttribute/0/annotations/note/0",
+          "iri": "http://www.w3.org/2001/XMLSchema#integer"
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "A9.3 closes the resolution kind vocabulary; missing datatype information cannot be supplied by an invented fourth kind.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_RESOLUTION_INVALID"
+    },
+    {
+      "id": "known-ontology-iri-override",
+      "input": {
+        "seed": "named",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 917,
+        "sha256": "de11a4a2cbb04306ee9cd61adf0f940360baa0248e5f6adbd5c5f655b801f904"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "ontology-iri",
+          "sourcePointer": "/header/iri",
+          "iri": "urn:replacement"
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "A known lexical ontology IRI is not unresolved. A contradictory ontology resolution cannot override it.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_RESOLUTION_INVALID"
+    },
+    {
+      "id": "known-anonymous-root-override",
+      "input": {
+        "seed": "empty",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 607,
+        "sha256": "8f1ae49c11cad7148907df12d45f645e98679da2ef68221635d5237d34d42e37"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "ontology-iri",
+          "sourcePointer": "/header/iri",
+          "iri": "urn:replacement"
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "The documented anonymous-root placeholder is already resolved absence, so an ontology resolution cannot change its identity.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_RESOLUTION_INVALID"
+    },
+    {
+      "id": "artifact-without-state",
+      "input": {
+        "seed": "named",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 917,
+        "sha256": "de11a4a2cbb04306ee9cd61adf0f940360baa0248e5f6adbd5c5f655b801f904"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Artifact migration requires complete recoverable placements, display state and camera; it cannot run a layout or choose omitted values.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "unknown-explicit-dialect",
+      "input": {
+        "seed": "named",
+        "patches": [],
+        "encoding": "UTF-8",
+        "byteLength": 917,
+        "sha256": "de11a4a2cbb04306ee9cd61adf0f940360baa0248e5f6adbd5c5f655b801f904"
+      },
+      "dialect": "webvowl-legacy-unqualified",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Migration has one explicitly named dialect and performs no exporter-comment or shape-based automatic detection.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_DIALECT_UNKNOWN"
+    },
+    {
+      "id": "named-class-artifact",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2351,
+        "sha256": "a6743442b2636f1268b27fcde2f8a230f46b794fef6a2a811ef888440883bb03"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "B2",
+        "B3",
+        "B4",
+        "B5"
+      ],
+      "rationale": "The sole canonical node has explicit position and pin state. Saved mode intent and six effective document prefixes are known; viewport resolution converts translation/zoom exactly to center (154,124).",
+      "origin": "Pinned builder input with independently authored arrangement/settings shaped against the pinned controller field producers; not a claim of full historical browser execution.",
+      "expected": "named-class-artifact",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "equal-state-equivalence-collapse-artifact",
+      "input": {
+        "seed": "equivalent",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/1/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/1/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2880,
+        "sha256": "f6a5100ad2de86a4402433acc42c1d950387fbf4f0b464fa7af52e2e7ff3e024"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "B2",
+        "B3",
+        "B4",
+        "B5"
+      ],
+      "rationale": "Both equivalent named-class records correspond to one canonical occurrence and agree exactly in saved position and pin state, so no first-record choice is needed.",
+      "origin": "Pinned builder input with independently authored arrangement/settings shaped against the pinned controller field producers; not a claim of full historical browser execution.",
+      "expected": "equal-state-equivalence-collapse-artifact",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "single-placed-equivalence-representative-artifact",
+      "input": {
+        "seed": "equivalent",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2811,
+        "sha256": "c0f8efcdfa1c44259e7240ec52a9720f51ad87c84519eac3b6b5f0acf0c13687"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "B2",
+        "B3",
+        "B4",
+        "B5"
+      ],
+      "rationale": "One represented class supplies complete position and pin state for the single grouped occurrence. The other alias supplies no conflicting state claim, so no extra coordinate is required.",
+      "origin": "Pinned builder input with independently authored arrangement/settings shaped against the pinned controller field producers; not a claim of full historical browser execution.",
+      "expected": "equal-state-equivalence-collapse-artifact",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "subclass-label-placement-artifact",
+      "input": {
+        "seed": "subclass",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": false
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              -3,
+              4
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/1/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/1/pos",
+            "value": [
+              12,
+              18
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/propertyAttribute/0/pinned",
+            "value": false
+          },
+          {
+            "op": "add",
+            "path": "/propertyAttribute/0/pos",
+            "value": [
+              4.5,
+              11
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 3050,
+        "sha256": "0bd0560fd7059d717c4e293afa0e0a1cf3cbe7cacf31c03cb5bd1b6db6ea61ab"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "B2",
+        "B3",
+        "B4",
+        "B5"
+      ],
+      "rationale": "Each class node and the generated subclass label has its own saved placement. The edge itself is not positionable.",
+      "origin": "Pinned builder input with independently authored arrangement/settings shaped against the pinned controller field producers; not a claim of full historical browser execution.",
+      "expected": "subclass-label-placement-artifact",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "subclass-filter-hidden-closure-artifact",
+      "input": {
+        "seed": "subclass",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": false
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              -3,
+              4
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/1/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/1/pos",
+            "value": [
+              12,
+              18
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/propertyAttribute/0/pinned",
+            "value": false
+          },
+          {
+            "op": "add",
+            "path": "/propertyAttribute/0/pos",
+            "value": [
+              4.5,
+              11
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 3049,
+        "sha256": "bd82f40dde33f2cb36aa0d22372018d42dfb677a95f5e9e962c9f6ca7a65e176"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "B2",
+        "B3",
+        "B4",
+        "B5"
+      ],
+      "rationale": "The pinned subclass filter removes A, whose only relation is its one outgoing subclass link; B remains. Canonical incidence closure hides A, the edge and its label while retaining every placement.",
+      "origin": "Pinned builder input with independently authored arrangement/settings shaped against the pinned controller field producers; not a claim of full historical browser execution.",
+      "expected": "subclass-filter-hidden-closure-artifact",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "checked-inapplicable-filters-artifact",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": true,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2346,
+        "sha256": "e2d1a1c6219bbca987e67064be305e52d9a649e064e798514a42a35543ca0649"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "B2",
+        "B3",
+        "B4",
+        "B5"
+      ],
+      "rationale": "All five filters are checked, but this input contains no matching datatype, property, subclass, disjointness or set-operator record. Its ordinary named class remains visible.",
+      "origin": "Pinned builder input with independently authored arrangement/settings shaped against the pinned controller field producers; not a claim of full historical browser execution.",
+      "expected": "named-class-artifact",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "degree-all-empty-restoration-artifact",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 1
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2351,
+        "sha256": "8da77a2d0a2ffa4658f7180d2899ce502bff572d62bf685b1321fc6018323dbe"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "B2",
+        "B3",
+        "B4",
+        "B5"
+      ],
+      "rationale": "The sole class has degree zero; filtering at one would empty the graph, so the pinned degree filter restores its complete incoming graph rather than hiding the class.",
+      "origin": "Pinned builder input with independently authored arrangement/settings shaped against the pinned controller field producers; not a claim of full historical browser execution.",
+      "expected": "named-class-artifact",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "explicit-untagged-selector-artifact",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "undefined",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2351,
+        "sha256": "72d1aa67aa0b52367524df750991f296d20bd86054ed59605be2e7e87202beab"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "B2",
+        "B3",
+        "B4",
+        "B5"
+      ],
+      "rationale": "The saved selector explicitly identifies the canonical selection intent; B4 defines the resulting selection algorithm. Language range case normalizes without choosing a different preference.",
+      "origin": "Pinned builder input with independently authored arrangement/settings shaped against the pinned controller field producers; not a claim of full historical browser execution.",
+      "expected": "explicit-untagged-selector-artifact",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "explicit-language-selector-artifact",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "FR-ca",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2347,
+        "sha256": "01b009a45aa27c3d776ce6baac9d272e9d1cc857af40d638d650dc1c7573a0f1"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "B2",
+        "B3",
+        "B4",
+        "B5"
+      ],
+      "rationale": "The saved selector explicitly identifies the canonical selection intent; B4 defines the resulting selection algorithm. Language range case normalizes without choosing a different preference.",
+      "origin": "Pinned builder input with independently authored arrangement/settings shaped against the pinned controller field producers; not a claim of full historical browser execution.",
+      "expected": "explicit-language-selector-artifact",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "effective-prefix-overrides-artifact",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/header/prefixList/ex",
+            "value": "https://example.org/final#"
+          },
+          {
+            "op": "replace",
+            "path": "/namespace",
+            "value": [
+              {
+                "iri": "https://example.org/old#",
+                "name": "ex"
+              },
+              {
+                "iri": "urn:first:",
+                "name": "p"
+              },
+              {
+                "iri": "urn:second:",
+                "name": "p"
+              }
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2589,
+        "sha256": "eb7a8c5c11fc8a3dfa28aa1104ead27bf2d4f18dc17e85b1c0a0439768378946"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "B2",
+        "B3",
+        "B4",
+        "B5"
+      ],
+      "rationale": "Effective prefix state begins with the six pinned editor defaults, applies namespace entries in order, then header.prefixList. Shadowed declarations are not duplicate active bindings.",
+      "origin": "Pinned builder input with independently authored arrangement/settings shaped against the pinned controller field producers; not a claim of full historical browser execution.",
+      "expected": "effective-prefix-overrides-artifact",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        }
+      ]
+    },
+    {
+      "id": "structural-explicit-layout-discard",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2351,
+        "sha256": "a6743442b2636f1268b27fcde2f8a230f46b794fef6a2a811ef888440883bb03"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [],
+      "outcome": "success",
+      "rules": [
+        "A9.3",
+        "A2",
+        "B2.1"
+      ],
+      "rationale": "A9.3 permits structural migration to discard known arrangement/settings fields with diagnostics; no viewport resolution is consumed for structural output.",
+      "origin": "Pinned builder input plus independently authored complete saved fields",
+      "expected": "named-class-structural",
+      "diagnostics": [
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/_comment"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/metrics"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/settings"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/classAttribute/0/pos"
+        },
+        {
+          "code": "MIGRATION_DROPPED_FIELD",
+          "sourcePointer": "/classAttribute/0/pinned"
+        }
+      ]
+    },
+    {
+      "id": "artifact-missing-viewport",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2351,
+        "sha256": "a6743442b2636f1268b27fcde2f8a230f46b794fef6a2a811ef888440883bb03"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Viewport dimensions were not saved by the exporter. Migration cannot infer them from the camera or browser environment.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "artifact-wrong-viewport-pointer",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2351,
+        "sha256": "a6743442b2636f1268b27fcde2f8a230f46b794fef6a2a811ef888440883bb03"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "The resolution must target the unresolved translation field, not a nearby settings object.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_RESOLUTION_INVALID"
+    },
+    {
+      "id": "artifact-missing-placement",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2304,
+        "sha256": "51ab35a14ce2382a740cf7a71d6aa657f4b431f7f2e30861021cc0dd0f0886db"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "No layout may be synthesized for the missing canonical class node placement.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "artifact-missing-pin-state",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2329,
+        "sha256": "a0cc420977d146602de687fb5d0956bf1deda9be3ef260ae5f6e8d83fffb1c05"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Omitted pin state cannot be silently defaulted to false.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "artifact-incomplete-filter-state",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2258,
+        "sha256": "48af625683bf8ed4367a3654f177be7d7f7eda02dfd78a97400dd87f4cd0592e"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Missing effective filter choices are not replaced by current application defaults.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "artifact-duplicate-filter-setting",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2441,
+        "sha256": "cd3ef3f0c654bbd1232b670930961919376ad3c275cdf915f23767dad54ec0e7"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Duplicate saved setting IDs have no unique contract interpretation, even when their values agree.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "artifact-incomplete-display-state",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2255,
+        "sha256": "3817d1dc5d48492a677708e5b2c21da29bd6c23ac9260a73111621e489ae1197"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Every canonical display mode must be explicitly recoverable.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "artifact-default-language-ambiguous",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "default",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2349,
+        "sha256": "5b34897961484cbb2ff14a608a0e8ea68ffc1492e425bc5b00c8836d9e34b96c"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Historical default selector behavior does not identify a canonical IRI, untagged, or language choice; closest-choice guessing is forbidden.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "artifact-conflicting-collapsed-placement",
+      "input": {
+        "seed": "equivalent",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/1/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/1/pos",
+            "value": [
+              21,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2880,
+        "sha256": "74ca31253999c954548c87a046cc785a1ba9217dfe6604e9a28ee8b17cf6400a"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Two legacy records collapse to one canonical occurrence but disagree in x; neither first-record selection nor averaging is authorized.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "artifact-missing-generated-label-placement",
+      "input": {
+        "seed": "subclass",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": false
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              -3,
+              4
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/1/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/1/pos",
+            "value": [
+              12,
+              18
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/propertyAttribute/0/pinned",
+            "value": false
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 3002,
+        "sha256": "6ab3c9b44aaa0da573649e06db52132251a646c3be9e49894eafa323ed469982"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "The canonical subclass label is positionable. Class placements alone cannot supply its missing saved position.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_AMBIGUOUS"
+    },
+    {
+      "id": "structural-unused-viewport-resolution",
+      "input": {
+        "seed": "named",
+        "patches": [
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pinned",
+            "value": true
+          },
+          {
+            "op": "add",
+            "path": "/classAttribute/0/pos",
+            "value": [
+              20,
+              30
+            ]
+          },
+          {
+            "op": "add",
+            "path": "/settings",
+            "value": {
+              "filter": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "datatypeFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "objectPropertyFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "subclassFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "disjointFilterCheckbox"
+                  },
+                  {
+                    "checked": false,
+                    "id": "setoperatorFilterCheckbox"
+                  }
+                ],
+                "degreeSliderValue": 0
+              },
+              "global": {
+                "language": "IRI-based",
+                "paused": false,
+                "translation": [
+                  12,
+                  -8
+                ],
+                "zoom": 2
+              },
+              "gravity": {
+                "classDistance": 200,
+                "datatypeDistance": 120
+              },
+              "modes": {
+                "checkBox": [
+                  {
+                    "checked": false,
+                    "id": "nodescalingModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "compactnotationModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "colorexternalsModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "pickandpinModuleCheckbox"
+                  },
+                  {
+                    "checked": true,
+                    "id": "labelWidthModuleCheckbox"
+                  }
+                ],
+                "colorSwitchState": false,
+                "maxLabelWidth": 180
+              }
+            }
+          }
+        ],
+        "encoding": "UTF-8",
+        "byteLength": 2351,
+        "sha256": "a6743442b2636f1268b27fcde2f8a230f46b794fef6a2a811ef888440883bb03"
+      },
+      "dialect": "webvowl-legacy-354ed3af8c1e82019f6280b2594acaceac96cca0",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "resolutions": [
+        {
+          "kind": "viewport",
+          "sourcePointer": "/settings/global/translation",
+          "width": 640,
+          "height": 480
+        }
+      ],
+      "outcome": "error",
+      "rules": [
+        "A9.3",
+        "SLICE-004"
+      ],
+      "rationale": "Structural migration discards the camera rather than resolving it, so a viewport resolution would be unused.",
+      "origin": "independently authored mutation of pinned-builder output, serialized by pinned function",
+      "errorCode": "MIGRATION_RESOLUTION_INVALID"
+    }
+  ]
+}

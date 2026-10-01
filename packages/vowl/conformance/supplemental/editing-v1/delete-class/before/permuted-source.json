@@ -1,0 +1,48 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "targets": [
+          "field-permutation-3"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-1"
+      },
+      {
+        "targets": [
+          "field-permutation-4"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-2"
+      }
+    ],
+    "constructs": [],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "field-permutation-5",
+        "kind": "class",
+        "id": "field-permutation-3"
+      },
+      {
+        "subject": "field-permutation-6",
+        "kind": "class",
+        "id": "field-permutation-4"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "urn:mapping-pair:B",
+        "id": "field-permutation-5"
+      },
+      {
+        "iri": "urn:mapping-pair:A",
+        "id": "field-permutation-6"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

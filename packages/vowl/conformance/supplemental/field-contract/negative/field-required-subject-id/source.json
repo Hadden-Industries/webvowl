@@ -1,0 +1,31 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "iri": "https://example.org/o#A"
+      }
+    ],
+    "roles": [
+      {
+        "id": "class-role",
+        "kind": "class",
+        "subject": "class-subject"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": [
+      {
+        "id": "class-node",
+        "kind": "class-node",
+        "targets": [
+          "class-role"
+        ]
+      }
+    ]
+  }
+}

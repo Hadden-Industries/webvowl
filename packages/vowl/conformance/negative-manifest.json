@@ -1,0 +1,383 @@
+{
+  "status": "experimental-stable-error-expectations",
+  "vectors": [
+    {
+      "id": "required-role-collection",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_REQUIRED_FIELD",
+      "rule": "A1/A2/A7",
+      "input": {
+        "path": "negative/required-role-collection/source.json",
+        "sha256": "5f22a05c59fce70891da28b752536a13ec765f779bbbb1694d3b756ac576e7db",
+        "byteLength": 409
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "unknown-subject-field",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_UNKNOWN_FIELD",
+      "rule": "A1/A2/A7",
+      "input": {
+        "path": "negative/unknown-subject-field/source.json",
+        "sha256": "f03aa8f5867516def330d8f746ebc6eacb5cfb2ffe058b6bf817d904e0d6b982",
+        "byteLength": 570
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "subject-iri-not-absolute",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "IRI_INVALID",
+      "rule": "A1/A7",
+      "input": {
+        "path": "negative/subject-iri-not-absolute/source.json",
+        "sha256": "e62e772cb27b152b8d30ac994b191415c5546d120974013981775e488cdac26f",
+        "byteLength": 520
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "duplicate-primary-id",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "ID_DUPLICATE",
+      "rule": "A5/A7",
+      "input": {
+        "path": "negative/duplicate-primary-id/source.json",
+        "sha256": "d3899df6c449bdeace363818d2d9d19075aa57c206a0bc9b648b690a9d8b86a0",
+        "byteLength": 624
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "duplicate-named-subject",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "RECORD_DUPLICATE",
+      "rule": "A2/A5/A7",
+      "input": {
+        "path": "negative/duplicate-named-subject/source.json",
+        "sha256": "0dc61e17e9418f1dfa0fbd626f146b44e8199874caa6874d0f0888cb995b3697",
+        "byteLength": 628
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "duplicate-role-key",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "RECORD_DUPLICATE",
+      "rule": "A2/A5/A7",
+      "input": {
+        "path": "negative/duplicate-role-key/source.json",
+        "sha256": "cd35c38c1685c3d116a7c32a0f89aaa0219dc1d069006e9b41e975f79aa067d6",
+        "byteLength": 644
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "dangling-role-subject",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "REFERENCE_DANGLING",
+      "rule": "A1/A7",
+      "input": {
+        "path": "negative/dangling-role-subject/source.json",
+        "sha256": "adae4d7913fa4ffc370b3ece287f832b14eab3e265439ba11c6ed515b7d53651",
+        "byteLength": 528
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "wrong-role-subject-category",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "REFERENCE_KIND",
+      "rule": "A1/A7",
+      "input": {
+        "path": "negative/wrong-role-subject-category/source.json",
+        "sha256": "4b4dda189788b5bc72243b74aaf3f6aa541d6bc62cddcb9776b618523953d8f8",
+        "byteLength": 532
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "duplicate-import-set-member",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "SOURCE_DUPLICATE_SET_MEMBER",
+      "rule": "A1/A5/A7",
+      "input": {
+        "path": "negative/duplicate-import-set-member/source.json",
+        "sha256": "a44f2afde6397a1c2a271b5ed47b5b8aa418f7055a8e36da8190189f55a7d774",
+        "byteLength": 266
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "expression-cycle-before-projection",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "EXPRESSION_CYCLE",
+      "rule": "A3/A7",
+      "input": {
+        "path": "negative/expression-cycle-before-projection/source.json",
+        "sha256": "9fce6d59762d219a858344ec0c0a1002994bce34cb61fee128284c1240cd5a93",
+        "byteLength": 771
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "unsupported-assertion-anchor",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "ASSERTION_UNSUPPORTED",
+      "rule": "A4/A7",
+      "input": {
+        "path": "negative/unsupported-assertion-anchor/source.json",
+        "sha256": "2f5b463f25d234420698efcc816dbccaf3e05bf48daf6fa1109d11170e11b50c",
+        "byteLength": 1845
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "missing-required-occurrence",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "PROJECTION_INVALID",
+      "rule": "B2.1/A7",
+      "input": {
+        "path": "negative/missing-required-occurrence/source.json",
+        "sha256": "ae00ecfe614bdb3897135190faf251b9867826183672cd09ea8d682e7ba6c110",
+        "byteLength": 402
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "artifact-missing-placement",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "ARTIFACT_INCOMPLETE",
+      "rule": "B3/A7",
+      "input": {
+        "path": "negative/artifact-missing-placement/source.json",
+        "sha256": "9f77a674e5af876b9b1e00ca6ed71b13abb7aef829824995438b673dd4507c5d",
+        "byteLength": 892
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "artifact-duplicate-placement",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "ARTIFACT_INCOMPLETE",
+      "rule": "B3/A7",
+      "input": {
+        "path": "negative/artifact-duplicate-placement/source.json",
+        "sha256": "9f1733dec0b5499eb85bc9cd771469fb6c46153273c4198dbbe37c28a2ade450",
+        "byteLength": 1191
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "bad-language-tag",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "LANGUAGE_TAG_INVALID",
+      "rule": "A2/A7",
+      "input": {
+        "path": "negative/bad-language-tag/source.json",
+        "sha256": "b44762b65bcfcd06e01d6419c3ec1b1d4b4d66b52a5f636c1c48e348be8eb15a",
+        "byteLength": 3514
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "bad-language-range",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "LANGUAGE_RANGE_INVALID",
+      "rule": "B4/A7",
+      "input": {
+        "path": "negative/bad-language-range/source.json",
+        "sha256": "ecd49643073614cd01447ca4d135940c033299fe794febbceea3287b5fce0af8",
+        "byteLength": 1622
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "noncanonical-decimal-string",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DECIMAL_INVALID",
+      "rule": "A1/A3/A7",
+      "input": {
+        "path": "negative/noncanonical-decimal-string/source.json",
+        "sha256": "315b2b1be51a4636e2ce0c77960071b727a2442138e624243b3b583a8ba39d26",
+        "byteLength": 2374
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "noncharacter-text",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "UNICODE_INVALID",
+      "rule": "A7",
+      "input": {
+        "path": "negative/noncharacter-text/source.json",
+        "sha256": "0d529240fa1f641a0657d4a4b0ab166c940c53478ca0dc4f3f31f5dd293f07e8",
+        "byteLength": 3506
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "invalid-utf8",
+      "operation": "decode",
+      "expectedError": "JSON_INVALID_UTF8",
+      "rule": "A7/D19",
+      "input": {
+        "path": "negative/invalid-utf8/input.bin",
+        "sha256": "caf573f0daa6960ecb26f8eddbc4e2059277ad5afc6f72ffd59a0ecead602a22",
+        "byteLength": 2
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "utf8-bom",
+      "operation": "decode",
+      "expectedError": "JSON_BOM",
+      "rule": "A7/D19",
+      "input": {
+        "path": "negative/utf8-bom/input.bin",
+        "sha256": "f8836d280e5e8b56ade5fb6ec0b343e8c2d32803293342f8b85cdb6a027c2a09",
+        "byteLength": 233
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "incomplete-json",
+      "operation": "decode",
+      "expectedError": "JSON_SYNTAX",
+      "rule": "A7/D19",
+      "input": {
+        "path": "negative/incomplete-json/input.bin",
+        "sha256": "021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96",
+        "byteLength": 1
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "escaped-equal-root-member",
+      "operation": "decode",
+      "expectedError": "JSON_DUPLICATE_MEMBER",
+      "rule": "A7/D19",
+      "input": {
+        "path": "negative/escaped-equal-root-member/input.bin",
+        "sha256": "a004d828269d4578bd2bed6c9f8a9a6cbb04c1f4489e3b946337312c014b0ce8",
+        "byteLength": 198
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "nested-equal-duplicate",
+      "operation": "decode",
+      "expectedError": "JSON_DUPLICATE_MEMBER",
+      "rule": "A7/D19",
+      "input": {
+        "path": "negative/nested-equal-duplicate/input.bin",
+        "sha256": "e89036b34b7f674cf08b0b9ec0409c8937bb21c94429649baecadf56f077d4d7",
+        "byteLength": 55
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "lone-surrogate",
+      "operation": "decode",
+      "expectedError": "UNICODE_INVALID",
+      "rule": "A7/D19",
+      "input": {
+        "path": "negative/lone-surrogate/input.bin",
+        "sha256": "d5cb9167da0a750f65f627fa59d8504800515180d295aebb0b4e36ab514cf331",
+        "byteLength": 20
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "trailing-newline",
+      "operation": "decode",
+      "expectedError": "NON_CANONICAL_BYTES",
+      "rule": "A7/D19",
+      "input": {
+        "path": "negative/trailing-newline/input.bin",
+        "sha256": "bb23dae8dcd4a916a1ebf1d93a498293cbb213b57ee594104b73886f4f4730c7",
+        "byteLength": 231
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "leading-whitespace",
+      "operation": "decode",
+      "expectedError": "NON_CANONICAL_BYTES",
+      "rule": "A7/D19",
+      "input": {
+        "path": "negative/leading-whitespace/input.bin",
+        "sha256": "f7bed24fa5af037eaa9c8b27f13b2c7bb3cf0377456338f5978fd635e63005a4",
+        "byteLength": 231
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "negative-zero",
+      "operation": "decode",
+      "expectedError": "NUMBER_INVALID",
+      "rule": "A7/D19",
+      "input": {
+        "path": "negative/negative-zero/input.bin",
+        "sha256": "0e1bea667f7bd7b445cff7db9f48cb11e83d0a62661e46b8bc56c84de710e052",
+        "byteLength": 636
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "unknown-profile",
+      "operation": "decode",
+      "expectedError": "PROFILE_UNKNOWN",
+      "rule": "A7/D19",
+      "input": {
+        "path": "negative/unknown-profile/input.bin",
+        "sha256": "d38a5e077604851788bb8e085ce6547f0ee81b9ceecf8b9d5b2d46541128173f",
+        "byteLength": 174
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "malformed-canonical-id",
+      "operation": "decode",
+      "expectedError": "ID_INVALID",
+      "rule": "A7/D19",
+      "input": {
+        "path": "negative/malformed-canonical-id/input.bin",
+        "sha256": "049668ebf0436dc0956f75b067c4a5f3725df3dc6d8f18acd18ac24daee22864",
+        "byteLength": 364
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    },
+    {
+      "id": "noncontiguous-canonical-rank",
+      "operation": "decode",
+      "expectedError": "NON_CANONICAL_BYTES",
+      "rule": "A7/D19",
+      "input": {
+        "path": "negative/noncontiguous-canonical-rank/input.bin",
+        "sha256": "656172c374b8fb2a4d89ced63779534b471ef470b09b110afaa0369bcfc4f278",
+        "byteLength": 362
+      },
+      "status": "independently-derived-pending-review-and-production-execution"
+    }
+  ]
+}

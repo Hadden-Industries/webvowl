@@ -1,0 +1,6 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Ontology(
+Import(<urn:owl-seed:invalid-import>)
+Declaration(DataProperty(:p))
+Declaration(NamedIndividual(:i))
+)

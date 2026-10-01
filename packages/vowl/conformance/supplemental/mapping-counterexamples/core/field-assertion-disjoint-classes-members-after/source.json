@@ -1,0 +1,131 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:A",
+        "iri": "urn:mapping-pair:A"
+      },
+      {
+        "id": "s:B",
+        "iri": "urn:mapping-pair:B"
+      },
+      {
+        "id": "s:C",
+        "iri": "urn:mapping-pair:C"
+      },
+      {
+        "id": "s:annotation",
+        "iri": "urn:mapping-pair:annotation"
+      },
+      {
+        "id": "s:string",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s:A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s:B"
+      },
+      {
+        "id": "C",
+        "kind": "class",
+        "subject": "s:C"
+      },
+      {
+        "id": "annotation",
+        "kind": "annotation-property",
+        "subject": "s:annotation"
+      },
+      {
+        "id": "string",
+        "kind": "datatype",
+        "subject": "s:string"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "class-backbone",
+        "kind": "equivalent-classes",
+        "members": [
+          "A",
+          "B",
+          "C"
+        ]
+      },
+      {
+        "id": "anchor-supported-before",
+        "kind": "disjoint-classes",
+        "members": [
+          "A"
+        ]
+      },
+      {
+        "id": "anchor-supported-after",
+        "kind": "disjoint-classes",
+        "members": [
+          "B"
+        ]
+      },
+      {
+        "id": "anchor-focus",
+        "kind": "assertion-anchor",
+        "assertion": {
+          "kind": "disjoint-classes",
+          "members": [
+            "B"
+          ]
+        },
+        "annotations": [
+          {
+            "predicate": "urn:mapping-pair:annotation",
+            "value": {
+              "kind": "typed",
+              "lexical": "before",
+              "datatype": "http://www.w3.org/2001/XMLSchema#string"
+            },
+            "annotations": []
+          }
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A",
+          "B",
+          "C"
+        ]
+      },
+      {
+        "id": "edge-0",
+        "kind": "disjoint-edge",
+        "construct": "anchor-supported-before",
+        "ends": [
+          "node-0"
+        ]
+      },
+      {
+        "id": "edge-1",
+        "kind": "disjoint-edge",
+        "construct": "anchor-supported-after",
+        "ends": [
+          "node-0"
+        ]
+      }
+    ]
+  }
+}

@@ -44,6 +44,14 @@ test("ignored documents and empty selections do not expand to all documents", as
     await checkPrettierDocuments({ root, paths: ["docs/ignored.md"] }),
   ).toEqual({ passed: true, documents: [] });
 });
+
+test("package Markdown receives the same content check", async () => {
+  mkdirSync(join(root, "packages/vowl"), { recursive: true });
+  writeFileSync(join(root, "packages/vowl/README.md"), "|a|b|\n|-|-|\n|1|2|\n");
+  expect(
+    await checkPrettierDocuments({ root, paths: ["packages/vowl/README.md"] }),
+  ).toEqual({ passed: false, documents: ["packages/vowl/README.md"] });
+});
 test("selected paths outside authored documentation are rejected", async () => {
   await expect(
     checkPrettierDocuments({ root, paths: ["../outside.md"] }),

@@ -1,0 +1,88 @@
+{
+  "structural": {
+    "occurrences": [],
+    "constructs": [
+      {
+        "target": "field-permutation-2",
+        "property": "field-permutation-3",
+        "kind": "data-range",
+        "id": "field-permutation-1"
+      }
+    ],
+    "expressions": [
+      {
+        "members": [
+          {
+            "language": "en",
+            "lexical": "",
+            "kind": "language"
+          }
+        ],
+        "kind": "data-enumeration",
+        "id": "field-permutation-2"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "field-permutation-9",
+        "kind": "data-property",
+        "id": "field-permutation-3"
+      },
+      {
+        "subject": "field-permutation-10",
+        "kind": "datatype",
+        "id": "field-permutation-4"
+      },
+      {
+        "subject": "field-permutation-11",
+        "kind": "datatype",
+        "id": "field-permutation-5"
+      },
+      {
+        "subject": "field-permutation-12",
+        "kind": "datatype",
+        "id": "field-permutation-6"
+      },
+      {
+        "subject": "field-permutation-13",
+        "kind": "annotation-property",
+        "id": "field-permutation-7"
+      },
+      {
+        "subject": "field-permutation-14",
+        "kind": "annotation-property",
+        "id": "field-permutation-8"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "urn:mapping-pair:dp",
+        "id": "field-permutation-9"
+      },
+      {
+        "iri": "urn:mapping-pair:D",
+        "id": "field-permutation-10"
+      },
+      {
+        "iri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+        "id": "field-permutation-11"
+      },
+      {
+        "iri": "http://www.w3.org/2001/XMLSchema#string",
+        "id": "field-permutation-12"
+      },
+      {
+        "iri": "urn:mapping-pair:other-annotation",
+        "id": "field-permutation-13"
+      },
+      {
+        "iri": "urn:mapping-pair:annotation",
+        "id": "field-permutation-14"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

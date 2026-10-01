@@ -1,0 +1,77 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "ends": [
+          "field-permutation-2"
+        ],
+        "construct": "field-permutation-3",
+        "kind": "disjoint-edge",
+        "id": "field-permutation-1"
+      },
+      {
+        "targets": [
+          "field-permutation-5",
+          "field-permutation-6",
+          "field-permutation-7"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-2"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "field-permutation-6"
+        ],
+        "kind": "disjoint-classes",
+        "id": "field-permutation-3"
+      },
+      {
+        "members": [
+          "field-permutation-5",
+          "field-permutation-6",
+          "field-permutation-7"
+        ],
+        "kind": "equivalent-classes",
+        "id": "field-permutation-4"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "field-permutation-8",
+        "kind": "class",
+        "id": "field-permutation-5"
+      },
+      {
+        "subject": "field-permutation-9",
+        "kind": "class",
+        "id": "field-permutation-6"
+      },
+      {
+        "subject": "field-permutation-10",
+        "kind": "class",
+        "id": "field-permutation-7"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "urn:mapping-pair:C",
+        "id": "field-permutation-8"
+      },
+      {
+        "iri": "urn:mapping-pair:B",
+        "id": "field-permutation-9"
+      },
+      {
+        "iri": "urn:mapping-pair:A",
+        "id": "field-permutation-10"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

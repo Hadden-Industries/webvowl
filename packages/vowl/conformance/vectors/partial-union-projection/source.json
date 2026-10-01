@@ -1,0 +1,143 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/o#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/o#B"
+      },
+      {
+        "id": "s-Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/o#p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s-B"
+      },
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "s-Thing"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s-p"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "some",
+        "kind": "object-some",
+        "property": "p",
+        "filler": "A"
+      },
+      {
+        "id": "union",
+        "kind": "class-union",
+        "members": [
+          "A",
+          "some"
+        ]
+      }
+    ],
+    "constructs": [
+      {
+        "id": "subclass",
+        "kind": "subclass",
+        "sub": "B",
+        "super": "union"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "generic-loop",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "class",
+          "targets": [
+            "Thing"
+          ]
+        }
+      },
+      {
+        "id": "p-edge",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "generic-loop",
+        "to": "generic-loop"
+      },
+      {
+        "id": "label-p-edge",
+        "kind": "label",
+        "edge": "p-edge",
+        "direction": "single"
+      },
+      {
+        "id": "union-node",
+        "kind": "class-node",
+        "targets": [
+          "union"
+        ]
+      },
+      {
+        "id": "union-edge",
+        "kind": "operator-edge",
+        "expression": "union",
+        "from": "union-node",
+        "to": "node-A"
+      },
+      {
+        "id": "subclass-edge",
+        "kind": "subclass-edge",
+        "construct": "subclass",
+        "from": "node-B",
+        "to": "union-node"
+      },
+      {
+        "id": "label-subclass-edge",
+        "kind": "label",
+        "edge": "subclass-edge",
+        "direction": "single"
+      }
+    ]
+  }
+}

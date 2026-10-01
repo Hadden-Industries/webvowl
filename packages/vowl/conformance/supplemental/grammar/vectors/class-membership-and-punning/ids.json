@@ -1,0 +1,107 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "subject-anonymous",
+    "primaryBlankNode": "ps2",
+    "rdfcIdentifier": "c14n2",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "subject-A",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n3",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "subject-B",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n10",
+    "canonicalId": "s2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "B",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n4",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "A",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n14",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "anonymous",
+    "primaryBlankNode": "pr3",
+    "rdfcIdentifier": "c14n17",
+    "canonicalId": "r2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "punned",
+    "primaryBlankNode": "pr2",
+    "rdfcIdentifier": "c14n19",
+    "canonicalId": "r3"
+  },
+  {
+    "category": "expressions",
+    "sourceHandle": "union",
+    "primaryBlankNode": "px0",
+    "rdfcIdentifier": "c14n6",
+    "canonicalId": "x0"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "complex",
+    "primaryBlankNode": "pc1",
+    "rdfcIdentifier": "c14n18",
+    "canonicalId": "c0"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "direct",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n20",
+    "canonicalId": "c1"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-union",
+    "primaryBlankNode": "po2",
+    "rdfcIdentifier": "c14n1",
+    "canonicalId": "o0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-B",
+    "primaryBlankNode": "po1",
+    "rdfcIdentifier": "c14n22",
+    "canonicalId": "o1"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "operator-union-2",
+    "primaryBlankNode": "po4",
+    "rdfcIdentifier": "c14n23",
+    "canonicalId": "o2"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-A",
+    "primaryBlankNode": "po0",
+    "rdfcIdentifier": "c14n25",
+    "canonicalId": "o3"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "operator-union-1",
+    "primaryBlankNode": "po3",
+    "rdfcIdentifier": "c14n26",
+    "canonicalId": "o4"
+  }
+]

@@ -1,0 +1,225 @@
+{
+  "format": "canonical-vowl-negative-manifest/1",
+  "status": "accepted-authority-supplement-original-expectations-preserved",
+  "authorities": [
+    {
+      "path": "docs/specs/2026-09-30-canonical-vowl-camera-error-precedence.md",
+      "sha256": "4c3f9e4be3ef17232ef37b1b465f85923938727e74465cb22e4076248a85c9e9"
+    },
+    {
+      "path": "docs/specs/2026-09-30-canonical-vowl-protocol-clarifications.md",
+      "sha256": "057bd8a3a15d5a574b753683917b871bd27bf239d9fd9ffad484550361cd84b4"
+    }
+  ],
+  "historicalManifests": [
+    {
+      "path": "supplemental/field-contract/semantic-negative-manifest.json",
+      "sha256": "9cf55e94c027024b8ba1ba2fc1b2a74201400a2685a826a04932f0b9bcf89e82"
+    },
+    {
+      "path": "supplemental/field-contract/semantic-overlap-manifest.json",
+      "sha256": "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8"
+    }
+  ],
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/accepted-protocol-v1/derive.mjs",
+      "sha256": "fcee88dbf810ad9d765e3761f96568f63ea8805adada3cf4e2fcc99466e02bb4"
+    }
+  ],
+  "consumption": "Apply these five records as an explicit overlay by exact vector id plus historical manifest/input identities. Do not run their superseded errors as current expectations; do not edit the historical manifest. Every other historical expected error is unchanged.",
+  "vectors": [
+    {
+      "id": "semantic-camera-positive-zoom-0",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "NUMBER_INVALID",
+      "obligation": "camera-positive-zoom/0",
+      "sourceFixture": "empty-artifact",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/empty-artifact/source.json",
+        "sha256": "3e9d57e5ed490010c822db43375fca30d4c19fcec72de8b9acf94e173c97209f",
+        "byteLength": 557
+      },
+      "sourcePointer": "/visualization/camera",
+      "input": {
+        "path": "supplemental/field-contract/semantic/camera-positive-zoom-0/source.json",
+        "sha256": "a17a4f2b3cc85152b01a1cb01f677d761814c0bd7e9aa44203a5bc695b327534",
+        "byteLength": 557
+      },
+      "rules": [
+        "B3",
+        "A7-stage-7"
+      ],
+      "status": "independently-derived-from-accepted-stage-4-camera-clarification",
+      "correction": {
+        "authority": {
+          "path": "docs/specs/2026-09-30-canonical-vowl-camera-error-precedence.md",
+          "sha256": "4c3f9e4be3ef17232ef37b1b465f85923938727e74465cb22e4076248a85c9e9"
+        },
+        "historicalManifest": {
+          "path": "supplemental/field-contract/semantic-negative-manifest.json",
+          "sha256": "9cf55e94c027024b8ba1ba2fc1b2a74201400a2685a826a04932f0b9bcf89e82"
+        },
+        "historicalExpectedError": "ARTIFACT_INCOMPLETE",
+        "historicalRecordSha256": "a5cafb517fbead08a24b54275b2983d69e7d774a3d37d7aedfd3ff65a05f78b1",
+        "inputUnchanged": true,
+        "reason": "Finite nonpositive Camera.zoom is now explicitly a stage-4 numeric scalar failure, before graph reference/ID and projection validation. This expectation follows the accepted clarification without executing production."
+      }
+    },
+    {
+      "id": "semantic-camera-positive-zoom-1",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "NUMBER_INVALID",
+      "obligation": "camera-positive-zoom/-1",
+      "sourceFixture": "empty-artifact",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/empty-artifact/source.json",
+        "sha256": "3e9d57e5ed490010c822db43375fca30d4c19fcec72de8b9acf94e173c97209f",
+        "byteLength": 557
+      },
+      "sourcePointer": "/visualization/camera",
+      "input": {
+        "path": "supplemental/field-contract/semantic/camera-positive-zoom-1/source.json",
+        "sha256": "421b37da4282bc8e1b336a88c5acb43350c412109b87d7e67515ba086abc4947",
+        "byteLength": 558
+      },
+      "rules": [
+        "B3",
+        "A7-stage-7"
+      ],
+      "status": "independently-derived-from-accepted-stage-4-camera-clarification",
+      "correction": {
+        "authority": {
+          "path": "docs/specs/2026-09-30-canonical-vowl-camera-error-precedence.md",
+          "sha256": "4c3f9e4be3ef17232ef37b1b465f85923938727e74465cb22e4076248a85c9e9"
+        },
+        "historicalManifest": {
+          "path": "supplemental/field-contract/semantic-negative-manifest.json",
+          "sha256": "9cf55e94c027024b8ba1ba2fc1b2a74201400a2685a826a04932f0b9bcf89e82"
+        },
+        "historicalExpectedError": "ARTIFACT_INCOMPLETE",
+        "historicalRecordSha256": "8a918b34b45031ee2516df700ff66cb53f159187bae6d2d17e22cf401e0adc78",
+        "inputUnchanged": true,
+        "reason": "Finite nonpositive Camera.zoom is now explicitly a stage-4 numeric scalar failure, before graph reference/ID and projection validation. This expectation follows the accepted clarification without executing production."
+      }
+    },
+    {
+      "id": "semantic-overlap-reference-before-nonpositive-camera",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "NUMBER_INVALID",
+      "reason": "A7 stage5 reference existence precedes stage7 B3 positive camera zoom.",
+      "sourceFixture": "named-class-artifact",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/named-class-artifact/source.json",
+        "sha256": "b388afd18223a2a1afd83c0756f1959c9052cf227ef6038ebeedbbd23a9991b5",
+        "byteLength": 1044
+      },
+      "input": {
+        "path": "supplemental/field-contract/semantic-overlap/reference-before-nonpositive-camera/source.json",
+        "sha256": "af9edddbf44ee367f70958fdfcb2b4ca38230d9e59f5001a3aa1e351a430cd86",
+        "byteLength": 1060
+      },
+      "rules": [
+        "A7",
+        "B3"
+      ],
+      "status": "independently-derived-from-accepted-stage-4-camera-clarification",
+      "correction": {
+        "authority": {
+          "path": "docs/specs/2026-09-30-canonical-vowl-camera-error-precedence.md",
+          "sha256": "4c3f9e4be3ef17232ef37b1b465f85923938727e74465cb22e4076248a85c9e9"
+        },
+        "historicalManifest": {
+          "path": "supplemental/field-contract/semantic-overlap-manifest.json",
+          "sha256": "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8"
+        },
+        "historicalExpectedError": "REFERENCE_DANGLING",
+        "historicalRecordSha256": "748a3cfbe09ba7b883e3af06fb7de8f9ce35440b7df3a7e33f1bab01d22abad0",
+        "inputUnchanged": true,
+        "reason": "Finite nonpositive Camera.zoom is now explicitly a stage-4 numeric scalar failure, before graph reference/ID and projection validation. This expectation follows the accepted clarification without executing production."
+      }
+    },
+    {
+      "id": "semantic-overlap-primary-id-before-nonpositive-camera",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "NUMBER_INVALID",
+      "reason": "A7 stage5 primary ID uniqueness precedes stage7 B3 positive camera zoom.",
+      "sourceFixture": "named-class-artifact",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/named-class-artifact/source.json",
+        "sha256": "b388afd18223a2a1afd83c0756f1959c9052cf227ef6038ebeedbbd23a9991b5",
+        "byteLength": 1044
+      },
+      "input": {
+        "path": "supplemental/field-contract/semantic-overlap/primary-id-before-nonpositive-camera/source.json",
+        "sha256": "76e0dd5242896e2d72392f154fb367cd0559853f4804534d9296b66bfbd94eb7",
+        "byteLength": 1044
+      },
+      "rules": [
+        "A7",
+        "B3"
+      ],
+      "status": "independently-derived-from-accepted-stage-4-camera-clarification",
+      "correction": {
+        "authority": {
+          "path": "docs/specs/2026-09-30-canonical-vowl-camera-error-precedence.md",
+          "sha256": "4c3f9e4be3ef17232ef37b1b465f85923938727e74465cb22e4076248a85c9e9"
+        },
+        "historicalManifest": {
+          "path": "supplemental/field-contract/semantic-overlap-manifest.json",
+          "sha256": "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8"
+        },
+        "historicalExpectedError": "ID_DUPLICATE",
+        "historicalRecordSha256": "70fe551f44a35580a1eaddc2b490da6db8d1542078e43468518473d1067aa9d5",
+        "inputUnchanged": true,
+        "reason": "Finite nonpositive Camera.zoom is now explicitly a stage-4 numeric scalar failure, before graph reference/ID and projection validation. This expectation follows the accepted clarification without executing production."
+      }
+    },
+    {
+      "id": "semantic-overlap-projection-before-nonpositive-camera",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "NUMBER_INVALID",
+      "reason": "No dangling state references remain; A7 stage6 missing exact projection precedes stage7 camera invariants.",
+      "sourceFixture": "named-class-artifact",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/named-class-artifact/source.json",
+        "sha256": "b388afd18223a2a1afd83c0756f1959c9052cf227ef6038ebeedbbd23a9991b5",
+        "byteLength": 1044
+      },
+      "input": {
+        "path": "supplemental/field-contract/semantic-overlap/projection-before-nonpositive-camera/source.json",
+        "sha256": "f67e2eff3c7a2f43eead43512e5701f68f0b111b8cf0022666c70f3a655f4cbd",
+        "byteLength": 759
+      },
+      "rules": [
+        "A7",
+        "B3"
+      ],
+      "status": "independently-derived-from-accepted-stage-4-camera-clarification",
+      "correction": {
+        "authority": {
+          "path": "docs/specs/2026-09-30-canonical-vowl-camera-error-precedence.md",
+          "sha256": "4c3f9e4be3ef17232ef37b1b465f85923938727e74465cb22e4076248a85c9e9"
+        },
+        "historicalManifest": {
+          "path": "supplemental/field-contract/semantic-overlap-manifest.json",
+          "sha256": "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8"
+        },
+        "historicalExpectedError": "PROJECTION_INVALID",
+        "historicalRecordSha256": "a1f1c1b99e3c920686aeb9e3916d83ee466a355d445e24fcf46d818367fbb554",
+        "inputUnchanged": true,
+        "reason": "Finite nonpositive Camera.zoom is now explicitly a stage-4 numeric scalar failure, before graph reference/ID and projection validation. This expectation follows the accepted clarification without executing production."
+      }
+    }
+  ]
+}

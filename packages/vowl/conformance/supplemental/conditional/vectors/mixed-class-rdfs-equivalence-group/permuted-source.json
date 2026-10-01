@@ -1,0 +1,51 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "targets": [
+          "conditional-renamed-3",
+          "conditional-renamed-4"
+        ],
+        "kind": "class-node",
+        "id": "conditional-renamed-1"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "conditional-renamed-3",
+          "conditional-renamed-4"
+        ],
+        "kind": "equivalent-classes",
+        "id": "conditional-renamed-2"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "conditional-renamed-5",
+        "kind": "rdf-class",
+        "id": "conditional-renamed-3"
+      },
+      {
+        "subject": "conditional-renamed-6",
+        "kind": "class",
+        "id": "conditional-renamed-4"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/conditional#B",
+        "id": "conditional-renamed-5"
+      },
+      {
+        "iri": "https://example.org/conditional#A",
+        "id": "conditional-renamed-6"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

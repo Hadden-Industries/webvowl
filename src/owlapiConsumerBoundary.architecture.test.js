@@ -18,7 +18,7 @@ const INSTALLED_PACKAGE_PATH = path.join(ROOT, "node_modules", "owlapi");
 const UTILITY_PATH = path.join(ROOT, "util");
 
 const EXPECTED_GIT_SPECIFIER =
-  "git+https://github.com/Hadden-Industries/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1";
+  "git+https://github.com/Hadden-Industries/owlapi.git#3d1933c44f939525dd9a73afd6e7731627333ca6";
 // npm can serialize a GitHub resolution with SSH transport even when the
 // manifest requests HTTPS. Keep the repository and full commit exact.
 const APPROVED_GIT_RESOLUTIONS = new Set([
@@ -28,13 +28,15 @@ const APPROVED_GIT_RESOLUTIONS = new Set([
     "git+ssh://git@github.com/",
   ),
 ]);
-const EXPECTED_PACKAGE_VERSION = "0.1.0-alpha.0";
+const EXPECTED_PACKAGE_VERSION = "0.1.0-rc.1";
 const EXPECTED_EXPORTS = {
   ".": "./index.js",
   "./apibinding": "./apibinding/index.js",
   "./model": "./model/index.js",
   "./io": "./io/index.js",
   "./formats": "./formats/index.js",
+  "./profiles": "./profiles/index.js",
+  "./util": "./util/index.js",
 };
 const APPROVED_IMPORT_SPECIFIERS = new Set([
   "owlapi",
@@ -42,6 +44,7 @@ const APPROVED_IMPORT_SPECIFIERS = new Set([
   "owlapi/model",
   "owlapi/io",
   "owlapi/formats",
+  "owlapi/profiles",
 ]);
 const OWLAPI_OWNED_ROOT_DEPENDENCIES = [
   "@rdfjs/data-model",
@@ -51,12 +54,7 @@ const OWLAPI_OWNED_ROOT_DEPENDENCIES = [
   "rdfxml-streaming-parser",
 ];
 const WEBVOWL_OWNED_XML_DEPENDENCY = "0.9.12";
-const PACKAGE_CONFIGURATION_KEYS = [
-  "imports",
-  "overrides",
-  "resolutions",
-  "workspaces",
-];
+const PACKAGE_CONFIGURATION_KEYS = ["imports", "overrides", "resolutions"];
 const CONFIGURATION_PATHS = [
   path.join(ROOT, "vite.config.mjs"),
   path.join(ROOT, "eslint.config.js"),
@@ -192,7 +190,11 @@ const importedSpecifiers = (filePath) =>
 
 const importBoundaryViolations = () => {
   const violations = [];
-  for (const sourceRoot of [path.join(ROOT, "src"), UTILITY_PATH]) {
+  for (const sourceRoot of [
+    path.join(ROOT, "src"),
+    UTILITY_PATH,
+    path.join(ROOT, "packages", "vowl", "src"),
+  ]) {
     for (const filePath of sourceFiles(sourceRoot)) {
       for (const specifier of importedSpecifiers(filePath)) {
         if (
@@ -319,8 +321,8 @@ describe("installed owlapi consumer boundary", () => {
   });
 
   test.each([
-    "git+https://github.com/Hadden-Industries/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1",
-    "git+ssh://git@github.com/Hadden-Industries/owlapi.git#caabb1197ffdab91c1e10d596d177b5142aea5c1",
+    "git+https://github.com/Hadden-Industries/owlapi.git#3d1933c44f939525dd9a73afd6e7731627333ca6",
+    "git+ssh://git@github.com/Hadden-Industries/owlapi.git#3d1933c44f939525dd9a73afd6e7731627333ca6",
   ])("accepts the pinned Git resolution %s", (resolution) => {
     expect(APPROVED_GIT_RESOLUTIONS.has(resolution)).toBe(true);
   });
@@ -364,7 +366,7 @@ describe("installed owlapi consumer boundary", () => {
     });
   });
 
-  test("defines no workspace, override, alias, or resolver fallback", () => {
+  test("permits only the VOWL workspace and no OWLAPI resolver overrides", () => {
     const manifest = readJson(PACKAGE_JSON_PATH);
     const forbiddenKeys = PACKAGE_CONFIGURATION_KEYS.filter((key) =>
       Object.hasOwn(manifest, key),
@@ -375,6 +377,10 @@ describe("installed owlapi consumer boundary", () => {
       /\bowlapi(?:-js)?\b/iu.test(readFileSync(filePath, "utf8")),
     ).map(relative);
 
+    expect(manifest.workspaces).toEqual(["packages/vowl"]);
+    expect(
+      readJson(path.join(ROOT, "packages", "vowl", "package.json")).name,
+    ).toBe("vowl");
     expect(forbiddenKeys).toEqual([]);
     expect(JSON.stringify(manifestWithoutCoordinate)).not.toMatch(
       /\bowlapi(?:-js)?\b/iu,

@@ -1,0 +1,198 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s:Thing",
+    "primaryBlankNode": "ps7",
+    "rdfcIdentifier": "c14n1",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:A",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n12",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:j",
+    "primaryBlankNode": "ps4",
+    "rdfcIdentifier": "c14n20",
+    "canonicalId": "s2"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:d",
+    "primaryBlankNode": "ps2",
+    "rdfcIdentifier": "c14n26",
+    "canonicalId": "s3"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:string",
+    "primaryBlankNode": "ps6",
+    "rdfcIdentifier": "c14n27",
+    "canonicalId": "s4"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:note",
+    "primaryBlankNode": "ps5",
+    "rdfcIdentifier": "c14n28",
+    "canonicalId": "s5"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:Literal",
+    "primaryBlankNode": "ps8",
+    "rdfcIdentifier": "c14n29",
+    "canonicalId": "s6"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:i",
+    "primaryBlankNode": "ps3",
+    "rdfcIdentifier": "c14n32",
+    "canonicalId": "s7"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:p",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n33",
+    "canonicalId": "s8"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "Thing",
+    "primaryBlankNode": "pr7",
+    "rdfcIdentifier": "c14n4",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "i",
+    "primaryBlankNode": "pr3",
+    "rdfcIdentifier": "c14n7",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "d",
+    "primaryBlankNode": "pr2",
+    "rdfcIdentifier": "c14n13",
+    "canonicalId": "r2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "A",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n14",
+    "canonicalId": "r3"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "j",
+    "primaryBlankNode": "pr4",
+    "rdfcIdentifier": "c14n15",
+    "canonicalId": "r4"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "p",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n21",
+    "canonicalId": "r5"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "Literal",
+    "primaryBlankNode": "pr8",
+    "rdfcIdentifier": "c14n22",
+    "canonicalId": "r6"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "string",
+    "primaryBlankNode": "pr6",
+    "rdfcIdentifier": "c14n24",
+    "canonicalId": "r7"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "note",
+    "primaryBlankNode": "pr5",
+    "rdfcIdentifier": "c14n30",
+    "canonicalId": "r8"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "note-i",
+    "primaryBlankNode": "pc1",
+    "rdfcIdentifier": "c14n5",
+    "canonicalId": "c0"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "member",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n9",
+    "canonicalId": "c1"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-1",
+    "primaryBlankNode": "po1",
+    "rdfcIdentifier": "c14n8",
+    "canonicalId": "o0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-0",
+    "primaryBlankNode": "po0",
+    "rdfcIdentifier": "c14n10",
+    "canonicalId": "o1"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-2",
+    "primaryBlankNode": "po2",
+    "rdfcIdentifier": "c14n19",
+    "canonicalId": "o2"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-3",
+    "primaryBlankNode": "po3",
+    "rdfcIdentifier": "c14n23",
+    "canonicalId": "o3"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "edge-0",
+    "primaryBlankNode": "po4",
+    "rdfcIdentifier": "c14n43",
+    "canonicalId": "o4"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "edge-0-label-single",
+    "primaryBlankNode": "po5",
+    "rdfcIdentifier": "c14n45",
+    "canonicalId": "o5"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "edge-1",
+    "primaryBlankNode": "po6",
+    "rdfcIdentifier": "c14n46",
+    "canonicalId": "o6"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "edge-1-label-single",
+    "primaryBlankNode": "po7",
+    "rdfcIdentifier": "c14n48",
+    "canonicalId": "o7"
+  }
+]

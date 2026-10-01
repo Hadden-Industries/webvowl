@@ -1,0 +1,93 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "ends": [
+          "renamed-2"
+        ],
+        "construct": "renamed-4",
+        "kind": "disjoint-edge",
+        "id": "renamed-1"
+      },
+      {
+        "targets": [
+          "renamed-7",
+          "renamed-8",
+          "renamed-9"
+        ],
+        "kind": "class-node",
+        "id": "renamed-2"
+      }
+    ],
+    "constructs": [
+      {
+        "dataProperties": [],
+        "objectProperties": [],
+        "class": "renamed-9",
+        "kind": "key",
+        "id": "renamed-3"
+      },
+      {
+        "members": [
+          "renamed-7",
+          "renamed-8",
+          "renamed-9"
+        ],
+        "kind": "disjoint-classes",
+        "id": "renamed-4"
+      },
+      {
+        "members": [
+          "renamed-7",
+          "renamed-8"
+        ],
+        "kind": "equivalent-classes",
+        "id": "renamed-5"
+      },
+      {
+        "members": [
+          "renamed-8",
+          "renamed-9"
+        ],
+        "kind": "equivalent-classes",
+        "id": "renamed-6"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "renamed-10",
+        "kind": "class",
+        "id": "renamed-7"
+      },
+      {
+        "subject": "renamed-11",
+        "kind": "class",
+        "id": "renamed-8"
+      },
+      {
+        "subject": "renamed-12",
+        "kind": "class",
+        "id": "renamed-9"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/o#C",
+        "id": "renamed-10"
+      },
+      {
+        "iri": "https://example.org/o#B",
+        "id": "renamed-11"
+      },
+      {
+        "iri": "https://example.org/o#A",
+        "id": "renamed-12"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

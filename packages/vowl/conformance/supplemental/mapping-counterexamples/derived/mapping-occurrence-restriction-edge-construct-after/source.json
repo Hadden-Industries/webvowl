@@ -1,0 +1,240 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-A",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "subject-Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "subject-p",
+        "iri": "https://example.org/supplement#p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "subject-A"
+      },
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "subject-Thing"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "subject-p"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "restriction-min",
+        "kind": "object-min-cardinality",
+        "property": "p",
+        "filler": "Thing",
+        "cardinality": "0"
+      },
+      {
+        "id": "restriction-max",
+        "kind": "object-max-cardinality",
+        "property": "p",
+        "filler": "Thing",
+        "cardinality": "2"
+      }
+    ],
+    "constructs": [
+      {
+        "id": "assertion-min",
+        "kind": "subclass",
+        "sub": "A",
+        "super": "restriction-min"
+      },
+      {
+        "id": "assertion-max",
+        "kind": "subclass",
+        "sub": "A",
+        "super": "restriction-max"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "generic-global",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "class",
+          "targets": [
+            "Thing"
+          ]
+        }
+      },
+      {
+        "id": "global-edge",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "generic-global",
+        "to": "generic-global"
+      },
+      {
+        "id": "label-global-edge",
+        "kind": "label",
+        "edge": "global-edge",
+        "direction": "single"
+      },
+      {
+        "id": "scoped-min",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p"
+          ],
+          "scope": "assertion-min"
+        }
+      },
+      {
+        "id": "edge-min",
+        "kind": "restriction-edge",
+        "construct": "assertion-max",
+        "from": "node-A",
+        "to": "scoped-max"
+      },
+      {
+        "id": "label-edge-min",
+        "kind": "label",
+        "edge": "edge-max",
+        "direction": "single"
+      },
+      {
+        "id": "scoped-max",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p"
+          ],
+          "scope": "assertion-max"
+        }
+      },
+      {
+        "id": "edge-max",
+        "kind": "restriction-edge",
+        "construct": "assertion-min",
+        "from": "node-A",
+        "to": "scoped-min"
+      },
+      {
+        "id": "label-edge-max",
+        "kind": "label",
+        "edge": "edge-min",
+        "direction": "single"
+      }
+    ]
+  },
+  "visualization": {
+    "placements": [
+      {
+        "occurrence": "node-A",
+        "position": {
+          "x": 3,
+          "y": 5
+        },
+        "pinned": false
+      },
+      {
+        "occurrence": "generic-global",
+        "position": {
+          "x": 20,
+          "y": 18
+        },
+        "pinned": false
+      },
+      {
+        "occurrence": "label-global-edge",
+        "position": {
+          "x": 37,
+          "y": 31
+        },
+        "pinned": false
+      },
+      {
+        "occurrence": "scoped-min",
+        "position": {
+          "x": 54,
+          "y": 44
+        },
+        "pinned": false
+      },
+      {
+        "occurrence": "label-edge-min",
+        "position": {
+          "x": 71,
+          "y": 57
+        },
+        "pinned": false
+      },
+      {
+        "occurrence": "scoped-max",
+        "position": {
+          "x": 88,
+          "y": 70
+        },
+        "pinned": false
+      },
+      {
+        "occurrence": "label-edge-max",
+        "position": {
+          "x": 105,
+          "y": 83
+        },
+        "pinned": false
+      }
+    ],
+    "camera": {
+      "center": {
+        "x": 0,
+        "y": 0
+      },
+      "zoom": 2
+    },
+    "hidden": [
+      "edge-min",
+      "label-edge-max"
+    ],
+    "labelSelection": {
+      "mode": "iri"
+    },
+    "prefixes": [],
+    "display": {
+      "compactNotation": false,
+      "nodeScaling": "uniform",
+      "externalColoring": false
+    }
+  }
+}

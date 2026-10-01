@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Ontology xmlns="http://www.w3.org/2002/07/owl#"><Declaration><Class IRI="https://example.org/owl-seed#A"/></Declaration><Declaration><Class IRI="https://example.org/owl-seed#B"/></Declaration><SubClassOf><Class IRI="https://example.org/owl-seed#A"/><Class IRI="https://example.org/owl-seed#B"/></SubClassOf></Ontology>

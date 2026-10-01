@@ -1,0 +1,86 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:A",
+        "iri": "urn:mapping-pair:A"
+      },
+      {
+        "id": "s:B",
+        "iri": "urn:mapping-pair:B"
+      },
+      {
+        "id": "s:C",
+        "iri": "urn:mapping-pair:C"
+      },
+      {
+        "id": "s:i",
+        "iri": "urn:mapping-pair:i"
+      },
+      {
+        "id": "s:j",
+        "iri": "urn:mapping-pair:j"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s:A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s:B"
+      },
+      {
+        "id": "C",
+        "kind": "class",
+        "subject": "s:C"
+      },
+      {
+        "id": "i",
+        "kind": "individual",
+        "subject": "s:i"
+      },
+      {
+        "id": "j",
+        "kind": "individual",
+        "subject": "s:j"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "class-backbone",
+        "kind": "equivalent-classes",
+        "members": [
+          "A",
+          "B",
+          "C"
+        ]
+      },
+      {
+        "id": "focus",
+        "kind": "class-membership",
+        "class": "B",
+        "individual": "i"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A",
+          "B",
+          "C"
+        ]
+      }
+    ]
+  }
+}

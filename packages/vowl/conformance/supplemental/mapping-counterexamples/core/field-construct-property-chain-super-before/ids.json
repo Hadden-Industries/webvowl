@@ -1,0 +1,86 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s:Thing",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n1",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:q",
+    "primaryBlankNode": "ps2",
+    "rdfcIdentifier": "c14n11",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:p",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n19",
+    "canonicalId": "s2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "Thing",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n7",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "p",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n12",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "q",
+    "primaryBlankNode": "pr2",
+    "rdfcIdentifier": "c14n14",
+    "canonicalId": "r2"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "focus",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n6",
+    "canonicalId": "c0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-0",
+    "primaryBlankNode": "po0",
+    "rdfcIdentifier": "c14n17",
+    "canonicalId": "o0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "edge-1",
+    "primaryBlankNode": "po3",
+    "rdfcIdentifier": "c14n23",
+    "canonicalId": "o1"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "edge-1-label-single",
+    "primaryBlankNode": "po4",
+    "rdfcIdentifier": "c14n25",
+    "canonicalId": "o2"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "edge-0",
+    "primaryBlankNode": "po1",
+    "rdfcIdentifier": "c14n26",
+    "canonicalId": "o3"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "edge-0-label-single",
+    "primaryBlankNode": "po2",
+    "rdfcIdentifier": "c14n28",
+    "canonicalId": "o4"
+  }
+]

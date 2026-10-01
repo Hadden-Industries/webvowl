@@ -1,0 +1,96 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/o#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/o#B"
+      },
+      {
+        "id": "note-subject",
+        "iri": "https://example.org/note"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s-B"
+      },
+      {
+        "id": "note",
+        "kind": "annotation-property",
+        "subject": "note-subject"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "subclass",
+        "kind": "subclass",
+        "sub": "A",
+        "super": "B"
+      },
+      {
+        "id": "unsupported",
+        "kind": "assertion-anchor",
+        "assertion": {
+          "kind": "subclass",
+          "sub": "B",
+          "super": "A"
+        },
+        "annotations": [
+          {
+            "predicate": "https://example.org/note",
+            "value": {
+              "kind": "iri",
+              "iri": "https://example.org/value"
+            },
+            "annotations": []
+          }
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "subclass-edge",
+        "kind": "subclass-edge",
+        "construct": "subclass",
+        "from": "node-A",
+        "to": "node-B"
+      },
+      {
+        "id": "label-subclass-edge",
+        "kind": "label",
+        "edge": "subclass-edge",
+        "direction": "single"
+      }
+    ]
+  }
+}

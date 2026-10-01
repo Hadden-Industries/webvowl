@@ -1,0 +1,7 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Ontology(
+Declaration(Class(:A))
+Declaration(Class(:B))
+SubClassOf(:A ObjectIntersectionOf(:B :B))
+DisjointClasses(:A :A)
+)

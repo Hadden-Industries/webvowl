@@ -1,0 +1,115 @@
+{
+  "visualization": {
+    "display": {
+      "externalColoring": true,
+      "nodeScaling": "uniform",
+      "compactNotation": false
+    },
+    "prefixes": [],
+    "labelSelection": {
+      "mode": "iri"
+    },
+    "hidden": [
+      "supplement-renamed-1"
+    ],
+    "camera": {
+      "zoom": 2,
+      "center": {
+        "y": 25,
+        "x": 50
+      }
+    },
+    "placements": [
+      {
+        "pinned": true,
+        "position": {
+          "y": 25,
+          "x": 50
+        },
+        "occurrence": "supplement-renamed-1"
+      },
+      {
+        "pinned": false,
+        "position": {
+          "y": 50,
+          "x": 100
+        },
+        "occurrence": "supplement-renamed-3"
+      },
+      {
+        "pinned": true,
+        "position": {
+          "y": 0,
+          "x": 0
+        },
+        "occurrence": "supplement-renamed-4"
+      }
+    ]
+  },
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "supplement-renamed-2",
+        "kind": "label",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "to": "supplement-renamed-3",
+        "from": "supplement-renamed-4",
+        "construct": "supplement-renamed-5",
+        "kind": "subclass-edge",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "targets": [
+          "supplement-renamed-6"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "targets": [
+          "supplement-renamed-7"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-4"
+      }
+    ],
+    "constructs": [
+      {
+        "super": "supplement-renamed-6",
+        "sub": "supplement-renamed-7",
+        "kind": "subclass",
+        "id": "supplement-renamed-5"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "supplement-renamed-8",
+        "kind": "class",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "subject": "supplement-renamed-9",
+        "kind": "class",
+        "id": "supplement-renamed-7"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/o#B",
+        "id": "supplement-renamed-8"
+      },
+      {
+        "iri": "https://example.org/o#A",
+        "id": "supplement-renamed-9"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

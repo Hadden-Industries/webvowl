@@ -1,0 +1,138 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:ap",
+        "iri": "urn:mapping-pair:ap"
+      },
+      {
+        "id": "s:aq",
+        "iri": "urn:mapping-pair:aq"
+      },
+      {
+        "id": "s:annotation",
+        "iri": "urn:mapping-pair:annotation"
+      },
+      {
+        "id": "s:string",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      },
+      {
+        "id": "s:A",
+        "iri": "urn:mapping-pair:A"
+      },
+      {
+        "id": "s:B",
+        "iri": "urn:mapping-pair:B"
+      },
+      {
+        "id": "s:C",
+        "iri": "urn:mapping-pair:C"
+      }
+    ],
+    "roles": [
+      {
+        "id": "ap",
+        "kind": "annotation-property",
+        "subject": "s:ap"
+      },
+      {
+        "id": "aq",
+        "kind": "annotation-property",
+        "subject": "s:aq"
+      },
+      {
+        "id": "annotation",
+        "kind": "annotation-property",
+        "subject": "s:annotation"
+      },
+      {
+        "id": "string",
+        "kind": "datatype",
+        "subject": "s:string"
+      },
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s:A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s:B"
+      },
+      {
+        "id": "C",
+        "kind": "class",
+        "subject": "s:C"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "anchor-supported-before",
+        "kind": "annotation-domain",
+        "property": "ap",
+        "target": "urn:mapping-pair:before"
+      },
+      {
+        "id": "anchor-supported-after",
+        "kind": "annotation-domain",
+        "property": "aq",
+        "target": "urn:mapping-pair:before"
+      },
+      {
+        "id": "anchor-focus",
+        "kind": "assertion-anchor",
+        "assertion": {
+          "kind": "key",
+          "class": "A",
+          "objectProperties": [],
+          "dataProperties": []
+        },
+        "annotations": [
+          {
+            "predicate": "urn:mapping-pair:annotation",
+            "value": {
+              "kind": "typed",
+              "lexical": "before",
+              "datatype": "http://www.w3.org/2001/XMLSchema#string"
+            },
+            "annotations": []
+          }
+        ]
+      },
+      {
+        "id": "class-backbone",
+        "kind": "equivalent-classes",
+        "members": [
+          "A",
+          "B",
+          "C"
+        ]
+      },
+      {
+        "id": "alternate-assertion-support",
+        "kind": "key",
+        "class": "A",
+        "objectProperties": [],
+        "dataProperties": []
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A",
+          "B",
+          "C"
+        ]
+      }
+    ]
+  }
+}

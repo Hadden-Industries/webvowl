@@ -1,0 +1,14 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": [],
+      "versionIri": "urn:field-contract:version"
+    },
+    "subjects": [],
+    "roles": [],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": []
+  }
+}

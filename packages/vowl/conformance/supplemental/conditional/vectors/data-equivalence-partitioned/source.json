@@ -1,0 +1,209 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/conditional#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/conditional#B"
+      },
+      {
+        "id": "s-C",
+        "iri": "https://example.org/conditional#C"
+      },
+      {
+        "id": "s-D",
+        "iri": "https://example.org/conditional#D"
+      },
+      {
+        "id": "s-E",
+        "iri": "https://example.org/conditional#E"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/conditional#p"
+      },
+      {
+        "id": "s-q",
+        "iri": "https://example.org/conditional#q"
+      },
+      {
+        "id": "s-r",
+        "iri": "https://example.org/conditional#r"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s-B"
+      },
+      {
+        "id": "C",
+        "kind": "class",
+        "subject": "s-C"
+      },
+      {
+        "id": "D",
+        "kind": "datatype",
+        "subject": "s-D"
+      },
+      {
+        "id": "E",
+        "kind": "datatype",
+        "subject": "s-E"
+      },
+      {
+        "id": "p",
+        "kind": "data-property",
+        "subject": "s-p"
+      },
+      {
+        "id": "q",
+        "kind": "data-property",
+        "subject": "s-q"
+      },
+      {
+        "id": "r",
+        "kind": "data-property",
+        "subject": "s-r"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "domain-p",
+        "kind": "data-domain",
+        "property": "p",
+        "target": "A"
+      },
+      {
+        "id": "range-p",
+        "kind": "data-range",
+        "property": "p",
+        "target": "D"
+      },
+      {
+        "id": "domain-q",
+        "kind": "data-domain",
+        "property": "q",
+        "target": "A"
+      },
+      {
+        "id": "range-q",
+        "kind": "data-range",
+        "property": "q",
+        "target": "D"
+      },
+      {
+        "id": "domain-r",
+        "kind": "data-domain",
+        "property": "r",
+        "target": "A"
+      },
+      {
+        "id": "range-r",
+        "kind": "data-range",
+        "property": "r",
+        "target": "E"
+      },
+      {
+        "id": "eq",
+        "kind": "equivalent-data-properties",
+        "members": [
+          "p",
+          "q",
+          "r"
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "node-C",
+        "kind": "class-node",
+        "targets": [
+          "C"
+        ]
+      },
+      {
+        "id": "datatype-main",
+        "kind": "datatype-node",
+        "target": "D",
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p",
+            "q"
+          ]
+        }
+      },
+      {
+        "id": "edge-main",
+        "kind": "property-edge",
+        "properties": [
+          "p",
+          "q"
+        ],
+        "from": "node-A",
+        "to": "datatype-main"
+      },
+      {
+        "id": "label-edge-main-single",
+        "kind": "label",
+        "edge": "edge-main",
+        "direction": "single"
+      },
+      {
+        "id": "datatype-other",
+        "kind": "datatype-node",
+        "target": "E",
+        "context": {
+          "kind": "property",
+          "properties": [
+            "r"
+          ]
+        }
+      },
+      {
+        "id": "edge-r",
+        "kind": "property-edge",
+        "properties": [
+          "r"
+        ],
+        "from": "node-A",
+        "to": "datatype-other"
+      },
+      {
+        "id": "label-edge-r-single",
+        "kind": "label",
+        "edge": "edge-r",
+        "direction": "single"
+      }
+    ]
+  }
+}

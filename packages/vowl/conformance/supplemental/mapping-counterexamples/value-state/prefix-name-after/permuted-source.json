@@ -1,0 +1,90 @@
+{
+  "visualization": {
+    "display": {
+      "externalColoring": false,
+      "nodeScaling": "uniform",
+      "compactNotation": false
+    },
+    "prefixes": [
+      {
+        "iri": "urn:mapping-pair:",
+        "prefix": ""
+      }
+    ],
+    "labelSelection": {
+      "mode": "iri"
+    },
+    "hidden": [],
+    "camera": {
+      "zoom": 1,
+      "center": {
+        "y": 0,
+        "x": 0
+      }
+    },
+    "placements": [
+      {
+        "pinned": false,
+        "position": {
+          "y": 0,
+          "x": 10
+        },
+        "occurrence": "field-permutation-1"
+      },
+      {
+        "pinned": false,
+        "position": {
+          "y": 0,
+          "x": 0
+        },
+        "occurrence": "field-permutation-2"
+      }
+    ]
+  },
+  "structural": {
+    "occurrences": [
+      {
+        "targets": [
+          "field-permutation-3"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-1"
+      },
+      {
+        "targets": [
+          "field-permutation-4"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-2"
+      }
+    ],
+    "constructs": [],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "field-permutation-5",
+        "kind": "class",
+        "id": "field-permutation-3"
+      },
+      {
+        "subject": "field-permutation-6",
+        "kind": "class",
+        "id": "field-permutation-4"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "urn:mapping-pair:B",
+        "id": "field-permutation-5"
+      },
+      {
+        "iri": "urn:mapping-pair:A",
+        "id": "field-permutation-6"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

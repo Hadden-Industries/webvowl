@@ -1,0 +1,70 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": [
+        {
+          "predicate": "urn:mapping-pair:annotation",
+          "value": {
+            "kind": "language",
+            "lexical": "before",
+            "language": "en"
+          },
+          "annotations": []
+        }
+      ]
+    },
+    "subjects": [
+      {
+        "id": "s:ap",
+        "iri": "urn:mapping-pair:annotation"
+      },
+      {
+        "id": "s:aq",
+        "iri": "urn:mapping-pair:other-annotation"
+      },
+      {
+        "id": "s:string",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      },
+      {
+        "id": "s:langString",
+        "iri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+      },
+      {
+        "id": "s:D",
+        "iri": "urn:mapping-pair:D"
+      }
+    ],
+    "roles": [
+      {
+        "id": "ap",
+        "kind": "annotation-property",
+        "subject": "s:ap"
+      },
+      {
+        "id": "aq",
+        "kind": "annotation-property",
+        "subject": "s:aq"
+      },
+      {
+        "id": "string",
+        "kind": "datatype",
+        "subject": "s:string"
+      },
+      {
+        "id": "langString",
+        "kind": "datatype",
+        "subject": "s:langString"
+      },
+      {
+        "id": "D",
+        "kind": "datatype",
+        "subject": "s:D"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": []
+  }
+}

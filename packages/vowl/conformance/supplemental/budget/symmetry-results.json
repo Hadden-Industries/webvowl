@@ -1,0 +1,228 @@
+{
+  "status": "experimental-raw-RDF-not-VOWL-conformance",
+  "normativePolicyChanged": false,
+  "command": "node packages/vowl/conformance/supplemental/budget/probe-symmetry.mjs",
+  "node": "v24.21.0",
+  "platform": "win32",
+  "arch": "x64",
+  "library": "rdf-canonize@5.0.0",
+  "perCallDeadlineMs": 10000,
+  "probeSourceSha256": "dfc5eb1b744af1429c6edb6e5952448e12fbaf6df57c4af2059a84bc6ec49e9a",
+  "limitations": "Raw RDF stress evidence only. Does not establish hostile Canonical VOWL safety, browser worker deadlines, a uniform wall-clock bound, or approval of the proposed policy.",
+  "cases": [
+    {
+      "size": 3,
+      "graphKind": "complete-directed-irreflexive-homogeneous-RDF-graph",
+      "blankNodes": 3,
+      "quads": 6,
+      "sourceSha256": "3c389af083213605850d82ed0749260c8369c2dfbb90ae3d0b5af297a591f98f",
+      "successfulBytesIdentical": true,
+      "attempts": [
+        {
+          "label": "current-linear",
+          "budget": 3,
+          "outcome": "resource-limit",
+          "name": "Error",
+          "rawMessage": "Maximum deep iterations exceeded (3).",
+          "elapsedMs": 2.765,
+          "alternateBytesReturned": false
+        },
+        {
+          "label": "proposed-quadratic",
+          "budget": 9,
+          "outcome": "resource-limit",
+          "name": "Error",
+          "rawMessage": "Maximum deep iterations exceeded (9).",
+          "elapsedMs": 0.483,
+          "alternateBytesReturned": false
+        },
+        {
+          "label": "absolute-ceiling",
+          "budget": 100000,
+          "outcome": "success",
+          "canonicalNQuadsSha256": "bdf3c3990e8d8acfed360b3ea89571f481710277cbbfc03ef1cb62b37cb5504c",
+          "elapsedMs": 1.066
+        },
+        {
+          "label": "already-aborted",
+          "budget": 9,
+          "outcome": "resource-limit",
+          "name": "Error",
+          "rawMessage": "Maximum deep iterations exceeded (9).",
+          "elapsedMs": 0.552,
+          "alternateBytesReturned": false
+        },
+        {
+          "label": "timed-cancellation-1ms",
+          "budget": 100000,
+          "outcome": "success",
+          "canonicalNQuadsSha256": "bdf3c3990e8d8acfed360b3ea89571f481710277cbbfc03ef1cb62b37cb5504c",
+          "elapsedMs": 1.421
+        }
+      ]
+    },
+    {
+      "size": 5,
+      "graphKind": "complete-directed-irreflexive-homogeneous-RDF-graph",
+      "blankNodes": 5,
+      "quads": 20,
+      "sourceSha256": "e6a957f8e8f2970fba571abd5b9148618aa536e5e2eeeda0e1084c7193ae3700",
+      "successfulBytesIdentical": true,
+      "attempts": [
+        {
+          "label": "current-linear",
+          "budget": 5,
+          "outcome": "resource-limit",
+          "name": "Error",
+          "rawMessage": "Maximum deep iterations exceeded (5).",
+          "elapsedMs": 0.545,
+          "alternateBytesReturned": false
+        },
+        {
+          "label": "proposed-quadratic",
+          "budget": 25,
+          "outcome": "resource-limit",
+          "name": "Error",
+          "rawMessage": "Maximum deep iterations exceeded (25).",
+          "elapsedMs": 2.059,
+          "alternateBytesReturned": false
+        },
+        {
+          "label": "absolute-ceiling",
+          "budget": 100000,
+          "outcome": "success",
+          "canonicalNQuadsSha256": "3328918ca77a3a5d0b877228879856520e1948dc1544ef4879846e835d483c2b",
+          "elapsedMs": 17.992
+        },
+        {
+          "label": "already-aborted",
+          "budget": 25,
+          "outcome": "aborted",
+          "name": "Error",
+          "rawMessage": "Abort signal received: \"AbortError: This operation was aborted\".",
+          "elapsedMs": 0.655,
+          "alternateBytesReturned": false
+        },
+        {
+          "label": "timed-cancellation-1ms",
+          "budget": 100000,
+          "outcome": "aborted",
+          "name": "Error",
+          "rawMessage": "Abort signal received: \"TimeoutError: The operation was aborted due to timeout\".",
+          "elapsedMs": 1.647,
+          "alternateBytesReturned": false
+        }
+      ]
+    },
+    {
+      "size": 8,
+      "graphKind": "complete-directed-irreflexive-homogeneous-RDF-graph",
+      "blankNodes": 8,
+      "quads": 56,
+      "sourceSha256": "5f61c16d7c2a03cae788341d16de374ed6120ed8e76c1b092c5603438faeb7dd",
+      "successfulBytesIdentical": true,
+      "attempts": [
+        {
+          "label": "current-linear",
+          "budget": 8,
+          "outcome": "resource-limit",
+          "name": "Error",
+          "rawMessage": "Maximum deep iterations exceeded (8).",
+          "elapsedMs": 0.634,
+          "alternateBytesReturned": false
+        },
+        {
+          "label": "proposed-quadratic",
+          "budget": 64,
+          "outcome": "resource-limit",
+          "name": "Error",
+          "rawMessage": "Maximum deep iterations exceeded (64).",
+          "elapsedMs": 4.197,
+          "alternateBytesReturned": false
+        },
+        {
+          "label": "absolute-ceiling",
+          "budget": 100000,
+          "outcome": "resource-limit",
+          "name": "Error",
+          "rawMessage": "Maximum deep iterations exceeded (100000).",
+          "elapsedMs": 5309.922,
+          "alternateBytesReturned": false
+        },
+        {
+          "label": "already-aborted",
+          "budget": 64,
+          "outcome": "aborted",
+          "name": "Error",
+          "rawMessage": "Abort signal received: \"AbortError: This operation was aborted\".",
+          "elapsedMs": 1.43,
+          "alternateBytesReturned": false
+        },
+        {
+          "label": "timed-cancellation-1ms",
+          "budget": 100000,
+          "outcome": "aborted",
+          "name": "Error",
+          "rawMessage": "Abort signal received: \"TimeoutError: The operation was aborted due to timeout\".",
+          "elapsedMs": 2.786,
+          "alternateBytesReturned": false
+        }
+      ]
+    },
+    {
+      "size": 12,
+      "graphKind": "complete-directed-irreflexive-homogeneous-RDF-graph",
+      "blankNodes": 12,
+      "quads": 132,
+      "sourceSha256": "e2846024d4d4ed53bbf7630c1f1b913c3583cb837e94bb6210dcda1443d57345",
+      "successfulBytesIdentical": true,
+      "attempts": [
+        {
+          "label": "current-linear",
+          "budget": 12,
+          "outcome": "resource-limit",
+          "name": "Error",
+          "rawMessage": "Maximum deep iterations exceeded (12).",
+          "elapsedMs": 1.992,
+          "alternateBytesReturned": false
+        },
+        {
+          "label": "proposed-quadratic",
+          "budget": 144,
+          "outcome": "resource-limit",
+          "name": "Error",
+          "rawMessage": "Maximum deep iterations exceeded (144).",
+          "elapsedMs": 12.865,
+          "alternateBytesReturned": false
+        },
+        {
+          "label": "absolute-ceiling",
+          "budget": 100000,
+          "outcome": "resource-limit",
+          "name": "Error",
+          "rawMessage": "Maximum deep iterations exceeded (100000).",
+          "elapsedMs": 8872.271,
+          "alternateBytesReturned": false
+        },
+        {
+          "label": "already-aborted",
+          "budget": 144,
+          "outcome": "aborted",
+          "name": "Error",
+          "rawMessage": "Abort signal received: \"AbortError: This operation was aborted\".",
+          "elapsedMs": 2.165,
+          "alternateBytesReturned": false
+        },
+        {
+          "label": "timed-cancellation-1ms",
+          "budget": 100000,
+          "outcome": "aborted",
+          "name": "Error",
+          "rawMessage": "Abort signal received: \"TimeoutError: The operation was aborted due to timeout\".",
+          "elapsedMs": 4.965,
+          "alternateBytesReturned": false
+        }
+      ]
+    }
+  ]
+}

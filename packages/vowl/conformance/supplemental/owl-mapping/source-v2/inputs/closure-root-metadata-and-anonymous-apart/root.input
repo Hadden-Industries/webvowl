@@ -1,0 +1,9 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Ontology(<urn:owl-seed:root> <urn:owl-seed:root:v1>
+Import(<urn:owl-seed:left>)
+Import(<urn:owl-seed:right>)
+Annotation(:title "root-only")
+Declaration(Class(:A))
+Declaration(AnnotationProperty(:title))
+ClassAssertion(:A _:shared)
+)

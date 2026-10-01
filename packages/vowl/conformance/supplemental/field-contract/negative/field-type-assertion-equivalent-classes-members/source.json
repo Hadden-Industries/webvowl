@@ -1,0 +1,88 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/conditional#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/conditional#B"
+      },
+      {
+        "id": "field-anchor-1",
+        "iri": "urn:field-contract:annotation"
+      },
+      {
+        "id": "field-anchor-3",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "rdf-class",
+        "subject": "s-B"
+      },
+      {
+        "id": "field-anchor-2",
+        "kind": "annotation-property",
+        "subject": "field-anchor-1"
+      },
+      {
+        "id": "field-anchor-4",
+        "kind": "datatype",
+        "subject": "field-anchor-3"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "eq",
+        "kind": "equivalent-classes",
+        "members": [
+          "A",
+          "B"
+        ]
+      },
+      {
+        "id": "field-anchor-5",
+        "kind": "assertion-anchor",
+        "assertion": {
+          "kind": "equivalent-classes",
+          "members": null
+        },
+        "annotations": [
+          {
+            "predicate": "urn:field-contract:annotation",
+            "value": {
+              "kind": "typed",
+              "lexical": "equivalent-classes anchor",
+              "datatype": "http://www.w3.org/2001/XMLSchema#string"
+            },
+            "annotations": []
+          }
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "group",
+        "kind": "class-node",
+        "targets": [
+          "A",
+          "B"
+        ]
+      }
+    ]
+  }
+}

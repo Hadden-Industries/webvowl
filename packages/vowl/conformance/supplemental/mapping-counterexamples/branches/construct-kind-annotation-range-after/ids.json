@@ -1,0 +1,93 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s:A",
+    "primaryBlankNode": "ps2",
+    "rdfcIdentifier": "c14n1",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:C",
+    "primaryBlankNode": "ps4",
+    "rdfcIdentifier": "c14n9",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:B",
+    "primaryBlankNode": "ps3",
+    "rdfcIdentifier": "c14n11",
+    "canonicalId": "s2"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:aq",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n17",
+    "canonicalId": "s3"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:ap",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n18",
+    "canonicalId": "s4"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "A",
+    "primaryBlankNode": "pr2",
+    "rdfcIdentifier": "c14n15",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "B",
+    "primaryBlankNode": "pr3",
+    "rdfcIdentifier": "c14n22",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "C",
+    "primaryBlankNode": "pr4",
+    "rdfcIdentifier": "c14n23",
+    "canonicalId": "r2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "ap",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n24",
+    "canonicalId": "r3"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "aq",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n25",
+    "canonicalId": "r4"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "focus",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n5",
+    "canonicalId": "c0"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "class-backbone",
+    "primaryBlankNode": "pc1",
+    "rdfcIdentifier": "c14n12",
+    "canonicalId": "c1"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-0",
+    "primaryBlankNode": "po0",
+    "rdfcIdentifier": "c14n4",
+    "canonicalId": "o0"
+  }
+]

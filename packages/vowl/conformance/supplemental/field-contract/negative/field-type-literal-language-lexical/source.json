@@ -1,0 +1,71 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-defined",
+        "iri": "https://example.org/supplement#defined"
+      },
+      {
+        "id": "subject-integer",
+        "iri": "http://www.w3.org/2001/XMLSchema#integer"
+      },
+      {
+        "id": "subject-language",
+        "iri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+      }
+    ],
+    "roles": [
+      {
+        "id": "defined",
+        "kind": "datatype",
+        "subject": "subject-defined"
+      },
+      {
+        "id": "integer",
+        "kind": "datatype",
+        "subject": "subject-integer"
+      },
+      {
+        "id": "language",
+        "kind": "datatype",
+        "subject": "subject-language"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "expression",
+        "kind": "data-enumeration",
+        "members": [
+          {
+            "kind": "typed",
+            "lexical": "01",
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+          },
+          {
+            "kind": "typed",
+            "lexical": "1",
+            "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+          },
+          {
+            "kind": "language",
+            "lexical": null,
+            "language": "en-gb"
+          }
+        ]
+      }
+    ],
+    "constructs": [
+      {
+        "id": "definition",
+        "kind": "datatype-definition",
+        "datatype": "defined",
+        "target": "expression"
+      }
+    ],
+    "occurrences": []
+  }
+}

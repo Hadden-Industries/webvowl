@@ -1,0 +1,105 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:A",
+        "iri": "https://example.org/owl-seed#A"
+      },
+      {
+        "id": "s:B",
+        "iri": "https://example.org/owl-seed#B"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s:A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s:B"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "intersection",
+        "kind": "class-intersection",
+        "members": [
+          "B"
+        ]
+      }
+    ],
+    "constructs": [
+      {
+        "id": "sub",
+        "kind": "subclass",
+        "sub": "A",
+        "super": "intersection"
+      },
+      {
+        "id": "disjoint",
+        "kind": "disjoint-classes",
+        "members": [
+          "A"
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-1",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "node-2",
+        "kind": "class-node",
+        "targets": [
+          "intersection"
+        ]
+      },
+      {
+        "id": "edge-0",
+        "kind": "subclass-edge",
+        "construct": "sub",
+        "from": "node-0",
+        "to": "node-2"
+      },
+      {
+        "id": "edge-0-label-single",
+        "kind": "label",
+        "edge": "edge-0",
+        "direction": "single"
+      },
+      {
+        "id": "edge-1",
+        "kind": "disjoint-edge",
+        "construct": "disjoint",
+        "ends": [
+          "node-0"
+        ]
+      },
+      {
+        "id": "edge-2",
+        "kind": "operator-edge",
+        "expression": "intersection",
+        "from": "node-2",
+        "to": "node-1"
+      }
+    ]
+  }
+}

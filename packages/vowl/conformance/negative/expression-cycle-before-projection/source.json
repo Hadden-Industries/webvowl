@@ -1,0 +1,45 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "class-subject",
+        "iri": "https://example.org/o#A"
+      }
+    ],
+    "roles": [
+      {
+        "id": "class-role",
+        "kind": "class",
+        "subject": "class-subject"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "cycle",
+        "kind": "class-complement",
+        "operand": "cycle"
+      }
+    ],
+    "constructs": [
+      {
+        "id": "subclass",
+        "kind": "subclass",
+        "sub": "class-role",
+        "super": "cycle"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "class-node",
+        "kind": "class-node",
+        "targets": [
+          "class-role"
+        ]
+      }
+    ]
+  }
+}

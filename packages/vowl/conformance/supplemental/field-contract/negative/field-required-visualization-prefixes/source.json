@@ -1,0 +1,32 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [],
+    "roles": [],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": []
+  },
+  "visualization": {
+    "placements": [],
+    "camera": {
+      "center": {
+        "x": 0,
+        "y": 0
+      },
+      "zoom": 1
+    },
+    "hidden": [],
+    "labelSelection": {
+      "mode": "untagged"
+    },
+    "display": {
+      "compactNotation": false,
+      "nodeScaling": "uniform",
+      "externalColoring": true
+    }
+  }
+}

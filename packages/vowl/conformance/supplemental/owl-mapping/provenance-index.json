@@ -1,0 +1,940 @@
+{
+  "format": "independent-canonical-vowl-owl-mapping-explicit-scope-v1",
+  "scope": "Additive SLICE-003 seeds. No historical core corpus/index changes; no product output used to derive expected mappings.",
+  "activeManifests": [
+    {
+      "path": "supplemental/owl-mapping/seed-manifest.json",
+      "sha256": "042e6ed08f4ffeb8d7d4d45b33b267d09d1b008355e523334a37a96dfc2fd579"
+    },
+    {
+      "path": "supplemental/owl-mapping/closure-v2-manifest.json",
+      "sha256": "934d88e9feafc220bfac37f6019d1b285501510f66491bbf519ce694e8aceac9"
+    },
+    {
+      "path": "supplemental/owl-mapping/review-overlay-v1.json",
+      "sha256": "5d4b433145d9444656d801287b5329066197ac9c3c3ceca923627e9c17ce1a39"
+    }
+  ],
+  "libraries": [
+    {
+      "name": "canonicalize",
+      "version": "5.1.0",
+      "pins": [
+        {
+          "base": "repository",
+          "path": "packages/vowl/node_modules/canonicalize/package.json",
+          "sha256": "ca7454aac0f76429b5d56bbc3bd61fa706fb1088a19f45d64cf38e055fbf4670",
+          "byteLength": 1553
+        },
+        {
+          "base": "repository",
+          "path": "packages/vowl/node_modules/canonicalize/lib/canonicalize.js",
+          "sha256": "c1d0195af2a0748454b06af8f218e5c90415c19d39154d0058fee8229c12d859",
+          "byteLength": 7145
+        }
+      ],
+      "scope": "Installed package metadata and direct entry point; not an assertion that every transitive library source file is inventoried here."
+    },
+    {
+      "name": "rdf-canonize",
+      "version": "5.0.0",
+      "pins": [
+        {
+          "base": "repository",
+          "path": "node_modules/rdf-canonize/package.json",
+          "sha256": "4fea40db683ef464ac7e36227d7c80e7076b6dc92e262c9d342058e4b1cf36cf",
+          "byteLength": 2837
+        },
+        {
+          "base": "repository",
+          "path": "node_modules/rdf-canonize/index.js",
+          "sha256": "f255d71cfe0cc54bd85753e8227bb6b0071cb12deee963cd3a216f07e17d14a8",
+          "byteLength": 186
+        }
+      ],
+      "scope": "Installed package metadata and direct entry point; not an assertion that every transitive library source file is inventoried here."
+    }
+  ],
+  "counts": {
+    "authoredInputs": 28,
+    "fullExpectedModels": 21,
+    "profileRuns": 66,
+    "successRuns": 45,
+    "errorRuns": 21,
+    "openStableCodeCases": 2,
+    "syntheticCheckerChecks": 67,
+    "rejectedCheckerMutants": 10
+  },
+  "artifacts": [
+    {
+      "base": "conformance",
+      "path": "supplemental/amended-policy/producer.mjs",
+      "sha256": "da7936738c98cb853de7c6d6f2ae7528cbd4d47a0c1ccb1258dae7c5f7143321"
+    },
+    {
+      "base": "conformance",
+      "path": "supplemental/mapping-counterexamples/model.mjs",
+      "sha256": "3a4ebd134c1d209f84cf9c54072988a7e712f12286e95d35edec4d20f600bfc5"
+    },
+    {
+      "path": "supplemental/owl-mapping/README.md",
+      "sha256": "6d61a18434b0289e4f214ba95fc9d9db2c0bc15c3d31a98617e9bd72c9d758a5",
+      "byteLength": 5232
+    },
+    {
+      "path": "supplemental/owl-mapping/assert-adapter.mjs",
+      "sha256": "777f740b273fd919d56924a731e5e7cd5687d423bdf7dee039bd6cb9af677441",
+      "byteLength": 5237
+    },
+    {
+      "path": "supplemental/owl-mapping/assertion-controls.json",
+      "sha256": "a8d46c1dd59f936ac1aca8bfdd1ef535380fa59e9bf052b17687b6577e29ddba",
+      "byteLength": 1723
+    },
+    {
+      "path": "supplemental/owl-mapping/catalog.mjs",
+      "sha256": "f3b544b10c7db15d992115590843a989707615b786063dca66a941e5693ccfd0",
+      "byteLength": 2586
+    },
+    {
+      "path": "supplemental/owl-mapping/check-assertions.mjs",
+      "sha256": "52ef656e2fbf0197e7ca44fa4f3c2f00ee093d4cbb1d569d202e8983afaa9f18",
+      "byteLength": 5421
+    },
+    {
+      "path": "supplemental/owl-mapping/closure-cases.mjs",
+      "sha256": "8b39e05d17ea460b8a6a83c44707c636bf17c53859f5feb2c26748d28b0b5d72",
+      "byteLength": 14730
+    },
+    {
+      "path": "supplemental/owl-mapping/closure-manifest.json",
+      "sha256": "8ff42dc51d5cd07f5984354f887d105386ddc8e8aa30708a45e980a671aa649d"
+    },
+    {
+      "path": "supplemental/owl-mapping/closure-v2-manifest.json",
+      "sha256": "934d88e9feafc220bfac37f6019d1b285501510f66491bbf519ce694e8aceac9"
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/aggregated-domains-retain-original-anchors/canonical.json",
+      "sha256": "e8ceca6ac1654686725c3714f3d55b1af371591db99f1123355f6d838a8b056b",
+      "byteLength": 2047
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/aggregated-domains-retain-original-anchors/canonical.nq",
+      "sha256": "4cf5378d2c363592bfe4b05df69aa5a8f8d0f6f82ab032bac420d67c70d0a73d",
+      "byteLength": 20601
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/aggregated-domains-retain-original-anchors/ids.json",
+      "sha256": "ccae1c27814fffec02b2afb628966b7465910b1b50d23387f5081b592a4fc5c5",
+      "byteLength": 3719
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/aggregated-domains-retain-original-anchors/mapped.nq",
+      "sha256": "d798c2211fffdcc621888fc372e15a593675c3cb603b446023bb8f21fdf6bf86",
+      "byteLength": 19885
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/aggregated-domains-retain-original-anchors/root.input",
+      "sha256": "7e64b4205601235bfece35808e8f120e680ef95bbda8857089645e12536e3fe6",
+      "byteLength": 346
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/aggregated-domains-retain-original-anchors/source.json",
+      "sha256": "3d0bea8f32fdaec4e8a25d103c00a3bef758f135b4e4f60433854449a552bf61",
+      "byteLength": 3848
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/ambiguous-object-annotation-property-use/root.input",
+      "sha256": "fbc47bf3a6aff906055db6f74bebfe609c5ccaac703c69b7e1a65bb158ad4539",
+      "byteLength": 204
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-order-document-alias-and-label-permutation/canonical.json",
+      "sha256": "cd59d1a67e2a863910ea8ce782782d1e707fbd53b67cbc3abd7acd55fd33ae74",
+      "byteLength": 1379
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-order-document-alias-and-label-permutation/canonical.nq",
+      "sha256": "fc4259bf82d9480ca3f8102c6aa207cbef699a22e063b8028ebca3db69e86edd",
+      "byteLength": 13087
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-order-document-alias-and-label-permutation/ids.json",
+      "sha256": "66a83c793b8e0cb5efed067eb181a705ab698bcc17c4f19a4384dae247c0350e",
+      "byteLength": 2971
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-order-document-alias-and-label-permutation/import-0.input",
+      "sha256": "1a5d7db6070282e911d34af5eea80f9896c86051465baa990cf71d4259f7b8ff",
+      "byteLength": 210
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-order-document-alias-and-label-permutation/import-1.input",
+      "sha256": "fc9e2297cde95ecb4de8ad88a3c468c0c9f8be28d45c1b9a9bc959316534ab46",
+      "byteLength": 221
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-order-document-alias-and-label-permutation/import-2.input",
+      "sha256": "6c3ffd9cfa8cc3df4e001008d5d4c636a4eab235921407d4abbfa02d470e7ba5",
+      "byteLength": 247
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-order-document-alias-and-label-permutation/mapped.nq",
+      "sha256": "c87eb54e7eeb49bf990e5530a3fbb80abc9860860b3e9782b54101699e39c7d0",
+      "byteLength": 12636
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-order-document-alias-and-label-permutation/root.input",
+      "sha256": "ee9ae06d4edf1acb47acaead7c0610dd46dbf102fd384ab3604806e3aafdebda",
+      "byteLength": 329
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-order-document-alias-and-label-permutation/source.json",
+      "sha256": "f2c5a00d54d285e7b9058963a0914ea8e4887bc4d8544f69fd520d93eb861e31",
+      "byteLength": 2546
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-root-metadata-and-anonymous-apart/canonical.json",
+      "sha256": "cd59d1a67e2a863910ea8ce782782d1e707fbd53b67cbc3abd7acd55fd33ae74",
+      "byteLength": 1379
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-root-metadata-and-anonymous-apart/canonical.nq",
+      "sha256": "fc4259bf82d9480ca3f8102c6aa207cbef699a22e063b8028ebca3db69e86edd",
+      "byteLength": 13087
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-root-metadata-and-anonymous-apart/ids.json",
+      "sha256": "66a83c793b8e0cb5efed067eb181a705ab698bcc17c4f19a4384dae247c0350e",
+      "byteLength": 2971
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-root-metadata-and-anonymous-apart/import-0.input",
+      "sha256": "78c3ece4041a8d9d61dc1b4ab89b8ce677d9a5c8012d5fc2c887fe73d859b693",
+      "byteLength": 242
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-root-metadata-and-anonymous-apart/import-1.input",
+      "sha256": "95675f769c70e703c2ad622663fc554586d7174daf023ab7c6883196c4d6cb87",
+      "byteLength": 215
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-root-metadata-and-anonymous-apart/import-2.input",
+      "sha256": "1a5d7db6070282e911d34af5eea80f9896c86051465baa990cf71d4259f7b8ff",
+      "byteLength": 210
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-root-metadata-and-anonymous-apart/mapped.nq",
+      "sha256": "c87eb54e7eeb49bf990e5530a3fbb80abc9860860b3e9782b54101699e39c7d0",
+      "byteLength": 12636
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-root-metadata-and-anonymous-apart/root.input",
+      "sha256": "9e28fe698e1a9e61e913a5a67eec3c6d9b41627f093100cad108a0610de9e60d",
+      "byteLength": 324
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-root-metadata-and-anonymous-apart/source.json",
+      "sha256": "f2c5a00d54d285e7b9058963a0914ea8e4887bc4d8544f69fd520d93eb861e31",
+      "byteLength": 2546
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/empty-owl-key-is-not-a-core-empty-key/root.input",
+      "sha256": "a7825aafb7a4db5a4f933f090628ef8a882be32d7b2ca0c3fb01261962c5b598",
+      "byteLength": 143
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/exact-large-cardinality-default-filler/canonical.json",
+      "sha256": "18b8b51a07f8b61800fef4f5b3402ab503d633d95d77f25ce8babb4e6d80a80b",
+      "byteLength": 1208
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/exact-large-cardinality-default-filler/canonical.nq",
+      "sha256": "2aac75d37ee6af86ddbd922115c4efa2edc5efdd6d51234d11471ee13ab2ed64",
+      "byteLength": 13137
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/exact-large-cardinality-default-filler/ids.json",
+      "sha256": "670a27eb5c113ff2425215ff8f9eaaad22bbe2e32e7c2ee01a681cf5ca70985a",
+      "byteLength": 2335
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/exact-large-cardinality-default-filler/mapped.nq",
+      "sha256": "8793c4945dc6eaf5697b2c185dc4eede427e052f7c690f120405a127e77123db",
+      "byteLength": 12674
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/exact-large-cardinality-default-filler/root.input",
+      "sha256": "0f7b0fcb0e9ace408571fd57a6dbbc0ff6e6e372172ddc74cffddd7decd1c866",
+      "byteLength": 215
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/exact-large-cardinality-default-filler/source.json",
+      "sha256": "8a776dcf7c8e6f51f2385844134cafb64d3e3e7789ca6b25d7bd42f7eeaf5aba",
+      "byteLength": 2266
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/malformed-functional-syntax/root.input",
+      "sha256": "60958bab434de4fabb51d2174c56a17adcf73fb7d75e900d7ab92eef3d847bb5",
+      "byteLength": 47
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/mixed-generic-rdf-range-categories/root.input",
+      "sha256": "da272d39e02c1878b23feadf3b57cbaec5dac6dabdac1778a275e6a5a02e9cc7",
+      "byteLength": 240
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/multi-property-DataAllValuesFrom/canonical.json",
+      "sha256": "c1e4c8af629baeb040086f57f296e79b9c69efb5c1f558aba23bba96912a16fa",
+      "byteLength": 1806
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/multi-property-DataAllValuesFrom/canonical.nq",
+      "sha256": "a64ba7e891f88ffd175f3241d1b242ae96214dd05d65dcf63a65c63d4b66a61c",
+      "byteLength": 19413
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/multi-property-DataAllValuesFrom/ids.json",
+      "sha256": "d310b3ed7395645a00029f3be200a848b2128b4341dcc12643d405b01c77fb0d",
+      "byteLength": 4007
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/multi-property-DataAllValuesFrom/mapped.nq",
+      "sha256": "228c2a619d180101df9a0c874bd7a0dda932d0dc546fa141202e6c4571be2bde",
+      "byteLength": 18729
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/multi-property-DataAllValuesFrom/root.input",
+      "sha256": "beb8a5084e60c7ac0736c2100c041d965e32db635e389c1c2b2930f53beccc0f",
+      "byteLength": 401
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/multi-property-DataAllValuesFrom/source.json",
+      "sha256": "bc3128e6601498960976bc147cc99c059ce9a56f717b7c403f44ec900a9fb963",
+      "byteLength": 3463
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/multi-property-DataSomeValuesFrom/canonical.json",
+      "sha256": "c1e4c8af629baeb040086f57f296e79b9c69efb5c1f558aba23bba96912a16fa",
+      "byteLength": 1806
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/multi-property-DataSomeValuesFrom/canonical.nq",
+      "sha256": "a64ba7e891f88ffd175f3241d1b242ae96214dd05d65dcf63a65c63d4b66a61c",
+      "byteLength": 19413
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/multi-property-DataSomeValuesFrom/ids.json",
+      "sha256": "d310b3ed7395645a00029f3be200a848b2128b4341dcc12643d405b01c77fb0d",
+      "byteLength": 4007
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/multi-property-DataSomeValuesFrom/mapped.nq",
+      "sha256": "228c2a619d180101df9a0c874bd7a0dda932d0dc546fa141202e6c4571be2bde",
+      "byteLength": 18729
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/multi-property-DataSomeValuesFrom/root.input",
+      "sha256": "a8838636d1a474329984ce3a6dba75e9f652ca73d0af3be876100dfb9d023a55",
+      "byteLength": 402
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/multi-property-DataSomeValuesFrom/source.json",
+      "sha256": "bc3128e6601498960976bc147cc99c059ce9a56f717b7c403f44ec900a9fb963",
+      "byteLength": 3463
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/original-arity-before-set-deduplication/canonical.json",
+      "sha256": "d7440441667cc4fff7427bfca9742f24baccae6217d89b609ad9a6e1b965905b",
+      "byteLength": 999
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/original-arity-before-set-deduplication/canonical.nq",
+      "sha256": "1c95873093e0e479e5834cec4d91c37fbce5f76a9e25341c5c95f18df4602e27",
+      "byteLength": 11399
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/original-arity-before-set-deduplication/ids.json",
+      "sha256": "81149d1cf17ca7b303e3739afaf8d9bbef8554fbc14975d07e2b4441da54f99c",
+      "byteLength": 2177
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/original-arity-before-set-deduplication/mapped.nq",
+      "sha256": "64b98b416ad15ca17e8cadf8785b6e60693c4383e191090cc53003af539e598c",
+      "byteLength": 10993
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/original-arity-before-set-deduplication/root.input",
+      "sha256": "f29c61921240641b5fdbcaad53656c913487fff49b7bc6bcd4a28afde8aec6f8",
+      "byteLength": 215
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/original-arity-before-set-deduplication/source.json",
+      "sha256": "c7d7693de08c16a4ab0e2274fa2f28242b5e8d704717a1fd9613f8653cea5f4b",
+      "byteLength": 1896
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/strict-validates-excluded-imported-literal/import-0.input",
+      "sha256": "ce931f8a7705db64931b89531a682564a0531c8926ff42d26808abbc82003032",
+      "byteLength": 162
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/strict-validates-excluded-imported-literal/root.input",
+      "sha256": "5b53bfa6cbacd5f7bcbf9928ecce5e2ece1bd82ace057891bc0fd84c6c287bfa",
+      "byteLength": 204
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-owlxml/canonical.json",
+      "sha256": "5f17de46f8440caf81cdeb9fd7aaf8e1f3ee7924af17502aaaa67a7a27f3e8da",
+      "byteLength": 698
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-owlxml/canonical.nq",
+      "sha256": "a6517288a11062137bf0b32b6f0d49f2b72c7438dbc22eec5144073bfb5fdff5",
+      "byteLength": 7667
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-owlxml/ids.json",
+      "sha256": "895bd64f9216df61bceb57163516bd35645c28399734acb0760d1596b6ac7256",
+      "byteLength": 1385
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-owlxml/mapped.nq",
+      "sha256": "8d00f687c147f3cb8235621c86f66c07842b0ae0ad20f0c0e352b729ce0340dd",
+      "byteLength": 7408
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-owlxml/root.input",
+      "sha256": "6484d6361590d2100b2699d37167a7e41be83c760340f53be4faa2a05425a0c8",
+      "byteLength": 359
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-owlxml/source.json",
+      "sha256": "6114d2d64dc81c7c63b9e446c3a94954e96357c40750e7f1f7e9c20db41f2b1b",
+      "byteLength": 1185
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-source-order-and-duplicates/canonical.json",
+      "sha256": "5f17de46f8440caf81cdeb9fd7aaf8e1f3ee7924af17502aaaa67a7a27f3e8da",
+      "byteLength": 698
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-source-order-and-duplicates/canonical.nq",
+      "sha256": "a6517288a11062137bf0b32b6f0d49f2b72c7438dbc22eec5144073bfb5fdff5",
+      "byteLength": 7667
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-source-order-and-duplicates/ids.json",
+      "sha256": "895bd64f9216df61bceb57163516bd35645c28399734acb0760d1596b6ac7256",
+      "byteLength": 1385
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-source-order-and-duplicates/mapped.nq",
+      "sha256": "8d00f687c147f3cb8235621c86f66c07842b0ae0ad20f0c0e352b729ce0340dd",
+      "byteLength": 7408
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-source-order-and-duplicates/root.input",
+      "sha256": "8e1acd0eebd1d7b2a2321a9377dddf317a48ecc225250555df18c93700369fb1",
+      "byteLength": 208
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-source-order-and-duplicates/source.json",
+      "sha256": "6114d2d64dc81c7c63b9e446c3a94954e96357c40750e7f1f7e9c20db41f2b1b",
+      "byteLength": 1185
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-turtle/canonical.json",
+      "sha256": "5f17de46f8440caf81cdeb9fd7aaf8e1f3ee7924af17502aaaa67a7a27f3e8da",
+      "byteLength": 698
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-turtle/canonical.nq",
+      "sha256": "a6517288a11062137bf0b32b6f0d49f2b72c7438dbc22eec5144073bfb5fdff5",
+      "byteLength": 7667
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-turtle/ids.json",
+      "sha256": "895bd64f9216df61bceb57163516bd35645c28399734acb0760d1596b6ac7256",
+      "byteLength": 1385
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-turtle/mapped.nq",
+      "sha256": "8d00f687c147f3cb8235621c86f66c07842b0ae0ad20f0c0e352b729ce0340dd",
+      "byteLength": 7408
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-turtle/root.input",
+      "sha256": "ada0f250ec01545d8d3d991110ad50100f6e7496d20d50beb20ce2de694512a8",
+      "byteLength": 203
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-turtle/source.json",
+      "sha256": "6114d2d64dc81c7c63b9e446c3a94954e96357c40750e7f1f7e9c20db41f2b1b",
+      "byteLength": 1185
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/unknown-functional-constructor/root.input",
+      "sha256": "124d01897a90edbb146a665c08ba0836ed3f3c8d4eb9958cd4e85a50603b5815",
+      "byteLength": 132
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/unsupported-media-never-sniffs/root.input",
+      "sha256": "fa88e59364b0ac06bb967910f73e88c8de35932fccd0f2ac145057d844fb6a4f",
+      "byteLength": 126
+    },
+    {
+      "path": "supplemental/owl-mapping/derive-closure.mjs",
+      "sha256": "2d8fcd7cd5cf7b296fe4dbac97221de2754f4495dce541121fb492a096e8d718",
+      "byteLength": 4651
+    },
+    {
+      "path": "supplemental/owl-mapping/derive-open.mjs",
+      "sha256": "9fb68c055c4404745a4a9faf8baeabb421030bb63e10e68e5090fb9d782c09ce",
+      "byteLength": 2846
+    },
+    {
+      "path": "supplemental/owl-mapping/derive-provenance.mjs",
+      "sha256": "67550199bdc7a5d3596fd05f729a7e8b6771dfd6975383c73918dc938e173826",
+      "byteLength": 4311
+    },
+    {
+      "path": "supplemental/owl-mapping/derive-review-overlay.mjs",
+      "sha256": "8af321924a6786658855b9da50a65223bdf98e370e611209da2e805caa27acbe",
+      "byteLength": 2749
+    },
+    {
+      "path": "supplemental/owl-mapping/derive-seed.mjs",
+      "sha256": "41efd0948b4303b608c9d156f4f3fe5dcf6267924b982a9ff2e7c3bc2cd0798f",
+      "byteLength": 3145
+    },
+    {
+      "path": "supplemental/owl-mapping/history/closure-cases.initial.mjs.txt",
+      "sha256": "9b17113d3b24e20e1bc12e955ae41e781cf2a616a9f33ce4b1f87270bf0b0aed",
+      "byteLength": 14737
+    },
+    {
+      "path": "supplemental/owl-mapping/history/derive-closure.initial.mjs.txt",
+      "sha256": "5b334a042d666c7b139bf6288e597cace08105e2b1511fcd818c80b63237ff87",
+      "byteLength": 3748
+    },
+    {
+      "path": "supplemental/owl-mapping/open-cases.json",
+      "sha256": "47493bd6cb647778c1fbe1f7208c5347f9de47d4918640a70f3b6b6a12a9213a",
+      "byteLength": 3034
+    },
+    {
+      "path": "supplemental/owl-mapping/open/cyclic-rdf-expression.ttl",
+      "sha256": "35f1ede8a5a6fdf16d18aa2af42afa03bb4a7a1fe6d17ba6975958c06abc52d7",
+      "byteLength": 301
+    },
+    {
+      "path": "supplemental/owl-mapping/open/malformed-rdf-list.ttl",
+      "sha256": "37d31a4105328aec6bd50f344fa6d98ec9857405ae7e0df9057935bba330aee0",
+      "byteLength": 286
+    },
+    {
+      "path": "supplemental/owl-mapping/review-overlay-v1.json",
+      "sha256": "5d4b433145d9444656d801287b5329066197ac9c3c3ceca923627e9c17ce1a39"
+    },
+    {
+      "path": "supplemental/owl-mapping/seed-cases.mjs",
+      "sha256": "e77e2a5c4ba832a7ffd893f3c42cf952e4ec969e5481e261f9876b1371cd466a",
+      "byteLength": 11772
+    },
+    {
+      "path": "supplemental/owl-mapping/seed-manifest.json",
+      "sha256": "042e6ed08f4ffeb8d7d4d45b33b267d09d1b008355e523334a37a96dfc2fd579"
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/declared-subclass/canonical.json",
+      "sha256": "5f17de46f8440caf81cdeb9fd7aaf8e1f3ee7924af17502aaaa67a7a27f3e8da",
+      "byteLength": 698
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/declared-subclass/canonical.nq",
+      "sha256": "a6517288a11062137bf0b32b6f0d49f2b72c7438dbc22eec5144073bfb5fdff5",
+      "byteLength": 7667
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/declared-subclass/ids.json",
+      "sha256": "895bd64f9216df61bceb57163516bd35645c28399734acb0760d1596b6ac7256",
+      "byteLength": 1385
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/declared-subclass/input.ofn",
+      "sha256": "ed98cbda9c09d8e4354e79533316fbcc8f4821b08f6287d7f61b913f22ea36a0",
+      "byteLength": 167
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/declared-subclass/mapped.nq",
+      "sha256": "8d00f687c147f3cb8235621c86f66c07842b0ae0ad20f0c0e352b729ce0340dd",
+      "byteLength": 7408
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/declared-subclass/source.json",
+      "sha256": "6114d2d64dc81c7c63b9e446c3a94954e96357c40750e7f1f7e9c20db41f2b1b",
+      "byteLength": 1185
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/empty-anonymous-ontology/canonical.json",
+      "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae",
+      "byteLength": 230
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/empty-anonymous-ontology/canonical.nq",
+      "sha256": "db60b276c64f63a0a86a60fb901d4698827101dabcd8679f6362f4dd4168b6ee",
+      "byteLength": 2574
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/empty-anonymous-ontology/ids.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "byteLength": 3
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/empty-anonymous-ontology/input.ofn",
+      "sha256": "1ccbc0cdd7ead7e862df69e4222306812ec6065d59ac5bb5f88a833dd83cb652",
+      "byteLength": 104
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/empty-anonymous-ontology/mapped.nq",
+      "sha256": "f1e963337844aab88552871a8878e95ed4e6657c8892e07dde1dd50cead46072",
+      "byteLength": 2496
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/empty-anonymous-ontology/source.json",
+      "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+      "byteLength": 200
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/explicit-multiple-property-roles/canonical.json",
+      "sha256": "306814d8f149906122141bdf1b6eb6629132c2a16258c33266933072c1b19c27",
+      "byteLength": 1253
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/explicit-multiple-property-roles/canonical.nq",
+      "sha256": "367c19ddf8ab119f2f9d9ae617ed2d0f6e89ecabbd0eb7a97cab054c68cf5839",
+      "byteLength": 13191
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/explicit-multiple-property-roles/ids.json",
+      "sha256": "03a685f7ee19f93c5fe480acf6ab01a474106068c3e3be4f9007e0de5fd5e6a9",
+      "byteLength": 2641
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/explicit-multiple-property-roles/input.ofn",
+      "sha256": "48b737a7ce241dc1badf95b58ef9a912e3fee585d77a8c48966dfaba6810fb3c",
+      "byteLength": 302
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/explicit-multiple-property-roles/mapped.nq",
+      "sha256": "93f74edb216c3f7f80f06f0abcecbc988b3bdeef2b79b1e30dba28c0af7505fd",
+      "byteLength": 12721
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/explicit-multiple-property-roles/source.json",
+      "sha256": "65718926807d4393e62e6386ece59331f7c4336b5fef790a625417c63ed0ba62",
+      "byteLength": 2351
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/explicit-rdfs-only-roles/canonical.json",
+      "sha256": "58c7282b02187e4847f9df3dc14a22226fcd53fcc63412e8e1bd1ba79ccd0cdf",
+      "byteLength": 732
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/explicit-rdfs-only-roles/canonical.nq",
+      "sha256": "dab8a887b0cc6cc63a6e5ea29cc4eddb2ff1152f9adb72e64a5a25ac810a565e",
+      "byteLength": 7788
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/explicit-rdfs-only-roles/ids.json",
+      "sha256": "b5c3a5132ce0e6341b918d3bd8c8318468898c6bef0a8b581004666ee99091eb",
+      "byteLength": 1387
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/explicit-rdfs-only-roles/input.ttl",
+      "sha256": "953ffc93506ed618bd7d9c608f87e436b61304700b9db8bf2ddc4f4c1f8a6949",
+      "byteLength": 232
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/explicit-rdfs-only-roles/mapped.nq",
+      "sha256": "169eba8e8b072297efe713d51d8cfcb4994da020814cf417e64fbfc2d2430a44",
+      "byteLength": 7520
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/explicit-rdfs-only-roles/source.json",
+      "sha256": "95c1f9d68ef680a9be1de22084354de29df2cb44dc15e5e2a8946baded4c7b5e",
+      "byteLength": 1228
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/known-ill-typed-literal/canonical.json",
+      "sha256": "36058ec307bd580590f4a679609f16d2b4f5d70f986d2f1092600ad744ab2bc3",
+      "byteLength": 795
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/known-ill-typed-literal/canonical.nq",
+      "sha256": "d89a32a85b1ba5b14bbd7d9b3a9d761546ae8b568c87321b96db949db5086e8d",
+      "byteLength": 7131
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/known-ill-typed-literal/ids.json",
+      "sha256": "9858767c2afa452ca4b205fded2f24fac9a2e225922904f0be82bd95aa9cf88e",
+      "byteLength": 1223
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/known-ill-typed-literal/input.ofn",
+      "sha256": "3ac8edc3e4749dbaabb466c5365928294cdd747d28e81459431b5fa3c77bc119",
+      "byteLength": 256
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/known-ill-typed-literal/mapped.nq",
+      "sha256": "104ebe1187c3deddc519785800d2e08a0a7e612c7e17453d15b7135dab368880",
+      "byteLength": 6901
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/known-ill-typed-literal/source.json",
+      "sha256": "11145866b773062e549d1090bfde987c5cd89e9e2ac2af251e0398a711c22996",
+      "byteLength": 1231
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/nested-annotations-and-exact-literals/canonical.json",
+      "sha256": "84619fce8256b699fa231aa24f88e41ad0cc42b24d0fa42056620fc68515c346",
+      "byteLength": 1853
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/nested-annotations-and-exact-literals/canonical.nq",
+      "sha256": "57d697bf38b9fb354fc75a1a78b9bf5953de299629940d8b5fd4762ec97028bb",
+      "byteLength": 16899
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/nested-annotations-and-exact-literals/ids.json",
+      "sha256": "f80822ece31f8ba378cab7550edb6ddab72f91bb5531b308f72105947bc725b7",
+      "byteLength": 3233
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/nested-annotations-and-exact-literals/input.ofn",
+      "sha256": "e7e59a5054becfda92dcae8aa0bde213400448851987fd449d62630b9d23bc0e",
+      "byteLength": 353
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/nested-annotations-and-exact-literals/mapped.nq",
+      "sha256": "4191b8a08ae2a86c37580410ab56f1f79b9ebb9cf0a31727fae55e348f9311d0",
+      "byteLength": 16325
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/nested-annotations-and-exact-literals/source.json",
+      "sha256": "36987722ab2ae0b1354cae542dd1c0a6eebb8678c476894c3852987dbdd955e0",
+      "byteLength": 3335
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/non-simple-functional-property/canonical.json",
+      "sha256": "ed9543a1bc408b003f17d96c251462c770f7153157e897805e2f5c6ce81e0e1c",
+      "byteLength": 915
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/non-simple-functional-property/canonical.nq",
+      "sha256": "6a98f0fee64b77928a14812d57ab1f2ec2962d96f110bd21fb3cb78a4d045ff2",
+      "byteLength": 9191
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/non-simple-functional-property/ids.json",
+      "sha256": "ef8ac5b777962ecf788c9464687f515c354cb6105f8a7c932f46115ebd74d132",
+      "byteLength": 1707
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/non-simple-functional-property/input.ofn",
+      "sha256": "24610ea2016dd53e8777308455135174fbc855ec5686ef61c184af80fe60daf5",
+      "byteLength": 271
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/non-simple-functional-property/mapped.nq",
+      "sha256": "4230124de48b90cf2ca2f13bc8e33c5c6c42be4eba50da24f243fc0e4f6086fb",
+      "byteLength": 8881
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/non-simple-functional-property/source.json",
+      "sha256": "d228a91bf612ed5037121d4fdca1113d51e545e338f8de11a0908f341635a2f5",
+      "byteLength": 1533
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/six-explicit-abox-exclusions/canonical.json",
+      "sha256": "67a5599258bca4a89023291d8799b0185fd71c7737ff40b592ddb30b4016addc",
+      "byteLength": 2025
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/six-explicit-abox-exclusions/canonical.nq",
+      "sha256": "f99e5506ec55af62bafde36643f7a5f31d11702437eebc1b59f334ae31f0c740",
+      "byteLength": 20175
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/six-explicit-abox-exclusions/ids.json",
+      "sha256": "9a582149608afa551aacc9b8f1ee78a8f3ef6ec7f19a7852d0a46815421d12bd",
+      "byteLength": 4300
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/six-explicit-abox-exclusions/input.ofn",
+      "sha256": "36365c694360957e6c68258202a659a924ba6401654f1067e6ed9db6fcd34f7b",
+      "byteLength": 612
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/six-explicit-abox-exclusions/mapped.nq",
+      "sha256": "a28e29e0ddbb15947bb116b583d6eed36fb82b6e116df8e93319bf1a79812d2f",
+      "byteLength": 19472
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/six-explicit-abox-exclusions/source.json",
+      "sha256": "769e5d223bc2d3a83683d71a5544ab28a28cf38001161dc4a3b502dde53ccdbe",
+      "byteLength": 3754
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/typed-use-without-redundant-declarations/canonical.json",
+      "sha256": "5f17de46f8440caf81cdeb9fd7aaf8e1f3ee7924af17502aaaa67a7a27f3e8da",
+      "byteLength": 698
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/typed-use-without-redundant-declarations/canonical.nq",
+      "sha256": "a6517288a11062137bf0b32b6f0d49f2b72c7438dbc22eec5144073bfb5fdff5",
+      "byteLength": 7667
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/typed-use-without-redundant-declarations/ids.json",
+      "sha256": "895bd64f9216df61bceb57163516bd35645c28399734acb0760d1596b6ac7256",
+      "byteLength": 1385
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/typed-use-without-redundant-declarations/input.ofn",
+      "sha256": "f504392f768b1fd75da1120994ca5d7741a5aa1abd208cede3610c0e578db5a9",
+      "byteLength": 121
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/typed-use-without-redundant-declarations/mapped.nq",
+      "sha256": "8d00f687c147f3cb8235621c86f66c07842b0ae0ad20f0c0e352b729ce0340dd",
+      "byteLength": 7408
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/typed-use-without-redundant-declarations/source.json",
+      "sha256": "6114d2d64dc81c7c63b9e446c3a94954e96357c40750e7f1f7e9c20db41f2b1b",
+      "byteLength": 1185
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/unresolved-authored-import/canonical.json",
+      "sha256": "323ec1600ccc1d87aeece39dd8173eabb5f8a5d90b72b6e992229984d777c557",
+      "byteLength": 417
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/unresolved-authored-import/canonical.nq",
+      "sha256": "42906fa881c52694f9d5ae235a4cb186936edb36b37313214ecf9a2f4db99f5c",
+      "byteLength": 4352
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/unresolved-authored-import/ids.json",
+      "sha256": "c30531a043165d6488275aeafd77a270f8e49672e24d724008dd540556c97e14",
+      "byteLength": 454
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/unresolved-authored-import/input.ofn",
+      "sha256": "9501c7b96e5d0deaa64117b04d52c6b77435e4b2b7bf5dea60c9f4cb8b16bbfe",
+      "byteLength": 176
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/unresolved-authored-import/mapped.nq",
+      "sha256": "61d95bdc4d72ed60615893d4c3d4b5b266ee815dfa4ca95f2de032dedd8b8541",
+      "byteLength": 4210
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/unresolved-authored-import/source.json",
+      "sha256": "605d5ec7359875975a61625e5742a0be605a109cfc3cc859356786536d8f5e5e",
+      "byteLength": 572
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/canonical.json",
+      "sha256": "b5f97994cece455c5ae68093193bceba7da82d06c13a024ac224f12b3809b35b",
+      "byteLength": 793
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/canonical.nq",
+      "sha256": "e9ab093951e61f32572e80db037c09ad3f36758715573e1746ed1e0fd8ee967e",
+      "byteLength": 7129
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/ids.json",
+      "sha256": "f44315a332ea44bdfc312e7370c59e8e60b164ea7b0056587ee549cfbdb1883e",
+      "byteLength": 1237
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/input.ofn",
+      "sha256": "52094a3e6fd97e6a8d301a2339092f9f75e9558c9b07d15bf5af1c19752c8701",
+      "byteLength": 290
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/mapped.nq",
+      "sha256": "f7b8dac2fe8c78e8e78456d606a4090d0be335020963e18ee0501c0171ce7c0f",
+      "byteLength": 6899
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/source.json",
+      "sha256": "dbcc153b5c17fdfd7c2deaa79795797521af85df311ce59c58173d2d30aed1f7",
+      "byteLength": 1250
+    },
+    {
+      "path": "supplemental/owl-mapping/support.mjs",
+      "sha256": "4c4352f67771a9b5d32fec99ca34602fcf8423a7c80a2c9202ef19ce494c6de7",
+      "byteLength": 3862
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-30-canonical-vowl-protocol-clarifications.md",
+      "sha256": "057bd8a3a15d5a574b753683917b871bd27bf239d9fd9ffad484550361cd84b4"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+      "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1"
+    },
+    {
+      "base": "repository",
+      "path": "node_modules/rdf-canonize/index.js",
+      "sha256": "f255d71cfe0cc54bd85753e8227bb6b0071cb12deee963cd3a216f07e17d14a8",
+      "byteLength": 186
+    },
+    {
+      "base": "repository",
+      "path": "node_modules/rdf-canonize/package.json",
+      "sha256": "4fea40db683ef464ac7e36227d7c80e7076b6dc92e262c9d342058e4b1cf36cf",
+      "byteLength": 2837
+    },
+    {
+      "base": "repository",
+      "path": "packages/vowl/node_modules/canonicalize/lib/canonicalize.js",
+      "sha256": "c1d0195af2a0748454b06af8f218e5c90415c19d39154d0058fee8229c12d859",
+      "byteLength": 7145
+    },
+    {
+      "base": "repository",
+      "path": "packages/vowl/node_modules/canonicalize/package.json",
+      "sha256": "ca7454aac0f76429b5d56bbc3bd61fa706fb1088a19f45d64cf38e055fbf4670",
+      "byteLength": 1553
+    }
+  ]
+}

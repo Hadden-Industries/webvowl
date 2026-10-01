@@ -1,0 +1,94 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/conditional#A"
+      },
+      {
+        "id": "s-Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "s-Thing"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "union",
+        "kind": "class-complement",
+        "operand": "Thing"
+      }
+    ],
+    "constructs": [
+      {
+        "id": "subclass",
+        "kind": "subclass",
+        "sub": "A",
+        "super": "union"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "generic",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "class",
+          "targets": [
+            "union"
+          ]
+        }
+      },
+      {
+        "id": "node-union",
+        "kind": "class-node",
+        "targets": [
+          "union"
+        ]
+      },
+      {
+        "id": "operator-union-1",
+        "kind": "operator-edge",
+        "expression": "union",
+        "from": "node-union",
+        "to": "generic"
+      },
+      {
+        "id": "subclass-edge",
+        "kind": "subclass-edge",
+        "construct": "subclass",
+        "from": "node-A",
+        "to": "node-union"
+      },
+      {
+        "id": "label-subclass-edge-single",
+        "kind": "label",
+        "edge": "subclass-edge",
+        "direction": "single"
+      }
+    ]
+  }
+}

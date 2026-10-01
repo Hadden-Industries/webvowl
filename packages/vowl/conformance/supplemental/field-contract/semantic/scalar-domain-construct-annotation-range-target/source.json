@@ -1,0 +1,31 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-p",
+        "iri": "https://example.org/supplement#p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "p",
+        "kind": "annotation-property",
+        "subject": "subject-p"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "relation",
+        "kind": "annotation-range",
+        "property": "p",
+        "target": "relative-reference"
+      }
+    ],
+    "occurrences": []
+  }
+}

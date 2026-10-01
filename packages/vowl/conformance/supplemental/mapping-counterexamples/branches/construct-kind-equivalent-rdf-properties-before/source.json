@@ -1,0 +1,139 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:Resource",
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Resource"
+      },
+      {
+        "id": "s:rp",
+        "iri": "urn:mapping-pair:rp"
+      },
+      {
+        "id": "s:rq",
+        "iri": "urn:mapping-pair:rq"
+      },
+      {
+        "id": "s:A",
+        "iri": "urn:mapping-pair:A"
+      },
+      {
+        "id": "s:B",
+        "iri": "urn:mapping-pair:B"
+      },
+      {
+        "id": "s:C",
+        "iri": "urn:mapping-pair:C"
+      }
+    ],
+    "roles": [
+      {
+        "id": "Resource",
+        "kind": "rdf-class",
+        "subject": "s:Resource"
+      },
+      {
+        "id": "rp",
+        "kind": "rdf-property",
+        "subject": "s:rp"
+      },
+      {
+        "id": "rq",
+        "kind": "rdf-property",
+        "subject": "s:rq"
+      },
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s:A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s:B"
+      },
+      {
+        "id": "C",
+        "kind": "class",
+        "subject": "s:C"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "focus",
+        "kind": "equivalent-rdf-properties",
+        "members": [
+          "rp"
+        ]
+      },
+      {
+        "id": "class-backbone",
+        "kind": "equivalent-classes",
+        "members": [
+          "A",
+          "B",
+          "C"
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A",
+          "B",
+          "C"
+        ]
+      },
+      {
+        "id": "node-1",
+        "kind": "class-node",
+        "targets": [
+          "Resource"
+        ],
+        "context": {
+          "kind": "class",
+          "targets": [
+            "Resource"
+          ]
+        }
+      },
+      {
+        "id": "edge-0",
+        "kind": "property-edge",
+        "properties": [
+          "rp"
+        ],
+        "from": "node-1",
+        "to": "node-1"
+      },
+      {
+        "id": "edge-0-label-single",
+        "kind": "label",
+        "edge": "edge-0",
+        "direction": "single"
+      },
+      {
+        "id": "edge-1",
+        "kind": "property-edge",
+        "properties": [
+          "rq"
+        ],
+        "from": "node-1",
+        "to": "node-1"
+      },
+      {
+        "id": "edge-1-label-single",
+        "kind": "label",
+        "edge": "edge-1",
+        "direction": "single"
+      }
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s-A",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n3",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-B",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n12",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "B",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n21",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "A",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n25",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "subclass",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n8",
+    "canonicalId": "c0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "subclass-edge",
+    "primaryBlankNode": "po2",
+    "rdfcIdentifier": "c14n7",
+    "canonicalId": "o0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-B",
+    "primaryBlankNode": "po1",
+    "rdfcIdentifier": "c14n14",
+    "canonicalId": "o1"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-A",
+    "primaryBlankNode": "po0",
+    "rdfcIdentifier": "c14n16",
+    "canonicalId": "o2"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "label-subclass-edge",
+    "primaryBlankNode": "po3",
+    "rdfcIdentifier": "c14n19",
+    "canonicalId": "o3"
+  }
+]

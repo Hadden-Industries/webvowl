@@ -1,0 +1,126 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:i",
+        "iri": "urn:mapping-pair:i"
+      },
+      {
+        "id": "s:j",
+        "iri": "urn:mapping-pair:j"
+      },
+      {
+        "id": "s:annotation",
+        "iri": "urn:mapping-pair:annotation"
+      },
+      {
+        "id": "s:string",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      },
+      {
+        "id": "s:A",
+        "iri": "urn:mapping-pair:A"
+      },
+      {
+        "id": "s:B",
+        "iri": "urn:mapping-pair:B"
+      },
+      {
+        "id": "s:C",
+        "iri": "urn:mapping-pair:C"
+      }
+    ],
+    "roles": [
+      {
+        "id": "i",
+        "kind": "individual",
+        "subject": "s:i"
+      },
+      {
+        "id": "j",
+        "kind": "individual",
+        "subject": "s:j"
+      },
+      {
+        "id": "annotation",
+        "kind": "annotation-property",
+        "subject": "s:annotation"
+      },
+      {
+        "id": "string",
+        "kind": "datatype",
+        "subject": "s:string"
+      },
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s:A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s:B"
+      },
+      {
+        "id": "C",
+        "kind": "class",
+        "subject": "s:C"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "anchor-focus",
+        "kind": "assertion-anchor",
+        "assertion": {
+          "kind": "key",
+          "class": "A",
+          "objectProperties": [],
+          "dataProperties": []
+        },
+        "annotations": [
+          {
+            "predicate": "urn:mapping-pair:annotation",
+            "value": {
+              "kind": "typed",
+              "lexical": "before",
+              "datatype": "http://www.w3.org/2001/XMLSchema#string"
+            },
+            "annotations": []
+          }
+        ]
+      },
+      {
+        "id": "class-backbone",
+        "kind": "equivalent-classes",
+        "members": [
+          "A",
+          "B",
+          "C"
+        ]
+      },
+      {
+        "id": "alternate-assertion-support",
+        "kind": "key",
+        "class": "A",
+        "objectProperties": [],
+        "dataProperties": []
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A",
+          "B",
+          "C"
+        ]
+      }
+    ]
+  }
+}

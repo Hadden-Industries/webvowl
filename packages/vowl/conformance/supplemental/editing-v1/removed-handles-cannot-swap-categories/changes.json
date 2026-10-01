@@ -1,0 +1,27 @@
+[
+  {
+    "kind": "remove",
+    "id": "r0"
+  },
+  {
+    "kind": "remove",
+    "id": "s0"
+  },
+  {
+    "kind": "insert",
+    "collection": "subjects",
+    "record": {
+      "id": "r0",
+      "iri": "urn:editing:unrelated"
+    }
+  },
+  {
+    "kind": "insert",
+    "collection": "roles",
+    "record": {
+      "id": "s0",
+      "kind": "class",
+      "subject": "r0"
+    }
+  }
+]

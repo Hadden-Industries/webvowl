@@ -1,0 +1,98 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "renamed-2",
+        "kind": "label",
+        "id": "renamed-1"
+      },
+      {
+        "to": "renamed-5",
+        "from": "renamed-5",
+        "properties": [
+          "renamed-7"
+        ],
+        "kind": "property-edge",
+        "id": "renamed-2"
+      },
+      {
+        "direction": "single",
+        "edge": "renamed-4",
+        "kind": "label",
+        "id": "renamed-3"
+      },
+      {
+        "to": "renamed-5",
+        "from": "renamed-5",
+        "properties": [
+          "renamed-8"
+        ],
+        "kind": "property-edge",
+        "id": "renamed-4"
+      },
+      {
+        "context": {
+          "targets": [
+            "renamed-9"
+          ],
+          "kind": "class"
+        },
+        "targets": [
+          "renamed-9"
+        ],
+        "kind": "class-node",
+        "id": "renamed-5"
+      }
+    ],
+    "constructs": [
+      {
+        "super": "renamed-8",
+        "members": [
+          "renamed-8",
+          "renamed-7",
+          "renamed-8",
+          "renamed-7"
+        ],
+        "kind": "property-chain",
+        "id": "renamed-6"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "renamed-10",
+        "kind": "object-property",
+        "id": "renamed-7"
+      },
+      {
+        "subject": "renamed-11",
+        "kind": "object-property",
+        "id": "renamed-8"
+      },
+      {
+        "subject": "renamed-12",
+        "kind": "class",
+        "id": "renamed-9"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/o#q",
+        "id": "renamed-10"
+      },
+      {
+        "iri": "https://example.org/o#p",
+        "id": "renamed-11"
+      },
+      {
+        "iri": "http://www.w3.org/2002/07/owl#Thing",
+        "id": "renamed-12"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

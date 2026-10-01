@@ -1,0 +1,69 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:A",
+        "iri": "https://example.org/owl-seed#A"
+      },
+      {
+        "id": "s:p",
+        "iri": "https://example.org/owl-seed#p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "rdf-class",
+        "subject": "s:A"
+      },
+      {
+        "id": "p",
+        "kind": "rdf-property",
+        "subject": "s:p"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "domain",
+        "kind": "rdf-domain",
+        "property": "p",
+        "target": "A"
+      },
+      {
+        "id": "range",
+        "kind": "rdf-range",
+        "property": "p",
+        "target": "A"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "edge-0",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "node-0",
+        "to": "node-0"
+      },
+      {
+        "id": "edge-0-label-single",
+        "kind": "label",
+        "edge": "edge-0",
+        "direction": "single"
+      }
+    ]
+  }
+}

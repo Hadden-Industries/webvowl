@@ -1,0 +1,5 @@
+@prefix : <https://example.org/owl-seed#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+:p a owl:ObjectProperty, owl:AnnotationProperty .
+:i a owl:NamedIndividual ; :p :j .
+:j a owl:NamedIndividual .

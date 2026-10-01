@@ -1,0 +1,87 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "targets": [
+          "conditional-renamed-9"
+        ],
+        "kind": "class-node",
+        "id": "conditional-renamed-1"
+      }
+    ],
+    "constructs": [
+      {
+        "characteristic": "functional",
+        "property": "conditional-renamed-6",
+        "kind": "rdf-characteristic",
+        "id": "conditional-renamed-2"
+      },
+      {
+        "target": "conditional-renamed-5",
+        "property": "conditional-renamed-6",
+        "kind": "rdf-range",
+        "id": "conditional-renamed-3"
+      },
+      {
+        "target": "conditional-renamed-9",
+        "property": "conditional-renamed-6",
+        "kind": "rdf-domain",
+        "id": "conditional-renamed-4"
+      }
+    ],
+    "expressions": [
+      {
+        "members": [
+          "conditional-renamed-7",
+          "conditional-renamed-8"
+        ],
+        "kind": "data-intersection",
+        "id": "conditional-renamed-5"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "conditional-renamed-10",
+        "kind": "rdf-property",
+        "id": "conditional-renamed-6"
+      },
+      {
+        "subject": "conditional-renamed-11",
+        "kind": "datatype",
+        "id": "conditional-renamed-7"
+      },
+      {
+        "subject": "conditional-renamed-12",
+        "kind": "datatype",
+        "id": "conditional-renamed-8"
+      },
+      {
+        "subject": "conditional-renamed-13",
+        "kind": "class",
+        "id": "conditional-renamed-9"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/conditional#p",
+        "id": "conditional-renamed-10"
+      },
+      {
+        "iri": "https://example.org/conditional#E",
+        "id": "conditional-renamed-11"
+      },
+      {
+        "iri": "https://example.org/conditional#D",
+        "id": "conditional-renamed-12"
+      },
+      {
+        "iri": "https://example.org/conditional#A",
+        "id": "conditional-renamed-13"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

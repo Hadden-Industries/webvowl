@@ -1,0 +1,14 @@
+{
+  "profile": "urn:field-contract:unknown-profile",
+  "structural": {
+    "constructs": [],
+    "expressions": [],
+    "occurrences": [],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    },
+    "roles": [],
+    "subjects": []
+  }
+}

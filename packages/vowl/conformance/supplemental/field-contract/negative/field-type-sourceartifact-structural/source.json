@@ -1,0 +1,23 @@
+{
+  "structural": null,
+  "visualization": {
+    "placements": [],
+    "camera": {
+      "center": {
+        "x": 0,
+        "y": 0
+      },
+      "zoom": 1
+    },
+    "hidden": [],
+    "labelSelection": {
+      "mode": "untagged"
+    },
+    "prefixes": [],
+    "display": {
+      "compactNotation": false,
+      "nodeScaling": "uniform",
+      "externalColoring": true
+    }
+  }
+}

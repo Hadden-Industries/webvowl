@@ -1,0 +1,113 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/conditional#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/conditional#B"
+      },
+      {
+        "id": "s-Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/conditional#p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s-B"
+      },
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "s-Thing"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s-p"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "inverse",
+        "kind": "object-inverse",
+        "property": "p"
+      }
+    ],
+    "constructs": [
+      {
+        "id": "inverse-domain",
+        "kind": "object-domain",
+        "property": "inverse",
+        "target": "A"
+      },
+      {
+        "id": "inverse-range",
+        "kind": "object-range",
+        "property": "inverse",
+        "target": "B"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "generic",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "class",
+          "targets": [
+            "Thing"
+          ]
+        }
+      },
+      {
+        "id": "edge-p",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "generic",
+        "to": "generic"
+      },
+      {
+        "id": "label-edge-p-single",
+        "kind": "label",
+        "edge": "edge-p",
+        "direction": "single"
+      }
+    ]
+  }
+}

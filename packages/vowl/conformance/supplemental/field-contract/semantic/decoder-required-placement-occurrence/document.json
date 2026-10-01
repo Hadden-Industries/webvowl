@@ -1,0 +1,61 @@
+{
+  "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+  "structural": {
+    "constructs": [],
+    "expressions": [],
+    "occurrences": [
+      {
+        "id": "o0",
+        "kind": "class-node",
+        "targets": [
+          "r0"
+        ]
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    },
+    "roles": [
+      {
+        "id": "r0",
+        "kind": "class",
+        "subject": "s0"
+      }
+    ],
+    "subjects": [
+      {
+        "id": "s0",
+        "iri": "https://example.org/o#A"
+      }
+    ]
+  },
+  "visualization": {
+    "camera": {
+      "center": {
+        "x": 0,
+        "y": 0
+      },
+      "zoom": 1
+    },
+    "display": {
+      "compactNotation": false,
+      "externalColoring": true,
+      "nodeScaling": "uniform"
+    },
+    "hidden": [],
+    "labelSelection": {
+      "mode": "untagged"
+    },
+    "placements": [
+      {
+        "pinned": true,
+        "position": {
+          "x": 12.5,
+          "y": -7
+        }
+      }
+    ],
+    "prefixes": []
+  }
+}

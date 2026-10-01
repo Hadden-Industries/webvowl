@@ -1,0 +1,62 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:A",
+        "iri": "https://example.org/owl-seed#A"
+      },
+      {
+        "id": "s:note",
+        "iri": "https://example.org/owl-seed#note"
+      },
+      {
+        "id": "s:CustomDatatype",
+        "iri": "https://example.org/owl-seed#CustomDatatype"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s:A"
+      },
+      {
+        "id": "note",
+        "kind": "annotation-property",
+        "subject": "s:note"
+      },
+      {
+        "id": "CustomDatatype",
+        "kind": "datatype",
+        "subject": "s:CustomDatatype"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "literal",
+        "kind": "annotation-assertion",
+        "subject": "s:A",
+        "predicate": "https://example.org/owl-seed#note",
+        "value": {
+          "kind": "typed",
+          "lexical": "opaque",
+          "datatype": "https://example.org/owl-seed#CustomDatatype"
+        }
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      }
+    ]
+  }
+}

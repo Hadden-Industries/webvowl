@@ -1,0 +1,650 @@
+{
+  "priorPositiveCount": 92,
+  "completeBytesAndCanonicalNQuadsUnchanged": true,
+  "vectors": [
+    {
+      "id": "empty-structural",
+      "previousManifest": "manifest.json",
+      "canonicalSha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae",
+      "canonicalNQuadsSha256": "db60b276c64f63a0a86a60fb901d4698827101dabcd8679f6362f4dd4168b6ee",
+      "permutationVerified": false
+    },
+    {
+      "id": "named-class-structural",
+      "previousManifest": "manifest.json",
+      "canonicalSha256": "a0ae73e8261941a08c576d3fbd0be8871081e4bfa57f76790bfeea5e7c52e8f1",
+      "canonicalNQuadsSha256": "1f7ab7d12852250d2aa6b0a60c214a5729b2bfcf6965b3310362066345aa7eb6",
+      "permutationVerified": false
+    },
+    {
+      "id": "empty-artifact",
+      "previousManifest": "manifest.json",
+      "canonicalSha256": "ab83edd2480bcbb4bb4c2fc27a90aeee245bcf086ccc13b92e45c4e2e905b79c",
+      "canonicalNQuadsSha256": "a6435d97740a70c6661a0a679a824961afcafb6ae6e6db26731efe3622def75f",
+      "permutationVerified": false
+    },
+    {
+      "id": "named-class-artifact",
+      "previousManifest": "manifest.json",
+      "canonicalSha256": "4b6d3be6845944990e40bdbd86717d8fdcc0b370d9a063e2f077ec34b8ac55bd",
+      "canonicalNQuadsSha256": "66d73798f1419c8e429f3fae94ddf9370bee85aafc9c4cab7c0fda8082794921",
+      "permutationVerified": false
+    },
+    {
+      "id": "annotated-class",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "6cf9147f305a4077648cfcd0d2a2373aa3b1bcfad072cf9bad657fc35e6afdc1",
+      "canonicalNQuadsSha256": "22f6b941a62c4f961519adb16b3dff90a883be67074fd3f52eec604a9c5c9f02",
+      "permutationVerified": true
+    },
+    {
+      "id": "asymmetric-subclass",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "de94bcd612ea4c95ded8372e6fa93d811c18ce7bd8703d14ae18ec42aa115835",
+      "canonicalNQuadsSha256": "aa34bffc5b518bd25499e1a146c4aaba0be8e309395a15a84336b856d2d7e41f",
+      "permutationVerified": true
+    },
+    {
+      "id": "symmetric-anonymous-classes",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "e02e195246943b3da3c5e16c9121cdd47ef01441da549169d931087facbb3549",
+      "canonicalNQuadsSha256": "25e6ccaa411f127c7d742f8b24acbee3f095030d15cbe19ef5c162d116cb542c",
+      "permutationVerified": true
+    },
+    {
+      "id": "symmetric-anonymous-artifact",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "817f731581af4bdcb7d50207eff2ecc451a17a509c302bc894fcbdcfec55fd12",
+      "canonicalNQuadsSha256": "68c413b5696d91c99d4963b507f943f1e083fc28538615a304b82e98139ec8cb",
+      "permutationVerified": true
+    },
+    {
+      "id": "named-pair-artifact",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "373da0b556108d4a49bd88d3d3d7cf4b1289b1c8c3e6bea9726be46d27600b0a",
+      "canonicalNQuadsSha256": "5732a0201d2fe8c351fc11727c8e71e6af46d789ddb0afe6b4b0a769d36375d2",
+      "permutationVerified": true
+    },
+    {
+      "id": "named-pair-exchanged-artifact",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "d017f649cb30e3dd2e36a19c3820449209058814cbb2e4770b4fed40121a7bec",
+      "canonicalNQuadsSha256": "b8806dec56d15335035653d77c024bf6271edf07d395a351879809c92b8bb5d7",
+      "permutationVerified": true
+    },
+    {
+      "id": "repeated-chain",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "f1ea8f2250b1f58b83037d3930b5cf8f97a0e2fbc8700b70ec6e7ae76ce134f4",
+      "canonicalNQuadsSha256": "9032e9db8c9a85233b1de556b500b366e82bc08a71f8e87d930ec5a0bf61079d",
+      "permutationVerified": true
+    },
+    {
+      "id": "reversed-chain",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "45439c61767189c14ba59912c5aeee153ac0120fd9a5644be916b250c14cf988",
+      "canonicalNQuadsSha256": "6a702493a1332ca05ab42337cbe55fe27755d3d5b4e2dc4f0786b2608c5bbcaa",
+      "permutationVerified": true
+    },
+    {
+      "id": "short-chain",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "6bd0a40e011fd87b01a3f2250e86ff07567ef74f4e001db30d1505bd0473953e",
+      "canonicalNQuadsSha256": "331053c56605fd3c8d97e70cd4ff27dba23d9f3730235903b3bac29b3571158c",
+      "permutationVerified": true
+    },
+    {
+      "id": "matched-inverse",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "3c91f70425a64d43999ab7873b96e0e542e5779aadf6633fb38eda6cc254f548",
+      "canonicalNQuadsSha256": "332ccd3bd321bb1468da78860bca448fba6a97160dafd379f3369ca597bcf99b",
+      "permutationVerified": true
+    },
+    {
+      "id": "unmatched-inverse",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "d8844a0960c15d81586ca3e12f13fc32168663fd6fdb69a1624eba7838a8ce4d",
+      "canonicalNQuadsSha256": "4f606749f9a02d0fd793630e8ecf5cdb72d56f19f91290cd632d4328e17b44cf",
+      "permutationVerified": true
+    },
+    {
+      "id": "equivalence-disjoint-loop-empty-key",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "b701d88b5f86eee162107ce0e4f4a6fe9fa2ed9c8b55a002f5a32b7f3697e697",
+      "canonicalNQuadsSha256": "27d94ead6b909703b2185792f09dde0624039004762c487bf7c9422127a2b4d3",
+      "permutationVerified": true
+    },
+    {
+      "id": "partial-union-projection",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "0c3eb92ea70f203a9176cd333131337c8aa93d01914c39fdbc5e25274d1a5343",
+      "canonicalNQuadsSha256": "c700d808677c7f26cad6ccbc3a6ae72eebd8517eb4397346724fc8b7673d1285",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-min-unqualified",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "a157a2ac47382dddd29d5002948e4266cc24315f122ca7c9363a9f6a941660ee",
+      "canonicalNQuadsSha256": "f07e27574c50f4f7a137739116a12a3095ea0696e212860fe489425b866f8637",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-max-unqualified",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "f3e71852a13c8bd56161f8d943c350e9b53cae0d0bb701995400c80138b925b1",
+      "canonicalNQuadsSha256": "d057aea450e7bac31b55c8528d51c35bc2ab68d45ec38e720cb3628e2e557198",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-exact-unqualified",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "9c9a1333323eb0e3d3eed9a8c55a8ac763909ae2b6e170b1f8647a486cbe35c8",
+      "canonicalNQuadsSha256": "fd29f7f2ecd97122e50ff334510e0599c110cb10c26d322d53d66335601153db",
+      "permutationVerified": true
+    },
+    {
+      "id": "data-min-unqualified",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "59b58651c3767c3f4275a6cbdf0e0ecbaa83b70ba540a352a2bc0ed4151ba640",
+      "canonicalNQuadsSha256": "110a2599a15c8a729e2494b5048bcd8d5cb89cbf1996acdd2fa60b2040b95c42",
+      "permutationVerified": true
+    },
+    {
+      "id": "data-max-unqualified",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "ad1ca5c1ddf8d960896bde2ec1babc3198b815bf84d6fa3da67b05c5481c7d18",
+      "canonicalNQuadsSha256": "9bb9c0af423e48161641877cda0b7d77639cef555f4d8c6e4ff7920d4d9ca3a3",
+      "permutationVerified": true
+    },
+    {
+      "id": "data-exact-unqualified",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "3db4b08bd5f5810ce5e58cd11aa165145f6e77d97d5d3660c7b21b64156bf4e4",
+      "canonicalNQuadsSha256": "1311771487aaf034f38a2f1ef1842f847fd90d7779a09ab15ff148919d19b43a",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-qualified-details",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "6deaa6bf2aa85bd1e0b0bbc93eb1aa174e0c0086da5997f478c9d663827cd44b",
+      "canonicalNQuadsSha256": "2de2fe13c4450cd46c87d7bcf70a154d3d87f060c9bd3d826ad3f7b748c9a272",
+      "permutationVerified": true
+    },
+    {
+      "id": "data-qualified-details",
+      "previousManifest": "extended-manifest.json",
+      "canonicalSha256": "9fdac1410e1d05779bce544b28fefbef1d3b2c6db3412cca03047bb58f584f1d",
+      "canonicalNQuadsSha256": "b26968c87afada814ae0b7435ace3e9ae89e6736b085749f731891a30f52b4e3",
+      "permutationVerified": true
+    },
+    {
+      "id": "class-intersection",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "73d130dd8641946c5dc70f018901b4c07f028b17fdf2f8bfb99fa03bc38f5fc2",
+      "canonicalNQuadsSha256": "6abc8ce1661b90dfcb9236e613fec2aa9d6b9b4d87b7763f1650a452ca8cdee6",
+      "permutationVerified": true
+    },
+    {
+      "id": "class-complement",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "2552a4bf646be57fd43550bfcae15f4cd48756fe06c14cc31a57f32042ecc5cc",
+      "canonicalNQuadsSha256": "d5490d074888b6d95239b3f369a6d9952b04d6bf24a90c6cdeb14c34fc06eb91",
+      "permutationVerified": true
+    },
+    {
+      "id": "class-enumeration",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "de145830fe09a919b8817d50713d294b5ad4e1bbcc225102b9d7ab00a0d1e759",
+      "canonicalNQuadsSha256": "fec2b056500c3734460342ca741f00b5a148ef0f9529f7325b2549f3f1c4f0fd",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-all",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "0a8c2d40483c149eee6469b728dc843edb2694d00f9b5f64d3ba185ac3262e9a",
+      "canonicalNQuadsSha256": "f1d79b6b54aaaca687db3d4bce7f7b53fd3c0071dbbd7bae46e360535b6d1e0d",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-value",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "4f38272b12472ae86e424efc18c6d525d22bfde18f23356218bb551a06bd5b59",
+      "canonicalNQuadsSha256": "841d1f3dfb9613b727775246c2c3c4e5371473dbda44f2c67cf490dc2b866111",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-self",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "d774e7986cda59b9a4aa8a7724bafd26146ade3a8f441bf8237e0e05304c984a",
+      "canonicalNQuadsSha256": "ea7182f284724565c1c1c179c14ba690c7a7c1517dee3802e8f64b348582fc2b",
+      "permutationVerified": true
+    },
+    {
+      "id": "data-some",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "f2b1059c9476b272720421885121c4e9aa2835a111ea6f3abf214c318773fd10",
+      "canonicalNQuadsSha256": "bf366ece08cbe5bf9253dc598b8ea94c3b0a98cefb83f537f32e96ee3634d315",
+      "permutationVerified": true
+    },
+    {
+      "id": "data-all",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "8b6f4e029f3725e0e71e4a500bbbb27335ff9364fc2fe330c78c500e31c26721",
+      "canonicalNQuadsSha256": "c8656ccc74c8bcfd706452c6079c81eb84c60dd90f3b1ba03cd4e523703dd31f",
+      "permutationVerified": true
+    },
+    {
+      "id": "data-value",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "3063fa081d3e310d8fc1b90343f80565ec8b81e8f5aea914a92aeb292e1219e1",
+      "canonicalNQuadsSha256": "43747b18387ac49083461cd6e487d1575f7497f5cb3033c66fba5c403d4db700",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-inverse",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "311ab331e606611774225b2ef7eb1c358754a9cfa0fb4ae35e49a692db313f28",
+      "canonicalNQuadsSha256": "d3274dd61517a94ca6db024c0ac2b686f8bfde6b20a26e07344bcce8727ee49e",
+      "permutationVerified": true
+    },
+    {
+      "id": "data-intersection",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "0a884dd293814f1b7b31ffe45fcbd38fd777ed2101afccf64476834bd6b7a363",
+      "canonicalNQuadsSha256": "0046b39a9199dc312c549610793a0b34f4e241a149159f4e5dac9744bedf97d3",
+      "permutationVerified": true
+    },
+    {
+      "id": "data-union",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "15d883b79962f00b978d87bd07f2197e91149690a774b95cf3745caed8d8f2de",
+      "canonicalNQuadsSha256": "3772697cae40ca7f67d8cc1c874771fcefca42f2cffd534b8f19dc82beb66b00",
+      "permutationVerified": true
+    },
+    {
+      "id": "data-complement",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "a87e49c18ebebcec6f6f53f06d8c0227e5d28ff42a513afb7dfc918ee2d4400a",
+      "canonicalNQuadsSha256": "8609791725085f313ff7af7a13e48151dde844599b16375d66cc162437516638",
+      "permutationVerified": true
+    },
+    {
+      "id": "data-enumeration",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "1554e2d28444384293e8598bde9a137193e99b54ca6b8571870bf4c2362ece40",
+      "canonicalNQuadsSha256": "b2fe80e343aafe6dfa433b9bbd1783e262682875da0e26440b2a5a0d8050f604",
+      "permutationVerified": true
+    },
+    {
+      "id": "datatype-restriction",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "1e7655435001f3160ffdf107e2a33819b35daffbca771f22768280dd198d0519",
+      "canonicalNQuadsSha256": "f102b92c7afd32de6ccfd42c3689da6807b058ab8e8b27cf85f3bbfb47f2e181",
+      "permutationVerified": true
+    },
+    {
+      "id": "disjoint-union",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "fbe9f71409c95860dfe8bbe87957f290b387079e310da140ac8c55052915d1e2",
+      "canonicalNQuadsSha256": "768389afe29e88a2f83e8bf5edf01a89107671232677d10693b90e72a0260d71",
+      "permutationVerified": true
+    },
+    {
+      "id": "sub-object-property",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "2520d5fe21e7fab25b8e6d2274ff83e119c2b3e3b56071a1db45966cc4949340",
+      "canonicalNQuadsSha256": "a609d59e339bc670ef346e6bdc95972454fba0a3911d517f3182201382a5a906",
+      "permutationVerified": true
+    },
+    {
+      "id": "equivalent-object-properties",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "98906c696175d3a5550ff224cb0c0ec38ad0adcad120de0e1274ccd3fbe68fbb",
+      "canonicalNQuadsSha256": "0dd099eaa087148708209f0736931dbe5dd12dc8bd09e296e89397f66cc287c5",
+      "permutationVerified": true
+    },
+    {
+      "id": "disjoint-object-properties",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "043eac4fd04dd65dee2ff9612e7f32ae8f4339042ce967449757f3dc47ebca26",
+      "canonicalNQuadsSha256": "3069eeeeb5b20582fdaa5a245dead1c5cbf5fd8c5c5c8b7dd5922468d4428229",
+      "permutationVerified": true
+    },
+    {
+      "id": "sub-data-property",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "3a124a6a392756722a255466e867c32971c5df89abab981368261f07921ce8e0",
+      "canonicalNQuadsSha256": "c4bff82cf70153185078d8dd16ea511f51f73a6a2bfb5682cc7c5ef68c0abc61",
+      "permutationVerified": true
+    },
+    {
+      "id": "equivalent-data-properties",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "45fef4f009b63023f0396e108869bdf0e5265c7ed1087fd7767010e196bb656e",
+      "canonicalNQuadsSha256": "21a095599c3857c5d419bf61325d55aefc0ea92d816a0f6f95190f6c52124259",
+      "permutationVerified": true
+    },
+    {
+      "id": "sub-rdf-property",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "93159aab2bc8f13b3a274c2bccfb9512fc016fc07b74b7449c9f301bb5bf3f02",
+      "canonicalNQuadsSha256": "d2c22e018aa53396582a51fdd360d6101e950451ade8c932984c8e3141a2c56a",
+      "permutationVerified": true
+    },
+    {
+      "id": "equivalent-rdf-properties",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "c840ef446cd53bca3d015917ea0a56c502ce5b7abb4e7e8a1396e71bf9e7ebaf",
+      "canonicalNQuadsSha256": "80754ca2aaf0321f78e055290d8b64d23989480c7a9b5c653cd9342ee46da388",
+      "permutationVerified": true
+    },
+    {
+      "id": "disjoint-rdf-properties",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "adc17ffbb15f0973b1402d3b12b129873078b109d23a69a1cde2676dffd8532c",
+      "canonicalNQuadsSha256": "779fff71f2005e8147311a8c73b973bfb6332f1ef6d2d9666c1bb9f1f6d4e86c",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-characteristic-functional",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "6b56ba58f2c87f49b4c7a3aeb0847b7f8d582f5568f643bb84cadc68ea56ccfe",
+      "canonicalNQuadsSha256": "7f269df08121b274ea34e9b29fb4def1ba24d3faa50bcea974bb972f8ae971c2",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-characteristic-inverse-functional",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "4c740930170ff6a79a52813f24ffccda6f8751e373eca800fde18570eab08920",
+      "canonicalNQuadsSha256": "2e16fccf08adbc660f205ccfee3252caaf35d6c28f372d4fd3df710e19fe36fa",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-characteristic-symmetric",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "d1dc8d283dfcb3a110eecf85443115335bb1ab8f0fb2e2fa90fb76568030f94f",
+      "canonicalNQuadsSha256": "bad9b2470f4e2ea1130f33b395125b1bff105ce6f6730deb03ba9b271b945d38",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-characteristic-asymmetric",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "bf191c3dbd443cdaaa0e21a22568b0a68f6a0763de71cf6af211ef629b599287",
+      "canonicalNQuadsSha256": "9b99424d6bfc076bf085ceb51568c7b7849c13a5070780a9fe69b6cd2668e3b3",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-characteristic-transitive",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "22bda8a0cd779306a9366a18efb4abaf4959bdb25770ec0abe5fa6bb5bf7698c",
+      "canonicalNQuadsSha256": "dda370c92ea56691358b80598f74b00d4cf60d6ebe2bf3249de92546165a28bf",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-characteristic-reflexive",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "a8a4ac093f4ff7ba0b164f3eeb11d1bf70e0e75fd78100b10c2f91b4a543e744",
+      "canonicalNQuadsSha256": "a886c0b5ae4db06ec4a58176b68897ca35978426b960c2ecc413472b0fbf47f5",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-characteristic-irreflexive",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "3ddfe5376fa7670416c458862bd8a55d1b8c0979259b2ff14d1f4d0ce868dd86",
+      "canonicalNQuadsSha256": "3648e17af341fb27e220451dc66b57542f2dfa409bbafecb0db5cba2a9da54c9",
+      "permutationVerified": true
+    },
+    {
+      "id": "data-characteristic",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "88e63f38630373851ad882fca4392c68a6a1f4a4b8e9b496ba9a5becf7761cb6",
+      "canonicalNQuadsSha256": "74169cc32f043010ef1b49031310fdaa9d259c2218300f71b7f2a6ca04086662",
+      "permutationVerified": true
+    },
+    {
+      "id": "rdf-characteristic",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "13a5d99376ff04537714f94748bd5deab7cbd30564066554e681d5ab63d34fcd",
+      "canonicalNQuadsSha256": "34b7ff3199ddeb362239718b2649dee8b0f4d1ef1c4a391704d25abde082afa5",
+      "permutationVerified": true
+    },
+    {
+      "id": "sub-annotation-property",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "61a06a63a711c0a65027852ab08953c6299e6e97ef056c213a9d1d9b3cf1c8fb",
+      "canonicalNQuadsSha256": "a5566b0cd50fb73265c89609f3709dd34de9b81210d7d285aeb6d5ea019e0d98",
+      "permutationVerified": true
+    },
+    {
+      "id": "annotation-domain",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "6c84de169f3f0d1c2bf800199149631d7e6bfcd4d0aa4c43ac00022552c8efd2",
+      "canonicalNQuadsSha256": "9bda7befa56a6d892266ae1707fe2e4174c161106c5581685b83a827ddbc1325",
+      "permutationVerified": true
+    },
+    {
+      "id": "annotation-range",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "25437c9ea111f59bd994b20cf887074979a6c75c6b643943a10545c1265cd451",
+      "canonicalNQuadsSha256": "1e08ca2ef590028a5c90bb3b5916b3cbc50b3dbc84a6c5bbb4514ea3192e04f2",
+      "permutationVerified": true
+    },
+    {
+      "id": "nonempty-key",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "cf5cbd6618046482f2f6fb9bd4ab50116b37d6767bc7a0f2382bceed9ad75d46",
+      "canonicalNQuadsSha256": "040face2955223bf3a9c5d1c726542a2768804e2d93260cbfdb8cd8a0b8c1b4b",
+      "permutationVerified": true
+    },
+    {
+      "id": "class-membership-and-punning",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "573cbe30e035cbb420d6c97fdaa89aff5decc181f63bf32fa17f594cd21cd750",
+      "canonicalNQuadsSha256": "4d4d32cbc50c81768fb511eb150c6e9b7782e601c04715f06127310317d754d9",
+      "permutationVerified": true
+    },
+    {
+      "id": "object-data-property-punning",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "0a9cc7636237b118e21c64347c50114859db4a819a54d25f04ead6ae429f2640",
+      "canonicalNQuadsSha256": "396a28541aa40388be68b671d55f95f6a0a2c1a5c0de78f7a28a12e913459a53",
+      "permutationVerified": true
+    },
+    {
+      "id": "singleton-inverse-self-loop",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "8c91b138ea836de425ee6d91332d1970fe01c735d12aee1401ef52d88a1580e3",
+      "canonicalNQuadsSha256": "9e69964dddfc47723f346171e2246abe8ab623d5f3c88a10778e12394df99bbb",
+      "permutationVerified": true
+    },
+    {
+      "id": "unequal-equivalent-property-endpoints",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "d5a1d7aa22bc8c683d54d27a07eb575ab6fa0302499183aa6c7158b9848471ff",
+      "canonicalNQuadsSha256": "74f98eade9d0b1f4a0b957d220301a7fae49ab53345e4b60a064d4c549660512",
+      "permutationVerified": true
+    },
+    {
+      "id": "partial-property-group-with-inverse-expression",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "f44c7b0984ff6568fe9139acfa40eb18b928ed827dd68bbf9d5b0e584763edd2",
+      "canonicalNQuadsSha256": "efb0b8342717d7229a9c04bedf9a3d9a5b34987641d092f3a12dc7102a581bc1",
+      "permutationVerified": true
+    },
+    {
+      "id": "partial-class-group-exclusions",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "c4a5b6dfa6b956c77b0bdf04cc0ed3d5c0f41f977aa1341ae0f5d843307c74c9",
+      "canonicalNQuadsSha256": "bcf017e9ee8c90a107bce1a491eb7a5b935afe4456a00c3fb8b69d75a72ffa6d",
+      "permutationVerified": true
+    },
+    {
+      "id": "undrawable-range-no-default-role",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "6a2e77de396c7e642326c02f8288da27ffb92b5ee4cfa904166415a0eaed55fe",
+      "canonicalNQuadsSha256": "a8a908765a61152061b8eafa3b58598f04e8d64fdb253b19e0bdb739ee224c7c",
+      "permutationVerified": true
+    },
+    {
+      "id": "undrawable-range-declared-thing",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "7a8112b9f7a3bae0e68dc05966f9bd602ad5a70d7f6a7164a600f03635a811eb",
+      "canonicalNQuadsSha256": "3a9790041d4d5885c43cc16f3fe46556d7aa91b6c42a3c0a68a9f91d84323cdb",
+      "permutationVerified": true
+    },
+    {
+      "id": "aggregate-anchor-outer",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "bf0714424046947eda5ea0a64b169b840b4abec92bd2552adb373fcb1e273a6d",
+      "canonicalNQuadsSha256": "29577ffea2971a9dff9517ade6cb75e78de55661c4ab2be905633e58b0a39d56",
+      "permutationVerified": true
+    },
+    {
+      "id": "aggregate-anchor-inner",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "accb767db528a510f907c0bd6a1a8e328ef22a1f71fa5ac2699c0959bebd4b1c",
+      "canonicalNQuadsSha256": "a349605162eb186fe182272003d0c7843e92e2db7ed1fe42989def0e8b00569d",
+      "permutationVerified": true
+    },
+    {
+      "id": "aggregate-anchor-C",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "08c3f23099d9ca4b8efe703f3c167bdc602abb32d7551d17ce82eb93453d4593",
+      "canonicalNQuadsSha256": "2f1882dbe93f195a7bd9b502909d88e832fbdc89ebaa7ec2c0c1432fb01959a9",
+      "permutationVerified": true
+    },
+    {
+      "id": "singleton-disjoint-data-properties",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "759fdedc10356387635cb1a3f779796880d241667715e0d9fe56e33563195b40",
+      "canonicalNQuadsSha256": "8ca61d871d3fca6fd74b1e1c5bf0d2584bc7d6f8c73d41ca577339463a74a9b3",
+      "permutationVerified": true
+    },
+    {
+      "id": "rdf-property-resource-class",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "e2709b5a14c1e4ad8fe685e8fd414e94cb6a9c10e08c1c5000f27547bde38221",
+      "canonicalNQuadsSha256": "f143246001960fe35313e82c3f3fb6a592c74b92ade3a8a565907d2bd89b9199",
+      "permutationVerified": true
+    },
+    {
+      "id": "rdf-property-resource-rdf-class",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "a69758823dcca0f2a21988e549954b0a947e42bdca1406c1d417492aadccdd65",
+      "canonicalNQuadsSha256": "1c1f3992fa99e5a7763ce20bd0441a9ee54b1aaa0370aecf1eeb6aba5f937827",
+      "permutationVerified": true
+    },
+    {
+      "id": "disjoint-two-distinct-ends",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "a8503d52766143a95553535cc60eeaefe0e46ea964a22ddb63dd49297423a8ba",
+      "canonicalNQuadsSha256": "1ceae3c2d8dc218de15563147a181007b7495013e7cdab7c752da96f53f23bec",
+      "permutationVerified": true
+    },
+    {
+      "id": "restriction-ineligible-anonymous-subclass",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "71d79a59ae15943e28b2fe261dd85fdade59ddd73acdddc707cdfe33f7a90519",
+      "canonicalNQuadsSha256": "fed2afbb15a0e00759672da72cc7144dc2d2a1e601c1be9886f582cab5eb65ba",
+      "permutationVerified": true
+    },
+    {
+      "id": "restriction-ineligible-inverse-property",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "95c56da6a1a1b77e49436b6f9c060949519ff14d8f6ac67f563115ed5ee5447a",
+      "canonicalNQuadsSha256": "934ef6879cccf54a19b7afaf67a2eb3f0c40145a7350e6405dc39fbea88c4a48",
+      "permutationVerified": true
+    },
+    {
+      "id": "two-restrictions-distinct-scopes",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "687e66c3a210dc84d2117e93e7cebb589a69d802e74eaf28b423a2666744fe31",
+      "canonicalNQuadsSha256": "00bdbd80437a9bfe709c93811b82ffd6521b80e24d69ce201a7436175d556d54",
+      "permutationVerified": true
+    },
+    {
+      "id": "artifact-hidden-node-closure",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "2e0be575a0f922cae9246c1a14ef2e297238a18b01e27c58aa3c829ec97ab087",
+      "canonicalNQuadsSha256": "e148b2717a6dcf775ccfd3ea72e86f8f9c8e4899fabc8361ec4967d94d7af4c4",
+      "permutationVerified": true
+    },
+    {
+      "id": "artifact-hidden-edge-closure",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "1684ef129e54c82de7030e080af99849abb192480e3601b498b38a400763b395",
+      "canonicalNQuadsSha256": "3b8d5172a83520a42c16b9ca1c832d22e854a2a055571c1a2525ac6a2b320225",
+      "permutationVerified": true
+    },
+    {
+      "id": "artifact-hidden-label-closure",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "b75bc3596da6a2e2ae7ca77f2f38a77e811c0c8eb63a8780f05b948848319392",
+      "canonicalNQuadsSha256": "ec442d31cf7e86ed68d31037c37d9d27d86927095173f1029a3479e6d95fd9df",
+      "permutationVerified": true
+    },
+    {
+      "id": "language-i-klingon",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "42fe6a4150425305257fdd8bd7670f029b852f15f7e6eda74b72d4ae2718c4ec",
+      "canonicalNQuadsSha256": "21e4729dfaf0a6428aa81849ac28e39bc6752ad8e31e4d5edcd86afdac77e14d",
+      "permutationVerified": true
+    },
+    {
+      "id": "language-en-gb-oed",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "8b08441d16d11bddfd6458289da247b6eca6a8b35c62d4f94492100b89877b36",
+      "canonicalNQuadsSha256": "ac9d07ae89376fb3cd6fd74a9dca1b7e5ee2d12c5b9ad414b51b5a64e1b32c73",
+      "permutationVerified": true
+    },
+    {
+      "id": "language-sgn-be-fr",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "817153d0c7cc9aa2ee7356cae6d237d3f4d9fef8af92d847ab6c19449bf49a0b",
+      "canonicalNQuadsSha256": "95c374dbb6ae4e9f414391af138877043154e1c25cb4035ba4f3dea95f2bc7e4",
+      "permutationVerified": true
+    },
+    {
+      "id": "language-zh-min-nan",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "4fccfe21511a04e2a96a154d1ac0077b8f7ec3dcb02d48193b2aaaec24043022",
+      "canonicalNQuadsSha256": "98e70137c723eb3ea2727fb15c8abf7c24b051c0a6f1f7a6713b62657162d9c5",
+      "permutationVerified": true
+    },
+    {
+      "id": "language-de-latn-de-1901-a-aaa-x-private",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "58fa249706483c73263c5655e6c568be7a613422f675546e343701f4067bf63b",
+      "canonicalNQuadsSha256": "ad133f69676a2d840784d031c904b27897e230c709abda41f780115e15a5599f",
+      "permutationVerified": true
+    },
+    {
+      "id": "typed-integer-lexical-01",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "75850b90ad6ae6e215661de0b4ce83d7a9c73ff66a61c649bcaf7b002113241c",
+      "canonicalNQuadsSha256": "c4e805ec18bdcd23c99cf169b3820196300a435adc53d0695cb1fbf0f526389b",
+      "permutationVerified": true
+    },
+    {
+      "id": "typed-integer-lexical-1",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "abe641473da46ac92dc3156dc1ac23065f140b0434f6d5b91465dad86a2e76dc",
+      "canonicalNQuadsSha256": "f70b14d6bcc8a40a2da55e1bb8231f820876bd091b0eaf4c6c3bec458c825216",
+      "permutationVerified": true
+    },
+    {
+      "id": "iri-value-equals-source-handle",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "52be9e466dd6c1f7f0f5ab52d04925f89148b7d918b1494b60ce3cf34240df8a",
+      "canonicalNQuadsSha256": "3a239e368c73242ad763636fdd03c6f951cf97d8016c5e090cd0ace923e7ea62",
+      "permutationVerified": true
+    },
+    {
+      "id": "inverse-orientation-opposes-role-rank",
+      "previousManifest": "supplemental/grammar/manifest.json",
+      "canonicalSha256": "1003ef9885c5a13faa14c028d0411f78e37460b5eadc4be73fbe82bc5afc0742",
+      "canonicalNQuadsSha256": "14bf60893d5985eddffb5d819da361b87027bba06b0d040a02782e614c540224",
+      "permutationVerified": true
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "format": "canonical-vowl-pre-handoff-source-pin-correction/1",
+  "authority": "Parent integration agent explicitly approved this scoped routine repair on 2026-09-30 before review handoff, preserving prior identities and all historical corpora and golden bytes.",
+  "change": "Remove one unused named import (here) from the newly authored field-accounting runner; update only its source-artifact hash in the newly generated field accounting. Fixture sources, canonical RDF, canonical JSON, ID associations, producer semantics and all coverage evidence remain byte-identical.",
+  "previous": {
+    "script": {
+      "path": "supplemental/mapping-counterexamples/history/derive-field-accounting.initial.mjs.txt",
+      "sha256": "bdd520a2aa3617ad111d0978aa5f4b7da6e8ce8db4e39493dd4550d0cfc4da78",
+      "byteLength": 15868
+    },
+    "inventory": {
+      "path": "supplemental/mapping-counterexamples/history/field-accounting.initial.json",
+      "sha256": "f25a0f6772d8b826782bf805edba5224a0019fafd6396c0f6789f05c38494551",
+      "byteLength": 1898140
+    }
+  },
+  "current": {
+    "script": {
+      "path": "supplemental/mapping-counterexamples/derive-field-accounting.mjs",
+      "sha256": "6add447fb008b80a158872a8fa86f4fa0b8a19407318fcf6cd4d46b77111baa1",
+      "byteLength": 15862
+    },
+    "inventory": {
+      "path": "supplemental/mapping-counterexamples/field-accounting.json",
+      "sha256": "51dbd1dfcd9f6b21d4f2f855911795d3eb3b5da64ab788386bacc4c3bbddb09b",
+      "byteLength": 1898140
+    }
+  },
+  "verifiedOnlyDeclaredTextChanges": true
+}

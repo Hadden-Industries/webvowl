@@ -1,0 +1,47 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-named",
+        "iri": "https://example.org/conditional#named"
+      },
+      {
+        "id": "s-anonymous"
+      }
+    ],
+    "roles": [
+      {
+        "id": "named",
+        "kind": "rdf-class",
+        "subject": "s-named"
+      },
+      {
+        "id": "anonymous",
+        "kind": "rdf-class",
+        "subject": "s-anonymous"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": [
+      {
+        "id": "node-named",
+        "kind": "class-node",
+        "targets": [
+          "named"
+        ]
+      },
+      {
+        "id": "node-anonymous",
+        "kind": "class-node",
+        "targets": [
+          "anonymous"
+        ]
+      }
+    ]
+  }
+}

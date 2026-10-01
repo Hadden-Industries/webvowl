@@ -1,0 +1,52 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "targets": [
+          "supplement-renamed-4"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-1"
+      }
+    ],
+    "constructs": [
+      {
+        "value": {
+          "iri": "urn:example:source-handle",
+          "kind": "iri"
+        },
+        "predicate": "https://example.org/supplement#note",
+        "subject": "supplement-renamed-6",
+        "kind": "annotation-assertion",
+        "id": "supplement-renamed-2"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "supplement-renamed-5",
+        "kind": "annotation-property",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "subject": "supplement-renamed-6",
+        "kind": "class",
+        "id": "supplement-renamed-4"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/supplement#note",
+        "id": "supplement-renamed-5"
+      },
+      {
+        "iri": "https://example.org/supplement#A",
+        "id": "supplement-renamed-6"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

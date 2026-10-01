@@ -1,0 +1,149 @@
+{
+  "status": "experimental-nonconforming-A8-budget-probe",
+  "normativePolicyChanged": false,
+  "command": "node packages/vowl/conformance/oracle/probe-rdfc-budget.mjs",
+  "date": "2026-09-30",
+  "node": "v24.21.0",
+  "platform": "win32",
+  "arch": "x64",
+  "sourceFixture": "vectors/per-property-datatype/source.json",
+  "independentProducerSha256": "0e3f988211f5e80b817d8867e6f026ebfeda38f98c88791b7913556f6f8851d3",
+  "experimentalTransformedProducerSha256": "6a6c4fa9962991c34e29ed2f7eb961df656629e6ecd0c402d815177caf123b39",
+  "dependency": "rdf-canonize@5.0.0",
+  "blankNodes": 37,
+  "quads": 118,
+  "normativeBudget": 37,
+  "smallestSuccessfulBudget": 72,
+  "largestFailingBudget": 71,
+  "confirmationPairs": 3,
+  "mappedNQuadsSha256": "30e3e9f4cafb95ba9f323466160fdfef477a71492b89fc457a84f2e680b097cc",
+  "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4",
+  "attempts": [
+    {
+      "budget": 37,
+      "outcome": "resource-limit",
+      "elapsedMs": 3.029,
+      "rawMessage": "Maximum deep iterations exceeded (37)."
+    },
+    {
+      "budget": 1000,
+      "outcome": "success",
+      "elapsedMs": 3.39,
+      "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4",
+      "canonicalBytesSha256": "3da1ebbfd63d2516f3f33214b1c4fa78076c47a27471298c9db44e442a28c53e"
+    },
+    {
+      "budget": 518,
+      "outcome": "success",
+      "elapsedMs": 2.362,
+      "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4",
+      "canonicalBytesSha256": "3da1ebbfd63d2516f3f33214b1c4fa78076c47a27471298c9db44e442a28c53e"
+    },
+    {
+      "budget": 277,
+      "outcome": "success",
+      "elapsedMs": 1.589,
+      "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4",
+      "canonicalBytesSha256": "3da1ebbfd63d2516f3f33214b1c4fa78076c47a27471298c9db44e442a28c53e"
+    },
+    {
+      "budget": 157,
+      "outcome": "success",
+      "elapsedMs": 1.788,
+      "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4",
+      "canonicalBytesSha256": "3da1ebbfd63d2516f3f33214b1c4fa78076c47a27471298c9db44e442a28c53e"
+    },
+    {
+      "budget": 97,
+      "outcome": "success",
+      "elapsedMs": 1.516,
+      "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4",
+      "canonicalBytesSha256": "3da1ebbfd63d2516f3f33214b1c4fa78076c47a27471298c9db44e442a28c53e"
+    },
+    {
+      "budget": 67,
+      "outcome": "resource-limit",
+      "elapsedMs": 1.117,
+      "rawMessage": "Maximum deep iterations exceeded (67)."
+    },
+    {
+      "budget": 82,
+      "outcome": "success",
+      "elapsedMs": 1.354,
+      "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4",
+      "canonicalBytesSha256": "3da1ebbfd63d2516f3f33214b1c4fa78076c47a27471298c9db44e442a28c53e"
+    },
+    {
+      "budget": 74,
+      "outcome": "success",
+      "elapsedMs": 1.561,
+      "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4",
+      "canonicalBytesSha256": "3da1ebbfd63d2516f3f33214b1c4fa78076c47a27471298c9db44e442a28c53e"
+    },
+    {
+      "budget": 70,
+      "outcome": "resource-limit",
+      "elapsedMs": 1.251,
+      "rawMessage": "Maximum deep iterations exceeded (70)."
+    },
+    {
+      "budget": 72,
+      "outcome": "success",
+      "elapsedMs": 1.435,
+      "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4",
+      "canonicalBytesSha256": "3da1ebbfd63d2516f3f33214b1c4fa78076c47a27471298c9db44e442a28c53e"
+    },
+    {
+      "budget": 71,
+      "outcome": "resource-limit",
+      "elapsedMs": 1.112,
+      "rawMessage": "Maximum deep iterations exceeded (71)."
+    },
+    {
+      "budget": 71,
+      "outcome": "resource-limit",
+      "elapsedMs": 1.204,
+      "rawMessage": "Maximum deep iterations exceeded (71)."
+    },
+    {
+      "budget": 72,
+      "outcome": "success",
+      "elapsedMs": 1.409,
+      "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4",
+      "canonicalBytesSha256": "3da1ebbfd63d2516f3f33214b1c4fa78076c47a27471298c9db44e442a28c53e"
+    },
+    {
+      "budget": 71,
+      "outcome": "resource-limit",
+      "elapsedMs": 1.036,
+      "rawMessage": "Maximum deep iterations exceeded (71)."
+    },
+    {
+      "budget": 72,
+      "outcome": "success",
+      "elapsedMs": 1.64,
+      "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4",
+      "canonicalBytesSha256": "3da1ebbfd63d2516f3f33214b1c4fa78076c47a27471298c9db44e442a28c53e"
+    },
+    {
+      "budget": 71,
+      "outcome": "resource-limit",
+      "elapsedMs": 1.04,
+      "rawMessage": "Maximum deep iterations exceeded (71)."
+    },
+    {
+      "budget": 72,
+      "outcome": "success",
+      "elapsedMs": 2.065,
+      "canonicalNQuadsSha256": "e9812cee595021e630842fb93323c7b753c663cdf9aab618c4021634877e91f4",
+      "canonicalBytesSha256": "3da1ebbfd63d2516f3f33214b1c4fa78076c47a27471298c9db44e442a28c53e"
+    },
+    {
+      "budget": 0,
+      "outcome": "resource-limit",
+      "elapsedMs": 0.289,
+      "rawMessage": "Maximum deep iterations exceeded (0)."
+    }
+  ],
+  "limitation": "Successful exploratory results exceed normative A8 policy and are not admitted positive Canonical VOWL fixtures. The source remains an expected bounded rejection. Minimum measured only for this exact dataset and dependency."
+}

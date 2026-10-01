@@ -1,0 +1,184 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/conditional#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/conditional#B"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/conditional#p"
+      },
+      {
+        "id": "s-p2",
+        "iri": "https://example.org/conditional#p2"
+      },
+      {
+        "id": "s-q",
+        "iri": "https://example.org/conditional#q"
+      },
+      {
+        "id": "s-q2",
+        "iri": "https://example.org/conditional#q2"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s-B"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s-p"
+      },
+      {
+        "id": "p2",
+        "kind": "object-property",
+        "subject": "s-p2"
+      },
+      {
+        "id": "q",
+        "kind": "object-property",
+        "subject": "s-q"
+      },
+      {
+        "id": "q2",
+        "kind": "object-property",
+        "subject": "s-q2"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "domain-p",
+        "kind": "object-domain",
+        "property": "p",
+        "target": "A"
+      },
+      {
+        "id": "range-p",
+        "kind": "object-range",
+        "property": "p",
+        "target": "B"
+      },
+      {
+        "id": "domain-p2",
+        "kind": "object-domain",
+        "property": "p2",
+        "target": "A"
+      },
+      {
+        "id": "range-p2",
+        "kind": "object-range",
+        "property": "p2",
+        "target": "B"
+      },
+      {
+        "id": "domain-q",
+        "kind": "object-domain",
+        "property": "q",
+        "target": "B"
+      },
+      {
+        "id": "range-q",
+        "kind": "object-range",
+        "property": "q",
+        "target": "A"
+      },
+      {
+        "id": "domain-q2",
+        "kind": "object-domain",
+        "property": "q2",
+        "target": "B"
+      },
+      {
+        "id": "range-q2",
+        "kind": "object-range",
+        "property": "q2",
+        "target": "A"
+      },
+      {
+        "id": "eq-p",
+        "kind": "equivalent-object-properties",
+        "members": [
+          "p",
+          "p2"
+        ]
+      },
+      {
+        "id": "eq-q",
+        "kind": "equivalent-object-properties",
+        "members": [
+          "q",
+          "q2"
+        ]
+      },
+      {
+        "id": "inverse",
+        "kind": "inverse-properties",
+        "members": [
+          "p",
+          "q"
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "inverse-edge",
+        "kind": "inverse-edge",
+        "construct": "inverse",
+        "forward": [
+          "p",
+          "p2"
+        ],
+        "reverse": [
+          "q",
+          "q2"
+        ],
+        "from": "node-A",
+        "to": "node-B"
+      },
+      {
+        "id": "label-inverse-edge-forward",
+        "kind": "label",
+        "edge": "inverse-edge",
+        "direction": "forward"
+      },
+      {
+        "id": "label-inverse-edge-reverse",
+        "kind": "label",
+        "edge": "inverse-edge",
+        "direction": "reverse"
+      }
+    ]
+  }
+}

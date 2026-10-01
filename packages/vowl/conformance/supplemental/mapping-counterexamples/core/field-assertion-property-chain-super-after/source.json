@@ -1,0 +1,146 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "s:p",
+        "iri": "urn:mapping-pair:p"
+      },
+      {
+        "id": "s:q",
+        "iri": "urn:mapping-pair:q"
+      },
+      {
+        "id": "s:annotation",
+        "iri": "urn:mapping-pair:annotation"
+      },
+      {
+        "id": "s:string",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      }
+    ],
+    "roles": [
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "s:Thing"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s:p"
+      },
+      {
+        "id": "q",
+        "kind": "object-property",
+        "subject": "s:q"
+      },
+      {
+        "id": "annotation",
+        "kind": "annotation-property",
+        "subject": "s:annotation"
+      },
+      {
+        "id": "string",
+        "kind": "datatype",
+        "subject": "s:string"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "anchor-supported-before",
+        "kind": "property-chain",
+        "members": [
+          "p",
+          "p"
+        ],
+        "super": "p"
+      },
+      {
+        "id": "anchor-supported-after",
+        "kind": "property-chain",
+        "members": [
+          "p",
+          "p"
+        ],
+        "super": "q"
+      },
+      {
+        "id": "anchor-focus",
+        "kind": "assertion-anchor",
+        "assertion": {
+          "kind": "property-chain",
+          "members": [
+            "p",
+            "p"
+          ],
+          "super": "q"
+        },
+        "annotations": [
+          {
+            "predicate": "urn:mapping-pair:annotation",
+            "value": {
+              "kind": "typed",
+              "lexical": "before",
+              "datatype": "http://www.w3.org/2001/XMLSchema#string"
+            },
+            "annotations": []
+          }
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "class",
+          "targets": [
+            "Thing"
+          ]
+        }
+      },
+      {
+        "id": "edge-0",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "node-0",
+        "to": "node-0"
+      },
+      {
+        "id": "edge-0-label-single",
+        "kind": "label",
+        "edge": "edge-0",
+        "direction": "single"
+      },
+      {
+        "id": "edge-1",
+        "kind": "property-edge",
+        "properties": [
+          "q"
+        ],
+        "from": "node-0",
+        "to": "node-0"
+      },
+      {
+        "id": "edge-1-label-single",
+        "kind": "label",
+        "edge": "edge-1",
+        "direction": "single"
+      }
+    ]
+  }
+}

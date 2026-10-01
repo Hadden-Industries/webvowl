@@ -1,0 +1,65 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s:j",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n9",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:i",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n11",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:string",
+    "primaryBlankNode": "ps3",
+    "rdfcIdentifier": "c14n16",
+    "canonicalId": "s2"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:annotation",
+    "primaryBlankNode": "ps2",
+    "rdfcIdentifier": "c14n18",
+    "canonicalId": "s3"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "j",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n5",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "string",
+    "primaryBlankNode": "pr3",
+    "rdfcIdentifier": "c14n10",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "i",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n14",
+    "canonicalId": "r2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "annotation",
+    "primaryBlankNode": "pr2",
+    "rdfcIdentifier": "c14n19",
+    "canonicalId": "r3"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "anchor-focus",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n7",
+    "canonicalId": "c0"
+  }
+]

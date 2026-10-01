@@ -1,0 +1,24 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:i",
+        "iri": "urn:mapping-pair:named-individual"
+      }
+    ],
+    "roles": [
+      {
+        "id": "i",
+        "kind": "individual",
+        "subject": "s:i"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": []
+  }
+}

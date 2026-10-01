@@ -1,0 +1,23 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:i"
+      }
+    ],
+    "roles": [
+      {
+        "id": "i",
+        "kind": "individual",
+        "subject": "s:i"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": []
+  }
+}

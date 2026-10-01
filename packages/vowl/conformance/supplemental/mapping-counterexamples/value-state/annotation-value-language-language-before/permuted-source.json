@@ -1,0 +1,70 @@
+{
+  "structural": {
+    "occurrences": [],
+    "constructs": [],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "field-permutation-6",
+        "kind": "datatype",
+        "id": "field-permutation-1"
+      },
+      {
+        "subject": "field-permutation-7",
+        "kind": "datatype",
+        "id": "field-permutation-2"
+      },
+      {
+        "subject": "field-permutation-8",
+        "kind": "datatype",
+        "id": "field-permutation-3"
+      },
+      {
+        "subject": "field-permutation-9",
+        "kind": "annotation-property",
+        "id": "field-permutation-4"
+      },
+      {
+        "subject": "field-permutation-10",
+        "kind": "annotation-property",
+        "id": "field-permutation-5"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "urn:mapping-pair:D",
+        "id": "field-permutation-6"
+      },
+      {
+        "iri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+        "id": "field-permutation-7"
+      },
+      {
+        "iri": "http://www.w3.org/2001/XMLSchema#string",
+        "id": "field-permutation-8"
+      },
+      {
+        "iri": "urn:mapping-pair:other-annotation",
+        "id": "field-permutation-9"
+      },
+      {
+        "iri": "urn:mapping-pair:annotation",
+        "id": "field-permutation-10"
+      }
+    ],
+    "ontology": {
+      "annotations": [
+        {
+          "annotations": [],
+          "value": {
+            "language": "en",
+            "lexical": "before",
+            "kind": "language"
+          },
+          "predicate": "urn:mapping-pair:annotation"
+        }
+      ],
+      "imports": []
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "structural": {
+    "occurrences": [],
+    "constructs": [],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "field-permutation-2",
+        "kind": "individual",
+        "id": "field-permutation-1"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "urn:mapping-pair:named-individual",
+        "id": "field-permutation-2"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

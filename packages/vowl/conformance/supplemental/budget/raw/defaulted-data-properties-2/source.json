@@ -1,0 +1,130 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "subject-Literal",
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Literal"
+      },
+      {
+        "id": "subject-p0",
+        "iri": "https://example.org/growth#p0"
+      },
+      {
+        "id": "subject-p1",
+        "iri": "https://example.org/growth#p1"
+      }
+    ],
+    "roles": [
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "subject-Thing"
+      },
+      {
+        "id": "Literal",
+        "kind": "datatype",
+        "subject": "subject-Literal"
+      },
+      {
+        "id": "p0",
+        "kind": "data-property",
+        "subject": "subject-p0"
+      },
+      {
+        "id": "p1",
+        "kind": "data-property",
+        "subject": "subject-p1"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": [
+      {
+        "id": "domain-p0",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p0"
+          ]
+        }
+      },
+      {
+        "id": "range-p0",
+        "kind": "datatype-node",
+        "target": "Literal",
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p0"
+          ]
+        }
+      },
+      {
+        "id": "edge-p0",
+        "kind": "property-edge",
+        "properties": [
+          "p0"
+        ],
+        "from": "domain-p0",
+        "to": "range-p0"
+      },
+      {
+        "id": "label-p0",
+        "kind": "label",
+        "edge": "edge-p0",
+        "direction": "single"
+      },
+      {
+        "id": "domain-p1",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p1"
+          ]
+        }
+      },
+      {
+        "id": "range-p1",
+        "kind": "datatype-node",
+        "target": "Literal",
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p1"
+          ]
+        }
+      },
+      {
+        "id": "edge-p1",
+        "kind": "property-edge",
+        "properties": [
+          "p1"
+        ],
+        "from": "domain-p1",
+        "to": "range-p1"
+      },
+      {
+        "id": "label-p1",
+        "kind": "label",
+        "edge": "edge-p1",
+        "direction": "single"
+      }
+    ]
+  }
+}

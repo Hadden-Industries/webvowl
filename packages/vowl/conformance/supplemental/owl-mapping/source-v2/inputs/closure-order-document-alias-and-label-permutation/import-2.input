@@ -1,0 +1,6 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Ontology(<urn:owl-seed:left-ontology>
+Import(<urn:owl-seed:grand>)
+Annotation(:title "imported-left-header-is-not-root")
+ClassAssertion(:A _:leftRenamed)
+)

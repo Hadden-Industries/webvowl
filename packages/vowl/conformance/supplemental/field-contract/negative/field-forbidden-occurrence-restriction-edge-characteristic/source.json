@@ -1,0 +1,121 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/o#A"
+      },
+      {
+        "id": "s-Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/o#p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "s-Thing"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s-p"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "restriction",
+        "kind": "object-max-cardinality",
+        "property": "p",
+        "cardinality": "90071992547409931234567890",
+        "filler": "Thing"
+      }
+    ],
+    "constructs": [
+      {
+        "id": "restriction-assertion",
+        "kind": "subclass",
+        "sub": "A",
+        "super": "restriction"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "global-domain",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "class",
+          "targets": [
+            "Thing"
+          ]
+        }
+      },
+      {
+        "id": "global-edge",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "global-domain",
+        "to": "global-domain"
+      },
+      {
+        "id": "label-global-edge",
+        "kind": "label",
+        "edge": "global-edge",
+        "direction": "single"
+      },
+      {
+        "id": "restriction-target",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p"
+          ],
+          "scope": "restriction-assertion"
+        }
+      },
+      {
+        "id": "restriction-edge",
+        "kind": "restriction-edge",
+        "construct": "restriction-assertion",
+        "from": "node-A",
+        "to": "restriction-target",
+        "characteristic": null
+      },
+      {
+        "id": "label-restriction-edge",
+        "kind": "label",
+        "edge": "restriction-edge",
+        "direction": "single"
+      }
+    ]
+  }
+}

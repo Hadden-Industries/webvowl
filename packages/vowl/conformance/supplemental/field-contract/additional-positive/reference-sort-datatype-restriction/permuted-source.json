@@ -1,0 +1,73 @@
+{
+  "structural": {
+    "occurrences": [],
+    "constructs": [
+      {
+        "target": "field-permutation-2",
+        "datatype": "field-permutation-5",
+        "kind": "datatype-definition",
+        "id": "field-permutation-1"
+      }
+    ],
+    "expressions": [
+      {
+        "facets": [
+          {
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+              "lexical": "2",
+              "kind": "typed"
+            },
+            "facet": "http://www.w3.org/2001/XMLSchema#minInclusive"
+          },
+          {
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+              "lexical": "01",
+              "kind": "typed"
+            },
+            "facet": "http://www.w3.org/2001/XMLSchema#minInclusive"
+          }
+        ],
+        "datatype": "field-permutation-4",
+        "kind": "datatype-restriction",
+        "id": "field-permutation-2"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "field-permutation-6",
+        "kind": "annotation-property",
+        "id": "field-permutation-3"
+      },
+      {
+        "subject": "field-permutation-7",
+        "kind": "datatype",
+        "id": "field-permutation-4"
+      },
+      {
+        "subject": "field-permutation-8",
+        "kind": "datatype",
+        "id": "field-permutation-5"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "urn:field-contract:unused-annotation-property",
+        "id": "field-permutation-6"
+      },
+      {
+        "iri": "http://www.w3.org/2001/XMLSchema#integer",
+        "id": "field-permutation-7"
+      },
+      {
+        "iri": "https://example.org/supplement#defined",
+        "id": "field-permutation-8"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

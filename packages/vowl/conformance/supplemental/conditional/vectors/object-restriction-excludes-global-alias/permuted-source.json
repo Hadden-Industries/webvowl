@@ -1,0 +1,138 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "conditional-renamed-2",
+        "kind": "label",
+        "id": "conditional-renamed-1"
+      },
+      {
+        "to": "conditional-renamed-3",
+        "from": "conditional-renamed-7",
+        "construct": "conditional-renamed-9",
+        "kind": "restriction-edge",
+        "id": "conditional-renamed-2"
+      },
+      {
+        "context": {
+          "scope": "conditional-renamed-9",
+          "properties": [
+            "conditional-renamed-12"
+          ],
+          "kind": "property"
+        },
+        "targets": [
+          "conditional-renamed-13"
+        ],
+        "kind": "class-node",
+        "id": "conditional-renamed-3"
+      },
+      {
+        "direction": "single",
+        "edge": "conditional-renamed-5",
+        "kind": "label",
+        "id": "conditional-renamed-4"
+      },
+      {
+        "to": "conditional-renamed-6",
+        "from": "conditional-renamed-6",
+        "properties": [
+          "conditional-renamed-11",
+          "conditional-renamed-12"
+        ],
+        "kind": "property-edge",
+        "id": "conditional-renamed-5"
+      },
+      {
+        "context": {
+          "targets": [
+            "conditional-renamed-13"
+          ],
+          "kind": "class"
+        },
+        "targets": [
+          "conditional-renamed-13"
+        ],
+        "kind": "class-node",
+        "id": "conditional-renamed-6"
+      },
+      {
+        "targets": [
+          "conditional-renamed-14"
+        ],
+        "kind": "class-node",
+        "id": "conditional-renamed-7"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "conditional-renamed-11",
+          "conditional-renamed-12"
+        ],
+        "kind": "equivalent-object-properties",
+        "id": "conditional-renamed-8"
+      },
+      {
+        "super": "conditional-renamed-10",
+        "sub": "conditional-renamed-14",
+        "kind": "subclass",
+        "id": "conditional-renamed-9"
+      }
+    ],
+    "expressions": [
+      {
+        "filler": "conditional-renamed-13",
+        "cardinality": "90071992547409931234567890",
+        "property": "conditional-renamed-12",
+        "kind": "object-exact-cardinality",
+        "id": "conditional-renamed-10"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "conditional-renamed-15",
+        "kind": "object-property",
+        "id": "conditional-renamed-11"
+      },
+      {
+        "subject": "conditional-renamed-16",
+        "kind": "object-property",
+        "id": "conditional-renamed-12"
+      },
+      {
+        "subject": "conditional-renamed-17",
+        "kind": "class",
+        "id": "conditional-renamed-13"
+      },
+      {
+        "subject": "conditional-renamed-18",
+        "kind": "class",
+        "id": "conditional-renamed-14"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/o#q",
+        "id": "conditional-renamed-15"
+      },
+      {
+        "iri": "https://example.org/o#p",
+        "id": "conditional-renamed-16"
+      },
+      {
+        "iri": "http://www.w3.org/2002/07/owl#Thing",
+        "id": "conditional-renamed-17"
+      },
+      {
+        "iri": "https://example.org/o#A",
+        "id": "conditional-renamed-18"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

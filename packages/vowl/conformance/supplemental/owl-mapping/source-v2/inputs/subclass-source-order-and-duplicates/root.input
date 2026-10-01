@@ -1,0 +1,8 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Ontology(
+SubClassOf(:A :B)
+Declaration(Class(:B))
+Declaration(Class(:A))
+SubClassOf(:A :B)
+Declaration(Class(:A))
+)

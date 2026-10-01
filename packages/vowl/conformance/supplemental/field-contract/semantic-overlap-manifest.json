@@ -1,0 +1,170 @@
+{
+  "format": "canonical-vowl-negative-manifest/1",
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "amendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+    "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+    "approval": "Owner approved the exact quadratic capped work-policy amendment on 2026-09-30, as communicated by the parent integration task. Approval does not waive independent review."
+  },
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/field-contract/contracts.mjs",
+      "sha256": "6f8d018d17edd726c5437d9b9ed7bf677005fe55cb086e84d227b6c089858130"
+    },
+    {
+      "path": "supplemental/field-contract/support.mjs",
+      "sha256": "5a92a8a7c84a83965488258f0971540ca247ed801abaf06f8ad474fb8a398536"
+    },
+    {
+      "path": "supplemental/field-contract/bindings.mjs",
+      "sha256": "219eafe1de2d78a6cc80c4b5fc9e46d31dd40d58993f5627abb38af3c8181a4a"
+    },
+    {
+      "path": "supplemental/field-contract/derive-semantic-overlaps.mjs",
+      "sha256": "a22fb22a348a33b3ba09e6ffc984ac952c1f7292e1c8ad138bca4f169a4230b0"
+    }
+  ],
+  "inventory": {
+    "obligations": 5,
+    "category": "A7 ordered stage overlaps independent of the pending lexical Unicode/envelope question",
+    "limitations": "The multi-fault cases deliberately establish precedence, not isolated one-field validity; missing projection clears its dependent placement references to isolate stage6 from stage7."
+  },
+  "vectors": [
+    {
+      "id": "semantic-overlap-envelope-structural-type-before-unknown-profile",
+      "operation": "decode",
+      "expectedError": "DOCUMENT_TYPE",
+      "reason": "A7 stage4: common canonical-envelope required/type checks precede known-profile checks.",
+      "sourceFixture": "empty-structural",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/empty-structural/canonical.json",
+        "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae",
+        "byteLength": 230
+      },
+      "input": {
+        "path": "supplemental/field-contract/semantic-overlap/envelope-structural-type-before-unknown-profile/document.json",
+        "sha256": "5335271ccd9ae14731c712ad98b5ff1fcc3eaddfa91a4827f7f0563f0b787da3",
+        "byteLength": 68
+      },
+      "rules": [
+        "A7",
+        "B3"
+      ],
+      "status": "independent-stage-overlap-expectation-pending-review"
+    },
+    {
+      "id": "semantic-overlap-reference-before-nonpositive-camera",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "REFERENCE_DANGLING",
+      "reason": "A7 stage5 reference existence precedes stage7 B3 positive camera zoom.",
+      "sourceFixture": "named-class-artifact",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/named-class-artifact/source.json",
+        "sha256": "b388afd18223a2a1afd83c0756f1959c9052cf227ef6038ebeedbbd23a9991b5",
+        "byteLength": 1044
+      },
+      "input": {
+        "path": "supplemental/field-contract/semantic-overlap/reference-before-nonpositive-camera/source.json",
+        "sha256": "af9edddbf44ee367f70958fdfcb2b4ca38230d9e59f5001a3aa1e351a430cd86",
+        "byteLength": 1060
+      },
+      "rules": [
+        "A7",
+        "B3"
+      ],
+      "status": "independent-stage-overlap-expectation-pending-review"
+    },
+    {
+      "id": "semantic-overlap-primary-id-before-nonpositive-camera",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "ID_DUPLICATE",
+      "reason": "A7 stage5 primary ID uniqueness precedes stage7 B3 positive camera zoom.",
+      "sourceFixture": "named-class-artifact",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/named-class-artifact/source.json",
+        "sha256": "b388afd18223a2a1afd83c0756f1959c9052cf227ef6038ebeedbbd23a9991b5",
+        "byteLength": 1044
+      },
+      "input": {
+        "path": "supplemental/field-contract/semantic-overlap/primary-id-before-nonpositive-camera/source.json",
+        "sha256": "76e0dd5242896e2d72392f154fb367cd0559853f4804534d9296b66bfbd94eb7",
+        "byteLength": 1044
+      },
+      "rules": [
+        "A7",
+        "B3"
+      ],
+      "status": "independent-stage-overlap-expectation-pending-review"
+    },
+    {
+      "id": "semantic-overlap-projection-before-nonpositive-camera",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "PROJECTION_INVALID",
+      "reason": "No dangling state references remain; A7 stage6 missing exact projection precedes stage7 camera invariants.",
+      "sourceFixture": "named-class-artifact",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/named-class-artifact/source.json",
+        "sha256": "b388afd18223a2a1afd83c0756f1959c9052cf227ef6038ebeedbbd23a9991b5",
+        "byteLength": 1044
+      },
+      "input": {
+        "path": "supplemental/field-contract/semantic-overlap/projection-before-nonpositive-camera/source.json",
+        "sha256": "f67e2eff3c7a2f43eead43512e5701f68f0b111b8cf0022666c70f3a655f4cbd",
+        "byteLength": 759
+      },
+      "rules": [
+        "A7",
+        "B3"
+      ],
+      "status": "independent-stage-overlap-expectation-pending-review"
+    },
+    {
+      "id": "semantic-overlap-scalar-before-nonpositive-camera",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "IRI_INVALID",
+      "reason": "A7 stage4 scalar domain precedes stage7 camera invariants.",
+      "sourceFixture": "named-class-artifact",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/named-class-artifact/source.json",
+        "sha256": "b388afd18223a2a1afd83c0756f1959c9052cf227ef6038ebeedbbd23a9991b5",
+        "byteLength": 1044
+      },
+      "input": {
+        "path": "supplemental/field-contract/semantic-overlap/scalar-before-nonpositive-camera/source.json",
+        "sha256": "a8c170578a8a1fef2b62df94bcd874eddef35e3e410cb54887216f4c9df0d794",
+        "byteLength": 1079
+      },
+      "rules": [
+        "A7",
+        "B3"
+      ],
+      "status": "independent-stage-overlap-expectation-pending-review"
+    }
+  ]
+}

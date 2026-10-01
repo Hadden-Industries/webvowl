@@ -1,0 +1,139 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s0",
+        "iri": "urn:mapping-pair:A"
+      },
+      {
+        "id": "s1",
+        "iri": "urn:editing:annotation"
+      },
+      {
+        "id": "s2",
+        "iri": "urn:mapping-pair:C"
+      },
+      {
+        "id": "s3",
+        "iri": "urn:mapping-pair:B"
+      },
+      {
+        "id": "s4",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      },
+      {
+        "id": "s5",
+        "iri": "urn:mapping-pair:p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "r0",
+        "kind": "class",
+        "subject": "s2"
+      },
+      {
+        "id": "r1",
+        "kind": "class",
+        "subject": "s3"
+      },
+      {
+        "id": "r2",
+        "kind": "object-property",
+        "subject": "s5"
+      },
+      {
+        "id": "r3",
+        "kind": "datatype",
+        "subject": "s4"
+      },
+      {
+        "id": "r4",
+        "kind": "class",
+        "subject": "s0"
+      },
+      {
+        "id": "r5",
+        "kind": "annotation-property",
+        "subject": "s1"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "c1",
+        "kind": "assertion-anchor",
+        "assertion": {
+          "kind": "object-domain",
+          "property": "r2",
+          "target": "r0"
+        },
+        "annotations": [
+          {
+            "predicate": "urn:editing:annotation",
+            "value": {
+              "kind": "typed",
+              "lexical": "domain annotation",
+              "datatype": "http://www.w3.org/2001/XMLSchema#string"
+            },
+            "annotations": []
+          }
+        ]
+      },
+      {
+        "id": "c0",
+        "kind": "object-range",
+        "property": "r2",
+        "target": "r1"
+      },
+      {
+        "id": "c2",
+        "kind": "object-domain",
+        "property": "r2",
+        "target": "r0"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "r0"
+        ]
+      },
+      {
+        "id": "node-1",
+        "kind": "class-node",
+        "targets": [
+          "r1"
+        ]
+      },
+      {
+        "id": "node-2",
+        "kind": "class-node",
+        "targets": [
+          "r4"
+        ]
+      },
+      {
+        "id": "edge-0",
+        "kind": "property-edge",
+        "properties": [
+          "r2"
+        ],
+        "from": "node-0",
+        "to": "node-1"
+      },
+      {
+        "id": "edge-0-label-single",
+        "kind": "label",
+        "edge": "edge-0",
+        "direction": "single"
+      }
+    ]
+  }
+}

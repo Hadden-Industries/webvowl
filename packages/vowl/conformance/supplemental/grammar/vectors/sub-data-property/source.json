@@ -1,0 +1,183 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-A",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "subject-B",
+        "iri": "https://example.org/supplement#B"
+      },
+      {
+        "id": "subject-C",
+        "iri": "https://example.org/supplement#C"
+      },
+      {
+        "id": "subject-D",
+        "iri": "https://example.org/supplement#D"
+      },
+      {
+        "id": "subject-E",
+        "iri": "https://example.org/supplement#E"
+      },
+      {
+        "id": "subject-p",
+        "iri": "https://example.org/supplement#p"
+      },
+      {
+        "id": "subject-q",
+        "iri": "https://example.org/supplement#q"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "subject-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "subject-B"
+      },
+      {
+        "id": "C",
+        "kind": "class",
+        "subject": "subject-C"
+      },
+      {
+        "id": "D",
+        "kind": "datatype",
+        "subject": "subject-D"
+      },
+      {
+        "id": "E",
+        "kind": "datatype",
+        "subject": "subject-E"
+      },
+      {
+        "id": "p",
+        "kind": "data-property",
+        "subject": "subject-p"
+      },
+      {
+        "id": "q",
+        "kind": "data-property",
+        "subject": "subject-q"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "domain-p",
+        "kind": "data-domain",
+        "property": "p",
+        "target": "A"
+      },
+      {
+        "id": "range-p",
+        "kind": "data-range",
+        "property": "p",
+        "target": "D"
+      },
+      {
+        "id": "domain-q",
+        "kind": "data-domain",
+        "property": "q",
+        "target": "B"
+      },
+      {
+        "id": "range-q",
+        "kind": "data-range",
+        "property": "q",
+        "target": "E"
+      },
+      {
+        "id": "relation",
+        "kind": "sub-data-property",
+        "sub": "p",
+        "super": "q"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "node-C",
+        "kind": "class-node",
+        "targets": [
+          "C"
+        ]
+      },
+      {
+        "id": "datatype-p",
+        "kind": "datatype-node",
+        "target": "D",
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p"
+          ]
+        }
+      },
+      {
+        "id": "edge-p",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "node-A",
+        "to": "datatype-p"
+      },
+      {
+        "id": "label-edge-p",
+        "kind": "label",
+        "edge": "edge-p",
+        "direction": "single"
+      },
+      {
+        "id": "datatype-q",
+        "kind": "datatype-node",
+        "target": "E",
+        "context": {
+          "kind": "property",
+          "properties": [
+            "q"
+          ]
+        }
+      },
+      {
+        "id": "edge-q",
+        "kind": "property-edge",
+        "properties": [
+          "q"
+        ],
+        "from": "node-B",
+        "to": "datatype-q"
+      },
+      {
+        "id": "label-edge-q",
+        "kind": "label",
+        "edge": "edge-q",
+        "direction": "single"
+      }
+    ]
+  }
+}

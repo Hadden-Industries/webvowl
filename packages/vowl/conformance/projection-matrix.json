@@ -1,0 +1,1016 @@
+{
+  "status": "experimental-inventory-pending-protocol-review",
+  "specification": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+  "rows": [
+    {
+      "category": "role",
+      "kind": "class",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "class-node"
+      ],
+      "condition": "Ordinary and anonymous roles always; generic roles only when a projected relation needs them",
+      "generationRule": "B2.1/B2.3",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Named equivalence components group; generic splitting and anonymous identity are preserved",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "role",
+      "kind": "rdf-class",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "class-node"
+      ],
+      "condition": "Ordinary and anonymous roles always; generic roles only when a projected relation needs them",
+      "generationRule": "B2.1/B2.3",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Named equivalence components group; generic splitting and anonymous identity are preserved",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "role",
+      "kind": "datatype",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "datatype-node"
+      ],
+      "condition": "Named datatype is an effective drawable relation endpoint",
+      "generationRule": "B2.2/B2.3",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Unattached datatypes remain details-only; split by exact property context",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "role",
+      "kind": "object-property",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge",
+        "label"
+      ],
+      "condition": "A named-role partition has drawable exact effective endpoints",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No endpoint propagation; equivalence partitions preserve unequal endpoint terms",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "role",
+      "kind": "data-property",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge",
+        "label"
+      ],
+      "condition": "A named-role partition has drawable exact effective endpoints",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No endpoint propagation; equivalence partitions preserve unequal endpoint terms",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "role",
+      "kind": "rdf-property",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge",
+        "label"
+      ],
+      "condition": "A named-role partition has drawable exact effective endpoints",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No endpoint propagation; equivalence partitions preserve unequal endpoint terms",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "role",
+      "kind": "annotation-property",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No ABox or property-metadata glyph is defined in v1",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "role",
+      "kind": "individual",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No ABox or property-metadata glyph is defined in v1",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "class-union",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "class-node",
+        "operator-edge"
+      ],
+      "condition": "Operator gets its own node; connect only drawable operands",
+      "generationRule": "B2.1/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Keep every semantic operand and expose omitted-operand details",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "class-intersection",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "class-node",
+        "operator-edge"
+      ],
+      "condition": "Operator gets its own node; connect only drawable operands",
+      "generationRule": "B2.1/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Keep every semantic operand and expose omitted-operand details",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "class-complement",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "class-node",
+        "operator-edge"
+      ],
+      "condition": "Operator gets its own node; connect only drawable operands",
+      "generationRule": "B2.1/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Keep every semantic operand and expose omitted-operand details",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "class-enumeration",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "object-some",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "object-all",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "object-value",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "object-self",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "data-some",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "data-all",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "data-value",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "object-inverse",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No standalone glyph or inferred quantified-restriction edge",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "object-min-cardinality",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "restriction-edge",
+        "label"
+      ],
+      "condition": "Super of a subclass from a named class role; exact named property and exact generic filler",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Qualified, inverse-property, anonymous-subclass and other contexts remain details-only; each retained bound is separate",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "object-max-cardinality",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "restriction-edge",
+        "label"
+      ],
+      "condition": "Super of a subclass from a named class role; exact named property and exact generic filler",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Qualified, inverse-property, anonymous-subclass and other contexts remain details-only; each retained bound is separate",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "object-exact-cardinality",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "restriction-edge",
+        "label"
+      ],
+      "condition": "Super of a subclass from a named class role; exact named property and exact generic filler",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Qualified, inverse-property, anonymous-subclass and other contexts remain details-only; each retained bound is separate",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "data-min-cardinality",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "restriction-edge",
+        "label"
+      ],
+      "condition": "Super of a subclass from a named class role; exact named property and exact generic filler",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Qualified, inverse-property, anonymous-subclass and other contexts remain details-only; each retained bound is separate",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "data-max-cardinality",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "restriction-edge",
+        "label"
+      ],
+      "condition": "Super of a subclass from a named class role; exact named property and exact generic filler",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Qualified, inverse-property, anonymous-subclass and other contexts remain details-only; each retained bound is separate",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "data-exact-cardinality",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "restriction-edge",
+        "label"
+      ],
+      "condition": "Super of a subclass from a named class role; exact named property and exact generic filler",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Qualified, inverse-property, anonymous-subclass and other contexts remain details-only; each retained bound is separate",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "data-intersection",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No class-operator glyph is reused for data-range meaning",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "data-union",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No class-operator glyph is reused for data-range meaning",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "data-complement",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No class-operator glyph is reused for data-range meaning",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "data-enumeration",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No class-operator glyph is reused for data-range meaning",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "expression",
+      "kind": "datatype-restriction",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No class-operator glyph is reused for data-range meaning",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "subclass",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "subclass-edge",
+        "restriction-edge",
+        "label"
+      ],
+      "condition": "Both terms drawable, or the exact unqualified cardinality restriction conditions hold",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "All other subclass assertions remain details-only",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "equivalent-classes",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "class-node"
+      ],
+      "condition": "Named ordinary class members join components",
+      "generationRule": "B2.1",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Generic roles, anonymous roles and expressions stay out of grouping; no extra equivalence edge",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "disjoint-classes",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "disjoint-edge"
+      ],
+      "condition": "Drawable member pairs, including normalized singleton and collapsed self-loops",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Only endpoint pairs deduplicate; undrawable members remain in details",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "equivalent-object-properties",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge",
+        "label"
+      ],
+      "condition": "Named members with the same exact direct effective endpoint pair share a partition",
+      "generationRule": "B2.2",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Inverse expression members remain details-only; no extra equivalence edge",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "equivalent-data-properties",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge",
+        "label"
+      ],
+      "condition": "Named members with the same exact direct effective endpoint pair share a partition",
+      "generationRule": "B2.2",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Inverse expression members remain details-only; no extra equivalence edge",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "equivalent-rdf-properties",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge",
+        "label"
+      ],
+      "condition": "Named members with the same exact direct effective endpoint pair share a partition",
+      "generationRule": "B2.2",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Inverse expression members remain details-only; no extra equivalence edge",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "inverse-properties",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "inverse-edge",
+        "label"
+      ],
+      "condition": "Named drawable partitions with exactly reversed endpoint terms; a singleton is a self-pair",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Unmatched inverses stay in details and preserve independently drawable property edges",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "object-domain",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge"
+      ],
+      "condition": "Contributes a direct normalized named-property endpoint which is drawable",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Compound undrawable ranges remain details-only; no semantic copies on occurrences",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "object-range",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge"
+      ],
+      "condition": "Contributes a direct normalized named-property endpoint which is drawable",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Compound undrawable ranges remain details-only; no semantic copies on occurrences",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "data-domain",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge"
+      ],
+      "condition": "Contributes a direct normalized named-property endpoint which is drawable",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Compound undrawable ranges remain details-only; no semantic copies on occurrences",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "data-range",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge"
+      ],
+      "condition": "Contributes a direct normalized named-property endpoint which is drawable",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Compound undrawable ranges remain details-only; no semantic copies on occurrences",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "rdf-domain",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge"
+      ],
+      "condition": "Contributes a direct normalized named-property endpoint which is drawable",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Compound undrawable ranges remain details-only; no semantic copies on occurrences",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "rdf-range",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "property-edge",
+        "inverse-edge"
+      ],
+      "condition": "Contributes a direct normalized named-property endpoint which is drawable",
+      "generationRule": "B2.2/B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Compound undrawable ranges remain details-only; no semantic copies on occurrences",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "sub-object-property",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Both explicitly related named roles have ordinary or inverse occurrences",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Interaction highlighting only; inverse-expression or absent projections remain details-only",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "sub-data-property",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Both explicitly related named roles have ordinary or inverse occurrences",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Interaction highlighting only; inverse-expression or absent projections remain details-only",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "sub-rdf-property",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Both explicitly related named roles have ordinary or inverse occurrences",
+      "generationRule": "B2.4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Interaction highlighting only; inverse-expression or absent projections remain details-only",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "object-characteristic",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Direct functional, inverse-functional, symmetric or transitive characteristic of the selected named principal",
+      "generationRule": "B2.4/B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Reflexive, irreflexive and asymmetric are details-only; no transfer from inverse expressions or nonprincipal aliases",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "data-characteristic",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Direct functional characteristic of the selected named principal",
+      "generationRule": "B2.4/B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No extra occurrence or transfer from aliases",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "rdf-characteristic",
+      "retained": true,
+      "presentation": "visual",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Direct functional characteristic of the selected named principal",
+      "generationRule": "B2.4/B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "No extra occurrence or transfer from aliases",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "disjoint-union",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Retained structures have no additional v1 glyph",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "disjoint-object-properties",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Retained structures have no additional v1 glyph",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "disjoint-data-properties",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Retained structures have no additional v1 glyph",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "disjoint-rdf-properties",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Retained structures have no additional v1 glyph",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "property-chain",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Retained structures have no additional v1 glyph",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "datatype-definition",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Retained structures have no additional v1 glyph",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "key",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Retained structures have no additional v1 glyph",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "sub-annotation-property",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Annotations and direct member listings are inspectable; derived labels are not semantic copies",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "annotation-domain",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Annotations and direct member listings are inspectable; derived labels are not semantic copies",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "annotation-range",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Annotations and direct member listings are inspectable; derived labels are not semantic copies",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "annotation-assertion",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Annotations and direct member listings are inspectable; derived labels are not semantic copies",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "assertion-anchor",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Annotations and direct member listings are inspectable; derived labels are not semantic copies",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "construct",
+      "kind": "class-membership",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Annotations and direct member listings are inspectable; derived labels are not semantic copies",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "metadata",
+      "kind": "ontology",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Header/details or label derivation; no independently positioned graph occurrence",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "metadata",
+      "kind": "imports",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Header/details or label derivation; no independently positioned graph occurrence",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "metadata",
+      "kind": "annotations",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Header/details or label derivation; no independently positioned graph occurrence",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "annotation-value",
+      "kind": "iri",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "A2/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Preserve boxed exact values; only qualifying label assertions provide candidate text",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "annotation-value",
+      "kind": "subject",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "A2/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Preserve boxed exact values; only qualifying label assertions provide candidate text",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "annotation-value",
+      "kind": "typed",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "A2/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Preserve boxed exact values; only qualifying label assertions provide candidate text",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    },
+    {
+      "category": "annotation-value",
+      "kind": "language",
+      "retained": true,
+      "presentation": "details-only",
+      "occurrenceKinds": [
+        "none"
+      ],
+      "condition": "Always",
+      "generationRule": "A2/B2.5/B4",
+      "authority": "Canonical VOWL projection contract B2.5",
+      "rationale": "Preserve boxed exact values; only qualifying label assertions provide candidate text",
+      "coverageStatus": "Inventory only; exhaustive positive and conditional-negative coverage is pending"
+    }
+  ]
+}

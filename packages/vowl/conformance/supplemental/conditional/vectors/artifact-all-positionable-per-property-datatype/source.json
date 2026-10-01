@@ -1,0 +1,199 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "s-Literal",
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Literal"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/o#p"
+      },
+      {
+        "id": "s-q",
+        "iri": "https://example.org/o#q"
+      }
+    ],
+    "roles": [
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "s-Thing"
+      },
+      {
+        "id": "Literal",
+        "kind": "datatype",
+        "subject": "s-Literal"
+      },
+      {
+        "id": "p",
+        "kind": "data-property",
+        "subject": "s-p"
+      },
+      {
+        "id": "q",
+        "kind": "data-property",
+        "subject": "s-q"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": [
+      {
+        "id": "generic-p",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p"
+          ]
+        }
+      },
+      {
+        "id": "datatype-p",
+        "kind": "datatype-node",
+        "target": "Literal",
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p"
+          ]
+        }
+      },
+      {
+        "id": "edge-p",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "generic-p",
+        "to": "datatype-p"
+      },
+      {
+        "id": "label-edge-p",
+        "kind": "label",
+        "edge": "edge-p",
+        "direction": "single"
+      },
+      {
+        "id": "generic-q",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "property",
+          "properties": [
+            "q"
+          ]
+        }
+      },
+      {
+        "id": "datatype-q",
+        "kind": "datatype-node",
+        "target": "Literal",
+        "context": {
+          "kind": "property",
+          "properties": [
+            "q"
+          ]
+        }
+      },
+      {
+        "id": "edge-q",
+        "kind": "property-edge",
+        "properties": [
+          "q"
+        ],
+        "from": "generic-q",
+        "to": "datatype-q"
+      },
+      {
+        "id": "label-edge-q",
+        "kind": "label",
+        "edge": "edge-q",
+        "direction": "single"
+      }
+    ]
+  },
+  "visualization": {
+    "placements": [
+      {
+        "occurrence": "generic-p",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "pinned": true
+      },
+      {
+        "occurrence": "datatype-p",
+        "position": {
+          "x": 100,
+          "y": 25
+        },
+        "pinned": false
+      },
+      {
+        "occurrence": "label-edge-p",
+        "position": {
+          "x": 200,
+          "y": 50
+        },
+        "pinned": true
+      },
+      {
+        "occurrence": "generic-q",
+        "position": {
+          "x": 300,
+          "y": 75
+        },
+        "pinned": false
+      },
+      {
+        "occurrence": "datatype-q",
+        "position": {
+          "x": 400,
+          "y": 100
+        },
+        "pinned": true
+      },
+      {
+        "occurrence": "label-edge-q",
+        "position": {
+          "x": 500,
+          "y": 125
+        },
+        "pinned": false
+      }
+    ],
+    "camera": {
+      "center": {
+        "x": 100,
+        "y": 25
+      },
+      "zoom": 1
+    },
+    "hidden": [],
+    "labelSelection": {
+      "mode": "iri"
+    },
+    "prefixes": [],
+    "display": {
+      "compactNotation": false,
+      "nodeScaling": "uniform",
+      "externalColoring": true
+    }
+  }
+}

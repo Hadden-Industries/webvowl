@@ -1,0 +1,63 @@
+{
+  "scope": "Synthetic assertion-checker controls only; these counts do not claim real parser or adapter executions.",
+  "syntheticPositiveChecks": 67,
+  "rejectedMutations": [
+    {
+      "id": "declared-subclass/strict",
+      "mutation": "bytes"
+    },
+    {
+      "id": "declared-subclass/strict",
+      "mutation": "profile"
+    },
+    {
+      "id": "declared-subclass/strict",
+      "mutation": "mutable-result"
+    },
+    {
+      "id": "six-explicit-abox-exclusions/strict",
+      "mutation": "missing-diagnostic"
+    },
+    {
+      "id": "six-explicit-abox-exclusions/strict",
+      "mutation": "constructor-substring"
+    },
+    {
+      "id": "six-explicit-abox-exclusions/strict",
+      "mutation": "duplicate-diagnostic"
+    },
+    {
+      "id": "six-explicit-abox-exclusions/strict",
+      "mutation": "diagnostic-order"
+    },
+    {
+      "id": "six-explicit-abox-exclusions/strict",
+      "mutation": "unknown-code"
+    },
+    {
+      "id": "closure-root-metadata-and-anonymous-apart/strict",
+      "mutation": "resolver-context"
+    },
+    {
+      "id": "malformed-functional-syntax/strict",
+      "mutation": "wrong-error"
+    }
+  ],
+  "producerSources": [
+    {
+      "path": "supplemental/owl-mapping/assert-adapter.mjs",
+      "sha256": "777f740b273fd919d56924a731e5e7cd5687d423bdf7dee039bd6cb9af677441",
+      "byteLength": 5237
+    },
+    {
+      "path": "supplemental/owl-mapping/catalog.mjs",
+      "sha256": "f3b544b10c7db15d992115590843a989707615b786063dca66a941e5693ccfd0",
+      "byteLength": 2586
+    },
+    {
+      "path": "supplemental/owl-mapping/check-assertions.mjs",
+      "sha256": "52ef656e2fbf0197e7ca44fa4f3c2f00ee093d4cbb1d569d202e8983afaa9f18",
+      "byteLength": 5421
+    }
+  ]
+}

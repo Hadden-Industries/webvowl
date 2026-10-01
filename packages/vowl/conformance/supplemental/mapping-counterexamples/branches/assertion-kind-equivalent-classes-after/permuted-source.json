@@ -1,0 +1,122 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "targets": [
+          "field-permutation-9",
+          "field-permutation-10",
+          "field-permutation-11"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-1"
+      }
+    ],
+    "constructs": [
+      {
+        "dataProperties": [],
+        "objectProperties": [],
+        "class": "field-permutation-11",
+        "kind": "key",
+        "id": "field-permutation-2"
+      },
+      {
+        "annotations": [
+          {
+            "annotations": [],
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#string",
+              "lexical": "before",
+              "kind": "typed"
+            },
+            "predicate": "urn:mapping-pair:annotation"
+          }
+        ],
+        "assertion": {
+          "dataProperties": [],
+          "objectProperties": [],
+          "class": "field-permutation-11",
+          "kind": "key"
+        },
+        "kind": "assertion-anchor",
+        "id": "field-permutation-3"
+      },
+      {
+        "members": [
+          "field-permutation-10"
+        ],
+        "kind": "equivalent-classes",
+        "id": "field-permutation-4"
+      },
+      {
+        "members": [
+          "field-permutation-11"
+        ],
+        "kind": "equivalent-classes",
+        "id": "field-permutation-5"
+      },
+      {
+        "members": [
+          "field-permutation-9",
+          "field-permutation-10",
+          "field-permutation-11"
+        ],
+        "kind": "equivalent-classes",
+        "id": "field-permutation-6"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "field-permutation-12",
+        "kind": "datatype",
+        "id": "field-permutation-7"
+      },
+      {
+        "subject": "field-permutation-13",
+        "kind": "annotation-property",
+        "id": "field-permutation-8"
+      },
+      {
+        "subject": "field-permutation-14",
+        "kind": "class",
+        "id": "field-permutation-9"
+      },
+      {
+        "subject": "field-permutation-15",
+        "kind": "class",
+        "id": "field-permutation-10"
+      },
+      {
+        "subject": "field-permutation-16",
+        "kind": "class",
+        "id": "field-permutation-11"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "http://www.w3.org/2001/XMLSchema#string",
+        "id": "field-permutation-12"
+      },
+      {
+        "iri": "urn:mapping-pair:annotation",
+        "id": "field-permutation-13"
+      },
+      {
+        "iri": "urn:mapping-pair:C",
+        "id": "field-permutation-14"
+      },
+      {
+        "iri": "urn:mapping-pair:B",
+        "id": "field-permutation-15"
+      },
+      {
+        "iri": "urn:mapping-pair:A",
+        "id": "field-permutation-16"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

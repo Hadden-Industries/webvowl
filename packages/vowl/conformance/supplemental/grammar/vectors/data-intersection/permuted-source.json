@@ -1,0 +1,58 @@
+{
+  "structural": {
+    "occurrences": [],
+    "constructs": [
+      {
+        "target": "supplement-renamed-2",
+        "datatype": "supplement-renamed-5",
+        "kind": "datatype-definition",
+        "id": "supplement-renamed-1"
+      }
+    ],
+    "expressions": [
+      {
+        "members": [
+          "supplement-renamed-3",
+          "supplement-renamed-4"
+        ],
+        "kind": "data-intersection",
+        "id": "supplement-renamed-2"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "supplement-renamed-6",
+        "kind": "datatype",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "subject": "supplement-renamed-7",
+        "kind": "datatype",
+        "id": "supplement-renamed-4"
+      },
+      {
+        "subject": "supplement-renamed-8",
+        "kind": "datatype",
+        "id": "supplement-renamed-5"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "http://www.w3.org/2001/XMLSchema#decimal",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "iri": "http://www.w3.org/2001/XMLSchema#integer",
+        "id": "supplement-renamed-7"
+      },
+      {
+        "iri": "https://example.org/supplement#defined",
+        "id": "supplement-renamed-8"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "reverse",
+        "edge": "supplement-renamed-3",
+        "kind": "label",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "direction": "forward",
+        "edge": "supplement-renamed-3",
+        "kind": "label",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "to": "supplement-renamed-4",
+        "from": "supplement-renamed-5",
+        "reverse": [
+          "supplement-renamed-11"
+        ],
+        "forward": [
+          "supplement-renamed-12"
+        ],
+        "construct": "supplement-renamed-6",
+        "kind": "inverse-edge",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "targets": [
+          "supplement-renamed-13"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-4"
+      },
+      {
+        "targets": [
+          "supplement-renamed-14"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-5"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "supplement-renamed-12",
+          "supplement-renamed-11"
+        ],
+        "kind": "inverse-properties",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "target": "supplement-renamed-14",
+        "property": "supplement-renamed-11",
+        "kind": "object-range",
+        "id": "supplement-renamed-7"
+      },
+      {
+        "target": "supplement-renamed-13",
+        "property": "supplement-renamed-11",
+        "kind": "object-domain",
+        "id": "supplement-renamed-8"
+      },
+      {
+        "target": "supplement-renamed-13",
+        "property": "supplement-renamed-12",
+        "kind": "object-range",
+        "id": "supplement-renamed-9"
+      },
+      {
+        "target": "supplement-renamed-14",
+        "property": "supplement-renamed-12",
+        "kind": "object-domain",
+        "id": "supplement-renamed-10"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "supplement-renamed-15",
+        "kind": "object-property",
+        "id": "supplement-renamed-11"
+      },
+      {
+        "subject": "supplement-renamed-16",
+        "kind": "object-property",
+        "id": "supplement-renamed-12"
+      },
+      {
+        "subject": "supplement-renamed-17",
+        "kind": "class",
+        "id": "supplement-renamed-13"
+      },
+      {
+        "subject": "supplement-renamed-18",
+        "kind": "class",
+        "id": "supplement-renamed-14"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/orientation/0#z",
+        "id": "supplement-renamed-15"
+      },
+      {
+        "iri": "https://example.org/orientation/0#a",
+        "id": "supplement-renamed-16"
+      },
+      {
+        "iri": "https://example.org/o#B",
+        "id": "supplement-renamed-17"
+      },
+      {
+        "iri": "https://example.org/o#A",
+        "id": "supplement-renamed-18"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

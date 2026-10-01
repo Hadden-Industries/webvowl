@@ -1,0 +1,145 @@
+{
+  "id": "defaulted-data-properties-8",
+  "status": "measured",
+  "sourceSha256": "364ac6e59a10f192c1f6c3f0ef195d09c0cb3e40f57001aea40f788831380e69",
+  "normativeBudget": 109,
+  "normativeSuccess": false,
+  "proposedBudget": 11881,
+  "proposedSuccess": true,
+  "smallestSuccessfulBudget": 304,
+  "absoluteProbeCeiling": 100000,
+  "perCallDeadlineMs": 10000,
+  "confirmationPairs": 1,
+  "blankNodes": 109,
+  "quads": 370,
+  "mappedNQuadsSha256": "cb15022f150a46ee8de84508a2654c2a32928946e3adf44a8f7c5f0aa3645e16",
+  "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43",
+  "attempts": [
+    {
+      "budget": 109,
+      "outcome": "resource-limit",
+      "rawMessage": "Maximum deep iterations exceeded (109).",
+      "elapsedMs": 2.624
+    },
+    {
+      "budget": 11881,
+      "outcome": "success",
+      "elapsedMs": 8.371,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 100000,
+      "outcome": "success",
+      "elapsedMs": 10.807,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 49999,
+      "outcome": "success",
+      "elapsedMs": 9.152,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 24999,
+      "outcome": "success",
+      "elapsedMs": 6.936,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 12499,
+      "outcome": "success",
+      "elapsedMs": 4.843,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 6249,
+      "outcome": "success",
+      "elapsedMs": 6.026,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 3124,
+      "outcome": "success",
+      "elapsedMs": 6.524,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 1561,
+      "outcome": "success",
+      "elapsedMs": 4.746,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 780,
+      "outcome": "success",
+      "elapsedMs": 5.714,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 389,
+      "outcome": "success",
+      "elapsedMs": 6.111,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 194,
+      "outcome": "resource-limit",
+      "rawMessage": "Maximum deep iterations exceeded (194).",
+      "elapsedMs": 3.724
+    },
+    {
+      "budget": 291,
+      "outcome": "resource-limit",
+      "rawMessage": "Maximum deep iterations exceeded (291).",
+      "elapsedMs": 4.837
+    },
+    {
+      "budget": 340,
+      "outcome": "success",
+      "elapsedMs": 7.752,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 315,
+      "outcome": "success",
+      "elapsedMs": 7.821,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 303,
+      "outcome": "resource-limit",
+      "rawMessage": "Maximum deep iterations exceeded (303).",
+      "elapsedMs": 6.029
+    },
+    {
+      "budget": 309,
+      "outcome": "success",
+      "elapsedMs": 7.481,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 306,
+      "outcome": "success",
+      "elapsedMs": 7.632,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 304,
+      "outcome": "success",
+      "elapsedMs": 7.675,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    },
+    {
+      "budget": 303,
+      "outcome": "resource-limit",
+      "rawMessage": "Maximum deep iterations exceeded (303).",
+      "elapsedMs": 6.805
+    },
+    {
+      "budget": 304,
+      "outcome": "success",
+      "elapsedMs": 6.07,
+      "canonicalNQuadsSha256": "b1ac599bee7ce9efa4e3a63729798a2a16f593d972dc0261f6e2e783429cff43"
+    }
+  ]
+}

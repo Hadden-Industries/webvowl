@@ -1,0 +1,62 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:A",
+        "iri": "https://example.org/owl-seed#A"
+      },
+      {
+        "id": "s:note",
+        "iri": "https://example.org/owl-seed#note"
+      },
+      {
+        "id": "s:integer",
+        "iri": "http://www.w3.org/2001/XMLSchema#integer"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s:A"
+      },
+      {
+        "id": "note",
+        "kind": "annotation-property",
+        "subject": "s:note"
+      },
+      {
+        "id": "integer",
+        "kind": "datatype",
+        "subject": "s:integer"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "literal",
+        "kind": "annotation-assertion",
+        "subject": "s:A",
+        "predicate": "https://example.org/owl-seed#note",
+        "value": {
+          "kind": "typed",
+          "lexical": "not-an-integer",
+          "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+        }
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      }
+    ]
+  }
+}

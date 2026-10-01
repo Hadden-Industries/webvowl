@@ -1,0 +1,14 @@
+{
+  "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+  "structural": {
+    "constructs": [],
+    "expressions": [],
+    "occurrences": [],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    },
+    "roles": [],
+    "subjects": []
+  }
+}

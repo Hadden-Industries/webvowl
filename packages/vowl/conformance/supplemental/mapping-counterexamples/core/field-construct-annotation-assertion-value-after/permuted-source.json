@@ -1,0 +1,72 @@
+{
+  "structural": {
+    "occurrences": [],
+    "constructs": [
+      {
+        "value": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#string",
+          "lexical": "after",
+          "kind": "typed"
+        },
+        "predicate": "urn:mapping-pair:before",
+        "subject": "field-permutation-11",
+        "kind": "annotation-assertion",
+        "id": "field-permutation-1"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "field-permutation-7",
+        "kind": "annotation-property",
+        "id": "field-permutation-2"
+      },
+      {
+        "subject": "field-permutation-8",
+        "kind": "annotation-property",
+        "id": "field-permutation-3"
+      },
+      {
+        "subject": "field-permutation-9",
+        "kind": "datatype",
+        "id": "field-permutation-4"
+      },
+      {
+        "subject": "field-permutation-10",
+        "kind": "individual",
+        "id": "field-permutation-5"
+      },
+      {
+        "subject": "field-permutation-11",
+        "kind": "individual",
+        "id": "field-permutation-6"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "urn:mapping-pair:after",
+        "id": "field-permutation-7"
+      },
+      {
+        "iri": "urn:mapping-pair:before",
+        "id": "field-permutation-8"
+      },
+      {
+        "iri": "http://www.w3.org/2001/XMLSchema#string",
+        "id": "field-permutation-9"
+      },
+      {
+        "iri": "urn:mapping-pair:j",
+        "id": "field-permutation-10"
+      },
+      {
+        "iri": "urn:mapping-pair:i",
+        "id": "field-permutation-11"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

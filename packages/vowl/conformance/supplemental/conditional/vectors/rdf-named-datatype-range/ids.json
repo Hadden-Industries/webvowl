@@ -1,0 +1,79 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s-p",
+    "primaryBlankNode": "ps2",
+    "rdfcIdentifier": "c14n4",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-D",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n7",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-Resource",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n14",
+    "canonicalId": "s2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "D",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n15",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "Resource",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n18",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "p",
+    "primaryBlankNode": "pr2",
+    "rdfcIdentifier": "c14n19",
+    "canonicalId": "r2"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "range-p",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n10",
+    "canonicalId": "c0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "edge",
+    "primaryBlankNode": "po2",
+    "rdfcIdentifier": "c14n8",
+    "canonicalId": "o0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "generic",
+    "primaryBlankNode": "po0",
+    "rdfcIdentifier": "c14n11",
+    "canonicalId": "o1"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "datatype",
+    "primaryBlankNode": "po1",
+    "rdfcIdentifier": "c14n12",
+    "canonicalId": "o2"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "label-edge-single",
+    "primaryBlankNode": "po3",
+    "rdfcIdentifier": "c14n20",
+    "canonicalId": "o3"
+  }
+]

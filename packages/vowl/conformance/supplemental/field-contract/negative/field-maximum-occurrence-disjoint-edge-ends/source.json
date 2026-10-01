@@ -1,0 +1,67 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-A",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "subject-B",
+        "iri": "https://example.org/supplement#B"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "subject-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "subject-B"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "disjoint",
+        "kind": "disjoint-classes",
+        "members": [
+          "A",
+          "B"
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "disjoint-edge",
+        "kind": "disjoint-edge",
+        "construct": "disjoint",
+        "ends": [
+          "node-A",
+          "node-B",
+          "disjoint-edge"
+        ]
+      }
+    ]
+  }
+}

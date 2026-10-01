@@ -1,0 +1,158 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/conditional#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/conditional#B"
+      },
+      {
+        "id": "s-q",
+        "iri": "https://example.org/conditional#q"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/conditional#p"
+      },
+      {
+        "id": "field-anchor-1",
+        "iri": "urn:field-contract:annotation"
+      },
+      {
+        "id": "field-anchor-3",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s-B"
+      },
+      {
+        "id": "q",
+        "kind": "object-property",
+        "subject": "s-q"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s-p"
+      },
+      {
+        "id": "field-anchor-2",
+        "kind": "annotation-property",
+        "subject": "field-anchor-1"
+      },
+      {
+        "id": "field-anchor-4",
+        "kind": "datatype",
+        "subject": "field-anchor-3"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "complex",
+        "kind": "object-some",
+        "property": "q",
+        "filler": "B"
+      }
+    ],
+    "constructs": [
+      {
+        "id": "domain-q",
+        "kind": "object-domain",
+        "property": "q",
+        "target": "A"
+      },
+      {
+        "id": "range-q",
+        "kind": "object-range",
+        "property": "q",
+        "target": "B"
+      },
+      {
+        "id": "domain-p",
+        "kind": "object-domain",
+        "property": "p",
+        "target": "complex"
+      },
+      {
+        "id": "range-p",
+        "kind": "object-range",
+        "property": "p",
+        "target": "B"
+      },
+      {
+        "id": "subproperty",
+        "kind": "sub-object-property",
+        "sub": "p",
+        "super": "q"
+      },
+      {
+        "id": "field-anchor-5",
+        "kind": "assertion-anchor",
+        "assertion": {
+          "kind": "sub-object-property",
+          "sub": "p",
+          "super": "q",
+          "property": null
+        },
+        "annotations": [
+          {
+            "predicate": "urn:field-contract:annotation",
+            "value": {
+              "kind": "typed",
+              "lexical": "sub-object-property anchor",
+              "datatype": "http://www.w3.org/2001/XMLSchema#string"
+            },
+            "annotations": []
+          }
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "edge-q",
+        "kind": "property-edge",
+        "properties": [
+          "q"
+        ],
+        "from": "node-A",
+        "to": "node-B"
+      },
+      {
+        "id": "label-edge-q-single",
+        "kind": "label",
+        "edge": "edge-q",
+        "direction": "single"
+      }
+    ]
+  }
+}

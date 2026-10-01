@@ -1,0 +1,92 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/conditional#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/conditional#B"
+      },
+      {
+        "id": "s-C",
+        "iri": "https://example.org/conditional#C"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s-B"
+      },
+      {
+        "id": "C",
+        "kind": "class",
+        "subject": "s-C"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "disjoint",
+        "kind": "disjoint-classes",
+        "members": [
+          "A",
+          "B",
+          "C"
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "node-C",
+        "kind": "class-node",
+        "targets": [
+          "C"
+        ]
+      },
+      {
+        "id": "disjoint-0",
+        "kind": "disjoint-edge",
+        "construct": "disjoint",
+        "ends": [
+          "node-A",
+          "node-B"
+        ]
+      },
+      {
+        "id": "disjoint-1",
+        "kind": "disjoint-edge",
+        "construct": "disjoint",
+        "ends": [
+          "node-A",
+          "node-C"
+        ]
+      }
+    ]
+  }
+}

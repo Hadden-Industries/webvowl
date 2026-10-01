@@ -1,0 +1,61 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "class-subject",
+        "iri": "https://example.org/o#A"
+      }
+    ],
+    "roles": [
+      {
+        "id": "class-role",
+        "kind": "class",
+        "subject": "class-subject"
+      }
+    ],
+    "expressions": [],
+    "constructs": [],
+    "occurrences": [
+      {
+        "id": "class-node",
+        "kind": "class-node",
+        "targets": [
+          "class-role"
+        ]
+      }
+    ]
+  },
+  "visualization": {
+    "placements": [
+      {
+        "occurrence": null,
+        "position": {
+          "x": 12.5,
+          "y": -7
+        },
+        "pinned": true
+      }
+    ],
+    "camera": {
+      "center": {
+        "x": 0,
+        "y": 0
+      },
+      "zoom": 1
+    },
+    "hidden": [],
+    "labelSelection": {
+      "mode": "untagged"
+    },
+    "prefixes": [],
+    "display": {
+      "compactNotation": false,
+      "nodeScaling": "uniform",
+      "externalColoring": true
+    }
+  }
+}

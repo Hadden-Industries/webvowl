@@ -1,0 +1,94 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "field-permutation-2",
+        "kind": "label",
+        "id": "field-permutation-1"
+      },
+      {
+        "to": "field-permutation-5",
+        "from": "field-permutation-5",
+        "properties": [
+          "field-permutation-7"
+        ],
+        "kind": "property-edge",
+        "id": "field-permutation-2"
+      },
+      {
+        "direction": "single",
+        "edge": "field-permutation-4",
+        "kind": "label",
+        "id": "field-permutation-3"
+      },
+      {
+        "to": "field-permutation-5",
+        "from": "field-permutation-5",
+        "properties": [
+          "field-permutation-8"
+        ],
+        "kind": "property-edge",
+        "id": "field-permutation-4"
+      },
+      {
+        "context": {
+          "targets": [
+            "field-permutation-9"
+          ],
+          "kind": "class"
+        },
+        "targets": [
+          "field-permutation-9"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-5"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "field-permutation-7"
+        ],
+        "kind": "equivalent-rdf-properties",
+        "id": "field-permutation-6"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "field-permutation-10",
+        "kind": "rdf-property",
+        "id": "field-permutation-7"
+      },
+      {
+        "subject": "field-permutation-11",
+        "kind": "rdf-property",
+        "id": "field-permutation-8"
+      },
+      {
+        "subject": "field-permutation-12",
+        "kind": "rdf-class",
+        "id": "field-permutation-9"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "urn:mapping-pair:rq",
+        "id": "field-permutation-10"
+      },
+      {
+        "iri": "urn:mapping-pair:rp",
+        "id": "field-permutation-11"
+      },
+      {
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Resource",
+        "id": "field-permutation-12"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

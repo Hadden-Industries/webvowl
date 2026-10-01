@@ -1,0 +1,5 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Ontology(<urn:owl-seed:grand-ontology>
+Annotation(:title "imported-grand-header-is-not-root")
+Declaration(Class(:B))
+)

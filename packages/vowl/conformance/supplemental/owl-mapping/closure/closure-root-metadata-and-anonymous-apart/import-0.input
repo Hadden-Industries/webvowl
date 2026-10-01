@@ -1,0 +1,7 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Ontology(<urn:owl-seed:left-ontology>
+Import(<urn:owl-seed:grand>)
+Annotation(:title "imported-left-header-is-not-root")
+ClassAssertion(:A _:shared)
+)

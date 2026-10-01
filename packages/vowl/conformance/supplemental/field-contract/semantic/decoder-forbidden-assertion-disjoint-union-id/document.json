@@ -1,0 +1,117 @@
+{
+  "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+  "structural": {
+    "constructs": [
+      {
+        "annotations": [
+          {
+            "annotations": [],
+            "predicate": "urn:field-contract:annotation",
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#string",
+              "kind": "typed",
+              "lexical": "disjoint-union anchor"
+            }
+          }
+        ],
+        "assertion": {
+          "defined": "r1",
+          "kind": "disjoint-union",
+          "members": [
+            "r3",
+            "r4"
+          ],
+          "id": null
+        },
+        "id": "c0",
+        "kind": "assertion-anchor"
+      },
+      {
+        "defined": "r1",
+        "id": "c1",
+        "kind": "disjoint-union",
+        "members": [
+          "r3",
+          "r4"
+        ]
+      }
+    ],
+    "expressions": [],
+    "occurrences": [
+      {
+        "id": "o0",
+        "kind": "class-node",
+        "targets": [
+          "r4"
+        ]
+      },
+      {
+        "id": "o1",
+        "kind": "class-node",
+        "targets": [
+          "r3"
+        ]
+      },
+      {
+        "id": "o2",
+        "kind": "class-node",
+        "targets": [
+          "r1"
+        ]
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    },
+    "roles": [
+      {
+        "id": "r0",
+        "kind": "datatype",
+        "subject": "s3"
+      },
+      {
+        "id": "r1",
+        "kind": "class",
+        "subject": "s2"
+      },
+      {
+        "id": "r2",
+        "kind": "annotation-property",
+        "subject": "s4"
+      },
+      {
+        "id": "r3",
+        "kind": "class",
+        "subject": "s1"
+      },
+      {
+        "id": "r4",
+        "kind": "class",
+        "subject": "s0"
+      }
+    ],
+    "subjects": [
+      {
+        "id": "s0",
+        "iri": "https://example.org/supplement#B"
+      },
+      {
+        "id": "s1",
+        "iri": "https://example.org/supplement#C"
+      },
+      {
+        "id": "s2",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "s3",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      },
+      {
+        "id": "s4",
+        "iri": "urn:field-contract:annotation"
+      }
+    ]
+  }
+}

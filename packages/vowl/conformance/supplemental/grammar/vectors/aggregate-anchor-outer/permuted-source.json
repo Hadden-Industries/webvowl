@@ -1,0 +1,198 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "supplement-renamed-2",
+        "kind": "label",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "to": "supplement-renamed-9",
+        "from": "supplement-renamed-5",
+        "properties": [
+          "supplement-renamed-19"
+        ],
+        "kind": "property-edge",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "to": "supplement-renamed-9",
+        "from": "supplement-renamed-5",
+        "expression": "supplement-renamed-15",
+        "kind": "operator-edge",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "to": "supplement-renamed-8",
+        "from": "supplement-renamed-5",
+        "expression": "supplement-renamed-15",
+        "kind": "operator-edge",
+        "id": "supplement-renamed-4"
+      },
+      {
+        "targets": [
+          "supplement-renamed-15"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-5"
+      },
+      {
+        "to": "supplement-renamed-10",
+        "from": "supplement-renamed-8",
+        "expression": "supplement-renamed-16",
+        "kind": "operator-edge",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "to": "supplement-renamed-11",
+        "from": "supplement-renamed-8",
+        "expression": "supplement-renamed-16",
+        "kind": "operator-edge",
+        "id": "supplement-renamed-7"
+      },
+      {
+        "targets": [
+          "supplement-renamed-16"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-8"
+      },
+      {
+        "targets": [
+          "supplement-renamed-20"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-9"
+      },
+      {
+        "targets": [
+          "supplement-renamed-21"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-10"
+      },
+      {
+        "targets": [
+          "supplement-renamed-22"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-11"
+      }
+    ],
+    "constructs": [
+      {
+        "annotations": [
+          {
+            "annotations": [],
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#string",
+              "lexical": "Exact annotation",
+              "kind": "typed"
+            },
+            "predicate": "https://example.org/supplement#note"
+          }
+        ],
+        "assertion": {
+          "target": "supplement-renamed-15",
+          "property": "supplement-renamed-19",
+          "kind": "object-domain"
+        },
+        "kind": "assertion-anchor",
+        "id": "supplement-renamed-12"
+      },
+      {
+        "target": "supplement-renamed-20",
+        "property": "supplement-renamed-19",
+        "kind": "object-range",
+        "id": "supplement-renamed-13"
+      },
+      {
+        "target": "supplement-renamed-15",
+        "property": "supplement-renamed-19",
+        "kind": "object-domain",
+        "id": "supplement-renamed-14"
+      }
+    ],
+    "expressions": [
+      {
+        "members": [
+          "supplement-renamed-20",
+          "supplement-renamed-16"
+        ],
+        "kind": "class-intersection",
+        "id": "supplement-renamed-15"
+      },
+      {
+        "members": [
+          "supplement-renamed-21",
+          "supplement-renamed-22"
+        ],
+        "kind": "class-intersection",
+        "id": "supplement-renamed-16"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "supplement-renamed-23",
+        "kind": "datatype",
+        "id": "supplement-renamed-17"
+      },
+      {
+        "subject": "supplement-renamed-24",
+        "kind": "annotation-property",
+        "id": "supplement-renamed-18"
+      },
+      {
+        "subject": "supplement-renamed-25",
+        "kind": "object-property",
+        "id": "supplement-renamed-19"
+      },
+      {
+        "subject": "supplement-renamed-26",
+        "kind": "class",
+        "id": "supplement-renamed-20"
+      },
+      {
+        "subject": "supplement-renamed-27",
+        "kind": "class",
+        "id": "supplement-renamed-21"
+      },
+      {
+        "subject": "supplement-renamed-28",
+        "kind": "class",
+        "id": "supplement-renamed-22"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "http://www.w3.org/2001/XMLSchema#string",
+        "id": "supplement-renamed-23"
+      },
+      {
+        "iri": "https://example.org/supplement#note",
+        "id": "supplement-renamed-24"
+      },
+      {
+        "iri": "https://example.org/supplement#p",
+        "id": "supplement-renamed-25"
+      },
+      {
+        "iri": "https://example.org/supplement#C",
+        "id": "supplement-renamed-26"
+      },
+      {
+        "iri": "https://example.org/supplement#B",
+        "id": "supplement-renamed-27"
+      },
+      {
+        "iri": "https://example.org/supplement#A",
+        "id": "supplement-renamed-28"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/o#A"
+      },
+      {
+        "id": "s-Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/o#p"
+      },
+      {
+        "id": "s-Literal",
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Literal"
+      },
+      {
+        "id": "s-Filler",
+        "iri": "https://example.org/o#Filler"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "s-Thing"
+      },
+      {
+        "id": "p",
+        "kind": "data-property",
+        "subject": "s-p"
+      },
+      {
+        "id": "Literal",
+        "kind": "datatype",
+        "subject": "s-Literal"
+      },
+      {
+        "id": "Filler",
+        "kind": "datatype",
+        "subject": "s-Filler"
+      }
+    ],
+    "expressions": [
+      {
+        "id": null,
+        "kind": "data-exact-cardinality",
+        "property": "p",
+        "cardinality": "90071992547409931234567890",
+        "filler": "Filler"
+      }
+    ],
+    "constructs": [
+      {
+        "id": "restriction-assertion",
+        "kind": "subclass",
+        "sub": "A",
+        "super": "restriction"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "global-domain",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p"
+          ]
+        }
+      },
+      {
+        "id": "global-range",
+        "kind": "datatype-node",
+        "target": "Literal",
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p"
+          ]
+        }
+      },
+      {
+        "id": "global-edge",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "global-domain",
+        "to": "global-range"
+      },
+      {
+        "id": "label-global-edge",
+        "kind": "label",
+        "edge": "global-edge",
+        "direction": "single"
+      }
+    ]
+  }
+}

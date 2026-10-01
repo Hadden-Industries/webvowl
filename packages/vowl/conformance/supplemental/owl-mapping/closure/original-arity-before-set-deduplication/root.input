@@ -1,0 +1,8 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Ontology(
+Declaration(Class(:A))
+Declaration(Class(:B))
+SubClassOf(:A ObjectIntersectionOf(:B :B))
+DisjointClasses(:A :A)
+)

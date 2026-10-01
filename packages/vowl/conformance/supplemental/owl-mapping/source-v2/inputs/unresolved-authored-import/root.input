@@ -1,0 +1,5 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Ontology(<urn:owl-seed:root>
+Import(<urn:owl-seed:missing>)
+Declaration(Class(:A))
+)

@@ -1,0 +1,400 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Manually transcribed OWL/model pairs. No parser or product implementation is used.
+import { profiles } from "./support.mjs";
+import {
+  annotation,
+  functional,
+  manual,
+  NS,
+  OWL,
+  RDF,
+  RDFS,
+  typed,
+} from "./seed-cases.mjs";
+
+const successRuns = () => [
+  {
+    id: "compatibility",
+    options: { mappingProfile: profiles.compatibility },
+    outcome: "success",
+    mappingProfile: profiles.compatibility,
+    diagnostics: [],
+  },
+  {
+    id: "strict",
+    options: { mappingProfile: profiles.strict },
+    outcome: "success",
+    mappingProfile: profiles.strict,
+    diagnostics: [],
+  },
+];
+const failedRuns = (errorCode) => [
+  { id: "default", options: {}, outcome: "error", errorCode },
+  {
+    id: "strict",
+    options: { mappingProfile: profiles.strict },
+    outcome: "error",
+    errorCode,
+  },
+];
+function subclassModel() {
+  const m = manual();
+  m.role("A", "class");
+  m.role("B", "class");
+  m.fact("sub", "subclass", { sub: "A", super: "B" });
+  return m.finish();
+}
+export function closureCases() {
+  const result = [];
+  function add(
+    id,
+    sourceText,
+    expectedSource,
+    rules,
+    rationale,
+    runs = successRuns(),
+    mediaType = "text/owl-functional",
+    extra = {},
+  ) {
+    result.push({
+      id,
+      root: {
+        sourceText,
+        documentIri: `https://documents.example/${id}`,
+        mediaType,
+      },
+      expectedSource,
+      rules,
+      rationale,
+      runs,
+      imports: [],
+      ...extra,
+    });
+  }
+  add(
+    "subclass-turtle",
+    `@prefix : <${NS}> .\n@prefix owl: <${OWL}> .\n@prefix rdfs: <${RDFS}> .\n:A a owl:Class ; rdfs:subClassOf :B .\n:B a owl:Class .\n`,
+    subclassModel(),
+    ["A9.1", "A2", "A4"],
+    "Turtle expresses exactly the declared-subclass seed; there is no named ontology header.",
+    successRuns(),
+    "text/turtle",
+    { sameBytesAs: "declared-subclass" },
+  );
+  add(
+    "subclass-owlxml",
+    `<?xml version="1.0" encoding="UTF-8"?>\n<Ontology xmlns="${OWL}"><Declaration><Class IRI="${NS}A"/></Declaration><Declaration><Class IRI="${NS}B"/></Declaration><SubClassOf><Class IRI="${NS}A"/><Class IRI="${NS}B"/></SubClassOf></Ontology>\n`,
+    subclassModel(),
+    ["A9.1", "A2", "A4"],
+    "OWL/XML expresses exactly the same retained model; xml/document identity is not an ontology IRI.",
+    successRuns(),
+    "application/owl+xml",
+    { sameBytesAs: "declared-subclass" },
+  );
+  add(
+    "subclass-source-order-and-duplicates",
+    functional(
+      "SubClassOf(:A :B)\nDeclaration(Class(:B))\nDeclaration(Class(:A))\nSubClassOf(:A :B)\nDeclaration(Class(:A))",
+    ),
+    subclassModel(),
+    ["A5", "D11.2", "D24"],
+    "Axiom order and exact repeated assertions/declarations are source-set permutations and cannot create duplicate core records.",
+    successRuns(),
+    "text/owl-functional",
+    { sameBytesAs: "declared-subclass" },
+  );
+  {
+    const m = manual();
+    m.role("A", "class");
+    m.role("B", "class");
+    m.ap("title");
+    m.datatype("string");
+    m.structural.ontology = {
+      iri: "urn:owl-seed:root",
+      versionIri: "urn:owl-seed:root:v1",
+      imports: ["urn:owl-seed:left", "urn:owl-seed:right"],
+      annotations: [annotation(NS + "title", typed("root-only"))],
+    };
+    for (const name of ["root", "left", "right"]) {
+      m.structural.subjects.push({ id: `anonymous-${name}` });
+      m.structural.roles.push({
+        id: `individual-${name}`,
+        kind: "individual",
+        subject: `anonymous-${name}`,
+      });
+      m.fact(`member-${name}`, "class-membership", {
+        class: "A",
+        individual: `individual-${name}`,
+      });
+    }
+    const expected = m.finish();
+    for (const alternate of [false, true]) {
+      const id = alternate
+        ? "closure-order-document-alias-and-label-permutation"
+        : "closure-root-metadata-and-anonymous-apart";
+      const doc = (name) =>
+        `https://documents.example/${alternate ? "alternative" : "physical"}/${name}.ofn`;
+      const blank = (name) => (alternate ? `_:${name}Renamed` : "_:shared");
+      const importLines = alternate
+        ? "Import(<urn:owl-seed:right>)\nImport(<urn:owl-seed:left>)"
+        : "Import(<urn:owl-seed:left>)\nImport(<urn:owl-seed:right>)";
+      const rootText = functional(
+        `${importLines}\nAnnotation(:title "root-only")\nDeclaration(Class(:A))\nDeclaration(AnnotationProperty(:title))\nClassAssertion(:A ${blank("root")})`,
+        "<urn:owl-seed:root> <urn:owl-seed:root:v1>",
+      );
+      const imports = [
+        {
+          importIri: "urn:owl-seed:left",
+          documentIri: doc("left"),
+          mediaType: "text/owl-functional",
+          sourceText: functional(
+            `Import(<urn:owl-seed:grand>)\nAnnotation(:title "imported-left-header-is-not-root")\nClassAssertion(:A ${blank("left")})`,
+            "<urn:owl-seed:left-ontology>",
+          ),
+        },
+        {
+          importIri: "urn:owl-seed:right",
+          documentIri: doc("right"),
+          mediaType: "text/owl-functional",
+          sourceText: functional(
+            `Annotation(:title "imported-right-header-is-not-root")\nClassAssertion(:A ${blank("right")})`,
+            "<urn:owl-seed:right-ontology>",
+          ),
+        },
+        {
+          importIri: "urn:owl-seed:grand",
+          documentIri: doc("grand"),
+          mediaType: "text/owl-functional",
+          sourceText: functional(
+            'Annotation(:title "imported-grand-header-is-not-root")\nDeclaration(Class(:B))',
+            "<urn:owl-seed:grand-ontology>",
+          ),
+        },
+      ];
+      const resolverContexts = [
+        { importIri: "urn:owl-seed:left", importingDocumentIri: doc("root") },
+        { importIri: "urn:owl-seed:right", importingDocumentIri: doc("root") },
+        { importIri: "urn:owl-seed:grand", importingDocumentIri: doc("left") },
+      ];
+      add(
+        id,
+        rootText,
+        structuredClone(expected),
+        ["A5.1", "A9.1", "D10", "OWL-5.6.2"],
+        "Root header alone is retained. Imported axioms contribute as a set. Three document-local anonymous individuals with colliding source labels remain three distinct roles/memberships. Resolver context uses actual importing document identity, not ontology or authored import identity.",
+        successRuns(),
+        "text/owl-functional",
+        {
+          root: {
+            sourceText: rootText,
+            documentIri: doc("root"),
+            mediaType: "text/owl-functional",
+          },
+          imports: alternate ? imports.toReversed() : imports,
+          resolverContexts,
+          ...(alternate
+            ? { sameBytesAs: "closure-root-metadata-and-anonymous-apart" }
+            : {}),
+        },
+      );
+    }
+  }
+  {
+    const m = manual();
+    m.role("A", "class");
+    m.role("B", "class");
+    m.role("p", "object-property");
+    m.role("Thing", "class", OWL + "Thing");
+    m.ap("note");
+    m.datatype("string");
+    m.expression("domain", "class-intersection", { members: ["A", "B"] });
+    m.fact("domain-p", "object-domain", { property: "p", target: "domain" });
+    m.fact("domain-anchor", "assertion-anchor", {
+      assertion: { kind: "object-domain", property: "p", target: "A" },
+      annotations: [annotation(NS + "note", typed("domain-A"))],
+    });
+    m.fact("declaration-anchor", "assertion-anchor", {
+      assertion: { kind: "declaration", role: "p" },
+      annotations: [annotation(NS + "note", typed("property-declaration"))],
+    });
+    add(
+      "aggregated-domains-retain-original-anchors",
+      functional(
+        'Declaration(Class(:A))\nDeclaration(Class(:B))\nDeclaration(AnnotationProperty(:note))\nDeclaration(Annotation(:note "property-declaration") ObjectProperty(:p))\nObjectPropertyDomain(Annotation(:note "domain-A") :p :A)\nObjectPropertyDomain(:p :B)',
+      ),
+      m.finish(),
+      ["A4", "A5.5", "D12", "B2.2"],
+      "Two domains aggregate into one immediate intersection. The original annotated A target and annotated declaration retain separate supported anchors; missing range is a projection default only.",
+    );
+  }
+  {
+    const m = manual();
+    m.role("A", "class");
+    m.role("p", "object-property");
+    m.role("Thing", "class", OWL + "Thing");
+    m.expression("large-min", "object-min-cardinality", {
+      property: "p",
+      cardinality: "9007199254740993",
+      filler: "Thing",
+    });
+    m.fact("sub", "subclass", { sub: "A", super: "large-min" });
+    add(
+      "exact-large-cardinality-default-filler",
+      functional(
+        "Declaration(Class(:A))\nDeclaration(ObjectProperty(:p))\nSubClassOf(:A ObjectMinCardinality(9007199254740993 :p))",
+      ),
+      m.finish(),
+      ["A3", "D11.3", "B2.4"],
+      "The unsafe-in-Number cardinality remains a decimal string. Omitted object filler becomes Thing, with a subclass-scoped restriction occurrence distinct from the ordinary property projection.",
+    );
+  }
+  {
+    const m = manual();
+    m.role("A", "class");
+    m.role("B", "class");
+    m.expression("intersection", "class-intersection", { members: ["B"] });
+    m.fact("sub", "subclass", { sub: "A", super: "intersection" });
+    m.fact("disjoint", "disjoint-classes", { members: ["A"] });
+    add(
+      "original-arity-before-set-deduplication",
+      functional(
+        "Declaration(Class(:A))\nDeclaration(Class(:B))\nSubClassOf(:A ObjectIntersectionOf(:B :B))\nDisjointClasses(:A :A)",
+      ),
+      m.finish(),
+      ["A3", "A9.2", "B2.4"],
+      "Both original constructors meet arity before exact operand deduplication. The singleton operator and disjointness assertion survive; the latter has a self-loop.",
+    );
+  }
+  for (const quantifier of ["DataSomeValuesFrom", "DataAllValuesFrom"]) {
+    const m = manual();
+    m.role("A", "class");
+    m.role("B", "class");
+    m.role("p", "data-property");
+    m.role("q", "data-property");
+    m.ap("note");
+    m.datatype("string");
+    m.role("Thing", "class", OWL + "Thing");
+    m.datatype("Literal", RDFS + "Literal");
+    add(
+      `multi-property-${quantifier}`,
+      functional(
+        `Declaration(Class(:A))\nDeclaration(Class(:B))\nDeclaration(DataProperty(:p))\nDeclaration(DataProperty(:q))\nDeclaration(Datatype(xsd:string))\nDeclaration(AnnotationProperty(:note))\nSubClassOf(Annotation(:note "omit with owning axiom") :A ObjectIntersectionOf(:B ${quantifier}(:p :q xsd:string)))`,
+      ),
+      m.finish(),
+      ["A3", "A9.2", "C3"],
+      "The complete owning subclass axiom, surrounding intersection and axiom annotation are omitted in compatibility. All surviving semantic roles are explicitly declared, avoiding a policy assumption about use-only signatures of omitted content. No unary approximation or orphan expression/anchor remains.",
+      [
+        {
+          id: "default",
+          options: {},
+          outcome: "success",
+          mappingProfile: profiles.compatibility,
+          diagnostics: [
+            {
+              code: "MAPPING_UNSUPPORTED_CONSTRUCT",
+              sourceConstructor: quantifier,
+            },
+          ],
+        },
+        {
+          id: "strict",
+          options: { mappingProfile: profiles.strict },
+          outcome: "error",
+          errorCode: "MAPPING_UNSUPPORTED_CONSTRUCT",
+        },
+      ],
+    );
+  }
+  {
+    const rootText = functional(
+      "Import(<urn:owl-seed:invalid-import>)\nDeclaration(DataProperty(:p))\nDeclaration(NamedIndividual(:i))",
+    );
+    add(
+      "strict-validates-excluded-imported-literal",
+      rootText,
+      null,
+      ["A9.2", "C9", "D21.2"],
+      "Strict validates the complete closure before excluded DataPropertyAssertion content can disappear. The imported integer lexical failure cannot be hidden by retention filtering.",
+      [
+        {
+          id: "strict",
+          options: { mappingProfile: profiles.strict },
+          outcome: "error",
+          errorCode: "MAPPING_ILL_TYPED_LITERAL",
+        },
+      ],
+      "text/owl-functional",
+      {
+        imports: [
+          {
+            importIri: "urn:owl-seed:invalid-import",
+            documentIri: "https://documents.example/invalid-import.ofn",
+            mediaType: "text/owl-functional",
+            sourceText: functional(
+              'DataPropertyAssertion(:p :i "not-an-integer"^^xsd:integer)',
+            ),
+          },
+        ],
+        resolverContexts: [
+          {
+            importIri: "urn:owl-seed:invalid-import",
+            importingDocumentIri:
+              "https://documents.example/strict-validates-excluded-imported-literal",
+          },
+        ],
+      },
+    );
+  }
+  add(
+    "unsupported-media-never-sniffs",
+    functional("Declaration(Class(:A))"),
+    null,
+    ["A9.1"],
+    "Valid Functional Syntax bytes do not authorize sniffing when the explicit media type is unsupported.",
+    failedRuns("MAPPING_MEDIA_TYPE_UNSUPPORTED"),
+    "application/octet-stream",
+  );
+  add(
+    "malformed-functional-syntax",
+    "Ontology( Declaration(Class(<urn:owl-seed:A>))\n",
+    null,
+    ["A9.1", "A9.2"],
+    "Unclosed Functional Syntax is a parser failure in every mapping profile.",
+    failedRuns("MAPPING_SYNTAX_INVALID"),
+  );
+  add(
+    "unknown-functional-constructor",
+    functional("InventedClassConstructor(:A)"),
+    null,
+    ["A9.1", "A9.2"],
+    "An unknown Functional Syntax production is not a compatibility omission; the parser cannot construct an OWL axiom.",
+    failedRuns("MAPPING_SYNTAX_INVALID"),
+  );
+  add(
+    "empty-owl-key-is-not-a-core-empty-key",
+    functional("Declaration(Class(:A))\nHasKey(:A () ())"),
+    null,
+    ["A9.1", "A9.2", "OWL-9.5"],
+    "OWL structural keys require at least one property. The more permissive core key record does not manufacture a valid OWL source constructor.",
+    failedRuns("MAPPING_SYNTAX_INVALID"),
+  );
+  add(
+    "ambiguous-object-annotation-property-use",
+    `@prefix : <${NS}> .\n@prefix owl: <${OWL}> .\n:p a owl:ObjectProperty, owl:AnnotationProperty .\n:i a owl:NamedIndividual ; :p :j .\n:j a owl:NamedIndividual .\n`,
+    null,
+    ["A9.1", "A9.2", "D11.2"],
+    "The same RDF triple can be object assertion or annotation assertion under the independently explicit roles. Compatibility cannot select a category from multiple valid interpretations.",
+    failedRuns("MAPPING_AMBIGUOUS"),
+    "text/turtle",
+  );
+  add(
+    "mixed-generic-rdf-range-categories",
+    `@prefix : <${NS}> .\n@prefix rdf: <${RDF}> .\n@prefix rdfs: <${RDFS}> .\n:A a rdfs:Class .\n:D a rdfs:Datatype .\n:p a rdf:Property ; rdfs:range :A, :D .\n`,
+    null,
+    ["A5.5", "A9.1", "A9.2"],
+    "A generic RDF range mixing class and data targets has no unambiguous typed retained aggregate.",
+    failedRuns("MAPPING_AMBIGUOUS"),
+    "text/turtle",
+  );
+  return result;
+}

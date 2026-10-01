@@ -1,0 +1,57 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-defined",
+        "iri": "https://example.org/supplement#defined"
+      },
+      {
+        "id": "subject-integer",
+        "iri": "http://www.w3.org/2001/XMLSchema#integer"
+      }
+    ],
+    "roles": [
+      {
+        "id": "defined",
+        "kind": "datatype",
+        "subject": "subject-defined"
+      },
+      {
+        "id": "integer",
+        "kind": "datatype",
+        "subject": "subject-integer"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "expression",
+        "kind": "datatype-restriction",
+        "datatype": "integer",
+        "facets": [
+          null,
+          {
+            "facet": "http://www.w3.org/2001/XMLSchema#minInclusive",
+            "value": {
+              "kind": "typed",
+              "lexical": "2",
+              "datatype": "http://www.w3.org/2001/XMLSchema#integer"
+            }
+          }
+        ]
+      }
+    ],
+    "constructs": [
+      {
+        "id": "definition",
+        "kind": "datatype-definition",
+        "datatype": "defined",
+        "target": "expression"
+      }
+    ],
+    "occurrences": []
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+  "structural": {
+    "constructs": [
+      {
+        "annotations": [
+          {
+            "annotations": [],
+            "predicate": "https://example.org/o#note",
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#string",
+              "kind": "typed",
+              "lexical": ""
+            }
+          }
+        ],
+        "assertion": {
+          "kind": "declaration",
+          "role": "r0"
+        },
+        "id": "c2",
+        "kind": "assertion-anchor"
+      },
+      {
+        "annotations": [
+          {
+            "annotations": [
+              {
+                "annotations": [],
+                "predicate": "https://example.org/o#note",
+                "value": {
+                  "kind": "subject",
+                  "subject": "field-contract-absent-reference"
+                }
+              }
+            ],
+            "predicate": "https://example.org/o#note",
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#string",
+              "kind": "typed",
+              "lexical": "Exact\nlexeme"
+            }
+          }
+        ],
+        "assertion": {
+          "kind": "annotation-assertion",
+          "predicate": "http://www.w3.org/2000/01/rdf-schema#label",
+          "subject": "s4",
+          "value": {
+            "kind": "language",
+            "language": "en-gb",
+            "lexical": "Colour"
+          }
+        },
+        "id": "c1",
+        "kind": "assertion-anchor"
+      },
+      {
+        "id": "c0",
+        "kind": "annotation-assertion",
+        "predicate": "http://www.w3.org/2000/01/rdf-schema#label",
+        "subject": "s4",
+        "value": {
+          "kind": "language",
+          "language": "en-gb",
+          "lexical": "Colour"
+        }
+      }
+    ],
+    "expressions": [],
+    "occurrences": [
+      {
+        "id": "o0",
+        "kind": "class-node",
+        "targets": [
+          "r0"
+        ]
+      }
+    ],
+    "ontology": {
+      "annotations": [
+        {
+          "annotations": [],
+          "predicate": "https://example.org/o#note",
+          "value": {
+            "iri": "https://example.org/outside",
+            "kind": "iri"
+          }
+        }
+      ],
+      "imports": [
+        "urn:example:import:one",
+        "urn:example:import:two"
+      ],
+      "iri": "relative",
+      "versionIri": "https://example.org/o/version/1"
+    },
+    "roles": [
+      {
+        "id": "r0",
+        "kind": "class",
+        "subject": "s4"
+      },
+      {
+        "id": "r1",
+        "kind": "datatype",
+        "subject": "s3"
+      },
+      {
+        "id": "r2",
+        "kind": "datatype",
+        "subject": "s0"
+      },
+      {
+        "id": "r3",
+        "kind": "annotation-property",
+        "subject": "s5"
+      },
+      {
+        "id": "r4",
+        "kind": "annotation-property",
+        "subject": "s2"
+      }
+    ],
+    "subjects": [
+      {
+        "id": "s0",
+        "iri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+      },
+      {
+        "id": "s1"
+      },
+      {
+        "id": "s2",
+        "iri": "https://example.org/o#note"
+      },
+      {
+        "id": "s3",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      },
+      {
+        "id": "s4",
+        "iri": "https://example.org/o#A"
+      },
+      {
+        "id": "s5",
+        "iri": "http://www.w3.org/2000/01/rdf-schema#label"
+      }
+    ]
+  }
+}

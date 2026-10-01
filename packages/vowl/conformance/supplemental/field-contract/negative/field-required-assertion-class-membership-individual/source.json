@@ -1,0 +1,141 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-A",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "subject-B",
+        "iri": "https://example.org/supplement#B"
+      },
+      {
+        "id": "subject-anonymous"
+      },
+      {
+        "id": "field-anchor-1",
+        "iri": "urn:field-contract:annotation"
+      },
+      {
+        "id": "field-anchor-3",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "subject-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "subject-B"
+      },
+      {
+        "id": "punned",
+        "kind": "individual",
+        "subject": "subject-A"
+      },
+      {
+        "id": "anonymous",
+        "kind": "individual",
+        "subject": "subject-anonymous"
+      },
+      {
+        "id": "field-anchor-2",
+        "kind": "annotation-property",
+        "subject": "field-anchor-1"
+      },
+      {
+        "id": "field-anchor-4",
+        "kind": "datatype",
+        "subject": "field-anchor-3"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "union",
+        "kind": "class-union",
+        "members": [
+          "A",
+          "B"
+        ]
+      }
+    ],
+    "constructs": [
+      {
+        "id": "direct",
+        "kind": "class-membership",
+        "class": "A",
+        "individual": "punned"
+      },
+      {
+        "id": "complex",
+        "kind": "class-membership",
+        "class": "union",
+        "individual": "anonymous"
+      },
+      {
+        "id": "field-anchor-5",
+        "kind": "assertion-anchor",
+        "assertion": {
+          "kind": "class-membership",
+          "class": "A"
+        },
+        "annotations": [
+          {
+            "predicate": "urn:field-contract:annotation",
+            "value": {
+              "kind": "typed",
+              "lexical": "class-membership anchor",
+              "datatype": "http://www.w3.org/2001/XMLSchema#string"
+            },
+            "annotations": []
+          }
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "node-union",
+        "kind": "class-node",
+        "targets": [
+          "union"
+        ]
+      },
+      {
+        "id": "operator-union-1",
+        "kind": "operator-edge",
+        "expression": "union",
+        "from": "node-union",
+        "to": "node-A"
+      },
+      {
+        "id": "operator-union-2",
+        "kind": "operator-edge",
+        "expression": "union",
+        "from": "node-union",
+        "to": "node-B"
+      }
+    ]
+  }
+}

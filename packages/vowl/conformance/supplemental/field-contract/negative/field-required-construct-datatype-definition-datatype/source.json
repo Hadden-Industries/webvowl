@@ -1,0 +1,45 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-defined",
+        "iri": "https://example.org/supplement#defined"
+      },
+      {
+        "id": "subject-integer",
+        "iri": "http://www.w3.org/2001/XMLSchema#integer"
+      }
+    ],
+    "roles": [
+      {
+        "id": "defined",
+        "kind": "datatype",
+        "subject": "subject-defined"
+      },
+      {
+        "id": "integer",
+        "kind": "datatype",
+        "subject": "subject-integer"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "expression",
+        "kind": "data-complement",
+        "operand": "integer"
+      }
+    ],
+    "constructs": [
+      {
+        "id": "definition",
+        "kind": "datatype-definition",
+        "target": "expression"
+      }
+    ],
+    "occurrences": []
+  }
+}

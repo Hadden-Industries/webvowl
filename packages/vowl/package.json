@@ -1,0 +1,34 @@
+{
+  "name": "vowl",
+  "version": "0.0.0-experimental",
+  "description": "Experimental Canonical VOWL core for the 2026-09-24 proposed profiles",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "exports": {
+    ".": "./src/index.js",
+    "./owl": "./src/owl/index.js",
+    "./migrate": "./src/migrate/index.js"
+  },
+  "files": [
+    "src",
+    "schema",
+    "conformance",
+    "README.md",
+    "LICENSE",
+    "LICENSES",
+    "THIRD-PARTY-NOTICES.md"
+  ],
+  "scripts": {
+    "test": "npm --prefix ../.. run test:vowl"
+  },
+  "dependencies": {
+    "@hyperjump/uri": "1.3.6",
+    "@streamparser/json": "0.0.26",
+    "ajv": "8.20.0",
+    "bcp-47": "2.1.1",
+    "canonicalize": "5.1.0",
+    "owlapi": "git+https://github.com/Hadden-Industries/owlapi.git#3d1933c44f939525dd9a73afd6e7731627333ca6",
+    "rdf-canonize": "5.0.0"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "structural": {
+    "occurrences": [],
+    "constructs": [
+      {
+        "target": "field-permutation-3",
+        "datatype": "field-permutation-2",
+        "kind": "datatype-definition",
+        "id": "field-permutation-1"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "field-permutation-4",
+        "kind": "datatype",
+        "id": "field-permutation-2"
+      },
+      {
+        "subject": "field-permutation-5",
+        "kind": "datatype",
+        "id": "field-permutation-3"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "urn:mapping-pair:E",
+        "id": "field-permutation-4"
+      },
+      {
+        "iri": "urn:mapping-pair:D",
+        "id": "field-permutation-5"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

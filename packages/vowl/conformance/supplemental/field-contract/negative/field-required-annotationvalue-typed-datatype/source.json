@@ -1,0 +1,61 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-A",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "subject-note",
+        "iri": "https://example.org/supplement#note"
+      },
+      {
+        "id": "subject-integer",
+        "iri": "http://www.w3.org/2001/XMLSchema#integer"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "subject-A"
+      },
+      {
+        "id": "note",
+        "kind": "annotation-property",
+        "subject": "subject-note"
+      },
+      {
+        "id": "integer",
+        "kind": "datatype",
+        "subject": "subject-integer"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "annotation",
+        "kind": "annotation-assertion",
+        "subject": "subject-A",
+        "predicate": "https://example.org/supplement#note",
+        "value": {
+          "kind": "typed",
+          "lexical": "1"
+        }
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      }
+    ]
+  }
+}

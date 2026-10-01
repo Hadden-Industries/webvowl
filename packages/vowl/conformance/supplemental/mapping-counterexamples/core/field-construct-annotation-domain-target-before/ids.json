@@ -1,0 +1,37 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s:aq",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n8",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:ap",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n10",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "ap",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n5",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "aq",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n12",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "focus",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n0",
+    "canonicalId": "c0"
+  }
+]

@@ -1,0 +1,105 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-A",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "subject-B",
+        "iri": "https://example.org/supplement#B"
+      },
+      {
+        "id": "subject-anonymous"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "subject-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "subject-B"
+      },
+      {
+        "id": "punned",
+        "kind": "individual",
+        "subject": "subject-A"
+      },
+      {
+        "id": "anonymous",
+        "kind": "individual",
+        "subject": "subject-anonymous"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "union",
+        "kind": "class-union",
+        "members": [
+          "A",
+          "B"
+        ]
+      }
+    ],
+    "constructs": [
+      {
+        "id": "direct",
+        "kind": "class-membership",
+        "class": "A",
+        "individual": "punned",
+        "sub": null
+      },
+      {
+        "id": "complex",
+        "kind": "class-membership",
+        "class": "union",
+        "individual": "anonymous"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "node-union",
+        "kind": "class-node",
+        "targets": [
+          "union"
+        ]
+      },
+      {
+        "id": "operator-union-1",
+        "kind": "operator-edge",
+        "expression": "union",
+        "from": "node-union",
+        "to": "node-A"
+      },
+      {
+        "id": "operator-union-2",
+        "kind": "operator-edge",
+        "expression": "union",
+        "from": "node-union",
+        "to": "node-B"
+      }
+    ]
+  }
+}

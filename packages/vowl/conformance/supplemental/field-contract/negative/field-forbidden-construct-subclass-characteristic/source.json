@@ -1,0 +1,69 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/o#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/o#B"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s-B"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "subclass",
+        "kind": "subclass",
+        "sub": "A",
+        "super": "B",
+        "characteristic": null
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "subclass-edge",
+        "kind": "subclass-edge",
+        "construct": "subclass",
+        "from": "node-A",
+        "to": "node-B"
+      },
+      {
+        "id": "label-subclass-edge",
+        "kind": "label",
+        "edge": "subclass-edge",
+        "direction": "single"
+      }
+    ]
+  }
+}

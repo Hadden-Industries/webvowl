@@ -1,0 +1,19 @@
+[
+  {
+    "kind": "insert",
+    "collection": "subjects",
+    "record": {
+      "id": "new-subject-B",
+      "iri": "urn:editing:inserted-B"
+    }
+  },
+  {
+    "kind": "insert",
+    "collection": "roles",
+    "record": {
+      "id": "new-role-B",
+      "kind": "class",
+      "subject": "new-subject-B"
+    }
+  }
+]

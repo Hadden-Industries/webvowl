@@ -1,0 +1,62 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "supplement-renamed-2",
+        "kind": "label",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "to": "supplement-renamed-3",
+        "from": "supplement-renamed-3",
+        "properties": [
+          "supplement-renamed-4"
+        ],
+        "kind": "property-edge",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "context": {
+          "targets": [
+            "supplement-renamed-5"
+          ],
+          "kind": "class"
+        },
+        "targets": [
+          "supplement-renamed-5"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-3"
+      }
+    ],
+    "constructs": [],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "supplement-renamed-6",
+        "kind": "rdf-property",
+        "id": "supplement-renamed-4"
+      },
+      {
+        "subject": "supplement-renamed-7",
+        "kind": "class",
+        "id": "supplement-renamed-5"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/supplement#p",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Resource",
+        "id": "supplement-renamed-7"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

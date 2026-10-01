@@ -1,0 +1,66 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "ends": [
+          "supplement-renamed-2",
+          "supplement-renamed-3"
+        ],
+        "construct": "supplement-renamed-4",
+        "kind": "disjoint-edge",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "targets": [
+          "supplement-renamed-5"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "targets": [
+          "supplement-renamed-6"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-3"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "supplement-renamed-5",
+          "supplement-renamed-6"
+        ],
+        "kind": "disjoint-classes",
+        "id": "supplement-renamed-4"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "supplement-renamed-7",
+        "kind": "class",
+        "id": "supplement-renamed-5"
+      },
+      {
+        "subject": "supplement-renamed-8",
+        "kind": "class",
+        "id": "supplement-renamed-6"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/supplement#B",
+        "id": "supplement-renamed-7"
+      },
+      {
+        "iri": "https://example.org/supplement#A",
+        "id": "supplement-renamed-8"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

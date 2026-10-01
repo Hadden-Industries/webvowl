@@ -1,0 +1,121 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/conditional#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/conditional#B"
+      },
+      {
+        "id": "s-q",
+        "iri": "https://example.org/conditional#q"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/conditional#p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s-B"
+      },
+      {
+        "id": "q",
+        "kind": "object-property",
+        "subject": "s-q"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s-p"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "complex",
+        "kind": "object-all",
+        "property": "q",
+        "filler": "A"
+      }
+    ],
+    "constructs": [
+      {
+        "id": "domain-q",
+        "kind": "object-domain",
+        "property": "q",
+        "target": "B"
+      },
+      {
+        "id": "range-q",
+        "kind": "object-range",
+        "property": "q",
+        "target": "A"
+      },
+      {
+        "id": "domain-p",
+        "kind": "object-domain",
+        "property": "p",
+        "target": "A"
+      },
+      {
+        "id": "range-p",
+        "kind": "object-range",
+        "property": "p",
+        "target": "complex"
+      },
+      {
+        "id": "inverse",
+        "kind": "inverse-properties",
+        "members": [
+          "p",
+          "q"
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "edge-q",
+        "kind": "property-edge",
+        "properties": [
+          "q"
+        ],
+        "from": "node-B",
+        "to": "node-A"
+      },
+      {
+        "id": "label-edge-q-single",
+        "kind": "label",
+        "edge": "edge-q",
+        "direction": "single"
+      }
+    ]
+  }
+}

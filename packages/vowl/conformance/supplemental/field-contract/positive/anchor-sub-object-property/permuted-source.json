@@ -1,0 +1,157 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "field-permutation-2",
+        "kind": "label",
+        "id": "field-permutation-1"
+      },
+      {
+        "to": "field-permutation-3",
+        "from": "field-permutation-4",
+        "properties": [
+          "field-permutation-15"
+        ],
+        "kind": "property-edge",
+        "id": "field-permutation-2"
+      },
+      {
+        "targets": [
+          "field-permutation-16"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-3"
+      },
+      {
+        "targets": [
+          "field-permutation-17"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-4"
+      }
+    ],
+    "constructs": [
+      {
+        "annotations": [
+          {
+            "annotations": [],
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#string",
+              "lexical": "sub-object-property anchor",
+              "kind": "typed"
+            },
+            "predicate": "urn:field-contract:annotation"
+          }
+        ],
+        "assertion": {
+          "super": "field-permutation-15",
+          "sub": "field-permutation-14",
+          "kind": "sub-object-property"
+        },
+        "kind": "assertion-anchor",
+        "id": "field-permutation-5"
+      },
+      {
+        "super": "field-permutation-15",
+        "sub": "field-permutation-14",
+        "kind": "sub-object-property",
+        "id": "field-permutation-6"
+      },
+      {
+        "target": "field-permutation-16",
+        "property": "field-permutation-14",
+        "kind": "object-range",
+        "id": "field-permutation-7"
+      },
+      {
+        "target": "field-permutation-11",
+        "property": "field-permutation-14",
+        "kind": "object-domain",
+        "id": "field-permutation-8"
+      },
+      {
+        "target": "field-permutation-16",
+        "property": "field-permutation-15",
+        "kind": "object-range",
+        "id": "field-permutation-9"
+      },
+      {
+        "target": "field-permutation-17",
+        "property": "field-permutation-15",
+        "kind": "object-domain",
+        "id": "field-permutation-10"
+      }
+    ],
+    "expressions": [
+      {
+        "filler": "field-permutation-16",
+        "property": "field-permutation-15",
+        "kind": "object-some",
+        "id": "field-permutation-11"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "field-permutation-18",
+        "kind": "datatype",
+        "id": "field-permutation-12"
+      },
+      {
+        "subject": "field-permutation-19",
+        "kind": "annotation-property",
+        "id": "field-permutation-13"
+      },
+      {
+        "subject": "field-permutation-20",
+        "kind": "object-property",
+        "id": "field-permutation-14"
+      },
+      {
+        "subject": "field-permutation-21",
+        "kind": "object-property",
+        "id": "field-permutation-15"
+      },
+      {
+        "subject": "field-permutation-22",
+        "kind": "class",
+        "id": "field-permutation-16"
+      },
+      {
+        "subject": "field-permutation-23",
+        "kind": "class",
+        "id": "field-permutation-17"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "http://www.w3.org/2001/XMLSchema#string",
+        "id": "field-permutation-18"
+      },
+      {
+        "iri": "urn:field-contract:annotation",
+        "id": "field-permutation-19"
+      },
+      {
+        "iri": "https://example.org/conditional#p",
+        "id": "field-permutation-20"
+      },
+      {
+        "iri": "https://example.org/conditional#q",
+        "id": "field-permutation-21"
+      },
+      {
+        "iri": "https://example.org/conditional#B",
+        "id": "field-permutation-22"
+      },
+      {
+        "iri": "https://example.org/conditional#A",
+        "id": "field-permutation-23"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

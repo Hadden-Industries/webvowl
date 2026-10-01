@@ -1,0 +1,136 @@
+{
+  "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+  "structural": {
+    "constructs": [
+      {
+        "id": "c0",
+        "kind": "sub-rdf-property",
+        "sub": "r0",
+        "super": "r4",
+        "unexpectedField": null
+      },
+      {
+        "id": "c1",
+        "kind": "rdf-range",
+        "property": "r0",
+        "target": "x0"
+      },
+      {
+        "id": "c2",
+        "kind": "rdf-range",
+        "property": "r4",
+        "target": "r1"
+      },
+      {
+        "id": "c3",
+        "kind": "rdf-domain",
+        "property": "r0",
+        "target": "r3"
+      },
+      {
+        "id": "c4",
+        "kind": "rdf-domain",
+        "property": "r4",
+        "target": "r3"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "x0",
+        "kind": "data-intersection",
+        "members": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "context": {
+          "kind": "property",
+          "properties": [
+            "r4"
+          ]
+        },
+        "id": "o2",
+        "kind": "datatype-node",
+        "target": "r1"
+      },
+      {
+        "direction": "single",
+        "edge": "o0",
+        "id": "o3",
+        "kind": "label"
+      },
+      {
+        "from": "o1",
+        "id": "o0",
+        "kind": "property-edge",
+        "properties": [
+          "r4"
+        ],
+        "to": "o2"
+      },
+      {
+        "id": "o1",
+        "kind": "class-node",
+        "targets": [
+          "r3"
+        ]
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    },
+    "roles": [
+      {
+        "id": "r0",
+        "kind": "rdf-property",
+        "subject": "s1"
+      },
+      {
+        "id": "r1",
+        "kind": "datatype",
+        "subject": "s3"
+      },
+      {
+        "id": "r2",
+        "kind": "datatype",
+        "subject": "s0"
+      },
+      {
+        "id": "r3",
+        "kind": "class",
+        "subject": "s4"
+      },
+      {
+        "id": "r4",
+        "kind": "rdf-property",
+        "subject": "s2"
+      }
+    ],
+    "subjects": [
+      {
+        "id": "s0",
+        "iri": "https://example.org/conditional#E"
+      },
+      {
+        "id": "s1",
+        "iri": "https://example.org/conditional#p"
+      },
+      {
+        "id": "s2",
+        "iri": "https://example.org/conditional#q"
+      },
+      {
+        "id": "s3",
+        "iri": "https://example.org/conditional#D"
+      },
+      {
+        "id": "s4",
+        "iri": "https://example.org/conditional#A"
+      }
+    ]
+  }
+}

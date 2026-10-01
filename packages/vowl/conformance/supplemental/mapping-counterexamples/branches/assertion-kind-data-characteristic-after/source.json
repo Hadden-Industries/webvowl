@@ -1,0 +1,234 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s:Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "s:Literal",
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Literal"
+      },
+      {
+        "id": "s:dp",
+        "iri": "urn:mapping-pair:dp"
+      },
+      {
+        "id": "s:dq",
+        "iri": "urn:mapping-pair:dq"
+      },
+      {
+        "id": "s:annotation",
+        "iri": "urn:mapping-pair:annotation"
+      },
+      {
+        "id": "s:string",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      },
+      {
+        "id": "s:A",
+        "iri": "urn:mapping-pair:A"
+      },
+      {
+        "id": "s:B",
+        "iri": "urn:mapping-pair:B"
+      },
+      {
+        "id": "s:C",
+        "iri": "urn:mapping-pair:C"
+      }
+    ],
+    "roles": [
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "s:Thing"
+      },
+      {
+        "id": "Literal",
+        "kind": "datatype",
+        "subject": "s:Literal"
+      },
+      {
+        "id": "dp",
+        "kind": "data-property",
+        "subject": "s:dp"
+      },
+      {
+        "id": "dq",
+        "kind": "data-property",
+        "subject": "s:dq"
+      },
+      {
+        "id": "annotation",
+        "kind": "annotation-property",
+        "subject": "s:annotation"
+      },
+      {
+        "id": "string",
+        "kind": "datatype",
+        "subject": "s:string"
+      },
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s:A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s:B"
+      },
+      {
+        "id": "C",
+        "kind": "class",
+        "subject": "s:C"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "anchor-supported-before",
+        "kind": "data-characteristic",
+        "property": "dp",
+        "characteristic": "functional"
+      },
+      {
+        "id": "anchor-supported-after",
+        "kind": "data-characteristic",
+        "property": "dq",
+        "characteristic": "functional"
+      },
+      {
+        "id": "anchor-focus",
+        "kind": "assertion-anchor",
+        "assertion": {
+          "kind": "key",
+          "class": "A",
+          "objectProperties": [],
+          "dataProperties": []
+        },
+        "annotations": [
+          {
+            "predicate": "urn:mapping-pair:annotation",
+            "value": {
+              "kind": "typed",
+              "lexical": "before",
+              "datatype": "http://www.w3.org/2001/XMLSchema#string"
+            },
+            "annotations": []
+          }
+        ]
+      },
+      {
+        "id": "class-backbone",
+        "kind": "equivalent-classes",
+        "members": [
+          "A",
+          "B",
+          "C"
+        ]
+      },
+      {
+        "id": "alternate-assertion-support",
+        "kind": "key",
+        "class": "A",
+        "objectProperties": [],
+        "dataProperties": []
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-0",
+        "kind": "class-node",
+        "targets": [
+          "A",
+          "B",
+          "C"
+        ]
+      },
+      {
+        "id": "node-1",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "property",
+          "properties": [
+            "dp"
+          ]
+        }
+      },
+      {
+        "id": "node-2",
+        "kind": "datatype-node",
+        "target": "Literal",
+        "context": {
+          "kind": "property",
+          "properties": [
+            "dp"
+          ]
+        }
+      },
+      {
+        "id": "node-3",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "property",
+          "properties": [
+            "dq"
+          ]
+        }
+      },
+      {
+        "id": "node-4",
+        "kind": "datatype-node",
+        "target": "Literal",
+        "context": {
+          "kind": "property",
+          "properties": [
+            "dq"
+          ]
+        }
+      },
+      {
+        "id": "edge-0",
+        "kind": "property-edge",
+        "properties": [
+          "dp"
+        ],
+        "from": "node-1",
+        "to": "node-2"
+      },
+      {
+        "id": "edge-0-label-single",
+        "kind": "label",
+        "edge": "edge-0",
+        "direction": "single"
+      },
+      {
+        "id": "edge-1",
+        "kind": "property-edge",
+        "properties": [
+          "dq"
+        ],
+        "from": "node-3",
+        "to": "node-4"
+      },
+      {
+        "id": "edge-1-label-single",
+        "kind": "label",
+        "edge": "edge-1",
+        "direction": "single"
+      }
+    ]
+  }
+}

@@ -1,0 +1,199 @@
+{
+  "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+  "structural": {
+    "constructs": [
+      {
+        "annotations": [
+          {
+            "annotations": [],
+            "predicate": "https://example.org/supplement#note",
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#string",
+              "kind": "typed",
+              "lexical": "Exact annotation"
+            }
+          }
+        ],
+        "assertion": {
+          "kind": null,
+          "property": "r1",
+          "target": "r0"
+        },
+        "id": "c1",
+        "kind": "assertion-anchor"
+      },
+      {
+        "id": "c0",
+        "kind": "object-range",
+        "property": "r1",
+        "target": "r0"
+      },
+      {
+        "id": "c2",
+        "kind": "object-domain",
+        "property": "r1",
+        "target": "x1"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "x0",
+        "kind": "class-intersection",
+        "members": [
+          "r4",
+          "r5"
+        ]
+      },
+      {
+        "id": "x1",
+        "kind": "class-intersection",
+        "members": [
+          "r0",
+          "x0"
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "o0",
+        "id": "o4",
+        "kind": "label"
+      },
+      {
+        "expression": "x0",
+        "from": "o1",
+        "id": "o6",
+        "kind": "operator-edge",
+        "to": "o5"
+      },
+      {
+        "expression": "x0",
+        "from": "o1",
+        "id": "o8",
+        "kind": "operator-edge",
+        "to": "o7"
+      },
+      {
+        "expression": "x1",
+        "from": "o2",
+        "id": "o10",
+        "kind": "operator-edge",
+        "to": "o1"
+      },
+      {
+        "expression": "x1",
+        "from": "o2",
+        "id": "o9",
+        "kind": "operator-edge",
+        "to": "o3"
+      },
+      {
+        "from": "o2",
+        "id": "o0",
+        "kind": "property-edge",
+        "properties": [
+          "r1"
+        ],
+        "to": "o3"
+      },
+      {
+        "id": "o1",
+        "kind": "class-node",
+        "targets": [
+          "x0"
+        ]
+      },
+      {
+        "id": "o2",
+        "kind": "class-node",
+        "targets": [
+          "x1"
+        ]
+      },
+      {
+        "id": "o3",
+        "kind": "class-node",
+        "targets": [
+          "r0"
+        ]
+      },
+      {
+        "id": "o5",
+        "kind": "class-node",
+        "targets": [
+          "r5"
+        ]
+      },
+      {
+        "id": "o7",
+        "kind": "class-node",
+        "targets": [
+          "r4"
+        ]
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    },
+    "roles": [
+      {
+        "id": "r0",
+        "kind": "class",
+        "subject": "s3"
+      },
+      {
+        "id": "r1",
+        "kind": "object-property",
+        "subject": "s0"
+      },
+      {
+        "id": "r2",
+        "kind": "datatype",
+        "subject": "s5"
+      },
+      {
+        "id": "r3",
+        "kind": "annotation-property",
+        "subject": "s2"
+      },
+      {
+        "id": "r4",
+        "kind": "class",
+        "subject": "s4"
+      },
+      {
+        "id": "r5",
+        "kind": "class",
+        "subject": "s1"
+      }
+    ],
+    "subjects": [
+      {
+        "id": "s0",
+        "iri": "https://example.org/supplement#p"
+      },
+      {
+        "id": "s1",
+        "iri": "https://example.org/supplement#B"
+      },
+      {
+        "id": "s2",
+        "iri": "https://example.org/supplement#note"
+      },
+      {
+        "id": "s3",
+        "iri": "https://example.org/supplement#C"
+      },
+      {
+        "id": "s4",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "s5",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      }
+    ]
+  }
+}

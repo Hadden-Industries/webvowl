@@ -1,0 +1,249 @@
+{
+  "format": "independent-canonical-vowl-owl-mapping-review-overlay-v1",
+  "predecessor": {
+    "path": "supplemental/owl-mapping/seed-manifest.json",
+    "sha256": "042e6ed08f4ffeb8d7d4d45b33b267d09d1b008355e523334a37a96dfc2fd579"
+  },
+  "specificationRevision": [
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+      "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-30-canonical-vowl-protocol-clarifications.md",
+      "sha256": "057bd8a3a15d5a574b753683917b871bd27bf239d9fd9ffad484550361cd84b4"
+    }
+  ],
+  "reviewBasis": [
+    {
+      "source": "https://www.w3.org/TR/2012/REC-owl2-syntax-20121211/#Global_Restrictions_on_Axioms_in_OWL_2_DL",
+      "clause": "11.2 Restrictions on Datatypes",
+      "implication": "A declared non-builtin datatype with no definition violates the separate global definition-count condition."
+    },
+    {
+      "source": "D21.3",
+      "implication": "Each compatibility recovery must be diagnosed."
+    },
+    {
+      "source": "A9.2",
+      "implication": "The explicit strict unverified-literal mapping code remains controlling for this overlap."
+    }
+  ],
+  "producer": {
+    "path": "supplemental/owl-mapping/derive-review-overlay.mjs",
+    "sha256": "8af321924a6786658855b9da50a65223bdf98e370e611209da2e805caa27acbe",
+    "byteLength": 2749
+  },
+  "replaces": [
+    {
+      "id": "unverified-custom-datatype",
+      "recordSha256": "7dba761ae56a33a337dbb6c5fd39545cc163156251d5d13f864aa2aa7c94fc0b",
+      "historicalRecord": {
+        "id": "unverified-custom-datatype",
+        "root": {
+          "documentIri": "https://documents.example/unverified-custom-datatype",
+          "mediaType": "text/owl-functional",
+          "bytes": {
+            "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/input.ofn",
+            "sha256": "52094a3e6fd97e6a8d301a2339092f9f75e9558c9b07d15bf5af1c19752c8701",
+            "byteLength": 290
+          }
+        },
+        "imports": [],
+        "rules": [
+          "A9.2",
+          "D11.5",
+          "A2"
+        ],
+        "rationale": "A declared custom datatype does not establish lexical validity; compatibility preserves exact datatype and lexeme with the unverified code.",
+        "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+        "expected": {
+          "source.json": {
+            "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/source.json",
+            "sha256": "dbcc153b5c17fdfd7c2deaa79795797521af85df311ce59c58173d2d30aed1f7",
+            "byteLength": 1250
+          },
+          "mapped.nq": {
+            "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/mapped.nq",
+            "sha256": "f7b8dac2fe8c78e8e78456d606a4090d0be335020963e18ee0501c0171ce7c0f",
+            "byteLength": 6899
+          },
+          "canonical.nq": {
+            "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/canonical.nq",
+            "sha256": "e9ab093951e61f32572e80db037c09ad3f36758715573e1746ed1e0fd8ee967e",
+            "byteLength": 7129
+          },
+          "ids.json": {
+            "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/ids.json",
+            "sha256": "f44315a332ea44bdfc312e7370c59e8e60b164ea7b0056587ee549cfbdb1883e",
+            "byteLength": 1237
+          },
+          "canonical.json": {
+            "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/canonical.json",
+            "sha256": "b5f97994cece455c5ae68093193bceba7da82d06c13a024ac224f12b3809b35b",
+            "byteLength": 793
+          }
+        },
+        "counts": {
+          "primary": 8,
+          "blankNodes": 19,
+          "quads": 57
+        },
+        "runs": [
+          {
+            "id": "default",
+            "options": {},
+            "outcome": "success",
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+            "diagnostics": [
+              {
+                "code": "MAPPING_DATATYPE_UNVERIFIED"
+              }
+            ]
+          },
+          {
+            "id": "compatibility",
+            "options": {
+              "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1"
+            },
+            "outcome": "success",
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+            "diagnostics": [
+              {
+                "code": "MAPPING_DATATYPE_UNVERIFIED"
+              }
+            ]
+          },
+          {
+            "id": "strict",
+            "options": {
+              "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1"
+            },
+            "outcome": "error",
+            "errorCode": "MAPPING_DATATYPE_UNVERIFIED"
+          }
+        ]
+      }
+    }
+  ],
+  "vectors": [
+    {
+      "id": "unverified-custom-datatype",
+      "root": {
+        "documentIri": "https://documents.example/unverified-custom-datatype",
+        "mediaType": "text/owl-functional",
+        "bytes": {
+          "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/input.ofn",
+          "sha256": "52094a3e6fd97e6a8d301a2339092f9f75e9558c9b07d15bf5af1c19752c8701",
+          "byteLength": 290
+        }
+      },
+      "imports": [],
+      "rules": [
+        "A9.2",
+        "D11.5",
+        "A2",
+        "OWL-11.2",
+        "D21.3"
+      ],
+      "rationale": "The custom literal remains unverifiable under A9.2. Independently, OWL 11.2's datatype-definition requirement is violated by the absence of a defining axiom. D21.3 requires every compatibility recovery to be diagnosed, so successful compatibility runs contain both diagnostic conditions. A9.2's explicit strict unverified-literal error remains unchanged. No retained model or byte changes.",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expected": {
+        "source.json": {
+          "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/source.json",
+          "sha256": "dbcc153b5c17fdfd7c2deaa79795797521af85df311ce59c58173d2d30aed1f7",
+          "byteLength": 1250
+        },
+        "mapped.nq": {
+          "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/mapped.nq",
+          "sha256": "f7b8dac2fe8c78e8e78456d606a4090d0be335020963e18ee0501c0171ce7c0f",
+          "byteLength": 6899
+        },
+        "canonical.nq": {
+          "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/canonical.nq",
+          "sha256": "e9ab093951e61f32572e80db037c09ad3f36758715573e1746ed1e0fd8ee967e",
+          "byteLength": 7129
+        },
+        "ids.json": {
+          "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/ids.json",
+          "sha256": "f44315a332ea44bdfc312e7370c59e8e60b164ea7b0056587ee549cfbdb1883e",
+          "byteLength": 1237
+        },
+        "canonical.json": {
+          "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/canonical.json",
+          "sha256": "b5f97994cece455c5ae68093193bceba7da82d06c13a024ac224f12b3809b35b",
+          "byteLength": 793
+        }
+      },
+      "counts": {
+        "primary": 8,
+        "blankNodes": 19,
+        "quads": 57
+      },
+      "runs": [
+        {
+          "id": "default",
+          "options": {},
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_DATATYPE_UNVERIFIED"
+            },
+            {
+              "code": "MAPPING_GLOBAL_RESTRICTION",
+              "restrictionIdentifier": "DATATYPE_DEFINITION_COUNT"
+            }
+          ]
+        },
+        {
+          "id": "compatibility",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_DATATYPE_UNVERIFIED"
+            },
+            {
+              "code": "MAPPING_GLOBAL_RESTRICTION",
+              "restrictionIdentifier": "DATATYPE_DEFINITION_COUNT"
+            }
+          ]
+        },
+        {
+          "id": "strict",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1"
+          },
+          "outcome": "error",
+          "errorCode": "MAPPING_DATATYPE_UNVERIFIED"
+        }
+      ]
+    }
+  ]
+}

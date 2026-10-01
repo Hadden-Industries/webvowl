@@ -1,0 +1,40 @@
+{
+  "structural": {
+    "occurrences": [],
+    "constructs": [
+      {
+        "super": "supplement-renamed-2",
+        "sub": "supplement-renamed-3",
+        "kind": "sub-annotation-property",
+        "id": "supplement-renamed-1"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "supplement-renamed-4",
+        "kind": "annotation-property",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "subject": "supplement-renamed-5",
+        "kind": "annotation-property",
+        "id": "supplement-renamed-3"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/supplement#q",
+        "id": "supplement-renamed-4"
+      },
+      {
+        "iri": "https://example.org/supplement#p",
+        "id": "supplement-renamed-5"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

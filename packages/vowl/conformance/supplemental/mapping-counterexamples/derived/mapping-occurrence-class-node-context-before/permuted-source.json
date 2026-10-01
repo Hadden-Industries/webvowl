@@ -1,0 +1,109 @@
+{
+  "visualization": {
+    "display": {
+      "externalColoring": false,
+      "nodeScaling": "uniform",
+      "compactNotation": false
+    },
+    "prefixes": [],
+    "labelSelection": {
+      "mode": "iri"
+    },
+    "hidden": [],
+    "camera": {
+      "zoom": 2,
+      "center": {
+        "y": 0,
+        "x": 0
+      }
+    },
+    "placements": [
+      {
+        "pinned": false,
+        "position": {
+          "y": 18,
+          "x": 20
+        },
+        "occurrence": "field-permutation-2"
+      },
+      {
+        "pinned": false,
+        "position": {
+          "y": 5,
+          "x": 3
+        },
+        "occurrence": "field-permutation-3"
+      }
+    ]
+  },
+  "structural": {
+    "occurrences": [
+      {
+        "ends": [
+          "field-permutation-2",
+          "field-permutation-3"
+        ],
+        "construct": "field-permutation-4",
+        "kind": "disjoint-edge",
+        "id": "field-permutation-1"
+      },
+      {
+        "context": {
+          "targets": [
+            "field-permutation-6"
+          ],
+          "kind": "class"
+        },
+        "targets": [
+          "field-permutation-5"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-2"
+      },
+      {
+        "targets": [
+          "field-permutation-6"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-3"
+      }
+    ],
+    "constructs": [
+      {
+        "members": [
+          "field-permutation-5",
+          "field-permutation-6"
+        ],
+        "kind": "disjoint-classes",
+        "id": "field-permutation-4"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "field-permutation-7",
+        "kind": "rdf-class",
+        "id": "field-permutation-5"
+      },
+      {
+        "subject": "field-permutation-8",
+        "kind": "class",
+        "id": "field-permutation-6"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Resource",
+        "id": "field-permutation-7"
+      },
+      {
+        "iri": "https://example.org/conditional#A",
+        "id": "field-permutation-8"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

@@ -1,0 +1,128 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s-Thing",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n0",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-A",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n5",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-p",
+    "primaryBlankNode": "ps2",
+    "rdfcIdentifier": "c14n7",
+    "canonicalId": "s2"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s-Literal",
+    "primaryBlankNode": "ps3",
+    "rdfcIdentifier": "c14n32",
+    "canonicalId": "s3"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "Thing",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n1",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "p",
+    "primaryBlankNode": "pr2",
+    "rdfcIdentifier": "c14n8",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "Literal",
+    "primaryBlankNode": "pr3",
+    "rdfcIdentifier": "c14n9",
+    "canonicalId": "r2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "A",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n34",
+    "canonicalId": "r3"
+  },
+  {
+    "category": "expressions",
+    "sourceHandle": "restriction",
+    "primaryBlankNode": "px0",
+    "rdfcIdentifier": "c14n25",
+    "canonicalId": "x0"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "restriction-assertion",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n29",
+    "canonicalId": "c0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "restriction-target",
+    "primaryBlankNode": "po5",
+    "rdfcIdentifier": "c14n3",
+    "canonicalId": "o0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "restriction-edge",
+    "primaryBlankNode": "po6",
+    "rdfcIdentifier": "c14n4",
+    "canonicalId": "o1"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "global-edge",
+    "primaryBlankNode": "po3",
+    "rdfcIdentifier": "c14n13",
+    "canonicalId": "o2"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-A",
+    "primaryBlankNode": "po0",
+    "rdfcIdentifier": "c14n23",
+    "canonicalId": "o3"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "global-range",
+    "primaryBlankNode": "po2",
+    "rdfcIdentifier": "c14n42",
+    "canonicalId": "o4"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "global-domain",
+    "primaryBlankNode": "po1",
+    "rdfcIdentifier": "c14n46",
+    "canonicalId": "o5"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "label-restriction-edge",
+    "primaryBlankNode": "po7",
+    "rdfcIdentifier": "c14n50",
+    "canonicalId": "o6"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "label-global-edge",
+    "primaryBlankNode": "po4",
+    "rdfcIdentifier": "c14n52",
+    "canonicalId": "o7"
+  }
+]

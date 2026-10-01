@@ -1,0 +1,85 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/conditional#A"
+      },
+      {
+        "id": "s-Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/conditional#p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "s-Thing"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s-p"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "range-p",
+        "kind": "object-range",
+        "property": "A",
+        "target": "A"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "generic",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "class",
+          "targets": [
+            "A"
+          ]
+        }
+      },
+      {
+        "id": "edge",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "generic",
+        "to": "node-A"
+      },
+      {
+        "id": "label-edge-single",
+        "kind": "label",
+        "edge": "edge",
+        "direction": "single"
+      }
+    ]
+  }
+}

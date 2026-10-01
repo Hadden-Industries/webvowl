@@ -1,0 +1,113 @@
+{
+  "visualization": {
+    "display": {
+      "externalColoring": false,
+      "nodeScaling": "uniform",
+      "compactNotation": false
+    },
+    "prefixes": [],
+    "labelSelection": {
+      "mode": "iri"
+    },
+    "hidden": [],
+    "camera": {
+      "zoom": 2,
+      "center": {
+        "y": 0,
+        "x": 0
+      }
+    },
+    "placements": [
+      {
+        "pinned": false,
+        "position": {
+          "y": 31,
+          "x": 37
+        },
+        "occurrence": "field-permutation-1"
+      },
+      {
+        "pinned": false,
+        "position": {
+          "y": 18,
+          "x": 20
+        },
+        "occurrence": "field-permutation-3"
+      },
+      {
+        "pinned": false,
+        "position": {
+          "y": 5,
+          "x": 3
+        },
+        "occurrence": "field-permutation-4"
+      }
+    ]
+  },
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "field-permutation-2",
+        "kind": "label",
+        "id": "field-permutation-1"
+      },
+      {
+        "to": "field-permutation-3",
+        "from": "field-permutation-4",
+        "construct": "field-permutation-5",
+        "kind": "subclass-edge",
+        "id": "field-permutation-2"
+      },
+      {
+        "targets": [
+          "field-permutation-6"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-3"
+      },
+      {
+        "targets": [
+          "field-permutation-7"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-4"
+      }
+    ],
+    "constructs": [
+      {
+        "super": "field-permutation-6",
+        "sub": "field-permutation-7",
+        "kind": "subclass",
+        "id": "field-permutation-5"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "field-permutation-8",
+        "kind": "class",
+        "id": "field-permutation-6"
+      },
+      {
+        "subject": "field-permutation-9",
+        "kind": "class",
+        "id": "field-permutation-7"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/o#B",
+        "id": "field-permutation-8"
+      },
+      {
+        "iri": "https://example.org/o#A",
+        "id": "field-permutation-9"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

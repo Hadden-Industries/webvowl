@@ -1,0 +1,44 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s:j",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n9",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:i",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n11",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "i",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n4",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "j",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n10",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "expressions",
+    "sourceHandle": "focus",
+    "primaryBlankNode": "px0",
+    "rdfcIdentifier": "c14n8",
+    "canonicalId": "x0"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "expression-owner",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n3",
+    "canonicalId": "c0"
+  }
+]

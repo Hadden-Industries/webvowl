@@ -1,0 +1,79 @@
+{
+  "status": "independent-questions-and-premise-audit-pending-protocol-review",
+  "originalDisplayVectorsUnchanged": true,
+  "normativeAmbiguities": [
+    {
+      "id": "DQ-ANONYMOUS-ROOT",
+      "rules": [
+        "B5"
+      ],
+      "fixture": "display-vectors.json#anonymous-root-local",
+      "wording": "An anonymous root ontology or unnamed subject is never classified as external.",
+      "question": "Does absence of a root ontology IRI make every named subject local, or only state that the anonymous ontology itself is not external?",
+      "existingExpectation": "Every subject is local; the original vector expects false for a named unrelated subject.",
+      "decision": "Unresolved reviewer wording question. No new externality semantics are selected here."
+    },
+    {
+      "id": "DQ-INVERSE-DIRECTION",
+      "rules": [
+        "B1",
+        "B2.4"
+      ],
+      "fixtures": [
+        "matched-inverse",
+        "inverse-full-property-partitions"
+      ],
+      "question": "Confirm inverse from/to uses the selected forward partition domain/range; the inverse paragraph fixes side ordering but does not restate endpoints.",
+      "existingExpectation": "Forward domain to forward range, recorded in the previous review corrections.",
+      "decision": "Existing interpretation retained; explicit protocol acceptance remains necessary."
+    },
+    {
+      "id": "DQ-OPERATOR-DIRECTION",
+      "rules": [
+        "B1",
+        "B2.4"
+      ],
+      "fixtures": [
+        "class-intersection",
+        "operator-no-drawable-operands"
+      ],
+      "question": "Confirm operator-edge from is the operator node and to is the operand.",
+      "existingExpectation": "Operator to operand, as recorded in the previous review corrections.",
+      "decision": "Existing interpretation retained; no fresh direction choice is made."
+    }
+  ],
+  "fixturePremisesNotSpecificationAmbiguities": [
+    {
+      "id": "DP-COMPACT-GLYPH",
+      "fixture": "display-vectors.json#compact-notation-preserves-meaning",
+      "issue": "The expected empty Subclass of phrase requires the standard glyph to express that meaning; the conceptual input does not explicitly say that this premise holds.",
+      "requiredReviewAction": "Confirm/document the glyph-present premise when binding this conceptual vector to the application. B5 itself provides the condition; do not generalize unconditional phrase removal."
+    },
+    {
+      "id": "DP-CANDIDATE-FILTER",
+      "fixtures": "display-vectors.json select-label family",
+      "issue": "Candidate sets are already filtered by the catalog premise. These vectors do not test that axiom/ontology annotations and ineligible literal kinds are excluded upstream.",
+      "requiredReviewAction": "Use retained full-model annotation fixtures in an application-level selection test; do not infer candidate-construction coverage from scalar lookup results."
+    },
+    {
+      "id": "DP-DERIVED-TREATMENT",
+      "fixtures": "B2 clause rows marked renderer-treatment",
+      "issue": "Complete topology proves no extra occurrence, but cannot prove highlights, selected characteristic words/symbols, partial-expression cues, exact text, accessible summaries, or complete details.",
+      "requiredReviewAction": "Bind each display clause to an independently reviewed application/browser result before freeze."
+    }
+  ],
+  "priorInterpretationRequiringAcceptance": {
+    "id": "DQ-UNNEEDED-DEFAULT",
+    "rules": [
+      "A2",
+      "A5",
+      "B2.2"
+    ],
+    "fixtures": [
+      "undrawable-range-no-default-role",
+      "undrawable-range-declared-thing"
+    ],
+    "statement": "Builtin absent-endpoint roles are required only if a projection needs them; known undrawable opposite endpoints do not force an otherwise-unused builtin role.",
+    "status": "Earlier independent reading was supplied to integration and matches current fixtures; protocol acceptance remains explicitly tracked."
+  }
+}

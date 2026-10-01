@@ -1,0 +1,94 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-A",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "subject-D",
+        "iri": "https://example.org/supplement#D"
+      },
+      {
+        "id": "subject-p",
+        "iri": "https://example.org/supplement#p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "subject-A"
+      },
+      {
+        "id": "D",
+        "kind": "datatype",
+        "subject": "subject-D"
+      },
+      {
+        "id": "p",
+        "kind": "data-property",
+        "subject": "subject-p"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "domain-p",
+        "kind": "data-domain",
+        "property": "p",
+        "target": "A"
+      },
+      {
+        "id": "range-p",
+        "kind": "data-range",
+        "property": "p",
+        "target": "D"
+      },
+      {
+        "id": "relation",
+        "kind": "disjoint-data-properties",
+        "members": null
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "datatype-p",
+        "kind": "datatype-node",
+        "target": "D",
+        "context": {
+          "kind": "property",
+          "properties": [
+            "p"
+          ]
+        }
+      },
+      {
+        "id": "edge-p",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "node-A",
+        "to": "datatype-p"
+      },
+      {
+        "id": "label-edge-p",
+        "kind": "label",
+        "edge": "edge-p",
+        "direction": "single"
+      }
+    ]
+  }
+}

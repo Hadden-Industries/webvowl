@@ -1,0 +1,104 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "to": "supplement-renamed-4",
+        "from": "supplement-renamed-3",
+        "expression": "supplement-renamed-8",
+        "kind": "operator-edge",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "to": "supplement-renamed-5",
+        "from": "supplement-renamed-3",
+        "expression": "supplement-renamed-8",
+        "kind": "operator-edge",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "targets": [
+          "supplement-renamed-8"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "targets": [
+          "supplement-renamed-11"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-4"
+      },
+      {
+        "targets": [
+          "supplement-renamed-12"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-5"
+      }
+    ],
+    "constructs": [
+      {
+        "individual": "supplement-renamed-9",
+        "class": "supplement-renamed-8",
+        "kind": "class-membership",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "individual": "supplement-renamed-10",
+        "class": "supplement-renamed-12",
+        "kind": "class-membership",
+        "id": "supplement-renamed-7"
+      }
+    ],
+    "expressions": [
+      {
+        "members": [
+          "supplement-renamed-11",
+          "supplement-renamed-12"
+        ],
+        "kind": "class-union",
+        "id": "supplement-renamed-8"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "supplement-renamed-13",
+        "kind": "individual",
+        "id": "supplement-renamed-9"
+      },
+      {
+        "subject": "supplement-renamed-15",
+        "kind": "individual",
+        "id": "supplement-renamed-10"
+      },
+      {
+        "subject": "supplement-renamed-14",
+        "kind": "class",
+        "id": "supplement-renamed-11"
+      },
+      {
+        "subject": "supplement-renamed-15",
+        "kind": "class",
+        "id": "supplement-renamed-12"
+      }
+    ],
+    "subjects": [
+      {
+        "id": "supplement-renamed-13"
+      },
+      {
+        "iri": "https://example.org/supplement#B",
+        "id": "supplement-renamed-14"
+      },
+      {
+        "iri": "https://example.org/supplement#A",
+        "id": "supplement-renamed-15"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

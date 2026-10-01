@@ -1,0 +1,150 @@
+{
+  "status": "new-conditional-scope-provenance-pending-review",
+  "scope": "Only this new conditional directory and the conformance report were authored in this follow-up.",
+  "preservedPriorProvenance": {
+    "path": "supplemental/provenance-index.json",
+    "sha256": "8079159ae4fb579a000b109349120320e00781c5c03fa1bfa6eab75c6e394fa7",
+    "modified": false
+  },
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "amendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+    "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+    "approval": "Owner approved the exact quadratic capped work-policy amendment on 2026-09-30, as communicated by the parent integration task. Approval does not waive independent review."
+  },
+  "producer": {
+    "path": "supplemental/amended-policy/producer.mjs",
+    "sha256": "da7936738c98cb853de7c6d6f2ae7528cbd4d47a0c1ccb1258dae7c5f7143321"
+  },
+  "manifests": [
+    {
+      "path": "supplemental/amended-policy/manifest.json",
+      "sha256": "90f3754316f683a76ad9eecb8341d29a738b3f77b61c13362034de07cee92156",
+      "positives": 95
+    },
+    {
+      "path": "supplemental/conditional/manifest.json",
+      "sha256": "8ad1e7d52d040e27334e847f1366baff4cf9f16d36a5f960302d852e8fca87bb",
+      "positives": 62
+    },
+    {
+      "path": "supplemental/conditional/additional-manifest.json",
+      "sha256": "cc10d2372c9f28e4b8202ecfa74b4e49235fecd9d7c2ac89779dcfc8c7d0fe1e",
+      "positives": 14
+    },
+    {
+      "path": "supplemental/conditional/completion-manifest.json",
+      "sha256": "37c8d01cb3888e499cd647862ebdaf13ddfbd6baf57fd96032533575ed5d67da",
+      "positives": 5
+    },
+    {
+      "path": "supplemental/conditional/scope-manifest.json",
+      "sha256": "869ec2b79220eb31a4419f80aa4491f40fbfc7c6859252a2ff99567a17e9b478",
+      "positives": 1
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "supplemental/conditional/additional-manifest.json",
+      "sha256": "cc10d2372c9f28e4b8202ecfa74b4e49235fecd9d7c2ac89779dcfc8c7d0fe1e",
+      "byteLength": 35926
+    },
+    {
+      "path": "supplemental/conditional/additional-sources.mjs",
+      "sha256": "3828c95d807cc3fe72aa3078c401486ebcf122194495fcea02377dec68a69067",
+      "byteLength": 5227
+    },
+    {
+      "path": "supplemental/conditional/clause-inventory.json",
+      "sha256": "0071fdda5f0faf47918d8fcb27e09bc377c33aa075836ee4c2a97980b6822dcf",
+      "byteLength": 496627
+    },
+    {
+      "path": "supplemental/conditional/completion-manifest.json",
+      "sha256": "37c8d01cb3888e499cd647862ebdaf13ddfbd6baf57fd96032533575ed5d67da",
+      "byteLength": 14963
+    },
+    {
+      "path": "supplemental/conditional/completion-sources.mjs",
+      "sha256": "444cf32d2116314ec8ed351dcb1f3df0e0e0fb0cbd8a2953fddaff5c9672ba67",
+      "byteLength": 2719
+    },
+    {
+      "path": "supplemental/conditional/derive-additional.mjs",
+      "sha256": "9b73200ef26e0384aa0914d9f351de9ce534371cb7975690eb9ebff782a67f8d",
+      "byteLength": 1682
+    },
+    {
+      "path": "supplemental/conditional/derive-completion.mjs",
+      "sha256": "2e9ef54025f5fc253e840e247941f6b8565e867aee6d3ad3c09a9f064733ff95",
+      "byteLength": 1599
+    },
+    {
+      "path": "supplemental/conditional/derive-inventory.mjs",
+      "sha256": "a29b11063b780970894e033e074c320ecea1cc31cffd7e8d4ed6a2313a969a86",
+      "byteLength": 41965
+    },
+    {
+      "path": "supplemental/conditional/derive-negatives.mjs",
+      "sha256": "c842b63341dae60041ba89deb9a430d7bbecfc5aa5b8b66097fe8562c716e441",
+      "byteLength": 12505
+    },
+    {
+      "path": "supplemental/conditional/derive-scope.mjs",
+      "sha256": "a304141572dbcec8b62a241d3c60e8973cb1ff7aaaab7fe021fdda7c5291183e",
+      "byteLength": 1552
+    },
+    {
+      "path": "supplemental/conditional/derive.mjs",
+      "sha256": "55b72c24b95db53cb4949271b91993aea2dab0239be5ea7f4d681292bd5460b5",
+      "byteLength": 7587
+    },
+    {
+      "path": "supplemental/conditional/display-questions.json",
+      "sha256": "0c9a1bac1cfeb8807163214bb991803714ef07567bc7340848a1e0d760ef19bc",
+      "byteLength": 3939
+    },
+    {
+      "path": "supplemental/conditional/manifest.json",
+      "sha256": "8ad1e7d52d040e27334e847f1366baff4cf9f16d36a5f960302d852e8fca87bb",
+      "byteLength": 142227
+    },
+    {
+      "path": "supplemental/conditional/negative-manifest.json",
+      "sha256": "d79e3ad7cc5574ed09fd484435717688b4115119c660d3f166e9ae86a080d1d0",
+      "byteLength": 23004
+    },
+    {
+      "path": "supplemental/conditional/scope-manifest.json",
+      "sha256": "869ec2b79220eb31a4419f80aa4491f40fbfc7c6859252a2ff99567a17e9b478",
+      "byteLength": 5793
+    },
+    {
+      "path": "supplemental/conditional/scope-source.mjs",
+      "sha256": "901e0dcefad300dc8dc2293abf9d50591a9deb680f7c66e0d5c43170479f3b5a",
+      "byteLength": 2003
+    },
+    {
+      "path": "supplemental/conditional/sources.mjs",
+      "sha256": "ff86b075e2011158220b39a0cc21545bba18a396bfa468cddd1efb9d414df26b",
+      "byteLength": 26525
+    }
+  ]
+}

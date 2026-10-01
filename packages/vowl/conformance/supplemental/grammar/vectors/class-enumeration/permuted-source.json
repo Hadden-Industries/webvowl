@@ -1,0 +1,81 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "targets": [
+          "supplement-renamed-7"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "targets": [
+          "supplement-renamed-8"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-2"
+      }
+    ],
+    "constructs": [
+      {
+        "super": "supplement-renamed-4",
+        "sub": "supplement-renamed-8",
+        "kind": "subclass",
+        "id": "supplement-renamed-3"
+      }
+    ],
+    "expressions": [
+      {
+        "members": [
+          "supplement-renamed-5",
+          "supplement-renamed-6"
+        ],
+        "kind": "class-enumeration",
+        "id": "supplement-renamed-4"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "supplement-renamed-9",
+        "kind": "individual",
+        "id": "supplement-renamed-5"
+      },
+      {
+        "subject": "supplement-renamed-10",
+        "kind": "individual",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "subject": "supplement-renamed-11",
+        "kind": "class",
+        "id": "supplement-renamed-7"
+      },
+      {
+        "subject": "supplement-renamed-12",
+        "kind": "class",
+        "id": "supplement-renamed-8"
+      }
+    ],
+    "subjects": [
+      {
+        "id": "supplement-renamed-9"
+      },
+      {
+        "iri": "https://example.org/supplement#i",
+        "id": "supplement-renamed-10"
+      },
+      {
+        "iri": "https://example.org/supplement#B",
+        "id": "supplement-renamed-11"
+      },
+      {
+        "iri": "https://example.org/supplement#A",
+        "id": "supplement-renamed-12"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

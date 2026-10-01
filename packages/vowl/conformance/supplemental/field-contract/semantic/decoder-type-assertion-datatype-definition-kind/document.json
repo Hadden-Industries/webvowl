@@ -1,0 +1,85 @@
+{
+  "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+  "structural": {
+    "constructs": [
+      {
+        "annotations": [
+          {
+            "annotations": [],
+            "predicate": "urn:field-contract:annotation",
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#string",
+              "kind": "typed",
+              "lexical": "datatype-definition anchor"
+            }
+          }
+        ],
+        "assertion": {
+          "datatype": "r0",
+          "kind": null,
+          "target": "x0"
+        },
+        "id": "c1",
+        "kind": "assertion-anchor"
+      },
+      {
+        "datatype": "r0",
+        "id": "c0",
+        "kind": "datatype-definition",
+        "target": "x0"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "x0",
+        "kind": "data-complement",
+        "operand": "r1"
+      }
+    ],
+    "occurrences": [],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    },
+    "roles": [
+      {
+        "id": "r0",
+        "kind": "datatype",
+        "subject": "s0"
+      },
+      {
+        "id": "r1",
+        "kind": "datatype",
+        "subject": "s1"
+      },
+      {
+        "id": "r2",
+        "kind": "datatype",
+        "subject": "s2"
+      },
+      {
+        "id": "r3",
+        "kind": "annotation-property",
+        "subject": "s3"
+      }
+    ],
+    "subjects": [
+      {
+        "id": "s0",
+        "iri": "https://example.org/supplement#defined"
+      },
+      {
+        "id": "s1",
+        "iri": "http://www.w3.org/2001/XMLSchema#integer"
+      },
+      {
+        "id": "s2",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      },
+      {
+        "id": "s3",
+        "iri": "urn:field-contract:annotation"
+      }
+    ]
+  }
+}

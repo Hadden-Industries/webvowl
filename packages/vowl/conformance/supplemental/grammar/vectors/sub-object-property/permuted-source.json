@@ -1,0 +1,143 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "supplement-renamed-2",
+        "kind": "label",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "to": "supplement-renamed-5",
+        "from": "supplement-renamed-6",
+        "properties": [
+          "supplement-renamed-13"
+        ],
+        "kind": "property-edge",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "direction": "single",
+        "edge": "supplement-renamed-4",
+        "kind": "label",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "to": "supplement-renamed-6",
+        "from": "supplement-renamed-7",
+        "properties": [
+          "supplement-renamed-14"
+        ],
+        "kind": "property-edge",
+        "id": "supplement-renamed-4"
+      },
+      {
+        "targets": [
+          "supplement-renamed-15"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-5"
+      },
+      {
+        "targets": [
+          "supplement-renamed-16"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "targets": [
+          "supplement-renamed-17"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-7"
+      }
+    ],
+    "constructs": [
+      {
+        "super": "supplement-renamed-13",
+        "sub": "supplement-renamed-14",
+        "kind": "sub-object-property",
+        "id": "supplement-renamed-8"
+      },
+      {
+        "target": "supplement-renamed-15",
+        "property": "supplement-renamed-13",
+        "kind": "object-range",
+        "id": "supplement-renamed-9"
+      },
+      {
+        "target": "supplement-renamed-16",
+        "property": "supplement-renamed-13",
+        "kind": "object-domain",
+        "id": "supplement-renamed-10"
+      },
+      {
+        "target": "supplement-renamed-16",
+        "property": "supplement-renamed-14",
+        "kind": "object-range",
+        "id": "supplement-renamed-11"
+      },
+      {
+        "target": "supplement-renamed-17",
+        "property": "supplement-renamed-14",
+        "kind": "object-domain",
+        "id": "supplement-renamed-12"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "supplement-renamed-18",
+        "kind": "object-property",
+        "id": "supplement-renamed-13"
+      },
+      {
+        "subject": "supplement-renamed-19",
+        "kind": "object-property",
+        "id": "supplement-renamed-14"
+      },
+      {
+        "subject": "supplement-renamed-20",
+        "kind": "class",
+        "id": "supplement-renamed-15"
+      },
+      {
+        "subject": "supplement-renamed-21",
+        "kind": "class",
+        "id": "supplement-renamed-16"
+      },
+      {
+        "subject": "supplement-renamed-22",
+        "kind": "class",
+        "id": "supplement-renamed-17"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/supplement#q",
+        "id": "supplement-renamed-18"
+      },
+      {
+        "iri": "https://example.org/supplement#p",
+        "id": "supplement-renamed-19"
+      },
+      {
+        "iri": "https://example.org/supplement#C",
+        "id": "supplement-renamed-20"
+      },
+      {
+        "iri": "https://example.org/supplement#B",
+        "id": "supplement-renamed-21"
+      },
+      {
+        "iri": "https://example.org/supplement#A",
+        "id": "supplement-renamed-22"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-defined",
+        "iri": "https://example.org/supplement#defined"
+      },
+      {
+        "id": "subject-integer",
+        "iri": "http://www.w3.org/2001/XMLSchema#integer"
+      },
+      {
+        "id": "subject-decimal",
+        "iri": "http://www.w3.org/2001/XMLSchema#decimal"
+      },
+      {
+        "id": "field-additional-1",
+        "iri": "urn:field-contract:unused-annotation-property"
+      }
+    ],
+    "roles": [
+      {
+        "id": "defined",
+        "kind": "datatype",
+        "subject": "subject-defined"
+      },
+      {
+        "id": "integer",
+        "kind": "datatype",
+        "subject": "subject-integer"
+      },
+      {
+        "id": "decimal",
+        "kind": "datatype",
+        "subject": "subject-decimal"
+      },
+      {
+        "id": "field-additional-2",
+        "kind": "annotation-property",
+        "subject": "field-additional-1"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "expression",
+        "kind": "data-union",
+        "members": [
+          "field-additional-2",
+          "decimal"
+        ]
+      }
+    ],
+    "constructs": [
+      {
+        "id": "definition",
+        "kind": "datatype-definition",
+        "datatype": "defined",
+        "target": "expression"
+      }
+    ],
+    "occurrences": []
+  }
+}

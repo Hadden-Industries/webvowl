@@ -1,0 +1,107 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-A",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "subject-B",
+        "iri": "https://example.org/supplement#B"
+      },
+      {
+        "id": "subject-q",
+        "iri": "https://example.org/supplement#q"
+      },
+      {
+        "id": "subject-p",
+        "iri": "https://example.org/supplement#p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "subject-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "subject-B"
+      },
+      {
+        "id": "q",
+        "kind": "object-property",
+        "subject": "subject-q"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "subject-p"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "range-expression",
+        "kind": "object-some",
+        "property": "q",
+        "filler": "B"
+      }
+    ],
+    "constructs": [
+      {
+        "id": "domain-q",
+        "kind": "object-domain",
+        "property": "q",
+        "target": "A"
+      },
+      {
+        "id": "range-q",
+        "kind": "object-range",
+        "property": "q",
+        "target": "B"
+      },
+      {
+        "id": "range-p",
+        "kind": "object-range",
+        "property": "p",
+        "target": "range-expression"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "edge-q",
+        "kind": "property-edge",
+        "properties": [
+          "q"
+        ],
+        "from": "node-A",
+        "to": "node-B"
+      },
+      {
+        "id": "label-edge-q",
+        "kind": "label",
+        "edge": "edge-q",
+        "direction": "single"
+      }
+    ]
+  }
+}

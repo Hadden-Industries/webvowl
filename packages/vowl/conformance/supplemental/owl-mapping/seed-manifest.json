@@ -1,0 +1,1082 @@
+{
+  "format": "independent-canonical-vowl-owl-mapping-corpus-v1",
+  "scope": "Seed witnesses only; hand-authored OWL-to-retained-model decisions, not an independent OWL parser or a complete adapter validator.",
+  "specificationRevision": [
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+      "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1"
+    },
+    {
+      "base": "repository",
+      "path": "docs/specs/2026-09-30-canonical-vowl-protocol-clarifications.md",
+      "sha256": "057bd8a3a15d5a574b753683917b871bd27bf239d9fd9ffad484550361cd84b4"
+    }
+  ],
+  "standards": [
+    {
+      "id": "OWL",
+      "url": "https://www.w3.org/TR/2012/REC-owl2-syntax-20121211/",
+      "clauses": [
+        "3.7",
+        "5.8",
+        "9.6",
+        "10.1",
+        "11.2"
+      ]
+    }
+  ],
+  "independentDependencies": [
+    {
+      "base": "conformance",
+      "path": "supplemental/amended-policy/producer.mjs",
+      "sha256": "da7936738c98cb853de7c6d6f2ae7528cbd4d47a0c1ccb1258dae7c5f7143321"
+    },
+    {
+      "base": "conformance",
+      "path": "supplemental/mapping-counterexamples/model.mjs",
+      "sha256": "3a4ebd134c1d209f84cf9c54072988a7e712f12286e95d35edec4d20f600bfc5"
+    }
+  ],
+  "producerSources": [
+    {
+      "path": "supplemental/owl-mapping/support.mjs",
+      "sha256": "4c4352f67771a9b5d32fec99ca34602fcf8423a7c80a2c9202ef19ce494c6de7",
+      "byteLength": 3862
+    },
+    {
+      "path": "supplemental/owl-mapping/seed-cases.mjs",
+      "sha256": "e77e2a5c4ba832a7ffd893f3c42cf952e4ec969e5481e261f9876b1371cd466a",
+      "byteLength": 11772
+    },
+    {
+      "path": "supplemental/owl-mapping/derive-seed.mjs",
+      "sha256": "41efd0948b4303b608c9d156f4f3fe5dcf6267924b982a9ff2e7c3bc2cd0798f",
+      "byteLength": 3145
+    }
+  ],
+  "diagnosticPolicy": {
+    "shape": "A9.2 closed immutable warning records",
+    "matching": "All actual diagnostic codes must be in the expected code set; every expected condition must match at least one actual diagnostic. Exact implementation prose and unprescribed warning cardinality are not frozen.",
+    "sourceConstructor": "Match the exact ASCII constructor identifier as a standalone token in details; not a substring of a different constructor.",
+    "restrictionIdentifier": "Match the owning public stable restriction identifier as a standalone token in details.",
+    "ordering": "RFC8785 UTF-8 bytes of each complete actual record, strictly increasing (deduplication)."
+  },
+  "vectors": [
+    {
+      "id": "empty-anonymous-ontology",
+      "root": {
+        "documentIri": "https://documents.example/empty-anonymous-ontology",
+        "mediaType": "text/owl-functional",
+        "bytes": {
+          "path": "supplemental/owl-mapping/seed/empty-anonymous-ontology/input.ofn",
+          "sha256": "1ccbc0cdd7ead7e862df69e4222306812ec6065d59ac5bb5f88a833dd83cb652",
+          "byteLength": 104
+        }
+      },
+      "imports": [],
+      "rules": [
+        "A9.1",
+        "D10"
+      ],
+      "rationale": "The required retrieval/base IRI is not an authored ontology IRI. No semantic record or ontology IRI is invented.",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expected": {
+        "source.json": {
+          "path": "supplemental/owl-mapping/seed/empty-anonymous-ontology/source.json",
+          "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+          "byteLength": 200
+        },
+        "mapped.nq": {
+          "path": "supplemental/owl-mapping/seed/empty-anonymous-ontology/mapped.nq",
+          "sha256": "f1e963337844aab88552871a8878e95ed4e6657c8892e07dde1dd50cead46072",
+          "byteLength": 2496
+        },
+        "canonical.nq": {
+          "path": "supplemental/owl-mapping/seed/empty-anonymous-ontology/canonical.nq",
+          "sha256": "db60b276c64f63a0a86a60fb901d4698827101dabcd8679f6362f4dd4168b6ee",
+          "byteLength": 2574
+        },
+        "ids.json": {
+          "path": "supplemental/owl-mapping/seed/empty-anonymous-ontology/ids.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "byteLength": 3
+        },
+        "canonical.json": {
+          "path": "supplemental/owl-mapping/seed/empty-anonymous-ontology/canonical.json",
+          "sha256": "d20d292b5553f3af1316ec929445b959da5ac829d86751580f80219363b71aae",
+          "byteLength": 230
+        }
+      },
+      "counts": {
+        "primary": 0,
+        "blankNodes": 9,
+        "quads": 20
+      },
+      "runs": [
+        {
+          "id": "default",
+          "options": {},
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": []
+        },
+        {
+          "id": "compatibility",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": []
+        },
+        {
+          "id": "strict",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1",
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "id": "declared-subclass",
+      "root": {
+        "documentIri": "https://documents.example/declared-subclass",
+        "mediaType": "text/owl-functional",
+        "bytes": {
+          "path": "supplemental/owl-mapping/seed/declared-subclass/input.ofn",
+          "sha256": "ed98cbda9c09d8e4354e79533316fbcc8f4821b08f6287d7f61b913f22ea36a0",
+          "byteLength": 167
+        }
+      },
+      "imports": [],
+      "rules": [
+        "A2",
+        "A4",
+        "A9.2",
+        "B2.4"
+      ],
+      "rationale": "Explicit declarations and subclass yield two class nodes, one subclass edge and its label.",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expected": {
+        "source.json": {
+          "path": "supplemental/owl-mapping/seed/declared-subclass/source.json",
+          "sha256": "6114d2d64dc81c7c63b9e446c3a94954e96357c40750e7f1f7e9c20db41f2b1b",
+          "byteLength": 1185
+        },
+        "mapped.nq": {
+          "path": "supplemental/owl-mapping/seed/declared-subclass/mapped.nq",
+          "sha256": "8d00f687c147f3cb8235621c86f66c07842b0ae0ad20f0c0e352b729ce0340dd",
+          "byteLength": 7408
+        },
+        "canonical.nq": {
+          "path": "supplemental/owl-mapping/seed/declared-subclass/canonical.nq",
+          "sha256": "a6517288a11062137bf0b32b6f0d49f2b72c7438dbc22eec5144073bfb5fdff5",
+          "byteLength": 7667
+        },
+        "ids.json": {
+          "path": "supplemental/owl-mapping/seed/declared-subclass/ids.json",
+          "sha256": "895bd64f9216df61bceb57163516bd35645c28399734acb0760d1596b6ac7256",
+          "byteLength": 1385
+        },
+        "canonical.json": {
+          "path": "supplemental/owl-mapping/seed/declared-subclass/canonical.json",
+          "sha256": "5f17de46f8440caf81cdeb9fd7aaf8e1f3ee7924af17502aaaa67a7a27f3e8da",
+          "byteLength": 698
+        }
+      },
+      "counts": {
+        "primary": 9,
+        "blankNodes": 20,
+        "quads": 62
+      },
+      "runs": [
+        {
+          "id": "default",
+          "options": {},
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": []
+        },
+        {
+          "id": "compatibility",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": []
+        },
+        {
+          "id": "strict",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1",
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "id": "typed-use-without-redundant-declarations",
+      "root": {
+        "documentIri": "https://documents.example/typed-use-without-redundant-declarations",
+        "mediaType": "text/owl-functional",
+        "bytes": {
+          "path": "supplemental/owl-mapping/seed/typed-use-without-redundant-declarations/input.ofn",
+          "sha256": "f504392f768b1fd75da1120994ca5d7741a5aa1abd208cede3610c0e578db5a9",
+          "byteLength": 121
+        }
+      },
+      "imports": [],
+      "rules": [
+        "A9.2",
+        "D11.2"
+      ],
+      "rationale": "An unambiguous typed constructor establishes both class roles; redundant declaration syntax cannot change bytes or emit a compatibility recovery.",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expected": {
+        "source.json": {
+          "path": "supplemental/owl-mapping/seed/typed-use-without-redundant-declarations/source.json",
+          "sha256": "6114d2d64dc81c7c63b9e446c3a94954e96357c40750e7f1f7e9c20db41f2b1b",
+          "byteLength": 1185
+        },
+        "mapped.nq": {
+          "path": "supplemental/owl-mapping/seed/typed-use-without-redundant-declarations/mapped.nq",
+          "sha256": "8d00f687c147f3cb8235621c86f66c07842b0ae0ad20f0c0e352b729ce0340dd",
+          "byteLength": 7408
+        },
+        "canonical.nq": {
+          "path": "supplemental/owl-mapping/seed/typed-use-without-redundant-declarations/canonical.nq",
+          "sha256": "a6517288a11062137bf0b32b6f0d49f2b72c7438dbc22eec5144073bfb5fdff5",
+          "byteLength": 7667
+        },
+        "ids.json": {
+          "path": "supplemental/owl-mapping/seed/typed-use-without-redundant-declarations/ids.json",
+          "sha256": "895bd64f9216df61bceb57163516bd35645c28399734acb0760d1596b6ac7256",
+          "byteLength": 1385
+        },
+        "canonical.json": {
+          "path": "supplemental/owl-mapping/seed/typed-use-without-redundant-declarations/canonical.json",
+          "sha256": "5f17de46f8440caf81cdeb9fd7aaf8e1f3ee7924af17502aaaa67a7a27f3e8da",
+          "byteLength": 698
+        }
+      },
+      "counts": {
+        "primary": 9,
+        "blankNodes": 20,
+        "quads": 62
+      },
+      "runs": [
+        {
+          "id": "default",
+          "options": {},
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": []
+        },
+        {
+          "id": "compatibility",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": []
+        },
+        {
+          "id": "strict",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1",
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "id": "nested-annotations-and-exact-literals",
+      "root": {
+        "documentIri": "https://documents.example/nested-annotations-and-exact-literals",
+        "mediaType": "text/owl-functional",
+        "bytes": {
+          "path": "supplemental/owl-mapping/seed/nested-annotations-and-exact-literals/input.ofn",
+          "sha256": "e7e59a5054becfda92dcae8aa0bde213400448851987fd449d62630b9d23bc0e",
+          "byteLength": 353
+        }
+      },
+      "imports": [],
+      "rules": [
+        "A2",
+        "A4",
+        "D11.5",
+        "D12"
+      ],
+      "rationale": "The axiom annotation is an anchor; its nested annotation remains nested. Integer lexeme 01 is unchanged; only ASCII language-tag case changes.",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expected": {
+        "source.json": {
+          "path": "supplemental/owl-mapping/seed/nested-annotations-and-exact-literals/source.json",
+          "sha256": "36987722ab2ae0b1354cae542dd1c0a6eebb8678c476894c3852987dbdd955e0",
+          "byteLength": 3335
+        },
+        "mapped.nq": {
+          "path": "supplemental/owl-mapping/seed/nested-annotations-and-exact-literals/mapped.nq",
+          "sha256": "4191b8a08ae2a86c37580410ab56f1f79b9ebb9cf0a31727fae55e348f9311d0",
+          "byteLength": 16325
+        },
+        "canonical.nq": {
+          "path": "supplemental/owl-mapping/seed/nested-annotations-and-exact-literals/canonical.nq",
+          "sha256": "57d697bf38b9fb354fc75a1a78b9bf5953de299629940d8b5fd4762ec97028bb",
+          "byteLength": 16899
+        },
+        "ids.json": {
+          "path": "supplemental/owl-mapping/seed/nested-annotations-and-exact-literals/ids.json",
+          "sha256": "f80822ece31f8ba378cab7550edb6ddab72f91bb5531b308f72105947bc725b7",
+          "byteLength": 3233
+        },
+        "canonical.json": {
+          "path": "supplemental/owl-mapping/seed/nested-annotations-and-exact-literals/canonical.json",
+          "sha256": "84619fce8256b699fa231aa24f88e41ad0cc42b24d0fa42056620fc68515c346",
+          "byteLength": 1853
+        }
+      },
+      "counts": {
+        "primary": 21,
+        "blankNodes": 41,
+        "quads": 137
+      },
+      "runs": [
+        {
+          "id": "default",
+          "options": {},
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": []
+        },
+        {
+          "id": "compatibility",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": []
+        },
+        {
+          "id": "strict",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1",
+          "diagnostics": []
+        }
+      ]
+    },
+    {
+      "id": "six-explicit-abox-exclusions",
+      "root": {
+        "documentIri": "https://documents.example/six-explicit-abox-exclusions",
+        "mediaType": "text/owl-functional",
+        "bytes": {
+          "path": "supplemental/owl-mapping/seed/six-explicit-abox-exclusions/input.ofn",
+          "sha256": "36365c694360957e6c68258202a659a924ba6401654f1067e6ed9db6fcd34f7b",
+          "byteLength": 612
+        }
+      },
+      "imports": [],
+      "rules": [
+        "A9.2",
+        "D13",
+        "D12",
+        "B2.2"
+      ],
+      "rationale": "Six excluded source kinds are diagnosed. Explicit roles and direct class membership remain; excluded-axiom annotations do not become anchors or participant annotations. The logically inconsistent pair does not fail a structural check.",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expected": {
+        "source.json": {
+          "path": "supplemental/owl-mapping/seed/six-explicit-abox-exclusions/source.json",
+          "sha256": "769e5d223bc2d3a83683d71a5544ab28a28cf38001161dc4a3b502dde53ccdbe",
+          "byteLength": 3754
+        },
+        "mapped.nq": {
+          "path": "supplemental/owl-mapping/seed/six-explicit-abox-exclusions/mapped.nq",
+          "sha256": "a28e29e0ddbb15947bb116b583d6eed36fb82b6e116df8e93319bf1a79812d2f",
+          "byteLength": 19472
+        },
+        "canonical.nq": {
+          "path": "supplemental/owl-mapping/seed/six-explicit-abox-exclusions/canonical.nq",
+          "sha256": "f99e5506ec55af62bafde36643f7a5f31d11702437eebc1b59f334ae31f0c740",
+          "byteLength": 20175
+        },
+        "ids.json": {
+          "path": "supplemental/owl-mapping/seed/six-explicit-abox-exclusions/ids.json",
+          "sha256": "9a582149608afa551aacc9b8f1ee78a8f3ef6ec7f19a7852d0a46815421d12bd",
+          "byteLength": 4300
+        },
+        "canonical.json": {
+          "path": "supplemental/owl-mapping/seed/six-explicit-abox-exclusions/canonical.json",
+          "sha256": "67a5599258bca4a89023291d8799b0185fd71c7737ff40b592ddb30b4016addc",
+          "byteLength": 2025
+        }
+      },
+      "counts": {
+        "primary": 28,
+        "blankNodes": 49,
+        "quads": 164
+      },
+      "runs": [
+        {
+          "id": "default",
+          "options": {},
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "ObjectPropertyAssertion"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "NegativeObjectPropertyAssertion"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "DataPropertyAssertion"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "NegativeDataPropertyAssertion"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "SameIndividual"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "DifferentIndividuals"
+            }
+          ]
+        },
+        {
+          "id": "compatibility",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "ObjectPropertyAssertion"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "NegativeObjectPropertyAssertion"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "DataPropertyAssertion"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "NegativeDataPropertyAssertion"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "SameIndividual"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "DifferentIndividuals"
+            }
+          ]
+        },
+        {
+          "id": "strict",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "ObjectPropertyAssertion"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "NegativeObjectPropertyAssertion"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "DataPropertyAssertion"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "NegativeDataPropertyAssertion"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "SameIndividual"
+            },
+            {
+              "code": "MAPPING_EXCLUDED_AXIOM",
+              "sourceConstructor": "DifferentIndividuals"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "unresolved-authored-import",
+      "root": {
+        "documentIri": "https://documents.example/unresolved-authored-import",
+        "mediaType": "text/owl-functional",
+        "bytes": {
+          "path": "supplemental/owl-mapping/seed/unresolved-authored-import/input.ofn",
+          "sha256": "9501c7b96e5d0deaa64117b04d52c6b77435e4b2b7bf5dea60c9f4cb8b16bbfe",
+          "byteLength": 176
+        }
+      },
+      "imports": [],
+      "rules": [
+        "A9.1",
+        "A9.2",
+        "D10"
+      ],
+      "rationale": "No resolver is supplied. Compatibility retains the exact authored root import and resolved root subset, diagnosing the authored import IRI; strict fails.",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expected": {
+        "source.json": {
+          "path": "supplemental/owl-mapping/seed/unresolved-authored-import/source.json",
+          "sha256": "605d5ec7359875975a61625e5742a0be605a109cfc3cc859356786536d8f5e5e",
+          "byteLength": 572
+        },
+        "mapped.nq": {
+          "path": "supplemental/owl-mapping/seed/unresolved-authored-import/mapped.nq",
+          "sha256": "61d95bdc4d72ed60615893d4c3d4b5b266ee815dfa4ca95f2de032dedd8b8541",
+          "byteLength": 4210
+        },
+        "canonical.nq": {
+          "path": "supplemental/owl-mapping/seed/unresolved-authored-import/canonical.nq",
+          "sha256": "42906fa881c52694f9d5ae235a4cb186936edb36b37313214ecf9a2f4db99f5c",
+          "byteLength": 4352
+        },
+        "ids.json": {
+          "path": "supplemental/owl-mapping/seed/unresolved-authored-import/ids.json",
+          "sha256": "c30531a043165d6488275aeafd77a270f8e49672e24d724008dd540556c97e14",
+          "byteLength": 454
+        },
+        "canonical.json": {
+          "path": "supplemental/owl-mapping/seed/unresolved-authored-import/canonical.json",
+          "sha256": "323ec1600ccc1d87aeece39dd8173eabb5f8a5d90b72b6e992229984d777c557",
+          "byteLength": 417
+        }
+      },
+      "counts": {
+        "primary": 3,
+        "blankNodes": 13,
+        "quads": 35
+      },
+      "runs": [
+        {
+          "id": "default",
+          "options": {},
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_IMPORT_UNRESOLVED",
+              "subject": "urn:owl-seed:missing"
+            }
+          ]
+        },
+        {
+          "id": "compatibility",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_IMPORT_UNRESOLVED",
+              "subject": "urn:owl-seed:missing"
+            }
+          ]
+        },
+        {
+          "id": "strict",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1"
+          },
+          "outcome": "error",
+          "errorCode": "MAPPING_IMPORT_UNRESOLVED"
+        }
+      ]
+    },
+    {
+      "id": "known-ill-typed-literal",
+      "root": {
+        "documentIri": "https://documents.example/known-ill-typed-literal",
+        "mediaType": "text/owl-functional",
+        "bytes": {
+          "path": "supplemental/owl-mapping/seed/known-ill-typed-literal/input.ofn",
+          "sha256": "3ac8edc3e4749dbaabb466c5365928294cdd747d28e81459431b5fa3c77bc119",
+          "byteLength": 256
+        }
+      },
+      "imports": [],
+      "rules": [
+        "A9.2",
+        "D11.5",
+        "A2"
+      ],
+      "rationale": "Known integer lexical failure is checked even in an annotation. Compatibility preserves the exact ill-typed lexeme.",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expected": {
+        "source.json": {
+          "path": "supplemental/owl-mapping/seed/known-ill-typed-literal/source.json",
+          "sha256": "11145866b773062e549d1090bfde987c5cd89e9e2ac2af251e0398a711c22996",
+          "byteLength": 1231
+        },
+        "mapped.nq": {
+          "path": "supplemental/owl-mapping/seed/known-ill-typed-literal/mapped.nq",
+          "sha256": "104ebe1187c3deddc519785800d2e08a0a7e612c7e17453d15b7135dab368880",
+          "byteLength": 6901
+        },
+        "canonical.nq": {
+          "path": "supplemental/owl-mapping/seed/known-ill-typed-literal/canonical.nq",
+          "sha256": "d89a32a85b1ba5b14bbd7d9b3a9d761546ae8b568c87321b96db949db5086e8d",
+          "byteLength": 7131
+        },
+        "ids.json": {
+          "path": "supplemental/owl-mapping/seed/known-ill-typed-literal/ids.json",
+          "sha256": "9858767c2afa452ca4b205fded2f24fac9a2e225922904f0be82bd95aa9cf88e",
+          "byteLength": 1223
+        },
+        "canonical.json": {
+          "path": "supplemental/owl-mapping/seed/known-ill-typed-literal/canonical.json",
+          "sha256": "36058ec307bd580590f4a679609f16d2b4f5d70f986d2f1092600ad744ab2bc3",
+          "byteLength": 795
+        }
+      },
+      "counts": {
+        "primary": 8,
+        "blankNodes": 19,
+        "quads": 57
+      },
+      "runs": [
+        {
+          "id": "default",
+          "options": {},
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_ILL_TYPED_LITERAL"
+            }
+          ]
+        },
+        {
+          "id": "compatibility",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_ILL_TYPED_LITERAL"
+            }
+          ]
+        },
+        {
+          "id": "strict",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1"
+          },
+          "outcome": "error",
+          "errorCode": "MAPPING_ILL_TYPED_LITERAL"
+        }
+      ]
+    },
+    {
+      "id": "unverified-custom-datatype",
+      "root": {
+        "documentIri": "https://documents.example/unverified-custom-datatype",
+        "mediaType": "text/owl-functional",
+        "bytes": {
+          "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/input.ofn",
+          "sha256": "52094a3e6fd97e6a8d301a2339092f9f75e9558c9b07d15bf5af1c19752c8701",
+          "byteLength": 290
+        }
+      },
+      "imports": [],
+      "rules": [
+        "A9.2",
+        "D11.5",
+        "A2"
+      ],
+      "rationale": "A declared custom datatype does not establish lexical validity; compatibility preserves exact datatype and lexeme with the unverified code.",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expected": {
+        "source.json": {
+          "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/source.json",
+          "sha256": "dbcc153b5c17fdfd7c2deaa79795797521af85df311ce59c58173d2d30aed1f7",
+          "byteLength": 1250
+        },
+        "mapped.nq": {
+          "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/mapped.nq",
+          "sha256": "f7b8dac2fe8c78e8e78456d606a4090d0be335020963e18ee0501c0171ce7c0f",
+          "byteLength": 6899
+        },
+        "canonical.nq": {
+          "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/canonical.nq",
+          "sha256": "e9ab093951e61f32572e80db037c09ad3f36758715573e1746ed1e0fd8ee967e",
+          "byteLength": 7129
+        },
+        "ids.json": {
+          "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/ids.json",
+          "sha256": "f44315a332ea44bdfc312e7370c59e8e60b164ea7b0056587ee549cfbdb1883e",
+          "byteLength": 1237
+        },
+        "canonical.json": {
+          "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/canonical.json",
+          "sha256": "b5f97994cece455c5ae68093193bceba7da82d06c13a024ac224f12b3809b35b",
+          "byteLength": 793
+        }
+      },
+      "counts": {
+        "primary": 8,
+        "blankNodes": 19,
+        "quads": 57
+      },
+      "runs": [
+        {
+          "id": "default",
+          "options": {},
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_DATATYPE_UNVERIFIED"
+            }
+          ]
+        },
+        {
+          "id": "compatibility",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_DATATYPE_UNVERIFIED"
+            }
+          ]
+        },
+        {
+          "id": "strict",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1"
+          },
+          "outcome": "error",
+          "errorCode": "MAPPING_DATATYPE_UNVERIFIED"
+        }
+      ]
+    },
+    {
+      "id": "explicit-multiple-property-roles",
+      "root": {
+        "documentIri": "https://documents.example/explicit-multiple-property-roles",
+        "mediaType": "text/owl-functional",
+        "bytes": {
+          "path": "supplemental/owl-mapping/seed/explicit-multiple-property-roles/input.ofn",
+          "sha256": "48b737a7ce241dc1badf95b58ef9a912e3fee585d77a8c48966dfaba6810fb3c",
+          "byteLength": 302
+        }
+      },
+      "imports": [],
+      "rules": [
+        "A9.2",
+        "A2",
+        "D11.2",
+        "B2.2"
+      ],
+      "rationale": "Typed positions disambiguate each use despite the explicit object/data category collision. Compatibility preserves two roles over one named subject and distinct projections.",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expected": {
+        "source.json": {
+          "path": "supplemental/owl-mapping/seed/explicit-multiple-property-roles/source.json",
+          "sha256": "65718926807d4393e62e6386ece59331f7c4336b5fef790a625417c63ed0ba62",
+          "byteLength": 2351
+        },
+        "mapped.nq": {
+          "path": "supplemental/owl-mapping/seed/explicit-multiple-property-roles/mapped.nq",
+          "sha256": "93f74edb216c3f7f80f06f0abcecbc988b3bdeef2b79b1e30dba28c0af7505fd",
+          "byteLength": 12721
+        },
+        "canonical.nq": {
+          "path": "supplemental/owl-mapping/seed/explicit-multiple-property-roles/canonical.nq",
+          "sha256": "367c19ddf8ab119f2f9d9ae617ed2d0f6e89ecabbd0eb7a97cab054c68cf5839",
+          "byteLength": 13191
+        },
+        "ids.json": {
+          "path": "supplemental/owl-mapping/seed/explicit-multiple-property-roles/ids.json",
+          "sha256": "03a685f7ee19f93c5fe480acf6ab01a474106068c3e3be4f9007e0de5fd5e6a9",
+          "byteLength": 2641
+        },
+        "canonical.json": {
+          "path": "supplemental/owl-mapping/seed/explicit-multiple-property-roles/canonical.json",
+          "sha256": "306814d8f149906122141bdf1b6eb6629132c2a16258c33266933072c1b19c27",
+          "byteLength": 1253
+        }
+      },
+      "counts": {
+        "primary": 17,
+        "blankNodes": 31,
+        "quads": 107
+      },
+      "runs": [
+        {
+          "id": "default",
+          "options": {},
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_MULTIPLE_ROLES",
+              "subject": "https://example.org/owl-seed#p"
+            }
+          ]
+        },
+        {
+          "id": "compatibility",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_MULTIPLE_ROLES",
+              "subject": "https://example.org/owl-seed#p"
+            }
+          ]
+        },
+        {
+          "id": "strict",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1"
+          },
+          "outcome": "error",
+          "errorCode": "MAPPING_MULTIPLE_ROLES"
+        }
+      ]
+    },
+    {
+      "id": "explicit-rdfs-only-roles",
+      "root": {
+        "documentIri": "https://documents.example/explicit-rdfs-only-roles",
+        "mediaType": "text/turtle",
+        "bytes": {
+          "path": "supplemental/owl-mapping/seed/explicit-rdfs-only-roles/input.ttl",
+          "sha256": "953ffc93506ed618bd7d9c608f87e436b61304700b9db8bf2ddc4f4c1f8a6949",
+          "byteLength": 232
+        }
+      },
+      "imports": [],
+      "rules": [
+        "A9.2",
+        "A2",
+        "A4",
+        "C9"
+      ],
+      "rationale": "Explicit generic RDFS roles and their relations remain generic; compatibility must not manufacture a specific OWL property category.",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expected": {
+        "source.json": {
+          "path": "supplemental/owl-mapping/seed/explicit-rdfs-only-roles/source.json",
+          "sha256": "95c1f9d68ef680a9be1de22084354de29df2cb44dc15e5e2a8946baded4c7b5e",
+          "byteLength": 1228
+        },
+        "mapped.nq": {
+          "path": "supplemental/owl-mapping/seed/explicit-rdfs-only-roles/mapped.nq",
+          "sha256": "169eba8e8b072297efe713d51d8cfcb4994da020814cf417e64fbfc2d2430a44",
+          "byteLength": 7520
+        },
+        "canonical.nq": {
+          "path": "supplemental/owl-mapping/seed/explicit-rdfs-only-roles/canonical.nq",
+          "sha256": "dab8a887b0cc6cc63a6e5ea29cc4eddb2ff1152f9adb72e64a5a25ac810a565e",
+          "byteLength": 7788
+        },
+        "ids.json": {
+          "path": "supplemental/owl-mapping/seed/explicit-rdfs-only-roles/ids.json",
+          "sha256": "b5c3a5132ce0e6341b918d3bd8c8318468898c6bef0a8b581004666ee99091eb",
+          "byteLength": 1387
+        },
+        "canonical.json": {
+          "path": "supplemental/owl-mapping/seed/explicit-rdfs-only-roles/canonical.json",
+          "sha256": "58c7282b02187e4847f9df3dc14a22226fcd53fcc63412e8e1bd1ba79ccd0cdf",
+          "byteLength": 732
+        }
+      },
+      "counts": {
+        "primary": 9,
+        "blankNodes": 20,
+        "quads": 63
+      },
+      "runs": [
+        {
+          "id": "default",
+          "options": {},
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_RDFS_ROLE"
+            }
+          ]
+        },
+        {
+          "id": "compatibility",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_RDFS_ROLE"
+            }
+          ]
+        },
+        {
+          "id": "strict",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1"
+          },
+          "outcome": "error",
+          "errorCode": "MAPPING_RDFS_ROLE"
+        }
+      ]
+    },
+    {
+      "id": "non-simple-functional-property",
+      "root": {
+        "documentIri": "https://documents.example/non-simple-functional-property",
+        "mediaType": "text/owl-functional",
+        "bytes": {
+          "path": "supplemental/owl-mapping/seed/non-simple-functional-property/input.ofn",
+          "sha256": "24610ea2016dd53e8777308455135174fbc855ec5686ef61c184af80fe60daf5",
+          "byteLength": 271
+        }
+      },
+      "imports": [],
+      "rules": [
+        "A9.2",
+        "D21.2",
+        "OWL-11.2"
+      ],
+      "rationale": "An explicitly transitive property is non-simple and cannot occupy the functional-property position in OWL 2 DL. Compatibility retains both unambiguous characteristics without inference.",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expected": {
+        "source.json": {
+          "path": "supplemental/owl-mapping/seed/non-simple-functional-property/source.json",
+          "sha256": "d228a91bf612ed5037121d4fdca1113d51e545e338f8de11a0908f341635a2f5",
+          "byteLength": 1533
+        },
+        "mapped.nq": {
+          "path": "supplemental/owl-mapping/seed/non-simple-functional-property/mapped.nq",
+          "sha256": "4230124de48b90cf2ca2f13bc8e33c5c6c42be4eba50da24f243fc0e4f6086fb",
+          "byteLength": 8881
+        },
+        "canonical.nq": {
+          "path": "supplemental/owl-mapping/seed/non-simple-functional-property/canonical.nq",
+          "sha256": "6a98f0fee64b77928a14812d57ab1f2ec2962d96f110bd21fb3cb78a4d045ff2",
+          "byteLength": 9191
+        },
+        "ids.json": {
+          "path": "supplemental/owl-mapping/seed/non-simple-functional-property/ids.json",
+          "sha256": "ef8ac5b777962ecf788c9464687f515c354cb6105f8a7c932f46115ebd74d132",
+          "byteLength": 1707
+        },
+        "canonical.json": {
+          "path": "supplemental/owl-mapping/seed/non-simple-functional-property/canonical.json",
+          "sha256": "ed9543a1bc408b003f17d96c251462c770f7153157e897805e2f5c6ce81e0e1c",
+          "byteLength": 915
+        }
+      },
+      "counts": {
+        "primary": 11,
+        "blankNodes": 22,
+        "quads": 73
+      },
+      "runs": [
+        {
+          "id": "default",
+          "options": {},
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_GLOBAL_RESTRICTION",
+              "restrictionIdentifier": "NONSIMPLE_OBJECT_PROPERTY"
+            }
+          ]
+        },
+        {
+          "id": "compatibility",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1"
+          },
+          "outcome": "success",
+          "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/compatibility/v1",
+          "diagnostics": [
+            {
+              "code": "MAPPING_GLOBAL_RESTRICTION",
+              "restrictionIdentifier": "NONSIMPLE_OBJECT_PROPERTY"
+            }
+          ]
+        },
+        {
+          "id": "strict",
+          "options": {
+            "mappingProfile": "https://haddenindustries.com/ontology/profiles/vowl/owl-mapping/strict/v1"
+          },
+          "outcome": "error",
+          "errorCode": "MAPPING_GLOBAL_RESTRICTION"
+        }
+      ]
+    }
+  ]
+}

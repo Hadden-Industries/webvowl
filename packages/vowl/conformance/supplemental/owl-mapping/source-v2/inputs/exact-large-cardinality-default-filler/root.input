@@ -1,0 +1,6 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Ontology(
+Declaration(Class(:A))
+Declaration(ObjectProperty(:p))
+SubClassOf(:A ObjectMinCardinality(9007199254740993 :p))
+)

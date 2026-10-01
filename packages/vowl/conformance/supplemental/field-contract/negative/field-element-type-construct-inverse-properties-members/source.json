@@ -1,0 +1,86 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-A",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "subject-p",
+        "iri": "https://example.org/supplement#p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "subject-A"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "subject-p"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "domain-p",
+        "kind": "object-domain",
+        "property": "p",
+        "target": "A"
+      },
+      {
+        "id": "range-p",
+        "kind": "object-range",
+        "property": "p",
+        "target": "A"
+      },
+      {
+        "id": "inverse",
+        "kind": "inverse-properties",
+        "members": [
+          null
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "inverse-edge",
+        "kind": "inverse-edge",
+        "construct": "inverse",
+        "forward": [
+          "p"
+        ],
+        "reverse": [
+          "p"
+        ],
+        "from": "node-A",
+        "to": "node-A"
+      },
+      {
+        "id": "forward-label",
+        "kind": "label",
+        "edge": "inverse-edge",
+        "direction": "forward"
+      },
+      {
+        "id": "reverse-label",
+        "kind": "label",
+        "edge": "inverse-edge",
+        "direction": "reverse"
+      }
+    ]
+  }
+}

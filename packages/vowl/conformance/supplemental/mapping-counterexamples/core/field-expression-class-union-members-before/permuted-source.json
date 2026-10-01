@@ -1,0 +1,91 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "to": "field-permutation-3",
+        "from": "field-permutation-2",
+        "expression": "field-permutation-6",
+        "kind": "operator-edge",
+        "id": "field-permutation-1"
+      },
+      {
+        "targets": [
+          "field-permutation-6"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-2"
+      },
+      {
+        "targets": [
+          "field-permutation-7",
+          "field-permutation-8",
+          "field-permutation-9"
+        ],
+        "kind": "class-node",
+        "id": "field-permutation-3"
+      }
+    ],
+    "constructs": [
+      {
+        "dataProperties": [],
+        "objectProperties": [],
+        "class": "field-permutation-6",
+        "kind": "key",
+        "id": "field-permutation-4"
+      },
+      {
+        "members": [
+          "field-permutation-7",
+          "field-permutation-8",
+          "field-permutation-9"
+        ],
+        "kind": "equivalent-classes",
+        "id": "field-permutation-5"
+      }
+    ],
+    "expressions": [
+      {
+        "members": [
+          "field-permutation-9"
+        ],
+        "kind": "class-union",
+        "id": "field-permutation-6"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "field-permutation-10",
+        "kind": "class",
+        "id": "field-permutation-7"
+      },
+      {
+        "subject": "field-permutation-11",
+        "kind": "class",
+        "id": "field-permutation-8"
+      },
+      {
+        "subject": "field-permutation-12",
+        "kind": "class",
+        "id": "field-permutation-9"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "urn:mapping-pair:C",
+        "id": "field-permutation-10"
+      },
+      {
+        "iri": "urn:mapping-pair:B",
+        "id": "field-permutation-11"
+      },
+      {
+        "iri": "urn:mapping-pair:A",
+        "id": "field-permutation-12"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

@@ -1,0 +1,10 @@
+Prefix(:=<https://example.org/owl-seed#>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Ontology(
+Declaration(Class(:A))
+Declaration(Class(:B))
+Declaration(AnnotationProperty(:note))
+Declaration(Annotation(:note "property-declaration") ObjectProperty(:p))
+ObjectPropertyDomain(Annotation(:note "domain-A") :p :A)
+ObjectPropertyDomain(:p :B)
+)

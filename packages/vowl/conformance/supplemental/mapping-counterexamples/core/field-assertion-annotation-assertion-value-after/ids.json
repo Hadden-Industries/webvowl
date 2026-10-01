@@ -1,0 +1,107 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s:predicate-after",
+    "primaryBlankNode": "ps4",
+    "rdfcIdentifier": "c14n7",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:j",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n11",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:i",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n13",
+    "canonicalId": "s2"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:string",
+    "primaryBlankNode": "ps2",
+    "rdfcIdentifier": "c14n15",
+    "canonicalId": "s3"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:predicate-before",
+    "primaryBlankNode": "ps3",
+    "rdfcIdentifier": "c14n16",
+    "canonicalId": "s4"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "s:annotation",
+    "primaryBlankNode": "ps5",
+    "rdfcIdentifier": "c14n17",
+    "canonicalId": "s5"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "string",
+    "primaryBlankNode": "pr2",
+    "rdfcIdentifier": "c14n12",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "j",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n19",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "i",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n20",
+    "canonicalId": "r2"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "annotation",
+    "primaryBlankNode": "pr5",
+    "rdfcIdentifier": "c14n29",
+    "canonicalId": "r3"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "predicate-after",
+    "primaryBlankNode": "pr4",
+    "rdfcIdentifier": "c14n30",
+    "canonicalId": "r4"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "predicate-before",
+    "primaryBlankNode": "pr3",
+    "rdfcIdentifier": "c14n31",
+    "canonicalId": "r5"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "anchor-focus",
+    "primaryBlankNode": "pc2",
+    "rdfcIdentifier": "c14n9",
+    "canonicalId": "c0"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "anchor-supported-before",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n22",
+    "canonicalId": "c1"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "anchor-supported-after",
+    "primaryBlankNode": "pc1",
+    "rdfcIdentifier": "c14n25",
+    "canonicalId": "c2"
+  }
+]

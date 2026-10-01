@@ -1,0 +1,137 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/conditional#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/conditional#B"
+      },
+      {
+        "id": "s-q",
+        "iri": "https://example.org/conditional#q"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/conditional#p"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s-B"
+      },
+      {
+        "id": "q",
+        "kind": "object-property",
+        "subject": "s-q"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s-p"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "complex",
+        "kind": "object-some",
+        "property": "q",
+        "filler": "B"
+      }
+    ],
+    "constructs": [
+      {
+        "id": "domain-q",
+        "kind": "object-domain",
+        "property": "q",
+        "target": "A"
+      },
+      {
+        "id": "range-q",
+        "kind": "object-range",
+        "property": "q",
+        "target": "B"
+      },
+      {
+        "id": "domain-p",
+        "kind": "object-domain",
+        "property": "p",
+        "target": "complex"
+      },
+      {
+        "id": "range-p",
+        "kind": "object-range",
+        "property": "p",
+        "target": "B"
+      },
+      {
+        "id": "characteristic-functional",
+        "kind": "object-characteristic",
+        "property": "p",
+        "characteristic": "functional"
+      },
+      {
+        "id": "characteristic-inverse-functional",
+        "kind": "object-characteristic",
+        "property": "p",
+        "characteristic": "inverse-functional"
+      },
+      {
+        "id": "characteristic-symmetric",
+        "kind": "object-characteristic",
+        "property": "p",
+        "characteristic": "symmetric"
+      },
+      {
+        "id": "characteristic-transitive",
+        "kind": "object-characteristic",
+        "property": "p",
+        "characteristic": "transitive"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "edge-q",
+        "kind": "property-edge",
+        "properties": [
+          "q"
+        ],
+        "from": "node-A",
+        "to": "node-B"
+      },
+      {
+        "id": "label-edge-q-single",
+        "kind": "label",
+        "edge": "edge-q",
+        "direction": "single"
+      }
+    ]
+  }
+}

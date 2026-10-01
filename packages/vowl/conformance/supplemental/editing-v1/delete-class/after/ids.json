@@ -1,0 +1,23 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s0",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n2",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "r1",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n1",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "occurrences",
+    "sourceHandle": "node-0",
+    "primaryBlankNode": "po0",
+    "rdfcIdentifier": "c14n6",
+    "canonicalId": "o0"
+  }
+]

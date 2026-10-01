@@ -1,0 +1,51 @@
+{
+  "format": "canonical-vowl-accepted-protocol-resolution/1",
+  "authorities": [
+    {
+      "path": "docs/specs/2026-09-30-canonical-vowl-camera-error-precedence.md",
+      "sha256": "4c3f9e4be3ef17232ef37b1b465f85923938727e74465cb22e4076248a85c9e9"
+    },
+    {
+      "path": "docs/specs/2026-09-30-canonical-vowl-protocol-clarifications.md",
+      "sha256": "057bd8a3a15d5a574b753683917b871bd27bf239d9fd9ffad484550361cd84b4"
+    }
+  ],
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/accepted-protocol-v1/derive.mjs",
+      "sha256": "fcee88dbf810ad9d765e3761f96568f63ea8805adada3cf4e2fcc99466e02bb4"
+    }
+  ],
+  "corrections": {
+    "path": "supplemental/accepted-protocol-v1/camera-corrections-manifest.json",
+    "sha256": "ebe873bd2c0b96042c78252991383f42fe8d3cad2ae810431969d83a9c029ca5",
+    "byteLength": 10953
+  },
+  "priorResolution": {
+    "path": "supplemental/review-resolution-v1/review-resolution.json",
+    "sha256": "b969622b933fef82d4521ec407309e1c255b3790258cd4074dd96ef9fefd80aa"
+  },
+  "decisions": [
+    {
+      "id": "camera-positive-domain",
+      "status": "accepted-owner-clarification",
+      "consequence": "Five expected errors receive the explicit NUMBER_INVALID overlay; all original source files/records remain frozen."
+    },
+    {
+      "id": "lexical-unicode-envelope-order",
+      "status": "accepted-owner-clarification",
+      "consequence": "Unicode/JSON numeric admission occurs before canonical-envelope checks for byte decoding. Historical overlapping and isolated Unicode inputs keep their existing errors."
+    },
+    {
+      "id": "inverse-edge-endpoints",
+      "status": "accepted-owner-clarification",
+      "consequence": "from/to follows the forward partition's effective domain/range. Existing independent bytes require no change."
+    },
+    {
+      "id": "operator-edge-endpoints",
+      "status": "accepted-owner-clarification",
+      "consequence": "from is the operator node and to its drawable operand. Existing independent bytes require no change."
+    }
+  ],
+  "limitation": "Authority resolution and immutable correction derivation do not establish production execution, full conformance, or profile freeze. This supplement did not read or execute product implementation/tests."
+}

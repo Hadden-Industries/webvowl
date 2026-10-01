@@ -1,0 +1,803 @@
+{
+  "format": "canonical-vowl-negative-manifest/1",
+  "status": "independent-field-contract-early-batch",
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "amendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+    "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+    "approval": "Owner approved the exact quadratic capped work-policy amendment on 2026-09-30, as communicated by the parent integration task. Approval does not waive independent review."
+  },
+  "independence": "Mutations use only frozen independent source witnesses and normative grammar/error order. No production execution selected these expectations.",
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/field-contract/contracts.mjs",
+      "sha256": "6f8d018d17edd726c5437d9b9ed7bf677005fe55cb086e84d227b6c089858130"
+    },
+    {
+      "path": "supplemental/field-contract/support.mjs",
+      "sha256": "5a92a8a7c84a83965488258f0971540ca247ed801abaf06f8ad474fb8a398536"
+    },
+    {
+      "path": "supplemental/field-contract/derive-early.mjs",
+      "sha256": "ccbbe0de33d0033b5d31f1a99601ea468da1b9cfd4f6aab9a49f797109a48fcb"
+    }
+  ],
+  "vectors": [
+    {
+      "id": "required-ontology-imports",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_REQUIRED_FIELD",
+      "obligation": "required/Ontology/imports",
+      "descriptor": "Ontology",
+      "field": "imports",
+      "mutation": "required",
+      "sourceFixture": "empty-structural",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "sourcePointer": "/structural/ontology",
+      "input": {
+        "path": "supplemental/field-contract/early/required-ontology-imports/source.json",
+        "sha256": "22afbc179af51ba4462cebb5fd4f60fea464cb3722193fe1536fb3e28723b346",
+        "byteLength": 179
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "required-annotation-annotations",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_REQUIRED_FIELD",
+      "obligation": "required/Annotation/annotations",
+      "descriptor": "Annotation",
+      "field": "annotations",
+      "mutation": "required",
+      "sourceFixture": "annotated-class",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/annotated-class/source.json",
+        "sha256": "41bf07d3b80c074c1267c07ffb39a703cebba4064bfdb4d15251e9c5a99e4238",
+        "byteLength": 3512
+      },
+      "sourcePointer": "/structural/ontology/annotations/0",
+      "input": {
+        "path": "supplemental/field-contract/early/required-annotation-annotations/source.json",
+        "sha256": "2edbc31457f70dcfbd6c77892e9b481565bb9975aa5e374151ad39b817b092ac",
+        "byteLength": 3483
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "required-expression-object-min-cardinality-filler",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_REQUIRED_FIELD",
+      "obligation": "required/Expression:object-min-cardinality/filler",
+      "descriptor": "Expression:object-min-cardinality",
+      "field": "filler",
+      "mutation": "required",
+      "sourceFixture": "object-min-qualified-details",
+      "sourceManifest": "supplemental/conditional/manifest.json",
+      "sourceWitness": {
+        "path": "supplemental/conditional/vectors/object-min-qualified-details/source.json",
+        "sha256": "eadf04b86bcc05f3503d900867eeef4bc01effc06059369845389ded95667f6a",
+        "byteLength": 2074
+      },
+      "sourcePointer": "/structural/expressions/0",
+      "input": {
+        "path": "supplemental/field-contract/early/required-expression-object-min-cardinality-filler/source.json",
+        "sha256": "0bb7759de2dacf1131ce0444ed3c5b8d4e01f45ea97142ab3f6936c278471e4c",
+        "byteLength": 2046
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "required-construct-key-objectproperties",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_REQUIRED_FIELD",
+      "obligation": "required/Construct:key/objectProperties",
+      "descriptor": "Construct:key",
+      "field": "objectProperties",
+      "mutation": "required",
+      "sourceFixture": "equivalence-disjoint-loop-empty-key",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/equivalence-disjoint-loop-empty-key/source.json",
+        "sha256": "bfdf431b2bafcd26926bbb1c8dfc5dc07c9db3357ff2ea7054248134934c5dfc",
+        "byteLength": 1596
+      },
+      "sourcePointer": "/structural/constructs/3",
+      "input": {
+        "path": "supplemental/field-contract/early/required-construct-key-objectproperties/source.json",
+        "sha256": "fdcd88a7e2feb8233ffe3a76bc2cb8453a3deaa0b1d14f1e0d8fbef7e1924054",
+        "byteLength": 1564
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "required-occurrence-inverse-edge-forward",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_REQUIRED_FIELD",
+      "obligation": "required/Occurrence:inverse-edge/forward",
+      "descriptor": "Occurrence:inverse-edge",
+      "field": "forward",
+      "mutation": "required",
+      "sourceFixture": "singleton-inverse-self-loop",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/singleton-inverse-self-loop/source.json",
+        "sha256": "0b30fc0de104d33dad2d56cd7522c9215a2a6f1bd26eb7bbdbc72125167c06a8",
+        "byteLength": 1607
+      },
+      "sourcePointer": "/structural/occurrences/1",
+      "input": {
+        "path": "supplemental/field-contract/early/required-occurrence-inverse-edge-forward/source.json",
+        "sha256": "ca565168d1bf28736b19650c9a32330f961507603efdeaa633e7d815cdf8bf9e",
+        "byteLength": 1561
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "required-placement-pinned",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "DOCUMENT_REQUIRED_FIELD",
+      "obligation": "required/Placement/pinned",
+      "descriptor": "Placement",
+      "field": "pinned",
+      "mutation": "required",
+      "sourceFixture": "named-class-artifact",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/named-class-artifact/source.json",
+        "sha256": "b388afd18223a2a1afd83c0756f1959c9052cf227ef6038ebeedbbd23a9991b5",
+        "byteLength": 1044
+      },
+      "sourcePointer": "/visualization/placements/0",
+      "input": {
+        "path": "supplemental/field-contract/early/required-placement-pinned/source.json",
+        "sha256": "180fee0685ca5ec02074b66eb0d8f9519103715fc0991292f7a3df6c8fed419f",
+        "byteLength": 1020
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "required-camera-zoom",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "DOCUMENT_REQUIRED_FIELD",
+      "obligation": "required/Camera/zoom",
+      "descriptor": "Camera",
+      "field": "zoom",
+      "mutation": "required",
+      "sourceFixture": "empty-artifact",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/empty-artifact/source.json",
+        "sha256": "3e9d57e5ed490010c822db43375fca30d4c19fcec72de8b9acf94e173c97209f",
+        "byteLength": 557
+      },
+      "sourcePointer": "/visualization/camera",
+      "input": {
+        "path": "supplemental/field-contract/early/required-camera-zoom/source.json",
+        "sha256": "210a64bb703710397b248cecaaa693ebed7036daedddf694299ea6f800edcd7c",
+        "byteLength": 540
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "required-labelselection-language-range",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "expectedError": "DOCUMENT_REQUIRED_FIELD",
+      "obligation": "required/LabelSelection:language/range",
+      "descriptor": "LabelSelection:language",
+      "field": "range",
+      "mutation": "required",
+      "sourceFixture": "symmetric-anonymous-artifact",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/symmetric-anonymous-artifact/source.json",
+        "sha256": "d97f016546fe815c18082da8364f6b394dc3efd2430f51c0c117f5b17089f2ef",
+        "byteLength": 1539
+      },
+      "sourcePointer": "/visualization/labelSelection",
+      "input": {
+        "path": "supplemental/field-contract/early/required-labelselection-language-range/source.json",
+        "sha256": "f8f7195d195a9e71040580a09858e20394c87b46c2c86c93df0f2b6305d9bb50",
+        "byteLength": 1515
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "forbidden-literal-typed-language",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_UNKNOWN_FIELD",
+      "obligation": "forbidden/Literal:typed/language",
+      "descriptor": "Literal:typed",
+      "field": "language",
+      "mutation": "forbidden",
+      "sourceFixture": "datatype-restriction",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/datatype-restriction/source.json",
+        "sha256": "33a868e450b1bb5abb3ab53029dd9bd5a79f721ec4eb175ae7396e483ecf93fa",
+        "byteLength": 1460
+      },
+      "sourcePointer": "/structural/expressions/0/facets/0/value",
+      "input": {
+        "path": "supplemental/field-contract/early/forbidden-literal-typed-language/source.json",
+        "sha256": "c331b52b9fbbdf3b01fd1af3af25052d1059219e211b13f21c844513c6363c74",
+        "byteLength": 1492
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "forbidden-annotationvalue-language-datatype",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_UNKNOWN_FIELD",
+      "obligation": "forbidden/AnnotationValue:language/datatype",
+      "descriptor": "AnnotationValue:language",
+      "field": "datatype",
+      "mutation": "forbidden",
+      "sourceFixture": "language-i-klingon",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/language-i-klingon/source.json",
+        "sha256": "9f3f16d239a24880d9ac0137144f692cd112d66cf5dce75e6985df664313a26a",
+        "byteLength": 1267
+      },
+      "sourcePointer": "/structural/constructs/0/value",
+      "input": {
+        "path": "supplemental/field-contract/early/forbidden-annotationvalue-language-datatype/source.json",
+        "sha256": "ca7bd763ae8bb909dc24a997bb0fe1d225ac469451922dda16027cdf014ea637",
+        "byteLength": 1295
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "forbidden-context-class-properties",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_UNKNOWN_FIELD",
+      "obligation": "forbidden/Context:class/properties",
+      "descriptor": "Context:class",
+      "field": "properties",
+      "mutation": "forbidden",
+      "sourceFixture": "disjoint-generic-context",
+      "sourceManifest": "supplemental/conditional/manifest.json",
+      "sourceWitness": {
+        "path": "supplemental/conditional/vectors/disjoint-generic-context/source.json",
+        "sha256": "94d66f068b1c0c69096773cd739c19d2504b295eba9d590f6f594d2c17219249",
+        "byteLength": 1281
+      },
+      "sourcePointer": "/structural/occurrences/1/context",
+      "input": {
+        "path": "supplemental/field-contract/early/forbidden-context-class-properties/source.json",
+        "sha256": "115627f57989ec974e28842c31ab163e2c95822613ab08e47bbfebf8e5bffb77",
+        "byteLength": 1311
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "forbidden-context-property-targets",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_UNKNOWN_FIELD",
+      "obligation": "forbidden/Context:property/targets",
+      "descriptor": "Context:property",
+      "field": "targets",
+      "mutation": "forbidden",
+      "sourceFixture": "rdf-named-datatype-range",
+      "sourceManifest": "supplemental/conditional/manifest.json",
+      "sourceWitness": {
+        "path": "supplemental/conditional/vectors/rdf-named-datatype-range/source.json",
+        "sha256": "c119104e1e4f1c0f5b8331be5cd9a2283351855df70cc952f92b6e6e61c065ec",
+        "byteLength": 1664
+      },
+      "sourcePointer": "/structural/occurrences/0/context",
+      "input": {
+        "path": "supplemental/field-contract/early/forbidden-context-property-targets/source.json",
+        "sha256": "0e88cac64e1f66cd744f6ba60bb19e9dd25bea9ac1bb78d552319b3fd4a1fa2b",
+        "byteLength": 1691
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "forbidden-assertion-declaration-id",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_UNKNOWN_FIELD",
+      "obligation": "forbidden/Assertion:declaration/id",
+      "descriptor": "Assertion:declaration",
+      "field": "id",
+      "mutation": "forbidden",
+      "sourceFixture": "annotated-class",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/annotated-class/source.json",
+        "sha256": "41bf07d3b80c074c1267c07ffb39a703cebba4064bfdb4d15251e9c5a99e4238",
+        "byteLength": 3512
+      },
+      "sourcePointer": "/structural/constructs/2/assertion",
+      "input": {
+        "path": "supplemental/field-contract/early/forbidden-assertion-declaration-id/source.json",
+        "sha256": "291e9263151dc2a3cc8f5d6cfc1f82a6a808264a786ca025f7dadf08dabe1ea5",
+        "byteLength": 3534
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "forbidden-sourcestructural-profile",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_UNKNOWN_FIELD",
+      "obligation": "forbidden/SourceStructural/profile",
+      "descriptor": "SourceStructural",
+      "field": "profile",
+      "mutation": "forbidden",
+      "sourceFixture": "empty-structural",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "sourcePointer": "/",
+      "input": {
+        "path": "supplemental/field-contract/early/forbidden-sourcestructural-profile/source.json",
+        "sha256": "6b76edc5eb2e6bce3d1f89631f5437ce7be8f0270334b1c9f4a214f8c486494e",
+        "byteLength": 219
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "enum-invalid-role-kind",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_TYPE",
+      "obligation": "enum-invalid/Role/kind",
+      "descriptor": "Role",
+      "field": "kind",
+      "mutation": "enum-invalid",
+      "sourceFixture": "named-class-structural",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/named-class-structural/source.json",
+        "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+        "byteLength": 535
+      },
+      "sourcePointer": "/structural/roles/0",
+      "input": {
+        "path": "supplemental/field-contract/early/enum-invalid-role-kind/source.json",
+        "sha256": "2ab25cc07887572719cd7bb13c18107eac62d63459bbee4dae569eab193e82aa",
+        "byteLength": 558
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "enum-invalid-expression-kind",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_TYPE",
+      "obligation": "enum-invalid/Expression/kind",
+      "descriptor": "Expression:class-union",
+      "field": "kind",
+      "mutation": "enum-invalid",
+      "sourceFixture": "operator-grouped-operand-dedup",
+      "sourceManifest": "supplemental/conditional/manifest.json",
+      "sourceWitness": {
+        "path": "supplemental/conditional/vectors/operator-grouped-operand-dedup/source.json",
+        "sha256": "c84ad203af57b532115abe2c9d12b6209533d7d648106b55aceee23ae9776734",
+        "byteLength": 1980
+      },
+      "sourcePointer": "/structural/expressions/0",
+      "input": {
+        "path": "supplemental/field-contract/early/enum-invalid-expression-kind/source.json",
+        "sha256": "5f8893d5b9062c572e30ad974e7da484baa400ff650c7ad11e1056f1b18275d0",
+        "byteLength": 1997
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "enum-invalid-literal-kind",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_TYPE",
+      "obligation": "enum-invalid/Literal/kind",
+      "descriptor": "Literal:typed",
+      "field": "kind",
+      "mutation": "literal-iri",
+      "sourceFixture": "datatype-restriction",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "supplemental/grammar/vectors/datatype-restriction/source.json",
+        "sha256": "33a868e450b1bb5abb3ab53029dd9bd5a79f721ec4eb175ae7396e483ecf93fa",
+        "byteLength": 1460
+      },
+      "sourcePointer": "/structural/expressions/0/facets/0/value",
+      "input": {
+        "path": "supplemental/field-contract/early/enum-invalid-literal-kind/source.json",
+        "sha256": "b64c628391cb761fb3f719fe3e628d49c0194d39075dab6f063f1bc141ebb6a5",
+        "byteLength": 1458
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "minimum-expression-class-union-members",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_TYPE",
+      "obligation": "minimum/Expression:class-union/members",
+      "descriptor": "Expression:class-union",
+      "field": "members",
+      "mutation": "minimum",
+      "sourceFixture": "operator-grouped-operand-dedup",
+      "sourceManifest": "supplemental/conditional/manifest.json",
+      "sourceWitness": {
+        "path": "supplemental/conditional/vectors/operator-grouped-operand-dedup/source.json",
+        "sha256": "c84ad203af57b532115abe2c9d12b6209533d7d648106b55aceee23ae9776734",
+        "byteLength": 1980
+      },
+      "sourcePointer": "/structural/expressions/0",
+      "input": {
+        "path": "supplemental/field-contract/early/minimum-expression-class-union-members/source.json",
+        "sha256": "2f3070d30d1d38ce1a2174a5c6d157aa1c87d676ae2a892d249bfd7c5769be4e",
+        "byteLength": 1942
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "minimum-construct-property-chain-members",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_TYPE",
+      "obligation": "minimum/Construct:property-chain/members",
+      "descriptor": "Construct:property-chain",
+      "field": "members",
+      "mutation": "short-chain",
+      "sourceFixture": "short-chain",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/short-chain/source.json",
+        "sha256": "17ead6309ef1baf9af16da27fba43bae1984b857f3bb85e1463eaf1204a7a6c0",
+        "byteLength": 1775
+      },
+      "sourcePointer": "/structural/constructs/0",
+      "input": {
+        "path": "supplemental/field-contract/early/minimum-construct-property-chain-members/source.json",
+        "sha256": "f46bdce9acbf67fd6fcedccd87ac16cbef14d4c73209c2749a45883c0d1397cd",
+        "byteLength": 1760
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "type-role-subject",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_TYPE",
+      "obligation": "type/Role/subject",
+      "descriptor": "Role",
+      "field": "subject",
+      "mutation": "type",
+      "sourceFixture": "named-class-structural",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/named-class-structural/source.json",
+        "sha256": "5fb3584a228bd2f40a4bd3734154bffdabfccd17a23a2f5cb7d0a148a3a188b2",
+        "byteLength": 535
+      },
+      "sourcePointer": "/structural/roles/0",
+      "input": {
+        "path": "supplemental/field-contract/early/type-role-subject/source.json",
+        "sha256": "ff806d426aef066d366b79ddb1d7f98e08e86ab3c3c7e8c88ee829e8d5963b75",
+        "byteLength": 524
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "element-type-ontology-imports",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_TYPE",
+      "obligation": "element-type/Ontology/imports",
+      "descriptor": "Ontology",
+      "field": "imports",
+      "mutation": "element-type",
+      "sourceFixture": "empty-structural",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "sourcePointer": "/structural/ontology",
+      "input": {
+        "path": "supplemental/field-contract/early/element-type-ontology-imports/source.json",
+        "sha256": "947eb4d5af27cbbbe4ff0cc9342330392114a1e2d2f2bdaefa19910a6bd4cd39",
+        "byteLength": 220
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "precedence-ontology-required-before-forbidden",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_REQUIRED_FIELD",
+      "obligation": "precedence/Ontology/required-before-forbidden",
+      "descriptor": "Ontology",
+      "field": "imports",
+      "mutation": "required-before-forbidden",
+      "sourceFixture": "empty-structural",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "sourcePointer": "/structural/ontology",
+      "input": {
+        "path": "supplemental/field-contract/early/precedence-ontology-required-before-forbidden/source.json",
+        "sha256": "728df6af681cbecb9af11775afe3fdbeef681abef83fc4ceeb7614ebf175f9c9",
+        "byteLength": 210
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    },
+    {
+      "id": "precedence-ontology-forbidden-before-type",
+      "operation": "canonicalize",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "expectedError": "DOCUMENT_UNKNOWN_FIELD",
+      "obligation": "precedence/Ontology/forbidden-before-type",
+      "descriptor": "Ontology",
+      "field": "imports",
+      "mutation": "forbidden-before-type",
+      "sourceFixture": "empty-structural",
+      "sourceManifest": "supplemental/amended-policy/manifest.json",
+      "sourceWitness": {
+        "path": "vectors/empty-structural/source.json",
+        "sha256": "49610c200e5f6acc91f73945fce03b3272b293103c62f00e114ad2a34ab1da65",
+        "byteLength": 200
+      },
+      "sourcePointer": "/structural/ontology",
+      "input": {
+        "path": "supplemental/field-contract/early/precedence-ontology-forbidden-before-type/source.json",
+        "sha256": "811c9a78302cd726c0a3252a0bda3552cc4c526d6a3af2cefc0125c06a580787",
+        "byteLength": 233
+      },
+      "rules": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B3",
+        "A7"
+      ],
+      "status": "independently-selected-early-grammar-expectation-pending-review"
+    }
+  ]
+}

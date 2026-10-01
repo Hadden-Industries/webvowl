@@ -1,0 +1,137 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/o#p"
+      },
+      {
+        "id": "s-q",
+        "iri": "https://example.org/o#q"
+      },
+      {
+        "id": "field-anchor-1",
+        "iri": "urn:field-contract:annotation"
+      },
+      {
+        "id": "field-anchor-3",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      }
+    ],
+    "roles": [
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "s-Thing"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s-p"
+      },
+      {
+        "id": "q",
+        "kind": "object-property",
+        "subject": "s-q"
+      },
+      {
+        "id": "field-anchor-2",
+        "kind": "annotation-property",
+        "subject": "field-anchor-1"
+      },
+      {
+        "id": "field-anchor-4",
+        "kind": "datatype",
+        "subject": "field-anchor-3"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "chain",
+        "kind": "property-chain",
+        "members": [
+          "p",
+          "q"
+        ],
+        "super": "p"
+      },
+      {
+        "id": "field-anchor-5",
+        "kind": "assertion-anchor",
+        "assertion": {
+          "kind": "property-chain",
+          "members": [
+            "p",
+            "q"
+          ],
+          "super": "p"
+        },
+        "annotations": [
+          {
+            "predicate": "urn:field-contract:annotation",
+            "value": {
+              "kind": "typed",
+              "lexical": "property-chain anchor",
+              "datatype": "http://www.w3.org/2001/XMLSchema#string"
+            },
+            "annotations": []
+          }
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "generic-loop",
+        "kind": "class-node",
+        "targets": [
+          "Thing"
+        ],
+        "context": {
+          "kind": "class",
+          "targets": [
+            "Thing"
+          ]
+        }
+      },
+      {
+        "id": "edge-p",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "generic-loop",
+        "to": "generic-loop"
+      },
+      {
+        "id": "label-edge-p",
+        "kind": "label",
+        "edge": "edge-p",
+        "direction": "single"
+      },
+      {
+        "id": "edge-q",
+        "kind": "property-edge",
+        "properties": [
+          "q"
+        ],
+        "from": "generic-loop",
+        "to": "generic-loop"
+      },
+      {
+        "id": "label-edge-q",
+        "kind": "label",
+        "edge": "edge-q",
+        "direction": "single"
+      }
+    ]
+  }
+}

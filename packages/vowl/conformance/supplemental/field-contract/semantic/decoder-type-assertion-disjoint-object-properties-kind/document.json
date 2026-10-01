@@ -1,0 +1,186 @@
+{
+  "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+  "structural": {
+    "constructs": [
+      {
+        "annotations": [
+          {
+            "annotations": [],
+            "predicate": "urn:field-contract:annotation",
+            "value": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#string",
+              "kind": "typed",
+              "lexical": "disjoint-object-properties anchor"
+            }
+          }
+        ],
+        "assertion": {
+          "kind": null,
+          "members": [
+            "r4",
+            "r5"
+          ]
+        },
+        "id": "c1",
+        "kind": "assertion-anchor"
+      },
+      {
+        "id": "c0",
+        "kind": "disjoint-object-properties",
+        "members": [
+          "r4",
+          "r5"
+        ]
+      },
+      {
+        "id": "c2",
+        "kind": "object-range",
+        "property": "r4",
+        "target": "r3"
+      },
+      {
+        "id": "c3",
+        "kind": "object-range",
+        "property": "r5",
+        "target": "r1"
+      },
+      {
+        "id": "c4",
+        "kind": "object-domain",
+        "property": "r5",
+        "target": "r6"
+      },
+      {
+        "id": "c5",
+        "kind": "object-domain",
+        "property": "r4",
+        "target": "r1"
+      }
+    ],
+    "expressions": [],
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "o3",
+        "id": "o4",
+        "kind": "label"
+      },
+      {
+        "direction": "single",
+        "edge": "o5",
+        "id": "o6",
+        "kind": "label"
+      },
+      {
+        "from": "o0",
+        "id": "o5",
+        "kind": "property-edge",
+        "properties": [
+          "r4"
+        ],
+        "to": "o1"
+      },
+      {
+        "from": "o2",
+        "id": "o3",
+        "kind": "property-edge",
+        "properties": [
+          "r5"
+        ],
+        "to": "o0"
+      },
+      {
+        "id": "o0",
+        "kind": "class-node",
+        "targets": [
+          "r1"
+        ]
+      },
+      {
+        "id": "o1",
+        "kind": "class-node",
+        "targets": [
+          "r3"
+        ]
+      },
+      {
+        "id": "o2",
+        "kind": "class-node",
+        "targets": [
+          "r6"
+        ]
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    },
+    "roles": [
+      {
+        "id": "r0",
+        "kind": "datatype",
+        "subject": "s5"
+      },
+      {
+        "id": "r1",
+        "kind": "class",
+        "subject": "s1"
+      },
+      {
+        "id": "r2",
+        "kind": "annotation-property",
+        "subject": "s6"
+      },
+      {
+        "id": "r3",
+        "kind": "class",
+        "subject": "s2"
+      },
+      {
+        "id": "r4",
+        "kind": "object-property",
+        "subject": "s4"
+      },
+      {
+        "id": "r5",
+        "kind": "object-property",
+        "subject": "s0"
+      },
+      {
+        "id": "r6",
+        "kind": "class",
+        "subject": "s3"
+      }
+    ],
+    "subjects": [
+      {
+        "id": "s0",
+        "iri": "https://example.org/supplement#p"
+      },
+      {
+        "id": "s1",
+        "iri": "https://example.org/supplement#B"
+      },
+      {
+        "id": "s2",
+        "iri": "https://example.org/supplement#C"
+      },
+      {
+        "id": "s3",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "s4",
+        "iri": "https://example.org/supplement#q"
+      },
+      {
+        "id": "s5",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      },
+      {
+        "id": "s6",
+        "iri": "urn:field-contract:annotation"
+      }
+    ]
+  }
+}

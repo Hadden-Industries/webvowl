@@ -1,0 +1,4013 @@
+{
+  "format": "canonical-vowl-conformance-manifest/1",
+  "specificationRevision": [
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design.md",
+      "sha256": "174535bb8cb43f317631f0799721adebfbbc4ceff4d577595be8fb91dd940fac"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-core-contract.md",
+      "sha256": "711ba30c291cfb0960334328203188600f60a331996e83379267a4a77b87988d"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-projection-contract.md",
+      "sha256": "4c1cf6a7e187f98d40d390e6ff0b5354aca46a8ff195fba5b6badace7eb6078b"
+    },
+    {
+      "path": "docs/specs/2026-09-24-canonical-vowl-design-decisions.md",
+      "sha256": "f314ec3448f2cf87f73ce6ce8871f3695d4b3b26dee687383b36e36a4fc0a43e"
+    }
+  ],
+  "amendment": {
+    "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
+    "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
+    "approval": "Owner approved the exact quadratic capped work-policy amendment on 2026-09-30, as communicated by the parent integration task. Approval does not waive independent review."
+  },
+  "policy": {
+    "formula": "min(totalAllocatedBlankNodes ** 2, rdfDeepIterations)",
+    "defaultRdfDeepIterations": 100000,
+    "upperCallerOverride": 1000000,
+    "defaultDeadlineMs": 10000,
+    "zeroOverrideAllowed": true,
+    "fallbackAllowed": false
+  },
+  "dependencies": {
+    "rdf-canonize": "5.0.0",
+    "canonicalize": "5.1.0"
+  },
+  "comparisonRules": {
+    "mapped.nq": "RDF dataset isomorphism; private labels/order are not contractual.",
+    "canonical.nq": "Exact canonical N-Quads bytes.",
+    "canonical.json": "Exact complete JCS bytes.",
+    "ids.json": "Informative derivation only; symmetric handle correspondences are not contractual."
+  },
+  "sourceArtifacts": [
+    {
+      "path": "supplemental/mapping-counterexamples/support.mjs",
+      "sha256": "5c9853e352f41d12b2ca46eadd5e02eda13d3b782e129c94257720e1bab1ce9a"
+    },
+    {
+      "path": "supplemental/mapping-counterexamples/model.mjs",
+      "sha256": "3a4ebd134c1d209f84cf9c54072988a7e712f12286e95d35edec4d20f600bfc5"
+    },
+    {
+      "path": "supplemental/mapping-counterexamples/value-state-pairs.mjs",
+      "sha256": "550188a66591a036cbcbf65c2646fdec2979120a84a20fc6656ed814c8b13853"
+    },
+    {
+      "path": "supplemental/mapping-counterexamples/derive-values-state.mjs",
+      "sha256": "4b007d5bc50e2861694460f04d4234c73fdaaa1d91d6e3f4801e97c640f90fbc"
+    }
+  ],
+  "pairInventory": {
+    "path": "supplemental/mapping-counterexamples/value-state-pair-inventory.json",
+    "sha256": "6a724acc8ba8932ad038cd3dd41c742e2dd8252f50735ba7c30c103dbfeb7381",
+    "byteLength": 122345
+  },
+  "vectors": [
+    {
+      "id": "ontology-iri-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "ontology-iri",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 19,
+        "quads": 56
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-iri-before/source.json",
+          "sha256": "8237e08ae7c9a6681f44dfcc57a0ce9576f33742c6891d1eb374d6ade4a3c151",
+          "byteLength": 1218
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-iri-before/permuted-source.json",
+          "sha256": "268ed659f3a1a1b1345998aacc04993d54230e1b4cc3a3ae0a0a360b03249742",
+          "byteLength": 1422
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-iri-before/mapped.nq",
+          "sha256": "6991ebce3140f85e79d275c28ef509b5976e55d3c8435fc29ddc9052cd67cd57",
+          "byteLength": 6717
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-iri-before/canonical.nq",
+          "sha256": "37abb370971ce1c711f261808ec57f4434fcd79fec315a396f28eb0675ab0d4b",
+          "byteLength": 6946
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-iri-before/ids.json",
+          "sha256": "9888f983f54af1b0562eea0f2caec3c36cfffc75086f47f6307cd0d14ed4206c",
+          "byteLength": 1517
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-iri-before/canonical.json",
+          "sha256": "241ae9e15951c08edf9b90d34d8aaaf464433fc0aa0492cc9c13c507d9cf60c3",
+          "byteLength": 787
+        }
+      }
+    },
+    {
+      "id": "ontology-iri-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "ontology-iri",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 19,
+        "quads": 56
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-iri-after/source.json",
+          "sha256": "c190ec015ad11f9f57aee64915efd9b4d3dc32223a5c9819ba504225ea92f2fa",
+          "byteLength": 1217
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-iri-after/permuted-source.json",
+          "sha256": "3f33d1bc1abd7ea5c8e18008386e2d7da587bdffc6750839361633f07751fcf9",
+          "byteLength": 1421
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-iri-after/mapped.nq",
+          "sha256": "43ab955438a082164c9ab70359b527450a5b402381cd2df869433d9ab5eac8c5",
+          "byteLength": 6716
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-iri-after/canonical.nq",
+          "sha256": "3e51014d0d669df0c6f58d80ecfcd92a89ea345e3cda92aa21f67b44e438bbc2",
+          "byteLength": 6948
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-iri-after/ids.json",
+          "sha256": "042c44d11655d518c665228a50e09a1858590761e0ff9f1c6dacf62ef92ef3ec",
+          "byteLength": 1517
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-iri-after/canonical.json",
+          "sha256": "bd62ca7a9f20510aeaa6f292e7834e09373560edaecf967a287056daa66b030d",
+          "byteLength": 786
+        }
+      }
+    },
+    {
+      "id": "ontology-versionIri-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "ontology-versionIri",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 19,
+        "quads": 56
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-versionIri-before/source.json",
+          "sha256": "e712785ee7bdef4d9bd10b12f19ee5dcb2c0e55ae35d5e499028dfe0b0830620",
+          "byteLength": 1211
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-versionIri-before/permuted-source.json",
+          "sha256": "9bfadfb82ddc79d3dbb8d14d590c2ed74a33c8b8cbf934cc944e6c23d29ae669",
+          "byteLength": 1415
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-versionIri-before/mapped.nq",
+          "sha256": "62428277868146836fcbdbd4805329538c917a5cd2e323551a140e6a4d32560d",
+          "byteLength": 6710
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-versionIri-before/canonical.nq",
+          "sha256": "853adbdd0c5909899c86e9d0427738f5e98a923ab1b1bfb965ad6ec8c49ef600",
+          "byteLength": 6942
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-versionIri-before/ids.json",
+          "sha256": "7b099d318d612f2569743813c8b78c776634aff7466ed63659a7fec6c239ab17",
+          "byteLength": 1517
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-versionIri-before/canonical.json",
+          "sha256": "4f7046ad5c25da4cd76e2a71c67025295bc4b977b1a88f42ad206a490c5303b9",
+          "byteLength": 780
+        }
+      }
+    },
+    {
+      "id": "ontology-versionIri-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "ontology-versionIri",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 19,
+        "quads": 57
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-versionIri-after/source.json",
+          "sha256": "a3b3c71c6a68380f14be1f2fb2789fd09bee65accb98d7346045e57d299f0151",
+          "byteLength": 1259
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-versionIri-after/permuted-source.json",
+          "sha256": "7fa2585e5ca577586152f8c04b9bd187a753624937486f186eca7dad15ebeb53",
+          "byteLength": 1463
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-versionIri-after/mapped.nq",
+          "sha256": "14c9c41ba338f229b07ef82ac1b4c5d91417c4515cd64acad5ca70e17b7bf50a",
+          "byteLength": 6827
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-versionIri-after/canonical.nq",
+          "sha256": "97ec2560b6b5a2a0367caea857e81bd839deb54752f8c05a453264f2e8e2acbf",
+          "byteLength": 7059
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-versionIri-after/ids.json",
+          "sha256": "174221515d940ae128090fbaa8301f9b33eaca6777b57e1d99fdc4e2882e88f9",
+          "byteLength": 1517
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-versionIri-after/canonical.json",
+          "sha256": "6f1822dd0ef1243b127f38a4d133988efd2d7bc9187a8593a1cdcc4eca44eb84",
+          "byteLength": 820
+        }
+      }
+    },
+    {
+      "id": "ontology-imports-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "ontology-imports",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 19,
+        "quads": 56
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-imports-before/source.json",
+          "sha256": "e712785ee7bdef4d9bd10b12f19ee5dcb2c0e55ae35d5e499028dfe0b0830620",
+          "byteLength": 1211
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-imports-before/permuted-source.json",
+          "sha256": "9bfadfb82ddc79d3dbb8d14d590c2ed74a33c8b8cbf934cc944e6c23d29ae669",
+          "byteLength": 1415
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-imports-before/mapped.nq",
+          "sha256": "62428277868146836fcbdbd4805329538c917a5cd2e323551a140e6a4d32560d",
+          "byteLength": 6710
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-imports-before/canonical.nq",
+          "sha256": "853adbdd0c5909899c86e9d0427738f5e98a923ab1b1bfb965ad6ec8c49ef600",
+          "byteLength": 6942
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-imports-before/ids.json",
+          "sha256": "7b099d318d612f2569743813c8b78c776634aff7466ed63659a7fec6c239ab17",
+          "byteLength": 1517
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-imports-before/canonical.json",
+          "sha256": "4f7046ad5c25da4cd76e2a71c67025295bc4b977b1a88f42ad206a490c5303b9",
+          "byteLength": 780
+        }
+      }
+    },
+    {
+      "id": "ontology-imports-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "ontology-imports",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 19,
+        "quads": 57
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-imports-after/source.json",
+          "sha256": "7ad59b7daabe889051a5897931fe5c1a23ed14451f24c515dd4fa5c15b4b71b2",
+          "byteLength": 1252
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-imports-after/permuted-source.json",
+          "sha256": "3ad9f500993fb91e7834260d8940f46faa61925fa07f72a1ea20052563c1552e",
+          "byteLength": 1456
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-imports-after/mapped.nq",
+          "sha256": "9232d0db9dd9c4d005bf522baf3af7d1fe1f670b380735cd56fcd97007712de6",
+          "byteLength": 6816
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-imports-after/canonical.nq",
+          "sha256": "f2a5e377fa742ecfb4a6741ddda83d6c6e10a528b812f174f79a352d91f2bc8c",
+          "byteLength": 7051
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-imports-after/ids.json",
+          "sha256": "7b099d318d612f2569743813c8b78c776634aff7466ed63659a7fec6c239ab17",
+          "byteLength": 1517
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-imports-after/canonical.json",
+          "sha256": "c3b6e393bbf0829be3f5e844444fcdaa5f11a90ab3a55a56c14694c32ce2238f",
+          "byteLength": 805
+        }
+      }
+    },
+    {
+      "id": "ontology-annotations-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "ontology-annotations",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 19,
+        "quads": 56
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-annotations-before/source.json",
+          "sha256": "e712785ee7bdef4d9bd10b12f19ee5dcb2c0e55ae35d5e499028dfe0b0830620",
+          "byteLength": 1211
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-annotations-before/permuted-source.json",
+          "sha256": "9bfadfb82ddc79d3dbb8d14d590c2ed74a33c8b8cbf934cc944e6c23d29ae669",
+          "byteLength": 1415
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-annotations-before/mapped.nq",
+          "sha256": "62428277868146836fcbdbd4805329538c917a5cd2e323551a140e6a4d32560d",
+          "byteLength": 6710
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-annotations-before/canonical.nq",
+          "sha256": "853adbdd0c5909899c86e9d0427738f5e98a923ab1b1bfb965ad6ec8c49ef600",
+          "byteLength": 6942
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-annotations-before/ids.json",
+          "sha256": "7b099d318d612f2569743813c8b78c776634aff7466ed63659a7fec6c239ab17",
+          "byteLength": 1517
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-annotations-before/canonical.json",
+          "sha256": "4f7046ad5c25da4cd76e2a71c67025295bc4b977b1a88f42ad206a490c5303b9",
+          "byteLength": 780
+        }
+      }
+    },
+    {
+      "id": "ontology-annotations-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "ontology-annotations",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 66
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-annotations-after/source.json",
+          "sha256": "b2233d032d4793bf45080b781a5f3be1ac3545dd4046f769e9aea389d3a5e60b",
+          "byteLength": 1482
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-annotations-after/permuted-source.json",
+          "sha256": "ae255444e5cd75d851f1a9df0722b165813046a7855d860bf2c428280c8bd303",
+          "byteLength": 1686
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-annotations-after/mapped.nq",
+          "sha256": "a2252e999c122443452b48f7ee42bb50f5d6fc5b86fd86925860eebf8f3c88ee",
+          "byteLength": 7892
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-annotations-after/canonical.nq",
+          "sha256": "82562e9824116ccd70592c4856470c81a674138e705eaf0e0d28e7ae3f8d7901",
+          "byteLength": 8162
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-annotations-after/ids.json",
+          "sha256": "db41133493ce09f245b824564b4bdad47a7cdb4301bdce939d7d98b3df48c167",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/ontology-annotations-after/canonical.json",
+          "sha256": "700523a19118af7af7f5bf3e8170fd2d02f4a119ad2fd64ca84d77b6a54c6ddc",
+          "byteLength": 937
+        }
+      }
+    },
+    {
+      "id": "subject-absent-versus-iri-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "subject-absent-versus-iri",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 2,
+        "blankNodes": 11,
+        "quads": 26
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-before/source.json",
+          "sha256": "4750ed9267f20c68ddf59d13c194660cc1627f287f91d7354567d1d018ee6547",
+          "byteLength": 336
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-before/permuted-source.json",
+          "sha256": "63a76eabdb17ac3fba6c12badf2521a516b2f6b61a5d1da907b76cce68515d89",
+          "byteLength": 386
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-before/mapped.nq",
+          "sha256": "d005f590473b5d0bea5fc332a9bd62c368aaac2365257b129db420e09109b245",
+          "byteLength": 3194
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-before/canonical.nq",
+          "sha256": "39267fb0adc1e21f949ab26d464961e1f74601c31f6667ed0bf2872e86103330",
+          "byteLength": 3300
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-before/ids.json",
+          "sha256": "638d042263a715001b4da81f8d7f0b7b257750e4f6dcf5e31d874a60a7d942e3",
+          "byteLength": 298
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-before/canonical.json",
+          "sha256": "b21b13fff20c25a5e4f1c4d7b91a85e58317a5dc00279c09c6791d65153f56eb",
+          "byteLength": 287
+        }
+      }
+    },
+    {
+      "id": "subject-absent-versus-iri-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "subject-absent-versus-iri",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 2,
+        "blankNodes": 11,
+        "quads": 27
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-after/source.json",
+          "sha256": "295fa6a10da1ba2e14871a0eebe0658ffd99655ff19636ca5d4ab51062484727",
+          "byteLength": 388
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-after/permuted-source.json",
+          "sha256": "568343f2bf49415d3bf06edb186a5090d4aded566e0ccceeee6f73d5a9547010",
+          "byteLength": 438
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-after/mapped.nq",
+          "sha256": "a5977e2fc95313f308a27bd21d4446c0949b30bdec4cdfb969f706b9d725d9dd",
+          "byteLength": 3314
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-after/canonical.nq",
+          "sha256": "531b4b52157b596352c66506a8ef73924807e765ab7404d0ffb1f8ed72d3f994",
+          "byteLength": 3422
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-after/ids.json",
+          "sha256": "4daeaec0d218cb167f25a427a7ecb3af6520adf1304bda7f9b01ac75b616f437",
+          "byteLength": 298
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/subject-absent-versus-iri-after/canonical.json",
+          "sha256": "908662eef7a2f3412409adb37e6352fc5b7cdc166ab96f30983fe61d43f94575",
+          "byteLength": 329
+        }
+      }
+    },
+    {
+      "id": "role-subject-with-distinct-punned-subjects-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "role-subject-with-distinct-punned-subjects",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 16,
+        "quads": 44
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/role-subject-with-distinct-punned-subjects-before/source.json",
+          "sha256": "94353421f4b2ae387f4e8915597086bd85a01bef27b20cae5dc7c267649ad139",
+          "byteLength": 752
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/role-subject-with-distinct-punned-subjects-before/permuted-source.json",
+          "sha256": "1cfa06f0fe4df3fa6ff6448a3a5455f11e1b53ff968dbe2f4a09123f44855894",
+          "byteLength": 909
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/role-subject-with-distinct-punned-subjects-before/mapped.nq",
+          "sha256": "eef888221a14c58f6a1fa1eb82c4e7093ebdc04e749e3f159da1e35b734ecbe1",
+          "byteLength": 5275
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/role-subject-with-distinct-punned-subjects-before/canonical.nq",
+          "sha256": "7a01e125ee4143a91b2c6ce5899f21c9f362123837e5596d935c5513ad7b61e7",
+          "byteLength": 5457
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/role-subject-with-distinct-punned-subjects-before/ids.json",
+          "sha256": "a0b9a3bedbd55999e21400b0929c5d6b04841cec7b1144b4dc8ac8d0affe163e",
+          "byteLength": 900
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/role-subject-with-distinct-punned-subjects-before/canonical.json",
+          "sha256": "30facb440ed1e5aa3f77bfdfa949743c211963e40e153e3e6884bd143a9874d7",
+          "byteLength": 490
+        }
+      }
+    },
+    {
+      "id": "role-subject-with-distinct-punned-subjects-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "role-subject-with-distinct-punned-subjects",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 16,
+        "quads": 44
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/role-subject-with-distinct-punned-subjects-after/source.json",
+          "sha256": "fa6110029a18ac62ac5787fe147ddb080e80ce0fe0d67a2068a9201a759ac75c",
+          "byteLength": 752
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/role-subject-with-distinct-punned-subjects-after/permuted-source.json",
+          "sha256": "bce4160c9ea2eae1002554b81d0a817b2b12d19ced7292a17e70b4ece5a0a8fe",
+          "byteLength": 909
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/role-subject-with-distinct-punned-subjects-after/mapped.nq",
+          "sha256": "416bd77be9483f44e0fa35bfdc4a6ae9dea13b432e78948b5a381dae32e5136c",
+          "byteLength": 5275
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/role-subject-with-distinct-punned-subjects-after/canonical.nq",
+          "sha256": "22f50c5871ccd4440f7b48af70adcca582909b9dc99e7751b2b4b8989ccac3ff",
+          "byteLength": 5457
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/role-subject-with-distinct-punned-subjects-after/ids.json",
+          "sha256": "6d1bdb61ab0fffd268b052b094524c93a21547edaf83094df1c831f56e432b0a",
+          "byteLength": 900
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/role-subject-with-distinct-punned-subjects-after/canonical.json",
+          "sha256": "811b921ba2bbcf58109c614e499042609aa4b9b7dfe401dcd55f6342bfd33d02",
+          "byteLength": 490
+        }
+      }
+    },
+    {
+      "id": "annotation-predicate-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-predicate",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 65
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-predicate-before/source.json",
+          "sha256": "983dab9ff1dcdc07dcc05b0880e894a52b34b7fd072e30ed9b4582746ebd562f",
+          "byteLength": 1444
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-predicate-before/permuted-source.json",
+          "sha256": "ce9910c0c5e4a49c7c18474b34352f7fb5c0268ecbd6bb0abeb41c48a414f3ef",
+          "byteLength": 1648
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-predicate-before/mapped.nq",
+          "sha256": "e5d82db6c93f91c8061c1d6e35afe32db804d787db8744f879cc8b12f3221c22",
+          "byteLength": 7785
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-predicate-before/canonical.nq",
+          "sha256": "00d10cddeef8b84529e1ce235a4691444c98c50896725f5fc6f607858a6a97a8",
+          "byteLength": 8049
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-predicate-before/ids.json",
+          "sha256": "78b66a528a3aea258bba6bee5b2bf16c4a47e637c3869ccaf20223a80630ba81",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-predicate-before/canonical.json",
+          "sha256": "ebadcc33feaeac8f513c360271806a46b72dc1480e0c87ab8bb67c61748ccbe8",
+          "byteLength": 907
+        }
+      }
+    },
+    {
+      "id": "annotation-predicate-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-predicate",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 65
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-predicate-after/source.json",
+          "sha256": "c134b70a9910a5689cd2492b2c9d6e36763ac671d97536ca00eeb2ab73f8ae78",
+          "byteLength": 1450
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-predicate-after/permuted-source.json",
+          "sha256": "a4c93ea7de3cbc566a28f270daffbb42ed69e3ff09587d46daf2c1ca4ba48c2a",
+          "byteLength": 1654
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-predicate-after/mapped.nq",
+          "sha256": "a942bd596f635a0f9cba36569c1a940a1281b76ec80203ec0a60d998fdb73387",
+          "byteLength": 7791
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-predicate-after/canonical.nq",
+          "sha256": "24947dd984375bfe9de4fde7cc4aebaad9a5d7bdaed18daa4ed10dad9a5646f3",
+          "byteLength": 8055
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-predicate-after/ids.json",
+          "sha256": "78b66a528a3aea258bba6bee5b2bf16c4a47e637c3869ccaf20223a80630ba81",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-predicate-after/canonical.json",
+          "sha256": "989e066a4b864314d1e3bf388f0a8a1b57370c0a9e199d4f4913247c3c9dd6ea",
+          "byteLength": 913
+        }
+      }
+    },
+    {
+      "id": "annotation-value-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-value",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 65
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-before/source.json",
+          "sha256": "983dab9ff1dcdc07dcc05b0880e894a52b34b7fd072e30ed9b4582746ebd562f",
+          "byteLength": 1444
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-before/permuted-source.json",
+          "sha256": "ce9910c0c5e4a49c7c18474b34352f7fb5c0268ecbd6bb0abeb41c48a414f3ef",
+          "byteLength": 1648
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-before/mapped.nq",
+          "sha256": "e5d82db6c93f91c8061c1d6e35afe32db804d787db8744f879cc8b12f3221c22",
+          "byteLength": 7785
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-before/canonical.nq",
+          "sha256": "00d10cddeef8b84529e1ce235a4691444c98c50896725f5fc6f607858a6a97a8",
+          "byteLength": 8049
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-before/ids.json",
+          "sha256": "78b66a528a3aea258bba6bee5b2bf16c4a47e637c3869ccaf20223a80630ba81",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-before/canonical.json",
+          "sha256": "ebadcc33feaeac8f513c360271806a46b72dc1480e0c87ab8bb67c61748ccbe8",
+          "byteLength": 907
+        }
+      }
+    },
+    {
+      "id": "annotation-value-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-value",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 65
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-after/source.json",
+          "sha256": "ec93e75a98e34fe6b53a0f01ecf9fd1dda95951ff8a094c18f492c9053ab9847",
+          "byteLength": 1443
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-after/permuted-source.json",
+          "sha256": "39bfb558b678abace0ee04c84891e669aabf056042a9fd2528f36d2082fee490",
+          "byteLength": 1647
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-after/mapped.nq",
+          "sha256": "dc7da7071aa006d3fbd5eb8bcba7ccd5bbbc8527ff26a43624e05543cb861b6d",
+          "byteLength": 7784
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-after/canonical.nq",
+          "sha256": "4a3aa4f5d5a378de2ec862c8c20c46031a40bcc6c12e39e6b5350590f02406cc",
+          "byteLength": 8048
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-after/ids.json",
+          "sha256": "e262a739a2eb73ec4384d6e16e3c16dcfcc9224e80c4777723ddb12b9b5690d0",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-after/canonical.json",
+          "sha256": "642bca560c981fe30fa965aa88d0289bee8db1c6b7dbf0313d499f1d4d9edb3f",
+          "byteLength": 906
+        }
+      }
+    },
+    {
+      "id": "annotation-annotations-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-annotations",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 65
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-annotations-before/source.json",
+          "sha256": "983dab9ff1dcdc07dcc05b0880e894a52b34b7fd072e30ed9b4582746ebd562f",
+          "byteLength": 1444
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-annotations-before/permuted-source.json",
+          "sha256": "ce9910c0c5e4a49c7c18474b34352f7fb5c0268ecbd6bb0abeb41c48a414f3ef",
+          "byteLength": 1648
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-annotations-before/mapped.nq",
+          "sha256": "e5d82db6c93f91c8061c1d6e35afe32db804d787db8744f879cc8b12f3221c22",
+          "byteLength": 7785
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-annotations-before/canonical.nq",
+          "sha256": "00d10cddeef8b84529e1ce235a4691444c98c50896725f5fc6f607858a6a97a8",
+          "byteLength": 8049
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-annotations-before/ids.json",
+          "sha256": "78b66a528a3aea258bba6bee5b2bf16c4a47e637c3869ccaf20223a80630ba81",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-annotations-before/canonical.json",
+          "sha256": "ebadcc33feaeac8f513c360271806a46b72dc1480e0c87ab8bb67c61748ccbe8",
+          "byteLength": 907
+        }
+      }
+    },
+    {
+      "id": "annotation-annotations-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-annotations",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 25,
+        "quads": 75
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-annotations-after/source.json",
+          "sha256": "5e855d9efe85212a58cea261418367f52aa67c38244346221c00ce9fd050c392",
+          "byteLength": 1755
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-annotations-after/permuted-source.json",
+          "sha256": "3bbdb0d19f32f89e5b3221fd1a8cc0aef3cc18812292d7f4cc9890054ce32459",
+          "byteLength": 1959
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-annotations-after/mapped.nq",
+          "sha256": "66d77580628359f18e306153f62c5a1f9fd9b825d2dc4412177180c315e37187",
+          "byteLength": 8965
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-annotations-after/canonical.nq",
+          "sha256": "2a659c9bc07f5387d0fb147f373dd53278795fd83072650e12520238d5ea35bb",
+          "byteLength": 9271
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-annotations-after/ids.json",
+          "sha256": "f0130f0b7e247362c1a1740714377ec2369564bdd6eae1626e4e2d97b33e5158",
+          "byteLength": 1517
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-annotations-after/canonical.json",
+          "sha256": "399eec183f64faad509e933bdab1cf9e371b2014c40411cab5d0b0ba16df46d5",
+          "byteLength": 1064
+        }
+      }
+    },
+    {
+      "id": "annotation-value-iri-iri-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-value-iri-iri",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 64
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-iri-iri-before/source.json",
+          "sha256": "716b47a3c711eb234c939092d8824b81d8b06b384aa3e142436f90ee7fe4bf9d",
+          "byteLength": 1388
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-iri-iri-before/permuted-source.json",
+          "sha256": "8b5c0224306645b7010184a0c3ae7ff5a523698a9ab26f3dbec5e830279eedad",
+          "byteLength": 1592
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-iri-iri-before/mapped.nq",
+          "sha256": "9bb31942232d644b3a7f58b8f687cb59f373d5f140a31e81488c746a6740dae6",
+          "byteLength": 7666
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-iri-iri-before/canonical.nq",
+          "sha256": "d987125d56d875bed5357fbf3424c2c5c32eb13796aa1b06cdb03654527f7d0c",
+          "byteLength": 7927
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-iri-iri-before/ids.json",
+          "sha256": "dac60d60b35337d0c5cf21f0eedda62926f4b96a08acb0615373e8a2f008c0dc",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-iri-iri-before/canonical.json",
+          "sha256": "c739bf855194224a5b5e571c116021f20eba3225c979f6e3952943c71da64c60",
+          "byteLength": 865
+        }
+      }
+    },
+    {
+      "id": "annotation-value-iri-iri-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-value-iri-iri",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 64
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-iri-iri-after/source.json",
+          "sha256": "8f0fec380c950fc430825c73aa6583b18f9ae51a2b2440cd3861c55a509f58a2",
+          "byteLength": 1387
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-iri-iri-after/permuted-source.json",
+          "sha256": "34c72b2bc89b6919a0c1f5f6d5c0dcd84db94c7abc9144c39d7ff2a118f95015",
+          "byteLength": 1591
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-iri-iri-after/mapped.nq",
+          "sha256": "784cdd20b0030c822df11519220bcaba4fe1a6cab32813ab03693c8aa855fbad",
+          "byteLength": 7665
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-iri-iri-after/canonical.nq",
+          "sha256": "ae9afb670072ecf588a758079dd4770dc06133b888e74d832bf452c7b4e032fa",
+          "byteLength": 7928
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-iri-iri-after/ids.json",
+          "sha256": "bce5b57a06d43119fc615b5cd02ad1d8fe91f4dbfd2dcdc711b96f47df245e5e",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-iri-iri-after/canonical.json",
+          "sha256": "f24ede6c513b519fdefaedcd9293540e9f0a158cb64666fdc4004e51aae78dfc",
+          "byteLength": 864
+        }
+      }
+    },
+    {
+      "id": "annotation-value-typed-lexical-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-value-typed-lexical",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 65
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-lexical-before/source.json",
+          "sha256": "36cdf84b134c4e5b5953a88a8b4562f05decd27f612b5ef3eb4f8baa657070b8",
+          "byteLength": 1438
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-lexical-before/permuted-source.json",
+          "sha256": "17a0250007172d07ccc034bc22c52512a8270887c076683b10710e1b5eaa40a1",
+          "byteLength": 1642
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-lexical-before/mapped.nq",
+          "sha256": "7d38c8efe40a63321b895468fe7386cafc6560c17144bb6d356a9d1d6720d366",
+          "byteLength": 7779
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-lexical-before/canonical.nq",
+          "sha256": "aef5ba93e547832c6cd8a9eabdc88aa00eaa59b36b3ddf8e5dea7c0e6b8991d1",
+          "byteLength": 8046
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-lexical-before/ids.json",
+          "sha256": "bce5b57a06d43119fc615b5cd02ad1d8fe91f4dbfd2dcdc711b96f47df245e5e",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-lexical-before/canonical.json",
+          "sha256": "8b13511703a173b0b3c419e46219043cb556ef81ed5b168fbd6808bdf120b803",
+          "byteLength": 901
+        }
+      }
+    },
+    {
+      "id": "annotation-value-typed-lexical-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-value-typed-lexical",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 65
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-lexical-after/source.json",
+          "sha256": "ec93e75a98e34fe6b53a0f01ecf9fd1dda95951ff8a094c18f492c9053ab9847",
+          "byteLength": 1443
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-lexical-after/permuted-source.json",
+          "sha256": "39bfb558b678abace0ee04c84891e669aabf056042a9fd2528f36d2082fee490",
+          "byteLength": 1647
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-lexical-after/mapped.nq",
+          "sha256": "dc7da7071aa006d3fbd5eb8bcba7ccd5bbbc8527ff26a43624e05543cb861b6d",
+          "byteLength": 7784
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-lexical-after/canonical.nq",
+          "sha256": "4a3aa4f5d5a378de2ec862c8c20c46031a40bcc6c12e39e6b5350590f02406cc",
+          "byteLength": 8048
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-lexical-after/ids.json",
+          "sha256": "e262a739a2eb73ec4384d6e16e3c16dcfcc9224e80c4777723ddb12b9b5690d0",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-lexical-after/canonical.json",
+          "sha256": "642bca560c981fe30fa965aa88d0289bee8db1c6b7dbf0313d499f1d4d9edb3f",
+          "byteLength": 906
+        }
+      }
+    },
+    {
+      "id": "annotation-value-typed-datatype-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-value-typed-datatype",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 65
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-datatype-before/source.json",
+          "sha256": "983dab9ff1dcdc07dcc05b0880e894a52b34b7fd072e30ed9b4582746ebd562f",
+          "byteLength": 1444
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-datatype-before/permuted-source.json",
+          "sha256": "ce9910c0c5e4a49c7c18474b34352f7fb5c0268ecbd6bb0abeb41c48a414f3ef",
+          "byteLength": 1648
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-datatype-before/mapped.nq",
+          "sha256": "e5d82db6c93f91c8061c1d6e35afe32db804d787db8744f879cc8b12f3221c22",
+          "byteLength": 7785
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-datatype-before/canonical.nq",
+          "sha256": "00d10cddeef8b84529e1ce235a4691444c98c50896725f5fc6f607858a6a97a8",
+          "byteLength": 8049
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-datatype-before/ids.json",
+          "sha256": "78b66a528a3aea258bba6bee5b2bf16c4a47e637c3869ccaf20223a80630ba81",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-datatype-before/canonical.json",
+          "sha256": "ebadcc33feaeac8f513c360271806a46b72dc1480e0c87ab8bb67c61748ccbe8",
+          "byteLength": 907
+        }
+      }
+    },
+    {
+      "id": "annotation-value-typed-datatype-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-value-typed-datatype",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 65
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-datatype-after/source.json",
+          "sha256": "a21f2a09cbca2633123fefc6f9d7e8ecf2811870dedfb50ec64ee5bd82d9e1c6",
+          "byteLength": 1423
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-datatype-after/permuted-source.json",
+          "sha256": "b8c0439e864ed7cc3dfa43d42cd03cedcf00d4ba75d86fa1ea07a17f59580b2e",
+          "byteLength": 1627
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-datatype-after/mapped.nq",
+          "sha256": "bbe6468680eee12d1864d3183329ea564c774443699c919b550dfca1fe29753b",
+          "byteLength": 7764
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-datatype-after/canonical.nq",
+          "sha256": "6ab8b6575768a26969a74954abe36869e44ba50a224aed452569de6bc056111b",
+          "byteLength": 8028
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-datatype-after/ids.json",
+          "sha256": "e262a739a2eb73ec4384d6e16e3c16dcfcc9224e80c4777723ddb12b9b5690d0",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-typed-datatype-after/canonical.json",
+          "sha256": "8c9927ff2bc5f7c483b49cdcdcb8af63ea7550526719a394ccef37e0594644a4",
+          "byteLength": 886
+        }
+      }
+    },
+    {
+      "id": "annotation-value-language-lexical-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-value-language-lexical",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 65
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-lexical-before/source.json",
+          "sha256": "bf7cbb3b25cd69887d34c2fd09a81a571ba38288af9eff19c5bc35d7b80fb6c3",
+          "byteLength": 1404
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-lexical-before/permuted-source.json",
+          "sha256": "0eb89b25fb57de1609fe475f96fb27769fd1baafa3d7084c0214921701534939",
+          "byteLength": 1608
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-lexical-before/mapped.nq",
+          "sha256": "02a0f2b803c76c64ddbc0fdac3d744964ce7177d2e844f98080f824e652ebc3c",
+          "byteLength": 7745
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-lexical-before/canonical.nq",
+          "sha256": "871cc7c6a53b9928894320f75df951bc099cb83a0ac7579e960bf9edf8f0ce05",
+          "byteLength": 8009
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-lexical-before/ids.json",
+          "sha256": "dac60d60b35337d0c5cf21f0eedda62926f4b96a08acb0615373e8a2f008c0dc",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-lexical-before/canonical.json",
+          "sha256": "c8c7bacb04ee3a0bfe8638f88482e4f5a174acd50a6d667f1d9e7441281ae5fd",
+          "byteLength": 867
+        }
+      }
+    },
+    {
+      "id": "annotation-value-language-lexical-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-value-language-lexical",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 65
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-lexical-after/source.json",
+          "sha256": "e9157574bfce315caef9c8b910a15fc646fcb0a8cdfadf3391623f0817c66a6d",
+          "byteLength": 1409
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-lexical-after/permuted-source.json",
+          "sha256": "9f061d77379ffbf5d9c63ddbf562bd8ff22a25e55d5c443199d7b33498093170",
+          "byteLength": 1613
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-lexical-after/mapped.nq",
+          "sha256": "6b8849efaaf18125d16dec15f1876a4b37cae5f14e00cf64d178cb7a5356f78f",
+          "byteLength": 7750
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-lexical-after/canonical.nq",
+          "sha256": "c11d3a34d44a31f90b4c997afbc6b612dceba65a7c24e354866abf5f2bca5d84",
+          "byteLength": 8017
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-lexical-after/ids.json",
+          "sha256": "bce5b57a06d43119fc615b5cd02ad1d8fe91f4dbfd2dcdc711b96f47df245e5e",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-lexical-after/canonical.json",
+          "sha256": "b3a4327aa1395dea64ff46076f5903ca537fdeab66d7c323b002ee45a1733db3",
+          "byteLength": 872
+        }
+      }
+    },
+    {
+      "id": "annotation-value-language-language-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-value-language-language",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 65
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-language-before/source.json",
+          "sha256": "fbbaad3b3e8f67c2940a235d50bd71d097daa6ffafd3b927f608d2efbde43cf3",
+          "byteLength": 1410
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-language-before/permuted-source.json",
+          "sha256": "d4029ecf78ec4bf7bfc36b6c55f914b8f3466242d1f77189953c73f9ec0951e6",
+          "byteLength": 1614
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-language-before/mapped.nq",
+          "sha256": "295d523abaae81f85937cab4fe3cb71b8620a3ab370ce39199c11b1402eccb0b",
+          "byteLength": 7751
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-language-before/canonical.nq",
+          "sha256": "2b99fd30ecb86d6a7bd58a35cd5a9e77150acdbcab768bd2de65338364500a5f",
+          "byteLength": 8018
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-language-before/ids.json",
+          "sha256": "bce5b57a06d43119fc615b5cd02ad1d8fe91f4dbfd2dcdc711b96f47df245e5e",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-language-before/canonical.json",
+          "sha256": "54af01cb8775e4dfa0e067998898b21f1c47097fa15272f9ecfe1aa82d270ffd",
+          "byteLength": 873
+        }
+      }
+    },
+    {
+      "id": "annotation-value-language-language-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "annotation-value-language-language",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 10,
+        "blankNodes": 22,
+        "quads": 65
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-language-after/source.json",
+          "sha256": "a6a240367c10c18528c9bbe8461043bb922c00402197850d767a55272c4f251c",
+          "byteLength": 1410
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-language-after/permuted-source.json",
+          "sha256": "d4022fca92aa8d2a27b8fd227f6c7a54c720e437d9a19604ba420bbb600b4809",
+          "byteLength": 1614
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-language-after/mapped.nq",
+          "sha256": "c9818c6e82d88b2e15921c02cdc821b48ddb3875b0fe9201ce54e8769497a546",
+          "byteLength": 7751
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-language-after/canonical.nq",
+          "sha256": "13214ddc5fa65c98680c656e26a89608725ea4a304fe39cc6aa32099763276d2",
+          "byteLength": 8015
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-language-after/ids.json",
+          "sha256": "dac60d60b35337d0c5cf21f0eedda62926f4b96a08acb0615373e8a2f008c0dc",
+          "byteLength": 1518
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/annotation-value-language-language-after/canonical.json",
+          "sha256": "0076acbc16d5ba2a8f6a998634eac1ce00414c6e477be54fb8f68b6131cd945b",
+          "byteLength": 873
+        }
+      }
+    },
+    {
+      "id": "anonymous-value-target-with-distinguishing-role-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "anonymous-value-target-with-distinguishing-role",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 16,
+        "blankNodes": 29,
+        "quads": 86
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/anonymous-value-target-with-distinguishing-role-before/source.json",
+          "sha256": "b201c916b5247d385716330d851c4ca9083fd3723fdaf2e4f792be5ec9c1bbc4",
+          "byteLength": 1890
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/anonymous-value-target-with-distinguishing-role-before/permuted-source.json",
+          "sha256": "d0c979d32ddc6c1256b41eb2f95a12e3a8a35d957a5bf09ed8a901b43451cc63",
+          "byteLength": 2237
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/anonymous-value-target-with-distinguishing-role-before/mapped.nq",
+          "sha256": "871490d4dc82100dc83c21e5630270f70c248bcdef57181c377732c350d82097",
+          "byteLength": 10230
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/anonymous-value-target-with-distinguishing-role-before/canonical.nq",
+          "sha256": "d1aca9a696493e41741c97b1e84908f0455111be9fd1b4bbcfdd73132bfb734c",
+          "byteLength": 10591
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/anonymous-value-target-with-distinguishing-role-before/ids.json",
+          "sha256": "4c5e4399de3296a8abea0af1d50c7a9a37ad719b2b9622a7e6dd5b1fc0980fb5",
+          "byteLength": 2440
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/anonymous-value-target-with-distinguishing-role-before/canonical.json",
+          "sha256": "5610b4f1957f5f388e12b454ba661664de351155f4a9794adf6e74e56fb85de6",
+          "byteLength": 1060
+        }
+      }
+    },
+    {
+      "id": "anonymous-value-target-with-distinguishing-role-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "anonymous-value-target-with-distinguishing-role",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 16,
+        "blankNodes": 29,
+        "quads": 86
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/anonymous-value-target-with-distinguishing-role-after/source.json",
+          "sha256": "778eb83adf1a41c6825165d98d7f6f98f11e16a656ffcbba2a9674435b69f398",
+          "byteLength": 1890
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/anonymous-value-target-with-distinguishing-role-after/permuted-source.json",
+          "sha256": "7e893c8344c4e9216e4886e883f570ff7e2f7a50b3ccbb1e7fe292a1c0222bff",
+          "byteLength": 2237
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/anonymous-value-target-with-distinguishing-role-after/mapped.nq",
+          "sha256": "5318d397cf79b921f6263a59bf1c2523dd7a7828afbee3cd006de39d2e2d8b6e",
+          "byteLength": 10230
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/anonymous-value-target-with-distinguishing-role-after/canonical.nq",
+          "sha256": "e2654f67de2541fdb08be318666cd2ec36b75b55b17bf8630496ec0331aaf14c",
+          "byteLength": 10597
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/anonymous-value-target-with-distinguishing-role-after/ids.json",
+          "sha256": "4b4961b50ad8dd1d33554b1c23b4b0a910530406fdfd92f61a16470461c4af0f",
+          "byteLength": 2439
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/anonymous-value-target-with-distinguishing-role-after/canonical.json",
+          "sha256": "6c932e731f5114b78531e143cf0758a076b4c357af431633ccae4ce7cfa5a4d9",
+          "byteLength": 1060
+        }
+      }
+    },
+    {
+      "id": "literal-typed-lexical-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "literal-typed-lexical",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 25,
+        "quads": 77
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-lexical-before/source.json",
+          "sha256": "ead22e983ad994b50fc8a9693c99ad711fe796d9df67d92a3e62a1b03044deb6",
+          "byteLength": 1750
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-lexical-before/permuted-source.json",
+          "sha256": "fe74c7ac07230d8d5e3d3c70e1765ca2a48fbe1e625b125c7bb7a677b58e571a",
+          "byteLength": 2046
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-lexical-before/mapped.nq",
+          "sha256": "40ecdde39f6ff725e9ddbabe90edabee43fb6a057ec27f15b1e0931386d2f332",
+          "byteLength": 9215
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-lexical-before/canonical.nq",
+          "sha256": "12edab426628f1d3278cfb08a7ef6068d8fcbe19054e2f4d831fc9335f132701",
+          "byteLength": 9530
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-lexical-before/ids.json",
+          "sha256": "e036538779fc47ffb19d32d0212ae642efbeb3c50f9d636e7aaf6be39499991c",
+          "byteLength": 2141
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-lexical-before/canonical.json",
+          "sha256": "d8a30d9e7ca9886916d70dacab3cd990b05eb989a03b5db845f27f0e9d0b17b2",
+          "byteLength": 1033
+        }
+      }
+    },
+    {
+      "id": "literal-typed-lexical-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "literal-typed-lexical",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 25,
+        "quads": 77
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-lexical-after/source.json",
+          "sha256": "2341fe0a6ad5846b8f4e6ce70436ed2027934abf04cd3786882ade291fb8a56b",
+          "byteLength": 1755
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-lexical-after/permuted-source.json",
+          "sha256": "801e69e3a3f01538ca83e54b7e5833bcb9133071cf5763357dce3ad889cf875a",
+          "byteLength": 2051
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-lexical-after/mapped.nq",
+          "sha256": "4a4d1a60770cfb9f3139f156b6a43eca2af92bd75f556e8a3b1923de84063c8d",
+          "byteLength": 9220
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-lexical-after/canonical.nq",
+          "sha256": "43effec2b0295986564656a1facc8c0a0816e17ab6e1891cc80a45498074fe16",
+          "byteLength": 9535
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-lexical-after/ids.json",
+          "sha256": "d4365fa7fdb9d4003a975805d65434f1577ceb43e3a003d5b2530d62e89d1f65",
+          "byteLength": 2141
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-lexical-after/canonical.json",
+          "sha256": "35bb4febaa4c7004682bbe9f374033ccbb2b8083c43f836cffce6455c18c10da",
+          "byteLength": 1038
+        }
+      }
+    },
+    {
+      "id": "literal-typed-datatype-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "literal-typed-datatype",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 25,
+        "quads": 77
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-datatype-before/source.json",
+          "sha256": "d6acf56b71e7174743cbb9e205c305b6cec3099c42ed72a34e6856cfa5a5a6bf",
+          "byteLength": 1756
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-datatype-before/permuted-source.json",
+          "sha256": "77f043ee9bb7e1163dcbd54b24f18d5c04d463259139071a5ff73ac689d39e3c",
+          "byteLength": 2052
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-datatype-before/mapped.nq",
+          "sha256": "e7d1d16aefe3be6941b14496ea8fb4d2b742cf9f955d99aaf909bb0893ebc930",
+          "byteLength": 9221
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-datatype-before/canonical.nq",
+          "sha256": "07d90248a653730e6e99c44d50e4ed6265d08d415773e7455c0afa4aa76517e2",
+          "byteLength": 9536
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-datatype-before/ids.json",
+          "sha256": "d4365fa7fdb9d4003a975805d65434f1577ceb43e3a003d5b2530d62e89d1f65",
+          "byteLength": 2141
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-datatype-before/canonical.json",
+          "sha256": "114455821ac2f387ac48f857393abf539032f1c6de5852a04d2cbd8deb63206b",
+          "byteLength": 1039
+        }
+      }
+    },
+    {
+      "id": "literal-typed-datatype-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "literal-typed-datatype",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 25,
+        "quads": 77
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-datatype-after/source.json",
+          "sha256": "60dca93c48449291bfa1e9cb2cbf5c125e9cc5899619d924bca4114e66166dc8",
+          "byteLength": 1735
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-datatype-after/permuted-source.json",
+          "sha256": "eb488af586fe868e396f09f4900c7ca34fd220927485890d36350b33fa51a86a",
+          "byteLength": 2031
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-datatype-after/mapped.nq",
+          "sha256": "945e4c1d3c53c8574968732fc658e33f9ff0967ecf8f3efbe633ecd4677c070d",
+          "byteLength": 9200
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-datatype-after/canonical.nq",
+          "sha256": "9bd9e6e17ea0458499327dc50f082e576e2101fec159242fc650f9c49fadf947",
+          "byteLength": 9515
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-datatype-after/ids.json",
+          "sha256": "787c6ddd80ff9cbfa9f2950643d5ce1b9602b424831ccae6d5bd8432e92ede51",
+          "byteLength": 2141
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-typed-datatype-after/canonical.json",
+          "sha256": "ad8c053b38abdf0370fcc509554348db997f1ba24bb52e1221243cb20d006cdb",
+          "byteLength": 1018
+        }
+      }
+    },
+    {
+      "id": "literal-language-lexical-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "literal-language-lexical",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 25,
+        "quads": 77
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-lexical-before/source.json",
+          "sha256": "089f07115b3267e80ce17dcc185a6888df37a69d9c3afe99a328a3671a2c9494",
+          "byteLength": 1716
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-lexical-before/permuted-source.json",
+          "sha256": "258fd94e83811c6f032ef662d64bbd7cb76e31cc220debb7c79998e8d259aa6d",
+          "byteLength": 2012
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-lexical-before/mapped.nq",
+          "sha256": "a1afd4b6e7b537076d0722bd57ba34aad5a8dd4f536334c81bcbf3275282f9c9",
+          "byteLength": 9181
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-lexical-before/canonical.nq",
+          "sha256": "a9fdbd62e60f8a49a29b38b670ad688e22c1eb3fb98ec7c00b0c77609eb76b8a",
+          "byteLength": 9496
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-lexical-before/ids.json",
+          "sha256": "b66df2d0b382e6b5d19328ea33d1502785477e70be8217362b639b18660170b8",
+          "byteLength": 2141
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-lexical-before/canonical.json",
+          "sha256": "67c53063edc2b702acff6fe801c0ddc09753db9c81b6dc66271f10325cf53ab7",
+          "byteLength": 999
+        }
+      }
+    },
+    {
+      "id": "literal-language-lexical-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "literal-language-lexical",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 25,
+        "quads": 77
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-lexical-after/source.json",
+          "sha256": "b236f324bb153f758a3ef37132ee6228c2f90d8634de010f8d4688e81b63b687",
+          "byteLength": 1721
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-lexical-after/permuted-source.json",
+          "sha256": "287275c1e4c2f912b481ca9aeae145a03b709b78d2f17247968861d6755d2325",
+          "byteLength": 2017
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-lexical-after/mapped.nq",
+          "sha256": "7059aae8b23429e9edcfda48217f8b89e8430c3adb98e511fe922beb94d2cf48",
+          "byteLength": 9186
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-lexical-after/canonical.nq",
+          "sha256": "58f55ca74b910308dd5dd0d1313deaf38558de3a585b2129fad1adc75d1df35a",
+          "byteLength": 9502
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-lexical-after/ids.json",
+          "sha256": "fdb374c9be3edaf1301de86916ff7b951d12e12a8a4b0a40fc7f041ed6ca71f5",
+          "byteLength": 2140
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-lexical-after/canonical.json",
+          "sha256": "560e7136641dd26a2982e881b47b7f50d5c4d7df60592723b7f72b4f93027588",
+          "byteLength": 1004
+        }
+      }
+    },
+    {
+      "id": "literal-language-language-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "literal-language-language",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 25,
+        "quads": 77
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-language-before/source.json",
+          "sha256": "fcb417d8a94d5932650065ba3eb723fd0ca642e665b577d5da94a816361c91eb",
+          "byteLength": 1722
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-language-before/permuted-source.json",
+          "sha256": "ee3a3f89d9daeba2141d3f1c98e8e65c17925821f28771653055f3e29de859d3",
+          "byteLength": 2018
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-language-before/mapped.nq",
+          "sha256": "56bd28031e70a7b840ce02701fe0cd12942b0c700e1985cf4cf3e3bf61399365",
+          "byteLength": 9187
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-language-before/canonical.nq",
+          "sha256": "c4c627ad65180938c47a87428509e18333bfbb2f3048d664d1f389e5700d8690",
+          "byteLength": 9503
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-language-before/ids.json",
+          "sha256": "8b3c5e532c68b05f4535e58f5e7cb464a1f36b6675b8cecb179ffbc739a87930",
+          "byteLength": 2140
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-language-before/canonical.json",
+          "sha256": "067b570c8d2200eb14c9f2c15050ee0ad43c1b460a66a017f92e12315d6344a1",
+          "byteLength": 1005
+        }
+      }
+    },
+    {
+      "id": "literal-language-language-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "literal-language-language",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 25,
+        "quads": 77
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-language-after/source.json",
+          "sha256": "b8fa6ef1af5a9f8461a263274c2be17d4f9ef638ab17add5848b228d7dd314a2",
+          "byteLength": 1722
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-language-after/permuted-source.json",
+          "sha256": "870a30ad39d9936c41a5f0d2720b0ad322e73575fbb60de605c98687d60d5a5b",
+          "byteLength": 2018
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-language-after/mapped.nq",
+          "sha256": "b7dbeab69b89c498f3bc694eb63f2d501b1be2c68ea082c98c2fc2ead14e2f31",
+          "byteLength": 9187
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-language-after/canonical.nq",
+          "sha256": "3c64133baf6266aa4559a705261dc6d5af7c58149a1663475e1c0cec5b82545d",
+          "byteLength": 9503
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-language-after/ids.json",
+          "sha256": "fdb374c9be3edaf1301de86916ff7b951d12e12a8a4b0a40fc7f041ed6ca71f5",
+          "byteLength": 2140
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/literal-language-language-after/canonical.json",
+          "sha256": "499789148a57e61302b3bb5e58a9d841429cac536dc976e78a15ca23d6accc2d",
+          "byteLength": 1005
+        }
+      }
+    },
+    {
+      "id": "facet-facet-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "facet-facet",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 26,
+        "quads": 81
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-facet-before/source.json",
+          "sha256": "f2eaad1865656fe060b353eb968ea365194116522715ca1e9539613d1a2036e9",
+          "byteLength": 1877
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-facet-before/permuted-source.json",
+          "sha256": "e5b359a71123803dcd80d9bc9027436c411e9968012086c41bbda81ab88eb2dc",
+          "byteLength": 2195
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-facet-before/mapped.nq",
+          "sha256": "8b0dba94a5fad5174433d64b1ca8b2de46b36c721fa3e087fe4f9db3d70e4802",
+          "byteLength": 9664
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-facet-before/canonical.nq",
+          "sha256": "8ab80df87a6f965b05e8f9f57d09a9a1e73ce1db5e404a73ac827419f9d72ab3",
+          "byteLength": 9993
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-facet-before/ids.json",
+          "sha256": "a230c17983462f4ccd13253bcf994940ff5e50b4d4d80a1770717016fe37d801",
+          "byteLength": 2139
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-facet-before/canonical.json",
+          "sha256": "5404b6d201b7cd3eb3d36e50c177a4369aba0136775a183a276c725583ccecac",
+          "byteLength": 1108
+        }
+      }
+    },
+    {
+      "id": "facet-facet-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "facet-facet",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 26,
+        "quads": 81
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-facet-after/source.json",
+          "sha256": "b7795e31c75dd77c81a93a04720588473e7e5922c49269c060624e94f73688ee",
+          "byteLength": 1876
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-facet-after/permuted-source.json",
+          "sha256": "808ef973d36b1e50fc64062b4a536b0684e196962059978475f8ce6b7e799a92",
+          "byteLength": 2194
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-facet-after/mapped.nq",
+          "sha256": "1abd27c7b1def07758340b3e366bf6ef06038f8bfebef002763c90f931f3a92c",
+          "byteLength": 9663
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-facet-after/canonical.nq",
+          "sha256": "7977d80087ab9df53c99036141ae624ca909230cbd35d9d896cd410dd57635e0",
+          "byteLength": 9992
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-facet-after/ids.json",
+          "sha256": "23f0431c15f428772e2987b3e40366b1021269e93328440f260e421d8b058bc0",
+          "byteLength": 2139
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-facet-after/canonical.json",
+          "sha256": "665411f71e50e5d6a1da15bcff83dde5c8bf977ce7c88c8a0f3507c83cef4e02",
+          "byteLength": 1107
+        }
+      }
+    },
+    {
+      "id": "facet-value-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "facet-value",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 26,
+        "quads": 81
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-value-before/source.json",
+          "sha256": "f2eaad1865656fe060b353eb968ea365194116522715ca1e9539613d1a2036e9",
+          "byteLength": 1877
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-value-before/permuted-source.json",
+          "sha256": "e5b359a71123803dcd80d9bc9027436c411e9968012086c41bbda81ab88eb2dc",
+          "byteLength": 2195
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-value-before/mapped.nq",
+          "sha256": "8b0dba94a5fad5174433d64b1ca8b2de46b36c721fa3e087fe4f9db3d70e4802",
+          "byteLength": 9664
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-value-before/canonical.nq",
+          "sha256": "8ab80df87a6f965b05e8f9f57d09a9a1e73ce1db5e404a73ac827419f9d72ab3",
+          "byteLength": 9993
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-value-before/ids.json",
+          "sha256": "a230c17983462f4ccd13253bcf994940ff5e50b4d4d80a1770717016fe37d801",
+          "byteLength": 2139
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-value-before/canonical.json",
+          "sha256": "5404b6d201b7cd3eb3d36e50c177a4369aba0136775a183a276c725583ccecac",
+          "byteLength": 1108
+        }
+      }
+    },
+    {
+      "id": "facet-value-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "facet-value",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 14,
+        "blankNodes": 26,
+        "quads": 81
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-value-after/source.json",
+          "sha256": "6228f63e3db3572906ecc43fff3455f97414a89d14957f1534cb5a36073154e0",
+          "byteLength": 1876
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-value-after/permuted-source.json",
+          "sha256": "cb471a06a7d951560c6c1a614449919c6c479e2225f33757f4340aecb236e29d",
+          "byteLength": 2194
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-value-after/mapped.nq",
+          "sha256": "b7f7dd88c23f09d9e0698414d7dcc3606e1352a1f9a0580e56b75d721a96551d",
+          "byteLength": 9663
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-value-after/canonical.nq",
+          "sha256": "e3756018b5add3a3bb67ba0135748dc6de6cae49a669e683baa5899ae458ae54",
+          "byteLength": 9992
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-value-after/ids.json",
+          "sha256": "2effce9255e26d28b54371d3d9061b2e5c13bdd80d05d2d36d4d6c1b52890b9b",
+          "byteLength": 2139
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/facet-value-after/canonical.json",
+          "sha256": "cb7cf38028ce0b86a369c28e418c119412dae9a50285e89fdb3456c5953c21ca",
+          "byteLength": 1107
+        }
+      }
+    },
+    {
+      "id": "assertion-anchor-annotation-set-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "assertion-anchor-annotation-set",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 13,
+        "blankNodes": 27,
+        "quads": 81
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/assertion-anchor-annotation-set-before/source.json",
+          "sha256": "fa6f9bcaab15eafe61e6adcf9cb0e7a18495cbc23867dbe974748a66ba28e39e",
+          "byteLength": 1825
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/assertion-anchor-annotation-set-before/permuted-source.json",
+          "sha256": "57398f1f1159e0ecf34d617cc751e1a00fdec3c7c26a3f06a6221b530a00113f",
+          "byteLength": 2116
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/assertion-anchor-annotation-set-before/mapped.nq",
+          "sha256": "d181afac8cf52040bde6b28240c604ddfdc7593ca648a2745839bda7664669bb",
+          "byteLength": 9701
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/assertion-anchor-annotation-set-before/canonical.nq",
+          "sha256": "0e6c5d57afdfb87bca76f1d16f07ce19acbccb0d4a245702359997d9a4606123",
+          "byteLength": 10029
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/assertion-anchor-annotation-set-before/ids.json",
+          "sha256": "93c6f0274e86fad4a663b59e3738a32902c3545c4467c769fb16e83ea9466d88",
+          "byteLength": 1971
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/assertion-anchor-annotation-set-before/canonical.json",
+          "sha256": "ab7d431556d7b0ff645d168a885d8ca7beec7f795f214784077e6ebeba79c135",
+          "byteLength": 1094
+        }
+      }
+    },
+    {
+      "id": "assertion-anchor-annotation-set-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+      "pair": "assertion-anchor-annotation-set",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 13,
+        "blankNodes": 27,
+        "quads": 81
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/assertion-anchor-annotation-set-after/source.json",
+          "sha256": "509d21ac6a40d965628db14ad570153542972438e221a6460745e3c89535711a",
+          "byteLength": 1824
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/assertion-anchor-annotation-set-after/permuted-source.json",
+          "sha256": "3460744b907d4d28ae34af68c8e4c9cecbf8f1f05b1d5f91a80a2465ddca4b29",
+          "byteLength": 2115
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/assertion-anchor-annotation-set-after/mapped.nq",
+          "sha256": "22019aa0abee8763db7abc3f340cf2a02cc8fdb011a9d360be527cb5f9607828",
+          "byteLength": 9700
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/assertion-anchor-annotation-set-after/canonical.nq",
+          "sha256": "4afc0e8f96b22a934a85903d4b22ff5be7f9b6a2c0afc4cb886a9fae8a27c1fa",
+          "byteLength": 10029
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/assertion-anchor-annotation-set-after/ids.json",
+          "sha256": "2449de0eb4f4063cf8511780195b1ea6c761e7d5bde0e9bf8dc6cdc27432767a",
+          "byteLength": 1970
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/assertion-anchor-annotation-set-after/canonical.json",
+          "sha256": "cec9e9c79f91f8e514a1c54cf3848c5d2961711dbbbf250e63e8453855aa2772",
+          "byteLength": 1093
+        }
+      }
+    },
+    {
+      "id": "placement-pin-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "placement-pin",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-pin-before/source.json",
+          "sha256": "f2b2ad906849a780316778a94297b941b8f9a1a9376300b3d62186842dd80d2d",
+          "byteLength": 1483
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-pin-before/permuted-source.json",
+          "sha256": "75a6ecca75904075b443c1f3efa7221f91408a9487c665b67687a1e5d7a2f0b9",
+          "byteLength": 1671
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-pin-before/mapped.nq",
+          "sha256": "0af9d4309144d99b0e8b510c56d7cabe3543f75679f8271f83b57a398d9dfe3d",
+          "byteLength": 10899
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-pin-before/canonical.nq",
+          "sha256": "14d7bb95fa6aefb4a2a25c962348ed90635676eef25a21247f17e0306f3f3dcb",
+          "byteLength": 11265
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-pin-before/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-pin-before/canonical.json",
+          "sha256": "79f673199f921c8f6cfe80446b765a9d55382df2ef2ecb163ff3be020e84957a",
+          "byteLength": 857
+        }
+      }
+    },
+    {
+      "id": "placement-pin-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "placement-pin",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-pin-after/source.json",
+          "sha256": "6cd4c1876c4afe756b0487af2da6cc9f06cb8d1be49726aaffa1705fb0e66485",
+          "byteLength": 1482
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-pin-after/permuted-source.json",
+          "sha256": "33fd7075d663de09674f2973bdf7902d7013b3168b6ab5abbecfeeed770412bf",
+          "byteLength": 1670
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-pin-after/mapped.nq",
+          "sha256": "d11e66cd9f940ed939b8fceee4de92bad95fbeaaff843b847c10505c227f518f",
+          "byteLength": 10898
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-pin-after/canonical.nq",
+          "sha256": "3e3fceee878f971c75f740e8320bcd60020af7f09a4d1ca8e8e53db3fc690018",
+          "byteLength": 11261
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-pin-after/ids.json",
+          "sha256": "770728aee58f327d7da0c7d68a9a7fd97e46ccfc524b0d95e678e4c4b09349d9",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-pin-after/canonical.json",
+          "sha256": "9fbede972b5ea6de250498954601f810d6e055d070099bd43ca4e250f8d44135",
+          "byteLength": 856
+        }
+      }
+    },
+    {
+      "id": "placement-y-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "placement-y",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-y-before/source.json",
+          "sha256": "f2b2ad906849a780316778a94297b941b8f9a1a9376300b3d62186842dd80d2d",
+          "byteLength": 1483
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-y-before/permuted-source.json",
+          "sha256": "75a6ecca75904075b443c1f3efa7221f91408a9487c665b67687a1e5d7a2f0b9",
+          "byteLength": 1671
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-y-before/mapped.nq",
+          "sha256": "0af9d4309144d99b0e8b510c56d7cabe3543f75679f8271f83b57a398d9dfe3d",
+          "byteLength": 10899
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-y-before/canonical.nq",
+          "sha256": "14d7bb95fa6aefb4a2a25c962348ed90635676eef25a21247f17e0306f3f3dcb",
+          "byteLength": 11265
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-y-before/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-y-before/canonical.json",
+          "sha256": "79f673199f921c8f6cfe80446b765a9d55382df2ef2ecb163ff3be020e84957a",
+          "byteLength": 857
+        }
+      }
+    },
+    {
+      "id": "placement-y-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "placement-y",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-y-after/source.json",
+          "sha256": "d73b4e93cf6d13f2969ff392b02bb2c330d499bbb13057b18fbadd2dee8f62c2",
+          "byteLength": 1483
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-y-after/permuted-source.json",
+          "sha256": "5600d5f9bbaf19abc31a0e3223c18011b8e132de8ff9713f2bd9660a25033882",
+          "byteLength": 1671
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-y-after/mapped.nq",
+          "sha256": "49601c13c9f7ceebbae9f37c80c56f2a7c9fc35e822556834d02b6f78d983aad",
+          "byteLength": 10899
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-y-after/canonical.nq",
+          "sha256": "7d6980ccff0e2cc5cc8ac70bf54cf65de98e996fb865340beecee4973284d74f",
+          "byteLength": 11263
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-y-after/ids.json",
+          "sha256": "6722e77ded5a2f253a5cb37c2362f81db772dd890ff1dca891cfddfd2177206c",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-y-after/canonical.json",
+          "sha256": "03ca243157e42c53ca19eb62c26fb9967f8e605a05aa586c921f5639b7cbe511",
+          "byteLength": 857
+        }
+      }
+    },
+    {
+      "id": "camera-center-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "camera-center",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-center-before/source.json",
+          "sha256": "f2b2ad906849a780316778a94297b941b8f9a1a9376300b3d62186842dd80d2d",
+          "byteLength": 1483
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-center-before/permuted-source.json",
+          "sha256": "75a6ecca75904075b443c1f3efa7221f91408a9487c665b67687a1e5d7a2f0b9",
+          "byteLength": 1671
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-center-before/mapped.nq",
+          "sha256": "0af9d4309144d99b0e8b510c56d7cabe3543f75679f8271f83b57a398d9dfe3d",
+          "byteLength": 10899
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-center-before/canonical.nq",
+          "sha256": "14d7bb95fa6aefb4a2a25c962348ed90635676eef25a21247f17e0306f3f3dcb",
+          "byteLength": 11265
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-center-before/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-center-before/canonical.json",
+          "sha256": "79f673199f921c8f6cfe80446b765a9d55382df2ef2ecb163ff3be020e84957a",
+          "byteLength": 857
+        }
+      }
+    },
+    {
+      "id": "camera-center-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "camera-center",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-center-after/source.json",
+          "sha256": "4958514ce9fa54f6dd279ee21c218c5d00588be2b93382a2bfe835d3faa736ab",
+          "byteLength": 1485
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-center-after/permuted-source.json",
+          "sha256": "122b7660e046a917d71d246a5bdc6d2f8017d462de2bba0b03bdd4f25736e5cd",
+          "byteLength": 1673
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-center-after/mapped.nq",
+          "sha256": "c0ac6e2ccfdf5d968c4b6e40ebe878e574fa212d7d1a5fbd42519b7594cdc100",
+          "byteLength": 10901
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-center-after/canonical.nq",
+          "sha256": "188dc9f00afb32e899932cc432e9080eee46d307b6b50d430601afb5d9ad1a40",
+          "byteLength": 11267
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-center-after/ids.json",
+          "sha256": "4684a8322a31cbc6f4bfc98825d1f54803b9f291e298d1edb047a108130a8078",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-center-after/canonical.json",
+          "sha256": "4618d11b967043393c98d8305b4eadf6ef797a01f2e6375d6e2801844f593979",
+          "byteLength": 859
+        }
+      }
+    },
+    {
+      "id": "camera-zoom-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "camera-zoom",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-zoom-before/source.json",
+          "sha256": "f2b2ad906849a780316778a94297b941b8f9a1a9376300b3d62186842dd80d2d",
+          "byteLength": 1483
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-zoom-before/permuted-source.json",
+          "sha256": "75a6ecca75904075b443c1f3efa7221f91408a9487c665b67687a1e5d7a2f0b9",
+          "byteLength": 1671
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-zoom-before/mapped.nq",
+          "sha256": "0af9d4309144d99b0e8b510c56d7cabe3543f75679f8271f83b57a398d9dfe3d",
+          "byteLength": 10899
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-zoom-before/canonical.nq",
+          "sha256": "14d7bb95fa6aefb4a2a25c962348ed90635676eef25a21247f17e0306f3f3dcb",
+          "byteLength": 11265
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-zoom-before/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-zoom-before/canonical.json",
+          "sha256": "79f673199f921c8f6cfe80446b765a9d55382df2ef2ecb163ff3be020e84957a",
+          "byteLength": 857
+        }
+      }
+    },
+    {
+      "id": "camera-zoom-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "camera-zoom",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-zoom-after/source.json",
+          "sha256": "0382521496fab71cc519e857ba8205e2f5c2a7c09d4a6a960d8f1075bb734c0d",
+          "byteLength": 1483
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-zoom-after/permuted-source.json",
+          "sha256": "202ad02946e568a54e20cc9506679c7d0bd14fd2398d2581d7498bff6a06da5e",
+          "byteLength": 1671
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-zoom-after/mapped.nq",
+          "sha256": "b41e7551b8efd7c3613c0f04db25dfafe5929b8997477a8b216f73dbaeb9dc8e",
+          "byteLength": 10899
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-zoom-after/canonical.nq",
+          "sha256": "b924e240e61c26840793d88029b1a5f1fc85f3ee79696dd3526abac3c5aac1d2",
+          "byteLength": 11263
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-zoom-after/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/camera-zoom-after/canonical.json",
+          "sha256": "f77c447ad9f2de039c96cae0d3b158b5f5b4eebd4aa25b1a0cf42122887ada90",
+          "byteLength": 857
+        }
+      }
+    },
+    {
+      "id": "selection-iri-to-untagged-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "selection-iri-to-untagged",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-iri-to-untagged-before/source.json",
+          "sha256": "f2b2ad906849a780316778a94297b941b8f9a1a9376300b3d62186842dd80d2d",
+          "byteLength": 1483
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-iri-to-untagged-before/permuted-source.json",
+          "sha256": "75a6ecca75904075b443c1f3efa7221f91408a9487c665b67687a1e5d7a2f0b9",
+          "byteLength": 1671
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-iri-to-untagged-before/mapped.nq",
+          "sha256": "0af9d4309144d99b0e8b510c56d7cabe3543f75679f8271f83b57a398d9dfe3d",
+          "byteLength": 10899
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-iri-to-untagged-before/canonical.nq",
+          "sha256": "14d7bb95fa6aefb4a2a25c962348ed90635676eef25a21247f17e0306f3f3dcb",
+          "byteLength": 11265
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-iri-to-untagged-before/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-iri-to-untagged-before/canonical.json",
+          "sha256": "79f673199f921c8f6cfe80446b765a9d55382df2ef2ecb163ff3be020e84957a",
+          "byteLength": 857
+        }
+      }
+    },
+    {
+      "id": "selection-iri-to-untagged-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "selection-iri-to-untagged",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-iri-to-untagged-after/source.json",
+          "sha256": "c3a61d88ad7751a28e63c20aaa881cf39d350f116d24beb6a3fe8906c5924385",
+          "byteLength": 1488
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-iri-to-untagged-after/permuted-source.json",
+          "sha256": "8afffa9b13c979738d9157f77062dc3d7a424e6f6301eb99f01dfea76ad8c6d0",
+          "byteLength": 1676
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-iri-to-untagged-after/mapped.nq",
+          "sha256": "80cf999b1e3ca1df6b578b2d52ff55a4e339bc313e5a3cf794a215ff07270ba5",
+          "byteLength": 10904
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-iri-to-untagged-after/canonical.nq",
+          "sha256": "4f6f509bdfddb09d3f204a9f8276e782367a57669a01f4208d944a0f5efa9572",
+          "byteLength": 11270
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-iri-to-untagged-after/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-iri-to-untagged-after/canonical.json",
+          "sha256": "db94f6554ea25b5454c2aeb6ceadcedb151d93ce8d5e3fffb57907a49355add0",
+          "byteLength": 862
+        }
+      }
+    },
+    {
+      "id": "prefix-name-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "prefix-name",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-name-before/source.json",
+          "sha256": "f2b2ad906849a780316778a94297b941b8f9a1a9376300b3d62186842dd80d2d",
+          "byteLength": 1483
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-name-before/permuted-source.json",
+          "sha256": "75a6ecca75904075b443c1f3efa7221f91408a9487c665b67687a1e5d7a2f0b9",
+          "byteLength": 1671
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-name-before/mapped.nq",
+          "sha256": "0af9d4309144d99b0e8b510c56d7cabe3543f75679f8271f83b57a398d9dfe3d",
+          "byteLength": 10899
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-name-before/canonical.nq",
+          "sha256": "14d7bb95fa6aefb4a2a25c962348ed90635676eef25a21247f17e0306f3f3dcb",
+          "byteLength": 11265
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-name-before/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-name-before/canonical.json",
+          "sha256": "79f673199f921c8f6cfe80446b765a9d55382df2ef2ecb163ff3be020e84957a",
+          "byteLength": 857
+        }
+      }
+    },
+    {
+      "id": "prefix-name-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "prefix-name",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-name-after/source.json",
+          "sha256": "eaa35f4ec081f83f67ff7b587ea79b605ad4cbec4c6584f077c97fad18ee11aa",
+          "byteLength": 1482
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-name-after/permuted-source.json",
+          "sha256": "6e5d33654d0f6e9332c20b65efe890c0ac5592da42160b89e1ed9318f9cd7734",
+          "byteLength": 1670
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-name-after/mapped.nq",
+          "sha256": "3111ddb6f1ea23fecef56414d058b9d5448145d536b19e044d3691ee50f631a7",
+          "byteLength": 10898
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-name-after/canonical.nq",
+          "sha256": "de6726d0b1353c3128ce56175ab13dd6722d6e3cfbbc36b1ac44653eb62fde3b",
+          "byteLength": 11264
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-name-after/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-name-after/canonical.json",
+          "sha256": "f1a0b5a019b61bac9e074ffc3562860a65fd212c3972ee3df22dbb19b7771534",
+          "byteLength": 856
+        }
+      }
+    },
+    {
+      "id": "prefix-iri-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "prefix-iri",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-iri-before/source.json",
+          "sha256": "f2b2ad906849a780316778a94297b941b8f9a1a9376300b3d62186842dd80d2d",
+          "byteLength": 1483
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-iri-before/permuted-source.json",
+          "sha256": "75a6ecca75904075b443c1f3efa7221f91408a9487c665b67687a1e5d7a2f0b9",
+          "byteLength": 1671
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-iri-before/mapped.nq",
+          "sha256": "0af9d4309144d99b0e8b510c56d7cabe3543f75679f8271f83b57a398d9dfe3d",
+          "byteLength": 10899
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-iri-before/canonical.nq",
+          "sha256": "14d7bb95fa6aefb4a2a25c962348ed90635676eef25a21247f17e0306f3f3dcb",
+          "byteLength": 11265
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-iri-before/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-iri-before/canonical.json",
+          "sha256": "79f673199f921c8f6cfe80446b765a9d55382df2ef2ecb163ff3be020e84957a",
+          "byteLength": 857
+        }
+      }
+    },
+    {
+      "id": "prefix-iri-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "prefix-iri",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-iri-after/source.json",
+          "sha256": "674fd91dbef2d6e1cc00b332c9b3aa1a759d6c060951fdf0a1cbb771b12d66d2",
+          "byteLength": 1490
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-iri-after/permuted-source.json",
+          "sha256": "0f67b8ac0fc56cc559a7d60b716e2b78d59c00e934b00aaa5aac9b1d421030d3",
+          "byteLength": 1678
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-iri-after/mapped.nq",
+          "sha256": "e749ee36e954312d1e4457ef2d5c45ec3e349932616a8c6518d491873fef5b6b",
+          "byteLength": 10906
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-iri-after/canonical.nq",
+          "sha256": "2cd9377e98ef182a215d5d57358926170123d11213655ddc9d26b5a2663809bc",
+          "byteLength": 11272
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-iri-after/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/prefix-iri-after/canonical.json",
+          "sha256": "55914e6b7f2954367ffa41472ba2cc877a2d686477505a7c594a721d197a137b",
+          "byteLength": 864
+        }
+      }
+    },
+    {
+      "id": "display-compact-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "display-compact",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-compact-before/source.json",
+          "sha256": "f2b2ad906849a780316778a94297b941b8f9a1a9376300b3d62186842dd80d2d",
+          "byteLength": 1483
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-compact-before/permuted-source.json",
+          "sha256": "75a6ecca75904075b443c1f3efa7221f91408a9487c665b67687a1e5d7a2f0b9",
+          "byteLength": 1671
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-compact-before/mapped.nq",
+          "sha256": "0af9d4309144d99b0e8b510c56d7cabe3543f75679f8271f83b57a398d9dfe3d",
+          "byteLength": 10899
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-compact-before/canonical.nq",
+          "sha256": "14d7bb95fa6aefb4a2a25c962348ed90635676eef25a21247f17e0306f3f3dcb",
+          "byteLength": 11265
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-compact-before/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-compact-before/canonical.json",
+          "sha256": "79f673199f921c8f6cfe80446b765a9d55382df2ef2ecb163ff3be020e84957a",
+          "byteLength": 857
+        }
+      }
+    },
+    {
+      "id": "display-compact-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "display-compact",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-compact-after/source.json",
+          "sha256": "b64eb5a0a1d38ca5c853ab3aa01dd201c552b776281826fc03698bb9d28ffa69",
+          "byteLength": 1482
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-compact-after/permuted-source.json",
+          "sha256": "522a36b84f515d5fe0b3827304c1f95dfb4067508d5a03ece1410f32e772055f",
+          "byteLength": 1670
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-compact-after/mapped.nq",
+          "sha256": "2333ce15d1b0e58c2eaad6ddbc7e383bd9820268b7d457a162b5b1852c1510ed",
+          "byteLength": 10898
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-compact-after/canonical.nq",
+          "sha256": "5504b09b1c850cd3b833e7f2a711c782e7aebfbf06d1889e29f2a23a2d363f24",
+          "byteLength": 11261
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-compact-after/ids.json",
+          "sha256": "ad32397d36855abad0b7813462098e8a034ff031f72c1bc466e24c60557c4c89",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-compact-after/canonical.json",
+          "sha256": "62a79f38a157fa35aec16da31ecbf4c835e11567bbc8e1fcee73eb1a3e0f119f",
+          "byteLength": 856
+        }
+      }
+    },
+    {
+      "id": "display-scaling-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "display-scaling",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-scaling-before/source.json",
+          "sha256": "f2b2ad906849a780316778a94297b941b8f9a1a9376300b3d62186842dd80d2d",
+          "byteLength": 1483
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-scaling-before/permuted-source.json",
+          "sha256": "75a6ecca75904075b443c1f3efa7221f91408a9487c665b67687a1e5d7a2f0b9",
+          "byteLength": 1671
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-scaling-before/mapped.nq",
+          "sha256": "0af9d4309144d99b0e8b510c56d7cabe3543f75679f8271f83b57a398d9dfe3d",
+          "byteLength": 10899
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-scaling-before/canonical.nq",
+          "sha256": "14d7bb95fa6aefb4a2a25c962348ed90635676eef25a21247f17e0306f3f3dcb",
+          "byteLength": 11265
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-scaling-before/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-scaling-before/canonical.json",
+          "sha256": "79f673199f921c8f6cfe80446b765a9d55382df2ef2ecb163ff3be020e84957a",
+          "byteLength": 857
+        }
+      }
+    },
+    {
+      "id": "display-scaling-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "display-scaling",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-scaling-after/source.json",
+          "sha256": "8a24785412ad71d4e7b36e3b0db0acc7244968ccc48d2fa13e44b5e1a616aacc",
+          "byteLength": 1493
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-scaling-after/permuted-source.json",
+          "sha256": "9d12685f5ad886645ee09d8078512ff516a23dcd8a509d4b86b7af0c97fbd8c4",
+          "byteLength": 1681
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-scaling-after/mapped.nq",
+          "sha256": "5b8ea90b8cec08411139c4316f9ab76d44cdfe6f29d995c74ddea319d7a5fcfd",
+          "byteLength": 10909
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-scaling-after/canonical.nq",
+          "sha256": "d293b1a509849f29abaa45f023c06fda7a4125c13b72672ade48c267b134ae6c",
+          "byteLength": 11272
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-scaling-after/ids.json",
+          "sha256": "738dfcaf03eeb9dd415ef5ef881c6c5262c19cfe9ad07b8c6df9ae4693747bcd",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-scaling-after/canonical.json",
+          "sha256": "c5190a17b9c6b3fd64ddcca61aefcb9d82ad2df26feaef8031494ed2fe1373a5",
+          "byteLength": 867
+        }
+      }
+    },
+    {
+      "id": "display-external-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "display-external",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-external-before/source.json",
+          "sha256": "f2b2ad906849a780316778a94297b941b8f9a1a9376300b3d62186842dd80d2d",
+          "byteLength": 1483
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-external-before/permuted-source.json",
+          "sha256": "75a6ecca75904075b443c1f3efa7221f91408a9487c665b67687a1e5d7a2f0b9",
+          "byteLength": 1671
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-external-before/mapped.nq",
+          "sha256": "0af9d4309144d99b0e8b510c56d7cabe3543f75679f8271f83b57a398d9dfe3d",
+          "byteLength": 10899
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-external-before/canonical.nq",
+          "sha256": "14d7bb95fa6aefb4a2a25c962348ed90635676eef25a21247f17e0306f3f3dcb",
+          "byteLength": 11265
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-external-before/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-external-before/canonical.json",
+          "sha256": "79f673199f921c8f6cfe80446b765a9d55382df2ef2ecb163ff3be020e84957a",
+          "byteLength": 857
+        }
+      }
+    },
+    {
+      "id": "display-external-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "display-external",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-external-after/source.json",
+          "sha256": "d28ba25e5fda9ba43a6ef54260ec467a50a7e98696301f00dc06b9ef8baabac5",
+          "byteLength": 1482
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-external-after/permuted-source.json",
+          "sha256": "1754048f2566fca442a31fa1eb2d62cc6553ee13469303d7d8d3cae33414f8ed",
+          "byteLength": 1670
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-external-after/mapped.nq",
+          "sha256": "268d64a995af6bf7aa626715fa13e4e6118a00a40b684625b337b59fb0b282ac",
+          "byteLength": 10898
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-external-after/canonical.nq",
+          "sha256": "bad47dddf1d3060b585faffdaa6b3021432d30134c0f1cbfa1a6a75f090b6a09",
+          "byteLength": 11261
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-external-after/ids.json",
+          "sha256": "6722e77ded5a2f253a5cb37c2362f81db772dd890ff1dca891cfddfd2177206c",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/display-external-after/canonical.json",
+          "sha256": "29f807cddbe420dd13387cfaa5f6e18d38c1021384a7376526f50ac30131b17b",
+          "byteLength": 856
+        }
+      }
+    },
+    {
+      "id": "selection-language-range-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "selection-language-range",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 90
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-language-range-before/source.json",
+          "sha256": "5ec9b6ca30152f5e5684e96d3c23854276aacdcef57598b9b2efd812f95860df",
+          "byteLength": 1509
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-language-range-before/permuted-source.json",
+          "sha256": "05caf7e4307e1bcac51a7ea7270acc70e26fbd3ce23ccae18ac74be047b49325",
+          "byteLength": 1697
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-language-range-before/mapped.nq",
+          "sha256": "d0b19a042c54d394de199d6011dbb37b70115da9a27c925d6caa77d496d5ca96",
+          "byteLength": 10995
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-language-range-before/canonical.nq",
+          "sha256": "5deeecea1a4836666702c97c21feb90f2200bcfaa92d6c655abe97a7c80eaacb",
+          "byteLength": 11363
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-language-range-before/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-language-range-before/canonical.json",
+          "sha256": "7988fc7b11df0a4885e6cae7ab86abf4417200802c47f9ba3e86099b9b0ad058",
+          "byteLength": 875
+        }
+      }
+    },
+    {
+      "id": "selection-language-range-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "selection-language-range",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 90
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-language-range-after/source.json",
+          "sha256": "938a4e7852a4b320679e1c76fecb8d42861a7e47a7cbc0d359ac4a449a116bcf",
+          "byteLength": 1509
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-language-range-after/permuted-source.json",
+          "sha256": "4d822dd0b1c81a27ed3b4bcfcfba47dbf029370f840aaf3a7aa70c98b5d838b7",
+          "byteLength": 1697
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-language-range-after/mapped.nq",
+          "sha256": "752aae07f63ee5c2b6e26a4adf035ed0a6c5d1cc982e025668edd6b84b1a38f3",
+          "byteLength": 10995
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-language-range-after/canonical.nq",
+          "sha256": "861e1c3d4f769c218380242ce2e588e1ee1a8c93bb5d47425437dfbce9313ae8",
+          "byteLength": 11363
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-language-range-after/ids.json",
+          "sha256": "4684a8322a31cbc6f4bfc98825d1f54803b9f291e298d1edb047a108130a8078",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/selection-language-range-after/canonical.json",
+          "sha256": "00fb3f17154a39fc482cab6f3203c887be1cdc7701a7046b1cd39eb891a96d63",
+          "byteLength": 875
+        }
+      }
+    },
+    {
+      "id": "placement-occurrence-bijection-before",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "placement-occurrence-bijection",
+      "side": "before",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-occurrence-bijection-before/source.json",
+          "sha256": "f2b2ad906849a780316778a94297b941b8f9a1a9376300b3d62186842dd80d2d",
+          "byteLength": 1483
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-occurrence-bijection-before/permuted-source.json",
+          "sha256": "75a6ecca75904075b443c1f3efa7221f91408a9487c665b67687a1e5d7a2f0b9",
+          "byteLength": 1671
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-occurrence-bijection-before/mapped.nq",
+          "sha256": "0af9d4309144d99b0e8b510c56d7cabe3543f75679f8271f83b57a398d9dfe3d",
+          "byteLength": 10899
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-occurrence-bijection-before/canonical.nq",
+          "sha256": "14d7bb95fa6aefb4a2a25c962348ed90635676eef25a21247f17e0306f3f3dcb",
+          "byteLength": 11265
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-occurrence-bijection-before/ids.json",
+          "sha256": "7ec9578b9904825e827a5d626061d4fe0a5c8bfbef92826bc1c62f41a7f18042",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-occurrence-bijection-before/canonical.json",
+          "sha256": "79f673199f921c8f6cfe80446b765a9d55382df2ef2ecb163ff3be020e84957a",
+          "byteLength": 857
+        }
+      }
+    },
+    {
+      "id": "placement-occurrence-bijection-after",
+      "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/artifact/v1",
+      "pair": "placement-occurrence-bijection",
+      "side": "after",
+      "rules": [
+        "A2",
+        "A3",
+        "A4",
+        "A6",
+        "B3",
+        "B4",
+        "D18.1"
+      ],
+      "status": "independent-positive-mapping-pair-pending-review",
+      "counts": {
+        "primary": 6,
+        "blankNodes": 30,
+        "quads": 89
+      },
+      "metamorphic": [
+        "typed-handle-bijection",
+        "set-reversal",
+        "object-key-reversal"
+      ],
+      "files": {
+        "source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-occurrence-bijection-after/source.json",
+          "sha256": "c0f76da80f5d0a981d45efba02af658efbc530dd53e937936b68f6bbc4c774c7",
+          "byteLength": 1483
+        },
+        "permuted-source.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-occurrence-bijection-after/permuted-source.json",
+          "sha256": "3c6919eb27b1ee04ab0ad197f0740ba9e811b5ffbde5a5c2e910f2a8eacce49c",
+          "byteLength": 1671
+        },
+        "mapped.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-occurrence-bijection-after/mapped.nq",
+          "sha256": "2b5080d337828113f257e9a50fc290e47986548fdad0225137bae862b45e981b",
+          "byteLength": 10899
+        },
+        "canonical.nq": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-occurrence-bijection-after/canonical.nq",
+          "sha256": "68f44f73c6f79cf547f941e8ef8f7edddea729389b5645840ca692015d07f6f9",
+          "byteLength": 11265
+        },
+        "ids.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-occurrence-bijection-after/ids.json",
+          "sha256": "a54e5acf34d7e66af8b5bbbb2e1e96d5e84de090ca2844e5bffd42f9d6b059b1",
+          "byteLength": 909
+        },
+        "canonical.json": {
+          "path": "supplemental/mapping-counterexamples/value-state/placement-occurrence-bijection-after/canonical.json",
+          "sha256": "4e97f90b03a46e8a7cf990bbf7bab603e45bb4ed99b3e05d7378071c99a40234",
+          "byteLength": 857
+        }
+      }
+    }
+  ]
+}

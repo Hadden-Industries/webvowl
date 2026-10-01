@@ -1,0 +1,95 @@
+{
+  "visualization": {
+    "display": {
+      "externalColoring": false,
+      "nodeScaling": "direct-membership",
+      "compactNotation": true
+    },
+    "prefixes": [
+      {
+        "iri": "https://example.org/o#",
+        "prefix": ""
+      },
+      {
+        "iri": "https://example.org/o#",
+        "prefix": "ex"
+      }
+    ],
+    "labelSelection": {
+      "range": "en-gb",
+      "mode": "language"
+    },
+    "hidden": [],
+    "camera": {
+      "zoom": 1.25,
+      "center": {
+        "y": -2,
+        "x": 3
+      }
+    },
+    "placements": [
+      {
+        "pinned": true,
+        "position": {
+          "y": 30,
+          "x": 50
+        },
+        "occurrence": "renamed-1"
+      },
+      {
+        "pinned": false,
+        "position": {
+          "y": 20,
+          "x": -10
+        },
+        "occurrence": "renamed-2"
+      }
+    ]
+  },
+  "structural": {
+    "occurrences": [
+      {
+        "targets": [
+          "renamed-3"
+        ],
+        "kind": "class-node",
+        "id": "renamed-1"
+      },
+      {
+        "targets": [
+          "renamed-4"
+        ],
+        "kind": "class-node",
+        "id": "renamed-2"
+      }
+    ],
+    "constructs": [],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "renamed-5",
+        "kind": "class",
+        "id": "renamed-3"
+      },
+      {
+        "subject": "renamed-6",
+        "kind": "class",
+        "id": "renamed-4"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/o#B",
+        "id": "renamed-5"
+      },
+      {
+        "iri": "https://example.org/o#A",
+        "id": "renamed-6"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

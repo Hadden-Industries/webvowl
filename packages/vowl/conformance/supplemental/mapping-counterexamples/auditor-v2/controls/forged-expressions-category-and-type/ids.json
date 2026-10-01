@@ -1,0 +1,44 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "subject-defined",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n0",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "subjects",
+    "sourceHandle": "subject-integer",
+    "primaryBlankNode": "ps1",
+    "rdfcIdentifier": "c14n7",
+    "canonicalId": "s1"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "integer",
+    "primaryBlankNode": "pr1",
+    "rdfcIdentifier": "c14n6",
+    "canonicalId": "r0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "defined",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n9",
+    "canonicalId": "r1"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "expression",
+    "primaryBlankNode": "px0",
+    "rdfcIdentifier": "c14n3",
+    "canonicalId": "x0"
+  },
+  {
+    "category": "constructs",
+    "sourceHandle": "definition",
+    "primaryBlankNode": "pc0",
+    "rdfcIdentifier": "c14n1",
+    "canonicalId": "c0"
+  }
+]

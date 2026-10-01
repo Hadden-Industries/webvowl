@@ -1,0 +1,62 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "targets": [
+          "supplement-renamed-5"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-1"
+      }
+    ],
+    "constructs": [
+      {
+        "value": {
+          "language": "i-klingon",
+          "lexical": "Exact label",
+          "kind": "language"
+        },
+        "predicate": "https://example.org/supplement#note",
+        "subject": "supplement-renamed-8",
+        "kind": "annotation-assertion",
+        "id": "supplement-renamed-2"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "supplement-renamed-6",
+        "kind": "datatype",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "subject": "supplement-renamed-7",
+        "kind": "annotation-property",
+        "id": "supplement-renamed-4"
+      },
+      {
+        "subject": "supplement-renamed-8",
+        "kind": "class",
+        "id": "supplement-renamed-5"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "iri": "https://example.org/supplement#note",
+        "id": "supplement-renamed-7"
+      },
+      {
+        "iri": "https://example.org/supplement#A",
+        "id": "supplement-renamed-8"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

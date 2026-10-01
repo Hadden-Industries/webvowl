@@ -1,0 +1,89 @@
+{
+  "profile": "https://haddenindustries.com/ontology/profiles/vowl/canonical/structural-content/v1",
+  "structural": {
+    "constructs": [
+      {
+        "characteristic": "functional",
+        "id": "c1",
+        "kind": "data-characteristic",
+        "property": "r1",
+        "unexpectedField": null
+      },
+      {
+        "id": "c0",
+        "kind": "data-range",
+        "property": "r1",
+        "target": "x0"
+      },
+      {
+        "id": "c2",
+        "kind": "data-domain",
+        "property": "r1",
+        "target": "r0"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "x0",
+        "kind": "data-intersection",
+        "members": [
+          "r2",
+          "r3"
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "o0",
+        "kind": "class-node",
+        "targets": [
+          "r0"
+        ]
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    },
+    "roles": [
+      {
+        "id": "r0",
+        "kind": "class",
+        "subject": "s3"
+      },
+      {
+        "id": "r1",
+        "kind": "data-property",
+        "subject": "s1"
+      },
+      {
+        "id": "r2",
+        "kind": "datatype",
+        "subject": "s2"
+      },
+      {
+        "id": "r3",
+        "kind": "datatype",
+        "subject": "s0"
+      }
+    ],
+    "subjects": [
+      {
+        "id": "s0",
+        "iri": "https://example.org/conditional#E"
+      },
+      {
+        "id": "s1",
+        "iri": "https://example.org/conditional#p"
+      },
+      {
+        "id": "s2",
+        "iri": "https://example.org/conditional#D"
+      },
+      {
+        "id": "s3",
+        "iri": "https://example.org/conditional#A"
+      }
+    ]
+  }
+}

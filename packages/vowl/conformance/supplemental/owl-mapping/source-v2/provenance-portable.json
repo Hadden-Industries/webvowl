@@ -1,0 +1,350 @@
+{
+  "format": "independent-canonical-vowl-owl-source-revision-portable-loader-v2",
+  "predecessor": {
+    "path": "supplemental/owl-mapping/source-v2/provenance.json",
+    "sha256": "ba6a1ee75e2d7011b61336910514ad2878297048b3d0bc82a0eefbc5f4916af7"
+  },
+  "reason": "The initial source-v2 loader used native structuredClone for an intermediate JSON record copy. Jest's VM context can receive a host-realm clone, causing prototype-sensitive deepStrictEqual to fail on identical JSON data before any adapter call. This version uses JSON parse/stringify for that data-only copy and retains every value, reference, before/after byte reconstruction and historical pin check. The original loader, receipt and every expectation remain unchanged.",
+  "counts": {
+    "sourceReplacements": 29,
+    "activeVectors": 28,
+    "mappingRuns": 66,
+    "historicalPrefixRejections": 2,
+    "totalPublicRuns": 68,
+    "unchangedExpectedModels": 21
+  },
+  "artifacts": [
+    {
+      "path": "supplemental/owl-mapping/source-v2/provenance.json",
+      "sha256": "ba6a1ee75e2d7011b61336910514ad2878297048b3d0bc82a0eefbc5f4916af7"
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/manifest.json",
+      "sha256": "84578b5c9abb5e37f3c39f8932dcb0711681ec18262cca2eebecdc0c8c99a68c"
+    },
+    {
+      "path": "supplemental/owl-mapping/provenance-index.json",
+      "sha256": "3ebdcce7388a8648516dedcc03bd597ac777ef71f30cb276f9db7354a70f72d7"
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/derive.mjs",
+      "sha256": "db2bee09229bf855a75cbd17a3b8a279f3984a751e63179b6fbcdad756b8a147",
+      "byteLength": 5489
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/README.md",
+      "sha256": "477bfdc19c1b0120be3ffaadec3c9d316f374189a903facd9ea50dc38b8e565b",
+      "byteLength": 2597
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/empty-anonymous-ontology/input.ofn",
+      "sha256": "1ccbc0cdd7ead7e862df69e4222306812ec6065d59ac5bb5f88a833dd83cb652",
+      "byteLength": 104
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/empty-anonymous-ontology/root.input",
+      "sha256": "12538a216bf10ebaeb0917a6af9ccf3d53db2b5330d58034c76331908aa1c8dc",
+      "byteLength": 55
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/declared-subclass/input.ofn",
+      "sha256": "ed98cbda9c09d8e4354e79533316fbcc8f4821b08f6287d7f61b913f22ea36a0",
+      "byteLength": 167
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/declared-subclass/root.input",
+      "sha256": "b85c1b4cbd0fb5cd2a9e079823c166b7821fd9f30d02a13bf5e2af210814f895",
+      "byteLength": 118
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/typed-use-without-redundant-declarations/input.ofn",
+      "sha256": "f504392f768b1fd75da1120994ca5d7741a5aa1abd208cede3610c0e578db5a9",
+      "byteLength": 121
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/typed-use-without-redundant-declarations/root.input",
+      "sha256": "8211179135d50a6ac39c1ac4f595962698dcd582da98316bc5b80a5b34c55a53",
+      "byteLength": 72
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/nested-annotations-and-exact-literals/input.ofn",
+      "sha256": "e7e59a5054becfda92dcae8aa0bde213400448851987fd449d62630b9d23bc0e",
+      "byteLength": 353
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/nested-annotations-and-exact-literals/root.input",
+      "sha256": "46d5cfaca0b8e6c8e036647d367a6af82d764fe80953844861dcd7d5506b259a",
+      "byteLength": 304
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/six-explicit-abox-exclusions/input.ofn",
+      "sha256": "36365c694360957e6c68258202a659a924ba6401654f1067e6ed9db6fcd34f7b",
+      "byteLength": 612
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/six-explicit-abox-exclusions/root.input",
+      "sha256": "77a2fdbcddd4c43221d97cb7d711ab1d9c778ba7818e255dbdbfeb581d40f982",
+      "byteLength": 563
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/unresolved-authored-import/input.ofn",
+      "sha256": "9501c7b96e5d0deaa64117b04d52c6b77435e4b2b7bf5dea60c9f4cb8b16bbfe",
+      "byteLength": 176
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/unresolved-authored-import/root.input",
+      "sha256": "550fe6201a04064aa4ad37721072325bf4ecde500cb145a58f65878af0b82bb1",
+      "byteLength": 127
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/known-ill-typed-literal/input.ofn",
+      "sha256": "3ac8edc3e4749dbaabb466c5365928294cdd747d28e81459431b5fa3c77bc119",
+      "byteLength": 256
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/known-ill-typed-literal/root.input",
+      "sha256": "8bdeaa9d4ca243e6078cae31d685aafa9e9fd8c67621761e56647e6819535d20",
+      "byteLength": 207
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/unverified-custom-datatype/input.ofn",
+      "sha256": "52094a3e6fd97e6a8d301a2339092f9f75e9558c9b07d15bf5af1c19752c8701",
+      "byteLength": 290
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/unverified-custom-datatype/root.input",
+      "sha256": "4ca304bad921a765d4c9b1a1b587d03f624637ffcc00e8e86b63c9c16bf5022d",
+      "byteLength": 241
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/explicit-multiple-property-roles/input.ofn",
+      "sha256": "48b737a7ce241dc1badf95b58ef9a912e3fee585d77a8c48966dfaba6810fb3c",
+      "byteLength": 302
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/explicit-multiple-property-roles/root.input",
+      "sha256": "a806af11f0812490efcd13565dd33c02f0b2e7d6d7b165eea494a86f4e4a5488",
+      "byteLength": 253
+    },
+    {
+      "path": "supplemental/owl-mapping/seed/non-simple-functional-property/input.ofn",
+      "sha256": "24610ea2016dd53e8777308455135174fbc855ec5686ef61c184af80fe60daf5",
+      "byteLength": 271
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/non-simple-functional-property/root.input",
+      "sha256": "525100707c0bb235b42fcbbf737fc278c2e989964fe4c793de93a36bb7daf7c1",
+      "byteLength": 222
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/subclass-source-order-and-duplicates/root.input",
+      "sha256": "8e1acd0eebd1d7b2a2321a9377dddf317a48ecc225250555df18c93700369fb1",
+      "byteLength": 208
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/subclass-source-order-and-duplicates/root.input",
+      "sha256": "64cdac48a5a99d293401a9a6473cc77a063135e0d1f317c0aa6f5591be02dae2",
+      "byteLength": 159
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-root-metadata-and-anonymous-apart/root.input",
+      "sha256": "9e28fe698e1a9e61e913a5a67eec3c6d9b41627f093100cad108a0610de9e60d",
+      "byteLength": 324
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/closure-root-metadata-and-anonymous-apart/root.input",
+      "sha256": "c9ab9ec5fd8e91ceed80de18d843cc694d84b8a02a500c6306f8ebd69d099685",
+      "byteLength": 275
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-root-metadata-and-anonymous-apart/import-0.input",
+      "sha256": "78c3ece4041a8d9d61dc1b4ab89b8ce677d9a5c8012d5fc2c887fe73d859b693",
+      "byteLength": 242
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/closure-root-metadata-and-anonymous-apart/import-0.input",
+      "sha256": "e5fbd9dcfbcd297fae8bea26f3a9811ef1bc91750a61ebe495c692ee12662202",
+      "byteLength": 193
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-root-metadata-and-anonymous-apart/import-1.input",
+      "sha256": "95675f769c70e703c2ad622663fc554586d7174daf023ab7c6883196c4d6cb87",
+      "byteLength": 215
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/closure-root-metadata-and-anonymous-apart/import-1.input",
+      "sha256": "a7b6ccccc93bd48b28eb989ca20c08c14ea80e548b6cdf92182e7e1ec82e6866",
+      "byteLength": 166
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-root-metadata-and-anonymous-apart/import-2.input",
+      "sha256": "1a5d7db6070282e911d34af5eea80f9896c86051465baa990cf71d4259f7b8ff",
+      "byteLength": 210
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/closure-root-metadata-and-anonymous-apart/import-2.input",
+      "sha256": "510a6af7cfc1ab72899cee143b330218fc0bd633acd59d0c67c8c5f967910d7d",
+      "byteLength": 161
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-order-document-alias-and-label-permutation/root.input",
+      "sha256": "ee9ae06d4edf1acb47acaead7c0610dd46dbf102fd384ab3604806e3aafdebda",
+      "byteLength": 329
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/closure-order-document-alias-and-label-permutation/root.input",
+      "sha256": "6736ffc5e79b8766ef6f091e492549a71a8c21c283773cb4433e92924aae7d48",
+      "byteLength": 280
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-order-document-alias-and-label-permutation/import-0.input",
+      "sha256": "1a5d7db6070282e911d34af5eea80f9896c86051465baa990cf71d4259f7b8ff",
+      "byteLength": 210
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/closure-order-document-alias-and-label-permutation/import-0.input",
+      "sha256": "510a6af7cfc1ab72899cee143b330218fc0bd633acd59d0c67c8c5f967910d7d",
+      "byteLength": 161
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-order-document-alias-and-label-permutation/import-1.input",
+      "sha256": "fc9e2297cde95ecb4de8ad88a3c468c0c9f8be28d45c1b9a9bc959316534ab46",
+      "byteLength": 221
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/closure-order-document-alias-and-label-permutation/import-1.input",
+      "sha256": "3d00e70f1034b524fd34e7454888f76ea74cb31be9d1136801211db6a3d24253",
+      "byteLength": 172
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/closure-order-document-alias-and-label-permutation/import-2.input",
+      "sha256": "6c3ffd9cfa8cc3df4e001008d5d4c636a4eab235921407d4abbfa02d470e7ba5",
+      "byteLength": 247
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/closure-order-document-alias-and-label-permutation/import-2.input",
+      "sha256": "427b22b1b478db1fb71c07233e5f7881381acf011ed5b9bd6b276147fb551b15",
+      "byteLength": 198
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/aggregated-domains-retain-original-anchors/root.input",
+      "sha256": "7e64b4205601235bfece35808e8f120e680ef95bbda8857089645e12536e3fe6",
+      "byteLength": 346
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/aggregated-domains-retain-original-anchors/root.input",
+      "sha256": "1a3e2fa4004c860fa5e096093e4d9ca229a7ea3b06b6d9b61c915aa8b681e201",
+      "byteLength": 297
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/exact-large-cardinality-default-filler/root.input",
+      "sha256": "0f7b0fcb0e9ace408571fd57a6dbbc0ff6e6e372172ddc74cffddd7decd1c866",
+      "byteLength": 215
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/exact-large-cardinality-default-filler/root.input",
+      "sha256": "def8f83059df86c1608abaccaa3930562a5ec4e0c3d749f88af5286e0500bc81",
+      "byteLength": 166
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/original-arity-before-set-deduplication/root.input",
+      "sha256": "f29c61921240641b5fdbcaad53656c913487fff49b7bc6bcd4a28afde8aec6f8",
+      "byteLength": 215
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/original-arity-before-set-deduplication/root.input",
+      "sha256": "4b2f161a0d0734c5798e8500cbc2ed873958912a489485cf8756c40a1c1dc2ce",
+      "byteLength": 166
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/multi-property-DataSomeValuesFrom/root.input",
+      "sha256": "a8838636d1a474329984ce3a6dba75e9f652ca73d0af3be876100dfb9d023a55",
+      "byteLength": 402
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/multi-property-DataSomeValuesFrom/root.input",
+      "sha256": "dfbbb04bbebda2ce3be1e886cc99237311539215948cac395afa8150a2e71169",
+      "byteLength": 353
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/multi-property-DataAllValuesFrom/root.input",
+      "sha256": "beb8a5084e60c7ac0736c2100c041d965e32db635e389c1c2b2930f53beccc0f",
+      "byteLength": 401
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/multi-property-DataAllValuesFrom/root.input",
+      "sha256": "2d335333a078626b4f67c62fdef3da1c6376d580fa163e480a1c394603fb0986",
+      "byteLength": 352
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/strict-validates-excluded-imported-literal/root.input",
+      "sha256": "5b53bfa6cbacd5f7bcbf9928ecce5e2ece1bd82ace057891bc0fd84c6c287bfa",
+      "byteLength": 204
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/strict-validates-excluded-imported-literal/root.input",
+      "sha256": "beaaf5c6cde1bcf8017c1490e8ad781ce13a38bc8987251de26467cc66be2d7a",
+      "byteLength": 155
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/strict-validates-excluded-imported-literal/import-0.input",
+      "sha256": "ce931f8a7705db64931b89531a682564a0531c8926ff42d26808abbc82003032",
+      "byteLength": 162
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/strict-validates-excluded-imported-literal/import-0.input",
+      "sha256": "4862a19bc73e6f3a1f44cbb5d0237a21e1c9f6699af34f34181ff1f47b7b4de9",
+      "byteLength": 113
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/unsupported-media-never-sniffs/root.input",
+      "sha256": "fa88e59364b0ac06bb967910f73e88c8de35932fccd0f2ac145057d844fb6a4f",
+      "byteLength": 126
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/unsupported-media-never-sniffs/root.input",
+      "sha256": "6ed49df9066858e54a7063b87aeeba003d5f8d6f27a52ea776d3a7135c3560df",
+      "byteLength": 77
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/unknown-functional-constructor/root.input",
+      "sha256": "124d01897a90edbb146a665c08ba0836ed3f3c8d4eb9958cd4e85a50603b5815",
+      "byteLength": 132
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/unknown-functional-constructor/root.input",
+      "sha256": "e72079bde26435644c3f79875fcf369062524f3ea27a78a2746a7abf9528c96d",
+      "byteLength": 83
+    },
+    {
+      "path": "supplemental/owl-mapping/closure/empty-owl-key-is-not-a-core-empty-key/root.input",
+      "sha256": "a7825aafb7a4db5a4f933f090628ef8a882be32d7b2ca0c3fb01261962c5b598",
+      "byteLength": 143
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/inputs/empty-owl-key-is-not-a-core-empty-key/root.input",
+      "sha256": "f008864426882ccd75ff5b6988f1eb1af2255d57407f2cfdb50ac709629da243",
+      "byteLength": 94
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/catalog.mjs",
+      "sha256": "6d76fd465b6aa2e413c6b40ec5efa63e16ce7eb1e98785bccb24085d8f68b95d",
+      "byteLength": 2461
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/verify.mjs",
+      "sha256": "2f2895019e2510e151fc09a9569a88012d2cd29ce831c060bd0f2469631221f5",
+      "byteLength": 1877
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/catalog-portable.mjs",
+      "sha256": "e26548b5392480f949a3480a7751ae34d402d43edd91724bf85bfd3c0185e74d",
+      "byteLength": 2624
+    },
+    {
+      "path": "supplemental/owl-mapping/source-v2/verify-portable.mjs",
+      "sha256": "0e3defd76a263c279e12579e98450796c362efb18689660e2d04d38b6b347a6b",
+      "byteLength": 1670
+    }
+  ]
+}

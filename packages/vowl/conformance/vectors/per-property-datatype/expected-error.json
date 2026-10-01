@@ -1,0 +1,7 @@
+{
+  "code": "RDFC_RESOURCE_LIMIT",
+  "rule": "A8",
+  "dependency": "rdf-canonize@5.0.0",
+  "maxDeepIterations": 37,
+  "note": "Bounded operational rejection for this pinned implementation; no canonical result or fallback is permitted."
+}

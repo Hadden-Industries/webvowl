@@ -1,0 +1,98 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "supplement-renamed-2",
+        "kind": "label",
+        "id": "supplement-renamed-1"
+      },
+      {
+        "to": "supplement-renamed-3",
+        "from": "supplement-renamed-3",
+        "properties": [
+          "supplement-renamed-8"
+        ],
+        "kind": "property-edge",
+        "id": "supplement-renamed-2"
+      },
+      {
+        "context": {
+          "targets": [
+            "supplement-renamed-9"
+          ],
+          "kind": "class"
+        },
+        "targets": [
+          "supplement-renamed-9"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-3"
+      },
+      {
+        "targets": [
+          "supplement-renamed-10"
+        ],
+        "kind": "class-node",
+        "id": "supplement-renamed-4"
+      }
+    ],
+    "constructs": [
+      {
+        "super": "supplement-renamed-7",
+        "sub": "supplement-renamed-10",
+        "kind": "subclass",
+        "id": "supplement-renamed-5"
+      }
+    ],
+    "expressions": [
+      {
+        "property": "supplement-renamed-8",
+        "kind": "object-inverse",
+        "id": "supplement-renamed-6"
+      },
+      {
+        "filler": "supplement-renamed-9",
+        "cardinality": "90071992547409931234567890",
+        "property": "supplement-renamed-6",
+        "kind": "object-exact-cardinality",
+        "id": "supplement-renamed-7"
+      }
+    ],
+    "roles": [
+      {
+        "subject": "supplement-renamed-11",
+        "kind": "object-property",
+        "id": "supplement-renamed-8"
+      },
+      {
+        "subject": "supplement-renamed-12",
+        "kind": "class",
+        "id": "supplement-renamed-9"
+      },
+      {
+        "subject": "supplement-renamed-13",
+        "kind": "class",
+        "id": "supplement-renamed-10"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/o#p",
+        "id": "supplement-renamed-11"
+      },
+      {
+        "iri": "http://www.w3.org/2002/07/owl#Thing",
+        "id": "supplement-renamed-12"
+      },
+      {
+        "iri": "https://example.org/o#A",
+        "id": "supplement-renamed-13"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

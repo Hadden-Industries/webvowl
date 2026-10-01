@@ -1,0 +1,16 @@
+[
+  {
+    "category": "subjects",
+    "sourceHandle": "s:i",
+    "primaryBlankNode": "ps0",
+    "rdfcIdentifier": "c14n7",
+    "canonicalId": "s0"
+  },
+  {
+    "category": "roles",
+    "sourceHandle": "i",
+    "primaryBlankNode": "pr0",
+    "rdfcIdentifier": "c14n4",
+    "canonicalId": "r0"
+  }
+]

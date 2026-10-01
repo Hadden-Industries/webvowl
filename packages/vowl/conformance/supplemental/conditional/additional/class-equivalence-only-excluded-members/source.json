@@ -1,0 +1,144 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-A",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "subject-B",
+        "iri": "https://example.org/supplement#B"
+      },
+      {
+        "id": "subject-C",
+        "iri": "https://example.org/supplement#C"
+      },
+      {
+        "id": "subject-D",
+        "iri": "https://example.org/supplement#D"
+      },
+      {
+        "id": "subject-anonymous-class"
+      },
+      {
+        "id": "subject-Thing",
+        "iri": "http://www.w3.org/2002/07/owl#Thing"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "subject-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "subject-B"
+      },
+      {
+        "id": "C",
+        "kind": "class",
+        "subject": "subject-C"
+      },
+      {
+        "id": "D",
+        "kind": "class",
+        "subject": "subject-D"
+      },
+      {
+        "id": "anonymous-class",
+        "kind": "class",
+        "subject": "subject-anonymous-class"
+      },
+      {
+        "id": "Thing",
+        "kind": "class",
+        "subject": "subject-Thing"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "union",
+        "kind": "class-union",
+        "members": [
+          "C",
+          "D"
+        ]
+      }
+    ],
+    "constructs": [
+      {
+        "id": "equivalence",
+        "kind": "equivalent-classes",
+        "members": [
+          "Thing",
+          "anonymous-class",
+          "union"
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-C",
+        "kind": "class-node",
+        "targets": [
+          "C"
+        ]
+      },
+      {
+        "id": "node-D",
+        "kind": "class-node",
+        "targets": [
+          "D"
+        ]
+      },
+      {
+        "id": "anonymous-node",
+        "kind": "class-node",
+        "targets": [
+          "anonymous-class"
+        ]
+      },
+      {
+        "id": "node-union",
+        "kind": "class-node",
+        "targets": [
+          "union"
+        ]
+      },
+      {
+        "id": "operator-union-1",
+        "kind": "operator-edge",
+        "expression": "union",
+        "from": "node-union",
+        "to": "node-C"
+      },
+      {
+        "id": "operator-union-2",
+        "kind": "operator-edge",
+        "expression": "union",
+        "from": "node-union",
+        "to": "node-D"
+      },
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,236 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "s-A",
+        "iri": "https://example.org/o#A"
+      },
+      {
+        "id": "s-B",
+        "iri": "https://example.org/o#B"
+      },
+      {
+        "id": "s-p",
+        "iri": "https://example.org/o#p"
+      },
+      {
+        "id": "s-q",
+        "iri": "https://example.org/o#q"
+      },
+      {
+        "id": "s-r",
+        "iri": "https://example.org/o#r"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "s-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "s-B"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "s-p"
+      },
+      {
+        "id": "q",
+        "kind": "object-property",
+        "subject": "s-q"
+      },
+      {
+        "id": "r",
+        "kind": "object-property",
+        "subject": "s-r"
+      }
+    ],
+    "expressions": [],
+    "constructs": [
+      {
+        "id": "domain-p",
+        "kind": "object-domain",
+        "property": "p",
+        "target": "A"
+      },
+      {
+        "id": "range-p",
+        "kind": "object-range",
+        "property": "p",
+        "target": "B"
+      },
+      {
+        "id": "domain-q",
+        "kind": "object-domain",
+        "property": "q",
+        "target": "B"
+      },
+      {
+        "id": "range-q",
+        "kind": "object-range",
+        "property": "q",
+        "target": "A"
+      },
+      {
+        "id": "inverse",
+        "kind": "inverse-properties",
+        "members": [
+          "q",
+          "p"
+        ]
+      },
+      {
+        "id": "domain-r",
+        "kind": "object-domain",
+        "property": "r",
+        "target": "A"
+      },
+      {
+        "id": "range-r",
+        "kind": "object-range",
+        "property": "r",
+        "target": "B"
+      },
+      {
+        "id": "sub-forward",
+        "kind": "sub-object-property",
+        "sub": "r",
+        "super": "p"
+      },
+      {
+        "id": "sub-reverse",
+        "kind": "sub-object-property",
+        "sub": "r",
+        "super": "q"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "inverse-edge",
+        "kind": "property-edge",
+        "properties": [
+          "r"
+        ],
+        "from": "node-A",
+        "to": "node-B"
+      },
+      {
+        "id": "forward-label",
+        "kind": "label",
+        "edge": "edge-r",
+        "direction": "forward"
+      },
+      {
+        "id": "reverse-label",
+        "kind": "label",
+        "edge": "edge-r",
+        "direction": "reverse"
+      },
+      {
+        "id": "edge-r",
+        "kind": "inverse-edge",
+        "construct": "inverse",
+        "forward": [
+          "p"
+        ],
+        "reverse": [
+          "q"
+        ],
+        "from": "node-A",
+        "to": "node-B"
+      },
+      {
+        "id": "label-r",
+        "kind": "label",
+        "edge": "inverse-edge",
+        "direction": "single"
+      }
+    ]
+  },
+  "visualization": {
+    "placements": [
+      {
+        "occurrence": "node-A",
+        "position": {
+          "x": 3,
+          "y": 5
+        },
+        "pinned": false
+      },
+      {
+        "occurrence": "node-B",
+        "position": {
+          "x": 20,
+          "y": 18
+        },
+        "pinned": false
+      },
+      {
+        "occurrence": "forward-label",
+        "position": {
+          "x": 37,
+          "y": 31
+        },
+        "pinned": false
+      },
+      {
+        "occurrence": "reverse-label",
+        "position": {
+          "x": 54,
+          "y": 44
+        },
+        "pinned": false
+      },
+      {
+        "occurrence": "label-r",
+        "position": {
+          "x": 71,
+          "y": 57
+        },
+        "pinned": false
+      }
+    ],
+    "camera": {
+      "center": {
+        "x": 0,
+        "y": 0
+      },
+      "zoom": 2
+    },
+    "hidden": [
+      "inverse-edge",
+      "label-r"
+    ],
+    "labelSelection": {
+      "mode": "iri"
+    },
+    "prefixes": [],
+    "display": {
+      "compactNotation": false,
+      "nodeScaling": "uniform",
+      "externalColoring": false
+    }
+  }
+}

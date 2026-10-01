@@ -1,0 +1,198 @@
+{
+  "structural": {
+    "ontology": {
+      "imports": [],
+      "annotations": []
+    },
+    "subjects": [
+      {
+        "id": "subject-A",
+        "iri": "https://example.org/supplement#A"
+      },
+      {
+        "id": "subject-B",
+        "iri": "https://example.org/supplement#B"
+      },
+      {
+        "id": "subject-C",
+        "iri": "https://example.org/supplement#C"
+      },
+      {
+        "id": "subject-p",
+        "iri": "https://example.org/supplement#p"
+      },
+      {
+        "id": "subject-note",
+        "iri": "https://example.org/supplement#note"
+      },
+      {
+        "id": "subject-string",
+        "iri": "http://www.w3.org/2001/XMLSchema#string"
+      }
+    ],
+    "roles": [
+      {
+        "id": "A",
+        "kind": "class",
+        "subject": "subject-A"
+      },
+      {
+        "id": "B",
+        "kind": "class",
+        "subject": "subject-B"
+      },
+      {
+        "id": "C",
+        "kind": "class",
+        "subject": "subject-C"
+      },
+      {
+        "id": "p",
+        "kind": "object-property",
+        "subject": "subject-p"
+      },
+      {
+        "id": "note",
+        "kind": "annotation-property",
+        "subject": "subject-note"
+      },
+      {
+        "id": "string",
+        "kind": "datatype",
+        "subject": "subject-string"
+      }
+    ],
+    "expressions": [
+      {
+        "id": "inner",
+        "kind": "class-intersection",
+        "members": [
+          "A",
+          "B"
+        ]
+      },
+      {
+        "id": "outer",
+        "kind": "class-intersection",
+        "members": [
+          "inner",
+          "C"
+        ]
+      }
+    ],
+    "constructs": [
+      {
+        "id": "domain-p",
+        "kind": "object-domain",
+        "property": "p",
+        "target": "outer"
+      },
+      {
+        "id": "range-p",
+        "kind": "object-range",
+        "property": "p",
+        "target": "C"
+      },
+      {
+        "id": "anchor",
+        "kind": "assertion-anchor",
+        "assertion": {
+          "kind": "object-domain",
+          "property": "subject-A",
+          "target": "C"
+        },
+        "annotations": [
+          {
+            "predicate": "https://example.org/supplement#note",
+            "value": {
+              "kind": "typed",
+              "lexical": "Exact annotation",
+              "datatype": "http://www.w3.org/2001/XMLSchema#string"
+            },
+            "annotations": []
+          }
+        ]
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "node-A",
+        "kind": "class-node",
+        "targets": [
+          "A"
+        ]
+      },
+      {
+        "id": "node-B",
+        "kind": "class-node",
+        "targets": [
+          "B"
+        ]
+      },
+      {
+        "id": "node-C",
+        "kind": "class-node",
+        "targets": [
+          "C"
+        ]
+      },
+      {
+        "id": "node-inner",
+        "kind": "class-node",
+        "targets": [
+          "inner"
+        ]
+      },
+      {
+        "id": "operator-inner-1",
+        "kind": "operator-edge",
+        "expression": "inner",
+        "from": "node-inner",
+        "to": "node-A"
+      },
+      {
+        "id": "operator-inner-2",
+        "kind": "operator-edge",
+        "expression": "inner",
+        "from": "node-inner",
+        "to": "node-B"
+      },
+      {
+        "id": "node-outer",
+        "kind": "class-node",
+        "targets": [
+          "outer"
+        ]
+      },
+      {
+        "id": "operator-outer-1",
+        "kind": "operator-edge",
+        "expression": "outer",
+        "from": "node-outer",
+        "to": "node-inner"
+      },
+      {
+        "id": "operator-outer-2",
+        "kind": "operator-edge",
+        "expression": "outer",
+        "from": "node-outer",
+        "to": "node-C"
+      },
+      {
+        "id": "edge-p",
+        "kind": "property-edge",
+        "properties": [
+          "p"
+        ],
+        "from": "node-outer",
+        "to": "node-C"
+      },
+      {
+        "id": "label-edge-p",
+        "kind": "label",
+        "edge": "edge-p",
+        "direction": "single"
+      }
+    ]
+  }
+}

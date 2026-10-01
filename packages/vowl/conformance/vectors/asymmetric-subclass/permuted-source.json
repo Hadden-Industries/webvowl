@@ -1,0 +1,68 @@
+{
+  "structural": {
+    "occurrences": [
+      {
+        "direction": "single",
+        "edge": "renamed-2",
+        "kind": "label",
+        "id": "renamed-1"
+      },
+      {
+        "to": "renamed-3",
+        "from": "renamed-4",
+        "construct": "renamed-5",
+        "kind": "subclass-edge",
+        "id": "renamed-2"
+      },
+      {
+        "targets": [
+          "renamed-6"
+        ],
+        "kind": "class-node",
+        "id": "renamed-3"
+      },
+      {
+        "targets": [
+          "renamed-7"
+        ],
+        "kind": "class-node",
+        "id": "renamed-4"
+      }
+    ],
+    "constructs": [
+      {
+        "super": "renamed-6",
+        "sub": "renamed-7",
+        "kind": "subclass",
+        "id": "renamed-5"
+      }
+    ],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "renamed-8",
+        "kind": "class",
+        "id": "renamed-6"
+      },
+      {
+        "subject": "renamed-9",
+        "kind": "class",
+        "id": "renamed-7"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/o#B",
+        "id": "renamed-8"
+      },
+      {
+        "iri": "https://example.org/o#A",
+        "id": "renamed-9"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}

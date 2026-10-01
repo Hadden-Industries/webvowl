@@ -1,0 +1,42 @@
+{
+  "structural": {
+    "occurrences": [],
+    "constructs": [],
+    "expressions": [],
+    "roles": [
+      {
+        "subject": "conditional-renamed-4",
+        "kind": "datatype",
+        "id": "conditional-renamed-1"
+      },
+      {
+        "subject": "conditional-renamed-5",
+        "kind": "rdf-class",
+        "id": "conditional-renamed-2"
+      },
+      {
+        "subject": "conditional-renamed-6",
+        "kind": "class",
+        "id": "conditional-renamed-3"
+      }
+    ],
+    "subjects": [
+      {
+        "iri": "https://example.org/conditional#D",
+        "id": "conditional-renamed-4"
+      },
+      {
+        "iri": "http://www.w3.org/2000/01/rdf-schema#Resource",
+        "id": "conditional-renamed-5"
+      },
+      {
+        "iri": "http://www.w3.org/2002/07/owl#Thing",
+        "id": "conditional-renamed-6"
+      }
+    ],
+    "ontology": {
+      "annotations": [],
+      "imports": []
+    }
+  }
+}
