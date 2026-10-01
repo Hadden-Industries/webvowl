@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { readCorpusArtifact } from "../../../storage.mjs";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 import { bundle, hash, json, pin, prefix } from "./support.mjs";
 const repository = resolve(bundle, "../../..");
@@ -27,7 +28,10 @@ async function collect(path, expected, length) {
     target = resolve(root, path),
     suffix = relative(root, target);
   assert(suffix && !suffix.startsWith("..") && !isAbsolute(suffix));
-  const bytes = await readFile(target),
+  const bytes =
+      base === "conformance"
+        ? readCorpusArtifact(path)
+        : await readFile(target),
     sha256 = hash(bytes),
     key = `${base}/${path}`;
   if (expected) assert.equal(sha256, expected, key);

@@ -3,11 +3,11 @@
   "status": "all-declared-field-obligations-bound-pending-independent-review",
   "inventory": {
     "path": "supplemental/field-contract/contract-inventory.json",
-    "sha256": "3f43a309b39b92a6a0908d1fc71d20a66673795ab28cb6ac078272a85524bb87"
+    "sha256": "31017ab0a3b0da8b0990a059b37ca9f702cd194f1dfc071453147f5b0eddbac6"
   },
   "negativeManifest": {
     "path": "supplemental/field-contract/negative-manifest.json",
-    "sha256": "8c4517f48b8ab214693426b8a76f7f30add35d7be6abfddfe40e9122bfbf9a9e",
+    "sha256": "8466307cb40687827bb841d2e02e5f9c3423bb69e54aacfe36bc85f4d3f2d0cc",
     "byteLength": 3356114
   },
   "denominator": {

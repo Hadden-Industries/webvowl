@@ -11,14 +11,14 @@
     },
     "provenance": {
       "path": "supplemental/mapping-counterexamples/provenance-index.json",
-      "sha256": "4f3665db0e4ba4f25481a8227b35d1b5f1168c3559e1fd855991d2fa43d1154d"
+      "sha256": "d3faacaded67d017d8f8d590fea87543e684578764d1a2af6889448e6db8f20c"
     }
   },
   "sourceArtifacts": [
     {
       "path": "supplemental/mapping-counterexamples/auditor-v2/support.mjs",
-      "sha256": "d6f4170b397da4aa77542184213680f37c129cdf0bd152f83ca0a9de80157de6",
-      "byteLength": 1841
+      "sha256": "7158bfb1ed3e59e2f13d1d5bc923782ed16e6706e7056f275f0b7197f747f656",
+      "byteLength": 1954
     },
     {
       "path": "supplemental/mapping-counterexamples/auditor-v2/template-audit.mjs",
@@ -27,7 +27,7 @@
     },
     {
       "path": "supplemental/mapping-counterexamples/auditor-v2/derive.mjs",
-      "sha256": "43c87febb96d34f2d254ef602dfc50241c58e443906eef0683e836cb57e9577e",
+      "sha256": "d339c0fad34b041813ab24c2823e679c4e7e8aa7f1e808164200fdc5bc77ca16",
       "byteLength": 9973
     }
   ],
@@ -22385,7 +22385,7 @@
   ],
   "controls": {
     "path": "supplemental/mapping-counterexamples/auditor-v2/controls-manifest.json",
-    "sha256": "2e035f8ba723fa5e81675eb79c4abe98a1c08edf2f8d82681844dcc45c362ac9",
+    "sha256": "e75bf49e4fa03d8aca31b37fbd64c7e9d55717e3aa74a7fb9304d9db77368c88",
     "byteLength": 25579
   },
   "unchanged": "Every original source, canonical JSON, canonical N-Quads, ID correspondence, earlier auditor, evidence and provenance file is preserved. All positive audit results are equal to v1 after the stronger checks; this corrects proof strength, not golden graph contents."

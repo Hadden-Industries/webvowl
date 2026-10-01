@@ -8,22 +8,22 @@
   },
   "predecessor": {
     "path": "supplemental/accepted-protocol-v1/camera-corrections-manifest.json",
-    "sha256": "ebe873bd2c0b96042c78252991383f42fe8d3cad2ae810431969d83a9c029ca5"
+    "sha256": "a34e9f853a7669b147d9ace3f473f259673bdd986dee0c07d8d824e8de75ff6e"
   },
   "historicalManifests": [
     {
       "path": "supplemental/field-contract/semantic-negative-manifest.json",
-      "sha256": "9cf55e94c027024b8ba1ba2fc1b2a74201400a2685a826a04932f0b9bcf89e82"
+      "sha256": "10b1d4f85b83f8b7612ec37211f2efec83bb2cc43ce50f18a95de34e077a44ff"
     },
     {
       "path": "supplemental/field-contract/semantic-overlap-manifest.json",
-      "sha256": "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8"
+      "sha256": "aeb59555f7379e38a4636e84fc5ad44738a84a3e9deb4195c52ba92835067124"
     }
   ],
   "sourceArtifacts": [
     {
       "path": "supplemental/accepted-protocol-v2/derive.mjs",
-      "sha256": "7eaedaa59304c1a1e478f77aea7c0f89895d6a0339525488842e0e77f036fdcf"
+      "sha256": "c3033a09f41b412e8558f91baaba0488151d2de08a64f02d7ccfaaf6c8661a77"
     }
   ],
   "consumption": "Use these five vectors as the current camera overlay, matched by exact id, predecessor record hash and unchanged input identity. Top-level expectedError, rules, reason and activeValidationStage are the authoritative active fields. All content nested under historical is preserved provenance only and must never be merged into active expectation metadata. This replaces v1 metadata only: its five NUMBER_INVALID errors and all source bytes remain unchanged. All other active expectations are unchanged.",
@@ -62,10 +62,10 @@
       "replaces": {
         "manifest": {
           "path": "supplemental/accepted-protocol-v1/camera-corrections-manifest.json",
-          "sha256": "ebe873bd2c0b96042c78252991383f42fe8d3cad2ae810431969d83a9c029ca5"
+          "sha256": "a34e9f853a7669b147d9ace3f473f259673bdd986dee0c07d8d824e8de75ff6e"
         },
         "vectorId": "semantic-camera-positive-zoom-0",
-        "recordSha256": "04fc0f2bd3b2a704bb1a4d0a07fc6b8a3458ac32f01f87a57e03b2069378b9d8",
+        "recordSha256": "323d38219dae6e172edd7f3e2d4de5efda20b5a0efea154aa33c89196c0f2c0b",
         "inputUnchanged": true,
         "expectedErrorUnchangedFromV1": true
       },
@@ -102,7 +102,7 @@
             },
             "historicalManifest": {
               "path": "supplemental/field-contract/semantic-negative-manifest.json",
-              "sha256": "9cf55e94c027024b8ba1ba2fc1b2a74201400a2685a826a04932f0b9bcf89e82"
+              "sha256": "10b1d4f85b83f8b7612ec37211f2efec83bb2cc43ce50f18a95de34e077a44ff"
             },
             "historicalExpectedError": "ARTIFACT_INCOMPLETE",
             "historicalRecordSha256": "a5cafb517fbead08a24b54275b2983d69e7d774a3d37d7aedfd3ff65a05f78b1",
@@ -146,10 +146,10 @@
       "replaces": {
         "manifest": {
           "path": "supplemental/accepted-protocol-v1/camera-corrections-manifest.json",
-          "sha256": "ebe873bd2c0b96042c78252991383f42fe8d3cad2ae810431969d83a9c029ca5"
+          "sha256": "a34e9f853a7669b147d9ace3f473f259673bdd986dee0c07d8d824e8de75ff6e"
         },
         "vectorId": "semantic-camera-positive-zoom-1",
-        "recordSha256": "90a46a0d20073fa165ca68595ee3b1aabecb63885cbbbf15dcf707f15e77537a",
+        "recordSha256": "125dba192218c1d97d35496de1e4d31e2877bc65ed234d4b4af7b98624ea5be1",
         "inputUnchanged": true,
         "expectedErrorUnchangedFromV1": true
       },
@@ -186,7 +186,7 @@
             },
             "historicalManifest": {
               "path": "supplemental/field-contract/semantic-negative-manifest.json",
-              "sha256": "9cf55e94c027024b8ba1ba2fc1b2a74201400a2685a826a04932f0b9bcf89e82"
+              "sha256": "10b1d4f85b83f8b7612ec37211f2efec83bb2cc43ce50f18a95de34e077a44ff"
             },
             "historicalExpectedError": "ARTIFACT_INCOMPLETE",
             "historicalRecordSha256": "8a918b34b45031ee2516df700ff66cb53f159187bae6d2d17e22cf401e0adc78",
@@ -228,10 +228,10 @@
       "replaces": {
         "manifest": {
           "path": "supplemental/accepted-protocol-v1/camera-corrections-manifest.json",
-          "sha256": "ebe873bd2c0b96042c78252991383f42fe8d3cad2ae810431969d83a9c029ca5"
+          "sha256": "a34e9f853a7669b147d9ace3f473f259673bdd986dee0c07d8d824e8de75ff6e"
         },
         "vectorId": "semantic-overlap-reference-before-nonpositive-camera",
-        "recordSha256": "f33beb6b274e258a9dc1683bebbe1d586444ed00516787652819e576edf17015",
+        "recordSha256": "0402501b8a22615fd5273cb0b577d5bec4a05d1432814225142ed3dfc1680f1f",
         "inputUnchanged": true,
         "expectedErrorUnchangedFromV1": true
       },
@@ -267,7 +267,7 @@
             },
             "historicalManifest": {
               "path": "supplemental/field-contract/semantic-overlap-manifest.json",
-              "sha256": "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8"
+              "sha256": "aeb59555f7379e38a4636e84fc5ad44738a84a3e9deb4195c52ba92835067124"
             },
             "historicalExpectedError": "REFERENCE_DANGLING",
             "historicalRecordSha256": "748a3cfbe09ba7b883e3af06fb7de8f9ce35440b7df3a7e33f1bab01d22abad0",
@@ -309,10 +309,10 @@
       "replaces": {
         "manifest": {
           "path": "supplemental/accepted-protocol-v1/camera-corrections-manifest.json",
-          "sha256": "ebe873bd2c0b96042c78252991383f42fe8d3cad2ae810431969d83a9c029ca5"
+          "sha256": "a34e9f853a7669b147d9ace3f473f259673bdd986dee0c07d8d824e8de75ff6e"
         },
         "vectorId": "semantic-overlap-primary-id-before-nonpositive-camera",
-        "recordSha256": "853826d7686ce26a88a5a6df6cb4428acc2e990ab44dd716eb1e1422582133d4",
+        "recordSha256": "25f4d92b6266806956354feafeff6eb69440471ebefc4bd54033da78c13db759",
         "inputUnchanged": true,
         "expectedErrorUnchangedFromV1": true
       },
@@ -348,7 +348,7 @@
             },
             "historicalManifest": {
               "path": "supplemental/field-contract/semantic-overlap-manifest.json",
-              "sha256": "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8"
+              "sha256": "aeb59555f7379e38a4636e84fc5ad44738a84a3e9deb4195c52ba92835067124"
             },
             "historicalExpectedError": "ID_DUPLICATE",
             "historicalRecordSha256": "70fe551f44a35580a1eaddc2b490da6db8d1542078e43468518473d1067aa9d5",
@@ -390,10 +390,10 @@
       "replaces": {
         "manifest": {
           "path": "supplemental/accepted-protocol-v1/camera-corrections-manifest.json",
-          "sha256": "ebe873bd2c0b96042c78252991383f42fe8d3cad2ae810431969d83a9c029ca5"
+          "sha256": "a34e9f853a7669b147d9ace3f473f259673bdd986dee0c07d8d824e8de75ff6e"
         },
         "vectorId": "semantic-overlap-projection-before-nonpositive-camera",
-        "recordSha256": "8b127b6cc053ba5d1fb889cbc858fcb73b13105574acc4c2f5a00468eccadbe3",
+        "recordSha256": "3bec482c52dbeca52a947bad7e4dad8be7ff0f79b96d46439bfe8cf8e8c8babb",
         "inputUnchanged": true,
         "expectedErrorUnchangedFromV1": true
       },
@@ -429,7 +429,7 @@
             },
             "historicalManifest": {
               "path": "supplemental/field-contract/semantic-overlap-manifest.json",
-              "sha256": "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8"
+              "sha256": "aeb59555f7379e38a4636e84fc5ad44738a84a3e9deb4195c52ba92835067124"
             },
             "historicalExpectedError": "PROJECTION_INVALID",
             "historicalRecordSha256": "a1f1c1b99e3c920686aeb9e3916d83ee466a355d445e24fcf46d818367fbb554",

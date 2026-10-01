@@ -5,6 +5,7 @@ import {
   fieldAccounting,
   frozenPins,
   mappingPairs,
+  negatives,
   positives,
   prefixNegatives,
   readJson,
@@ -16,6 +17,7 @@ test("the complete frozen corpus and active overlay inventory retain their recor
     readPinned(pin);
   }
   expect(positives).toHaveLength(859);
+  expect(negatives).toHaveLength(3235);
   expect(mappingPairs).toHaveLength(321);
   expect(fieldAccounting.entries).toHaveLength(343);
   expect(

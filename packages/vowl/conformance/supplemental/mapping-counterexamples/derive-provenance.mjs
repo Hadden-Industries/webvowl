@@ -2,6 +2,7 @@
 // Explicit seeds and recorded links bound this scope; no recursive discovery.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { readCorpusArtifact } from "../../storage.mjs";
 import { resolve, relative, isAbsolute, dirname } from "node:path";
 import { bundle, here, hash, json, pin } from "./support.mjs";
 const repository = resolve(bundle, "../../..");
@@ -74,7 +75,10 @@ async function collect(
     !suffix.startsWith("packages/vowl/src") && !suffix.includes("__tests__"),
     "Oracle independence boundary",
   );
-  const bytes = await readFile(target),
+  const bytes =
+      base === "conformance"
+        ? readCorpusArtifact(path)
+        : await readFile(target),
     sha256 = hash(bytes);
   if (expectedHash) assert.equal(sha256, expectedHash, `${base}/${path}`);
   if (expectedLength !== undefined)

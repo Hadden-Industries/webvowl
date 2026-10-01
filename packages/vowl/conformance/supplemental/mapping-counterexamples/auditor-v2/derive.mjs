@@ -17,7 +17,7 @@ const predecessor = {
   },
   provenance: {
     path: "supplemental/mapping-counterexamples/provenance-index.json",
-    sha256: "4f3665db0e4ba4f25481a8227b35d1b5f1168c3559e1fd855991d2fa43d1154d",
+    sha256: "d3faacaded67d017d8f8d590fea87543e684578764d1a2af6889448e6db8f20c",
   },
 };
 await readPinned(predecessor.auditor);

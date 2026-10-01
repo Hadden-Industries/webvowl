@@ -11,7 +11,11 @@ const oldInventory = await readFile(
   resolve(here, "history/field-accounting.initial.json"),
 );
 const script = await readFile(resolve(here, "derive-field-accounting.mjs"));
-const inventory = await readFile(resolve(here, "field-accounting.json"));
+// This historical cleanup proves the pre-storage artifact; live metadata now
+// pins the consolidated corpus reader. Both historical inputs remain exact.
+const inventory = await readFile(
+  resolve(here, "history/field-accounting.pre-storage.json"),
+);
 assert.equal(
   hash(oldScript),
   "bdd520a2aa3617ad111d0978aa5f4b7da6e8ce8db4e39493dd4550d0cfc4da78",
@@ -58,7 +62,10 @@ await pin(
     },
     current: {
       script: describe("derive-field-accounting.mjs", script),
-      inventory: describe("field-accounting.json", inventory),
+      inventory: describe(
+        "history/field-accounting.pre-storage.json",
+        inventory,
+      ),
     },
     verifiedOnlyDeclaredTextChanges: true,
   }),

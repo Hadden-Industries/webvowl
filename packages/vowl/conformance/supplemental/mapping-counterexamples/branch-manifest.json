@@ -44,7 +44,7 @@
   "sourceArtifacts": [
     {
       "path": "supplemental/mapping-counterexamples/support.mjs",
-      "sha256": "5c9853e352f41d12b2ca46eadd5e02eda13d3b782e129c94257720e1bab1ce9a"
+      "sha256": "0022536ae0e8201a15c8f4e1f9a63361445eebb437396aa7224dd737ccef7866"
     },
     {
       "path": "supplemental/mapping-counterexamples/model.mjs",

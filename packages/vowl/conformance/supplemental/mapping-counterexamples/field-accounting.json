@@ -27,7 +27,7 @@
   "sourceArtifacts": [
     {
       "path": "supplemental/mapping-counterexamples/support.mjs",
-      "sha256": "5c9853e352f41d12b2ca46eadd5e02eda13d3b782e129c94257720e1bab1ce9a"
+      "sha256": "0022536ae0e8201a15c8f4e1f9a63361445eebb437396aa7224dd737ccef7866"
     },
     {
       "path": "supplemental/mapping-counterexamples/template-audit.mjs",
@@ -44,7 +44,7 @@
   ],
   "historicalInventory": {
     "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-    "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+    "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
     "byteLength": 250022
   },
   "pairInventories": [
@@ -106,7 +106,7 @@
         "pairId": "historical/SourceStructural/structural",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -212,7 +212,7 @@
         "pairId": "historical/SourceArtifact/structural",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -318,7 +318,7 @@
         "pairId": "historical/SourceArtifact/visualization",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -564,7 +564,7 @@
         "pairId": "historical/Structural/subjects",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -676,7 +676,7 @@
         "pairId": "historical/Structural/roles",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -788,7 +788,7 @@
         "pairId": "historical/Structural/expressions",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -900,7 +900,7 @@
         "pairId": "historical/Structural/constructs",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -1648,7 +1648,7 @@
         "pairId": "historical/Role/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -2721,7 +2721,7 @@
         "pairId": "historical/AnnotationValue:typed/lexical",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -3148,7 +3148,7 @@
         "pairId": "historical/AnnotationValue:language/language",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -4101,7 +4101,7 @@
         "pairId": "historical/Expression:class-intersection/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -4336,7 +4336,7 @@
         "pairId": "historical/Expression:class-union/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -6214,7 +6214,7 @@
         "pairId": "historical/Expression:object-min-cardinality/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -6650,7 +6650,7 @@
         "pairId": "historical/Expression:object-max-cardinality/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -7086,7 +7086,7 @@
         "pairId": "historical/Expression:object-exact-cardinality/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -7522,7 +7522,7 @@
         "pairId": "historical/Expression:data-some/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -7857,7 +7857,7 @@
         "pairId": "historical/Expression:data-all/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -8518,7 +8518,7 @@
         "pairId": "historical/Expression:data-min-cardinality/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -8954,7 +8954,7 @@
         "pairId": "historical/Expression:data-max-cardinality/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -9390,7 +9390,7 @@
         "pairId": "historical/Expression:data-exact-cardinality/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -10046,7 +10046,7 @@
         "pairId": "historical/Expression:data-intersection/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -10281,7 +10281,7 @@
         "pairId": "historical/Expression:data-union/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -12680,7 +12680,7 @@
         "pairId": "historical/Construct:equivalent-object-properties/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -13122,7 +13122,7 @@
         "pairId": "historical/Construct:inverse-properties/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -13456,7 +13456,7 @@
         "pairId": "historical/Construct:property-chain/members",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -14528,7 +14528,7 @@
         "pairId": "historical/Construct:object-characteristic/characteristic",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -18340,7 +18340,7 @@
         "pairId": "historical/Construct:annotation-domain/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -18661,7 +18661,7 @@
         "pairId": "historical/Construct:annotation-range/kind",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -20647,7 +20647,7 @@
         "pairId": "historical/Construct:annotation-assertion/value",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -20867,7 +20867,7 @@
         "pairId": "historical/Construct:assertion-anchor/assertion",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -23651,7 +23651,7 @@
         "pairId": "historical/Assertion:object-domain/target",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -31139,7 +31139,7 @@
         "pairId": "context-property-scope-binding",
         "inventory": {
           "path": "supplemental/mapping-counterexamples/binding-correction-manifest.json",
-          "sha256": "5eccfb9896bd2e973e26ac8b32144f228468be5baba4076be5b7003b2a7e9ea1",
+          "sha256": "2bddd6c12fc8c78e06f10e279374ef0bd939e39ce23d4b93ba53cdb35948e77f",
           "byteLength": 7847
         },
         "exactOneField": false,
@@ -35179,7 +35179,7 @@
         "pairId": "historical/Visualization/placements",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -35397,7 +35397,7 @@
         "pairId": "historical/Visualization/hidden",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -35933,7 +35933,7 @@
         "pairId": "historical/Placement/position",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -36139,7 +36139,7 @@
         "pairId": "historical/Point/x",
         "inventory": {
           "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-          "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+          "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
           "byteLength": 250022
         },
         "exactOneField": true,
@@ -37548,7 +37548,7 @@
   ],
   "additiveBindingCorrection": {
     "path": "supplemental/mapping-counterexamples/binding-correction-manifest.json",
-    "sha256": "5eccfb9896bd2e973e26ac8b32144f228468be5baba4076be5b7003b2a7e9ea1",
+    "sha256": "2bddd6c12fc8c78e06f10e279374ef0bd939e39ce23d4b93ba53cdb35948e77f",
     "byteLength": 7847
   },
   "derivedStructuralInvariance": [

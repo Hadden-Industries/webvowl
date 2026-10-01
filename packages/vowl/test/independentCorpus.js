@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { readCorpusArtifact } from "../conformance/storage.mjs";
 
 const roots = {
   conformance: new URL("../conformance/", import.meta.url),
@@ -40,7 +41,10 @@ export function readPinned(reference) {
     url.href.startsWith(root.href),
     `Corpus pin escapes its root: ${reference.path}`,
   );
-  const bytes = readFileSync(url);
+  const bytes =
+    baseOf(reference) === "conformance"
+      ? readCorpusArtifact(reference.path)
+      : readFileSync(url);
   assert.equal(
     hash(bytes),
     reference.sha256,
@@ -61,15 +65,15 @@ const indices = [
   ],
   [
     "supplemental/field-contract/provenance-index.json",
-    "973105bb24fa8668634a14c9d12c30a2a2fcbd72f4c003c4a52e9ab54bb7ba97",
+    "551b1a9fa54e7fae765ab1167e5a89f02b67973ddcf6143c21639e4af2aca2ca",
   ],
   [
     "supplemental/mapping-counterexamples/provenance-index.json",
-    "4f3665db0e4ba4f25481a8227b35d1b5f1168c3559e1fd855991d2fa43d1154d",
+    "d3faacaded67d017d8f8d590fea87543e684578764d1a2af6889448e6db8f20c",
   ],
   [
     "supplemental/mapping-counterexamples/auditor-v2/provenance-index.json",
-    "143a485160743034cd812f6b68174cb1d8e5ea5bc7deb556119e59c45c374f29",
+    "ac480871481f5c3c9f84a01cbcffa905054bd5eb469c74b56d6b1c83b50ac689",
   ],
 ];
 for (const [path, sha256] of indices) {

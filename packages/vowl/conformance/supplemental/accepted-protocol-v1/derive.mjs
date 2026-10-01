@@ -27,11 +27,11 @@ for (const authority of authorities) await readPinned(authority, repository);
 const historicalManifests = [
   {
     path: "supplemental/field-contract/semantic-negative-manifest.json",
-    sha256: "9cf55e94c027024b8ba1ba2fc1b2a74201400a2685a826a04932f0b9bcf89e82",
+    sha256: "10b1d4f85b83f8b7612ec37211f2efec83bb2cc43ce50f18a95de34e077a44ff",
   },
   {
     path: "supplemental/field-contract/semantic-overlap-manifest.json",
-    sha256: "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8",
+    sha256: "aeb59555f7379e38a4636e84fc5ad44738a84a3e9deb4195c52ba92835067124",
   },
 ];
 const replacements = new Set([

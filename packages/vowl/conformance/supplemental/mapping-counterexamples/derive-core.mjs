@@ -15,7 +15,7 @@ import { hash, json, pin, sourcePins } from "./support.mjs";
 const { header } = await baseline();
 await readPinned({
   path: "supplemental/field-contract/provenance-index.json",
-  sha256: "973105bb24fa8668634a14c9d12c30a2a2fcbd72f4c003c4a52e9ab54bb7ba97",
+  sha256: "551b1a9fa54e7fae765ab1167e5a89f02b67973ddcf6143c21639e4af2aca2ca",
 });
 const computed = [];
 function focusPath(source, pair) {
@@ -230,7 +230,7 @@ if (process.argv.includes("--check-recipes")) {
       frozenFieldScope: {
         path: "supplemental/field-contract/provenance-index.json",
         sha256:
-          "973105bb24fa8668634a14c9d12c30a2a2fcbd72f4c003c4a52e9ab54bb7ba97",
+          "551b1a9fa54e7fae765ab1167e5a89f02b67973ddcf6143c21639e4af2aca2ca",
       },
       sourceArtifacts: await sourcePins([
         "support.mjs",

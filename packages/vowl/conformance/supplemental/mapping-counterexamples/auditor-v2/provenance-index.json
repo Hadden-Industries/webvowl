@@ -17,8 +17,14 @@
   "artifacts": [
     {
       "base": "conformance",
+      "path": "storage.mjs",
+      "sha256": "0be2d0380f19878f27d34fcdd3cc95e08d2bc44ffeec6a8f42b98d9c755994e6",
+      "byteLength": 3445
+    },
+    {
+      "base": "conformance",
       "path": "supplemental/accepted-protocol-v1/camera-corrections-manifest.json",
-      "sha256": "ebe873bd2c0b96042c78252991383f42fe8d3cad2ae810431969d83a9c029ca5",
+      "sha256": "a34e9f853a7669b147d9ace3f473f259673bdd986dee0c07d8d824e8de75ff6e",
       "byteLength": 10953
     },
     {
@@ -30,13 +36,13 @@
     {
       "base": "conformance",
       "path": "supplemental/accepted-protocol-v2/camera-corrections-manifest.json",
-      "sha256": "9c4f49f06004354a157c02ca57689b1d05c1b43b207665d5df64b348e565fb17",
+      "sha256": "2364905e23f3a267fea5ce9f998265a6d90a23c786919a92c281dd92f97ff447",
       "byteLength": 22693
     },
     {
       "base": "conformance",
       "path": "supplemental/accepted-protocol-v2/derive.mjs",
-      "sha256": "7eaedaa59304c1a1e478f77aea7c0f89895d6a0339525488842e0e77f036fdcf",
+      "sha256": "c3033a09f41b412e8558f91baaba0488151d2de08a64f02d7ccfaaf6c8661a77",
       "byteLength": 5411
     },
     {
@@ -2244,13 +2250,13 @@
     {
       "base": "conformance",
       "path": "supplemental/field-contract/semantic-negative-manifest.json",
-      "sha256": "9cf55e94c027024b8ba1ba2fc1b2a74201400a2685a826a04932f0b9bcf89e82",
+      "sha256": "10b1d4f85b83f8b7612ec37211f2efec83bb2cc43ce50f18a95de34e077a44ff",
       "byteLength": 452209
     },
     {
       "base": "conformance",
       "path": "supplemental/field-contract/semantic-overlap-manifest.json",
-      "sha256": "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8",
+      "sha256": "aeb59555f7379e38a4636e84fc5ad44738a84a3e9deb4195c52ba92835067124",
       "byteLength": 7316
     },
     {
@@ -2322,8 +2328,8 @@
     {
       "base": "conformance",
       "path": "supplemental/field-contract/support.mjs",
-      "sha256": "5a92a8a7c84a83965488258f0971540ca247ed801abaf06f8ad474fb8a398536",
-      "byteLength": 4077
+      "sha256": "ac1ffa3cebc2e4156ef693716d54f62cac9ef8fe6d3620e5843a5737262d7bf5",
+      "byteLength": 4307
     },
     {
       "base": "conformance",
@@ -3552,7 +3558,7 @@
     {
       "base": "conformance",
       "path": "supplemental/mapping-counterexamples/auditor-v2/controls-manifest.json",
-      "sha256": "2e035f8ba723fa5e81675eb79c4abe98a1c08edf2f8d82681844dcc45c362ac9",
+      "sha256": "e75bf49e4fa03d8aca31b37fbd64c7e9d55717e3aa74a7fb9304d9db77368c88",
       "byteLength": 25579
     },
     {
@@ -3702,25 +3708,25 @@
     {
       "base": "conformance",
       "path": "supplemental/mapping-counterexamples/auditor-v2/derive-provenance.mjs",
-      "sha256": "ed8aa04537e1749b5dfabf15fc5bdeaa2d1888c9fd7714fe7c205ae9344974eb",
-      "byteLength": 3217
+      "sha256": "43dd246b08758b0ab1b33523bf81b851754c83f00f0941bb194f892757f4ef1b",
+      "byteLength": 3350
     },
     {
       "base": "conformance",
       "path": "supplemental/mapping-counterexamples/auditor-v2/derive.mjs",
-      "sha256": "43c87febb96d34f2d254ef602dfc50241c58e443906eef0683e836cb57e9577e",
+      "sha256": "d339c0fad34b041813ab24c2823e679c4e7e8aa7f1e808164200fdc5bc77ca16",
       "byteLength": 9973
     },
     {
       "base": "conformance",
       "path": "supplemental/mapping-counterexamples/auditor-v2/support.mjs",
-      "sha256": "d6f4170b397da4aa77542184213680f37c129cdf0bd152f83ca0a9de80157de6",
-      "byteLength": 1841
+      "sha256": "7158bfb1ed3e59e2f13d1d5bc923782ed16e6706e7056f275f0b7197f747f656",
+      "byteLength": 1954
     },
     {
       "base": "conformance",
       "path": "supplemental/mapping-counterexamples/auditor-v2/template-audit-evidence.json",
-      "sha256": "f0c3c46c272391f41ba2d120ce1e5f824d706892f380ee2924668520ab59f465",
+      "sha256": "325e274a37b6f799f2aa69d6cbf8d234d5aec8733aa7c0d6c58028a9c780bc0e",
       "byteLength": 1049839
     },
     {
@@ -3732,8 +3738,8 @@
     {
       "base": "conformance",
       "path": "supplemental/mapping-counterexamples/auditor-v2/verify.mjs",
-      "sha256": "d9e0a13fa55835718da21d44131deb6c8d896811d47bc55243445ef1ddedfe80",
-      "byteLength": 905
+      "sha256": "644fa77b599a1659f3d69c0265aee875e9d42e73ec06a0cb4eb98cb2219b5a6b",
+      "byteLength": 1019
     },
     {
       "base": "conformance",
@@ -14070,8 +14076,8 @@
     {
       "base": "conformance",
       "path": "supplemental/mapping-counterexamples/provenance-index.json",
-      "sha256": "4f3665db0e4ba4f25481a8227b35d1b5f1168c3559e1fd855991d2fa43d1154d",
-      "byteLength": 1228734
+      "sha256": "d3faacaded67d017d8f8d590fea87543e684578764d1a2af6889448e6db8f20c",
+      "byteLength": 1229164
     },
     {
       "base": "conformance",

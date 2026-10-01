@@ -44,12 +44,12 @@
   },
   "frozenFieldScope": {
     "path": "supplemental/field-contract/provenance-index.json",
-    "sha256": "973105bb24fa8668634a14c9d12c30a2a2fcbd72f4c003c4a52e9ab54bb7ba97"
+    "sha256": "551b1a9fa54e7fae765ab1167e5a89f02b67973ddcf6143c21639e4af2aca2ca"
   },
   "sourceArtifacts": [
     {
       "path": "supplemental/mapping-counterexamples/support.mjs",
-      "sha256": "5c9853e352f41d12b2ca46eadd5e02eda13d3b782e129c94257720e1bab1ce9a"
+      "sha256": "0022536ae0e8201a15c8f4e1f9a63361445eebb437396aa7224dd737ccef7866"
     },
     {
       "path": "supplemental/mapping-counterexamples/model.mjs",
@@ -61,7 +61,7 @@
     },
     {
       "path": "supplemental/mapping-counterexamples/derive-core.mjs",
-      "sha256": "8f95f2cde832ff6f7483ea2c13551fadfd6842855b967f28f34e9d74276c333a"
+      "sha256": "0b6180b3b3775e00927ec4b6e22a35b776af9c7cd2a58e38223f778ded313240"
     },
     {
       "path": "supplemental/mapping-counterexamples/check-projection-fixtures.mjs",

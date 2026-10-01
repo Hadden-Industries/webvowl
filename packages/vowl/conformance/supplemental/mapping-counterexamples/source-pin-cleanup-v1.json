@@ -21,7 +21,7 @@
       "byteLength": 15862
     },
     "inventory": {
-      "path": "supplemental/mapping-counterexamples/field-accounting.json",
+      "path": "supplemental/mapping-counterexamples/history/field-accounting.pre-storage.json",
       "sha256": "51dbd1dfcd9f6b21d4f2f855911795d3eb3b5da64ab788386bacc4c3bbddb09b",
       "byteLength": 1898140
     }

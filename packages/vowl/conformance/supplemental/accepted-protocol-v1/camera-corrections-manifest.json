@@ -14,17 +14,17 @@
   "historicalManifests": [
     {
       "path": "supplemental/field-contract/semantic-negative-manifest.json",
-      "sha256": "9cf55e94c027024b8ba1ba2fc1b2a74201400a2685a826a04932f0b9bcf89e82"
+      "sha256": "10b1d4f85b83f8b7612ec37211f2efec83bb2cc43ce50f18a95de34e077a44ff"
     },
     {
       "path": "supplemental/field-contract/semantic-overlap-manifest.json",
-      "sha256": "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8"
+      "sha256": "aeb59555f7379e38a4636e84fc5ad44738a84a3e9deb4195c52ba92835067124"
     }
   ],
   "sourceArtifacts": [
     {
       "path": "supplemental/accepted-protocol-v1/derive.mjs",
-      "sha256": "fcee88dbf810ad9d765e3761f96568f63ea8805adada3cf4e2fcc99466e02bb4"
+      "sha256": "69b5327156f4c6a8134c321af749242e76ec90ce43d2ab5347255827447f5ef6"
     }
   ],
   "consumption": "Apply these five records as an explicit overlay by exact vector id plus historical manifest/input identities. Do not run their superseded errors as current expectations; do not edit the historical manifest. Every other historical expected error is unchanged.",
@@ -60,7 +60,7 @@
         },
         "historicalManifest": {
           "path": "supplemental/field-contract/semantic-negative-manifest.json",
-          "sha256": "9cf55e94c027024b8ba1ba2fc1b2a74201400a2685a826a04932f0b9bcf89e82"
+          "sha256": "10b1d4f85b83f8b7612ec37211f2efec83bb2cc43ce50f18a95de34e077a44ff"
         },
         "historicalExpectedError": "ARTIFACT_INCOMPLETE",
         "historicalRecordSha256": "a5cafb517fbead08a24b54275b2983d69e7d774a3d37d7aedfd3ff65a05f78b1",
@@ -99,7 +99,7 @@
         },
         "historicalManifest": {
           "path": "supplemental/field-contract/semantic-negative-manifest.json",
-          "sha256": "9cf55e94c027024b8ba1ba2fc1b2a74201400a2685a826a04932f0b9bcf89e82"
+          "sha256": "10b1d4f85b83f8b7612ec37211f2efec83bb2cc43ce50f18a95de34e077a44ff"
         },
         "historicalExpectedError": "ARTIFACT_INCOMPLETE",
         "historicalRecordSha256": "8a918b34b45031ee2516df700ff66cb53f159187bae6d2d17e22cf401e0adc78",
@@ -137,7 +137,7 @@
         },
         "historicalManifest": {
           "path": "supplemental/field-contract/semantic-overlap-manifest.json",
-          "sha256": "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8"
+          "sha256": "aeb59555f7379e38a4636e84fc5ad44738a84a3e9deb4195c52ba92835067124"
         },
         "historicalExpectedError": "REFERENCE_DANGLING",
         "historicalRecordSha256": "748a3cfbe09ba7b883e3af06fb7de8f9ce35440b7df3a7e33f1bab01d22abad0",
@@ -175,7 +175,7 @@
         },
         "historicalManifest": {
           "path": "supplemental/field-contract/semantic-overlap-manifest.json",
-          "sha256": "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8"
+          "sha256": "aeb59555f7379e38a4636e84fc5ad44738a84a3e9deb4195c52ba92835067124"
         },
         "historicalExpectedError": "ID_DUPLICATE",
         "historicalRecordSha256": "70fe551f44a35580a1eaddc2b490da6db8d1542078e43468518473d1067aa9d5",
@@ -213,7 +213,7 @@
         },
         "historicalManifest": {
           "path": "supplemental/field-contract/semantic-overlap-manifest.json",
-          "sha256": "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8"
+          "sha256": "aeb59555f7379e38a4636e84fc5ad44738a84a3e9deb4195c52ba92835067124"
         },
         "historicalExpectedError": "PROJECTION_INVALID",
         "historicalRecordSha256": "a1f1c1b99e3c920686aeb9e3916d83ee466a355d445e24fcf46d818367fbb554",

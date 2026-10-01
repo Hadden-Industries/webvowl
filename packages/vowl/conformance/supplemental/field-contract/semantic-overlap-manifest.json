@@ -30,7 +30,7 @@
     },
     {
       "path": "supplemental/field-contract/support.mjs",
-      "sha256": "5a92a8a7c84a83965488258f0971540ca247ed801abaf06f8ad474fb8a398536"
+      "sha256": "ac1ffa3cebc2e4156ef693716d54f62cac9ef8fe6d3620e5843a5737262d7bf5"
     },
     {
       "path": "supplemental/field-contract/bindings.mjs",

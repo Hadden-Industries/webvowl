@@ -13,12 +13,12 @@
   "sourceArtifacts": [
     {
       "path": "supplemental/accepted-protocol-v1/derive.mjs",
-      "sha256": "fcee88dbf810ad9d765e3761f96568f63ea8805adada3cf4e2fcc99466e02bb4"
+      "sha256": "69b5327156f4c6a8134c321af749242e76ec90ce43d2ab5347255827447f5ef6"
     }
   ],
   "corrections": {
     "path": "supplemental/accepted-protocol-v1/camera-corrections-manifest.json",
-    "sha256": "ebe873bd2c0b96042c78252991383f42fe8d3cad2ae810431969d83a9c029ca5",
+    "sha256": "a34e9f853a7669b147d9ace3f473f259673bdd986dee0c07d8d824e8de75ff6e",
     "byteLength": 10953
   },
   "priorResolution": {

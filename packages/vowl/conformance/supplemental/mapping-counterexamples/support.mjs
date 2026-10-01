@@ -6,6 +6,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { fixtureBundle, readCorpusArtifact } from "../../storage.mjs";
 export const here = dirname(fileURLToPath(import.meta.url));
 export const bundle = resolve(here, "../..");
 export const json = (value) => JSON.stringify(value, null, 2) + "\n";
@@ -18,7 +19,8 @@ export async function pin(path, value) {
   );
   const bytes = Buffer.from(value),
     target = resolve(here, path);
-  if (process.argv.includes("--write-new")) {
+  const member = `supplemental/mapping-counterexamples/${path}`;
+  if (process.argv.includes("--write-new") && fixtureBundle(member) === null) {
     await mkdir(dirname(target), { recursive: true });
     try {
       await writeFile(target, bytes, { flag: "wx" });
@@ -27,7 +29,7 @@ export async function pin(path, value) {
     }
   }
   assert.deepEqual(
-    await readFile(target),
+    readCorpusArtifact(member),
     bytes,
     `${path}: never overwrite an expectation`,
   );

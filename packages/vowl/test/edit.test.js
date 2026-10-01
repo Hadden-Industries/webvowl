@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { canonicalize, edit, encode, decode, profiles } from "vowl";
+import { readCorpusArtifact } from "../conformance/storage.mjs";
 
 const fixture = (name) =>
   JSON.parse(
@@ -269,7 +270,7 @@ test.each(
   "an empty edit preserves independent structural bytes: $id",
   async (vector) => {
     const expected = new Uint8Array(
-      readFileSync(new URL(vector.files["canonical.json"].path, corpusRoot)),
+      readCorpusArtifact(vector.files["canonical.json"].path),
     );
     const before = await decode(expected);
     const result = await edit(before, []);

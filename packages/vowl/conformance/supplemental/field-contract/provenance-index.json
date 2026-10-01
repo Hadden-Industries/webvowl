@@ -44,9 +44,9 @@
     }
   ],
   "counts": {
-    "artifacts": 3601,
+    "artifacts": 3602,
     "newScopeFiles": 3381,
-    "priorWitnessesOrAuthorities": 220
+    "priorWitnessesOrAuthorities": 221
   },
   "artifacts": [
     {
@@ -73,6 +73,11 @@
       "path": "docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md",
       "sha256": "9f1b7d96229a06f57e29a52f92325a4256e6f826d7532e239848ef99dc0f47c1",
       "byteLength": 2066
+    },
+    {
+      "path": "storage.mjs",
+      "sha256": "0be2d0380f19878f27d34fcdd3cc95e08d2bc44ffeec6a8f42b98d9c755994e6",
+      "byteLength": 3445
     },
     {
       "path": "supplemental/amended-policy/manifest.json",
@@ -441,7 +446,7 @@
     },
     {
       "path": "supplemental/field-contract/additional-positive-manifest.json",
-      "sha256": "0e6d8f388da0311efb13c5a7a27edc762f16664f9dadf329be911e42322f9ad1",
+      "sha256": "8cab88c25f42a77be492d9ac357f0991cd2cc9741a6506f626c33c9e215a0f90",
       "byteLength": 23701
     },
     {
@@ -721,7 +726,7 @@
     },
     {
       "path": "supplemental/field-contract/contract-inventory.json",
-      "sha256": "3f43a309b39b92a6a0908d1fc71d20a66673795ab28cb6ac078272a85524bb87",
+      "sha256": "31017ab0a3b0da8b0990a059b37ca9f702cd194f1dfc071453147f5b0eddbac6",
       "byteLength": 1443497
     },
     {
@@ -731,7 +736,7 @@
     },
     {
       "path": "supplemental/field-contract/coverage-inventory.json",
-      "sha256": "b1fc06c56fbc915f622abd540d303ba7c77fa72befcd7f7605d17b4ece0253bc",
+      "sha256": "3338aa7d0d18b39f4d9fc08a8e1260cf1a7d262c86455051e93cd79295e09e39",
       "byteLength": 1583952
     },
     {
@@ -761,8 +766,8 @@
     },
     {
       "path": "supplemental/field-contract/derive-provenance.mjs",
-      "sha256": "04cd99514dc4b004f2225f138cc9a59494833538ad89776a47a8c14a00391ce0",
-      "byteLength": 4461
+      "sha256": "0856694d32885205d98a48167cc50636876af82f386c7b31862e359ac79d1ea7",
+      "byteLength": 4567
     },
     {
       "path": "supplemental/field-contract/derive-semantic-overlaps.mjs",
@@ -786,7 +791,7 @@
     },
     {
       "path": "supplemental/field-contract/early-negative-manifest.json",
-      "sha256": "92798db834ab29de5e75c28106ca3fbb15ecf220b3c7ebb3475e7b7fa53ed06e",
+      "sha256": "1f10a2f7e7bea258ca5d52a6e814d36c3f73fe2d6026c299651c8cf73682bc3c",
       "byteLength": 30127
     },
     {
@@ -916,12 +921,12 @@
     },
     {
       "path": "supplemental/field-contract/mapping-injectivity-inventory.json",
-      "sha256": "8ca9169889eaf5a233e7d16a730ef0643b9e153d27e135d42ebda912e1265791",
+      "sha256": "0f9f010777a947f1ef06f165cd9992938477d859dd5b28e972b990ff07ba3ee5",
       "byteLength": 250022
     },
     {
       "path": "supplemental/field-contract/negative-manifest.json",
-      "sha256": "8c4517f48b8ab214693426b8a76f7f30add35d7be6abfddfe40e9122bfbf9a9e",
+      "sha256": "8466307cb40687827bb841d2e02e5f9c3423bb69e54aacfe36bc85f4d3f2d0cc",
       "byteLength": 3356114
     },
     {
@@ -14176,7 +14181,7 @@
     },
     {
       "path": "supplemental/field-contract/positive-manifest.json",
-      "sha256": "fc7a4006487bb8956586f99f8be0a80c66ea2ab45f917fd721a05e361eff4450",
+      "sha256": "c835e519c86cebc3a0f154bc3e047c550e5f61b00f3db4fcbe0656ce1620a14f",
       "byteLength": 79481
     },
     {
@@ -15056,17 +15061,17 @@
     },
     {
       "path": "supplemental/field-contract/semantic-inventory.json",
-      "sha256": "5aa81c832eb6229c2266e84926f0dbedaa1c3a8c8aaad11259e31b99c9b192ea",
+      "sha256": "e5007d3953df679580d46aade57aa944ee72393cf8d02e271412523201e3fcd5",
       "byteLength": 260237
     },
     {
       "path": "supplemental/field-contract/semantic-negative-manifest.json",
-      "sha256": "9cf55e94c027024b8ba1ba2fc1b2a74201400a2685a826a04932f0b9bcf89e82",
+      "sha256": "10b1d4f85b83f8b7612ec37211f2efec83bb2cc43ce50f18a95de34e077a44ff",
       "byteLength": 452209
     },
     {
       "path": "supplemental/field-contract/semantic-overlap-manifest.json",
-      "sha256": "aa6d6c0a27eafb07c7c6e9b6b65bb99a0ddae556de41338d052f12b61b1f0ac8",
+      "sha256": "aeb59555f7379e38a4636e84fc5ad44738a84a3e9deb4195c52ba92835067124",
       "byteLength": 7316
     },
     {
@@ -17261,7 +17266,7 @@
     },
     {
       "path": "supplemental/field-contract/state-identity-manifest.json",
-      "sha256": "37792dd9e13f4b59465744bbecf6fb33bfdc124065f61d8171602223fcc7ece7",
+      "sha256": "6d4ebde409e7c02574ee413010d4e39fd3e2e6af863db557f69c3a54d9bc03bb",
       "byteLength": 7382
     },
     {
@@ -17331,8 +17336,8 @@
     },
     {
       "path": "supplemental/field-contract/support.mjs",
-      "sha256": "5a92a8a7c84a83965488258f0971540ca247ed801abaf06f8ad474fb8a398536",
-      "byteLength": 4077
+      "sha256": "ac1ffa3cebc2e4156ef693716d54f62cac9ef8fe6d3620e5843a5737262d7bf5",
+      "byteLength": 4307
     },
     {
       "path": "supplemental/field-contract/verify.mjs",

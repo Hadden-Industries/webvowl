@@ -76,7 +76,7 @@ await pin("prefix-coverage-correction.json", {
   format: "canonical-vowl-field-coverage-correction/1",
   originalInventory: {
     path: "supplemental/field-contract/semantic-inventory.json",
-    sha256: "5aa81c832eb6229c2266e84926f0dbedaa1c3a8c8aaad11259e31b99c9b192ea",
+    sha256: "e5007d3953df679580d46aade57aa944ee72393cf8d02e271412523201e3fcd5",
   },
   finding:
     "The original scalar selector enumerated iri/decimal/language-tag/language-range/text and omitted the distinct prefix descriptor; therefore its lexical completeness wording did not cover PrefixBinding.prefix.",

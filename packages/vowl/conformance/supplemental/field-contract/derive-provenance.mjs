@@ -83,6 +83,10 @@ for (const name of [...scripts, ...catalogs]) {
   if (catalogs.includes(name))
     for (const current of pins(JSON.parse(bytes))) await record(current);
 }
+await record({
+  path: "storage.mjs",
+  sha256: hash(await readFile(resolve(bundle, "storage.mjs"))),
+});
 for (const current of [...header.specificationRevision, header.amendment])
   await record(current);
 for (const [path, sha256] of priorManifests) await record({ path, sha256 });

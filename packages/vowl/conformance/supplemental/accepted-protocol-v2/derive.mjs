@@ -16,7 +16,7 @@ import {
 const here = dirname(fileURLToPath(import.meta.url));
 const predecessor = {
   path: "supplemental/accepted-protocol-v1/camera-corrections-manifest.json",
-  sha256: "ebe873bd2c0b96042c78252991383f42fe8d3cad2ae810431969d83a9c029ca5",
+  sha256: "a34e9f853a7669b147d9ace3f473f259673bdd986dee0c07d8d824e8de75ff6e",
 };
 const authority = {
   path: "docs/specs/2026-09-30-canonical-vowl-camera-error-precedence.md",

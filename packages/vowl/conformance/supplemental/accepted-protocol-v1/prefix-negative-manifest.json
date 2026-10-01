@@ -21,7 +21,7 @@
   "sourceArtifacts": [
     {
       "path": "supplemental/accepted-protocol-v1/derive-prefix.mjs",
-      "sha256": "da6ae5d04904c9a87e54315980a66bb379dbb7fd920bc2b102127c95fc86d69f"
+      "sha256": "947cbcb8ce12d2baeb13609f1eaf1a1000f937a3b4dfd4865a74d48375b7a79d"
     }
   ],
   "vectors": [

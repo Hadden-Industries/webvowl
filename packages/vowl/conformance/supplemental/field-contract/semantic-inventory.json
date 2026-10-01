@@ -3,20 +3,20 @@
   "sourceArtifacts": [
     {
       "path": "supplemental/field-contract/contract-inventory.json",
-      "sha256": "3f43a309b39b92a6a0908d1fc71d20a66673795ab28cb6ac078272a85524bb87"
+      "sha256": "31017ab0a3b0da8b0990a059b37ca9f702cd194f1dfc071453147f5b0eddbac6"
     },
     {
       "path": "supplemental/field-contract/coverage-inventory.json",
-      "sha256": "b1fc06c56fbc915f622abd540d303ba7c77fa72befcd7f7605d17b4ece0253bc"
+      "sha256": "3338aa7d0d18b39f4d9fc08a8e1260cf1a7d262c86455051e93cd79295e09e39"
     },
     {
       "path": "supplemental/field-contract/early-negative-manifest.json",
-      "sha256": "92798db834ab29de5e75c28106ca3fbb15ecf220b3c7ebb3475e7b7fa53ed06e"
+      "sha256": "1f10a2f7e7bea258ca5d52a6e814d36c3f73fe2d6026c299651c8cf73682bc3c"
     }
   ],
   "negativeManifest": {
     "path": "supplemental/field-contract/semantic-negative-manifest.json",
-    "sha256": "9cf55e94c027024b8ba1ba2fc1b2a74201400a2685a826a04932f0b9bcf89e82",
+    "sha256": "10b1d4f85b83f8b7612ec37211f2efec83bb2cc43ce50f18a95de34e077a44ff",
     "byteLength": 452209
   },
   "denominator": {

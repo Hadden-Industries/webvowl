@@ -1,7 +1,12 @@
 # Canonical VOWL conformance corpus
 
+The [storage guide](STORAGE.md) describes the current consolidated fixture layout and its exact-byte verification against the SLICE-004 checkpoint.
+Member paths in manifests identify corpus artifacts; the bundled field-contract and mapping fixtures are read through `storage.mjs`.
+The current core runner includes 859 positives, 3,235 rejection/boundary cases and 321 mapping pairs.
+The sections below retain the earlier corpus milestones and their qualification limits.
+
 This corpus is tied to the governing specification hashes and the owner-approved [resource-policy amendment](../../../docs/specs/2026-09-30-canonical-vowl-resource-policy-amendment.md).
-The current positive corpus contains 217 exact-byte fixtures in eight manifests:
+The initial combined positive corpus contained 217 exact-byte fixtures in eight manifests:
 
 - [Amended-policy baseline](supplemental/amended-policy/manifest.json): 95 fixtures, including 92 unchanged historical positives and three successes under the amended budget policy.
 - [Conditional projection cases](supplemental/conditional/manifest.json): 62 fixtures.
