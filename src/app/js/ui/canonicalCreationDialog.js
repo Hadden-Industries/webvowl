@@ -1,5 +1,5 @@
 import "../../css/canonicalMergeDialog.css";
-import { DEFAULT_VOWL_EDITOR_PREFIXES } from "../controller/vowlDocument.js";
+import { DEFAULT_VOWL_EDITOR_PREFIXES } from "../controller/ontologyEditorDrawingRecords.js";
 
 let nextId = 0;
 

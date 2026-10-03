@@ -255,7 +255,6 @@ describe("rendered graph runtime interface", () => {
       "setRenderingDiagnosticsEnabled",
       "createRenderedSvgSnapshot",
       "createRenderedDrawingSnapshot",
-      "createTurtleDocumentSnapshot",
       "subscribeToRenderedGraphEvents",
       "dispose",
     ]);

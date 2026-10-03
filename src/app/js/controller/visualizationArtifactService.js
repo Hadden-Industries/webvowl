@@ -384,7 +384,7 @@ export function createVisualizationArtifactService(dependencies) {
     },
     async createVisualizationArtifact(request, options = {}) {
       const format = request?.format ?? "svg";
-      if (!["svg", "vowl-json", "turtle", "latex"].includes(format)) {
+      if (!["svg", "turtle", "latex"].includes(format)) {
         throw new TypeError("Unsupported visualization artifact format.");
       }
       const { format: requestedFormat, ...formatRequest } = request;
@@ -395,9 +395,7 @@ export function createVisualizationArtifactService(dependencies) {
           ? SVG_ARTIFACT_REQUEST_FIELD_NAMES
           : format === "latex"
             ? ["filename", "source", "renderedDrawingSnapshot"]
-            : format === "turtle"
-              ? ["filename", "source", "turtleDocumentSnapshot"]
-              : ["filename", "vowlDocument"],
+            : ["filename", "source", "turtleDocumentSnapshot"],
         "Visualization artifact request",
       );
       assertOperationOptions(options);
@@ -415,9 +413,7 @@ export function createVisualizationArtifactService(dependencies) {
           ? request.viewRecipe?.loadGeneration
           : format === "latex"
             ? request.renderedDrawingSnapshot?.loadGeneration
-            : format === "turtle"
-              ? request.turtleDocumentSnapshot?.loadGeneration
-              : request.vowlDocument?.loadGeneration;
+            : request.turtleDocumentSnapshot?.loadGeneration;
       if (!Number.isSafeInteger(loadGeneration) || loadGeneration < 1) {
         throw new TypeError("An artifact requires a positive load generation.");
       }
@@ -460,19 +456,6 @@ export function createVisualizationArtifactService(dependencies) {
           loadGeneration,
           source: Object.freeze({ ...request.source }),
         };
-      } else {
-        assertExactFieldNames(
-          request.vowlDocument,
-          ["loadGeneration", "source", "vowlModel"],
-          "VOWL visualization document",
-        );
-        serializedArtifactText = serializeVowlJson(
-          request.vowlDocument.vowlModel,
-        );
-        provenance = {
-          loadGeneration,
-          source: Object.freeze({ ...request.vowlDocument.source }),
-        };
       }
       throwIfOperationAborted(options.signal);
 
@@ -499,67 +482,4 @@ export function createVisualizationArtifactService(dependencies) {
       }
     },
   });
-}
-
-function serializeVowlJson(vowlModel) {
-  assertPlainRecord(vowlModel, "VOWL document model");
-  const model = structuredClone(vowlModel);
-  for (const name of [
-    "class",
-    "classAttribute",
-    "datatype",
-    "datatypeAttribute",
-    "property",
-    "propertyAttribute",
-    "namespace",
-  ]) {
-    if (!Array.isArray(model[name])) {
-      continue;
-    }
-    const baseName = name.replace(/Attribute$/u, "");
-    const attributesById = new Map(
-      (model[`${baseName}Attribute`] ?? []).map((record) => [
-        String(record.id),
-        record,
-      ]),
-    );
-    model[name].sort((left, right) => {
-      const leftIri =
-        left.iri ?? attributesById.get(String(left.id))?.iri ?? "";
-      const rightIri =
-        right.iri ?? attributesById.get(String(right.id))?.iri ?? "";
-      if (name !== "namespace" && leftIri !== rightIri) {
-        return leftIri < rightIri ? -1 : 1;
-      }
-      const leftIdentity = String(left.id ?? left.prefix ?? "");
-      const rightIdentity = String(right.id ?? right.prefix ?? "");
-      return leftIdentity < rightIdentity
-        ? -1
-        : leftIdentity > rightIdentity
-          ? 1
-          : 0;
-    });
-    for (const record of model[name]) {
-      for (const field of [
-        "attributes",
-        "subproperty",
-        "superproperty",
-        "equivalent",
-        "equivalents",
-      ]) {
-        if (
-          Array.isArray(record[field]) &&
-          record[field].every((value) => typeof value === "string")
-        ) {
-          record[field].sort();
-        }
-      }
-    }
-  }
-  const propertyNames = new Set();
-  JSON.stringify(model, (name, value) => {
-    propertyNames.add(name);
-    return value;
-  });
-  return JSON.stringify(model, [...propertyNames].sort(), 2);
 }

@@ -1,6 +1,6 @@
 import { OWLDocumentFormats } from "owlapi/formats";
 import { OWLOntologyLoaderConfiguration } from "owlapi/model";
-import { WebVowlImportResolver } from "../../../owl2vowl/js/importResolver.js";
+import { WebVowlImportResolver } from "./importResolver.js";
 
 function formatRequired(candidates) {
   const error = new Error(

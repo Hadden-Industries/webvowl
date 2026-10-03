@@ -2234,49 +2234,6 @@ describe("D3 rendered graph adapter", () => {
     ]);
   });
 
-  test("captures the existing Turtle serialization as a generation-scoped document", async () => {
-    const harness = createAdapterHarness();
-    await loadGeneration(harness, 1);
-    const internals = harness.renderedGraphInternalsFixture;
-    const header = {
-      iri: "https://example.test/ontology",
-      title: "Original title",
-    };
-    internals.ontologyEditingState = () => ({
-      prefixList: () => ({
-        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-        owl: "http://www.w3.org/2002/07/owl#",
-        dc: "http://purl.org/dc/elements/1.1/",
-      }),
-      getGeneralMetaObjectProperty: (field) => header[field],
-    });
-    internals.getClassDataForTtlExport = () => [];
-    internals.getPropertyDataForTtlExport = () => [];
-    internals.getUnfilteredData = () => ({ nodes: [], properties: [] });
-    const snapshot = harness.renderedGraphRuntime.createTurtleDocumentSnapshot({
-      loadGeneration: 1,
-    });
-    expect(snapshot.loadGeneration).toBe(1);
-    expect(snapshot.turtleText).toContain(
-      "<https://example.test/ontology> rdf:type owl:Ontology",
-    );
-    expect(snapshot.turtleText).toContain('dc:title "Original title"@en');
-    expect(Object.isFrozen(snapshot)).toBe(true);
-    header.title = "Later title";
-    expect(snapshot.turtleText).not.toContain("Later title");
-    expect(() =>
-      harness.renderedGraphRuntime.createTurtleDocumentSnapshot({
-        loadGeneration: 2,
-      }),
-    ).toThrow();
-    harness.renderedGraphRuntime.dispose();
-    expect(() =>
-      harness.renderedGraphRuntime.createTurtleDocumentSnapshot({
-        loadGeneration: 1,
-      }),
-    ).toThrow();
-  });
-
   test("captures detached drawing geometry in the current viewport and fences its generation", async () => {
     const harness = createAdapterHarness();
     await loadGeneration(harness, 1);

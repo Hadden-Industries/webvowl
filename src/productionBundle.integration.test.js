@@ -101,9 +101,6 @@ test("the production bundle links without a browser package resolver", () => {
   assert.deepEqual(vendorChunkNames, [
     "js/vendor-application.js",
     "js/vendor-parser-jsonld.js",
-    "js/vendor-parser-n3.js",
-    "js/vendor-parser-rdfxml.js",
-    "js/vendor-parser-shared.js",
     "js/vendor-popover.js",
   ]);
 

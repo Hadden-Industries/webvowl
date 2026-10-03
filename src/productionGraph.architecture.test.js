@@ -153,15 +153,26 @@ describe("production import graph", () => {
     ).toEqual([]);
   });
 
-  it("reaches the structural ingestion path it replaced them with", () => {
+  it("reaches canonical ingestion without the legacy controller or converter", () => {
     const reachable = reachableModules(ENTRY_PATH);
 
     expect(reachable).toEqual(
       expect.arrayContaining([
-        "owl2vowl/js/index.js",
-        "owl2vowl/js/vowlBuilder.js",
-        "owl2vowl/js/importResolver.js",
+        "app/js/canonicalApplication.js",
+        "app/js/controller/canonicalWebVowlController.js",
+        "app/js/controller/canonicalVowlSourceAcquisition.js",
       ]),
     );
+    for (const retired of [
+      "owl2vowl/js/index.js",
+      "owl2vowl/js/vowlBuilder.js",
+      "app/js/controller/webVowlController.js",
+      "app/js/controller/ontologySourceLoader.js",
+      "app/js/controller/vowlDocument.js",
+      "app/js/controller/vowlModelInspectionProjector.js",
+      "webvowl/js/runtime/ontologyTurtleSerializer.js",
+    ]) {
+      expect(reachable).not.toContain(retired);
+    }
   });
 });

@@ -1,7 +1,10 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import { ONTOLOGY_BASE_URL, ONTOLOGY_CATALOG } from "../js/constants.js";
+import {
+  ONTOLOGY_BASE_URL,
+  ONTOLOGY_CATALOG,
+} from "./historicalOntologyCatalog.js";
 import { LOCAL_ONTOLOGY_DIST_DIR } from "./helpers.js";
 
 // The semantic projection and comparison used by the production corpus

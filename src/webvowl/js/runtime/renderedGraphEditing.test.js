@@ -19,7 +19,7 @@ beforeAll(async () => {
   ({ createRenderedGraphInternals } =
     await import("./renderedGraphInternals.js"));
   ({ createVowlDocumentInsertionRecords } =
-    await import("../../../app/js/controller/vowlDocument.js"));
+    await import("../../../app/js/controller/ontologyEditorDrawingRecords.js"));
 });
 
 // Real D3, parser and SVG elements; only browser layout metrics and event
