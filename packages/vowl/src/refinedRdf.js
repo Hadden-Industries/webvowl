@@ -10,6 +10,9 @@ const datatype = {
   value: "http://www.w3.org/2001/XMLSchema#hexBinary",
 };
 const encoder = new TextEncoder();
+const hexBytes = Array.from({ length: 256 }, (_, byte) =>
+  byte.toString(16).padStart(2, "0"),
+);
 
 // Account for the exact UTF-8 JSON spelling before allocating escaped strings
 // or encoded buffers. Inputs here are only arrays and internally selected strings.
@@ -26,7 +29,13 @@ function boundedJson(value, budget) {
       return;
     }
     budget.charge("totalStringBytes", 2, undefined, "RDF_RESOURCE_LIMIT");
+    const available =
+      budget.limits.totalStringBytes - (budget.counts.totalStringBytes ?? 0);
+    let measuredBytes = 0;
     for (let index = 0; index < item.length; index++) {
+      if (index % 1024 === 0) {
+        budget.check();
+      }
       const code = item.codePointAt(index);
       const bytes =
         code < 32
@@ -44,11 +53,25 @@ function boundedJson(value, budget) {
                   : code < 65536
                     ? 3
                     : 4;
-      budget.charge("totalStringBytes", bytes, undefined, "RDF_RESOURCE_LIMIT");
+      measuredBytes += bytes;
+      if (measuredBytes > available) {
+        budget.charge(
+          "totalStringBytes",
+          measuredBytes,
+          undefined,
+          "RDF_RESOURCE_LIMIT",
+        );
+      }
       if (code > 65535) {
         index++;
       }
     }
+    budget.charge(
+      "totalStringBytes",
+      measuredBytes,
+      undefined,
+      "RDF_RESOURCE_LIMIT",
+    );
   }
   measure(value);
   return JSON.stringify(value);
@@ -58,9 +81,7 @@ async function digest(value, budget) {
   budget.check();
   const hash = await crypto.subtle.digest("SHA-256", encoder.encode(value));
   budget.check();
-  return [...new Uint8Array(hash)]
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
+  return [...new Uint8Array(hash)].map((byte) => hexBytes[byte]).join("");
 }
 
 /**
@@ -73,6 +94,13 @@ export async function refineDataset(dataset, budget) {
   const incidents = new Map();
   const groundKeys = new WeakMap();
   const groundDigests = new Map();
+  let pendingGround = [];
+  let groundScratchBytes = 0;
+  async function flushGround() {
+    await Promise.all(pendingGround);
+    pendingGround = [];
+    groundScratchBytes = 0;
+  }
   for (const quad of dataset) {
     budget.check();
     if (
@@ -99,9 +127,30 @@ export async function refineDataset(dataset, budget) {
       }
       const spelling = boundedJson(key, budget);
       if (!groundDigests.has(spelling)) {
-        groundDigests.set(spelling, await digest(spelling, budget));
+        const requiredScratchBytes = 1024 + spelling.length * 6;
+        if (
+          pendingGround.length &&
+          (pendingGround.length === 32 ||
+            groundScratchBytes + requiredScratchBytes >
+              budget.limits.totalStringBytes)
+        ) {
+          await flushGround();
+        }
+        const prepared = ["term", ""];
+        groundDigests.set(spelling, prepared);
+        groundScratchBytes += requiredScratchBytes;
+        const result = digest(spelling, budget).then((hash) => {
+          prepared[1] = hash;
+        });
+        result.catch(() => {});
+        pendingGround.push(result);
+        // Keep an individually admitted large key on the original serial path;
+        // batching must not introduce a stricter single-key admission rule.
+        if (requiredScratchBytes > budget.limits.totalStringBytes) {
+          await flushGround();
+        }
       }
-      groundKeys.set(term, ["term", groundDigests.get(spelling)]);
+      groundKeys.set(term, groundDigests.get(spelling));
     }
     const blanks = new Set(
       [quad.subject, quad.object]
@@ -116,41 +165,76 @@ export async function refineDataset(dataset, budget) {
       budget.charge("embeddedValues", 1, undefined, "RDF_RESOURCE_LIMIT");
     }
   }
+  await flushGround();
+  const groundSpellings = new WeakMap(
+    [...groundDigests.values()].map((key) => [key, JSON.stringify(key)]),
+  );
   let colors = new Map([...incidents.keys()].map((id) => [id, ""]));
   let classes = colors.size ? 1 : 0;
   let rounds = 0;
   function termKey(term, self) {
     if (term.termType === "BlankNode") {
-      return term.value === self ? ["self"] : ["blank", colors.get(term.value)];
+      // Colors are internally generated lowercase hex (or the initial empty
+      // string), so this spelling is exactly JSON.stringify of the term key.
+      return term.value === self
+        ? '["self"]'
+        : `["blank","${colors.get(term.value)}"]`;
     }
-    return groundKeys.get(term);
+    return groundSpellings.get(groundKeys.get(term));
   }
   while (colors.size) {
     const next = new Map();
+    let pending = [];
+    let pendingColors = new Map();
+    let scratchBytes = 0;
+    async function flush() {
+      const results = await Promise.all(pending);
+      for (const [id, color] of results) {
+        next.set(id, color);
+      }
+      pending = [];
+      pendingColors = new Map();
+      scratchBytes = 0;
+    }
     for (const [id, quads] of incidents) {
       budget.check();
       // A quad key contains three fixed-size digest/self/color keys: at most
       // 241 ASCII characters. 2048 bytes per incident conservatively covers
       // UTF-16 entry strings, escaped signature and UTF-8 digest input together.
+      const requiredScratchBytes = 1024 + quads.length * 2048;
       budget.bound(
         "totalStringBytes",
-        1024 + quads.length * 2048,
+        requiredScratchBytes,
         undefined,
         "RDF_RESOURCE_LIMIT",
       );
+      // Independent hashes read only the preceding round. Bound their combined
+      // scratch space and concurrency rather than suspending once per vertex.
+      if (
+        pending.length &&
+        (pending.length === 32 ||
+          scratchBytes + requiredScratchBytes > budget.limits.totalStringBytes)
+      ) {
+        await flush();
+      }
       const entries = quads
         .map((quad) => {
           budget.charge("embeddedValues", 1, undefined, "RDF_RESOURCE_LIMIT");
-          return JSON.stringify([
-            termKey(quad.subject, id),
-            termKey(quad.predicate, id),
-            termKey(quad.object, id),
-          ]);
+          return `[${termKey(quad.subject, id)},${termKey(quad.predicate, id)},${termKey(quad.object, id)}]`;
         })
         .sort();
       const signature = JSON.stringify([colors.get(id), entries]);
-      next.set(id, await digest(signature, budget));
+      scratchBytes += requiredScratchBytes;
+      if (!pendingColors.has(signature)) {
+        pendingColors.set(signature, digest(signature, budget));
+      }
+      const result = pendingColors.get(signature).then((color) => [id, color]);
+      // A later synchronous budget failure can abandon this batch. Observe each
+      // rejection immediately; the original promise still rejects in flush().
+      result.catch(() => {});
+      pending.push(result);
     }
+    await flush();
     rounds++;
     const nextClasses = new Set(next.values()).size;
     colors = next;

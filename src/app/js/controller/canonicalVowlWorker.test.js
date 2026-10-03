@@ -329,6 +329,93 @@ test("checkpoint input accounting covers profile and rejects extra payload field
   client.dispose();
 });
 
+test.each(["plain ASCII", 'quotes"and\\slashes', "é😀\n\u0000", "\ud800"])(
+  "checkpoint byte accounting preserves the exact boundary for %j",
+  async (value) => {
+    const request = {
+      operation: "recover-model",
+      checkpoint: { value: "x".repeat(128) + value },
+      limits: { inputBytes: 1000 },
+    };
+    for (let i = 0; i < 3; i++) {
+      request.limits.inputBytes = text.encode(JSON.stringify(request)).length;
+    }
+    const { client, workers } = harness();
+    const pending = client.run(request, context);
+    const sent = workers[0].postMessage.mock.calls[0][0];
+    workers[0].onmessage({
+      data: { ...sent, type: "result", result: { accepted: true } },
+    });
+    await expect(pending).resolves.toMatchObject({ accepted: true });
+    request.limits.inputBytes--;
+    await expect(client.run(request, context)).rejects.toMatchObject({
+      code: "RESOURCE_LIMIT_EXCEEDED",
+    });
+    expect(workers).toHaveLength(1);
+    client.dispose();
+  },
+);
+
+test("cancellation wins while a received result waits for consumer processing", async () => {
+  const { client, workers } = harness();
+  const abort = new AbortController();
+  const pending = client.run(
+    { operation: "decode", bytes: text.encode("{}") },
+    { ...context, signal: abort.signal },
+  );
+  const sent = workers[0].postMessage.mock.calls[0][0];
+  workers[0].onmessage({
+    data: { ...sent, type: "result", result: { accepted: true } },
+  });
+  abort.abort();
+  await expect(pending).rejects.toMatchObject({ code: "LOAD_ABORTED" });
+  expect(workers[0].terminate).toHaveBeenCalledTimes(1);
+  client.dispose();
+});
+
+test("a received result closes peer messages while cancellation remains available", async () => {
+  const { client, workers } = harness();
+  const resolveImport = jest.fn();
+  const pending = client.run(
+    { operation: "decode", bytes: text.encode("{}") },
+    { ...context, resolveImport },
+  );
+  const worker = workers[0];
+  const sent = worker.postMessage.mock.calls[0][0];
+  worker.onmessage({
+    data: { ...sent, type: "result", result: { accepted: true } },
+  });
+  worker.onmessage({
+    data: { ...sent, type: "import", importId: 1, importIri: "urn:late" },
+  });
+  worker.onmessage({
+    data: { ...sent, type: "failure", failure: { code: "LATE_FAILURE" } },
+  });
+  worker.onerror();
+  worker.onmessageerror();
+  await expect(pending).resolves.toMatchObject({ accepted: true });
+  expect(resolveImport).not.toHaveBeenCalled();
+  expect(worker.terminate).toHaveBeenCalledTimes(1);
+  client.dispose();
+});
+
+test("source-byte exemption requires actual nested fields rather than slash-containing keys", async () => {
+  const { client, workers } = harness();
+  await expect(
+    client.run(
+      {
+        operation: "recover-model",
+        checkpoint: {
+          "source/sources/0/bytes": new Uint8Array(4),
+        },
+      },
+      context,
+    ),
+  ).rejects.toMatchObject({ code: "CHECKPOINT_INVALID" });
+  expect(workers).toHaveLength(0);
+  client.dispose();
+});
+
 test("worker requests snapshot input, ignore stale revisions and terminate after success", async () => {
   const { workers, client } = harness();
   const bytes = Uint8Array.of(1, 2);

@@ -258,3 +258,20 @@ test("refinement obeys the existing work and quad limits", async () => {
     budget.dispose();
   }
 });
+
+test("batched refinement preserves the exact incident-work boundary", async () => {
+  // 64 single-incidence vertices: 64 index visits plus two rounds of 64.
+  // This also fails with outstanding hashes in the final batch at 191 units.
+  const source = Array.from({ length: 64 }, (_, index) =>
+    quad(blank(`b${index}`), "urn:p", named(`urn:C${index}`)),
+  );
+  await expect(
+    canonical(source, { embeddedValues: 191 }),
+  ).rejects.toMatchObject({
+    code: "RDF_RESOURCE_LIMIT",
+    details: { limit: "embeddedValues", maximum: 191, actual: 192 },
+  });
+  const result = await canonical(source, { embeddedValues: 192 });
+  expect(result.rounds).toBe(2);
+  expect(result.classes).toBe(64);
+});
