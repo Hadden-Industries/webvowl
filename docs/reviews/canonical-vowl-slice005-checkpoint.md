@@ -80,3 +80,14 @@ No publication gate is waived by marking the local integration slice complete.
 The HISEW setup retry selected the matching loaded dev16 release and readback reported a ready engine and usable launcher.
 The prior attempt's retained result reported process exit with code zero, but later inspection had no matching ready selection; that discrepancy was not treated as a product-test failure.
 A fresh successful current-session hook event is separate from this launcher/readiness observation.
+
+## Source-delivery follow-up
+
+The owner subsequently authorized committing this checkpoint, integrating it into remote `main` through the normal PR route, and cleaning local task branches/worktrees.
+This does not resume SLICE-006 implementation or authorize candidate production cutover.
+PR #45 initially exposed CodeQL alert #4 in the B5 lexical namespace splitter.
+Its optional-authority/path regular expression backtracked on a malformed long authority followed by a newline-containing fragment; a bounded subprocess regression timed out at two seconds before the repair.
+Explicit delimiter scans now preserve lexical scheme/authority/path/query spelling without regex backtracking and retain rejection of the malformed fragment.
+The repaired focused suite passes 49 tests, including all 46 independent display vectors, and the original adversarial probe completes promptly.
+This demonstrates defensive hardening of the classifier, not proof that the malformed IRI can pass the package's admission boundary.
+The source-delivery receipt in the external evidence directory records final verification, PR integration and cleanup; the historical pre-delivery checkpoint above remains intact.

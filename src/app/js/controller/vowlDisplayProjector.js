@@ -160,12 +160,30 @@ export function selectVowlLabel({
 function namespaceKey(iri, isRoot) {
   // Validated IRIs enter here. URL would normalize case, ports and escapes and
   // therefore cannot implement B5's deliberately lexical classification.
-  const parts = /^([^:]+:)(\/\/[^/?#]*)?([^?#]*)(\?[^#]*)?(#.*)?$/u.exec(iri);
-  if (!parts) {
+  // Delimiter scans have bounded linear work even for rejected input. An
+  // optional authority followed by a greedy path permits regex backtracking.
+  const schemeEnd = iri.indexOf(":") + 1;
+  const fragmentStart = iri.indexOf("#", schemeEnd);
+  const contentEnd = fragmentStart < 0 ? iri.length : fragmentStart;
+  const question = iri.indexOf("?", schemeEnd);
+  const pathEnd =
+    question >= 0 && question < contentEnd ? question : contentEnd;
+  const fragment = fragmentStart < 0 ? undefined : iri.slice(fragmentStart);
+  if (
+    schemeEnd < 2 ||
+    (fragment !== undefined && /[\n\r\u2028\u2029]/u.test(fragment))
+  ) {
     throw new TypeError("Display requires an absolute admitted IRI.");
   }
-  const [, scheme, authority = "", originalPath, query = "", fragment] = parts;
-  let path = originalPath;
+  const scheme = iri.slice(0, schemeEnd);
+  let pathStart = schemeEnd;
+  if (iri.startsWith("//", schemeEnd)) {
+    const slash = iri.indexOf("/", schemeEnd + 2);
+    pathStart = slash >= 0 && slash < pathEnd ? slash : pathEnd;
+  }
+  const authority = iri.slice(schemeEnd, pathStart);
+  const query = iri.slice(pathEnd, contentEnd);
+  let path = iri.slice(pathStart, pathEnd);
   if (!isRoot && fragment === undefined) {
     let separator = path.lastIndexOf("/");
     if (separator < 0 && authority === "") {

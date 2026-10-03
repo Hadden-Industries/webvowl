@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import {
   selectVowlLabel,
   isVowlExternal,
@@ -54,6 +55,45 @@ test.each(vectors)(
     expect(operations[operation](input)).toEqual(expected);
   },
 );
+
+test("lexical namespace splitting rejects an adversarial fragment within a bounded process", () => {
+  const moduleUrl = new URL("./vowlDisplayProjector.js", import.meta.url).href;
+  const program = `
+    import { isVowlExternal } from ${JSON.stringify(moduleUrl)};
+    try {
+      isVowlExternal({
+        rootOntologyIri: "urn:root",
+        subjectIri: "urn://" + "a".repeat(100000) + "#\\n",
+      });
+      process.exitCode = 1;
+    } catch (error) {
+      if (!(error instanceof TypeError)) throw error;
+    }
+  `;
+  expect(() =>
+    execFileSync(process.execPath, ["--input-type=module", "-e", program], {
+      timeout: 2000,
+      stdio: "pipe",
+      windowsHide: true,
+    }),
+  ).not.toThrow();
+});
+
+test("lexical namespace splitting preserves long admitted names and query spelling", () => {
+  const authority = "a".repeat(100000);
+  expect(
+    isVowlExternal({
+      rootOntologyIri: `https://${authority}/o?x=%2F`,
+      subjectIri: `https://${authority}/o?x=%2F#?suffix`,
+    }),
+  ).toBe(false);
+  expect(
+    isVowlExternal({
+      rootOntologyIri: `https://${authority}/o?x=%2F`,
+      subjectIri: `https://${authority}/o?x=%2f#suffix`,
+    }),
+  ).toBe(true);
+});
 
 test("label selection excludes assertion anchors, other predicates and other subjects", () => {
   const value = {
