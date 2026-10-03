@@ -11,7 +11,7 @@ const removeListener = EventTarget.prototype.removeEventListener;
 const policy = Object.freeze({
   inputBytes: [33554432, 268435456],
   primaryRecords: [100000, 1000000],
-  embeddedValues: [500000, 4000000],
+  embeddedValues: [1500000, 4000000],
   depth: [128, 512],
   stringBytes: [1048576, 16777216],
   totalStringBytes: [16777216, 134217728],

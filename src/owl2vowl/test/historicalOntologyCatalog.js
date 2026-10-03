@@ -1,19 +1,10 @@
+// Retained catalog for historical Java comparison fixtures; not application acquisition policy.
 export const ONTOLOGY_BASE_URL = "https://haddenindustries.com/ontology/";
 
 const ONTOLOGY_EXTERNAL_URL = `${ONTOLOGY_BASE_URL}external/`;
 
 const externalOntology = (filename) =>
   new URL(filename, ONTOLOGY_EXTERNAL_URL).href;
-
-export const MAX_SNIFF_BYTES = 8192;
-
-export const NAMESPACES = Object.freeze({
-  RDF: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-  RDFS: "http://www.w3.org/2000/01/rdf-schema#",
-  OWL: "http://www.w3.org/2002/07/owl#",
-  DC: "http://purl.org/dc/elements/1.1/",
-  DCTERMS: "http://purl.org/dc/terms/",
-});
 
 export const ONTOLOGY_CATALOG = Object.freeze({
   "http://blankdots.com/open/personasonto.owl":
@@ -80,27 +71,3 @@ export const ONTOLOGY_CATALOG = Object.freeze({
   "https://schema.org": externalOntology("schemaorg.owl"),
   "https://www.geonames.org/ontology": externalOntology("ontology_v3.3.rdf"),
 });
-
-const ignoredSet = new Set([
-  "http://www.w3.org/2000/01/rdf-schema#label",
-  "http://www.w3.org/2000/01/rdf-schema#comment",
-  "http://www.w3.org/2000/01/rdf-schema#seeAlso",
-  "http://www.w3.org/2000/01/rdf-schema#isDefinedBy",
-  "http://www.w3.org/2002/07/owl#versionInfo",
-  "http://www.w3.org/2002/07/owl#priorVersion",
-  "http://www.w3.org/2002/07/owl#backwardCompatibleWith",
-  "http://www.w3.org/2002/07/owl#incompatibleWith",
-]);
-
-// Prevent mutations on the Set instance methods to make it truly immutable
-ignoredSet.add = function () {
-  throw new TypeError("Cannot add to a frozen Set");
-};
-ignoredSet.delete = function () {
-  throw new TypeError("Cannot delete from a frozen Set");
-};
-ignoredSet.clear = function () {
-  throw new TypeError("Cannot clear a frozen Set");
-};
-
-export const IGNORED_PROPERTIES = Object.freeze(ignoredSet);

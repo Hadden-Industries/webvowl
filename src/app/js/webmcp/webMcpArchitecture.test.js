@@ -47,8 +47,8 @@ const WEB_MCP_TOOL_NAMES = Object.freeze([
 // One implementation of each concern, so a caller never has to work out which
 // of two routes it is on.
 const SINGLE_IMPLEMENTATION_FACTORY_NAMES = Object.freeze([
-  "createWebVowlController",
-  "createOntologySourceLoader",
+  "createCanonicalWebVowlController",
+  "createCanonicalVowlSourceAcquisition",
   "createVisualizationArtifactService",
   "registerWebMcpTools",
 ]);

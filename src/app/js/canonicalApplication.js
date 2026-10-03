@@ -15,7 +15,7 @@ import { canonicalExampleSource } from "./canonicalExamples.js";
 import { requestCanonicalSceneReconciliation } from "./ui/canonicalMergePresentation.js";
 import { createCanonicalVowlSourceAcquisition } from "./controller/canonicalVowlSourceAcquisition.js";
 
-/** Candidate composition only. Production selects its controller in its own entry point. */
+/** Canonical composition shared by production and isolated qualification builds. */
 export function createCanonicalWebVowlApplication() {
   return createWebVowlApplication({
     selectLocalSource: selectCanonicalLocalSource,

@@ -70,7 +70,9 @@ const sourceFiles = (directory) =>
   readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const absolutePath = path.join(directory, entry.name);
     if (entry.isDirectory()) {
-      return sourceFiles(absolutePath);
+      // Vite's root is src/, so its generated dependency cache can live here.
+      // Inspect authored consumers, not dependency output changing under Vite.
+      return entry.name === "node_modules" ? [] : sourceFiles(absolutePath);
     }
     return /\.(?:js|mjs)$/u.test(entry.name) ? [absolutePath] : [];
   });

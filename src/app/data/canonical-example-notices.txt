@@ -1,0 +1,66 @@
+# Notices for the six canonical examples
+
+Distribution authorized by the WebVOWL owner on 4 October 2026, including Personas and its identified Stanford import. This operational authorization does not establish an additional third-party licence grant.
+
+## Shared modification and attribution statement
+
+These WebVOWL examples are transformed visualizations of the identified ontology sources. WebVOWL converted each complete pinned source closure into the candidate Canonical VOWL compatible-artifact representation, preserving the recorded qualifications and generating a fresh deterministic d3-force layout (400 ticks; 900 by 700 framing). Historical placements were not reused. The artifacts are not unchanged original OWL files, do not embed original OWL bytes, and do not imply endorsement by the ontology authors. Exact content differences and qualifications are recorded in docs/reviews/canonical-vowl-example-regeneration.json. The application code licence does not replace the individual ontology licences.
+
+Do not describe these experimental profile artifacts as stable interchange files before the separate freeze/publication decision. The qualification report source-manifest SHA-256 is `2224ebd3ee0ab306ccd8d6aaacbe245ae0725f7b47419b6e039a6fffaedcd178`; generator SHA-256 is `0d89f092660550d3730f02ee039e078450fb8008f01cea8d654def6640ac9475`.
+
+## foaf
+
+FOAF by Dan Brickley and Libby Miller. The specification and accompanying RDF are offered under [CC BY 1.0](https://creativecommons.org/licenses/by/1.0/); see the [publisher specification](https://xmlns.com/foaf/spec/). Retain this attribution and licence link with the derived example.
+
+- Source identity: [foaf.rdf](https://xmlns.com/foaf/spec/index.rdf).
+- Qualified source SHA-256: `3d859b5d92a2c3d041545d014fa826f682ca06d056af8c7b31e32d930abf2bc5`.
+- Derived artifact: `src/canonical-examples/foaf.json`; SHA-256 `54e853e3905f1c154b1c647119b3972a4be1f831a46231d90d6cad99ea11f2dd`.
+- Current artifact matches qualification digest: true.
+
+## goodrelations
+
+This work is based on the GoodRelations ontology, developed by Martin Hepp. [GoodRelations](http://purl.org/goodrelations/). The pinned source declares [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). This attribution reproduces the source-requested wording.
+
+- Source identity: [goodrelations.owl](http://purl.org/goodrelations/v1.owl).
+- Qualified source SHA-256: `f4605fa84dc63355ec792220cdeb4c89e11eb6a9afdbe964d58fc5337535a009`.
+- Derived artifact: `src/canonical-examples/goodrelations.json`; SHA-256 `a3fb03298c33f735b087d297b1ea6a57f1bfd4cc5fc2a59fc9e2b9d1c110eead`.
+- Current artifact matches qualification digest: true.
+
+## muto
+
+MUTO by Steffen Lohmann. The pinned source declares [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). Retain the source link and this attribution with the derived example.
+
+- Source identity: [muto.rdf](https://muto.socialtagging.org/core/v1.rdf).
+- Qualified source SHA-256: `e0e8c27a46d982266e6e5edce87b878162c83b56e456200d9bc43ddc89465472`.
+- Derived artifact: `src/canonical-examples/muto.json`; SHA-256 `38c7c54de4b010dc8b742a41e05570f596f484281d896f8df46b831d262795ed`.
+- Current artifact matches qualification digest: true.
+
+## ontovibe
+
+OntoViBe version 2.2 by Florian Haag and Steffen Lohmann, with contributor Stefan Negru. The root source declares [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The imported BenchmarkOntologyModule.ttl is distributed under the repository-wide [MIT grant at upstream revision c6331c4](https://github.com/VisualDataWeb/OWL2VOWL/blob/c6331c4c79b0034b8537a11cccd1a6587cedb0b9/LICENSE.txt): copyright 2014–2020 Vincent Link, Steffen Lohmann, Eduard Marbach and Vitalis Wiens. Include the complete accompanying ontovibe-module-MIT-LICENSE.txt. The qualified import differs from that upstream module only by CRLF line endings. The root CC licence is not replaced by the module MIT grant; see rights-scope-followup.md for the scope assessment.
+
+- Source identity: [BenchmarkOntology.ttl](http://ontovibe.visualdataweb.org).
+- Qualified source SHA-256: `c7e2ee984aeb745fcdfdea8bf5b6f46f421c8b9c779a3d38decddd86d61d8dfc`.
+- Derived artifact: `src/canonical-examples/ontovibe.json`; SHA-256 `7499793c9ba018a6380deb26d636b495bcf48a9cd43fd9ed44a2be28c2a3bcc1`.
+- Current artifact matches qualification digest: true.
+- Imported ontology: [http://ontovibe.visualdataweb.org/2.0/imported](http://ontovibe.visualdataweb.org/2.0/imported); acquired document [https://haddenindustries.com/ontology/external/BenchmarkOntologyModule.ttl](https://haddenindustries.com/ontology/external/BenchmarkOntologyModule.ttl); SHA-256 `d5ecbaee4bfd8d3789d199c5ac87632630b150fb0851f25517cc99724b136e8d`.
+
+## personasonto
+
+Personas Ontology by Stefan Negru, with contributor Sabin Buraga. The root source declares [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/). The derived ontology example is distributed under CC BY-SA 3.0, retaining attribution and the modification statement; this does not relicense independent application code. The WebVOWL owner authorized distribution including the imported Stanford Dublin Core adaptation on 4 October 2026. Exact primary-source provenance is verified, but no adaptation-specific redistribution grant has been established.
+
+- Source identity: [personasonto.owl](http://blankdots.com/open/personasonto.owl).
+- Qualified source SHA-256: `f38d4d259a922046c3de70010b84a6a922c5f1cbed5ead315a8007e29a461102`.
+- Derived artifact: `src/canonical-examples/personasonto.json`; SHA-256 `2d05162b929fad1a115c6902e3133f980dab7aa73fa302ed4352b1bcd2fa626b`.
+- Current artifact matches qualification digest: true.
+- Imported ontology: [http://protege.stanford.edu/plugins/owl/dc/protege-dc.owl](http://protege.stanford.edu/plugins/owl/dc/protege-dc.owl); acquired document [https://haddenindustries.com/ontology/external/protege-dc.owl](https://haddenindustries.com/ontology/external/protege-dc.owl); SHA-256 `940b3992b2255d901e20839e930351b71bb10eef2f1d6550d54cefca28a67194`.
+
+## sioc
+
+SIOC: copyright 2004–2018 Data Science Institute (formerly DERI), NUI Galway. [Pinned specification](https://github.com/rdfs-org/rdfs.org/blob/d4bbbdf00eb50377f7ad334099da6d053566aeed/sioc/spec/sioc.html). Copied accompanying documentation is attributed under [CC BY 1.0](https://creativecommons.org/licenses/by/1.0/); the publisher expressly excludes SIOC data formats, ontology terms and technology from that documentation copyright. This notice does not assert CC0 or apply a blanket CC licence to ontology terms. The pinned namespace source matches the qualified input after line-ending normalization; representation and layout changes are described above. See rights-scope-followup.md for the scoped distribution basis.
+
+- Source identity: [sioc.rdf](http://rdfs.org/sioc/ns#).
+- Qualified source SHA-256: `2b9cf727f4364e1832036487dbc3b49464f1d76e25b80fd5fb98ce89f467f8d2`.
+- Derived artifact: `src/canonical-examples/sioc.json`; SHA-256 `0e14793677eea13a98a8ac07204938f12aea2f0c1b2f70cb207a83e4430132e0`.
+- Current artifact matches qualification digest: true.
+

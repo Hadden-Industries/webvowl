@@ -7,6 +7,7 @@ import { compatibleMappingContract } from "../../src/compatibleContract.js";
 const encoder = new TextEncoder();
 const runs = [];
 const checks = [];
+const selectedFixture = new URL(location.href).searchParams.get("fixture");
 function progress(stage) {
   document.getElementById("result").textContent = JSON.stringify({
     status: "running",
@@ -29,6 +30,9 @@ function ontology(count, connected = false) {
   ).join(" ")})`;
 }
 async function measure(name, text, limits) {
+  if (selectedFixture && selectedFixture !== name) {
+    return;
+  }
   progress(`${name}:open`);
   const client = createCanonicalVowlWorkerClient();
   const started = performance.now();
@@ -71,14 +75,17 @@ async function measure(name, text, limits) {
     ].reduce((sum, key) => sum + opened.inspection.records[key].length, 0);
     run.occurrences = opened.inspection.occurrences.length;
     progress(`${name}:scene`);
+    const sceneStarted = performance.now();
     const visualization = createCanonicalVowlScene(
       opened.inspection.occurrences,
       {
         loadGeneration: 1,
       },
     ).snapshot();
+    run.sceneMs = performance.now() - sceneStarted;
     progress(`${name}:capture`);
-    const captured = await client.run(
+    const captureStarted = performance.now();
+    const capturePending = client.run(
       {
         operation: "capture-model",
         profile: compatibleArtifactProfile,
@@ -88,6 +95,11 @@ async function measure(name, text, limits) {
       },
       context,
     );
+    // An async call still snapshots/validates its request before its first yield.
+    // Record that synchronous cost separately from the worker's elapsed time.
+    run.captureDispatchMs = performance.now() - captureStarted;
+    const captured = await capturePending;
+    run.captureMs = performance.now() - captureStarted;
     run.outputBytes = captured.bytes.length;
     capturedBytes = captured.bytes;
     run.status = "accepted";
@@ -124,6 +136,9 @@ async function measure(name, text, limits) {
   }
 }
 async function faultyPeer(mode, cancel) {
+  if (selectedFixture && selectedFixture !== "worker-policy") {
+    return;
+  }
   progress(`peer:${mode}:${cancel}`);
   let ready;
   const started = new Promise((resolve) => {
@@ -212,8 +227,87 @@ async function faultyPeer(mode, cancel) {
     );
   }
 }
+async function cancelImport() {
+  if (selectedFixture && selectedFixture !== "worker-policy") {
+    return;
+  }
+  progress("cooperative-import-cancellation");
+  const client = createCanonicalVowlWorkerClient();
+  const abort = new AbortController();
+  let acquired;
+  let release;
+  let acquisitionSignal;
+  const started = new Promise((resolve) => {
+    acquired = resolve;
+  });
+  const pending = client
+    .run(
+      {
+        operation: "open-owl-model",
+        bytes: encoder.encode(
+          "Ontology(<urn:resource> Import(<urn:imported>))",
+        ),
+        documentIri: "urn:resource",
+        mediaType: "text/owl-functional",
+      },
+      {
+        loadGeneration: 1,
+        baseRevision: 0,
+        signal: abort.signal,
+        resolveImport: (_iri, { signal }) => {
+          acquisitionSignal = signal;
+          acquired();
+          return new Promise((resolve) => {
+            release = resolve;
+          });
+        },
+      },
+    )
+    .then(
+      () => ({ committed: true }),
+      (error) => ({ code: error.code }),
+    );
+  let timeout;
+  try {
+    await Promise.race([
+      started,
+      new Promise((_, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error("import-start-timeout")),
+          5000,
+        );
+      }),
+    ]);
+    const began = performance.now();
+    abort.abort();
+    check(acquisitionSignal.aborted, "import-signal-invalidated-synchronously");
+    const result = await pending;
+    const cancellationMs = performance.now() - began;
+    check(result.code === "LOAD_ABORTED", "import-cancellation-rejects-job");
+    // A resolver that ignores cancellation must still be unable to revive it.
+    release({
+      bytes: encoder.encode("Ontology(<urn:imported>)"),
+      documentIri: "urn:imported",
+      mediaType: "text/owl-functional",
+    });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    check(
+      (await pending).code === "LOAD_ABORTED",
+      "late-import-cannot-revive-job",
+    );
+    runs.push({
+      name: "cooperative-import-cancellation",
+      code: result.code,
+      cancellationMs,
+    });
+  } finally {
+    clearTimeout(timeout);
+    client.dispose();
+  }
+}
 try {
   await measure("ordinary-connected-100", ontology(100, true));
+  await measure("connected-500", ontology(500, true));
   await measure("large-connected-2000", ontology(2000, true));
   await measure("disconnected-2000", ontology(2000));
   await measure(
@@ -230,6 +324,8 @@ try {
   await faultyPeer("hang", true);
   await faultyPeer("hang", false);
   await faultyPeer("stale", false);
+  await cancelImport();
+  check(runs.length > 0, "selected-fixture-exists");
   document.getElementById("result").textContent = JSON.stringify({
     status: "measured",
     userAgent: navigator.userAgent,

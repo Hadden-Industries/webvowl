@@ -1,6 +1,9 @@
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ONTOLOGY_BASE_URL, ONTOLOGY_CATALOG } from "../js/constants.js";
+import {
+  ONTOLOGY_BASE_URL,
+  ONTOLOGY_CATALOG,
+} from "./historicalOntologyCatalog.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

@@ -38,6 +38,15 @@ export function closeVowlVisibility(occurrences, hidden) {
 
 function initializePlacements(occurrences, retained, center, supplied) {
   const byId = new Map(occurrences.map((record) => [record.id, record]));
+  const operatorTargets = new Map();
+  for (const edge of occurrences) {
+    if (edge.kind === "operator-edge") {
+      if (!operatorTargets.has(edge.from)) {
+        operatorTargets.set(edge.from, []);
+      }
+      operatorTargets.get(edge.from).push(edge.to);
+    }
+  }
   const positions = new Map(
     retained.map((placement) => [
       placement.occurrence,
@@ -64,9 +73,7 @@ function initializePlacements(occurrences, retained, center, supplied) {
         const edge = byId.get(occurrence.edge);
         neighbors = edge.ends ?? [edge.from, edge.to];
       } else if (occurrence.kind === "class-node") {
-        neighbors = occurrences
-          .filter((edge) => edge.kind === "operator-edge" && edge.from === id)
-          .map((edge) => edge.to);
+        neighbors = operatorTargets.get(id) ?? [];
       }
       const points = neighbors.map(place);
       position =

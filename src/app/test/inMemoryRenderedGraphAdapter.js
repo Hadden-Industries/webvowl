@@ -572,15 +572,6 @@ export function createInMemoryRenderedGraphAdapter() {
         return appliedVisualizationView;
       },
 
-      createTurtleDocumentSnapshot(request) {
-        assertNotDisposed();
-        assertActiveGeneration(request.loadGeneration, activeLoadGeneration);
-        return Object.freeze({
-          loadGeneration: activeLoadGeneration,
-          turtleText: "# In-memory test runtime Turtle document.\n",
-        });
-      },
-
       createRenderedDrawingSnapshot(request) {
         assertNotDisposed();
         assertActiveGeneration(request.loadGeneration, activeLoadGeneration);

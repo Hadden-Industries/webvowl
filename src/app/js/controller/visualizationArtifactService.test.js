@@ -175,118 +175,15 @@ describe("page-local visualization artifact ownership", () => {
     expect(svgSerializer.serializeRenderedSvgSnapshot).not.toHaveBeenCalled();
   });
 
-  test("publishes a VOWL JSON artifact through the same hash and URL owner", async () => {
+  test("rejects the retired legacy JSON document writer", async () => {
     const service = createArtifactService();
-    const first = await createArtifact(service);
-    const firstUrl =
-      visualizationArtifactPublicationPort.publishPageLocalArtifact.mock
-        .calls[0][0].objectUrl;
-    const vowlDocument = {
-      loadGeneration: 7,
-      source: { kind: "vowl-json-text", displayName: "people.json" },
-      vowlModel: {
-        header: { title: { en: "People Ω" } },
-        class: [],
-        settings: { global: { paused: true } },
-      },
-    };
-    const metadata = await service.createVisualizationArtifact({
-      format: "vowl-json",
-      filename: "../People",
-      vowlDocument,
-    });
-    const blob = objectUrlApi.createObjectURL.mock.calls.at(-1)[0];
-    const text = await blob.text();
-    expect(JSON.parse(text)).toEqual(vowlDocument.vowlModel);
-    expect(metadata).toMatchObject({
-      filename: "People.json",
-      mediaType: "application/json",
-      byteLength: Buffer.byteLength(text),
-      sha256Hex: expectedSha256Hex(text),
-      loadGeneration: 7,
-      source: vowlDocument.source,
-    });
-    expect(metadata.pageLocalArtifactId).not.toBe(first.pageLocalArtifactId);
-    expect(objectUrlApi.revokeObjectURL).toHaveBeenCalledWith(firstUrl);
-    expect(svgSerializer.serializeRenderedSvgSnapshot).toHaveBeenCalledTimes(1);
-  });
-
-  test("retains deterministic JSON record and set ordering without mutating source metadata", async () => {
-    const model = {
-      header: {
-        title: { en: "People" },
-        description: { en: "Original source" },
-      },
-      namespace: [
-        { prefix: "z", iri: "https://z.test/" },
-        { prefix: "a", iri: "https://a.test/" },
-      ],
-      class: [
-        { id: "id1", type: "owl:Class" },
-        { id: "id3", type: "owl:Class" },
-        { id: "id4", type: "owl:Class" },
-        { id: "id2", type: "owl:Class" },
-      ],
-      classAttribute: [
-        { id: "id1", iri: "https://B", attributes: ["deprecated", "abstract"] },
-        { id: "id3", iri: "https://A" },
-        { id: "id4" },
-        { id: "id2" },
-      ],
-      property: [{ id: "p1", type: "owl:ObjectProperty" }],
-      propertyAttribute: [
-        {
-          id: "p1",
-          iri: "https://property",
-          domain: "id1",
-          range: "id3",
-          subproperty: ["sub2", "sub1"],
-        },
-      ],
-      customAnnotation: { retained: true },
-    };
-    const before = structuredClone(model);
-    const service = createArtifactService();
-    const exported = [];
-    for (const inputModel of [
-      model,
-      {
-        ...model,
-        class: [...model.class].reverse(),
-        classAttribute: [...model.classAttribute].reverse(),
-        namespace: [...model.namespace].reverse(),
-      },
-    ]) {
-      await service.createVisualizationArtifact({
+    await expect(
+      service.createVisualizationArtifact({
         format: "vowl-json",
-        filename: undefined,
-        vowlDocument: {
-          loadGeneration: 7,
-          source: { kind: "vowl-json-text" },
-          vowlModel: inputModel,
-        },
-      });
-      exported.push(
-        await objectUrlApi.createObjectURL.mock.calls.at(-1)[0].text(),
-      );
-    }
-    expect(exported[1]).toBe(exported[0]);
-    const document = JSON.parse(exported[0]);
-    expect(document.class.map((record) => record.id)).toEqual([
-      "id2",
-      "id4",
-      "id3",
-      "id1",
-    ]);
-    expect(
-      document.classAttribute.find((record) => record.id === "id1").attributes,
-    ).toEqual(["abstract", "deprecated"]);
-    expect(document.propertyAttribute[0].subproperty).toEqual(["sub1", "sub2"]);
-    expect(document.namespace[0].prefix).toBe("a");
-    expect(document.customAnnotation).toEqual({ retained: true });
-    expect(document.header).toEqual(before.header);
-    expect(document).not.toHaveProperty("_comment");
-    expect(model).toEqual(before);
+        vowlDocument: { vowlModel: {} },
+      }),
+    ).rejects.toThrow("Unsupported visualization artifact format");
+    expect(objectUrlApi.createObjectURL).not.toHaveBeenCalled();
   });
 
   test("exports a local ontology to SVG without inventing a remote identity", async () => {

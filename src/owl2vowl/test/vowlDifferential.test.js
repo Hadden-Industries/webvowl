@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { ONTOLOGY_CATALOG } from "../js/constants.js";
+import { ONTOLOGY_CATALOG } from "./historicalOntologyCatalog.js";
 import {
   compareVowlSemantics,
   installLocalOntologyFetch,

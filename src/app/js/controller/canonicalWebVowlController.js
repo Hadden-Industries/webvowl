@@ -336,6 +336,7 @@ export function createCanonicalWebVowlController({
       edits.delete(owner);
     }
   }
+  let selectedEditorOccurrence;
   const unsubscribe = runtime.subscribeToRenderedGraphEvents((event) => {
     if (
       disposed ||
@@ -353,6 +354,7 @@ export function createCanonicalWebVowlController({
         publish({ selection: payload.selectedOntologyElementReferences });
         break;
       case "document-record-selection-changed":
+        selectedEditorOccurrence = payload.occurrence;
         publish({ selectedDocumentRecord: payload.recordTarget });
         break;
       case "viewport-changed":
@@ -575,6 +577,7 @@ export function createCanonicalWebVowlController({
           throw new DOMException("The load was superseded.", "AbortError");
         }
         pendingLoad = undefined;
+        selectedEditorOccurrence = undefined;
         filters = { ...CANONICAL_VISIBLE_FILTERS, ...initial.view?.filters };
         retainedHidden =
           (accepted.retainedHidden ?? accepted.visualization?.hidden)?.map(
@@ -649,6 +652,10 @@ export function createCanonicalWebVowlController({
           kind: "record",
           target: request.recordTarget,
           changes: request.changes,
+          ...(request.changes?.datatypeName !== undefined &&
+          selectedEditorOccurrence
+            ? { occurrence: selectedEditorOccurrence }
+            : {}),
         },
         options,
       );

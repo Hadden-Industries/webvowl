@@ -4,11 +4,8 @@ import { createD3RenderedGraphAdapter } from "../../webvowl/js/runtime/d3Rendere
 import { createRenderedGraphConfiguration } from "../../webvowl/js/runtime/renderedGraphConfiguration.js";
 import { createGraphLayoutSettler } from "./controller/graphLayoutSettler.js";
 import { createOntologyInspector } from "./controller/ontologyInspector.js";
-import { createOntologySourceLoader } from "./controller/ontologySourceLoader.js";
-import { vowlModelInspectionProjector } from "./controller/vowlModelInspectionProjector.js";
 import { createVisualizationArtifactService } from "./controller/visualizationArtifactService.js";
 import { createSvgSerializer } from "./controller/svgSerializer.js";
-import { createWebVowlController } from "./controller/webVowlController.js";
 import { registerWebMcpTools } from "./webmcp/webMcpAdapter.js";
 import { createVisualizationArtifactDownloadAdapter } from "./ui/visualizationArtifactDownloadAdapter.js";
 import { createConstants } from "../../shared/js/util/constants.js";
@@ -34,17 +31,17 @@ import { createSidebar } from "./sidebar.js";
 import { createWarningModule } from "./warningModule.js";
 
 export function createWebVowlApplication({
-  createController = (dependencies) =>
-    createWebVowlController({
-      ...dependencies,
-      ontologySourceLoader: createOntologySourceLoader(),
-      vowlModelInspectionProjector,
-    }),
+  createController,
   selectLocalSource,
   createOntologySource,
   createFactsPresentation,
   resolvePresetSource,
 } = {}) {
+  if (typeof createController !== "function") {
+    throw new TypeError(
+      "Application composition requires a controller factory.",
+    );
+  }
   const app = {};
   const GRAPH_SELECTOR = "#graph";
   const languageTools = createLanguageTools();

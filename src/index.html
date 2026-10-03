@@ -981,8 +981,19 @@
             <div class="popover-content">
               <ul class="popover-menu-list">
                 <li>
-                  <a href="license.txt" target="_blank"
-                    >MIT License &copy; 2014-2026</a
+                  <a href="license.txt" target="_blank">Application licence</a>
+                </li>
+                <li>
+                  <a href="data/canonical-example-notices.txt" target="_blank"
+                    >Example attribution and licences</a
+                  >
+                </li>
+                <li>
+                  Canonical VOWL exports are experimental. Save original
+                  ontology sources alongside exported visualizations for
+                  recovery.
+                  <a href="data/canonical-candidate.txt" target="_blank"
+                    >Candidate revision</a
                   >
                 </li>
                 <li id="credits" class="option">
@@ -1122,6 +1133,7 @@
                 <button
                   type="button"
                   class="navButton"
+                  aria-label="Ontology"
                   popovertarget="m_select"
                 >
                   <svg
@@ -1143,6 +1155,7 @@
                 <button
                   type="button"
                   class="navButton"
+                  aria-label="Export"
                   popovertarget="m_export"
                   disabled
                 >
@@ -1165,6 +1178,7 @@
                 <button
                   type="button"
                   class="navButton"
+                  aria-label="Filter"
                   popovertarget="m_filter"
                   disabled
                 >
@@ -1187,6 +1201,7 @@
                 <button
                   type="button"
                   class="navButton"
+                  aria-label="Options"
                   popovertarget="m_config"
                   disabled
                 >
@@ -1206,7 +1221,12 @@
                 </button>
               </li>
               <li id="c_modes">
-                <button type="button" class="navButton" popovertarget="m_modes">
+                <button
+                  type="button"
+                  class="navButton"
+                  aria-label="Modes"
+                  popovertarget="m_modes"
+                >
                   <svg
                     viewBox="0 0 24 24"
                     class="menuElementSvgElement"
@@ -1227,6 +1247,7 @@
                   type="button"
                   class="navButton"
                   id="debugMenuButton"
+                  aria-label="Debug"
                   popovertarget="m_debug"
                   disabled
                 >
@@ -1246,7 +1267,12 @@
                 </button>
               </li>
               <li id="c_about">
-                <button type="button" class="navButton" popovertarget="m_about">
+                <button
+                  type="button"
+                  class="navButton"
+                  aria-label="About"
+                  popovertarget="m_about"
+                >
                   <svg
                     viewBox="0 0 24 24"
                     class="menuElementSvgElement"

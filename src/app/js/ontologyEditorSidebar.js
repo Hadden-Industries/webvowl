@@ -3,7 +3,7 @@ import {
   VOWL_EDITOR_PROPERTY_TYPES,
   VOWL_EDITOR_DATATYPE_NAMES,
   DEFAULT_VOWL_EDITOR_PREFIXES,
-} from "./controller/vowlDocument.js";
+} from "./controller/ontologyEditorDrawingRecords.js";
 import { createLanguageTools } from "../../shared/js/util/languageTools.js";
 import { PROTECTED_ONTOLOGY_EDITOR_PREFIXES } from "./controller/ontologyEditorPrefixes.js";
 

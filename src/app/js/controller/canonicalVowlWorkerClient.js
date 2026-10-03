@@ -48,6 +48,12 @@ function measureCheckpointInput(value, maximum, maxDepth) {
     }
   }
   function string(value) {
+    // Most checkpoint strings are plain ASCII IDs/IRIs. The native linear scan
+    // avoids a callback and code-point dispatch per byte without allocating a
+    // serialized copy. Escapes, controls and Unicode retain the exact slow path.
+    if (!/[^\x20-\x21\x23-\x5b\x5d-\x7e]/u.test(value)) {
+      return add(value.length + 2);
+    }
     add(2);
     for (let index = 0; index < value.length; index++) {
       const code = value.codePointAt(index);
@@ -73,7 +79,7 @@ function measureCheckpointInput(value, maximum, maxDepth) {
       }
     }
   }
-  function visit(item, depth, path) {
+  function visit(item, depth, sourceStage) {
     if (depth > maxDepth) {
       throw failure("RESOURCE_LIMIT_EXCEEDED");
     }
@@ -89,7 +95,7 @@ function measureCheckpointInput(value, maximum, maxDepth) {
     if (!item || typeof item !== "object" || ancestors.has(item)) {
       throw failure("CHECKPOINT_INVALID");
     }
-    if (/^\/checkpoint\/source\/sources\/(0|[1-9][0-9]*)\/bytes$/.test(path)) {
+    if (sourceStage === 6) {
       if (
         !(item instanceof Uint8Array) ||
         Object.getPrototypeOf(item) !== Uint8Array.prototype ||
@@ -141,14 +147,24 @@ function measureCheckpointInput(value, maximum, maxDepth) {
         string(key);
         add(1);
       }
-      visit(descriptor.value, depth + 1, `${path}/${key}`);
+      // Only the retained source-byte path needs context. Do not allocate a
+      // complete JSON Pointer for every field in large semantic checkpoints.
+      const nextSourceStage =
+        (sourceStage === 1 && key === "checkpoint") ||
+        (sourceStage === 2 && key === "source") ||
+        (sourceStage === 3 && key === "sources") ||
+        (sourceStage === 4 && /^(0|[1-9][0-9]*)$/.test(key)) ||
+        (sourceStage === 5 && key === "bytes")
+          ? sourceStage + 1
+          : 0;
+      visit(descriptor.value, depth + 1, nextSourceStage);
     }
     if (array && members !== item.length) {
       throw failure("CHECKPOINT_INVALID");
     }
     ancestors.delete(item);
   }
-  visit(value, 0, "");
+  visit(value, 0, 1);
   return size;
 }
 
@@ -262,6 +278,7 @@ export function createCanonicalVowlWorkerClient({
         const acquisition = new AbortController();
         const importIds = new Set();
         let finished = false;
+        let resultTimer;
         const timer = setTimeout(
           () => settle(failure("RESOURCE_LIMIT_EXCEEDED")),
           deadlineMs,
@@ -272,6 +289,7 @@ export function createCanonicalVowlWorkerClient({
           }
           finished = true;
           clearTimeout(timer);
+          clearTimeout(resultTimer);
           signal?.removeEventListener("abort", abort);
           acquisition.abort();
           worker.terminate();
@@ -287,19 +305,29 @@ export function createCanonicalVowlWorkerClient({
         }
         pending.add(abort);
         signal?.addEventListener("abort", abort, { once: true });
-        worker.onerror = () => settle(failure("CANONICAL_WORKER_FAILED"));
-        worker.onmessageerror = () =>
-          settle(failure("CANONICAL_WORKER_FAILED"));
+        const peerFailure = () => {
+          if (resultTimer === undefined) {
+            settle(failure("CANONICAL_WORKER_FAILED"));
+          }
+        };
+        worker.onerror = peerFailure;
+        worker.onmessageerror = peerFailure;
         worker.onmessage = async ({ data }) => {
           if (
             finished ||
+            resultTimer !== undefined ||
             !data ||
             Object.keys(context).some((key) => data[key] !== context[key])
           ) {
             return;
           }
           if (data.type === "result") {
-            settle(null, data.result);
+            // Receiving a large structured clone already uses the main thread.
+            // Start consumer processing in another task so input/cancellation
+            // can run before scene construction or the next request snapshot.
+            if (resultTimer === undefined) {
+              resultTimer = setTimeout(() => settle(null, data.result), 0);
+            }
           } else if (data.type === "failure") {
             const code = data.failure?.code;
             settle(

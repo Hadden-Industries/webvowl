@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createContext, SourceTextModule, SyntheticModule } from "node:vm";
-import { loadWithImports as productionLoadWithImports } from "../../owl2vowl/js/index.js";
 import {
   afterEach,
   beforeAll,
@@ -86,13 +85,6 @@ beforeAll(async () => {
   const resolveFetchUrlModuleSource = createSourceTextModule(
     resolveFetchUrlModuleUrl,
   );
-  const owl2VowlModule = new SyntheticModule(
-    ["loadWithImports"],
-    function initializeOwl2VowlModule() {
-      this.setExport("loadWithImports", productionLoadWithImports);
-    },
-    { context: loadingModuleContext, identifier: "test:owl2vowl" },
-  );
   await loadingModuleSource.link((specifier) => {
     if (specifier === "./controller/visualizationShareLink.js") {
       return new SyntheticModule(
@@ -105,9 +97,6 @@ beforeAll(async () => {
         },
         { context: loadingModuleContext, identifier: specifier },
       );
-    }
-    if (specifier === "../../owl2vowl/js/index.js") {
-      return owl2VowlModule;
     }
     if (specifier === "../../shared/js/util/resolveFetchUrl.js") {
       return resolveFetchUrlModuleSource;

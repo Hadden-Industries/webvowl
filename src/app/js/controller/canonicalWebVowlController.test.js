@@ -207,6 +207,86 @@ test("the candidate controller preserves selection through rename and focuses ne
     expect.objectContaining({ focus: [renamed] }),
     { signal: undefined },
   );
+  await controller.loadOntology({
+    source: {
+      kind: "ontology-text",
+      documentIri: "urn:datatypes",
+      format: "functional",
+      text: `Ontology(<urn:datatypes>
+      Declaration(DataProperty(<urn:p>)) Declaration(DataProperty(<urn:q>))
+      DataPropertyRange(<urn:p> <http://www.w3.org/2001/XMLSchema#string>)
+      DataPropertyRange(<urn:q> <http://www.w3.org/2001/XMLSchema#string>))`,
+    },
+  });
+  const beforeDatatype = session.snapshot();
+  const roleForIri = (inspection, iri) => {
+    const subject = inspection.records.subjects.find(
+      (record) => record.iri === iri,
+    );
+    return inspection.records.roles.find(
+      (record) => record.subject === subject?.id,
+    )?.id;
+  };
+  const datatypeTarget = session.target(
+    roleForIri(
+      beforeDatatype.inspection,
+      "http://www.w3.org/2001/XMLSchema#string",
+    ),
+  );
+  const datatypeRequest = {
+    loadGeneration: beforeDatatype.loadGeneration,
+    recordTarget: datatypeTarget,
+    changes: { datatypeName: "xsd:integer" },
+  };
+  await expect(controller.editOntologyRecord(datatypeRequest)).rejects.toThrow(
+    /datatype context/,
+  );
+  const selectedOccurrence = beforeDatatype.inspection.occurrences.find(
+    (entry) =>
+      entry.kind === "datatype-node" &&
+      entry.context.properties.includes(
+        roleForIri(beforeDatatype.inspection, "urn:p"),
+      ),
+  );
+  const binding = drawing.drawing.applicationBindings.find(
+    (entry) => entry.occurrence === selectedOccurrence.id,
+  );
+  emit({
+    kind: "document-record-selection-changed",
+    loadGeneration: beforeDatatype.loadGeneration,
+    payload: {
+      recordTarget: datatypeTarget,
+      occurrence: binding.runtimeReference,
+    },
+  });
+  await expect(
+    controller.loadOntology({ source: { kind: "unsupported" } }),
+  ).rejects.toThrow();
+  await expect(
+    controller.loadOntology(
+      { source: { kind: "ontology-text", text: "invalid" } },
+      { signal: AbortSignal.abort() },
+    ),
+  ).rejects.toThrow();
+  await controller.editOntologyRecord(datatypeRequest);
+  const afterDatatype = session.snapshot().inspection;
+  for (const [property, datatype] of [
+    ["urn:p", "integer"],
+    ["urn:q", "string"],
+  ]) {
+    expect(afterDatatype.records.constructs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "data-range",
+          property: roleForIri(afterDatatype, property),
+          target: roleForIri(
+            afterDatatype,
+            `http://www.w3.org/2001/XMLSchema#${datatype}`,
+          ),
+        }),
+      ]),
+    );
+  }
   controller.dispose();
 });
 

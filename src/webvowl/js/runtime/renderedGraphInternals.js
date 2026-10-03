@@ -1980,50 +1980,8 @@ function createGraph(
     }
   }
 
-  graph.getPropertyDataForTtlExport = function () {
-    const propertyData = [];
-    const allProperties = unfilteredData.properties;
-    for (let i = 0; i < allProperties.length; i++) {
-      // currently using only the object properties
-      if (
-        allProperties[i].type() === "owl:ObjectProperty" ||
-        allProperties[i].type() === "owl:DatatypeProperty" ||
-        allProperties[i].type() === "owl:ObjectProperty"
-      ) {
-        propertyData.push(allProperties[i]);
-      } else {
-        if (allProperties[i].type() === "rdfs:subClassOf") {
-          allProperties[i].baseIri("http://www.w3.org/2000/01/rdf-schema#");
-          allProperties[i].iri(
-            "http://www.w3.org/2000/01/rdf-schema#subClassOf",
-          );
-        }
-        if (allProperties[i].type() === "owl:disjointWith") {
-          allProperties[i].baseIri("http://www.w3.org/2002/07/owl#");
-          allProperties[i].iri("http://www.w3.org/2002/07/owl#disjointWith");
-        }
-      }
-    }
-    return propertyData;
-  };
-
   graph.getUnfilteredData = function () {
     return unfilteredData;
-  };
-
-  graph.getClassDataForTtlExport = function () {
-    const allNodes = unfilteredData.nodes;
-    const nodeData = [];
-    for (let i = 0; i < allNodes.length; i++) {
-      if (
-        allNodes[i].type() !== "rdfs:Literal" &&
-        allNodes[i].type() !== "rdfs:Datatype" &&
-        allNodes[i].type() !== "owl:Thing"
-      ) {
-        nodeData.push(allNodes[i]);
-      }
-    }
-    return nodeData;
   };
 
   function redrawContent() {

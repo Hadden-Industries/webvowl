@@ -12,9 +12,8 @@ import { runCanonicalVowlOperation } from "./controller/canonicalVowlWorkerOpera
 import { applyCanonicalEditorCommand } from "./controller/canonicalVowlEditorCommands.js";
 
 let createOntologyEditorSidebar;
-let documentOperations;
+let pendingEdit;
 beforeAll(async () => {
-  documentOperations = await import("./controller/vowlDocument.js");
   ({ createOntologyEditorSidebar } =
     await import("./ontologyEditorSidebar.js"));
 });
@@ -93,6 +92,7 @@ function keyboardEvent(key) {
 }
 
 async function flushOperations() {
+  await pendingEdit;
   for (let index = 0; index < 12; index++) {
     await Promise.resolve();
   }
@@ -101,14 +101,14 @@ async function flushOperations() {
 describe("ontology editor sidebar through application document operations", () => {
   let controls,
     document,
-    model,
+    session,
     state,
     controller,
     sidebar,
     warning,
     subscribers;
-  const target = { collection: "class", recordId: "a" };
-  beforeEach(() => {
+  let target;
+  beforeEach(async () => {
     controls = new Map();
     const getControl = (id) => {
       for (const root of controls.values()) {
@@ -130,95 +130,100 @@ describe("ontology editor sidebar through application document operations", () =
       createElement: (tag) => new EditorControl(tag),
       createElementNS: (_namespace, tag) => new EditorControl(tag),
     };
-    model = {
-      header: {
-        iri: "https://example.com/ontology#",
-        title: { en: "Example" },
-        prefixList: { ex: "https://example.com/ontology#" },
+    session = createCanonicalVowlDocumentSession({
+      workerClient: {
+        async run(request, context) {
+          const received = JSON.parse(
+            JSON.stringify({ ...request, bytes: undefined }),
+          );
+          if (request.bytes) {
+            received.bytes = new Uint8Array(request.bytes);
+          }
+          if (request.checkpoint?.source) {
+            received.checkpoint.source.sources =
+              request.checkpoint.source.sources.map(({ document, bytes }) => ({
+                document,
+                bytes: new Uint8Array(bytes),
+              }));
+          }
+          return {
+            ...(await runCanonicalVowlOperation(received, undefined, context)),
+            loadGeneration: context.loadGeneration,
+            baseRevision: context.baseRevision,
+          };
+        },
+        dispose() {},
       },
-      class: [
-        { id: "a", type: "owl:Class" },
-        { id: "peer", type: "owl:Class" },
-      ],
-      classAttribute: [
-        {
-          id: "a",
-          iri: "https://example.com/ontology#Person",
-          label: { en: "Person", de: "Person DE" },
-        },
-        {
-          id: "peer",
-          iri: "https://example.com/ontology#Person",
-          label: { en: "Peer" },
-        },
-      ],
-    };
+    });
+    const loaded = await session.load({
+      operation: "open-owl-model",
+      documentIri: "https://example.com/ontology#",
+      mediaType: "text/owl-functional",
+      bytes: new TextEncoder().encode(`Ontology(<https://example.com/ontology#>
+      Annotation(<http://purl.org/dc/elements/1.1/title> "Example"@en)
+      Declaration(Class(<https://example.com/ontology#Person>))
+      Declaration(Class(<https://example.com/ontology#Peer>))
+      AnnotationAssertion(<http://www.w3.org/2000/01/rdf-schema#label> <https://example.com/ontology#Person> "Person"@en)
+      AnnotationAssertion(<http://www.w3.org/2000/01/rdf-schema#label> <https://example.com/ontology#Person> "Person DE"@de)
+      AnnotationAssertion(<http://www.w3.org/2000/01/rdf-schema#label> <https://example.com/ontology#Peer> "Peer"@en))`),
+    });
+    session.setPrefix({ name: "ex", iri: "https://example.com/ontology#" });
+    const person = loaded.inspection.records.subjects.find(({ iri }) =>
+      iri.endsWith("#Person"),
+    );
+    target = session.target(
+      loaded.inspection.records.roles.find(
+        ({ subject }) => subject === person.id,
+      ).id,
+    );
     state = {
       status: "ready",
-      loadGeneration: 1,
-      documentRevision: 1,
+      loadGeneration: loaded.loadGeneration,
+      documentRevision: session.snapshot().documentRevision,
       selectedDocumentRecord: target,
       editorMode: { isEditorMode: true },
       view: { language: "en" },
     };
     subscribers = new Set();
-    const accepted = (changedModel) => {
-      model = changedModel;
-      state = { ...state, documentRevision: state.documentRevision + 1 };
+    const accepted = (result) => {
+      state = { ...state, documentRevision: result.documentRevision };
       subscribers.forEach((listener) => listener(state, ["documentRevision"]));
-      return Promise.resolve(state);
+      return state;
     };
+    const command = (change) =>
+      (pendingEdit = applyCanonicalEditorCommand(session, {
+        ...change,
+        documentRevision: state.documentRevision,
+      }).then(accepted));
     controller = {
       getState: () => state,
-      getOntologyEditorView: (recordTarget) => {
-        const selectedRecord =
-          recordTarget === null || recordTarget === undefined
-            ? undefined
-            : documentOperations.describeVowlDocumentRecord(
-                model,
-                recordTarget,
-              );
-        return documentOperations.createVowlDocumentSnapshot({
-          loadGeneration: state.loadGeneration,
-          metadata: model.header ?? {},
-          prefixes: documentOperations.readVowlDocumentPrefixes(model),
-          selectedRecord,
-          isProperty: recordTarget?.collection === "property",
-          derivedIriBase:
-            selectedRecord &&
-            selectedRecord.iri === `${model.header?.iri}${selectedRecord.id}`
-              ? model.header.iri
-              : undefined,
-        });
-      },
-      resolveOntologyEditorIri: (input) =>
-        documentOperations.resolveVowlEditorIri(input, model),
+      getOntologyEditorView: (reference) => session.inspectEditor(reference),
+      resolveOntologyEditorIri: (input) => session.resolveEditorIri(input),
       subscribeToState: (listener) => {
         subscribers.add(listener);
         return () => subscribers.delete(listener);
       },
       editOntologyRecord: jest.fn((request) =>
-        accepted(
-          documentOperations.applyVowlDocumentRecordEdit(model, {
-            recordTarget: request.recordTarget,
-            changes: request.changes,
-          }),
-        ),
+        command({
+          kind: "record",
+          target: request.recordTarget,
+          changes: request.changes,
+        }),
       ),
       editOntologyMetadata: jest.fn((request) =>
-        accepted(
-          documentOperations.applyVowlOntologyMetadataEdit(
-            model,
-            request.changes,
-          ),
-        ),
+        command({ kind: "metadata", changes: request.changes }),
       ),
       setOntologyPrefix: jest.fn(
         ({ loadGeneration: _generation, ...request }) =>
-          accepted(documentOperations.setVowlDocumentPrefix(model, request)),
+          (pendingEdit = Promise.resolve(session.setPrefix(request)).then(
+            accepted,
+          )),
       ),
-      removeOntologyPrefix: jest.fn(({ name }) =>
-        accepted(documentOperations.removeVowlDocumentPrefix(model, name)),
+      removeOntologyPrefix: jest.fn(
+        ({ name }) =>
+          (pendingEdit = Promise.resolve(session.removePrefix(name)).then(
+            accepted,
+          )),
       ),
       proposeOntologyDeletion: jest.fn(() =>
         Object.freeze({
@@ -228,6 +233,7 @@ describe("ontology editor sidebar through application document operations", () =
       ),
       confirmOntologyDeletion: jest.fn(async () => state),
     };
+    pendingEdit = undefined;
     warning = jest.fn();
     sidebar = createOntologyEditorSidebar({
       webVowlController: controller,
@@ -359,7 +365,14 @@ describe("ontology editor sidebar through application document operations", () =
   });
 
   test("preserves author arrays and multiline description input", async () => {
-    model.header.author = ["Ada", "Grace"];
+    const getEditorView = controller.getOntologyEditorView;
+    controller.getOntologyEditorView = (reference) => {
+      const view = getEditorView(reference);
+      return {
+        ...view,
+        metadata: { ...view.metadata, author: ["Ada", "Grace"] },
+      };
+    };
     const description = document.getElementById("descriptionEditor");
     description.tagName = "TEXTAREA";
     sidebar.setup();
@@ -379,7 +392,7 @@ describe("ontology editor sidebar through application document operations", () =
     });
   });
 
-  test("edits the selected record while preserving another occurrence and other label languages", async () => {
+  test("edits the selected semantic record while preserving another subject and other label languages", async () => {
     sidebar.setup();
     const label = document.getElementById("element_labelEditor");
     label.value = "Renamed";
@@ -390,10 +403,19 @@ describe("ontology editor sidebar through application document operations", () =
       recordTarget: target,
       changes: { label: { language: "en", text: "Renamed" } },
     });
-    expect(model.classAttribute.map((record) => record.label)).toEqual([
-      { en: "Renamed", de: "Person DE" },
-      { en: "Peer" },
-    ]);
+    expect(session.inspectEditor(target).selectedRecord.label).toEqual({
+      en: "Renamed",
+      de: "Person DE",
+    });
+    const peer = session
+      .snapshot()
+      .inspection.records.subjects.find(({ iri }) => iri.endsWith("#Peer"));
+    const role = session
+      .snapshot()
+      .inspection.records.roles.find(({ subject }) => subject === peer.id);
+    expect(
+      session.inspectEditor(session.target(role.id)).selectedRecord.label,
+    ).toEqual({ en: "Peer" });
   });
 
   test.each([
@@ -408,15 +430,15 @@ describe("ontology editor sidebar through application document operations", () =
       control.value = input;
       control.dispatchEvent(new Event("change"));
       await flushOperations();
-      expect(model.classAttribute[0].iri).toBe(iri);
+      expect(session.inspectEditor(target).selectedRecord.iri).toBe(iri);
       expect(control.title).toBe(iri);
     },
   );
 
-  test("rejects an undefined prefix and restores the accepted IRI", async () => {
+  test("rejects a malformed IRI and restores the accepted IRI", async () => {
     sidebar.setup();
     const control = document.getElementById("element_iriEditor");
-    control.value = "missing:Person";
+    control.value = "missing:Invalid Person";
     control.dispatchEvent(keyboardEvent("Enter"));
     await flushOperations();
     expect(warning).toHaveBeenCalledTimes(1);
@@ -427,12 +449,24 @@ describe("ontology editor sidebar through application document operations", () =
   test("refreshes a custom datatype without changing its identity or disabling its label", async () => {
     const iri =
       "https://haddenindustries.com/ontology/iso-iec/11179/-3/ed-4/textDatatype";
-    model = {
-      header: {},
-      datatype: [{ id: "d", type: "rdfs:Datatype" }],
-      datatypeAttribute: [{ id: "d", iri, label: { en: "Text" } }],
+    const loaded = await session.load({
+      operation: "open-owl-model",
+      documentIri: "urn:datatype",
+      mediaType: "text/owl-functional",
+      bytes: new TextEncoder().encode(
+        `Ontology(<urn:datatype> Declaration(Datatype(<${iri}>)) AnnotationAssertion(<http://www.w3.org/2000/01/rdf-schema#label> <${iri}> "Text"@en))`,
+      ),
+    });
+    const role = loaded.inspection.records.roles.find(
+      ({ kind }) => kind === "datatype",
+    );
+    target = session.target(role.id);
+    state = {
+      ...state,
+      loadGeneration: loaded.loadGeneration,
+      documentRevision: loaded.documentRevision,
+      selectedDocumentRecord: target,
     };
-    state.selectedDocumentRecord = { collection: "datatype", recordId: "d" };
     sidebar.setup();
     expect(document.getElementById("element_iriEditor")).toMatchObject({
       title: iri,
@@ -445,11 +479,11 @@ describe("ontology editor sidebar through application document operations", () =
     datatype.value = "xsd:string";
     datatype.dispatchEvent(new Event("change"));
     await flushOperations();
-    expect(model.datatypeAttribute[0].iri).toBe(
+    expect(session.inspectEditor(target).selectedRecord.iri).toBe(
       "http://www.w3.org/2001/XMLSchema#string",
     );
     expect(document.getElementById("element_labelEditor")).toMatchObject({
-      value: "string",
+      value: "Text",
       disabled: true,
     });
   });
@@ -460,7 +494,7 @@ describe("ontology editor sidebar through application document operations", () =
     title.value = "New title";
     title.dispatchEvent(keyboardEvent("Enter"));
     await flushOperations();
-    expect(model.header.title).toEqual({ en: "New title" });
+    expect(session.inspectEditor().metadata.title).toEqual({ en: "New title" });
     expect(controller.editOntologyMetadata).toHaveBeenCalledTimes(1);
   });
 

@@ -6,7 +6,8 @@ import {
   createVowlDocumentInsertionRecords,
   VOWL_EDITOR_CLASS_TYPES,
   VOWL_EDITOR_PROPERTY_TYPES,
-} from "./vowlDocument.js";
+} from "./ontologyEditorDrawingRecords.js";
+import { createRenderedOccurrenceReference } from "./renderedArrangementContracts.js";
 
 export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "replaceVowlModel",
@@ -28,7 +29,6 @@ export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "setRenderingDiagnosticsEnabled",
   "createRenderedSvgSnapshot",
   "createRenderedDrawingSnapshot",
-  "createTurtleDocumentSnapshot",
   "subscribeToRenderedGraphEvents",
   "dispose",
 ]);
@@ -1589,12 +1589,24 @@ function createRenderedGraphEventPayload(kind, payload) {
         ),
       });
     case "document-record-selection-changed":
-      assertExactFieldNames(payload, ["recordTarget"], `${kind} payload`);
+      assertExactFieldNames(
+        payload,
+        [
+          "recordTarget",
+          ...(payload.occurrence === undefined ? [] : ["occurrence"]),
+        ],
+        `${kind} payload`,
+      );
       return Object.freeze({
         recordTarget:
           payload.recordTarget === null
             ? null
             : createVowlDocumentRecordTarget(payload.recordTarget),
+        ...(payload.occurrence === undefined
+          ? {}
+          : {
+              occurrence: createRenderedOccurrenceReference(payload.occurrence),
+            }),
       });
     case "record-deletion-requested": {
       const semantic = payload.recordTarget?.recordToken !== undefined;

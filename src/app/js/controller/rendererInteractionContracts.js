@@ -2,7 +2,7 @@ import {
   VOWL_EDITOR_CLASS_TYPES,
   VOWL_EDITOR_DATATYPE_NAMES,
   VOWL_EDITOR_PROPERTY_TYPES,
-} from "./vowlDocument.js";
+} from "./ontologyEditorDrawingRecords.js";
 
 export const DEFAULT_ONTOLOGY_EDITOR_OPTIONS = Object.freeze({
   isEditorMode: false,

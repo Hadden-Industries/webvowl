@@ -6,9 +6,8 @@ import {
 } from "../../../app/js/controller/rendererInteractionContracts.js";
 import { createRenderedSvgExportClone } from "./renderedSvgExportClone.js";
 import { captureRenderedDrawing } from "./captureRenderedDrawing.js";
-import { serializeOntologyAsTurtle } from "./ontologyTurtleSerializer.js";
 import { createRenderedDrawingSnapshot } from "../../../app/js/controller/renderedDrawingSnapshot.js";
-import { indexOntologyElementReferencesByVowlElementId } from "../../../app/js/controller/vowlModelInspectionProjector.js";
+import { indexOntologyElementReferencesByVowlElementId } from "../../../app/js/controller/rendererElementReferences.js";
 import {
   ontologyElementReferenceKey,
   createOntologyElementReference,
@@ -617,6 +616,13 @@ export function createD3RenderedGraphAdapter(dependencies) {
             selectedElementIds.length === 1
               ? (editableTargetForRenderer(selectedElementIds[0]) ?? null)
               : null,
+          ...(selectedElementIds.length === 1 &&
+          canonicalBindings?.has(String(selectedElementIds[0]))
+            ? {
+                occurrence: canonicalBindings.get(String(selectedElementIds[0]))
+                  .runtimeReference,
+              }
+            : {}),
         },
       });
     },
@@ -1558,33 +1564,6 @@ export function createD3RenderedGraphAdapter(dependencies) {
       } finally {
         publishActualVisualizationView(loadGeneration);
       }
-    },
-
-    createTurtleDocumentSnapshot(request) {
-      assertNotDisposed();
-      if (canonicalDocumentRevision !== null) {
-        throw new Error(
-          "Canonical Turtle export requires the complete semantic document.",
-        );
-      }
-      if (
-        request?.loadGeneration !== activeLoadGeneration ||
-        activeLoadGeneration === null
-      ) {
-        throw createAbortError(
-          "The Turtle export request targets a superseded load generation.",
-        );
-      }
-      const turtleText = serializeOntologyAsTurtle(renderedGraphInternals);
-      if (turtleText === null) {
-        throw new Error(
-          "The existing Turtle exporter does not support this ontology.",
-        );
-      }
-      return Object.freeze({
-        loadGeneration: activeLoadGeneration,
-        turtleText,
-      });
     },
 
     createRenderedDrawingSnapshot(request) {

@@ -1,0 +1,14 @@
+Canonical VOWL experimental candidate: 2026-10-04-cutover-01
+
+The canonical package and profile checkpoint is identified by manifest SHA-256:
+43cd3c7c6f7d412552ed9cddc8f04866a89eb74eeb95e4544e3665238931224e
+
+This application revision promotes the qualified canonical controller, retires
+legacy writers and preserves the named legacy migration adapter. It does not
+change canonical package bytes or establish a permanent /v1 interoperability
+promise. Future candidates may correct errors with explicit revision and
+compatibility information. Retain original ontology sources for recovery.
+
+The application operator retains the exact deployed-file inventory and hashes
+alongside its qualification and rollback records. The checkpoint identifies
+the package/profile materials; it is not the application build digest.

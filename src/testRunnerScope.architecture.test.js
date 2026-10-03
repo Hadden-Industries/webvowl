@@ -39,14 +39,16 @@ describe("default test run scope", () => {
     defaultTests = listTests();
   }, LIST_TIMEOUT_MS);
 
-  it("keeps every active suite whose name contains differential", () => {
-    const differentialSuites = defaultTests.filter((filePath) =>
-      filePath.includes("differential"),
+  it("discovers canonical conformance, named migration and retained reference suites", () => {
+    expect(defaultTests).toEqual(
+      expect.arrayContaining([
+        "packages/vowl/test/migrate.test.js",
+        "packages/vowl/test/compatibleArtifactCorpus.test.js",
+        "packages/vowl/test/compatibleArtifactGapCorpus.test.js",
+        "src/owl2vowl/test/vowlDifferential.test.js",
+        "src/owl2vowl/test/vowlSemanticSnapshot.test.js",
+      ]),
     );
-
-    expect(differentialSuites.sort()).toEqual([
-      "src/owl2vowl/test/vowlBuilder.differential.test.js",
-    ]);
   });
 
   it("never reaches into node_modules", () => {

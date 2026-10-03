@@ -1,4 +1,8 @@
 import { createCanonicalVowlRenderProjection } from "./canonicalVowlRenderProjection.js";
+import {
+  DEFAULT_VOWL_EDITOR_PREFIXES,
+  VOWL_EDITOR_DATATYPE_NAMES,
+} from "./ontologyEditorDrawingRecords.js";
 
 function rejected(code) {
   const error = new Error(code.replaceAll("_", " ").toLowerCase());
@@ -1097,6 +1101,32 @@ export async function applyCanonicalEditorCommand(
       });
       break;
     case "record":
+      if (Object.hasOwn(intent.changes ?? {}, "datatypeName")) {
+        const name = intent.changes.datatypeName;
+        if (
+          Object.keys(intent.changes).length !== 1 ||
+          !VOWL_EDITOR_DATATYPE_NAMES.includes(name) ||
+          !name.includes(":")
+        ) {
+          throw rejected("EDITOR_DATATYPE_INVALID");
+        }
+        const [prefix, local] = name.split(":");
+        const occurrences = base.inspection.occurrences.filter(
+          (entry) => entry.kind === "datatype-node" && entry.target === target,
+        );
+        if (occurrences.length > 1 && intent.occurrence === undefined) {
+          throw rejected("EDITOR_DATATYPE_CONTEXT_INVALID");
+        }
+        proposal = prepareCanonicalDatatypeEdit(base.inspection, {
+          target,
+          datatypeIri: DEFAULT_VOWL_EDITOR_PREFIXES[prefix] + local,
+          occurrence:
+            intent.occurrence === undefined
+              ? occurrences[0]?.id
+              : session.scene().resolve(intent.occurrence),
+        });
+        break;
+      }
       proposal = prepareCanonicalRecordEdit(base.inspection, {
         target,
         changes: intent.changes,
