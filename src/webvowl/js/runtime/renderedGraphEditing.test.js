@@ -124,8 +124,10 @@ function mountGraph(model) {
       widthPx: 800,
       heightPx: 600,
     });
-    graph.options().data(structuredClone(model));
-    graph.load(1, { isPaused: true, centerViewport: false });
+    if (model !== undefined) {
+      graph.options().data(structuredClone(model));
+      graph.load(1, { isPaused: true, centerViewport: false });
+    }
     graph.editorMode(true);
     return {
       graph,
@@ -147,129 +149,189 @@ const MODEL = {
   ],
 };
 
-test("canonical native mount preserves exact topology, inverse placements and paused camera", () => {
-  const { graph, dispose } = mountGraph(MODEL);
-  try {
-    const member = (id, kind) => ({
-      record: id,
-      kind,
-      iri: `urn:${id}`,
-      name: id,
-      externalStyle: false,
-    });
-    const drawing = {
-      nodes: ["c1", "c2"].map((id, index) => ({
-        occurrence: id,
-        targets: [id],
-        principal: member(id, "class"),
-        aliases: [],
-        position: { x: index * 100, y: index * 80 },
-        pinned: index === 0,
-        radiusFactor: 1,
-        hidden: false,
-      })),
-      edges: [
+test.each([
+  [MODEL, true],
+  [undefined, true],
+  [MODEL, false],
+  [undefined, false],
+])(
+  "canonical native mount preserves topology and camera with prior input %j and paused %j",
+  (prior, isPaused) => {
+    const { graph, document, dispose } = mountGraph(prior);
+    try {
+      const member = (id, kind) => ({
+        record: id,
+        kind,
+        iri: `urn:${id}`,
+        name: id,
+        externalStyle: false,
+      });
+      const drawing = {
+        nodes: ["c1", "c2"].map((id, index) => ({
+          occurrence: id,
+          targets: [id],
+          principal: member(id, "class"),
+          aliases: [],
+          position: { x: index * 100, y: index * 80 },
+          pinned: index === 0,
+          radiusFactor: 1,
+          hidden: false,
+        })),
+        edges: [
+          {
+            occurrence: "pair",
+            kind: "inverse-edge",
+            from: "c1",
+            to: "c2",
+            records: ["pair", "p", "q"],
+            hidden: false,
+          },
+        ],
+        labels: ["forward", "reverse"].map((direction, index) => ({
+          occurrence: direction,
+          edge: "pair",
+          direction,
+          principal: member(index ? "q" : "p", "object-property"),
+          name: index ? "q" : "p",
+          aliases: [],
+          records: [index ? "q" : "p"],
+          characteristics: [],
+          position: { x: index * 30, y: index ? 70 : -30 },
+          pinned: true,
+          hidden: false,
+        })),
+        display: {
+          compactNotation: false,
+          externalColoring: true,
+          nodeScaling: "uniform",
+        },
+        camera: { center: { x: 10, y: 20 }, zoom: 2 },
+      };
+      graph.options().nodeDegreeFilter().minDegree(99);
+      graph.load(2, { canonicalDrawing: drawing, isPaused });
+      expect(document.getElementsByTagName("circle").length).toBeGreaterThan(0);
+      expect(graph.paused()).toBe(isPaused);
+      expect(graph.isReadyForPaint()).toBe(true);
+      expect(graph.readVisibleElementIds().nodeIds).toEqual(["c1", "c2"]);
+      expect(
+        graph.getUnfilteredData().properties.map(({ x, y }) => [x, y]),
+      ).toEqual([
+        [0, -30],
+        [30, 70],
+      ]);
+      expect(graph.translation()).toEqual([380, 260]);
+      expect(graph.scaleFactor()).toBe(2);
+      expect(graph.readCanonicalDrawingBindings().get("reverse")).toMatchObject(
         {
           occurrence: "pair",
-          kind: "inverse-edge",
-          from: "c1",
-          to: "c2",
-          records: ["pair", "p", "q"],
-          hidden: false,
+          label: "reverse",
+          positionable: true,
         },
-      ],
-      labels: ["forward", "reverse"].map((direction, index) => ({
-        occurrence: direction,
-        edge: "pair",
-        direction,
-        principal: member(index ? "q" : "p", "object-property"),
-        name: index ? "q" : "p",
-        aliases: [],
-        records: [index ? "q" : "p"],
-        characteristics: [],
-        position: { x: index * 30, y: index ? 70 : -30 },
+      );
+      graph.update();
+      expect(
+        graph.getUnfilteredData().properties.map(({ x, y }) => [x, y]),
+      ).toEqual([
+        [0, -30],
+        [30, 70],
+      ]);
+      expect(graph.readVisibleElementIds().nodeIds).toEqual(["c1", "c2"]);
+      expect(graph.readCanonicalDrawingState().camera).toEqual(drawing.camera);
+      // A single property label is still an independent canonical placement.
+      // Legacy rendering would silently force it to the endpoint midpoint.
+      graph.load(3, {
+        canonicalDrawing: {
+          ...drawing,
+          edges: [{ ...drawing.edges[0], kind: "object-edge" }],
+          labels: [drawing.labels[0]],
+          camera: { ...drawing.camera, zoom: 10 },
+        },
+      });
+      const labelArrangement = graph
+        .readArrangement()
+        .find(({ kind }) => kind === "property-label");
+      expect(labelArrangement).toMatchObject({
+        xPx: 0,
+        yPx: -30,
+        canMove: true,
+        canPin: true,
+      });
+      graph.applyArrangement([
+        {
+          rendererKey: labelArrangement.rendererKey,
+          xPx: 75,
+          yPx: -90,
+          isPinned: true,
+        },
+      ]);
+      graph.update();
+      expect(graph.readCanonicalDrawingState().camera).toEqual({
+        ...drawing.camera,
+        zoom: 10,
+      });
+      expect(graph.readCanonicalDrawingState().placements).toContainEqual({
+        occurrence: "forward",
+        position: { x: 75, y: -90 },
         pinned: true,
-        hidden: false,
-      })),
-      display: {
-        compactNotation: false,
-        externalColoring: true,
-        nodeScaling: "uniform",
-      },
-      camera: { center: { x: 10, y: 20 }, zoom: 2 },
-    };
-    graph.options().nodeDegreeFilter().minDegree(99);
-    graph.load(2, { canonicalDrawing: drawing });
-    expect(graph.paused()).toBe(true);
-    expect(graph.readVisibleElementIds().nodeIds).toEqual(["c1", "c2"]);
-    expect(
-      graph.getUnfilteredData().properties.map(({ x, y }) => [x, y]),
-    ).toEqual([
-      [0, -30],
-      [30, 70],
-    ]);
-    expect(graph.translation()).toEqual([380, 260]);
-    expect(graph.scaleFactor()).toBe(2);
-    expect(graph.readCanonicalDrawingBindings().get("reverse")).toMatchObject({
-      occurrence: "pair",
-      label: "reverse",
-      positionable: true,
-    });
-    graph.update();
-    expect(
-      graph.getUnfilteredData().properties.map(({ x, y }) => [x, y]),
-    ).toEqual([
-      [0, -30],
-      [30, 70],
-    ]);
-    expect(graph.readVisibleElementIds().nodeIds).toEqual(["c1", "c2"]);
-    expect(graph.readCanonicalDrawingState().camera).toEqual(drawing.camera);
-    // A single property label is still an independent canonical placement.
-    // Legacy rendering would silently force it to the endpoint midpoint.
-    graph.load(3, {
-      canonicalDrawing: {
+      });
+      const svg = document.querySelector("svg");
+      const prior = graph.readCanonicalDrawingState();
+      const epoch = graph.currentRenderInteractionEpoch();
+      expect(() =>
+        graph.applyCanonicalDrawingRevision({
+          ...drawing,
+          camera: { center: { x: Number.MAX_VALUE, y: 0 }, zoom: 10 },
+        }),
+      ).toThrow("Canonical camera");
+      expect(graph.currentRenderInteractionEpoch()).toBe(epoch);
+      expect(graph.readCanonicalDrawingState()).toEqual(prior);
+      const revised = {
         ...drawing,
         edges: [{ ...drawing.edges[0], kind: "object-edge" }],
-        labels: [drawing.labels[0]],
-        camera: { ...drawing.camera, zoom: 10 },
-      },
-    });
-    const labelArrangement = graph
-      .readArrangement()
-      .find(({ kind }) => kind === "property-label");
-    expect(labelArrangement).toMatchObject({
-      xPx: 0,
-      yPx: -30,
-      canMove: true,
-      canPin: true,
-    });
-    graph.applyArrangement([
-      {
-        rendererKey: labelArrangement.rendererKey,
-        xPx: 75,
-        yPx: -90,
-        isPinned: true,
-      },
-    ]);
-    graph.update();
-    expect(graph.readCanonicalDrawingState().camera).toEqual({
-      ...drawing.camera,
-      zoom: 10,
-    });
-    expect(graph.readCanonicalDrawingState().placements).toContainEqual({
-      occurrence: "forward",
-      position: { x: 75, y: -90 },
-      pinned: true,
-    });
-    graph.load(3, { isPaused: true, centerViewport: false });
-    expect(graph.readCanonicalDrawingBindings().size).toBe(0);
-    expect(graph.getUnfilteredData().nodes.map((node) => node.id())).toEqual([
-      "a",
-    ]);
-  } finally {
-    dispose();
-  }
-});
+        labels: [
+          {
+            ...drawing.labels[0],
+            occurrence: "successor",
+            name: "renamed",
+            position: { x: 0, y: -99 },
+          },
+        ],
+        camera: prior.camera,
+      };
+      const transform = jest.spyOn(graph, "setViewportTransform");
+      transform.mockImplementationOnce(() => {
+        throw new Error("Injected viewport drawing failure");
+      });
+      expect(() => graph.applyCanonicalDrawingRevision(revised)).toThrow(
+        "Injected viewport drawing failure",
+      );
+      expect(document.querySelector("svg")).toBe(svg);
+      expect(graph.readCanonicalDrawingState()).toEqual(prior);
+      expect(graph.readCanonicalDrawingBindings().has("forward")).toBe(true);
+      expect(graph.readCanonicalDrawingBindings().has("successor")).toBe(false);
+      transform.mockRestore();
+      graph.applyCanonicalDrawingRevision(revised);
+      expect(document.querySelector("svg")).toBe(svg);
+      expect(graph.paused()).toBe(true);
+      expect(graph.currentRenderInteractionEpoch()).toBeGreaterThan(epoch);
+      expect(graph.readCanonicalDrawingBindings().has("forward")).toBe(false);
+      expect(graph.readCanonicalDrawingState().camera).toEqual(prior.camera);
+      expect(graph.readCanonicalDrawingState().placements).toContainEqual({
+        occurrence: "successor",
+        position: { x: 0, y: -99 },
+        pinned: true,
+      });
+      graph.options().data(structuredClone(MODEL));
+      graph.load(3, { isPaused: true, centerViewport: false });
+      expect(graph.readCanonicalDrawingBindings().size).toBe(0);
+      expect(graph.getUnfilteredData().nodes.map((node) => node.id())).toEqual([
+        "a",
+      ]);
+    } finally {
+      dispose();
+    }
+  },
+);
 
 test("draws the bundled MUTO document on an uncached native mount", () => {
   const model = JSON.parse(

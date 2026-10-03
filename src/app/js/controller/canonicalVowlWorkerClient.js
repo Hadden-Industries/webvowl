@@ -202,6 +202,8 @@ export function createCanonicalVowlWorkerClient({
         "recover-model",
         "edit-model",
         "capture-model",
+        "read-model-source",
+        "export-model-rdf",
       ].includes(request.operation);
       const bytes = checkpointOperation ? undefined : copyBytes(request.bytes);
       let acquiredBytes = bytes?.byteLength ?? 0;
@@ -216,7 +218,9 @@ export function createCanonicalVowlWorkerClient({
             ? ["changes"]
             : request.operation === "capture-model"
               ? ["profile", "visualization"]
-              : []),
+              : request.operation === "read-model-source"
+                ? ["documentId"]
+                : []),
         ];
         checkpointPayload = {};
         for (const key of Reflect.ownKeys(request)) {

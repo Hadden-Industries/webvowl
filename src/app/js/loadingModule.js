@@ -19,6 +19,9 @@ export function createLoadingModule({
   hideNavigationMenus,
   onGraphControlAvailabilityChanged,
   onShareLinkPresentation,
+  selectLocalSource,
+  createOntologySource,
+  resolvePresetSource,
 } = {}) {
   /** some constants **/
   const PROGRESS_BAR_ERROR = 0;
@@ -53,6 +56,23 @@ export function createLoadingModule({
   const lifecycleAbortController = new AbortController();
   let isSetup = false;
   let fileReadSequence = 0;
+  let pendingInput;
+
+  function supersedeInput() {
+    fileReadSequence += 1;
+    pendingInput?.abort();
+    pendingInput = undefined;
+    return fileReadSequence;
+  }
+
+  function beginInput() {
+    const sequence = supersedeInput();
+    pendingInput = new AbortController();
+    if (lifecycleAbortController.signal.aborted) {
+      pendingInput.abort();
+    }
+    return { sequence, signal: pendingInput.signal };
+  }
 
   /** functon defs **/
   loadingModule.checkForScreenSize = function ({ width: w, height: h }) {
@@ -218,6 +238,7 @@ export function createLoadingModule({
 
   loadingModule.dispose = function () {
     lifecycleAbortController.abort();
+    supersedeInput();
   };
 
   loadingModule.updateSize = function () {
@@ -332,6 +353,11 @@ export function createLoadingModule({
   // A location names a source. Validated models and their original provenance
   // are retained by the controller, shared with every other input adapter.
   function ontologySourceForIdentifier(ontologyIdentifier) {
+    if (createOntologySource && /^new_ontology\d+$/.test(ontologyIdentifier)) {
+      throw new Error(
+        "This new ontology was not saved in the URL. Open its exported file or create a new ontology.",
+      );
+    }
     if (ontologyIdentifier.startsWith("file=")) {
       const fileName = decodeURIComponent(ontologyIdentifier.slice(5));
       if (fileName.length === 0) {
@@ -350,6 +376,10 @@ export function createLoadingModule({
         kind: "ontology-document-iri",
         documentIri: decodeURIComponent(ontologyIdentifier.slice(4)),
       };
+    }
+    const preset = resolvePresetSource?.(ontologyIdentifier);
+    if (preset !== undefined) {
+      return preset;
     }
     return {
       kind: "vowl-json-url",
@@ -374,7 +404,7 @@ export function createLoadingModule({
     reuseCachedOntology = true,
   } = {}) {
     // A newer navigation supersedes a file read even when its route cannot load.
-    fileReadSequence += 1;
+    supersedeInput();
     let request;
     try {
       request = loadingModule.ontologyLoadRequestFromLocation();
@@ -435,7 +465,7 @@ export function createLoadingModule({
     presentation,
     reuseCachedOntology = true,
   }) {
-    fileReadSequence += 1;
+    supersedeInput();
     prepareLoadingPresentation();
     document.querySelector("#progressBarLabel").textContent = "";
     const state = await loadOntologyThroughController(
@@ -450,11 +480,61 @@ export function createLoadingModule({
   };
 
   // The one route for a file the reader dropped or selected.
+  loadingModule.selectPastedSource = async function ({ text, signal }) {
+    const input = beginInput();
+    const controller = pendingInput;
+    const abort = () => controller.abort();
+    signal?.addEventListener("abort", abort, { once: true });
+    if (signal?.aborted) {
+      abort();
+    }
+    try {
+      const source = await selectLocalSource({ text, signal: input.signal });
+      return input.signal.aborted || input.sequence !== fileReadSequence
+        ? null
+        : source;
+    } catch (error) {
+      if (input.signal.aborted) {
+        return null;
+      }
+      throw error;
+    } finally {
+      signal?.removeEventListener("abort", abort);
+    }
+  };
+
   loadingModule.loadLocalFile = async function (file) {
-    const currentFileRead = ++fileReadSequence;
+    const { sequence: currentFileRead, signal } = beginInput();
     const isCurrentFileRead = () =>
       currentFileRead === fileReadSequence &&
       !lifecycleAbortController.signal.aborted;
+    if (selectLocalSource) {
+      try {
+        const source = await selectLocalSource({
+          file,
+          signal,
+        });
+        if (source === null || !isCurrentFileRead()) {
+          return undefined;
+        }
+        prepareLoadingPresentation();
+        window.history.pushState(
+          null,
+          "",
+          "#file=" + encodeURIComponent(file.name),
+        );
+        return loadOntologyThroughController(source);
+      } catch (error) {
+        if (isCurrentFileRead()) {
+          loadingModule.renderControllerState({
+            ...webVowlController.getState(),
+            status: "error",
+            error: { message: error.message },
+          });
+        }
+        return undefined;
+      }
+    }
     prepareLoadingPresentation();
     let fileContent;
     try {
@@ -510,7 +590,7 @@ export function createLoadingModule({
     if (controllerState.status === "loading") {
       // Every controller load, including an agent input, supersedes a file
       // that is still being read by this input adapter.
-      fileReadSequence += 1;
+      supersedeInput();
     }
     if (
       controllerState.status === "ready" ||
@@ -594,6 +674,48 @@ export function createLoadingModule({
   }
 
   loadingModule.createNewOntology = function () {
+    if (createOntologySource) {
+      const { sequence, signal } = beginInput();
+      return (async () => {
+        try {
+          const source = await createOntologySource({
+            signal,
+          });
+          if (
+            source === null ||
+            sequence !== fileReadSequence ||
+            lifecycleAbortController.signal.aborted
+          ) {
+            return undefined;
+          }
+          const ontologyIdentifier = nextNewOntologyIdentifier();
+          onShareLinkPresentation?.({ editorMode: true });
+          window.history.pushState(
+            null,
+            "",
+            "#opts=editorMode=true;#" + ontologyIdentifier,
+          );
+          await loadingModule.loadRemoteSource({
+            source,
+            reuseCachedOntology: false,
+            initialVisualization: { view: { layout: "pause" } },
+          });
+          return ontologyIdentifier;
+        } catch (error) {
+          if (
+            sequence === fileReadSequence &&
+            !lifecycleAbortController.signal.aborted
+          ) {
+            loadingModule.renderControllerState({
+              ...webVowlController.getState(),
+              status: "error",
+              error: { message: error.message },
+            });
+          }
+          return undefined;
+        }
+      })();
+    }
     const ontologyIdentifier = nextNewOntologyIdentifier();
     const route = "#opts=editorMode=true;#" + ontologyIdentifier;
 

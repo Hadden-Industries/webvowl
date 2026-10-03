@@ -193,6 +193,73 @@ describe("loading module create-new command", () => {
 
     expect(loadingModule.createNewOntology()).toBe("new_ontology13");
   });
+
+  test("candidate creation waits for an explicit source and cancellation leaves the route alone", async () => {
+    const source = {
+      kind: "ontology-text",
+      text: "<urn:new> a <http://www.w3.org/2002/07/owl#Ontology> .",
+      format: "turtle",
+      documentIri: "urn:new",
+    };
+    const createOntologySource = jest
+      .fn()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(source);
+    const loadOntology = jest.fn(async () => ({ status: "ready" }));
+    loadingModule.dispose();
+    loadingModule = createLoadingModule({
+      createOntologySource,
+      onShareLinkPresentation: presentEditorMode,
+      webVowlController: { loadOntology },
+    });
+    await loadingModule.createNewOntology();
+    expect(pushedRoutes).toEqual([]);
+    expect(loadOntology).not.toHaveBeenCalled();
+    expect(await loadingModule.createNewOntology()).toBe("new_ontology1");
+    expect(loadOntology).toHaveBeenCalledWith(
+      { source, reuseCachedOntology: false },
+      { initialVisualization: { view: { layout: "pause" } } },
+    );
+    expect(presentEditorMode).toHaveBeenCalledWith({ editorMode: true });
+  });
+
+  test.each(["local", "new", "paste"])(
+    "%s source selection aborts on replacement, controller load and disposal",
+    async (kind) => {
+      const pending = [];
+      const select = ({ signal }) =>
+        new Promise((resolve) => pending.push({ signal, resolve }));
+      const loadOntology = jest.fn(async () => ({ status: "ready" }));
+      loadingModule.dispose();
+      loadingModule = createLoadingModule({
+        selectLocalSource: select,
+        createOntologySource: select,
+        webVowlController: { loadOntology },
+      });
+      const start = () =>
+        kind === "local"
+          ? loadingModule.loadLocalFile({ name: "example.ttl" })
+          : kind === "paste"
+            ? loadingModule.selectPastedSource({ text: "example" })
+            : loadingModule.createNewOntology();
+      const first = start();
+      const second = start();
+      expect(pending[0].signal.aborted).toBe(true);
+      expect(pending[1].signal.aborted).toBe(false);
+      loadingModule.renderControllerState({ status: "loading" });
+      expect(pending[1].signal.aborted).toBe(true);
+      const third = start();
+      loadingModule.dispose();
+      expect(pending[2].signal.aborted).toBe(true);
+      // Even an adapter that ignores cancellation cannot publish stale input.
+      for (const input of pending) {
+        input.resolve({ kind: "ontology-text", text: "stale" });
+      }
+      await Promise.all([first, second, third]);
+      expect(loadOntology).not.toHaveBeenCalled();
+      expect(pushedRoutes).toEqual([]);
+    },
+  );
 });
 
 describe("loading module remote source derivation", () => {
@@ -250,6 +317,28 @@ describe("loading module remote source derivation", () => {
       kind: "ontology-document-iri",
       documentIri: "http://example.com/ontology.rdf",
     });
+  });
+
+  test("candidate preset resolution leaves explicit remote inputs unchanged", () => {
+    loadingModuleContext.location = "https://webvowl.example/#foaf";
+    const source = {
+      kind: "vowl-json-url",
+      url: "https://webvowl.example/assets/foaf-canonical.json",
+    };
+    const resolvePresetSource = jest.fn((name) =>
+      name === "foaf" ? source : undefined,
+    );
+    loadingModule = createLoadingModule({ resolvePresetSource });
+    expect(loadingModule.ontologyLoadRequestFromLocation().source).toEqual(
+      source,
+    );
+    loadingModuleContext.location =
+      "https://webvowl.example/#iri=https%3A%2F%2Fexample.org%2Ffoaf.rdf";
+    expect(loadingModule.ontologyLoadRequestFromLocation().source).toEqual({
+      kind: "ontology-document-iri",
+      documentIri: "https://example.org/foaf.rdf",
+    });
+    expect(resolvePresetSource).toHaveBeenCalledTimes(1);
   });
 });
 

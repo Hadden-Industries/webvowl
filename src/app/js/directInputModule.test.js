@@ -210,4 +210,32 @@ describe("direct ontology input controls", () => {
 
     expect(webVowlController.loadOntology).not.toHaveBeenCalled();
   });
+
+  test.each(["close", "dispose"])(
+    "%s cancels format selection without loading or reporting an error",
+    async (action) => {
+      let selectionSignal;
+      let complete;
+      directInputModule.dispose();
+      directInputModule = createDirectInputModule({
+        webVowlController,
+        selectLocalSource: ({ signal }) => {
+          selectionSignal = signal;
+          return new Promise((resolve) => {
+            complete = resolve;
+          });
+        },
+      });
+      const pending = directInputModule.loadPastedDocument();
+      if (action === "close") {
+        directInputModule.handleCloseButton();
+      } else {
+        directInputModule.dispose();
+      }
+      expect(selectionSignal.aborted).toBe(true);
+      complete({ kind: "ontology-text", text: "stale" });
+      await pending;
+      expect(webVowlController.loadOntology).not.toHaveBeenCalled();
+    },
+  );
 });

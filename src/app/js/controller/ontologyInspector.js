@@ -1,11 +1,12 @@
 import {
   assertCurrentOntologyElementReference,
   ontologyElementReferenceKey,
+  resolveOntologyElementReference,
   truncateOntologyDerivedText,
-  truncateResultCollection,
   WEB_VOWL_OPERATION_LIMITS,
 } from "./webVowlControllerContracts.js";
 import { createLanguageTools } from "../../../shared/js/util/languageTools.js";
+import { selectVowlLabel } from "./vowlDisplayProjector.js";
 
 const languageTools = createLanguageTools();
 
@@ -164,11 +165,27 @@ function boundResultCollection(
   if (maximumEntryCount === undefined) {
     return [...resultEntries];
   }
-  const truncation = truncateResultCollection(resultEntries, maximumEntryCount);
-  if (truncation.isTruncated) {
-    truncationTracker.isTruncated = true;
+  const retainedEntries = [];
+  for (const entry of resultEntries) {
+    if (retainedEntries.length === maximumEntryCount) {
+      truncationTracker.isTruncated = true;
+      break;
+    }
+    retainedEntries.push(entry);
   }
-  return truncation.retainedEntries;
+  return Object.freeze(retainedEntries);
+}
+
+function* relationReferences(record, field, snapshot) {
+  yield* record[field] ?? [];
+  const ownKey = ontologyElementReferenceKey(record.ontologyElementReference);
+  for (const index of record.relationGroups?.[field] ?? []) {
+    for (const reference of snapshot.relationGroups[index]) {
+      if (ontologyElementReferenceKey(reference) !== ownKey) {
+        yield reference;
+      }
+    }
+  }
 }
 
 function createTruncationTracker() {
@@ -188,6 +205,19 @@ function elementIdentitySortKey(ontologyElementReference) {
 }
 
 function displayLabelForRecord(elementRecord, selectedLanguage) {
+  if (elementRecord.canonicalDisplay) {
+    return selectVowlLabel({
+      ...elementRecord.canonicalDisplay,
+      ...(selectedLanguage === null || selectedLanguage === "default"
+        ? {}
+        : {
+            selection: {
+              mode: "language",
+              range: selectedLanguage.toLowerCase(),
+            },
+          }),
+    });
+  }
   const localizedLabel = selectLocalizedText(
     elementRecord.labelRecords,
     selectedLanguage,
@@ -218,6 +248,7 @@ function matchRankForRecord(
   elementRecord,
   normalizedQuery,
   labelTextsByReferenceKey,
+  matchingGroups,
 ) {
   const labelTexts = elementRecord.labelRecords.map(({ text }) => text);
   const rank = labelMatchRank(labelTexts, normalizedQuery);
@@ -232,7 +263,12 @@ function matchRankForRecord(
         ontologyElementReferenceKey(equivalentReference),
       ) ?? [],
   );
-  if (labelMatchRank(equivalentLabelTexts, normalizedQuery) !== NO_MATCH_RANK) {
+  if (
+    labelMatchRank(equivalentLabelTexts, normalizedQuery) !== NO_MATCH_RANK ||
+    (elementRecord.relationGroups?.equivalentClassReferences ?? []).some(
+      (index) => matchingGroups.has(index),
+    )
+  ) {
     return EQUIVALENT_LABEL_RANK;
   }
   const iri = elementIri(elementRecord.ontologyElementReference);
@@ -257,11 +293,16 @@ function indexLabelTextsByReferenceKey(ontologyInspectionSnapshot) {
   return labelTextsByReferenceKey;
 }
 
-function createNeighborhoodFacts(elementRecord, kind, truncationTracker) {
+function createNeighborhoodFacts(
+  elementRecord,
+  kind,
+  truncationTracker,
+  snapshot,
+) {
   const neighborhoodFacts = {};
   for (const neighborhoodFieldName of NEIGHBORHOOD_FIELD_NAMES_BY_KIND[kind]) {
     neighborhoodFacts[neighborhoodFieldName] = boundResultCollection(
-      elementRecord[neighborhoodFieldName],
+      relationReferences(elementRecord, neighborhoodFieldName, snapshot),
       WEB_VOWL_OPERATION_LIMITS.maxFocusReferences,
       truncationTracker,
     );
@@ -392,15 +433,16 @@ export function createOntologyInspector() {
           classCount: ontologyInspectionSnapshot.classRecords.length,
           propertyCount: ontologyInspectionSnapshot.propertyRecords.length,
           objectPropertyCount:
-            ontologyInspectionSnapshot.propertyRecords.filter(
-              (record) =>
-                record.elementTypeName?.toLowerCase() === "owl:objectproperty",
+            ontologyInspectionSnapshot.propertyRecords.filter((record) =>
+              ["owl:objectproperty", "object-property"].includes(
+                record.elementTypeName?.toLowerCase(),
+              ),
             ).length,
           datatypePropertyCount:
-            ontologyInspectionSnapshot.propertyRecords.filter(
-              (record) =>
-                record.elementTypeName?.toLowerCase() ===
-                "owl:datatypeproperty",
+            ontologyInspectionSnapshot.propertyRecords.filter((record) =>
+              ["owl:datatypeproperty", "data-property"].includes(
+                record.elementTypeName?.toLowerCase(),
+              ),
             ).length,
           datatypeCount: ontologyInspectionSnapshot.datatypeRecords.length,
           individualCount: ontologyInspectionSnapshot.individualRecords.length,
@@ -449,6 +491,24 @@ export function createOntologyInspector() {
       const labelTextsByReferenceKey = indexLabelTextsByReferenceKey(
         ontologyInspectionSnapshot,
       );
+      const matchingGroups = new Set();
+      for (const [index, group] of (
+        ontologyInspectionSnapshot.relationGroups ?? []
+      ).entries()) {
+        if (
+          group.some(
+            (reference) =>
+              labelMatchRank(
+                labelTextsByReferenceKey.get(
+                  ontologyElementReferenceKey(reference),
+                ) ?? [],
+                normalizedQuery,
+              ) !== NO_MATCH_RANK,
+          )
+        ) {
+          matchingGroups.add(index);
+        }
+      }
       const rankedMatches = [];
       for (const kind of new Set(requestedKinds)) {
         const elementRecords =
@@ -460,6 +520,7 @@ export function createOntologyInspector() {
             elementRecord,
             normalizedQuery,
             labelTextsByReferenceKey,
+            matchingGroups,
           );
           if (matchRank === NO_MATCH_RANK) {
             continue;
@@ -515,6 +576,7 @@ export function createOntologyInspector() {
             elementRecord,
             kind,
             optionalFactsTracker,
+            ontologyInspectionSnapshot,
           );
         }
         return Object.freeze(match);
@@ -573,7 +635,14 @@ export function createOntologyInspector() {
             loadGeneration,
           );
           const matched = recordsByReferenceKey.get(
-            ontologyElementReferenceKey(currentReference),
+            ontologyElementReferenceKey(
+              resolveOntologyElementReference(
+                currentReference,
+                [...recordsByReferenceKey.values()].map(
+                  ({ elementRecord }) => elementRecord.ontologyElementReference,
+                ),
+              ) ?? currentReference,
+            ),
           );
           if (matched === undefined) {
             return [];
@@ -630,7 +699,13 @@ export function createOntologyInspector() {
             describedFieldName,
           ] of DESCRIBED_RELATION_FIELD_NAMES_BY_KIND[kind]) {
             description[describedFieldName] = Object.freeze(
-              elementRecord[recordFieldName].map((relatedReference) =>
+              [
+                ...relationReferences(
+                  elementRecord,
+                  recordFieldName,
+                  ontologyInspectionSnapshot,
+                ),
+              ].map((relatedReference) =>
                 describeRelatedElement(
                   relatedReference,
                   recordsByReferenceKey,
@@ -670,17 +745,27 @@ export function createOntologyInspector() {
       );
       const focusableReferences = [];
       const unresolvedReferences = [];
+      const semanticReferences = Object.values(
+        RECORD_COLLECTION_FIELD_NAMES_BY_KIND,
+      ).flatMap((collection) =>
+        ontologyInspectionSnapshot[collection].map(
+          (record) => record.ontologyElementReference,
+        ),
+      );
       for (const ontologyElementReference of ontologyElementReferences) {
         const currentReference = assertCurrentOntologyElementReference(
           ontologyElementReference,
           loadGeneration,
         );
+        const exactReference = resolveOntologyElementReference(
+          currentReference,
+          semanticReferences,
+        );
         if (
-          visibleReferenceKeys.has(
-            ontologyElementReferenceKey(currentReference),
-          )
+          exactReference &&
+          visibleReferenceKeys.has(ontologyElementReferenceKey(exactReference))
         ) {
-          focusableReferences.push(currentReference);
+          focusableReferences.push(exactReference);
         } else {
           unresolvedReferences.push(currentReference);
         }

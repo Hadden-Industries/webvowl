@@ -3,6 +3,7 @@ export const VISUALIZATION_ARTIFACT_DOWNLOAD_ELEMENT_IDS = Object.freeze({
   vowlJsonDownloadLink: "exportJson",
   turtleDownloadLink: "exportTurtle",
   latexDownloadLink: "exportTex",
+  originalSourceDownloadLink: "exportOriginalSource",
   publicationStatus: "artifactPublicationStatus",
 });
 
@@ -54,6 +55,7 @@ export function createVisualizationArtifactDownloadAdapter(dependencies) {
       "vowl-json": "vowlJsonDownloadLink",
       turtle: "turtleDownloadLink",
       latex: "latexDownloadLink",
+      "original-source": "originalSourceDownloadLink",
     }).map(([format, name]) => [
       format,
       documentObject.getElementById(

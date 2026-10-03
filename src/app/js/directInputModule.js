@@ -1,12 +1,16 @@
 const DIRECT_INPUT_DISPLAY_NAME = "Direct input";
 
-export function createDirectInputModule({ webVowlController } = {}) {
+export function createDirectInputModule({
+  webVowlController,
+  selectLocalSource,
+} = {}) {
   /** variable defs **/
   const directInputModule = {};
   const inputContainer = document.querySelector("#DirectInputContent");
   const textArea = document.querySelector("#directInputTextArea");
   const lifecycleAbortController = new AbortController();
   let isInputContainerVisible = false;
+  let pendingSelection;
 
   // Identify the input syntax; the shared source loader validates the text.
   function directInputSource(suppliedText) {
@@ -48,18 +52,41 @@ export function createDirectInputModule({ webVowlController } = {}) {
 
   // connect upload and close button;
   directInputModule.loadPastedDocument = async function () {
+    pendingSelection?.abort();
+    const selection = new AbortController();
+    pendingSelection = selection;
+    if (lifecycleAbortController.signal.aborted) {
+      return;
+    }
     try {
+      const source = selectLocalSource
+        ? await selectLocalSource({
+            text: textArea.value,
+            signal: selection.signal,
+          })
+        : directInputSource(textArea.value);
+      if (source === null || selection.signal.aborted) {
+        return;
+      }
       await webVowlController.loadOntology({
-        source: directInputSource(textArea.value),
+        source,
       });
       directInputModule.setDirectInputMode(false);
     } catch (loadError) {
+      if (selection.signal.aborted) {
+        return;
+      }
       console.warn("Error " + loadError);
       reportDirectInputFailure(loadError?.message ?? String(loadError));
+    } finally {
+      if (pendingSelection === selection) {
+        pendingSelection = undefined;
+      }
     }
   };
 
   directInputModule.handleCloseButton = function () {
+    pendingSelection?.abort();
     directInputModule.setDirectInputMode(false);
   };
 
@@ -79,6 +106,7 @@ export function createDirectInputModule({ webVowlController } = {}) {
 
   directInputModule.dispose = function () {
     lifecycleAbortController.abort();
+    pendingSelection?.abort();
   };
 
   document

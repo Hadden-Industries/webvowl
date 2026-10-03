@@ -6,6 +6,9 @@ import {
   readmitModel,
   captureModel,
   profiles,
+  readModelSource,
+  compatibleArtifactProfile,
+  openCanonical,
 } from "vowl";
 
 const encode = (text) => new TextEncoder().encode(text);
@@ -28,6 +31,65 @@ const insert = [
     record: { id: "new:r", subject: "new:s", kind: "class" },
   },
 ];
+
+test("public original-source retrieval survives edits and recovery but never invents portable bytes", async () => {
+  const bytes = encode(prefix + "<urn:A> a owl:Class.");
+  const { model } = await openOwl(bytes, options);
+  const documentId = inspectModel(model).documents[0].id;
+  const source = await readModelSource(model, documentId);
+  expect(source.bytes).toEqual(bytes);
+  expect(source.mediaType).toBe("text/turtle");
+  source.bytes.fill(0);
+  expect((await readModelSource(model, documentId)).bytes).toEqual(bytes);
+  const edited = await editModel(model, insert);
+  const recovered = await readmitModel(
+    transport(await checkpointModel(edited.model)),
+  );
+  expect((await readModelSource(recovered.model, documentId)).bytes).toEqual(
+    bytes,
+  );
+  await expect(readModelSource(model, "unknown")).rejects.toMatchObject({
+    code: "SOURCE_DOCUMENT_UNKNOWN",
+  });
+  await expect(readModelSource({}, documentId)).rejects.toMatchObject({
+    code: "MODEL_NOT_ADMITTED",
+  });
+  await expect(
+    readModelSource(model, documentId, { limits: { inputBytes: 1 } }),
+  ).rejects.toMatchObject({ code: "MODEL_RESOURCE_LIMIT" });
+  const abort = new AbortController();
+  abort.abort();
+  await expect(
+    readModelSource(model, documentId, { signal: abort.signal }),
+  ).rejects.toMatchObject({ code: "ABORTED" });
+  const captured = await captureModel(edited.model, {
+    profile: compatibleArtifactProfile,
+    visualization: {
+      placements: inspectModel(edited.model)
+        .occurrences.filter(({ kind }) =>
+          ["class-node", "datatype-node", "label"].includes(kind),
+        )
+        .map(({ id }) => ({
+          occurrence: id,
+          position: { x: 0, y: 0 },
+          pinned: false,
+        })),
+      hidden: [],
+      camera: { center: { x: 0, y: 0 }, zoom: 1 },
+      prefixes: [],
+      labelSelection: { mode: "iri" },
+      display: {
+        compactNotation: false,
+        nodeScaling: "uniform",
+        externalColoring: false,
+      },
+    },
+  });
+  const reopened = await openCanonical(captured.document);
+  await expect(
+    readModelSource(reopened.model, documentId),
+  ).rejects.toMatchObject({ code: "SOURCE_BYTES_UNAVAILABLE" });
+});
 function transport(checkpoint) {
   const { source, ...plain } = checkpoint;
   return {

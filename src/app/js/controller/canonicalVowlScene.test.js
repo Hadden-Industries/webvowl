@@ -170,3 +170,45 @@ test("missing or repeated correspondence cannot partially replace the scene", as
   ).toThrow();
   expect(scene.snapshot()).toEqual(before);
 });
+
+test("presentation proposals preserve hidden placements and expire after a live arrangement", async () => {
+  const document = await classes();
+  const scene = createCanonicalVowlScene(document.structural.occurrences, {
+    loadGeneration: 1,
+  });
+  const ref = scene.reference(named(document, "urn:A").occurrence.id);
+  const before = scene.snapshot();
+  const proposal = scene.prepareView({
+    hidden: [ref],
+    labelSelection: { mode: "language", range: "DE" },
+    display: { compactNotation: true },
+  });
+  expect(proposal.preview().labelSelection).toEqual({
+    mode: "language",
+    range: "de",
+  });
+  expect(() =>
+    proposal.commit({
+      beforeCommit() {
+        throw new Error("drawing failed");
+      },
+    }),
+  ).toThrow("drawing failed");
+  expect(scene.snapshot()).toEqual(before);
+  proposal.commit();
+  expect(scene.snapshot().placements).toEqual(before.placements);
+  expect(scene.reference(scene.resolve(ref))).toEqual(ref);
+  const stale = scene.prepareView({ hidden: [] });
+  scene.arrange([{ reference: ref, position: { x: 17, y: 23 } }]);
+  expect(() => stale.commit()).toThrow(
+    expect.objectContaining({ code: "SCENE_PREVIEW_EXPIRED" }),
+  );
+  const accepted = scene.snapshot();
+  expect(() =>
+    scene.prepareView({ labelSelection: { mode: "language", range: "en-*" } }),
+  ).toThrow();
+  expect(() =>
+    scene.prepareView({ display: { externalColoring: "false" } }),
+  ).toThrow();
+  expect(scene.snapshot()).toEqual(accepted);
+});

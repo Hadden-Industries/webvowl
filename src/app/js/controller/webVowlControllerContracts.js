@@ -9,6 +9,7 @@ const WEB_VOWL_OPERATION_ERROR_CODES = Object.freeze([
   "VIEW_REJECTED",
   "EDIT_REJECTED",
   "ELEMENT_NOT_FOUND",
+  "ELEMENT_AMBIGUOUS",
   "LAYOUT_TIMEOUT",
   "EXPORT_FAILED",
 ]);
@@ -279,7 +280,25 @@ export function normalizeVisualizationFilename(
     throw new TypeError("Unsupported visualization artifact format.");
   }
   const { suffix } = VISUALIZATION_ARTIFACT_FORMATS[format];
-  const suffixPattern = new RegExp(`(?:\\${suffix}|[ .])+$`, "iu");
+  return normalizeArtifactFilename(filename, suffix);
+}
+
+export function normalizeCanonicalVowlFilename(
+  filename = DEFAULT_VISUALIZATION_BASENAME,
+) {
+  return normalizeArtifactFilename(
+    typeof filename === "string"
+      ? filename.replace(/(?:\.vowl)?\.json[ .]*$/iu, "")
+      : filename,
+    ".vowl.json",
+  );
+}
+
+function normalizeArtifactFilename(filename, suffix) {
+  const suffixPattern = new RegExp(
+    `(?:${suffix.replaceAll(".", "\\.")}|[ .])+$`,
+    "iu",
+  );
   if (typeof filename !== "string") {
     throw new TypeError(
       "A visualization filename must be a string when provided.",
@@ -307,6 +326,16 @@ export function normalizeVisualizationFilename(
   return `${basename}${suffix}`;
 }
 
+export function normalizeOriginalSourceFilename(
+  filename = "original-source.bin",
+) {
+  if (typeof filename !== "string") {
+    throw new TypeError("An original source filename must be a string.");
+  }
+  const extension = /\.[a-z0-9]{1,16}$/iu.exec(filename)?.[0] ?? ".bin";
+  return normalizeArtifactFilename(filename, extension);
+}
+
 function assertOntologyElementKind(kind) {
   if (!ONTOLOGY_ELEMENT_KINDS.includes(kind)) {
     throw new TypeError(`Unsupported ontology-element kind: ${kind}`);
@@ -320,11 +349,27 @@ function assertPositiveLoadGeneration(loadGeneration) {
 }
 
 /** Distinguish punned entities and generation-scoped anonymous references. */
+export const ONTOLOGY_ROLE_KINDS = Object.freeze({
+  class: Object.freeze(["class", "rdf-class"]),
+  datatype: Object.freeze(["datatype"]),
+  individual: Object.freeze(["individual"]),
+  property: Object.freeze([
+    "object-property",
+    "data-property",
+    "annotation-property",
+    "rdf-property",
+  ]),
+});
+
 export function ontologyElementReferenceKey(reference) {
+  const kind =
+    reference.roleKind === undefined
+      ? [reference.kind]
+      : [reference.kind, reference.roleKind];
   return typeof reference.iri === "string"
-    ? JSON.stringify([reference.kind, reference.iri])
+    ? JSON.stringify([...kind, reference.iri])
     : JSON.stringify([
-        reference.kind,
+        ...kind,
         String(reference.loadGeneration),
         reference.localId,
       ]);
@@ -335,11 +380,18 @@ export function createOntologyElementReference({
   kind,
   loadGeneration,
   localId,
+  roleKind,
 }) {
   assertOntologyElementKind(kind);
+  if (roleKind !== undefined && !ONTOLOGY_ROLE_KINDS[kind].includes(roleKind)) {
+    throw new TypeError(
+      "The ontology role kind does not match the element kind.",
+    );
+  }
+  const role = roleKind === undefined ? {} : { roleKind };
 
   if (typeof iri === "string" && iri.length > 0) {
-    return Object.freeze({ kind, iri });
+    return Object.freeze({ kind, ...role, iri });
   }
 
   assertPositiveLoadGeneration(loadGeneration);
@@ -349,7 +401,32 @@ export function createOntologyElementReference({
     );
   }
 
-  return Object.freeze({ kind, loadGeneration, localId });
+  return Object.freeze({ kind, ...role, loadGeneration, localId });
+}
+
+/** A coarse reference can select one semantic role, never an arbitrary first role. */
+export function resolveOntologyElementReference(reference, candidates) {
+  const key = ontologyElementReferenceKey(reference);
+  const matches = new Map();
+  for (const candidate of candidates) {
+    const { roleKind, ...coarse } = candidate;
+    void roleKind;
+    if (
+      ontologyElementReferenceKey(
+        reference.roleKind === undefined ? coarse : candidate,
+      ) === key
+    ) {
+      matches.set(ontologyElementReferenceKey(candidate), candidate);
+    }
+  }
+  if (matches.size > 1) {
+    throw new WebVowlOperationError({
+      code: "ELEMENT_AMBIGUOUS",
+      message: "Choose the specific semantic role for this ontology element.",
+      details: { referenceKind: reference.kind },
+    });
+  }
+  return matches.values().next().value;
 }
 
 function createElementNotFoundError(referenceKind, cause) {
@@ -388,6 +465,10 @@ export function assertCurrentOntologyElementReference(
     const expectedFieldNames = isStableReference
       ? ["iri", "kind"]
       : ["kind", "loadGeneration", "localId"];
+    if (Object.hasOwn(ontologyElementReference, "roleKind")) {
+      expectedFieldNames.push("roleKind");
+      expectedFieldNames.sort();
+    }
     if (
       referenceFieldNames.length !== expectedFieldNames.length ||
       referenceFieldNames.some(
@@ -504,6 +585,22 @@ export function createWebVowlControllerState(controllerState) {
 }
 
 export function createVowlDocumentRecordTarget(target) {
+  if (isPlainRecord(target) && Object.hasOwn(target, "recordToken")) {
+    if (
+      Object.keys(target).length !== 2 ||
+      !Number.isSafeInteger(target.recordToken) ||
+      target.recordToken < 1
+    ) {
+      throw new TypeError(
+        "A semantic document target requires its generation and positive record token.",
+      );
+    }
+    assertPositiveLoadGeneration(target.loadGeneration);
+    return Object.freeze({
+      loadGeneration: target.loadGeneration,
+      recordToken: target.recordToken,
+    });
+  }
   if (
     !isPlainRecord(target) ||
     Object.keys(target).length !== 2 ||

@@ -58,6 +58,66 @@ test("live admission, editing and checkpoint recovery require no RDF work", asyn
   expect(inspectModel(model).coverage.basis).toBe("unavailable");
 });
 
+test("inspection dependencies follow typed references and signature roles, never literal ID spellings", async () => {
+  const document = await canonicalize(
+    fixture("named-class-structural"),
+    options,
+  );
+  const { model } = await openCanonical(document, noRdf);
+  const before = inspectModel(model);
+  const subject = before.records.subjects[0];
+  const role = before.records.roles[0];
+  const edited = await editModel(
+    model,
+    [
+      {
+        kind: "insert",
+        collection: "constructs",
+        record: {
+          id: "new:annotation",
+          kind: "annotation-assertion",
+          subject: subject.id,
+          predicate: "urn:note",
+          value: {
+            kind: "typed",
+            datatype: "http://www.w3.org/2001/XMLSchema#string",
+            lexical: role.id,
+          },
+        },
+      },
+    ],
+    noRdf,
+  );
+  const inspection = inspectModel(edited.model);
+  const annotation = inspection.records.constructs.find(
+    ({ kind }) => kind === "annotation-assertion",
+  );
+  const dependencies = inspection.dependencies.find(
+    ({ record }) => record === annotation.id,
+  ).requires;
+  expect(dependencies).toContain(subject.id);
+  expect(dependencies).not.toContain(role.id);
+  for (const [iri, kind] of [
+    ["urn:note", "annotation-property"],
+    ["http://www.w3.org/2001/XMLSchema#string", "datatype"],
+  ]) {
+    const declaration = inspection.records.subjects.find(
+      (entry) => entry.iri === iri,
+    );
+    const signature = inspection.records.roles.find(
+      (entry) => entry.subject === declaration.id && entry.kind === kind,
+    );
+    expect(dependencies).toContain(signature.id);
+  }
+  const restored = await readmitModel(
+    transport(await checkpointModel(edited.model, noRdf)),
+    noRdf,
+  );
+  expect(inspectModel(restored.model).dependencies).toEqual(
+    inspection.dependencies,
+  );
+});
+
 test("snapshots and cloned tokens convey neither live nor canonical admission", async () => {
   const document = await canonicalize(
     fixture("named-class-structural"),

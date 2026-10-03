@@ -17,6 +17,18 @@ import {
   checkClosure,
   validateMappingProfile,
 } from "./policy.js";
+import { serializeModelRdf } from "./exportRdf.js";
+
+/** Serialize the current admitted semantic revision, not historical source. */
+export async function exportModelRdf(model, options) {
+  const opts = optionRecord(options, ["signal", "limits"]);
+  const budget = new ResourceBudget(opts, performance.now());
+  try {
+    return Object.freeze(serializeModelRdf(inspectModel(model), budget));
+  } finally {
+    budget.dispose();
+  }
+}
 
 const optionChecks = {
   documentIri: validateDocumentIri,

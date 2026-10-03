@@ -415,13 +415,21 @@ No fourth surface or controller interpreter is introduced.
 `editModel` takes the admitted model and existing five-operation batch and returns `{model, correspondence, created}`.
 `captureModel` takes the admitted model, explicit target profile and complete scene and returns `{document, correspondence}`.
 `checkpointModel` returns a defensive complete checkpoint; `readmitModel` returns `{model, correspondence}` after full live validation, never by trusting a clone's provenance.
+The owner-approved export amendment of 3 October adds `readModelSource(model, documentId, options)` on `vowl` and `exportModelRdf(model, options)` on `vowl/owl`.
+Both require local live admission and accept only `signal` and `limits` options.
+Source retrieval returns `{bytes, documentIri, mediaType, digest}` for one exact inspection document ID; bytes remain original after edits and are unavailable after portable reopening without an acquisition archive.
+RDF export returns `{bytes, scope}` containing the current retained semantics as UTF-8 Turtle, with closed scope fields `revision`, `kind: "flattened-retained-closure"`, `mediaType: "text/turtle"` and `qualified`.
+The package owns structural-to-RDF mapping, anchored annotations and expressible residual RDF with document-scoped blank identities.
+It must fail before publication when retained semantic content cannot be represented, including named-graph scope, directed RDF literals or unresolved identity between residual blank nodes and structural anonymous entities.
+Original-source bytes and portable qualifications are not substituted for edited Turtle output; a qualified scope report does not assert original-source reconstruction.
+Stable export failures are `SOURCE_DOCUMENT_UNKNOWN`, `SOURCE_BYTES_UNAVAILABLE` and `RDF_EXPORT_UNREPRESENTABLE`, with bounded affected-record/reason details for representability failures.
 All asynchronous operations accept only their stated operation fields plus existing `signal` and `limits`; unknown fields fail.
 Snapshot inspection and byte retrieval expose copies or immutable values and convey no encoding authority.
 Checkpoint envelopes carry the selected policy/implementation identity, model revision and all state needed for readmission; the application pairs the checkpoint with the complete scene in its atomic accepted revision.
 The worker protocol carries request/generation/base-revision context separately from the package's model semantics.
 
 Reuse existing error categories and precedence wherever their meaning applies.
-Add only distinct failures for unadmitted live models, unsupported checkpoint versions, invalid checkpoints, unresolved edit dependencies and unrepresentable capture/qualifications.
+Add only distinct failures for unadmitted live models, unsupported checkpoint versions, invalid checkpoints, unresolved edit dependencies, unrepresentable capture/qualifications and the approved source/RDF export failures above.
 The stable codes are `MODEL_NOT_ADMITTED`, `CHECKPOINT_VERSION_UNSUPPORTED`, `CHECKPOINT_INVALID`, `EDIT_SOURCE_DEPENDENCY_UNRESOLVED`, `CAPTURE_MODEL_UNREPRESENTABLE` and `CAPTURE_QUALIFICATION_UNREPRESENTABLE`.
 Stale requests are rejected by the application protocol; they do not mint a parser error.
 Reuse owning-parser assessment codes rather than maintaining a VOWL datatype or parser capability catalogue.

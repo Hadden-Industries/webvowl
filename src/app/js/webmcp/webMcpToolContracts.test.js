@@ -51,6 +51,23 @@ const EXPECTED_TOOL_NAMES = Object.freeze([
   "get_visualization_share_link",
 ]);
 
+test("focus input preserves an exact semantic role and rejects mismatched role kinds", () => {
+  expect(
+    normalizeSetVisualizationViewToolInput({
+      focus: [
+        { kind: "property", iri: "urn:p", roleKind: "annotation-property" },
+      ],
+    }).focus,
+  ).toEqual([
+    { kind: "property", iri: "urn:p", roleKind: "annotation-property" },
+  ]);
+  expect(() =>
+    normalizeSetVisualizationViewToolInput({
+      focus: [{ kind: "class", iri: "urn:p", roleKind: "object-property" }],
+    }),
+  ).toThrow();
+});
+
 const EXPECTED_TOOL_DESCRIPTIONS = Object.freeze({
   get_visualization_share_link:
     "Read a share URL for the accepted remote ontology and current view, as in the Export menu. Local documents require JSON export. Continue long URLs using the returned continuation.",
@@ -684,12 +701,17 @@ describe("set_visualization_view input schema", () => {
     const [iriBranch, anonymousBranch] = focusItemSchema.oneOf;
 
     expect(focusItemSchema.oneOf).toHaveLength(2);
-    expect(Object.keys(iriBranch.properties).sort()).toEqual(["iri", "kind"]);
+    expect(Object.keys(iriBranch.properties).sort()).toEqual([
+      "iri",
+      "kind",
+      "roleKind",
+    ]);
     expect(iriBranch.properties.iri.maxLength).toBe(2048);
     expect(Object.keys(anonymousBranch.properties).sort()).toEqual([
       "kind",
       "loadGeneration",
       "localId",
+      "roleKind",
     ]);
     expect(anonymousBranch.properties.localId.maxLength).toBe(256);
     expect(anonymousBranch.properties.loadGeneration).toMatchObject({

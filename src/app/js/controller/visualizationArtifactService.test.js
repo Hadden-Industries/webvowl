@@ -94,6 +94,30 @@ describe("page-local visualization artifact ownership", () => {
     });
   }
 
+  test("canonical publication preserves worker bytes and owns the canonical filename", async () => {
+    const service = createArtifactService();
+    const bytes = new TextEncoder().encode('{"literal":"Žluťoučký","n":1}');
+    const expected = bytes.slice();
+    const publishing = service.createCanonicalVowlArtifact({
+      bytes,
+      filename: "Saved.vowl.json",
+      loadGeneration: 7,
+      source: { kind: "canonical-vowl", displayName: "Saved" },
+    });
+    bytes.fill(0);
+    const metadata = await publishing;
+    const blob = objectUrlApi.createObjectURL.mock.calls.at(-1)[0];
+    expect(new Uint8Array(await blob.arrayBuffer())).toEqual(expected);
+    expect(metadata).toMatchObject({
+      filename: "Saved.vowl.json",
+      mediaType: "application/json",
+      byteLength: expected.length,
+      sha256Hex: createHash("sha256").update(expected).digest("hex"),
+    });
+    service.dispose();
+    expect(objectUrlApi.revokeObjectURL).toHaveBeenCalledTimes(1);
+  });
+
   test("publishes actual TikZ bytes through the shared hash and URL owner", async () => {
     const service = createArtifactService();
     const source = { kind: "vowl-json-text", displayName: "people.json" };

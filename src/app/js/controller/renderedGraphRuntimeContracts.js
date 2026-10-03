@@ -2,7 +2,11 @@ import {
   createOntologyElementReference,
   createVowlDocumentRecordTarget,
 } from "./webVowlControllerContracts.js";
-import { createVowlDocumentInsertionRecords } from "./vowlDocument.js";
+import {
+  createVowlDocumentInsertionRecords,
+  VOWL_EDITOR_CLASS_TYPES,
+  VOWL_EDITOR_PROPERTY_TYPES,
+} from "./vowlDocument.js";
 
 export const RENDERED_GRAPH_RUNTIME_METHOD_NAMES = Object.freeze([
   "replaceVowlModel",
@@ -43,6 +47,7 @@ export const RENDERED_GRAPH_EVENT_KINDS = Object.freeze([
   "document-record-selection-changed",
   "record-label-edit-requested",
   "record-creation-requested",
+  "semantic-creation-requested",
   "record-endpoint-edit-requested",
   "record-deletion-requested",
   "viewport-changed",
@@ -416,8 +421,34 @@ function createCommonOntologyElementRecord(
   exactFieldNames,
   description,
 ) {
-  assertExactFieldNames(record, exactFieldNames, description);
+  const { canonicalDisplay, relationGroups, ...fields } = record;
+  assertExactFieldNames(fields, exactFieldNames, description);
+  if (relationGroups !== undefined) {
+    assertPlainRecord(relationGroups, "relationGroups");
+    for (const [field, indices] of Object.entries(relationGroups)) {
+      if (
+        !exactFieldNames.includes(field) ||
+        !field.endsWith("References") ||
+        !Array.isArray(indices) ||
+        indices.some((index) => !Number.isSafeInteger(index) || index < 0)
+      ) {
+        throw new TypeError("Invalid inspection relation group indices.");
+      }
+    }
+  }
   return {
+    ...(relationGroups === undefined
+      ? {}
+      : {
+          relationGroups: deepFreezePlainData(structuredClone(relationGroups)),
+        }),
+    ...(canonicalDisplay === undefined
+      ? {}
+      : {
+          canonicalDisplay: deepFreezePlainData(
+            structuredClone(canonicalDisplay),
+          ),
+        }),
     ontologyElementReference: createFrozenOntologyElementReference(
       record.ontologyElementReference,
       [expectedKind],
@@ -665,8 +696,12 @@ export function assertRenderedGraphRuntime(renderedGraphRuntime) {
 }
 
 export function createOntologyInspectionSnapshot(snapshot) {
+  const { retainedFacts, relationGroups, ...fields } = snapshot;
+  if (relationGroups !== undefined && !Array.isArray(relationGroups)) {
+    throw new TypeError("relationGroups must be an array.");
+  }
   assertExactFieldNames(
-    snapshot,
+    fields,
     [
       "loadGeneration",
       "ontologyHeaderRecord",
@@ -691,7 +726,45 @@ export function createOntologyInspectionSnapshot(snapshot) {
     },
   );
 
+  const groups =
+    relationGroups === undefined
+      ? undefined
+      : relationGroups.map((group) =>
+          createFrozenReferenceCollection(
+            group,
+            ["class", "datatype", "individual", "property"],
+            "relationGroups",
+          ),
+        );
+  for (const collection of [
+    snapshot.classRecords,
+    snapshot.propertyRecords,
+    snapshot.datatypeRecords,
+    snapshot.individualRecords,
+  ]) {
+    for (const record of collection) {
+      for (const indices of Object.values(record.relationGroups ?? {})) {
+        if (
+          !Array.isArray(indices) ||
+          indices.some(
+            (index) =>
+              !Number.isSafeInteger(index) ||
+              index < 0 ||
+              index >= (groups?.length ?? 0),
+          )
+        ) {
+          throw new TypeError(
+            "Inspection relation group index is out of bounds.",
+          );
+        }
+      }
+    }
+  }
   return Object.freeze({
+    ...(groups === undefined ? {} : { relationGroups: Object.freeze(groups) }),
+    ...(retainedFacts === undefined
+      ? {}
+      : { retainedFacts: deepFreezePlainData(structuredClone(retainedFacts)) }),
     loadGeneration: snapshot.loadGeneration,
     ontologyHeaderRecord: createOntologyHeaderRecord(
       snapshot.ontologyHeaderRecord,
@@ -765,22 +838,8 @@ export function createVisibleRenderedGraphSnapshot(snapshot) {
     snapshot.visibleGraphCounts.visiblePropertyCount,
     "visiblePropertyCount",
   );
-  if (
-    snapshot.visibleGraphCounts.visibleNodeCount !==
-    visibleElementReferences.length
-  ) {
-    throw new RangeError(
-      "visibleNodeCount must equal visibleElementReferences.length.",
-    );
-  }
-  if (
-    snapshot.visibleGraphCounts.visiblePropertyCount !==
-    visibleRelationshipReferences.length
-  ) {
-    throw new RangeError(
-      "visiblePropertyCount must equal visibleRelationshipReferences.length.",
-    );
-  }
+  // Glyph counts and semantic references are distinct: one equivalence glyph
+  // can name several entities, and a subclass edge is not a property entity.
   return Object.freeze({
     loadGeneration: snapshot.loadGeneration,
     visibleElementReferences,
@@ -954,6 +1013,55 @@ export function createVowlModelRevisionRequest(request) {
   return Object.freeze({
     loadGeneration: request.loadGeneration,
     vowlModel: createOwnedVowlModel(request.vowlModel),
+  });
+}
+
+/** Drawing DTOs carry no encoder authority; semantics remain application-owned. */
+export function createCanonicalDrawingRequest(
+  request,
+  { revision = false } = {},
+) {
+  assertExactFieldNames(
+    request,
+    [
+      "loadGeneration",
+      "documentRevision",
+      "drawing",
+      revision ? "baseRevision" : "layout",
+      ...(!revision && request.initialVisualization !== undefined
+        ? ["initialVisualization"]
+        : []),
+    ],
+    "Canonical drawing request",
+  );
+  assertPositiveLoadGeneration(request.loadGeneration);
+  assertNonNegativeInteger(request.documentRevision, "documentRevision");
+  if (revision) {
+    assertNonNegativeInteger(request.baseRevision, "baseRevision");
+    if (
+      request.documentRevision !== request.baseRevision &&
+      request.documentRevision !== request.baseRevision + 1
+    ) {
+      throw new RangeError(
+        "A drawing revision must describe the current or next document revision.",
+      );
+    }
+  } else if (!["pause", "resume"].includes(request.layout)) {
+    throw new TypeError(
+      "A canonical drawing requires an explicit layout choice.",
+    );
+  }
+  assertPlainRecord(request.drawing, "canonical drawing");
+  return Object.freeze({
+    ...request,
+    drawing: deepFreezePlainData(structuredClone(request.drawing)),
+    ...(request.initialVisualization === undefined
+      ? {}
+      : {
+          initialVisualization: createInitialVisualizationRequest(
+            request.initialVisualization,
+          ),
+        }),
   });
 }
 
@@ -1488,11 +1596,86 @@ function createRenderedGraphEventPayload(kind, payload) {
             ? null
             : createVowlDocumentRecordTarget(payload.recordTarget),
       });
-    case "record-deletion-requested":
-      assertExactFieldNames(payload, ["recordTarget"], `${kind} payload`);
+    case "record-deletion-requested": {
+      const semantic = payload.recordTarget?.recordToken !== undefined;
+      assertExactFieldNames(
+        payload,
+        ["recordTarget", ...(semantic ? ["documentRevision"] : [])],
+        `${kind} payload`,
+      );
+      if (
+        semantic &&
+        (!Number.isSafeInteger(payload.documentRevision) ||
+          payload.documentRevision < 0)
+      ) {
+        throw new TypeError(
+          "A semantic deletion requires its document revision.",
+        );
+      }
       return Object.freeze({
         recordTarget: createVowlDocumentRecordTarget(payload.recordTarget),
+        ...(semantic ? { documentRevision: payload.documentRevision } : {}),
       });
+    }
+    case "semantic-creation-requested": {
+      assertExactFieldNames(
+        payload,
+        [
+          "type",
+          "position",
+          "documentRevision",
+          "fromTarget",
+          "toTarget",
+          "datatype",
+        ],
+        `${kind} payload`,
+      );
+      assertExactFieldNames(payload.position, ["x", "y"], "Creation position");
+      const isClass = VOWL_EDITOR_CLASS_TYPES.includes(payload.type);
+      const isData = payload.type === "owl:datatypeProperty";
+      if (
+        (!isClass && !VOWL_EDITOR_PROPERTY_TYPES.includes(payload.type)) ||
+        !Number.isSafeInteger(payload.documentRevision) ||
+        payload.documentRevision < 0 ||
+        !Number.isFinite(payload.position.x) ||
+        !Number.isFinite(payload.position.y) ||
+        (isData
+          ? typeof payload.datatype !== "string" || !payload.datatype
+          : payload.datatype !== null) ||
+        (isClass
+          ? payload.fromTarget !== null || payload.toTarget !== null
+          : payload.fromTarget === null ||
+            (isData ? payload.toTarget !== null : payload.toTarget === null))
+      ) {
+        throw new TypeError("Invalid semantic creation intent.");
+      }
+      const fromTarget =
+        payload.fromTarget === null
+          ? null
+          : createVowlDocumentRecordTarget(payload.fromTarget);
+      const toTarget =
+        payload.toTarget === null
+          ? null
+          : createVowlDocumentRecordTarget(payload.toTarget);
+      if (
+        [fromTarget, toTarget].some(
+          (target) => target !== null && target.recordToken === undefined,
+        ) ||
+        (fromTarget &&
+          toTarget &&
+          fromTarget.loadGeneration !== toTarget.loadGeneration)
+      ) {
+        throw new TypeError(
+          "Creation endpoints require current semantic targets.",
+        );
+      }
+      return Object.freeze({
+        ...payload,
+        position: Object.freeze({ ...payload.position }),
+        fromTarget,
+        toTarget,
+      });
+    }
     case "record-creation-requested": {
       assertExactFieldNames(
         payload,
@@ -1526,6 +1709,47 @@ function createRenderedGraphEventPayload(kind, payload) {
       });
     }
     case "record-endpoint-edit-requested": {
+      if (payload.recordTarget?.recordToken !== undefined) {
+        assertExactFieldNames(
+          payload,
+          [
+            "recordTarget",
+            "nodeTarget",
+            "endpoint",
+            "labelPosition",
+            "documentRevision",
+          ],
+          `${kind} payload`,
+        );
+        const recordTarget = createVowlDocumentRecordTarget(
+          payload.recordTarget,
+        );
+        const nodeTarget = createVowlDocumentRecordTarget(payload.nodeTarget);
+        assertExactFieldNames(
+          payload.labelPosition,
+          ["xPx", "yPx"],
+          "Label position",
+        );
+        if (
+          nodeTarget.recordToken === undefined ||
+          nodeTarget.loadGeneration !== recordTarget.loadGeneration ||
+          !["domain", "range"].includes(payload.endpoint) ||
+          !Number.isSafeInteger(payload.documentRevision) ||
+          payload.documentRevision < 0 ||
+          !Number.isFinite(payload.labelPosition.xPx) ||
+          !Number.isFinite(payload.labelPosition.yPx)
+        ) {
+          throw new TypeError(
+            "A semantic endpoint edit requires current exact targets, revision and finite geometry.",
+          );
+        }
+        return Object.freeze({
+          ...payload,
+          recordTarget,
+          nodeTarget,
+          labelPosition: Object.freeze({ ...payload.labelPosition }),
+        });
+      }
       assertExactFieldNames(
         payload,
         ["recordTarget", "endpoint", "nodeRecordId", "labelPosition"],
@@ -1558,12 +1782,27 @@ function createRenderedGraphEventPayload(kind, payload) {
         labelPosition: Object.freeze({ ...payload.labelPosition }),
       });
     }
-    case "record-label-edit-requested":
+    case "record-label-edit-requested": {
+      const semantic = payload.recordTarget?.recordToken !== undefined;
       assertExactFieldNames(
         payload,
-        ["recordTarget", "text", "deriveIriFromLabel"],
+        [
+          "recordTarget",
+          "text",
+          "deriveIriFromLabel",
+          ...(semantic ? ["documentRevision"] : []),
+        ],
         `${kind} payload`,
       );
+      if (
+        semantic &&
+        (!Number.isSafeInteger(payload.documentRevision) ||
+          payload.documentRevision < 0)
+      ) {
+        throw new TypeError(
+          "A semantic label edit requires its document revision.",
+        );
+      }
       if (
         typeof payload.text !== "string" ||
         typeof payload.deriveIriFromLabel !== "boolean"
@@ -1576,7 +1815,9 @@ function createRenderedGraphEventPayload(kind, payload) {
         recordTarget: createVowlDocumentRecordTarget(payload.recordTarget),
         text: payload.text,
         deriveIriFromLabel: payload.deriveIriFromLabel,
+        ...(semantic ? { documentRevision: payload.documentRevision } : {}),
       });
+    }
     case "rendering-statistics-changed":
       assertExactFieldNames(
         payload,

@@ -26,6 +26,49 @@
   font-size: 1.25rem;
 }
 
+.canonical-input-dialog label {
+  display: block;
+  margin-block: 1rem 0.25rem;
+}
+
+.canonical-input-dialog input,
+.canonical-input-dialog select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem;
+
+  font: inherit;
+}
+
+.canonical-input-dialog .canonical-merge-actions {
+  margin-top: 1rem;
+}
+
+.canonical-merge-dialog dd {
+  margin-inline-start: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.canonical-merge-dialog details {
+  margin-block: 1rem;
+}
+
+.canonical-merge-dialog summary {
+  cursor: pointer;
+  padding-block: 0.5rem;
+}
+
+.canonical-facts-records {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.canonical-facts-records dt {
+  margin-top: 0.5rem;
+  font-weight: bold;
+}
+
 .canonical-merge-dialog fieldset {
   min-width: 0;
   margin-block: 1rem;

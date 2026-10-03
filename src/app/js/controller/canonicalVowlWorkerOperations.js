@@ -11,8 +11,9 @@ import {
   captureModel,
   checkpointModel,
   readmitModel,
+  readModelSource,
 } from "vowl";
-import { fromOwl, openOwl } from "vowl/owl";
+import { fromOwl, openOwl, exportModelRdf } from "vowl/owl";
 import { migrate } from "vowl/migrate";
 
 /**
@@ -45,31 +46,19 @@ export async function runCanonicalVowlOperation(
     }
     case "open-canonical-model": {
       const decoded = await decode(bytes, { limits });
-      const opened = await openCanonical(decoded, {
+      return openAdmittedDocument(decoded, limits);
+    }
+    case "open-legacy-model": {
+      const migrated = await migrate(bytes, {
+        dialect: request.dialect,
+        profile: request.profile,
+        resolutions: request.resolutions,
         limits,
       });
-      const references = new Map(
-        opened.correspondence.map(({ previous, current }) => [
-          previous,
-          current,
-        ]),
-      );
-      const visualization = decoded.visualization
-        ? structuredClone(decoded.visualization)
-        : null;
-      if (visualization) {
-        for (const placement of visualization.placements) {
-          placement.occurrence = references.get(placement.occurrence);
-        }
-        visualization.hidden = visualization.hidden.map((id) =>
-          references.get(id),
-        );
-      }
       return {
-        visualization,
-        inspection: inspectModel(opened.model),
-        checkpoint: await checkpointModel(opened.model, { limits }),
-        correspondence: opened.correspondence,
+        ...(await openAdmittedDocument(migrated.document, limits)),
+        dialect: migrated.dialect,
+        diagnostics: migrated.diagnostics,
       };
     }
     case "recover-model": {
@@ -118,6 +107,22 @@ export async function runCanonicalVowlOperation(
         bytes: encode(result.document),
         correspondence: result.correspondence,
       };
+    }
+    case "read-model-source": {
+      const recovered = await recoverCheckpoint(
+        request.checkpoint,
+        limits,
+        context,
+      );
+      return readModelSource(recovered.model, request.documentId, { limits });
+    }
+    case "export-model-rdf": {
+      const recovered = await recoverCheckpoint(
+        request.checkpoint,
+        limits,
+        context,
+      );
+      return exportModelRdf(recovered.model, { limits });
     }
     case "decode":
       document = await decode(bytes, { limits });
@@ -175,6 +180,28 @@ export async function runCanonicalVowlOperation(
       throw new TypeError("Unknown canonical operation.");
   }
   return { document, bytes: encode(document), ...metadata };
+}
+
+async function openAdmittedDocument(document, limits) {
+  const opened = await openCanonical(document, { limits });
+  const references = new Map(
+    opened.correspondence.map(({ previous, current }) => [previous, current]),
+  );
+  const visualization = document.visualization
+    ? structuredClone(document.visualization)
+    : null;
+  if (visualization) {
+    for (const placement of visualization.placements) {
+      placement.occurrence = references.get(placement.occurrence);
+    }
+    visualization.hidden = visualization.hidden.map((id) => references.get(id));
+  }
+  return {
+    visualization,
+    inspection: inspectModel(opened.model),
+    checkpoint: await checkpointModel(opened.model, { limits }),
+    correspondence: opened.correspondence,
+  };
 }
 
 async function recoverCheckpoint(checkpoint, limits, context) {

@@ -366,6 +366,22 @@
                     <!--<button class="debugOption" type="submit" id="direct-text-input">-->
                     <!--Direct input-->
                     <!--</button>-->
+                    <button
+                      type="button"
+                      id="direct-text-input"
+                      class="empty-ontology-btn"
+                      hidden
+                    >
+                      Paste ontology document
+                    </button>
+                    <button
+                      type="button"
+                      id="ontology-facts"
+                      class="empty-ontology-btn"
+                      hidden
+                    >
+                      Ontology facts
+                    </button>
                   </div>
                 </li>
               </ul>
@@ -428,6 +444,28 @@
                   <a href="#" class="popover-menu-action" id="exportTurtle">
                     Export as TTL <span>(alpha)</span>
                   </a>
+                </li>
+                <li id="originalSourceExport" hidden>
+                  <div id="originalSourceControls">
+                    <label for="originalSourceDocument"
+                      >Original input document</label
+                    >
+                    <select id="originalSourceDocument"></select>
+                    <a
+                      href="#"
+                      class="popover-menu-action"
+                      id="exportOriginalSource"
+                      >Download original bytes</a
+                    >
+                  </div>
+                  <p id="originalSourceUnavailable" hidden>
+                    Original input bytes are unavailable for this document.
+                  </p>
+                  <p>
+                    Original input does not include your edits. Export TTL for
+                    current semantics or JSON to save the complete document and
+                    view.
+                  </p>
                 </li>
 
                 <li class="option" id="emptyLiHover">

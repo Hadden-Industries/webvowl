@@ -1,6 +1,23 @@
 import { createCanonicalVowlScene } from "./canonicalVowlScene.js";
+import { readCanonicalFacts } from "./canonicalVowlFacts.js";
 import { createCanonicalVowlRenderProjection } from "./canonicalVowlRenderProjection.js";
+import {
+  createCanonicalVowlInspectionProjection,
+  createCanonicalSemanticReferences,
+} from "./canonicalVowlInspectionProjector.js";
 import { profiles, compatibleArtifactProfile } from "vowl";
+import { createCanonicalVowlEditorView } from "./canonicalVowlEditorView.js";
+import { createInitialVisualizationRequest } from "./renderedGraphRuntimeContracts.js";
+import {
+  CANONICAL_VISIBLE_FILTERS,
+  prepareCanonicalVisibility,
+  canonicalLabelSelection,
+} from "./canonicalVowlViewControls.js";
+import {
+  prepareCanonicalPrefixChange,
+  prepareCanonicalPrefixRemoval,
+  resolveCanonicalEditorIri,
+} from "./canonicalVowlPrefixCommands.js";
 
 const EDITABLE_COLLECTIONS = ["subjects", "roles", "expressions", "constructs"];
 
@@ -27,6 +44,65 @@ function readResult(result, revision) {
   };
 }
 
+function projectInspection(inspection, visualization, generation, records) {
+  return createCanonicalVowlInspectionProjection(inspection, {
+    loadGeneration: generation,
+    visualization,
+    targetForRecord: (id) => ({
+      loadGeneration: generation,
+      recordToken: records.get(id),
+    }),
+  });
+}
+
+function bindDrawing(
+  projection,
+  inspection,
+  generation,
+  records,
+  runtimeReferences,
+) {
+  const target = (id) => ({
+    loadGeneration: generation,
+    recordToken: records.get(id),
+  });
+  const semantic = createCanonicalSemanticReferences(
+    inspection,
+    generation,
+    target,
+  );
+  const occurrences = new Map(
+    inspection.occurrences.map((record) => [record.id, record]),
+  );
+  return {
+    ...projection,
+    applicationBindings: [
+      ...projection.nodes,
+      ...projection.edges,
+      ...projection.labels,
+    ].map((row) => {
+      const occurrence = occurrences.get(row.occurrence);
+      const edge =
+        occurrence.kind === "label"
+          ? occurrences.get(occurrence.edge)
+          : occurrence;
+      const ids = row.targets ?? row.records ?? [];
+      const editable = edge.construct ? [edge.construct] : ids;
+      return {
+        occurrence: row.occurrence,
+        positionable: ["class-node", "datatype-node", "label"].includes(
+          occurrence.kind,
+        ),
+        runtimeReference: runtimeReferences.get(row.occurrence),
+        semanticReferences: ids.flatMap((id) =>
+          semantic.has(id) ? [semantic.get(id)] : [],
+        ),
+        recordTargets: editable.map(target),
+      };
+    }),
+  };
+}
+
 /**
  * Transaction owner for a live checkpoint, editable targets and the complete scene.
  * Capture never installs its relabelled artifact as the live model. Editing
@@ -39,11 +115,18 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
   let loading;
   let mutation;
   let disposed = false;
+  let presenting = false;
+  let presentationTail = Promise.resolve();
   const captures = new Set();
 
   function checkOpen() {
     if (disposed) {
       throw rejected("DOCUMENT_SESSION_DISPOSED");
+    }
+  }
+  function checkNotPresenting() {
+    if (presenting) {
+      throw rejected("DOCUMENT_BUSY");
     }
   }
   function loaded() {
@@ -85,9 +168,100 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
       sequence: ++requestSequence,
     };
   }
+  async function exportSemanticArtifact(
+    format,
+    { documentId, artifactService, filename, source, signal, limits } = {},
+  ) {
+    const base = loaded();
+    if (loading || mutation || captures.size) {
+      throw rejected("DOCUMENT_BUSY");
+    }
+    const retainedSource = structuredClone(source);
+    const operation = makeOperation(signal);
+    captures.add(operation);
+    try {
+      const result = await workerClient.run(
+        {
+          operation:
+            format === "turtle" ? "export-model-rdf" : "read-model-source",
+          checkpoint: base.checkpoint,
+          ...(format === "original-source" ? { documentId } : {}),
+          limits,
+        },
+        {
+          loadGeneration: base.generation,
+          baseRevision: base.revision,
+          signal: operation.signal,
+        },
+      );
+      if (
+        disposed ||
+        operation.signal.aborted ||
+        current !== base ||
+        loading ||
+        result.loadGeneration !== base.generation ||
+        result.baseRevision !== base.revision
+      ) {
+        throw rejected("DOCUMENT_CAPTURE_SUPERSEDED");
+      }
+      return await artifactService.createSemanticSourceArtifact(
+        {
+          bytes: result.bytes,
+          filename,
+          source: retainedSource,
+          format,
+          loadGeneration: base.generation,
+          scope:
+            format === "turtle"
+              ? result.scope
+              : {
+                  kind: "original-input",
+                  documentId,
+                  documentIri: result.documentIri,
+                  mediaType: result.mediaType,
+                  digest: result.digest,
+                },
+        },
+        { signal: operation.signal },
+      );
+    } finally {
+      captures.delete(operation);
+    }
+  }
   return Object.freeze({
+    exportTurtleArtifact: (options) =>
+      exportSemanticArtifact("turtle", options),
+    exportOriginalSourceArtifact: (options) =>
+      exportSemanticArtifact("original-source", options),
     target,
     resolveTarget,
+    identity() {
+      const accepted = loaded();
+      return Object.freeze({
+        loadGeneration: accepted.generation,
+        documentRevision: accepted.revision,
+      });
+    },
+    inspectRecords() {
+      return structuredClone(loaded().inspection);
+    },
+    originalSources() {
+      const accepted = loaded();
+      const available = new Set(
+        accepted.checkpoint?.source?.sources.map(({ document }) => document) ??
+          [],
+      );
+      return Object.freeze(
+        accepted.inspection.documents.map(({ id, documentIri, mediaType }) =>
+          Object.freeze({
+            documentId: id,
+            documentIri,
+            mediaType,
+            available: available.has(id),
+          }),
+        ),
+      );
+    },
     snapshot() {
       const accepted = loaded();
       return {
@@ -100,6 +274,102 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
     },
     scene() {
       return loaded().scene;
+    },
+    inspectOntology() {
+      return structuredClone(loaded().ontologyInspection);
+    },
+    inspectFacts(request) {
+      const accepted = loaded();
+      return {
+        loadGeneration: accepted.generation,
+        documentRevision: accepted.revision,
+        ...readCanonicalFacts(accepted.inspection, request),
+      };
+    },
+    inspectEditor(reference) {
+      const base = loaded();
+      return createCanonicalVowlEditorView(
+        base.inspection,
+        base.scene.snapshot(),
+        {
+          loadGeneration: base.generation,
+          selectedId:
+            reference === null || reference === undefined
+              ? undefined
+              : resolveTarget(reference),
+        },
+      );
+    },
+    resolveEditorIri(input) {
+      const base = loaded();
+      return resolveCanonicalEditorIri(input, {
+        prefixes: base.scene.snapshot().prefixes,
+        ontologyIri: base.inspection.records.ontology.iri,
+      });
+    },
+    setPrefix(request, options) {
+      const prefixes = prepareCanonicalPrefixChange(
+        loaded().scene.snapshot().prefixes,
+        request,
+      );
+      return this.updateView({ prefixes }, options);
+    },
+    removePrefix(name, options) {
+      const prefixes = prepareCanonicalPrefixRemoval(
+        loaded().scene.snapshot().prefixes,
+        name,
+      );
+      return this.updateView({ prefixes }, options);
+    },
+    updateView(changes, { renderedGraphRuntime } = {}) {
+      checkNotPresenting();
+      const base = loaded();
+      if (loading || captures.size) {
+        throw rejected("DOCUMENT_BUSY");
+      }
+      if (renderedGraphRuntime) {
+        this.synchronizeDrawing(
+          renderedGraphRuntime.readCanonicalDrawingState(),
+        );
+      }
+      const proposal = base.scene.prepareView(changes);
+      const visualization = proposal.preview();
+      const projection = bindDrawing(
+        createCanonicalVowlRenderProjection(base.inspection, visualization),
+        base.inspection,
+        base.generation,
+        base.records,
+        new Map(
+          base.inspection.occurrences.map(({ id }) => [
+            id,
+            base.scene.reference(id),
+          ]),
+        ),
+      );
+      const ontologyInspection = projectInspection(
+        base.inspection,
+        visualization,
+        base.generation,
+        base.records,
+      );
+      presenting = true;
+      try {
+        proposal.commit({
+          beforeCommit: () =>
+            renderedGraphRuntime?.applyCanonicalDrawingRevision({
+              loadGeneration: base.generation,
+              baseRevision: base.revision,
+              documentRevision: base.revision,
+              drawing: projection,
+            }),
+        });
+      } finally {
+        presenting = false;
+      }
+      // Keep this document identity stable while a worker edit is pending: its
+      // later scene reconciliation must observe the newly accepted view state.
+      base.ontologyInspection = ontologyInspection;
+      return { ...this.snapshot(), projection };
     },
     synchronizeDrawing({
       loadGeneration,
@@ -131,9 +401,15 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         center,
         suppliedPositions,
         prepareProjection = createCanonicalVowlRenderProjection,
+        renderedGraphRuntime,
+        initialVisualization,
       } = {},
     ) {
       checkOpen();
+      checkNotPresenting();
+      const initial = createInitialVisualizationRequest(
+        initialVisualization ?? {},
+      );
       loading?.abort.abort();
       mutation?.abort.abort();
       for (const capture of captures) {
@@ -168,33 +444,202 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
             suppliedPositions,
           },
         );
+        const retainedHidden = scene.snapshot().hidden;
+        const { filters, language, ...nativeView } = initial.view ?? {};
+        const { compactNotation, nodeScaling, colorExternals, ...nativeModes } =
+          initial.modes ?? {};
+        const viewChanges = {
+          ...(language === undefined
+            ? {}
+            : { labelSelection: canonicalLabelSelection(language) }),
+          ...(filters === undefined
+            ? {}
+            : {
+                hidden: prepareCanonicalVisibility(
+                  candidate.inspection,
+                  { ...CANONICAL_VISIBLE_FILTERS, ...filters },
+                  retainedHidden,
+                ).hidden.map(scene.reference),
+              }),
+          display: {
+            ...(compactNotation === undefined ? {} : { compactNotation }),
+            ...(nodeScaling === undefined
+              ? {}
+              : { nodeScaling: nodeScaling ? "direct-membership" : "uniform" }),
+            ...(colorExternals === undefined
+              ? {}
+              : { externalColoring: colorExternals }),
+          },
+        };
+        scene.prepareView(viewChanges).commit();
+        const nativeInitial = {
+          ...(Object.keys(nativeView).length ? { view: nativeView } : {}),
+          ...(Object.keys(nativeModes).length ? { modes: nativeModes } : {}),
+          ...(initial.forceDistances
+            ? { forceDistances: initial.forceDistances }
+            : {}),
+        };
         const records = new Map(
           semanticRecords(candidate.inspection).map((record, index) => [
             record.id,
             index + 1,
           ]),
         );
-        const projection = prepareProjection(
+        const preparedProjection = prepareProjection(
           structuredClone(candidate.inspection),
           scene.snapshot(),
         );
-        if (disposed || operation.signal.aborted || loading !== operation) {
-          throw rejected("LOAD_ABORTED");
-        }
-        current = {
-          ...candidate,
-          generation: loadGeneration,
-          revision: 0,
-          scene,
+        const projection = bindDrawing(
+          preparedProjection,
+          candidate.inspection,
+          loadGeneration,
           records,
-          nextRecordToken: records.size,
+          new Map(
+            candidate.inspection.occurrences.map(({ id }) => [
+              id,
+              scene.reference(id),
+            ]),
+          ),
+        );
+        const ontologyInspection = projectInspection(
+          candidate.inspection,
+          scene.snapshot(),
+          loadGeneration,
+          records,
+        );
+        const initialLayout =
+          initial.view?.layout ?? (result.visualization ? "pause" : "resume");
+        const checkCurrent = () => {
+          if (disposed || operation.signal.aborted || loading !== operation) {
+            throw rejected("LOAD_ABORTED");
+          }
         };
-        return {
-          ...this.snapshot(),
-          projection,
-          initialLayout: result.visualization ? "pause" : "resume",
-          diagnostics: structuredClone(candidate.inspection.diagnostics),
-        };
+        // Serialize presentation, including recovery. An obsolete candidate's
+        // recovery must finish before the next load can install its drawing.
+        const acceptance = presentationTail.then(async () => {
+          checkCurrent();
+          if (renderedGraphRuntime) {
+            let previous;
+            const previousView = Object.keys(nativeInitial).length
+              ? renderedGraphRuntime.readVisualizationView()
+              : undefined;
+            if (current) {
+              this.synchronizeDrawing(
+                renderedGraphRuntime.readCanonicalDrawingState(),
+              );
+              previous = {
+                loadGeneration: current.generation,
+                documentRevision: current.revision,
+                drawing: bindDrawing(
+                  createCanonicalVowlRenderProjection(
+                    current.inspection,
+                    current.scene.snapshot(),
+                  ),
+                  current.inspection,
+                  current.generation,
+                  current.records,
+                  new Map(
+                    current.inspection.occurrences.map(({ id }) => [
+                      id,
+                      current.scene.reference(id),
+                    ]),
+                  ),
+                ),
+                layout: renderedGraphRuntime.readGraphLayoutSnapshot().isPaused
+                  ? "pause"
+                  : "resume",
+                ...(previousView
+                  ? {
+                      initialVisualization: {
+                        view: { focus: previousView.focus },
+                        modes: previousView.modes,
+                        forceDistances: previousView.forceDistances,
+                      },
+                    }
+                  : {}),
+              };
+            }
+            try {
+              await renderedGraphRuntime.replaceCanonicalDrawing(
+                {
+                  loadGeneration,
+                  documentRevision: 0,
+                  drawing: projection,
+                  layout: initialLayout,
+                  ...(Object.keys(nativeInitial).length
+                    ? { initialVisualization: nativeInitial }
+                    : {}),
+                },
+                { signal: operation.signal },
+              );
+              checkCurrent();
+              if (Object.keys(nativeInitial).length) {
+                const observed =
+                  renderedGraphRuntime.readCanonicalDrawingState();
+                scene.arrange(
+                  observed.placements.map(
+                    ({ occurrence, position, pinned }) => ({
+                      reference: scene.reference(occurrence),
+                      position,
+                      pinned,
+                    }),
+                  ),
+                  { camera: observed.camera },
+                );
+                projection.camera = structuredClone(observed.camera);
+              }
+            } catch (error) {
+              try {
+                if (previous && !disposed) {
+                  await renderedGraphRuntime.replaceCanonicalDrawing(previous);
+                } else {
+                  renderedGraphRuntime.clearRenderedGraph();
+                  if (previousView && !disposed) {
+                    await renderedGraphRuntime.setVisualizationModes(
+                      previousView.modes,
+                    );
+                    renderedGraphRuntime.setForceLayoutDistances(
+                      previousView.forceDistances,
+                    );
+                  }
+                }
+                if (disposed) {
+                  renderedGraphRuntime.clearRenderedGraph();
+                }
+              } catch (recoveryError) {
+                const failure = new AggregateError(
+                  [error, recoveryError],
+                  "Document presentation and recovery both failed.",
+                );
+                failure.code = "DOCUMENT_PRESENTATION_RECOVERY_FAILED";
+                throw failure;
+              }
+              throw error;
+            }
+          }
+          checkCurrent();
+          current = {
+            ...candidate,
+            generation: loadGeneration,
+            revision: 0,
+            scene,
+            records,
+            nextRecordToken: records.size,
+            ontologyInspection,
+          };
+          return {
+            ...this.snapshot(),
+            projection,
+            initialLayout,
+            retainedHidden,
+            diagnostics: structuredClone([
+              ...candidate.inspection.diagnostics,
+              ...(result.diagnostics ?? []),
+            ]),
+          };
+        });
+        presentationTail = acceptance.catch(() => {});
+        return await acceptance;
       } finally {
         if (loading === operation) {
           loading = undefined;
@@ -207,9 +652,12 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         signal,
         limits,
         reconcile,
+        authorize,
         center,
         suppliedPositions,
+        prepareVisibility,
         prepareProjection = createCanonicalVowlRenderProjection,
+        renderedGraphRuntime,
       } = {},
     ) {
       const base = loaded();
@@ -247,6 +695,19 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         }
         checkCurrent();
         const candidate = readResult(result, base.revision + 1);
+        if (authorize) {
+          const accepted = await authorize(
+            {
+              inspection: structuredClone(candidate.inspection),
+              correspondence: structuredClone(result.correspondence),
+            },
+            { signal: operation.signal },
+          );
+          checkCurrent();
+          if (accepted !== true) {
+            throw rejected("DOCUMENT_EDIT_CANCELLED");
+          }
+        }
         const nextRecords = new Map();
         const newIds = new Set(
           semanticRecords(candidate.inspection).map(({ id }) => id),
@@ -288,7 +749,15 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
           },
           {
             center,
-            suppliedPositions,
+            hidden: prepareVisibility?.(structuredClone(candidate.inspection), {
+              correspondence: structuredClone(result.correspondence),
+            }),
+            suppliedPositions:
+              typeof suppliedPositions === "function"
+                ? suppliedPositions(structuredClone(candidate.inspection), {
+                    correspondence: structuredClone(result.correspondence),
+                  })
+                : suppliedPositions,
           },
         );
         let choices = new Map();
@@ -298,6 +767,22 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
           }
           choices = await reconcile(proposal.conflicts, {
             inspection: structuredClone(candidate.inspection),
+            visualization: proposal.preview(
+              new Map(
+                proposal.conflicts.map((conflict) => [
+                  conflict.occurrence,
+                  conflict.choices[0].reference,
+                ]),
+              ),
+            ),
+            previous: {
+              inspection: structuredClone(base.inspection),
+              visualization: base.scene.snapshot(),
+              references: base.inspection.occurrences.map(({ id }) => ({
+                occurrence: id,
+                reference: base.scene.reference(id),
+              })),
+            },
             signal: operation.signal,
           });
           if (choices === null) {
@@ -307,18 +792,50 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         checkCurrent();
         const acceptedChoices = structuredClone(choices);
         // Inspection/render projection failures must precede any live mutation.
-        const projection = prepareProjection(
+        const preparedProjection = prepareProjection(
           structuredClone(candidate.inspection),
           proposal.preview(acceptedChoices),
+          { correspondence: structuredClone(result.correspondence) },
+        );
+        const projection = bindDrawing(
+          preparedProjection,
+          candidate.inspection,
+          base.generation,
+          nextRecords,
+          proposal.previewReferences(acceptedChoices),
+        );
+        const ontologyInspection = projectInspection(
+          candidate.inspection,
+          proposal.preview(acceptedChoices),
+          base.generation,
+          nextRecords,
         );
         checkCurrent();
-        proposal.commit(acceptedChoices);
+        // All worker work and scene validation precede the native synchronous
+        // revision. Its failure restores the prior drawing and leaves the
+        // accepted document, scene and editable targets untouched.
+        presenting = true;
+        try {
+          proposal.commit(acceptedChoices, {
+            beforeCommit: () => {
+              renderedGraphRuntime?.applyCanonicalDrawingRevision({
+                loadGeneration: base.generation,
+                baseRevision: base.revision,
+                documentRevision: candidate.inspection.revision,
+                drawing: projection,
+              });
+            },
+          });
+        } finally {
+          presenting = false;
+        }
         current = {
           ...base,
           ...candidate,
           records: nextRecords,
           nextRecordToken,
           revision: base.revision + 1,
+          ontologyInspection,
         };
         return {
           ...this.snapshot(),
@@ -330,6 +847,55 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
         if (mutation === operation) {
           mutation = undefined;
         }
+      }
+    },
+    async exportCanonicalArtifact({
+      artifactService,
+      renderedGraphRuntime,
+      filename,
+      source,
+      signal,
+      limits,
+    } = {}) {
+      const base = loaded();
+      signal?.throwIfAborted();
+      if (typeof artifactService?.createCanonicalVowlArtifact !== "function") {
+        throw new TypeError(
+          "Canonical export requires the artifact publication service.",
+        );
+      }
+      const retainedSource = structuredClone(source);
+      if (renderedGraphRuntime) {
+        this.synchronizeDrawing(
+          renderedGraphRuntime.readCanonicalDrawingState(),
+        );
+      }
+      const bytes = await this.capture({ signal, limits });
+      if (
+        disposed ||
+        current !== base ||
+        loading ||
+        mutation ||
+        captures.size
+      ) {
+        throw rejected("DOCUMENT_CAPTURE_SUPERSEDED");
+      }
+      // Retain cancellation ownership through hashing and publication, not just
+      // through worker encoding. A replacing load may abort either phase.
+      const operation = makeOperation(signal);
+      captures.add(operation);
+      try {
+        return await artifactService.createCanonicalVowlArtifact(
+          {
+            bytes,
+            filename,
+            source: retainedSource,
+            loadGeneration: base.generation,
+          },
+          { signal: operation.signal },
+        );
+      } finally {
+        captures.delete(operation);
       }
     },
     async capture({ signal, limits, profile } = {}) {
@@ -377,6 +943,7 @@ export function createCanonicalVowlDocumentSession({ workerClient }) {
       }
     },
     dispose() {
+      checkNotPresenting();
       disposed = true;
       loading?.abort.abort();
       mutation?.abort.abort();

@@ -18,7 +18,7 @@ import {
   editModel,
   captureModel,
 } from "vowl";
-import { openOwl } from "vowl/owl";
+import { openOwl, exportModelRdf } from "vowl/owl";
 
 const fixture = () =>
   JSON.parse(
@@ -343,6 +343,32 @@ test("source blank identity is document scoped, renamed invariant and closed aga
     }),
   );
   const canonical = await admit(first);
+  const exported = await exportModelRdf(
+    (await openCanonical(await decode(canonical.bytes))).model,
+  );
+  const text = new TextDecoder().decode(exported.bytes);
+  const residualLines = text
+    .split("\n")
+    .filter((line) => line.includes("<urn:unknown>"));
+  expect(residualLines).toHaveLength(2);
+  expect(new Set(residualLines.map((line) => line.split(" ")[0])).size).toBe(2);
+  expect(
+    residualLines.every((line) =>
+      line.includes('"01"^^<http://www.w3.org/2001/XMLSchema#integer>'),
+    ),
+  ).toBe(true);
+  const namedGraph = source();
+  namedGraph.qualifications = JSON.parse(JSON.stringify(first.qualifications));
+  namedGraph.qualifications.sourceStatements[0].graph = {
+    kind: "iri",
+    iri: "urn:graph",
+  };
+  const graphModel = await openCanonical(
+    await decode((await admit(namedGraph)).bytes),
+  );
+  await expect(exportModelRdf(graphModel.model)).rejects.toMatchObject({
+    code: "RDF_EXPORT_UNREPRESENTABLE",
+  });
   const second = source();
   second.qualifications = JSON.parse(JSON.stringify(first.qualifications));
   second.qualifications.sourceNodes.reverse();

@@ -50,36 +50,41 @@ test("OWL operation workers retain source bytes across live editing and recovery
   );
 });
 
-test("checkpoint transport bounds and copies source buffers before starting a worker", async () => {
-  const opened = await runCanonicalVowlOperation({
-    ...owlRequest,
-    operation: "open-owl-model",
-  });
-  const { workers, client } = harness();
-  await expect(
-    client.run(
-      {
-        operation: "recover-model",
-        checkpoint: opened.checkpoint,
-        limits: { inputBytes: 10 },
-      },
+test.each(["recover-model", "read-model-source", "export-model-rdf"])(
+  "%s transport bounds and copies source buffers before starting a worker",
+  async (operation) => {
+    const opened = await runCanonicalVowlOperation({
+      ...owlRequest,
+      operation: "open-owl-model",
+    });
+    const { workers, client } = harness();
+    await expect(
+      client.run(
+        {
+          operation,
+          checkpoint: opened.checkpoint,
+          limits: { inputBytes: 10 },
+        },
+        context,
+      ),
+    ).rejects.toMatchObject({ code: "RESOURCE_LIMIT_EXCEEDED" });
+    expect(workers).toHaveLength(0);
+    const promise = client.run(
+      { operation, checkpoint: opened.checkpoint },
       context,
-    ),
-  ).rejects.toMatchObject({ code: "RESOURCE_LIMIT_EXCEEDED" });
-  expect(workers).toHaveLength(0);
-  const promise = client.run(
-    { operation: "recover-model", checkpoint: opened.checkpoint },
-    context,
-  );
-  const sent = workers[0].postMessage.mock.calls[0][0];
-  opened.checkpoint.source.sources[0].bytes.fill(0);
-  expect(sent.request.checkpoint.source.sources[0].bytes).toEqual(
-    owlRequest.bytes,
-  );
-  await workers[0].onmessage({ data: { ...sent, type: "result", result: {} } });
-  await promise;
-  client.dispose();
-});
+    );
+    const sent = workers[0].postMessage.mock.calls[0][0];
+    opened.checkpoint.source.sources[0].bytes.fill(0);
+    expect(sent.request.checkpoint.source.sources[0].bytes).toEqual(
+      owlRequest.bytes,
+    );
+    await workers[0].onmessage({
+      data: { ...sent, type: "result", result: {} },
+    });
+    await promise;
+    client.dispose();
+  },
+);
 
 test("per-operation workers recover and edit live checkpoints without canonicalization", async () => {
   const loaded = await runCanonicalVowlOperation(owlRequest);

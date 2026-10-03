@@ -249,11 +249,13 @@ function ownedArchive(evidence, sources) {
   deepFreeze(evidence);
   return Object.freeze({
     evidence,
-    readBytes(id) {
+    readBytes(id, budget) {
       const bytes = sources.get(id);
       if (!bytes) {
         fail("SOURCE_DOCUMENT_UNKNOWN");
       }
+      budget?.check();
+      budget?.bound("inputBytes", bytes.byteLength);
       return new Uint8Array(bytes);
     },
     checkpoint(budget) {

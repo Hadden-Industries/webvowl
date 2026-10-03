@@ -1,4 +1,5 @@
 import { createVowlDocumentRecordTarget } from "./webVowlControllerContracts.js";
+import { PROTECTED_ONTOLOGY_EDITOR_PREFIXES } from "./ontologyEditorPrefixes.js";
 
 const RECORD_COLLECTIONS = new Set(["class", "datatype", "property"]);
 export const VOWL_EDITOR_CLASS_TYPES = Object.freeze([
@@ -54,7 +55,7 @@ export const DEFAULT_VOWL_EDITOR_PREFIXES = Object.freeze({
   dc: "http://purl.org/dc/elements/1.1/#",
   xml: "http://www.w3.org/XML/1998/namespace",
 });
-const PROTECTED_PREFIX_NAMES = new Set(["rdf", "rdfs", "xsd", "dc", "owl"]);
+const PROTECTED_PREFIX_NAMES = new Set(PROTECTED_ONTOLOGY_EDITOR_PREFIXES);
 
 function assertFields(value, fields, description) {
   if (

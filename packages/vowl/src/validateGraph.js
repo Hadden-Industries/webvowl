@@ -250,14 +250,15 @@ export function validateGraph(
   };
 }
 
-/** Validate anchors, direct endpoint normalization and the finite signature closure. */
-export function validateMeaning(source, context, budget) {
-  const { index, locations, get, expressionChildren } = context;
-  const model = source.structural;
-  const bases = new Set(
+/** One package-owned interpretation of direct and normalized anchor support. */
+export function createAssertionSupportLookup(model, get, budget) {
+  const bases = new Map(
     model.constructs
       .filter((record) => record.kind !== "assertion-anchor")
-      .map((record) => semanticKey(record, "Construct", undefined, budget)),
+      .map((record) => [
+        semanticKey(record, "Construct", undefined, budget),
+        record.id,
+      ]),
   );
   const endpoints = new Map();
   for (const construct of model.constructs) {
@@ -268,26 +269,49 @@ export function validateMeaning(source, context, budget) {
       }
     }
   }
+  const support = (assertion) => {
+    if (assertion.kind === "declaration") {
+      return assertion.role;
+    }
+    const direct = bases.get(
+      semanticKey(assertion, "Assertion", undefined, budget),
+    );
+    if (direct !== undefined) {
+      return direct;
+    }
+    if (endpointKind.test(assertion.kind)) {
+      const aggregate = endpoints.get(
+        JSON.stringify([assertion.property, assertion.kind]),
+      );
+      const target = aggregate && get(aggregate.target);
+      if (
+        aggregate?.target === assertion.target ||
+        (["class-intersection", "data-intersection"].includes(target?.kind) &&
+          target.members.includes(assertion.target))
+      ) {
+        return aggregate.id;
+      }
+    }
+    return undefined;
+  };
+  return { support, endpoints };
+}
+
+/** Validate anchors, direct endpoint normalization and the finite signature closure. */
+export function validateMeaning(source, context, budget) {
+  const { index, locations, get, expressionChildren } = context;
+  const model = source.structural;
+  const { support, endpoints } = createAssertionSupportLookup(
+    model,
+    get,
+    budget,
+  );
   for (const construct of model.constructs) {
     budget.check();
     if (construct.kind !== "assertion-anchor") {
       continue;
     }
-    const assertion = construct.assertion;
-    let supported =
-      assertion.kind === "declaration" ||
-      bases.has(semanticKey(assertion, "Assertion", undefined, budget));
-    if (!supported && endpointKind.test(assertion.kind)) {
-      const aggregate = endpoints.get(
-        JSON.stringify([assertion.property, assertion.kind]),
-      );
-      const target = aggregate && get(aggregate.target);
-      supported =
-        aggregate?.target === assertion.target ||
-        (["class-intersection", "data-intersection"].includes(target?.kind) &&
-          target.members.includes(assertion.target));
-    }
-    if (!supported) {
+    if (support(construct.assertion) === undefined) {
       fail(
         "ASSERTION_UNSUPPORTED",
         at(locations.get(construct.id), "assertion"),

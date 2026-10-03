@@ -1,3 +1,5 @@
+import { isIri } from "@hyperjump/uri";
+
 const POSITIONABLE = new Set(["class-node", "datatype-node", "label"]);
 
 function sceneError(code) {
@@ -136,6 +138,12 @@ export function createCanonicalVowlScene(
   }
   let current = structuredClone(occurrences);
   let revision = 0;
+  let committing = false;
+  function checkWritable() {
+    if (committing) {
+      throw sceneError("SCENE_COMMIT_IN_PROGRESS");
+    }
+  }
   let nextToken = 0;
   let registry = new Map(current.map(({ id }) => [id, ++nextToken]));
   let state = structuredClone(
@@ -192,6 +200,7 @@ export function createCanonicalVowlScene(
       return structuredClone(state);
     },
     arrange(changes, { camera } = {}) {
+      checkWritable();
       const candidate = structuredClone(state);
       if (camera !== undefined) {
         if (!Number.isFinite(camera.zoom) || camera.zoom <= 0) {
@@ -229,11 +238,130 @@ export function createCanonicalVowlScene(
       revision++;
     },
     setVisibility(hiddenReferences) {
+      checkWritable();
       state = {
         ...state,
         hidden: closeVowlVisibility(current, hiddenReferences.map(resolve)),
       };
       revision++;
+    },
+    /** Stage a presentation-only change without retiring semantic/runtime IDs. */
+    prepareView(changes) {
+      checkWritable();
+      if (
+        !changes ||
+        Object.keys(changes).some(
+          (key) =>
+            !["hidden", "labelSelection", "display", "prefixes"].includes(key),
+        )
+      ) {
+        throw sceneError("SCENE_VIEW_INVALID");
+      }
+      const baseRevision = revision;
+      const candidate = structuredClone(state);
+      if (changes.prefixes !== undefined) {
+        const seen = new Set();
+        if (
+          !Array.isArray(changes.prefixes) ||
+          changes.prefixes.some((binding) => {
+            if (
+              !binding ||
+              Object.keys(binding).length !== 2 ||
+              typeof binding.prefix !== "string" ||
+              !/^(?:[A-Za-z][A-Za-z0-9_-]*)?$/.test(binding.prefix) ||
+              typeof binding.iri !== "string" ||
+              !isIri(binding.iri) ||
+              seen.has(binding.prefix)
+            ) {
+              return true;
+            }
+            seen.add(binding.prefix);
+            return false;
+          })
+        ) {
+          throw sceneError("SCENE_PREFIX_INVALID");
+        }
+        candidate.prefixes = structuredClone(changes.prefixes);
+      }
+      if (changes.hidden !== undefined) {
+        if (!Array.isArray(changes.hidden)) {
+          throw sceneError("SCENE_VIEW_INVALID");
+        }
+        candidate.hidden = closeVowlVisibility(
+          current,
+          changes.hidden.map(resolve),
+        );
+      }
+      if (changes.labelSelection !== undefined) {
+        const selection = changes.labelSelection;
+        const language = selection?.mode === "language";
+        if (
+          !selection ||
+          !["iri", "untagged", "language"].includes(selection.mode) ||
+          Object.keys(selection).some(
+            (key) => !["mode", ...(language ? ["range"] : [])].includes(key),
+          ) ||
+          (language &&
+            (typeof selection.range !== "string" ||
+              !/^(\*|[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*)$/.test(
+                selection.range,
+              )))
+        ) {
+          throw sceneError("SCENE_VIEW_INVALID");
+        }
+        candidate.labelSelection = language
+          ? { mode: "language", range: selection.range.toLowerCase() }
+          : { mode: selection.mode };
+      }
+      if (changes.display !== undefined) {
+        const display = changes.display;
+        if (
+          !display ||
+          Object.keys(display).some(
+            (key) =>
+              !["compactNotation", "nodeScaling", "externalColoring"].includes(
+                key,
+              ),
+          ) ||
+          ["compactNotation", "externalColoring"].some(
+            (key) =>
+              Object.hasOwn(display, key) && typeof display[key] !== "boolean",
+          ) ||
+          (Object.hasOwn(display, "nodeScaling") &&
+            !["uniform", "direct-membership"].includes(display.nodeScaling))
+        ) {
+          throw sceneError("SCENE_VIEW_INVALID");
+        }
+        candidate.display = {
+          ...candidate.display,
+          ...structuredClone(display),
+        };
+      }
+      let committed = false;
+      function checkCurrent() {
+        checkWritable();
+        if (committed || revision !== baseRevision) {
+          throw sceneError("SCENE_PREVIEW_EXPIRED");
+        }
+      }
+      return Object.freeze({
+        preview() {
+          checkCurrent();
+          return structuredClone(candidate);
+        },
+        commit({ beforeCommit } = {}) {
+          checkCurrent();
+          committing = true;
+          try {
+            beforeCommit?.();
+          } finally {
+            committing = false;
+          }
+          state = candidate;
+          revision++;
+          committed = true;
+        },
+      });
     },
     /** Stage against the latest scene after worker completion. No live mutation. */
     prepareEdit(
@@ -241,11 +369,17 @@ export function createCanonicalVowlScene(
       {
         center: editCenter = state.camera.center,
         suppliedPositions: editPositions = new Map(),
+        hidden: requestedHidden,
       } = {},
     ) {
+      checkWritable();
       const base = current;
       const baseRevision = revision;
       const occurrences = structuredClone(result.occurrences);
+      const hiddenOverride =
+        requestedHidden === undefined
+          ? undefined
+          : structuredClone(requestedHidden);
       const nextOccurrences = new Map(
         occurrences.map((record) => [record.id, record]),
       );
@@ -299,6 +433,7 @@ export function createCanonicalVowlScene(
         }));
       let committed = false;
       function prepare(choices) {
+        checkWritable();
         if (committed || current !== base || revision !== baseRevision) {
           throw sceneError("SCENE_PREVIEW_EXPIRED");
         }
@@ -350,7 +485,7 @@ export function createCanonicalVowlScene(
             finitePoint(editCenter),
             editPositions,
           ),
-          hidden: closeVowlVisibility(occurrences, hidden),
+          hidden: closeVowlVisibility(occurrences, hiddenOverride ?? hidden),
         };
         validatePlacements(occurrences, candidate);
         return { candidate, nextRegistry, allocated };
@@ -360,8 +495,28 @@ export function createCanonicalVowlScene(
         preview(choices = new Map()) {
           return structuredClone(prepare(choices).candidate);
         },
-        commit(choices = new Map()) {
+        previewReferences(choices = new Map()) {
+          return new Map(
+            [...prepare(choices).nextRegistry].map(([id, token]) => [
+              id,
+              Object.freeze({
+                loadGeneration,
+                occurrenceId: `runtime-${token}`,
+              }),
+            ]),
+          );
+        },
+        commit(choices = new Map(), { beforeCommit } = {}) {
           const prepared = prepare(choices);
+          // The synchronous presentation boundary may reject without changing
+          // this scene. Prevent renderer event handlers from reentering scene
+          // mutations between validation and acceptance.
+          committing = true;
+          try {
+            beforeCommit?.();
+          } finally {
+            committing = false;
+          }
           current = occurrences;
           state = prepared.candidate;
           registry = prepared.nextRegistry;

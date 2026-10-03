@@ -38,6 +38,192 @@ This reported producer verification remains separate from WebVOWL application ac
 
 ## Implemented foundations
 
+### Post-checkpoint presentation and editing increment on 3 October 2026
+
+Commit `d77183ffa4c4dc52048df39b6c40f8b1562c0257` records the compatible-artifact and application-foundation checkpoint and was pushed to `origin/feat/canonical-vowl`.
+The following increment remains separate from production-controller cutover.
+
+The drawing adapter now accepts explicit canonical replacement and revision requests, with exact load-generation/base-revision checks and owned copies of drawing data.
+An in-place revision preserves the mounted SVG and paused state.
+If native drawing fails after mutation begins, the renderer reinstalls the previous primitives, placements, pins, camera and display settings before reporting failure.
+A recovery failure retires the accepted drawing context and is reported distinctly; it does not masquerade as a successful revision.
+
+Session edits can now include synchronous native presentation before accepting the successor model, scene and editable-target registry.
+Scene mutations and replacement/disposal reentry cannot interleave with that acceptance boundary.
+Session loads with a renderer wait for presentation before acceptance and serialize presentation with recovery, so an obsolete load cannot restore its drawing over a newer accepted load.
+Failed replacement preserves the semantic checkpoint and attempts one restoration of the previous drawing with its observed pause state.
+Failed restoration reports both errors rather than retrying indefinitely.
+Headless session use remains available for package/worker qualification.
+
+Explicit legacy ingress uses the existing public migration operation with a caller-selected dialect, profile and resolutions, then opens the admitted result in the same live session.
+The existing independent artifact vector verifies exact saved bytes, preserved migration diagnostics and subsequent editing; no duplicate migration corpus was added.
+The first human editor mapper implements the accepted endpoint policy: explain unannotated inverse detachment, preserve the inverse partner's endpoints, retain supported endpoint annotations, reject annotated inverse removal without separate exact deletion, and assert only an explicitly chosen default endpoint.
+The mapper prepares a proposal; the human explanation/confirmation interface and remaining editor mappings are not yet connected.
+
+The Chromium 154 harness passed 23 checks with no console warnings or errors, including real worker edits, in-place native presentation, injected post-mutation revision/load failures, restoration and subsequent successful retry/reload.
+The scope is the candidate session/runtime boundary, not full application acceptance, semantic selection/sidebar integration or export parity.
+These checks do not extend the scope of the previously authorized Claude mapping review, and no additional independent review was run.
+
+The subsequent semantic connection adds exact role-qualified entity references, retained details-only inspection and session-owned drawing bindings.
+A coarse property reference resolves only when one semantic role matches; ambiguity is explicit.
+Inspection and drawing use the same B4 label selector, while complete typed facts, assertion annotations, source qualifications and exact cardinalities remain available separately from the bounded relationship summary.
+Glyph counts are separate from semantic-reference counts because an equivalence glyph can represent several entities and a subclass edge is not a property entity.
+The extended Chromium harness passed 25 checks, including an application-command IRI edit, role-qualified native selection and arrangement references resolved by the accepted session.
+
+The human-command boundary now prepares endpoint, IRI, label, insertion, deletion, metadata and characteristic changes against exact document revisions and semantic target tokens.
+Pending inverse-detachment and deletion confirmations cannot authorize a replacement document.
+Insertion selects its exact typed meaning after normalization, even when no new record is created, and explicitly supplied positions enter complete-scene initialization.
+Deletion uses package-owned typed/signature dependencies and shared assertion-support rules, then confirms the actual pure edit result and annotation losses before acceptance; the application does not normalize a duplicate graph.
+Metadata version text remains an annotation and preserves an existing version IRI.
+Ordinary characteristic removal cannot discard assertion anchors.
+The next increment qualifies exact subclass/disjoint/restriction row edits, copying shared restrictions for the selected assertion and preserving its annotations.
+Restriction creation requires an explicit property choice; a disjoint fact does not acquire an inferred direction.
+Compound label/IRI submissions execute as one package transaction.
+Presentation-only language, display and hidden-occurrence changes now prepare both inspection and drawing before acceptance, preserve hidden placements and runtime identities, and do not increment the semantic revision.
+The Chromium harness passes 27 scenarios, including native hide/unhide with retained arrangement.
+Canonical save now uses the shared artifact service with exact worker bytes, `application/json` and `.vowl.json`; a session-to-service export/reload test verifies byte identity, and replacement cancellation remains active through hashing/publication.
+The package dependency qualification passed 27 suites / 7,001 tests before the additional literal-ID dependency regression, which subsequently passed its focused suite.
+These increments have focused tests and scoped lint evidence; earlier full-profile receipts do not cover these later changes.
+Contextual datatype choices now retarget only the selected range or supporting cardinality assertion, preserving other uses, range annotations and exact large cardinalities.
+Class deprecation remains an annotation; the existing attached-value-restriction guard and fixed-builtin restrictions remain explicit.
+The owner approved adding the already installed `@hyperjump/uri` version `1.3.6` as a direct root dependency, with only the matching root manifest/lock entries changed and no dependency resolution changes.
+Prefix add/rename/remove commands now change complete scene bindings atomically and preserve lexical IRI identity through the shared validator; they do not rewrite semantic records or require canonicalization during interaction.
+The extended Chromium harness passes 29 scenarios, including native prefix validation and save through the real byte artifact service.
+The application/runtime regression run passed 58 suites / 1,148 tests before the final prefix/sidebar extensions; those extensions have separate focused tests and all changed JavaScript passes scoped lint.
+The subsequent Chromium harness passes 30 scenarios, including LaTeX export from the canonical drawing with the accepted compact-notation setting.
+Property conversion now handles isolated object-property domain/range pairs and rejects conversions that would lose annotations or shared uses.
+Post-edit selection follows operation-local correspondence, including normalization into an existing assertion; positioned commands use that same correspondence.
+Inspection retains n-ary relation groups once and expands them only for requested details or bounded neighborhoods.
+An inline 1,000-class equivalence fixture verifies linear relationship storage, alias search, bounded neighborhoods and complete single-element details without adding corpus files.
+The consolidated focused run passed five suites / 140 tests covering inspection, runtime contracts, document sessions and editor commands.
+Human menu/controller wiring, source/Turtle export integration and complete candidate qualification remain in progress.
+
+The existing human editor sidebar now consumes controller-owned `getOntologyEditorView(recordTarget)` and `resolveOntologyEditorIri(input)` queries instead of reading or interpreting a `vowlModel`.
+The editor view contains metadata, prefix bindings, the selected display row, property-row classification and any explicit generated-IRI base; it is presentation data and never admission or serialization input.
+The canonical session projects that view directly from semantic records and disables ambiguous text annotations rather than silently choosing one for replacement.
+These human-editor queries are not WebMCP tools; experimental ontology editing remains outside the agent tool surface.
+Existing sidebar behavior and controller tests pass against the changed presentation boundary.
+
+The separate candidate controller now owns explicit source acquisition, accepted-session loading, semantic inspection/editor queries, prefix edits and all five export paths: canonical JSON, current Turtle, original input, SVG and LaTeX.
+It is not yet the production composition root or a complete replacement for every existing menu interaction.
+Replacement acquisition cancels pending edits and publication immediately; a failed overlapping load restores the last accepted controller state rather than an intermediate loading state.
+Native label, deletion and endpoint intents carry exact semantic targets and the originating document revision.
+The label-plus-derived-IRI interaction prepares one atomic semantic batch using the explicit ontology/prefix context.
+Retired selected targets are cleared after acceptance.
+Drawing exports use the shared layout settler, wait for fonts and paint, and restore a temporary pause only while their document and explicit pause ownership remain current.
+The browser controller probe exposed a shared settlement defect: a paused graph could retain a high force alpha and never satisfy the running-layout condition.
+Paused layouts now qualify through the same eight stable geometry frames without requiring their inactive simulation to cool; running layouts retain both force and displacement conditions.
+Focused regression tests cover this distinction, interrupted font readiness, publication cancellation and layout restoration.
+Canonical native view readback now reports the accepted scene's label selection rather than stale legacy renderer language.
+The extended Chromium 154 harness passes 45 checks with no console warnings or errors, including all five controller export paths through real workers and the native drawing, view controls, exact-loss confirmation and explicit local input selection.
+Evidence is `controller-input-browser-result.json` in the existing external `live-recovery-20261003-01` directory; complete menu integration and broader application acceptance remain outstanding.
+The preceding 42-check controls receipt also records manual confirmation-dialog inspection, expansion, Escape cancellation and focus restoration.
+
+The candidate composition now supplies its controller, local-input selector and semantic confirmations to the shared human menus.
+The owner approved the separate `canonical` build mode in `vite.config.mjs`.
+It selects `src/canonical-main.js` before HTML processing, writes to the ignored `node_modules/.cache/webvowl-canonical` directory and preserves timestamps using Vite's resolved output directory.
+The candidate build passes; production entry selection and deployment commands remain unchanged.
+The selector lists OWL syntaxes from owlapi's public metadata and requires an explicit original document IRI for local OWL parsing, without inspecting JSON shape or inventing a base from the application URL.
+It distinguishes canonical data from the one supported historical migration dialect.
+Local files enter as owned bytes, preserving original line endings and encoding evidence; direct input enters as caller-supplied text.
+The browser probe validates the syntax choices, rejects a relative document identity and opens a real local byte source before exporting its original bytes.
+Cancellation before selection avoids reading the file, and cancellation during reading prevents source publication.
+These routes do not yet qualify every bundled example or complete application initialization.
+
+The native canvas now emits semantic creation intents with exact document revision and endpoint targets before changing the model.
+Class and property creation collects explicit IRIs; datatype creation uses the full IRI of the chosen built-in datatype independently of source prefix declarations.
+Restriction creation requires an explicit object property, while subclass/disjoint creation uses the exact selected endpoints.
+Package normalization runs once, and selection resolves the resulting meaning through operation-local correspondence.
+Existing normalized assertions retain their prior placement; new positionable occurrences receive the gesture position.
+The current projection retains existential/universal restrictions as details-only facts and gives disjoint edges no independent label placement; the session tests distinguish these cases rather than manufacturing occurrences.
+The candidate Ontology menu now exposes an Ontology facts dialog for these details, along with annotations, qualifications, diagnostics, coverage and source evidence.
+The session pages admitted records directly without cloning source checkpoint bytes or using renderer data.
+The dialog displays 25 records per page and expands nested fields on demand; all supplied text uses text nodes, including literal strings and IRIs.
+Document replacement, revision changes and disposal retire the open view rather than presenting stale facts.
+Chromium 154 qualification verified qualification expansion, both pages of the existing 40-assertion evaluation ontology, Escape cancellation and focus restoration to the Ontology button, with no console warnings or errors.
+The exact-field viewer provides inspection access; usability of cross-record identifiers and the broader accessibility matrix remain qualification work.
+
+Real candidate mounting exposed two first-paint defects: the default native renderability guard still required legacy data, and an unpaused canonical load hid complete geometry while waiting for force ticks.
+The guard now recognizes canonical elements, and canonical drawings become paint-ready from their complete placements while an unpaused simulation continues.
+This removes the dependency on background-throttled force ticks without increasing timeouts or changing the requested pause state.
+Regression tests cover fresh and previously mounted graphs, both paused and running.
+After these repairs, Chromium 154 passes all 47 live recovery checks with no console warnings or errors, including native datatype creation as one revision and unchanged original-source export afterward.
+The receipt is `controller-creation-browser-result.json` in the existing external `live-recovery-20261003-01` directory.
+Temporary diagnostic logging was removed.
+
+The direct full repository run passed 164 suites / 9,076 tests before these final first-paint and creation regressions.
+The affected session/native-renderer run then passed 44 tests, and the candidate build passed again.
+These are direct checks, not refreshed governed full-verification receipts or an independent review of this increment.
+
+Initial visualization requests now enter the candidate session's load transaction.
+Language, visibility and portable display choices are prepared in the complete scene before mounting; native focus, viewport, label-width/pinning modes and force distances are applied before load acceptance.
+The retained hidden set remains distinct from temporary filter choices, so revealing a filtered occurrence does not erase saved visibility state.
+Failed initialization restores the previously accepted scene and native controls; it cannot publish a partially initialized successor.
+The expanded Chromium harness passes 48 checks without console warnings or errors, recorded in `controller-initial-view-browser-result.json` beside the earlier receipts.
+Its new check verifies initial language, compact notation, dynamic label width, force distance, zoom, translation and running-layout choice through the actual candidate controller and renderer.
+
+The candidate's new-ontology command now collects an explicit absolute ontology IRI and optional title, then admits a small Turtle document through the existing OWL route.
+It opens paused in editing mode and does not depend on the historical empty JSON preset.
+Cancelling the form leaves the document and route unchanged; revisiting its unsaved route explains that the URL does not contain the ontology.
+The source-admission test verifies exact identity, escaped Unicode title and empty occurrence inventory, and the loading test verifies cancellation and the paused load request.
+Manual candidate UI qualification verified both the new ontology's IRI and title in the editor.
+The untagged metadata presentation now uses the shared language utility's `undefined` key; a regression checks the actual language selection instead of only the intermediate object shape.
+Fresh scenes now start at the known viewport center, while saved scenes retain their camera.
+The regression covers an 800 by 600 viewport; the built evaluation ontology also placed all four named nodes inside the observed viewport.
+Remaining canvas creation and complete export/reload interaction qualification are still required.
+
+File, paste and new-ontology requests now share input supersession in the loading adapter.
+New requests, controller loads and disposal abort pending selection dialogs, while revision-independent sequence checks prevent adapters that ignore cancellation from publishing stale input.
+Closing direct input also aborts its selection without reporting cancellation as a load failure.
+The focused input run passed 43 tests; the subsequent facts/session/controller/input run passed 94 tests, and the separate candidate build and scoped JavaScript, HTML and CSS checks passed.
+The consolidated direct repository run then passed 165 suites / 9,099 tests in 139.94 seconds.
+Its `docs/broken.md` and package README formatting messages are deliberate formatter-test fixtures, not failures in the repository documents.
+These checks do not refresh governed receipts or constitute independent review.
+
+Visibility controls operate on admitted occurrences and close dependent edges and labels; they preserve saved hidden occurrences until reset and do not invoke legacy topology filters.
+Edits prepare visibility for new occurrences before committing the successor drawing.
+A show-and-focus request resolves visibility after applying its view changes, and semantic selection follows stable editable targets through IRI changes.
+The controller regression covers both interactions with a real package session.
+
+### Approved bounded export interface amendment
+
+The accepted operation matrix requires original-input download and Turtle export of current retained semantics.
+Before this amendment, the public live surface provided admission, inspection, editing, capture, checkpoint and recovery, without source-byte retrieval or a semantic RDF serializer.
+Inspection is not an admission token, checkpoints are recovery data, and the native drawing lacks retained facts.
+Serializing the canonical protocol dataset as ontology RDF or rebuilding the legacy model would violate those ownership boundaries.
+The native renderer rejects canonical Turtle snapshots; the session instead exports the complete accepted model through the package.
+
+The owner approved the following bounded amendment on 3 October 2026:
+
+- Add `readModelSource(model, documentId, options)` to the existing `vowl` surface.
+  It accepts a locally admitted model, an exact source-document ID from inspection, and only `signal`/`limits` options.
+  It returns an owned `{bytes, documentIri, mediaType, digest}` snapshot of the original acquisition, never an edited ontology.
+  Unknown IDs and unavailable source bytes fail explicitly; reopening a portable artifact must not manufacture source access.
+  Editing and checkpoint recovery retain original source identity and bytes.
+- Add `exportModelRdf(model, options)` to the existing `vowl/owl` surface.
+  It accepts a locally admitted current model and only `signal`/`limits` options, and returns owned UTF-8 Turtle bytes plus a closed output-scope report.
+  The report identifies current revision, flattened retained closure scope and whether retained qualifications are present; output is not described as lossless source recovery or a portable qualification artifact.
+  Package-owned mapping includes current structural assertions, annotations and expressible retained RDF statements, with collision-free source-document blank-node scopes.
+  It must not select a property category to resolve an ambiguity, substitute original bytes for edited content, or emit a partial success when retained semantic content cannot be represented.
+  Such content produces an explicit bounded representability failure identifying affected records before publication.
+  Existing finite operation limits, cancellation, immutable input ownership and admission-first validation apply; canonical bytes and existing profiles do not change.
+
+Qualification must cover edited labels/endpoints, anchored annotations, n-ary facts, exact literals and large cardinalities, retained qualified RDF, blank-node scope collisions, unavailable originals after portable reopening, checkpoint recovery, byte ownership, cancellation and atomic publication.
+No configuration change, additional export surface or dependency is proposed.
+This resolves the additional public-stage decision reserved by SLICE-005.
+The package now implements both operations, with original bytes isolated from edited output, and the application worker/session connects both to the existing publication service.
+The serializer follows the [OWL 2 structural-to-RDF mapping](https://www.w3.org/TR/owl2-mapping-to-rdf/) and emits the explicit-triple subset of [RDF 1.1 Turtle](https://www.w3.org/TR/turtle/).
+The installed owlapi public save path serializes its structural ontology model, while this export must also account for VOWL's retained qualified RDF statements.
+Its public IO entry point does not expose a generic triple writer; the bounded explicit-triple emitter therefore lives with the complete retained model in `vowl/owl`, without a private upstream import or controller-owned semantic translation.
+Initial focused tests cover 16 expression families, edited semantic round-trip with anchored annotations and exact large cardinalities, source-byte ownership/recovery, portable source unavailability and session publication of originals separately from edited Turtle.
+The extended tests cover 17 annotated assertion forms with nested annotations, document-scoped residual blank identities, exact residual literal lexicals, graph-scope rejection and publication cancellation for both export operations.
+The real-worker Chromium harness passes 32 scenarios, including exact original download after editing and edited Turtle download containing the imported closure, with no console warnings or errors.
+All six pinned closure examples export and reopen after an unrelated edit with identical retained structural/topology identity under a canonical comparison using constant synthetic qualifications and a uniform fresh scene.
+That comparison intentionally excludes historical provenance and does not claim equality of original-source qualifications.
+Evidence is `semantic-export-browser-result.json`, `turtle-closure-results.json` and `turtle-structural-identity-results.json` in the existing external `live-recovery-20261003-01` directory.
+The broader selected package/application run passed 65 suites / 7,915 tests before the subsequent cancellation and input-acquisition extensions; later extensions have focused tests and still require consolidated final verification.
+Complete candidate UI wiring and full export acceptance remain unfinished.
+
 ### Compatible artifact and drawing preparation on 3 October 2026
 
 The root surface now implements the experimental `compatibleArtifactProfile`, a separate identifier rather than a change to either frozen v1 profile.
@@ -278,6 +464,54 @@ Additional migration-dialect implementation is a separate scope decision under t
 
 ### Original-source qualification and remaining disposition
 
+On 3 October, `util/regenerateCanonicalExamples.mjs` generated all six compatible artifacts from the pinned recursive closure inventory, using exact source hashes and refusing unexpected imports.
+Each artifact passed canonical readmission with the default resource limits.
+The generator uses a fresh deterministic 400-tick force layout; it does not copy historical positions or rewrite historical files.
+The candidates and full named-IRI difference report are retained outside the repository in `live-recovery-20261003-01/regenerated-examples-01/`.
+Their exact bytes are now copied into `src/canonical-examples/`, and the candidate composition resolves the six existing named routes to these assets.
+Only the candidate entry imports their URLs; the production static asset directory and historical files remain unchanged.
+Original OWL bytes are not embedded in these portable artifacts.
+
+| Example       | Historical named IRIs | Current named IRIs | Historical IRIs absent | Rendered nodes | Rendered labels |
+| ------------- | --------------------- | ------------------ | ---------------------- | -------------- | --------------- |
+| FOAF          | 84                    | 96                 | 0                      | 60             | 82              |
+| GoodRelations | 143                   | 209                | 0                      | 113            | 251             |
+| MUTO          | 32                    | 46                 | 0                      | 22             | 26              |
+| OntoViBe      | 83                    | 109                | 0                      | 61             | 49              |
+| Personas      | 125                   | 147                | 0                      | 114            | 238             |
+| SIOC          | 115                   | 126                | 0                      | 64             | 127             |
+
+The name comparison is a coverage check, not proof of relationship or annotation equivalence.
+The counts above come from successful Chromium 154 loads through the built candidate's normal remote-canonical route, with no console warnings or errors.
+That first browser pass used temporary copies in the ignored candidate build output; qualification of the named preset routes follows separately.
+The later named-route pass also loaded all six through their unchanged `#foaf`, `#goodrelations`, `#muto`, `#ontovibe`, `#personasonto` and `#sioc` routes, with the same node/label counts and no console warnings or errors.
+The [regeneration report](canonical-vowl-example-regeneration.json) records exact root/import and artifact hashes, full named-IRI additions/omissions, record counts and qualification codes.
+OntoViBe first exposed a consumer defect: `data-some`, `data-all`, `data-value` and data cardinality restrictions were misclassified as datatype references by a string-prefix test.
+The inspector now classifies the five actual data-range expression kinds explicitly; data-property restrictions remain class expressions.
+A minimized functional-syntax regression reproduced the original superclass-reference failure and now passes for all six restriction forms while retaining data-union as a datatype.
+The affected inspector/session/controller run passed 46 tests and the rebuilt OntoViBe UI passed.
+
+Redistribution qualification is not completed by these technical checks.
+The SIOC publisher's [specification source at its inspected revision](https://github.com/rdfs-org/rdfs.org/blob/d4bbbdf00eb50377f7ad334099da6d053566aeed/sioc/spec/sioc.html) links CC BY 1.0 for the specification/documentation and explicitly distinguishes ontology terms and technology from that copyright notice.
+The [DCMI schema notice](https://www.dublincore.org/about/copyright/index.shtml/) supplies attribution requirements for DCMI-hosted schemas; it does not by itself establish the provenance or licence of the Stanford adaptation `protege-dc.owl`.
+That import's exact redistribution evidence remains unresolved; no source substitute or inferred licence has been applied.
+Keep publication of the candidate asset set gated on completing its notices and import provenance.
+The local candidate implementation is not a claim of redistribution clearance.
+
+Root-source notice inventory for completing the candidate distribution:
+
+| Example       | Attribution and identified notice                                                                                                                                                                                                                        |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FOAF          | Dan Brickley and Libby Miller; the [FOAF specification](https://xmlns.com/foaf/spec/) applies [CC BY 1.0](https://creativecommons.org/licenses/by/1.0/) to the specification and accompanying RDF.                                                       |
+| GoodRelations | Martin Hepp; the pinned root declares [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) and requests: “This work is based on the GoodRelations ontology, developed by Martin Hepp”, with a [GoodRelations link](http://purl.org/goodrelations/). |
+| MUTO          | Steffen Lohmann; the pinned root declares [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).                                                                                                                                                     |
+| OntoViBe      | Florian Haag and Steffen Lohmann; contributor Stefan Negru; root version 2.2 declares [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The imported module also needs its own recorded provenance/notice assessment.                           |
+| Personas      | Stefan Negru; contributor Sabin Buraga; the pinned root declares [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/). The Stanford Dublin Core import has the unresolved provenance noted above.                                             |
+| SIOC          | Data Science Institute (formerly DERI), NUI Galway, copyright 2004–2018; the publisher's specification notice and its scope are identified above.                                                                                                        |
+
+The changed representation, retained qualifications and fresh layouts must be identified in the distributed notices; none of these examples is claimed to be an unchanged original file or endorsed by its authors.
+The earlier source-admission failures below are historical diagnosis, superseded by the compatible capture and browser results above.
+
 The public OWL adapter was run on the six indicated original files with explicit formats and acquisition IRIs from their `.url` companions.
 No source file, parser policy or resource ceiling was changed.
 `original-owl-qualification.json` retains source SHA-256 values and outcomes.
@@ -325,6 +559,45 @@ Required follow-up is a bounded, per-case diagnosis separating owning-parser lim
 Retain strict-mode guarantees and exact diagnostic preservation; do not silently enable the old lossy recovery path, edit original ontology meaning, increase ceilings, or remove examples as a workaround.
 Any required mapping-policy or upstream contract amendment needs its exact owner decision before implementation.
 
+### Integrated import choices and merge interaction
+
+The candidate now asks for an explicit syntax when root or imported acquisition metadata is ambiguous, using owlapi's public format metadata.
+The acquired document IRI remains read-only in that prompt.
+Root selection precedes worker admission; an ambiguous import cancels its current admission attempt before the compatible loader can accept an unresolved-import qualification.
+After the choice, admission resumes from owned cached bytes rather than fetching that document again.
+Only this explicit format-choice continuation is retried; unrelated failures propagate.
+Per-load aggregate byte and import-count limits survive the continuation, and acquisition budget failures cannot be downgraded to missing-import qualifications.
+Cancellation retains the previously accepted document.
+
+The candidate composition now connects the existing merge-choice dialog to session reconciliation.
+Both predecessor and successor descriptions use the existing application display projector; named members include their full IRIs.
+The preview used to describe the successor does not select or commit an arrangement.
+Apply remains disabled until every conflict has a user selection; Cancel leaves the live model and complete scene unchanged.
+The existing editor prohibition on renaming a subject to an already used IRI remains unchanged.
+An initial browser probe through that prohibited rename correctly failed, so the merge qualification uses the session's atomic edit boundary rather than broadening editor scope.
+
+The real Chromium 154 worker/rendering harness passed 54 checks, including ambiguous-import selection without refetch, human-readable merge predecessors, cancelled-merge preservation and a single accepted revision retaining the chosen pinned position.
+No console warnings or errors were reported.
+This qualifies the session/dialog integration and candidate composition wiring, not every canvas gesture or another browser engine.
+The browser result was inspected inline; the browser tool refused file output, so no new saved browser receipt is claimed.
+The focused acquisition, controller and session run passed 64 tests.
+The export menu also now explains when original input bytes are absent from a reopened portable document instead of silently hiding that export's availability.
+The rebuilt FOAF candidate was inspected with that explanation visible and the unavailable download controls hidden.
+
+The extended browser harness subsequently passed 58 checks without console warnings or errors.
+It reconstructs the existing independent `named-class-artifact` witness from the compact corpus and verifies its pinned input hash before migration.
+The controller then loads the explicitly named legacy dialect, restores its paused camera and pin, edits the class IRI, exports canonical JSON, decodes the edited meaning and reopens the saved document with its pin retained.
+No additional stored test corpus was generated.
+The final extension passed 61 checks with no console warnings or errors: the native property-endpoint command retained an annotated domain assertion, the deletion dialog displayed the exact annotation loss before mutation, and confirmed deletion committed one revision through the controller.
+Together with the existing native datatype insertion scenario, these exercise the required insertion, deletion and annotated-endpoint paths through the real worker and mounted renderer.
+
+The consolidated direct repository run passed 165 suites and 9,106 tests in 160.123 seconds.
+The later browser-only harness extension passed its scoped formatter/linter and real browser run.
+Both the ordinary production build (including application formatting and HTML/CSS/JavaScript lint) and the separate candidate build passed.
+Documentation checks passed across all 61 authored documents.
+The production build retains its existing large-chunk warning.
+These results remain distinct from governed verification, independent review and controlled cutover acceptance.
+
 ## Evidence and remaining work
 
 On 2 October 2026 the owner explicitly paused integration for a bounded compatibility repair plan.
@@ -340,6 +613,66 @@ External evidence directory: `C:/Users/maksy/.hi/w/e/operator-reports/canonical-
 `worker-browser.mjs` and `worker-browser-result.json` record eight checks in isolated Chromium 153.0.8010.12, including the real module-worker boundary; there were no page errors.
 `dialog-browser.mjs` and `dialog-browser-result.json` record isolated merge-dialog checks for accessible naming, required choices, keyboard selection, explicit application, focus restoration, Escape/Cancel and mobile horizontal fit, with retained screenshots.
 These are component probes, not integrated application qualification or a complete accessibility audit.
-No Firefox, WebKit, performance-envelope or independent-review completion is claimed.
+That historical component pass did not establish Firefox, WebKit, a performance envelope or independent-review completion.
+The later cross-browser results and bounded review disposition are recorded below and in the slice checkpoint.
 
-Remaining work includes controller source/inspection/edit integration, occurrence-driven rendering, conflict interaction, artifact delivery, consumer contracts, shipped-asset disposition and consolidated independent qualification.
+The candidate now has the implemented source/inspection/edit integration, occurrence-driven rendering, conflict interaction and export routes described above.
+The local SLICE-005 candidate is assessed separately from redistribution: the six examples have an explicit regeneration disposition, while their publication notices and import-rights evidence remain open.
+The earlier status incorrectly treated that publication obligation as preventing completion of the local candidate; the accepted SLICE-005 exit requires the candidate and an asset disposition, not publication clearance.
+See the [SLICE-005 checkpoint](canonical-vowl-slice005-checkpoint.md) for the final verification boundary and authorized pause.
+The owner has waived full independent coverage of this consolidated post-checkpoint increment, as recorded below; the partial Claude coverage no longer blocks this increment.
+The historical developer benchmark is not a supported named-dialect input; production already removes it from its output.
+The six named public examples have the regenerated candidate routes recorded above, while their historical files remain intact.
+Initial browser/runtime, accessibility and resource observations have been collected without accepting SLICE-006 or changing production.
+Complete operating-envelope acceptance, freeze/publication and production cutover remain later gates.
+
+### Owner-approved bounded Claude integration review
+
+The owner approved one read-only Claude Code integration review capped at fifteen minutes, with no automatic retry or follow-up.
+The pass completed in 181.91 seconds using `claude-opus-5-5` and only Read/Grep/Glob tools.
+The reviewed base was `d77183ffa4c4dc52048df39b6c40f8b1562c0257`, including the working-tree delta and listed untracked candidate modules; before/after SHA-256 inventories confirmed unchanged source throughout the pass.
+The unrelated `skills-lock.json` deletion remains outside implementation and review scope.
+Exact prompt, tracked patch, provider output, stderr and source inventories are retained as `claude-integration-review*` in the external `live-recovery-20261003-01` evidence directory.
+No second reviewer invocation was run.
+
+The reviewer did not recommend acceptance as-is and explicitly reported partial coverage.
+Implementation-worker disposition of its five findings:
+
+1. **Mixed-case label/title language comparison: not reproduced within admitted inputs.**
+   The reviewer inspected validation but missed the lowercase value returned by `typedValues.js` for `LanguageTag` and `LanguageRange`.
+   A regression submits mixed-case label and title values through package editing, verifies lowercase inspection, and replaces both using a differently cased selection without duplicate assertions.
+   No editor comparison or wire contract was changed.
+2. **Routine checkpoint cloning: repaired.**
+   Session identity reads now return only generation/revision; semantic inspection is cloned separately only when needed, and original-source availability is projected from metadata without copying bytes.
+   Controller currentness checks and repeated drawing-export guards use the cheap identity accessor.
+   A regression verifies identity and source-availability queries never call `structuredClone`.
+   This removes avoidable archive copies; it is not a measured performance-envelope claim.
+3. **Local file read before size enforcement: repaired.**
+   The selector checks `File.size` against the owning loader's current input-byte limit before opening the syntax dialog or calling `arrayBuffer`.
+   The regression first reproduced the missing rejection and now verifies rejection without a file read or prompt.
+4. **Unrelated failure during a format-choice continuation: narrowed.**
+   A new attempt requires both the format callback and an abort-shaped failure; an unrelated parse failure propagates even if a format request was pending.
+   The controller regression covers this ordering and verifies that no prompt or retry occurs for that failure.
+5. **Residual literal without datatype: excluded by admission.**
+   The compatible source-statement grammar requires lexical value, datatype IRI and language; only direction is optional.
+   Checkpoint source literals likewise require a named-node datatype.
+   The suggested missing-datatype value cannot reach the public export through an admitted model, so no fallback literal or serializer shim was added.
+
+The focused repair run passed 78 tests and the repaired application repeated all 61 Chromium harness checks without console warnings or errors.
+The first governed affected run then exposed a declaration-order lint error in the new regression test through the development-server integration test; that test declaration was moved below its fixture declaration, and scoped lint passed before rerunning verification.
+The reviewer did not examine the full session load/commit/rollback implementation, renderer, scene registry, merge reconciliation, most editor commands, worker protocol, several UI consumers, WebMCP changes, build settings, example assets or test files.
+Those areas are explicitly **unreviewed by this pass**, not independently accepted.
+The repairs above were verified by the implementation worker and have not received a further independent pass.
+
+### Owner waiver of full independent coverage
+
+On 3 October 2026, after receiving the bounded Claude review outcome, repaired findings and explicit coverage limitations, the owner instructed: “Waive full independent coverage for this”.
+This waives the remaining independent-coverage requirement for the current SLICE-005 post-checkpoint integration increment and its finding repairs.
+The existing Claude report, unexamined areas and implementation-worker dispositions remain unchanged as evidence; this is an accepted coverage limitation, not a claim of full independent review.
+No additional reviewer or follow-up pass is required for this increment on coverage grounds alone.
+The waiver does not apply to future increments or waive source fidelity, functional checks, shipped-asset notices, SLICE-006 qualification, or release and production-cutover decisions.
+
+The repaired candidate passed the governed affected profile: 165 suites and 9,109 tests, run `cb8fbb10-d740-4287-bc33-53f8c2cb14fc`.
+The governed full profile passed the production build and its application formatting/lint prerequisites, run `59dcc9c9-6ae3-4cfb-b217-10da1684a3a0`.
+The candidate build, documentation checks and 61 real Chromium checks also passed.
+These receipts predate this documentation-only waiver entry; no product code changed when recording the decision.

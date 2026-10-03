@@ -330,7 +330,9 @@ function createGraph(
     // Nothing is renderable until a model has been placed. This replaces the
     // former question to the loading presentation about whether a load
     // succeeded, which the renderer must not ask.
-    isOntologyRenderable: () => renderedGraphSettings.data() !== undefined,
+    isOntologyRenderable: () =>
+      canonicalElements !== undefined ||
+      renderedGraphSettings.data() !== undefined,
     hasMissingImports: () => false,
     publishRenderProgress: () => undefined,
     publishRenderWarning: () => undefined,
@@ -2269,6 +2271,36 @@ function createGraph(
     }
   };
 
+  function prepareCanonicalDrawing(drawing) {
+    const { center, zoom: scale } = drawing.camera;
+    const translation = [
+      renderedGraphSettings.width() / 2 - scale * center.x,
+      renderedGraphSettings.height() / 2 - scale * center.y,
+    ];
+    if (
+      !isFinitePoint(center) ||
+      !Number.isFinite(scale) ||
+      scale <= 0 ||
+      !translation.every(Number.isFinite)
+    ) {
+      throw new TypeError(
+        "Canonical camera cannot be represented in this viewport.",
+      );
+    }
+    return {
+      elements: createCanonicalRenderElements(graph, drawing),
+      scale,
+      translation,
+    };
+  }
+
+  function applyCanonicalDisplay(display) {
+    renderedGraphSettings.compactNotation(display.compactNotation);
+    renderedGraphSettings
+      .colorExternalsModule()
+      .enabled(display.externalColoring);
+  }
+
   graph.load = function (
     loadGeneration,
     {
@@ -2280,20 +2312,16 @@ function createGraph(
   ) {
     // Prepare before retiring any mounted data. Canonical drawing rows bypass
     // the legacy parser and its topology-generating normalization entirely.
-    const prepared =
+    const candidate =
       canonicalDrawing === undefined
         ? undefined
-        : createCanonicalRenderElements(graph, canonicalDrawing);
+        : prepareCanonicalDrawing(canonicalDrawing);
+    const prepared = candidate?.elements;
     canonicalElements = prepared;
     if (prepared) {
       isPaused ??= true;
       centerViewport = false;
-      renderedGraphSettings.compactNotation(
-        canonicalDrawing.display.compactNotation,
-      );
-      renderedGraphSettings
-        .colorExternalsModule()
-        .enabled(canonicalDrawing.display.externalColoring);
+      applyCanonicalDisplay(canonicalDrawing.display);
     }
     if (initialLanguage !== undefined) {
       language = initialLanguage;
@@ -2328,9 +2356,11 @@ function createGraph(
       }
     }
     graph.update();
-    if (paused) {
-      // Pausing retains the arrangement; the new SVG can be drawn without
-      // waiting for an optimization tick that the reader has stopped.
+    if (paused || prepared) {
+      // Canonical drawings already have complete placements. Present them
+      // immediately even when layout is running; throttled simulation ticks
+      // must not hold the document's first paint hostage. Paused legacy loads
+      // likewise have no future optimization tick to reveal their drawing.
       updateRenderingDuringSimulation = true;
       initialLoad = false;
       finishedLoadingSequence = true;
@@ -2346,11 +2376,64 @@ function createGraph(
       }
     }
     if (prepared) {
-      const { center, zoom: scale } = canonicalDrawing.camera;
-      graph.setViewportTransform(scale, [
-        renderedGraphSettings.width() / 2 - scale * center.x,
-        renderedGraphSettings.height() / 2 - scale * center.y,
-      ]);
+      graph.setViewportTransform(candidate.scale, candidate.translation);
+    }
+  };
+
+  graph.applyCanonicalDrawingRevision = function (drawing) {
+    if (!canonicalElements) {
+      throw new Error("No canonical drawing is mounted.");
+    }
+    // Validate and materialize before invalidating the current interactions.
+    const candidate = prepareCanonicalDrawing(drawing);
+    const previous = {
+      elements: canonicalElements,
+      scale: zoomFactor,
+      translation: [...graphTranslation],
+      display: {
+        compactNotation: renderedGraphSettings.compactNotation(),
+        externalColoring: renderedGraphSettings
+          .colorExternalsModule()
+          .enabled(),
+      },
+    };
+    renderInteractionEpoch++;
+    releaseOwnedMouseGesture(activeMouseDrag);
+    activeMouseDrag = undefined;
+    createInteractionBehaviours(zoom);
+    bindViewportInteractions();
+    clearAllHover();
+    removeEditElements();
+    function install(prepared, display) {
+      canonicalElements = prepared.elements;
+      unfilteredData = {
+        nodes: prepared.elements.nodes,
+        properties: prepared.elements.properties,
+      };
+      applyCanonicalDisplay(display);
+      refreshOntologyMetadata();
+      generateDictionary(unfilteredData);
+      refreshGraphData();
+      drawCurrentGraphData();
+      graph.setViewportTransform(prepared.scale, prepared.translation);
+    }
+    try {
+      install(candidate, drawing.display);
+    } catch (error) {
+      // A DOM/layout failure can happen after the candidate has replaced some
+      // primitives. Reinstall the accepted primitives, including their live
+      // placement and pin state, before reporting the failed revision.
+      try {
+        install(previous, previous.display);
+      } catch (recoveryError) {
+        const failure = new AggregateError(
+          [error, recoveryError],
+          "Canonical drawing revision and recovery both failed.",
+        );
+        failure.code = "CANONICAL_DRAWING_RECOVERY_FAILED";
+        throw failure;
+      }
+      throw error;
     }
   };
 
@@ -3753,10 +3836,12 @@ function createGraph(
     ontologyEditingState.setEditorModeForDefaultObject(editMode);
     if (editMode === false) {
       seenEditorHint = false;
-      renderedGraphSettings.compactNotationModule().enabled(false);
-      renderedGraphSettings.literalFilter().enabled(false);
-      graph.executeCompactNotationModule();
-      graph.executeEmptyLiteralFilter();
+      if (!canonicalElements) {
+        renderedGraphSettings.compactNotationModule().enabled(false);
+        renderedGraphSettings.literalFilter().enabled(false);
+        graph.executeCompactNotationModule();
+        graph.executeEmptyLiteralFilter();
+      }
       graph.lazyRefresh();
     }
 
@@ -3781,6 +3866,12 @@ function createGraph(
 
   function createNewNodeAtPosition(pos) {
     const typeToCreate = ontologyEditingState.defaultClass();
+    if (canonicalElements) {
+      return renderedGraphEventPort.publishSemanticCreation?.({
+        type: typeToCreate,
+        position: { x: pos.x, y: pos.y },
+      });
+    }
     const prototype = NodePrototypeMap.get(typeToCreate.toLowerCase());
     const aNode = new prototype(graph);
     let autoEditElement = false;
@@ -4113,6 +4204,17 @@ function createGraph(
     // check type of the property that we want to create;
 
     const defaultPropertyName = ontologyEditingState.defaultProperty();
+    if (canonicalElements) {
+      return renderedGraphEventPort.publishSemanticCreation?.({
+        type: defaultPropertyName,
+        from: String(domain.id()),
+        to: String(range.id()),
+        position:
+          domain === range
+            ? { x: draggerEndposition[0], y: draggerEndposition[1] }
+            : { x: (domain.x + range.x) / 2, y: (domain.y + range.y) / 2 },
+      });
+    }
 
     // check if we are allow to create that property
     if (
@@ -4179,6 +4281,17 @@ function createGraph(
   graph.createDataTypeProperty = function (node) {
     if (!canEditCurrentElements(node)) {
       return;
+    }
+    if (canonicalElements) {
+      return renderedGraphEventPort.publishSemanticCreation?.({
+        type: "owl:datatypeProperty",
+        from: String(node.id()),
+        datatype: ontologyEditingState.defaultDatatype(),
+        position: {
+          x: node.x - node.actualRadius() / 2 - 50,
+          y: node.y + node.actualRadius() / 2 + 50,
+        },
+      });
     }
     // random postion issues;
     // tells user when element is filtered out

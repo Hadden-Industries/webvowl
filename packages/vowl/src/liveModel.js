@@ -1,8 +1,12 @@
 import { fail } from "./errors.js";
-import { profiles, categories } from "./profiles.js";
+import { profiles, categories, namespaces } from "./profiles.js";
 import { envelope } from "./modelContract.js";
 import { validateFields, walkTyped } from "./typedValues.js";
-import { validateGraph, validateMeaning } from "./validateGraph.js";
+import {
+  validateGraph,
+  validateMeaning,
+  createAssertionSupportLookup,
+} from "./validateGraph.js";
 import { validateProjection } from "./projection.js";
 import { snapshotSource, deepFreeze } from "./snapshot.js";
 import { jsonKey } from "./canonicalJson.js";
@@ -109,6 +113,33 @@ export function liveState(model) {
   return state;
 }
 
+/** Original acquisition bytes are historical evidence, never edited output. */
+export function readLiveModelSource(model, documentId, budget) {
+  liveState(model);
+  if (typeof documentId !== "string" || documentId.length === 0) {
+    fail("SOURCE_DOCUMENT_UNKNOWN");
+  }
+  const archive = archives.get(model);
+  if (!archive) {
+    fail("SOURCE_BYTES_UNAVAILABLE");
+  }
+  const document = archive.evidence.documents.find(
+    ({ id }) => id === documentId,
+  );
+  if (!document) {
+    fail("SOURCE_DOCUMENT_UNKNOWN");
+  }
+  budget.check();
+  const bytes = archive.readBytes(documentId, budget);
+  budget.check();
+  return Object.freeze({
+    bytes,
+    documentIri: document.documentIri,
+    mediaType: document.mediaType,
+    digest: document.digest,
+  });
+}
+
 /** Called only after the root surface verifies local canonical admission. */
 export async function openCanonicalState(document, bytes, budget) {
   const source = snapshotSource({ structural: document.structural }, budget);
@@ -200,11 +231,75 @@ export function openOwlState(source, archive, documentIri, budget) {
 
 function inspection(state, archive, budget) {
   const { occurrences, ...records } = state.structural;
+  const index = new Map(
+    allRecords(state.structural).map((record) => [record.id, record]),
+  );
+  const { support } = createAssertionSupportLookup(
+    state.structural,
+    (id) => index.get(id),
+    budget,
+  );
+  const signature = new Map(
+    records.roles.map((role) => [
+      JSON.stringify([index.get(role.subject).iri, role.kind]),
+      role.id,
+    ]),
+  );
+  function references(value, type) {
+    const required = new Set();
+    walkTyped(value, type, (item, shape) => {
+      budget.check();
+      if (shape?.reference) {
+        required.add(item);
+      }
+      // A5 signature dependencies are semantic even where the wire carries an
+      // IRI scalar: deleting these roles must include their dependent facts.
+      if (shape?.fields?.predicate) {
+        required.add(
+          signature.get(
+            JSON.stringify([item.predicate, "annotation-property"]),
+          ),
+        );
+      }
+      if (shape?.fields?.lexical && ["typed", "language"].includes(item.kind)) {
+        required.add(
+          signature.get(
+            JSON.stringify([
+              item.kind === "language"
+                ? namespaces.rdf + "langString"
+                : item.datatype,
+              "datatype",
+            ]),
+          ),
+        );
+      }
+    });
+    return required;
+  }
+  const dependencies = [
+    ["subjects", "Subject"],
+    ["roles", "Role"],
+    ["expressions", "Expression"],
+    ["constructs", "Construct"],
+  ].flatMap(([collection, type]) =>
+    records[collection].map((record) => {
+      const required = references(record, type);
+      if (record.kind === "assertion-anchor") {
+        const supported = support(record.assertion);
+        if (supported !== undefined) {
+          required.add(supported);
+        }
+      }
+      return { record: record.id, requires: [...required] };
+    }),
+  );
   // All values are recursively frozen, owned plain data, never dependency objects.
   return deepFreeze({
     revision: state.revision,
     origin: state.origin,
     records,
+    dependencies,
+    ontologyDependencies: [...references(records.ontology, "Ontology")],
     occurrences,
     documents: [],
     imports: [],

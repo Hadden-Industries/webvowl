@@ -238,6 +238,7 @@ export function createCanonicalVowlRenderProjection(inspection, visualization) {
     labels,
     camera: structuredClone(visualization.camera),
     display: structuredClone(visualization.display),
+    labelSelection: structuredClone(visualization.labelSelection),
     // Exact retained facts remain available for partial/details-only renderings.
     inspection: structuredClone(inspection),
   };

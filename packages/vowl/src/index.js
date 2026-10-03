@@ -28,6 +28,7 @@ import {
   checkpointLiveModel,
   readmitLiveModel,
   captureQualifications,
+  readLiveModelSource,
 } from "./liveModel.js";
 import { registerOwlAdmission } from "./modelAdmission.js";
 import {
@@ -334,6 +335,18 @@ export async function checkpointModel(model, options) {
   try {
     requireModel(model);
     return checkpointLiveModel(model, budget);
+  } finally {
+    budget.dispose();
+  }
+}
+
+/** Return a disposable copy of one exact original input document. */
+export async function readModelSource(model, documentId, options) {
+  const opts = optionRecord(options, ["limits", "signal"]);
+  const budget = new ResourceBudget(opts, performance.now());
+  try {
+    requireModel(model);
+    return readLiveModelSource(model, documentId, budget);
   } finally {
     budget.dispose();
   }

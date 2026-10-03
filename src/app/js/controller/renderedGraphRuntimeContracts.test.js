@@ -54,6 +54,31 @@ test("reports the selected document record independently of semantic IRI selecti
 
 const SVG_NAMESPACE_IRI = "http://www.w3.org/2000/svg";
 
+test("inspection owns shared relation groups and rejects invalid indices", () => {
+  const source = createOntologyInspectionSnapshotSource();
+  source.relationGroups = [[source.classRecords[0].ontologyElementReference]];
+  source.classRecords[0].relationGroups = { equivalentClassReferences: [0] };
+  const snapshot = createOntologyInspectionSnapshot(source);
+  source.relationGroups[0].push(
+    source.propertyRecords[0].ontologyElementReference,
+  );
+  expect(snapshot.relationGroups[0]).toHaveLength(1);
+  expect(Object.isFrozen(snapshot.relationGroups[0])).toBe(true);
+  expect(
+    Object.isFrozen(
+      snapshot.classRecords[0].relationGroups.equivalentClassReferences,
+    ),
+  ).toBe(true);
+  source.classRecords[0].relationGroups.equivalentClassReferences = [1];
+  expect(() => createOntologyInspectionSnapshot(source)).toThrow(
+    /out of bounds/,
+  );
+  source.classRecords[0].relationGroups = { labelRecords: [0] };
+  expect(() => createOntologyInspectionSnapshot(source)).toThrow(
+    /Invalid inspection/,
+  );
+});
+
 // Every element record carries the same descriptive fields; a fixture only
 // names the ones a given assertion cares about.
 function describedElementFields(overrides = {}) {
@@ -341,6 +366,7 @@ describe("rendered graph events", () => {
       "document-record-selection-changed",
       "record-label-edit-requested",
       "record-creation-requested",
+      "semantic-creation-requested",
       "record-endpoint-edit-requested",
       "record-deletion-requested",
       "viewport-changed",
@@ -698,18 +724,21 @@ describe("visible rendered graph snapshots", () => {
     expectPlainDataDeeplyFrozen(snapshot);
   });
 
-  test("rejects visible counts that disagree with the projected references", () => {
-    expect(() =>
-      createVisibleRenderedGraphSnapshot({
-        loadGeneration: 3,
-        visibleElementReferences: [],
-        visibleRelationshipReferences: [],
-        visibleGraphCounts: {
-          visibleNodeCount: 1,
-          visiblePropertyCount: 0,
-        },
-      }),
-    ).toThrow("visibleNodeCount");
+  test("keeps glyph counts distinct from grouped semantic references", () => {
+    const snapshot = createVisibleRenderedGraphSnapshot({
+      loadGeneration: 3,
+      visibleElementReferences: [
+        { kind: "class", iri: "urn:A" },
+        { kind: "class", iri: "urn:B" },
+      ],
+      visibleRelationshipReferences: [],
+      visibleGraphCounts: {
+        visibleNodeCount: 1,
+        visiblePropertyCount: 0,
+      },
+    });
+    expect(snapshot.visibleGraphCounts.visibleNodeCount).toBe(1);
+    expect(snapshot.visibleElementReferences).toHaveLength(2);
   });
 });
 

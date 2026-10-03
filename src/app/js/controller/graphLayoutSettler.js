@@ -303,7 +303,8 @@ export function createGraphLayoutSettler(dependencies) {
               );
             if (
               isComparableFrame &&
-              graphLayoutSnapshot.forceAlpha <= SETTLED_FORCE_ALPHA &&
+              (graphLayoutSnapshot.isPaused ||
+                graphLayoutSnapshot.forceAlpha <= SETTLED_FORCE_ALPHA) &&
               maximumLayoutDisplacement(
                 previousPositionsByKey,
                 currentPositionsByKey,

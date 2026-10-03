@@ -37,9 +37,24 @@ The compatible-view implementation now includes the canonical-origin live-model 
 `openCanonical(document, {signal, limits})` requires local canonical admission and returns `{model, correspondence}`.
 The opaque, immutable live token carries a revision; `inspectModel(model)` exposes frozen retained records, occurrences and support with original-source coverage explicitly unavailable.
 It conveys neither source-preservation evidence nor canonical encoding authority.
+Inspection also exposes `dependencies`, one `{record, requires}` row per semantic record, and `ontologyDependencies` for ontology annotations.
+These include typed references, finite annotation/literal signature requirements, and exact declaration/direct/normalized-endpoint assertion support.
+They are revision-local dependency information, not permission to cascade deletion.
+Applications can prepare explicit removal batches from them, then inspect the pure `editModel` result and correspondence to describe all actual losses before accepting the candidate.
+No dependency information changes frozen canonical bytes or grants encoding authority.
 
 `editModel(model, changes, {signal, limits})` reuses the five-operation normalizer and returns `{model, correspondence, created}` without running RDFC.
 `checkpointModel(model, {signal, limits})` returns a defensive session checkpoint; `readmitModel(checkpoint, {signal, limits})` validates its version, closed fields, normalized structure, complete projection and support references before returning `{model, correspondence}`.
+
+`readModelSource(model, documentId, {signal, limits})` returns `{bytes, documentIri, mediaType, digest}` for an original acquired input identified by inspection.
+The returned bytes are a disposable copy and remain the original input after edits; `SOURCE_DOCUMENT_UNKNOWN` rejects unknown IDs and `SOURCE_BYTES_UNAVAILABLE` reports portable models without an acquisition archive.
+
+`exportModelRdf(model, {signal, limits})` on `vowl/owl` returns `{bytes, scope}` for the current retained semantic revision as UTF-8 Turtle.
+The closed scope report contains `revision`, `kind: "flattened-retained-closure"`, `mediaType: "text/turtle"` and `qualified`.
+This is an edited ontology export, not original-source recovery or a portable qualification artifact.
+The package owns the OWL/RDF mapping and preserves expressible retained RDF without choosing a new property category.
+Unrepresentable graph scope, directed literals or unresolved residual-to-structural blank-node identity fail with `RDF_EXPORT_UNREPRESENTABLE` before any publication.
+The existing finite budgets and cancellation apply to both operations; neither changes canonical profile bytes.
 Readmission performs no network acquisition or canonicalization.
 The application must preserve and reconcile the complete scene alongside the checkpoint.
 
